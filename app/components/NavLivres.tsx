@@ -1,14 +1,7 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-
-const TRADUCTIONS = [
-  { code: 'trad_sacy', label: 'Sacy' },
-  { code: 'trad_lsg', label: 'Segond' },
-  { code: 'trad_crampon', label: 'Crampon' },
-  { code: 'trad_vulgate', label: 'Vulgate' },
-]
 
 const NB_CHAPITRES: Record<string, number> = {
   GEN:50,EXO:40,LEV:27,NUM:36,DEU:34,JOS:24,JDG:21,RUT:4,
@@ -23,16 +16,18 @@ const NB_CHAPITRES: Record<string, number> = {
 }
 
 type Livre = { code: string; nom: string; testament: string }
+type Traduction = { code: 'trad_sacy' | 'trad_lsg' | 'trad_crampon' | 'trad_vulgate'; label: string }
 
 type Props = {
   livres: Livre[]
   livreActif: string
   chapitreActif: number
-  traduction: string
-  setTraduction: (t: any) => void
+  traductionIndex: number
+  setTraductionIndex: (i: number) => void
+  traductions: Traduction[]
 }
 
-export default function NavLivres({ livres, livreActif, chapitreActif, traduction, setTraduction }: Props) {
+export default function NavLivres({ livres, livreActif, chapitreActif, traductionIndex, setTraductionIndex, traductions }: Props) {
   const [recherche, setRecherche] = useState('')
   const [livreOuvert, setLivreOuvert] = useState<string | null>(livreActif)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -47,17 +42,17 @@ export default function NavLivres({ livres, livreActif, chapitreActif, traductio
   const handleLivre = (code: string) => {
     const pos = scrollRef.current?.scrollTop || 0
     setLivreOuvert(livreOuvert === code ? null : code)
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       if (scrollRef.current) scrollRef.current.scrollTop = pos
-    }, 0)
+    })
   }
 
   const handleChapitre = (code: string, ch: number) => {
     const pos = scrollRef.current?.scrollTop || 0
     router.push(`/?livre=${code}&chapitre=${ch}`)
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       if (scrollRef.current) scrollRef.current.scrollTop = pos
-    }, 50)
+    })
   }
 
   const renderLivre = (livre: Livre) => {
@@ -69,25 +64,25 @@ export default function NavLivres({ livres, livreActif, chapitreActif, traductio
       <div key={livre.code}>
         <button
           onClick={() => handleLivre(livre.code)}
-          className={`w-full text-left px-2 py-1.5 rounded text-sm flex justify-between items-center ${
+          className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center ${
             actif
               ? 'bg-violet-50 text-violet-800 font-medium'
-              : 'text-stone-700 hover:bg-stone-100'
+              : 'text-stone-600 hover:bg-stone-100'
           }`}
         >
           <span>{livre.nom}</span>
-          <span className="text-stone-400 text-xs">{ouvert ? '▲' : '▼'}</span>
+          <span className="text-stone-300 text-xs">{ouvert ? '▲' : '▼'}</span>
         </button>
         {ouvert && (
-          <div className="flex flex-wrap gap-1 px-2 pb-2">
+          <div className="flex flex-wrap gap-0.5 px-2 pb-1.5 pt-0.5">
             {Array.from({ length: nb }, (_, i) => i + 1).map(ch => (
               <button
                 key={ch}
                 onClick={() => handleChapitre(livre.code, ch)}
-                className={`text-xs w-7 h-7 rounded ${
+                className={`text-xs w-6 h-6 rounded ${
                   actif && chapitreActif === ch
                     ? 'bg-violet-700 text-white'
-                    : 'bg-stone-100 text-stone-600 hover:bg-violet-100 hover:text-violet-700'
+                    : 'bg-stone-100 text-stone-500 hover:bg-violet-100 hover:text-violet-700'
                 }`}
               >
                 {ch}
@@ -100,16 +95,16 @@ export default function NavLivres({ livres, livreActif, chapitreActif, traductio
   }
 
   return (
-    <div className="w-48 bg-white border-r border-stone-200 flex flex-col h-screen">
+    <div className="w-44 bg-white border-r border-stone-200 flex flex-col h-screen">
       <div className="p-3 border-b border-stone-200">
         <p className="text-xs font-medium text-stone-400 mb-2">TRADUCTION</p>
-        <div className="flex flex-wrap gap-1 mb-3">
-          {TRADUCTIONS.map(t => (
+        <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
+          {traductions.map((t, i) => (
             <button
               key={t.code}
-              onClick={() => setTraduction(t.code)}
-              className={`text-xs px-2 py-1 rounded ${
-                traduction === t.code
+              onClick={() => setTraductionIndex(i)}
+              className={`text-xs px-2 py-1 rounded whitespace-nowrap flex-shrink-0 ${
+                traductionIndex === i
                   ? 'bg-violet-700 text-white'
                   : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
               }`}
@@ -123,19 +118,19 @@ export default function NavLivres({ livres, livreActif, chapitreActif, traductio
           placeholder="Rechercher un livre…"
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
-          className="w-full text-xs px-2 py-1.5 border border-stone-200 rounded bg-stone-50 focus:outline-none focus:border-violet-400 text-stone-800 placeholder-stone-500"
+          className="w-full text-xs px-2 py-1.5 mt-2 border border-stone-200 rounded bg-stone-50 focus:outline-none focus:border-violet-400 text-stone-800 placeholder-stone-500"
         />
       </div>
       <div ref={scrollRef} className="overflow-y-auto flex-1 p-2">
         {AT.length > 0 && (
           <>
-            <p className="text-xs font-medium text-stone-400 px-2 py-2">ANCIEN TESTAMENT</p>
+            <p className="text-xs font-medium text-stone-400 px-2 py-1.5">ANCIEN TESTAMENT</p>
             {AT.map(renderLivre)}
           </>
         )}
         {NT.length > 0 && (
           <>
-            <p className="text-xs font-medium text-stone-400 px-2 py-2 mt-2">NOUVEAU TESTAMENT</p>
+            <p className="text-xs font-medium text-stone-400 px-2 py-1.5 mt-1">NOUVEAU TESTAMENT</p>
             {NT.map(renderLivre)}
           </>
         )}

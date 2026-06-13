@@ -21,9 +21,18 @@ type Props = {
   nomLivre: string
 }
 
+const TRADUCTIONS = [
+  { code: 'trad_sacy' as const, label: 'Sacy 1759' },
+  { code: 'trad_lsg' as const, label: 'Segond' },
+  { code: 'trad_crampon' as const, label: 'Crampon' },
+  { code: 'trad_vulgate' as const, label: 'Vulgate' },
+]
+
 export default function BibleLayout({ livres, versets, livreActif, chapitreActif, nomLivre }: Props) {
-  const [traduction, setTraduction] = useState<'trad_sacy' | 'trad_lsg' | 'trad_crampon' | 'trad_vulgate'>('trad_sacy')
+  const [traductionIndex, setTraductionIndex] = useState(0)
   const [versetSelectionne, setVersetSelectionne] = useState<Verset | null>(null)
+
+  const traduction = TRADUCTIONS[traductionIndex].code
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -31,8 +40,9 @@ export default function BibleLayout({ livres, versets, livreActif, chapitreActif
         livres={livres}
         livreActif={livreActif}
         chapitreActif={chapitreActif}
-        traduction={traduction}
-        setTraduction={setTraduction}
+        traductionIndex={traductionIndex}
+        setTraductionIndex={setTraductionIndex}
+        traductions={TRADUCTIONS}
       />
       <TexteBible
         versets={versets}

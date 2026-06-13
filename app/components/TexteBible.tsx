@@ -24,27 +24,31 @@ export default function TexteBible({
   return (
     <div className="flex-1 bg-white flex flex-col h-screen overflow-hidden">
       <div className="px-8 py-4 border-b border-stone-200">
-        <h1 className="text-lg font-medium text-stone-900">
-          {nomLivre} — Chapitre {chapitreActif}
-        </h1>
-        <div className="flex gap-4 mt-1">
-          {chapitreActif > 1 && (
+        <div className="flex items-center justify-center gap-4">
+          {chapitreActif > 1 ? (
             <a
               href={`/?livre=${livreActif}&chapitre=${chapitreActif - 1}`}
-              className="text-xs text-violet-700 hover:underline"
+              className="text-stone-400 hover:text-violet-700 text-lg leading-none"
+              title="Chapitre précédent"
             >
-              ← chapitre précédent
+              ‹
             </a>
+          ) : (
+            <span className="text-stone-200 text-lg leading-none">‹</span>
           )}
+          <h1 className="text-base font-medium text-stone-900">
+            {nomLivre} &ndash; Chapitre {chapitreActif}
+          </h1>
           <a
             href={`/?livre=${livreActif}&chapitre=${chapitreActif + 1}`}
-            className="text-xs text-violet-700 hover:underline"
+            className="text-stone-400 hover:text-violet-700 text-lg leading-none"
+            title="Chapitre suivant"
           >
-            chapitre suivant →
+            ›
           </a>
         </div>
       </div>
-      <div className="overflow-y-auto flex-1 px-8 py-6">
+      <div className="overflow-y-auto flex-1 px-8 py-6 max-w-2xl mx-auto w-full">
         {versets.map(v => (
           <div
             key={v.id_verset}
