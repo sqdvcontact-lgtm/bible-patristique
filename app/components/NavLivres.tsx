@@ -27,9 +27,13 @@ type Props = {
   traductions: Traduction[]
 }
 
-export default function NavLivres({ livres, livreActif, chapitreActif, traductionIndex, setTraductionIndex, traductions }: Props) {
+export default function NavLivres({
+  livres, livreActif, chapitreActif,
+  traductionIndex, setTraductionIndex, traductions
+}: Props) {
   const [recherche, setRecherche] = useState('')
   const [livreOuvert, setLivreOuvert] = useState<string | null>(livreActif)
+  const [tradOuverte, setTradOuverte] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
@@ -55,6 +59,11 @@ export default function NavLivres({ livres, livreActif, chapitreActif, traductio
     })
   }
 
+  const handleTrad = (i: number) => {
+    setTraductionIndex(i)
+    setTradOuverte(false)
+  }
+
   const renderLivre = (livre: Livre) => {
     const ouvert = livreOuvert === livre.code
     const actif = livreActif === livre.code
@@ -64,26 +73,41 @@ export default function NavLivres({ livres, livreActif, chapitreActif, traductio
       <div key={livre.code}>
         <button
           onClick={() => handleLivre(livre.code)}
-          className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between items-center ${
-            actif
-              ? 'bg-violet-50 text-violet-800 font-medium'
-              : 'text-stone-600 hover:bg-stone-100'
-          }`}
+          style={{
+            width: '100%',
+            textAlign: 'left',
+            padding: '3px 8px',
+            borderRadius: '4px',
+            fontSize: '11.5px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: actif ? 'rgba(61,107,79,0.10)' : 'transparent',
+            color: actif ? '#2a3d30' : '#5a6055',
+            fontWeight: actif ? 500 : 400,
+            border: 'none',
+            cursor: 'pointer',
+          }}
         >
           <span>{livre.nom}</span>
-          <span className="text-stone-300 text-xs">{ouvert ? '▲' : '▼'}</span>
+          <span style={{ color: '#c0bab0', fontSize: '9px' }}>{ouvert ? '▲' : '▼'}</span>
         </button>
         {ouvert && (
-          <div className="flex flex-wrap gap-0.5 px-2 pb-1.5 pt-0.5">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '2px 8px 6px' }}>
             {Array.from({ length: nb }, (_, i) => i + 1).map(ch => (
               <button
                 key={ch}
                 onClick={() => handleChapitre(livre.code, ch)}
-                className={`text-xs w-6 h-6 rounded ${
-                  actif && chapitreActif === ch
-                    ? 'bg-violet-700 text-white'
-                    : 'bg-stone-100 text-stone-500 hover:bg-violet-100 hover:text-violet-700'
-                }`}
+                style={{
+                  fontSize: '10px',
+                  width: '22px',
+                  height: '22px',
+                  borderRadius: '3px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: actif && chapitreActif === ch ? '#3d6b4f' : '#ebe7e0',
+                  color: actif && chapitreActif === ch ? '#fff' : '#6b6560',
+                }}
               >
                 {ch}
               </button>
@@ -95,47 +119,120 @@ export default function NavLivres({ livres, livreActif, chapitreActif, traductio
   }
 
   return (
-    <div className="w-44 bg-white border-r border-stone-200 flex flex-col h-screen">
-      <div className="p-3 border-b border-stone-200">
-        <p className="text-xs font-medium text-stone-400 mb-2">TRADUCTION</p>
-        <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
-          {traductions.map((t, i) => (
-            <button
-              key={t.code}
-              onClick={() => setTraductionIndex(i)}
-              className={`text-xs px-2 py-1 rounded whitespace-nowrap flex-shrink-0 ${
-                traductionIndex === i
-                  ? 'bg-violet-700 text-white'
-                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+    <div style={{
+      width: '168px',
+      flexShrink: 0,
+      background: '#faf8f4',
+      borderRight: '1px solid #d6d0c4',
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+    }}>
+      <div style={{ padding: '10px 10px 8px', borderBottom: '1px solid #d6d0c4' }}>
+
+        {/* Sélecteur de traduction — dropdown */}
+        <p style={{ fontSize: '9.5px', fontWeight: 600, letterSpacing: '0.08em', color: '#9a958d', marginBottom: '5px' }}>
+          TRADUCTION
+        </p>
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setTradOuverte(!tradOuverte)}
+            style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '5px 8px',
+              borderRadius: '5px',
+              border: '1px solid #d6d0c4',
+              background: '#fff',
+              fontSize: '11.5px',
+              color: '#2a3d30',
+              cursor: 'pointer',
+              fontWeight: 500,
+            }}
+          >
+            <span>{traductions[traductionIndex]?.label}</span>
+            <span style={{ color: '#9a958d', fontSize: '9px' }}>{tradOuverte ? '▲' : '▼'}</span>
+          </button>
+          {tradOuverte && (
+            <div style={{
+              position: 'absolute',
+              top: 'calc(100% + 3px)',
+              left: 0,
+              right: 0,
+              background: '#fff',
+              border: '1px solid #d6d0c4',
+              borderRadius: '5px',
+              zIndex: 50,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+              maxHeight: '200px',
+              overflowY: 'auto',
+            }}>
+              {traductions.map((t, i) => (
+                <button
+                  key={t.code}
+                  onClick={() => handleTrad(i)}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '7px 10px',
+                    fontSize: '11.5px',
+                    border: 'none',
+                    borderBottom: i < traductions.length - 1 ? '1px solid #ede9e2' : 'none',
+                    background: traductionIndex === i ? 'rgba(61,107,79,0.08)' : '#fff',
+                    color: traductionIndex === i ? '#3d6b4f' : '#3a3530',
+                    fontWeight: traductionIndex === i ? 500 : 400,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
+
+        {/* Recherche livre */}
         <input
           type="text"
           placeholder="Rechercher un livre…"
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
-          className="w-full text-xs px-2 py-1.5 mt-2 border border-stone-200 rounded bg-stone-50 focus:outline-none focus:border-violet-400 text-stone-800 placeholder-stone-500"
+          style={{
+            width: '100%',
+            fontSize: '11px',
+            padding: '5px 8px',
+            marginTop: '7px',
+            border: '1px solid #d6d0c4',
+            borderRadius: '4px',
+            background: '#f3f0ea',
+            color: '#3a3530',
+            outline: 'none',
+          }}
         />
       </div>
-      <div ref={scrollRef} className="overflow-y-auto flex-1 p-2">
+
+      {/* Liste des livres */}
+      <div ref={scrollRef} style={{ overflowY: 'auto', flex: 1, padding: '6px' }}>
         {AT.length > 0 && (
           <>
-            <p className="text-xs font-medium text-stone-400 px-2 py-1.5">ANCIEN TESTAMENT</p>
+            <p style={{ fontSize: '9.5px', fontWeight: 600, letterSpacing: '0.08em', color: '#9a958d', padding: '6px 8px 3px' }}>
+              ANCIEN TESTAMENT
+            </p>
             {AT.map(renderLivre)}
           </>
         )}
         {NT.length > 0 && (
           <>
-            <p className="text-xs font-medium text-stone-400 px-2 py-1.5 mt-1">NOUVEAU TESTAMENT</p>
+            <p style={{ fontSize: '9.5px', fontWeight: 600, letterSpacing: '0.08em', color: '#9a958d', padding: '8px 8px 3px' }}>
+              NOUVEAU TESTAMENT
+            </p>
             {NT.map(renderLivre)}
           </>
         )}
         {AT.length === 0 && NT.length === 0 && (
-          <p className="text-xs text-stone-400 text-center py-4">Aucun résultat</p>
+          <p style={{ fontSize: '11px', color: '#9a958d', textAlign: 'center', padding: '16px 0' }}>Aucun résultat</p>
         )}
       </div>
     </div>

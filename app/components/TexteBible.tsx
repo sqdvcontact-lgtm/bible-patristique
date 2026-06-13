@@ -22,50 +22,76 @@ export default function TexteBible({
   versetSelectionne, setVersetSelectionne
 }: Props) {
   return (
-    <div className="flex-1 bg-white flex flex-col h-screen overflow-hidden">
-      <div className="px-8 py-4 border-b border-stone-200">
+    <div className="flex-1 flex flex-col h-screen overflow-hidden" style={{ background: '#f7f4ef' }}>
+      {/* En-tête chapitre */}
+      <div className="px-8 py-3 border-b" style={{ borderColor: '#d6d0c4', background: '#f7f4ef' }}>
         <div className="flex items-center justify-center gap-4">
           {chapitreActif > 1 ? (
             <a
               href={`/?livre=${livreActif}&chapitre=${chapitreActif - 1}`}
-              className="text-stone-400 hover:text-violet-700 text-lg leading-none"
+              className="text-lg leading-none transition-colors"
+              style={{ color: '#9a958d' }}
               title="Chapitre précédent"
             >
               ‹
             </a>
           ) : (
-            <span className="text-stone-200 text-lg leading-none">‹</span>
+            <span className="text-lg leading-none" style={{ color: '#d6d0c4' }}>‹</span>
           )}
-          <h1 className="text-base font-medium text-stone-900">
+          <h1 style={{
+            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontSize: '1.05rem',
+            fontWeight: 'normal',
+            color: '#2a3d30',
+            letterSpacing: '0.01em',
+          }}>
             {nomLivre} &ndash; Chapitre {chapitreActif}
           </h1>
           <a
             href={`/?livre=${livreActif}&chapitre=${chapitreActif + 1}`}
-            className="text-stone-400 hover:text-violet-700 text-lg leading-none"
+            className="text-lg leading-none transition-colors"
+            style={{ color: '#9a958d' }}
             title="Chapitre suivant"
           >
             ›
           </a>
         </div>
       </div>
-      <div className="overflow-y-auto flex-1 px-8 py-6 max-w-2xl mx-auto w-full">
+
+      {/* Corps — versets */}
+      <div className="overflow-y-auto flex-1 px-8 py-5 max-w-2xl mx-auto w-full">
+        <style>{`
+          .verset-row { display: flex; gap: 10px; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
+          .verset-row:hover { background: rgba(61,107,79,0.05); }
+          .verset-row--actif { background: rgba(61,107,79,0.10) !important; }
+          .nav-chap-arrow:hover { color: #3d6b4f !important; }
+        `}</style>
         {versets.map(v => (
           <div
             key={v.id_verset}
             onClick={() => setVersetSelectionne(
               versetSelectionne?.id_verset === v.id_verset ? null : v
             )}
-            className={`flex gap-3 py-2 px-3 rounded cursor-pointer ${
-              versetSelectionne?.id_verset === v.id_verset
-                ? 'bg-violet-50'
-                : 'hover:bg-stone-50'
-            }`}
+            className={`verset-row${versetSelectionne?.id_verset === v.id_verset ? ' verset-row--actif' : ''}`}
           >
-            <span className="text-xs font-medium text-stone-400 mt-1 w-5 shrink-0">
+            <span style={{
+              fontSize: '10px',
+              fontWeight: 600,
+              color: '#b0a89e',
+              marginTop: '3px',
+              width: '16px',
+              flexShrink: 0,
+              lineHeight: 1.6,
+            }}>
               {v.verset}
             </span>
-            <p className="text-sm leading-relaxed text-stone-800">
-              {v[traduction] || <span className="text-stone-300 italic">—</span>}
+            <p style={{
+              fontSize: '0.84rem',
+              lineHeight: '1.55',
+              color: '#1e1a16',
+              margin: 0,
+            }}>
+              {v[traduction] || <span style={{ color: '#d6d0c4', fontStyle: 'italic' }}>—</span>}
             </p>
           </div>
         ))}
