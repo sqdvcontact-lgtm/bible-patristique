@@ -548,7 +548,7 @@ function SectionTraductions({ traductions: init }: { traductions: Traduction[] }
               </div>
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
                 {statut?.id === t.trad_id && (
-                  <span style={{ fontSize: '11.5px', color: statut.ok ? '#3d6b4f' : '#c0562a' }}>{statut.ok ? '✓' : '✗'} {statut.msg}</span>
+                  <span style={{ fontSize: '11.5px', color: statut?.ok ? '#3d6b4f' : '#c0562a' }}>{statut?.ok ? '✓' : '✗'} {statut?.msg}</span>
                 )}
                 <button onClick={fermer} style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
                 <button onClick={sauvegarder} style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
@@ -1827,8 +1827,8 @@ function SectionAuteurs() {
                       </div>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
                         {statut?.id === a.id_auteur && (
-                          <span style={{ fontSize: '11.5px', color: statut.ok ? '#3d6b4f' : '#c0562a' }}>
-                            {statut.ok ? '✓' : '✗'} {statut.msg}
+                          <span style={{ fontSize: '11.5px', color: statut?.ok ? '#3d6b4f' : '#c0562a' }}>
+                            {statut?.ok ? '✓' : '✗'} {statut?.msg}
                           </span>
                         )}
                         <button onClick={fermer} style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
