@@ -20,8 +20,8 @@ export default function Navbar() {
   const [menuOuvert, setMenuOuvert] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null));
+    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ? { email: data.session.user.email ?? '' } : null));
+    const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ? { email: session.user.email ?? '' } : null));
     return () => listener.subscription.unsubscribe();
   }, []);
 
