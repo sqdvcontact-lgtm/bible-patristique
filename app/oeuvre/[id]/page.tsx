@@ -11,6 +11,7 @@ type Segment = {
   ref_niv1: string|null; ref_niv2: string|null; ref_niv3: string|null
   ref_niv4: string|null; ref_niv5: string|null
   lien_1: string|null; lien_2: string|null; lien_3: string|null; lien_4: string|null
+  nature: string|null
 }
 
 function extraireVersets(s: Segment): string[] {
@@ -59,64 +60,127 @@ function refFr(ref:string):string{
 export default async function OeuvrePage({params}:{params:Promise<{id:string}>}) {
   const {id}=await params
 
-  const {data:oeuvre}=await supabase.from('oeuvres').select('*, auteurs(nom)').eq('id_oeuvre',id).single()
-  const {data:segments}=await supabase.from('segments').select('*').eq('id_oeuvre',id).order('segment_numero')
+  // Requêtes parallèles : oeuvre + segments en même temps
+  const [{ data: oeuvre }, segmentsResult] = await Promise.all([
+    supabase.from('oeuvres').select('*, auteurs(nom)').eq('id_oeuvre', id).single(),
+    // Supabase limite à 1000 par requête — on récupère tout via pagination parallèle
+    (async () => {
+      // D'abord compter
+      const { count } = await supabase
+        .from('segments')
+        .select('*', { count: 'exact', head: true })
+        .eq('id_oeuvre', id)
 
-  if(!oeuvre)return(
+      const total = count ?? 0
+      const PAGE = 1000
+      const pages = Math.ceil(total / PAGE)
+
+      // Toutes les pages en parallèle
+      const fetches = Array.from({ length: pages }, (_, i) =>
+        supabase
+          .from('segments')
+          .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,lien_1,lien_2,lien_3,lien_4,nature')
+          .eq('id_oeuvre', id)
+          .order('segment_numero')
+          .range(i * PAGE, (i + 1) * PAGE - 1)
+      )
+      const results = await Promise.all(fetches)
+      return results.flatMap(r => r.data ?? [])
+    })()
+  ])
+
+  if (!oeuvre) return (
     <div className="min-h-screen flex items-center justify-center" style={{background:'#f7f4ef'}}>
       <p style={{color:'#8a8278'}}>Œuvre introuvable.</p>
     </div>
   )
 
-  const tousIds=new Set<string>()
-  segments?.forEach(s=>extraireVersets(s).forEach(v=>tousIds.add(v)))
+  const segments = segmentsResult as Segment[]
+  const segmentsTexte = segments.filter(s => s.nature !== 'apparat_critique')
+  const segmentsApparat = segments.filter(s => s.nature === 'apparat_critique')
 
-  const {data:versetsData}=await supabase
-    .from('versets')
-    .select('id_verset, ref, trad_sacy, trad_lsg, trad_crampon, trad_vulgate')
-    .in('id_verset',Array.from(tousIds))
+  // Collecter les id_verset uniques
+  const tousIds = new Set<string>()
+  segments.forEach(s => extraireVersets(s).forEach(v => tousIds.add(v)))
+  const tousIdsArray = Array.from(tousIds)
 
-  const versetMap:Record<string,{label:string;textes:Record<string,string>;livre:string;chapitre:string;verset:string}>= {}
-  versetsData?.forEach(v=>{
-    const p=v.ref.trim().split(' ')
-    const cv=(p[1]||'1:1').split(':')
-    versetMap[v.id_verset]={
-      label:refFr(v.ref),
-      textes:{trad_sacy:v.trad_sacy||'',trad_lsg:v.trad_lsg||'',trad_crampon:v.trad_crampon||'',trad_vulgate:v.trad_vulgate||''},
-      livre:p[0], chapitre:cv[0], verset:cv[1]||'1',
+  // Versets en parallèle aussi
+  let versetsData: any[] = []
+  if (tousIdsArray.length > 0) {
+    const batchSize = 500
+    const batches = Array.from(
+      { length: Math.ceil(tousIdsArray.length / batchSize) },
+      (_, i) => tousIdsArray.slice(i * batchSize, (i + 1) * batchSize)
+    )
+    const results = await Promise.all(
+      batches.map(batch =>
+        supabase
+          .from('versets')
+          .select('id_verset, ref, "TR0001", "TR0002", "TR0003", "TR0004"')
+          .in('id_verset', batch)
+      )
+    )
+    versetsData = results.flatMap(r => r.data ?? [])
+  }
+
+  const versetMap: Record<string,{label:string;textes:Record<string,string>}> = {}
+  versetsData.forEach(v => {
+    versetMap[v.id_verset] = {
+      label: refFr(v.ref),
+      textes: {"TR0001":v["TR0001"]||'',"TR0002":v["TR0002"]||'',"TR0003":v["TR0003"]||'',"TR0004":v["TR0004"]||''},
     }
   })
 
-  const versetParSegment:Record<number,any[]>={}
-  segments?.forEach(s=>{
-    versetParSegment[s.id]=extraireVersets(s).map(vid=>({id:vid,...(versetMap[vid]||{label:vid,textes:{},livre:'',chapitre:'1',verset:'1'})}))
+  const versetParSegment: Record<number, any[]> = {}
+  segments.forEach(s => {
+    versetParSegment[s.id] = extraireVersets(s).map(vid => ({
+      id: vid, ...(versetMap[vid] || { label: vid, textes: {} })
+    }))
   })
 
-  const auteur=(oeuvre.auteurs as any)?.nom||''
-  const groupes=grouper(segments||[])
-  const numLocaux=numerotationLocale(segments||[])
+  const auteur = (oeuvre.auteurs as any)?.nom || ''
+  const groupes = grouper(segmentsTexte)
+  const groupesApparat = grouper(segmentsApparat)
+  const numLocaux = numerotationLocale(segmentsTexte)
+  const numLocauxApparat = numerotationLocale(segmentsApparat)
 
-  type TocEntry={niv1:string;niv2:string;anchor:string}
-  const toc:TocEntry[]=[]
-  let ln1='',ln2=''
-  groupes.forEach((g,i)=>{
-    if(g.niv1!==ln1||g.niv2!==ln2){toc.push({niv1:g.niv1,niv2:g.niv2,anchor:`g${i}`});ln1=g.niv1;ln2=g.niv2}
+  type TocEntry = { niv1:string; niv2:string; anchor:string }
+  const toc: TocEntry[] = []
+  let ln1='', ln2=''
+  groupes.forEach((g, i) => {
+    if (g.niv1 !== ln1 || g.niv2 !== ln2) { toc.push({niv1:g.niv1,niv2:g.niv2,anchor:`g${i}`}); ln1=g.niv1; ln2=g.niv2 }
   })
 
-  const segmentsData=segments?.map(s=>({
-    id:s.id, numero:numLocaux.get(s.id)||s.segment_numero,
-    texte:s.segment_texte, versets:versetParSegment[s.id]||[],
-  }))||[]
+  const tocApparat: TocEntry[] = []
+  let la1='', la2=''
+  groupesApparat.forEach((g, i) => {
+    if (g.niv1 !== la1 || g.niv2 !== la2) { tocApparat.push({niv1:g.niv1,niv2:g.niv2,anchor:`a${i}`}); la1=g.niv1; la2=g.niv2 }
+  })
 
-  const groupesData=groupes.map((g,gi)=>({
-    niv1:g.niv1, niv2:g.niv2, anchor:`g${gi}`, itemIds:g.items.map(s=>s.id),
+  const segmentsData = segmentsTexte.map(s => ({
+    id: s.id, numero: numLocaux.get(s.id) || s.segment_numero,
+    texte: s.segment_texte, versets: versetParSegment[s.id] || [],
   }))
 
-  return(
+  const groupesData = groupes.map((g, gi) => ({
+    niv1: g.niv1, niv2: g.niv2, anchor: `g${gi}`, itemIds: g.items.map(s => s.id),
+  }))
+
+  const segmentsApparatData = segmentsApparat.map(s => ({
+    id: s.id, numero: numLocauxApparat.get(s.id) || s.segment_numero,
+    texte: s.segment_texte, versets: [],
+  }))
+
+  const groupesApparatData = groupesApparat.map((g, gi) => ({
+    niv1: g.niv1, niv2: g.niv2, anchor: `a${gi}`, itemIds: g.items.map(s => s.id),
+  }))
+
+  return (
     <OeuvreClient
       auteur={auteur}
-      oeuvre={{titre:oeuvre.titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date}}
+      oeuvre={{titre:oeuvre.titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,id_oeuvre:oeuvre.id_oeuvre}}
       toc={toc} groupes={groupesData} segments={segmentsData}
+      tocApparat={tocApparat} groupesApparat={groupesApparatData} segmentsApparat={segmentsApparatData}
     />
   )
 }

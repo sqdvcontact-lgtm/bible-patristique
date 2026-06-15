@@ -9,8 +9,8 @@ type Livre = { code: string; nom: string; testament: string }
 type Verset = {
   id_verset: string; ref: string; livre: string
   chapitre: number; verset: number
-  trad_lsg: string; trad_crampon: string
-  trad_vulgate: string; trad_sacy: string
+  TR0002: string; TR0003: string
+  TR0004: string; TR0001: string
 }
 
 type Props = {
@@ -19,17 +19,19 @@ type Props = {
   livreActif: string
   chapitreActif: number
   nomLivre: string
+  tradInitiale: string
 }
 
 const TRADUCTIONS = [
-  { code: 'trad_sacy' as const, label: 'Sacy 1759' },
-  { code: 'trad_lsg' as const, label: 'Segond' },
-  { code: 'trad_crampon' as const, label: 'Crampon' },
-  { code: 'trad_vulgate' as const, label: 'Vulgate' },
+  { code: 'TR0001' as const, label: 'Bible de Sacy' },
+  { code: 'TR0002' as const, label: 'Bible Segond' },
+  { code: 'TR0003' as const, label: 'Bible Crampon' },
+  { code: 'TR0004' as const, label: 'Vulgate' },
 ]
 
-export default function BibleLayout({ livres, versets, livreActif, chapitreActif, nomLivre }: Props) {
-  const [traductionIndex, setTraductionIndex] = useState(0)
+export default function BibleLayout({ livres, versets, livreActif, chapitreActif, nomLivre, tradInitiale }: Props) {
+  const indexInitial = TRADUCTIONS.findIndex(t => t.code === tradInitiale)
+  const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
   const [versetSelectionne, setVersetSelectionne] = useState<Verset | null>(null)
 
   const traduction = TRADUCTIONS[traductionIndex].code
@@ -47,6 +49,9 @@ export default function BibleLayout({ livres, versets, livreActif, chapitreActif
       <TexteBible
         versets={versets}
         traduction={traduction}
+        traductionIndex={traductionIndex}
+        setTraductionIndex={setTraductionIndex}
+        traductions={TRADUCTIONS}
         livreActif={livreActif}
         chapitreActif={chapitreActif}
         nomLivre={nomLivre}

@@ -98,11 +98,12 @@ const NOMS_LIVRES: Record<string, string> = {
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ livre?: string; chapitre?: string }>
+  searchParams: Promise<{ livre?: string; chapitre?: string; trad?: string }>
 }) {
   const params = await searchParams
   const livre = params.livre || 'GEN'
   const chapitre = parseInt(params.chapitre || '1')
+  const trad = params.trad || 'TR0001'
 
   const { data: versets } = await supabase
     .from('versets')
@@ -118,6 +119,7 @@ export default async function Home({
       livreActif={livre}
       chapitreActif={chapitre}
       nomLivre={NOMS_LIVRES[livre] || livre}
+      tradInitiale={trad}
     />
   )
 }

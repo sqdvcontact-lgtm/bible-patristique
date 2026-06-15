@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import BoutonCopieRef from "../components/BoutonCopieRef";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -7,46 +8,41 @@ const supabase = createClient(
 );
 
 type Oeuvre = {
-  id_oeuvre: number;
-  titre: string;
-  titre_original: string | null;
-  trad_auteur: string | null;
-  trad_date: string | null;
+  id_oeuvre: string; titre: string; sous_titre: string | null; titre_original: string | null;
+  trad_auteur: string | null; trad_date: string | null;
+  editeur: string | null; collection: string | null; ville: string | null;
+  date_publication: string | null; url_source: string | null;
 };
-
 type Auteur = {
-  id_auteur: number;
-  nom: string;
-  dates: string | null;
-  siecle: number | null;
-  tradition: string | null;
-  oeuvres: Oeuvre[];
+  id_auteur: number; nom: string; dates: string | null;
+  siecle: number | null; tradition: string | null; oeuvres: Oeuvre[];
 };
 
 async function getAuteurs(): Promise<Auteur[]> {
   const { data, error } = await supabase
     .from("auteurs")
-    .select(`
-      id_auteur, nom, dates, siecle, tradition,
-      oeuvres ( id_oeuvre, titre, titre_original, trad_auteur, trad_date )
-    `)
+    .select(`id_auteur, nom, dates, siecle, tradition,
+      oeuvres ( id_oeuvre, titre, sous_titre, titre_original, trad_auteur, trad_date, editeur, collection, ville, date_publication, url_source )`)
     .order("siecle", { ascending: true, nullsFirst: false });
-
   if (error) { console.error(error); return []; }
   return (data ?? []).filter((a: Auteur) => a.oeuvres?.length > 0);
 }
 
-function siecleLabel(n: number | null): string {
-  if (!n) return "";
-  const abs = Math.abs(n);
-  const romains: [number, string][] = [
-    [1000,"M"],[900,"CM"],[500,"D"],[400,"CD"],[100,"C"],[90,"XC"],
-    [50,"L"],[40,"XL"],[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"],
-  ];
-  let r = "", v = abs;
-  for (const [val, sym] of romains) { while (v >= val) { r += sym; v -= val; } }
-  return n < 0 ? `${r} av. J.-C.` : `${r}e s.`;
+function refBiblio(auteurNom: string, o: Oeuvre, nomSite: string, urlSite: string): string {
+  const parties: string[] = [auteurNom];
+  parties.push(o.titre + (o.sous_titre ? `. ${o.sous_titre}` : ''));
+  if (o.trad_auteur) parties.push(`trad. ${o.trad_auteur}`);
+  if (o.trad_date) parties.push(o.trad_date);
+  if (o.editeur) parties.push(o.editeur);
+  if (o.collection) parties.push(o.collection);
+  if (o.ville) parties.push(o.ville);
+  if (o.date_publication) parties.push(o.date_publication);
+  parties.push(`disponible sur ${nomSite} (${urlSite})`);
+  return parties.join(', ');
 }
+
+const NOM_SITE = "Bible & Tradition patristique";
+const URL_SITE = "https://www.bible-et-tradition.fr";
 
 export const metadata = {
   title: "Bibliothèque — Bible & Tradition",
@@ -58,147 +54,114 @@ export default async function BibliothequePage() {
   const nbOeuvres = auteurs.reduce((s, a) => s + a.oeuvres.length, 0);
 
   return (
-    <main
-      className="flex-1"
-      style={{ background: "#f7f4ef", minHeight: "calc(100vh - 48px)" }}
-    >
-      {/* Styles hover — balise style standard, compatible Server Component */}
+    <main className="flex-1" style={{ background: "#f7f4ef", minHeight: "calc(100vh - 48px)" }}>
       <style>{`
         .oeuvre-lien {
-          display: flex;
-          align-items: baseline;
-          flex-wrap: wrap;
-          column-gap: 8px;
-          padding: 6px 10px 6px 13px;
-          border-radius: 4px;
-          border-left: 2px solid transparent;
-          text-decoration: none;
-          transition: background 0.11s, border-color 0.11s;
+          display: flex; align-items: baseline; flex-wrap: wrap;
+          column-gap: 8px; padding: 4px 8px 4px 12px;
+          border-radius: 4px; border-left: 2px solid transparent;
+          text-decoration: none; transition: background 0.11s, border-color 0.11s;
         }
-        .oeuvre-lien:hover {
-          background: rgba(61,107,79,0.06);
-          border-left-color: #3d6b4f;
-        }
+        .oeuvre-lien:hover { background: rgba(61,107,79,0.06); border-left-color: #3d6b4f; }
       `}</style>
 
-      <div style={{ maxWidth: "820px", margin: "0 auto", padding: "40px 24px 80px" }}>
+      <div style={{ maxWidth: "780px", margin: "0 auto", padding: "48px 24px 80px" }}>
 
-        {/* Encart invitation */}
-        <div
-          style={{
-            background: "#fff",
-            border: "1px solid #ddd8cf",
-            borderLeft: "3px solid #3d6b4f",
-            borderRadius: "6px",
-            padding: "13px 18px",
-            marginBottom: "38px",
-          }}
-        >
-          <p style={{ fontSize: "13px", color: "#5a6b5e", lineHeight: 1.65, margin: 0 }}>
-            Nous enrichissons quotidiennement la bibliothèque. Vous pouvez nous aider
-            en nous faisant parvenir des textes propres de patristique ou de théologie,
-            libres de droit.
-          </p>
-        </div>
-
-        {/* Titre + compteur */}
-        <div
-          className="flex items-baseline gap-4"
-          style={{ borderBottom: "1px solid #d4cfc6", paddingBottom: "16px", marginBottom: "32px" }}
-        >
-          <h1
-            style={{
-              fontFamily: "Georgia, 'Times New Roman', serif",
-              fontSize: "26px",
-              fontWeight: "normal",
-              color: "#2a3d30",
-              margin: 0,
-            }}
-          >
+        {/* En-tête centré */}
+        <div style={{ textAlign: "center", borderBottom: "1px solid #d4cfc6", paddingBottom: "20px", marginBottom: "28px" }}>
+          <h1 style={{
+            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontSize: "24px", fontWeight: "normal",
+            color: "#2a3d30", margin: "0 0 6px",
+            letterSpacing: "0.02em",
+          }}>
             Bibliothèque
           </h1>
-          <span style={{ fontSize: "12px", color: "#9a958d" }}>
-            {auteurs.length} auteur{auteurs.length > 1 ? "s" : ""} · {nbOeuvres} œuvre{nbOeuvres > 1 ? "s" : ""}
-          </span>
+          <div style={{ fontSize: "11.5px", color: "#a09890", letterSpacing: "0.03em" }}>
+            {auteurs.length} auteur{auteurs.length > 1 ? "s" : ""}
+          </div>
+          <div style={{ fontSize: "11.5px", color: "#a09890", letterSpacing: "0.03em" }}>
+            {nbOeuvres} œuvre{nbOeuvres > 1 ? "s" : ""}
+          </div>
+        </div>
+
+        {/* Présentation */}
+        <div style={{ textAlign: "center", marginBottom: "40px" }}>
+          <p style={{
+            fontSize: "11.5px", fontStyle: "italic", color: "#7a8a7e",
+            lineHeight: 1.65, margin: "0 auto 6px", maxWidth: "560px",
+          }}>
+            Chaque texte proposé appartient au domaine public et est librement accessible.
+            Un découpage logique et sémantique a été opéré pour en faciliter la lecture&#160;;
+            la numérotation qui en résulte sert de référence pour les citations patristiques
+            associées aux versets bibliques.
+          </p>
+          <p style={{
+            fontSize: "11.5px", fontStyle: "italic", color: "#7a8a7e",
+            lineHeight: 1.65, margin: "0 auto", maxWidth: "560px",
+          }}>
+            La bibliothèque s'enrichit chaque jour.
+            Vous pouvez contribuer à son développement en nous transmettant des textes
+            patristiques ou théologiques soigneusement relus, appartenant au domaine public.
+          </p>
         </div>
 
         {/* Liste des auteurs */}
         <div>
           {auteurs.map((auteur) => (
-            <div
-              key={auteur.id_auteur}
-              style={{ borderBottom: "1px solid #e4dfd8", paddingBottom: "26px", marginBottom: "26px" }}
-            >
+            <div key={auteur.id_auteur} style={{ borderBottom: "1px solid #e4dfd8", paddingBottom: "24px", marginBottom: "24px" }}>
+
               {/* En-tête auteur */}
-              <div className="flex items-start justify-between flex-wrap gap-2" style={{ marginBottom: "12px" }}>
-                <div className="flex items-baseline gap-2 flex-wrap">
-                  <h2
-                    style={{
-                      fontFamily: "Georgia, 'Times New Roman', serif",
-                      fontSize: "16px",
-                      fontWeight: "normal",
-                      color: "#2a3d30",
-                      margin: 0,
-                    }}
-                  >
-                    {auteur.nom}
-                  </h2>
-                  {auteur.dates && (
-                    <span style={{ fontSize: "12px", color: "#9a958d" }}>{auteur.dates}</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {auteur.siecle && (
-                    <span
-                      style={{
-                        fontSize: "11px",
-                        fontWeight: 500,
-                        color: "#3d6b4f",
-                        background: "rgba(61,107,79,0.08)",
-                        padding: "2px 8px",
-                        borderRadius: "4px",
-                        letterSpacing: "0.03em",
-                      }}
-                    >
-                      {siecleLabel(auteur.siecle)}
-                    </span>
-                  )}
-                  {auteur.tradition && (
-                    <span
-                      style={{
-                        fontSize: "11px",
-                        color: "#9a958d",
-                        background: "#eeeae4",
-                        padding: "2px 8px",
-                        borderRadius: "4px",
-                      }}
-                    >
-                      {auteur.tradition}
-                    </span>
-                  )}
-                </div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "10px", flexWrap: "wrap", marginBottom: "10px" }}>
+                <h2 style={{
+                  fontFamily: "Georgia, 'Times New Roman', serif",
+                  fontSize: "17px", fontWeight: "normal",
+                  color: "#1e2e24", margin: 0,
+                }}>
+                  {auteur.nom}
+                </h2>
+                {auteur.dates && (
+                  <span style={{ fontSize: "11.5px", color: "#a09890" }}>{auteur.dates}</span>
+                )}
               </div>
 
               {/* Œuvres */}
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "1px" }}>
-                {auteur.oeuvres.map((oeuvre) => (
-                  <li key={oeuvre.id_oeuvre}>
-                    <Link href={`/oeuvre/${oeuvre.id_oeuvre}`} className="oeuvre-lien">
-                      <span style={{ fontSize: "13.5px", color: "#2a3d30" }}>{oeuvre.titre}</span>
-                      {oeuvre.titre_original && (
-                        <span style={{ fontSize: "12px", color: "#9a958d", fontStyle: "italic" }}>
-                          {oeuvre.titre_original}
-                        </span>
-                      )}
-                      {(oeuvre.trad_auteur || oeuvre.trad_date) && (
-                        <span style={{ fontSize: "11px", color: "#b0a89e", marginLeft: "auto" }}>
-                          Trad.{oeuvre.trad_auteur ? ` ${oeuvre.trad_auteur}` : ""}
-                          {oeuvre.trad_date ? `, ${oeuvre.trad_date}` : ""}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                ))}
+                {auteur.oeuvres.map((oeuvre) => {
+                  // Construire la ligne de détails sans doublon avec le titre principal
+                  const details: string[] = [];
+                  if (oeuvre.titre_original) details.push(oeuvre.titre_original);
+                  if (oeuvre.trad_auteur) {
+                    details.push(`trad. ${oeuvre.trad_auteur}${oeuvre.trad_date ? ` (${oeuvre.trad_date})` : ""}`);
+                  }
+                  if (oeuvre.editeur) details.push(oeuvre.editeur);
+                  if (oeuvre.collection) details.push(oeuvre.collection);
+                  if (oeuvre.ville) details.push(oeuvre.ville);
+                  if (oeuvre.date_publication) details.push(oeuvre.date_publication);
+
+                  return (
+                    <li key={oeuvre.id_oeuvre}>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
+                        <Link href={`/oeuvre/${oeuvre.id_oeuvre}`} className="oeuvre-lien" style={{ flex: 1 }}>
+                          <span style={{ fontSize: "13px", color: "#2a3d30" }}>
+                            {oeuvre.titre}
+                            {oeuvre.sous_titre && (
+                              <span style={{ fontSize: "12px", color: "#6b6560", fontStyle: "italic" }}>
+                                {" "}— {oeuvre.sous_titre}
+                              </span>
+                            )}
+                          </span>
+                          {details.length > 0 && (
+                            <span style={{ fontSize: "11px", color: "#b0a89e", fontStyle: "italic" }}>
+                              {details.join(" · ")}
+                            </span>
+                          )}
+                        </Link>
+                        <BoutonCopieRef texte={refBiblio(auteur.nom, oeuvre, NOM_SITE, URL_SITE)} />
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
@@ -209,7 +172,6 @@ export default async function BibliothequePage() {
             </p>
           )}
         </div>
-
       </div>
     </main>
   );
