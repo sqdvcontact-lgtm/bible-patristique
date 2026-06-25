@@ -40,21 +40,21 @@ export default function TraductionsPage() {
     <main style={{ background: "#f7f4ef", minHeight: "calc(100vh - 48px)" }}>
       <div style={{ maxWidth: "680px", margin: "0 auto", padding: "48px 24px 80px" }}>
 
-        {/* En-tête — modèle Bibliothèque */}
-        <div style={{ textAlign: "center", borderBottom: "1px solid #d4cfc6", paddingBottom: "20px", marginBottom: "28px" }}>
+        {/* En-tête */}
+        <div style={{ textAlign: "center", marginBottom: "40px" }}>
           <h1 style={{
             fontFamily: "Georgia, 'Times New Roman', serif",
-            fontSize: "24px", fontWeight: "normal",
-            color: "#2a3d30", margin: "0 0 6px",
-            letterSpacing: "0.02em",
+            fontSize: "clamp(24px, 4vw, 34px)", fontWeight: "normal",
+            color: "#1e2e24", lineHeight: 1.2, marginBottom: "16px",
           }}>
             Les traductions
           </h1>
-          <div style={{ fontSize: "11.5px", color: "#a09890", letterSpacing: "0.03em" }}>
+          <div style={{ fontSize: "11.5px", color: "#a09890", letterSpacing: "0.03em", marginBottom: "20px" }}>
             {traductions.length > 0
               ? `${traductions.length} traduction${traductions.length > 1 ? "s" : ""}`
               : "\u00a0"}
           </div>
+          <div style={{ width: "36px", height: "1px", background: "#c8c0b4", margin: "0 auto" }} />
         </div>
 
         {/* Présentation */}
@@ -72,14 +72,14 @@ export default function TraductionsPage() {
 
         {/* Encart librairie */}
         <div style={{
-          display: "flex", alignItems: "flex-start", gap: "18px",
+          display: "flex", alignItems: "center", gap: "18px",
           background: "#fff", border: "1px solid #ddd8cf", borderRadius: "8px",
           padding: "18px 20px", marginBottom: "36px",
         }}>
           {/* Icône livre */}
-          <div style={{ flexShrink: 0, marginTop: "2px" }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-              stroke="#3d6b4f" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
+          <div style={{ flexShrink: 0, display: "flex", alignItems: "center", alignSelf: "stretch" }}>
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none"
+              stroke="#3d6b4f" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"
               aria-hidden="true">
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
@@ -91,7 +91,7 @@ export default function TraductionsPage() {
               fontSize: "14px", fontWeight: "normal",
               color: "#1e2e24", margin: "0 0 8px",
             }}>
-              Allez en librairie.
+              Allez en librairie. Achetez des livres.
             </p>
             <p style={{ fontSize: "12px", color: "#6b7a6e", lineHeight: 1.65, margin: "0 0 6px" }}>
               Pour les éditions contemporaines annotées ou liturgiques :{" "}
@@ -101,7 +101,7 @@ export default function TraductionsPage() {
               </a>.
             </p>
             <p style={{ fontSize: "12px", color: "#6b7a6e", lineHeight: 1.65, margin: 0 }}>
-              Pour les éditions anciennes :{" "}
+              Pour les éditions anciennes et épuisées :{" "}
               <a href="https://www.librairie-pierre-brunet.fr/librairie-en-ligne.html" target="_blank" rel="noopener noreferrer"
                 style={{ color: "#3d6b4f", textDecoration: "none", borderBottom: "1px solid rgba(61,107,79,0.3)" }}>
                 Librairie Pierre-Brunet

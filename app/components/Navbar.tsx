@@ -4,24 +4,102 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
+import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 
-const LIENS: { href: string; label: string; exact?: boolean; discret?: boolean }[] = [
-  { href: "/accueil", label: "Accueil" },
+const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean }[] = [
   { href: "/", label: "Bible", exact: true },
   { href: "/bibliotheque", label: "Bibliothèque" },
-  { href: "/traductions", label: "Traductions" },
-  { href: "/admin", label: "Admin", discret: true },
 ];
+const LIENS_SECONDAIRES: { href: string; label: string }[] = [
+  { href: "/populaires", label: "Populaires" },
+  { href: "/traductions", label: "Traductions" },
+  { href: "/accueil#apropos", label: "À propos" },
+];
+
+// ── Données statiques pour la recherche rapide ───────────────────────────────
+const LIVRES_RECHERCHE: { code: string; nom: string }[] = [
+  { code: 'GEN', nom: 'Genèse' }, { code: 'EXO', nom: 'Exode' }, { code: 'LEV', nom: 'Lévitique' },
+  { code: 'NUM', nom: 'Nombres' }, { code: 'DEU', nom: 'Deutéronome' }, { code: 'JOS', nom: 'Josué' },
+  { code: 'JDG', nom: 'Juges' }, { code: 'RUT', nom: 'Ruth' }, { code: '1SA', nom: '1 Samuel' },
+  { code: '2SA', nom: '2 Samuel' }, { code: '1KI', nom: '1 Rois' }, { code: '2KI', nom: '2 Rois' },
+  { code: '1CH', nom: '1 Chroniques' }, { code: '2CH', nom: '2 Chroniques' }, { code: 'EZR', nom: 'Esdras' },
+  { code: 'NEH', nom: 'Néhémie' }, { code: 'EST', nom: 'Esther' }, { code: 'JOB', nom: 'Job' },
+  { code: 'PSA', nom: 'Psaumes' }, { code: 'PRO', nom: 'Proverbes' }, { code: 'ECC', nom: 'Ecclésiaste' },
+  { code: 'SNG', nom: 'Cantique des cantiques' }, { code: 'ISA', nom: 'Isaïe' }, { code: 'JER', nom: 'Jérémie' },
+  { code: 'LAM', nom: 'Lamentations' }, { code: 'EZK', nom: 'Ézéchiel' }, { code: 'DAN', nom: 'Daniel' },
+  { code: 'HOS', nom: 'Osée' }, { code: 'JOL', nom: 'Joël' }, { code: 'AMO', nom: 'Amos' },
+  { code: 'OBA', nom: 'Abdias' }, { code: 'JON', nom: 'Jonas' }, { code: 'MIC', nom: 'Michée' },
+  { code: 'NAM', nom: 'Nahum' }, { code: 'HAB', nom: 'Habacuc' }, { code: 'ZEP', nom: 'Sophonie' },
+  { code: 'HAG', nom: 'Aggée' }, { code: 'ZEC', nom: 'Zacharie' }, { code: 'MAL', nom: 'Malachie' },
+  { code: 'MAT', nom: 'Matthieu' }, { code: 'MRK', nom: 'Marc' }, { code: 'LUK', nom: 'Luc' },
+  { code: 'JHN', nom: 'Jean' }, { code: 'ACT', nom: 'Actes' }, { code: 'ROM', nom: 'Romains' },
+  { code: '1CO', nom: '1 Corinthiens' }, { code: '2CO', nom: '2 Corinthiens' }, { code: 'GAL', nom: 'Galates' },
+  { code: 'EPH', nom: 'Éphésiens' }, { code: 'PHP', nom: 'Philippiens' }, { code: 'COL', nom: 'Colossiens' },
+  { code: '1TH', nom: '1 Thessaloniciens' }, { code: '2TH', nom: '2 Thessaloniciens' }, { code: '1TI', nom: '1 Timothée' },
+  { code: '2TI', nom: '2 Timothée' }, { code: 'TIT', nom: 'Tite' }, { code: 'PHM', nom: 'Philémon' },
+  { code: 'HEB', nom: 'Hébreux' }, { code: 'JAS', nom: 'Jacques' }, { code: '1PE', nom: '1 Pierre' },
+  { code: '2PE', nom: '2 Pierre' }, { code: '1JN', nom: '1 Jean' }, { code: '2JN', nom: '2 Jean' },
+  { code: '3JN', nom: '3 Jean' }, { code: 'JUD', nom: 'Jude' }, { code: 'REV', nom: 'Apocalypse' },
+];
+const TRADUCTIONS_RECHERCHE: { code: string; nom: string }[] = [
+  { code: 'TR0001', nom: 'Bible de Sacy' }, { code: 'TR0002', nom: 'Bible Segond' },
+  { code: 'TR0003', nom: 'Bible Crampon' }, { code: 'TR0004', nom: 'Vulgate' },
+];
+function sansAccents(s: string): string { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() }
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<{ email: string } | null>(null);
+  const [pseudo, setPseudo] = useState<string | null>(null);
+  const [estAdmin, setEstAdmin] = useState(false);
   const [menuOuvert, setMenuOuvert] = useState(false);
+  const [mobileOuvert, setMobileOuvert] = useState(false);
+  const { modeUtilisateurStandard, setModeUtilisateurStandard } = useAffichageAdmin();
+
+  // ── Recherche rapide (remplace l'ancien lien « Recherche ») ──────────────────
+  const [requeteRapide, setRequeteRapide] = useState("");
+  const [rechercheOuverte, setRechercheOuverte] = useState(false);
+  const [auteursTrouves, setAuteursTrouves] = useState<{ id_auteur: string; nom: string }[]>([]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ? { email: data.session.user.email ?? '' } : null));
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ? { email: session.user.email ?? '' } : null));
+    const q = requeteRapide.trim();
+    if (!q) { setAuteursTrouves([]); return; }
+    const t = setTimeout(() => {
+      supabase.from('auteurs').select('id_auteur, nom').ilike('nom', `%${q}%`).limit(5)
+        .then(({ data }) => setAuteursTrouves(data ?? []));
+    }, 250);
+    return () => clearTimeout(t);
+  }, [requeteRapide]);
+
+  const qNorm = sansAccents(requeteRapide.trim());
+  const livresTrouves = qNorm ? LIVRES_RECHERCHE.filter(l => sansAccents(l.nom).includes(qNorm)).slice(0, 5) : [];
+  const traductionsTrouvees = qNorm ? TRADUCTIONS_RECHERCHE.filter(t => sansAccents(t.nom).includes(qNorm)) : [];
+  const aucunResultat = qNorm.length > 0 && auteursTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0;
+
+  const fermerRechercheRapide = () => { setRechercheOuverte(false); setRequeteRapide(""); setMobileOuvert(false); };
+  const validerRechercheRapide = () => {
+    if (!requeteRapide.trim()) return;
+    router.push(`/recherche?q=${encodeURIComponent(requeteRapide.trim())}`);
+    fermerRechercheRapide();
+  };
+
+  useEffect(() => {
+    const chargerProfil = (uid: string) =>
+      supabase.from('profils').select('pseudo, est_admin').eq('id', uid).maybeSingle().then(({ data }) => {
+        setPseudo(data?.pseudo ?? null);
+        setEstAdmin(data?.est_admin ?? false);
+      });
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data.session?.user;
+      setUser(u ? { email: u.email ?? '' } : null);
+      if (u) chargerProfil(u.id);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ? { email: session.user.email ?? '' } : null);
+      if (session?.user) chargerProfil(session.user.id);
+      else { setPseudo(null); setEstAdmin(false); }
+    });
     return () => listener.subscription.unsubscribe();
   }, []);
 
@@ -31,71 +109,208 @@ export default function Navbar() {
     router.push("/accueil");
   };
 
+  const styleLien = (href: string, exact: boolean | undefined, primaire: boolean) => {
+    const actif = exact ? pathname === href : pathname.startsWith(href);
+    return {
+      display: "inline-block", padding: "4px 11px", borderRadius: "5px",
+      fontSize: "13px", letterSpacing: "0.01em", textDecoration: "none",
+      fontWeight: primaire ? 600 : 400,
+      color: actif ? "#fff" : primaire ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.60)",
+      background: actif ? "rgba(255,255,255,0.14)" : "transparent",
+      transition: "color 0.13s, background 0.13s",
+    } as const;
+  };
+
+  // ── Bloc recherche rapide, réutilisé en version desktop et mobile ────────────
+  const blocRecherche = (mobile: boolean) => (
+    <div style={{ position: "relative", width: mobile ? "100%" : undefined }}>
+      <style>{`.recherche-rapide-input::placeholder { color: rgba(255,255,255,0.45); }`}</style>
+      <input
+        type="text"
+        value={requeteRapide}
+        onChange={e => setRequeteRapide(e.target.value)}
+        onFocus={() => setRechercheOuverte(true)}
+        onKeyDown={e => { if (e.key === 'Enter') validerRechercheRapide() }}
+        placeholder="Rechercher…"
+        className="recherche-rapide-input"
+        style={{ width: mobile ? "100%" : "150px", fontSize: "12px", padding: "6px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "#fff", outline: "none", boxSizing: "border-box" }}
+      />
+      {rechercheOuverte && qNorm && (
+        <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: "calc(100% + 8px)", left: 0, width: mobile ? "100%" : "300px", background: "#fff", border: "1px solid #d6d0c4", borderRadius: "9px", boxShadow: mobile ? "none" : "0 12px 36px rgba(0,0,0,0.16)", zIndex: 100, overflow: "hidden", maxHeight: "440px", overflowY: "auto" }}>
+          {aucunResultat ? (
+            <p style={{ fontSize: "12px", color: "#9a958d", fontStyle: "italic", textAlign: "center", padding: "18px 12px", margin: 0 }}>Aucun résultat — Entrée pour une recherche complète.</p>
+          ) : (
+            <>
+              {auteursTrouves.length > 0 && (
+                <div style={{ padding: "10px 0 6px" }}>
+                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "0 14px 4px" }}>Auteurs</p>
+                  {auteursTrouves.map(a => (
+                    <Link key={a.id_auteur} href={`/bibliotheque?q=${encodeURIComponent(a.nom)}`} onClick={fermerRechercheRapide}
+                      style={{ display: "block", padding: "7px 14px", fontSize: "13px", color: "#2a3d30", textDecoration: "none" }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                      {a.nom}
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {livresTrouves.length > 0 && (
+                <div style={{ padding: "8px 0 6px", borderTop: auteursTrouves.length > 0 ? "1px solid #ede9e2" : "none" }}>
+                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Livres bibliques</p>
+                  {livresTrouves.map(l => (
+                    <Link key={l.code} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}
+                      style={{ display: "block", padding: "7px 14px", fontSize: "13px", color: "#2a3d30", textDecoration: "none" }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                      {l.nom}
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {traductionsTrouvees.length > 0 && (
+                <div style={{ padding: "8px 0 10px", borderTop: (auteursTrouves.length > 0 || livresTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
+                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Traductions</p>
+                  {traductionsTrouvees.map(t => (
+                    <Link key={t.code} href={`/traductions#${t.code}`} onClick={fermerRechercheRapide}
+                      style={{ display: "block", padding: "7px 14px", fontSize: "13px", color: "#2a3d30", textDecoration: "none" }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                      {t.nom}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+      {rechercheOuverte && !mobile && <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => setRechercheOuverte(false)} />}
+    </div>
+  );
+
+  // ── Bloc compte, réutilisé en version desktop et mobile ──────────────────────
+  const blocCompte = (mobile: boolean) => user ? (
+    <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", alignItems: mobile ? "stretch" : "center", gap: mobile ? "2px" : "6px", width: mobile ? "100%" : undefined }}>
+      {!mobile && (
+        <button onClick={() => setMenuOuvert(!menuOuvert)} style={{ display: "flex", alignItems: "center", gap: "7px", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: "6px", padding: "4px 10px 4px 8px", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "12.5px" }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="5" r="2.8" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M1.5 13c0-3 2.5-4.5 5.5-4.5S12.5 10 12.5 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>
+          <span style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email.split("@")[0]}</span>
+          <span style={{ fontSize: "9px", opacity: 0.6 }}>▼</span>
+        </button>
+      )}
+      <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "8px", overflow: "hidden" } : { position: "absolute", top: "calc(100% + 6px)", right: 0, background: "#fff", border: "1px solid #d6d0c4", borderRadius: "8px", boxShadow: "0 6px 24px rgba(0,0,0,0.10)", minWidth: "190px", zIndex: 100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
+        {!mobile && (
+          <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid #ede9e2" }}>
+            <p style={{ fontSize: "10.5px", color: "#9a958d", margin: 0 }}>Connecté en tant que</p>
+            <p style={{ fontSize: "11.5px", color: "#2a3d30", fontWeight: 500, margin: "2px 0 0", wordBreak: "break-all" }}>{pseudo ?? user.email}</p>
+          </div>
+        )}
+        {[
+          { href: "/compte", label: "Mon compte" },
+          { href: "/prelevements", label: "Mes citations" },
+          { href: "/progression", label: "Ma progression" },
+          ...(estAdmin && !modeUtilisateurStandard ? [{ href: "/admin", label: "Administration" }] : []),
+        ].map(item => (
+          <Link key={item.href} href={item.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}
+            style={mobile
+              ? { display: "block", padding: "10px 12px", fontSize: "13px", color: "rgba(255,255,255,0.85)", textDecoration: "none" }
+              : { display: "block", padding: "10px 14px", fontSize: "12.5px", color: "#2a3d30", textDecoration: "none", borderBottom: "1px solid #ede9e2" }}>
+            {item.label}
+          </Link>
+        ))}
+        {estAdmin && (
+          <div style={mobile
+            ? { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", fontSize: "13px", color: "rgba(255,255,255,0.85)" }
+            : { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", fontSize: "12.5px", color: "#2a3d30", borderBottom: "1px solid #ede9e2" }}>
+            <span>Mode utilisateur standard</span>
+            <button type="button" role="switch" aria-checked={modeUtilisateurStandard}
+              onClick={() => setModeUtilisateurStandard(!modeUtilisateurStandard)}
+              title="Affichage seulement — vos droits réels ne changent pas"
+              style={{
+                width: "30px", height: "17px", borderRadius: "10px", border: "none", cursor: "pointer", padding: 0, flexShrink: 0,
+                background: modeUtilisateurStandard ? "#3d6b4f" : (mobile ? "rgba(255,255,255,0.25)" : "#d6d0c4"),
+                position: "relative", transition: "background 0.15s",
+              }}>
+              <span style={{ position: "absolute", top: "2px", left: modeUtilisateurStandard ? "15px" : "2px", width: "13px", height: "13px", borderRadius: "50%", background: "#fff", transition: "left 0.15s" }} />
+            </button>
+          </div>
+        )}
+        <button onClick={seDeconnecter}
+          style={mobile
+            ? { display: "block", width: "100%", textAlign: "left", padding: "10px 12px", fontSize: "13px", color: "#e8a0a0", background: "none", border: "none", cursor: "pointer" }
+            : { width: "100%", textAlign: "left", padding: "10px 14px", fontSize: "12.5px", color: "#9a2a2a", background: "none", border: "none", cursor: "pointer" }}>
+          Se déconnecter
+        </button>
+      </div>
+      {!mobile && menuOuvert && <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => setMenuOuvert(false)} />}
+    </div>
+  ) : (
+    <Link href="/compte" onClick={() => setMobileOuvert(false)} style={mobile
+      ? { display: "block", textAlign: "center", padding: "9px 12px", borderRadius: "6px", fontSize: "13px", color: "#fff", textDecoration: "none", border: "1px solid rgba(255,255,255,0.25)" }
+      : { display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 11px", borderRadius: "5px", fontSize: "12.5px", color: "rgba(255,255,255,0.75)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.20)" }}>
+      Se connecter
+    </Link>
+  );
+
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center h-[48px] border-b"
+      <header className="fixed top-0 left-0 right-0 z-50 border-b"
         style={{ background: "#3d6b4f", borderColor: "rgba(255,255,255,0.10)" }}>
-        <div className="max-w-screen-xl mx-auto w-full px-6 flex items-center gap-8">
+        <div className="max-w-screen-xl mx-auto w-full px-6 flex items-center gap-6" style={{ height: "48px" }}>
 
           <Link href="/accueil" className="flex items-center gap-2 shrink-0"
             style={{ color: "rgba(255,255,255,0.93)", textDecoration: "none" }}>
             <span style={{ fontSize: "11px", opacity: 0.6 }}>✦</span>
-            <span style={{ fontSize: "13px", fontWeight: 500, letterSpacing: "0.02em" }}>Bible &amp; Tradition</span>
+            <span style={{ fontSize: "13px", fontWeight: 500, letterSpacing: "0.02em" }}>La Bible des Pères</span>
+            <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.06em", color: "rgba(255,255,255,0.55)", border: "1px solid rgba(255,255,255,0.30)", borderRadius: "3px", padding: "1px 5px", textTransform: "uppercase" }}>bêta</span>
           </Link>
 
-          <nav className="flex-1">
-            <ul className="flex items-center gap-1 list-none m-0 p-0">
-              {LIENS.map(({ href, label, exact, discret }) => {
-                const actif = exact ? pathname === href : pathname.startsWith(href);
-                return (
-                  <li key={href}>
-                    <Link href={href} style={{
-                      display: "inline-block", padding: "4px 11px", borderRadius: "5px",
-                      fontSize: "13px", letterSpacing: "0.01em", textDecoration: "none",
-                      color: actif ? "#fff" : discret ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.68)",
-                      background: actif ? "rgba(255,255,255,0.14)" : "transparent",
-                      transition: "color 0.13s, background 0.13s",
-                    }}>{label}</Link>
-                  </li>
-                );
-              })}
-            </ul>
+          {/* ── Navigation desktop ──────────────────────────────────────────── */}
+          <nav className="hidden md:flex flex-1 items-center gap-1">
+            {LIENS_PRIMAIRES.map(({ href, label, exact }) => (
+              <Link key={href} href={href} style={styleLien(href, exact, true)}>{label}</Link>
+            ))}
+            <span style={{ width: "1px", height: "16px", background: "rgba(255,255,255,0.18)", margin: "0 4px" }} />
+            {LIENS_SECONDAIRES.map(({ href, label }) => (
+              <Link key={href} href={href} style={styleLien(href, undefined, false)}>{label}</Link>
+            ))}
+            <div style={{ marginLeft: "10px" }}>{blocRecherche(false)}</div>
           </nav>
 
-          <div style={{ marginLeft: "auto", position: "relative", flexShrink: 0 }}>
-            {user ? (
-              <>
-                <button onClick={() => setMenuOuvert(!menuOuvert)} style={{ display: "flex", alignItems: "center", gap: "7px", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: "6px", padding: "4px 10px 4px 8px", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "12.5px" }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="5" r="2.8" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M1.5 13c0-3 2.5-4.5 5.5-4.5S12.5 10 12.5 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>
-                  <span style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email.split("@")[0]}</span>
-                  <span style={{ fontSize: "9px", opacity: 0.6 }}>▼</span>
-                </button>
-                {menuOuvert && (
-                  <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, background: "#fff", border: "1px solid #d6d0c4", borderRadius: "8px", boxShadow: "0 6px 24px rgba(0,0,0,0.10)", minWidth: "180px", zIndex: 100, overflow: "hidden" }}>
-                    <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid #ede9e2" }}>
-                      <p style={{ fontSize: "10.5px", color: "#9a958d", margin: 0 }}>Connecté en tant que</p>
-                      <p style={{ fontSize: "11.5px", color: "#2a3d30", fontWeight: 500, margin: "2px 0 0", wordBreak: "break-all" }}>{user.email}</p>
-                    </div>
-                    <Link href="/prelevements" onClick={() => setMenuOuvert(false)} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", fontSize: "12.5px", color: "#2a3d30", textDecoration: "none", borderBottom: "1px solid #ede9e2" }}>
-                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><rect x="1.5" y="2.5" width="10" height="9" rx="1.5" stroke="#3d6b4f" strokeWidth="1.1" fill="none"/><line x1="4" y1="5.5" x2="9" y2="5.5" stroke="#3d6b4f" strokeWidth="1"/><line x1="4" y1="7.5" x2="7.5" y2="7.5" stroke="#3d6b4f" strokeWidth="1"/></svg>
-                      Mes prélèvements
-                    </Link>
-                    <button onClick={seDeconnecter} style={{ width: "100%", textAlign: "left", padding: "10px 14px", fontSize: "12.5px", color: "#9a2a2a", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M5 6.5h6M9 4.5l2 2-2 2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/><path d="M7 2H2.5A1 1 0 0 0 1.5 3v7a1 1 0 0 0 1 1H7" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/></svg>
-                      Se déconnecter
-                    </button>
-                  </div>
-                )}
-                {menuOuvert && <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => setMenuOuvert(false)} />}
-              </>
-            ) : (
-              <Link href="/compte" style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 11px", borderRadius: "5px", fontSize: "12.5px", color: "rgba(255,255,255,0.75)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.20)" }}>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><circle cx="6" cy="4.5" r="2.3" stroke="currentColor" strokeWidth="1.1" fill="none"/><path d="M1 11c0-2.5 2.2-4 5-4s5 1.5 5 4" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" fill="none"/></svg>
-                Se connecter
-              </Link>
-            )}
+          {/* ── Compte desktop ──────────────────────────────────────────────── */}
+          <div className="hidden md:block" style={{ marginLeft: "auto", position: "relative", flexShrink: 0 }}>
+            {blocCompte(false)}
           </div>
+
+          {/* ── Bouton hamburger mobile ─────────────────────────────────────── */}
+          <button onClick={() => setMobileOuvert(!mobileOuvert)} className="md:hidden"
+            style={{ marginLeft: "auto", background: "none", border: "none", color: "#fff", padding: "6px", cursor: "pointer" }}
+            aria-label="Menu">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              {mobileOuvert ? (
+                <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+              ) : (
+                <><line x1="3" y1="6" x2="17" y2="6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/><line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/><line x1="3" y1="14" x2="17" y2="14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></>
+              )}
+            </svg>
+          </button>
         </div>
+
+        {/* ── Panneau mobile déplié ───────────────────────────────────────────── */}
+        {mobileOuvert && (
+          <div className="md:hidden" style={{ background: "#345c43", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+              {[...LIENS_PRIMAIRES, ...LIENS_SECONDAIRES].map(({ href, label }) => (
+                <Link key={href} href={href} onClick={() => setMobileOuvert(false)}
+                  style={{ padding: "9px 10px", borderRadius: "6px", fontSize: "14px", color: "#fff", textDecoration: "none", background: pathname === href || (href !== "/" && pathname.startsWith(href)) ? "rgba(255,255,255,0.12)" : "transparent" }}>
+                  {label}
+                </Link>
+              ))}
+            </div>
+            {blocRecherche(true)}
+            {blocCompte(true)}
+          </div>
+        )}
       </header>
     </>
   );

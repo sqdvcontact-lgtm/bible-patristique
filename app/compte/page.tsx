@@ -1,22 +1,77 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
+import { calculerRang, couleurRang } from "@/app/lib/classement";
 
 type Mode = "connexion" | "inscription";
 
+const TRADUCTIONS = [
+  { code: "TR0001", label: "Bible de Sacy" },
+  { code: "TR0002", label: "Bible Segond" },
+  { code: "TR0003", label: "Bible Crampon" },
+  { code: "TR0004", label: "Vulgate" },
+];
+
+type Profil = {
+  id: string;
+  pseudo: string;
+  nom: string | null;
+  prenom: string | null;
+  traduction_defaut: string;
+};
+
+const inputStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: "13.5px", border: "1px solid #d6d0c4", borderRadius: "6px", background: "#f9f7f4", color: "#1e1a16", outline: "none", boxSizing: "border-box" };
+const labelStyle: React.CSSProperties = { fontSize: "11px", fontWeight: 600, color: "#6a7b6e", letterSpacing: "0.06em", display: "block", marginBottom: "5px" };
+
 export default function ComptePage() {
   const router = useRouter();
+  const [verification, setVerification] = useState(true);
+  const [user, setUser] = useState<{ id: string; email: string; email_confirmed_at: string | null } | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data.session?.user;
+      setUser(u ? { id: u.id, email: u.email ?? "", email_confirmed_at: u.email_confirmed_at ?? null } : null);
+      setVerification(false);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
+      const u = session?.user;
+      setUser(u ? { id: u.id, email: u.email ?? "", email_confirmed_at: u.email_confirmed_at ?? null } : null);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  if (verification) {
+    return (
+      <main style={{ minHeight: "calc(100vh - 48px)", background: "#f7f4ef", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ fontSize: "13px", color: "#9a958d", fontStyle: "italic" }}>Chargement…</p>
+      </main>
+    );
+  }
+
+  return user ? <MonCompte user={user} router={router} /> : <ConnexionInscription router={router} />;
+}
+
+// ── Connexion / inscription (visiteur non connecté) ──────────────────────────
+function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter> }) {
   const [mode, setMode] = useState<Mode>("connexion");
   const [email, setEmail] = useState("");
   const [mdp, setMdp] = useState("");
+  const [pseudo, setPseudo] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [chargement, setChargement] = useState(false);
 
   const soumettre = async (e: React.FormEvent) => {
     e.preventDefault();
     setErreur(null);
+
+    if (mode === "inscription" && !pseudo.trim()) {
+      setErreur("Le pseudonyme est requis.");
+      return;
+    }
+
     setChargement(true);
 
     if (mode === "connexion") {
@@ -27,17 +82,30 @@ export default function ComptePage() {
         router.push("/prelevements");
       }
     } else {
-      const { error } = await supabase.auth.signUp({ email, password: mdp });
+      const { data, error } = await supabase.auth.signUp({ email, password: mdp });
       if (error) {
         setErreur(
           error.message.includes("already registered")
             ? "Cette adresse est déjà associée à un compte. Essayez de vous connecter."
             : "Une erreur est survenue. Réessayez."
         );
-      } else {
-        setErreur(null);
+      } else if (data.user) {
+        // Le profil (pseudonyme) est créé via une route serveur, car aucune
+        // session n'est encore active tant que l'e-mail n'est pas confirmé.
+        const res = await fetch("/api/compte/creer-profil", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: data.user.id, pseudo: pseudo.trim() }),
+        });
+        if (!res.ok) {
+          const json = await res.json().catch(() => ({}));
+          setErreur(json.error ?? "Le compte a été créé, mais le pseudonyme n'a pas pu être enregistré. Vous pourrez le choisir lors de votre première connexion.");
+          setChargement(false);
+          return;
+        }
         setMode("connexion");
         setMdp("");
+        setPseudo("");
         setErreur("__confirm__");
       }
     }
@@ -45,34 +113,13 @@ export default function ComptePage() {
   };
 
   return (
-    <main style={{
-      minHeight: "calc(100vh - 48px)",
-      background: "#f7f4ef",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "40px 20px",
-    }}>
-      <div style={{
-        background: "#fff",
-        border: "1px solid #ddd8cf",
-        borderRadius: "12px",
-        padding: "36px 40px 40px",
-        width: "100%",
-        maxWidth: "380px",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.05)",
-      }}>
+    <main style={{ minHeight: "calc(100vh - 48px)", background: "#f7f4ef", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+      <div style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "36px 40px 40px", width: "100%", maxWidth: "380px", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}>
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
           <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "#3d6b4f" }}>
             Bible &amp; Tradition
           </span>
-          <h1 style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
-            fontSize: "22px",
-            fontWeight: "normal",
-            color: "#2a3d30",
-            margin: "8px 0 0",
-          }}>
+          <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "22px", fontWeight: "normal", color: "#2a3d30", margin: "8px 0 0" }}>
             {mode === "connexion" ? "Connexion" : "Créer un compte"}
           </h1>
         </div>
@@ -90,15 +137,20 @@ export default function ComptePage() {
         ) : null}
 
         <form onSubmit={soumettre} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+          {mode === "inscription" && (
+            <div>
+              <label style={labelStyle}>PSEUDONYME *</label>
+              <input type="text" value={pseudo} onChange={e => setPseudo(e.target.value)} required maxLength={32} placeholder="Visible publiquement, doit être unique"
+                style={inputStyle} />
+            </div>
+          )}
           <div>
-            <label style={{ fontSize: "11px", fontWeight: 600, color: "#6a7b6e", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>ADRESSE E-MAIL</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="vous@exemple.fr"
-              style={{ width: "100%", padding: "9px 12px", fontSize: "13.5px", border: "1px solid #d6d0c4", borderRadius: "6px", background: "#f9f7f4", color: "#1e1a16", outline: "none", boxSizing: "border-box" }} />
+            <label style={labelStyle}>ADRESSE E-MAIL</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="vous@exemple.fr" style={inputStyle} />
           </div>
           <div>
-            <label style={{ fontSize: "11px", fontWeight: 600, color: "#6a7b6e", letterSpacing: "0.06em", display: "block", marginBottom: "5px" }}>MOT DE PASSE</label>
-            <input type="password" value={mdp} onChange={e => setMdp(e.target.value)} required minLength={6} placeholder="··········"
-              style={{ width: "100%", padding: "9px 12px", fontSize: "13.5px", border: "1px solid #d6d0c4", borderRadius: "6px", background: "#f9f7f4", color: "#1e1a16", outline: "none", boxSizing: "border-box" }} />
+            <label style={labelStyle}>MOT DE PASSE</label>
+            <input type="password" value={mdp} onChange={e => setMdp(e.target.value)} required minLength={6} placeholder="··········" style={inputStyle} />
           </div>
           <button type="submit" disabled={chargement}
             style={{ marginTop: "6px", padding: "10px", borderRadius: "6px", border: "none", background: chargement ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "13.5px", fontWeight: 500, cursor: chargement ? "default" : "pointer", letterSpacing: "0.01em", transition: "background 0.15s" }}>
@@ -110,11 +162,253 @@ export default function ComptePage() {
           <p style={{ fontSize: "12.5px", color: "#9a958d", margin: 0 }}>
             {mode === "connexion" ? "Pas encore de compte ?" : "Déjà un compte ?"}
             {" "}
-            <button onClick={() => { setMode(mode === "connexion" ? "inscription" : "connexion"); setErreur(null); setMdp(""); }}
+            <button onClick={() => { setMode(mode === "connexion" ? "inscription" : "connexion"); setErreur(null); setMdp(""); setPseudo(""); }}
               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "12.5px", color: "#3d6b4f", fontWeight: 500, padding: 0, textDecoration: "underline" }}>
               {mode === "connexion" ? "Créer un compte" : "Se connecter"}
             </button>
           </p>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+// ── Mon compte (utilisateur connecté) ────────────────────────────────────────
+function MonCompte({ user, router }: { user: { id: string; email: string; email_confirmed_at: string | null }; router: ReturnType<typeof useRouter> }) {
+  const [profil, setProfil] = useState<Profil | null>(null);
+  const [chargement, setChargement] = useState(true);
+
+  useEffect(() => {
+    supabase.from("profils").select("id, pseudo, nom, prenom, traduction_defaut").eq("id", user.id).maybeSingle()
+      .then(({ data }) => { setProfil(data ?? null); setChargement(false); });
+  }, [user.id]);
+
+  if (chargement) {
+    return (
+      <main style={{ minHeight: "calc(100vh - 48px)", background: "#f7f4ef", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ fontSize: "13px", color: "#9a958d", fontStyle: "italic" }}>Chargement…</p>
+      </main>
+    );
+  }
+
+  // Compte existant sans profil (créé avant cette fonctionnalité, ou un aléa
+  // a empêché la création du profil à l'inscription) : on demande le
+  // pseudonyme avant d'aller plus loin.
+  if (!profil) {
+    return <ChoixPseudoInitial userId={user.id} onCree={(p) => setProfil(p)} />;
+  }
+
+  return <FormulaireCompte user={user} profilInit={profil} router={router} />;
+}
+
+function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Profil) => void }) {
+  const [pseudo, setPseudo] = useState("");
+  const [erreur, setErreur] = useState<string | null>(null);
+  const [envoi, setEnvoi] = useState(false);
+
+  const valider = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pseudo.trim()) { setErreur("Le pseudonyme est requis."); return; }
+    setEnvoi(true); setErreur(null);
+    const res = await fetch("/api/compte/creer-profil", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, pseudo: pseudo.trim() }),
+    });
+    const json = await res.json();
+    setEnvoi(false);
+    if (!res.ok) { setErreur(json.error ?? "Erreur."); return; }
+    onCree({ id: userId, pseudo: pseudo.trim(), nom: null, prenom: null, traduction_defaut: "TR0001" });
+  };
+
+  return (
+    <main style={{ minHeight: "calc(100vh - 48px)", background: "#f7f4ef", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+      <div style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "32px 36px", width: "100%", maxWidth: "380px" }}>
+        <h1 style={{ fontFamily: "Georgia, serif", fontSize: "19px", fontWeight: "normal", color: "#2a3d30", marginBottom: "8px" }}>Choisissez votre pseudonyme</h1>
+        <p style={{ fontSize: "12.5px", color: "#9a958d", marginBottom: "20px", lineHeight: 1.5 }}>Il vous identifie sur le site et doit être unique.</p>
+        {erreur && <p style={{ fontSize: "12.5px", color: "#9a2a2a", marginBottom: "12px" }}>{erreur}</p>}
+        <form onSubmit={valider} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <input type="text" value={pseudo} onChange={e => setPseudo(e.target.value)} maxLength={32} autoFocus placeholder="Pseudonyme" style={inputStyle} />
+          <button type="submit" disabled={envoi} style={{ padding: "10px", borderRadius: "6px", border: "none", background: "#3d6b4f", color: "#fff", fontSize: "13.5px", fontWeight: 500, cursor: "pointer" }}>
+            {envoi ? "Enregistrement…" : "Valider"}
+          </button>
+        </form>
+      </div>
+    </main>
+  );
+}
+
+function FormulaireCompte({ user, profilInit, router }: { user: { id: string; email: string; email_confirmed_at: string | null }; profilInit: Profil; router: ReturnType<typeof useRouter> }) {
+  const [nom, setNom] = useState(profilInit.nom ?? "");
+  const [prenom, setPrenom] = useState(profilInit.prenom ?? "");
+  const [traduction, setTraduction] = useState(profilInit.traduction_defaut);
+  const [statut, setStatut] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [enregistrement, setEnregistrement] = useState(false);
+
+  const [nouvelEmail, setNouvelEmail] = useState(user.email);
+  const [statutEmail, setStatutEmail] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [envoiEmail, setEnvoiEmail] = useState(false);
+
+  const [classement, setClassement] = useState<{ score: number; nb_commentaires: number; nb_valides: number; nb_likes_recus: number } | null>(null);
+
+  useEffect(() => {
+    supabase.from("classement_utilisateurs").select("score, nb_commentaires, nb_valides, nb_likes_recus").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => setClassement(data ?? { score: 0, nb_commentaires: 0, nb_valides: 0, nb_likes_recus: 0 }));
+  }, [user.id]);
+
+  const [suppressionOuverte, setSuppressionOuverte] = useState(false);
+  const [suppressionEnCours, setSuppressionEnCours] = useState(false);
+  const [erreurSuppression, setErreurSuppression] = useState<string | null>(null);
+
+  const enregistrer = async () => {
+    setEnregistrement(true); setStatut(null);
+    const { error } = await supabase.from("profils").update({
+      nom: nom.trim() || null,
+      prenom: prenom.trim() || null,
+      traduction_defaut: traduction,
+    }).eq("id", user.id);
+    setEnregistrement(false);
+    if (error) {
+      setStatut({ ok: false, msg: "Erreur lors de l'enregistrement." });
+      return;
+    }
+    setStatut({ ok: true, msg: "Modifications enregistrées." });
+    setTimeout(() => setStatut(null), 2500);
+  };
+
+  const modifierEmail = async () => {
+    if (!nouvelEmail.trim() || nouvelEmail.trim() === user.email) return;
+    setEnvoiEmail(true); setStatutEmail(null);
+    const { error } = await supabase.auth.updateUser({ email: nouvelEmail.trim() });
+    setEnvoiEmail(false);
+    if (error) { setStatutEmail({ ok: false, msg: "Erreur — vérifiez l'adresse saisie." }); return; }
+    setStatutEmail({ ok: true, msg: "Un e-mail de confirmation a été envoyé à la nouvelle adresse. Le changement ne prend effet qu'après l'avoir validé." });
+  };
+
+  const supprimerCompte = async () => {
+    setSuppressionEnCours(true); setErreurSuppression(null);
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) { setErreurSuppression("Session expirée — reconnectez-vous puis réessayez."); setSuppressionEnCours(false); return; }
+    const res = await fetch("/api/compte/supprimer", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      setErreurSuppression(json.error ?? "Erreur lors de la suppression.");
+      setSuppressionEnCours(false);
+      return;
+    }
+    await supabase.auth.signOut();
+    router.push("/accueil");
+  };
+
+  return (
+    <main style={{ minHeight: "calc(100vh - 48px)", background: "#f7f4ef", padding: "48px 20px 80px", display: "flex", justifyContent: "center" }}>
+      <div style={{ width: "100%", maxWidth: "460px" }}>
+        <h1 style={{ fontFamily: "Georgia, serif", fontSize: "24px", fontWeight: "normal", color: "#2a3d30", marginBottom: "28px" }}>Mon compte</h1>
+
+        <div style={{ background: "#fff", border: "1px solid #e4dfd8", borderRadius: "10px", padding: "24px 26px", marginBottom: "20px" }}>
+          <div style={{ marginBottom: "16px" }}>
+            <label style={labelStyle}>PSEUDONYME</label>
+            <p style={{ fontSize: "13.5px", color: "#2a2520", margin: "2px 0 0" }}>{profilInit.pseudo}</p>
+            <p style={{ fontSize: "10.5px", color: "#9a958d", margin: "3px 0 0", fontStyle: "italic" }}>Le pseudonyme ne peut pas être modifié — il identifie tes commentaires de façon stable.</p>
+          </div>
+
+          <div style={{ marginBottom: "10px" }}>
+            <label style={labelStyle}>ADRESSE E-MAIL</label>
+            <div style={{ display: "flex", gap: "8px", marginTop: "2px" }}>
+              <input type="email" value={nouvelEmail} onChange={e => { setNouvelEmail(e.target.value); setStatutEmail(null) }} style={{ ...inputStyle, flex: 1 }} />
+              <button onClick={modifierEmail} disabled={envoiEmail || !nouvelEmail.trim() || nouvelEmail.trim() === user.email}
+                style={{ padding: "9px 14px", borderRadius: "6px", border: "1px solid #d6d0c4", background: "#fff", color: "#3d6b4f", fontSize: "12.5px", fontWeight: 500, cursor: "pointer", whiteSpace: "nowrap" }}>
+                {envoiEmail ? "Envoi…" : "Modifier"}
+              </button>
+            </div>
+            {user.email_confirmed_at && !statutEmail && <p style={{ fontSize: "11px", color: "#3d6b4f", margin: "5px 0 0" }}>✓ adresse actuelle vérifiée</p>}
+            {statutEmail && <p style={{ fontSize: "11.5px", color: statutEmail.ok ? "#3d6b4f" : "#9a2a2a", margin: "5px 0 0", lineHeight: 1.5 }}>{statutEmail.msg}</p>}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px", marginTop: "16px" }}>
+            <div>
+              <label style={labelStyle}>PRÉNOM (facultatif)</label>
+              <input type="text" value={prenom} onChange={e => setPrenom(e.target.value)} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>NOM (facultatif)</label>
+              <input type="text" value={nom} onChange={e => setNom(e.target.value)} style={inputStyle} />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: "20px" }}>
+            <label style={labelStyle}>TRADUCTION BIBLIQUE PAR DÉFAUT</label>
+            <select value={traduction} onChange={e => setTraduction(e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
+              {TRADUCTIONS.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
+            </select>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <button onClick={enregistrer} disabled={enregistrement}
+              style={{ padding: "9px 18px", borderRadius: "6px", border: "none", background: "#3d6b4f", color: "#fff", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
+              {enregistrement ? "Enregistrement…" : "Enregistrer"}
+            </button>
+            {statut && <span style={{ fontSize: "12.5px", color: statut.ok ? "#3d6b4f" : "#9a2a2a" }}>{statut.ok ? "✓" : "✗"} {statut.msg}</span>}
+          </div>
+        </div>
+
+        {/* Classement */}
+        {classement && (() => {
+          const { rang, rangSuivant, seuilSuivant } = calculerRang(classement.score);
+          const couleurs = couleurRang(rang);
+          return (
+            <div style={{ background: "#fff", border: "1px solid #e4dfd8", borderRadius: "10px", padding: "24px 26px", marginBottom: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: "4px 12px", borderRadius: "5px" }}>{rang}</span>
+                <span style={{ fontSize: "12px", color: "#9a958d" }}>{classement.score} point{classement.score > 1 ? "s" : ""}</span>
+              </div>
+              <p style={{ fontSize: "12.5px", color: "#5a5450", lineHeight: 1.65, margin: "0 0 10px" }}>
+                Ton rang reflète ta contribution aux commentaires patristiques du site. Il se calcule à partir de trois éléments : un point par commentaire publié, deux points supplémentaires pour chaque commentaire validé par la modération, et un point pour chaque « j'aime » reçu sur l'un de tes commentaires. Trois rangs existent, du plus récent au plus établi : <strong>Catéchumène</strong>, <strong>Disciple</strong>, puis <strong>Docteur</strong> — en écho au titre de Docteur de l'Église porté par les grands commentateurs de la tradition.
+              </p>
+              <div style={{ fontSize: "11.5px", color: "#9a958d", display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: rangSuivant ? "8px" : 0 }}>
+                <span>{classement.nb_commentaires} commentaire{classement.nb_commentaires > 1 ? "s" : ""}</span>
+                <span>{classement.nb_valides} validé{classement.nb_valides > 1 ? "s" : ""}</span>
+                <span>{classement.nb_likes_recus} like{classement.nb_likes_recus > 1 ? "s" : ""} reçu{classement.nb_likes_recus > 1 ? "s" : ""}</span>
+              </div>
+              {rangSuivant && (
+                <p style={{ fontSize: "11px", color: "#b0a89e", margin: 0, fontStyle: "italic" }}>
+                  {seuilSuivant! - classement.score} point{seuilSuivant! - classement.score > 1 ? "s" : ""} avant le rang {rangSuivant}.
+                </p>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Zone dangereuse */}
+        <div style={{ background: "#fff", border: "1px solid #e8d4cc", borderRadius: "10px", padding: "20px 26px" }}>
+          <p style={{ fontSize: "13px", fontWeight: 600, color: "#9a2a2a", marginBottom: "6px" }}>Supprimer mon compte</p>
+          <p style={{ fontSize: "12px", color: "#9a958d", marginBottom: "14px", lineHeight: 1.55 }}>
+            Suppression immédiate et définitive — votre compte et vos accès ne pourront pas être récupérés.
+          </p>
+          {!suppressionOuverte ? (
+            <button onClick={() => setSuppressionOuverte(true)}
+              style={{ fontSize: "12.5px", padding: "7px 16px", borderRadius: "5px", border: "1px solid #e4c4b8", background: "#fff", color: "#c0562a", cursor: "pointer" }}>
+              Supprimer mon compte
+            </button>
+          ) : (
+            <div style={{ background: "#fdf2ee", border: "1px solid #e8d4cc", borderRadius: "6px", padding: "14px 16px" }}>
+              <p style={{ fontSize: "12.5px", color: "#7a3020", marginBottom: "12px", lineHeight: 1.5 }}>
+                Confirmez-vous la suppression définitive de votre compte <strong>{user.email}</strong> ?
+              </p>
+              {erreurSuppression && <p style={{ fontSize: "12px", color: "#9a2a2a", marginBottom: "10px" }}>{erreurSuppression}</p>}
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button onClick={() => setSuppressionOuverte(false)} disabled={suppressionEnCours}
+                  style={{ fontSize: "12px", padding: "6px 14px", borderRadius: "5px", border: "1px solid #d6d0c4", background: "#fff", color: "#6b6560", cursor: "pointer" }}>
+                  Annuler
+                </button>
+                <button onClick={supprimerCompte} disabled={suppressionEnCours}
+                  style={{ fontSize: "12px", padding: "6px 14px", borderRadius: "5px", border: "none", background: "#c0562a", color: "#fff", fontWeight: 500, cursor: "pointer" }}>
+                  {suppressionEnCours ? "Suppression…" : "Confirmer la suppression définitive"}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </main>

@@ -1,7 +1,11 @@
 export const metadata = {
-  title: "Soutenir le projet — Bible & Tradition",
+  title: "Soutenir le projet — La Bible des Pères",
   description: "Contribuez au développement de la bibliothèque patristique.",
 };
+
+// Remplace par ton lien PayPal.me ou ton lien de bouton « Faire un don »
+// (https://www.paypal.com/donate/?hosted_button_id=XXXXXXXXXXXXX).
+const LIEN_PAYPAL = "https://www.paypal.com/donate/?hosted_button_id=9M463NPH2RQXL";
 
 export default function SoutenirPage() {
   return (
@@ -53,7 +57,7 @@ export default function SoutenirPage() {
           color: "#5a6b5e",
           lineHeight: 1.75,
           maxWidth: "420px",
-          marginBottom: "40px",
+          marginBottom: "36px",
         }}
       >
         Ce site est un projet bénévole, sans publicité. Si vous souhaitez
@@ -61,35 +65,47 @@ export default function SoutenirPage() {
         maintenance technique, hébergement —, vous pouvez nous soutenir.
       </p>
 
-      {/* Encart "bientôt disponible" */}
-      <div
+      {/* Bouton de don */}
+      <a
+        href={LIEN_PAYPAL}
+        target="_blank"
+        rel="noopener noreferrer"
         style={{
-          background: "#fff",
-          border: "1px solid #ddd8d0",
-          borderRadius: "10px",
-          padding: "28px 36px",
-          maxWidth: "360px",
-          width: "100%",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "10px",
+          background: "#3d6b4f",
+          color: "#fff",
+          textDecoration: "none",
+          fontSize: "14.5px",
+          fontWeight: 500,
+          padding: "13px 30px",
+          borderRadius: "8px",
+          boxShadow: "0 4px 14px rgba(61,107,79,0.25)",
+          transition: "transform 0.15s, box-shadow 0.15s",
         }}
       >
-        <p
-          style={{
-            fontSize: "11px",
-            fontWeight: 600,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: "#3d6b4f",
-            marginBottom: "10px",
-          }}
-        >
-          Bientôt disponible
-        </p>
-        <p style={{ fontSize: "13px", color: "#7a8e7e", lineHeight: 1.65 }}>
-          Les modalités de dons seront précisées prochainement.
-          <br />
-          Merci de votre intérêt.
-        </p>
-      </div>
+        {/* Icône PayPal simplifiée */}
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" aria-hidden="true">
+          <path
+            d="M4 13.5L5.3 3.8h4.6c2.1 0 3.4 1.1 3.1 3.1-.3 2.3-1.9 3.5-4 3.5H6.7l-.6 3.1H4z"
+            fill="#fff"
+            opacity="0.9"
+          />
+        </svg>
+        Faire un don via PayPal
+      </a>
+
+      <p
+        style={{
+          fontSize: "11.5px",
+          color: "#9a958d",
+          marginTop: "18px",
+          fontStyle: "italic",
+        }}
+      >
+        Vous serez redirigé vers le site sécurisé de PayPal.
+      </p>
     </main>
   );
 }

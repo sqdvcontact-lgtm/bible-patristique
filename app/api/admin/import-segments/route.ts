@@ -33,7 +33,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'id_oeuvre manquant' }, { status: 400 })
   }
 
-  // Premier appel : supprimer tous les segments existants de cette œuvre
   if (deleteFirst) {
     const { error: deleteError } = await supabaseAdmin
       .from('segments')
@@ -44,31 +43,35 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Préparer et filtrer les lignes invalides
   const rows = lignes
     .map(l => {
       const num = parseInt(l.segment_numero, 10)
       return {
-        id_oeuvre:      l.id_oeuvre,
-        segment_numero: isNaN(num) ? null : num,
-        segment_texte:  l.segment_texte || null,
-        ref_niv1:       l.ref_niv1  || null,
-        ref_niv2:       l.ref_niv2  || null,
-        ref_niv3:       l.ref_niv3  || null,
-        ref_niv4:       l.ref_niv4  || null,
-        ref_niv5:       l.ref_niv5  || null,
-        lien_1:         l.lien_1    || null,
-        lien_2:         l.lien_2    || null,
-        lien_3:         l.lien_3    || null,
-        lien_4:         l.lien_4    || null,
-        fiabilite:      l.fiabilite || null,
-        nature:         l.nature    || 'texte',
+        id_oeuvre:        l.id_oeuvre,
+        segment_numero:   isNaN(num) ? null : num,
+        segment_texte:    l.segment_texte || null,
+        ref_niv1:         l.ref_niv1         || null,
+        ref_niv2:         l.ref_niv2         || null,
+        ref_niv3:         l.ref_niv3         || null,
+        ref_niv4:         l.ref_niv4         || null,
+        ref_niv5:         l.ref_niv5         || null,
+        ref_niv1_texte:   l.ref_niv1_texte   || null,
+        ref_niv2_texte:   l.ref_niv2_texte   || null,
+        ref_niv3_texte:   l.ref_niv3_texte   || null,
+        ref_niv4_texte:   l.ref_niv4_texte   || null,
+        ref_niv5_texte:   l.ref_niv5_texte   || null,
+        lien_1:           l.lien_1            || null,
+        lien_2:           l.lien_2            || null,
+        lien_3:           l.lien_3            || null,
+        lien_4:           l.lien_4            || null,
+        fiabilite:        l.fiabilite         || null,
+        nature:           l.nature            || 'texte',
       }
     })
     .filter(r => r.segment_numero !== null && r.segment_texte !== null)
 
   if (rows.length === 0) {
-    return NextResponse.json({ error: 'Aucune ligne valide (segment_numero ou segment_texte manquant)' }, { status: 400 })
+    return NextResponse.json({ error: 'Aucune ligne valide' }, { status: 400 })
   }
 
   const { error, count } = await supabaseAdmin

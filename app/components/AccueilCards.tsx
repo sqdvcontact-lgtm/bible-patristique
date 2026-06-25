@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 
-/* ─── Icône livre — épuré ───────────────────────────────────────────────────── */
 function IconBible() {
   return (
     <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
@@ -14,25 +13,33 @@ function IconBible() {
   );
 }
 
-/* ─── Icône tradition — épuré ───────────────────────────────────────────────── */
-function IconTradition() {
+/* ─── Icône stylo ───────────────────────────────────────────────────────────── */
+function IconStylo() {
   return (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-      {/* Auréole simple */}
-      <circle cx="18" cy="11" r="7.5" stroke="#3d6b4f" strokeWidth="1" fill="none"/>
-      {/* Tête */}
-      <circle cx="18" cy="11" r="4" stroke="#7a6448" strokeWidth="1" fill="none"/>
-      {/* Corps */}
-      <path d="M8 33 Q9.5 22 18 20 Q26.5 22 28 33" stroke="#9a8a7a" strokeWidth="1.1" fill="none" strokeLinecap="round"/>
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      {/* Corps du stylo */}
+      <path
+        d="M20 4 L28 12 L10 30 L2 30 L2 22 Z"
+        stroke="#7a6448" strokeWidth="1.2" fill="none"
+        strokeLinejoin="round" strokeLinecap="round"
+      />
+      {/* Ligne de séparation bord de la plume */}
+      <line x1="17" y1="7" x2="25" y2="15"
+        stroke="#9a8a7a" strokeWidth="0.9" strokeLinecap="round"/>
+      {/* Pointe */}
+      <path d="M2 22 L10 30" stroke="#7a6448" strokeWidth="1.2" strokeLinecap="round"/>
+      {/* Petit trait de plume */}
+      <line x1="6" y1="26" x2="4" y2="28"
+        stroke="#b0a090" strokeWidth="0.8" strokeLinecap="round"/>
     </svg>
   );
 }
 
-/* ─── Icône don ─────────────────────────────────────────────────────────────── */
 function IconDon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-      <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z" stroke="currentColor" strokeWidth="1" fill="none" strokeLinejoin="round"/>
+      <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z"
+        stroke="currentColor" strokeWidth="1" fill="none" strokeLinejoin="round"/>
     </svg>
   );
 }
@@ -49,10 +56,10 @@ export default function AccueilCards() {
           <span className="ac-title">Bibles</span>
         </Link>
 
-        {/* Carte Tradition */}
-        <Link href="/bibliotheque" className="ac-card ac-tradition">
-          <IconTradition />
-          <span className="ac-title">Tradition</span>
+        {/* Carte Patristique */}
+        <Link href="/bibliotheque" className="ac-card ac-patristique">
+          <IconStylo />
+          <span className="ac-title">Patristique</span>
         </Link>
 
       </div>
@@ -71,7 +78,6 @@ export default function AccueilCards() {
           gap: 20px;
           width: 100%;
         }
-
         .ac-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -79,7 +85,6 @@ export default function AccueilCards() {
           width: 100%;
           max-width: 480px;
         }
-
         .ac-card {
           display: flex;
           flex-direction: column;
@@ -92,19 +97,16 @@ export default function AccueilCards() {
           transition: transform 0.16s ease, box-shadow 0.16s ease;
         }
         .ac-card:hover { transform: translateY(-3px); }
-
         .ac-bible {
           background: #3d6b4f;
           border: 1px solid #2e5440;
         }
         .ac-bible:hover { box-shadow: 0 10px 32px rgba(61,107,79,0.28); }
-
-        .ac-tradition {
+        .ac-patristique {
           background: #faf8f4;
           border: 1px solid #d6d0c6;
         }
-        .ac-tradition:hover { box-shadow: 0 10px 32px rgba(61,107,79,0.10); }
-
+        .ac-patristique:hover { box-shadow: 0 10px 32px rgba(61,107,79,0.10); }
         .ac-title {
           font-family: Georgia, 'Times New Roman', serif;
           font-size: 20px;
@@ -112,8 +114,7 @@ export default function AccueilCards() {
           letter-spacing: 0.01em;
         }
         .ac-bible .ac-title { color: #fff; }
-        .ac-tradition .ac-title { color: #2a3d30; }
-
+        .ac-patristique .ac-title { color: #2a3d30; }
         .ac-don {
           display: inline-flex;
           align-items: center;
@@ -127,7 +128,6 @@ export default function AccueilCards() {
           letter-spacing: 0.02em;
         }
         .ac-don:hover { color: #3d6b4f; border-bottom-color: #3d6b4f; border-bottom-style: solid; }
-
         @media (max-width: 480px) {
           .ac-grid { grid-template-columns: 1fr 1fr; max-width: 320px; }
           .ac-card { padding: 24px 16px; }

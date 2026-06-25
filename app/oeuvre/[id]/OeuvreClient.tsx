@@ -1,13 +1,30 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from "@/app/lib/supabase"
+import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee } from './oeuvreTypes'
+import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces } from './texteEnrichi'
+import ModaleEditionAdmin from './ModaleEditionAdmin'
+import PageTitre from './PageTitre'
+import OngletCommentaires from './OngletCommentaires'
+import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
+import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
+import AssocierVerset from './AssocierVerset'
+import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 
-type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
-type SegData = { id: number; numero: number; texte: string; versets: VRef[] }
-type GroupeData = { niv1: string; niv2: string; anchor: string; itemIds: number[] }
-type TocEntry = { niv1: string; niv2: string; anchor: string }
-type Commentaire = { id: number; texte: string; valide: boolean; created_at: string }
+// Même table que celle utilisée côté serveur (page.tsx) pour l'affichage
+// des références bibliques en français — doit rester identique aux deux endroits.
+const ABREV_FR: Record<string, string> = {
+  GEN:'Gn',EXO:'Ex',LEV:'Lv',NUM:'Nb',DEU:'Dt',JOS:'Jos',JDG:'Jg',RUT:'Rt',
+  '1SA':'1S','2SA':'2S','1KI':'1R','2KI':'2R','1CH':'1Ch','2CH':'2Ch',
+  EZR:'Esd',NEH:'Né',EST:'Est',JOB:'Jb',PSA:'Ps',PRO:'Pr',ECC:'Qo',SNG:'Ct',
+  ISA:'Is',JER:'Jr',LAM:'Lm',EZK:'Ez',DAN:'Dn',HOS:'Os',JOL:'Jl',AMO:'Am',
+  OBA:'Ab',JON:'Jon',MIC:'Mi',NAM:'Na',HAB:'Ha',ZEP:'So',HAG:'Ag',ZEC:'Za',MAL:'Ml',
+  MAT:'Mt',MRK:'Mc',LUK:'Lc',JHN:'Jn',ACT:'Ac',ROM:'Rm','1CO':'1Co','2CO':'2Co',
+  GAL:'Ga',EPH:'Ep',PHP:'Ph',COL:'Col','1TH':'1Th','2TH':'2Th','1TI':'1Tm',
+  '2TI':'2Tm',TIT:'Tt',PHM:'Phm',HEB:'He',JAS:'Jc','1PE':'1P','2PE':'2P',
+  '1JN':'1Jn','2JN':'2Jn','3JN':'3Jn',JUD:'Jude',REV:'Ap',
+}
 
 const TRADUCTIONS = [
   { code: 'TR0001',    label: 'Bible de Sacy' },
@@ -16,386 +33,266 @@ const TRADUCTIONS = [
   { code: 'TR0004', label: 'Vulgate' },
 ]
 
-type Props = {
-  auteur: string
-  oeuvre: { titre: string; titre_original?: string; trad_auteur?: string; trad_date?: string; id_oeuvre?: string }
-  toc: TocEntry[]
-  groupes: GroupeData[]
-  segments: SegData[]
-  tocApparat: TocEntry[]
-  groupesApparat: GroupeData[]
-  segmentsApparat: SegData[]
-}
-
-function normaliserEspaces(texte: string): string {
-  return texte
-    .replace(/\u00A0([?!;:])/g, '\u202F$1')
-    .replace(/«\u00A0/g, '«\u202F')
-    .replace(/\u00A0»/g, '\u202F»')
-}
-
-// ── Bouton enregistrer segment ────────────────────────────────────────────────
-const BTN_STYLE: React.CSSProperties = { background:'none', border:'none', cursor:'pointer', padding:'1px 3px', borderRadius:'3px', fontSize:'13px', lineHeight:1, flexShrink:0, transition:'color 0.15s' }
-
-function BoutonEnregistrerSegment({
-  seg, auteur, titreOeuvre, idOeuvre, userId,
-  dejaSauvegarde, onSauvegarde,
-}: {
-  seg: SegData; auteur: string; titreOeuvre: string; idOeuvre: string
-  userId: string
-  dejaSauvegarde: boolean; onSauvegarde: () => void
-}) {
-  const [loading, setLoading] = useState(false)
-  const [idPrelev, setIdPrelev] = useState<string | null>(null)
-
-  // Supprimer — fonctionne que l'id vienne du local ou du parent
-  const [supprime, setSupprime] = useState(false)
-
-  const supprimer = async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setLoading(true)
-    if (idPrelev) {
-      await supabase.from('prelevements').delete().eq('id', idPrelev)
-      setIdPrelev(null)
-    } else {
-      // Chercher l'id en base
-      const { data } = await supabase.from('prelevements')
-        .select('id').eq('user_id', userId).eq('id_oeuvre', idOeuvre).eq('segment_numero', seg.numero).limit(1).single()
-      if (data) await supabase.from('prelevements').delete().eq('id', data.id)
-    }
-    setLoading(false)
-    setSupprime(true)
-    onSauvegarde()
-  }
-
-  if ((dejaSauvegarde && !supprime) || idPrelev) {
-    return (
-      <button onClick={supprimer} disabled={loading} title="Retirer des prélèvements"
-        className="seg-btn-enreg"
-        style={{ ...BTN_STYLE, color:'#3d6b4f' }}
-        aria-label="Retirer">{loading ? '…' : '✕'}</button>
-    )
-  }
-
-  const enregistrer = async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setLoading(true)
-    const { data, error } = await supabase.from('prelevements').insert({
-      user_id: userId, type: 'patristique',
-      auteur, titre_oeuvre: titreOeuvre, id_oeuvre: idOeuvre,
-      segment_numero: seg.numero, texte: seg.texte,
-    }).select('id').single()
-    setLoading(false)
-    if (!error && data) { setIdPrelev(data.id); onSauvegarde() }
-  }
-
-  return (
-    <button onClick={enregistrer} disabled={loading} title="Enregistrer dans mes prélèvements"
-      className="seg-btn-enreg"
-      style={{ ...BTN_STYLE, color:'#c8c0b4' }}
-      aria-label="Enregistrer">
-      {loading ? '…' : '+'}
-    </button>
-  )
-}
-
-function BoutonCopieSegment({ texte, className = '' }: { texte: string; className?: string }) {
-  const [copie, setCopie] = useState(false)
-  const handle = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    navigator.clipboard.writeText(texte).then(() => { setCopie(true); setTimeout(() => setCopie(false), 1400) })
-  }
-  return (
-    <button onClick={handle} title="Copier ce passage" className={className}
-      style={{ ...BTN_STYLE, color: copie ? '#3d6b4f' : '#c8c0b4' }}>
-      {copie ? '✓' : '⧉'}
-    </button>
-  )
-}
-
-function BoutonSignalerSegment({ segId, apercu, className = '' }: { segId: number; apercu: string; className?: string }) {
-  const [ouvert, setOuvert] = useState(false)
-  return (
-    <>
-      <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
-        title="Signaler une erreur" className={className}
-        style={{ ...BTN_STYLE, color:'#c8c0b4' }}>
-        ⚑
-      </button>
-      {ouvert && (
-        <ModalSignalement
-          titre={apercu}
-          onClose={() => setOuvert(false)}
-          onEnvoyer={async (msg) => {
-            const { error } = await supabase.from('signalements').insert({ id_segment: segId, message: msg })
-            if (error) throw error
-          }}
-        />
-      )}
-    </>
-  )
-}
-
-function BoutonCopieVerset({ texte, label }: { texte: string; label: string }) {
-  const [copie, setCopie] = useState(false)
-  const handle = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    navigator.clipboard.writeText(`« ${texte} » (${label})`).then(() => { setCopie(true); setTimeout(() => setCopie(false), 1400) })
-  }
-  return (
-    <button onClick={handle} title="Copier ce verset" style={{ ...BTN_STYLE, color: copie ? '#3d6b4f' : '#c8c0b4' }}>
-      {copie ? '✓' : '⧉'}
-    </button>
-  )
-}
-
-function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef; trad: string; userId: string | null }) {
-  const [loading, setLoading] = useState(false)
-  const [idPrelev, setIdPrelev] = useState<string | null>(null)
-  if (!userId) return null
-
-  const supprimer = async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (!idPrelev) return
-    setLoading(true)
-    await supabase.from('prelevements').delete().eq('id', idPrelev)
-    setLoading(false); setIdPrelev(null)
-  }
-
-  if (idPrelev) return (
-    <button onClick={supprimer} disabled={loading} title="Retirer des prélèvements" style={{ ...BTN_STYLE, color:'#3d6b4f' }}>
-      {loading ? '…' : '✕'}
-    </button>
-  )
-
-  const enregistrer = async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setLoading(true)
-    const texte = verset.textes[trad] || verset.textes['TR0001'] || ''
-    const { data, error } = await supabase.from('prelevements').insert({
-      user_id: userId, type: 'biblique',
-      ref_livre: verset.label.split(' ')[0], ref_livre_abr: verset.label.split(' ')[0],
-      ref_chapitre: parseInt(verset.chapitre), ref_verset: parseInt(verset.verset),
-      texte, traduction: trad,
-    }).select('id').single()
-    setLoading(false)
-    if (!error && data) setIdPrelev(data.id)
-  }
-
-  return (
-    <button onClick={enregistrer} disabled={loading} title="Enregistrer dans mes prélèvements" style={{ ...BTN_STYLE, color:'#c8c0b4' }}>
-      {loading ? '…' : '+'}
-    </button>
-  )
-}
-
-function BoutonSignalerVerset({ versetId, label }: { versetId: string; label: string }) {
-  const [ouvert, setOuvert] = useState(false)
-  return (
-    <>
-      <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
-        title="Signaler une erreur" style={{ ...BTN_STYLE, color:'#c8c0b4' }}>⚑</button>
-      {ouvert && (
-        <ModalSignalement
-          titre={label}
-          onClose={() => setOuvert(false)}
-          onEnvoyer={async (msg) => {
-            const { error } = await supabase.from('signalements').insert({ id_segment: null, message: `Verset ${versetId} : ${msg}` })
-            if (error) throw error
-          }}
-        />
-      )}
-    </>
-  )
-}
-
-// ── Page de titre ─────────────────────────────────────────────────────────────
-function PageTitre({ auteur, oeuvre }: { auteur: string; oeuvre: Props['oeuvre'] }) {
-  return (
-    <div style={{
-      minHeight: '60vh', display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      padding: '80px 48px 60px', borderBottom: '1px solid #d6d0c4',
-      marginBottom: '56px', textAlign: 'center',
-    }}>
-      <p style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '32px' }}>
-        {auteur}
-      </p>
-      <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.2, marginBottom: oeuvre.titre_original ? '14px' : '32px', maxWidth: '560px' }}>
-        {oeuvre.titre}
-      </h1>
-      {oeuvre.titre_original && (
-        <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 'clamp(15px, 2vw, 19px)', fontStyle: 'italic', color: '#8a8278', marginBottom: '40px', letterSpacing: '0.01em' }}>
-          {oeuvre.titre_original}
-        </p>
-      )}
-      <div style={{ width: '40px', height: '1px', background: '#c8c0b4', marginBottom: '32px' }} />
-      {oeuvre.trad_auteur && (
-        <p style={{ fontSize: '13px', color: '#7a7268', marginBottom: '6px' }}>
-          Traduction de {oeuvre.trad_auteur}{oeuvre.trad_date ? ` (${oeuvre.trad_date})` : ''}
-        </p>
-      )}
-      <p style={{ fontSize: '11px', letterSpacing: '0.08em', color: '#b0a89e', marginBottom: '4px' }}>
-        Bible &amp; Tradition patristique
-      </p>
-      {oeuvre.trad_date && (
-        <p style={{ fontSize: '11px', color: '#c0b8b0' }}>Édition numérique — {oeuvre.trad_date}</p>
-      )}
-    </div>
-  )
-}
-
-// ── Modale signalement (centrée, overlay) ────────────────────────────────────
-function ModalSignalement({ titre, onClose, onEnvoyer }: {
-  titre: string; onClose: () => void; onEnvoyer: (msg: string) => Promise<void>
-}) {
-  const [message, setMessage] = useState('')
-  const [statut, setStatut] = useState<'idle'|'sending'|'ok'|'err'>('idle')
-
-  const envoyer = async () => {
-    if (!message.trim()) return
-    setStatut('sending')
-    try { await onEnvoyer(message.trim()); setStatut('ok'); setTimeout(onClose, 1800) }
-    catch { setStatut('err') }
-  }
-
-  return (
-    <div onClick={onClose}
-      style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.35)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <div onClick={e => e.stopPropagation()}
-        style={{ background:'#fff', borderRadius:'8px', padding:'20px 22px', width:'340px', boxShadow:'0 8px 32px rgba(0,0,0,0.18)' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px' }}>
-          <p style={{ fontSize:'12px', fontWeight:600, color:'#c0562a', margin:0 }}>Signaler une erreur</p>
-          <button onClick={onClose} style={{ fontSize:'14px', color:'#b0a89e', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
-        </div>
-        {titre && <p style={{ fontSize:'10.5px', color:'#9a958d', fontStyle:'italic', marginBottom:'10px', lineHeight:1.4 }}>{titre}</p>}
-        {statut === 'ok' ? (
-          <p style={{ fontSize:'11.5px', color:'#3d6b4f', fontStyle:'italic', textAlign:'center', padding:'8px 0' }}>Signalement envoyé, merci !</p>
-        ) : (
-          <>
-            <textarea value={message} onChange={e => setMessage(e.target.value)}
-              placeholder="Décrivez l'erreur constatée…" rows={4} autoFocus
-              style={{ width:'100%', fontSize:'11px', padding:'7px 9px', border:'1px solid #d6d0c4', borderRadius:'5px', background:'#faf8f4', color:'#2a2520', resize:'vertical', outline:'none', lineHeight:1.5, boxSizing:'border-box' }} />
-            <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'8px', gap:'8px' }}>
-              {statut === 'err' && <span style={{ fontSize:'10px', color:'#c0562a', alignSelf:'center' }}>Erreur d'envoi.</span>}
-              <button onClick={onClose} style={{ fontSize:'11px', padding:'5px 12px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#6b6560', cursor:'pointer' }}>Annuler</button>
-              <button onClick={envoyer} disabled={statut === 'sending' || !message.trim()}
-                style={{ fontSize:'11px', padding:'5px 14px', borderRadius:'4px', border:'none', cursor: message.trim() ? 'pointer' : 'default', background: message.trim() ? '#c0562a' : '#e4dfd8', color: message.trim() ? '#fff' : '#9a958d', fontWeight:500 }}>
-                {statut === 'sending' ? 'Envoi…' : 'Envoyer'}
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ── Onglet commentaires ───────────────────────────────────────────────────────
-function OngletCommentaires({ segActif }: { segActif: number | null }) {
-  const [commentaires, setCommentaires] = useState<Commentaire[]>([])
-  const [texte, setTexte] = useState('')
-  const [statut, setStatut] = useState<'idle' | 'sending' | 'ok' | 'err'>('idle')
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (segActif === null) { setCommentaires([]); return }
-    setLoading(true)
-    supabase.from('commentaires').select('id, texte, valide, created_at').eq('id_segment', segActif).order('created_at', { ascending: false })
-      .then(({ data }) => { setCommentaires(data || []); setLoading(false) })
-  }, [segActif])
-
-  const soumettre = async () => {
-    if (!texte.trim() || segActif === null) return
-    setStatut('sending')
-    const { error } = await supabase.from('commentaires').insert({ id_segment: segActif, texte: texte.trim(), valide: false })
-    if (error) { setStatut('err'); return }
-    setStatut('ok'); setTexte('')
-    setTimeout(() => setStatut('idle'), 2500)
-  }
-
-  if (segActif === null) return <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d', padding: '8px 0' }}>Cliquez sur un paragraphe pour voir ou ajouter des commentaires.</p>
-
-  return (
-    <div>
-      {loading && <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>}
-      {!loading && commentaires.length === 0 && <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', marginBottom: '12px' }}>Aucun commentaire pour ce passage.</p>}
-      {commentaires.map(c => (
-        <div key={c.id} style={{ padding: '9px 0', borderBottom: '1px solid #ede9e2' }}>
-          {!c.valide && <span style={{ fontSize: '9.5px', fontWeight: 600, color: '#b03a2a', background: 'rgba(176,58,42,0.08)', padding: '1px 6px', borderRadius: '3px', display: 'inline-block', marginBottom: '4px', letterSpacing: '0.04em' }}>NON VALIDÉ</span>}
-          <p style={{ fontSize: '12px', color: c.valide ? '#2a2520' : '#7a5550', lineHeight: 1.55, margin: 0 }}>{c.texte}</p>
-          <p style={{ fontSize: '10px', color: '#b0a89e', marginTop: '3px' }}>{new Date(c.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-        </div>
-      ))}
-      <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #d6d0c4' }}>
-        {statut === 'ok' ? (
-          <p style={{ fontSize: '11.5px', color: '#3d6b4f', fontStyle: 'italic' }}>Commentaire soumis — il apparaîtra après validation.</p>
-        ) : (
-          <>
-            <textarea value={texte} onChange={e => setTexte(e.target.value)} placeholder="Votre commentaire sur ce passage…" rows={4}
-              style={{ width: '100%', fontSize: '11.5px', padding: '7px 9px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#fff', color: '#2a2520', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px', gap: '8px', alignItems: 'center' }}>
-              {statut === 'err' && <span style={{ fontSize: '10.5px', color: '#c0562a' }}>Erreur d'envoi.</span>}
-              <button onClick={soumettre} disabled={statut === 'sending' || !texte.trim()}
-                style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? '#3d6b4f' : '#e4dfd8', color: texte.trim() ? '#fff' : '#9a958d', fontWeight: 500 }}>
-                {statut === 'sending' ? 'Envoi…' : 'Soumettre'}
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
 // ── Composant principal ───────────────────────────────────────────────────────
-export default function OeuvreClient({ auteur, oeuvre, toc, groupes, segments, tocApparat, groupesApparat, segmentsApparat }: Props) {
+export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit }: Props) {
+  const { modeUtilisateurStandard } = useAffichageAdmin()
+  const estAdmin = estAdminReel && !modeUtilisateurStandard
   const [segActif, setSegActif] = useState<number | null>(null)
   const [tradIndex, setTradIndex] = useState(0)
   const [tradOuverte, setTradOuverte] = useState(false)
-  const [ongletDroit, setOngletDroit] = useState<'refs' | 'commentaires'>('refs')
+  const [ongletDroit, setOngletDroit] = useState<'refs' | 'commentaires' | 'suggestions'>('refs')
   const [userId, setUserId] = useState<string | null>(null)
   const [sauvegardesSegs, setSauvegardesSegs] = useState<Set<number>>(new Set())
   const [vue, setVue] = useState<'texte' | 'apparat'>('texte')
+  const [editionCible, setEditionCible] = useState<EditionCible | null>(null)
+  const [titreAffiche, setTitreAffiche] = useState(oeuvre.titre)
+  const [navOuverte, setNavOuverte] = useState(true)
+  const [panneauOuvert, setPanneauOuvert] = useState(true)
+  const [suggestions, setSuggestions] = useState<{ id: number; segment_numero: number; segment_texte: string; reference_manuelle: string | null }[]>([])
+  const [suggestionsChargees, setSuggestionsChargees] = useState(false)
+  useEffect(() => {
+    if (ongletDroit !== 'suggestions' || suggestionsChargees || !idOeuvre) return
+    supabase.from('segments')
+      .select('id, segment_numero, segment_texte, reference_manuelle')
+      .eq('id_oeuvre', idOeuvre).eq('fiabilite', 'Lien à constituer')
+      .order('segment_numero')
+      .then(({ data }) => { setSuggestions(data ?? []); setSuggestionsChargees(true) })
+  }, [ongletDroit, idOeuvre, suggestionsChargees])
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 880) {
+      setNavOuverte(false)
+      setPanneauOuvert(false)
+    }
+  }, [])
 
-  // Niveaux 1 distincts pour la navigation par livre
-  const niv1List = Array.from(new Set(groupes.map(g => g.niv1).filter(Boolean)))
+    const [oeuvresAuteur, setOeuvresAuteur] = useState<OeuvreResumee[]>([])
+  const [auteurOuvert, setAuteurOuvert] = useState(false)
+
+  // Navigation lazy par niv1
+  const niv1List = niv1ListProp
   const [niv1Actif, setNiv1Actif] = useState<string>(niv1List[0] ?? '')
+  const [groupes, setGroupes] = useState<GroupeData[]>(groupesInit)
+  const [segments, setSegments] = useState<SegData[]>(segmentsInit)
+  const [groupesApparat, setGroupesApparat] = useState<GroupeData[]>(groupesApparatInit)
+  const [segmentsApparat, setSegmentsApparat] = useState<SegData[]>(segmentsApparatInit)
+  const [niv1Loading, setNiv1Loading] = useState(false)
+  const profondeurSommaire = niveauxSommaire  // vient des props (admin)
+  const profondeurCorps = niveauxCorps
+  // Navigation par niv2 (si profondeur >= 2)
+  const [niv2Actif, setNiv2Actif] = useState<string | null>(null)
 
   const niv1Index = niv1List.indexOf(niv1Actif)
   const niv1Prev = niv1Index > 0 ? niv1List[niv1Index - 1] : null
   const niv1Next = niv1Index < niv1List.length - 1 ? niv1List[niv1Index + 1] : null
 
-  const changerNiv1 = (n1: string) => { setNiv1Actif(n1); setSegActif(null); window.scrollTo(0, 0) }
+  // Cache mémoire des niv1 déjà chargés : navigation instantanée au retour sur
+  // un niveau déjà visité, et préchargement discret des niv1 voisins en tâche
+  // de fond pour réduire la latence perçue au clic sur Suivant/Précédent.
+  const cacheNiv1Ref = useRef<Map<string, { groupes: GroupeData[]; segments: SegData[] }>>(new Map())
+  useEffect(() => {
+    cacheNiv1Ref.current.set(niv1Actif, { groupes: groupesInit, segments: segmentsInit })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  // Filtrer groupes et segments selon le niv1 actif
-  const groupesFiltres = groupes.filter(g => g.niv1 === niv1Actif)
-  const idsActifs = new Set(groupesFiltres.flatMap(g => g.itemIds))
-  const segmentsFiltres = segments.filter(s => idsActifs.has(s.id))
+  // Liste des niv2 du niv1 actif (sert au sommaire)
+  const niv2List = Array.from(new Set(groupes.map(g => g.niv2).filter(Boolean)))
+
+  // Cliquer sur un niv2 ne filtre plus le contenu : on se déplace simplement
+  // jusqu'à son ancre, tout le niv1 reste affiché en continu.
+  const allerAuNiv2 = (n2: string | null) => {
+    setNiv2Actif(n2)
+    setVue('texte')
+    if (!n2) return
+    const ancre = groupes.find(g => g.niv2 === n2)?.anchor
+    if (ancre) document.getElementById(ancre)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const chargerNiv1Data = async (n1: string): Promise<{ groupes: GroupeData[]; segments: SegData[] }> => {
+    const { data } = await supabase
+      .from('segments')
+      .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature')
+      .eq('id_oeuvre', idOeuvre)
+      .eq('ref_niv1', n1)
+      .order('segment_numero')
+    const segs = (data ?? []) as any[]
+
+    const tousIds = new Set<string>()
+    segs.forEach((s: any) => {
+      [s.lien_1,s.lien_2,s.lien_3,s.lien_4].filter(Boolean).forEach((v: string) =>
+        v.split(';').map((x: string) => x.trim()).filter(Boolean).forEach((x: string) => tousIds.add(x)))
+    })
+    const idsArr = Array.from(tousIds)
+    let versetMap: Record<string,{label:string;textes:Record<string,string>}> = {}
+    if (idsArr.length > 0) {
+      const { data: vd } = await supabase.from('versets')
+        .select('id_verset, ref, "TR0001", "TR0002", "TR0003", "TR0004"')
+        .in('id_verset', idsArr)
+      ;(vd ?? []).forEach((v: any) => {
+        const p = v.ref.trim().split(' '); const cv = (p[1]||'1:1').split(':')
+        const abr = ABREV_FR[p[0]] ?? p[0]
+        const label = cv[1] ? `${abr} ${cv[0]}, ${cv[1]}` : `${abr} ${cv[0]}`
+        versetMap[v.id_verset] = { label, textes: {"TR0001":v["TR0001"]||'',"TR0002":v["TR0002"]||'',"TR0003":v["TR0003"]||'',"TR0004":v["TR0004"]||''} }
+      })
+    }
+
+    let c = 0
+    const newSegs: SegData[] = segs.map((s: any) => {
+      c++
+      const versets = [s.lien_1,s.lien_2,s.lien_3,s.lien_4].filter(Boolean)
+        .join(';').split(';').map((x: string) => x.trim()).filter(Boolean)
+        .map((vid: string) => ({ id: vid, ...(versetMap[vid] || { label: vid, textes: {} }) }))
+      return { id: s.id, numero: c, texte: s.segment_texte, versets }
+    })
+
+    const newGroupes: GroupeData[] = []
+    let cur: any = { niv1:'', niv2:'', niv3:'', niv4:'', itemIds:[] as number[] }
+    let gi = 0
+    segs.forEach((s: any) => {
+      const n1v = s.ref_niv1||'', n2v = s.ref_niv2||'', n3v = s.ref_niv3||'', n4v = s.ref_niv4||''
+      if (n1v !== cur.niv1 || n2v !== cur.niv2 || n3v !== cur.niv3 || n4v !== cur.niv4) {
+        if (cur.itemIds.length > 0) newGroupes.push({ ...cur, anchor: `g${gi++}` })
+        cur = {
+          niv1: n1v, niv2: n2v, niv3: n3v, niv4: n4v,
+          niv1_texte: s.ref_niv1_texte||'', niv2_texte: s.ref_niv2_texte||'',
+          niv3_texte: s.ref_niv3_texte||'', niv4_texte: s.ref_niv4_texte||'',
+          itemIds: [s.id]
+        }
+      } else cur.itemIds.push(s.id)
+    })
+    if (cur.itemIds.length > 0) newGroupes.push({ ...cur, anchor: `g${gi}` })
+
+    return { groupes: newGroupes, segments: newSegs }
+  }
+
+  // Recharge tout l'apparat critique de l'œuvre depuis Supabase — nécessaire
+  // après une modification ou une suppression admin, puisque l'apparat n'est
+  // sinon chargé qu'une seule fois au rendu serveur de la page.
+  const chargerApparatData = async () => {
+    const { data } = await supabase
+      .from('segments')
+      .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature')
+      .eq('id_oeuvre', idOeuvre)
+      .eq('nature', 'apparat_critique')
+      .order('segment_numero')
+    const segs = (data ?? []) as any[]
+
+    let c = 0, n1c = ''
+    const newSegs: SegData[] = segs.map((s: any) => {
+      const n1v = s.ref_niv1 || ''
+      if (n1v !== n1c) { c = 0; n1c = n1v }
+      c++
+      return { id: s.id, numero: c, texte: s.segment_texte, versets: [] }
+    })
+
+    const newGroupes: GroupeData[] = []
+    let cur: any = { niv1: '', niv2: '', niv3: '', niv4: '', itemIds: [] as number[] }
+    let gi = 0
+    segs.forEach((s: any) => {
+      const n1v = s.ref_niv1 || '', n2v = s.ref_niv2 || '', n3v = s.ref_niv3 || '', n4v = s.ref_niv4 || ''
+      if (n1v !== cur.niv1 || n2v !== cur.niv2 || n3v !== cur.niv3 || n4v !== cur.niv4) {
+        if (cur.itemIds.length > 0) newGroupes.push({ ...cur, anchor: `a${gi++}` })
+        cur = {
+          niv1: n1v, niv2: n2v, niv3: n3v, niv4: n4v,
+          niv1_texte: s.ref_niv1_texte || '', niv2_texte: s.ref_niv2_texte || '',
+          niv3_texte: s.ref_niv3_texte || '', niv4_texte: s.ref_niv4_texte || '',
+          itemIds: [s.id]
+        }
+      } else cur.itemIds.push(s.id)
+    })
+    if (cur.itemIds.length > 0) newGroupes.push({ ...cur, anchor: `a${gi}` })
+
+    setGroupesApparat(newGroupes)
+    setSegmentsApparat(newSegs)
+  }
+
+  const changerNiv1 = async (n1: string, opts?: { forceRefresh?: boolean; conserverPosition?: boolean }) => {
+    setNiv1Actif(n1)
+    if (!opts?.conserverPosition) {
+      setSegActif(null)
+      setNiv2Actif(null)
+      setVue('texte')
+      document.getElementById('barre-nav-niv1')?.scrollIntoView({ block: 'start' })
+    }
+
+    const enCache = !opts?.forceRefresh ? cacheNiv1Ref.current.get(n1) : undefined
+    if (enCache) {
+      setGroupes(enCache.groupes)
+      setSegments(enCache.segments)
+      setNiv1Loading(false)
+    } else {
+      setNiv1Loading(true)
+      const donnees = await chargerNiv1Data(n1)
+      cacheNiv1Ref.current.set(n1, donnees)
+      setGroupes(donnees.groupes)
+      setSegments(donnees.segments)
+      setNiv1Loading(false)
+    }
+
+    // Préchargement discret des niv1 voisins, en tâche de fond
+    const idx = niv1List.indexOf(n1)
+    ;[niv1List[idx - 1], niv1List[idx + 1]].forEach(voisin => {
+      if (voisin && !cacheNiv1Ref.current.has(voisin)) {
+        chargerNiv1Data(voisin).then(d => cacheNiv1Ref.current.set(voisin, d)).catch(() => {})
+      }
+    })
+  }
+
+  // niv2Actif n'est plus un filtre : il indique seulement la position de
+  // navigation courante (en-tête + surlignage dans le sommaire). Le niv1
+  // reste affiché en entier — cliquer sur un niv2 fait défiler jusqu'à lui.
+  const groupesFiltres = groupes
+  const segmentsFiltres = segments
 
   const trad = TRADUCTIONS[tradIndex].code
   const segMap = new Map(segmentsFiltres.map(s => [s.id, s]))
   const segMapApparat = new Map(segmentsApparat.map(s => [s.id, s]))
   const segMapActive = vue === 'texte' ? segMap : segMapApparat
   const segActifData = segActif !== null ? segMapActive.get(segActif) : null
-  const idOeuvre = (oeuvre as any).id_oeuvre ?? ''
+  // idOeuvre vient des Props
   const hasApparat = segmentsApparat.length > 0
+  const tocApparatLocal = (() => {
+    const vus = new Set<string>()
+    const out: { niv1: string; anchor: string }[] = []
+    groupesApparat.forEach(g => { if (g.niv1 && !vus.has(g.niv1)) { vus.add(g.niv1); out.push({ niv1: g.niv1, anchor: g.anchor }) } })
+    return out
+  })()
 
   // Détection session + chargement des segments déjà sauvegardés
+  // + traduction biblique par défaut choisie dans Mon compte
+  const chargerTraductionDefaut = (uid: string) => {
+    supabase.from('profils').select('traduction_defaut').eq('id', uid).maybeSingle().then(({ data }) => {
+      if (data?.traduction_defaut) {
+        const idx = TRADUCTIONS.findIndex(t => t.code === data.traduction_defaut)
+        if (idx >= 0) setTradIndex(idx)
+      }
+    })
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       const uid = data.session?.user.id ?? null
       setUserId(uid)
       if (uid && idOeuvre) chargerSauvegardesSegs(uid, idOeuvre)
+      if (uid) chargerTraductionDefaut(uid)
     })
     const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
       const uid = session?.user.id ?? null
       setUserId(uid)
       if (uid && idOeuvre) chargerSauvegardesSegs(uid, idOeuvre)
       else setSauvegardesSegs(new Set())
+      if (uid) chargerTraductionDefaut(uid)
     })
     return () => listener.subscription.unsubscribe()
   }, [idOeuvre])
+
+  useEffect(() => {
+    if (!auteurId) return
+    supabase.from('oeuvres').select('id_oeuvre, titre')
+      .eq('id_auteur', auteurId)
+      .neq('id_oeuvre', idOeuvre)
+      .order('titre')
+      .then(({ data }) => setOeuvresAuteur(data ?? []))
+  }, [auteurId, idOeuvre])
 
   const chargerSauvegardesSegs = async (uid: string, oeuvreId: string) => {
     const { data } = await supabase
@@ -411,12 +308,22 @@ export default function OeuvreClient({ auteur, oeuvre, toc, groupes, segments, t
     setSauvegardesSegs(prev => new Set([...prev, num]))
   }
 
+  // Met à jour l'affichage immédiatement après l'association d'un verset,
+  // sans recharger tout le niv1 depuis Supabase.
+  const associerVersetLocal = (segId: number) => (_champ: 'lien_1' | 'lien_2' | 'lien_3', verset: typeof segments[number]['versets'][number]) => {
+    setSegments(prev => prev.map(s => s.id === segId ? { ...s, versets: [...s.versets, verset] } : s))
+  }
+
   return (
     <div style={{ background: '#f7f4ef', minHeight: '100vh' }}>
       <style>{`
         .seg-wrapper { position: relative; }
+        .seg-wrapper::after { content: ''; position: absolute; top: 0; right: -44px; width: 44px; height: 100%; }
         .seg-p { transition: background 0.12s; }
         .seg-p:hover { background: rgba(61,107,79,0.05) !important; }
+        .seg-actions { opacity: 0; transition: opacity 0.15s; }
+        .seg-wrapper:hover .seg-actions { opacity: 1; }
+        .seg-wrapper--actif .seg-actions { opacity: 0.5; }
         .seg-wrapper:hover .seg-btn-enreg { opacity: 1 !important; }
         .seg-wrapper .seg-btn-enreg { opacity: 0; }
         .seg-wrapper--actif .seg-btn-enreg { opacity: 0.5; }
@@ -434,96 +341,219 @@ export default function OeuvreClient({ auteur, oeuvre, toc, groupes, segments, t
       <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', minHeight: '100vh' }}>
 
         {/* ── NAV GAUCHE ── */}
+        {navOuverte ? (
         <nav style={{ width: '20%', flexShrink: 0, position: 'sticky', top: '48px', alignSelf: 'flex-start', height: 'calc(100vh - 48px)', overflowY: 'auto', borderRight: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid #d6d0c4', flexShrink: 0 }}>
+          <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid #d6d0c4', flexShrink: 0, position: 'relative' }}>
+            <button onClick={() => setNavOuverte(false)} title="Fermer le sommaire"
+              style={{ position: 'absolute', right: '8px', top: '8px', fontSize: '12px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>✕</button>
             <p style={{ fontSize: '12px', fontWeight: 600, color: '#3d6b4f', marginBottom: '4px' }}>{auteur}</p>
-            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '13px', color: '#2a3d30', lineHeight: 1.35, marginBottom: oeuvre.titre_original ? '3px' : '0' }}>{oeuvre.titre}</p>
+            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '13px', color: '#2a3d30', lineHeight: 1.35, marginBottom: oeuvre.titre_original ? '3px' : '0', whiteSpace: 'pre-line', position: 'relative', paddingRight: estAdmin ? '16px' : 0 }}>
+              {rendreTexteEnrichi(titreAffiche)}
+              {estAdmin && (
+                <button onClick={() => setEditionCible({ type: 'titre_oeuvre', texteActuel: titreAffiche })}
+                  title="Modifier le titre de l'œuvre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '10px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✎</button>
+              )}
+            </p>
             {oeuvre.titre_original && <p style={{ fontSize: '11.5px', color: '#8a8278', fontStyle: 'italic', marginBottom: '0' }}>{oeuvre.titre_original}</p>}
             {(oeuvre.trad_auteur || oeuvre.trad_date) && (
               <p style={{ fontSize: '11px', color: '#9a958d', marginTop: '6px' }}>Trad. {oeuvre.trad_auteur ?? ''}{oeuvre.trad_date ? `, ${oeuvre.trad_date}` : ''}</p>
             )}
+          </div>
 
-            {/* Apparat critique — juste sous les infos de l'œuvre */}
-            {hasApparat && (
-              <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #ede9e2' }}>
-                <p style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e', marginBottom: '6px' }}>APPARAT CRITIQUE</p>
-                {(() => {
-                  let tln1 = ''
-                  return tocApparat.map((entry, i) => {
-                    const sn1 = entry.niv1 && entry.niv1 !== tln1
-                    if (sn1) tln1 = entry.niv1
-                    if (!sn1) return null
+          {oeuvresAuteur.length > 0 && (
+            <div style={{ borderBottom: '1px solid #d6d0c4', flexShrink: 0 }}>
+              <button onClick={() => setAuteurOuvert(!auteurOuvert)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
+                <span style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e' }}>DU MÊME AUTEUR</span>
+                <span style={{ fontSize: '7px', color: '#c0bab0' }}>{auteurOuvert ? '▲' : '▼'}</span>
+              </button>
+              {auteurOuvert && (
+                <div style={{ padding: '0 16px 12px' }}>
+                  {oeuvresAuteur.map(o => (
+                    <a key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
+                      style={{ display: 'block', fontSize: '11px', color: '#3a3530', textDecoration: 'none', padding: '3px 0', lineHeight: 1.35, borderBottom: '1px solid #f0ece6' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = '#3d6b4f')}
+                      onMouseLeave={e => (e.currentTarget.style.color = '#3a3530')}>
+                      {o.titre}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Apparat critique — sous Du même auteur, au-dessus du sommaire */}
+          {hasApparat && (
+            <div style={{ flexShrink: 0, padding: '12px 16px 14px', borderBottom: '1px solid #d6d0c4' }}>
+              <p style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e', marginBottom: '6px' }}>APPARAT CRITIQUE</p>
+              {tocApparatLocal.map((entry, i) => (
+                <div key={i}>
+                  <a href={`#${entry.anchor}`} onClick={() => { setVue('apparat'); setSegActif(null) }} className="toc-lien-n1"
+                    style={{ display: 'block', fontSize: '11.5px', fontWeight: vue === 'apparat' ? 600 : 400, color: vue === 'apparat' ? '#3d6b4f' : '#3a3530', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
+                    {entry.niv1}
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px 24px' }}>
+            <p style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e', marginBottom: '8px' }}>SOMMAIRE</p>
+
+            {niv1List.map(n1 => {
+              const estActif = vue === 'texte' && n1 === niv1Actif
+
+              return (
+                <div key={n1} style={{ marginBottom: profondeurSommaire >= 2 ? '6px' : '0' }}>
+                  {/* Niv1 */}
+                  <button onClick={() => changerNiv1(n1)}
+                    style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '11.5px', fontWeight: estActif ? 600 : 400, color: estActif ? '#3d6b4f' : '#3a3530', lineHeight: 1.35 }}>
+                    {n1}
+                  </button>
+
+                  {/* Niv2 — affiché si profondeur >= 2 ET niv1 actif */}
+                  {profondeurSommaire >= 2 && estActif && niv2List.map(n2 => {
+                    const g2 = groupes.find(g => g.niv2 === n2)
+                    const n2txt = g2?.niv2_texte || ''
+                    const actif2 = vue === 'texte' && niv2Actif === n2
+                    // Niv3 distincts pour ce niv2
+                    const niv3DeN2 = profondeurSommaire >= 3
+                      ? Array.from(new Set(groupes.filter(g => g.niv2 === n2 && g.niv3).map(g => g.niv3)))
+                      : []
                     return (
-                      <div key={i}>
-                        <a href={`#${entry.anchor}`} onClick={() => { setVue('apparat'); setSegActif(null) }} className="toc-lien-n1"
-                          style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: vue === 'apparat' ? '#3d6b4f' : '#3a3530', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
-                          {entry.niv1}
-                        </a>
+                      <div key={n2} style={{ borderLeft: actif2 ? '2px solid #3d6b4f' : '2px solid transparent', marginBottom: '2px' }}>
+                        {/* Bouton niv2 */}
+                        <button
+                          onClick={() => allerAuNiv2(actif2 ? null : n2)}
+                          style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0 3px 8px' }}>
+                          <span style={{ fontSize: '10.5px', color: actif2 ? '#3d6b4f' : '#7a7268', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{n2}</span>
+                          {n2txt && txtSommaire[1] && <span style={{ fontSize: '9.5px', color: actif2 ? '#3d6b4f' : '#9a958d', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{n2txt}</span>}
+                        </button>
+                        {/* Niv3 — toujours visible, sans accordéon */}
+                        {niv3DeN2.map(n3 => {
+                          const g3 = groupes.find(g => g.niv2 === n2 && g.niv3 === n3)
+                          const n3txt = g3?.niv3_texte || ''
+                          const ancre = groupes.find(g => g.niv2 === n2 && g.niv3 === n3)?.anchor
+                          return (
+                            <button key={n3}
+                              onClick={() => {
+                                setVue('texte')
+                                if (ancre) {
+                                  const el = document.getElementById(ancre)
+                                  el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                                }
+                              }}
+                              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0 2px 16px' }}>
+                              <span style={{ fontSize: '9.5px', color: '#9a958d', display: 'block', lineHeight: 1.3 }}>{n3}</span>
+                              {n3txt && txtSommaire[2] && <span style={{ fontSize: '9px', color: '#b0a89e', fontStyle: 'italic', display: 'block', lineHeight: 1.2 }}>{n3txt}</span>}
+                            </button>
+                          )
+                        })}
                       </div>
                     )
-                  })
-                })()}
-              </div>
-            )}
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px 24px' }}>
-            {/* Navigation par niv1 */}
-            <p style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e', marginBottom: '8px' }}>SOMMAIRE</p>
-            {niv1List.map(n1 => (
-              <button key={n1} onClick={() => changerNiv1(n1)}
-                style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', fontSize: '11.5px', fontWeight: n1 === niv1Actif ? 600 : 400, color: n1 === niv1Actif ? '#3d6b4f' : '#3a3530', lineHeight: 1.35 }}>
-                {n1}
-              </button>
-            ))}
+                  })}
+                </div>
+              )
+            })}
           </div>
         </nav>
+        ) : (
+          <button onClick={() => setNavOuverte(true)} title="Ouvrir le sommaire"
+            style={{ position: 'sticky', top: '48px', alignSelf: 'flex-start', flexShrink: 0, height: 'calc(100vh - 48px)', width: '22px', background: '#faf8f4', border: 'none', borderRight: '1px solid #d6d0c4', cursor: 'pointer', color: '#9a958d', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl' as any }}>
+            ☰
+          </button>
+        )}
 
         {/* ── TEXTE CENTRAL ── */}
-        <main style={{ width: '44%', flexShrink: 0, padding: '0 48px 80px' }}>
-          <PageTitre auteur={auteur} oeuvre={oeuvre} />
+        <main lang="fr" style={{ flex: 1, minWidth: 0, padding: '0 48px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: '560px', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
+          <PageTitre auteur={auteur} oeuvre={oeuvre} titre={titreAffiche} estAdmin={estAdmin}
+            onModifierTitre={() => setEditionCible({ type: 'titre_oeuvre', texteActuel: titreAffiche })} />
 
-          {/* Navigation prev/next niv1 */}
+          {/* Navigation précédent/suivant — toujours au niveau 1 */}
           {vue === 'texte' && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '1px solid #ede9e2' }}>
+            <div id="barre-nav-niv1" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,2fr) minmax(0,1fr)', alignItems: 'center', columnGap: '14px', marginBottom: '1.5rem', paddingBottom: '1rem', paddingRight: '92px', borderBottom: '1px solid #ede9e2', minHeight: '32px', scrollMarginTop: '60px' }}>
               <button onClick={() => niv1Prev && changerNiv1(niv1Prev)} disabled={!niv1Prev}
-                style={{ fontSize: '11.5px', color: niv1Prev ? '#3d6b4f' : '#c8c0b4', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0 }}>
-                {niv1Prev ? `← ${niv1Prev}` : ''}
+                style={{ justifySelf: 'start', fontSize: '11.5px', color: niv1Prev ? '#3d6b4f' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
+                {niv1Prev ? '← Précédent' : ''}
               </button>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: '#2a3d30', fontFamily: "Georgia, serif" }}>{niv1Actif}</span>
+              <span style={{ fontSize: '16px', fontWeight: 500, color: '#2a3d30', fontFamily: "Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'normal', overflowWrap: 'break-word', position: 'relative' }}>
+                {niv1Loading ? <span style={{ fontSize: '13px', color: '#b0a89e' }}>Chargement…</span> : rendreTexteEnrichi(groupes[0]?.niv1_texte || niv1Actif)}
+                {estAdmin && !niv1Loading && (
+                  <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe: groupes[0] ?? { niv1: niv1Actif, niv2: '', niv3: '', niv4: '', anchor: '', itemIds: [] }, texteActuel: groupes[0]?.niv1_texte || niv1Actif, schemaTexte: true })}
+                    title="Modifier ce titre (admin)" style={{ fontSize: '10px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', marginLeft: '6px', verticalAlign: 'middle' }}>✎</button>
+                )}
+              </span>
               <button onClick={() => niv1Next && changerNiv1(niv1Next)} disabled={!niv1Next}
-                style={{ fontSize: '11.5px', color: niv1Next ? '#3d6b4f' : '#c8c0b4', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0 }}>
-                {niv1Next ? `${niv1Next} →` : ''}
+                style={{ justifySelf: 'end', fontSize: '11.5px', color: niv1Next ? '#3d6b4f' : 'transparent', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Next ? 'auto' : 'none' }}>
+                {niv1Next ? 'Suivant →' : ''}
               </button>
             </div>
           )}
 
           {/* Vue texte principal */}
           {vue === 'texte' && (() => {
-            let dniv1 = '', dniv2 = ''
-            let prevWasNiv1 = false
+            let dniv2 = '', dniv3 = '', dniv4 = ''
             let isFirstGroupe = true
             return groupesFiltres.map((groupe) => {
-              const showNiv2 = groupe.niv2 && !groupe.niv2.startsWith('§') && (groupe.niv2 !== dniv2)
+              const showNiv2 = profondeurCorps >= 2 && groupe.niv2 && groupe.niv2 !== dniv2
+              const showNiv3 = profondeurCorps >= 3 && groupe.niv3 && groupe.niv3 !== dniv3
+              const showNiv4 = profondeurCorps >= 4 && groupe.niv4 && groupe.niv4 !== dniv4
               if (showNiv2) dniv2 = groupe.niv2
-              const marginTopNiv2 = isFirstGroupe ? '0' : '2.5rem'
+              if (showNiv3) dniv3 = groupe.niv3
+              if (showNiv4) dniv4 = groupe.niv4
+              const marginTop = isFirstGroupe ? '0' : showNiv2 ? '2.5rem' : showNiv3 ? '1.5rem' : '0.8rem'
               if (isFirstGroupe) isFirstGroupe = false
               return (
                 <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
-                  {showNiv2 && <h3 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '1.15rem', fontWeight: 400, color: '#3a3530', textAlign: 'center', lineHeight: 1.3, marginTop: marginTopNiv2, marginBottom: '0.75rem' }}>{groupe.niv2}</h3>}
+                  {showNiv2 && (
+                    <div style={{ textAlign: 'center', marginTop: marginTop, marginBottom: '1rem', paddingTop: '0.5rem', paddingRight: '92px', position: 'relative' }}>
+                      <h3 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '1.1rem', fontWeight: 400, color: '#2a3d30', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTexteEnrichi(groupe.niv2)}</h3>
+                      {groupe.niv2_texte && txtCorps[1] && <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '0.92rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTexteEnrichi(groupe.niv2_texte)}</p>}
+                      {estAdmin && (
+                        <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2_texte || groupe.niv2, schemaTexte: !!groupe.niv2_texte })}
+                          title="Modifier ce titre (admin)" style={{ position: 'absolute', right: '92px', top: '0.5rem', fontSize: '11px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✎</button>
+                      )}
+                    </div>
+                  )}
+                  {showNiv3 && (
+                    <div style={{ marginTop: isFirstGroupe ? '0' : '1rem', marginBottom: '0.4rem', paddingLeft: '2px', borderLeft: '2px solid #d6d0c4', position: 'relative', paddingRight: estAdmin ? '20px' : 0 }}>
+                      <p style={{ fontSize: '0.78rem', fontWeight: 600, color: '#5a5450', lineHeight: 1.3, margin: 0, letterSpacing: '0.02em', whiteSpace: 'pre-line' }}>{rendreTexteEnrichi(groupe.niv3)}</p>
+                      {groupe.niv3_texte && txtCorps[2] && <p style={{ fontSize: '0.75rem', fontStyle: 'italic', color: '#9a958d', lineHeight: 1.3, margin: '2px 0 0', whiteSpace: 'pre-line' }}>{rendreTexteEnrichi(groupe.niv3_texte)}</p>}
+                      {estAdmin && (
+                        <button onClick={() => setEditionCible({ type: 'titre', niveau: 3, groupe, texteActuel: groupe.niv3_texte || groupe.niv3, schemaTexte: !!groupe.niv3_texte })}
+                          title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '10px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✎</button>
+                      )}
+                    </div>
+                  )}
+                  {showNiv4 && (
+                    <p style={{ fontSize: '0.72rem', fontWeight: 600, color: '#b0a89e', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: '0.25rem', marginTop: '0.5rem', position: 'relative', paddingRight: estAdmin ? '20px' : 0, whiteSpace: 'pre-line' }}>
+                      {rendreTexteEnrichi(groupe.niv4)}
+                      {groupe.niv4_texte && txtCorps[3] && <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px', fontStyle: 'italic' }}>{rendreTexteEnrichi(groupe.niv4_texte)}</span>}
+                      {estAdmin && (
+                        <button onClick={() => setEditionCible({ type: 'titre', niveau: 4, groupe, texteActuel: groupe.niv4_texte || groupe.niv4, schemaTexte: !!groupe.niv4_texte })}
+                          title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '9px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', textTransform: 'none' }}>✎</button>
+                      )}
+                    </p>
+                  )}
                   {groupe.itemIds.map(sid => {
                     const s = segMap.get(sid)
                     if (!s) return null
                     const actif = segActif === sid
                     return (
-                      <div key={sid} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '1px', margin: '0 -4px 0.45rem' }}>
+                      <div key={sid} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', gap: '8px' }}>
                         <p id={`s${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
-                          style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.6', textAlign: 'justify', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', flex: 1, margin: 0, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px' }}>
-                          <sup style={{ fontSize: '0.52rem', color: '#b0a89e', marginRight: '2px', userSelect: 'none' }}>{s.numero}</sup>
-                          {normaliserEspaces(s.texte)}
+                          lang="fr" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.6', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.05em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          {afficherNumeros && <sup style={{ fontSize: '0.52rem', color: '#b0a89e', marginRight: '2px', userSelect: 'none' }}>{s.numero}</sup>}
+                          {rendreTexteEnrichi(normaliserEspaces(s.texte))}
                         </p>
-                        {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
-                        <BoutonCopieSegment texte={s.texte} className="seg-btn-action" />
-                        <BoutonSignalerSegment segId={sid} apercu={`§${s.numero} — ${s.texte.slice(0,60)}…`} className="seg-btn-action" />
+                        <div className="seg-actions" style={{ display: 'flex', flexDirection: 'row', gap: '2px', flexShrink: 0, width: '92px', paddingTop: '2px', justifyContent: 'flex-end' }}>
+                          {estAdmin && (
+                            <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" style={{ ...BTN_STYLE }}>✎</button>
+                          )}
+                          {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
+                          <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} className="seg-btn-action" />
+                          <BoutonSignalerSegment segId={sid} apercu={`§${s.numero} — ${texteSansEnrichissement(s.texte).slice(0,60)}…`} className="seg-btn-action" />
+                        </div>
                       </div>
                     )
                   })}
@@ -552,18 +582,30 @@ export default function OeuvreClient({ auteur, oeuvre, toc, groupes, segments, t
                   if (isFirst) isFirst = false
                   return (
                     <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
-                      {showNiv1 && <h2 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '1.45rem', fontWeight: 500, color: '#2a2520', textAlign: 'center', lineHeight: 1.3, marginTop: marginTop, marginBottom: '0.5rem' }}>{groupe.niv1}</h2>}
+                      {showNiv1 && (
+                        <div style={{ position: 'relative', marginTop: marginTop, marginBottom: '0.5rem' }}>
+                          <h2 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '1.45rem', fontWeight: 500, color: '#2a2520', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTexteEnrichi(groupe.niv1_texte || groupe.niv1)}</h2>
+                          {estAdmin && (
+                            <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe, texteActuel: groupe.niv1_texte || groupe.niv1, schemaTexte: true })}
+                              title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '11px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✎</button>
+                          )}
+                        </div>
+                      )}
                       {groupe.itemIds.map(sid => {
                         const s = segMapApparat.get(sid)
                         if (!s) return null
                         const actif = segActif === sid
                         return (
-                          <div key={sid} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '2px', margin: '0 -4px 0.45rem' }}>
+                          <div key={sid} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ position: 'relative', marginBottom: '0.45rem' }}>
                             <p id={`a${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
-                              style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.6', textAlign: 'justify', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', flex: 1, margin: 0, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px' }}>
-                              <sup style={{ fontSize: '0.52rem', color: '#b0a89e', marginRight: '2px', userSelect: 'none' }}>{s.numero}</sup>
-                              {normaliserEspaces(s.texte)}
+                              lang="fr" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.6', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px 1px 4px', paddingRight: estAdmin ? '72px' : '52px', margin: 0, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.05em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                              {afficherNumeros && <sup style={{ fontSize: '0.52rem', color: '#b0a89e', marginRight: '2px', userSelect: 'none' }}>{s.numero}</sup>}
+                              {rendreTexteEnrichi(normaliserEspaces(s.texte))}
                             </p>
+                            {estAdmin && (
+                              <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)"
+                                style={{ position: 'absolute', right: '8px', top: '1px', ...BTN_STYLE }}>✎</button>
+                            )}
                           </div>
                         )
                       })}
@@ -573,18 +615,21 @@ export default function OeuvreClient({ auteur, oeuvre, toc, groupes, segments, t
               </>
             )
           })()}
-        </main>
+        </div></main>
 
         {/* ── PANNEAU DROIT ── */}
-        <aside style={{ width: '36%', flexShrink: 0, position: 'sticky', top: '48px', alignSelf: 'flex-start', height: 'calc(100vh - 48px)', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column' }}>
+        {panneauOuvert ? (
+        <aside style={{ width: '280px', flexShrink: 0, position: 'sticky', top: '48px', alignSelf: 'flex-start', height: 'calc(100vh - 48px)', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column' }}>
 
           <div style={{ display: 'flex', borderBottom: '1px solid #d6d0c4', flexShrink: 0 }}>
-            {([{ key: 'refs', label: 'Références bibliques' }, { key: 'commentaires', label: 'Commentaires' }] as const).map(o => (
+            {([{ key: 'refs', label: 'Références bibliques' }, { key: 'commentaires', label: 'Commentaires' }, { key: 'suggestions', label: 'Suggestions' }] as const).map(o => (
               <button key={o.key} onClick={() => setOngletDroit(o.key)} className="onglet-btn"
                 style={{ flex: 1, padding: '10px 8px', fontSize: '11px', fontWeight: ongletDroit === o.key ? 600 : 400, color: ongletDroit === o.key ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', borderBottom: ongletDroit === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', letterSpacing: '0.02em' }}>
                 {o.label}
               </button>
             ))}
+            <button onClick={() => setPanneauOuvert(false)} title="Fermer ce panneau"
+              style={{ flexShrink: 0, padding: '0 10px', fontSize: '12px', color: '#b0a89e', background: 'none', border: 'none', borderBottom: '2px solid transparent', cursor: 'pointer' }}>✕</button>
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 16px' }}>
@@ -637,21 +682,62 @@ export default function OeuvreClient({ auteur, oeuvre, toc, groupes, segments, t
                         ))}
                       </div>
                     )}
-                    <button onClick={() => setSegActif(null)} style={{ marginTop: '20px', fontSize: '11px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>← Fermer</button>
+                    {estAdmin && <AssocierVerset segId={segActifData.id} onAssocie={associerVersetLocal(segActifData.id)} />}
                   </>
                 ) : (
                   <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>Cliquez sur un paragraphe pour afficher les versets associés.</p>
                 )}
               </>
+            ) : ongletDroit === 'commentaires' ? (
+              <div style={{ paddingTop: '14px' }}>
+                <OngletCommentaires segActif={segActif} estAdmin={estAdmin} />
+              </div>
             ) : (
               <div style={{ paddingTop: '14px' }}>
-                <OngletCommentaires segActif={segActif} />
+                {!suggestionsChargees ? (
+                  <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>Chargement…</p>
+                ) : suggestions.length === 0 ? (
+                  <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>Aucun passage « Lien à constituer » pour cette œuvre.</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {suggestions.map(s => (
+                      <div key={s.id} style={{ paddingBottom: '12px', borderBottom: '1px solid #ede9e2' }}>
+                        <p style={{ fontSize: '12px', color: '#2a2520', lineHeight: 1.55, margin: '0 0 6px' }}>{s.segment_texte}</p>
+                        {s.reference_manuelle && (
+                          <p style={{ fontSize: '10.5px', color: '#9a5a2a', fontStyle: 'italic', margin: '0 0 6px' }}>
+                            Référence proposée : {s.reference_manuelle}
+                          </p>
+                        )}
+                        <a href={`#s${s.segment_numero}`} onClick={() => setSegActif(s.segment_numero)} className="ref-lien"
+                          style={{ fontSize: '10.5px', color: '#b0a89e', textDecoration: 'none' }}>
+                          Aller au passage ↗
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
 
         </aside>
+        ) : (
+          <button onClick={() => setPanneauOuvert(true)} title="Ouvrir le panneau de références"
+            style={{ position: 'sticky', top: '48px', alignSelf: 'flex-start', flexShrink: 0, height: 'calc(100vh - 48px)', width: '22px', background: '#fff', border: 'none', borderLeft: '1px solid #d6d0c4', cursor: 'pointer', color: '#9a958d', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl' as any }}>
+            ☰
+          </button>
+        )}
       </div>
+
+      {editionCible && (
+        <ModaleEditionAdmin
+          cible={editionCible}
+          idOeuvre={idOeuvre}
+          onTitreOeuvreModifie={(t) => setTitreAffiche(t)}
+          onClose={() => setEditionCible(null)}
+          onEnregistre={() => vue === 'apparat' ? chargerApparatData() : changerNiv1(niv1Actif, { forceRefresh: true, conserverPosition: true })}
+        />
+      )}
     </div>
   )
 }

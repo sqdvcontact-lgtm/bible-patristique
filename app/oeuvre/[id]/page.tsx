@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { cookies } from 'next/headers'
 import OeuvreClient from './OeuvreClient'
 
 const supabase = createClient(
@@ -10,6 +11,8 @@ type Segment = {
   id: number; segment_numero: number; segment_texte: string
   ref_niv1: string|null; ref_niv2: string|null; ref_niv3: string|null
   ref_niv4: string|null; ref_niv5: string|null
+  ref_niv1_texte: string|null; ref_niv2_texte: string|null
+  ref_niv3_texte: string|null; ref_niv4_texte: string|null
   lien_1: string|null; lien_2: string|null; lien_3: string|null; lien_4: string|null
   nature: string|null
 }
@@ -19,12 +22,22 @@ function extraireVersets(s: Segment): string[] {
 }
 
 function grouper(segments: Segment[]) {
-  type G = { niv1:string; niv2:string; items:Segment[] }
+  type G = { niv1:string; niv2:string; niv3:string; niv4:string
+    niv1_texte:string; niv2_texte:string; niv3_texte:string; niv4_texte:string
+    items:Segment[] }
   const gs:G[]=[]
-  let cur={niv1:'',niv2:'',items:[] as Segment[]}
+  let cur={niv1:'',niv2:'',niv3:'',niv4:'',niv1_texte:'',niv2_texte:'',niv3_texte:'',niv4_texte:'',items:[] as Segment[]}
   for(const s of segments){
-    const n1=s.ref_niv1||'',n2=s.ref_niv2||''
-    if(n1!==cur.niv1||n2!==cur.niv2){if(cur.items.length>0)gs.push({...cur});cur={niv1:n1,niv2:n2,items:[s]}}
+    // Ignorer les séparateurs dans le groupement
+    if(s.nature==='separateur') continue
+    const n1=s.ref_niv1||'',n2=s.ref_niv2||'',n3=s.ref_niv3||'',n4=s.ref_niv4||''
+    if(n1!==cur.niv1||n2!==cur.niv2||n3!==cur.niv3||n4!==cur.niv4){
+      if(cur.items.length>0)gs.push({...cur})
+      cur={niv1:n1,niv2:n2,niv3:n3,niv4:n4,
+        niv1_texte:s.ref_niv1_texte||'',niv2_texte:s.ref_niv2_texte||'',
+        niv3_texte:s.ref_niv3_texte||'',niv4_texte:s.ref_niv4_texte||'',
+        items:[s]}
+    }
     else cur.items.push(s)
   }
   if(cur.items.length>0)gs.push({...cur})
@@ -34,7 +47,10 @@ function grouper(segments: Segment[]) {
 function numerotationLocale(segments: Segment[]): Map<number,number> {
   const map=new Map<number,number>()
   let c=0,n1c=''
-  for(const s of segments){const n1=s.ref_niv1||'';if(n1!==n1c){c=0;n1c=n1};map.set(s.id,++c)}
+  for(const s of segments){
+    if(s.nature==='separateur') continue
+    const n1=s.ref_niv1||'';if(n1!==n1c){c=0;n1c=n1};map.set(s.id,++c)
+  }
   return map
 }
 
@@ -57,71 +73,18 @@ function refFr(ref:string):string{
   return cv[1]?`${ABREV_FR[p[0]]||p[0]} ${cv[0]}, ${cv[1]}`:`${ABREV_FR[p[0]]||p[0]} ${cv[0]}`
 }
 
-export default async function OeuvrePage({params}:{params:Promise<{id:string}>}) {
-  const {id}=await params
-
-  // Requêtes parallèles : oeuvre + segments en même temps
-  const [{ data: oeuvre }, segmentsResult] = await Promise.all([
-    supabase.from('oeuvres').select('*, auteurs(nom)').eq('id_oeuvre', id).single(),
-    // Supabase limite à 1000 par requête — on récupère tout via pagination parallèle
-    (async () => {
-      // D'abord compter
-      const { count } = await supabase
-        .from('segments')
-        .select('*', { count: 'exact', head: true })
-        .eq('id_oeuvre', id)
-
-      const total = count ?? 0
-      const PAGE = 1000
-      const pages = Math.ceil(total / PAGE)
-
-      // Toutes les pages en parallèle
-      const fetches = Array.from({ length: pages }, (_, i) =>
-        supabase
-          .from('segments')
-          .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,lien_1,lien_2,lien_3,lien_4,nature')
-          .eq('id_oeuvre', id)
-          .order('segment_numero')
-          .range(i * PAGE, (i + 1) * PAGE - 1)
-      )
-      const results = await Promise.all(fetches)
-      return results.flatMap(r => r.data ?? [])
-    })()
-  ])
-
-  if (!oeuvre) return (
-    <div className="min-h-screen flex items-center justify-center" style={{background:'#f7f4ef'}}>
-      <p style={{color:'#8a8278'}}>Œuvre introuvable.</p>
-    </div>
-  )
-
-  const segments = segmentsResult as Segment[]
-  const segmentsTexte = segments.filter(s => s.nature !== 'apparat_critique')
-  const segmentsApparat = segments.filter(s => s.nature === 'apparat_critique')
-
-  // Collecter les id_verset uniques
+async function enrichirAvecVersets(segments: Segment[]) {
   const tousIds = new Set<string>()
   segments.forEach(s => extraireVersets(s).forEach(v => tousIds.add(v)))
   const tousIdsArray = Array.from(tousIds)
+  if (tousIdsArray.length === 0) return {}
 
-  // Versets en parallèle aussi
-  let versetsData: any[] = []
-  if (tousIdsArray.length > 0) {
-    const batchSize = 500
-    const batches = Array.from(
-      { length: Math.ceil(tousIdsArray.length / batchSize) },
-      (_, i) => tousIdsArray.slice(i * batchSize, (i + 1) * batchSize)
-    )
-    const results = await Promise.all(
-      batches.map(batch =>
-        supabase
-          .from('versets')
-          .select('id_verset, ref, "TR0001", "TR0002", "TR0003", "TR0004"')
-          .in('id_verset', batch)
-      )
-    )
-    versetsData = results.flatMap(r => r.data ?? [])
-  }
+  const batchSize = 500
+  const batches = Array.from({ length: Math.ceil(tousIdsArray.length / batchSize) }, (_, i) =>
+    tousIdsArray.slice(i * batchSize, (i + 1) * batchSize))
+  const results = await Promise.all(batches.map(batch =>
+    supabase.from('versets').select('id_verset, ref, "TR0001", "TR0002", "TR0003", "TR0004"').in('id_verset', batch)))
+  const versetsData = results.flatMap(r => r.data ?? [])
 
   const versetMap: Record<string,{label:string;textes:Record<string,string>}> = {}
   versetsData.forEach(v => {
@@ -130,56 +93,130 @@ export default async function OeuvrePage({params}:{params:Promise<{id:string}>})
       textes: {"TR0001":v["TR0001"]||'',"TR0002":v["TR0002"]||'',"TR0003":v["TR0003"]||'',"TR0004":v["TR0004"]||''},
     }
   })
+  return versetMap
+}
+
+export default async function OeuvrePage({params}:{params:Promise<{id:string}>}) {
+  const {id}=await params
+
+  // Lecture côté serveur : bp_admin_session est HttpOnly, donc invisible pour
+  // tout JavaScript exécuté dans le navigateur (document.cookie ne le voit pas,
+  // même si DevTools l'affiche). Seul le serveur peut le lire, via next/headers.
+  const cookieStore = await cookies()
+  const estAdmin = (cookieStore.get('bp_admin_session')?.value ?? '').startsWith('authentifie')
+
+  // 1. Charger l'œuvre
+  const { data: oeuvre } = await supabase
+    .from('oeuvres').select('*, auteurs(id_auteur, nom)').eq('id_oeuvre', id).single()
+
+  if (!oeuvre) return (
+    <div className="min-h-screen flex items-center justify-center" style={{background:'#f7f4ef'}}>
+      <p style={{color:'#8a8278'}}>Œuvre introuvable.</p>
+    </div>
+  )
+
+  // 2. Récupérer les niv1 distincts ordonnés via RPC
+  const { data: niv1Raw, error: rpcError } = await supabase.rpc('get_niv1_list', { p_id_oeuvre: id })
+  if (rpcError) {
+    console.error('get_niv1_list error:', rpcError)
+  }
+  const niv1Complet: string[] = (niv1Raw ?? []).map((r: any) => r.ref_niv1).filter(Boolean)
+
+  // Les niv1 entièrement composés d'apparat critique (ex. un glossaire) ne
+  // doivent pas apparaître dans le sommaire normal : ils sont déjà accessibles
+  // via le bloc « Apparat critique » dédié, sinon ils apparaissent en double.
+  const { data: niv1ApparatRaw } = await supabase
+    .from('segments').select('ref_niv1').eq('id_oeuvre', id).eq('nature', 'apparat_critique')
+  const niv1ApparatSet = new Set((niv1ApparatRaw ?? []).map((r: any) => r.ref_niv1).filter(Boolean))
+  const niv1List = niv1Complet.filter(n1 => !niv1ApparatSet.has(n1))
+  const premierNiv1 = niv1List[0] ?? null
+
+  // 3. Charger les segments du premier niv1 + l'apparat
+  const [segTexteResult, segApparatResult] = await Promise.all([
+    premierNiv1
+      ? supabase.from('segments')
+          .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature')
+          .eq('id_oeuvre', id)
+          .eq('ref_niv1', premierNiv1)
+          .order('id', { ascending: true })
+      : Promise.resolve({ data: [] }),
+    supabase.from('segments')
+      .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature')
+      .eq('id_oeuvre', id)
+      .eq('nature', 'apparat_critique')
+      .order('id', { ascending: true }),
+  ])
+
+  const segmentsTexte = (segTexteResult.data ?? []) as Segment[]
+  const segmentsApparat = (segApparatResult.data ?? []) as Segment[]
+
+  // 4. Versets pour le premier livre seulement
+  const versetMap = await enrichirAvecVersets(segmentsTexte)
 
   const versetParSegment: Record<number, any[]> = {}
-  segments.forEach(s => {
+  segmentsTexte.forEach(s => {
     versetParSegment[s.id] = extraireVersets(s).map(vid => ({
       id: vid, ...(versetMap[vid] || { label: vid, textes: {} })
     }))
   })
 
   const auteur = (oeuvre.auteurs as any)?.nom || ''
+  const auteurId = (oeuvre.auteurs as any)?.id_auteur?.toString() ?? ''
+
   const groupes = grouper(segmentsTexte)
   const groupesApparat = grouper(segmentsApparat)
   const numLocaux = numerotationLocale(segmentsTexte)
   const numLocauxApparat = numerotationLocale(segmentsApparat)
 
   type TocEntry = { niv1:string; niv2:string; anchor:string }
-  const toc: TocEntry[] = []
-  let ln1='', ln2=''
-  groupes.forEach((g, i) => {
-    if (g.niv1 !== ln1 || g.niv2 !== ln2) { toc.push({niv1:g.niv1,niv2:g.niv2,anchor:`g${i}`}); ln1=g.niv1; ln2=g.niv2 }
-  })
-
   const tocApparat: TocEntry[] = []
   let la1='', la2=''
   groupesApparat.forEach((g, i) => {
     if (g.niv1 !== la1 || g.niv2 !== la2) { tocApparat.push({niv1:g.niv1,niv2:g.niv2,anchor:`a${i}`}); la1=g.niv1; la2=g.niv2 }
   })
 
-  const segmentsData = segmentsTexte.map(s => ({
-    id: s.id, numero: numLocaux.get(s.id) || s.segment_numero,
-    texte: s.segment_texte, versets: versetParSegment[s.id] || [],
-  }))
+  const segmentsData = segmentsTexte
+    .filter(s => s.nature !== 'separateur')
+    .map(s => ({
+      id: s.id, numero: numLocaux.get(s.id) || s.segment_numero,
+      texte: s.segment_texte, versets: versetParSegment[s.id] || [],
+    }))
 
   const groupesData = groupes.map((g, gi) => ({
-    niv1: g.niv1, niv2: g.niv2, anchor: `g${gi}`, itemIds: g.items.map(s => s.id),
+    niv1: g.niv1, niv2: g.niv2, niv3: g.niv3, niv4: g.niv4,
+    niv1_texte: g.niv1_texte, niv2_texte: g.niv2_texte,
+    niv3_texte: g.niv3_texte, niv4_texte: g.niv4_texte,
+    anchor: `g${gi}`, itemIds: g.items.map(s => s.id),
   }))
 
-  const segmentsApparatData = segmentsApparat.map(s => ({
-    id: s.id, numero: numLocauxApparat.get(s.id) || s.segment_numero,
-    texte: s.segment_texte, versets: [],
-  }))
+  const segmentsApparatData = segmentsApparat
+    .filter(s => s.nature !== 'separateur')
+    .map(s => ({
+      id: s.id, numero: numLocauxApparat.get(s.id) || s.segment_numero,
+      texte: s.segment_texte, versets: [],
+    }))
 
   const groupesApparatData = groupesApparat.map((g, gi) => ({
-    niv1: g.niv1, niv2: g.niv2, anchor: `a${gi}`, itemIds: g.items.map(s => s.id),
+    niv1: g.niv1, niv2: g.niv2, niv3: g.niv3, niv4: g.niv4,
+    niv1_texte: g.niv1_texte, niv2_texte: g.niv2_texte,
+    niv3_texte: g.niv3_texte, niv4_texte: g.niv4_texte,
+    anchor: `a${gi}`, itemIds: g.items.map(s => s.id),
   }))
 
   return (
     <OeuvreClient
       auteur={auteur}
-      oeuvre={{titre:oeuvre.titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,id_oeuvre:oeuvre.id_oeuvre}}
-      toc={toc} groupes={groupesData} segments={segmentsData}
+      auteurId={auteurId}
+      idOeuvre={id}
+      estAdmin={estAdmin}
+      niv1List={niv1List}
+      niveauxSommaire={oeuvre.niveaux_sommaire ?? oeuvre.profondeur_sommaire ?? 1}
+      niveauxCorps={oeuvre.niveaux_corps ?? 1}
+      txtSommaire={(oeuvre.texte_sommaire ?? '0,0,0,0,0').split(',').map((v: string) => v === '1')}
+      txtCorps={(oeuvre.texte_corps ?? '0,0,0,0,0').split(',').map((v: string) => v === '1')}
+      afficherNumeros={oeuvre.afficher_numeros !== false}
+      oeuvre={{titre:oeuvre.titre,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,id_oeuvre:oeuvre.id_oeuvre}}
+      groupes={groupesData} segments={segmentsData}
       tocApparat={tocApparat} groupesApparat={groupesApparatData} segmentsApparat={segmentsApparatData}
     />
   )

@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from "@/app/lib/supabase"
-import Link from 'next/link'
+import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin"
+import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 const ABREV_FR: Record<string, string> = {
   GEN:'Gn',EXO:'Ex',LEV:'Lv',NUM:'Nb',DEU:'Dt',JOS:'Jos',JDG:'Jg',RUT:'Rt',
@@ -27,14 +29,21 @@ const TRAD_NOM_OFFICIEL: Record<string, string> = {
   TR0004: 'Vulgate',
 }
 
-const TRAD_SLUG: Record<string, string> = {
-  TR0001: 'TR0001', TR0002: 'TR0002', TR0003: 'TR0003', TR0004: 'TR0004',
+// Si le texte cité contient déjà des guillemets français (citation de second
+// niveau — le Père cite lui-même l'Écriture, par exemple), on les convertit
+// en guillemets anglais pour ne pas doubler les guillemets français lors de
+// l'export via « Copier ».
+function convertirGuillemetsInternes(texte: string): string {
+  return texte
+    .replace(/«[\u202F\u00A0\s]*/g, '“')
+    .replace(/[\u202F\u00A0\s]*»/g, '”')
 }
 
 type Verset = {
   id_verset: string; ref: string; livre: string
   chapitre: number; verset: number
   TR0002: string; TR0003: string; TR0004: string; TR0001: string
+  chapitre_alternatif?: number | null; verset_alternatif?: number | null
 }
 
 type Traduction = { code: 'TR0001' | 'TR0002' | 'TR0003' | 'TR0004'; label: string }
@@ -70,8 +79,7 @@ function BoutonCopie({ texte }: { texte: string }) {
   )
 }
 
-// ── Bouton signalement ────────────────────────────────────────────────────────
-// ── Modale signalement (centrée, overlay) ────────────────────────────────────
+// ── Modale signalement ────────────────────────────────────────────────────────
 function ModalSignalement({ titre, onClose, onEnvoyer }: {
   titre: string; onClose: () => void; onEnvoyer: (msg: string) => Promise<void>
 }) {
@@ -116,6 +124,7 @@ function ModalSignalement({ titre, onClose, onEnvoyer }: {
     </div>
   )
 }
+
 function BoutonSignaler({ versetId }: { versetId: string }) {
   const [ouvert, setOuvert] = useState(false)
   const envoyer = async (msg: string) => {
@@ -134,7 +143,7 @@ function BoutonSignaler({ versetId }: { versetId: string }) {
   )
 }
 
-// ── Bouton enregistrer / supprimer verset ────────────────────────────────────
+// ── Bouton enregistrer ────────────────────────────────────────────────────────
 function BoutonEnregistrer({
   verset, nomLivre, livreActif, chapitreActif, traduction, userId,
   dejaSauvegarde, idPrelevement, onSauvegarde, onSupprimer,
@@ -191,26 +200,107 @@ function BoutonEnregistrer({
 }
 
 // ── Composant principal ───────────────────────────────────────────────────────
+// ── Modale d'édition d'un verset (admin réel, vérifié côté serveur) ──────────
+function ModaleEditionVerset({ verset, traduction, valeurActuelle, onClose, onEnregistre }: {
+  verset: Verset; traduction: string; valeurActuelle: string
+  onClose: () => void; onEnregistre: (nouvelleValeur: string) => void
+}) {
+  const [valeur, setValeur] = useState(valeurActuelle)
+  const [statut, setStatut] = useState<'idle' | 'envoi' | 'erreur'>('idle')
+  const taRef = useRef<HTMLTextAreaElement>(null)
+
+  const entourer = (avant: string, apres: string = avant) => {
+    const ta = taRef.current
+    if (!ta) return
+    const d = ta.selectionStart, f = ta.selectionEnd
+    const selection = valeur.slice(d, f) || 'texte'
+    setValeur(valeur.slice(0, d) + avant + selection + apres + valeur.slice(f))
+    setTimeout(() => { ta.focus(); ta.setSelectionRange(d + avant.length, d + avant.length + selection.length) }, 0)
+  }
+
+  const enregistrer = async () => {
+    setStatut('envoi')
+    const { data: session } = await supabase.auth.getSession()
+    const token = session.session?.access_token
+    const res = await fetch('/api/admin/verset-modifier', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ id_verset: verset.id_verset, traduction, valeur }),
+    })
+    if (!res.ok) { setStatut('erreur'); return }
+    onEnregistre(valeur)
+  }
+
+  return (
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background:'#fff', borderRadius:'8px', padding:'20px 22px', width:'480px', maxWidth:'100%', boxShadow:'0 8px 32px rgba(0,0,0,0.18)' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px' }}>
+          <p style={{ fontSize:'12px', fontWeight:600, color:'#9a5a2a', margin:0 }}>
+            Modifier {TRAD_LABELS[traduction]} — verset {verset.verset}
+          </p>
+          <button onClick={onClose} style={{ fontSize:'14px', color:'#b0a89e', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
+        </div>
+        <div style={{ display:'flex', gap:'6px', marginBottom:'8px' }}>
+          <button onClick={() => entourer('**')} style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', fontWeight:700, cursor:'pointer' }}>G</button>
+          <button onClick={() => entourer('*')} style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', fontStyle:'italic', cursor:'pointer' }}>I</button>
+        </div>
+        <textarea ref={taRef} value={valeur} onChange={e => setValeur(e.target.value)} rows={5} autoFocus
+          style={{ width:'100%', fontSize:'13px', padding:'8px 10px', border:'1px solid #d6d0c4', borderRadius:'5px', background:'#faf8f4', color:'#2a2520', resize:'vertical', outline:'none', lineHeight:1.55, boxSizing:'border-box' }} />
+        <div style={{ display:'flex', justifyContent:'flex-end', gap:'8px', marginTop:'12px' }}>
+          {statut === 'erreur' && <span style={{ fontSize:'11px', color:'#c0562a', alignSelf:'center' }}>Erreur d'enregistrement.</span>}
+          <button onClick={onClose} style={{ fontSize:'11px', padding:'5px 14px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#6b6560', cursor:'pointer' }}>Annuler</button>
+          <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize:'11px', padding:'5px 16px', borderRadius:'4px', border:'none', background:'#3d6b4f', color:'#fff', cursor:'pointer', fontWeight:500 }}>
+            {statut === 'envoi' ? 'Enregistrement…' : 'Enregistrer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function TexteBible({
   versets, traduction, traductionIndex, setTraductionIndex, traductions,
   livreActif, chapitreActif, nomLivre,
   versetSelectionne, setVersetSelectionne
 }: Props) {
   const [userId, setUserId] = useState<string | null>(null)
+  const [estAdmin, setEstAdmin] = useState(false)
+  const [editionCible, setEditionCible] = useState<Verset | null>(null)
+  const [overrides, setOverrides] = useState<Record<string, Partial<Record<string, string>>>>({})
   const [sauvegardes, setSauvegardes] = useState<Map<number, string>>(new Map())
   const [tradOuverte, setTradOuverte] = useState(false)
+  const searchParams = useSearchParams()
+  const { modeUtilisateurStandard } = useAffichageAdmin()
 
   useEffect(() => {
+    const versetCible = searchParams.get('verset')
+    if (!versetCible) return
+    const num = parseInt(versetCible)
+    const v = versets.find(v => v.verset === num)
+    if (v) setVersetSelectionne(v)
+    const el = document.getElementById(`verset-${versetCible}`)
+    if (el) {
+      setTimeout(() => {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 200)
+    }
+  }, [searchParams, versets])
+
+  useEffect(() => {
+    const chargerProfil = (uid: string) => {
+      chargerSauvegardes(uid)
+      supabase.from('profils').select('est_admin').eq('id', uid).maybeSingle().then(({ data }) => setEstAdmin(data?.est_admin === true))
+    }
     supabase.auth.getSession().then(({ data }) => {
       const uid = data.session?.user.id ?? null
       setUserId(uid)
-      if (uid) chargerSauvegardes(uid)
+      if (uid) chargerProfil(uid)
     })
     const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
       const uid = session?.user.id ?? null
       setUserId(uid)
-      if (uid) chargerSauvegardes(uid)
-      else setSauvegardes(new Map())
+      if (uid) chargerProfil(uid)
+      else { setSauvegardes(new Map()); setEstAdmin(false) }
     })
     return () => listener.subscription.unsubscribe()
   }, [livreActif, chapitreActif])
@@ -238,15 +328,12 @@ export default function TexteBible({
   }
 
   const tradCode = traductions[traductionIndex]?.code ?? 'TR0001'
-  const tradSlug = TRAD_SLUG[tradCode] ?? ''
 
   return (
     <div className="flex-1 flex flex-col h-screen overflow-hidden" style={{ background: '#f7f4ef' }}>
 
-      {/* En-tête : titre + navigation chapitres */}
+      {/* En-tête */}
       <div className="px-8 py-3 border-b" style={{ borderColor: '#d6d0c4', background: '#f7f4ef' }}>
-
-        {/* Titre chapitre + navigation */}
         <div className="flex items-center justify-center gap-4">
           {chapitreActif > 1 ? (
             <a href={`/?livre=${livreActif}&chapitre=${chapitreActif - 1}&trad=${tradCode}`} className="nav-chap-arrow text-lg leading-none transition-colors" style={{ color: '#9a958d' }} title="Chapitre précédent">‹</a>
@@ -259,75 +346,120 @@ export default function TexteBible({
           <a href={`/?livre=${livreActif}&chapitre=${chapitreActif + 1}&trad=${tradCode}`} className="nav-chap-arrow text-lg leading-none transition-colors" style={{ color: '#9a958d' }} title="Chapitre suivant">›</a>
         </div>
 
-        {/* Sélecteur de traduction + lien À propos — sous le titre */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '8px' }}>
           <div style={{ position: 'relative' }}>
             <button onClick={() => setTradOuverte(!tradOuverte)} style={{
-              display: 'flex', alignItems: 'center', gap: '5px',
-              padding: '3px 10px', borderRadius: '5px', border: '1px solid #d6d0c4',
-              background: '#fff', fontSize: '10.5px', color: '#2a3d30', cursor: 'pointer', fontWeight: 500,
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '6px 16px', borderRadius: '7px', border: '1px solid #d6d0c4',
+              background: '#fff', fontSize: '12px', color: '#2a3d30', cursor: 'pointer', fontWeight: 500,
+              fontFamily: "Georgia, 'Times New Roman', serif", letterSpacing: '0.01em',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'border-color 0.15s, box-shadow 0.15s',
             }}>
               <span>{TRAD_NOM_OFFICIEL[tradCode]}</span>
-              <span style={{ color: '#9a958d', fontSize: '7px' }}>{tradOuverte ? '▲' : '▼'}</span>
+              <span style={{ color: '#9a958d', fontSize: '8px' }}>{tradOuverte ? '▲' : '▼'}</span>
             </button>
             {tradOuverte && (
-              <div style={{ position: 'absolute', top: 'calc(100% + 3px)', left: '50%', transform: 'translateX(-50%)', background: '#fff', border: '1px solid #d6d0c4', borderRadius: '5px', zIndex: 50, boxShadow: '0 4px 16px rgba(0,0,0,0.08)', minWidth: '140px' }}>
+              <div style={{ position: 'absolute', top: 'calc(100% + 5px)', left: '50%', transform: 'translateX(-50%)', background: '#fff', border: '1px solid #d6d0c4', borderRadius: '8px', zIndex: 50, boxShadow: '0 10px 32px rgba(0,0,0,0.12)', minWidth: '230px', overflow: 'hidden' }}>
                 {traductions.map((t, i) => (
                   <button key={t.code} onClick={() => { setTraductionIndex(i); setTradOuverte(false) }} style={{
-                    width: '100%', textAlign: 'left', padding: '7px 12px', fontSize: '11px',
+                    width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '13px',
                     border: 'none', borderBottom: i < traductions.length - 1 ? '1px solid #ede9e2' : 'none',
                     background: traductionIndex === i ? 'rgba(61,107,79,0.08)' : '#fff',
-                    color: traductionIndex === i ? '#3d6b4f' : '#3a3530',
-                    fontWeight: traductionIndex === i ? 500 : 400, cursor: 'pointer',
-                  }}>
+                    color: traductionIndex === i ? '#3d6b4f' : '#2a2520',
+                    fontWeight: traductionIndex === i ? 600 : 400, cursor: 'pointer',
+                    fontFamily: "Georgia, 'Times New Roman', serif", letterSpacing: '0.01em',
+                    transition: 'background 0.12s',
+                  }}
+                    onMouseEnter={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = 'rgba(61,107,79,0.04)' }}
+                    onMouseLeave={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = '#fff' }}>
                     {TRAD_NOM_OFFICIEL[t.code] ?? t.label}
                   </button>
                 ))}
               </div>
             )}
           </div>
-          <Link href={`/traductions#${tradSlug}`}
-            style={{ fontSize: '9.5px', color: '#9a958d', textDecoration: 'none', borderBottom: '1px dotted #c0bab4', paddingBottom: '1px', whiteSpace: 'nowrap' }}>
-            À propos →
-          </Link>
         </div>
       </div>
 
-      <div className="overflow-y-auto flex-1 px-8 py-5 max-w-2xl mx-auto w-full">
-        <style>{`
-          .verset-row { display:flex; align-items:center; gap:4px; padding:3px 6px; border-radius:4px; cursor:pointer; }
-          .verset-row:hover { background: rgba(61,107,79,0.05); }
-          .verset-row:hover .bouton-action-verset { opacity: 1 !important; }
-          .verset-row--actif { background: rgba(61,107,79,0.10) !important; }
-          .verset-row--actif .bouton-action-verset { opacity: 0.5; }
-          .nav-chap-arrow:hover { color: #3d6b4f !important; }
-        `}</style>
+      <div className="overflow-y-auto flex-1" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
+        <div style={{ maxWidth: '560px', margin: '0 auto', paddingLeft: '24px', paddingRight: '24px' }}>
+          <style>{`
+            .verset-row:hover { background: rgba(61,107,79,0.05); }
+            .verset-row:hover .bouton-action-verset { opacity: 1 !important; }
+            .verset-row--actif .bouton-action-verset { opacity: 0.5; }
+            .nav-chap-arrow:hover { color: #3d6b4f !important; }
+          `}</style>
 
-        {versets.map(v => (
-          <div key={v.id_verset}
-            onClick={() => setVersetSelectionne(versetSelectionne?.id_verset === v.id_verset ? null : v)}
-            className={`verset-row${versetSelectionne?.id_verset === v.id_verset ? ' verset-row--actif' : ''}`}>
-            <span style={{ fontSize:'10px', fontWeight:600, color:'#b0a89e', marginTop:'2px', width:'16px', flexShrink:0, lineHeight:1.6, alignSelf:'flex-start' }}>
-              {v.verset}
-            </span>
-            <p style={{ fontSize:'0.84rem', lineHeight:'1.55', color:'#1e1a16', margin:0, flex:1, alignSelf:'flex-start' }}>
-              {v[traduction] || <span style={{ color:'#d6d0c4', fontStyle:'italic' }}>—</span>}
-            </p>
-            {userId && (
-              <BoutonEnregistrer
-                verset={v} nomLivre={nomLivre} livreActif={livreActif}
-                chapitreActif={chapitreActif} traduction={traduction} userId={userId}
-                dejaSauvegarde={sauvegardes.has(v.verset)}
-                idPrelevement={sauvegardes.get(v.verset) ?? null}
-                onSauvegarde={(id) => marquerSauvegarde(v.verset, id)}
-                onSupprimer={() => retirerSauvegarde(v.verset)}
-              />
-            )}
-            <BoutonCopie texte={`« ${v[traduction] || ''} » (${nomLivre} ${chapitreActif},${v.verset})`} />
-            <BoutonSignaler versetId={v.id_verset} />
-          </div>
-        ))}
+          {versets.map(v => {
+            const actif = versetSelectionne?.id_verset === v.id_verset
+            return (
+            <div key={v.id_verset}
+              id={`verset-${v.verset}`}
+              onClick={() => {
+                if (!actif) {
+                  // Comptage en arrière-plan — jamais attendu, ne ralentit jamais le clic.
+                  supabase.rpc('incrementer_lecture', { p_id_verset: v.id_verset })
+                }
+                setVersetSelectionne(actif ? null : v)
+              }}
+              className={`verset-row${actif ? ' verset-row--actif' : ''}`}
+              style={{ display: 'flex', alignItems: 'flex-start', gap: '4px', padding: '5px 6px', borderRadius: '4px', cursor: 'pointer', marginBottom: '4px', background: actif ? 'rgba(61,107,79,0.10)' : 'transparent' }}>
+
+              {/* Numéro — aligné sur la première ligne du texte */}
+              <span style={{ fontSize: '10px', fontWeight: 600, color: '#b0a89e', width: v.chapitre_alternatif != null ? 'auto' : '16px', minWidth: '16px', flexShrink: 0, lineHeight: 1.40, paddingTop: '1px', paddingRight: v.chapitre_alternatif != null ? '4px' : 0 }}>
+                {v.verset}
+                {v.chapitre_alternatif != null && (
+                  <span style={{ fontWeight: 400, fontStyle: 'italic', color: '#c0bab0' }}>
+                    {' '}({v.chapitre_alternatif}{v.verset_alternatif != null ? `,${v.verset_alternatif}` : ''})
+                  </span>
+                )}
+              </span>
+
+              {/* Texte resserré */}
+              <p style={{ fontSize: '0.84rem', lineHeight: 1.40, color: '#1e1a16', margin: 0, flex: 1, textAlign: 'justify', wordSpacing: '-0.02em', maxWidth: '90%' }}>
+                {(overrides[v.id_verset]?.[traduction] ?? v[traduction])
+                  ? rendreTexteEnrichi((overrides[v.id_verset]?.[traduction] ?? v[traduction])!)
+                  : <span style={{ color:'#d6d0c4', fontStyle:'italic' }}>—</span>}
+              </p>
+
+              {/* Boutons d'action — alignés en haut avec le premier mot du verset */}
+              <div className="verset-actions" style={{ display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '1px' }}>
+                {userId && (
+                  <BoutonEnregistrer
+                    verset={v} nomLivre={nomLivre} livreActif={livreActif}
+                    chapitreActif={chapitreActif} traduction={traduction} userId={userId}
+                    dejaSauvegarde={sauvegardes.has(v.verset)}
+                    idPrelevement={sauvegardes.get(v.verset) ?? null}
+                    onSauvegarde={(id) => marquerSauvegarde(v.verset, id)}
+                    onSupprimer={() => retirerSauvegarde(v.verset)}
+                  />
+                )}
+                <BoutonCopie texte={`« ${convertirGuillemetsInternes((overrides[v.id_verset]?.[traduction] ?? v[traduction]) || '')} » (${nomLivre} ${chapitreActif},${v.verset})`} />
+                <BoutonSignaler versetId={v.id_verset} />
+                {estAdmin && !modeUtilisateurStandard && (
+                  <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
+                    style={{ background:'none', border:'none', cursor:'pointer', padding:'1px 3px', borderRadius:'3px', fontSize:'12px', lineHeight:1, flexShrink:0, transition:'color 0.15s', opacity:0, color:'#c8c0b4' }}>
+                    ✎
+                  </button>
+                )}
+              </div>
+            </div>
+            )
+          })}
+        </div>
       </div>
+      {editionCible && (
+        <ModaleEditionVerset
+          verset={editionCible}
+          traduction={traduction}
+          valeurActuelle={overrides[editionCible.id_verset]?.[traduction] ?? editionCible[traduction]}
+          onClose={() => setEditionCible(null)}
+          onEnregistre={(nouvelleValeur) => {
+            setOverrides(prev => ({ ...prev, [editionCible.id_verset]: { ...prev[editionCible.id_verset], [traduction]: nouvelleValeur } }))
+            setEditionCible(null)
+          }}
+        />
+      )}
     </div>
   )
 }
