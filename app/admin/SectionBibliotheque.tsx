@@ -245,7 +245,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   // Initialiser profondeurs depuis les données
   React.useEffect(() => {
     const init: Record<string, number> = {}
-    const initNiv: Record<string, { sommaire: number; corps: number; txtSommaire: boolean[]; txtCorps: boolean[] }> = {}
+    const initNiv: Record<string, { sommaire: number; corps: number; txtSommaire: boolean[]; txtCorps: boolean[]; afficherNumeros: boolean }> = {}
     auteurs.forEach(a => a.oeuvres.forEach((o: any) => {
       if (o.profondeur_sommaire) init[o.id_oeuvre] = o.profondeur_sommaire
       const parseBool = (s: string | null) => (s ?? '0,0,0,0,0').split(',').map(v => v === '1')
@@ -333,7 +333,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
       {/* Modale config niveaux */}
       {configOeuvre && (() => {
-        const cfg = niveauxConfig[configOeuvre] ?? { sommaire: 1, corps: 1, txtSommaire: [false,false,false,false,false], txtCorps: [false,false,false,false,false] }
+        const cfg = niveauxConfig[configOeuvre] ?? { sommaire: 1, corps: 1, txtSommaire: [false,false,false,false,false], txtCorps: [false,false,false,false,false], afficherNumeros: true }
         const oeuvreNom = auteurs.flatMap((a: any) => a.oeuvres).find((o: any) => o.id_oeuvre === configOeuvre)?.titre ?? configOeuvre
         const setCfg = (patch: Partial<typeof cfg>) => setNiveauxConfig(prev => ({ ...prev, [configOeuvre]: { ...prev[configOeuvre] ?? cfg, ...patch } }))
         const toggleTxt = (type: 'txtSommaire'|'txtCorps', idx: number) => {
