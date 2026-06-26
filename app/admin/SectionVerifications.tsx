@@ -303,19 +303,12 @@ export default function SectionVerifications() {
 
       {/* Pagination bas */}
       {nbPages > 1 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px', justifyContent: 'center' }}>
           <button onClick={() => { setPage(p => Math.max(0, p - 1)); window.scrollTo(0, 0) }} disabled={page === 0}
             style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: page === 0 ? '#c0bab4' : '#3a3530', cursor: page === 0 ? 'default' : 'pointer' }}>
             ← Préc.
           </button>
-          <div style={{ display: 'flex', gap: '4px' }}>
-            {Array.from({ length: nbPages }, (_, i) => (
-              <button key={i} onClick={() => { setPage(i); window.scrollTo(0, 0) }}
-                style={{ fontSize: '11px', width: '28px', height: '28px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: page === i ? '#3d6b4f' : '#e4dfd8', color: page === i ? '#fff' : '#6b6560', fontWeight: page === i ? 600 : 400 }}>
-                {i + 1}
-              </button>
-            ))}
-          </div>
+          <span style={{ fontSize: '11.5px', color: '#6b6560' }}>Page {page + 1} / {nbPages}</span>
           <button onClick={() => { setPage(p => Math.min(nbPages - 1, p + 1)); window.scrollTo(0, 0) }} disabled={page >= nbPages - 1}
             style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: page >= nbPages - 1 ? '#c0bab4' : '#3a3530', cursor: page >= nbPages - 1 ? 'default' : 'pointer' }}>
             Suiv. →

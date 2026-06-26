@@ -218,6 +218,15 @@ function ModaleEditionVerset({ verset, traduction, valeurActuelle, onClose, onEn
     setTimeout(() => { ta.focus(); ta.setSelectionRange(d + avant.length, d + avant.length + selection.length) }, 0)
   }
 
+  const inserer = (texte: string) => {
+    const ta = taRef.current
+    if (!ta) return
+    const d = ta.selectionStart, f = ta.selectionEnd
+    const nouveau = valeur.slice(0, d) + texte + valeur.slice(f)
+    setValeur(nouveau)
+    setTimeout(() => { ta.focus(); ta.setSelectionRange(d + texte.length, d + texte.length) }, 0)
+  }
+
   const enregistrer = async () => {
     setStatut('envoi')
     const { data: session } = await supabase.auth.getSession()
@@ -240,9 +249,14 @@ function ModaleEditionVerset({ verset, traduction, valeurActuelle, onClose, onEn
           </p>
           <button onClick={onClose} style={{ fontSize:'14px', color:'#b0a89e', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
         </div>
-        <div style={{ display:'flex', gap:'6px', marginBottom:'8px' }}>
+        <div style={{ display:'flex', gap:'6px', marginBottom:'8px', flexWrap:'wrap' }}>
           <button onClick={() => entourer('**')} style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', fontWeight:700, cursor:'pointer' }}>G</button>
           <button onClick={() => entourer('*')} style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', fontStyle:'italic', cursor:'pointer' }}>I</button>
+          <span style={{ width:'1px', background:'#e4dfd8' }} />
+          <button onClick={() => inserer('\u00A0')} title="Espace insécable" style={{ fontSize:'10px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>Esp. insécable</button>
+          <button onClick={() => inserer('\u202F')} title="Espace fine insécable" style={{ fontSize:'10px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>Esp. fine</button>
+          <button onClick={() => entourer('«\u202F', '\u202F»')} title="Guillemets français" style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>« »</button>
+          <button onClick={() => entourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)" style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>“ ”</button>
         </div>
         <textarea ref={taRef} value={valeur} onChange={e => setValeur(e.target.value)} rows={5} autoFocus
           style={{ width:'100%', fontSize:'13px', padding:'8px 10px', border:'1px solid #d6d0c4', borderRadius:'5px', background:'#faf8f4', color:'#2a2520', resize:'vertical', outline:'none', lineHeight:1.55, boxSizing:'border-box' }} />
@@ -382,7 +396,7 @@ export default function TexteBible({
       </div>
 
       <div className="overflow-y-auto flex-1" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
-        <div style={{ maxWidth: '560px', margin: '0 auto', paddingLeft: '24px', paddingRight: '24px' }}>
+        <div style={{ maxWidth: '620px', margin: '0 auto', paddingLeft: '24px', paddingRight: '24px' }}>
           <style>{`
             .verset-row:hover { background: rgba(61,107,79,0.05); }
             .verset-row:hover .bouton-action-verset { opacity: 1 !important; }
@@ -403,10 +417,10 @@ export default function TexteBible({
                 setVersetSelectionne(actif ? null : v)
               }}
               className={`verset-row${actif ? ' verset-row--actif' : ''}`}
-              style={{ display: 'flex', alignItems: 'flex-start', gap: '4px', padding: '5px 6px', borderRadius: '4px', cursor: 'pointer', marginBottom: '4px', background: actif ? 'rgba(61,107,79,0.10)' : 'transparent' }}>
+              style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '5px 6px', borderRadius: '4px', cursor: 'pointer', marginBottom: '4px', background: actif ? 'rgba(61,107,79,0.10)' : 'transparent' }}>
 
-              {/* Numéro — aligné sur la première ligne du texte */}
-              <span style={{ fontSize: '10px', fontWeight: 600, color: '#b0a89e', width: v.chapitre_alternatif != null ? 'auto' : '16px', minWidth: '16px', flexShrink: 0, lineHeight: 1.40, paddingTop: '1px', paddingRight: v.chapitre_alternatif != null ? '4px' : 0 }}>
+              {/* Numéro — colonne de largeur fixe, alignée à droite contre le texte */}
+              <span style={{ width: '34px', flexShrink: 0, textAlign: 'right', paddingRight: '8px', fontSize: '10px', fontWeight: 600, color: '#b0a89e', lineHeight: 1.40, paddingTop: '1px' }}>
                 {v.verset}
                 {v.chapitre_alternatif != null && (
                   <span style={{ fontWeight: 400, fontStyle: 'italic', color: '#c0bab0' }}>
@@ -415,15 +429,15 @@ export default function TexteBible({
                 )}
               </span>
 
-              {/* Texte resserré */}
-              <p style={{ fontSize: '0.84rem', lineHeight: 1.40, color: '#1e1a16', margin: 0, flex: 1, textAlign: 'justify', wordSpacing: '-0.02em', maxWidth: '90%' }}>
+              {/* Texte — largeur fixe, donc toujours centré dans le volet quel que soit ce qui l'entoure */}
+              <p style={{ fontSize: '0.84rem', lineHeight: 1.42, color: '#1e1a16', margin: 0, width: 'min(480px, calc(100% - 84px))', flexShrink: 0, textAlign: 'justify', wordSpacing: '-0.09em', letterSpacing: '-0.003em' }}>
                 {(overrides[v.id_verset]?.[traduction] ?? v[traduction])
                   ? rendreTexteEnrichi((overrides[v.id_verset]?.[traduction] ?? v[traduction])!)
                   : <span style={{ color:'#d6d0c4', fontStyle:'italic' }}>—</span>}
               </p>
 
-              {/* Boutons d'action — alignés en haut avec le premier mot du verset */}
-              <div className="verset-actions" style={{ display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '1px' }}>
+              {/* Boutons d'action — colonne de largeur fixe identique à celle du numéro, le contenu peut légèrement déborder vers la droite */}
+              <div className="verset-actions" style={{ width: '34px', flexShrink: 0, paddingLeft: '8px', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '1px', overflow: 'visible' }}>
                 {userId && (
                   <BoutonEnregistrer
                     verset={v} nomLivre={nomLivre} livreActif={livreActif}

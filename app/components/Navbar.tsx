@@ -8,12 +8,11 @@ import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 
 const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean }[] = [
   { href: "/", label: "Bible", exact: true },
-  { href: "/bibliotheque", label: "Bibliothèque" },
+  { href: "/bibliotheque", label: "Patristique" },
 ];
 const LIENS_SECONDAIRES: { href: string; label: string }[] = [
-  { href: "/populaires", label: "Populaires" },
-  { href: "/traductions", label: "Traductions" },
-  { href: "/accueil#apropos", label: "À propos" },
+  { href: "/essais", label: "Essais" },
+  { href: "/traductions", label: "Aller plus loin" },
 ];
 
 // ── Données statiques pour la recherche rapide ───────────────────────────────
@@ -47,6 +46,14 @@ const TRADUCTIONS_RECHERCHE: { code: string; nom: string }[] = [
 ];
 function sansAccents(s: string): string { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() }
 
+function IconCoeur() {
+  return (
+    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z" stroke="currentColor" strokeWidth="1.1" fill="none" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -56,18 +63,24 @@ export default function Navbar() {
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [mobileOuvert, setMobileOuvert] = useState(false);
   const { modeUtilisateurStandard, setModeUtilisateurStandard } = useAffichageAdmin();
+  const estAdminEmail = !!(user && user.email && user.email.trim().toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase());
+  const estAdminAffiche = (estAdmin || estAdminEmail) && !modeUtilisateurStandard;
 
   // ── Recherche rapide (remplace l'ancien lien « Recherche ») ──────────────────
   const [requeteRapide, setRequeteRapide] = useState("");
   const [rechercheOuverte, setRechercheOuverte] = useState(false);
   const [auteursTrouves, setAuteursTrouves] = useState<{ id_auteur: string; nom: string }[]>([]);
+  const [essaisTrouves, setEssaisTrouves] = useState<{ id: number; titre: string }[]>([]);
 
   useEffect(() => {
     const q = requeteRapide.trim();
-    if (!q) { setAuteursTrouves([]); return; }
+    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); return; }
     const t = setTimeout(() => {
       supabase.from('auteurs').select('id_auteur, nom').ilike('nom', `%${q}%`).limit(5)
         .then(({ data }) => setAuteursTrouves(data ?? []));
+      supabase.from('essais').select('id, titre').eq('statut', 'publie')
+        .or(`titre.ilike.%${q}%,resume.ilike.%${q}%`).limit(5)
+        .then(({ data }) => setEssaisTrouves(data ?? []));
     }, 250);
     return () => clearTimeout(t);
   }, [requeteRapide]);
@@ -75,7 +88,7 @@ export default function Navbar() {
   const qNorm = sansAccents(requeteRapide.trim());
   const livresTrouves = qNorm ? LIVRES_RECHERCHE.filter(l => sansAccents(l.nom).includes(qNorm)).slice(0, 5) : [];
   const traductionsTrouvees = qNorm ? TRADUCTIONS_RECHERCHE.filter(t => sansAccents(t.nom).includes(qNorm)) : [];
-  const aucunResultat = qNorm.length > 0 && auteursTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0;
+  const aucunResultat = qNorm.length > 0 && auteursTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0;
 
   const fermerRechercheRapide = () => { setRechercheOuverte(false); setRequeteRapide(""); setMobileOuvert(false); };
   const validerRechercheRapide = () => {
@@ -154,6 +167,19 @@ export default function Navbar() {
                   ))}
                 </div>
               )}
+              {essaisTrouves.length > 0 && (
+                <div style={{ padding: "8px 0 6px", borderTop: auteursTrouves.length > 0 ? "1px solid #ede9e2" : "none" }}>
+                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Essais et méditations</p>
+                  {essaisTrouves.map(e => (
+                    <Link key={e.id} href={`/essais/${e.id}`} onClick={fermerRechercheRapide}
+                      style={{ display: "block", padding: "7px 14px", fontSize: "13px", color: "#2a3d30", textDecoration: "none" }}
+                      onMouseEnter={ev => (ev.currentTarget.style.background = "rgba(61,107,79,0.06)")}
+                      onMouseLeave={ev => (ev.currentTarget.style.background = "transparent")}>
+                      {e.titre}
+                    </Link>
+                  ))}
+                </div>
+              )}
               {livresTrouves.length > 0 && (
                 <div style={{ padding: "8px 0 6px", borderTop: auteursTrouves.length > 0 ? "1px solid #ede9e2" : "none" }}>
                   <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Livres bibliques</p>
@@ -188,6 +214,25 @@ export default function Navbar() {
     </div>
   );
 
+  // ── Interrupteur admin / utilisateur standard — visible directement dans la barre ─
+  const toggleAdmin = (mobile: boolean) => (estAdmin || estAdminEmail) && (
+    <div style={mobile
+      ? { display: "flex", alignItems: "center", gap: "8px", padding: "9px 12px", fontSize: "13px", color: "rgba(255,255,255,0.85)" }
+      : { display: "flex", alignItems: "center", gap: "7px", fontSize: "11.5px", color: "rgba(255,255,255,0.75)" }}>
+      <button type="button" role="switch" aria-checked={modeUtilisateurStandard}
+        onClick={() => setModeUtilisateurStandard(!modeUtilisateurStandard)}
+        title="Affichage seulement — vos droits réels ne changent pas"
+        style={{
+          width: "28px", height: "16px", borderRadius: "9px", border: "none", cursor: "pointer", padding: 0, flexShrink: 0,
+          background: modeUtilisateurStandard ? "#3d6b4f" : "rgba(255,255,255,0.25)",
+          position: "relative", transition: "background 0.15s",
+        }}>
+        <span style={{ position: "absolute", top: "2px", left: modeUtilisateurStandard ? "14px" : "2px", width: "12px", height: "12px", borderRadius: "50%", background: "#fff", transition: "left 0.15s" }} />
+      </button>
+      <span>Mode admin</span>
+    </div>
+  );
+
   // ── Bloc compte, réutilisé en version desktop et mobile ──────────────────────
   const blocCompte = (mobile: boolean) => user ? (
     <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", alignItems: mobile ? "stretch" : "center", gap: mobile ? "2px" : "6px", width: mobile ? "100%" : undefined }}>
@@ -207,9 +252,7 @@ export default function Navbar() {
         )}
         {[
           { href: "/compte", label: "Mon compte" },
-          { href: "/prelevements", label: "Mes citations" },
-          { href: "/progression", label: "Ma progression" },
-          ...(estAdmin && !modeUtilisateurStandard ? [{ href: "/admin", label: "Administration" }] : []),
+          ...(estAdminAffiche ? [{ href: "/admin", label: "Administration" }] : []),
         ].map(item => (
           <Link key={item.href} href={item.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}
             style={mobile
@@ -218,23 +261,6 @@ export default function Navbar() {
             {item.label}
           </Link>
         ))}
-        {estAdmin && (
-          <div style={mobile
-            ? { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", fontSize: "13px", color: "rgba(255,255,255,0.85)" }
-            : { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", fontSize: "12.5px", color: "#2a3d30", borderBottom: "1px solid #ede9e2" }}>
-            <span>Mode utilisateur standard</span>
-            <button type="button" role="switch" aria-checked={modeUtilisateurStandard}
-              onClick={() => setModeUtilisateurStandard(!modeUtilisateurStandard)}
-              title="Affichage seulement — vos droits réels ne changent pas"
-              style={{
-                width: "30px", height: "17px", borderRadius: "10px", border: "none", cursor: "pointer", padding: 0, flexShrink: 0,
-                background: modeUtilisateurStandard ? "#3d6b4f" : (mobile ? "rgba(255,255,255,0.25)" : "#d6d0c4"),
-                position: "relative", transition: "background 0.15s",
-              }}>
-              <span style={{ position: "absolute", top: "2px", left: modeUtilisateurStandard ? "15px" : "2px", width: "13px", height: "13px", borderRadius: "50%", background: "#fff", transition: "left 0.15s" }} />
-            </button>
-          </div>
-        )}
         <button onClick={seDeconnecter}
           style={mobile
             ? { display: "block", width: "100%", textAlign: "left", padding: "10px 12px", fontSize: "13px", color: "#e8a0a0", background: "none", border: "none", cursor: "pointer" }
@@ -270,16 +296,25 @@ export default function Navbar() {
             {LIENS_PRIMAIRES.map(({ href, label, exact }) => (
               <Link key={href} href={href} style={styleLien(href, exact, true)}>{label}</Link>
             ))}
+            <div style={{ marginLeft: "4px", marginRight: "4px" }}>{blocRecherche(false)}</div>
             <span style={{ width: "1px", height: "16px", background: "rgba(255,255,255,0.18)", margin: "0 4px" }} />
             {LIENS_SECONDAIRES.map(({ href, label }) => (
               <Link key={href} href={href} style={styleLien(href, undefined, false)}>{label}</Link>
             ))}
-            <div style={{ marginLeft: "10px" }}>{blocRecherche(false)}</div>
           </nav>
 
           {/* ── Compte desktop ──────────────────────────────────────────────── */}
-          <div className="hidden md:block" style={{ marginLeft: "auto", position: "relative", flexShrink: 0 }}>
-            {blocCompte(false)}
+          <div className="hidden md:flex items-center gap-2" style={{ marginLeft: "auto", flexShrink: 0 }}>
+            {user && (
+              <Link href="/prelevements" style={styleLien("/prelevements", undefined, false)}>Mes citations</Link>
+            )}
+            <Link href="/soutenir" style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "4px 11px", borderRadius: "5px", fontSize: "13px", color: "rgba(255,255,255,0.60)", textDecoration: "none" }}>
+              <IconCoeur /> Soutenir le projet
+            </Link>
+            {toggleAdmin(false)}
+            <div style={{ position: "relative" }}>
+              {blocCompte(false)}
+            </div>
           </div>
 
           {/* ── Bouton hamburger mobile ─────────────────────────────────────── */}
@@ -308,6 +343,17 @@ export default function Navbar() {
               ))}
             </div>
             {blocRecherche(true)}
+            {user && (
+              <Link href="/prelevements" onClick={() => setMobileOuvert(false)}
+                style={{ padding: "9px 10px", borderRadius: "6px", fontSize: "14px", color: "#fff", textDecoration: "none", background: pathname.startsWith("/prelevements") ? "rgba(255,255,255,0.12)" : "transparent" }}>
+                Mes citations
+              </Link>
+            )}
+            <Link href="/soutenir" onClick={() => setMobileOuvert(false)}
+              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "9px 10px", borderRadius: "6px", fontSize: "14px", color: "#fff", textDecoration: "none" }}>
+              <IconCoeur /> Soutenir le projet
+            </Link>
+            {toggleAdmin(true)}
             {blocCompte(true)}
           </div>
         )}

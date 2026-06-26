@@ -104,21 +104,8 @@ export default function AccueilPage() {
 
           </div>
 
-          {/* Pied : liens principaux — Soutenir mis en avant */}
-          <div style={{ marginTop: "48px", paddingTop: "28px", borderTop: "1px solid #d6d0c4", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: "20px" }}>
-            <Link href="/bibliotheque" style={{ fontSize: "12px", color: "#3d6b4f", textDecoration: "none" }}>Bibliothèque</Link>
-            <Link href="/traductions" style={{ fontSize: "12px", color: "#3d6b4f", textDecoration: "none" }}>Traductions</Link>
-            <Link href="/soutenir" style={{
-              fontSize: "15px", fontWeight: 600, color: "#fff", background: "#3d6b4f",
-              padding: "9px 22px", borderRadius: "20px", textDecoration: "none",
-              boxShadow: "0 2px 8px rgba(61,107,79,0.25)",
-            }}>
-              Soutenir le projet
-            </Link>
-          </div>
-
           {/* Informations légales */}
-          <div style={{ marginTop: "22px", textAlign: "center" }}>
+          <div style={{ marginTop: "40px", paddingTop: "24px", borderTop: "1px solid #d6d0c4", textAlign: "center" }}>
             <Link href="/conditions-utilisation" style={{ fontSize: "11px", color: "#b0a89e", textDecoration: "none", marginRight: "18px" }}>Conditions d&rsquo;utilisation</Link>
             <Link href="/confidentialite" style={{ fontSize: "11px", color: "#b0a89e", textDecoration: "none" }}>Politique de confidentialité</Link>
           </div>

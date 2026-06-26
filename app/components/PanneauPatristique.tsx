@@ -218,11 +218,18 @@ function ModalSignalement({ titre, titreEntete = 'Signaler une erreur', onClose,
 function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignaler, onSupprimeLien }: {
   s: Segment; info?: OeuvreInfo; userId: string | null; isAdmin: boolean
   colonneLien: string
-  typeLien: 'exacte' | 'libre' | 'doctrine'
+  typeLien: 'exacte' | 'libre' | 'doctrine' | 'echo'
   onSignaler: (s: Segment) => void
   onSupprimeLien: (id: number) => void
 }) {
   const niveaux = [s.ref_niv1, s.ref_niv2, s.ref_niv3].filter(Boolean).join(', ')
+  const BADGE: Record<typeof typeLien, { label: string; couleur: string; bordure: string }> = {
+    exacte:   { label: 'citation exacte',  couleur: '#3d6b4f', bordure: 'rgba(61,107,79,0.25)' },
+    libre:    { label: 'citation libre',   couleur: '#8a8278', bordure: '#d6d0c4' },
+    doctrine: { label: 'doctrine',         couleur: '#7a5a9e', bordure: 'rgba(122,90,158,0.28)' },
+    echo:     { label: 'écho thématique',  couleur: '#9a7e3d', bordure: 'rgba(154,126,61,0.28)' },
+  }
+  const badge = BADGE[typeLien]
 
   return (
     <div style={{ paddingTop:'10px', paddingBottom:'4px', borderBottom:'1px solid #ede9e2' }}>
@@ -233,16 +240,14 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignal
           {info?.auteur_nom || s.id_oeuvre}
         </p>
         <div style={{ display:'flex', gap:'4px', alignItems:'center', flexShrink:0 }}>
-          {(typeLien === 'libre' || typeLien === 'exacte') && (
-            <span style={{
-              fontSize:'9px', fontStyle:'italic', whiteSpace:'nowrap',
-              border:`1px solid ${typeLien === 'exacte' ? 'rgba(61,107,79,0.25)' : '#d6d0c4'}`,
-              color: typeLien === 'exacte' ? '#3d6b4f' : '#8a8278',
-              borderRadius:'3px', padding:'0px 4px', lineHeight:'1.6',
-            }}>
-              {typeLien === 'exacte' ? 'citation exacte' : 'citation libre'}
-            </span>
-          )}
+          <span style={{
+            fontSize:'9px', fontStyle:'italic', whiteSpace:'nowrap',
+            border:`1px solid ${badge.bordure}`,
+            color: badge.couleur,
+            borderRadius:'3px', padding:'0px 4px', lineHeight:'1.6',
+          }}>
+            {badge.label}
+          </span>
           <div style={{ display:'flex', gap:'1px', alignItems:'center' }}>
             <BoutonEnregistrerSegment segment={s} info={info} userId={userId} />
             <BoutonCopieSegment
@@ -369,6 +374,16 @@ function BarreMiseEnForme({ onInserer, onEntourer }: {
           style={{ fontSize: '10px', fontWeight: 700, padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>G</button>
         <button type="button" onClick={() => onEntourer('*')} title="Italique"
           style={{ fontSize: '10px', fontStyle: 'italic', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>I</button>
+        <span style={{ width: '1px', background: '#e4dfd8' }} />
+        <button type="button" onClick={() => onInserer('\u00A0')} title="Espace insécable"
+          style={{ fontSize: '9px', padding: '3px 7px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>Esp. ins.</button>
+        <button type="button" onClick={() => onInserer('\u202F')} title="Espace fine insécable"
+          style={{ fontSize: '9px', padding: '3px 7px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>Esp. fine</button>
+        <button type="button" onClick={() => onEntourer('«\u202F', '\u202F»')} title="Guillemets français"
+          style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>« »</button>
+        <button type="button" onClick={() => onEntourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)"
+          style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>“ ”</button>
+        <span style={{ width: '1px', background: '#e4dfd8' }} />
         <button type="button" onClick={() => setPopover(popover === 'verset' ? null : 'verset')} title="Lien vers un verset biblique"
           style={{ fontSize: '9.5px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: popover === 'verset' ? 'rgba(61,107,79,0.10)' : '#fff', cursor: 'pointer', color: '#3d6b4f' }}>+ verset</button>
         <button type="button" onClick={() => popover === 'oeuvre' ? setPopover(null) : ouvrirPopoverOeuvre()} title="Lien vers un passage patristique"
@@ -412,12 +427,13 @@ function BarreMiseEnForme({ onInserer, onEntourer }: {
 }
 
 function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userId: string | null; isAdmin: boolean }) {
-  type Commentaire2 = Commentaire & { user_id: string | null; valide: boolean; reponse_a: number | null; pseudo: string | null; score: number | null; nbLikes: number; nbDislikes: number; monVote: 1 | -1 | null }
+  type Commentaire2 = Commentaire & { user_id: string | null; valide: boolean; reponse_a: number | null; pseudo: string | null; score: number | null; nbLikes: number; nbDislikes: number; monVote: 1 | -1 | null; demande_validation: boolean; supprime: boolean }
   const [commentaires, setCommentaires] = useState<Commentaire2[]>([])
   const [loading, setLoading] = useState(true)
   const [texte, setTexte] = useState('')
   const [nom, setNom] = useState('')
   const [mail, setMail] = useState('')
+  const [demandeValidation, setDemandeValidation] = useState(false)
   const [envoi, setEnvoi] = useState(false)
   const [erreur, setErreur] = useState('')
   const [pseudoMoi, setPseudoMoi] = useState<string | null>(null)
@@ -433,7 +449,7 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
 
   const charger = () => {
     setLoading(true)
-    supabase.from('commentaires').select('id, texte, auteur_nom, created_at, user_id, valide, reponse_a')
+    supabase.from('commentaires').select('id, texte, auteur_nom, created_at, user_id, valide, reponse_a, demande_validation, supprime')
       .eq('id_verset', verset.id_verset)
       .order('created_at', { ascending: true })
       .then(async ({ data }) => {
@@ -497,6 +513,14 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
     if (res.ok) setCommentaires(prev => prev.filter(x => x.id !== c.id && x.reponse_a !== c.id))
   }
 
+  // Suppression par son propre auteur : la ligne reste (fil des réponses
+  // préservé), seul le texte est remplacé par une mention grisée.
+  const supprimerMonCommentaire = async (c: Commentaire2) => {
+    if (!confirm('Supprimer ce commentaire ? Il restera visible en tant que « commentaire supprimé ».')) return
+    const { error } = await supabase.from('commentaires').update({ supprime: true }).eq('id', c.id)
+    if (!error) setCommentaires(prev => prev.map(x => x.id === c.id ? { ...x, supprime: true } : x))
+  }
+
   const entourer = (avant: string, apres: string = avant) => {
     const ta = taRef.current
     if (!ta) { setTexte(t => t + avant + 'texte' + apres); return }
@@ -524,7 +548,7 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
       if (!mailValide(mail)) { setErreur('Adresse e-mail invalide.'); return }
     }
     setEnvoi(true)
-    const payload: any = { id_verset: verset.id_verset, texte: texte.trim(), valide: false, reponse_a: cibleReponse?.id ?? null }
+    const payload: any = { id_verset: verset.id_verset, texte: texte.trim(), valide: false, reponse_a: cibleReponse?.id ?? null, demande_validation: demandeValidation }
     if (userId) { payload.user_id = userId; payload.auteur_nom = pseudoMoi ?? 'Utilisateur' }
     else { payload.auteur_nom = nom.trim(); payload.auteur_mail = mail.trim() }
     const { data, error } = await supabase.from('commentaires').insert(payload).select().single()
@@ -532,7 +556,7 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
     if (!error && data) {
       // Affichage immédiat, sans recharger ni attendre la validation.
       setCommentaires(prev => [...prev, { ...data, pseudo: userId ? pseudoMoi : null, score: null, nbLikes: 0, nbDislikes: 0, monVote: null }])
-      setTexte(''); setNom(''); setMail(''); setCibleReponse(null)
+      setTexte(''); setNom(''); setMail(''); setCibleReponse(null); setDemandeValidation(false)
     } else setErreur(`Erreur : ${error?.message}`)
   }
 
@@ -553,8 +577,17 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
     const couleurs = rangInfo ? couleurRang(rangInfo.rang) : null
     return (
       <div key={c.id} style={{ marginLeft: estReponse ? '16px' : 0, marginBottom:'8px', padding:'7px 9px', background: c.valide ? '#f0ede7' : 'rgba(176,58,42,0.05)', borderTop: estReponse ? '1px solid #e4dfd8' : c.valide ? 'none' : '1px solid rgba(176,58,42,0.18)', borderRight: estReponse ? '1px solid #e4dfd8' : c.valide ? 'none' : '1px solid rgba(176,58,42,0.18)', borderBottom: estReponse ? '1px solid #e4dfd8' : c.valide ? 'none' : '1px solid rgba(176,58,42,0.18)', borderLeft: estReponse ? '2px solid #c8c0b4' : c.valide ? 'none' : '1px solid rgba(176,58,42,0.18)', borderRadius:'5px' }}>
+        {c.supprime ? (
+          <p style={{ fontSize:'10.5px', color:'#9a958d', fontStyle:'italic', margin:0 }}>
+            {c.pseudo ?? c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
+          </p>
+        ) : (
+        <>
         {!c.valide && (
           <p style={{ fontSize:'9px', color:'#b0392b', margin:'0 0 4px', fontWeight:600, letterSpacing:'0.02em' }}>NON CONTRÔLÉ</p>
+        )}
+        {c.demande_validation && (
+          <p style={{ fontSize:'9px', color:'#7a5a9e', margin:'0 0 4px', fontWeight:600, letterSpacing:'0.02em' }}>RÉFÉRENCE SOUMISE À VALIDATION</p>
         )}
         {/* Ligne 1 : pseudo + rang */}
         <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px' }}>
@@ -596,13 +629,21 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
             style={{ fontSize:'11px', color:'#c8c0b4', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft: estReponse ? 'auto' : 0 }}>
             ⚑
           </button>
-          {isAdmin && (
-            <button onClick={() => supprimerCommentaire(c)} title="Supprimer ce commentaire"
-              style={{ fontSize:'10px', color:'#c0392b', background:'none', border:'none', cursor:'pointer', padding:0 }}>
+          {userId === c.user_id && (
+            <button onClick={() => supprimerMonCommentaire(c)} title="Supprimer mon commentaire"
+              style={{ fontSize:'10px', color:'#9a958d', background:'none', border:'none', cursor:'pointer', padding:0 }}>
               Supprimer
             </button>
           )}
+          {isAdmin && userId !== c.user_id && (
+            <button onClick={() => supprimerCommentaire(c)} title="Supprimer ce commentaire"
+              style={{ fontSize:'10px', color:'#c0392b', background:'none', border:'none', cursor:'pointer', padding:0 }}>
+              Supprimer (admin)
+            </button>
+          )}
         </div>
+        </>
+        )}
       </div>
     )
   }
@@ -643,6 +684,11 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
           </>
         )}
         {erreur && <p style={{ fontSize:'9.5px', color:'#c0392b', margin:0 }}>{erreur}</p>}
+        <label style={{ display:'flex', alignItems:'flex-start', gap:'6px', fontSize:'9.5px', color:'#6b6560', cursor:'pointer', lineHeight:1.4 }}>
+          <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
+            style={{ marginTop:'2px', flexShrink:0, accentColor:'#7a5a9e', cursor:'pointer' }} />
+          <span>Soumettre une référence à validation — proposer officiellement ce commentaire pour certification par l'administration.</span>
+        </label>
         <button onClick={envoyer} disabled={envoi}
           style={{ alignSelf:'flex-end', fontSize:'10px', padding:'4px 12px', borderRadius:'4px', border:'none', background:'#3d6b4f', color:'#fff', cursor:'pointer', fontWeight:500 }}>
           {envoi ? '…' : 'Envoyer'}
@@ -671,16 +717,21 @@ export default function PanneauPatristique({
   nomLivre: string
   chapitreActif: number
 }) {
-  type Onglet = 'citations' | 'lien_3' | 'commentaires'
-  const [onglet, setOnglet] = useState<Onglet>('citations')
+  type Onglet = 'patristique' | 'commentaires'
+  type Filtre = 'tous' | 'citations' | 'doctrine'
+  const [onglet, setOnglet] = useState<Onglet>('patristique')
+  const [filtre, setFiltre] = useState<Filtre>('tous')
   const [ouvert, setOuvert] = useState(true)
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 880) setOuvert(false)
   }, [])
 
-  // Citations = lien_1 (exactes) + lien_2 (libres) fusionnés
+  // Citations = lien_1 (exactes) + lien_2 (libres) fusionnés ; Doctrine = lien_3 ; Écho = lien_4.
+  // L'onglet « Patristique » réunit les quatre niveaux ; les filtres permettent de
+  // n'afficher que les Citations ou que la Doctrine (l'Écho n'apparaît que dans « Tout »).
   const [segmentsCitations, setSegmentsCitations] = useState<{ seg: Segment; col: string }[]>([])
   const [segmentsDoctrine, setSegmentsDoctrine] = useState<Segment[]>([])
+  const [segmentsEcho, setSegmentsEcho] = useState<Segment[]>([])
   const [oeuvres, setOeuvres] = useState<Record<string, OeuvreInfo>>({})
   const [loading, setLoading] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
@@ -690,8 +741,7 @@ export default function PanneauPatristique({
   const [segSignale, setSegSignale] = useState<Segment | null>(null)
 
   const ONGLETS: { code: Onglet; label: string }[] = [
-    { code: 'citations',    label: 'Renvois patristiques' },
-    { code: 'lien_3',       label: 'Doctrine' },
+    { code: 'patristique',  label: 'Patristique' },
     { code: 'commentaires', label: 'Commentaires' },
   ]
 
@@ -729,14 +779,15 @@ export default function PanneauPatristique({
 
   // Charger les segments quand le verset change
   useEffect(() => {
-    if (!verset) { setSegmentsCitations([]); setSegmentsDoctrine([]); return }
+    if (!verset) { setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); return }
     setLoading(true)
 
     Promise.all([
       supabase.from('segments').select('*').ilike('lien_1', `%${verset.id_verset}%`),
       supabase.from('segments').select('*').ilike('lien_2', `%${verset.id_verset}%`),
       supabase.from('segments').select('*').ilike('lien_3', `%${verset.id_verset}%`),
-    ]).then(([r1, r2, r3]) => {
+      supabase.from('segments').select('*').ilike('lien_4', `%${verset.id_verset}%`),
+    ]).then(([r1, r2, r3, r4]) => {
       // Fusionner lien_1 + lien_2, sans doublons, en marquant la colonne d'origine
       const seen = new Set<number>()
       const citations: { seg: Segment; col: string }[] = []
@@ -748,6 +799,7 @@ export default function PanneauPatristique({
       })
       setSegmentsCitations(citations)
       setSegmentsDoctrine(r3.data ?? [])
+      setSegmentsEcho(r4.data ?? [])
       setLoading(false)
     })
   }, [verset])
@@ -756,6 +808,17 @@ export default function PanneauPatristique({
     setSegmentsCitations(prev => prev.filter(({ seg }) => seg.id !== id))
   const supprimerDeDoctrine = (id: number) =>
     setSegmentsDoctrine(prev => prev.filter(s => s.id !== id))
+  const supprimerDeEcho = (id: number) =>
+    setSegmentsEcho(prev => prev.filter(s => s.id !== id))
+
+  type ItemAffiche = { seg: Segment; col: string; type: 'exacte' | 'libre' | 'doctrine' | 'echo'; onSupprime: (id: number) => void }
+  const itemsCitations: ItemAffiche[] = segmentsCitations.map(({ seg, col }) => ({ seg, col, type: (col === 'lien_1' ? 'exacte' : 'libre') as 'exacte' | 'libre', onSupprime: supprimerDeCitations }))
+  const itemsDoctrine: ItemAffiche[] = segmentsDoctrine.map(seg => ({ seg, col: 'lien_3', type: 'doctrine' as const, onSupprime: supprimerDeDoctrine }))
+  const itemsEcho: ItemAffiche[] = segmentsEcho.map(seg => ({ seg, col: 'lien_4', type: 'echo' as const, onSupprime: supprimerDeEcho }))
+  const itemsAffiches: ItemAffiche[] =
+    filtre === 'citations' ? itemsCitations :
+    filtre === 'doctrine' ? itemsDoctrine :
+    [...itemsCitations, ...itemsDoctrine, ...itemsEcho]
 
   const refFr = verset ? `${nomLivre} ${chapitreActif},${verset.verset}` : null
 
@@ -806,38 +869,39 @@ export default function PanneauPatristique({
             {onglet === 'commentaires' ? (
               <OngletCommentaires verset={verset} userId={userId} isAdmin={isAdmin} />
 
-            ) : onglet === 'citations' ? (
-              <>
-                {loading && <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'16px 0' }}>Chargement…</p>}
-                {!loading && segmentsCitations.length === 0 && (
-                  <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'16px 0', fontStyle:'italic' }}>Aucun lien.</p>
-                )}
-                {segmentsCitations.map(({ seg, col }) => (
-                  <SegmentCard
-                    key={seg.id} s={seg} info={oeuvres[seg.id_oeuvre]}
-                    userId={userId} isAdmin={isAdmin}
-                    colonneLien={col}
-                    typeLien={col === 'lien_1' ? 'exacte' : 'libre'}
-                    onSignaler={setSegSignale}
-                    onSupprimeLien={supprimerDeCitations}
-                  />
-                ))}
-              </>
-
             ) : (
               <>
+                {/* Filtres rapides */}
+                <div style={{ display: 'flex', gap: '5px', padding: '10px 0 8px', flexWrap: 'wrap' }}>
+                  {([
+                    { code: 'tous' as const, label: 'Tout' },
+                    { code: 'citations' as const, label: 'Citations' },
+                    { code: 'doctrine' as const, label: 'Doctrine' },
+                  ]).map(f => (
+                    <button key={f.code} onClick={() => setFiltre(f.code)} style={{
+                      fontSize: '10px', padding: '4px 10px', borderRadius: '12px', cursor: 'pointer',
+                      border: `1px solid ${filtre === f.code ? '#3d6b4f' : '#d6d0c4'}`,
+                      background: filtre === f.code ? 'rgba(61,107,79,0.10)' : '#fff',
+                      color: filtre === f.code ? '#3d6b4f' : '#8a8278',
+                      fontWeight: filtre === f.code ? 600 : 400,
+                    }}>
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+
                 {loading && <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'16px 0' }}>Chargement…</p>}
-                {!loading && segmentsDoctrine.length === 0 && (
+                {!loading && itemsAffiches.length === 0 && (
                   <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'16px 0', fontStyle:'italic' }}>Aucun lien.</p>
                 )}
-                {segmentsDoctrine.map(s => (
+                {itemsAffiches.map(({ seg, col, type, onSupprime }) => (
                   <SegmentCard
-                    key={s.id} s={s} info={oeuvres[s.id_oeuvre]}
+                    key={`${col}-${seg.id}`} s={seg} info={oeuvres[seg.id_oeuvre]}
                     userId={userId} isAdmin={isAdmin}
-                    colonneLien="lien_3"
-                    typeLien="doctrine"
+                    colonneLien={col}
+                    typeLien={type}
                     onSignaler={setSegSignale}
-                    onSupprimeLien={supprimerDeDoctrine}
+                    onSupprimeLien={onSupprime}
                   />
                 ))}
               </>

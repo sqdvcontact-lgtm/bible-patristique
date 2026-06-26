@@ -40,8 +40,11 @@ type SegmentResult = {
   ref_niv1: string | null; ref_niv3: string | null
   auteur_nom: string; oeuvre_titre: string
 }
+type EssaiResult = {
+  id: number; titre: string; sous_titre: string | null; resume: string | null; contenu: string; categories: string[]
+}
 type Mode = 'prefixe' | 'exact'
-type Onglet = 'bible' | 'patristique'
+type Onglet = 'bible' | 'patristique' | 'essais'
 
 const PAGE = 30
 
@@ -78,26 +81,31 @@ export default function RechercheClient() {
   const [tradBible, setTradBible] = useState<'TR0001'|'TR0002'|'TR0003'|'TR0004'>('TR0001')
   const [versetsRes, setVersetsRes] = useState<VersetResult[]>([])
   const [segmentsRes, setSegmentsRes] = useState<SegmentResult[]>([])
+  const [essaisRes, setEssaisRes] = useState<EssaiResult[]>([])
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
   const [lastQuery, setLastQuery] = useState('')
   const [onglet, setOnglet] = useState<Onglet>('bible')
   const [pageV, setPageV] = useState(0)
   const [pageS, setPageS] = useState(0)
+  const [pageE, setPageE] = useState(0)
 
   const lancer = async () => {
     const q = query.trim()
     if (!q) return
     setLoading(true); setDone(false)
-    setVersetsRes([]); setSegmentsRes([])
-    setPageV(0); setPageS(0)
+    setVersetsRes([]); setSegmentsRes([]); setEssaisRes([])
+    setPageV(0); setPageS(0); setPageE(0)
 
-    const [resV, resS] = await Promise.all([
+    const [resV, resS, resE] = await Promise.all([
       supabase.rpc('recherche_versets', { p_terme: q, p_trad: tradBible, p_exact: mode === 'exact' }).limit(10000),
       supabase.rpc('recherche_segments', { p_terme: q, p_exact: mode === 'exact' }).limit(10000),
+      supabase.from('essais').select('id, titre, sous_titre, resume, contenu, categories').eq('statut', 'publie')
+        .or(`titre.ilike.%${q}%,sous_titre.ilike.%${q}%,resume.ilike.%${q}%,contenu.ilike.%${q}%`).limit(200),
     ])
 
     setVersetsRes((resV.data ?? []) as VersetResult[])
+    setEssaisRes((resE.data ?? []) as EssaiResult[])
 
     const segs = (resS.data ?? []) as any[]
     const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
@@ -122,9 +130,10 @@ export default function RechercheClient() {
 
   const versetsPage = versetsRes.slice(pageV * PAGE, (pageV + 1) * PAGE)
   const segmentsPage = segmentsRes.slice(pageS * PAGE, (pageS + 1) * PAGE)
-  const pageActive = onglet === 'bible' ? pageV : pageS
-  const totalActive = onglet === 'bible' ? versetsRes.length : segmentsRes.length
-  const setPageActive = onglet === 'bible' ? setPageV : setPageS
+  const essaisPage = essaisRes.slice(pageE * PAGE, (pageE + 1) * PAGE)
+  const pageActive = onglet === 'bible' ? pageV : onglet === 'patristique' ? pageS : pageE
+  const totalActive = onglet === 'bible' ? versetsRes.length : onglet === 'patristique' ? segmentsRes.length : essaisRes.length
+  const setPageActive = onglet === 'bible' ? setPageV : onglet === 'patristique' ? setPageS : setPageE
   const pagesTotal = Math.ceil(totalActive / PAGE)
   const debut = pageActive * PAGE + 1
   const fin = Math.min((pageActive + 1) * PAGE, totalActive)
@@ -203,6 +212,7 @@ export default function RechercheClient() {
               {([
                 { key: 'bible' as Onglet, label: 'Bible', count: versetsRes.length },
                 { key: 'patristique' as Onglet, label: 'Tradition patristique', count: segmentsRes.length },
+                { key: 'essais' as Onglet, label: 'Essais et méditations', count: essaisRes.length },
               ]).map(o => (
                 <button key={o.key}
                   className={`ong-btn${onglet === o.key ? ' ong-btn--actif' : ''}`}
@@ -269,6 +279,28 @@ export default function RechercheClient() {
                       </p>
                     </a>
                   ))}
+                </div>
+            )}
+
+            {done && onglet === 'essais' && (
+              essaisRes.length === 0
+                ? <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic', marginTop: '16px' }}>Aucun essai trouvé.</p>
+                : <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {essaisPage.map(e => {
+                    const extrait = e.contenu.length > 220 ? e.contenu.slice(0, 220) + '…' : e.contenu
+                    return (
+                      <a key={e.id} href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer" className="res-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '3px' }}>
+                          <span style={{ fontSize: '10.5px', fontWeight: 600, color: '#3d6b4f' }}>{e.titre}</span>
+                          {e.categories?.[0] && <span style={{ fontSize: '9.5px', color: '#b0a89e', fontStyle: 'italic' }}>{e.categories[0]}</span>}
+                        </div>
+                        {e.sous_titre && <p style={{ fontSize: '11px', color: '#8a8278', fontStyle: 'italic', margin: '0 0 3px' }}>{e.sous_titre}</p>}
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: '12.5px', lineHeight: 1.5, color: '#2a2520', margin: 0 }}>
+                          {highlighter(e.resume || extrait, lastQuery, mode)}
+                        </p>
+                      </a>
+                    )
+                  })}
                 </div>
             )}
           </div>

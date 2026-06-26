@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
+import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
 import OeuvreClient from './OeuvreClient'
 
 const supabase = createClient(
@@ -99,11 +99,11 @@ async function enrichirAvecVersets(segments: Segment[]) {
 export default async function OeuvrePage({params}:{params:Promise<{id:string}>}) {
   const {id}=await params
 
-  // Lecture côté serveur : bp_admin_session est HttpOnly, donc invisible pour
-  // tout JavaScript exécuté dans le navigateur (document.cookie ne le voit pas,
-  // même si DevTools l'affiche). Seul le serveur peut le lire, via next/headers.
-  const cookieStore = await cookies()
-  const estAdmin = (cookieStore.get('bp_admin_session')?.value ?? '').startsWith('authentifie')
+  // Admin = connecté avec le compte administrateur (adresse fixe), vérifié
+  // côté serveur via la session Supabase Auth — remplace l'ancien cookie
+  // bp_admin_session, qui n'est plus jamais posé depuis la suppression de la
+  // page de connexion par mot de passe.
+  const estAdmin = await verifierEstAdmin()
 
   // 1. Charger l'œuvre
   const { data: oeuvre } = await supabase

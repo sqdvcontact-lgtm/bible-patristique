@@ -355,8 +355,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               )}
             </p>
             {oeuvre.titre_original && <p style={{ fontSize: '11.5px', color: '#8a8278', fontStyle: 'italic', marginBottom: '0' }}>{oeuvre.titre_original}</p>}
-            {(oeuvre.trad_auteur || oeuvre.trad_date) && (
-              <p style={{ fontSize: '11px', color: '#9a958d', marginTop: '6px' }}>Trad. {oeuvre.trad_auteur ?? ''}{oeuvre.trad_date ? `, ${oeuvre.trad_date}` : ''}</p>
+            {oeuvre.trad_auteur && (
+              <p style={{ fontSize: '11px', color: '#9a958d', marginTop: '6px' }}>Trad. {oeuvre.trad_auteur}</p>
+            )}
+            {(oeuvre.editeur || oeuvre.ville || oeuvre.date_publication) && (
+              <p style={{ fontSize: '10.5px', color: '#b0a89e', fontStyle: 'italic', marginTop: '2px' }}>
+                D&rsquo;après l&rsquo;édition de {[oeuvre.editeur, oeuvre.ville, oeuvre.date_publication].filter(Boolean).join(', ')}
+              </p>
             )}
           </div>
 
@@ -473,8 +478,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           {vue === 'texte' && (
             <div id="barre-nav-niv1" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,2fr) minmax(0,1fr)', alignItems: 'center', columnGap: '14px', marginBottom: '1.5rem', paddingBottom: '1rem', paddingRight: '92px', borderBottom: '1px solid #ede9e2', minHeight: '32px', scrollMarginTop: '60px' }}>
               <button onClick={() => niv1Prev && changerNiv1(niv1Prev)} disabled={!niv1Prev}
-                style={{ justifySelf: 'start', fontSize: '11.5px', color: niv1Prev ? '#3d6b4f' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
-                {niv1Prev ? '← Précédent' : ''}
+                style={{ justifySelf: 'start', fontSize: '18px', lineHeight: 1, color: niv1Prev ? '#9a958d' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
+                {niv1Prev ? '‹' : ''}
               </button>
               <span style={{ fontSize: '16px', fontWeight: 500, color: '#2a3d30', fontFamily: "Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'normal', overflowWrap: 'break-word', position: 'relative' }}>
                 {niv1Loading ? <span style={{ fontSize: '13px', color: '#b0a89e' }}>Chargement…</span> : rendreTexteEnrichi(groupes[0]?.niv1_texte || niv1Actif)}
@@ -484,8 +489,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 )}
               </span>
               <button onClick={() => niv1Next && changerNiv1(niv1Next)} disabled={!niv1Next}
-                style={{ justifySelf: 'end', fontSize: '11.5px', color: niv1Next ? '#3d6b4f' : 'transparent', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Next ? 'auto' : 'none' }}>
-                {niv1Next ? 'Suivant →' : ''}
+                style={{ justifySelf: 'end', fontSize: '18px', lineHeight: 1, color: niv1Next ? '#9a958d' : 'transparent', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Next ? 'auto' : 'none' }}>
+                {niv1Next ? '›' : ''}
               </button>
             </div>
           )}
@@ -546,13 +551,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                           {afficherNumeros && <sup style={{ fontSize: '0.52rem', color: '#b0a89e', marginRight: '2px', userSelect: 'none' }}>{s.numero}</sup>}
                           {rendreTexteEnrichi(normaliserEspaces(s.texte))}
                         </p>
-                        <div className="seg-actions" style={{ display: 'flex', flexDirection: 'row', gap: '2px', flexShrink: 0, width: '92px', paddingTop: '2px', justifyContent: 'flex-end' }}>
-                          {estAdmin && (
-                            <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" style={{ ...BTN_STYLE }}>✎</button>
-                          )}
+                        <div className="seg-actions" style={{ display: 'flex', flexDirection: 'row', gap: '2px', flexShrink: 0, width: '92px', paddingTop: '2px', justifyContent: 'flex-end', marginRight: '-16px' }}>
                           {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
                           <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} className="seg-btn-action" />
                           <BoutonSignalerSegment segId={sid} apercu={`§${s.numero} — ${texteSansEnrichissement(s.texte).slice(0,60)}…`} className="seg-btn-action" />
+                          {estAdmin && (
+                            <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" style={{ ...BTN_STYLE }}>✎</button>
+                          )}
                         </div>
                       </div>
                     )
@@ -604,7 +609,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                             </p>
                             {estAdmin && (
                               <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)"
-                                style={{ position: 'absolute', right: '8px', top: '1px', ...BTN_STYLE }}>✎</button>
+                                style={{ position: 'absolute', right: '-10px', top: '1px', ...BTN_STYLE }}>✎</button>
                             )}
                           </div>
                         )
@@ -622,7 +627,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         <aside style={{ width: '280px', flexShrink: 0, position: 'sticky', top: '48px', alignSelf: 'flex-start', height: 'calc(100vh - 48px)', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column' }}>
 
           <div style={{ display: 'flex', borderBottom: '1px solid #d6d0c4', flexShrink: 0 }}>
-            {([{ key: 'refs', label: 'Références bibliques' }, { key: 'commentaires', label: 'Commentaires' }, { key: 'suggestions', label: 'Suggestions' }] as const).map(o => (
+            {([{ key: 'refs', label: 'Renvois bibliques' }, { key: 'commentaires', label: 'Commentaires' }, { key: 'suggestions', label: 'Références à identifier' }] as const).map(o => (
               <button key={o.key} onClick={() => setOngletDroit(o.key)} className="onglet-btn"
                 style={{ flex: 1, padding: '10px 8px', fontSize: '11px', fontWeight: ongletDroit === o.key ? 600 : 400, color: ongletDroit === o.key ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', borderBottom: ongletDroit === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', letterSpacing: '0.02em' }}>
                 {o.label}

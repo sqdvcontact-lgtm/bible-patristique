@@ -73,9 +73,19 @@ function BarreMiseEnForme({ onInserer, onEntourer }: {
     <div style={{ position: 'relative' }}>
       <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
         <button type="button" onClick={() => onEntourer('**')} title="Gras"
-          style={{ fontSize: '10px', fontWeight: 700, padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', cursor: 'pointer' }}>G</button>
+          style={{ fontSize: '10px', fontWeight: 700, padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>G</button>
         <button type="button" onClick={() => onEntourer('*')} title="Italique"
-          style={{ fontSize: '10px', fontStyle: 'italic', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', cursor: 'pointer' }}>I</button>
+          style={{ fontSize: '10px', fontStyle: 'italic', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>I</button>
+        <span style={{ width: '1px', background: '#e4dfd8' }} />
+        <button type="button" onClick={() => onInserer('\u00A0')} title="Espace insécable"
+          style={{ fontSize: '9px', padding: '3px 7px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>Esp. ins.</button>
+        <button type="button" onClick={() => onInserer('\u202F')} title="Espace fine insécable"
+          style={{ fontSize: '9px', padding: '3px 7px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>Esp. fine</button>
+        <button type="button" onClick={() => onEntourer('«\u202F', '\u202F»')} title="Guillemets français"
+          style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>« »</button>
+        <button type="button" onClick={() => onEntourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)"
+          style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>“ ”</button>
+        <span style={{ width: '1px', background: '#e4dfd8' }} />
         <button type="button" onClick={() => setPopover(popover === 'verset' ? null : 'verset')} title="Lien vers un verset biblique"
           style={{ fontSize: '9.5px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: popover === 'verset' ? 'rgba(61,107,79,0.10)' : '#fff', cursor: 'pointer', color: '#3d6b4f' }}>+ verset</button>
         <button type="button" onClick={() => popover === 'oeuvre' ? setPopover(null) : ouvrirPopoverOeuvre()} title="Lien vers un passage patristique"
@@ -84,12 +94,12 @@ function BarreMiseEnForme({ onInserer, onEntourer }: {
 
       {popover === 'verset' && (
         <div style={{ display: 'flex', gap: '5px', alignItems: 'center', padding: '7px 8px', background: '#f0ede7', borderRadius: '5px', marginBottom: '5px', flexWrap: 'wrap' }}>
-          <select value={livre} onChange={e => setLivre(e.target.value)} style={{ fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff' }}>
+          <select value={livre} onChange={e => setLivre(e.target.value)} style={{ fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520' }}>
             <option value="">Livre…</option>
             {LIVRES_LIEN.map(l => <option key={l.code} value={l.code}>{l.nom}</option>)}
           </select>
-          <input type="number" min={1} value={chapitre} onChange={e => setChapitre(e.target.value)} placeholder="ch." style={{ width: '44px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4' }} />
-          <input type="number" min={1} value={verset} onChange={e => setVerset(e.target.value)} placeholder="v." style={{ width: '44px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4' }} />
+          <input type="number" min={1} value={chapitre} onChange={e => setChapitre(e.target.value)} placeholder="ch." style={{ width: '44px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', color: '#2a2520' }} />
+          <input type="number" min={1} value={verset} onChange={e => setVerset(e.target.value)} placeholder="v." style={{ width: '44px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', color: '#2a2520' }} />
           <button type="button" onClick={validerLienVerset} disabled={!livre || !chapitre || !verset}
             style={{ fontSize: '10px', padding: '3px 10px', borderRadius: '3px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer' }}>Insérer</button>
         </div>
@@ -98,17 +108,17 @@ function BarreMiseEnForme({ onInserer, onEntourer }: {
       {popover === 'oeuvre' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', padding: '7px 8px', background: '#f0ede7', borderRadius: '5px', marginBottom: '5px' }}>
           <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-            <select value={auteurChoisi} onChange={e => choisirAuteur(e.target.value)} style={{ flex: 1, minWidth: '110px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff' }}>
+            <select value={auteurChoisi} onChange={e => choisirAuteur(e.target.value)} style={{ flex: 1, minWidth: '110px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520' }}>
               <option value="">Auteur…</option>
               {auteurs.map(a => <option key={a.id_auteur} value={a.id_auteur}>{a.nom}</option>)}
             </select>
-            <select value={oeuvreChoisie} onChange={e => setOeuvreChoisie(e.target.value)} disabled={!auteurChoisi} style={{ flex: 1, minWidth: '110px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff' }}>
+            <select value={oeuvreChoisie} onChange={e => setOeuvreChoisie(e.target.value)} disabled={!auteurChoisi} style={{ flex: 1, minWidth: '110px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520' }}>
               <option value="">Œuvre…</option>
               {oeuvres.map(o => <option key={o.id_oeuvre} value={o.id_oeuvre}>{o.titre}</option>)}
             </select>
           </div>
           <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-            <input type="number" min={1} value={segmentNum} onChange={e => setSegmentNum(e.target.value)} placeholder="N° de segment" style={{ width: '90px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4' }} />
+            <input type="number" min={1} value={segmentNum} onChange={e => setSegmentNum(e.target.value)} placeholder="N° de segment" style={{ width: '90px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', color: '#2a2520' }} />
             <button type="button" onClick={validerLienOeuvre} disabled={!oeuvreChoisie || !segmentNum}
               style={{ fontSize: '10px', padding: '3px 10px', borderRadius: '3px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer' }}>Insérer</button>
           </div>
@@ -130,6 +140,8 @@ type CommentaireAvecAuteur = {
   nbLikes: number
   nbDislikes: number
   monVote: 1 | -1 | null
+  demande_validation: boolean
+  supprime: boolean
 }
 
 // ── Petite modale de signalement, dédiée aux commentaires ────────────────────
@@ -183,6 +195,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   const [revelees, setRevelees] = useState<Set<number>>(new Set())
   const [cibleReponse, setCibleReponse] = useState<CommentaireAvecAuteur | null>(null)
   const [commentaireSignale, setCommentaireSignale] = useState<CommentaireAvecAuteur | null>(null)
+  const [demandeValidation, setDemandeValidation] = useState(false)
   const taRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -200,7 +213,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     if (segActif === null) return
     setLoading(true)
     const { data: base } = await supabase.from('commentaires')
-      .select('id, texte, valide, created_at, user_id, reponse_a')
+      .select('id, texte, valide, created_at, user_id, reponse_a, demande_validation, supprime')
       .eq('id_segment', segActif).order('created_at', { ascending: true })
     const lignes = base ?? []
 
@@ -264,6 +277,14 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     if (res.ok) setCommentaires(prev => prev.filter(x => x.id !== c.id && x.reponse_a !== c.id))
   }
 
+  // Suppression par son propre auteur : la ligne reste (fil des réponses
+  // préservé), seul le texte est remplacé par une mention grisée.
+  const supprimerMonCommentaire = async (c: CommentaireAvecAuteur) => {
+    if (!confirm('Supprimer ce commentaire ? Il restera visible en tant que « commentaire supprimé ».')) return
+    const { error } = await supabase.from('commentaires').update({ supprime: true }).eq('id', c.id)
+    if (!error) setCommentaires(prev => prev.map(x => x.id === c.id ? { ...x, supprime: true } : x))
+  }
+
   const entourer = (avant: string, apres: string = avant) => {
     const ta = taRef.current
     if (!ta) { setTexte(t => t + avant + 'texte' + apres); return }
@@ -286,13 +307,13 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     setStatut('sending')
     const { data, error } = await supabase.from('commentaires').insert({
       id_segment: segActif, texte: texte.trim(), valide: false, user_id: userId,
-      reponse_a: cibleReponse?.id ?? null,
+      reponse_a: cibleReponse?.id ?? null, demande_validation: demandeValidation,
     }).select().single()
     setStatut('idle')
     if (error || !data) { setStatut('err'); return }
     // Affichage immédiat, sans recharger.
     setCommentaires(prev => [...prev, { ...data, pseudo: null, score: null, nbLikes: 0, nbDislikes: 0, monVote: null }])
-    setTexte(''); setCibleReponse(null)
+    setTexte(''); setCibleReponse(null); setDemandeValidation(false)
     // Le pseudo réel sera affiché après le prochain chargement complet ;
     // on relance silencieusement pour le récupérer.
     chargerCommentaires()
@@ -336,6 +357,12 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     const couleurs = rangInfo ? couleurRang(rangInfo.rang) : null
     return (
       <div key={c.id} style={{ marginLeft: estReponse ? '20px' : 0, padding: '9px 0', borderBottom: '1px solid #ede9e2', borderLeft: estReponse ? '2px solid #d6d0c4' : undefined, paddingLeft: estReponse ? '10px' : 0 }}>
+        {c.supprime ? (
+          <p style={{ fontSize: '11.5px', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>
+            {c.pseudo ?? 'Un utilisateur'} a supprimé un commentaire
+          </p>
+        ) : (
+        <>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '11px', fontWeight: 600, color: '#2a3d30' }}>{c.pseudo ?? 'Anonyme'}</span>
           {couleurs && rangInfo && (
@@ -344,6 +371,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
             </span>
           )}
           {!c.valide && <span style={{ fontSize: '9.5px', fontWeight: 600, color: '#b03a2a', background: 'rgba(176,58,42,0.08)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>NON VALIDÉ</span>}
+          {c.demande_validation && <span style={{ fontSize: '9.5px', fontWeight: 600, color: '#7a5a9e', background: 'rgba(122,90,158,0.08)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>RÉFÉRENCE SOUMISE À VALIDATION</span>}
         </div>
         <p style={{ fontSize: '12px', color: c.valide ? '#2a2520' : '#7a5550', lineHeight: 1.55, margin: 0, whiteSpace: 'pre-line' }}>{rendreTexteEnrichi(c.texte)}</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px', flexWrap: 'wrap' }}>
@@ -359,13 +387,21 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
             style={{ fontSize: '12px', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: 'auto' }}>
             ⚑
           </button>
-          {estAdmin && (
-            <button onClick={() => supprimerCommentaire(c)} title="Supprimer ce commentaire"
-              style={{ fontSize: '10.5px', color: '#c0392b', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          {userId === c.user_id && (
+            <button onClick={() => supprimerMonCommentaire(c)} title="Supprimer mon commentaire"
+              style={{ fontSize: '10.5px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               Supprimer
             </button>
           )}
+          {estAdmin && userId !== c.user_id && (
+            <button onClick={() => supprimerCommentaire(c)} title="Supprimer ce commentaire"
+              style={{ fontSize: '10.5px', color: '#c0392b', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              Supprimer (admin)
+            </button>
+          )}
         </div>
+        </>
+        )}
       </div>
     )
   }
@@ -394,6 +430,11 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
             <BarreMiseEnForme onEntourer={entourer} onInserer={inserer} />
             <textarea ref={taRef} value={texte} onChange={e => setTexte(e.target.value)} placeholder={cibleReponse ? 'Votre réponse…' : 'Votre commentaire sur ce passage…'} rows={4}
               style={{ width: '100%', fontSize: '11.5px', padding: '7px 9px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#fff', color: '#2a2520', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '10.5px', color: '#6b6560', cursor: 'pointer', lineHeight: 1.4, marginTop: '6px' }}>
+              <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
+                style={{ marginTop: '2px', flexShrink: 0, accentColor: '#7a5a9e', cursor: 'pointer' }} />
+              <span>Soumettre une référence à validation — proposer officiellement ce commentaire pour certification par l'administration.</span>
+            </label>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px', gap: '8px', alignItems: 'center' }}>
               {statut === 'err' && <span style={{ fontSize: '10.5px', color: '#c0562a' }}>Erreur — vérifiez qu'il n'y a pas plus de 5 capitales à la suite.</span>}
               <button onClick={soumettre} disabled={statut === 'sending' || !texte.trim()}

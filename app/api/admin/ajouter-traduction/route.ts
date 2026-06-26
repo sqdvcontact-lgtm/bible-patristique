@@ -1,12 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { estAdmin } from '@/app/lib/verifAdmin'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
+  if (!(await estAdmin())) {
+    return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
+  }
+
   try {
     const body = await req.json()
     const { nom, auteur, dates, bio_courte, date_publication, confession, langue, ordre, lignes } = body
@@ -54,7 +59,6 @@ export async function POST(req: NextRequest) {
     let inseres = 0
     for (let i = 0; i < lignes.length; i += 500) {
       const batch = lignes.slice(i, i + 500)
-      // Upsert : mettre à jour uniquement la colonne trad_id
       const payload = batch.map((l: { id_verset: string; texte: string }) => ({
         id_verset: l.id_verset,
         [trad_id]: l.texte,

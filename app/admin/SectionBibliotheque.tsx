@@ -126,10 +126,10 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   const photoRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
   React.useEffect(() => {
-    supabase.storage.from('auteurs').list('').then(({ data }) => {
+    supabase.storage.from('auteurs').list('', { limit: 1000 }).then(({ data }) => {
       if (!data) return
       const map: Record<string, boolean> = {}
-      data.forEach(f => { map[f.name.replace('.jpg', '')] = true })
+      data.forEach(f => { map[f.name.replace(/\.jpe?g$/i, '')] = true })
       setPhotos(map)
     })
   }, [])
@@ -191,10 +191,56 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     })
   }
 
+  const CHAMPS_OEUVRE: { key: string; label: string }[] = [
+    { key: 'titre', label: 'Titre *' },
+    { key: 'sous_titre', label: 'Sous-titre' },
+    { key: 'titre_original', label: 'Titre original' },
+    { key: 'trad_auteur', label: 'Traducteur' },
+    { key: 'editeur', label: 'Éditeur' },
+    { key: 'collection', label: 'Collection' },
+    { key: 'ville', label: 'Ville' },
+    { key: 'date_publication', label: 'Date de publication' },
+  ]
+
+  const ouvrirEditionOeuvre = (o: any) => {
+    setEditionOeuvre(o.id_oeuvre)
+    setFormOeuvre({
+      titre: o.titre ?? '', sous_titre: o.sous_titre ?? '', titre_original: o.titre_original ?? '',
+      trad_auteur: o.trad_auteur ?? '', editeur: o.editeur ?? '', collection: o.collection ?? '',
+      ville: o.ville ?? '', date_publication: o.date_publication ?? '',
+    })
+    setStatutOeuvre(null)
+  }
+  const fermerEditionOeuvre = () => { setEditionOeuvre(null); setFormOeuvre({}) }
+
+  const sauvegarderOeuvre = async (idOeuvre: string) => {
+    if (!formOeuvre.titre?.trim()) { setStatutOeuvre({ id: idOeuvre, ok: false, msg: 'Le titre est requis.' }); return }
+    try {
+      const resultats = await Promise.all(
+        CHAMPS_OEUVRE.map(c => fetch('/api/admin/update-oeuvre', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_oeuvre: idOeuvre, champ: c.key, valeur: formOeuvre[c.key] || null }),
+        }))
+      )
+      if (resultats.some(r => !r.ok)) { setStatutOeuvre({ id: idOeuvre, ok: false, msg: 'Erreur lors de l\u2019enregistrement.' }); return }
+      setAuteurs(prev => prev.map(a => ({
+        ...a,
+        oeuvres: a.oeuvres.map((o: any) => o.id_oeuvre === idOeuvre ? { ...o, ...formOeuvre } : o),
+      })))
+      setStatutOeuvre({ id: idOeuvre, ok: true, msg: 'Enregistré.' })
+      setTimeout(() => { setStatutOeuvre(null); fermerEditionOeuvre() }, 1200)
+    } catch {
+      setStatutOeuvre({ id: idOeuvre, ok: false, msg: 'Erreur réseau.' })
+    }
+  }
+
   const handleExport = async (idOeuvre: string, titre: string) => { setExporting(idOeuvre); await exporterOeuvre(idOeuvre, titre); setExporting(null) }
 
   const [configOeuvre, setConfigOeuvre] = useState<string | null>(null)
   const [niveauxConfig, setNiveauxConfig] = useState<Record<string, { sommaire: number; corps: number; txtSommaire: boolean[]; txtCorps: boolean[]; afficherNumeros: boolean }>>({})
+  const [editionOeuvre, setEditionOeuvre] = useState<string | null>(null)
+  const [formOeuvre, setFormOeuvre] = useState<Record<string, string>>({})
+  const [statutOeuvre, setStatutOeuvre] = useState<{ id: string; ok: boolean; msg: string } | null>(null)
 
   // Initialiser profondeurs depuis les données
   React.useEffect(() => {
@@ -376,7 +422,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
         <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
           placeholder="Rechercher un auteur…"
-          style={{ flex: 1, fontSize: '12px', padding: '6px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#fff', outline: 'none' }} />
+          style={{ flex: 1, fontSize: '12px', padding: '6px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#fff', color: '#1e1a16', outline: 'none' }} />
         {recherche && <button onClick={() => setRecherche('')} style={{ fontSize: '11px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>}
         <button onClick={() => { setAjoutAuteur(!ajoutAuteur); setMsgAjoutAuteur(null) }}
           style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: 'none', background: ajoutAuteur ? '#2e5440' : '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
@@ -407,7 +453,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: (auteurOuvert === auteur.id_auteur || editionAuteur === auteur.id_auteur) ? '1px solid #e4dfd8' : 'none' }}>
               <button onClick={() => setAuteurOuvert(auteurOuvert === auteur.id_auteur ? null : auteur.id_auteur)}
                 style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-                <span style={{ fontFamily: "Georgia, serif", fontSize: '14px', color: '#2a3d30' }}>{auteur.nom}</span>
+                <span style={{ fontFamily: "Georgia, serif", fontSize: '15px', fontWeight: 700, color: '#3d6b4f' }}>{auteur.nom}</span>
                 {auteur.dates && <span style={{ fontSize: '11px', color: '#9a958d' }}>{auteur.dates}</span>}
                 {auteur.siecle && <span style={{ fontSize: '10.5px', color: '#9a958d' }}><SiecleDisplay n={parseInt(auteur.siecle)} /></span>}
                 {(auteur as any).tradition && <span style={{ fontSize: '10.5px', color: '#9a958d', background: '#eeeae4', padding: '1px 6px', borderRadius: '3px' }}>{(auteur as any).tradition}</span>}
@@ -463,7 +509,8 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                   <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic', padding: '8px 18px' }}>Aucune œuvre pour cet auteur — utilisez « + Ajouter une œuvre ».</p>
                 )}
                 {[...auteur.oeuvres].sort((a, b) => a.titre.localeCompare(b.titre, 'fr')).map(oeuvre => (
-                  <div key={oeuvre.id_oeuvre} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 18px', borderBottom: '1px solid #f0ece6' }}>
+                  <div key={oeuvre.id_oeuvre} style={{ borderBottom: '1px solid #f0ece6' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 18px 5px 34px' }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flex: 1, minWidth: 0 }}>
                       <span style={{ fontSize: '12px', color: '#3a3530' }}>{oeuvre.titre}</span>
                       {oeuvre.titre_original && <span style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic' }}>{oeuvre.titre_original}</span>}
@@ -478,15 +525,43 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                         ⚙ Niveaux
                       </button>
                       <a href={`/oeuvre/${oeuvre.id_oeuvre}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: '#9a958d', textDecoration: 'none', padding: '4px 10px', border: '1px solid #d6d0c4', borderRadius: '4px' }}>Lire ↗</a>
+                      <button onClick={() => editionOeuvre === oeuvre.id_oeuvre ? fermerEditionOeuvre() : ouvrirEditionOeuvre(oeuvre)}
+                        style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: editionOeuvre === oeuvre.id_oeuvre ? '#3d6b4f' : '#fff', color: editionOeuvre === oeuvre.id_oeuvre ? '#fff' : '#3d6b4f', cursor: 'pointer', fontWeight: 500 }}>
+                        {editionOeuvre === oeuvre.id_oeuvre ? 'Fermer' : 'Modifier'}
+                      </button>
                       <button onClick={() => handleExport(oeuvre.id_oeuvre, oeuvre.titre)} disabled={exporting === oeuvre.id_oeuvre}
                         style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: exporting === oeuvre.id_oeuvre ? '#e4dfd8' : '#3d6b4f', color: exporting === oeuvre.id_oeuvre ? '#9a958d' : '#fff', fontWeight: 500 }}>
-                        {exporting === oeuvre.id_oeuvre ? 'Export…' : '↓ CSV'}
+                        {exporting === oeuvre.id_oeuvre ? 'Export…' : 'Exporter CSV'}
                       </button>
                       <button onClick={() => { setResultat(null); inputRefs.current[oeuvre.id_oeuvre]?.click() }}
-                        style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer', fontWeight: 500 }}>↑ CSV</button>
+                        style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer', fontWeight: 500 }}>Importer CSV</button>
                       <input ref={el => { inputRefs.current[oeuvre.id_oeuvre] = el }} type="file" accept=".csv" style={{ display: 'none' }}
                         onChange={e => { const f = e.target.files?.[0]; if (f) handleFichierChoisi(oeuvre.id_oeuvre, f) }} />
                     </div>
+                  </div>
+
+                  {/* Formulaire d'édition de l'œuvre */}
+                  {editionOeuvre === oeuvre.id_oeuvre && (
+                    <div style={{ padding: '12px 18px 14px 34px', background: '#faf8f4', borderTop: '1px solid #ede9e2' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                        {CHAMPS_OEUVRE.map(c => (
+                          <div key={c.key}>
+                            <label style={labelStyleAuteur}>{c.label.toUpperCase()}</label>
+                            <input type="text" value={formOeuvre[c.key] ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, [c.key]: e.target.value }))} style={inputStyleAuteur} />
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                        {statutOeuvre?.id === oeuvre.id_oeuvre && (
+                          <span style={{ fontSize: '11.5px', color: statutOeuvre?.ok ? '#3d6b4f' : '#c0562a' }}>
+                            {statutOeuvre?.ok ? '✓' : '✗'} {statutOeuvre?.msg}
+                          </span>
+                        )}
+                        <button onClick={fermerEditionOeuvre} style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
+                        <button onClick={() => sauvegarderOeuvre(oeuvre.id_oeuvre)} style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
+                      </div>
+                    </div>
+                  )}
                   </div>
                 ))}
               </div>

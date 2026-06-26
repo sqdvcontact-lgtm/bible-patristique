@@ -118,16 +118,19 @@ export default function AccueilCards() {
         .ac-don {
           display: inline-flex;
           align-items: center;
-          gap: 5px;
-          font-size: 11px;
-          color: #8a9e8e;
+          gap: 7px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #fff;
+          background: #3d6b4f;
           text-decoration: none;
-          border-bottom: 1px dotted #b8c8bc;
-          padding-bottom: 1px;
-          transition: color 0.14s;
-          letter-spacing: 0.02em;
+          padding: 9px 20px;
+          border-radius: 18px;
+          letter-spacing: 0.01em;
+          box-shadow: 0 2px 8px rgba(61,107,79,0.25);
+          transition: transform 0.15s, box-shadow 0.15s;
         }
-        .ac-don:hover { color: #3d6b4f; border-bottom-color: #3d6b4f; border-bottom-style: solid; }
+        .ac-don:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(61,107,79,0.32); }
         @media (max-width: 480px) {
           .ac-grid { grid-template-columns: 1fr 1fr; max-width: 320px; }
           .ac-card { padding: 24px 16px; }

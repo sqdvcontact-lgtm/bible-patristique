@@ -1,10 +1,8 @@
-import ProgressionClient from './ProgressionClient'
+import { redirect } from 'next/navigation'
 
-export const metadata = {
-  title: 'Ma progression — Bible & Tradition patristique',
-  description: 'Suivez votre progression de lecture biblique, livre par livre.',
-}
-
+// Le composant ProgressionClient vit toujours dans ce dossier (importé par
+// l'onglet « Ma progression » de la page « Aller plus loin »), mais cette
+// page-ci ne fait plus que rediriger, pour ne pas casser d'anciens liens.
 export default function ProgressionPage() {
-  return <ProgressionClient />
+  redirect('/traductions?onglet=progression')
 }

@@ -1,4 +1,4 @@
-export type Commentaire = { id: number; texte: string; auteur_nom: string; auteur_mail: string; valide: boolean; created_at: string; id_segment: number | null; id_verset: string | null }
+export type Commentaire = { id: number; texte: string; auteur_nom: string; auteur_mail: string; valide: boolean; created_at: string; id_segment: number | null; id_verset: string | null; demande_validation?: boolean; certifie?: boolean }
 export type Signalement  = { id: number; message: string; traite: boolean; created_at: string; id_segment: number }
 export type SegInfo      = { texte: string; numero: number; id_oeuvre: string }
 export type Oeuvre       = { id_oeuvre: string; titre: string; titre_original: string | null; profondeur_sommaire?: number | null }
@@ -24,9 +24,16 @@ export type LignePreview = {
   _lien_1_orig?: string; _fiabilite_orig?: string; _texte_orig?: string; _modifie?: boolean
 }
 
+export type Essai = { id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; statut: string; created_at: string; user_id: string; auteur_pseudo: string | null }
+export type EssaiPublie = { id: number; titre: string; sous_titre: string | null; auteur: string; created_at: string }
+
 export type AdminProps = {
   commentaires: Commentaire[]
   signalements: Signalement[]
+  demandesCertification: Commentaire[]
+  essaisEnAttente: Essai[]
+  essaisPublies: EssaiPublie[]
+  versetMap: Record<string, string>
   segMap: Record<number, SegInfo>
   auteurs: Auteur[]
   traductions: Traduction[]
@@ -35,6 +42,10 @@ export type AdminProps = {
   actionSupprimerCommentaire: (id: number) => Promise<void>
   actionMarquerTraite: (id: number) => Promise<void>
   actionSupprimerSignalement: (id: number) => Promise<void>
+  actionCertifier: (id: number) => Promise<void>
+  actionRetirerDemandeCertification: (id: number) => Promise<void>
+  actionPublierEssai: (id: number) => Promise<void>
+  actionRenvoyerBrouillonEssai: (id: number) => Promise<void>
 }
 
-export type Onglet = 'bibliotheque' | 'ajouter-oeuvre' | 'depot-oeuvre' | 'traductions' | 'verifications' | 'commentaires' | 'signalements' | 'remplacer-segments'
+export type Onglet = 'bibliotheque' | 'ajouter-oeuvre' | 'depot-oeuvre' | 'traductions' | 'verifications' | 'moderation' | 'remplacer-segments' | 'essais'

@@ -62,7 +62,7 @@ function PanneauAuteur({ auteur, recherche }: { auteur: Auteur; recherche: strin
         {/* Infos */}
         <div style={{ flex: 1, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <div>
-            <h2 style={{ fontFamily: "Georgia, serif", fontSize: '16px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 2px' }}>
+            <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '15px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 4px' }}>
               {auteur.nom}
             </h2>
             {auteur.dates && (
@@ -129,14 +129,14 @@ export default function BibliothequeClient({ auteurs }: { auteurs: Auteur[] }) {
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '40px 32px 80px' }}>
 
         {/* En-tête */}
-        <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-          <h1 style={{ fontFamily: "Georgia, serif", fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 'normal', color: '#1e2e24', marginBottom: '8px' }}>
-            Bibliothèque
-          </h1>
-          <p style={{ fontSize: '11.5px', color: '#9a958d', margin: '0 0 20px' }}>
-            {auteurs.length} auteur{auteurs.length > 1 ? 's' : ''} — {auteurs.reduce((s, a) => s + a.oeuvres.length, 0)} œuvres
-          </p>
-          <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 24px' }} />
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '20px' }}>
+            <span style={{ fontSize: '18px', lineHeight: 1, color: '#c8c0b4' }}>‹</span>
+            <h1 style={{ fontFamily: "Georgia, serif", fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 'normal', color: '#1e2e24', margin: 0 }}>
+              Bibliothèque
+            </h1>
+            <span style={{ fontSize: '18px', lineHeight: 1, color: '#c8c0b4' }}>›</span>
+          </div>
 
           {/* Recherche */}
           <div style={{ position: 'relative', maxWidth: '320px', margin: '0 auto' }}>
@@ -144,7 +144,7 @@ export default function BibliothequeClient({ auteurs }: { auteurs: Auteur[] }) {
               type="text"
               value={recherche}
               onChange={e => setRecherche(e.target.value)}
-              placeholder="Rechercher un auteur ou une œuvre…"
+              placeholder="Recherche un auteur ou une œuvre"
               style={{ width: '100%', fontSize: '13px', padding: '8px 14px 8px 36px', border: '1px solid #d6d0c4', borderRadius: '20px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }}
             />
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>

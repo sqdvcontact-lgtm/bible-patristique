@@ -35,6 +35,15 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
     setTimeout(() => { ta.focus(); ta.setSelectionRange(d + avant.length, d + avant.length + selection.length) }, 0)
   }
 
+  const inserer = (texte: string) => {
+    const ta = taRef.current
+    if (!ta) return
+    const d = ta.selectionStart, f = ta.selectionEnd
+    const nouveau = valeur.slice(0, d) + texte + valeur.slice(f)
+    setValeur(nouveau)
+    setTimeout(() => { ta.focus(); ta.setSelectionRange(d + texte.length, d + texte.length) }, 0)
+  }
+
   const inserrerLien = () => {
     const url = window.prompt('URL du lien :', 'https://')
     if (url) entourer('[', `](${url})`)
@@ -91,10 +100,15 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
         </div>
 
         {etape === 'edition' ? <>
-          <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
             <button onClick={() => entourer('**')} title="Gras" style={{ ...BTN_MODAL, fontWeight: 700 }}>G</button>
             <button onClick={() => entourer('*')} title="Italique" style={{ ...BTN_MODAL, fontStyle: 'italic' }}>I</button>
             <button onClick={inserrerLien} title="Insérer un lien" style={BTN_MODAL}>Lien</button>
+            <span style={{ width: '1px', background: '#e4dfd8' }} />
+            <button onClick={() => inserer('\u00A0')} title="Espace insécable" style={{ ...BTN_MODAL, fontSize: '10px' }}>Esp. insécable</button>
+            <button onClick={() => inserer('\u202F')} title="Espace fine insécable" style={{ ...BTN_MODAL, fontSize: '10px' }}>Esp. fine</button>
+            <button onClick={() => entourer('«\u202F', '\u202F»')} title="Guillemets français" style={BTN_MODAL}>« »</button>
+            <button onClick={() => entourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)" style={BTN_MODAL}>“ ”</button>
           </div>
           <textarea ref={taRef} value={valeur} onChange={e => setValeur(e.target.value)}
             rows={cible.type === 'segment' ? 8 : cible.type === 'titre_oeuvre' ? 4 : 2} autoFocus

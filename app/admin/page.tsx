@@ -39,6 +39,33 @@ async function actionSupprimerSignalement(id: number) {
   await supabaseAdmin.from('signalements').delete().eq('id', id)
   redirect('/admin')
 }
+async function actionCertifierCommentaire(id: number) {
+  'use server'
+  if (!(await estAdmin())) return
+  await supabaseAdmin.from('commentaires').update({ certifie: true, valide: true, demande_validation: false }).eq('id', id)
+  redirect('/admin')
+}
+async function actionRetirerDemandeCertification(id: number) {
+  'use server'
+  if (!(await estAdmin())) return
+  await supabaseAdmin.from('commentaires').update({ demande_validation: false }).eq('id', id)
+  redirect('/admin')
+}
+async function actionPublierEssai(id: number) {
+  'use server'
+  if (!(await estAdmin())) return
+  const { data: actuel } = await supabaseAdmin.from('essais').select('publie_at').eq('id', id).single()
+  const payload: any = { statut: 'publie' }
+  if (!actuel?.publie_at) payload.publie_at = new Date().toISOString()
+  await supabaseAdmin.from('essais').update(payload).eq('id', id)
+  redirect('/admin')
+}
+async function actionRenvoyerBrouillonEssai(id: number) {
+  'use server'
+  if (!(await estAdmin())) return
+  await supabaseAdmin.from('essais').update({ statut: 'brouillon' }).eq('id', id)
+  redirect('/admin')
+}
 
 export const metadata = { title: 'Administration — La Bible des Pères' }
 
@@ -65,13 +92,43 @@ export default async function AdminPage() {
   // Modération
   const { data: commentaires } = await supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset').eq('valide', false).order('created_at', { ascending: false })
   const { data: signalements } = await supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment').eq('traite', false).order('created_at', { ascending: false })
-  const segIds = [...(commentaires?.map(c => c.id_segment).filter(Boolean) ?? []), ...(signalements?.map(s => s.id_segment).filter(Boolean) ?? [])]
+  const { data: demandesCertification } = await supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, demande_validation, certifie').eq('demande_validation', true).order('created_at', { ascending: false })
+  const segIds = [...(commentaires?.map(c => c.id_segment).filter(Boolean) ?? []), ...(signalements?.map(s => s.id_segment).filter(Boolean) ?? []), ...(demandesCertification?.map(c => c.id_segment).filter(Boolean) ?? [])]
   const segIdsUniques = [...new Set(segIds)]
   const { data: segmentsCtx } = segIdsUniques.length > 0
     ? await supabaseAdmin.from('segments').select('id, segment_texte, segment_numero, id_oeuvre').in('id', segIdsUniques)
     : { data: [] }
   const segMap: Record<number, { texte: string; numero: number; id_oeuvre: string }> = {}
   segmentsCtx?.forEach(s => { segMap[s.id] = { texte: s.segment_texte, numero: s.segment_numero, id_oeuvre: s.id_oeuvre } })
+
+  const idsVersetsCertif = [...new Set((demandesCertification?.map(c => c.id_verset).filter(Boolean) ?? []) as string[])]
+  const { data: versetsCtx } = idsVersetsCertif.length > 0
+    ? await supabaseAdmin.from('versets').select('id_verset, ref').in('id_verset', idsVersetsCertif)
+    : { data: [] }
+  const versetMap: Record<string, string> = {}
+  versetsCtx?.forEach(v => { versetMap[v.id_verset] = v.ref })
+
+  const { data: essaisRaw } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, user_id').eq('statut', 'en_attente').order('created_at', { ascending: false })
+  const idsAuteursEssais = [...new Set((essaisRaw ?? []).map(e => e.user_id))]
+  const { data: profilsEssais } = idsAuteursEssais.length > 0
+    ? await supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursEssais)
+    : { data: [] }
+  const pseudoMap: Record<string, string> = {}
+  profilsEssais?.forEach(p => { pseudoMap[p.id] = p.pseudo })
+  const essaisEnAttente = (essaisRaw ?? []).map(e => ({ ...e, auteur_pseudo: pseudoMap[e.user_id] ?? null }))
+
+  const { data: essaisPubliesRaw } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, created_at, user_id, afficher_nom_reel').eq('statut', 'publie').order('titre', { ascending: true })
+  const idsAuteursPublies = [...new Set((essaisPubliesRaw ?? []).map(e => e.user_id))]
+  const { data: profilsPublies } = idsAuteursPublies.length > 0
+    ? await supabaseAdmin.from('profils').select('id, pseudo, nom, prenom').in('id', idsAuteursPublies)
+    : { data: [] }
+  const profilMapPublies: Record<string, { pseudo: string | null; nom: string | null; prenom: string | null }> = {}
+  profilsPublies?.forEach(p => { profilMapPublies[p.id] = p })
+  const essaisPublies = (essaisPubliesRaw ?? []).map(e => {
+    const p = profilMapPublies[e.user_id]
+    const auteur = (e.afficher_nom_reel && p?.nom) ? `${p.prenom ? p.prenom + ' ' : ''}${p.nom}` : (p?.pseudo ?? 'Anonyme')
+    return { id: e.id, titre: e.titre, sous_titre: e.sous_titre, auteur, created_at: e.created_at }
+  })
 
   // Bibliothèque
   const { data: auteursData } = await supabaseAdmin.from('auteurs').select('id_auteur, nom, dates, siecle, tradition, note, aire_geographique, langue_principale, oeuvres(id_oeuvre, titre, sous_titre, titre_original, trad_auteur, trad_date, editeur, collection, ville, date_publication, url_source, genre, langue, profondeur_sommaire, nb_signes, niveaux_sommaire, niveaux_corps, texte_sommaire, texte_corps, afficher_numeros)').order('siecle', { ascending: true, nullsFirst: false })
@@ -84,6 +141,10 @@ export default async function AdminPage() {
     <AdminClient
       commentaires={commentaires ?? []}
       signalements={signalements ?? []}
+      demandesCertification={demandesCertification ?? []}
+      essaisEnAttente={essaisEnAttente}
+      essaisPublies={essaisPublies}
+      versetMap={versetMap}
       segMap={segMap}
       auteurs={auteurs}
       traductions={traductions ?? []}
@@ -92,6 +153,10 @@ export default async function AdminPage() {
       actionSupprimerCommentaire={actionSupprimerCommentaire}
       actionMarquerTraite={actionMarquerTraite}
       actionSupprimerSignalement={actionSupprimerSignalement}
+      actionCertifier={actionCertifierCommentaire}
+      actionRetirerDemandeCertification={actionRetirerDemandeCertification}
+      actionPublierEssai={actionPublierEssai}
+      actionRenvoyerBrouillonEssai={actionRenvoyerBrouillonEssai}
     />
   )
 }

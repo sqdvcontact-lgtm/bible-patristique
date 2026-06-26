@@ -1,33 +1,35 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Carte, ContexteSegment, dateFormat } from './adminShared'
 import SectionBibliotheque from './SectionBibliotheque'
 import SectionVerifications from './SectionVerifications'
 import SectionAjouterOeuvre from './SectionAjouterOeuvre'
 import SectionDepotOeuvre from './SectionDepotOeuvre'
 import SectionTraductions from './SectionTraductions'
 import SectionRemplacerSegments from './SectionRemplacerSegments'
-import SectionCommentaires from './SectionCommentaires'
+import SectionModeration from './SectionModeration'
+import SectionEssaisAdmin from './SectionEssaisAdmin'
 import type { AdminProps as Props, Onglet } from './adminTypes'
 
 export default function AdminClient({
-  commentaires, signalements, segMap, auteurs, traductions,
+  commentaires, signalements, demandesCertification, essaisEnAttente, essaisPublies, segMap, versetMap, auteurs, traductions,
   actionDeconnexion, actionValider, actionSupprimerCommentaire,
   actionMarquerTraite, actionSupprimerSignalement,
+  actionCertifier, actionRetirerDemandeCertification,
+  actionPublierEssai, actionRenvoyerBrouillonEssai,
 }: Props) {
   const [onglet, setOnglet] = useState<Onglet>('bibliotheque')
-  const nbComm   = commentaires.length
-  const nbSignal = signalements.length
+  const nbModeration = commentaires.length + signalements.length + demandesCertification.length
+  const nbEssais = essaisEnAttente.length
   const ONGLETS: { key: Onglet; label: string; badge?: number; separateur?: boolean }[] = [
     { key: 'bibliotheque',        label: 'Bibliothèque' },
     { key: 'ajouter-oeuvre',      label: '+ Ajouter une œuvre' },
     { key: 'depot-oeuvre',        label: '⎘ Dépôt d\'œuvre' },
     { key: 'remplacer-segments',  label: '↺ Segments' },
     { key: 'traductions',         label: 'Traductions' },
+    { key: 'essais',              label: 'Essais', badge: nbEssais },
     { key: 'verifications',       label: 'Vérifications', separateur: true },
-    { key: 'commentaires',        label: 'Commentaires', badge: nbComm, separateur: true },
-    { key: 'signalements',        label: 'Signalements', badge: nbSignal },
+    { key: 'moderation',          label: 'Modération', badge: nbModeration },
   ]
 
   return (
@@ -71,35 +73,31 @@ export default function AdminClient({
         {onglet === 'ajouter-oeuvre' && <SectionAjouterOeuvre auteurs={auteurs} />}
         {onglet === 'depot-oeuvre' && <SectionDepotOeuvre />}
         {onglet === 'traductions'   && <SectionTraductions traductions={traductions} />}
-
         {onglet === 'remplacer-segments' && <SectionRemplacerSegments auteurs={auteurs} />}
 
-        {onglet === 'commentaires' && (
-          <SectionCommentaires
+        {onglet === 'moderation' && (
+          <SectionModeration
             commentaires={commentaires}
+            signalements={signalements}
+            demandesCertification={demandesCertification}
             segMap={segMap}
+            versetMap={versetMap}
             actionValider={actionValider}
             actionSupprimerCommentaire={actionSupprimerCommentaire}
+            actionMarquerTraite={actionMarquerTraite}
+            actionSupprimerSignalement={actionSupprimerSignalement}
+            actionCertifier={actionCertifier}
+            actionRetirerDemandeCertification={actionRetirerDemandeCertification}
           />
         )}
 
-        {onglet === 'signalements' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {nbSignal === 0 ? <Carte><p style={{ fontSize: '13px', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>Aucun signalement en attente.</p></Carte>
-            : signalements.map(s => (
-              <Carte key={s.id}>
-                <ContexteSegment segId={s.id_segment} segMap={segMap} />
-                <p style={{ fontSize: '13.5px', color: '#2a2520', lineHeight: 1.6, margin: '0 0 10px' }}>{s.message}</p>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                  <span style={{ fontSize: '11px', color: '#b0a89e' }}>{dateFormat(s.created_at)}</span>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <form action={actionSupprimerSignalement.bind(null, s.id)}><button type="submit" className="btn-rouge" style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', cursor: 'pointer' }}>Supprimer</button></form>
-                    <form action={actionMarquerTraite.bind(null, s.id)}><button type="submit" className="btn-vert" style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', cursor: 'pointer' }}>Traité ✓</button></form>
-                  </div>
-                </div>
-              </Carte>
-            ))}
-          </div>
+        {onglet === 'essais' && (
+          <SectionEssaisAdmin
+            essaisEnAttente={essaisEnAttente}
+            essaisPublies={essaisPublies}
+            actionPublierEssai={actionPublierEssai}
+            actionRenvoyerBrouillonEssai={actionRenvoyerBrouillonEssai}
+          />
         )}
       </div>
     </main>

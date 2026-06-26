@@ -30,14 +30,16 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifierT
       <div style={{ width: '40px', height: '1px', background: '#c8c0b4', marginBottom: '32px' }} />
       {oeuvre.trad_auteur && (
         <p style={{ fontSize: '13px', color: '#7a7268', marginBottom: '6px' }}>
-          Traduction de {oeuvre.trad_auteur}{oeuvre.trad_date ? ` (${oeuvre.trad_date})` : ''}
+          Traduction de {oeuvre.trad_auteur}
         </p>
       )}
       <p style={{ fontSize: '11px', letterSpacing: '0.08em', color: '#b0a89e', marginBottom: '4px' }}>
         La Bible des Pères
       </p>
-      {oeuvre.trad_date && (
-        <p style={{ fontSize: '11px', color: '#c0b8b0' }}>Édition numérique établie d'après l'édition de {oeuvre.trad_date}</p>
+      {(oeuvre.editeur || oeuvre.ville || oeuvre.date_publication) && (
+        <p style={{ fontSize: '11px', color: '#c0b8b0' }}>
+          D&rsquo;après l&rsquo;édition de {[oeuvre.editeur, oeuvre.ville, oeuvre.date_publication].filter(Boolean).join(', ')}
+        </p>
       )}
     </div>
   )

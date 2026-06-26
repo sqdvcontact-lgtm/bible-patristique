@@ -1,7 +1,7 @@
 // app/api/admin/update-oeuvre/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
+import { estAdmin } from '@/app/lib/verifAdmin'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,8 +9,7 @@ const supabaseAdmin = createClient(
 )
 
 export async function POST(req: NextRequest) {
-  const cookieStore = await cookies()
-  if (cookieStore.get('bp_admin_session')?.value !== 'authentifie') {
+  if (!(await estAdmin())) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
