@@ -140,7 +140,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       c++
       const versets = [s.lien_1,s.lien_2,s.lien_3,s.lien_4].filter(Boolean)
         .join(';').split(';').map((x: string) => x.trim()).filter(Boolean)
-        .map((vid: string) => ({ id: vid, ...(versetMap[vid] || { label: vid, textes: {} }) }))
+        .map((vid: string) => ({ id: vid, livre: '', chapitre: '', verset: '', ...(versetMap[vid] || { label: vid, textes: {} }) }))
       return { id: s.id, numero: c, texte: s.segment_texte, versets }
     })
 
