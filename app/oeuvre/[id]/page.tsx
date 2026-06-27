@@ -66,11 +66,12 @@ const ABREV_FR:Record<string,string>={
   '1JN':'1Jn','2JN':'2Jn','3JN':'3Jn',JUD:'Jude',REV:'Ap',
 }
 
-function refFr(ref:string):string{
+function detailsRefBiblique(ref:string): { label: string; livre: string; chapitre: string; verset: string } {
   const p=ref.trim().split(' ')
-  if(p.length<2)return ref
+  if(p.length<2)return { label: ref, livre: '', chapitre: '', verset: '' }
   const cv=p[1].split(':')
-  return cv[1]?`${ABREV_FR[p[0]]||p[0]} ${cv[0]}, ${cv[1]}`:`${ABREV_FR[p[0]]||p[0]} ${cv[0]}`
+  const label = cv[1]?`${ABREV_FR[p[0]]||p[0]} ${cv[0]}, ${cv[1]}`:`${ABREV_FR[p[0]]||p[0]} ${cv[0]}`
+  return { label, livre: p[0], chapitre: cv[0] || '', verset: cv[1] || '' }
 }
 
 async function chargerCodesTraductions() {
@@ -97,8 +98,9 @@ async function enrichirAvecVersets(segments: Segment[]) {
   const versetMap: Record<string,{label:string;textes:Record<string,string>}> = {}
   versetsData.forEach(v => {
     const textes = Object.fromEntries(codesTraductions.map(code => [code, v[code] || '']))
+    const ref = detailsRefBiblique(v.ref)
     versetMap[v.id_verset] = {
-      label: refFr(v.ref),
+      ...ref,
       textes,
     }
   })

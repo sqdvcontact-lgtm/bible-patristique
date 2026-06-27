@@ -13,6 +13,7 @@ const supabase = createClient(
 type Oeuvre = {
   id_oeuvre: string; titre: string; sous_titre: string | null
   titre_original: string | null; trad_auteur: string | null; trad_date: string | null
+  editeur: string | null; ville: string | null; date_publication: string | null
 }
 type Auteur = {
   id_auteur: number; nom: string; dates: string | null
@@ -92,18 +93,26 @@ function PanneauAuteur({ auteur, recherche }: { auteur: Auteur; recherche: strin
         <div style={{ borderTop: '1px solid #ede9e2', padding: '10px 16px 14px' }}>
           {auteur.oeuvres.map(o => {
             const correspond = oeuvreCorrespondante?.id_oeuvre === o.id_oeuvre
+            const metas = [
+              o.editeur,
+              o.trad_auteur ? `trad. ${o.trad_auteur}` : null,
+              o.ville,
+              o.date_publication,
+            ].filter(Boolean)
             return (
             <Link key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
-              style={{ display: 'flex', alignItems: 'baseline', gap: '8px', padding: '5px 8px', borderRadius: '4px', textDecoration: 'none', marginBottom: '2px', background: correspond ? 'rgba(61,107,79,0.10)' : 'transparent', border: correspond ? '1px solid rgba(61,107,79,0.25)' : '1px solid transparent' }}
+              style={{ display: 'block', padding: '6px 8px', borderRadius: '4px', textDecoration: 'none', marginBottom: '2px', background: correspond ? 'rgba(61,107,79,0.10)' : 'transparent', border: correspond ? '1px solid rgba(61,107,79,0.25)' : '1px solid transparent' }}
               onMouseEnter={e => { if (!correspond) (e.currentTarget as HTMLElement).style.background = 'rgba(61,107,79,0.06)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = correspond ? 'rgba(61,107,79,0.10)' : 'transparent' }}>
-              <span style={{ fontSize: '12.5px', color: '#2a3d30', fontWeight: correspond ? 600 : 400 }}>{o.titre}</span>
-              {o.titre_original && (
-                <span style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic' }}>{o.titre_original}</span>
-              )}
-              {o.trad_auteur && (
-                <span style={{ fontSize: '10.5px', color: '#b0a89e', marginLeft: 'auto', flexShrink: 0 }}>
-                  trad. {o.trad_auteur}{o.trad_date ? ` (${o.trad_date})` : ''}
+              <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '12.5px', color: '#2a3d30', fontWeight: correspond ? 600 : 400 }}>{o.titre}</span>
+                {o.titre_original && (
+                  <span style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic' }}>{o.titre_original}</span>
+                )}
+              </span>
+              {metas.length > 0 && (
+                <span style={{ display: 'block', fontSize: '10.5px', color: '#9a958d', marginTop: '2px', lineHeight: 1.35 }}>
+                  {metas.join(' · ')}
                 </span>
               )}
             </Link>

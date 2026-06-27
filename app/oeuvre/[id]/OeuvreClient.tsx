@@ -27,6 +27,14 @@ const ABREV_FR: Record<string, string> = {
   '1JN':'1Jn','2JN':'2Jn','3JN':'3Jn',JUD:'Jude',REV:'Ap',
 }
 
+function detailsRefBiblique(ref: string): { label: string; livre: string; chapitre: string; verset: string } {
+  const p = ref.trim().split(' ')
+  if (p.length < 2) return { label: ref, livre: '', chapitre: '', verset: '' }
+  const cv = p[1].split(':')
+  const label = cv[1] ? `${ABREV_FR[p[0]] ?? p[0]} ${cv[0]}, ${cv[1]}` : `${ABREV_FR[p[0]] ?? p[0]} ${cv[0]}`
+  return { label, livre: p[0], chapitre: cv[0] || '', verset: cv[1] || '' }
+}
+
 const TRADUCTIONS_FALLBACK = [
   { code: 'TR0001',    label: 'Bible de Sacy' },
   { code: 'TR0002',     label: 'Bible Segond' },
@@ -131,7 +139,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         v.split(';').map((x: string) => x.trim()).filter(Boolean).forEach((x: string) => tousIds.add(x)))
     })
     const idsArr = Array.from(tousIds)
-    let versetMap: Record<string,{label:string;textes:Record<string,string>}> = {}
+      let versetMap: Record<string,{label:string;textes:Record<string,string>;livre:string;chapitre:string;verset:string}> = {}
     if (idsArr.length > 0) {
       const codesTraductions = await chargerCodesTraductions()
       const selectVersets = ['id_verset', 'ref', ...codesTraductions.map(code => `"${code}"`)].join(', ')
@@ -139,11 +147,9 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         .select(selectVersets)
         .in('id_verset', idsArr)
       ;(vd ?? []).forEach((v: any) => {
-        const p = v.ref.trim().split(' '); const cv = (p[1]||'1:1').split(':')
-        const abr = ABREV_FR[p[0]] ?? p[0]
-        const label = cv[1] ? `${abr} ${cv[0]}, ${cv[1]}` : `${abr} ${cv[0]}`
+        const ref = detailsRefBiblique(v.ref)
         const textes = Object.fromEntries(codesTraductions.map(code => [code, v[code] || '']))
-        versetMap[v.id_verset] = { label, textes }
+        versetMap[v.id_verset] = { ...ref, textes }
       })
     }
 
@@ -152,7 +158,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       c++
       const versets = [s.lien_1,s.lien_2,s.lien_3,s.lien_4].filter(Boolean)
         .join(';').split(';').map((x: string) => x.trim()).filter(Boolean)
-        .map((vid: string) => ({ id: vid, livre: '', chapitre: '', verset: '', ...(versetMap[vid] || { label: vid, textes: {} }) }))
+        .map((vid: string) => ({ id: vid, ...(versetMap[vid] || { label: vid, textes: {}, livre: '', chapitre: '', verset: '' }) }))
       return { id: s.id, numero: c, texte: s.segment_texte, versets }
     })
 
@@ -338,6 +344,21 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   // sans recharger tout le niv1 depuis Supabase.
   const associerVersetLocal = (segId: number) => (_champ: 'lien_1' | 'lien_2' | 'lien_3', verset: typeof segments[number]['versets'][number]) => {
     setSegments(prev => prev.map(s => s.id === segId ? { ...s, versets: [...s.versets, verset] } : s))
+  }
+
+  const supprimerLienBiblique = async (segId: number, versetId: string) => {
+    if (!estAdmin) return
+    if (!confirm('Supprimer ce renvoi biblique ?')) return
+    const { data, error } = await supabase.from('segments').select('lien_1,lien_2,lien_3,lien_4').eq('id', segId).single()
+    if (error || !data) return
+    const patch: Record<string, string | null> = {}
+    ;(['lien_1', 'lien_2', 'lien_3', 'lien_4'] as const).forEach(champ => {
+      const valeurs = ((data as any)[champ] as string | null ?? '').split(';').map(v => v.trim()).filter(Boolean).filter(v => v !== versetId)
+      patch[champ] = valeurs.length ? valeurs.join('; ') : null
+    })
+    const { error: eUpdate } = await supabase.from('segments').update(patch).eq('id', segId)
+    if (eUpdate) return
+    setSegments(prev => prev.map(s => s.id === segId ? { ...s, versets: s.versets.filter(v => v.id !== versetId) } : s))
   }
 
   return (
@@ -573,7 +594,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     return (
                       <div key={sid} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', gap: '8px' }}>
                         <p id={`s${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
-                          lang="fr" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.6', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.05em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          lang="fr" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.56', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.09em', letterSpacing: '-0.002em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {afficherNumeros && <sup style={{ fontSize: '0.52rem', color: '#b0a89e', marginRight: '2px', userSelect: 'none' }}>{s.numero}</sup>}
                           {rendreTexteEnrichi(normaliserEspaces(s.texte))}
                         </p>
@@ -629,7 +650,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         return (
                           <div key={sid} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ position: 'relative', marginBottom: '0.45rem' }}>
                             <p id={`a${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
-                              lang="fr" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.6', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px 1px 4px', paddingRight: estAdmin ? '72px' : '52px', margin: 0, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.05em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                              lang="fr" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.56', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px 1px 4px', paddingRight: estAdmin ? '72px' : '52px', margin: 0, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.09em', letterSpacing: '-0.002em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                               {afficherNumeros && <sup style={{ fontSize: '0.52rem', color: '#b0a89e', marginRight: '2px', userSelect: 'none' }}>{s.numero}</sup>}
                               {rendreTexteEnrichi(normaliserEspaces(s.texte))}
                             </p>
@@ -692,18 +713,26 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     {segActifData.versets.length === 0 ? (
                       <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>Aucun verset associé.</p>
                     ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         {segActifData.versets.map(v => (
                           <div key={v.id}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                              <a href={`/?livre=${v.livre}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${trad}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '11px', fontWeight: 600, color: '#3d6b4f', margin: 0, textDecoration: 'none' }}>{v.label}</a>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
+                                <a href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${encodeURIComponent(v.chapitre)}&verset=${encodeURIComponent(v.verset)}&trad=${encodeURIComponent(trad)}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '11px', fontWeight: 600, color: '#3d6b4f', margin: 0, textDecoration: 'none' }}>{v.label}</a>
+                                {estAdmin && (
+                                  <button onClick={() => supprimerLienBiblique(segActifData.id, v.id)} title="Supprimer ce renvoi biblique"
+                                    style={{ fontSize: '10px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 2px', lineHeight: 1 }}>
+                                    ✎
+                                  </button>
+                                )}
+                              </div>
                               <div style={{ display: 'flex', gap: '1px', alignItems: 'center' }}>
                                 <BoutonEnregistrerVerset verset={v} trad={trad} userId={userId} />
                                 <BoutonCopieVerset texte={v.textes[trad] || v.textes['TR0001'] || ''} label={v.label} />
                                 <BoutonSignalerVerset versetId={v.id} label={v.label} />
                               </div>
                             </div>
-                            <p lang="fr" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12.2px', lineHeight: '1.42', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.07em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', marginBottom: '4px' } as React.CSSProperties}>
+                            <p lang="fr" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12px', lineHeight: '1.38', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.10em', letterSpacing: '-0.002em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', marginBottom: '4px' } as React.CSSProperties}>
                               {v.textes[trad] || v.textes['TR0001'] || '—'}
                             </p>
                           </div>
@@ -730,20 +759,22 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {suggestions.map(s => (
                       <div key={s.id} style={{ paddingBottom: '12px', borderBottom: '1px solid #ede9e2' }}>
-                        <p style={{ fontSize: '12px', color: '#2a2520', lineHeight: 1.55, margin: '0 0 6px' }}>{s.segment_texte}</p>
+                        <div lang="fr" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12px', lineHeight: 1.38, color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.10em', letterSpacing: '-0.002em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 7px', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          {rendreTexteEnrichi(normaliserEspaces(s.segment_texte))}
+                        </div>
                         {s.reference_manuelle && (
                           <p style={{ fontSize: '10.5px', color: '#9a5a2a', fontStyle: 'italic', margin: '0 0 6px' }}>
                             Référence proposée : {s.reference_manuelle}
                           </p>
                         )}
                         <div style={{ display:'flex', alignItems:'center', gap:'10px', justifyContent:'space-between' }}>
-                          <a href={`#s${s.segment_numero}`} onClick={() => setSegActif(s.segment_numero)} className="ref-lien"
+                          <a href={`#s${s.segment_numero}`} onClick={() => setSegActif(s.id)} className="ref-lien"
                             style={{ fontSize: '10.5px', color: '#3d6b4f', textDecoration: 'none' }}>
                             Aller au passage
                           </a>
                           <button onClick={() => setSuggestionSignalee(s)} title="Signaler une référence à indiquer"
                             style={{ fontSize:'10.5px', color:'#9a5a2a', background:'none', border:'none', cursor:'pointer', padding:0 }}>
-                            Signaler
+                            Proposer une référence
                           </button>
                         </div>
                       </div>

@@ -15,7 +15,7 @@ export default async function BibliothequePage() {
   const { data } = await supabase
     .from("auteurs")
     .select(`id_auteur, nom, dates, siecle, tradition, note,
-      oeuvres ( id_oeuvre, titre, sous_titre, titre_original, trad_auteur, trad_date )`)
+      oeuvres ( id_oeuvre, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication, trad_date )`)
     .order("siecle", { ascending: true, nullsFirst: false })
 
   const auteurs = ((data ?? []) as any[]).filter(a => a.oeuvres?.length > 0)

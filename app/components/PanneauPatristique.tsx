@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from "@/app/lib/supabase"
@@ -213,7 +213,7 @@ function ModalSignalement({ titre, titreEntete = 'Signaler une erreur', onClose,
           <>
             <textarea value={message} onChange={e => setMessage(e.target.value)}
               placeholder="Décrivez l'erreur constatée…" rows={4} autoFocus
-              style={{ width:'100%', fontSize:'11px', padding:'7px 9px', border:'1px solid #d6d0c4', borderRadius:'5px', background:'#faf8f4', color:'#2a2520', resize:'vertical', outline:'none', lineHeight:1.5, boxSizing:'border-box' }} />
+              style={{ width:'100%', fontSize:'11px', padding:'7px 9px', border:'1px solid #d6d0c4', borderRadius:'5px', background:'#fff', color:'#2a2520', resize:'vertical', outline:'none', lineHeight:1.5, boxSizing:'border-box' }} />
             <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'8px', gap:'8px' }}>
               {statut === 'err' && <span style={{ fontSize:'10px', color:'#c0562a', alignSelf:'center' }}>Erreur d'envoi.</span>}
               <button onClick={onClose} style={{ fontSize:'11px', padding:'5px 12px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#6b6560', cursor:'pointer' }}>Annuler</button>
@@ -241,22 +241,22 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignal
   const BADGE: Record<typeof typeLien, { label: string; couleur: string; bordure: string }> = {
     exacte:   { label: 'citation exacte',  couleur: '#3d6b4f', bordure: 'rgba(61,107,79,0.25)' },
     libre:    { label: 'citation libre',   couleur: '#8a8278', bordure: '#d6d0c4' },
-    doctrine: { label: 'doctrine',         couleur: '#7a5a9e', bordure: 'rgba(122,90,158,0.28)' },
+    doctrine: { label: 'doctrine',         couleur: '#3d6b4f', bordure: 'rgba(61,107,79,0.28)' },
     echo:     { label: 'écho thématique',  couleur: '#9a7e3d', bordure: 'rgba(154,126,61,0.28)' },
   }
   const badge = BADGE[typeLien]
 
   return (
-    <div style={{ paddingTop:'7px', paddingBottom:'4px', borderBottom:'1px solid #ede9e2' }}>
+    <div style={{ paddingTop:'6px', paddingBottom:'4px', borderBottom:'1px solid #ede9e2' }}>
 
       {/* Ligne 1 : auteur + titre (gauche), badge puis actions juste dessous (droite) */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:0 }}>
         <div style={{ minWidth:0, paddingTop:'1px' }}>
           <a href={`/oeuvre/${s.id_oeuvre}#s${s.segment_numero}`} target="_blank" rel="noopener noreferrer"
-            style={{ display:'block', fontSize:'11px', fontWeight:600, color:'#3d6b4f', margin:0, lineHeight:1.18, textDecoration:'none' }}>
+            style={{ display:'block', fontSize:'11px', fontWeight:600, color:'#3d6b4f', margin:'0 0 2px', lineHeight:1.12, letterSpacing:'0.026em', textDecoration:'none' }}>
             {info?.auteur_nom || s.id_oeuvre}
           </a>
-          <p style={{ fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:0, lineHeight:1.18 }}>
+          <p style={{ fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:0, lineHeight:1.06, letterSpacing:'0.02em' }}>
             {info?.titre || ''}
           </p>
         </div>
@@ -289,9 +289,9 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignal
       </div>
 
       {/* Ligne 4 : niveaux de référence */}
-      <div style={{ display:'flex', alignItems:'baseline', gap:'5px', marginTop:'1px', marginBottom:'4px', flexWrap:'wrap' }}>
+      <div style={{ display:'flex', alignItems:'baseline', gap:'5px', marginTop:'-5px', marginBottom:'6px', flexWrap:'wrap' }}>
         {niveaux && (
-          <span style={{ fontSize:'10px', color:'#b0a89e' }}>
+          <span style={{ fontSize:'10px', color:'#b0a89e', lineHeight:1.12 }}>
             {niveaux}
           </span>
         )}
@@ -339,7 +339,7 @@ function BarreMiseEnForme({ onInserer, onEntourer }: {
   onInserer: (texte: string) => void
   onEntourer: (avant: string, apres?: string) => void
 }) {
-  const [popover, setPopover] = useState<'verset' | 'oeuvre' | null>(null)
+  const [popover, setPopover] = useState<'citation' | null>(null)
   // Lien verset : arborescence livre → chapitre → verset
   const [livre, setLivre] = useState('')
   const [chapitre, setChapitre] = useState('')
@@ -352,7 +352,14 @@ function BarreMiseEnForme({ onInserer, onEntourer }: {
   const [segmentNum, setSegmentNum] = useState('')
 
   const ouvrirPopoverOeuvre = () => {
-    setPopover('oeuvre')
+    setPopover('citation')
+    if (auteurs.length === 0) {
+      supabase.from('auteurs').select('id_auteur, nom').order('nom').then(({ data }) => setAuteurs(data ?? []))
+    }
+  }
+  const ouvrirPopoverCitation = () => {
+    if (popover === 'citation') { setPopover(null); return }
+    setPopover('citation')
     if (auteurs.length === 0) {
       supabase.from('auteurs').select('id_auteur, nom').order('nom').then(({ data }) => setAuteurs(data ?? []))
     }
@@ -390,13 +397,11 @@ function BarreMiseEnForme({ onInserer, onEntourer }: {
         <button type="button" onClick={() => onEntourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)"
           style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>“ ”</button>
         <span style={{ width: '1px', background: '#e4dfd8' }} />
-        <button type="button" onClick={() => setPopover(popover === 'verset' ? null : 'verset')} title="Lien vers un verset biblique"
-          style={{ fontSize: '9.5px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: popover === 'verset' ? 'rgba(61,107,79,0.10)' : '#fff', cursor: 'pointer', color: '#3d6b4f' }}>+ verset</button>
-        <button type="button" onClick={() => popover === 'oeuvre' ? setPopover(null) : ouvrirPopoverOeuvre()} title="Lien vers un passage patristique"
-          style={{ fontSize: '9.5px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: popover === 'oeuvre' ? 'rgba(61,107,79,0.10)' : '#fff', cursor: 'pointer', color: '#3d6b4f' }}>+ œuvre</button>
+        <button type="button" onClick={ouvrirPopoverCitation} title="Citer un verset ou un passage patristique"
+          style={{ fontSize: '9.5px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: popover ? 'rgba(61,107,79,0.10)' : '#fff', cursor: 'pointer', color: '#3d6b4f' }}>Citer</button>
       </div>
 
-      {popover === 'verset' && (
+      {popover === 'citation' && (
         <div style={{ display: 'flex', gap: '5px', alignItems: 'center', padding: '7px 8px', background: '#f0ede7', borderRadius: '5px', marginBottom: '5px', flexWrap: 'wrap' }}>
           <select value={livre} onChange={e => setLivre(e.target.value)} style={{ fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520' }}>
             <option value="">Livre…</option>
@@ -409,7 +414,7 @@ function BarreMiseEnForme({ onInserer, onEntourer }: {
         </div>
       )}
 
-      {popover === 'oeuvre' && (
+      {popover === 'citation' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', padding: '7px 8px', background: '#f0ede7', borderRadius: '5px', marginBottom: '5px' }}>
           <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
             <select value={auteurChoisi} onChange={e => choisirAuteur(e.target.value)} style={{ flex: 1, minWidth: '110px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520' }}>
@@ -580,13 +585,13 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
   }
 
   const renderCommentaire = (c: Commentaire2, estReponse: boolean) => {
-    const cache = !c.supprime && !c.valide && !revelees.has(c.id)
+    const cache = false && !c.supprime && !c.valide && !revelees.has(c.id)
     if (cache) {
       return (
         <div key={c.id} style={{ marginLeft: estReponse ? '16px' : 0, marginBottom:'8px' }}>
           <button onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
             style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(176,58,42,0.07)', border:'1px solid rgba(176,58,42,0.22)', borderRadius:'20px', cursor:'pointer', padding:'4px 12px', fontSize:'10px', color:'#b0392b' }}>
-            <span>Commentaire non contrôlé</span>
+            <span>Commentaire en cours de révision</span>
             <span style={{ fontWeight:700, textDecoration:'underline' }}>Afficher</span>
           </button>
         </div>
@@ -594,33 +599,37 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
     }
     const rangInfo = c.score !== null ? calculerRang(c.score) : null
     const couleurs = rangInfo ? couleurRang(rangInfo.rang) : null
+    const estCertifie = c.valide && c.demande_validation
+    const estRevision = !c.valide
+    const fondCarte = estCertifie ? 'rgba(61,107,79,0.08)' : estRevision ? 'rgba(176,58,42,0.07)' : '#fff'
+    const bordureCarte = estCertifie ? 'rgba(61,107,79,0.28)' : estRevision ? 'rgba(176,58,42,0.26)' : '#e4dfd8'
+    const accentCarte = estReponse ? '#c8c0b4' : estCertifie ? '#3d6b4f' : estRevision ? '#b03a2a' : '#d6d0c4'
+    const fondTexte = estCertifie ? 'rgba(255,255,255,0.68)' : estRevision ? 'rgba(255,255,255,0.72)' : '#fbfaf7'
+    const couleurTexte = estRevision ? '#6f3d35' : '#2a2520'
     return (
-      <div key={c.id} style={{ marginLeft: estReponse ? '16px' : 0, marginBottom:'8px', padding:'8px 10px', background: c.valide ? 'rgba(122,90,158,0.08)' : '#fff', border:'1px solid ' + (c.valide ? 'rgba(122,90,158,0.22)' : 'rgba(176,58,42,0.18)'), borderLeft: estReponse ? '2px solid #c8c0b4' : c.valide ? '3px solid #7a5a9e' : '1px solid rgba(176,58,42,0.18)', borderRadius:'6px' }}>
+      <div key={c.id} style={{ marginLeft: estReponse ? '16px' : 0, marginBottom:'9px', padding:'9px 10px', background: fondCarte, border:'1px solid ' + bordureCarte, borderLeft:'4px solid ' + accentCarte, borderRadius:'6px' }}>
         {c.supprime ? (
           <p style={{ fontSize:'10.5px', color:'#9a958d', fontStyle:'italic', margin:0 }}>
             {c.pseudo ?? c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
           </p>
         ) : (
         <>
-        {!c.valide && (
-          <p style={{ fontSize:'9px', color:'#b0392b', margin:'0 0 4px', fontWeight:600, letterSpacing:'0.02em' }}>NON CONTRÔLÉ</p>
-        )}
-        {c.demande_validation && (
-          <p style={{ fontSize:'9px', color:'#7a5a9e', margin:'0 0 4px', fontWeight:600, letterSpacing:'0.02em' }}>DEMANDE DE CERTIFICATION</p>
-        )}
         {/* Ligne 1 : pseudo + rang */}
-        <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'6px', flexWrap:'wrap' }}>
           <span style={{ fontSize:'10px', fontWeight:600, color:'#2a3d30' }}>{c.pseudo ?? c.auteur_nom}</span>
           {couleurs && rangInfo && (
             <span style={{ fontSize:'8px', fontWeight:600, color:couleurs.texte, background:couleurs.fond, padding:'0px 5px', borderRadius:'3px', letterSpacing:'0.02em' }}>
               {rangInfo.rang}
             </span>
           )}
+          {estCertifie && <span style={{ fontSize:'8px', fontWeight:700, color:'#3d6b4f', background:'rgba(61,107,79,0.10)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>CERTIFIÉ</span>}
+          {estRevision && <span style={{ fontSize:'8px', fontWeight:700, color:'#b0392b', background:'rgba(176,58,42,0.10)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>EN RÉVISION</span>}
+          {c.demande_validation && !estCertifie && <span style={{ fontSize:'8px', fontWeight:700, color:'#8a4a40', background:'rgba(176,58,42,0.08)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>CERTIFICATION DEMANDÉE</span>}
         </div>
         {/* Ligne 2 : texte (gras/italique/liens interprétés, sauts de ligne respectés) */}
-        <p style={{ fontSize:'11px', lineHeight:'1.5', color: c.valide ? '#2a2520' : '#8a4a40', margin:0, whiteSpace:'pre-line' }}>{rendreTexteEnrichi(c.texte)}</p>
+        <div style={{ fontSize:'11px', lineHeight:'1.48', color: couleurTexte, margin:0, whiteSpace:'pre-line', background: fondTexte, border:'1px solid rgba(214,208,196,0.72)', borderRadius:'5px', padding:'7px 8px' }}>{rendreTexteEnrichi(c.texte)}</div>
         {/* Ligne 3 : date + votes (négatif puis positif) + actions */}
-        <div style={{ display:'flex', alignItems:'center', gap:'7px', marginTop:'4px', flexWrap:'wrap' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'7px', marginTop:'7px', flexWrap:'wrap' }}>
           <span style={{ fontSize:'9.5px', color:'#b0a89e' }}>{new Date(c.created_at).toLocaleDateString('fr-FR')}</span>
           <div style={{ display:'flex', alignItems:'center', border:'1px solid #e4dfd8', borderRadius:'4px', overflow:'hidden' }}>
             <button onClick={() => basculerVote(c, -1)} title="Je n'aime pas"
@@ -692,26 +701,25 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
         )}
         <BarreMiseEnForme onEntourer={entourer} onInserer={inserer} />
         <textarea ref={taRef} value={texte} onChange={e => setTexte(e.target.value)} placeholder={cibleReponse ? 'Votre réponse…' : 'Votre commentaire…'} rows={3}
-          style={{ width:'100%', fontSize:'10.5px', padding:'5px 7px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#faf8f4', color:'#2a2520', resize:'vertical', outline:'none', boxSizing:'border-box', lineHeight:'1.45' }} />
+          style={{ width:'100%', fontSize:'10.5px', padding:'5px 7px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', resize:'vertical', outline:'none', boxSizing:'border-box', lineHeight:'1.45' }} />
         {texte.trim() && (
           <div style={{ border:'1px solid #e4dfd8', borderRadius:'5px', background:'#fff', padding:'7px 9px' }}>
-            <p style={{ fontSize:'9px', color:'#9a958d', margin:'0 0 4px', textTransform:'uppercase', letterSpacing:'0.06em' }}>Aperçu</p>
             <div style={{ fontSize:'11px', lineHeight:1.5, color:'#2a2520', whiteSpace:'pre-line' }}>{rendreTexteEnrichi(texte)}</div>
           </div>
         )}
         {!userId && (
           <>
             <input type="text" value={nom} onChange={e => setNom(e.target.value)} placeholder="Nom *"
-              style={{ width:'100%', fontSize:'10px', padding:'4px 7px', borderRadius:'4px', border:`1px solid ${erreur && !nom.trim() ? '#c0392b' : '#d6d0c4'}`, background:'#faf8f4', color:'#2a2520', outline:'none', boxSizing:'border-box' }} />
+              style={{ width:'100%', fontSize:'10px', padding:'4px 7px', borderRadius:'4px', border:`1px solid ${erreur && !nom.trim() ? '#c0392b' : '#d6d0c4'}`, background:'#fff', color:'#2a2520', outline:'none', boxSizing:'border-box' }} />
             <input type="email" value={mail} onChange={e => setMail(e.target.value)} placeholder="Adresse e-mail *"
-              style={{ width:'100%', fontSize:'10px', padding:'4px 7px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#faf8f4', color:'#2a2520', outline:'none', boxSizing:'border-box' }} />
+              style={{ width:'100%', fontSize:'10px', padding:'4px 7px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', outline:'none', boxSizing:'border-box' }} />
             <p style={{ fontSize:'9px', color:'#b0a89e', margin:0 }}>* L'adresse e-mail ne sera pas publiée.</p>
           </>
         )}
         {erreur && <p style={{ fontSize:'9.5px', color:'#c0392b', margin:0 }}>{erreur}</p>}
         <label style={{ display:'flex', alignItems:'flex-start', gap:'6px', fontSize:'9.5px', color:'#6b6560', cursor:'pointer', lineHeight:1.4 }}>
           <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
-            style={{ marginTop:'2px', flexShrink:0, accentColor:'#7a5a9e', cursor:'pointer' }} />
+            style={{ marginTop:'2px', flexShrink:0, accentColor:'#3d6b4f', cursor:'pointer' }} />
           <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demande de certification</span>
         </label>
         <button onClick={envoyer} disabled={envoi}
@@ -858,7 +866,7 @@ export default function PanneauPatristique({
   }
 
   return (
-    <div style={{ width:'288px', flexShrink:0, background:'#faf8f4', borderLeft:'1px solid #d6d0c4', display:'flex', flexDirection:'column', height:'100%', minHeight:0 }}>
+    <div style={{ width:'288px', flexShrink:0, background:'#fff', borderLeft:'1px solid #d6d0c4', display:'flex', flexDirection:'column', height:'100%', minHeight:0 }}>
 
       {/* En-tête */}
       <div style={{ padding:'10px 14px', borderBottom:'1px solid #d6d0c4', display:'flex', justifyContent:'space-between', alignItems:'center', gap:'6px' }}>
@@ -959,3 +967,5 @@ export default function PanneauPatristique({
     </div>
   )
 }
+
+

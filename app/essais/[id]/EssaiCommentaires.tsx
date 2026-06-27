@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
+import { calculerRang, couleurRang } from '@/app/lib/classement'
 
 type CommentaireEssai = {
   id: number; texte: string; passage_cite: string | null; reponse_a: number | null
   user_id: string | null; auteur_nom: string | null; valide: boolean; created_at: string; supprime: boolean
+  score?: number | null
 }
 
 const boutonOutil: React.CSSProperties = {
@@ -52,7 +54,15 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
 
   useEffect(() => {
     supabase.from('essais_commentaires').select('*').eq('id_essai', idEssai).order('created_at', { ascending: true })
-      .then(({ data }) => setCommentaires(data ?? []))
+      .then(async ({ data }) => {
+        const lignes = data ?? []
+        const ids = [...new Set(lignes.map(c => c.user_id).filter((id): id is string => !!id))]
+        const { data: scores } = ids.length
+          ? await supabase.from('classement_utilisateurs').select('user_id, score').in('user_id', ids)
+          : { data: [] as any[] }
+        const scoreMap = new Map((scores ?? []).map((s: any) => [s.user_id, s.score]))
+        setCommentaires(lignes.map(c => ({ ...c, score: c.user_id ? scoreMap.get(c.user_id) ?? 0 : null })))
+      })
     supabase.auth.getSession().then(async ({ data }) => {
       const uid = data.session?.user.id ?? null
       setUserId(uid)
@@ -130,8 +140,10 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const Carte = ({ c }: { c: CommentaireEssai }) => {
     const reponses = commentaires.filter(r => r.reponse_a === c.id)
     const styleCarte: React.CSSProperties = c.valide
-      ? { borderLeft: '3px solid #6f4aa8', background: '#fbf9ff' }
-      : { borderLeft: '3px solid #c0562a', background: '#fff9f6' }
+      ? { border: '1px solid #e4dfd8', borderLeft: '4px solid #d6d0c4', background: '#fff' }
+      : { border: '1px solid rgba(176,58,42,0.26)', borderLeft: '4px solid #b03a2a', background: 'rgba(176,58,42,0.07)' }
+    const rang = c.score !== null && c.score !== undefined ? calculerRang(c.score).rang : null
+    const rangCouleur = rang ? couleurRang(rang) : null
 
     return (
       <article style={{ padding: '12px 0', borderBottom: '1px solid #ede9e2' }}>
@@ -141,42 +153,52 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
           </p>
         ) : (
           <div style={{ ...styleCarte, padding: '10px 12px', borderRadius: '6px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'baseline', marginBottom: '5px' }}>
-              <p style={{ fontSize: '11.5px', fontWeight: 700, color: c.valide ? '#5d438c' : '#9a3b25', margin: 0 }}>{c.auteur_nom ?? 'Anonyme'}</p>
-              <span style={{ fontSize: '9px', fontWeight: 700, color: c.valide ? '#6f4aa8' : '#c0562a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                {c.valide ? 'Certifié' : 'Non contrôlé'}
-              </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'baseline', marginBottom: '6px', flexWrap: 'wrap' }}>
+              <p style={{ fontSize: '11.5px', fontWeight: 700, color: '#2a3d30', margin: 0 }}>
+                {c.auteur_nom ?? 'Anonyme'}
+                {rang && rangCouleur && <span style={{ marginLeft: '7px', fontSize: '9px', color: rangCouleur.texte, background: rangCouleur.fond, borderRadius: '3px', padding: '1px 6px' }}>{rang}</span>}
+              </p>
+              {!c.valide && <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#b03a2a', background: 'rgba(176,58,42,0.10)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>En révision</span>}
             </div>
             {c.passage_cite && (
               <blockquote style={{ fontSize: '12px', color: '#756d64', fontStyle: 'italic', borderLeft: '2px solid #d6d0c4', paddingLeft: '10px', margin: '0 0 7px' }}>
                 « {c.passage_cite} »
               </blockquote>
             )}
-            <p style={{ fontSize: '13px', color: '#2a2520', lineHeight: 1.55, margin: 0, whiteSpace: 'pre-line' }}>{rendreTexteEnrichi(c.texte)}</p>
+            <div style={{ fontSize: '13px', color: c.valide ? '#2a2520' : '#6f3d35', lineHeight: 1.55, margin: 0, whiteSpace: 'pre-line', background: c.valide ? '#fbfaf7' : 'rgba(255,255,255,0.72)', border: '1px solid rgba(214,208,196,0.72)', borderRadius: '5px', padding: '7px 8px' }}>{rendreTexteEnrichi(c.texte)}</div>
             <LigneActions c={c} />
           </div>
         )}
 
         {reponses.map(r => (
+          (() => {
+            const rangR = r.score !== null && r.score !== undefined ? calculerRang(r.score).rang : null
+            const rangCouleurR = rangR ? couleurRang(rangR) : null
+            return (
           <div key={r.id} style={{ marginLeft: '20px', marginTop: '10px', paddingLeft: '12px', borderLeft: '2px solid #ede9e2' }}>
             {r.supprime ? (
               <p style={{ fontSize: '11.5px', color: '#9a958d', fontStyle: 'italic', margin: 0, background: '#f3f0ea', padding: '6px 9px', borderRadius: '4px' }}>
                 {r.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
               </p>
             ) : (
-              <div style={{ padding: '8px 10px', borderRadius: '5px', background: r.valide ? '#fbf9ff' : '#fff9f6', borderLeft: `3px solid ${r.valide ? '#6f4aa8' : '#c0562a'}` }}>
+              <div style={{ padding: '8px 10px', borderRadius: '5px', background: r.valide ? '#fff' : 'rgba(176,58,42,0.07)', border: `1px solid ${r.valide ? '#e4dfd8' : 'rgba(176,58,42,0.26)'}`, borderLeft: `4px solid ${r.valide ? '#d6d0c4' : '#b03a2a'}` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'baseline', marginBottom: '4px' }}>
-                  <p style={{ fontSize: '11px', fontWeight: 700, color: r.valide ? '#5d438c' : '#9a3b25', margin: 0 }}>{r.auteur_nom ?? 'Anonyme'}</p>
-                  <span style={{ fontSize: '8.5px', fontWeight: 700, color: r.valide ? '#6f4aa8' : '#c0562a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{r.valide ? 'Certifié' : 'Non contrôlé'}</span>
+                  <p style={{ fontSize: '11px', fontWeight: 700, color: '#2a3d30', margin: 0 }}>
+                    {r.auteur_nom ?? 'Anonyme'}
+                    {rangR && rangCouleurR && <span style={{ marginLeft: '6px', fontSize: '8.5px', color: rangCouleurR.texte, background: rangCouleurR.fond, borderRadius: '3px', padding: '1px 5px' }}>{rangR}</span>}
+                  </p>
+                  {!r.valide && <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#b03a2a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>En révision</span>}
                 </div>
                 {r.passage_cite && (
                   <blockquote style={{ fontSize: '11.5px', color: '#756d64', fontStyle: 'italic', borderLeft: '2px solid #d6d0c4', paddingLeft: '8px', margin: '0 0 5px' }}>« {r.passage_cite} »</blockquote>
                 )}
-                <p style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-line' }}>{rendreTexteEnrichi(r.texte)}</p>
+                <div style={{ fontSize: '12.5px', color: r.valide ? '#2a2520' : '#6f3d35', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-line', background: r.valide ? '#fbfaf7' : 'rgba(255,255,255,0.72)', border: '1px solid rgba(214,208,196,0.72)', borderRadius: '5px', padding: '6px 8px' }}>{rendreTexteEnrichi(r.texte)}</div>
                 <LigneActions c={r} petit />
               </div>
             )}
           </div>
+            )
+          })()
         ))}
       </article>
     )
@@ -204,7 +226,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
             </p>
           )}
           <textarea ref={taRef} value={texte} onChange={e => setTexte(e.target.value)} rows={4} placeholder="Votre commentaire…"
-            style={{ width: '100%', fontSize: '13px', padding: '10px 12px', border: '1.5px solid #b8cdc0', borderRadius: '6px', background: '#fbfdfc', color: '#1e1a16', resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5, boxShadow: 'inset 0 1px 3px rgba(61,107,79,0.06)' }} />
+            style={{ width: '100%', fontSize: '13px', padding: '10px 12px', border: '1.5px solid #b8cdc0', borderRadius: '6px', background: '#fff', color: '#1e1a16', resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5, boxShadow: 'inset 0 1px 3px rgba(61,107,79,0.06)' }} />
           <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
             <button type="button" onClick={() => entourer('**')} title="Gras" style={{ ...boutonOutil, fontWeight: 700 }}>B</button>
             <button type="button" onClick={() => entourer('*')} title="Italique" style={{ ...boutonOutil, fontStyle: 'italic' }}>I</button>

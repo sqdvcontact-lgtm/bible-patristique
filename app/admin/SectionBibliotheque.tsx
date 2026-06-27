@@ -300,7 +300,10 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     if (!preview) return
     setImporting(true)
     try {
-      const payload = preview.lignes.map(({ _lien_1_orig, _fiabilite_orig, _texte_orig, _modifie, ...l }) => l)
+      const payload = preview.lignes.map(({ _lien_1_orig, _fiabilite_orig, _texte_orig, _modifie, ...l }) => ({
+        ...l,
+        id_oeuvre: (l as Record<string, string>).id_oeuvre || preview.idOeuvre,
+      }))
       const BATCH = 300
       let inserted = 0
       const headers = await headersAdmin({ 'Content-Type': 'application/json' })
@@ -434,8 +437,8 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           {ajoutAuteur ? 'Annuler' : '+ Nouvel auteur'}
         </button>
         <button onClick={() => setVueBibliotheque(v => v === 'segments' ? 'oeuvres' : 'segments')}
-          style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: vueBibliotheque === 'segments' ? '#f0ece6' : '#fff', color: vueBibliotheque === 'segments' ? '#2a3d30' : '#3d6b4f', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
-          Segments
+          style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: '1px solid #3d6b4f', background: vueBibliotheque === 'segments' ? '#3d6b4f' : '#fff', color: vueBibliotheque === 'segments' ? '#fff' : '#3d6b4f', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}>
+          ↺ Segments
         </button>
       </div>
 

@@ -55,10 +55,6 @@ export default function SectionEssaisPublies({ essais: init }: { essais: EssaiPu
                     <Link href={`/essais/${e.id}/modifier`} style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', textDecoration: 'none' }}>
                       Modifier / Comparer
                     </Link>
-                    <button onClick={() => demanderModification(e.id)} disabled={action[e.id] === 'loading'}
-                      style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#9a5a2a', cursor: 'pointer' }}>
-                      Demander une modification
-                    </button>
                     <button onClick={() => supprimer(e.id)} disabled={action[e.id] === 'loading'}
                       style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #e4c4b8', background: '#fff', color: '#c0562a', cursor: 'pointer' }}>
                       Supprimer

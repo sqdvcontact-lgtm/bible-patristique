@@ -6,7 +6,7 @@ import type { Traduction } from './adminTypes'
 
 const labelStyle: React.CSSProperties = { fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em', color: '#9a958d', display: 'block', marginBottom: '4px' }
 
-// ── Éditeur rich-text ────────────────────────────────────────────────────────
+// Editeur rich-text
 function parseCSV(texte: string): string[][] {
   const lignes: string[][] = []
   let ligne: string[] = []
@@ -44,7 +44,7 @@ function parseCSV(texte: string): string[][] {
 }
 
 function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: string) => void }) {
-  const ref = React.useRef<HTMLTextAreaElement>(null)
+  const ref = React.useRef<any>(null)
 
   const entourer = (avant: string, apres: string) => {
     const ta = ref.current
@@ -54,7 +54,7 @@ function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: s
     const selection = ta.value.slice(debut, fin)
     const nouveau = ta.value.slice(0, debut) + avant + selection + apres + ta.value.slice(fin)
     onChange(nouveau)
-    // Repositionner le curseur après insertion
+    // Repositionner le curseur aprÃ¨s insertion
     requestAnimationFrame(() => {
       ta.focus()
       ta.setSelectionRange(debut + avant.length, fin + avant.length)
@@ -76,48 +76,54 @@ function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: s
     borderRadius: '3px', background: '#fff', color: '#3a3530', cursor: 'pointer', lineHeight: 1,
   }
 
+  React.useEffect(() => {
+    if (!ref.current || document.activeElement === ref.current) return
+    if (ref.current.innerHTML !== valeur) ref.current.innerHTML = valeur || ''
+  }, [valeur])
+
+  const appliquerDirect = (commande: string, valeurCommande?: string) => {
+    ref.current?.focus()
+    document.execCommand(commande, false, valeurCommande)
+    onChange(ref.current?.innerHTML ?? '')
+  }
+
+  const petitesCapitalesDirect = () => {
+    ref.current?.focus()
+    const selection = window.getSelection()?.toString() || ''
+    document.execCommand('insertHTML', false, `<span style="font-variant:small-caps">${selection || 'texte'}</span>`)
+    onChange(ref.current?.innerHTML ?? '')
+  }
+
   return (
     <div style={{ border: '1px solid #d6d0c4', borderRadius: '5px', overflow: 'hidden' }}>
       {/* Barre d'outils */}
       <div style={{ display: 'flex', gap: '4px', padding: '6px 8px', background: '#f7f4ef', borderBottom: '1px solid #d6d0c4', flexWrap: 'wrap', alignItems: 'center' }}>
-        <button type="button" onMouseDown={e => { e.preventDefault(); entourer('<strong>', '</strong>') }} style={btnStyle}><strong>G</strong></button>
-        <button type="button" onMouseDown={e => { e.preventDefault(); entourer('<em>', '</em>') }} style={btnStyle}><em>I</em></button>
+        <button type="button" onMouseDown={e => { e.preventDefault(); appliquerDirect('bold') }} style={btnStyle}><strong>G</strong></button>
+        <button type="button" onMouseDown={e => { e.preventDefault(); appliquerDirect('italic') }} style={btnStyle}><em>I</em></button>
         <div style={{ width: '1px', background: '#d6d0c4', margin: '0 2px', alignSelf: 'stretch' }} />
-        <button type="button" onMouseDown={e => { e.preventDefault(); insererBloc('h1') }} style={btnStyle} title="Titre 1">H1</button>
-        <button type="button" onMouseDown={e => { e.preventDefault(); insererBloc('h2') }} style={btnStyle} title="Titre 2">H2</button>
-        <button type="button" onMouseDown={e => { e.preventDefault(); insererBloc('p') }} style={btnStyle} title="Paragraphe">¶</button>
+        <button type="button" onMouseDown={e => { e.preventDefault(); appliquerDirect('formatBlock', 'h1') }} style={btnStyle} title="Titre 1">H1</button>
+        <button type="button" onMouseDown={e => { e.preventDefault(); appliquerDirect('formatBlock', 'h2') }} style={btnStyle} title="Titre 2">H2</button>
+        <button type="button" onMouseDown={e => { e.preventDefault(); appliquerDirect('formatBlock', 'p') }} style={btnStyle} title="Paragraphe">¶</button>
         <div style={{ width: '1px', background: '#d6d0c4', margin: '0 2px', alignSelf: 'stretch' }} />
-        <button type="button" onMouseDown={e => { e.preventDefault(); entourer('<span class="sc" style="font-variant:small-caps">', '</span>') }} style={{ ...btnStyle, fontVariant: 'small-caps' }} title="Petites capitales">sc</button>
-        <span style={{ fontSize: '10px', color: '#b0a89e', marginLeft: 'auto' }}>HTML</span>
+        <button type="button" onMouseDown={e => { e.preventDefault(); petitesCapitalesDirect() }} style={{ ...btnStyle, fontVariant: 'small-caps' }} title="Petites capitales">sc</button>
+        <span style={{ fontSize: '10px', color: '#b0a89e', marginLeft: 'auto' }}>direct</span>
       </div>
-      {/* Textarea HTML direct */}
-      <textarea
+      <div
         ref={ref}
-        value={valeur}
-        onChange={e => onChange(e.target.value)}
-        rows={8}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={e => onChange(e.currentTarget.innerHTML)}
         style={{
-          width: '100%', padding: '10px 12px', fontSize: '12px', fontFamily: 'monospace',
-          lineHeight: 1.6, color: '#2a2520', outline: 'none', border: 'none',
-          background: '#fff', resize: 'vertical', boxSizing: 'border-box',
+          width: '100%', minHeight: '150px', padding: '12px 14px', fontSize: '13px',
+          fontFamily: 'Georgia, serif', lineHeight: 1.7, color: '#2a2520', outline: 'none',
+          border: 'none', background: '#fff', boxSizing: 'border-box',
         }}
-        placeholder="<p>Votre texte…</p>"
       />
-      {/* Aperçu rendu */}
-      {valeur && (
-        <div style={{ borderTop: '1px solid #ede9e2' }}>
-          <p style={{ fontSize: '10px', color: '#b0a89e', padding: '6px 10px 0', margin: 0, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Aperçu</p>
-          <div
-            style={{ padding: '10px 14px', background: '#faf8f4', fontSize: '13px', lineHeight: 1.7, color: '#2a2520' }}
-            dangerouslySetInnerHTML={{ __html: valeur }}
-          />
-        </div>
-      )}
     </div>
   )
 }
 
-// ── Section Traductions ───────────────────────────────────────────────────────
+// Section Traductions
 export default function SectionTraductions({ traductions: init }: { traductions: Traduction[] }) {
   const [lignes, setLignes] = useState<Traduction[]>(init)
   const [edition, setEdition] = useState<string | null>(null)
@@ -147,7 +153,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
     if (!edition) return
     const { error } = await supabase.from('traductions').update(form).eq('trad_id', edition)
     if (error) { setStatut({ id: edition, ok: false, msg: error.message }); return }
-    setLignes(prev => prev.map(t => t.trad_id === edition ? { ...t, ...form } as Traduction : t))
+    setLignes(prev => prev.map(t => t.trad_id === edition ?{ ...t, ...form } as Traduction : t))
     setStatut({ id: edition, ok: true, msg: 'Enregistré.' })
     setTimeout(() => { setStatut(null); fermer() }, 1200)
   }
@@ -258,7 +264,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
               )}
             </div>
             {importMsg && (
-              <p style={{ fontSize: '11px', marginTop: '8px', color: importStatut === 'err' ? '#c0562a' : importStatut === 'ok' ? '#3d6b4f' : '#6b6560' }}>
+              <p style={{ fontSize: '11px', marginTop: '8px', color: importStatut === 'err' ?'#c0562a' : importStatut === 'ok' ?'#3d6b4f' : '#6b6560' }}>
                 {importMsg}
               </p>
             )}
@@ -270,7 +276,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
               Annuler
             </button>
             <button onClick={importer} disabled={importStatut === 'loading'}
-              style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: 'none', background: importStatut === 'loading' ? '#a0b8aa' : '#3d6b4f', color: '#fff', cursor: importStatut === 'loading' ? 'default' : 'pointer', fontWeight: 500 }}>
+              style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: 'none', background: importStatut === 'loading' ?'#a0b8aa' : '#3d6b4f', color: '#fff', cursor: importStatut === 'loading' ?'default' : 'pointer', fontWeight: 500 }}>
               {importStatut === 'loading' ? 'Import en cours…' : 'Créer et importer'}
             </button>
           </div>
@@ -288,9 +294,9 @@ export default function SectionTraductions({ traductions: init }: { traductions:
             </div>
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
               <code style={{ fontSize: '10.5px', background: '#f0ece6', padding: '2px 6px', borderRadius: '3px', color: '#6b6560' }}>{t.trad_id}</code>
-              <button onClick={() => edition === t.trad_id ? fermer() : ouvrir(t)}
+              <button onClick={() => edition === t.trad_id ?fermer() : ouvrir(t)}
                 style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer' }}>
-                {edition === t.trad_id ? 'Fermer' : 'Modifier'}
+                {edition === t.trad_id ?'Fermer' : 'Modifier'}
               </button>
               <button onClick={() => supprimer(t.trad_id)}
                 style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #e4c4b8', background: '#fff', color: '#c0562a', cursor: 'pointer' }}>
@@ -308,7 +314,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                     <label style={labelStyle}>{c.label.toUpperCase()}</label>
                     <input
                       value={(form[c.key] as string) ?? ''}
-                      onChange={e => setForm(p => ({ ...p, [c.key]: c.key === 'ordre' ? parseInt(e.target.value) || 99 : e.target.value }))}
+                      onChange={e => setForm(p => ({ ...p, [c.key]: c.key === 'ordre' ?parseInt(e.target.value) || 99 : e.target.value }))}
                       style={inputStyle}
                     />
                   </div>
@@ -338,4 +344,4 @@ export default function SectionTraductions({ traductions: init }: { traductions:
 }
 
 
-// ── Section Commentaires (admin) ──────────────────────────────────────────────
+// Section Commentaires (admin)

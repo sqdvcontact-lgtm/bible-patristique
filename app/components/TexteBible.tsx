@@ -427,7 +427,7 @@ export default function TexteBible({
               style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '3px 6px', borderRadius: '4px', cursor: 'pointer', marginBottom: '4px', background: 'transparent' }}>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 500px) 38px', width: 'min(538px, 100%)', alignItems: 'flex-start' }}>
-                <div style={{ display:'grid', gridTemplateColumns:'20px minmax(0, 480px)', borderRadius:'5px', padding:'2px 4px 2px 1px', background: actif ? 'rgba(61,107,79,0.11)' : 'transparent' }}>
+                <div style={{ display:'grid', gridTemplateColumns:'17px minmax(0, 480px)', columnGap:'3px', borderRadius:'5px', padding:'2px 4px 2px 0', background: actif ? 'rgba(61,107,79,0.11)' : 'transparent' }}>
                   {/* Numéro — inclus dans le bloc sélectionné */}
                   <span style={{ width: '20px', textAlign: 'right', paddingRight: '5px', fontSize: '10px', fontWeight: 600, color: '#b0a89e', lineHeight: 1.40, paddingTop: '1px', boxSizing:'border-box' }}>
                     {v.verset}

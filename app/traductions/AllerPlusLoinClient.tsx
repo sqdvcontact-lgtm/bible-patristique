@@ -6,13 +6,14 @@ import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import ProgressionClient from '../progression/ProgressionClient'
 
-type Onglet = 'traductions' | 'acheter' | 'populaires' | 'progression'
+type Onglet = 'traductions' | 'acheter' | 'populaires' | 'progression' | 'quiz'
 
 const ONGLETS: { code: Onglet; label: string }[] = [
   { code: 'traductions', label: 'Les traductions' },
   { code: 'acheter', label: 'Acheter des livres' },
   { code: 'populaires', label: 'Versets populaires' },
   { code: 'progression', label: 'Ma progression' },
+  { code: 'quiz', label: 'Quiz biblique' },
 ]
 
 export default function AllerPlusLoinClient() {
@@ -67,7 +68,47 @@ export default function AllerPlusLoinClient() {
       {onglet === 'acheter' && <OngletAcheter />}
       {onglet === 'populaires' && <OngletPopulaires />}
       {onglet === 'progression' && <ProgressionClient />}
+      {onglet === 'quiz' && <OngletQuiz />}
     </main>
+  )
+}
+
+function IconQuestionBiblique() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3d6b4f" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4.5 19.5A2.5 2.5 0 0 1 7 17h13" />
+      <path d="M7 3h13v19H7a2.5 2.5 0 0 1-2.5-2.5v-14A2.5 2.5 0 0 1 7 3z" />
+      <path d="M11 8.5a2.4 2.4 0 0 1 4.6 1c0 1.8-2.2 2-2.2 3.6" />
+      <path d="M13.4 16.2h.01" />
+    </svg>
+  )
+}
+
+function OngletQuiz() {
+  return (
+    <div style={{ maxWidth: "680px", margin: "0 auto", padding: "24px 24px 80px" }}>
+      <Link href="/quiz" style={{
+        display: "flex", alignItems: "center", gap: "18px",
+        background: "#fff", border: "1px solid #ddd8cf", borderRadius: "8px",
+        padding: "18px 20px", textDecoration: "none", transition: "box-shadow 0.15s",
+      }}
+        onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.06)")}
+        onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}>
+        <div style={{ flexShrink: 0, width: "40px", display: "flex", justifyContent: "center" }}><IconQuestionBiblique /></div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "15px", color: "#1e2e24", margin: "0 0 3px" }}>
+            Où est-il écrit ?
+          </p>
+          <p style={{ fontSize: "12px", color: "#3d6b4f", margin: "0 0 5px", fontWeight: 500 }}>
+            Retrouvez la référence d’un verset biblique.
+          </p>
+          <p style={{ fontSize: "12px", color: "#6b7a6e", lineHeight: 1.6, margin: 0 }}>
+            Un verset est proposé au hasard : situez-le dans la Bible, du Testament jusqu’au verset exact.
+          </p>
+        </div>
+        <span style={{ fontSize: "13px", color: "#b0a89e", flexShrink: 0 }}>→</span>
+      </Link>
+    </div>
   )
 }
 
