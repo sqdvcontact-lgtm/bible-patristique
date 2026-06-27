@@ -1,13 +1,10 @@
 'use client'
 
 import React from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { supabase as supabaseNavigateur } from '@/app/lib/supabase'
 import type { SegInfo } from './adminTypes'
 
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+export const supabase = supabaseNavigateur
 
 export function formatSiecle(n: number | null | undefined): string {
   if (!n) return ''

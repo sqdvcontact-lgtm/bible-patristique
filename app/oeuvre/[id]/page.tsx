@@ -73,24 +73,33 @@ function refFr(ref:string):string{
   return cv[1]?`${ABREV_FR[p[0]]||p[0]} ${cv[0]}, ${cv[1]}`:`${ABREV_FR[p[0]]||p[0]} ${cv[0]}`
 }
 
+async function chargerCodesTraductions() {
+  const { data } = await supabase.from('traductions').select('trad_id').order('ordre', { ascending: true })
+  const codes = (data ?? []).map((t: any) => t.trad_id).filter((code: string) => /^TR\d{4}$/.test(code))
+  return codes.length > 0 ? codes : ['TR0001', 'TR0002', 'TR0003', 'TR0004']
+}
+
 async function enrichirAvecVersets(segments: Segment[]) {
   const tousIds = new Set<string>()
   segments.forEach(s => extraireVersets(s).forEach(v => tousIds.add(v)))
   const tousIdsArray = Array.from(tousIds)
   if (tousIdsArray.length === 0) return {}
 
+  const codesTraductions = await chargerCodesTraductions()
+  const selectVersets = ['id_verset', 'ref', ...codesTraductions.map(code => `"${code}"`)].join(', ')
   const batchSize = 500
   const batches = Array.from({ length: Math.ceil(tousIdsArray.length / batchSize) }, (_, i) =>
     tousIdsArray.slice(i * batchSize, (i + 1) * batchSize))
   const results = await Promise.all(batches.map(batch =>
-    supabase.from('versets').select('id_verset, ref, "TR0001", "TR0002", "TR0003", "TR0004"').in('id_verset', batch)))
-  const versetsData = results.flatMap(r => r.data ?? [])
+    supabase.from('versets').select(selectVersets).in('id_verset', batch)))
+  const versetsData = results.flatMap(r => r.data ?? []) as any[]
 
   const versetMap: Record<string,{label:string;textes:Record<string,string>}> = {}
   versetsData.forEach(v => {
+    const textes = Object.fromEntries(codesTraductions.map(code => [code, v[code] || '']))
     versetMap[v.id_verset] = {
       label: refFr(v.ref),
-      textes: {"TR0001":v["TR0001"]||'',"TR0002":v["TR0002"]||'',"TR0003":v["TR0003"]||'',"TR0004":v["TR0004"]||''},
+      textes,
     }
   })
   return versetMap

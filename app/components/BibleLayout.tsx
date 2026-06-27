@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import NavLivres from './NavLivres'
 import TexteBible from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
+import { supabase } from '@/app/lib/supabase'
 
 type Livre = { code: string; nom: string; testament: string }
 type Verset = {
@@ -35,6 +36,24 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
   const [versetSelectionne, setVersetSelectionne] = useState<Verset | null>(null)
+
+  useEffect(() => {
+    const appliquer = (code?: string | null) => {
+      if (!code) return
+      const idx = listeTraductions.findIndex(t => t.code === code)
+      if (idx >= 0) setTraductionIndex(idx)
+    }
+    appliquer(localStorage.getItem('traduction_defaut'))
+    supabase.auth.getSession().then(async ({ data }) => {
+      const uid = data.session?.user.id
+      if (!uid) return
+      const { data: profil } = await supabase.from('profils').select('traduction_defaut').eq('id', uid).maybeSingle()
+      if (profil?.traduction_defaut) {
+        localStorage.setItem('traduction_defaut', profil.traduction_defaut)
+        appliquer(profil.traduction_defaut)
+      }
+    })
+  }, [listeTraductions])
 
   const traduction = listeTraductions[traductionIndex]?.code ?? 'TR0001'
 

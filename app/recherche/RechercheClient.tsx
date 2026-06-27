@@ -2,12 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { supabase } from '@/app/lib/supabase'
 
 const ABREV_FR: Record<string, string> = {
   GEN:'Gn',EXO:'Ex',LEV:'Lv',NUM:'Nb',DEU:'Dt',JOS:'Jos',JDG:'Jg',RUT:'Rt',
@@ -31,6 +26,12 @@ function refFr(ref: string): string {
 const TRAD_LABELS: Record<string, string> = {
   TR0001: 'Sacy', TR0002: 'Segond', TR0003: 'Crampon', TR0004: 'Vulgate'
 }
+const TRADUCTIONS_FALLBACK = [
+  { code: 'TR0001', label: 'Bible de Sacy' },
+  { code: 'TR0002', label: 'Bible Segond' },
+  { code: 'TR0003', label: 'Bible Crampon' },
+  { code: 'TR0004', label: 'Vulgate' },
+]
 
 type VersetResult = {
   id_verset: string; ref: string; livre: string; chapitre: number; verset: number
@@ -93,7 +94,8 @@ export default function RechercheClient() {
   const searchParams = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') ?? '')
   const [mode, setMode] = useState<Mode>(searchParams.get('mode') === 'exact' ? 'exact' : 'prefixe')
-  const [tradBible, setTradBible] = useState<'TR0001'|'TR0002'|'TR0003'|'TR0004'>('TR0001')
+  const [tradBible, setTradBible] = useState('TR0001')
+  const [traductions, setTraductions] = useState(TRADUCTIONS_FALLBACK)
   const [versetsRes, setVersetsRes] = useState<VersetResult[]>([])
   const [segmentsRes, setSegmentsRes] = useState<SegmentResult[]>([])
   const [essaisRes, setEssaisRes] = useState<EssaiResult[]>([])
@@ -104,6 +106,25 @@ export default function RechercheClient() {
   const [pageV, setPageV] = useState(0)
   const [pageS, setPageS] = useState(0)
   const [pageE, setPageE] = useState(0)
+
+  useEffect(() => {
+    const appliquer = (code?: string | null) => {
+      if (code && /^TR\d{4}$/.test(code)) setTradBible(code)
+    }
+    appliquer(localStorage.getItem('traduction_defaut'))
+    supabase.auth.getSession().then(async ({ data }) => {
+      const uid = data.session?.user.id
+      if (!uid) return
+      const { data: profil } = await supabase.from('profils').select('traduction_defaut').eq('id', uid).maybeSingle()
+      if (profil?.traduction_defaut) {
+        localStorage.setItem('traduction_defaut', profil.traduction_defaut)
+        appliquer(profil.traduction_defaut)
+      }
+    })
+    supabase.from('traductions').select('trad_id, nom').order('ordre', { ascending: true }).then(({ data }) => {
+      if (data?.length) setTraductions(data.map((t: any) => ({ code: t.trad_id, label: t.nom })))
+    })
+  }, [])
 
   const lancer = async (queryForce?: string, modeForce?: Mode) => {
     const q = (queryForce ?? query).trim()
@@ -138,7 +159,7 @@ export default function RechercheClient() {
     const [resV, resS, resE] = await Promise.all([requeteVersets, requeteSegments, requeteEssais])
 
     const versets = (resV.data ?? []) as VersetResult[]
-    setVersetsRes(rechercheFragments ? versets.filter(v => contientTerme(v[tradBible] || '', q, modeActif)) : versets)
+    setVersetsRes(rechercheFragments ? versets.filter(v => contientTerme(String((v as Record<string, unknown>)[tradBible] ?? ''), q, modeActif)) : versets)
     const essais = (resE.data ?? []) as EssaiResult[]
     setEssaisRes(rechercheFragments ? essais.filter(e => contientTerme([e.titre, e.sous_titre, e.resume, e.contenu].filter(Boolean).join(' '), q, modeActif)) : essais)
 
@@ -238,10 +259,7 @@ export default function RechercheClient() {
                 <span style={{ fontSize: '11px', color: '#9a958d' }}>Traduction :</span>
                 <select value={tradBible} onChange={e => setTradBible(e.target.value as any)}
                   style={{ fontSize: '11px', padding: '4px 8px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#fff', color: '#2a3d30', outline: 'none' }}>
-                  <option value="TR0001">Bible de Sacy</option>
-                  <option value="TR0002">Bible Segond</option>
-                  <option value="TR0003">Bible Crampon</option>
-                  <option value="TR0004">Vulgate</option>
+                  {traductions.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
                 </select>
               </div>
             </div>
@@ -283,7 +301,7 @@ export default function RechercheClient() {
                 ? <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic', marginTop: '16px' }}>Aucun verset trouvé.</p>
                 : <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {versetsPage.map(v => {
-                    const texte = v[tradBible] || ''
+                    const texte = String((v as Record<string, unknown>)[tradBible] ?? '')
                     const manque = lastQuery && !contientTerme(texte, lastQuery, mode)
                     return (
                       <a key={v.id_verset}
@@ -293,7 +311,7 @@ export default function RechercheClient() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '3px' }}>
                           <span style={{ fontSize: '10.5px', fontWeight: 600, color: '#3d6b4f' }}>{refFr(v.ref)}</span>
                           <span style={{ fontSize: '9.5px', color: manque ? '#c0562a' : '#b0a89e' }}>
-                            {manque ? `absent en ${TRAD_LABELS[tradBible]}` : TRAD_LABELS[tradBible]}
+                            {manque ? `absent en ${TRAD_LABELS[tradBible] ?? tradBible}` : (TRAD_LABELS[tradBible] ?? tradBible)}
                           </span>
                         </div>
                         <p style={{ fontFamily: "Georgia, serif", fontSize: '12.5px', lineHeight: 1.5, color: '#2a2520', margin: 0 }}>

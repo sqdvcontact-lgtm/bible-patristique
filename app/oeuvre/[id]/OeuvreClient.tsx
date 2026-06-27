@@ -34,6 +34,12 @@ const TRADUCTIONS_FALLBACK = [
   { code: 'TR0004', label: 'Vulgate' },
 ]
 
+async function chargerCodesTraductions() {
+  const { data } = await supabase.from('traductions').select('trad_id').order('ordre', { ascending: true })
+  const codes = (data ?? []).map((t: any) => t.trad_id).filter((code: string) => /^TR\d{4}$/.test(code))
+  return codes.length > 0 ? codes : TRADUCTIONS_FALLBACK.map(t => t.code)
+}
+
 // ── Composant principal ───────────────────────────────────────────────────────
 export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
@@ -127,14 +133,17 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
     const idsArr = Array.from(tousIds)
     let versetMap: Record<string,{label:string;textes:Record<string,string>}> = {}
     if (idsArr.length > 0) {
+      const codesTraductions = await chargerCodesTraductions()
+      const selectVersets = ['id_verset', 'ref', ...codesTraductions.map(code => `"${code}"`)].join(', ')
       const { data: vd } = await supabase.from('versets')
-        .select('id_verset, ref, "TR0001", "TR0002", "TR0003", "TR0004"')
+        .select(selectVersets)
         .in('id_verset', idsArr)
       ;(vd ?? []).forEach((v: any) => {
         const p = v.ref.trim().split(' '); const cv = (p[1]||'1:1').split(':')
         const abr = ABREV_FR[p[0]] ?? p[0]
         const label = cv[1] ? `${abr} ${cv[0]}, ${cv[1]}` : `${abr} ${cv[0]}`
-        versetMap[v.id_verset] = { label, textes: {"TR0001":v["TR0001"]||'',"TR0002":v["TR0002"]||'',"TR0003":v["TR0003"]||'',"TR0004":v["TR0004"]||''} }
+        const textes = Object.fromEntries(codesTraductions.map(code => [code, v[code] || '']))
+        versetMap[v.id_verset] = { label, textes }
       })
     }
 
@@ -265,6 +274,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const chargerTraductionDefaut = (uid: string) => {
     supabase.from('profils').select('traduction_defaut').eq('id', uid).maybeSingle().then(({ data }) => {
       if (data?.traduction_defaut) {
+        localStorage.setItem('traduction_defaut', data.traduction_defaut)
         const idx = traductionsBible.findIndex(t => t.code === data.traduction_defaut)
         if (idx >= 0) setTradIndex(idx)
       }
@@ -276,6 +286,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       if (data?.length) setTraductionsBible(data.map((t: any) => ({ code: t.trad_id, label: t.nom })))
     })
   }, [])
+
+  useEffect(() => {
+    const code = localStorage.getItem('traduction_defaut')
+    if (!code) return
+    const idx = traductionsBible.findIndex(t => t.code === code)
+    if (idx >= 0) setTradIndex(idx)
+  }, [traductionsBible])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {

@@ -242,18 +242,25 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
   const [nom, setNom] = useState(profilInit.nom ?? "");
   const [prenom, setPrenom] = useState(profilInit.prenom ?? "");
   const [traduction, setTraduction] = useState(profilInit.traduction_defaut);
+  const [traductionsCompte, setTraductionsCompte] = useState(TRADUCTIONS);
   const [statut, setStatut] = useState<{ ok: boolean; msg: string } | null>(null);
   const [enregistrement, setEnregistrement] = useState(false);
 
   const [nouvelEmail, setNouvelEmail] = useState(user.email);
   const [statutEmail, setStatutEmail] = useState<{ ok: boolean; msg: string } | null>(null);
   const [envoiEmail, setEnvoiEmail] = useState(false);
+  const [nouveauMdp, setNouveauMdp] = useState("");
+  const [confirmationMdp, setConfirmationMdp] = useState("");
+  const [statutMdp, setStatutMdp] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [envoiMdp, setEnvoiMdp] = useState(false);
 
   const [classement, setClassement] = useState<{ score: number; nb_commentaires: number; nb_valides: number; nb_likes_recus: number } | null>(null);
 
   useEffect(() => {
     supabase.from("classement_utilisateurs").select("score, nb_commentaires, nb_valides, nb_likes_recus").eq("user_id", user.id).maybeSingle()
       .then(({ data }) => setClassement(data ?? { score: 0, nb_commentaires: 0, nb_valides: 0, nb_likes_recus: 0 }));
+    supabase.from("traductions").select("trad_id, nom").order("ordre", { ascending: true })
+      .then(({ data }) => { if (data?.length) setTraductionsCompte(data.map((t: any) => ({ code: t.trad_id, label: t.nom }))); });
   }, [user.id]);
 
   const [suppressionOuverte, setSuppressionOuverte] = useState(false);
@@ -272,6 +279,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
       setStatut({ ok: false, msg: "Erreur lors de l'enregistrement." });
       return;
     }
+    localStorage.setItem("traduction_defaut", traduction);
     setStatut({ ok: true, msg: "Modifications enregistrées." });
     setTimeout(() => setStatut(null), 2500);
   };
@@ -283,6 +291,28 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
     setEnvoiEmail(false);
     if (error) { setStatutEmail({ ok: false, msg: "Erreur — vérifiez l'adresse saisie." }); return; }
     setStatutEmail({ ok: true, msg: "Un e-mail de confirmation a été envoyé à la nouvelle adresse. Le changement ne prend effet qu'après l'avoir validé." });
+  };
+
+  const modifierMotDePasse = async () => {
+    setStatutMdp(null);
+    if (nouveauMdp.length < 6) {
+      setStatutMdp({ ok: false, msg: "Le mot de passe doit contenir au moins 6 caractères." });
+      return;
+    }
+    if (nouveauMdp !== confirmationMdp) {
+      setStatutMdp({ ok: false, msg: "Les deux mots de passe ne correspondent pas." });
+      return;
+    }
+    setEnvoiMdp(true);
+    const { error } = await supabase.auth.updateUser({ password: nouveauMdp });
+    setEnvoiMdp(false);
+    if (error) {
+      setStatutMdp({ ok: false, msg: "Erreur lors du changement de mot de passe." });
+      return;
+    }
+    setNouveauMdp("");
+    setConfirmationMdp("");
+    setStatutMdp({ ok: true, msg: "Mot de passe modifié." });
   };
 
   const supprimerCompte = async () => {
@@ -326,6 +356,19 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
             {statutEmail && <p style={{ fontSize: "11.5px", color: statutEmail.ok ? "#3d6b4f" : "#9a2a2a", margin: "5px 0 0", lineHeight: 1.5 }}>{statutEmail.msg}</p>}
           </div>
 
+          <div style={{ marginTop: "16px", marginBottom: "16px", borderTop: "1px solid #ede9e2", paddingTop: "16px" }}>
+            <label style={labelStyle}>MOT DE PASSE</label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "2px" }}>
+              <input type="password" value={nouveauMdp} onChange={e => { setNouveauMdp(e.target.value); setStatutMdp(null); }} placeholder="Nouveau mot de passe" style={inputStyle} />
+              <input type="password" value={confirmationMdp} onChange={e => { setConfirmationMdp(e.target.value); setStatutMdp(null); }} placeholder="Confirmer" style={inputStyle} />
+            </div>
+            <button onClick={modifierMotDePasse} disabled={envoiMdp || !nouveauMdp || !confirmationMdp}
+              style={{ marginTop: "8px", padding: "7px 14px", borderRadius: "6px", border: "1px solid #d6d0c4", background: "#fff", color: "#3d6b4f", fontSize: "12.5px", fontWeight: 500, cursor: "pointer" }}>
+              {envoiMdp ? "Modification…" : "Changer le mot de passe"}
+            </button>
+            {statutMdp && <p style={{ fontSize: "11.5px", color: statutMdp.ok ? "#3d6b4f" : "#9a2a2a", margin: "6px 0 0", lineHeight: 1.5 }}>{statutMdp.msg}</p>}
+          </div>
+
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px", marginTop: "16px" }}>
             <div>
               <label style={labelStyle}>PRÉNOM (facultatif)</label>
@@ -340,7 +383,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
           <div style={{ marginBottom: "20px" }}>
             <label style={labelStyle}>TRADUCTION BIBLIQUE PAR DÉFAUT</label>
             <select value={traduction} onChange={e => setTraduction(e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
-              {TRADUCTIONS.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
+              {traductionsCompte.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
             </select>
           </div>
 
@@ -364,7 +407,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
                 <span style={{ fontSize: "12px", color: "#9a958d" }}>{classement.score} point{classement.score > 1 ? "s" : ""}</span>
               </div>
               <p style={{ fontSize: "12.5px", color: "#5a5450", lineHeight: 1.65, margin: "0 0 10px" }}>
-                Ton rang reflète ta contribution aux commentaires patristiques du site. Il se calcule à partir de trois éléments : un point par commentaire publié, deux points supplémentaires pour chaque commentaire validé par la modération, et un point pour chaque « j'aime » reçu sur l'un de tes commentaires. Trois rangs existent, du plus récent au plus établi : <strong>Catéchumène</strong>, <strong>Disciple</strong>, puis <strong>Docteur</strong> — en écho au titre de Docteur de l'Église porté par les grands commentateurs de la tradition.
+                Votre rang reflète votre contribution aux commentaires du site. Il est calculé selon trois critères : un point par commentaire publié, deux points supplémentaires pour chaque commentaire validé par la modération, et un point pour chaque « j’aime » reçu. Trois rangs existent, du plus récent au plus expérimenté : <strong>Catéchumène</strong>, <strong>Disciple</strong> et <strong>Docteur</strong>, en référence aux grands Docteurs de l’Église et à leur œuvre de commentaire des Écritures.
               </p>
               <div style={{ fontSize: "11.5px", color: "#9a958d", display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: rangSuivant ? "8px" : 0 }}>
                 <span>{classement.nb_commentaires} commentaire{classement.nb_commentaires > 1 ? "s" : ""}</span>
@@ -384,7 +427,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
         <div style={{ background: "#fff", border: "1px solid #e8d4cc", borderRadius: "10px", padding: "20px 26px" }}>
           <p style={{ fontSize: "13px", fontWeight: 600, color: "#9a2a2a", marginBottom: "6px" }}>Supprimer mon compte</p>
           <p style={{ fontSize: "12px", color: "#9a958d", marginBottom: "14px", lineHeight: 1.55 }}>
-            Suppression immédiate et définitive — votre compte et vos accès ne pourront pas être récupérés.
+            Suppression immédiate et définitive — votre compte et vos accès ne pourront pas être récupérés. Les articles publiés ne seront pas supprimés automatiquement ; pour en demander le retrait, écrivez à labibledesperes@gmail.com.
           </p>
           {!suppressionOuverte ? (
             <button onClick={() => setSuppressionOuverte(true)}
@@ -394,7 +437,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
           ) : (
             <div style={{ background: "#fdf2ee", border: "1px solid #e8d4cc", borderRadius: "6px", padding: "14px 16px" }}>
               <p style={{ fontSize: "12.5px", color: "#7a3020", marginBottom: "12px", lineHeight: 1.5 }}>
-                Confirmez-vous la suppression définitive de votre compte <strong>{user.email}</strong> ?
+                Confirmez-vous la suppression définitive de votre compte <strong>{user.email}</strong> ? Les articles publiés resteront en ligne sauf demande envoyée à labibledesperes@gmail.com.
               </p>
               {erreurSuppression && <p style={{ fontSize: "12px", color: "#9a2a2a", marginBottom: "10px" }}>{erreurSuppression}</p>}
               <div style={{ display: "flex", gap: "8px" }}>

@@ -57,11 +57,12 @@ function IconCoeur() {
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [pseudo, setPseudo] = useState<string | null>(null);
   const [estAdmin, setEstAdmin] = useState(false);
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [mobileOuvert, setMobileOuvert] = useState(false);
+  const [nbNotifications, setNbNotifications] = useState(0);
   const { modeUtilisateurStandard, setModeUtilisateurStandard } = useAffichageAdmin();
   const estAdminEmail = !!(user && user.email && user.email.trim().toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase());
   const estAdminAffiche = (estAdmin || estAdminEmail) && !modeUtilisateurStandard;
@@ -105,16 +106,26 @@ export default function Navbar() {
       });
     supabase.auth.getSession().then(({ data }) => {
       const u = data.session?.user;
-      setUser(u ? { email: u.email ?? '' } : null);
+      setUser(u ? { id: u.id, email: u.email ?? '' } : null);
       if (u) chargerProfil(u.id);
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(session?.user ? { email: session.user.email ?? '' } : null);
+      setUser(session?.user ? { id: session.user.id, email: session.user.email ?? '' } : null);
       if (session?.user) chargerProfil(session.user.id);
-      else { setPseudo(null); setEstAdmin(false); }
+      else { setPseudo(null); setEstAdmin(false); setNbNotifications(0); }
     });
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) { setNbNotifications(0); return }
+    supabase
+      .from('essais')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .not('note_admin', 'is', null)
+      .then(({ count }) => setNbNotifications(count ?? 0))
+  }, [user?.id]);
 
   const seDeconnecter = async () => {
     await supabase.auth.signOut();
@@ -252,14 +263,18 @@ export default function Navbar() {
           </div>
         )}
         {[
-          { href: "/compte", label: "Mon compte" },
-          ...(estAdminAffiche ? [{ href: "/admin", label: "Administration" }] : []),
+          { href: "/compte", label: "Mon compte", badge: 0 },
+          { href: "/notifications", label: "Notification", badge: nbNotifications },
+          ...(estAdminAffiche ? [{ href: "/admin", label: "Administration", badge: 0 }] : []),
         ].map(item => (
           <Link key={item.href} href={item.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}
             style={mobile
               ? { display: "block", padding: "10px 12px", fontSize: "13px", color: "rgba(255,255,255,0.85)", textDecoration: "none" }
               : { display: "block", padding: "10px 14px", fontSize: "12.5px", color: "#2a3d30", textDecoration: "none", borderBottom: "1px solid #ede9e2" }}>
-            {item.label}
+            <span>{item.label}</span>
+            {item.badge > 0 && (
+              <span style={{ marginLeft: '8px', fontSize: '10px', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
+            )}
           </Link>
         ))}
         <button onClick={seDeconnecter}

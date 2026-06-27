@@ -123,12 +123,44 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
   // ── Import final ──
   const [importing, setImporting] = React.useState(false)
   const [resultat, setResultat] = React.useState<{ ok: boolean; msg: string; idOeuvre?: string } | null>(null)
+  const [sessionDebug, setSessionDebug] = React.useState<string | null>(null)
 
   const confirmerImport = async () => {
     if (!meta.id_auteur || !meta.titre.trim()) { setCsvErreur('Titre et auteur sont requis.'); return }
     if (!idOeuvreGenere) { setCsvErreur('Générez l\'ID de l\'œuvre avant de continuer.'); return }
     setImporting(true)
     const idOeuvre = idOeuvreGenere
+
+    setSessionDebug(null)
+    const { data: sessionData } = await supabase.auth.getSession()
+    const token = sessionData.session?.access_token
+    const userId = sessionData.session?.user.id ?? null
+    setSessionDebug(userId ? `Session Supabase active : ${userId}` : 'Aucune session Supabase active dans le navigateur.')
+
+    if (!token) {
+      setResultat({ ok: false, msg: 'Import refusé : aucune session Supabase active. Déconnectez-vous puis reconnectez-vous avant de relancer.' })
+      setImporting(false)
+      return
+    }
+
+    const res = await fetch('/api/admin/import-oeuvre', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        meta: { id_oeuvre: idOeuvre, ...meta, titre: meta.titre.trim() },
+        segments,
+      }),
+    })
+    const json = await res.json().catch(() => ({}))
+    if (!res.ok || !json.ok) {
+      setResultat({ ok: false, msg: json.error ?? `Erreur import (${res.status})` })
+      setImporting(false)
+      return
+    }
+    setResultat({ ok: true, msg: `${json.count} segments importés.`, idOeuvre: json.idOeuvre })
+    setEtape('done')
+    setImporting(false)
+    return
 
     // 0. Vérifier que l'ID n'existe pas déjà
     const { data: existante } = await supabase.from('oeuvres').select('id_oeuvre').eq('id_oeuvre', idOeuvre).single()
@@ -155,6 +187,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
       genre: meta.genre || null,
       langue: meta.langue || null,
     })
+    // @ts-ignore Ancien chemin client conservé mais rendu inatteignable par l'import serveur ci-dessus.
     if (errOeuvre) { setResultat({ ok: false, msg: 'Erreur création œuvre : ' + errOeuvre.message }); setImporting(false); return }
 
     // 2. Insérer les segments par batch de 500
