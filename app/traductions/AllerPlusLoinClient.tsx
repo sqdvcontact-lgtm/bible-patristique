@@ -36,20 +36,20 @@ export default function AllerPlusLoinClient() {
   }, [searchParams])
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 48px)' }}>
+    <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '48px' }}>
       <div style={{ maxWidth: '720px', margin: '0 auto', padding: '40px 24px 0' }}>
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '22px' }}>
           <h1 style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
-            fontSize: 'clamp(24px, 4vw, 34px)', fontWeight: 'normal',
+            fontFamily: "Georgia, serif",
+            fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 'normal',
             color: '#1e2e24', lineHeight: 1.2, marginBottom: '14px',
           }}>
             Aller plus loin
           </h1>
-          <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto' }} />
+          <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 18px' }} />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', borderBottom: '1px solid #ddd8cf', marginBottom: '8px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', borderBottom: '1px solid #ddd8cf', marginBottom: '14px', flexWrap: 'wrap' }}>
           {ONGLETS.map(o => (
             <button key={o.code} onClick={() => setOnglet(o.code)} style={{
               padding: '10px 14px', fontSize: '12.5px', fontWeight: onglet === o.code ? 600 : 400,

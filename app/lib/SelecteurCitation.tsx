@@ -29,6 +29,17 @@ const NB_CHAPITRES: Record<string, number> = {
 type Choix = { label: string; type: 'verset' | 'segment'; id: string }
 type Props = { onChoisir: (c: Choix) => void; onFermer: () => void }
 
+function sansAccents(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+}
+
+function correspondDebutsDeMots(texte: string, requete: string): boolean {
+  const termes = sansAccents(requete).trim().split(/\s+/).filter(Boolean)
+  if (termes.length === 0) return true
+  const mots = sansAccents(texte).match(/[\p{L}\p{N}]+/gu) ?? []
+  return termes.every(t => mots.some(m => m.startsWith(t)))
+}
+
 export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
   const [source, setSource] = useState<'bible' | 'patristique'>('bible')
   const [mode, setMode] = useState<'parcourir' | 'mes-citations'>('parcourir')
@@ -125,6 +136,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
   const [oeuvre, setOeuvre] = useState('')
   const [segments, setSegments] = useState<{ id: number; segment_numero: number; segment_texte: string }[]>([])
   const [chargement, setChargement] = useState(false)
+  const [recherche, setRecherche] = useState('')
 
   useEffect(() => { supabase.from('auteurs').select('id_auteur, nom').order('nom').then(({ data }) => setAuteurs(data ?? [])) }, [])
 
@@ -134,11 +146,19 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
     setOeuvres(data ?? [])
   }
   const choisirOeuvre = async (id: string) => {
-    setOeuvre(id); setChargement(true)
+    setOeuvre(id); setRecherche(''); setChargement(true)
     const { data } = await supabase.from('segments').select('id, segment_numero, segment_texte').eq('id_oeuvre', id).eq('nature', 'texte').order('segment_numero')
     setSegments(data ?? [])
     setChargement(false)
   }
+
+  const indexOeuvre = oeuvres.findIndex(o => o.id_oeuvre === oeuvre)
+  const oeuvrePrecedente = indexOeuvre > 0 ? oeuvres[indexOeuvre - 1] : null
+  const oeuvreSuivante = indexOeuvre >= 0 && indexOeuvre < oeuvres.length - 1 ? oeuvres[indexOeuvre + 1] : null
+  const q = sansAccents(recherche.trim())
+  const segmentsFiltres = q
+    ? segments.filter(s => correspondDebutsDeMots(s.segment_texte, recherche) || String(s.segment_numero).startsWith(q))
+    : segments
 
   if (!auteur) return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -161,10 +181,19 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
 
   return (
     <div>
-      <button onClick={() => setOeuvre('')} style={{ fontSize: '11px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', marginBottom: '10px' }}>← Œuvres</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+        <button onClick={() => setOeuvre('')} style={{ fontSize: '11px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>← Œuvres</button>
+        <button onClick={() => oeuvrePrecedente && choisirOeuvre(oeuvrePrecedente.id_oeuvre)} disabled={!oeuvrePrecedente}
+          style={{ marginLeft: 'auto', fontSize: '11px', color: oeuvrePrecedente ? '#3d6b4f' : '#c8c0b4', background: 'none', border: '1px solid #d6d0c4', borderRadius: '4px', cursor: oeuvrePrecedente ? 'pointer' : 'default', padding: '3px 8px' }}>Précédent</button>
+        <button onClick={() => oeuvreSuivante && choisirOeuvre(oeuvreSuivante.id_oeuvre)} disabled={!oeuvreSuivante}
+          style={{ fontSize: '11px', color: oeuvreSuivante ? '#3d6b4f' : '#c8c0b4', background: 'none', border: '1px solid #d6d0c4', borderRadius: '4px', cursor: oeuvreSuivante ? 'pointer' : 'default', padding: '3px 8px' }}>Suivant</button>
+      </div>
+      <input value={recherche} onChange={e => setRecherche(e.target.value)}
+        placeholder="Recherche dans cette œuvre…"
+        style={{ width: '100%', boxSizing: 'border-box', fontSize: '12px', padding: '7px 10px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#faf8f4', color: '#2a2520', marginBottom: '10px', outline: 'none' }} />
       {chargement ? <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {segments.map(s => {
+          {segmentsFiltres.map(s => {
             const auteurNom = auteurs.find(a => a.id_auteur === auteur)?.nom ?? ''
             const oeuvreTitre = oeuvres.find(o => o.id_oeuvre === oeuvre)?.titre ?? ''
             return (

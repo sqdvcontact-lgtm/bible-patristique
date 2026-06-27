@@ -130,12 +130,10 @@ export default function BibliothequeClient({ auteurs }: { auteurs: Auteur[] }) {
 
         {/* En-tête */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '20px' }}>
-            <span style={{ fontSize: '18px', lineHeight: 1, color: '#c8c0b4' }}>‹</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
             <h1 style={{ fontFamily: "Georgia, serif", fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 'normal', color: '#1e2e24', margin: 0 }}>
               Bibliothèque
             </h1>
-            <span style={{ fontSize: '18px', lineHeight: 1, color: '#c8c0b4' }}>›</span>
           </div>
 
           {/* Recherche */}

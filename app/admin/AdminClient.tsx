@@ -12,7 +12,7 @@ import SectionEssaisAdmin from './SectionEssaisAdmin'
 import type { AdminProps as Props, Onglet } from './adminTypes'
 
 export default function AdminClient({
-  commentaires, signalements, demandesCertification, essaisEnAttente, essaisPublies, segMap, versetMap, auteurs, traductions,
+  commentaires, signalements, demandesCertification, essaisEnAttente, essaisModification, essaisPublies, segMap, versetMap, auteurs, traductions,
   actionDeconnexion, actionValider, actionSupprimerCommentaire,
   actionMarquerTraite, actionSupprimerSignalement,
   actionCertifier, actionRetirerDemandeCertification,
@@ -20,7 +20,7 @@ export default function AdminClient({
 }: Props) {
   const [onglet, setOnglet] = useState<Onglet>('bibliotheque')
   const nbModeration = commentaires.length + signalements.length + demandesCertification.length
-  const nbEssais = essaisEnAttente.length
+  const nbEssais = essaisEnAttente.length + essaisModification.length
   const ONGLETS: { key: Onglet; label: string; badge?: number; separateur?: boolean }[] = [
     { key: 'bibliotheque',        label: 'Bibliothèque' },
     { key: 'ajouter-oeuvre',      label: '+ Ajouter une œuvre' },
@@ -94,6 +94,7 @@ export default function AdminClient({
         {onglet === 'essais' && (
           <SectionEssaisAdmin
             essaisEnAttente={essaisEnAttente}
+            essaisModification={essaisModification}
             essaisPublies={essaisPublies}
             actionPublierEssai={actionPublierEssai}
             actionRenvoyerBrouillonEssai={actionRenvoyerBrouillonEssai}

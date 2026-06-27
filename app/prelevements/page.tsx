@@ -321,7 +321,7 @@ export default function PrelevementsPage() {
                   <GroupeRepliable key={label} label={
                     <>
                       <span style={{ textTransform:"uppercase" }}>{auteur}</span>
-                      {titre && <span style={{ textTransform:"none", fontStyle:"italic", fontWeight:400 }}>, {titre.toLowerCase()}</span>}
+                      {titre && <span style={{ textTransform:"none", fontStyle:"italic", fontWeight:400 }}>, {titre}</span>}
                     </>
                   } count={items.length} ouvert={ouvert} onToggle={() => toggleGroupe(label)}>
                     <div style={{ display:"flex", flexDirection:"column", gap:"6px", marginBottom:"4px" }}>

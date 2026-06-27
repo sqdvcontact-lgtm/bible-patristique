@@ -41,7 +41,7 @@ export default async function ModifierEssaiPage({ params }: { params: Promise<{ 
       essaiExistant={{
         id: essai.id, titre: essai.titre, sous_titre: essai.sous_titre, resume: essai.resume,
         categories: essai.categories ?? [], contenu: essai.contenu, statut: essai.statut,
-        afficher_nom_reel: essai.afficher_nom_reel ?? false,
+        afficher_nom_reel: essai.afficher_nom_reel ?? false, publie_at: essai.publie_at,
       }}
     />
   )

@@ -7,7 +7,12 @@ import { texteSansEnrichissement } from './texteEnrichi'
 import ModalSignalement from './ModalSignalement'
 
 // Style partagé par tous les petits boutons d'action (segment ET verset)
-export const BTN_STYLE: React.CSSProperties = { background:'none', border:'none', cursor:'pointer', padding:'1px 3px', borderRadius:'3px', fontSize:'13px', lineHeight:1, flexShrink:0, transition:'color 0.15s' }
+export const BTN_STYLE: React.CSSProperties = {
+  background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
+  borderRadius:'3px', width:'16px', height:'16px', display:'inline-flex',
+  alignItems:'center', justifyContent:'center', fontSize:'12px',
+  lineHeight:1, flexShrink:0, transition:'color 0.15s',
+}
 
 // ── Bouton enregistrer segment ────────────────────────────────────────────────
 export function BoutonEnregistrerSegment({
@@ -67,7 +72,11 @@ export function BoutonEnregistrerSegment({
       className="seg-btn-enreg"
       style={{ ...BTN_STYLE, color:'#c8c0b4' }}
       aria-label="Enregistrer">
-      {loading ? '…' : '+'}
+      {loading ? '…' : (
+        <svg width="12" height="13" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display:'block' }}>
+          <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round"/>
+        </svg>
+      )}
     </button>
   )
 }

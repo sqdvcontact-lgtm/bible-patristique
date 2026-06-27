@@ -79,8 +79,6 @@ function BarreMiseEnForme({ onInserer, onEntourer }: {
         <span style={{ width: '1px', background: '#e4dfd8' }} />
         <button type="button" onClick={() => onInserer('\u00A0')} title="Espace insécable"
           style={{ fontSize: '9px', padding: '3px 7px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>Esp. ins.</button>
-        <button type="button" onClick={() => onInserer('\u202F')} title="Espace fine insécable"
-          style={{ fontSize: '9px', padding: '3px 7px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>Esp. fine</button>
         <button type="button" onClick={() => onEntourer('«\u202F', '\u202F»')} title="Guillemets français"
           style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>« »</button>
         <button type="button" onClick={() => onEntourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)"
@@ -248,8 +246,21 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     setLoading(false)
   }
 
-  const principaux = commentaires.filter(c => !c.reponse_a)
-  const reponsesDe = (id: number) => commentaires.filter(c => c.reponse_a === id)
+  const aDesReponses = (id: number) => commentaires.some(c => c.reponse_a === id)
+  const commentaireVisible = (c: CommentaireAvecAuteur) => !c.supprime || !!c.reponse_a || aDesReponses(c.id)
+  const trierCommentaires = (liste: CommentaireAvecAuteur[]) => [...liste]
+    .filter(commentaireVisible)
+    .sort((a, b) => {
+      if (a.valide !== b.valide) return a.valide ? -1 : 1
+      if (a.valide && b.valide) {
+        const scoreA = a.nbLikes - a.nbDislikes
+        const scoreB = b.nbLikes - b.nbDislikes
+        if (scoreA !== scoreB) return scoreB - scoreA
+      }
+      return +new Date(a.created_at) - +new Date(b.created_at)
+    })
+  const principaux = trierCommentaires(commentaires.filter(c => !c.reponse_a))
+  const reponsesDe = (id: number) => trierCommentaires(commentaires.filter(c => c.reponse_a === id))
 
   const basculerVote = async (c: CommentaireAvecAuteur, valeur: 1 | -1) => {
     if (!userId) { alert('Connectez-vous pour réagir à un commentaire.'); return }
@@ -341,7 +352,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   )
 
   const renderCommentaire = (c: CommentaireAvecAuteur, estReponse: boolean) => {
-    const cache = !c.valide && !revelees.has(c.id)
+    const cache = !c.supprime && !c.valide && !revelees.has(c.id)
     if (cache) {
       return (
         <div key={c.id} style={{ marginLeft: estReponse ? '20px' : 0, padding: '9px 0', borderBottom: '1px solid #ede9e2' }}>
@@ -356,7 +367,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     const rangInfo = c.score !== null ? calculerRang(c.score) : null
     const couleurs = rangInfo ? couleurRang(rangInfo.rang) : null
     return (
-      <div key={c.id} style={{ marginLeft: estReponse ? '20px' : 0, padding: '9px 0', borderBottom: '1px solid #ede9e2', borderLeft: estReponse ? '2px solid #d6d0c4' : undefined, paddingLeft: estReponse ? '10px' : 0 }}>
+      <div key={c.id} style={{ marginLeft: estReponse ? '20px' : 0, padding: '9px 10px', marginBottom:'8px', border:'1px solid ' + (c.valide ? 'rgba(122,90,158,0.22)' : '#ede9e2'), borderLeft: estReponse ? '2px solid #d6d0c4' : c.valide ? '3px solid #7a5a9e' : '1px solid #ede9e2', borderRadius:'6px', background: c.valide ? 'rgba(122,90,158,0.07)' : '#fff' }}>
         {c.supprime ? (
           <p style={{ fontSize: '11.5px', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>
             {c.pseudo ?? 'Un utilisateur'} a supprimé un commentaire
@@ -371,7 +382,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
             </span>
           )}
           {!c.valide && <span style={{ fontSize: '9.5px', fontWeight: 600, color: '#b03a2a', background: 'rgba(176,58,42,0.08)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>NON VALIDÉ</span>}
-          {c.demande_validation && <span style={{ fontSize: '9.5px', fontWeight: 600, color: '#7a5a9e', background: 'rgba(122,90,158,0.08)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>RÉFÉRENCE SOUMISE À VALIDATION</span>}
+          {c.demande_validation && <span style={{ fontSize: '9.5px', fontWeight: 600, color: '#7a5a9e', background: 'rgba(122,90,158,0.08)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>DEMANDE DE CERTIFICATION</span>}
         </div>
         <p style={{ fontSize: '12px', color: c.valide ? '#2a2520' : '#7a5550', lineHeight: 1.55, margin: 0, whiteSpace: 'pre-line' }}>{rendreTexteEnrichi(c.texte)}</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px', flexWrap: 'wrap' }}>
@@ -430,10 +441,16 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
             <BarreMiseEnForme onEntourer={entourer} onInserer={inserer} />
             <textarea ref={taRef} value={texte} onChange={e => setTexte(e.target.value)} placeholder={cibleReponse ? 'Votre réponse…' : 'Votre commentaire sur ce passage…'} rows={4}
               style={{ width: '100%', fontSize: '11.5px', padding: '7px 9px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#fff', color: '#2a2520', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
+            {texte.trim() && (
+              <div style={{ border:'1px solid #e4dfd8', borderRadius:'5px', background:'#fff', padding:'8px 10px', marginTop:'6px' }}>
+                <p style={{ fontSize:'9px', color:'#9a958d', margin:'0 0 4px', textTransform:'uppercase', letterSpacing:'0.06em' }}>Aperçu</p>
+                <div style={{ fontSize:'11.5px', lineHeight:1.5, color:'#2a2520', whiteSpace:'pre-line' }}>{rendreTexteEnrichi(texte)}</div>
+              </div>
+            )}
             <label style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '10.5px', color: '#6b6560', cursor: 'pointer', lineHeight: 1.4, marginTop: '6px' }}>
               <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
                 style={{ marginTop: '2px', flexShrink: 0, accentColor: '#7a5a9e', cursor: 'pointer' }} />
-              <span>Soumettre une référence à validation — proposer officiellement ce commentaire pour certification par l'administration.</span>
+              <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demande de certification</span>
             </label>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px', gap: '8px', alignItems: 'center' }}>
               {statut === 'err' && <span style={{ fontSize: '10.5px', color: '#c0562a' }}>Erreur — vérifiez qu'il n'y a pas plus de 5 capitales à la suite.</span>}

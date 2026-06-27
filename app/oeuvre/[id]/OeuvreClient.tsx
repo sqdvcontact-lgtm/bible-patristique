@@ -11,6 +11,7 @@ import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignaler
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
 import AssocierVerset from './AssocierVerset'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
+import ModalSignalement from './ModalSignalement'
 
 // Même table que celle utilisée côté serveur (page.tsx) pour l'affichage
 // des références bibliques en français — doit rester identique aux deux endroits.
@@ -26,7 +27,7 @@ const ABREV_FR: Record<string, string> = {
   '1JN':'1Jn','2JN':'2Jn','3JN':'3Jn',JUD:'Jude',REV:'Ap',
 }
 
-const TRADUCTIONS = [
+const TRADUCTIONS_FALLBACK = [
   { code: 'TR0001',    label: 'Bible de Sacy' },
   { code: 'TR0002',     label: 'Bible Segond' },
   { code: 'TR0003', label: 'Bible Crampon' },
@@ -39,6 +40,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   const [segActif, setSegActif] = useState<number | null>(null)
   const [tradIndex, setTradIndex] = useState(0)
+  const [traductionsBible, setTraductionsBible] = useState(TRADUCTIONS_FALLBACK)
   const [tradOuverte, setTradOuverte] = useState(false)
   const [ongletDroit, setOngletDroit] = useState<'refs' | 'commentaires' | 'suggestions'>('refs')
   const [userId, setUserId] = useState<string | null>(null)
@@ -50,6 +52,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const [panneauOuvert, setPanneauOuvert] = useState(true)
   const [suggestions, setSuggestions] = useState<{ id: number; segment_numero: number; segment_texte: string; reference_manuelle: string | null }[]>([])
   const [suggestionsChargees, setSuggestionsChargees] = useState(false)
+  const [suggestionSignalee, setSuggestionSignalee] = useState<{ id: number; segment_numero: number; segment_texte: string } | null>(null)
   useEffect(() => {
     if (ongletDroit !== 'suggestions' || suggestionsChargees || !idOeuvre) return
     supabase.from('segments')
@@ -243,7 +246,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const groupesFiltres = groupes
   const segmentsFiltres = segments
 
-  const trad = TRADUCTIONS[tradIndex].code
+  const trad = traductionsBible[tradIndex]?.code ?? 'TR0001'
   const segMap = new Map(segmentsFiltres.map(s => [s.id, s]))
   const segMapApparat = new Map(segmentsApparat.map(s => [s.id, s]))
   const segMapActive = vue === 'texte' ? segMap : segMapApparat
@@ -262,11 +265,17 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const chargerTraductionDefaut = (uid: string) => {
     supabase.from('profils').select('traduction_defaut').eq('id', uid).maybeSingle().then(({ data }) => {
       if (data?.traduction_defaut) {
-        const idx = TRADUCTIONS.findIndex(t => t.code === data.traduction_defaut)
+        const idx = traductionsBible.findIndex(t => t.code === data.traduction_defaut)
         if (idx >= 0) setTradIndex(idx)
       }
     })
   }
+
+  useEffect(() => {
+    supabase.from('traductions').select('trad_id, nom').order('ordre', { ascending: true }).then(({ data }) => {
+      if (data?.length) setTraductionsBible(data.map((t: any) => ({ code: t.trad_id, label: t.nom })))
+    })
+  }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -645,14 +654,14 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   <p style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e', marginBottom: '5px' }}>TRADUCTION BIBLIQUE</p>
                   <button onClick={() => setTradOuverte(!tradOuverte)}
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '5px 8px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', fontSize: '11.5px', color: '#2a3d30', cursor: 'pointer', fontWeight: 500 }}>
-                    <span>{TRADUCTIONS[tradIndex].label}</span>
+                    <span>{traductionsBible[tradIndex]?.label ?? trad}</span>
                     <span style={{ color: '#9a958d', fontSize: '9px' }}>{tradOuverte ? '▲' : '▼'}</span>
                   </button>
                   {tradOuverte && (
                     <div style={{ position: 'absolute', top: 'calc(100% - 4px)', left: 0, right: 0, background: '#fff', border: '1px solid #d6d0c4', borderRadius: '5px', zIndex: 50, boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
-                      {TRADUCTIONS.map((t, i) => (
+                      {traductionsBible.map((t, i) => (
                         <button key={t.code} onClick={() => { setTradIndex(i); setTradOuverte(false) }} className="trad-option"
-                          style={{ width: '100%', textAlign: 'left', padding: '7px 10px', fontSize: '11.5px', border: 'none', borderBottom: i < TRADUCTIONS.length - 1 ? '1px solid #ede9e2' : 'none', background: tradIndex === i ? 'rgba(61,107,79,0.08)' : '#fff', color: tradIndex === i ? '#3d6b4f' : '#3a3530', fontWeight: tradIndex === i ? 500 : 400, cursor: 'pointer' }}>
+                          style={{ width: '100%', textAlign: 'left', padding: '7px 10px', fontSize: '11.5px', border: 'none', borderBottom: i < traductionsBible.length - 1 ? '1px solid #ede9e2' : 'none', background: tradIndex === i ? 'rgba(61,107,79,0.08)' : '#fff', color: tradIndex === i ? '#3d6b4f' : '#3a3530', fontWeight: tradIndex === i ? 500 : 400, cursor: 'pointer' }}>
                           {t.label}
                         </button>
                       ))}
@@ -670,19 +679,16 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         {segActifData.versets.map(v => (
                           <div key={v.id}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                              <p style={{ fontSize: '11px', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>{v.label}</p>
+                              <a href={`/?livre=${v.livre}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${trad}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '11px', fontWeight: 600, color: '#3d6b4f', margin: 0, textDecoration: 'none' }}>{v.label}</a>
                               <div style={{ display: 'flex', gap: '1px', alignItems: 'center' }}>
                                 <BoutonEnregistrerVerset verset={v} trad={trad} userId={userId} />
                                 <BoutonCopieVerset texte={v.textes[trad] || v.textes['TR0001'] || ''} label={v.label} />
                                 <BoutonSignalerVerset versetId={v.id} label={v.label} />
                               </div>
                             </div>
-                            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12.5px', lineHeight: '1.5', color: '#2a2520', textAlign: 'justify', marginBottom: '4px' }}>
+                            <p lang="fr" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12.2px', lineHeight: '1.42', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.07em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', marginBottom: '4px' } as React.CSSProperties}>
                               {v.textes[trad] || v.textes['TR0001'] || '—'}
                             </p>
-                            <a href={`/?livre=${v.livre}&chapitre=${v.chapitre}`} className="ref-lien" style={{ fontSize: '10.5px', color: '#b0a89e', textDecoration: 'none' }}>
-                              Accéder au texte biblique ↗
-                            </a>
                           </div>
                         ))}
                       </div>
@@ -713,10 +719,16 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                             Référence proposée : {s.reference_manuelle}
                           </p>
                         )}
-                        <a href={`#s${s.segment_numero}`} onClick={() => setSegActif(s.segment_numero)} className="ref-lien"
-                          style={{ fontSize: '10.5px', color: '#b0a89e', textDecoration: 'none' }}>
-                          Aller au passage ↗
-                        </a>
+                        <div style={{ display:'flex', alignItems:'center', gap:'10px', justifyContent:'space-between' }}>
+                          <a href={`#s${s.segment_numero}`} onClick={() => setSegActif(s.segment_numero)} className="ref-lien"
+                            style={{ fontSize: '10.5px', color: '#3d6b4f', textDecoration: 'none' }}>
+                            Aller au passage
+                          </a>
+                          <button onClick={() => setSuggestionSignalee(s)} title="Signaler une référence à indiquer"
+                            style={{ fontSize:'10.5px', color:'#9a5a2a', background:'none', border:'none', cursor:'pointer', padding:0 }}>
+                            Signaler
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -741,6 +753,19 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           onTitreOeuvreModifie={(t) => setTitreAffiche(t)}
           onClose={() => setEditionCible(null)}
           onEnregistre={() => vue === 'apparat' ? chargerApparatData() : changerNiv1(niv1Actif, { forceRefresh: true, conserverPosition: true })}
+        />
+      )}
+      {suggestionSignalee && (
+        <ModalSignalement
+          titre={`Référence à identifier — segment ${suggestionSignalee.segment_numero}`}
+          onClose={() => setSuggestionSignalee(null)}
+          onEnvoyer={async (msg) => {
+            const { error } = await supabase.from('signalements').insert({
+              id_segment: suggestionSignalee.id,
+              message: `Référence à identifier : ${msg || suggestionSignalee.segment_texte.slice(0, 160)}`,
+            })
+            if (error) throw error
+          }}
         />
       )}
     </div>

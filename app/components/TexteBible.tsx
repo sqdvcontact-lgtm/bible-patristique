@@ -18,15 +18,19 @@ const ABREV_FR: Record<string, string> = {
   '1JN':'1Jn','2JN':'2Jn','3JN':'3Jn',JUD:'Jude',REV:'Ap',
 }
 
-const TRAD_LABELS: Record<string, string> = {
-  TR0001:'Sacy', TR0002:'Segond', TR0003:'Crampon', TR0004:'Vulgate',
+function IconeSignet() {
+  return (
+    <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display:'block' }}>
+      <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round"/>
+    </svg>
+  )
 }
 
-const TRAD_NOM_OFFICIEL: Record<string, string> = {
-  TR0001: 'Bible de Sacy',
-  TR0002: 'Bible Segond',
-  TR0003: 'Bible Crampon',
-  TR0004: 'Vulgate',
+const VERSET_ACTION_BTN: React.CSSProperties = {
+  background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
+  borderRadius:'3px', width:'16px', height:'16px', display:'inline-flex',
+  alignItems:'center', justifyContent:'center', fontSize:'12px',
+  lineHeight:1, flexShrink:0, transition:'color 0.15s',
 }
 
 // Si le texte cité contient déjà des guillemets français (citation de second
@@ -42,15 +46,15 @@ function convertirGuillemetsInternes(texte: string): string {
 type Verset = {
   id_verset: string; ref: string; livre: string
   chapitre: number; verset: number
-  TR0002: string; TR0003: string; TR0004: string; TR0001: string
+  [traduction: string]: string | number | null | undefined
   chapitre_alternatif?: number | null; verset_alternatif?: number | null
 }
 
-type Traduction = { code: 'TR0001' | 'TR0002' | 'TR0003' | 'TR0004'; label: string }
+type Traduction = { code: string; label: string }
 
 type Props = {
   versets: Verset[]
-  traduction: 'TR0001' | 'TR0002' | 'TR0003' | 'TR0004'
+  traduction: string
   traductionIndex: number
   setTraductionIndex: (i: number) => void
   traductions: Traduction[]
@@ -72,7 +76,7 @@ function BoutonCopie({ texte }: { texte: string }) {
   }
   return (
     <button onClick={handle} title="Copier ce verset" className="bouton-action-verset"
-      style={{ background:'none', border:'none', cursor:'pointer', padding:'1px 3px', borderRadius:'3px', fontSize:'13px', lineHeight:1, flexShrink:0, transition:'color 0.15s', opacity:0, color: copie ? '#3d6b4f' : '#c8c0b4' }}
+      style={{ ...VERSET_ACTION_BTN, opacity:0, color: copie ? '#3d6b4f' : '#c8c0b4' }}
       aria-label="Copier">
       {copie ? '✓' : '⧉'}
     </button>
@@ -135,7 +139,7 @@ function BoutonSignaler({ versetId }: { versetId: string }) {
       <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
         className="bouton-action-verset"
         title="Signaler une erreur"
-        style={{ background:'none', border:'none', cursor:'pointer', padding:'1px 3px', borderRadius:'3px', fontSize:'13px', lineHeight:1, flexShrink:0, transition:'color 0.15s', opacity:0, color:'#c8c0b4' }}>
+        style={{ ...VERSET_ACTION_BTN, opacity:0, color:'#c8c0b4' }}>
         ⚑
       </button>
       {ouvert && <ModalSignalement titre={`Verset ${versetId}`} onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
@@ -146,10 +150,11 @@ function BoutonSignaler({ versetId }: { versetId: string }) {
 // ── Bouton enregistrer ────────────────────────────────────────────────────────
 function BoutonEnregistrer({
   verset, nomLivre, livreActif, chapitreActif, traduction, userId,
-  dejaSauvegarde, idPrelevement, onSauvegarde, onSupprimer,
+  traductionLabel, dejaSauvegarde, idPrelevement, onSauvegarde, onSupprimer,
 }: {
   verset: Verset; nomLivre: string; livreActif: string
   chapitreActif: number; traduction: string; userId: string
+  traductionLabel: string
   dejaSauvegarde: boolean; idPrelevement: string | null
   onSauvegarde: (id: string) => void; onSupprimer: () => void
 }) {
@@ -167,7 +172,7 @@ function BoutonEnregistrer({
     return (
       <button onClick={supprimer} disabled={loading}
         title="Retirer des prélèvements" className="bouton-action-verset"
-        style={{ background:'none', border:'none', cursor:'pointer', padding:'1px 3px', borderRadius:'3px', fontSize:'13px', lineHeight:1, flexShrink:0, transition:'color 0.15s', opacity:0, color:'#3d6b4f' }}
+        style={{ ...VERSET_ACTION_BTN, opacity:0, color:'#3d6b4f' }}
         aria-label="Retirer">
         {loading ? '…' : '✕'}
       </button>
@@ -177,13 +182,13 @@ function BoutonEnregistrer({
   const enregistrer = async (e: React.MouseEvent) => {
     e.stopPropagation()
     setLoading(true)
-    const texte = verset[traduction as keyof Verset] as string || ''
+    const texte = String(verset[traduction] ?? '')
     const abr = ABREV_FR[livreActif] || livreActif
     const { data, error } = await supabase.from('prelevements').insert({
       user_id: userId, type: 'biblique',
       ref_livre: nomLivre, ref_livre_abr: abr,
       ref_chapitre: chapitreActif, ref_verset: verset.verset,
-      texte, traduction: TRAD_LABELS[traduction] ?? traduction,
+      texte, traduction: traductionLabel,
     }).select('id').single()
     setLoading(false)
     if (!error && data) onSauvegarde(data.id)
@@ -192,17 +197,17 @@ function BoutonEnregistrer({
   return (
     <button onClick={enregistrer} disabled={loading} title="Enregistrer dans mes prélèvements"
       className="bouton-action-verset"
-      style={{ background:'none', border:'none', cursor:'pointer', padding:'1px 3px', borderRadius:'3px', fontSize:'13px', lineHeight:1, flexShrink:0, transition:'color 0.15s', opacity:0, color:'#c8c0b4' }}
+      style={{ ...VERSET_ACTION_BTN, opacity:0, color:'#c8c0b4' }}
       aria-label="Enregistrer">
-      {loading ? '…' : '+'}
+      {loading ? '…' : <IconeSignet />}
     </button>
   )
 }
 
 // ── Composant principal ───────────────────────────────────────────────────────
 // ── Modale d'édition d'un verset (admin réel, vérifié côté serveur) ──────────
-function ModaleEditionVerset({ verset, traduction, valeurActuelle, onClose, onEnregistre }: {
-  verset: Verset; traduction: string; valeurActuelle: string
+function ModaleEditionVerset({ verset, traduction, traductionLabel, valeurActuelle, onClose, onEnregistre }: {
+  verset: Verset; traduction: string; traductionLabel: string; valeurActuelle: string
   onClose: () => void; onEnregistre: (nouvelleValeur: string) => void
 }) {
   const [valeur, setValeur] = useState(valeurActuelle)
@@ -245,7 +250,7 @@ function ModaleEditionVerset({ verset, traduction, valeurActuelle, onClose, onEn
       <div onClick={e => e.stopPropagation()} style={{ background:'#fff', borderRadius:'8px', padding:'20px 22px', width:'480px', maxWidth:'100%', boxShadow:'0 8px 32px rgba(0,0,0,0.18)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px' }}>
           <p style={{ fontSize:'12px', fontWeight:600, color:'#9a5a2a', margin:0 }}>
-            Modifier {TRAD_LABELS[traduction]} — verset {verset.verset}
+            Modifier {traductionLabel} — verset {verset.verset}
           </p>
           <button onClick={onClose} style={{ fontSize:'14px', color:'#b0a89e', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
         </div>
@@ -341,7 +346,9 @@ export default function TexteBible({
     setSauvegardes(prev => { const n = new Map(prev); n.delete(numVerset); return n })
   }
 
-  const tradCode = traductions[traductionIndex]?.code ?? 'TR0001'
+  const traductionActive = traductions[traductionIndex]
+  const tradCode = traductionActive?.code ?? 'TR0001'
+  const traductionLabel = traductionActive?.label ?? tradCode
 
   return (
     <div className="flex-1 flex flex-col h-screen overflow-hidden" style={{ background: '#f7f4ef' }}>
@@ -369,7 +376,7 @@ export default function TexteBible({
               fontFamily: "Georgia, 'Times New Roman', serif", letterSpacing: '0.01em',
               boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'border-color 0.15s, box-shadow 0.15s',
             }}>
-              <span>{TRAD_NOM_OFFICIEL[tradCode]}</span>
+              <span>{traductionLabel}</span>
               <span style={{ color: '#9a958d', fontSize: '8px' }}>{tradOuverte ? '▲' : '▼'}</span>
             </button>
             {tradOuverte && (
@@ -386,7 +393,7 @@ export default function TexteBible({
                   }}
                     onMouseEnter={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = 'rgba(61,107,79,0.04)' }}
                     onMouseLeave={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = '#fff' }}>
-                    {TRAD_NOM_OFFICIEL[t.code] ?? t.label}
+                    {t.label}
                   </button>
                 ))}
               </div>
@@ -417,45 +424,50 @@ export default function TexteBible({
                 setVersetSelectionne(actif ? null : v)
               }}
               className={`verset-row${actif ? ' verset-row--actif' : ''}`}
-              style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '5px 6px', borderRadius: '4px', cursor: 'pointer', marginBottom: '4px', background: actif ? 'rgba(61,107,79,0.10)' : 'transparent' }}>
+              style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '3px 6px', borderRadius: '4px', cursor: 'pointer', marginBottom: '4px', background: 'transparent' }}>
 
-              {/* Numéro — colonne de largeur fixe, alignée à droite contre le texte */}
-              <span style={{ width: '34px', flexShrink: 0, textAlign: 'right', paddingRight: '8px', fontSize: '10px', fontWeight: 600, color: '#b0a89e', lineHeight: 1.40, paddingTop: '1px' }}>
-                {v.verset}
-                {v.chapitre_alternatif != null && (
-                  <span style={{ fontWeight: 400, fontStyle: 'italic', color: '#c0bab0' }}>
-                    {' '}({v.chapitre_alternatif}{v.verset_alternatif != null ? `,${v.verset_alternatif}` : ''})
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 500px) 38px', width: 'min(538px, 100%)', alignItems: 'flex-start' }}>
+                <div style={{ display:'grid', gridTemplateColumns:'20px minmax(0, 480px)', borderRadius:'5px', padding:'2px 4px 2px 1px', background: actif ? 'rgba(61,107,79,0.11)' : 'transparent' }}>
+                  {/* Numéro — inclus dans le bloc sélectionné */}
+                  <span style={{ width: '20px', textAlign: 'right', paddingRight: '5px', fontSize: '10px', fontWeight: 600, color: '#b0a89e', lineHeight: 1.40, paddingTop: '1px', boxSizing:'border-box' }}>
+                    {v.verset}
+                    {v.chapitre_alternatif != null && (
+                      <span style={{ fontWeight: 400, fontStyle: 'italic', color: '#c0bab0' }}>
+                        {' '}({v.chapitre_alternatif}{v.verset_alternatif != null ? `,${v.verset_alternatif}` : ''})
+                      </span>
+                    )}
                   </span>
-                )}
-              </span>
 
-              {/* Texte — largeur fixe, donc toujours centré dans le volet quel que soit ce qui l'entoure */}
-              <p style={{ fontSize: '0.84rem', lineHeight: 1.42, color: '#1e1a16', margin: 0, width: 'min(480px, calc(100% - 84px))', flexShrink: 0, textAlign: 'justify', wordSpacing: '-0.09em', letterSpacing: '-0.003em' }}>
-                {(overrides[v.id_verset]?.[traduction] ?? v[traduction])
-                  ? rendreTexteEnrichi((overrides[v.id_verset]?.[traduction] ?? v[traduction])!)
-                  : <span style={{ color:'#d6d0c4', fontStyle:'italic' }}>—</span>}
-              </p>
+                  {/* Texte — colonne fixe et stable, alignée quel que soit l'état des boutons */}
+                  <p style={{ fontSize: '0.84rem', lineHeight: 1.42, color: '#1e1a16', margin: 0, textAlign: 'justify', wordSpacing: '-0.09em', letterSpacing: '-0.003em' }}>
+                    {(overrides[v.id_verset]?.[traduction] ?? v[traduction])
+                      ? rendreTexteEnrichi(String(overrides[v.id_verset]?.[traduction] ?? v[traduction]))
+                      : <span style={{ color:'#d6d0c4', fontStyle:'italic' }}>—</span>}
+                  </p>
+                </div>
 
-              {/* Boutons d'action — colonne de largeur fixe identique à celle du numéro, le contenu peut légèrement déborder vers la droite */}
-              <div className="verset-actions" style={{ width: '34px', flexShrink: 0, paddingLeft: '8px', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '1px', overflow: 'visible' }}>
-                {userId && (
-                  <BoutonEnregistrer
-                    verset={v} nomLivre={nomLivre} livreActif={livreActif}
-                    chapitreActif={chapitreActif} traduction={traduction} userId={userId}
-                    dejaSauvegarde={sauvegardes.has(v.verset)}
-                    idPrelevement={sauvegardes.get(v.verset) ?? null}
-                    onSauvegarde={(id) => marquerSauvegarde(v.verset, id)}
-                    onSupprimer={() => retirerSauvegarde(v.verset)}
-                  />
-                )}
-                <BoutonCopie texte={`« ${convertirGuillemetsInternes((overrides[v.id_verset]?.[traduction] ?? v[traduction]) || '')} » (${nomLivre} ${chapitreActif},${v.verset})`} />
-                <BoutonSignaler versetId={v.id_verset} />
-                {estAdmin && !modeUtilisateurStandard && (
-                  <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
-                    style={{ background:'none', border:'none', cursor:'pointer', padding:'1px 3px', borderRadius:'3px', fontSize:'12px', lineHeight:1, flexShrink:0, transition:'color 0.15s', opacity:0, color:'#c8c0b4' }}>
-                    ✎
-                  </button>
-                )}
+                {/* Boutons d'action — hors du bloc sélectionné */}
+                <div className="verset-actions" style={{ width: '38px', paddingLeft: '8px', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '2px', overflow: 'visible' }}>
+                  {userId && (
+                    <BoutonEnregistrer
+                      verset={v} nomLivre={nomLivre} livreActif={livreActif}
+                      chapitreActif={chapitreActif} traduction={traduction} userId={userId}
+                      traductionLabel={traductionLabel}
+                      dejaSauvegarde={sauvegardes.has(v.verset)}
+                      idPrelevement={sauvegardes.get(v.verset) ?? null}
+                      onSauvegarde={(id) => marquerSauvegarde(v.verset, id)}
+                      onSupprimer={() => retirerSauvegarde(v.verset)}
+                    />
+                  )}
+                  <BoutonCopie texte={`« ${convertirGuillemetsInternes(String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? ''))} » (${nomLivre} ${chapitreActif},${v.verset})`} />
+                  <BoutonSignaler versetId={v.id_verset} />
+                  {estAdmin && !modeUtilisateurStandard && (
+                    <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
+                      style={{ ...VERSET_ACTION_BTN, opacity:0, color:'#c8c0b4' }}>
+                      ✎
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
             )
@@ -466,7 +478,8 @@ export default function TexteBible({
         <ModaleEditionVerset
           verset={editionCible}
           traduction={traduction}
-          valeurActuelle={overrides[editionCible.id_verset]?.[traduction] ?? editionCible[traduction]}
+          traductionLabel={traductionLabel}
+          valeurActuelle={String(overrides[editionCible.id_verset]?.[traduction] ?? editionCible[traduction] ?? '')}
           onClose={() => setEditionCible(null)}
           onEnregistre={(nouvelleValeur) => {
             setOverrides(prev => ({ ...prev, [editionCible.id_verset]: { ...prev[editionCible.id_verset], [traduction]: nouvelleValeur } }))

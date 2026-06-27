@@ -112,10 +112,16 @@ export default async function Home({
     .eq('chapitre', chapitre)
     .order('verset')
 
+  const { data: traductions } = await supabase
+    .from('traductions')
+    .select('trad_id, nom')
+    .order('ordre', { ascending: true })
+
   return (
     <BibleLayout
       livres={LIVRES}
       versets={versets || []}
+      traductions={(traductions || []).map(t => ({ code: t.trad_id, label: t.nom }))}
       livreActif={livre}
       chapitreActif={chapitre}
       nomLivre={NOMS_LIVRES[livre] || livre}

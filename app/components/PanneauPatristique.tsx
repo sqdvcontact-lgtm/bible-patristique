@@ -13,11 +13,26 @@ type Segment = {
   ref_niv3: string; fiabilite: string
 }
 type OeuvreInfo = {
-  titre: string; sous_titre?: string; auteur_nom: string
+  titre: string; sous_titre?: string; auteur_nom: string; id_auteur?: string
   trad_auteur: string | null; editeur: string | null
   collection?: string; ville: string | null; date_publication: string | null
 }
 type Commentaire = { id: number; texte: string; auteur_nom: string; created_at: string }
+
+function IconeSignet() {
+  return (
+    <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display:'block' }}>
+      <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+const ACTION_BTN: React.CSSProperties = {
+  background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
+  borderRadius:'3px', width:'16px', height:'16px', display:'inline-flex',
+  alignItems:'center', justifyContent:'center', fontSize:'12px',
+  lineHeight:1, flexShrink:0, transition:'color 0.15s',
+}
 
 // ── Détection admin fiable, via profils.est_admin du compte connecté ─────────
 // (le cookie bp_admin_session est HttpOnly, donc invisible et inutilisable
@@ -78,7 +93,7 @@ function BoutonCopieSegment({ texte, auteur, titre, trad_auteur, editeur, collec
   }
   return (
     <button onClick={handle} title="Copier ce segment"
-      style={{ background:'none', border:'none', cursor:'pointer', padding:'1px 3px', borderRadius:'3px', fontSize:'13px', lineHeight:1, flexShrink:0, transition:'color 0.15s', color: copie ? '#3d6b4f' : '#c8c0b4' }}>
+      style={{ ...ACTION_BTN, color: copie ? '#3d6b4f' : '#c8c0b4' }}>
       {copie ? '✓' : '⧉'}
     </button>
   )
@@ -122,15 +137,15 @@ function BoutonEnregistrerSegment({ segment, info, userId }: {
   if (idPrelev) {
     return (
       <button onClick={supprimer} disabled={loading} title="Retirer des prélèvements"
-        style={{ background:'none', border:'none', cursor:'pointer', padding:'1px 3px', borderRadius:'3px', fontSize:'13px', lineHeight:1, flexShrink:0, color:'#3d6b4f' }}>
+        style={{ ...ACTION_BTN, color:'#3d6b4f' }}>
         {loading ? '…' : '✕'}
       </button>
     )
   }
   return (
     <button onClick={enregistrer} disabled={loading} title="Enregistrer dans mes prélèvements"
-      style={{ background:'none', border:'none', cursor:'pointer', padding:'1px 3px', borderRadius:'3px', fontSize:'13px', lineHeight:1, flexShrink:0, color:'#c8c0b4' }}>
-      {loading ? '…' : '+'}
+      style={{ ...ACTION_BTN, color:'#c8c0b4' }}>
+      {loading ? '…' : <IconeSignet />}
     </button>
   )
 }
@@ -147,7 +162,7 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
     return (
       <button onClick={e => { e.stopPropagation(); setConfirme(true) }}
         title={`Supprimer ${colonneLien}`}
-        style={{ background:'none', border:'none', cursor:'pointer', padding:'0 3px', fontSize:'11px', color:'#d6d0c4', lineHeight:1, flexShrink:0, transition:'color 0.15s' }}>
+        style={{ ...ACTION_BTN, fontSize:'16px', color:'#c8c0b4' }}>
         ×
       </button>
     )
@@ -232,14 +247,20 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignal
   const badge = BADGE[typeLien]
 
   return (
-    <div style={{ paddingTop:'10px', paddingBottom:'4px', borderBottom:'1px solid #ede9e2' }}>
+    <div style={{ paddingTop:'7px', paddingBottom:'4px', borderBottom:'1px solid #ede9e2' }}>
 
-      {/* Ligne 1 : auteur (gauche) + badge type de citation et boutons (droite) */}
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1px' }}>
-        <p style={{ fontSize:'11px', fontWeight:600, color:'#3d6b4f', margin:0, lineHeight:1.3 }}>
-          {info?.auteur_nom || s.id_oeuvre}
-        </p>
-        <div style={{ display:'flex', gap:'4px', alignItems:'center', flexShrink:0 }}>
+      {/* Ligne 1 : auteur + titre (gauche), badge puis actions juste dessous (droite) */}
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:0 }}>
+        <div style={{ minWidth:0, paddingTop:'1px' }}>
+          <a href={`/oeuvre/${s.id_oeuvre}#s${s.segment_numero}`} target="_blank" rel="noopener noreferrer"
+            style={{ display:'block', fontSize:'11px', fontWeight:600, color:'#3d6b4f', margin:0, lineHeight:1.18, textDecoration:'none' }}>
+            {info?.auteur_nom || s.id_oeuvre}
+          </a>
+          <p style={{ fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:0, lineHeight:1.18 }}>
+            {info?.titre || ''}
+          </p>
+        </div>
+        <div style={{ display:'flex', flexDirection:'column', gap:'4px', alignItems:'flex-end', flexShrink:0 }}>
           <span style={{
             fontSize:'9px', fontStyle:'italic', whiteSpace:'nowrap',
             border:`1px solid ${badge.bordure}`,
@@ -248,7 +269,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignal
           }}>
             {badge.label}
           </span>
-          <div style={{ display:'flex', gap:'1px', alignItems:'center' }}>
+          <div style={{ display:'flex', gap:'1px', alignItems:'center', justifyContent:'flex-end' }}>
             <BoutonEnregistrerSegment segment={s} info={info} userId={userId} />
             <BoutonCopieSegment
               texte={s.segment_texte} auteur={info?.auteur_nom || s.id_oeuvre} titre={info?.titre || ''}
@@ -256,7 +277,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignal
               collection={info?.collection} ville={info?.ville ?? undefined} date_publication={info?.date_publication ?? undefined}
             />
             <button onClick={e => { e.stopPropagation(); onSignaler(s) }} title="Signaler une erreur"
-              style={{ background:'none', border:'none', cursor:'pointer', padding:'1px 3px', borderRadius:'3px', fontSize:'13px', lineHeight:1, flexShrink:0, color:'#c8c0b4' }}>
+              style={{ ...ACTION_BTN, color:'#c8c0b4' }}>
               ⚑
             </button>
             <BoutonSupprimerLien
@@ -267,13 +288,8 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignal
         </div>
       </div>
 
-      {/* Ligne 3 : titre de l'oeuvre */}
-      <p style={{ fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:'0 0 1px' }}>
-        {info?.titre || ''}
-      </p>
-
       {/* Ligne 4 : niveaux de référence */}
-      <div style={{ display:'flex', alignItems:'baseline', gap:'5px', marginBottom:'5px', flexWrap:'wrap' }}>
+      <div style={{ display:'flex', alignItems:'baseline', gap:'5px', marginTop:'1px', marginBottom:'4px', flexWrap:'wrap' }}>
         {niveaux && (
           <span style={{ fontSize:'10px', color:'#b0a89e' }}>
             {niveaux}
@@ -282,17 +298,9 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignal
       </div>
 
       {/* Texte du segment */}
-      <p style={{ fontSize:'11.5px', lineHeight:'1.45', color:'#2a2520', textAlign:'justify', margin:'0 0 1px' }}>
+      <p lang="fr" style={{ fontSize:'11.2px', lineHeight:'1.38', color:'#2a2520', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
         {s.segment_texte}
       </p>
-
-      {/* Lien vers l'oeuvre */}
-      <div style={{ textAlign:'right', lineHeight:1 }}>
-        <a href={`/oeuvre/${s.id_oeuvre}#s${s.segment_numero}`} target="_blank" rel="noopener noreferrer"
-          style={{ fontSize:'10px', color:'#b0a89e', textDecoration:'none' }}>
-          ↗
-        </a>
-      </div>
     </div>
   )
 }
@@ -377,8 +385,6 @@ function BarreMiseEnForme({ onInserer, onEntourer }: {
         <span style={{ width: '1px', background: '#e4dfd8' }} />
         <button type="button" onClick={() => onInserer('\u00A0')} title="Espace insécable"
           style={{ fontSize: '9px', padding: '3px 7px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>Esp. ins.</button>
-        <button type="button" onClick={() => onInserer('\u202F')} title="Espace fine insécable"
-          style={{ fontSize: '9px', padding: '3px 7px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>Esp. fine</button>
         <button type="button" onClick={() => onEntourer('«\u202F', '\u202F»')} title="Guillemets français"
           style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>« »</button>
         <button type="button" onClick={() => onEntourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)"
@@ -484,8 +490,21 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
 
   // Fil structuré : commentaires principaux (chronologique), chacun suivi de
   // ses réponses directes (chronologique aussi) — un seul niveau, pas d'arborescence.
-  const principaux = commentaires.filter(c => !c.reponse_a)
-  const reponsesDe = (id: number) => commentaires.filter(c => c.reponse_a === id)
+  const aDesReponses = (id: number) => commentaires.some(c => c.reponse_a === id)
+  const commentaireVisible = (c: Commentaire2) => !c.supprime || !!c.reponse_a || aDesReponses(c.id)
+  const trierCommentaires = (liste: Commentaire2[]) => [...liste]
+    .filter(commentaireVisible)
+    .sort((a, b) => {
+      if (a.valide !== b.valide) return a.valide ? -1 : 1
+      if (a.valide && b.valide) {
+        const scoreA = a.nbLikes - a.nbDislikes
+        const scoreB = b.nbLikes - b.nbDislikes
+        if (scoreA !== scoreB) return scoreB - scoreA
+      }
+      return +new Date(a.created_at) - +new Date(b.created_at)
+    })
+  const principaux = trierCommentaires(commentaires.filter(c => !c.reponse_a))
+  const reponsesDe = (id: number) => trierCommentaires(commentaires.filter(c => c.reponse_a === id))
 
   const basculerVote = async (c: { id: number; monVote: 1 | -1 | null }, valeur: 1 | -1) => {
     if (!userId) { alert('Connectez-vous pour réagir à un commentaire.'); return }
@@ -561,7 +580,7 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
   }
 
   const renderCommentaire = (c: Commentaire2, estReponse: boolean) => {
-    const cache = !c.valide && !revelees.has(c.id)
+    const cache = !c.supprime && !c.valide && !revelees.has(c.id)
     if (cache) {
       return (
         <div key={c.id} style={{ marginLeft: estReponse ? '16px' : 0, marginBottom:'8px' }}>
@@ -576,7 +595,7 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
     const rangInfo = c.score !== null ? calculerRang(c.score) : null
     const couleurs = rangInfo ? couleurRang(rangInfo.rang) : null
     return (
-      <div key={c.id} style={{ marginLeft: estReponse ? '16px' : 0, marginBottom:'8px', padding:'7px 9px', background: c.valide ? '#f0ede7' : 'rgba(176,58,42,0.05)', borderTop: estReponse ? '1px solid #e4dfd8' : c.valide ? 'none' : '1px solid rgba(176,58,42,0.18)', borderRight: estReponse ? '1px solid #e4dfd8' : c.valide ? 'none' : '1px solid rgba(176,58,42,0.18)', borderBottom: estReponse ? '1px solid #e4dfd8' : c.valide ? 'none' : '1px solid rgba(176,58,42,0.18)', borderLeft: estReponse ? '2px solid #c8c0b4' : c.valide ? 'none' : '1px solid rgba(176,58,42,0.18)', borderRadius:'5px' }}>
+      <div key={c.id} style={{ marginLeft: estReponse ? '16px' : 0, marginBottom:'8px', padding:'8px 10px', background: c.valide ? 'rgba(122,90,158,0.08)' : '#fff', border:'1px solid ' + (c.valide ? 'rgba(122,90,158,0.22)' : 'rgba(176,58,42,0.18)'), borderLeft: estReponse ? '2px solid #c8c0b4' : c.valide ? '3px solid #7a5a9e' : '1px solid rgba(176,58,42,0.18)', borderRadius:'6px' }}>
         {c.supprime ? (
           <p style={{ fontSize:'10.5px', color:'#9a958d', fontStyle:'italic', margin:0 }}>
             {c.pseudo ?? c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
@@ -587,7 +606,7 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
           <p style={{ fontSize:'9px', color:'#b0392b', margin:'0 0 4px', fontWeight:600, letterSpacing:'0.02em' }}>NON CONTRÔLÉ</p>
         )}
         {c.demande_validation && (
-          <p style={{ fontSize:'9px', color:'#7a5a9e', margin:'0 0 4px', fontWeight:600, letterSpacing:'0.02em' }}>RÉFÉRENCE SOUMISE À VALIDATION</p>
+          <p style={{ fontSize:'9px', color:'#7a5a9e', margin:'0 0 4px', fontWeight:600, letterSpacing:'0.02em' }}>DEMANDE DE CERTIFICATION</p>
         )}
         {/* Ligne 1 : pseudo + rang */}
         <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px' }}>
@@ -599,7 +618,7 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
           )}
         </div>
         {/* Ligne 2 : texte (gras/italique/liens interprétés, sauts de ligne respectés) */}
-        <p style={{ fontSize:'10.5px', lineHeight:'1.5', color: c.valide ? '#2a2520' : '#8a4a40', margin:0, whiteSpace:'pre-line' }}>{rendreTexteEnrichi(c.texte)}</p>
+        <p style={{ fontSize:'11px', lineHeight:'1.5', color: c.valide ? '#2a2520' : '#8a4a40', margin:0, whiteSpace:'pre-line' }}>{rendreTexteEnrichi(c.texte)}</p>
         {/* Ligne 3 : date + votes (négatif puis positif) + actions */}
         <div style={{ display:'flex', alignItems:'center', gap:'7px', marginTop:'4px', flexWrap:'wrap' }}>
           <span style={{ fontSize:'9.5px', color:'#b0a89e' }}>{new Date(c.created_at).toLocaleDateString('fr-FR')}</span>
@@ -674,6 +693,12 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
         <BarreMiseEnForme onEntourer={entourer} onInserer={inserer} />
         <textarea ref={taRef} value={texte} onChange={e => setTexte(e.target.value)} placeholder={cibleReponse ? 'Votre réponse…' : 'Votre commentaire…'} rows={3}
           style={{ width:'100%', fontSize:'10.5px', padding:'5px 7px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#faf8f4', color:'#2a2520', resize:'vertical', outline:'none', boxSizing:'border-box', lineHeight:'1.45' }} />
+        {texte.trim() && (
+          <div style={{ border:'1px solid #e4dfd8', borderRadius:'5px', background:'#fff', padding:'7px 9px' }}>
+            <p style={{ fontSize:'9px', color:'#9a958d', margin:'0 0 4px', textTransform:'uppercase', letterSpacing:'0.06em' }}>Aperçu</p>
+            <div style={{ fontSize:'11px', lineHeight:1.5, color:'#2a2520', whiteSpace:'pre-line' }}>{rendreTexteEnrichi(texte)}</div>
+          </div>
+        )}
         {!userId && (
           <>
             <input type="text" value={nom} onChange={e => setNom(e.target.value)} placeholder="Nom *"
@@ -687,7 +712,7 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
         <label style={{ display:'flex', alignItems:'flex-start', gap:'6px', fontSize:'9.5px', color:'#6b6560', cursor:'pointer', lineHeight:1.4 }}>
           <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
             style={{ marginTop:'2px', flexShrink:0, accentColor:'#7a5a9e', cursor:'pointer' }} />
-          <span>Soumettre une référence à validation — proposer officiellement ce commentaire pour certification par l'administration.</span>
+          <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demande de certification</span>
         </label>
         <button onClick={envoyer} disabled={envoi}
           style={{ alignSelf:'flex-end', fontSize:'10px', padding:'4px 12px', borderRadius:'4px', border:'none', background:'#3d6b4f', color:'#fff', cursor:'pointer', fontWeight:500 }}>
@@ -765,6 +790,7 @@ export default function PanneauPatristique({
           map[o.id_oeuvre] = {
             titre: o.titre || o.id_oeuvre,
             sous_titre: o.sous_titre || undefined,
+            id_auteur: o.id_auteur || undefined,
             auteur_nom: am[o.id_auteur] || '',
             trad_auteur: o.trad_auteur || null,
             editeur: o.editeur || null,
@@ -820,7 +846,7 @@ export default function PanneauPatristique({
     filtre === 'doctrine' ? itemsDoctrine :
     [...itemsCitations, ...itemsDoctrine, ...itemsEcho]
 
-  const refFr = verset ? `${nomLivre} ${chapitreActif},${verset.verset}` : null
+  const refFr = verset ? `${nomLivre} ${chapitreActif}, ${verset.verset}` : null
 
   if (!ouvert) {
     return (
@@ -836,9 +862,13 @@ export default function PanneauPatristique({
 
       {/* En-tête */}
       <div style={{ padding:'10px 14px', borderBottom:'1px solid #d6d0c4', display:'flex', justifyContent:'space-between', alignItems:'center', gap:'6px' }}>
-        <h2 style={{ fontSize:'12px', fontWeight:600, color:'#2a3d30', margin:0 }}>Tradition patristique</h2>
+        <div style={{ minWidth:0 }}>
+          <h2 style={{ fontFamily:"Georgia, 'Times New Roman', serif", fontSize:'13px', fontWeight:500, color:'#2a3d30', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+            {refFr ?? 'Patristique'}
+          </h2>
+          <p style={{ fontSize:'9px', color:'#9a958d', margin:'2px 0 0', letterSpacing:'0.05em', textTransform:'uppercase' }}>Textes associés</p>
+        </div>
         <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
-          {refFr && <span style={{ fontSize:'10.5px', color:'#9a958d', fontWeight:500 }}>{refFr}</span>}
           <button onClick={() => setOuvert(false)} title="Fermer ce volet"
             style={{ fontSize:'11px', color:'#b0a89e', background:'none', border:'none', cursor:'pointer', padding:'2px' }}>✕</button>
         </div>

@@ -6,6 +6,14 @@ import type { VRef } from './oeuvreTypes'
 import { BTN_STYLE } from './BoutonsSegment'
 import ModalSignalement from './ModalSignalement'
 
+function IconeSignet() {
+  return (
+    <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display:'block' }}>
+      <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
 // Si le texte cité contient déjà des guillemets français, on les convertit
 // en guillemets anglais pour ne pas doubler les guillemets français.
 function convertirGuillemetsInternes(texte: string): string {
@@ -62,7 +70,7 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
 
   return (
     <button onClick={enregistrer} disabled={loading} title="Enregistrer dans mes prélèvements" style={{ ...BTN_STYLE, color:'#c8c0b4' }}>
-      {loading ? '…' : '+'}
+      {loading ? '…' : <IconeSignet />}
     </button>
   )
 }

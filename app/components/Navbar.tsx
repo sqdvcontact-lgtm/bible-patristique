@@ -93,7 +93,7 @@ export default function Navbar() {
   const fermerRechercheRapide = () => { setRechercheOuverte(false); setRequeteRapide(""); setMobileOuvert(false); };
   const validerRechercheRapide = () => {
     if (!requeteRapide.trim()) return;
-    router.push(`/recherche?q=${encodeURIComponent(requeteRapide.trim())}`);
+    router.push(`/recherche?q=${encodeURIComponent(requeteRapide.trim())}&mode=prefixe`);
     fermerRechercheRapide();
   };
 
@@ -223,11 +223,12 @@ export default function Navbar() {
         onClick={() => setModeUtilisateurStandard(!modeUtilisateurStandard)}
         title="Affichage seulement — vos droits réels ne changent pas"
         style={{
-          width: "28px", height: "16px", borderRadius: "9px", border: "none", cursor: "pointer", padding: 0, flexShrink: 0,
-          background: modeUtilisateurStandard ? "#3d6b4f" : "rgba(255,255,255,0.25)",
-          position: "relative", transition: "background 0.15s",
+          width: "30px", height: "17px", borderRadius: "999px", border: modeUtilisateurStandard ? "1px solid #7fb08e" : "1px solid rgba(255,255,255,0.72)", cursor: "pointer", padding: 0, flexShrink: 0,
+          background: modeUtilisateurStandard ? "#3d6b4f" : "#f7f4ef",
+          boxShadow: modeUtilisateurStandard ? "0 0 0 1px rgba(61,107,79,0.35)" : "0 0 0 1px rgba(0,0,0,0.18)",
+          position: "relative", transition: "background 0.15s, border-color 0.15s",
         }}>
-        <span style={{ position: "absolute", top: "2px", left: modeUtilisateurStandard ? "14px" : "2px", width: "12px", height: "12px", borderRadius: "50%", background: "#fff", transition: "left 0.15s" }} />
+        <span style={{ position: "absolute", top: "2px", left: modeUtilisateurStandard ? "14px" : "2px", width: "11px", height: "11px", borderRadius: "50%", background: modeUtilisateurStandard ? "#fff" : "#3d6b4f", transition: "left 0.15s, background 0.15s" }} />
       </button>
       <span>Mode admin</span>
     </div>
@@ -243,7 +244,7 @@ export default function Navbar() {
           <span style={{ fontSize: "9px", opacity: 0.6 }}>▼</span>
         </button>
       )}
-      <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "8px", overflow: "hidden" } : { position: "absolute", top: "calc(100% + 6px)", right: 0, background: "#fff", border: "1px solid #d6d0c4", borderRadius: "8px", boxShadow: "0 6px 24px rgba(0,0,0,0.10)", minWidth: "190px", zIndex: 100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
+      <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "8px", overflow: "hidden" } : { position: "absolute", top: "calc(100% + 6px)", right: 0, background: "#fff", border: "1px solid #d6d0c4", borderRadius: "8px", boxShadow: "0 6px 24px rgba(0,0,0,0.10)", minWidth: "190px", zIndex: 3100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
         {!mobile && (
           <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid #ede9e2" }}>
             <p style={{ fontSize: "10.5px", color: "#9a958d", margin: 0 }}>Connecté en tant que</p>
@@ -268,7 +269,7 @@ export default function Navbar() {
           Se déconnecter
         </button>
       </div>
-      {!mobile && menuOuvert && <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => setMenuOuvert(false)} />}
+      {!mobile && menuOuvert && <div style={{ position: "fixed", inset: 0, zIndex: 3090 }} onClick={() => setMenuOuvert(false)} />}
     </div>
   ) : (
     <Link href="/compte" onClick={() => setMobileOuvert(false)} style={mobile
@@ -280,8 +281,8 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 border-b"
-        style={{ background: "#3d6b4f", borderColor: "rgba(255,255,255,0.10)" }}>
+      <header className="fixed top-0 left-0 right-0 border-b"
+        style={{ background: "#3d6b4f", borderColor: "rgba(255,255,255,0.10)", zIndex: 3000 }}>
         <div className="max-w-screen-xl mx-auto w-full px-6 flex items-center gap-6" style={{ height: "48px" }}>
 
           <Link href="/accueil" className="flex items-center gap-2 shrink-0"

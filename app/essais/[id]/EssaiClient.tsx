@@ -25,8 +25,16 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   const dateAffichee = essai.publie_at ?? essai.created_at
 
   useEffect(() => {
-    supabase.rpc('incrementer_vues_essai', { p_id: essai.id })
-    setNbVues(v => v + 1)
+    fetch('/api/essais/incrementer-vue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: essai.id }),
+    })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (typeof data?.nb_vues === 'number') setNbVues(data.nb_vues)
+      })
+      .catch(() => {})
   }, [essai.id])
 
   useEffect(() => {
@@ -91,18 +99,13 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           <p style={{ fontSize: '11px', letterSpacing: '0.06em', color: '#b0a89e' }}>
             {new Date(dateAffichee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
-          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '16px' }}>
-            {essai.categories.map(c => (
-              <span key={c} style={{ fontSize: '10px', color: '#3d6b4f', background: 'rgba(61,107,79,0.08)', padding: '2px 9px', borderRadius: '10px', fontWeight: 600, letterSpacing: '0.02em' }}>{c}</span>
-            ))}
-          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '11.5px', color: '#9a958d', marginBottom: '32px' }}>
           <span>{nbVues} vue{nbVues > 1 ? 's' : ''}</span>
-          <button onClick={toggleApprecier} disabled={!userId}
-            style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', color: aApprecie ? '#3d6b4f' : '#9a958d', background: 'none', border: 'none', cursor: userId ? 'pointer' : 'default' }}>
-            <svg width="13" height="13" viewBox="0 0 12 12" fill={aApprecie ? 'currentColor' : 'none'}>
+          <button onClick={toggleApprecier} disabled={!userId} aria-label={`${nbAppreciations} appreciation${nbAppreciations > 1 ? 's' : ''}`}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', color: aApprecie ? '#3d6b4f' : '#9a958d', background: 'none', border: 'none', padding: 0, cursor: userId ? 'pointer' : 'default' }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill={aApprecie ? 'currentColor' : 'none'} aria-hidden="true">
               <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z" stroke="currentColor" strokeWidth="1"/>
             </svg>
             {nbAppreciations}

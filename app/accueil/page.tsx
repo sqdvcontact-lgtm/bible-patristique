@@ -11,15 +11,14 @@ export default function AccueilPage() {
     <>
       {/* ── Première page : hero + cartes, inchangé ──────────────────────── */}
       <main style={{
-        height: "calc(100vh - 48px)",
+        minHeight: "calc(100vh - 48px)",
         background: "#f7f4ef",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "0 24px",
-        overflow: "hidden",
-        position: "relative",
+        padding: "48px 24px 28px",
+        overflow: "visible",
       }}>
         <header style={{ textAlign: "center", marginBottom: "40px" }}>
           <p style={{
@@ -55,7 +54,7 @@ export default function AccueilPage() {
 
         {/* Indice de défilement, discret, vers la présentation du projet */}
         <a href="#apropos" aria-label="En savoir plus sur le projet" style={{
-          position: "absolute", bottom: "16px", left: "50%", transform: "translateX(-50%)",
+          marginTop: "22px",
           display: "flex", flexDirection: "column", alignItems: "center", gap: "3px",
           color: "#9a958d", textDecoration: "none", fontSize: "10.5px", letterSpacing: "0.04em",
         }}>

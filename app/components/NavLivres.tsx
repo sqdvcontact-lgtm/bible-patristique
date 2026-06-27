@@ -85,7 +85,7 @@ const ABREV_TO_CODE: Record<string, string> = {
 }
 
 type Livre = { code: string; nom: string; testament: string }
-type Traduction = { code: 'TR0001' | 'TR0002' | 'TR0003' | 'TR0004'; label: string }
+type Traduction = { code: string; label: string }
 
 type Props = {
   livres: Livre[]

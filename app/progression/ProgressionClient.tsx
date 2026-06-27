@@ -206,6 +206,24 @@ export default function ProgressionClient() {
 
   // Charger session + nb versets par livre + livres déjà lus
   useEffect(() => {
+    const chargerProgression = async (proprietaire: string | null) => {
+      if (!proprietaire) {
+        setLus(new Set())
+        return
+      }
+      const { data: progData } = await supabase
+        .from('progression_lecture')
+        .select('livre_code')
+        .eq('user_id', proprietaire)
+      setLus(new Set((progData ?? []).map((p: any) => p.livre_code)))
+    }
+
+    const { data: abonnement } = supabase.auth.onAuthStateChange((_event, session) => {
+      const prochainUid = session?.user.id ?? null
+      setUserId(prochainUid)
+      void chargerProgression(prochainUid)
+    });
+
     (async () => {
       const { data: session } = await supabase.auth.getSession()
       const uid = session.session?.user.id ?? null
@@ -223,17 +241,12 @@ export default function ProgressionClient() {
       }))
       setLivres(infos)
 
-      // Charger les livres déjà marqués comme lus
-      if (uid) {
-        const { data: progData } = await supabase
-          .from('progression_lecture')
-          .select('livre_code')
-          .eq('user_id', uid)
-        setLus(new Set((progData ?? []).map((p: any) => p.livre_code)))
-      }
+      await chargerProgression(uid)
 
       setChargement(false)
     })()
+
+    return () => abonnement.subscription.unsubscribe()
   }, [])
 
   const toggleLivre = useCallback(async (code: string, e: React.MouseEvent) => {
@@ -250,7 +263,16 @@ export default function ProgressionClient() {
       // Mise à jour immédiate (optimiste) : la case et les barres de
       // progression réagissent au clic sans attendre la réponse réseau.
       setLus(prev => new Set([...prev, code]))
-      const { error } = await supabase.from('progression_lecture').insert({ user_id: userId, livre_code: code })
+      let { error } = await supabase
+        .from('progression_lecture')
+        .upsert({ user_id: userId, livre_code: code }, { onConflict: 'user_id,livre_code' })
+      if (error) {
+        const { error: deleteError } = await supabase.from('progression_lecture').delete().eq('user_id', userId).eq('livre_code', code)
+        const { error: insertError } = deleteError
+          ? { error: deleteError }
+          : await supabase.from('progression_lecture').insert({ user_id: userId, livre_code: code })
+        error = insertError
+      }
       if (error) {
         // L'enregistrement a échoué : on annule la mise à jour optimiste.
         setLus(prev => { const n = new Set(prev); n.delete(code); return n })

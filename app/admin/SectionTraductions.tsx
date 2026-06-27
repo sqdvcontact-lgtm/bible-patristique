@@ -7,6 +7,42 @@ import type { Traduction } from './adminTypes'
 const labelStyle: React.CSSProperties = { fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em', color: '#9a958d', display: 'block', marginBottom: '4px' }
 
 // ── Éditeur rich-text ────────────────────────────────────────────────────────
+function parseCSV(texte: string): string[][] {
+  const lignes: string[][] = []
+  let ligne: string[] = []
+  let champ = ''
+  let dansGuillemets = false
+
+  for (let i = 0; i < texte.length; i++) {
+    const c = texte[i]
+    const suivant = texte[i + 1]
+
+    if (c === '"') {
+      if (dansGuillemets && suivant === '"') {
+        champ += '"'
+        i++
+      } else {
+        dansGuillemets = !dansGuillemets
+      }
+    } else if (c === ',' && !dansGuillemets) {
+      ligne.push(champ)
+      champ = ''
+    } else if ((c === '\n' || c === '\r') && !dansGuillemets) {
+      if (c === '\r' && suivant === '\n') i++
+      ligne.push(champ)
+      if (ligne.some(v => v.trim() !== '')) lignes.push(ligne)
+      ligne = []
+      champ = ''
+    } else {
+      champ += c
+    }
+  }
+
+  ligne.push(champ)
+  if (ligne.some(v => v.trim() !== '')) lignes.push(ligne)
+  return lignes
+}
+
 function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: string) => void }) {
   const ref = React.useRef<HTMLTextAreaElement>(null)
 
@@ -120,14 +156,13 @@ export default function SectionTraductions({ traductions: init }: { traductions:
   const handleCSV = async (fichier: File) => {
     setCsvNom(fichier.name)
     const texte = await fichier.text()
-    const lignesCSV = texte.trim().split('\n')
-    const entetes = lignesCSV[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''))
+    const lignesCSV = parseCSV(texte)
+    const entetes = (lignesCSV[0] ?? []).map(h => h.trim())
     const idxId = entetes.findIndex(h => h === 'id_verset')
     const idxTexte = entetes.findIndex(h => h !== 'id_verset')
     if (idxId === -1) { setImportMsg('Colonne id_verset manquante.'); return }
     const parsed = lignesCSV.slice(1).map(l => {
-      const cols = l.split(',').map(c => c.trim().replace(/^"|"$/g, ''))
-      return { id_verset: cols[idxId], texte: cols[idxTexte] ?? '' }
+      return { id_verset: (l[idxId] ?? '').trim(), texte: l[idxTexte] ?? '' }
     }).filter(r => r.id_verset)
     setCsvLignes(parsed)
     setImportMsg(`${parsed.length} versets chargés.`)
@@ -147,7 +182,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
       const json = await res.json()
       if (!res.ok) { setImportStatut('err'); setImportMsg(json.error ?? 'Erreur.'); return }
       setImportStatut('ok')
-      setImportMsg(`✓ Traduction ${json.trad_id} créée — ${json.inseres} versets importés.`)
+      setImportMsg(`✓ Traduction ${json.trad_id} créée — ${json.inseres} versets importés${json.ignores ? `, ${json.ignores} ignorés` : ''}.`)
       const { data } = await supabase.from('traductions').select('*').order('ordre')
       setLignes(data ?? [])
       setAjout(false)
@@ -155,9 +190,9 @@ export default function SectionTraductions({ traductions: init }: { traductions:
       setCsvLignes([])
       setCsvNom('')
       setTimeout(() => { setImportStatut('idle'); setImportMsg('') }, 4000)
-    } catch (e: any) {
+    } catch (e: unknown) {
       setImportStatut('err')
-      setImportMsg(e.message ?? 'Erreur réseau.')
+      setImportMsg(e instanceof Error ? e.message : 'Erreur réseau.')
     }
   }
 

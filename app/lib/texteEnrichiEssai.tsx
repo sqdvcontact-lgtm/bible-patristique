@@ -37,10 +37,10 @@ function rendreInline(s: string, cleNote: { n: number }, options: RenduOptions):
       const lettre = lettreDepuisIndex(cleNote.n)
       const texteNote = m[4]
       noeuds.push(
-        <sup key={k++}>
+        <sup key={k++} style={{ marginLeft: '0.08em' }}>
           <button onClick={() => options.onOuvrirPanneau?.({ type: 'note', texte: texteNote })}
             style={{ color: '#3d6b4f', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: '0.78em', fontWeight: 600 }}>
-            [{lettre}]
+            {lettre}
           </button>
         </sup>
       )
@@ -78,7 +78,7 @@ export function rendreEssai(texte: string, options: RenduOptions = {}): React.Re
       if (i > 0) contenuLignes.push(<br key={`br-${blocs.length}-${i}`} />)
       contenuLignes.push(...rendreInline(ligne, cleNote, options))
     })
-    blocs.push(<p key={blocs.length} style={{ margin: '0 0 1.15em', lineHeight: 1.78, wordSpacing: '-0.06em', letterSpacing: '-0.005em', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>{contenuLignes}</p>)
+    blocs.push(<p key={blocs.length} style={{ margin: '0 0 1mm', lineHeight: 1.5, wordSpacing: '-0.09em', letterSpacing: '-0.006em', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>{contenuLignes}</p>)
     paragraphe = []
   }
 
@@ -88,18 +88,18 @@ export function rendreEssai(texte: string, options: RenduOptions = {}): React.Re
     if (espace) { flush(); blocs.push(<div key={blocs.length} style={{ height: `${espace[1]}mm` }} />); return }
     if (ligne.startsWith('> ')) {
       flush()
-      blocs.push(<blockquote key={blocs.length} style={{ fontStyle: 'italic', fontSize: '0.93em', fontFamily: "'Helvetica Neue', Arial, sans-serif", color: '#3a3530', marginLeft: '8mm', marginTop: '2mm', marginBottom: '2mm', lineHeight: 1.7 }}>{rendreInline(ligne.slice(2), cleNote, options)}</blockquote>)
+      blocs.push(<blockquote key={blocs.length} style={{ fontStyle: 'normal', fontSize: '0.93em', fontFamily: "'Helvetica Neue', Arial, sans-serif", color: '#3a3530', marginLeft: '8mm', marginTop: '1mm', marginBottom: '1mm', lineHeight: 1.5, wordSpacing: '-0.09em', letterSpacing: '-0.006em' }}>{rendreInline(ligne.slice(2), cleNote, options)}</blockquote>)
       return
     }
     if (ligne.startsWith('## ')) {
       flush()
-      blocs.push(<h3 key={blocs.length} style={{ fontStyle: 'italic', fontWeight: 400, fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '1em', color: '#2a3d30', marginTop: '5mm', marginBottom: '1mm' }}>{rendreInline(ligne.slice(3), cleNote, options)}</h3>)
+      blocs.push(<h3 key={blocs.length} style={{ fontStyle: 'italic', fontWeight: 400, fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '1em', color: '#2a3d30', marginTop: '3mm', marginBottom: '1mm' }}>{rendreInline(ligne.slice(3), cleNote, options)}</h3>)
       return
     }
     if (ligne.startsWith('# ')) {
       flush()
       const id = `essai-h-${indexH1++}`
-      blocs.push(<h2 id={id} key={blocs.length} style={{ fontWeight: 700, fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '1.07em', color: '#1e2e24', marginTop: '7mm', marginBottom: '2mm', scrollMarginTop: '60px' }}>{rendreInline(ligne.slice(2), cleNote, options)}</h2>)
+      blocs.push(<h2 id={id} key={blocs.length} style={{ fontWeight: 700, fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '1.07em', color: '#1e2e24', marginTop: '5mm', marginBottom: '2mm', scrollMarginTop: '60px' }}>{rendreInline(ligne.slice(2), cleNote, options)}</h2>)
       return
     }
     paragraphe.push(ligne)

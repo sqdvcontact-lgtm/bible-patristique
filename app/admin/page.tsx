@@ -117,6 +117,15 @@ export default async function AdminPage() {
   profilsEssais?.forEach(p => { pseudoMap[p.id] = p.pseudo })
   const essaisEnAttente = (essaisRaw ?? []).map(e => ({ ...e, auteur_pseudo: pseudoMap[e.user_id] ?? null }))
 
+  const { data: essaisModificationRaw } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, user_id').eq('statut', 'a_reviser').order('created_at', { ascending: false })
+  const idsAuteursModification = [...new Set((essaisModificationRaw ?? []).map(e => e.user_id))]
+  const { data: profilsModification } = idsAuteursModification.length > 0
+    ? await supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursModification)
+    : { data: [] }
+  const pseudoMapModification: Record<string, string> = {}
+  profilsModification?.forEach(p => { pseudoMapModification[p.id] = p.pseudo })
+  const essaisModification = (essaisModificationRaw ?? []).map(e => ({ ...e, auteur_pseudo: pseudoMapModification[e.user_id] ?? null }))
+
   const { data: essaisPubliesRaw } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, created_at, user_id, afficher_nom_reel').eq('statut', 'publie').order('titre', { ascending: true })
   const idsAuteursPublies = [...new Set((essaisPubliesRaw ?? []).map(e => e.user_id))]
   const { data: profilsPublies } = idsAuteursPublies.length > 0
@@ -143,6 +152,7 @@ export default async function AdminPage() {
       signalements={signalements ?? []}
       demandesCertification={demandesCertification ?? []}
       essaisEnAttente={essaisEnAttente}
+      essaisModification={essaisModification}
       essaisPublies={essaisPublies}
       versetMap={versetMap}
       segMap={segMap}

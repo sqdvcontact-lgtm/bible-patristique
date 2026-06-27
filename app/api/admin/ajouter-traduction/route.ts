@@ -7,6 +7,19 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+type LigneTraduction = { id_verset: string; texte: string }
+
+const attendre = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+async function rechargerCacheSchema() {
+  await supabaseAdmin.rpc('exec_sql', { sql: `NOTIFY pgrst, 'reload schema';` })
+  await attendre(750)
+}
+
+function sqlLiteral(valeur: string) {
+  return `'${valeur.replace(/'/g, "''")}'`
+}
+
 export async function POST(req: Request) {
   if (!(await estAdmin())) {
     return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
@@ -54,22 +67,42 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: `Impossible de créer la colonne : ${colErr.message}` }, { status: 500 })
       }
     }
+    await rechargerCacheSchema()
 
     // 3. Insérer les versets par batch de 500
     let inseres = 0
+    let ignores = 0
     for (let i = 0; i < lignes.length; i += 500) {
       const batch = lignes.slice(i, i + 500)
-      const payload = batch.map((l: { id_verset: string; texte: string }) => ({
-        id_verset: l.id_verset,
-        [trad_id]: l.texte,
-      }))
-      const { error: upsertErr } = await supabaseAdmin
+      const ids = batch.map((l: LigneTraduction) => l.id_verset)
+      const { data: versetsExistants, error: existErr } = await supabaseAdmin
         .from('versets')
-        .upsert(payload, { onConflict: 'id_verset', ignoreDuplicates: false })
-      if (upsertErr) {
-        return NextResponse.json({ error: `Erreur upsert : ${upsertErr.message}` }, { status: 500 })
+        .select('id_verset')
+        .in('id_verset', ids)
+      if (existErr) {
+        return NextResponse.json({ error: `Erreur vérification versets : ${existErr.message}` }, { status: 500 })
       }
-      inseres += batch.length
+
+      const idsExistants = new Set((versetsExistants ?? []).map(v => v.id_verset as string))
+      const lignesExistantes = batch.filter((l: LigneTraduction) => idsExistants.has(l.id_verset))
+      ignores += batch.length - lignesExistantes.length
+      if (lignesExistantes.length === 0) continue
+
+      const values = lignesExistantes
+        .map((l: LigneTraduction) => `(${sqlLiteral(l.id_verset)}, ${sqlLiteral(l.texte)})`)
+        .join(',\n')
+      const { error: updateErr } = await supabaseAdmin.rpc('exec_sql', {
+        sql: `
+          UPDATE versets AS v
+          SET "${trad_id}" = data.texte
+          FROM (VALUES ${values}) AS data(id_verset, texte)
+          WHERE v.id_verset = data.id_verset;
+        `
+      })
+      if (updateErr) {
+        return NextResponse.json({ error: `Erreur update : ${updateErr.message}` }, { status: 500 })
+      }
+      inseres += lignesExistantes.length
     }
 
     // 4. Créer la ligne dans traductions
@@ -88,8 +121,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: `Traduction créée mais erreur metadata : ${tradErr.message}` }, { status: 500 })
     }
 
-    return NextResponse.json({ ok: true, trad_id, inseres })
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? 'Erreur inconnue' }, { status: 500 })
+    return NextResponse.json({ ok: true, trad_id, inseres, ignores })
+  } catch (e: unknown) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : 'Erreur inconnue' }, { status: 500 })
   }
 }

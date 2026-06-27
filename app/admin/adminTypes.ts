@@ -32,6 +32,7 @@ export type AdminProps = {
   signalements: Signalement[]
   demandesCertification: Commentaire[]
   essaisEnAttente: Essai[]
+  essaisModification: Essai[]
   essaisPublies: EssaiPublie[]
   versetMap: Record<string, string>
   segMap: Record<number, SegInfo>

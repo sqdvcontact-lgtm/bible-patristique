@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -48,12 +49,23 @@ type Onglet = 'bible' | 'patristique' | 'essais'
 
 const PAGE = 30
 
+function termesRecherche(terme: string): string[] {
+  return terme.trim().split(/\s+/).filter(Boolean)
+}
+
+function echapperRegex(terme: string): string {
+  return terme.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 function highlighter(texte: string, terme: string, mode: Mode): React.ReactNode {
   if (!texte || !terme) return texte
+  const termes = termesRecherche(terme)
+  if (termes.length === 0) return texte
   const sep = '(^|[\\s\\u202f\\u00a0\u00ab\u00bb,;:!?—.(\\[])'
   const fin = mode === 'exact' ? '(?=[\\s\\u202f\\u00a0\u00ab\u00bb,;:!?—.)\\]]|$)' : ''
   try {
-    const regex = new RegExp(`${sep}(${terme.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})${fin}`, 'gi')
+    const alternance = termes.sort((a, b) => b.length - a.length).map(echapperRegex).join('|')
+    const regex = new RegExp(`${sep}(${alternance})${fin}`, 'gi')
     const parts: React.ReactNode[] = []
     let last = 0; let m: RegExpExecArray | null
     while ((m = regex.exec(texte)) !== null) {
@@ -68,16 +80,19 @@ function highlighter(texte: string, terme: string, mode: Mode): React.ReactNode 
 }
 
 function contientTerme(texte: string, terme: string, mode: Mode): boolean {
+  const termes = termesRecherche(terme)
+  if (termes.length === 0) return false
   const sep = '(^|[\\s\\u202f\\u00a0\u00ab\u00bb,;:!?—.(\\[])'
   const fin = mode === 'exact' ? '(?=[\\s\\u202f\\u00a0\u00ab\u00bb,;:!?—.)\\]]|$)' : ''
   try {
-    return new RegExp(`${sep}${terme.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${fin}`, 'i').test(texte)
+    return termes.every(t => new RegExp(`${sep}${echapperRegex(t)}${fin}`, 'i').test(texte))
   } catch { return false }
 }
 
 export default function RechercheClient() {
-  const [query, setQuery] = useState('')
-  const [mode, setMode] = useState<Mode>('prefixe')
+  const searchParams = useSearchParams()
+  const [query, setQuery] = useState(searchParams.get('q') ?? '')
+  const [mode, setMode] = useState<Mode>(searchParams.get('mode') === 'exact' ? 'exact' : 'prefixe')
   const [tradBible, setTradBible] = useState<'TR0001'|'TR0002'|'TR0003'|'TR0004'>('TR0001')
   const [versetsRes, setVersetsRes] = useState<VersetResult[]>([])
   const [segmentsRes, setSegmentsRes] = useState<SegmentResult[]>([])
@@ -90,24 +105,45 @@ export default function RechercheClient() {
   const [pageS, setPageS] = useState(0)
   const [pageE, setPageE] = useState(0)
 
-  const lancer = async () => {
-    const q = query.trim()
+  const lancer = async (queryForce?: string, modeForce?: Mode) => {
+    const q = (queryForce ?? query).trim()
+    const modeActif = modeForce ?? mode
     if (!q) return
     setLoading(true); setDone(false)
     setVersetsRes([]); setSegmentsRes([]); setEssaisRes([])
     setPageV(0); setPageS(0); setPageE(0)
 
-    const [resV, resS, resE] = await Promise.all([
-      supabase.rpc('recherche_versets', { p_terme: q, p_trad: tradBible, p_exact: mode === 'exact' }).limit(10000),
-      supabase.rpc('recherche_segments', { p_terme: q, p_exact: mode === 'exact' }).limit(10000),
-      supabase.from('essais').select('id, titre, sous_titre, resume, contenu, categories').eq('statut', 'publie')
-        .or(`titre.ilike.%${q}%,sous_titre.ilike.%${q}%,resume.ilike.%${q}%,contenu.ilike.%${q}%`).limit(200),
-    ])
+    const termes = termesRecherche(q)
+    const rechercheFragments = modeActif === 'prefixe' && termes.length > 1
 
-    setVersetsRes((resV.data ?? []) as VersetResult[])
-    setEssaisRes((resE.data ?? []) as EssaiResult[])
+    let requeteVersets: any = supabase.rpc('recherche_versets', { p_terme: q, p_trad: tradBible, p_exact: modeActif === 'exact' }).limit(10000)
+    let requeteSegments: any = supabase.rpc('recherche_segments', { p_terme: q, p_exact: modeActif === 'exact' }).limit(10000)
+    let requeteEssais: any = supabase.from('essais').select('id, titre, sous_titre, resume, contenu, categories').eq('statut', 'publie')
+      .or(`titre.ilike.%${q}%,sous_titre.ilike.%${q}%,resume.ilike.%${q}%,contenu.ilike.%${q}%`).limit(200)
 
-    const segs = (resS.data ?? []) as any[]
+    if (rechercheFragments) {
+      requeteVersets = supabase.from('versets').select(`id_verset, ref, livre, chapitre, verset, ${tradBible}`)
+      requeteSegments = supabase.from('segments').select('id, segment_texte, id_oeuvre, ref_niv1, ref_niv3')
+      for (const terme of termes) {
+        requeteVersets = requeteVersets.ilike(tradBible, `%${terme}%`)
+        requeteSegments = requeteSegments.ilike('segment_texte', `%${terme}%`)
+      }
+      requeteVersets = requeteVersets.limit(10000)
+      requeteSegments = requeteSegments.limit(10000)
+      const premierTerme = termes[0]
+      requeteEssais = supabase.from('essais').select('id, titre, sous_titre, resume, contenu, categories').eq('statut', 'publie')
+        .or(`titre.ilike.%${premierTerme}%,sous_titre.ilike.%${premierTerme}%,resume.ilike.%${premierTerme}%,contenu.ilike.%${premierTerme}%`).limit(500)
+    }
+
+    const [resV, resS, resE] = await Promise.all([requeteVersets, requeteSegments, requeteEssais])
+
+    const versets = (resV.data ?? []) as VersetResult[]
+    setVersetsRes(rechercheFragments ? versets.filter(v => contientTerme(v[tradBible] || '', q, modeActif)) : versets)
+    const essais = (resE.data ?? []) as EssaiResult[]
+    setEssaisRes(rechercheFragments ? essais.filter(e => contientTerme([e.titre, e.sous_titre, e.resume, e.contenu].filter(Boolean).join(' '), q, modeActif)) : essais)
+
+    const segsBruts = (resS.data ?? []) as any[]
+    const segs = rechercheFragments ? segsBruts.filter((s: any) => contientTerme(s.segment_texte, q, modeActif)) : segsBruts
     const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
     let oeuvreMap: Record<string, { titre: string; auteur: string }> = {}
     if (oeuvreIds.length > 0) {
@@ -127,6 +163,15 @@ export default function RechercheClient() {
     setLastQuery(q)
     setLoading(false); setDone(true)
   }
+
+  useEffect(() => {
+    const q = searchParams.get('q')?.trim()
+    if (!q) return
+    const modeParam: Mode = searchParams.get('mode') === 'exact' ? 'exact' : 'prefixe'
+    setQuery(q)
+    setMode(modeParam)
+    void lancer(q, modeParam)
+  }, [searchParams])
 
   const versetsPage = versetsRes.slice(pageV * PAGE, (pageV + 1) * PAGE)
   const segmentsPage = segmentsRes.slice(pageS * PAGE, (pageS + 1) * PAGE)
@@ -185,7 +230,7 @@ export default function RechercheClient() {
                 placeholder="Rechercher…"
                 autoFocus
                 style={{ width: '360px', fontSize: '14px', padding: '7px 12px', border: '1px solid #c8c0b4', borderRadius: '6px', background: '#fff', color: '#2a2520', outline: 'none', fontFamily: "Georgia, serif" }} />
-              <button onClick={lancer} disabled={loading || !query.trim()}
+              <button onClick={() => lancer()} disabled={loading || !query.trim()}
                 style={{ padding: '7px 20px', borderRadius: '6px', border: 'none', background: query.trim() ? '#3d6b4f' : '#c8c0b4', color: '#fff', fontSize: '13px', cursor: query.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
                 {loading ? 'Recherche…' : 'Chercher →'}
               </button>

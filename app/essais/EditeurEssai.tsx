@@ -13,7 +13,7 @@ import EtapeMetadonnees, { type Metadonnees } from './EtapeMetadonnees'
 const MAX_CARACTERES = 8000
 const BTN: React.CSSProperties = { fontSize: '10.5px', padding: '8px 6px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer', width: '100%', textAlign: 'center' }
 
-type Props = { essaiExistant?: { id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean }; modeAdmin?: boolean }
+type Props = { essaiExistant?: { id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean; publie_at?: string | null }; modeAdmin?: boolean }
 
 export default function EditeurEssai({ essaiExistant, modeAdmin }: Props) {
   const router = useRouter()
@@ -31,6 +31,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin }: Props) {
 
   const [contenuTexte, setContenuTexte] = useState(essaiExistant?.contenu ?? '')
   const [panneau, setPanneau] = useState<ElementPanneau | null>(null)
+  const [editionNote, setEditionNote] = useState<{ mode: 'creation' | 'modification' } | null>(null)
   const [selecteurOuvert, setSelecteurOuvert] = useState(false)
   const [statutEnr, setStatutEnr] = useState<'idle' | 'enregistrement' | 'enregistre' | 'erreur'>('idle')
   const [blocActif, setBlocActif] = useState<'h2' | 'h3' | 'blockquote' | 'p' | null>(null)
@@ -39,6 +40,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin }: Props) {
 
   const editableRef = useRef<HTMLDivElement>(null)
   const savedRange = useRef<Range | null>(null)
+  const noteCibleRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setUserId(data.session?.user.id ?? null))
@@ -74,6 +76,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin }: Props) {
       updated_at: new Date().toISOString(),
     }
     if (statutForce) payload.statut = statutForce
+    else if (!modeAdmin && essaiExistant?.publie_at && contenuTexte !== contenuOriginalRef.current) payload.statut = 'en_attente'
     const { error } = await supabase.from('essais').update(payload).eq('id', idRef.current)
     setStatutEnr(error ? 'erreur' : 'enregistre')
     setTimeout(() => setStatutEnr('idle'), 1500)
@@ -178,9 +181,31 @@ export default function EditeurEssai({ essaiExistant, modeAdmin }: Props) {
   }
 
   const ajouterNote = () => {
-    const texte = window.prompt('Texte de la note :')
+    const texte = window.prompt('Texte de la note :\nVous pouvez y écrire un renvoi sous la forme [libellé](verset:ID) ou [libellé](segment:ID).')
     if (!texte) return
-    insererHTML(`<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(texte)}" style="display:inline-block;color:#3d6b4f;font-weight:600;font-size:0.78em;vertical-align:super;cursor:pointer;background:rgba(61,107,79,0.10);padding:0 4px;border-radius:3px;">note</span>&nbsp;`)
+    insererHTML(`<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(texte)}" style="display:inline-block;color:#3d6b4f;font-weight:600;font-size:0.78em;vertical-align:super;cursor:pointer;background:transparent;padding:0;border:0;border-radius:0;">note</span>&nbsp;`)
+  }
+
+  const ouvrirCreationNote = () => {
+    memoriserSelection()
+    noteCibleRef.current = null
+    setEditionNote({ mode: 'creation' })
+    setPanneau({ type: 'note', texte: '' })
+  }
+
+  const enregistrerNoteDepuisVolet = (texte: string) => {
+    if (!texte.trim()) return
+    if (editionNote?.mode === 'modification' && noteCibleRef.current) {
+      noteCibleRef.current.dataset.note = encodeURIComponent(texte)
+      setPanneau({ type: 'note', texte })
+      declencherChangement()
+      return
+    }
+    insererHTML(`<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(texte)}" style="display:inline-block;margin-left:0.08em;color:#3d6b4f;font-weight:600;font-size:0.78em;vertical-align:super;cursor:pointer;background:transparent;padding:0;border:0;border-radius:0;">note</span>&nbsp;`)
+    const notes = editableRef.current?.querySelectorAll<HTMLElement>('[data-chip="note"]')
+    noteCibleRef.current = notes && notes.length > 0 ? notes[notes.length - 1] : null
+    setPanneau({ type: 'note', texte })
+    setEditionNote({ mode: 'modification' })
   }
 
   const inserrerCitation = (c: { label: string; type: 'verset' | 'segment'; id: string }) => {
@@ -254,7 +279,19 @@ export default function EditeurEssai({ essaiExistant, modeAdmin }: Props) {
     const cible = (e.target as HTMLElement).closest('[data-chip]') as HTMLElement | null
     if (!cible) return
     const chip = cible.dataset.chip
-    if (chip === 'note') setPanneau({ type: 'note', texte: decodeURIComponent(cible.dataset.note ?? '') })
+    if (chip === 'note') {
+      const texteActuelVolet = decodeURIComponent(cible.dataset.note ?? '')
+      noteCibleRef.current = cible
+      setEditionNote({ mode: 'modification' })
+      setPanneau({ type: 'note', texte: texteActuelVolet })
+      return
+      const texteActuel = decodeURIComponent(cible!.dataset.note ?? '')
+      const nouveau = window.prompt('Modifier la note :\nVous pouvez y écrire un renvoi sous la forme [libellé](verset:ID) ou [libellé](segment:ID).', texteActuel)
+      if (nouveau === null) return
+      cible!.dataset.note = encodeURIComponent(nouveau ?? '')
+      setPanneau({ type: 'note', texte: nouveau ?? '' })
+      declencherChangement()
+    }
     else if (chip === 'verset') setPanneau({ type: 'verset', id: cible.dataset.id!, label: cible.dataset.label! })
     else if (chip === 'segment') setPanneau({ type: 'segment', id: cible.dataset.id!, label: cible.dataset.label! })
   }
@@ -280,10 +317,31 @@ export default function EditeurEssai({ essaiExistant, modeAdmin }: Props) {
   return (
     <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 48px)', paddingRight: '320px' }}>
       <style>{`
-        .editeur-essai h2 { font-weight: 700; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 1.07em; color: #1e2e24; margin: 7mm 0 2mm; }
-        .editeur-essai h3 { font-style: italic; font-weight: 400; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 1em; color: #2a3d30; margin: 5mm 0 1mm; }
-        .editeur-essai blockquote { font-style: italic; font-size: 0.93em; font-family: 'Helvetica Neue', Arial, sans-serif; color: #3a3530; margin: 2mm 0 2mm 8mm; }
-        .editeur-essai p { margin: 0 0 1em; word-spacing: -0.06em; letter-spacing: -0.005em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        .editeur-essai h2,
+        .editeur-essai h3,
+        .editeur-essai p,
+        .editeur-essai blockquote { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        .editeur-essai h2 { font-weight: 700; font-size: 1.07em; color: #1e2e24; }
+        .editeur-essai h3 { font-style: italic; font-weight: 400; font-size: 1em; color: #2a3d30; }
+        .editeur-essai blockquote { font-style: normal; font-size: 0.93em; color: #3a3530; margin-left: 8mm; }
+        .editeur-essai p,
+        .editeur-essai blockquote { line-height: 1.5; word-spacing: -0.09em; letter-spacing: -0.006em; }
+        .editeur-essai h2 + h3,
+        .editeur-essai h2 + h2 { margin-top: 3mm; }
+        .editeur-essai h2 + p,
+        .editeur-essai h2 + blockquote { margin-top: 2mm; }
+        .editeur-essai p + h2,
+        .editeur-essai blockquote + h2 { margin-top: 5mm; }
+        .editeur-essai h3 + h2 { margin-top: 5mm; }
+        .editeur-essai h3 + p,
+        .editeur-essai h3 + blockquote,
+        .editeur-essai h3 + h3,
+        .editeur-essai p + p,
+        .editeur-essai blockquote + p,
+        .editeur-essai p + blockquote,
+        .editeur-essai blockquote + blockquote { margin-top: 1mm; }
+        .editeur-essai p + h3,
+        .editeur-essai blockquote + h3 { margin-top: 3mm; }
       `}</style>
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '32px 32px 100px' }}>
 
@@ -339,8 +397,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin }: Props) {
                 <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('BLOCKQUOTE')} style={{ ...BTN, background: blocActif === 'blockquote' ? '#3d6b4f' : '#fff', color: blocActif === 'blockquote' ? '#fff' : '#2a2520' }}>Citation</button>
                 <button onMouseDown={e => e.preventDefault()} onClick={appliquerParagraphe} style={{ ...BTN, background: blocActif === 'p' ? '#3d6b4f' : '#fff', color: blocActif === 'p' ? '#fff' : '#2a2520' }}>Paragraphe</button>
                 <div style={{ height: '1px', background: '#e4dfd8', margin: '4px 0' }} />
-                <button onMouseDown={e => e.preventDefault()} onClick={ajouterNote} style={BTN}>+ Note</button>
-                <button onMouseDown={e => e.preventDefault()} onClick={() => { memoriserSelection(); setSelecteurOuvert(true) }} style={BTN}>+ Citation</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={ouvrirCreationNote} style={BTN}>+ Note</button>
+                <button onMouseDown={e => { e.preventDefault(); memoriserSelection() }} onClick={() => setSelecteurOuvert(true)} style={BTN}>Citer depuis le site</button>
               </div>
 
               {/* Zone principale — en-tête fixe et zone éditable dans la même carte */}
@@ -374,7 +432,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin }: Props) {
                     onFocus={detecterBloc}
                     onClick={handleClickEditable}
                     style={{
-                      minHeight: '420px', fontSize: '15px', lineHeight: 1.78, padding: '24px 30px',
+                      minHeight: '420px', fontSize: '15px', lineHeight: 1.5, padding: '24px 30px',
                       background: '#fff', color: '#1e1a16',
                       outline: 'none', boxSizing: 'border-box',
                     }}
@@ -403,7 +461,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin }: Props) {
       </div>
 
       {selecteurOuvert && <SelecteurCitation onChoisir={inserrerCitation} onFermer={() => setSelecteurOuvert(false)} />}
-      <VoletEssai element={panneau} onFermer={() => setPanneau(null)} toujoursVisible enTete={
+      <VoletEssai element={panneau} onFermer={() => setPanneau(null)} toujoursVisible editionNote={editionNote ? { actif: true, mode: editionNote.mode } : undefined} onEnregistrerNote={enregistrerNoteDepuisVolet} enTete={
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <button onClick={() => setEtape('metadonnees')} style={{ fontSize: '11px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
             Modifier titre / résumé / catégories

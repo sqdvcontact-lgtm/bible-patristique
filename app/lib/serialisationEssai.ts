@@ -7,13 +7,15 @@ function echapper(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
+const styleNote = 'display:inline-block;margin-left:0.08em;color:#3d6b4f;font-weight:600;font-size:0.78em;vertical-align:super;cursor:pointer;background:transparent;padding:0;border:0;border-radius:0;'
+
 function inlineVersHtml(s: string): string {
   let r = echapper(s)
   r = r.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
   r = r.replace(/\+\+(.+?)\+\+/g, '<span style="font-variant:small-caps;letter-spacing:0.02em">$1</span>')
   r = r.replace(/\*(.+?)\*/g, '<em>$1</em>')
   r = r.replace(/\[\^(.+?)\]/g, (_m, p1) =>
-    `<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(p1)}" style="display:inline-block;color:#3d6b4f;font-weight:600;font-size:0.78em;vertical-align:super;cursor:pointer;background:rgba(61,107,79,0.10);padding:0 4px;border-radius:3px;">note</span>&nbsp;`)
+    `<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(p1)}" style="${styleNote}">note</span>&nbsp;`)
   r = r.replace(/\[(.+?)\]\((verset|segment):(.+?)\)/g, (_m, label, type, id) =>
     `<span contenteditable="false" data-chip="${type}" data-id="${id}" data-label="${label}" style="display:inline-block;color:#3d6b4f;text-decoration:underline;background:rgba(61,107,79,0.07);padding:1px 5px;border-radius:3px;cursor:pointer;">${label}</span>&nbsp;`)
   r = r.replace(/\[(.+?)\]\(((?:https?:)[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
@@ -28,7 +30,7 @@ export function syntaxeVersHtml(texte: string): string {
 
   const flush = () => {
     if (paragraphe.length === 0) return
-    blocs.push(`<p style="margin:0 0 1em;word-spacing:-0.06em;letter-spacing:-0.005em;font-family:'Helvetica Neue',Arial,sans-serif;">${paragraphe.map(inlineVersHtml).join('<br>')}</p>`)
+    blocs.push(`<p style="margin:0;word-spacing:-0.09em;letter-spacing:-0.006em;font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.5;">${paragraphe.map(inlineVersHtml).join('<br>')}</p>`)
     paragraphe = []
   }
 
@@ -42,17 +44,17 @@ export function syntaxeVersHtml(texte: string): string {
     }
     if (ligne.startsWith('> ')) {
       flush()
-      blocs.push(`<blockquote style="font-style:italic;font-size:0.93em;font-family:'Helvetica Neue',Arial,sans-serif;color:#3a3530;margin-left:8mm;margin-top:2mm;margin-bottom:2mm;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
+      blocs.push(`<blockquote style="font-style:normal;font-size:0.93em;font-family:'Helvetica Neue',Arial,sans-serif;color:#3a3530;margin:0 0 0 8mm;line-height:1.5;word-spacing:-0.09em;letter-spacing:-0.006em;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
       return
     }
     if (ligne.startsWith('## ')) {
       flush()
-      blocs.push(`<h3 style="font-style:italic;font-weight:400;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1em;color:#2a3d30;margin-top:5mm;margin-bottom:1mm;">${inlineVersHtml(ligne.slice(3))}</h3>`)
+      blocs.push(`<h3 style="font-style:italic;font-weight:400;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1em;color:#2a3d30;margin:0;">${inlineVersHtml(ligne.slice(3))}</h3>`)
       return
     }
     if (ligne.startsWith('# ')) {
       flush()
-      blocs.push(`<h2 style="font-weight:700;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.07em;color:#1e2e24;margin-top:7mm;margin-bottom:2mm;">${inlineVersHtml(ligne.slice(2))}</h2>`)
+      blocs.push(`<h2 style="font-weight:700;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.07em;color:#1e2e24;margin:0;">${inlineVersHtml(ligne.slice(2))}</h2>`)
       return
     }
     paragraphe.push(ligne)
