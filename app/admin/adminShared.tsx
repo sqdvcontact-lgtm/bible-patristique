@@ -6,6 +6,12 @@ import type { SegInfo } from './adminTypes'
 
 export const supabase = supabaseNavigateur
 
+export async function headersAdmin(init?: HeadersInit): Promise<HeadersInit> {
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token
+  return token ? { ...(init ?? {}), Authorization: `Bearer ${token}` } : (init ?? {})
+}
+
 export function formatSiecle(n: number | null | undefined): string {
   if (!n) return ''
   const abs = Math.abs(n)

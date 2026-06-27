@@ -125,9 +125,9 @@ export default function SectionDepotOeuvre() {
 
   const genererExport = () => {
     const lignes: string[] = []
-    lignes.push(`# Cahier des charges — dépôt d'œuvre`)
+    lignes.push(`# Cahier des charges — dépôt IA`)
     lignes.push(``)
-    lignes.push(`Généré le ${new Date().toLocaleDateString('fr-FR')} via /admin · onglet Dépôt d'œuvre`)
+    lignes.push(`Généré le ${new Date().toLocaleDateString('fr-FR')} via /admin · onglet Dépôt IA`)
     lignes.push(``)
     lignes.push(`## 1. Identité de l'œuvre`)
     lignes.push(`- **Auteur** : ${f.auteur || '—'}`)

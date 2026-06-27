@@ -13,15 +13,20 @@ type Notification = {
   updated_at: string | null
 }
 
+type ActionAdmin = { label: string; count: number; href: string }
+
 export default function NotificationsPage() {
   const [items, setItems] = useState<Notification[] | null>(null)
   const [connecte, setConnecte] = useState<boolean | null>(null)
+  const [actionsAdmin, setActionsAdmin] = useState<ActionAdmin[]>([])
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       const uid = data.session?.user.id
+      const email = data.session?.user.email?.trim().toLowerCase()
       setConnecte(!!uid)
       if (!uid) { setItems([]); return }
+      const { data: profil } = await supabase.from('profils').select('est_admin').eq('id', uid).maybeSingle()
       const { data: essais } = await supabase
         .from('essais')
         .select('id, titre, sous_titre, statut, note_admin, updated_at')
@@ -29,6 +34,21 @@ export default function NotificationsPage() {
         .not('note_admin', 'is', null)
         .order('updated_at', { ascending: false })
       setItems((essais ?? []) as Notification[])
+      const estAdminEmail = !!(email && email === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase())
+      if (profil?.est_admin || estAdminEmail) {
+        const [commentaires, signalements, certifications, essaisAdmin] = await Promise.all([
+          supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false),
+          supabase.from('signalements').select('id', { count: 'exact', head: true }).eq('traite', false),
+          supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('demande_validation', true),
+          supabase.from('essais').select('id', { count: 'exact', head: true }).in('statut', ['en_attente', 'a_reviser']),
+        ])
+        setActionsAdmin([
+          { label: 'Commentaires à modérer', count: commentaires.count ?? 0, href: '/admin' },
+          { label: 'Signalements à traiter', count: signalements.count ?? 0, href: '/admin' },
+          { label: 'Demandes de certification', count: certifications.count ?? 0, href: '/admin' },
+          { label: 'Essais à examiner', count: essaisAdmin.count ?? 0, href: '/admin' },
+        ].filter(a => a.count > 0))
+      }
     })
   }, [])
 
@@ -41,6 +61,20 @@ export default function NotificationsPage() {
           </h1>
           <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto' }} />
         </div>
+
+        {actionsAdmin.length > 0 && (
+          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '16px 18px', marginBottom: '14px' }}>
+            <p style={{ fontSize: '11px', fontWeight: 700, color: '#3d6b4f', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>Actions administrateur</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+              {actionsAdmin.map(a => (
+                <Link key={a.label} href={a.href} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12.5px', color: '#2a3d30', textDecoration: 'none', borderBottom: '1px solid #f0ece6', paddingBottom: '7px' }}>
+                  <span>{a.label}</span>
+                  <span style={{ fontSize: '10px', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 7px', fontWeight: 700 }}>{a.count}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {connecte === false ? (
           <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Connectez-vous pour consulter vos notifications.</p>

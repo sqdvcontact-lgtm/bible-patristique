@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
+import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,13 +22,13 @@ function sqlLiteral(valeur: string) {
 }
 
 export async function POST(req: Request) {
-  if (!(await estAdmin())) {
+  if (!(await estAdminUtilisateur(req)) && !(await estAdmin())) {
     return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
   }
 
   try {
     const body = await req.json()
-    const { nom, auteur, dates, bio_courte, date_publication, confession, langue, ordre, lignes } = body
+    const { nom, auteur, dates, bio_courte, commentaire_editorial, date_publication, confession, langue, ordre, lignes } = body
 
     if (!nom || !lignes || lignes.length === 0) {
       return NextResponse.json({ error: 'Nom et lignes CSV requis.' }, { status: 400 })
@@ -112,6 +113,7 @@ export async function POST(req: Request) {
       auteur: auteur || null,
       dates: dates || null,
       bio_courte: bio_courte || null,
+      commentaire_editorial: commentaire_editorial || null,
       date_publication: date_publication || null,
       confession: confession || null,
       langue: langue || null,

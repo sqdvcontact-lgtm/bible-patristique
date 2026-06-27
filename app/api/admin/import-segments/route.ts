@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
+import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,7 +12,7 @@ const supabaseAdmin = createClient(
 export const maxDuration = 60
 
 export async function POST(req: NextRequest) {
-  if (!(await estAdmin())) {
+  if (!(await estAdminUtilisateur(req)) && !(await estAdmin())) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 

@@ -63,6 +63,7 @@ export default function Navbar() {
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [mobileOuvert, setMobileOuvert] = useState(false);
   const [nbNotifications, setNbNotifications] = useState(0);
+  const [nbActionsAdmin, setNbActionsAdmin] = useState(0);
   const { modeUtilisateurStandard, setModeUtilisateurStandard } = useAffichageAdmin();
   const estAdminEmail = !!(user && user.email && user.email.trim().toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase());
   const estAdminAffiche = (estAdmin || estAdminEmail) && !modeUtilisateurStandard;
@@ -112,7 +113,7 @@ export default function Navbar() {
     const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ? { id: session.user.id, email: session.user.email ?? '' } : null);
       if (session?.user) chargerProfil(session.user.id);
-      else { setPseudo(null); setEstAdmin(false); setNbNotifications(0); }
+      else { setPseudo(null); setEstAdmin(false); setNbNotifications(0); setNbActionsAdmin(0); }
     });
     return () => listener.subscription.unsubscribe();
   }, []);
@@ -126,6 +127,16 @@ export default function Navbar() {
       .not('note_admin', 'is', null)
       .then(({ count }) => setNbNotifications(count ?? 0))
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id || !(estAdmin || estAdminEmail)) { setNbActionsAdmin(0); return }
+    Promise.all([
+      supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false),
+      supabase.from('signalements').select('id', { count: 'exact', head: true }).eq('traite', false),
+      supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('demande_validation', true),
+      supabase.from('essais').select('id', { count: 'exact', head: true }).in('statut', ['en_attente', 'a_reviser']),
+    ]).then(resultats => setNbActionsAdmin(resultats.reduce((total, r) => total + (r.count ?? 0), 0)))
+  }, [user?.id, estAdmin, estAdminEmail]);
 
   const seDeconnecter = async () => {
     await supabase.auth.signOut();
@@ -264,7 +275,7 @@ export default function Navbar() {
         )}
         {[
           { href: "/compte", label: "Mon compte", badge: 0 },
-          { href: "/notifications", label: "Notification", badge: nbNotifications },
+          { href: "/notifications", label: "Notification", badge: nbNotifications + nbActionsAdmin },
           ...(estAdminAffiche ? [{ href: "/admin", label: "Administration", badge: 0 }] : []),
         ].map(item => (
           <Link key={item.href} href={item.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}

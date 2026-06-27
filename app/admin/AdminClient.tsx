@@ -6,7 +6,6 @@ import SectionVerifications from './SectionVerifications'
 import SectionAjouterOeuvre from './SectionAjouterOeuvre'
 import SectionDepotOeuvre from './SectionDepotOeuvre'
 import SectionTraductions from './SectionTraductions'
-import SectionRemplacerSegments from './SectionRemplacerSegments'
 import SectionModeration from './SectionModeration'
 import SectionEssaisAdmin from './SectionEssaisAdmin'
 import type { AdminProps as Props, Onglet } from './adminTypes'
@@ -24,8 +23,7 @@ export default function AdminClient({
   const ONGLETS: { key: Onglet; label: string; badge?: number; separateur?: boolean }[] = [
     { key: 'bibliotheque',        label: 'Bibliothèque' },
     { key: 'ajouter-oeuvre',      label: '+ Ajouter une œuvre' },
-    { key: 'depot-oeuvre',        label: '⎘ Dépôt d\'œuvre' },
-    { key: 'remplacer-segments',  label: '↺ Segments' },
+    { key: 'depot-oeuvre',        label: '▣ Dépôt IA' },
     { key: 'traductions',         label: 'Traductions' },
     { key: 'essais',              label: 'Essais', badge: nbEssais },
     { key: 'verifications',       label: 'Vérifications', separateur: true },
@@ -73,7 +71,6 @@ export default function AdminClient({
         {onglet === 'ajouter-oeuvre' && <SectionAjouterOeuvre auteurs={auteurs} />}
         {onglet === 'depot-oeuvre' && <SectionDepotOeuvre />}
         {onglet === 'traductions'   && <SectionTraductions traductions={traductions} />}
-        {onglet === 'remplacer-segments' && <SectionRemplacerSegments auteurs={auteurs} />}
 
         {onglet === 'moderation' && (
           <SectionModeration

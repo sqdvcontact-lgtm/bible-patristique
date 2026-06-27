@@ -1,11 +1,12 @@
 'use client'
 
 import React, { useState, useRef } from 'react'
-import { supabase, parseCSV, SiecleDisplay } from './adminShared'
+import { supabase, parseCSV, SiecleDisplay, headersAdmin } from './adminShared'
+import SectionRemplacerSegments from './SectionRemplacerSegments'
 import type { Auteur, LignePreview } from './adminTypes'
 
 async function exporterOeuvre(idOeuvre: string, titreOeuvre: string) {
-  const res = await fetch(`/api/admin/export-segments?id_oeuvre=${idOeuvre}`)
+  const res = await fetch(`/api/admin/export-segments?id_oeuvre=${idOeuvre}`, { headers: await headersAdmin() })
   if (!res.ok) { alert("Erreur lors de l'export."); return }
   const blob = await res.blob()
   const url = URL.createObjectURL(blob)
@@ -106,6 +107,7 @@ function ChampsAuteur({ valeurs, onChange }: { valeurs: Record<string, string>; 
 // ── Section Bibliothèque (fusionnée avec la gestion des auteurs) ─────────────
 export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs: Auteur[] }) {
   const [auteurs, setAuteurs] = useState<Auteur[]>(auteursInit)
+  const [vueBibliotheque, setVueBibliotheque] = useState<'oeuvres' | 'segments'>('oeuvres')
   const [auteurOuvert, setAuteurOuvert] = useState<string | null>(null)
   const [exporting, setExporting] = useState<string | null>(null)
   const [preview, setPreview] = useState<{ lignes: LignePreview[]; nomFichier: string; idOeuvre: string } | null>(null)
@@ -138,7 +140,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     const formData = new FormData()
     formData.append('id_auteur', idAuteur)
     formData.append('fichier', fichier)
-    const res = await fetch('/api/admin/auteur-photo', { method: 'POST', body: formData })
+    const res = await fetch('/api/admin/auteur-photo', { method: 'POST', headers: await headersAdmin(), body: formData })
     if (res.ok) setPhotos(prev => ({ ...prev, [idAuteur]: true }))
     else { const json = await res.json().catch(() => ({})); alert('Erreur upload : ' + (json.error ?? 'erreur inconnue')) }
   }
@@ -158,7 +160,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     if (!editionAuteur) return
     const res = await fetch('/api/admin/update-auteur', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await headersAdmin({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ id_auteur: editionAuteur, champs: formAuteur }),
     })
     const json = await res.json()
@@ -171,7 +173,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   const creerAuteur = async () => {
     if (!nouvelAuteur.nom.trim()) { setMsgAjoutAuteur('Le nom est requis.'); return }
     const res = await fetch('/api/admin/auteur-creer', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: await headersAdmin({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(nouvelAuteur),
     })
     const json = await res.json()
@@ -186,7 +188,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     setProfondeurs(prev => ({ ...prev, [idOeuvre]: val }))
     await fetch('/api/admin/update-oeuvre', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await headersAdmin({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ id_oeuvre: idOeuvre, champ: 'profondeur_sommaire', valeur: val }),
     })
   }
@@ -216,9 +218,10 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   const sauvegarderOeuvre = async (idOeuvre: string) => {
     if (!formOeuvre.titre?.trim()) { setStatutOeuvre({ id: idOeuvre, ok: false, msg: 'Le titre est requis.' }); return }
     try {
+      const headers = await headersAdmin({ 'Content-Type': 'application/json' })
       const resultats = await Promise.all(
         CHAMPS_OEUVRE.map(c => fetch('/api/admin/update-oeuvre', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers,
           body: JSON.stringify({ id_oeuvre: idOeuvre, champ: c.key, valeur: formOeuvre[c.key] || null }),
         }))
       )
@@ -264,16 +267,17 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   const sauvegarderNiveaux = async (idOeuvre: string, cfg: { sommaire: number; corps: number; txtSommaire: boolean[]; txtCorps: boolean[]; afficherNumeros: boolean }) => {
     setNiveauxConfig(prev => ({ ...prev, [idOeuvre]: cfg }))
     const toStr = (arr: boolean[]) => arr.map(v => v ? '1' : '0').join(',')
+    const headers = await headersAdmin({ 'Content-Type': 'application/json' })
     await Promise.all([
-      fetch('/api/admin/update-oeuvre', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      fetch('/api/admin/update-oeuvre', { method: 'POST', headers,
         body: JSON.stringify({ id_oeuvre: idOeuvre, champ: 'niveaux_sommaire', valeur: cfg.sommaire }) }),
-      fetch('/api/admin/update-oeuvre', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      fetch('/api/admin/update-oeuvre', { method: 'POST', headers,
         body: JSON.stringify({ id_oeuvre: idOeuvre, champ: 'niveaux_corps', valeur: cfg.corps }) }),
-      fetch('/api/admin/update-oeuvre', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      fetch('/api/admin/update-oeuvre', { method: 'POST', headers,
         body: JSON.stringify({ id_oeuvre: idOeuvre, champ: 'texte_sommaire', valeur: toStr(cfg.txtSommaire) }) }),
-      fetch('/api/admin/update-oeuvre', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      fetch('/api/admin/update-oeuvre', { method: 'POST', headers,
         body: JSON.stringify({ id_oeuvre: idOeuvre, champ: 'texte_corps', valeur: toStr(cfg.txtCorps) }) }),
-      fetch('/api/admin/update-oeuvre', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      fetch('/api/admin/update-oeuvre', { method: 'POST', headers,
         body: JSON.stringify({ id_oeuvre: idOeuvre, champ: 'afficher_numeros', valeur: cfg.afficherNumeros }) }),
     ])
     setConfigOeuvre(null)
@@ -299,11 +303,12 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       const payload = preview.lignes.map(({ _lien_1_orig, _fiabilite_orig, _texte_orig, _modifie, ...l }) => l)
       const BATCH = 300
       let inserted = 0
+      const headers = await headersAdmin({ 'Content-Type': 'application/json' })
       for (let i = 0; i < payload.length; i += BATCH) {
         const batch = payload.slice(i, i + BATCH)
         const res = await fetch('/api/admin/import-segments', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ lignes: batch, deleteFirst: i === 0 }),
         })
         const json = await res.json()
@@ -428,7 +433,15 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: 'none', background: ajoutAuteur ? '#2e5440' : '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
           {ajoutAuteur ? 'Annuler' : '+ Nouvel auteur'}
         </button>
+        <button onClick={() => setVueBibliotheque(v => v === 'segments' ? 'oeuvres' : 'segments')}
+          style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: vueBibliotheque === 'segments' ? '#f0ece6' : '#fff', color: vueBibliotheque === 'segments' ? '#2a3d30' : '#3d6b4f', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          Segments
+        </button>
       </div>
+
+      {vueBibliotheque === 'segments' && <SectionRemplacerSegments auteurs={auteurs} />}
+      {vueBibliotheque === 'oeuvres' && (
+      <>
 
       {/* Formulaire nouvel auteur */}
       {ajoutAuteur && (
@@ -569,6 +582,8 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           </div>
         ))}
       </div>
+      </>
+      )}
     </>
   )
 }

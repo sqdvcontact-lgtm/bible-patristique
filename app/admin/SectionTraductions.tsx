@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { supabase } from './adminShared'
+import { supabase, headersAdmin } from './adminShared'
 import type { Traduction } from './adminTypes'
 
 const labelStyle: React.CSSProperties = { fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em', color: '#9a958d', display: 'block', marginBottom: '4px' }
@@ -105,13 +105,13 @@ function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: s
       />
       {/* Aperçu rendu */}
       {valeur && (
-        <details style={{ borderTop: '1px solid #ede9e2' }}>
-          <summary style={{ fontSize: '10px', color: '#b0a89e', padding: '4px 10px', cursor: 'pointer', listStyle: 'none' }}>Aperçu</summary>
+        <div style={{ borderTop: '1px solid #ede9e2' }}>
+          <p style={{ fontSize: '10px', color: '#b0a89e', padding: '6px 10px 0', margin: 0, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Aperçu</p>
           <div
             style={{ padding: '10px 14px', background: '#faf8f4', fontSize: '13px', lineHeight: 1.7, color: '#2a2520' }}
             dangerouslySetInnerHTML={{ __html: valeur }}
           />
-        </details>
+        </div>
       )}
     </div>
   )
@@ -138,7 +138,6 @@ export default function SectionTraductions({ traductions: init }: { traductions:
     { key: 'date_publication', label: 'Date de publication' },
     { key: 'confession', label: 'Confession' },
     { key: 'langue', label: 'Langue' },
-    { key: 'ordre', label: "Ordre d'affichage" },
   ]
 
   const ouvrir = (t: Traduction) => { setEdition(t.trad_id); setForm({ ...t }); setStatut(null) }
@@ -176,7 +175,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
     try {
       const res = await fetch('/api/admin/ajouter-traduction', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await headersAdmin({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ ...nouveau, lignes: csvLignes }),
       })
       const json = await res.json()
@@ -231,7 +230,6 @@ export default function SectionTraductions({ traductions: init }: { traductions:
             <div><label style={labelStyle}>DATE PUBLICATION</label><input value={nouveau.date_publication ?? ''} onChange={e => setNouveau(p => ({ ...p, date_publication: e.target.value }))} style={inputStyle} /></div>
             <div><label style={labelStyle}>CONFESSION</label><input value={nouveau.confession ?? ''} onChange={e => setNouveau(p => ({ ...p, confession: e.target.value }))} style={inputStyle} /></div>
             <div><label style={labelStyle}>LANGUE</label><input value={nouveau.langue ?? ''} onChange={e => setNouveau(p => ({ ...p, langue: e.target.value }))} style={inputStyle} /></div>
-            <div><label style={labelStyle}>ORDRE</label><input type="number" value={nouveau.ordre ?? ''} onChange={e => setNouveau(p => ({ ...p, ordre: parseInt(e.target.value) || 99 }))} style={inputStyle} /></div>
           </div>
           <div style={{ marginBottom: '10px' }}>
             <label style={labelStyle}>BIOGRAPHIE COURTE</label>
