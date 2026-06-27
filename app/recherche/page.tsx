@@ -5,7 +5,12 @@ export const metadata = {
 }
 
 import RechercheClient from './RechercheClient'
+import { Suspense } from 'react'
 
 export default function RecherchePage() {
-  return <RechercheClient />
+  return (
+    <Suspense fallback={null}>
+      <RechercheClient />
+    </Suspense>
+  )
 }

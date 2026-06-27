@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { Suspense } from "react"
 import BibliothequeClient from "./BibliothequeClient"
 
 const supabase = createClient(
@@ -19,5 +20,9 @@ export default async function BibliothequePage() {
 
   const auteurs = ((data ?? []) as any[]).filter(a => a.oeuvres?.length > 0)
 
-  return <BibliothequeClient auteurs={auteurs} />
+  return (
+    <Suspense fallback={null}>
+      <BibliothequeClient auteurs={auteurs} />
+    </Suspense>
+  )
 }

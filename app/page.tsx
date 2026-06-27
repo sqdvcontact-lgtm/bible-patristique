@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { Suspense } from 'react'
 import BibleLayout from './components/BibleLayout'
 
 const supabase = createClient(
@@ -118,14 +119,16 @@ export default async function Home({
     .order('ordre', { ascending: true })
 
   return (
-    <BibleLayout
-      livres={LIVRES}
-      versets={versets || []}
-      traductions={(traductions || []).map(t => ({ code: t.trad_id, label: t.nom }))}
-      livreActif={livre}
-      chapitreActif={chapitre}
-      nomLivre={NOMS_LIVRES[livre] || livre}
-      tradInitiale={trad}
-    />
+    <Suspense fallback={null}>
+      <BibleLayout
+        livres={LIVRES}
+        versets={versets || []}
+        traductions={(traductions || []).map(t => ({ code: t.trad_id, label: t.nom }))}
+        livreActif={livre}
+        chapitreActif={chapitre}
+        nomLivre={NOMS_LIVRES[livre] || livre}
+        tradInitiale={trad}
+      />
+    </Suspense>
   )
 }
