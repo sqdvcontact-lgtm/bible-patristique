@@ -26,6 +26,8 @@ export type Props = {
   tocApparat: TocEntry[]
   groupesApparat: GroupeData[]
   segmentsApparat: SegData[]
+  segmentCibleId?: number | null
+  vueInitiale?: 'texte' | 'apparat'
 }
 
 // Description de ce qui est en cours d'édition dans la modale admin :

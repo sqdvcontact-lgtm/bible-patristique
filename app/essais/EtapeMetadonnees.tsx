@@ -16,7 +16,7 @@ const CONDITIONS = `En publiant un essai ou une méditation sur ce site, vous re
 
 — Vous autorisez l'éditeur du site à apporter des corrections mineures (mise en forme, typographie, orthographe) qui n'altèrent pas le sens de votre texte.
 
-— Vous accordez à La Bible des Pères le droit d'héberger, d'afficher et de rendre votre texte consultable sur le site, sans que cela ne transfère la propriété de l'œuvre ni n'en restreigne l'usage que vous pourriez en faire ailleurs.
+— Vous accordez à Corpus Scriptura le droit d'héberger, d'afficher et de rendre votre texte consultable sur le site, sans que cela ne transfère la propriété de l'œuvre ni n'en restreigne l'usage que vous pourriez en faire ailleurs.
 
 — Le site se réserve le droit de retirer ou de refuser tout contenu manifestement illicite, diffamatoire, ou contraire à l'esprit du projet, après examen par l'administration.
 
@@ -44,10 +44,12 @@ export default function EtapeMetadonnees({ valeursInitiales, onValider, mode = '
     onValider({ titre: titre.trim(), sousTitre: sousTitre.trim(), resume: resume.trim(), categories })
   }
 
+  const estBloc = mode === 'bloc'
+
   return (
-    <main style={{ minHeight: mode === 'page' ? 'calc(100vh - 48px)' : undefined, background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: mode === 'page' ? '24px' : '0' }}>
-      <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: mode === 'page' ? '32px 36px' : '26px 30px', width: '100%', maxWidth: '540px', boxShadow: mode === 'page' ? '0 8px 32px rgba(0,0,0,0.06)' : 'none' }}>
-        <h1 style={{ fontFamily: "Georgia, serif", fontSize: '20px', color: '#1e2e24', margin: '0 0 4px' }}>Nouvel essai ou méditation</h1>
+    <main style={{ minHeight: mode === 'page' ? 'calc(100vh - 48px)' : undefined, background: '#f7f4ef', display: 'flex', alignItems: estBloc ? 'flex-start' : 'center', justifyContent: 'center', padding: estBloc ? '8px 0 0' : '24px' }}>
+      <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: estBloc ? '28px 34px 30px' : '32px 36px', width: '100%', maxWidth: estBloc ? '720px' : '540px', boxShadow: estBloc ? '0 8px 26px rgba(0,0,0,0.035)' : '0 8px 32px rgba(0,0,0,0.06)' }}>
+        <h1 style={{ fontFamily: "Georgia, serif", fontSize: estBloc ? '22px' : '20px', color: '#1e2e24', margin: '0 0 4px' }}>Nouvelle contribution</h1>
         <p style={{ fontSize: '12px', color: '#9a958d', margin: '0 0 24px' }}>Première étape — une fois validée, vous passerez à la rédaction.</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

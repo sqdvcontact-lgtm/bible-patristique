@@ -168,6 +168,40 @@ function StatutLecture({ label, valeur }: { label: string; valeur: string }) {
   )
 }
 
+function easeOutCubic(t: number) {
+  return 1 - Math.pow(1 - t, 3)
+}
+
+function useValeurAnimee(cible: number, duree = 1100) {
+  const [valeur, setValeur] = useState(cible)
+  const valeurRef = useRef(cible)
+
+  useEffect(() => {
+    const depart = valeurRef.current
+    const delta = cible - depart
+    if (Math.abs(delta) < 0.01) {
+      setValeur(cible)
+      valeurRef.current = cible
+      return
+    }
+
+    let frame = 0
+    const debut = performance.now()
+    const animer = (maintenant: number) => {
+      const progression = Math.min((maintenant - debut) / duree, 1)
+      const suivante = depart + delta * easeOutCubic(progression)
+      valeurRef.current = suivante
+      setValeur(suivante)
+      if (progression < 1) frame = requestAnimationFrame(animer)
+    }
+
+    frame = requestAnimationFrame(animer)
+    return () => cancelAnimationFrame(frame)
+  }, [cible, duree])
+
+  return valeur
+}
+
 // ── Carte livre ─────────────────────────────────────────────────────────────────
 function CarteLivre({ livre, lu, onToggle }: { livre: LivreInfo; lu: boolean; onToggle: (e: React.MouseEvent) => void }) {
   return (
@@ -312,6 +346,8 @@ export default function ProgressionClient() {
   const pourcentAT = totalAT > 0 ? (versetsLusAT / totalAT) * 100 : 0
   const pourcentNT = totalNT > 0 ? (versetsLusNT / totalNT) * 100 : 0
   const livresLus = livres.filter(l => lus.has(l.code)).length
+  const pourcentTotalAnime = useValeurAnimee(pourcentTotal, 1300)
+  const versetsLusAnimes = useValeurAnimee(versetsLusTotal, 1150)
 
   const livresAT = livres.filter(l => l.testament === 'AT')
   const livresNT = livres.filter(l => l.testament === 'NT')
@@ -336,18 +372,18 @@ export default function ProgressionClient() {
           <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '22px', alignItems: 'center' }}>
             <div style={{
               width: '132px', height: '132px', borderRadius: '50%',
-              background: `conic-gradient(#3d6b4f ${Math.round(pourcentTotal)}%, #ece8df 0)`,
+              background: `conic-gradient(#3d6b4f ${pourcentTotalAnime}%, #ece8df 0)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto',
             }}>
               <div style={{ width: '106px', height: '106px', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                <span style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '30px', color: '#2a3d30', lineHeight: 1 }}>{Math.round(pourcentTotal)}%</span>
+                <span style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '30px', color: '#2a3d30', lineHeight: 1 }}>{Math.round(pourcentTotalAnime)}%</span>
                 <span style={{ fontSize: '10px', color: '#9a958d', marginTop: '3px' }}>parcouru</span>
               </div>
             </div>
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px', marginBottom: '14px' }}>
                 <StatutLecture label="livres achevés" valeur={`${livresLus}/${livres.length || 66}`} />
-                <StatutLecture label="versets couverts" valeur={versetsLusTotal.toLocaleString('fr-FR')} />
+                <StatutLecture label="versets couverts" valeur={Math.round(versetsLusAnimes).toLocaleString('fr-FR')} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '11px' }}>
                 <BarreProgression label="Ancien Testament" pourcentage={pourcentAT} couleur="#7a8e7e" />

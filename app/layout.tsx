@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bible & Tradition patristique",
-  description: "Lecture de la Bible et des Pères de l'Église.",
+  title: "Corpus Scriptura",
+  description: "Lectures bibliques et patristiques.",
 };
 
 export default function RootLayout({

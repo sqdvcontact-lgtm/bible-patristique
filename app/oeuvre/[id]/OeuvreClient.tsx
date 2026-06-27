@@ -50,17 +50,17 @@ async function chargerCodesTraductions() {
 }
 
 // ── Composant principal ───────────────────────────────────────────────────────
-export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit }: Props) {
+export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, vueInitiale = 'texte' }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
-  const [segActif, setSegActif] = useState<number | null>(null)
+  const [segActif, setSegActif] = useState<number | null>(segmentCibleId)
   const [tradIndex, setTradIndex] = useState(0)
   const [traductionsBible, setTraductionsBible] = useState(TRADUCTIONS_FALLBACK)
   const [tradOuverte, setTradOuverte] = useState(false)
   const [ongletDroit, setOngletDroit] = useState<'refs' | 'commentaires' | 'suggestions'>('refs')
   const [userId, setUserId] = useState<string | null>(null)
   const [sauvegardesSegs, setSauvegardesSegs] = useState<Set<number>>(new Set())
-  const [vue, setVue] = useState<'texte' | 'apparat'>('texte')
+  const [vue, setVue] = useState<'texte' | 'apparat'>(vueInitiale)
   const [editionCible, setEditionCible] = useState<EditionCible | null>(null)
   const [titreAffiche, setTitreAffiche] = useState(oeuvre.titre)
   const [navOuverte, setNavOuverte] = useState(true)
@@ -83,6 +83,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       setPanneauOuvert(false)
     }
   }, [])
+  useEffect(() => {
+    if (!segmentCibleId) return
+    const timer = window.setTimeout(() => {
+      document.getElementById(`segment-${segmentCibleId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 80)
+    return () => window.clearTimeout(timer)
+  }, [segmentCibleId, vue])
   useEffect(() => {
     if (!tradOuverte) return
     const fermerAuClicExterieur = (event: MouseEvent) => {
@@ -604,7 +611,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     if (!s) return null
                     const actif = segActif === sid
                     return (
-                      <div key={sid} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', gap: '8px' }}>
+                      <div key={sid} id={`segment-${sid}`} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', gap: '8px', scrollMarginTop: '60px' }}>
                         <p id={`s${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
                           lang="fr" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {afficherNumeros && <sup style={{ fontSize: '0.52rem', color: '#b0a89e', marginRight: '2px', userSelect: 'none' }}>{s.numero}</sup>}
@@ -660,7 +667,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         if (!s) return null
                         const actif = segActif === sid
                         return (
-                          <div key={sid} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ position: 'relative', marginBottom: '0.45rem' }}>
+                          <div key={sid} id={`segment-${sid}`} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ position: 'relative', marginBottom: '0.45rem', scrollMarginTop: '60px' }}>
                             <p id={`a${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
                               lang="fr" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px 1px 4px', paddingRight: estAdmin ? '72px' : '52px', margin: 0, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                               {afficherNumeros && <sup style={{ fontSize: '0.52rem', color: '#b0a89e', marginRight: '2px', userSelect: 'none' }}>{s.numero}</sup>}
@@ -683,20 +690,20 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
         {/* ── PANNEAU DROIT ── */}
         {panneauOuvert ? (
-        <aside style={{ width: '280px', flexShrink: 0, position: 'sticky', top: '48px', alignSelf: 'flex-start', height: 'calc(100vh - 48px)', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column' }}>
+        <aside style={{ width: '288px', flexShrink: 0, position: 'sticky', top: '48px', alignSelf: 'flex-start', height: 'calc(100vh - 48px)', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', background: '#fff' }}>
 
-          <div style={{ display: 'flex', borderBottom: '1px solid #d6d0c4', flexShrink: 0 }}>
-            {([{ key: 'refs', label: 'Renvois bibliques' }, { key: 'commentaires', label: 'Commentaires' }, { key: 'suggestions', label: 'Références à identifier' }] as const).map(o => (
+          <div style={{ display: 'flex', padding: '0 10px', borderBottom: '1px solid #d6d0c4', flexShrink: 0, overflowX: 'auto' }}>
+            {([{ key: 'refs', label: 'Renvois' }, { key: 'commentaires', label: 'Commentaires' }, { key: 'suggestions', label: 'Suggestions' }] as const).map(o => (
               <button key={o.key} onClick={() => setOngletDroit(o.key)} className="onglet-btn"
-                style={{ flex: 1, padding: '10px 8px', fontSize: '11px', fontWeight: ongletDroit === o.key ? 600 : 400, color: ongletDroit === o.key ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', borderBottom: ongletDroit === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', letterSpacing: '0.02em' }}>
+                style={{ flexShrink: 0, padding: '7px 8px', fontSize: '10px', fontWeight: ongletDroit === o.key ? 600 : 400, color: ongletDroit === o.key ? '#3d6b4f' : '#6b6560', background: 'transparent', border: 'none', borderBottom: ongletDroit === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 {o.label}
               </button>
             ))}
             <button onClick={() => setPanneauOuvert(false)} title="Fermer ce panneau"
-              style={{ flexShrink: 0, padding: '0 10px', fontSize: '12px', color: '#b0a89e', background: 'none', border: 'none', borderBottom: '2px solid transparent', cursor: 'pointer' }}>✕</button>
+              style={{ marginLeft: 'auto', flexShrink: 0, padding: '0 2px 0 8px', fontSize: '11px', color: '#b0a89e', background: 'none', border: 'none', borderBottom: '2px solid transparent', cursor: 'pointer' }}>✕</button>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 16px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 16px' }}>
             {ongletDroit === 'refs' ? (
               <>
                 {/* Sélecteur traduction */}

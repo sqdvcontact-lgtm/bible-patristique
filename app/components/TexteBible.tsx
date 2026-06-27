@@ -258,6 +258,7 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, valeurActuel
         <div style={{ display:'flex', gap:'6px', marginBottom:'8px', flexWrap:'wrap' }}>
           <button onClick={() => entourer('**')} style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', fontWeight:700, cursor:'pointer' }}>G</button>
           <button onClick={() => entourer('*')} style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', fontStyle:'italic', cursor:'pointer' }}>I</button>
+          <button onClick={() => entourer('^^')} title="Exposant" style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>x²</button>
           <span style={{ width:'1px', background:'#e4dfd8' }} />
           <button onClick={() => inserer('\u00A0')} title="Espace insécable" style={{ fontSize:'10px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>Esp. insécable</button>
           <button onClick={() => inserer('\u202F')} title="Espace fine insécable" style={{ fontSize:'10px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>Esp. fine</button>

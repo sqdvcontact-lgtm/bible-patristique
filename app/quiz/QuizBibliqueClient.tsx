@@ -1,13 +1,11 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 
 type Testament = 'Ancien Testament' | 'Nouveau Testament'
-type Etape = 'testament' | 'propositions' | 'choixLivre' | 'chapitre' | 'verset' | 'resultat'
-type Mode = 'prudent' | 'risque'
-type Resultat = { label: string; points: number; detail: string }
+type Etape = 'testament' | 'livre' | 'resultat'
+type Resultat = { label: string; points: number; detail: string; reponse?: string }
 type VersetQuiz = {
   id_verset: string
   livre: string
@@ -20,39 +18,69 @@ type LivreBiblique = {
   code: string
   nom: string
   testament: Testament
-  categorie: string
+  famille: FamilleCode
   ordre: number
-  chapitres: number
 }
-type Plage = { label: string; debut: number; fin: number }
+type FamilleCode = 'pentateuque' | 'historiques-at' | 'poetiques' | 'grands-prophetes' | 'petits-prophetes' | 'evangiles-actes' | 'paul' | 'catholiques' | 'apocalypse'
 
 const LIVRES: LivreBiblique[] = [
-  ['GEN','Genèse','Ancien Testament','Pentateuque',1,50], ['EXO','Exode','Ancien Testament','Pentateuque',2,40], ['LEV','Lévitique','Ancien Testament','Pentateuque',3,27], ['NUM','Nombres','Ancien Testament','Pentateuque',4,36], ['DEU','Deutéronome','Ancien Testament','Pentateuque',5,34],
-  ['JOS','Josué','Ancien Testament','Historiques',6,24], ['JDG','Juges','Ancien Testament','Historiques',7,21], ['RUT','Ruth','Ancien Testament','Historiques',8,4], ['1SA','1 Samuel','Ancien Testament','Historiques',9,31], ['2SA','2 Samuel','Ancien Testament','Historiques',10,24], ['1KI','1 Rois','Ancien Testament','Historiques',11,22], ['2KI','2 Rois','Ancien Testament','Historiques',12,25], ['1CH','1 Chroniques','Ancien Testament','Historiques',13,29], ['2CH','2 Chroniques','Ancien Testament','Historiques',14,36], ['EZR','Esdras','Ancien Testament','Historiques',15,10], ['NEH','Néhémie','Ancien Testament','Historiques',16,13], ['EST','Esther','Ancien Testament','Historiques',17,10],
-  ['JOB','Job','Ancien Testament','Sapientiaux',18,42], ['PSA','Psaumes','Ancien Testament','Sapientiaux',19,150], ['PRO','Proverbes','Ancien Testament','Sapientiaux',20,31], ['ECC','Ecclésiaste','Ancien Testament','Sapientiaux',21,12], ['SNG','Cantique des cantiques','Ancien Testament','Sapientiaux',22,8],
-  ['ISA','Isaïe','Ancien Testament','Prophètes',23,66], ['JER','Jérémie','Ancien Testament','Prophètes',24,52], ['LAM','Lamentations','Ancien Testament','Prophètes',25,5], ['EZK','Ézéchiel','Ancien Testament','Prophètes',26,48], ['DAN','Daniel','Ancien Testament','Prophètes',27,12], ['HOS','Osée','Ancien Testament','Prophètes',28,14], ['JOL','Joël','Ancien Testament','Prophètes',29,3], ['AMO','Amos','Ancien Testament','Prophètes',30,9], ['OBA','Abdias','Ancien Testament','Prophètes',31,1], ['JON','Jonas','Ancien Testament','Prophètes',32,4], ['MIC','Michée','Ancien Testament','Prophètes',33,7], ['NAM','Nahum','Ancien Testament','Prophètes',34,3], ['HAB','Habacuc','Ancien Testament','Prophètes',35,3], ['ZEP','Sophonie','Ancien Testament','Prophètes',36,3], ['HAG','Aggée','Ancien Testament','Prophètes',37,2], ['ZEC','Zacharie','Ancien Testament','Prophètes',38,14], ['MAL','Malachie','Ancien Testament','Prophètes',39,4],
-  ['MAT','Matthieu','Nouveau Testament','Évangiles',40,28], ['MRK','Marc','Nouveau Testament','Évangiles',41,16], ['LUK','Luc','Nouveau Testament','Évangiles',42,24], ['JHN','Jean','Nouveau Testament','Évangiles',43,21], ['ACT','Actes','Nouveau Testament','Actes',44,28],
-  ['ROM','Romains','Nouveau Testament','Épîtres pauliniennes',45,16], ['1CO','1 Corinthiens','Nouveau Testament','Épîtres pauliniennes',46,16], ['2CO','2 Corinthiens','Nouveau Testament','Épîtres pauliniennes',47,13], ['GAL','Galates','Nouveau Testament','Épîtres pauliniennes',48,6], ['EPH','Éphésiens','Nouveau Testament','Épîtres pauliniennes',49,6], ['PHP','Philippiens','Nouveau Testament','Épîtres pauliniennes',50,4], ['COL','Colossiens','Nouveau Testament','Épîtres pauliniennes',51,4], ['1TH','1 Thessaloniciens','Nouveau Testament','Épîtres pauliniennes',52,5], ['2TH','2 Thessaloniciens','Nouveau Testament','Épîtres pauliniennes',53,3], ['1TI','1 Timothée','Nouveau Testament','Épîtres pauliniennes',54,6], ['2TI','2 Timothée','Nouveau Testament','Épîtres pauliniennes',55,4], ['TIT','Tite','Nouveau Testament','Épîtres pauliniennes',56,3], ['PHM','Philémon','Nouveau Testament','Épîtres pauliniennes',57,1], ['HEB','Hébreux','Nouveau Testament','Épîtres pauliniennes',58,13],
-  ['JAS','Jacques','Nouveau Testament','Épîtres catholiques',59,5], ['1PE','1 Pierre','Nouveau Testament','Épîtres catholiques',60,5], ['2PE','2 Pierre','Nouveau Testament','Épîtres catholiques',61,3], ['1JN','1 Jean','Nouveau Testament','Épîtres catholiques',62,5], ['2JN','2 Jean','Nouveau Testament','Épîtres catholiques',63,1], ['3JN','3 Jean','Nouveau Testament','Épîtres catholiques',64,1], ['JUD','Jude','Nouveau Testament','Épîtres catholiques',65,1], ['REV','Apocalypse','Nouveau Testament','Apocalypse',66,22],
-].map(([code, nom, testament, categorie, ordre, chapitres]) => ({ code, nom, testament, categorie, ordre, chapitres } as LivreBiblique))
-
-const ETAPES: { key: Etape; label: string }[] = [
-  { key: 'testament', label: 'Testament' },
-  { key: 'propositions', label: 'Livre' },
-  { key: 'chapitre', label: 'Chapitre' },
-  { key: 'verset', label: 'Verset' },
-  { key: 'resultat', label: 'Résultat' },
-]
+  ['GEN','Genèse','Ancien Testament','pentateuque',1], ['EXO','Exode','Ancien Testament','pentateuque',2], ['LEV','Lévitique','Ancien Testament','pentateuque',3], ['NUM','Nombres','Ancien Testament','pentateuque',4], ['DEU','Deutéronome','Ancien Testament','pentateuque',5],
+  ['JOS','Josué','Ancien Testament','historiques-at',6], ['JDG','Juges','Ancien Testament','historiques-at',7], ['RUT','Ruth','Ancien Testament','historiques-at',8], ['1SA','1 Samuel','Ancien Testament','historiques-at',9], ['2SA','2 Samuel','Ancien Testament','historiques-at',10], ['1KI','1 Rois','Ancien Testament','historiques-at',11], ['2KI','2 Rois','Ancien Testament','historiques-at',12], ['1CH','1 Chroniques','Ancien Testament','historiques-at',13], ['2CH','2 Chroniques','Ancien Testament','historiques-at',14], ['EZR','Esdras','Ancien Testament','historiques-at',15], ['NEH','Néhémie','Ancien Testament','historiques-at',16], ['EST','Esther','Ancien Testament','historiques-at',17],
+  ['JOB','Job','Ancien Testament','poetiques',18], ['PSA','Psaumes','Ancien Testament','poetiques',19], ['PRO','Proverbes','Ancien Testament','poetiques',20], ['ECC','Ecclésiaste','Ancien Testament','poetiques',21], ['SNG','Cantique des cantiques','Ancien Testament','poetiques',22],
+  ['ISA','Isaïe','Ancien Testament','grands-prophetes',23], ['JER','Jérémie','Ancien Testament','grands-prophetes',24], ['LAM','Lamentations','Ancien Testament','grands-prophetes',25], ['EZK','Ézéchiel','Ancien Testament','grands-prophetes',26], ['DAN','Daniel','Ancien Testament','grands-prophetes',27],
+  ['HOS','Osée','Ancien Testament','petits-prophetes',28], ['JOL','Joël','Ancien Testament','petits-prophetes',29], ['AMO','Amos','Ancien Testament','petits-prophetes',30], ['OBA','Abdias','Ancien Testament','petits-prophetes',31], ['JON','Jonas','Ancien Testament','petits-prophetes',32], ['MIC','Michée','Ancien Testament','petits-prophetes',33], ['NAM','Nahum','Ancien Testament','petits-prophetes',34], ['HAB','Habacuc','Ancien Testament','petits-prophetes',35], ['ZEP','Sophonie','Ancien Testament','petits-prophetes',36], ['HAG','Aggée','Ancien Testament','petits-prophetes',37], ['ZEC','Zacharie','Ancien Testament','petits-prophetes',38], ['MAL','Malachie','Ancien Testament','petits-prophetes',39],
+  ['MAT','Matthieu','Nouveau Testament','evangiles-actes',40], ['MRK','Marc','Nouveau Testament','evangiles-actes',41], ['LUK','Luc','Nouveau Testament','evangiles-actes',42], ['JHN','Jean','Nouveau Testament','evangiles-actes',43], ['ACT','Actes','Nouveau Testament','evangiles-actes',44],
+  ['ROM','Romains','Nouveau Testament','paul',45], ['1CO','1 Corinthiens','Nouveau Testament','paul',46], ['2CO','2 Corinthiens','Nouveau Testament','paul',47], ['GAL','Galates','Nouveau Testament','paul',48], ['EPH','Éphésiens','Nouveau Testament','paul',49], ['PHP','Philippiens','Nouveau Testament','paul',50], ['COL','Colossiens','Nouveau Testament','paul',51], ['1TH','1 Thessaloniciens','Nouveau Testament','paul',52], ['2TH','2 Thessaloniciens','Nouveau Testament','paul',53], ['1TI','1 Timothée','Nouveau Testament','paul',54], ['2TI','2 Timothée','Nouveau Testament','paul',55], ['TIT','Tite','Nouveau Testament','paul',56], ['PHM','Philémon','Nouveau Testament','paul',57],
+  ['HEB','Hébreux','Nouveau Testament','catholiques',58], ['JAS','Jacques','Nouveau Testament','catholiques',59], ['1PE','1 Pierre','Nouveau Testament','catholiques',60], ['2PE','2 Pierre','Nouveau Testament','catholiques',61], ['1JN','1 Jean','Nouveau Testament','catholiques',62], ['2JN','2 Jean','Nouveau Testament','catholiques',63], ['3JN','3 Jean','Nouveau Testament','catholiques',64], ['JUD','Jude','Nouveau Testament','catholiques',65],
+  ['REV','Apocalypse','Nouveau Testament','apocalypse',66],
+].map(([code, nom, testament, famille, ordre]) => ({ code, nom, testament, famille, ordre } as LivreBiblique))
 
 const livreParCode = new Map(LIVRES.map(l => [l.code, l]))
-const livreParNom = new Map(LIVRES.map(l => [normaliser(l.nom), l]))
-
-function normaliser(s: string) {
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+const familles: Record<FamilleCode, { titre: string; messages: string[] }> = {
+  pentateuque: { titre: 'Pentateuque', messages: ['Presque ! Le verset se trouve bien dans le Pentateuque, mais vous n’avez pas nommé le bon livre.', 'Très chaud : on reste parmi les cinq premiers livres.'] },
+  'historiques-at': { titre: 'Livres historiques', messages: ['Il est bien question de l’histoire d’Israël, mais vous n’avez pas nommé le bon livre !', 'Vous êtes dans la bonne mémoire historique, mais pas dans le bon livre.'] },
+  poetiques: { titre: 'Livres poétiques', messages: ['Vous avez perçu la substance poétique de l’ouvrage, mais ce n’est pas le bon livre.', 'L’intuition est bonne : c’est bien le monde sapiential et poétique.'] },
+  'petits-prophetes': { titre: 'Petits prophètes', messages: ['L’auteur est un tout petit prophète, oui, mais vous ne l’avez pas nommé correctement !', 'On entend bien un petit prophète, mais pas celui-là.'] },
+  'grands-prophetes': { titre: 'Grands prophètes', messages: ['L’auteur est un grand prophète, oui, mais vous ne l’avez pas nommé correctement !', 'Vous êtes dans le grand souffle prophétique, mais pas au bon endroit.'] },
+  'evangiles-actes': { titre: 'Évangiles et Actes', messages: ['Pas loin. L’un des quatre évangélistes a bien écrit ce verset !', 'Vous êtes du côté de l’Évangile et des Actes, mais ce livre n’est pas le bon.'] },
+  paul: { titre: 'Épîtres de Paul', messages: ['Oui, c’est bien Paul, mais pas cette épître.', 'Vous avez reconnu la voix paulinienne, mais pas la bonne lettre.'] },
+  catholiques: { titre: 'Épîtres catholiques ou générales', messages: ['Oui, c’est bien une épître, mais l’auteur n’est pas Paul.', 'Bonne famille d’épîtres, mauvais livre.'] },
+  apocalypse: { titre: 'Apocalypse', messages: ['Vous tournez autour de Patmos, mais il faut nommer le livre exact.'] },
 }
 
-function melanger<T>(items: T[]): T[] {
-  return [...items].sort(() => Math.random() - 0.5)
+const aliases: Record<string, string> = {
+  gn: 'GEN', gen: 'GEN', genese: 'GEN',
+  ex: 'EXO', exo: 'EXO', exode: 'EXO',
+  lv: 'LEV', lev: 'LEV', levitique: 'LEV',
+  nb: 'NUM', nom: 'NUM', nombres: 'NUM',
+  dt: 'DEU', deut: 'DEU', deuteronome: 'DEU',
+  jos: 'JOS', josue: 'JOS', jg: 'JDG', juges: 'JDG', rt: 'RUT', ruth: 'RUT',
+  '1s': '1SA', '1sa': '1SA', '1samuel': '1SA', '2s': '2SA', '2sa': '2SA', '2samuel': '2SA',
+  '1r': '1KI', '1rois': '1KI', '2r': '2KI', '2rois': '2KI', '1ch': '1CH', '1chroniques': '1CH', '2ch': '2CH', '2chroniques': '2CH',
+  esd: 'EZR', esdras: 'EZR', ne: 'NEH', nehemie: 'NEH', est: 'EST', esther: 'EST',
+  job: 'JOB', ps: 'PSA', psaume: 'PSA', psaumes: 'PSA', pr: 'PRO', proverbes: 'PRO', qo: 'ECC', ec: 'ECC', ecclesiaste: 'ECC', ct: 'SNG', cantique: 'SNG',
+  is: 'ISA', isaie: 'ISA', esaie: 'ISA', jer: 'JER', jeremie: 'JER', lm: 'LAM', lamentations: 'LAM', ez: 'EZK', ezechiel: 'EZK', dan: 'DAN', daniel: 'DAN',
+  os: 'HOS', osee: 'HOS', jl: 'JOL', joel: 'JOL', am: 'AMO', amos: 'AMO', ab: 'OBA', abdias: 'OBA', jon: 'JON', jonas: 'JON', mi: 'MIC', michee: 'MIC', na: 'NAM', nahum: 'NAM', ha: 'HAB', habacuc: 'HAB', so: 'ZEP', sophonie: 'ZEP', ag: 'HAG', aggee: 'HAG', za: 'ZEC', zacharie: 'ZEC', ml: 'MAL', malachie: 'MAL',
+  mt: 'MAT', matthieu: 'MAT', mc: 'MRK', marc: 'MRK', lc: 'LUK', luc: 'LUK', jn: 'JHN', jean: 'JHN', ac: 'ACT', actes: 'ACT',
+  rm: 'ROM', romains: 'ROM', '1co': '1CO', '1corinthiens': '1CO', '2co': '2CO', '2corinthiens': '2CO', ga: 'GAL', galates: 'GAL', ep: 'EPH', ephesiens: 'EPH', ph: 'PHP', philippiens: 'PHP', col: 'COL', colossiens: 'COL', '1th': '1TH', '1thessaloniciens': '1TH', '2th': '2TH', '2thessaloniciens': '2TH', '1tm': '1TI', '1timothee': '1TI', '2tm': '2TI', '2timothee': '2TI', tt: 'TIT', tite: 'TIT', phm: 'PHM', philemon: 'PHM',
+  he: 'HEB', hebreux: 'HEB', jc: 'JAS', jacques: 'JAS', '1p': '1PE', '1pierre': '1PE', '2p': '2PE', '2pierre': '2PE', '1jn': '1JN', '1jean': '1JN', '2jn': '2JN', '2jean': '2JN', '3jn': '3JN', '3jean': '3JN', jude: 'JUD', ap: 'REV', apocalypse: 'REV',
+}
+
+function normaliser(s: string) {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’']/g, '').replace(/\s+/g, ' ').trim()
+}
+
+function codeDepuisNom(s: string) {
+  const n = normaliser(s).replace(/\s/g, '')
+  return aliases[n] ?? LIVRES.find(l => normaliser(l.nom).replace(/\s/g, '') === n)?.code ?? null
+}
+
+function parserReference(s: string) {
+  const match = normaliser(s).match(/^(.+?)\s+(\d+)\s*[,.:]\s*(\d+)$/)
+  if (!match) return null
+  const code = codeDepuisNom(match[1])
+  if (!code) return null
+  return { code, chapitre: Number(match[2]), verset: Number(match[3]) }
 }
 
 function refLisible(v: VersetQuiz) {
@@ -60,39 +88,19 @@ function refLisible(v: VersetQuiz) {
   return `${livre} ${v.chapitre}, ${v.verset}`
 }
 
-function genererLivresPlausibles(correct: LivreBiblique): LivreBiblique[] {
-  const memeCategorie = LIVRES.filter(l => l.code !== correct.code && l.testament === correct.testament && l.categorie === correct.categorie)
-  const memeTestament = LIVRES.filter(l => l.code !== correct.code && l.testament === correct.testament && l.categorie !== correct.categorie)
-  return melanger([correct, ...melanger(memeCategorie).slice(0, 4), ...melanger(memeTestament).slice(0, 4)]).slice(0, 5)
-}
-
-function genererPlages(max: number, cible: number): Plage[] {
-  const taille = Math.max(1, Math.ceil(max / 5))
-  const plages: Plage[] = []
-  for (let debut = 1; debut <= max; debut += taille) {
-    const fin = Math.min(max, debut + taille - 1)
-    plages.push({ debut, fin, label: debut === fin ? `${debut}` : `${debut}-${fin}` })
-  }
-  if (!plages.some(p => cible >= p.debut && cible <= p.fin)) plages.push({ debut: cible, fin: cible, label: `${cible}` })
-  return plages.slice(0, 7)
-}
-
-function messageScore(score: number) {
-  if (score >= 70) return 'Référence très bien identifiée.'
-  if (score >= 35) return 'Bonne orientation dans le texte biblique.'
-  return 'Référence difficile à situer.'
+function melanger<T>(items: T[]): T[] {
+  return [...items].sort(() => Math.random() - 0.5)
 }
 
 async function chargerVersetAleatoire(): Promise<VersetQuiz> {
   const base = () => supabase.from('versets').select('id_verset, ref, livre, chapitre, verset, TR0001', { count: 'exact' }).not('TR0001', 'is', null)
-  let count = 0
-  let avecExclusion = true
   let countRes = await base().or('quiz_exclu.is.null,quiz_exclu.eq.false').limit(1)
+  let avecExclusion = true
   if (countRes.error) {
     avecExclusion = false
     countRes = await base().limit(1)
   }
-  count = countRes.count ?? 0
+  const count = countRes.count ?? 0
   if (count <= 0) throw new Error('Aucun verset disponible.')
 
   for (let essai = 0; essai < 10; essai++) {
@@ -107,9 +115,11 @@ async function chargerVersetAleatoire(): Promise<VersetQuiz> {
   throw new Error('Aucun verset assez substantiel trouvé.')
 }
 
-async function maxVersets(livre: string, chapitre: number) {
-  const { data } = await supabase.from('versets').select('verset').eq('livre', livre).eq('chapitre', chapitre).order('verset', { ascending: false }).limit(1)
-  return (data?.[0]?.verset as number | undefined) ?? 1
+function messageScore(score: number) {
+  if (score >= 90) return 'Jacob file vers le sommet.'
+  if (score >= 55) return 'Belle ascension biblique.'
+  if (score >= 25) return 'On commence à voir l’échelle.'
+  return 'Premier barreau, et c’est déjà quelque chose.'
 }
 
 export default function QuizBibliqueClient() {
@@ -119,13 +129,10 @@ export default function QuizBibliqueClient() {
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState<string | null>(null)
   const [saisieLivre, setSaisieLivre] = useState('')
-  const [livresPressentis, setLivresPressentis] = useState<LivreBiblique[]>([])
-  const [choixLivres, setChoixLivres] = useState<LivreBiblique[]>([])
-  const [modeChapitre, setModeChapitre] = useState<Mode>('prudent')
-  const [modeVerset, setModeVerset] = useState<Mode>('prudent')
-  const [chapitreExact, setChapitreExact] = useState('')
-  const [versetExact, setVersetExact] = useState('')
-  const [maxVersetChapitre, setMaxVersetChapitre] = useState(1)
+  const [essaisLivres, setEssaisLivres] = useState<LivreBiblique[]>([])
+  const [messageChaud, setMessageChaud] = useState<string | null>(null)
+  const [reponseExacte, setReponseExacte] = useState('')
+  const [flashScore, setFlashScore] = useState(false)
   const [signalementOuvert, setSignalementOuvert] = useState(false)
   const [raisonSignalement, setRaisonSignalement] = useState('verset trop générique')
   const [commentaireSignalement, setCommentaireSignalement] = useState('')
@@ -133,23 +140,29 @@ export default function QuizBibliqueClient() {
 
   const livreCorrect = verset ? livreParCode.get(verset.livre) : null
   const score = resultats.reduce((s, r) => s + r.points, 0)
-  const plagesChapitres = useMemo(() => livreCorrect && verset ? genererPlages(livreCorrect.chapitres, verset.chapitre) : [], [livreCorrect, verset])
-  const plagesVersets = useMemo(() => verset ? genererPlages(maxVersetChapitre, verset.verset) : [], [maxVersetChapitre, verset])
   const suggestionsLivre = useMemo(() => {
     const q = normaliser(saisieLivre)
     if (!q) return []
-    return LIVRES.filter(l => normaliser(l.nom).startsWith(q) && !livresPressentis.some(p => p.code === l.code)).slice(0, 6)
-  }, [saisieLivre, livresPressentis])
+    return LIVRES.filter(l => normaliser(l.nom).startsWith(q) && !essaisLivres.some(e => e.code === l.code)).slice(0, 6)
+  }, [saisieLivre, essaisLivres])
+
+  const celebrer = (points: number) => {
+    if (points <= 0) return
+    setFlashScore(true)
+    window.setTimeout(() => setFlashScore(false), 900)
+  }
+
+  const ajouterResultat = (r: Resultat, prochaine: Etape) => {
+    setResultats(prev => [...prev, r])
+    setEtape(prochaine)
+    celebrer(r.points)
+  }
 
   const nouveauVerset = async () => {
-    setChargement(true); setErreur(null); setResultats([]); setEtape('testament'); setLivresPressentis([])
-    setSaisieLivre(''); setChapitreExact(''); setVersetExact(''); setSignalementOuvert(false); setStatutSignalement('idle')
+    setChargement(true); setErreur(null); setResultats([]); setEtape('testament'); setEssaisLivres([])
+    setSaisieLivre(''); setMessageChaud(null); setReponseExacte(''); setSignalementOuvert(false); setStatutSignalement('idle')
     try {
-      const v = await chargerVersetAleatoire()
-      setVerset(v)
-      setMaxVersetChapitre(await maxVersets(v.livre, v.chapitre))
-      const livre = livreParCode.get(v.livre)
-      if (livre) setChoixLivres(genererLivresPlausibles(livre))
+      setVerset(await chargerVersetAleatoire())
     } catch (e: any) {
       setErreur(e?.message ?? 'Impossible de charger un verset.')
     } finally {
@@ -159,60 +172,42 @@ export default function QuizBibliqueClient() {
 
   useEffect(() => { nouveauVerset() }, [])
 
-  const ajouterResultat = (r: Resultat, prochaine: Etape) => {
-    setResultats(prev => [...prev, r])
-    setEtape(prochaine)
-  }
-
   const repondreTestament = (choix: Testament) => {
     if (!livreCorrect) return
     const ok = choix === livreCorrect.testament
-    ajouterResultat({ label: 'Testament', points: ok ? 5 : 0, detail: `Réponse : ${livreCorrect.testament}` }, 'propositions')
+    ajouterResultat({ label: 'Testament', points: ok ? 8 : 0, reponse: choix, detail: `Réponse : ${livreCorrect.testament}` }, 'livre')
   }
 
-  const ajouterLivrePressenti = (livre?: LivreBiblique) => {
-    const choisi = livre ?? livreParNom.get(normaliser(saisieLivre))
-    if (!choisi || livresPressentis.length >= 5 || livresPressentis.some(l => l.code === choisi.code)) return
-    setLivresPressentis(prev => [...prev, choisi])
+  const proposerLivre = (livre?: LivreBiblique) => {
+    if (!livreCorrect || etape === 'resultat') return
+    const choisi = livre ?? LIVRES.find(l => l.code === codeDepuisNom(saisieLivre))
+    if (!choisi || essaisLivres.some(l => l.code === choisi.code) || essaisLivres.length >= 5) return
+    const nouvelIndex = essaisLivres.length + 1
+    setEssaisLivres(prev => [...prev, choisi])
     setSaisieLivre('')
+
+    if (choisi.code === livreCorrect.code) {
+      const points = Math.max(12, 42 - (nouvelIndex - 1) * 6)
+      setMessageChaud(null)
+      ajouterResultat({ label: `Livre, essai ${nouvelIndex}`, points, reponse: choisi.nom, detail: `Réponse : ${livreCorrect.nom}` }, 'livre')
+      return
+    }
+
+    if (choisi.famille === livreCorrect.famille) {
+      const variants = familles[choisi.famille].messages
+      setMessageChaud(variants[(nouvelIndex - 1) % variants.length])
+    } else {
+      setMessageChaud(null)
+    }
+    setResultats(prev => [...prev, { label: `Livre, essai ${nouvelIndex}`, points: 0, reponse: choisi.nom, detail: `Réponse : ${livreCorrect.nom}` }])
+    if (nouvelIndex >= 5) setEtape('resultat')
   }
 
-  const validerLivresPressentis = () => {
-    if (!livreCorrect) return
-    const index = livresPressentis.findIndex(l => l.code === livreCorrect.code)
-    const points = index === -1 ? 0 : 10 + (index === 0 ? 5 : 0)
-    ajouterResultat({ label: 'Livres pressentis', points, detail: `Réponse : ${livreCorrect.nom}` }, 'choixLivre')
-  }
-
-  const choisirLivre = (code: string) => {
-    if (!livreCorrect) return
-    ajouterResultat({ label: 'Choix du livre', points: code === livreCorrect.code ? 10 : 0, detail: `Réponse : ${livreCorrect.nom}` }, 'chapitre')
-  }
-
-  const choisirPlageChapitre = (p: Plage) => {
+  const validerExact = () => {
     if (!verset) return
-    const ok = verset.chapitre >= p.debut && verset.chapitre <= p.fin
-    ajouterResultat({ label: 'Chapitre', points: ok ? 10 : 0, detail: `Réponse : chapitre ${verset.chapitre}` }, 'verset')
-  }
-
-  const validerChapitreExact = () => {
-    if (!verset) return
-    const n = parseInt(chapitreExact, 10)
-    const points = n === verset.chapitre ? 25 : Math.abs(n - verset.chapitre) === 1 ? 8 : 0
-    ajouterResultat({ label: 'Chapitre exact', points, detail: `Réponse : chapitre ${verset.chapitre}` }, 'verset')
-  }
-
-  const choisirPlageVerset = (p: Plage) => {
-    if (!verset) return
-    const ok = verset.verset >= p.debut && verset.verset <= p.fin
-    ajouterResultat({ label: 'Verset', points: ok ? 10 : 0, detail: `Réponse : verset ${verset.verset}` }, 'resultat')
-  }
-
-  const validerVersetExact = () => {
-    if (!verset) return
-    const n = parseInt(versetExact, 10)
-    const points = n === verset.verset ? 30 : Math.abs(n - verset.verset) === 1 ? 10 : 0
-    ajouterResultat({ label: 'Verset exact', points, detail: `Réponse : verset ${verset.verset}` }, 'resultat')
+    const ref = parserReference(reponseExacte)
+    const ok = !!ref && ref.code === verset.livre && ref.chapitre === verset.chapitre && ref.verset === verset.verset
+    ajouterResultat({ label: 'Je sais !', points: ok ? 50 : 0, reponse: reponseExacte, detail: `Réponse : ${refLisible(verset)}` }, 'resultat')
   }
 
   const signaler = async () => {
@@ -220,8 +215,7 @@ export default function QuizBibliqueClient() {
     setStatutSignalement('sending')
     const { data: session } = await supabase.auth.getSession()
     const user_id = session.session?.user.id ?? null
-    const payload = { id_verset: verset.id_verset, raison: raisonSignalement, commentaire: commentaireSignalement || null, user_id }
-    await supabase.from('quiz_signalements').insert(payload)
+    await supabase.from('quiz_signalements').insert({ id_verset: verset.id_verset, raison: raisonSignalement, commentaire: commentaireSignalement || null, user_id })
     const fallback = await supabase.from('signalements').insert({
       id_segment: null,
       user_id,
@@ -233,113 +227,178 @@ export default function QuizBibliqueClient() {
   }
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '48px' }}>
-      <div style={{ maxWidth: '760px', margin: '0 auto', padding: '38px 24px 80px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '22px' }}>
-          <Link href="/traductions?onglet=quiz" style={{ fontSize: '11px', color: '#9a958d', textDecoration: 'none' }}>← Aller plus loin</Link>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(24px, 4vw, 34px)', fontWeight: 'normal', color: '#1e2e24', margin: '12px 0 6px' }}>Où est-il écrit ?</h1>
-          <p style={{ fontSize: '13px', color: '#6b6560', margin: 0 }}>Retrouvez la référence d’un verset biblique.</p>
+    <section style={{ maxWidth: '1040px', margin: '0 auto', padding: '24px 20px 82px', fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+      <style>{`
+        @keyframes bibleGamesGlow { 0% { box-shadow: 0 0 0 rgba(206,236,170,0); transform: scale(1); } 35% { box-shadow: 0 0 34px rgba(210,241,153,0.75); transform: scale(1.035); } 100% { box-shadow: 0 0 0 rgba(206,236,170,0); transform: scale(1); } }
+        @keyframes bibleGamesSpark { 0% { opacity: 0; transform: scale(0.6) translateY(8px); } 35% { opacity: 1; } 100% { opacity: 0; transform: scale(1.35) translateY(-20px); } }
+        @keyframes jacobClimb { 0% { transform: translateY(3px); } 100% { transform: translateY(-3px); } }
+        @media (max-width: 880px) {
+          .bible-games-layout { grid-template-columns: 1fr !important; }
+          .bible-games-score { min-height: auto !important; }
+          .bible-games-ladder { min-height: 300px !important; }
+          .bible-games-answer { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+      <div style={{ background: 'linear-gradient(135deg, #f8fbf2 0%, #eef6e7 46%, #dfeedd 100%)', border: '1px solid rgba(61,107,79,0.24)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 18px 42px rgba(33,68,45,0.12)', position: 'relative' }}>
+        {flashScore && <FeuArtifice />}
+        <div className="bible-games-layout" style={{ display: 'grid', gridTemplateColumns: '150px minmax(0,1fr) 190px', gap: '16px', padding: '18px', alignItems: 'stretch' }}>
+          <aside className="bible-games-score" style={{ background: 'rgba(255,255,255,0.72)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '12px', padding: '14px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '420px' }}>
+            <div>
+              <p style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#6b8a70', fontWeight: 800, margin: '0 0 8px' }}>Score</p>
+              <div style={{ fontSize: '42px', lineHeight: 1, fontWeight: 900, color: '#2f6a48', animation: flashScore ? 'bibleGamesGlow 0.9s ease-out' : 'none', borderRadius: '12px', padding: '4px 0' }}>{score}</div>
+              <p style={{ fontSize: '11px', lineHeight: 1.35, color: '#5f725f', margin: '8px 0 0' }}>{messageScore(score)}</p>
+            </div>
+            <button onClick={nouveauVerset} style={btnSecondaire}>Nouveau verset</button>
+          </aside>
+
+          <div>
+            <div style={{ marginBottom: '12px' }}>
+              <p style={{ margin: '0 0 4px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.16em', color: '#477658', fontWeight: 900 }}>Où est-il écrit ?</p>
+              <h2 style={{ margin: 0, fontSize: '24px', lineHeight: 1.1, color: '#193824', fontWeight: 900 }}>Bible games</h2>
+            </div>
+
+            {chargement ? <p style={etatTexte}>Chargement…</p> : erreur ? <p style={{ ...etatTexte, color: '#c0562a' }}>{erreur}</p> : verset && livreCorrect ? (
+              <>
+                <div style={{ position: 'sticky', top: '58px', zIndex: 5, background: 'rgba(248,251,242,0.96)', border: '1px solid rgba(61,107,79,0.20)', borderRadius: '13px', padding: '13px 14px', backdropFilter: 'blur(8px)' }}>
+                  <p lang="fr" style={{ margin: 0, fontSize: '16px', lineHeight: 1.58, color: '#203528', textAlign: 'justify', fontWeight: 560 }}>« {verset.TR0001} »</p>
+                  <BarreProgression resultats={resultats} etape={etape} />
+                </div>
+
+                <div style={{ marginTop: '14px', display: 'grid', gap: '12px' }}>
+                  <div className="bible-games-answer" style={blocJeSais}>
+                    <div>
+                      <p style={{ margin: '0 0 3px', fontSize: '12px', color: '#214d34', fontWeight: 900 }}>Je sais !</p>
+                      <p style={{ margin: 0, fontSize: '11px', color: '#6c7b6d' }}>Entrez la référence exacte, par exemple : Gn 1, 1.</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '7px', minWidth: 0 }}>
+                      <input value={reponseExacte} onChange={e => setReponseExacte(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') validerExact() }} placeholder="Gn 1, 1" style={inputStyle} />
+                      <button onClick={validerExact} disabled={!reponseExacte.trim()} style={btnPrincipal}>Valider</button>
+                    </div>
+                  </div>
+
+                  {etape === 'testament' && <BlocJeu titre="1. Testament">
+                    <div style={ligneBoutons}>
+                      <button onClick={() => repondreTestament('Ancien Testament')} style={btnPrincipal}>Ancien Testament</button>
+                      <button onClick={() => repondreTestament('Nouveau Testament')} style={btnPrincipal}>Nouveau Testament</button>
+                    </div>
+                  </BlocJeu>}
+
+                  {etape === 'livre' && <BlocJeu titre={`2. Livre biblique (${Math.min(essaisLivres.length + 1, 5)}/5)`}>
+                    <p style={aide}>Faites vos choix un par un. Si vous êtes dans la bonne famille de livres, le jeu vous le dira.</p>
+                    <div style={{ position: 'relative' }}>
+                      <input value={saisieLivre} onChange={e => setSaisieLivre(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') proposerLivre() }} placeholder="Ex. Genèse, Isaïe, Romains…" style={{ ...inputStyle, width: '100%' }} />
+                      {suggestionsLivre.length > 0 && <div style={menuSuggestions}>
+                        {suggestionsLivre.map(l => <button key={l.code} onClick={() => proposerLivre(l)} style={suggestionStyle}>{l.nom}</button>)}
+                      </div>}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', marginTop: '10px', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        {essaisLivres.map((l, i) => <span key={l.code} style={tagStyle}>{i + 1}. {l.nom}</span>)}
+                      </div>
+                      <button onClick={() => proposerLivre()} disabled={!saisieLivre.trim() || essaisLivres.length >= 5} style={btnPrincipal}>Proposer</button>
+                    </div>
+                    {messageChaud && <div style={{ marginTop: '10px', padding: '9px 11px', borderRadius: '9px', background: '#fff4df', border: '1px solid rgba(194,112,38,0.26)', color: '#9a5520', fontSize: '12px', fontWeight: 700 }}>{messageChaud}</div>}
+                  </BlocJeu>}
+
+                  {etape === 'resultat' && <BlocJeu titre="Résultat">
+                    <p style={{ fontSize: '20px', color: '#163422', margin: '0 0 5px', fontWeight: 900 }}>{refLisible(verset)}</p>
+                    <p style={{ fontSize: '13px', color: '#3d6b4f', fontWeight: 800, margin: '0 0 12px' }}>{score} points — {messageScore(score)}</p>
+                    {resultats.map((r, i) => <p key={`${r.label}-${i}`} style={{ fontSize: '12px', color: '#536756', margin: '4px 0' }}>{r.label} : <strong>{r.points}</strong> pts{r.reponse ? ` — ${r.reponse}` : ''}. {r.detail}</p>)}
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '16px' }}>
+                      <button onClick={nouveauVerset} style={btnPrincipal}>Nouveau verset</button>
+                      <button onClick={() => setSignalementOuvert(o => !o)} style={btnSecondaire}>Signaler ce verset comme trop vague</button>
+                    </div>
+                    {signalementOuvert && <div style={{ marginTop: '14px', padding: '12px', border: '1px solid #d7e3d3', borderRadius: '10px', background: '#fbfdf8' }}>
+                      <select value={raisonSignalement} onChange={e => setRaisonSignalement(e.target.value)} style={{ ...inputStyle, width: '100%' }}>
+                        {['verset trop générique','verset trop court','doublon ou quasi-doublon','dépend trop du verset précédent','problème de traduction','autre'].map(r => <option key={r}>{r}</option>)}
+                      </select>
+                      <textarea value={commentaireSignalement} onChange={e => setCommentaireSignalement(e.target.value)} placeholder="Commentaire optionnel" rows={3} style={{ ...inputStyle, width: '100%', marginTop: '8px', resize: 'vertical' }} />
+                      <button onClick={signaler} disabled={statutSignalement === 'sending' || statutSignalement === 'ok'} style={{ ...btnPrincipal, marginTop: '8px' }}>{statutSignalement === 'ok' ? 'Signalement envoyé' : 'Envoyer'}</button>
+                      {statutSignalement === 'err' && <span style={{ marginLeft: '10px', color: '#c0562a', fontSize: '11px' }}>Erreur d’envoi.</span>}
+                    </div>}
+                  </BlocJeu>}
+                </div>
+              </>
+            ) : null}
+          </div>
+
+          <EchelleJacob score={score} flash={flashScore} />
         </div>
-
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
-          {ETAPES.map(e => <span key={e.key} style={{ fontSize: '10.5px', color: etape === e.key ? '#3d6b4f' : '#9a958d', borderBottom: etape === e.key ? '2px solid #3d6b4f' : '2px solid transparent', padding: '4px 6px' }}>{e.label}</span>)}
-        </div>
-
-        <section style={{ background: '#fff', border: '1px solid #ddd8cf', borderRadius: '8px', padding: '24px', boxShadow: '0 8px 26px rgba(0,0,0,0.04)' }}>
-          {chargement ? <p style={{ textAlign: 'center', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p> : erreur ? (
-            <p style={{ textAlign: 'center', color: '#c0562a' }}>{erreur}</p>
-          ) : verset && livreCorrect ? (
-            <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', marginBottom: '18px' }}>
-                <span style={{ fontSize: '11px', color: '#9a958d' }}>Score : <strong style={{ color: '#3d6b4f' }}>{score}</strong></span>
-                <button onClick={nouveauVerset} style={btnSecondaire}>Nouveau verset</button>
-              </div>
-              <blockquote lang="fr" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '18px', lineHeight: 1.72, color: '#2a2520', textAlign: 'justify', margin: '0 0 22px', padding: '0 8px', hyphens: 'auto' }}>
-                « {verset.TR0001} »
-              </blockquote>
-
-              {etape === 'testament' && <Bloc titre="1. Testament">
-                <div style={ligneBoutons}>
-                  <button onClick={() => repondreTestament('Ancien Testament')} style={btnPrincipal}>Ancien Testament</button>
-                  <button onClick={() => repondreTestament('Nouveau Testament')} style={btnPrincipal}>Nouveau Testament</button>
-                </div>
-              </Bloc>}
-
-              {etape === 'propositions' && <Bloc titre="2. Livres pressentis">
-                <p style={aide}>Saisissez jusqu’à cinq livres bibliques auxquels vous pensez.</p>
-                <div style={{ position: 'relative' }}>
-                  <input value={saisieLivre} onChange={e => setSaisieLivre(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') ajouterLivrePressenti() }} placeholder="Ex. Isaïe, Jean, Romains…" style={inputStyle} />
-                  {suggestionsLivre.length > 0 && <div style={menuSuggestions}>
-                    {suggestionsLivre.map(l => <button key={l.code} onClick={() => ajouterLivrePressenti(l)} style={suggestionStyle}>{l.nom}</button>)}
-                  </div>}
-                </div>
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', margin: '10px 0' }}>
-                  {livresPressentis.map(l => <span key={l.code} style={tagStyle}>{l.nom}</span>)}
-                </div>
-                <button onClick={validerLivresPressentis} style={btnPrincipal}>Valider</button>
-              </Bloc>}
-
-              {etape === 'choixLivre' && <Bloc titre="3. Choix du livre">
-                <div style={ligneBoutons}>{choixLivres.map(l => <button key={l.code} onClick={() => choisirLivre(l.code)} style={btnSecondaire}>{l.nom}</button>)}</div>
-              </Bloc>}
-
-              {etape === 'chapitre' && <Bloc titre="4. Chapitre">
-                <ModeToggle mode={modeChapitre} setMode={setModeChapitre} />
-                {modeChapitre === 'prudent' ? <div style={ligneBoutons}>{plagesChapitres.map(p => <button key={p.label} onClick={() => choisirPlageChapitre(p)} style={btnSecondaire}>{p.label}</button>)}</div> : (
-                  <div style={ligneForm}><input value={chapitreExact} onChange={e => setChapitreExact(e.target.value)} type="number" min={1} style={inputCourt} /><button onClick={validerChapitreExact} style={btnPrincipal}>Valider</button></div>
-                )}
-              </Bloc>}
-
-              {etape === 'verset' && <Bloc titre="5. Verset">
-                <ModeToggle mode={modeVerset} setMode={setModeVerset} />
-                {modeVerset === 'prudent' ? <div style={ligneBoutons}>{plagesVersets.map(p => <button key={p.label} onClick={() => choisirPlageVerset(p)} style={btnSecondaire}>{p.label}</button>)}</div> : (
-                  <div style={ligneForm}><input value={versetExact} onChange={e => setVersetExact(e.target.value)} type="number" min={1} style={inputCourt} /><button onClick={validerVersetExact} style={btnPrincipal}>Valider</button></div>
-                )}
-              </Bloc>}
-
-              {etape === 'resultat' && <Bloc titre="Résultat">
-                <p style={{ fontFamily: 'Georgia, serif', fontSize: '18px', color: '#1e2e24', margin: '0 0 6px' }}>{refLisible(verset)}</p>
-                <p style={{ fontSize: '13px', color: '#3d6b4f', fontWeight: 600, margin: '0 0 12px' }}>{score} points — {messageScore(score)}</p>
-                {resultats.map(r => <p key={r.label} style={{ fontSize: '12px', color: '#6b6560', margin: '4px 0' }}>{r.label} : <strong>{r.points}</strong> pts. {r.detail}</p>)}
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '16px' }}>
-                  <button onClick={nouveauVerset} style={btnPrincipal}>Nouveau verset</button>
-                  <button onClick={() => setSignalementOuvert(o => !o)} style={btnSecondaire}>Signaler ce verset comme trop vague</button>
-                </div>
-                {signalementOuvert && <div style={{ marginTop: '14px', padding: '12px', border: '1px solid #e4dfd8', borderRadius: '6px', background: '#faf8f4' }}>
-                  <select value={raisonSignalement} onChange={e => setRaisonSignalement(e.target.value)} style={inputStyle}>
-                    {['verset trop générique','verset trop court','doublon ou quasi-doublon','dépend trop du verset précédent','problème de traduction','autre'].map(r => <option key={r}>{r}</option>)}
-                  </select>
-                  <textarea value={commentaireSignalement} onChange={e => setCommentaireSignalement(e.target.value)} placeholder="Commentaire optionnel" rows={3} style={{ ...inputStyle, marginTop: '8px', resize: 'vertical' }} />
-                  <button onClick={signaler} disabled={statutSignalement === 'sending' || statutSignalement === 'ok'} style={{ ...btnPrincipal, marginTop: '8px' }}>{statutSignalement === 'ok' ? 'Signalement envoyé' : 'Envoyer'}</button>
-                  {statutSignalement === 'err' && <span style={{ marginLeft: '10px', color: '#c0562a', fontSize: '11px' }}>Erreur d’envoi.</span>}
-                </div>}
-              </Bloc>}
-            </>
-          ) : null}
-        </section>
       </div>
-    </main>
+    </section>
   )
 }
 
-function Bloc({ titre, children }: { titre: string; children: React.ReactNode }) {
-  return <div><h2 style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 12px' }}>{titre}</h2>{children}</div>
+function BarreProgression({ resultats, etape }: { resultats: Resultat[]; etape: Etape }) {
+  const prochain = etape === 'testament' ? 'Testament' : etape === 'livre' ? 'Livre suivant' : 'Résultat'
+  const lignes = resultats.length > 0
+    ? [...resultats, ...(etape !== 'resultat' ? [{ label: prochain, points: 0, detail: 'À jouer' }] : [])]
+    : [{ label: prochain, points: 0, detail: 'À jouer' }]
+  return (
+    <div style={{ display: 'flex', gap: '5px', marginTop: '11px', overflowX: 'auto', paddingBottom: '1px' }}>
+      {lignes.map((r, i) => {
+        const estAVenir = i >= resultats.length
+        return <div key={`${r.label}-${i}`} style={{ flex: '1 0 108px', minHeight: '36px', borderRadius: '8px', padding: '6px 7px', background: estAVenir ? 'rgba(255,255,255,0.68)' : r.points > 0 ? 'rgba(61,107,79,0.13)' : 'rgba(194,112,38,0.10)', border: `1px solid ${estAVenir ? 'rgba(61,107,79,0.14)' : r.points > 0 ? 'rgba(61,107,79,0.20)' : 'rgba(194,112,38,0.18)'}` }}>
+          <p style={{ margin: 0, fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.08em', color: estAVenir ? '#66806a' : r.points > 0 ? '#3d6b4f' : '#9a5520', fontWeight: 900 }}>{r.label}</p>
+          <p style={{ margin: '2px 0 0', fontSize: '10px', color: '#294b35', fontWeight: 800 }}>{estAVenir ? 'À jouer' : `${r.points} pts${r.reponse ? ` — ${r.reponse}` : ''}`}</p>
+        </div>
+      })}
+    </div>
+  )
 }
 
-function ModeToggle({ mode, setMode }: { mode: Mode; setMode: (m: Mode) => void }) {
-  return <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
-    <button onClick={() => setMode('prudent')} style={mode === 'prudent' ? btnPrincipal : btnSecondaire}>Mode prudent</button>
-    <button onClick={() => setMode('risque')} style={mode === 'risque' ? btnPrincipal : btnSecondaire}>Mode risqué</button>
+function EchelleJacob({ score, flash }: { score: number; flash: boolean }) {
+  const y = 244 - Math.min(100, score) * 1.75
+  return (
+    <aside className="bible-games-ladder" style={{ background: 'rgba(255,255,255,0.58)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '12px', padding: '10px', minHeight: '420px', position: 'relative', overflow: 'hidden' }}>
+      <p style={{ margin: '0 0 6px', textAlign: 'center', fontSize: '10px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#6a7b68', fontWeight: 900 }}>Échelle de Jacob</p>
+      <svg viewBox="0 0 150 300" width="100%" height="320" aria-hidden="true">
+        <defs>
+          <pattern id="hachuresJacob" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+            <path d="M0 0h1" stroke="#8f7b5e" strokeWidth="0.5" opacity="0.35" />
+          </pattern>
+        </defs>
+        <rect x="0" y="0" width="150" height="300" fill="rgba(252,249,239,0.42)" />
+        <path d="M45 270 L93 28 M80 270 L128 28" stroke="#5f513e" strokeWidth="4" fill="none" strokeLinecap="round" />
+        {Array.from({ length: 10 }).map((_, i) => {
+          const yy = 250 - i * 23
+          return <path key={i} d={`M${50 + i * 4.7} ${yy} L${84 + i * 4.7} ${yy}`} stroke="#7b684f" strokeWidth="3" strokeLinecap="round" />
+        })}
+        <path d="M18 276 C46 260 88 264 138 276" stroke="#9d8b65" strokeWidth="2" fill="url(#hachuresJacob)" />
+        <g style={{ transform: `translate(0px, ${y}px)`, transition: 'transform 0.7s cubic-bezier(.2,.8,.2,1)', animation: flash ? 'jacobClimb 0.18s ease-in-out 4 alternate' : 'none' }}>
+          <circle cx="70" cy="24" r="9" fill="#f1d8b3" stroke="#5f513e" strokeWidth="1.4" />
+          <path d="M63 21 Q70 13 78 21" stroke="#4b3828" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M70 34 L68 58 M68 42 L54 53 M69 43 L82 53 M68 58 L58 76 M68 58 L78 76" stroke="#365c42" strokeWidth="4" fill="none" strokeLinecap="round" />
+          <path d="M61 36 Q70 43 79 36 L77 59 Q70 65 63 59 Z" fill="#78a36f" stroke="#365c42" strokeWidth="1" />
+        </g>
+      </svg>
+      <div style={{ position: 'absolute', right: '12px', top: `${Math.max(58, y + 42)}px`, transition: 'top 0.7s cubic-bezier(.2,.8,.2,1)', background: '#fffdf6', color: '#38543d', border: '1px solid #d7c9a8', borderRadius: '6px', padding: '4px 7px', fontSize: '11px', fontWeight: 900, boxShadow: '0 4px 12px rgba(74,68,48,0.10)' }}>{score} pts</div>
+    </aside>
+  )
+}
+
+function FeuArtifice() {
+  return <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 20 }}>
+    {Array.from({ length: 18 }).map((_, i) => (
+      <span key={i} style={{ position: 'absolute', left: `${18 + (i * 37) % 70}%`, top: `${10 + (i * 23) % 55}%`, width: '7px', height: '7px', borderRadius: '50%', background: i % 3 === 0 ? '#f6cf62' : i % 3 === 1 ? '#8bcf83' : '#ffffff', animation: `bibleGamesSpark ${0.55 + (i % 4) * 0.08}s ease-out forwards`, boxShadow: '0 0 12px currentColor' }} />
+    ))}
   </div>
 }
 
-const btnPrincipal = { fontSize: '12px', padding: '7px 13px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 600 } as const
-const btnSecondaire = { fontSize: '12px', padding: '7px 13px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer', fontWeight: 500 } as const
+function BlocJeu({ titre, children }: { titre: string; children: React.ReactNode }) {
+  return <div style={{ background: 'rgba(255,255,255,0.74)', border: '1px solid rgba(61,107,79,0.16)', borderRadius: '12px', padding: '14px' }}>
+    <h3 style={{ fontSize: '15px', color: '#1d3e29', margin: '0 0 10px', fontWeight: 900 }}>{titre}</h3>
+    {children}
+  </div>
+}
+
+const btnPrincipal = { fontSize: '12px', padding: '8px 13px', borderRadius: '8px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 800, whiteSpace: 'nowrap' } as const
+const btnSecondaire = { fontSize: '12px', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(61,107,79,0.24)', background: '#fff', color: '#3d6b4f', cursor: 'pointer', fontWeight: 800 } as const
 const ligneBoutons = { display: 'flex', gap: '8px', flexWrap: 'wrap' } as const
-const ligneForm = { display: 'flex', gap: '8px', alignItems: 'center' } as const
-const aide = { fontSize: '12px', color: '#6b6560', margin: '0 0 10px' } as const
-const inputStyle = { width: '100%', fontSize: '12px', padding: '8px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' } as const
-const inputCourt = { width: '90px', fontSize: '12px', padding: '8px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#fff', color: '#2a2520', outline: 'none' } as const
-const tagStyle = { fontSize: '11px', color: '#3d6b4f', background: 'rgba(61,107,79,0.08)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '4px', padding: '3px 7px' } as const
-const menuSuggestions = { position: 'absolute', left: 0, right: 0, top: 'calc(100% + 4px)', background: '#fff', border: '1px solid #d6d0c4', borderRadius: '6px', zIndex: 20, boxShadow: '0 8px 22px rgba(0,0,0,0.10)', overflow: 'hidden' } as const
-const suggestionStyle = { display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '12px', color: '#2a2520', background: '#fff', border: 'none', borderBottom: '1px solid #ede9e2', cursor: 'pointer' } as const
+const aide = { fontSize: '12px', color: '#5d735f', margin: '0 0 10px', lineHeight: 1.45 } as const
+const inputStyle = { minWidth: 0, fontSize: '12px', padding: '8px 10px', border: '1px solid #bdd2bf', borderRadius: '8px', background: '#fff', color: '#203528', outline: 'none', boxSizing: 'border-box' } as const
+const tagStyle = { fontSize: '11px', color: '#2f6a48', background: 'rgba(61,107,79,0.10)', border: '1px solid rgba(61,107,79,0.20)', borderRadius: '999px', padding: '4px 8px', fontWeight: 700 } as const
+const menuSuggestions = { position: 'absolute', left: 0, right: 0, top: 'calc(100% + 4px)', background: '#fff', border: '1px solid #bdd2bf', borderRadius: '9px', zIndex: 30, boxShadow: '0 10px 26px rgba(35,66,44,0.14)', overflow: 'hidden' } as const
+const suggestionStyle = { display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '12px', color: '#203528', background: '#fff', border: 'none', borderBottom: '1px solid #eef3eb', cursor: 'pointer' } as const
+const blocJeSais = { display: 'grid', gridTemplateColumns: 'minmax(150px, 1fr) minmax(220px, 1.25fr)', gap: '12px', alignItems: 'center', background: '#fffdf6', border: '1px solid rgba(190,154,73,0.28)', borderRadius: '12px', padding: '12px' } as const
+const etatTexte = { textAlign: 'center', color: '#6c7b6d', fontStyle: 'italic', fontSize: '13px' } as const

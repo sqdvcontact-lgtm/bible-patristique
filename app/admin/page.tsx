@@ -105,7 +105,7 @@ function compteSignalementsEssai(id: number, signalementsEssais: { message: stri
   }).length
 }
 
-export const metadata = { title: 'Administration — La Bible des Pères' }
+export const metadata = { title: 'Administration — Corpus Scriptura' }
 
 export default async function AdminPage() {
   const autorise = await estAdmin()
@@ -115,7 +115,7 @@ export default async function AdminPage() {
       <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ background: '#fff', border: '1px solid #d6d0c4', borderRadius: '10px', padding: '36px 40px', width: '340px', textAlign: 'center' }}>
           <h1 style={{ fontFamily: "Georgia, serif", fontSize: '20px', fontWeight: 'normal', color: '#2a3d30', marginBottom: '6px' }}>Administration</h1>
-          <p style={{ fontSize: '12px', color: '#9a958d', marginBottom: '20px' }}>La Bible des Pères</p>
+          <p style={{ fontSize: '12px', color: '#9a958d', marginBottom: '20px' }}>Corpus Scriptura</p>
           <p style={{ fontSize: '12.5px', color: '#6b6560', lineHeight: 1.6, marginBottom: '22px' }}>
             Cette page est réservée au compte administrateur. Connectez-vous avec ce compte pour y accéder.
           </p>

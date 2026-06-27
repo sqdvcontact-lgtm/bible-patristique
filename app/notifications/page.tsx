@@ -1,145 +1,211 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 
-type Notification = {
+type NotificationItem = {
+  key: string
   id: number
+  type: 'essai' | 'commentaire' | 'signalement'
   titre: string
-  sous_titre: string | null
-  statut: string
-  note_admin: string | null
-  updated_at: string | null
-  type?: 'essai' | 'commentaire' | 'signalement'
+  objet: string
+  contexte: string | null
+  auteur: string
+  message: string
+  date: string | null
+  href?: string
 }
 
-type ActionAdmin = { label: string; count: number; href: string }
+type Onglet = 'nouvelles' | 'archivees'
+
+function cleArchives(uid: string) {
+  return `notifications_archivees:${uid}`
+}
+
+function chargerArchives(uid: string): Set<string> {
+  if (typeof window === 'undefined') return new Set()
+  try {
+    return new Set(JSON.parse(localStorage.getItem(cleArchives(uid)) ?? '[]'))
+  } catch {
+    return new Set()
+  }
+}
+
+function enregistrerArchives(uid: string, archives: Set<string>) {
+  localStorage.setItem(cleArchives(uid), JSON.stringify(Array.from(archives)))
+}
+
+function dateCourte(date: string | null) {
+  if (!date) return ''
+  return new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+function extrait(texte: string | null | undefined, taille = 120) {
+  const t = String(texte ?? '').replace(/\s+/g, ' ').trim()
+  return t.length > taille ? `${t.slice(0, taille)}…` : t
+}
 
 export default function NotificationsPage() {
-  const [items, setItems] = useState<Notification[] | null>(null)
+  const [items, setItems] = useState<NotificationItem[] | null>(null)
   const [connecte, setConnecte] = useState<boolean | null>(null)
-  const [actionsAdmin, setActionsAdmin] = useState<ActionAdmin[]>([])
+  const [uid, setUid] = useState<string | null>(null)
+  const [archives, setArchives] = useState<Set<string>>(new Set())
+  const [onglet, setOnglet] = useState<Onglet>('nouvelles')
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
-      const uid = data.session?.user.id
-      const email = data.session?.user.email?.trim().toLowerCase()
-      setConnecte(!!uid)
-      if (!uid) { setItems([]); return }
-      const { data: profil } = await supabase.from('profils').select('est_admin').eq('id', uid).maybeSingle()
-      const { data: essais } = await supabase
-        .from('essais')
-        .select('id, titre, sous_titre, statut, note_admin, updated_at')
-        .eq('user_id', uid)
-        .not('note_admin', 'is', null)
-        .order('updated_at', { ascending: false })
-      const { data: commentairesUtilisateur } = await supabase
-        .from('commentaires')
-        .select('id, texte, message_admin, message_admin_at')
-        .eq('user_id', uid)
-        .not('message_admin', 'is', null)
-        .order('message_admin_at', { ascending: false })
-      const { data: signalementsUtilisateur } = await supabase
-        .from('signalements')
-        .select('id, message, message_admin, message_admin_at')
-        .eq('user_id', uid)
-        .not('message_admin', 'is', null)
-        .order('message_admin_at', { ascending: false })
-      const notifications: Notification[] = [
-        ...((essais ?? []) as any[]).map(e => ({ ...e, type: 'essai' as const })),
-        ...((commentairesUtilisateur ?? []) as any[]).map(c => ({
+      const userId = data.session?.user.id ?? null
+      setUid(userId)
+      setConnecte(!!userId)
+      if (!userId) { setItems([]); return }
+
+      const archivesInitiales = chargerArchives(userId)
+      setArchives(archivesInitiales)
+
+      const [essaisRes, commentairesRes, signalementsRes] = await Promise.all([
+        supabase
+          .from('essais')
+          .select('id, titre, sous_titre, statut, note_admin, updated_at')
+          .eq('user_id', userId)
+          .not('note_admin', 'is', null)
+          .order('updated_at', { ascending: false }),
+        supabase
+          .from('commentaires')
+          .select('id, texte, message_admin, message_admin_at')
+          .eq('user_id', userId)
+          .not('message_admin', 'is', null)
+          .order('message_admin_at', { ascending: false }),
+        supabase
+          .from('signalements')
+          .select('id, message, message_admin, message_admin_at')
+          .eq('user_id', userId)
+          .not('message_admin', 'is', null)
+          .order('message_admin_at', { ascending: false }),
+      ])
+
+      const notifications: NotificationItem[] = [
+        ...((essaisRes.data ?? []) as any[]).map(e => ({
+          key: `essai:${e.id}:${e.updated_at ?? ''}`,
+          id: e.id,
+          type: 'essai' as const,
+          titre: 'Proposition de texte',
+          objet: e.titre || 'Publication',
+          contexte: e.sous_titre || e.statut || null,
+          auteur: 'Administrateur',
+          message: e.note_admin || '',
+          date: e.updated_at,
+          href: `/essais/${e.id}/modifier`,
+        })),
+        ...((commentairesRes.data ?? []) as any[]).map(c => ({
+          key: `commentaire:${c.id}:${c.message_admin_at ?? ''}`,
           id: c.id,
-          titre: 'Commentaire',
-          sous_titre: c.texte ? c.texte.slice(0, 90) : null,
-          statut: 'moderation',
-          note_admin: c.message_admin,
-          updated_at: c.message_admin_at,
           type: 'commentaire' as const,
+          titre: 'Commentaire',
+          objet: 'Modération du commentaire',
+          contexte: extrait(c.texte),
+          auteur: 'Administrateur',
+          message: c.message_admin || '',
+          date: c.message_admin_at,
         })),
-        ...((signalementsUtilisateur ?? []) as any[]).map(s => ({
+        ...((signalementsRes.data ?? []) as any[]).map(s => ({
+          key: `signalement:${s.id}:${s.message_admin_at ?? ''}`,
           id: s.id,
-          titre: 'Signalement',
-          sous_titre: s.message ? s.message.slice(0, 90) : null,
-          statut: 'traite',
-          note_admin: s.message_admin,
-          updated_at: s.message_admin_at,
           type: 'signalement' as const,
+          titre: 'Signalement',
+          objet: 'Retour sur votre signalement',
+          contexte: extrait(s.message),
+          auteur: 'Administrateur',
+          message: s.message_admin || '',
+          date: s.message_admin_at,
         })),
-      ].sort((a, b) => String(b.updated_at ?? '').localeCompare(String(a.updated_at ?? '')))
+      ].sort((a, b) => String(b.date ?? '').localeCompare(String(a.date ?? '')))
+
       setItems(notifications)
-      const estAdminEmail = !!(email && email === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase())
-      if (profil?.est_admin || estAdminEmail) {
-        const [commentaires, signalements, certifications, essaisAdmin] = await Promise.all([
-          supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false'),
-          supabase.from('signalements').select('id', { count: 'exact', head: true }).eq('traite', false),
-          supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('demande_validation', true),
-          supabase.from('essais').select('id', { count: 'exact', head: true }).in('statut', ['en_attente', 'a_reviser']),
-        ])
-        setActionsAdmin([
-          { label: 'Commentaires à modérer', count: commentaires.count ?? 0, href: '/admin' },
-          { label: 'Signalements à traiter', count: signalements.count ?? 0, href: '/admin' },
-          { label: 'Demandes de certification', count: certifications.count ?? 0, href: '/admin' },
-          { label: 'Essais à examiner', count: essaisAdmin.count ?? 0, href: '/admin' },
-        ].filter(a => a.count > 0))
-      }
     })
   }, [])
 
+  const nouvelles = useMemo(() => (items ?? []).filter(n => !archives.has(n.key)), [items, archives])
+  const archivees = useMemo(() => (items ?? []).filter(n => archives.has(n.key)), [items, archives])
+  const liste = onglet === 'nouvelles' ? nouvelles : archivees
+
+  const archiver = (n: NotificationItem) => {
+    if (!uid || archives.has(n.key)) return
+    const prochain = new Set(archives)
+    prochain.add(n.key)
+    setArchives(prochain)
+    enregistrerArchives(uid, prochain)
+    window.dispatchEvent(new Event('notifications-archivees'))
+  }
+
   return (
     <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '48px' }}>
-      <div style={{ maxWidth: '720px', margin: '0 auto', padding: '40px 24px 80px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '26px' }}>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 'normal', color: '#1e2e24', marginBottom: '14px' }}>
+      <div style={{ maxWidth: '720px', margin: '0 auto', padding: '34px 24px 80px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '22px' }}>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 'normal', color: '#1e2e24', marginBottom: '10px' }}>
             Notifications
           </h1>
           <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto' }} />
         </div>
 
-        {actionsAdmin.length > 0 && (
-          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '16px 18px', marginBottom: '14px' }}>
-            <p style={{ fontSize: '11px', fontWeight: 700, color: '#3d6b4f', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>Actions administrateur</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
-              {actionsAdmin.map(a => (
-                <Link key={a.label} href={a.href} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12.5px', color: '#2a3d30', textDecoration: 'none', borderBottom: '1px solid #f0ece6', paddingBottom: '7px' }}>
-                  <span>{a.label}</span>
-                  <span style={{ fontSize: '10px', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 7px', fontWeight: 700 }}>{a.count}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
         {connecte === false ? (
           <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Connectez-vous pour consulter vos notifications.</p>
         ) : items === null ? (
           <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
-        ) : items.length === 0 ? (
-          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '18px 20px' }}>
-            <p style={{ fontSize: '13px', color: '#9a958d', margin: 0, fontStyle: 'italic' }}>Aucune demande de l’administration pour le moment.</p>
-          </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {items.map(n => (
-              <article key={n.id} style={{ background: '#fff', border: '1px solid #e4dfd8', borderLeft: '3px solid #c0562a', borderRadius: '8px', padding: '14px 16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'baseline', marginBottom: '7px' }}>
-                  <div>
-                    <p style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: '#1e2e24', margin: 0 }}>{n.titre}</p>
-                    {n.sous_titre && <p style={{ fontSize: '12px', color: '#8a8278', fontStyle: 'italic', margin: '2px 0 0' }}>{n.sous_titre}</p>}
-                  </div>
-                  <span style={{ fontSize: '9.5px', fontWeight: 700, color: '#c0562a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    {n.type === 'commentaire' ? 'Commentaire' : n.type === 'signalement' ? 'Signalement' : n.statut === 'brouillon' ? 'Modification demandée' : n.statut}
-                  </span>
-                </div>
-                <p style={{ fontSize: '12.5px', color: '#3a3530', lineHeight: 1.6, whiteSpace: 'pre-wrap', margin: '0 0 10px' }}>{n.note_admin}</p>
-                {n.type === 'essai' && (
-                  <Link href={`/essais/${n.id}/modifier`} style={{ fontSize: '11.5px', color: '#3d6b4f', fontWeight: 600, textDecoration: 'none' }}>
-                    Modifier l’essai
-                  </Link>
-                )}
-              </article>
-            ))}
-          </div>
+          <>
+            <div style={{ display: 'flex', justifyContent: 'center', borderBottom: '1px solid #d6d0c4', marginBottom: '14px' }}>
+              {([
+                { key: 'nouvelles' as Onglet, label: 'Nouvelles', count: nouvelles.length },
+                { key: 'archivees' as Onglet, label: 'Archivées', count: archivees.length },
+              ]).map(o => (
+                <button key={o.key} onClick={() => setOnglet(o.key)}
+                  style={{ padding: '8px 14px', fontSize: '12px', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#3d6b4f' : '#8a8278', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer' }}>
+                  {o.label}
+                  <span style={{ marginLeft: '5px', fontSize: '10px', color: '#b0a89e' }}>({o.count})</span>
+                </button>
+              ))}
+            </div>
+
+            {liste.length === 0 ? (
+              <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '16px 18px' }}>
+                <p style={{ fontSize: '12.5px', color: '#9a958d', margin: 0, fontStyle: 'italic' }}>
+                  {onglet === 'nouvelles' ? 'Aucune notification nouvelle.' : 'Aucune notification archivée.'}
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                {liste.map(n => (
+                  <article key={n.key} onClick={() => archiver(n)}
+                    title={onglet === 'nouvelles' ? 'Cliquer pour archiver cette notification' : undefined}
+                    style={{ background: '#fff', border: '1px solid #e4dfd8', borderLeft: `3px solid ${onglet === 'nouvelles' ? '#3d6b4f' : '#c8c0b4'}`, borderRadius: '7px', padding: '10px 12px', cursor: onglet === 'nouvelles' ? 'pointer' : 'default' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '10px', marginBottom: '5px' }}>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 2px' }}>{n.titre}</p>
+                        <p style={{ fontFamily: 'Georgia, serif', fontSize: '14px', color: '#1e2e24', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.objet}</p>
+                      </div>
+                      <span style={{ fontSize: '9.5px', color: '#b0a89e', flexShrink: 0 }}>{dateCourte(n.date)}</span>
+                    </div>
+                    {n.contexte && (
+                      <p style={{ fontSize: '11px', color: '#8a8278', fontStyle: 'italic', margin: '0 0 6px', lineHeight: 1.35 }}>
+                        À propos : {n.contexte}
+                      </p>
+                    )}
+                    <p style={{ fontSize: '10.5px', color: '#9a958d', margin: '0 0 4px' }}>
+                      Message de <strong style={{ color: '#5a5450' }}>{n.auteur}</strong>
+                    </p>
+                    <p style={{ fontSize: '12px', color: '#2a2520', lineHeight: 1.45, whiteSpace: 'pre-wrap', margin: 0 }}>{n.message}</p>
+                    {n.href && (
+                      <Link href={n.href} onClick={e => { e.stopPropagation(); archiver(n) }}
+                        style={{ display: 'inline-block', marginTop: '7px', fontSize: '11px', color: '#3d6b4f', fontWeight: 600, textDecoration: 'none' }}>
+                        Ouvrir la proposition
+                      </Link>
+                    )}
+                  </article>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </main>

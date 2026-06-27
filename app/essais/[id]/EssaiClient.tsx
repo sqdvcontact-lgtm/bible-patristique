@@ -67,6 +67,33 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 48px)', paddingRight: (aDesNotes && voletOuvert) ? '320px' : 0, transition: 'padding-right 0.15s' }}>
+      <style>{`
+        .essai-lecture-corps p,
+        .essai-lecture-corps blockquote {
+          text-align: left !important;
+          line-height: 1.62 !important;
+          word-spacing: 0.018em !important;
+          letter-spacing: 0.004em !important;
+        }
+        .essai-lecture-corps p {
+          margin-top: 0 !important;
+          margin-bottom: 0.62em !important;
+        }
+        .essai-lecture-corps blockquote {
+          margin-top: 0.48em !important;
+          margin-bottom: 0.76em !important;
+        }
+        .essai-lecture-corps h2 {
+          padding-left: 0.72em !important;
+          margin-top: 1.65em !important;
+          margin-bottom: 0.72em !important;
+        }
+        .essai-lecture-corps h3 {
+          padding-left: 1.08em !important;
+          margin-top: 1.18em !important;
+          margin-bottom: 0.52em !important;
+        }
+      `}</style>
       <div style={{ maxWidth: '660px', margin: '0 auto', padding: '0 32px 80px' }}>
 
         {essai.statut === 'en_attente' && (
@@ -126,7 +153,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           </div>
         )}
 
-        <div style={{ fontSize: '15px', color: '#1e1a16', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+        <div className="essai-lecture-corps" style={{ fontSize: '15px', color: '#1e1a16', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
           {rendreEssai(essai.contenu, { onOuvrirPanneau: ouvrirPanneau })}
         </div>
 

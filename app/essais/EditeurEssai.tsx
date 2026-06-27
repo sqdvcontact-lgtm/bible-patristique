@@ -254,18 +254,42 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     return () => document.removeEventListener('selectionchange', detecterBloc)
   }, [])
 
+  const remplacerBlocCourant = (tag: 'P' | 'H2' | 'H3' | 'BLOCKQUOTE') => {
+    const bloc = blocCourant()
+    if (!bloc) {
+      document.execCommand('formatBlock', false, tag)
+      return
+    }
+    if (bloc.tagName === tag) return
+
+    const nouveau = document.createElement(tag.toLowerCase())
+    while (bloc.firstChild) nouveau.appendChild(bloc.firstChild)
+    bloc.replaceWith(nouveau)
+
+    const marqueur = nouveau.querySelector<HTMLElement>('[data-marqueur-curseur="1"]')
+    if (marqueur) {
+      const r = document.createRange()
+      r.setStartAfter(marqueur)
+      r.collapse(true)
+      const s = window.getSelection()
+      s?.removeAllRanges()
+      s?.addRange(r)
+      marqueur.remove()
+    }
+  }
+
   const appliquerBloc = (tag: 'H2' | 'H3' | 'BLOCKQUOTE') => {
     const cible = tag === 'H2' ? 'h2' : tag === 'H3' ? 'h3' : 'blockquote'
     conserverPosition(() => {
-      if (blocActif === cible) document.execCommand('formatBlock', false, 'P')
-      else document.execCommand('formatBlock', false, tag)
+      if (blocActif === cible) remplacerBlocCourant('P')
+      else remplacerBlocCourant(tag)
     })
     setBlocActif(blocActif === cible ? 'p' : cible)
     declencherChangement()
   }
 
   const appliquerParagraphe = () => {
-    conserverPosition(() => { document.execCommand('formatBlock', false, 'P') })
+    conserverPosition(() => { remplacerBlocCourant('P') })
     setBlocActif('p')
     declencherChangement()
   }
@@ -407,6 +431,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
               }}>
                 <button onMouseDown={e => e.preventDefault()} onClick={() => commande('bold')} style={{ ...BTN, fontWeight: 700 }} title="Gras (Ctrl+B)">Gras</button>
                 <button onMouseDown={e => e.preventDefault()} onClick={() => commande('italic')} style={{ ...BTN, fontStyle: 'italic' }} title="Italique (Ctrl+I)">Italique</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => commande('superscript')} style={BTN} title="Exposant">Exposant</button>
                 <button onMouseDown={e => e.preventDefault()} onClick={appliquerPetitesCaps} style={{ ...BTN, fontVariant: 'small-caps' }}>Petites caps</button>
                 <button onMouseDown={e => e.preventDefault()} onClick={insererEspaceInsecable} style={BTN}>Espace insécable</button>
                 <div style={{ height: '1px', background: '#e4dfd8', margin: '4px 0' }} />

@@ -107,8 +107,16 @@ async function enrichirAvecVersets(segments: Segment[]) {
   return versetMap
 }
 
-export default async function OeuvrePage({params}:{params:Promise<{id:string}>}) {
+export default async function OeuvrePage({
+  params,
+  searchParams,
+}:{
+  params:Promise<{id:string}>
+  searchParams?:Promise<{segment?:string}>
+}) {
   const {id}=await params
+  const sp = searchParams ? await searchParams : {}
+  const segmentCibleId = Number(sp.segment ?? '')
 
   // Admin = connecté avec le compte administrateur (adresse fixe), vérifié
   // côté serveur via la session Supabase Auth — remplace l'ancien cookie
@@ -140,7 +148,18 @@ export default async function OeuvrePage({params}:{params:Promise<{id:string}>})
     .from('segments').select('ref_niv1').eq('id_oeuvre', id).eq('nature', 'apparat_critique')
   const niv1ApparatSet = new Set((niv1ApparatRaw ?? []).map((r: any) => r.ref_niv1).filter(Boolean))
   const niv1List = niv1Complet.filter(n1 => !niv1ApparatSet.has(n1))
-  const premierNiv1 = niv1List[0] ?? null
+  const { data: segmentCible } = Number.isFinite(segmentCibleId) && segmentCibleId > 0
+    ? await supabase
+        .from('segments')
+        .select('id,ref_niv1,nature')
+        .eq('id_oeuvre', id)
+        .eq('id', segmentCibleId)
+        .maybeSingle()
+    : { data: null }
+  const vueInitiale = segmentCible?.nature === 'apparat_critique' ? 'apparat' : 'texte'
+  const premierNiv1 = vueInitiale === 'texte' && segmentCible?.ref_niv1
+    ? segmentCible.ref_niv1
+    : niv1List[0] ?? null
 
   // 3. Charger les segments du premier niv1 + l'apparat
   const [segTexteResult, segApparatResult] = await Promise.all([
@@ -229,6 +248,8 @@ export default async function OeuvrePage({params}:{params:Promise<{id:string}>})
       oeuvre={{titre:oeuvre.titre,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,id_oeuvre:oeuvre.id_oeuvre}}
       groupes={groupesData} segments={segmentsData}
       tocApparat={tocApparat} groupesApparat={groupesApparatData} segmentsApparat={segmentsApparatData}
+      segmentCibleId={Number.isFinite(segmentCibleId) && segmentCibleId > 0 ? segmentCibleId : null}
+      vueInitiale={vueInitiale}
     />
   )
 }

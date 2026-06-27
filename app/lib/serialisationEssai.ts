@@ -1,5 +1,5 @@
 // Conversion entre la syntaxe légère stockée en base (**gras**, *italique*,
-// ++petites capitales++, [^note], [label](verset:id|segment:id), # / ##,
+// ^^exposant^^, ++petites capitales++, [^note], [label](verset:id|segment:id), # / ##,
 // [espace:Nmm]) et le HTML d'une zone contentEditable — pour que la mise en
 // forme s'affiche directement pendant la rédaction, sans bouton « Aperçu ».
 
@@ -13,6 +13,7 @@ function inlineVersHtml(s: string): string {
   let r = echapper(s)
   r = r.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
   r = r.replace(/\+\+(.+?)\+\+/g, '<span style="font-variant:small-caps;letter-spacing:0.02em">$1</span>')
+  r = r.replace(/\^\^(.+?)\^\^/g, '<sup>$1</sup>')
   r = r.replace(/\*(.+?)\*/g, '<em>$1</em>')
   r = r.replace(/\[\^(.+?)\]/g, (_m, p1) =>
     `<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(p1)}" style="${styleNote}">note</span>&nbsp;`)
@@ -30,7 +31,7 @@ export function syntaxeVersHtml(texte: string): string {
 
   const flush = () => {
     if (paragraphe.length === 0) return
-    blocs.push(`<p style="margin:0;word-spacing:-0.09em;letter-spacing:-0.006em;font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.5;">${paragraphe.map(inlineVersHtml).join('<br>')}</p>`)
+    blocs.push(`<p style="margin:0 0 0.62em;word-spacing:0.018em;letter-spacing:0.004em;font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.62;text-align:left;">${paragraphe.map(inlineVersHtml).join('<br>')}</p>`)
     paragraphe = []
   }
 
@@ -44,17 +45,17 @@ export function syntaxeVersHtml(texte: string): string {
     }
     if (ligne.startsWith('> ')) {
       flush()
-      blocs.push(`<blockquote style="font-style:normal;font-size:0.93em;font-family:'Helvetica Neue',Arial,sans-serif;color:#3a3530;margin:0 0 0 8mm;line-height:1.5;word-spacing:-0.09em;letter-spacing:-0.006em;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
+      blocs.push(`<blockquote style="font-style:normal;font-size:0.93em;font-family:'Helvetica Neue',Arial,sans-serif;color:#3a3530;margin:0.48em 0 0.76em 8mm;line-height:1.62;word-spacing:0.018em;letter-spacing:0.004em;text-align:left;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
       return
     }
     if (ligne.startsWith('## ')) {
       flush()
-      blocs.push(`<h3 style="font-style:italic;font-weight:400;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1em;color:#2a3d30;margin:0;">${inlineVersHtml(ligne.slice(3))}</h3>`)
+      blocs.push(`<h3 style="font-style:italic;font-weight:400;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1em;color:#2a3d30;margin:1.18em 0 0.52em;padding-left:1.08em;">${inlineVersHtml(ligne.slice(3))}</h3>`)
       return
     }
     if (ligne.startsWith('# ')) {
       flush()
-      blocs.push(`<h2 style="font-weight:700;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.07em;color:#1e2e24;margin:0;">${inlineVersHtml(ligne.slice(2))}</h2>`)
+      blocs.push(`<h2 style="font-weight:700;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.07em;color:#1e2e24;margin:1.65em 0 0.72em;padding-left:0.72em;">${inlineVersHtml(ligne.slice(2))}</h2>`)
       return
     }
     paragraphe.push(ligne)
@@ -79,6 +80,7 @@ export function htmlVersSyntaxe(html: string): string {
     const enfants = Array.from(el.childNodes).map(rendre).join('')
     if (tag === 'strong' || tag === 'b') return `**${enfants}**`
     if (tag === 'em' || tag === 'i') return `*${enfants}*`
+    if (tag === 'sup') return `^^${enfants}^^`
     if (tag === 'span' && /small-caps/.test(el.style?.fontVariant ?? '')) return `++${enfants}++`
     if (tag === 'a') return `[${enfants}](${el.getAttribute('href')})`
     if (tag === 'h2') return `# ${enfants}\n\n`

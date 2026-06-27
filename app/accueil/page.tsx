@@ -2,8 +2,8 @@ import Link from "next/link";
 import AccueilCards from "../components/AccueilCards";
 
 export const metadata = {
-  title: "Bible & Patristique",
-  description: "La Bible dans ses grandes traductions, éclairée par deux millénaires de commentaires patristiques.",
+  title: "Corpus Scriptura",
+  description: "Lectures bibliques et patristiques.",
 };
 
 export default function AccueilPage() {
@@ -45,13 +45,11 @@ export default function AccueilPage() {
             lineHeight: 1.25,
             marginBottom: "16px",
           }}>
-            Lire les Écritures et les Pères
+            Corpus Scriptura
           </h1>
 
           <p style={{ fontSize: "13.5px", color: "#5a6b5e", lineHeight: 1.45 }}>
-            La Bible dans ses grandes traductions,
-            <br />
-            éclairée par deux millénaires de commentaires patristiques.
+            Lectures bibliques et patristiques
           </p>
         </header>
 
@@ -82,7 +80,7 @@ export default function AccueilPage() {
           <div style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "14px", lineHeight: "1.65", color: "#2a2520" }}>
 
             <Section titre="Origine du projet">
-              <p><em>La Bible des Pères</em> est née à l&rsquo;été 2026. Elle entend offrir un libre accès aux textes bibliques, aux œuvres patristiques et aux grands témoins de la tradition chrétienne : aux chercheurs, aux lecteurs, aux curieux, à tous ceux qui veulent entrer plus profondément dans l&rsquo;intelligence des Écritures.</p>
+              <p><em>Corpus Scriptura</em> est né à l&rsquo;été 2026. Il entend offrir un libre accès aux textes bibliques, aux œuvres patristiques et aux grands témoins de la tradition chrétienne : aux chercheurs, aux lecteurs, aux curieux, à tous ceux qui veulent entrer plus profondément dans l&rsquo;intelligence des Écritures.</p>
               <p>Un système de commentaires permet à chacun d&rsquo;apporter sa contribution : une lecture, une référence, un rapprochement. Cette bibliothèque n&rsquo;est pas un monument clos, mais un chantier ouvert.</p>
             </Section>
 

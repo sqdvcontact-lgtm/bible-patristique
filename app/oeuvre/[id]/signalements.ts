@@ -7,30 +7,20 @@ type SignalementPayload = {
   message: string
 }
 
-function erreurColonneUserId(error: { message?: string } | null) {
-  return /user_id|schema cache|Could not find/i.test(error?.message ?? '')
-}
-
 export async function insererSignalement(payload: SignalementPayload) {
   const { data } = await supabase.auth.getSession()
-  const userId = data.session?.user.id ?? null
+  const headers: HeadersInit = { 'Content-Type': 'application/json' }
+  const token = data.session?.access_token
+  if (token) headers.Authorization = `Bearer ${token}`
 
-  const { error } = await supabase.from('signalements').insert({
-    ...payload,
-    user_id: userId,
-    traite: false,
+  const res = await fetch('/api/signalements', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload),
   })
 
-  if (!error) return
-
-  if (erreurColonneUserId(error)) {
-    const fallback = await supabase.from('signalements').insert({
-      ...payload,
-      traite: false,
-    })
-    if (!fallback.error) return
-    throw fallback.error
+  if (!res.ok) {
+    const details = await res.json().catch(() => null)
+    throw new Error(details?.error ?? "Erreur d'envoi du signalement")
   }
-
-  throw error
 }

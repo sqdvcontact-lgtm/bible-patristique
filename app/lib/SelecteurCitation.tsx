@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type CSSProperties } from 'react'
 import { supabase } from '@/app/lib/supabase'
 
 const ABREV_FR: Record<string, string> = {
@@ -38,6 +38,29 @@ function correspondDebutsDeMots(texte: string, requete: string): boolean {
   if (termes.length === 0) return true
   const mots = sansAccents(texte).match(/[\p{L}\p{N}]+/gu) ?? []
   return termes.every(t => mots.some(m => m.startsWith(t)))
+}
+
+function labelVerset(livre: string, chapitre: number | string, verset: number | string): string {
+  return `${ABREV_FR[livre] ?? livre} ${chapitre}, ${verset}`
+}
+
+function refsSegment(s: { ref_niv1?: string | null; ref_niv2?: string | null; ref_niv3?: string | null; ref_niv4?: string | null; ref_niv5?: string | null; segment_numero: number }): string {
+  const refs = [s.ref_niv1, s.ref_niv2, s.ref_niv3, s.ref_niv4, s.ref_niv5].filter(Boolean).join(', ')
+  return refs ? `${refs}, §${s.segment_numero}` : `§${s.segment_numero}`
+}
+
+function BoutonsChoix({ onAbrege, onComplet }: { onAbrege: () => void; onComplet: () => void }) {
+  return (
+    <span style={{ display: 'flex', gap: '5px', flexShrink: 0, alignSelf: 'flex-start' }}>
+      <button type="button" onClick={(e) => { e.stopPropagation(); onAbrege() }} style={petitChoixStyle}>Référence abrégée</button>
+      <button type="button" onClick={(e) => { e.stopPropagation(); onComplet() }} style={petitChoixStyle}>Citation complète</button>
+    </span>
+  )
+}
+
+const petitChoixStyle: CSSProperties = {
+  fontSize: '10px', padding: '3px 7px', borderRadius: '4px', border: '1px solid #d6d0c4',
+  background: '#fff', color: '#3d6b4f', cursor: 'pointer', whiteSpace: 'nowrap',
 }
 
 export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
@@ -115,14 +138,19 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
       <button onClick={() => setChapitre(null)} style={{ fontSize: '11px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', marginBottom: '10px' }}>← {ABREV_FR[livre]}, chapitres</button>
       {chargement ? <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {versets.map(v => (
-            <button key={v.id_verset} onClick={() => onChoisir({ label: `${ABREV_FR[livre]} ${chapitre},${v.verset}`, type: 'verset', id: v.id_verset })}
-              style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', cursor: 'pointer' }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#faf8f4')} onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
+          {versets.map(v => {
+            const ref = labelVerset(livre, chapitre, v.verset)
+            return (
+            <div key={v.id_verset}
+              style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'flex-start' }}>
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#3d6b4f', flexShrink: 0 }}>{v.verset}</span>
-              <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5 }}>{v.texte}</span>
-            </button>
-          ))}
+              <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{v.texte}</span>
+              <BoutonsChoix
+                onAbrege={() => onChoisir({ label: ref, type: 'verset', id: v.id_verset })}
+                onComplet={() => onChoisir({ label: `« ${v.texte} » (${ref})`, type: 'verset', id: v.id_verset })}
+              />
+            </div>
+          )})}
         </div>
       )}
     </div>
@@ -134,7 +162,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
   const [auteur, setAuteur] = useState('')
   const [oeuvres, setOeuvres] = useState<{ id_oeuvre: string; titre: string }[]>([])
   const [oeuvre, setOeuvre] = useState('')
-  const [segments, setSegments] = useState<{ id: number; segment_numero: number; segment_texte: string }[]>([])
+  const [segments, setSegments] = useState<{ id: number; segment_numero: number; segment_texte: string; ref_niv1: string | null; ref_niv2: string | null; ref_niv3: string | null; ref_niv4: string | null; ref_niv5: string | null }[]>([])
   const [chargement, setChargement] = useState(false)
   const [recherche, setRecherche] = useState('')
 
@@ -147,7 +175,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
   }
   const choisirOeuvre = async (id: string) => {
     setOeuvre(id); setRecherche(''); setChargement(true)
-    const { data } = await supabase.from('segments').select('id, segment_numero, segment_texte').eq('id_oeuvre', id).eq('nature', 'texte').order('segment_numero')
+    const { data } = await supabase.from('segments').select('id, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4, ref_niv5').eq('id_oeuvre', id).eq('nature', 'texte').order('segment_numero')
     setSegments(data ?? [])
     setChargement(false)
   }
@@ -197,12 +225,15 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
             const auteurNom = auteurs.find(a => a.id_auteur === auteur)?.nom ?? ''
             const oeuvreTitre = oeuvres.find(o => o.id_oeuvre === oeuvre)?.titre ?? ''
             return (
-              <button key={s.id} onClick={() => onChoisir({ label: `${auteurNom}, ${oeuvreTitre} §${s.segment_numero}`, type: 'segment', id: String(s.id) })}
-                style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', cursor: 'pointer' }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#faf8f4')} onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
+              <div key={s.id}
+                style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: '#3d6b4f', flexShrink: 0 }}>§{s.segment_numero}</span>
-                <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5 }}>{s.segment_texte.slice(0, 200)}{s.segment_texte.length > 200 ? '…' : ''}</span>
-              </button>
+                <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{s.segment_texte.slice(0, 200)}{s.segment_texte.length > 200 ? '…' : ''}</span>
+                <BoutonsChoix
+                  onAbrege={() => onChoisir({ label: `${auteurNom}, ${oeuvreTitre}, ${refsSegment(s)}`, type: 'segment', id: String(s.id) })}
+                  onComplet={() => onChoisir({ label: `« ${s.segment_texte} »`, type: 'segment', id: String(s.id) })}
+                />
+              </div>
             )
           })}
         </div>
@@ -228,13 +259,20 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
   if (items === null) return <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
   if (items.length === 0) return <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic' }}>Aucune citation enregistrée dans « Mes citations » pour l'instant.</p>
 
-  const choisir = async (it: any) => {
+  const choisir = async (it: any, complet = false) => {
     if (source === 'bible') {
       const { data } = await supabase.from('versets').select('id_verset').eq('livre', it.ref_livre).eq('chapitre', it.ref_chapitre).eq('verset', it.ref_verset).single()
-      if (data) onChoisir({ label: `${it.ref_livre} ${it.ref_chapitre},${it.ref_verset}`, type: 'verset', id: data.id_verset })
+      const ref = labelVerset(it.ref_livre, it.ref_chapitre, it.ref_verset)
+      const texte = it.texte ?? ''
+      if (data) onChoisir({ label: complet ? `« ${texte} » (${ref})` : ref, type: 'verset', id: data.id_verset })
     } else {
-      const { data } = await supabase.from('segments').select('id').eq('id_oeuvre', it.id_oeuvre).eq('segment_numero', it.segment_numero).single()
-      if (data) onChoisir({ label: `${it.auteur}, ${it.titre_oeuvre} §${it.segment_numero}`, type: 'segment', id: String(data.id) })
+      const { data } = await supabase.from('segments').select('id, segment_numero, ref_niv1, ref_niv2, ref_niv3, ref_niv4, ref_niv5').eq('id_oeuvre', it.id_oeuvre).eq('segment_numero', it.segment_numero).single()
+      if (data) {
+        const auteur = it.auteur ?? it.auteur_nom ?? ''
+        const titre = it.titre_oeuvre ?? ''
+        const ref = `${auteur}, ${titre}, ${refsSegment(data)}`
+        onChoisir({ label: complet ? `« ${it.texte ?? ''} »` : ref, type: 'segment', id: String(data.id) })
+      }
     }
   }
 
@@ -242,14 +280,17 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
       {items.map(it => {
         const label = source === 'bible'
-          ? `${it.ref_livre} ${it.ref_chapitre},${it.ref_verset}`
-          : `${it.auteur}, ${it.titre_oeuvre} §${it.segment_numero}`
+          ? labelVerset(it.ref_livre, it.ref_chapitre, it.ref_verset)
+          : `${it.auteur ?? it.auteur_nom ?? ''}, ${it.titre_oeuvre ?? ''} §${it.segment_numero}`
         return (
-          <button key={it.id} onClick={() => choisir(it)}
-            style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', cursor: 'pointer' }}>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: '#3d6b4f' }}>{label}</span>
-            <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5 }}>{it.texte?.slice(0, 200)}</span>
-          </button>
+          <div key={it.id}
+            style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'flex-start' }}>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#3d6b4f' }}>{label}</span>
+              <span style={{ display: 'block', fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5 }}>{it.texte?.slice(0, 200)}</span>
+            </span>
+            <BoutonsChoix onAbrege={() => choisir(it, false)} onComplet={() => choisir(it, true)} />
+          </div>
         )
       })}
     </div>

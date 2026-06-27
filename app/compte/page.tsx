@@ -126,7 +126,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
       <div style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "36px 40px 40px", width: "100%", maxWidth: "380px", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}>
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
           <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "#3d6b4f" }}>
-            Bible &amp; Tradition
+            Corpus Scriptura
           </span>
           <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "22px", fontWeight: "normal", color: "#2a3d30", margin: "8px 0 0" }}>
             {mode === "connexion" ? "Connexion" : "Créer un compte"}

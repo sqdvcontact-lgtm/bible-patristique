@@ -8,7 +8,7 @@ const supabase = createClient(
 )
 
 export const metadata = {
-  title: "Bibliothèque — Bible & Tradition",
+  title: "Bibliothèque — Corpus Scriptura",
 }
 
 export default async function BibliothequePage() {

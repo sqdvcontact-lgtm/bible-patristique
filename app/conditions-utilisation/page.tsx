@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Conditions d'utilisation — Bible & Tradition patristique",
+  title: "Conditions d'utilisation — Corpus Scriptura",
   description: "Conditions générales d'utilisation du site labibledesperes.com.",
 };
 
@@ -117,7 +117,7 @@ export default function ConditionsUtilisationPage() {
             </p>
             <p>
               Le contenu copié par les utilisateurs via les fonctions de citation du site doit conserver la
-              mention de la source (« disponible sur labibledesperes.com ») lorsqu&rsquo;il est réutilisé
+              mention de la source (« disponible sur Corpus Scriptura ») lorsqu&rsquo;il est réutilisé
               publiquement.
             </p>
           </Section>

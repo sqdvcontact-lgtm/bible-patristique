@@ -4,44 +4,33 @@ import Link from "next/link";
 
 function IconBible() {
   return (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-      <rect x="5" y="3" width="24" height="30" rx="2.5" stroke="rgba(255,255,255,0.55)" strokeWidth="1.2" fill="none"/>
-      <rect x="5" y="3" width="4.5" height="30" rx="1.5" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" strokeWidth="0.8"/>
-      <line x1="18" y1="22" x2="18" y2="30" stroke="rgba(255,255,255,0.75)" strokeWidth="1.2" strokeLinecap="round"/>
-      <line x1="13.5" y1="25.5" x2="22.5" y2="25.5" stroke="rgba(255,255,255,0.75)" strokeWidth="1.2" strokeLinecap="round"/>
+    <svg width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
+      <path d="M11 6.5h17.5c2.2 0 4 1.8 4 4v25H14.2A5.2 5.2 0 0 1 9 30.3V8.5c0-1.1.9-2 2-2Z" fill="rgba(255,255,255,0.13)" stroke="rgba(255,255,255,0.78)" strokeWidth="1.35"/>
+      <path d="M14.5 6.5v29" stroke="rgba(255,255,255,0.45)" strokeWidth="1.1"/>
+      <path d="M14.5 31.5h18" stroke="rgba(255,255,255,0.5)" strokeWidth="1.1" strokeLinecap="round"/>
+      <path d="M23.5 14v11.5M18.8 18.6h9.4" stroke="#fff" strokeWidth="1.45" strokeLinecap="round"/>
     </svg>
   );
 }
 
-/* ─── Icône stylo ───────────────────────────────────────────────────────────── */
-function IconStylo() {
+function IconPere() {
   return (
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      {/* Corps du stylo */}
-      <path
-        d="M20 4 L28 12 L10 30 L2 30 L2 22 Z"
-        stroke="#7a6448" strokeWidth="1.2" fill="none"
-        strokeLinejoin="round" strokeLinecap="round"
-      />
-      {/* Ligne de séparation bord de la plume */}
-      <line x1="17" y1="7" x2="25" y2="15"
-        stroke="#9a8a7a" strokeWidth="0.9" strokeLinecap="round"/>
-      {/* Pointe */}
-      <path d="M2 22 L10 30" stroke="#7a6448" strokeWidth="1.2" strokeLinecap="round"/>
-      {/* Petit trait de plume */}
-      <line x1="6" y1="26" x2="4" y2="28"
-        stroke="#b0a090" strokeWidth="0.8" strokeLinecap="round"/>
+    <svg width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
+      <path d="M21 5.8c-4.1 0-7.3 3.2-7.3 7.2 0 2.6 1.2 5.4 3.1 7.2l.6 3.2h7.2l.6-3.2c1.9-1.8 3.1-4.6 3.1-7.2 0-4-3.2-7.2-7.3-7.2Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.78)" strokeWidth="1.35" strokeLinejoin="round"/>
+      <path d="M15.4 17.2c1.4.9 3.3 1.4 5.6 1.4s4.2-.5 5.6-1.4" stroke="rgba(255,255,255,0.62)" strokeWidth="1.1" strokeLinecap="round"/>
+      <path d="M17.4 13.8c.8-.5 1.5-.7 2.1-.7M22.5 13.1c.7 0 1.4.2 2.1.7" stroke="#fff" strokeWidth="1.2" strokeLinecap="round"/>
+      <path d="M19.2 23.4 16 35.5h10l-3.2-12.1M16 27.8c-3.2 1.5-5.3 4.1-5.9 7.7h21.8c-.6-3.6-2.7-6.2-5.9-7.7" stroke="rgba(255,255,255,0.78)" strokeWidth="1.35" strokeLinejoin="round" strokeLinecap="round"/>
     </svg>
   );
 }
 
-function IconPublications() {
+function IconCrayon() {
   return (
-    <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
-      <rect x="8" y="5" width="18" height="24" rx="2" stroke="#3d6b4f" strokeWidth="1.2" fill="none"/>
-      <line x1="12" y1="12" x2="22" y2="12" stroke="#6f8a77" strokeWidth="1" strokeLinecap="round"/>
-      <line x1="12" y1="17" x2="22" y2="17" stroke="#6f8a77" strokeWidth="1" strokeLinecap="round"/>
-      <line x1="12" y1="22" x2="19" y2="22" stroke="#6f8a77" strokeWidth="1" strokeLinecap="round"/>
+    <svg width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
+      <path d="M28.7 6.8 35.2 13 16.4 31.8 8.8 34l2.3-7.5L28.7 6.8Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.8)" strokeWidth="1.35" strokeLinejoin="round"/>
+      <path d="m25.8 9.9 6.3 6.3M11.1 26.5l5.2 5.2" stroke="#fff" strokeWidth="1.25" strokeLinecap="round"/>
+      <path d="M8.8 34 6.7 35.2" stroke="rgba(255,255,255,0.7)" strokeWidth="1.2" strokeLinecap="round"/>
+      <path d="M18.2 35.2h15.5" stroke="rgba(255,255,255,0.45)" strokeWidth="1.1" strokeLinecap="round"/>
     </svg>
   );
 }
@@ -58,30 +47,23 @@ function IconDon() {
 export default function AccueilCards() {
   return (
     <div className="ac-root">
-
       <div className="ac-grid">
-
-        {/* Carte Bible */}
         <Link href="/?livre=GEN&chapitre=1" className="ac-card ac-bible">
           <IconBible />
           <span className="ac-title">Bibles</span>
         </Link>
 
-        {/* Carte Patristique */}
         <Link href="/bibliotheque" className="ac-card ac-patristique">
-          <IconStylo />
+          <IconPere />
           <span className="ac-title">Patristique</span>
         </Link>
 
-        {/* Carte Publications */}
         <Link href="/essais" className="ac-card ac-publications">
-          <IconPublications />
+          <IconCrayon />
           <span className="ac-title">Publications</span>
         </Link>
-
       </div>
 
-      {/* Lien don discret */}
       <Link href="/soutenir" className="ac-don">
         <IconDon />
         Soutenir le projet
@@ -107,37 +89,46 @@ export default function AccueilCards() {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 14px;
+          gap: 13px;
           border-radius: 12px;
           text-decoration: none;
           padding: 32px 20px;
-          transition: transform 0.16s ease, box-shadow 0.16s ease;
+          border: 1px solid rgba(255,255,255,0.22);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 12px 30px rgba(31,76,52,0.13);
+          transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+          position: relative;
+          overflow: hidden;
         }
-        .ac-card:hover { transform: translateY(-3px); }
+        .ac-card::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(145deg, rgba(255,255,255,0.20), transparent 42%, rgba(20,57,38,0.16));
+          pointer-events: none;
+        }
+        .ac-card > svg,
+        .ac-card > span { position: relative; z-index: 1; }
+        .ac-card:hover {
+          transform: translateY(-3px);
+          filter: saturate(1.04);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 16px 38px rgba(31,76,52,0.20);
+        }
         .ac-bible {
-          background: #3d6b4f;
-          border: 1px solid #2e5440;
+          background: linear-gradient(142deg, #244a35 0%, #3d6b4f 48%, #6f9778 100%);
         }
-        .ac-bible:hover { box-shadow: 0 10px 32px rgba(61,107,79,0.28); }
         .ac-patristique {
-          background: #faf8f4;
-          border: 1px solid #d6d0c6;
+          background: linear-gradient(142deg, #315a42 0%, #557d5f 52%, #91ad86 100%);
         }
-        .ac-patristique:hover { box-shadow: 0 10px 32px rgba(61,107,79,0.10); }
         .ac-publications {
-          background: #fff;
-          border: 1px solid #d6d0c6;
+          background: linear-gradient(142deg, #2e6044 0%, #4f8a62 52%, #a2ba8d 100%);
         }
-        .ac-publications:hover { box-shadow: 0 10px 32px rgba(61,107,79,0.12); }
         .ac-title {
           font-family: Georgia, 'Times New Roman', serif;
           font-size: 20px;
           font-weight: normal;
-          letter-spacing: 0.01em;
+          color: #fff;
+          text-shadow: 0 1px 8px rgba(20,57,38,0.28);
         }
-        .ac-bible .ac-title { color: #fff; }
-        .ac-patristique .ac-title,
-        .ac-publications .ac-title { color: #2a3d30; }
         .ac-don {
           display: inline-flex;
           align-items: center;

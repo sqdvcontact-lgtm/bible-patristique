@@ -108,7 +108,7 @@ export function construireCitationPatristique(
   if (collection) parts.push(collection)
   if (ville) parts.push(ville)
   if (datePublication) parts.push(datePublication)
-  parts.push('« disponible sur le site labibledesperes.com »')
+  parts.push('« disponible sur Corpus Scriptura »')
   parts.push('« ' + convertirGuillemetsInternes(texte) + ' »')
   return parts.join(', ') + '.'
 }

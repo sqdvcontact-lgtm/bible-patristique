@@ -64,6 +64,7 @@ export default function Navbar() {
   const [mobileOuvert, setMobileOuvert] = useState(false);
   const [nbNotifications, setNbNotifications] = useState(0);
   const [nbActionsAdmin, setNbActionsAdmin] = useState(0);
+  const [toastNotification, setToastNotification] = useState<{ titre: string; message: string } | null>(null);
   const { modeUtilisateurStandard, setModeUtilisateurStandard } = useAffichageAdmin();
   const estAdminEmail = !!(user && user.email && user.email.trim().toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase());
   const estAdminAffiche = (estAdmin || estAdminEmail) && !modeUtilisateurStandard;
@@ -120,23 +121,46 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!user?.id) { setNbNotifications(0); return }
-    Promise.all([
-      supabase
-        .from('essais')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .not('note_admin', 'is', null),
-      supabase
-        .from('commentaires')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .not('message_admin', 'is', null),
-      supabase
-        .from('signalements')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .not('message_admin', 'is', null),
-    ]).then(resultats => setNbNotifications(resultats.reduce((total, r) => total + (r.count ?? 0), 0)))
+    const cleArchives = `notifications_archivees:${user.id}`
+    const cleConnues = `notifications_connues:${user.id}`
+
+    const lireSet = (cle: string) => {
+      try { return new Set<string>(JSON.parse(localStorage.getItem(cle) ?? '[]')) }
+      catch { return new Set<string>() }
+    }
+
+    const chargerNotifications = async (avecToast: boolean) => {
+      const [essais, commentaires, signalements] = await Promise.all([
+        supabase.from('essais').select('id, titre, note_admin, updated_at').eq('user_id', user.id).not('note_admin', 'is', null),
+        supabase.from('commentaires').select('id, texte, message_admin, message_admin_at').eq('user_id', user.id).not('message_admin', 'is', null),
+        supabase.from('signalements').select('id, message, message_admin, message_admin_at').eq('user_id', user.id).not('message_admin', 'is', null),
+      ])
+      const toutes = [
+        ...((essais.data ?? []) as any[]).map(e => ({ key: `essai:${e.id}:${e.updated_at ?? ''}`, titre: 'Proposition de texte', message: e.note_admin || e.titre || '' })),
+        ...((commentaires.data ?? []) as any[]).map(c => ({ key: `commentaire:${c.id}:${c.message_admin_at ?? ''}`, titre: 'Commentaire', message: c.message_admin || c.texte || '' })),
+        ...((signalements.data ?? []) as any[]).map(s => ({ key: `signalement:${s.id}:${s.message_admin_at ?? ''}`, titre: 'Signalement', message: s.message_admin || s.message || '' })),
+      ]
+      const archives = lireSet(cleArchives)
+      const connues = lireSet(cleConnues)
+      const actives = toutes.filter(n => !archives.has(n.key))
+      const nouvelles = actives.filter(n => !connues.has(n.key))
+      setNbNotifications(actives.length)
+      if (avecToast && nouvelles.length > 0 && connues.size > 0) {
+        const n = nouvelles[0]
+        setToastNotification({ titre: n.titre, message: String(n.message).slice(0, 120) })
+        window.setTimeout(() => setToastNotification(null), 5200)
+      }
+      localStorage.setItem(cleConnues, JSON.stringify(toutes.map(n => n.key)))
+    }
+
+    void chargerNotifications(false)
+    const interval = window.setInterval(() => void chargerNotifications(true), 45000)
+    const onArchivees = () => void chargerNotifications(false)
+    window.addEventListener('notifications-archivees', onArchivees)
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener('notifications-archivees', onArchivees)
+    }
   }, [user?.id]);
 
   useEffect(() => {
@@ -167,6 +191,15 @@ export default function Navbar() {
       transition: "color 0.13s, background 0.13s",
     } as const;
   };
+
+  const styleLienDiscret = (href: string) => ({
+    ...styleLien(href, undefined, false),
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "5px",
+    padding: "4px 9px",
+    fontSize: "12.5px",
+  } as const);
 
   // ── Bloc recherche rapide, réutilisé en version desktop et mobile ────────────
   const blocRecherche = (mobile: boolean) => (
@@ -287,7 +320,7 @@ export default function Navbar() {
         )}
         {[
           { href: "/compte", label: "Mon compte", badge: 0 },
-          { href: "/notifications", label: "Notifications", badge: nbNotifications + nbActionsAdmin },
+          { href: "/notifications", label: "Notifications", badge: nbNotifications },
           ...(estAdminAffiche ? [{ href: "/admin", label: "Administration", badge: 0 }] : []),
         ].map(item => (
           <Link key={item.href} href={item.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}
@@ -326,7 +359,7 @@ export default function Navbar() {
           <Link href="/accueil" className="flex items-center gap-2 shrink-0"
             style={{ color: "rgba(255,255,255,0.93)", textDecoration: "none" }}>
             <span style={{ fontSize: "11px", opacity: 0.6 }}>✦</span>
-            <span style={{ fontSize: "13px", fontWeight: 500, letterSpacing: "0.02em" }}>La Bible des Pères</span>
+            <span style={{ fontSize: "13px", fontWeight: 500, letterSpacing: "0.02em" }}>Corpus Scriptura</span>
             <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.06em", color: "rgba(255,255,255,0.55)", border: "1px solid rgba(255,255,255,0.30)", borderRadius: "3px", padding: "1px 5px", textTransform: "uppercase" }}>bêta</span>
           </Link>
 
@@ -335,21 +368,25 @@ export default function Navbar() {
             {LIENS_PRIMAIRES.map(({ href, label, exact }) => (
               <Link key={href} href={href} style={styleLien(href, exact, true)}>{label}</Link>
             ))}
-            <div style={{ marginLeft: "4px", marginRight: "4px" }}>{blocRecherche(false)}</div>
-            <span style={{ width: "1px", height: "16px", background: "rgba(255,255,255,0.18)", margin: "0 4px" }} />
-            {LIENS_SECONDAIRES.map(({ href, label }) => (
-              <Link key={href} href={href} style={styleLien(href, undefined, false)}>{label}</Link>
-            ))}
+            <span style={{ width: "1px", height: "18px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)", margin: "0 5px" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: "1px", flexShrink: 0 }}>
+              {LIENS_SECONDAIRES.map(({ href, label }) => (
+                <Link key={href} href={href} style={styleLienDiscret(href)}>{label}</Link>
+              ))}
+              {user && (
+                <Link href="/prelevements" style={styleLienDiscret("/prelevements")}>Mes citations</Link>
+              )}
+              <Link href="/soutenir" style={styleLienDiscret("/soutenir")}>
+                <IconCoeur /> Soutenir le projet
+              </Link>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "8px", paddingLeft: "12px", borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
+              {blocRecherche(false)}
+            </div>
           </nav>
 
           {/* ── Compte desktop ──────────────────────────────────────────────── */}
           <div className="hidden md:flex items-center gap-2" style={{ marginLeft: "auto", flexShrink: 0 }}>
-            {user && (
-              <Link href="/prelevements" style={styleLien("/prelevements", undefined, false)}>Mes citations</Link>
-            )}
-            <Link href="/soutenir" style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "4px 11px", borderRadius: "5px", fontSize: "13px", color: "rgba(255,255,255,0.60)", textDecoration: "none" }}>
-              <IconCoeur /> Soutenir le projet
-            </Link>
             {toggleAdmin(false)}
             <div style={{ position: "relative" }}>
               {blocCompte(false)}
@@ -399,6 +436,14 @@ export default function Navbar() {
             {toggleAdmin(true)}
             {blocCompte(true)}
           </div>
+        )}
+        {toastNotification && (
+          <Link href="/notifications" onClick={() => setToastNotification(null)}
+            style={{ position: "fixed", top: "62px", right: "18px", width: "280px", background: "#fff", border: "1px solid #d6d0c4", borderLeft: "3px solid #3d6b4f", borderRadius: "8px", boxShadow: "0 12px 34px rgba(0,0,0,0.16)", padding: "11px 13px", zIndex: 4000, textDecoration: "none" }}>
+            <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#3d6b4f", margin: "0 0 4px" }}>Nouvelle notification</p>
+            <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "#1e2e24", margin: "0 0 4px" }}>{toastNotification.titre}</p>
+            <p style={{ fontSize: "11.5px", color: "#6b6560", lineHeight: 1.35, margin: 0 }}>{toastNotification.message}</p>
+          </Link>
         )}
       </header>
     </>

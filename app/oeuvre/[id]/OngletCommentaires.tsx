@@ -1,134 +1,14 @@
 ﻿'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from "@/app/lib/supabase"
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { insererSignalement } from './signalements'
+import EditeurCommentaire from '@/app/components/EditeurCommentaire'
 
 // Pas plus de 5 majuscules consécutives (accentuées comprises).
 const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
-
-const LIVRES_LIEN: { code: string; nom: string }[] = [
-  { code: 'GEN', nom: 'Genèse' }, { code: 'EXO', nom: 'Exode' }, { code: 'LEV', nom: 'Lévitique' },
-  { code: 'NUM', nom: 'Nombres' }, { code: 'DEU', nom: 'Deutéronome' }, { code: 'JOS', nom: 'Josué' },
-  { code: 'JDG', nom: 'Juges' }, { code: 'RUT', nom: 'Ruth' }, { code: '1SA', nom: '1 Samuel' },
-  { code: '2SA', nom: '2 Samuel' }, { code: '1KI', nom: '1 Rois' }, { code: '2KI', nom: '2 Rois' },
-  { code: '1CH', nom: '1 Chroniques' }, { code: '2CH', nom: '2 Chroniques' }, { code: 'EZR', nom: 'Esdras' },
-  { code: 'NEH', nom: 'Néhémie' }, { code: 'EST', nom: 'Esther' }, { code: 'JOB', nom: 'Job' },
-  { code: 'PSA', nom: 'Psaumes' }, { code: 'PRO', nom: 'Proverbes' }, { code: 'ECC', nom: 'Ecclésiaste' },
-  { code: 'SNG', nom: 'Cantique des cantiques' }, { code: 'ISA', nom: 'Isaïe' }, { code: 'JER', nom: 'Jérémie' },
-  { code: 'LAM', nom: 'Lamentations' }, { code: 'EZK', nom: 'Ézéchiel' }, { code: 'DAN', nom: 'Daniel' },
-  { code: 'HOS', nom: 'Osée' }, { code: 'JOL', nom: 'Joël' }, { code: 'AMO', nom: 'Amos' },
-  { code: 'OBA', nom: 'Abdias' }, { code: 'JON', nom: 'Jonas' }, { code: 'MIC', nom: 'Michée' },
-  { code: 'NAM', nom: 'Nahum' }, { code: 'HAB', nom: 'Habacuc' }, { code: 'ZEP', nom: 'Sophonie' },
-  { code: 'HAG', nom: 'Aggée' }, { code: 'ZEC', nom: 'Zacharie' }, { code: 'MAL', nom: 'Malachie' },
-  { code: 'MAT', nom: 'Matthieu' }, { code: 'MRK', nom: 'Marc' }, { code: 'LUK', nom: 'Luc' },
-  { code: 'JHN', nom: 'Jean' }, { code: 'ACT', nom: 'Actes' }, { code: 'ROM', nom: 'Romains' },
-  { code: '1CO', nom: '1 Corinthiens' }, { code: '2CO', nom: '2 Corinthiens' }, { code: 'GAL', nom: 'Galates' },
-  { code: 'EPH', nom: 'Éphésiens' }, { code: 'PHP', nom: 'Philippiens' }, { code: 'COL', nom: 'Colossiens' },
-  { code: '1TH', nom: '1 Thessaloniciens' }, { code: '2TH', nom: '2 Thessaloniciens' }, { code: '1TI', nom: '1 Timothée' },
-  { code: '2TI', nom: '2 Timothée' }, { code: 'TIT', nom: 'Tite' }, { code: 'PHM', nom: 'Philémon' },
-  { code: 'HEB', nom: 'Hébreux' }, { code: 'JAS', nom: 'Jacques' }, { code: '1PE', nom: '1 Pierre' },
-  { code: '2PE', nom: '2 Pierre' }, { code: '1JN', nom: '1 Jean' }, { code: '2JN', nom: '2 Jean' },
-  { code: '3JN', nom: '3 Jean' }, { code: 'JUD', nom: 'Jude' }, { code: 'REV', nom: 'Apocalypse' },
-]
-
-// ── Barre de mise en forme + insertion de liens (verset ou segment patristique) ──
-function BarreMiseEnForme({ onInserer, onEntourer }: {
-  onInserer: (texte: string) => void
-  onEntourer: (avant: string, apres?: string) => void
-}) {
-  const [popover, setPopover] = useState<'citation' | null>(null)
-  const [livre, setLivre] = useState('')
-  const [chapitre, setChapitre] = useState('')
-  const [verset, setVerset] = useState('')
-  const [auteurs, setAuteurs] = useState<{ id_auteur: string; nom: string }[]>([])
-  const [oeuvres, setOeuvres] = useState<{ id_oeuvre: string; titre: string }[]>([])
-  const [auteurChoisi, setAuteurChoisi] = useState('')
-  const [oeuvreChoisie, setOeuvreChoisie] = useState('')
-  const [segmentNum, setSegmentNum] = useState('')
-
-  const ouvrirPopoverOeuvre = () => {
-    setPopover('citation')
-    if (auteurs.length === 0) supabase.from('auteurs').select('id_auteur, nom').order('nom').then(({ data }) => setAuteurs(data ?? []))
-  }
-  const ouvrirPopoverCitation = () => {
-    if (popover === 'citation') { setPopover(null); return }
-    setPopover('citation')
-    if (auteurs.length === 0) supabase.from('auteurs').select('id_auteur, nom').order('nom').then(({ data }) => setAuteurs(data ?? []))
-  }
-  const choisirAuteur = (id: string) => {
-    setAuteurChoisi(id); setOeuvreChoisie(''); setOeuvres([])
-    if (id) supabase.from('oeuvres').select('id_oeuvre, titre').eq('id_auteur', id).order('titre').then(({ data }) => setOeuvres(data ?? []))
-  }
-  const validerLienVerset = () => {
-    if (!livre || !chapitre || !verset) return
-    const nom = LIVRES_LIEN.find(l => l.code === livre)?.nom ?? livre
-    onInserer(`[${nom} ${chapitre},${verset}](/?livre=${livre}&chapitre=${chapitre}&verset=${verset})`)
-    setPopover(null); setLivre(''); setChapitre(''); setVerset('')
-  }
-  const validerLienOeuvre = () => {
-    if (!oeuvreChoisie || !segmentNum) return
-    const titre = oeuvres.find(o => o.id_oeuvre === oeuvreChoisie)?.titre ?? oeuvreChoisie
-    onInserer(`[${titre}](/oeuvre/${oeuvreChoisie}#s${segmentNum})`)
-    setPopover(null); setAuteurChoisi(''); setOeuvreChoisie(''); setSegmentNum('')
-  }
-
-  return (
-    <div style={{ position: 'relative' }}>
-      <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
-        <button type="button" onClick={() => onEntourer('**')} title="Gras"
-          style={{ fontSize: '10px', fontWeight: 700, padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>G</button>
-        <button type="button" onClick={() => onEntourer('*')} title="Italique"
-          style={{ fontSize: '10px', fontStyle: 'italic', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>I</button>
-        <span style={{ width: '1px', background: '#e4dfd8' }} />
-        <button type="button" onClick={() => onInserer('\u00A0')} title="Espace insécable"
-          style={{ fontSize: '9px', padding: '3px 7px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>Esp. ins.</button>
-        <button type="button" onClick={() => onEntourer('«\u202F', '\u202F»')} title="Guillemets français"
-          style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>« »</button>
-        <button type="button" onClick={() => onEntourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)"
-          style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer' }}>“ ”</button>
-        <span style={{ width: '1px', background: '#e4dfd8' }} />
-        <button type="button" onClick={ouvrirPopoverCitation} title="Citer un verset ou un passage patristique"
-          style={{ fontSize: '9.5px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: popover ? 'rgba(61,107,79,0.10)' : '#fff', cursor: 'pointer', color: '#3d6b4f' }}>Citer</button>
-      </div>
-
-      {popover === 'citation' && (
-        <div style={{ display: 'flex', gap: '5px', alignItems: 'center', padding: '7px 8px', background: '#f0ede7', borderRadius: '5px', marginBottom: '5px', flexWrap: 'wrap' }}>
-          <select value={livre} onChange={e => setLivre(e.target.value)} style={{ fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520' }}>
-            <option value="">Livre…</option>
-            {LIVRES_LIEN.map(l => <option key={l.code} value={l.code}>{l.nom}</option>)}
-          </select>
-          <input type="number" min={1} value={chapitre} onChange={e => setChapitre(e.target.value)} placeholder="ch." style={{ width: '44px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', color: '#2a2520' }} />
-          <input type="number" min={1} value={verset} onChange={e => setVerset(e.target.value)} placeholder="v." style={{ width: '44px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', color: '#2a2520' }} />
-          <button type="button" onClick={validerLienVerset} disabled={!livre || !chapitre || !verset}
-            style={{ fontSize: '10px', padding: '3px 10px', borderRadius: '3px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer' }}>Insérer</button>
-        </div>
-      )}
-
-      {popover === 'citation' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', padding: '7px 8px', background: '#f0ede7', borderRadius: '5px', marginBottom: '5px' }}>
-          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-            <select value={auteurChoisi} onChange={e => choisirAuteur(e.target.value)} style={{ flex: 1, minWidth: '110px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520' }}>
-              <option value="">Auteur…</option>
-              {auteurs.map(a => <option key={a.id_auteur} value={a.id_auteur}>{a.nom}</option>)}
-            </select>
-            <select value={oeuvreChoisie} onChange={e => setOeuvreChoisie(e.target.value)} disabled={!auteurChoisi} style={{ flex: 1, minWidth: '110px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520' }}>
-              <option value="">Œuvre…</option>
-              {oeuvres.map(o => <option key={o.id_oeuvre} value={o.id_oeuvre}>{o.titre}</option>)}
-            </select>
-          </div>
-          <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-            <input type="number" min={1} value={segmentNum} onChange={e => setSegmentNum(e.target.value)} placeholder="N° de segment" style={{ width: '90px', fontSize: '10px', padding: '3px 5px', borderRadius: '3px', border: '1px solid #d6d0c4', color: '#2a2520' }} />
-            <button type="button" onClick={validerLienOeuvre} disabled={!oeuvreChoisie || !segmentNum}
-              style={{ fontSize: '10px', padding: '3px 10px', borderRadius: '3px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer' }}>Insérer</button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
 
 type CommentaireAvecAuteur = {
   id: number
@@ -143,6 +23,7 @@ type CommentaireAvecAuteur = {
   nbDislikes: number
   monVote: 1 | -1 | null
   demande_validation: boolean
+  certifie?: boolean | null
   supprime: boolean
 }
 
@@ -198,7 +79,6 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   const [cibleReponse, setCibleReponse] = useState<CommentaireAvecAuteur | null>(null)
   const [commentaireSignale, setCommentaireSignale] = useState<CommentaireAvecAuteur | null>(null)
   const [demandeValidation, setDemandeValidation] = useState(false)
-  const taRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setUserId(data.session?.user.id ?? null))
@@ -215,7 +95,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     if (segActif === null) return
     setLoading(true)
     const { data: base } = await supabase.from('commentaires')
-      .select('id, texte, valide, created_at, user_id, reponse_a, demande_validation, supprime')
+      .select('id, texte, valide, created_at, user_id, reponse_a, demande_validation, certifie, supprime')
       .eq('id_segment', segActif).order('created_at', { ascending: true })
     const lignes = base ?? []
 
@@ -300,22 +180,6 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     if (!error) setCommentaires(prev => prev.map(x => x.id === c.id ? { ...x, supprime: true } : x))
   }
 
-  const entourer = (avant: string, apres: string = avant) => {
-    const ta = taRef.current
-    if (!ta) { setTexte(t => t + avant + 'texte' + apres); return }
-    const d = ta.selectionStart, f = ta.selectionEnd
-    const selection = texte.slice(d, f) || 'texte'
-    const nouveau = texte.slice(0, d) + avant + selection + apres + texte.slice(f)
-    setTexte(nouveau)
-    setTimeout(() => { ta.focus(); ta.setSelectionRange(d + avant.length, d + avant.length + selection.length) }, 0)
-  }
-  const inserer = (fragment: string) => {
-    const ta = taRef.current
-    const pos = ta ? ta.selectionStart : texte.length
-    setTexte(texte.slice(0, pos) + fragment + texte.slice(pos))
-    setTimeout(() => ta?.focus(), 0)
-  }
-
   const soumettre = async () => {
     if (!texte.trim() || segActif === null || !userId) return
     if (REGEX_CAPS_ABUSIVES.test(texte)) { setStatut('err'); return }
@@ -337,16 +201,16 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   if (segActif === null) return <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d', padding: '8px 0' }}>Cliquez sur un paragraphe pour voir ou ajouter des commentaires.</p>
 
   const VoteBoutons = ({ c }: { c: CommentaireAvecAuteur }) => (
-    <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #e4dfd8', borderRadius: '4px', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flexShrink: 0 }}>
       <button onClick={() => basculerVote(c, -1)} title="Je n'aime pas"
-        style={{ display: 'flex', alignItems: 'center', gap: '4px', color: c.monVote === -1 ? '#9a4a2a' : '#b0a89e', background: c.monVote === -1 ? 'rgba(154,74,42,0.08)' : 'transparent', border: 'none', borderRight: '1px solid #e4dfd8', cursor: 'pointer', padding: '3px 7px' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: '3px', color: c.monVote === -1 ? '#9a4a2a' : '#b0a89e', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
         <svg width="10" height="10" viewBox="0 0 20 20" fill="none" style={{ transform: 'rotate(180deg)' }} aria-hidden="true">
           <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
         </svg>
         <span style={{ minWidth: '10px', textAlign: 'left', fontWeight: 600, fontSize: '9px' }}>{c.nbDislikes}</span>
       </button>
       <button onClick={() => basculerVote(c, 1)} title="J'aime"
-        style={{ display: 'flex', alignItems: 'center', gap: '4px', color: c.monVote === 1 ? '#3d6b4f' : '#b0a89e', background: c.monVote === 1 ? 'rgba(61,107,79,0.08)' : 'transparent', border: 'none', cursor: 'pointer', padding: '3px 7px' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: '3px', color: c.monVote === 1 ? '#3d6b4f' : '#b0a89e', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
         <svg width="10" height="10" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
         </svg>
@@ -370,55 +234,54 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     }
     const rangInfo = c.score !== null ? calculerRang(c.score) : null
     const couleurs = rangInfo ? couleurRang(rangInfo.rang) : null
-    const estCertifie = c.valide && c.demande_validation
+    const estCertifie = !!c.certifie
     const estRevision = !c.valide
     const fondCarte = estCertifie ? 'rgba(61,107,79,0.08)' : estRevision ? 'rgba(176,58,42,0.07)' : '#fff'
     const bordureCarte = estCertifie ? 'rgba(61,107,79,0.28)' : estRevision ? 'rgba(176,58,42,0.26)' : '#e4dfd8'
     const accentCarte = estReponse ? '#c8c0b4' : estCertifie ? '#3d6b4f' : estRevision ? '#b03a2a' : '#d6d0c4'
-    const fondTexte = estCertifie ? 'rgba(255,255,255,0.68)' : estRevision ? 'rgba(255,255,255,0.72)' : '#fbfaf7'
+    const fondTexte = estCertifie ? 'rgba(255,255,255,0.42)' : estRevision ? 'rgba(255,255,255,0.48)' : 'rgba(255,255,255,0.54)'
     const couleurTexte = estRevision ? '#6f3d35' : '#2a2520'
     return (
-      <div key={c.id} style={{ marginLeft: estReponse ? '20px' : 0, padding: '9px 10px', marginBottom:'9px', border:'1px solid ' + bordureCarte, borderLeft:'4px solid ' + accentCarte, borderRadius:'6px', background: fondCarte }}>
+      <div key={c.id} style={{ marginLeft: estReponse ? '18px' : 0, padding: '7px 9px', marginBottom:'7px', border:'1px solid ' + bordureCarte, borderLeft:'4px solid ' + accentCarte, borderRadius:'6px', background: fondCarte }}>
         {c.supprime ? (
           <p style={{ fontSize: '11.5px', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>
             {c.pseudo ?? 'Un utilisateur'} a supprimé un commentaire
           </p>
         ) : (
         <>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '11px', fontWeight: 600, color: '#2a3d30' }}>{c.pseudo ?? 'Anonyme'}</span>
           {couleurs && rangInfo && (
             <span style={{ fontSize: '9px', fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.02em' }}>
               {rangInfo.rang}
             </span>
           )}
-          {estCertifie && <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#3d6b4f', background: 'rgba(61,107,79,0.10)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>CERTIFIÉ</span>}
+          {estCertifie && <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#2f6a48', background: 'rgba(61,107,79,0.14)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>CERTIFIÉ</span>}
           {estRevision && <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#b03a2a', background: 'rgba(176,58,42,0.10)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>EN RÉVISION</span>}
-          {c.demande_validation && !estCertifie && <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#8a4a40', background: 'rgba(176,58,42,0.08)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>CERTIFICATION DEMANDÉE</span>}
         </div>
-        <div style={{ fontSize: '12px', color: couleurTexte, lineHeight: 1.5, margin: 0, whiteSpace: 'pre-line', background: fondTexte, border: '1px solid rgba(214,208,196,0.72)', borderRadius: '5px', padding: '7px 8px' }}>{rendreTexteEnrichi(c.texte)}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '7px', flexWrap: 'wrap' }}>
-          <p style={{ fontSize: '10px', color: '#b0a89e', margin: 0 }}>{new Date(c.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+        <div style={{ fontSize: '11.8px', color: couleurTexte, lineHeight: 1.43, margin: 0, whiteSpace: 'pre-line', background: fondTexte, borderRadius: '4px', padding: '5px 6px' }}>{rendreTexteEnrichi(c.texte)}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '5px', flexWrap: 'nowrap', whiteSpace: 'nowrap', minWidth: 0 }}>
+          <p style={{ fontSize: '9.5px', color: '#b0a89e', margin: 0, flexShrink: 0 }}>{new Date(c.created_at).toLocaleDateString('fr-FR')}</p>
           <VoteBoutons c={c} />
           {!estReponse && (
             <button onClick={() => setCibleReponse(c)}
-              style={{ fontSize: '10.5px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              style={{ fontSize: '10px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}>
               Répondre
             </button>
           )}
           <button onClick={() => setCommentaireSignale(c)} title="Signaler ce commentaire"
-            style={{ fontSize: '12px', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: 'auto' }}>
+            style={{ fontSize: '11px', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: 'auto', flexShrink: 0 }}>
             ⚑
           </button>
           {userId === c.user_id && (
             <button onClick={() => supprimerMonCommentaire(c)} title="Supprimer mon commentaire"
-              style={{ fontSize: '10.5px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              style={{ fontSize: '10px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}>
               Supprimer
             </button>
           )}
           {estAdmin && userId !== c.user_id && (
             <button onClick={() => supprimerCommentaire(c)} title="Supprimer ce commentaire"
-              style={{ fontSize: '10.5px', color: '#c0392b', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              style={{ fontSize: '10px', color: '#c0392b', background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}>
               Supprimer (admin)
             </button>
           )}
@@ -450,18 +313,11 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
                 <button onClick={() => setCibleReponse(null)} style={{ marginLeft: 'auto', fontSize: '12px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
               </div>
             )}
-            <BarreMiseEnForme onEntourer={entourer} onInserer={inserer} />
-            <textarea ref={taRef} value={texte} onChange={e => setTexte(e.target.value)} placeholder={cibleReponse ? 'Votre réponse…' : 'Votre commentaire sur ce passage…'} rows={4}
-              style={{ width: '100%', fontSize: '11.5px', padding: '7px 9px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#fff', color: '#2a2520', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
-            {texte.trim() && (
-              <div style={{ border:'1px solid #e4dfd8', borderRadius:'5px', background:'#fff', padding:'8px 10px', marginTop:'6px' }}>
-                <div style={{ fontSize:'11.5px', lineHeight:1.5, color:'#2a2520', whiteSpace:'pre-line' }}>{rendreTexteEnrichi(texte)}</div>
-              </div>
-            )}
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '10.5px', color: '#6b6560', cursor: 'pointer', lineHeight: 1.4, marginTop: '6px' }}>
+            <EditeurCommentaire value={texte} onChange={setTexte} placeholder={cibleReponse ? 'Votre réponse…' : 'Votre commentaire sur ce passage…'} minHeight={70} />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10.5px', color: '#6b6560', cursor: 'pointer', lineHeight: 1, height: '16px', marginTop: '6px' }}>
               <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
-                style={{ marginTop: '2px', flexShrink: 0, accentColor: '#3d6b4f', cursor: 'pointer' }} />
-              <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demande de certification</span>
+                style={{ width: '12px', height: '12px', flexShrink: 0, accentColor: '#3d6b4f', cursor: 'pointer', margin: 0 }} />
+              <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demander la certification</span>
             </label>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px', gap: '8px', alignItems: 'center' }}>
               {statut === 'err' && <span style={{ fontSize: '10.5px', color: '#c0562a' }}>Erreur — vérifiez qu'il n'y a pas plus de 5 capitales à la suite.</span>}

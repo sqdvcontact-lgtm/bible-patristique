@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import ProgressionClient from '../progression/ProgressionClient'
+import QuizBibliqueClient from '../quiz/QuizBibliqueClient'
 
 type Onglet = 'traductions' | 'acheter' | 'populaires' | 'progression' | 'quiz'
 
@@ -86,29 +87,7 @@ function IconQuestionBiblique() {
 
 function OngletQuiz() {
   return (
-    <div style={{ maxWidth: "680px", margin: "0 auto", padding: "24px 24px 80px" }}>
-      <Link href="/quiz" style={{
-        display: "flex", alignItems: "center", gap: "18px",
-        background: "#fff", border: "1px solid #ddd8cf", borderRadius: "8px",
-        padding: "18px 20px", textDecoration: "none", transition: "box-shadow 0.15s",
-      }}
-        onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.06)")}
-        onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}>
-        <div style={{ flexShrink: 0, width: "40px", display: "flex", justifyContent: "center" }}><IconQuestionBiblique /></div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "15px", color: "#1e2e24", margin: "0 0 3px" }}>
-            Où est-il écrit ?
-          </p>
-          <p style={{ fontSize: "12px", color: "#3d6b4f", margin: "0 0 5px", fontWeight: 500 }}>
-            Retrouvez la référence d’un verset biblique.
-          </p>
-          <p style={{ fontSize: "12px", color: "#6b7a6e", lineHeight: 1.6, margin: 0 }}>
-            Un verset est proposé au hasard : situez-le dans la Bible, du Testament jusqu’au verset exact.
-          </p>
-        </div>
-        <span style={{ fontSize: "13px", color: "#b0a89e", flexShrink: 0 }}>→</span>
-      </Link>
-    </div>
+    <QuizBibliqueClient />
   )
 }
 

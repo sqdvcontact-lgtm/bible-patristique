@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Politique de confidentialité — Bible & Tradition patristique",
+  title: "Politique de confidentialité — Corpus Scriptura",
   description: "Traitement des données personnelles sur le site labibledesperes.com.",
 };
 

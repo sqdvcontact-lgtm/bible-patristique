@@ -103,6 +103,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
           <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
             <button onClick={() => entourer('**')} title="Gras" style={{ ...BTN_MODAL, fontWeight: 700 }}>G</button>
             <button onClick={() => entourer('*')} title="Italique" style={{ ...BTN_MODAL, fontStyle: 'italic' }}>I</button>
+            <button onClick={() => entourer('^^')} title="Exposant" style={BTN_MODAL}>x²</button>
             <button onClick={inserrerLien} title="Insérer un lien" style={BTN_MODAL}>Lien</button>
             <span style={{ width: '1px', background: '#e4dfd8' }} />
             <button onClick={() => inserer('\u00A0')} title="Espace insécable" style={{ ...BTN_MODAL, fontSize: '10px' }}>Esp. insécable</button>

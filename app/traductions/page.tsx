@@ -2,8 +2,8 @@ import { Suspense } from 'react'
 import AllerPlusLoinClient from './AllerPlusLoinClient'
 
 export const metadata = {
-  title: 'Aller plus loin — La Bible des Pères',
-  description: "Les traductions bibliques, des ressources pour aller plus loin, et votre progression de lecture.",
+  title: 'Aller plus loin — Corpus Scriptura',
+  description: "Lectures bibliques et patristiques.",
 }
 
 export default function AllerPlusLoinPage() {

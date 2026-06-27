@@ -121,7 +121,7 @@ function construireCitationPatristique(
   if (info?.ville) parts.push(info.ville);
   if (info?.date_publication) parts.push(info.date_publication);
   const ref = parts.join(', ');
-  return ref + (ref ? ' : ' : '') + '« ' + texte + ' » — disponible sur labibledesperes.com';
+  return ref + (ref ? ' : ' : '') + '« ' + texte + ' » — disponible sur Corpus Scriptura';
 }
 
 function BoutonCopie({ texte }: { texte: string }) {

@@ -39,7 +39,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifierT
         </p>
       )}
       <p style={{ fontSize: '11px', letterSpacing: '0.08em', color: '#b0a89e', marginBottom: '4px' }}>
-        La Bible des Pères
+        Corpus Scriptura
       </p>
       {(oeuvre.editeur || oeuvre.ville || oeuvre.date_publication) && (
         <p style={{ fontSize: '11px', color: '#c0b8b0' }}>

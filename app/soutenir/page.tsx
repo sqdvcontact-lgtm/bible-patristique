@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "Soutenir le projet — La Bible des Pères",
-  description: "Contribuez au développement de la bibliothèque patristique.",
+  title: "Soutenir le projet — Corpus Scriptura",
+  description: "Lectures bibliques et patristiques.",
 };
 
 // Remplace par ton lien PayPal.me ou ton lien de bouton « Faire un don »

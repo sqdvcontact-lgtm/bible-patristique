@@ -305,7 +305,7 @@ export default function RechercheClient() {
                     const manque = lastQuery && !contientTerme(texte, lastQuery, mode)
                     return (
                       <a key={v.id_verset}
-                        href={`/?livre=${v.livre}&chapitre=${v.chapitre}&verset=${v.verset}`}
+                        href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}#verset-${v.verset}`}
                         target="_blank" rel="noopener noreferrer"
                         className={`res-card${manque ? ' res-card--absent' : ''}`}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '3px' }}>
@@ -328,7 +328,7 @@ export default function RechercheClient() {
                 ? <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic', marginTop: '16px' }}>Aucun passage trouvé.</p>
                 : <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {segmentsPage.map(s => (
-                    <a key={s.id} href={`/oeuvre/${s.id_oeuvre}`}
+                    <a key={s.id} href={`/oeuvre/${encodeURIComponent(s.id_oeuvre)}?segment=${s.id}#segment-${s.id}`}
                       target="_blank" rel="noopener noreferrer"
                       className="res-card">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '3px' }}>
