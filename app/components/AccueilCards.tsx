@@ -35,6 +35,17 @@ function IconStylo() {
   );
 }
 
+function IconPublications() {
+  return (
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
+      <rect x="8" y="5" width="18" height="24" rx="2" stroke="#3d6b4f" strokeWidth="1.2" fill="none"/>
+      <line x1="12" y1="12" x2="22" y2="12" stroke="#6f8a77" strokeWidth="1" strokeLinecap="round"/>
+      <line x1="12" y1="17" x2="22" y2="17" stroke="#6f8a77" strokeWidth="1" strokeLinecap="round"/>
+      <line x1="12" y1="22" x2="19" y2="22" stroke="#6f8a77" strokeWidth="1" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
 function IconDon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
@@ -62,6 +73,12 @@ export default function AccueilCards() {
           <span className="ac-title">Patristique</span>
         </Link>
 
+        {/* Carte Publications */}
+        <Link href="/essais" className="ac-card ac-publications">
+          <IconPublications />
+          <span className="ac-title">Publications</span>
+        </Link>
+
       </div>
 
       {/* Lien don discret */}
@@ -80,10 +97,10 @@ export default function AccueilCards() {
         }
         .ac-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 16px;
           width: 100%;
-          max-width: 480px;
+          max-width: 680px;
         }
         .ac-card {
           display: flex;
@@ -107,6 +124,11 @@ export default function AccueilCards() {
           border: 1px solid #d6d0c6;
         }
         .ac-patristique:hover { box-shadow: 0 10px 32px rgba(61,107,79,0.10); }
+        .ac-publications {
+          background: #fff;
+          border: 1px solid #d6d0c6;
+        }
+        .ac-publications:hover { box-shadow: 0 10px 32px rgba(61,107,79,0.12); }
         .ac-title {
           font-family: Georgia, 'Times New Roman', serif;
           font-size: 20px;
@@ -114,7 +136,8 @@ export default function AccueilCards() {
           letter-spacing: 0.01em;
         }
         .ac-bible .ac-title { color: #fff; }
-        .ac-patristique .ac-title { color: #2a3d30; }
+        .ac-patristique .ac-title,
+        .ac-publications .ac-title { color: #2a3d30; }
         .ac-don {
           display: inline-flex;
           align-items: center;
@@ -131,8 +154,8 @@ export default function AccueilCards() {
           transition: transform 0.15s, box-shadow 0.15s;
         }
         .ac-don:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(61,107,79,0.32); }
-        @media (max-width: 480px) {
-          .ac-grid { grid-template-columns: 1fr 1fr; max-width: 320px; }
+        @media (max-width: 620px) {
+          .ac-grid { grid-template-columns: 1fr; max-width: 320px; }
           .ac-card { padding: 24px 16px; }
         }
       `}</style>

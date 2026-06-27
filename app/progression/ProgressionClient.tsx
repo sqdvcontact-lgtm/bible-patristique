@@ -144,17 +144,26 @@ function FeuArtifice({ x, y, onFin }: { x: number; y: number; onFin: () => void 
 // ── Barre de progression ───────────────────────────────────────────────────────
 function BarreProgression({ label, pourcentage, couleur }: { label: string; pourcentage: number; couleur: string }) {
   return (
-    <div style={{ marginBottom: '10px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-        <span style={{ fontSize: '11px', color: '#6b6560', fontWeight: 500 }}>{label}</span>
-        <span style={{ fontSize: '11px', color: '#9a958d' }}>{Math.round(pourcentage)}%</span>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', gap: '12px' }}>
+        <span style={{ fontSize: '11px', color: '#6b6560', fontWeight: 600 }}>{label}</span>
+        <span style={{ fontSize: '11px', color: '#3d6b4f', fontWeight: 700 }}>{Math.round(pourcentage)}%</span>
       </div>
-      <div style={{ height: '6px', background: '#e8e4dc', borderRadius: '4px', overflow: 'hidden' }}>
+      <div style={{ height: '7px', background: '#ebe7df', borderRadius: '999px', overflow: 'hidden' }}>
         <div style={{
           height: '100%', width: `${pourcentage}%`, background: couleur,
-          borderRadius: '4px', transition: 'width 0.5s ease',
+          borderRadius: '999px', transition: 'width 0.5s ease',
         }} />
       </div>
+    </div>
+  )
+}
+
+function StatutLecture({ label, valeur }: { label: string; valeur: string }) {
+  return (
+    <div style={{ padding: '9px 12px', borderRadius: '8px', background: 'rgba(61,107,79,0.055)', border: '1px solid rgba(61,107,79,0.10)' }}>
+      <p style={{ fontSize: '18px', color: '#2a3d30', fontFamily: "Georgia, 'Times New Roman', serif", margin: '0 0 2px' }}>{valeur}</p>
+      <p style={{ fontSize: '10.5px', color: '#7a867b', margin: 0 }}>{label}</p>
     </div>
   )
 }
@@ -190,7 +199,7 @@ function CarteLivre({ livre, lu, onToggle }: { livre: LivreInfo; lu: boolean; on
         {livre.nom}
       </span>
       <span style={{ fontSize: '10px', color: '#b0a89e', marginLeft: 'auto', flexShrink: 0 }}>
-        {livre.nbVersets} v.
+        {lu ? 'lu' : 'à lire'}
       </span>
     </button>
   )
@@ -302,38 +311,51 @@ export default function ProgressionClient() {
   const pourcentTotal = totalVersets > 0 ? (versetsLusTotal / totalVersets) * 100 : 0
   const pourcentAT = totalAT > 0 ? (versetsLusAT / totalAT) * 100 : 0
   const pourcentNT = totalNT > 0 ? (versetsLusNT / totalNT) * 100 : 0
+  const livresLus = livres.filter(l => lus.has(l.code)).length
 
   const livresAT = livres.filter(l => l.testament === 'AT')
   const livresNT = livres.filter(l => l.testament === 'NT')
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 48px)', padding: '0 24px 64px' }}>
-
-      {/* Barres de progression — fixées en haut */}
-      <div style={{
-        position: 'sticky', top: '48px', zIndex: 10,
-        background: '#f7f4ef', paddingTop: '24px', paddingBottom: '14px',
-        borderBottom: '1px solid #e4dfd8', marginBottom: '24px',
-      }}>
-        <div style={{ maxWidth: '640px', margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '12px' }}>
-            <BarreProgression label="Ancien Testament" pourcentage={pourcentAT} couleur="#7a8e7e" />
-            <BarreProgression label="Nouveau Testament" pourcentage={pourcentNT} couleur="#9a7e5e" />
-          </div>
-          <BarreProgression label="Progression totale" pourcentage={pourcentTotal} couleur="#3d6b4f" />
-        </div>
-      </div>
-
-      <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 48px)', padding: '24px 24px 64px' }}>
+      <div style={{ maxWidth: '680px', margin: '0 auto' }}>
         <h1 style={{
           fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '22px',
           fontWeight: 'normal', color: '#2a3d30', marginBottom: '4px', textAlign: 'center',
         }}>
           Ma progression de lecture
         </h1>
-        <p style={{ fontSize: '12px', color: '#9a958d', textAlign: 'center', marginBottom: '32px', fontStyle: 'italic' }}>
+        <p style={{ fontSize: '12px', color: '#9a958d', textAlign: 'center', marginBottom: '22px', fontStyle: 'italic' }}>
           Cochez un livre une fois sa lecture achevée.
         </p>
+
+        <section style={{
+          background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px',
+          padding: '20px 22px', marginBottom: '24px', boxShadow: '0 8px 28px rgba(61,107,79,0.06)',
+        }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '22px', alignItems: 'center' }}>
+            <div style={{
+              width: '132px', height: '132px', borderRadius: '50%',
+              background: `conic-gradient(#3d6b4f ${Math.round(pourcentTotal)}%, #ece8df 0)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto',
+            }}>
+              <div style={{ width: '106px', height: '106px', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                <span style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '30px', color: '#2a3d30', lineHeight: 1 }}>{Math.round(pourcentTotal)}%</span>
+                <span style={{ fontSize: '10px', color: '#9a958d', marginTop: '3px' }}>parcouru</span>
+              </div>
+            </div>
+            <div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px', marginBottom: '14px' }}>
+                <StatutLecture label="livres achevés" valeur={`${livresLus}/${livres.length || 66}`} />
+                <StatutLecture label="versets couverts" valeur={versetsLusTotal.toLocaleString('fr-FR')} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '11px' }}>
+                <BarreProgression label="Ancien Testament" pourcentage={pourcentAT} couleur="#7a8e7e" />
+                <BarreProgression label="Nouveau Testament" pourcentage={pourcentNT} couleur="#9a7e5e" />
+              </div>
+            </div>
+          </div>
+        </section>
 
         {!userId && !chargement && (
           <div style={{

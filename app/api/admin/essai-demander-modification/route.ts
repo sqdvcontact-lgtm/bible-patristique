@@ -16,10 +16,13 @@ export async function POST(request: Request) {
   if (!id) {
     return NextResponse.json({ error: 'Paramètre id manquant.' }, { status: 400 })
   }
+  if (!String(note ?? '').trim()) {
+    return NextResponse.json({ error: 'Note administrateur requise.' }, { status: 400 })
+  }
 
   const { error } = await supabaseAdmin
     .from('essais')
-    .update({ statut: 'brouillon', note_admin: note || null })
+    .update({ statut: 'brouillon', note_admin: String(note).trim(), updated_at: new Date().toISOString() })
     .eq('id', id)
 
   if (error) {

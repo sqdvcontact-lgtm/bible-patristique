@@ -25,6 +25,11 @@ type Profil = {
 const inputStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: "13.5px", border: "1px solid #d6d0c4", borderRadius: "6px", background: "#f9f7f4", color: "#1e1a16", outline: "none", boxSizing: "border-box" };
 const labelStyle: React.CSSProperties = { fontSize: "11px", fontWeight: 600, color: "#6a7b6e", letterSpacing: "0.06em", display: "block", marginBottom: "5px" };
 
+function urlCompte(): string {
+  if (typeof window !== "undefined") return `${window.location.origin}/compte`;
+  return "/compte";
+}
+
 export default function ComptePage() {
   const router = useRouter();
   const [verification, setVerification] = useState(true);
@@ -82,7 +87,11 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         router.push("/prelevements");
       }
     } else {
-      const { data, error } = await supabase.auth.signUp({ email, password: mdp });
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password: mdp,
+        options: { emailRedirectTo: urlCompte() },
+      });
       if (error) {
         setErreur(
           error.message.includes("already registered")
@@ -287,7 +296,10 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
   const modifierEmail = async () => {
     if (!nouvelEmail.trim() || nouvelEmail.trim() === user.email) return;
     setEnvoiEmail(true); setStatutEmail(null);
-    const { error } = await supabase.auth.updateUser({ email: nouvelEmail.trim() });
+    const { error } = await supabase.auth.updateUser(
+      { email: nouvelEmail.trim() },
+      { emailRedirectTo: urlCompte() }
+    );
     setEnvoiEmail(false);
     if (error) { setStatutEmail({ ok: false, msg: "Erreur — vérifiez l'adresse saisie." }); return; }
     setStatutEmail({ ok: true, msg: "Un e-mail de confirmation a été envoyé à la nouvelle adresse. Le changement ne prend effet qu'après l'avoir validé." });

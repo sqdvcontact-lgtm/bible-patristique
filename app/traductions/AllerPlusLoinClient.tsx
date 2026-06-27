@@ -331,8 +331,17 @@ function OngletPopulaires() {
   const [versets, setVersets] = useState<VersetPopulaire[] | null>(null);
 
   useEffect(() => {
-    supabase.from('versets_plus_lus').select('id_verset, livre, chapitre, verset, TR0002, nb_lectures').limit(50)
-      .then(({ data }) => setVersets((data as VersetPopulaire[]) ?? []));
+    const charger = () => {
+      supabase.from('versets_plus_lus')
+        .select('id_verset, livre, chapitre, verset, TR0002, nb_lectures')
+        .order('nb_lectures', { ascending: false })
+        .limit(50)
+        .then(({ data }) => setVersets((data as VersetPopulaire[]) ?? []));
+    };
+    charger();
+    const onVisible = () => { if (!document.hidden) charger(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
   return (

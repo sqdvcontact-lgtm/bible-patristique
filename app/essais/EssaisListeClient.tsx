@@ -5,11 +5,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
+import EtapeMetadonnees, { type Metadonnees } from './EtapeMetadonnees'
 
 const CATEGORIES = ['Philosophie', 'Théologie', 'Exégèse', 'Spiritualité', 'Littérature', 'Poésie', 'Histoire', 'Patristique']
 const SEMAINE_MS = 7 * 24 * 60 * 60 * 1000
 
-type Onglet = 'communaute' | 'mes-ecrits'
+type Onglet = 'communaute' | 'mes-ecrits' | 'ecrire'
 
 type EssaiResume = {
   id: number; titre: string; sous_titre: string | null; resume: string | null
@@ -93,22 +94,23 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '40px 32px 80px' }}>
         <div style={{ textAlign: 'center', marginBottom: '22px' }}>
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 'normal', color: '#1e2e24', marginBottom: '14px' }}>
-            Essais et méditations
+            Publications
           </h1>
+          <p style={{ fontFamily: 'Georgia, serif', fontSize: '15px', fontStyle: 'italic', color: '#8a8278', margin: '-8px 0 16px' }}>
+            Communications savantes, spirituelles et poétiques
+          </p>
           <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 18px' }} />
           <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', borderBottom: '1px solid #ddd8cf', marginBottom: '14px', flexWrap: 'wrap' }}>
             {([
               { key: 'communaute' as const, label: 'Communications de la communauté' },
               { key: 'mes-ecrits' as const, label: 'Mes écrits' },
+              { key: 'ecrire' as const, label: '+ Écrire' },
             ]).map(o => (
               <button key={o.key} onClick={() => setOnglet(o.key)}
                 style={{ padding: '10px 14px', fontSize: '12.5px', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 {o.label}
               </button>
             ))}
-            <button type="button" onClick={() => router.push('/essais/nouveau')} style={{ padding: '10px 14px', fontSize: '12.5px', fontWeight: 400, color: '#3d6b4f', background: 'transparent', border: 'none', borderBottom: '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-              + Écrire
-            </button>
           </div>
         </div>
 
@@ -121,8 +123,13 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
             auteurs={auteurs}
             parAuteur={parAuteur}
           />
-        ) : (
+        ) : onglet === 'mes-ecrits' ? (
           <OngletMesEcrits connecte={connecte} essais={mesEcrits} changerStatut={changerStatut} supprimer={supprimer} />
+        ) : (
+          <OngletEcrire connecte={connecte} onValider={(m) => {
+            window.sessionStorage.setItem('nouvel-essai-metadonnees', JSON.stringify(m))
+            router.push('/essais/nouveau?depuis=publications')
+          }} />
         )}
       </div>
     </main>
@@ -179,6 +186,21 @@ function OngletCommunaute({
       )}
     </>
   )
+}
+
+function OngletEcrire({ connecte, onValider }: { connecte: boolean | null; onValider: (m: Metadonnees) => void }) {
+  if (connecte === false) {
+    return (
+      <div style={{ textAlign: 'center', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '28px 24px', maxWidth: '520px', margin: '0 auto' }}>
+        <p style={{ fontSize: '13px', color: '#6b6560', marginBottom: '14px' }}>Connectez-vous pour écrire un essai ou une méditation.</p>
+        <Link href="/compte" style={{ display: 'inline-block', padding: '8px 18px', fontSize: '12.5px', fontWeight: 600, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
+          Se connecter
+        </Link>
+      </div>
+    )
+  }
+  if (connecte === null) return <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+  return <EtapeMetadonnees mode="bloc" onValider={onValider} />
 }
 
 function EssaiCarte({ essai: e }: { essai: EssaiResume }) {

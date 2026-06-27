@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from "@/app/lib/supabase"
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
+import { insererSignalement } from './signalements'
 
 // Pas plus de 5 majuscules consécutives (accentuées comprises).
 const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
@@ -477,8 +478,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           titre={`${commentaireSignale.pseudo ?? 'Anonyme'} — ${commentaireSignale.texte.slice(0, 60)}…`}
           onClose={() => setCommentaireSignale(null)}
           onEnvoyer={async (msg) => {
-            const { error } = await supabase.from('signalements').insert({ id_segment: null, message: `Commentaire #${commentaireSignale.id} : ${msg}` })
-            if (error) throw error
+            await insererSignalement({ id_segment: null, message: `Commentaire #${commentaireSignale.id} : ${msg}` })
           }}
         />
       )}

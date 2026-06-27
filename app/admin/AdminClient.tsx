@@ -11,7 +11,8 @@ import SectionEssaisAdmin from './SectionEssaisAdmin'
 import type { AdminProps as Props, Onglet } from './adminTypes'
 
 export default function AdminClient({
-  commentaires, signalements, demandesCertification, essaisEnAttente, essaisModification, essaisPublies, segMap, versetMap, auteurs, traductions,
+  commentaires, signalements, demandesCertification, essaisEnAttente, essaisModification, essaisPublies, essaisBrouillons, segMap, versetMap, auteurs, traductions,
+  nbVerifications,
   actionDeconnexion, actionValider, actionSupprimerCommentaire,
   actionMarquerTraite, actionSupprimerSignalement,
   actionCertifier, actionRetirerDemandeCertification,
@@ -26,7 +27,7 @@ export default function AdminClient({
     { key: 'depot-oeuvre',        label: '▣ Dépôt IA' },
     { key: 'traductions',         label: 'Traductions' },
     { key: 'essais',              label: 'Essais', badge: nbEssais },
-    { key: 'verifications',       label: 'Vérifications', separateur: true },
+    { key: 'verifications',       label: 'Vérifications', badge: nbVerifications, separateur: true },
     { key: 'moderation',          label: 'Modération', badge: nbModeration },
   ]
 
@@ -93,6 +94,7 @@ export default function AdminClient({
             essaisEnAttente={essaisEnAttente}
             essaisModification={essaisModification}
             essaisPublies={essaisPublies}
+            essaisBrouillons={essaisBrouillons}
             actionPublierEssai={actionPublierEssai}
             actionRenvoyerBrouillonEssai={actionRenvoyerBrouillonEssai}
           />

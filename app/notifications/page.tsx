@@ -11,6 +11,7 @@ type Notification = {
   statut: string
   note_admin: string | null
   updated_at: string | null
+  type?: 'essai' | 'commentaire' | 'signalement'
 }
 
 type ActionAdmin = { label: string; count: number; href: string }
@@ -33,11 +34,44 @@ export default function NotificationsPage() {
         .eq('user_id', uid)
         .not('note_admin', 'is', null)
         .order('updated_at', { ascending: false })
-      setItems((essais ?? []) as Notification[])
+      const { data: commentairesUtilisateur } = await supabase
+        .from('commentaires')
+        .select('id, texte, message_admin, message_admin_at')
+        .eq('user_id', uid)
+        .not('message_admin', 'is', null)
+        .order('message_admin_at', { ascending: false })
+      const { data: signalementsUtilisateur } = await supabase
+        .from('signalements')
+        .select('id, message, message_admin, message_admin_at')
+        .eq('user_id', uid)
+        .not('message_admin', 'is', null)
+        .order('message_admin_at', { ascending: false })
+      const notifications: Notification[] = [
+        ...((essais ?? []) as any[]).map(e => ({ ...e, type: 'essai' as const })),
+        ...((commentairesUtilisateur ?? []) as any[]).map(c => ({
+          id: c.id,
+          titre: 'Commentaire',
+          sous_titre: c.texte ? c.texte.slice(0, 90) : null,
+          statut: 'moderation',
+          note_admin: c.message_admin,
+          updated_at: c.message_admin_at,
+          type: 'commentaire' as const,
+        })),
+        ...((signalementsUtilisateur ?? []) as any[]).map(s => ({
+          id: s.id,
+          titre: 'Signalement',
+          sous_titre: s.message ? s.message.slice(0, 90) : null,
+          statut: 'traite',
+          note_admin: s.message_admin,
+          updated_at: s.message_admin_at,
+          type: 'signalement' as const,
+        })),
+      ].sort((a, b) => String(b.updated_at ?? '').localeCompare(String(a.updated_at ?? '')))
+      setItems(notifications)
       const estAdminEmail = !!(email && email === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase())
       if (profil?.est_admin || estAdminEmail) {
         const [commentaires, signalements, certifications, essaisAdmin] = await Promise.all([
-          supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false),
+          supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false'),
           supabase.from('signalements').select('id', { count: 'exact', head: true }).eq('traite', false),
           supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('demande_validation', true),
           supabase.from('essais').select('id', { count: 'exact', head: true }).in('statut', ['en_attente', 'a_reviser']),
@@ -94,13 +128,15 @@ export default function NotificationsPage() {
                     {n.sous_titre && <p style={{ fontSize: '12px', color: '#8a8278', fontStyle: 'italic', margin: '2px 0 0' }}>{n.sous_titre}</p>}
                   </div>
                   <span style={{ fontSize: '9.5px', fontWeight: 700, color: '#c0562a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    {n.statut === 'brouillon' ? 'Modification demandée' : n.statut}
+                    {n.type === 'commentaire' ? 'Commentaire' : n.type === 'signalement' ? 'Signalement' : n.statut === 'brouillon' ? 'Modification demandée' : n.statut}
                   </span>
                 </div>
                 <p style={{ fontSize: '12.5px', color: '#3a3530', lineHeight: 1.6, whiteSpace: 'pre-wrap', margin: '0 0 10px' }}>{n.note_admin}</p>
-                <Link href={`/essais/${n.id}/modifier`} style={{ fontSize: '11.5px', color: '#3d6b4f', fontWeight: 600, textDecoration: 'none' }}>
-                  Modifier l’essai
-                </Link>
+                {n.type === 'essai' && (
+                  <Link href={`/essais/${n.id}/modifier`} style={{ fontSize: '11.5px', color: '#3d6b4f', fontWeight: 600, textDecoration: 'none' }}>
+                    Modifier l’essai
+                  </Link>
+                )}
               </article>
             ))}
           </div>

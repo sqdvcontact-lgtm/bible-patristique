@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import BibleLayout from './components/BibleLayout'
 
@@ -102,6 +103,8 @@ export default async function Home({
   searchParams: Promise<{ livre?: string; chapitre?: string; trad?: string }>
 }) {
   const params = await searchParams
+  if (!params.livre && !params.chapitre && !params.trad) redirect('/accueil')
+
   const livre = params.livre || 'GEN'
   const chapitre = parseInt(params.chapitre || '1')
   const trad = params.trad || 'TR0001'

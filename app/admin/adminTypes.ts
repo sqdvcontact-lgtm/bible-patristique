@@ -1,5 +1,5 @@
-export type Commentaire = { id: number; texte: string; auteur_nom: string; auteur_mail: string; valide: boolean; created_at: string; id_segment: number | null; id_verset: string | null; demande_validation?: boolean; certifie?: boolean }
-export type Signalement  = { id: number; message: string; traite: boolean; created_at: string; id_segment: number }
+export type Commentaire = { id: number; texte: string; auteur_nom: string; auteur_mail: string; valide: boolean; created_at: string; id_segment: number | null; id_verset: string | null; user_id?: string | null; demande_validation?: boolean; certifie?: boolean }
+export type Signalement  = { id: number; message: string; traite: boolean; created_at: string; id_segment: number | null; user_id?: string | null; source?: 'signalements' | 'quiz_signalements' }
 export type SegInfo      = { texte: string; numero: number; id_oeuvre: string }
 export type Oeuvre       = { id_oeuvre: string; titre: string; titre_original: string | null; profondeur_sommaire?: number | null }
 export type Auteur       = { id_auteur: string; nom: string; dates: string | null; siecle: string | null; tradition?: string | null; note?: string | null; aire_geographique?: string | null; langue_principale?: string | null; oeuvres: Oeuvre[] }
@@ -24,8 +24,22 @@ export type LignePreview = {
   _lien_1_orig?: string; _fiabilite_orig?: string; _texte_orig?: string; _modifie?: boolean
 }
 
-export type Essai = { id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; statut: string; created_at: string; user_id: string; auteur_pseudo: string | null }
-export type EssaiPublie = { id: number; titre: string; sous_titre: string | null; auteur: string; created_at: string }
+export type Essai = { id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; statut: string; created_at: string; updated_at?: string | null; publie_at?: string | null; user_id: string; auteur_pseudo: string | null }
+export type EssaiPublie = {
+  id: number
+  titre: string
+  sous_titre: string | null
+  auteur: string
+  created_at: string
+  updated_at: string | null
+  publie_at: string | null
+  statut: string
+  nb_vues: number
+  nb_likes: number
+  nb_commentaires: number
+  nb_signes: number
+  nb_signalements: number
+}
 
 export type AdminProps = {
   commentaires: Commentaire[]
@@ -34,10 +48,12 @@ export type AdminProps = {
   essaisEnAttente: Essai[]
   essaisModification: Essai[]
   essaisPublies: EssaiPublie[]
+  essaisBrouillons: EssaiPublie[]
   versetMap: Record<string, string>
   segMap: Record<number, SegInfo>
   auteurs: Auteur[]
   traductions: Traduction[]
+  nbVerifications: number
   actionDeconnexion: () => Promise<void>
   actionValider: (id: number) => Promise<void>
   actionSupprimerCommentaire: (id: number) => Promise<void>
@@ -46,7 +62,7 @@ export type AdminProps = {
   actionCertifier: (id: number) => Promise<void>
   actionRetirerDemandeCertification: (id: number) => Promise<void>
   actionPublierEssai: (id: number) => Promise<void>
-  actionRenvoyerBrouillonEssai: (id: number) => Promise<void>
+  actionRenvoyerBrouillonEssai: (id: number, note: string, refus?: boolean) => Promise<void>
 }
 
 export type Onglet = 'bibliotheque' | 'ajouter-oeuvre' | 'depot-oeuvre' | 'traductions' | 'verifications' | 'moderation' | 'essais'

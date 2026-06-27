@@ -12,6 +12,7 @@ import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from
 import AssocierVerset from './AssocierVerset'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import ModalSignalement from './ModalSignalement'
+import { insererSignalement } from './signalements'
 
 // Même table que celle utilisée côté serveur (page.tsx) pour l'affichage
 // des références bibliques en français — doit rester identique aux deux endroits.
@@ -67,6 +68,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const [suggestions, setSuggestions] = useState<{ id: number; segment_numero: number; segment_texte: string; reference_manuelle: string | null }[]>([])
   const [suggestionsChargees, setSuggestionsChargees] = useState(false)
   const [suggestionSignalee, setSuggestionSignalee] = useState<{ id: number; segment_numero: number; segment_texte: string } | null>(null)
+  const tradSelectRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (ongletDroit !== 'suggestions' || suggestionsChargees || !idOeuvre) return
     supabase.from('segments')
@@ -81,6 +83,16 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       setPanneauOuvert(false)
     }
   }, [])
+  useEffect(() => {
+    if (!tradOuverte) return
+    const fermerAuClicExterieur = (event: MouseEvent) => {
+      if (tradSelectRef.current && !tradSelectRef.current.contains(event.target as Node)) {
+        setTradOuverte(false)
+      }
+    }
+    document.addEventListener('mousedown', fermerAuClicExterieur)
+    return () => document.removeEventListener('mousedown', fermerAuClicExterieur)
+  }, [tradOuverte])
 
     const [oeuvresAuteur, setOeuvresAuteur] = useState<OeuvreResumee[]>([])
   const [auteurOuvert, setAuteurOuvert] = useState(false)
@@ -365,10 +377,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
     <div style={{ background: '#f7f4ef', minHeight: '100vh' }}>
       <style>{`
         .seg-wrapper { position: relative; }
-        .seg-wrapper::after { content: ''; position: absolute; top: 0; right: -44px; width: 44px; height: 100%; }
+        .seg-wrapper::after { content: ''; position: absolute; top: 0; right: -44px; width: 44px; height: 100%; pointer-events: none; }
         .seg-p { transition: background 0.12s; }
         .seg-p:hover { background: rgba(61,107,79,0.05) !important; }
-        .seg-actions { opacity: 0; transition: opacity 0.15s; }
+        .seg-actions { opacity: 0; transition: opacity 0.15s; position: relative; z-index: 2; pointer-events: auto; }
         .seg-wrapper:hover .seg-actions { opacity: 1; }
         .seg-wrapper--actif .seg-actions { opacity: 0.5; }
         .seg-wrapper:hover .seg-btn-enreg { opacity: 1 !important; }
@@ -594,7 +606,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     return (
                       <div key={sid} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', gap: '8px' }}>
                         <p id={`s${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
-                          lang="fr" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.56', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.09em', letterSpacing: '-0.002em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          lang="fr" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {afficherNumeros && <sup style={{ fontSize: '0.52rem', color: '#b0a89e', marginRight: '2px', userSelect: 'none' }}>{s.numero}</sup>}
                           {rendreTexteEnrichi(normaliserEspaces(s.texte))}
                         </p>
@@ -650,7 +662,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         return (
                           <div key={sid} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ position: 'relative', marginBottom: '0.45rem' }}>
                             <p id={`a${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
-                              lang="fr" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.56', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px 1px 4px', paddingRight: estAdmin ? '72px' : '52px', margin: 0, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.09em', letterSpacing: '-0.002em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                              lang="fr" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px 1px 4px', paddingRight: estAdmin ? '72px' : '52px', margin: 0, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                               {afficherNumeros && <sup style={{ fontSize: '0.52rem', color: '#b0a89e', marginRight: '2px', userSelect: 'none' }}>{s.numero}</sup>}
                               {rendreTexteEnrichi(normaliserEspaces(s.texte))}
                             </p>
@@ -688,7 +700,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             {ongletDroit === 'refs' ? (
               <>
                 {/* Sélecteur traduction */}
-                <div style={{ padding: '12px 0 10px', borderBottom: '1px solid #ede9e2', marginBottom: '14px', position: 'relative' }}>
+                <div ref={tradSelectRef} style={{ padding: '12px 0 10px', borderBottom: '1px solid #ede9e2', marginBottom: '14px', position: 'relative' }}>
                   <p style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e', marginBottom: '5px' }}>TRADUCTION BIBLIQUE</p>
                   <button onClick={() => setTradOuverte(!tradOuverte)}
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '5px 8px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', fontSize: '11.5px', color: '#2a3d30', cursor: 'pointer', fontWeight: 500 }}>
@@ -732,7 +744,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                 <BoutonSignalerVerset versetId={v.id} label={v.label} />
                               </div>
                             </div>
-                            <p lang="fr" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12px', lineHeight: '1.38', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.10em', letterSpacing: '-0.002em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', marginBottom: '4px' } as React.CSSProperties}>
+                            <p lang="fr" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12px', lineHeight: '1.38', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', marginBottom: '4px' } as React.CSSProperties}>
                               {v.textes[trad] || v.textes['TR0001'] || '—'}
                             </p>
                           </div>
@@ -759,7 +771,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {suggestions.map(s => (
                       <div key={s.id} style={{ paddingBottom: '12px', borderBottom: '1px solid #ede9e2' }}>
-                        <div lang="fr" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12px', lineHeight: 1.38, color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.10em', letterSpacing: '-0.002em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 7px', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                        <div lang="fr" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12px', lineHeight: 1.38, color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 7px', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {rendreTexteEnrichi(normaliserEspaces(s.segment_texte))}
                         </div>
                         {s.reference_manuelle && (
@@ -808,11 +820,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           titre={`Référence à identifier — segment ${suggestionSignalee.segment_numero}`}
           onClose={() => setSuggestionSignalee(null)}
           onEnvoyer={async (msg) => {
-            const { error } = await supabase.from('signalements').insert({
+            await insererSignalement({
               id_segment: suggestionSignalee.id,
               message: `Référence à identifier : ${msg || suggestionSignalee.segment_texte.slice(0, 160)}`,
             })
-            if (error) throw error
           }}
         />
       )}

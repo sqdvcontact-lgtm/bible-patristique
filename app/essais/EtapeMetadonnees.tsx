@@ -24,7 +24,7 @@ const CONDITIONS = `En publiant un essai ou une méditation sur ce site, vous re
 
 export type Metadonnees = { titre: string; sousTitre: string; resume: string; categories: string[] }
 
-export default function EtapeMetadonnees({ valeursInitiales, onValider }: { valeursInitiales?: Partial<Metadonnees>; onValider: (m: Metadonnees) => void }) {
+export default function EtapeMetadonnees({ valeursInitiales, onValider, mode = 'page' }: { valeursInitiales?: Partial<Metadonnees>; onValider: (m: Metadonnees) => void; mode?: 'page' | 'bloc' }) {
   const [titre, setTitre] = useState(valeursInitiales?.titre ?? '')
   const [sousTitre, setSousTitre] = useState(valeursInitiales?.sousTitre ?? '')
   const [resume, setResume] = useState(valeursInitiales?.resume ?? '')
@@ -45,8 +45,8 @@ export default function EtapeMetadonnees({ valeursInitiales, onValider }: { vale
   }
 
   return (
-    <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '32px 36px', width: '100%', maxWidth: '540px', boxShadow: '0 8px 32px rgba(0,0,0,0.06)' }}>
+    <main style={{ minHeight: mode === 'page' ? 'calc(100vh - 48px)' : undefined, background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: mode === 'page' ? '24px' : '0' }}>
+      <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: mode === 'page' ? '32px 36px' : '26px 30px', width: '100%', maxWidth: '540px', boxShadow: mode === 'page' ? '0 8px 32px rgba(0,0,0,0.06)' : 'none' }}>
         <h1 style={{ fontFamily: "Georgia, serif", fontSize: '20px', color: '#1e2e24', margin: '0 0 4px' }}>Nouvel essai ou méditation</h1>
         <p style={{ fontSize: '12px', color: '#9a958d', margin: '0 0 24px' }}>Première étape — une fois validée, vous passerez à la rédaction.</p>
 

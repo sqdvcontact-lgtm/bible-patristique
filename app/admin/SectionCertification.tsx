@@ -15,7 +15,7 @@ export default function SectionCertification({
 }) {
   const [liste, setListe] = useState<Commentaire[]>(init)
   const [sousOnglet, setSousOnglet] = useState<'bible' | 'patristique'>('bible')
-  const [action, setAction] = useState<Record<number, 'certifie' | 'retire' | 'loading'>>({})
+  const [action, setAction] = useState<Record<number, 'certifie' | 'valide' | 'loading'>>({})
 
   const bible = liste.filter(c => c.id_verset !== null)
   const patristique = liste.filter(c => c.id_segment !== null)
@@ -28,10 +28,10 @@ export default function SectionCertification({
     setTimeout(() => setListe(p => p.filter(c => c.id !== id)), 700)
   }
 
-  const retirer = async (id: number) => {
+  const accepterSansCertifier = async (id: number) => {
     setAction(p => ({ ...p, [id]: 'loading' }))
     await actionRetirerDemandeCertification(id)
-    setAction(p => ({ ...p, [id]: 'retire' }))
+    setAction(p => ({ ...p, [id]: 'valide' }))
     setTimeout(() => setListe(p => p.filter(c => c.id !== id)), 700)
   }
 
@@ -79,12 +79,12 @@ export default function SectionCertification({
                   <span style={{ fontSize: '11.5px', color: '#9a958d' }}>…</span>
                 ) : statut === 'certifie' ? (
                   <span style={{ fontSize: '11.5px', color: '#3d6b4f', fontWeight: 600 }}>✓ Certifié</span>
-                ) : statut === 'retire' ? (
-                  <span style={{ fontSize: '11.5px', color: '#c0562a' }}>Demande retirée</span>
+                ) : statut === 'valide' ? (
+                  <span style={{ fontSize: '11.5px', color: '#3d6b4f', fontWeight: 600 }}>Validé sans certification</span>
                 ) : (
                   <>
-                    <button onClick={() => retirer(c.id)} className="btn-rouge" style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', cursor: 'pointer' }}>
-                      Retirer la demande
+                    <button onClick={() => accepterSansCertifier(c.id)} className="btn-gris" style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', cursor: 'pointer' }}>
+                      Accepter sans certifier
                     </button>
                     <button onClick={() => certifier(c.id)}
                       style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', border: 'none', cursor: 'pointer', background: '#7a5a9e', color: '#fff', fontWeight: 600 }}>

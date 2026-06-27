@@ -63,7 +63,7 @@ function PanneauAuteur({ auteur, recherche }: { auteur: Auteur; recherche: strin
         {/* Infos */}
         <div style={{ flex: 1, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <div>
-            <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '15px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 4px' }}>
+            <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '15px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 1px' }}>
               {auteur.nom}
             </h2>
             {auteur.dates && (
@@ -95,13 +95,13 @@ function PanneauAuteur({ auteur, recherche }: { auteur: Auteur; recherche: strin
             const correspond = oeuvreCorrespondante?.id_oeuvre === o.id_oeuvre
             const metas = [
               o.editeur,
-              o.trad_auteur ? `trad. ${o.trad_auteur}` : null,
               o.ville,
               o.date_publication,
+              o.trad_auteur ? `trad. ${o.trad_auteur}` : null,
             ].filter(Boolean)
             return (
             <Link key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
-              style={{ display: 'block', padding: '6px 8px', borderRadius: '4px', textDecoration: 'none', marginBottom: '2px', background: correspond ? 'rgba(61,107,79,0.10)' : 'transparent', border: correspond ? '1px solid rgba(61,107,79,0.25)' : '1px solid transparent' }}
+              style={{ display: 'block', padding: '5px 8px', borderRadius: '4px', textDecoration: 'none', marginBottom: '1px', background: correspond ? 'rgba(61,107,79,0.10)' : 'transparent', border: correspond ? '1px solid rgba(61,107,79,0.25)' : '1px solid transparent' }}
               onMouseEnter={e => { if (!correspond) (e.currentTarget as HTMLElement).style.background = 'rgba(61,107,79,0.06)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = correspond ? 'rgba(61,107,79,0.10)' : 'transparent' }}>
               <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
@@ -111,7 +111,7 @@ function PanneauAuteur({ auteur, recherche }: { auteur: Auteur; recherche: strin
                 )}
               </span>
               {metas.length > 0 && (
-                <span style={{ display: 'block', fontSize: '10.5px', color: '#9a958d', marginTop: '2px', lineHeight: 1.35 }}>
+                <span style={{ display: 'block', fontSize: '10.5px', color: '#9a958d', marginTop: '0', lineHeight: 1.22 }}>
                   {metas.join(' · ')}
                 </span>
               )}

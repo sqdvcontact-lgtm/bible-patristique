@@ -733,7 +733,8 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
           titreEntete="Signaler"
           onClose={() => setCommentaireSignale(null)}
           onEnvoyer={async (msg) => {
-            const { error } = await supabase.from('signalements').insert({ id_segment: null, message: `Commentaire #${commentaireSignale.id} : ${msg}` })
+            const { data } = await supabase.auth.getSession()
+            const { error } = await supabase.from('signalements').insert({ id_segment: null, user_id: data.session?.user.id ?? null, message: `Commentaire #${commentaireSignale.id} : ${msg}`, traite: false })
             if (error) throw error
           }}
         />
@@ -950,8 +951,9 @@ export default function PanneauPatristique({
             <ModalSignalement
               titre={`${segSignale.ref_niv1}${segSignale.ref_niv2 ? ' · ' + segSignale.ref_niv2 : ''} — ${segSignale.segment_texte.slice(0, 60)}…`}
               onClose={() => setSegSignale(null)}
-              onEnvoyer={async (msg) => {
-                const { error } = await supabase.from('signalements').insert({ id_segment: segSignale.id, message: msg })
+                onEnvoyer={async (msg) => {
+                const { data } = await supabase.auth.getSession()
+                const { error } = await supabase.from('signalements').insert({ id_segment: segSignale.id, user_id: data.session?.user.id ?? null, message: msg, traite: false })
                 if (error) throw error
               }}
             />

@@ -331,8 +331,16 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     Object.values(inputRefs.current).forEach(el => { if (el) el.value = '' })
   }
 
-  const auteursFiltres = recherche.trim()
-    ? auteurs.filter(a => a.nom.toLowerCase().startsWith(recherche.toLowerCase()))
+  const rechercheNormalisee = recherche.trim().toLowerCase()
+  const auteursFiltres = rechercheNormalisee
+    ? auteurs.filter(a =>
+        a.nom.toLowerCase().includes(rechercheNormalisee) ||
+        a.oeuvres.some(o =>
+          o.titre.toLowerCase().includes(rechercheNormalisee) ||
+          ((o as any).sous_titre ?? '').toLowerCase().includes(rechercheNormalisee) ||
+          ((o as any).titre_original ?? '').toLowerCase().includes(rechercheNormalisee)
+        )
+      )
     : auteurs
 
   return (
@@ -429,7 +437,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       {/* Barre de recherche + nouvel auteur */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
         <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
-          placeholder="Rechercher un auteur…"
+          placeholder="Rechercher un auteur ou une œuvre…"
           style={{ flex: 1, fontSize: '12px', padding: '6px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#fff', color: '#1e1a16', outline: 'none' }} />
         {recherche && <button onClick={() => setRecherche('')} style={{ fontSize: '11px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>}
         <button onClick={() => { setAjoutAuteur(!ajoutAuteur); setMsgAjoutAuteur(null) }}
@@ -464,9 +472,16 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {[...auteursFiltres].sort((a, b) => a.nom.localeCompare(b.nom, 'fr')).map(auteur => (
+        {[...auteursFiltres].sort((a, b) => a.nom.localeCompare(b.nom, 'fr')).map(auteur => {
+          const oeuvreTrouvee = !!rechercheNormalisee && auteur.oeuvres.some(o =>
+            o.titre.toLowerCase().includes(rechercheNormalisee) ||
+            ((o as any).sous_titre ?? '').toLowerCase().includes(rechercheNormalisee) ||
+            ((o as any).titre_original ?? '').toLowerCase().includes(rechercheNormalisee)
+          )
+          const ouvert = auteurOuvert === auteur.id_auteur || oeuvreTrouvee
+          return (
           <div key={auteur.id_auteur} style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: (auteurOuvert === auteur.id_auteur || editionAuteur === auteur.id_auteur) ? '1px solid #e4dfd8' : 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: (ouvert || editionAuteur === auteur.id_auteur) ? '1px solid #e4dfd8' : 'none' }}>
               <button onClick={() => setAuteurOuvert(auteurOuvert === auteur.id_auteur ? null : auteur.id_auteur)}
                 style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
                 <span style={{ fontFamily: "Georgia, serif", fontSize: '15px', fontWeight: 700, color: '#3d6b4f' }}>{auteur.nom}</span>
@@ -519,7 +534,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
             )}
 
             {/* Liste des œuvres */}
-            {auteurOuvert === auteur.id_auteur && (
+            {ouvert && (
               <div style={{ padding: '6px 0' }}>
                 {auteur.oeuvres.length === 0 && (
                   <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic', padding: '8px 18px' }}>Aucune œuvre pour cet auteur — utilisez « + Ajouter une œuvre ».</p>
@@ -583,7 +598,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
               </div>
             )}
           </div>
-        ))}
+        )})}
       </div>
       </>
       )}

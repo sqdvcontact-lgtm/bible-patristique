@@ -13,14 +13,20 @@ import EtapeMetadonnees, { type Metadonnees } from './EtapeMetadonnees'
 const MAX_CARACTERES = 8000
 const BTN: React.CSSProperties = { fontSize: '10.5px', padding: '8px 6px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer', width: '100%', textAlign: 'center' }
 
-type Props = { essaiExistant?: { id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean; publie_at?: string | null }; modeAdmin?: boolean }
+type Props = {
+  essaiExistant?: { id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean; publie_at?: string | null }
+  modeAdmin?: boolean
+  metadonneesInitiales?: Metadonnees | null
+}
 
-export default function EditeurEssai({ essaiExistant, modeAdmin }: Props) {
+export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInitiales }: Props) {
   const router = useRouter()
-  const [etape, setEtape] = useState<'metadonnees' | 'redaction'>(essaiExistant ? 'redaction' : 'metadonnees')
+  const [etape, setEtape] = useState<'metadonnees' | 'redaction'>(essaiExistant || metadonneesInitiales ? 'redaction' : 'metadonnees')
   const [meta, setMeta] = useState<Metadonnees>({
-    titre: essaiExistant?.titre ?? '', sousTitre: essaiExistant?.sous_titre ?? '',
-    resume: essaiExistant?.resume ?? '', categories: essaiExistant?.categories ?? [],
+    titre: essaiExistant?.titre ?? metadonneesInitiales?.titre ?? '',
+    sousTitre: essaiExistant?.sous_titre ?? metadonneesInitiales?.sousTitre ?? '',
+    resume: essaiExistant?.resume ?? metadonneesInitiales?.resume ?? '',
+    categories: essaiExistant?.categories ?? metadonneesInitiales?.categories ?? [],
   })
   const [userId, setUserId] = useState<string | null>(null)
   const [profil, setProfil] = useState<{ pseudo: string | null; nom: string | null; prenom: string | null } | null>(null)
@@ -37,6 +43,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin }: Props) {
   const [blocActif, setBlocActif] = useState<'h2' | 'h3' | 'blockquote' | 'p' | null>(null)
   const [comparaisonOuverte, setComparaisonOuverte] = useState(false)
   const contenuOriginalRef = useRef(essaiExistant?.contenu ?? '')
+  const creationInitialeRef = useRef(false)
 
   const editableRef = useRef<HTMLDivElement>(null)
   const savedRange = useRef<Range | null>(null)
@@ -50,6 +57,17 @@ export default function EditeurEssai({ essaiExistant, modeAdmin }: Props) {
     if (!userId) return
     supabase.from('profils').select('pseudo, nom, prenom').eq('id', userId).maybeSingle().then(({ data }) => setProfil(data))
   }, [userId])
+
+  useEffect(() => {
+    if (!userId || idRef.current || !metadonneesInitiales || creationInitialeRef.current) return
+    creationInitialeRef.current = true
+    supabase.from('essais').insert({
+      user_id: userId, titre: metadonneesInitiales.titre, sous_titre: metadonneesInitiales.sousTitre || null,
+      resume: metadonneesInitiales.resume, categories: metadonneesInitiales.categories, contenu: '', statut: 'brouillon',
+    }).select('id').single().then(({ data }) => {
+      if (data) { setId(data.id); idRef.current = data.id }
+    })
+  }, [userId, metadonneesInitiales])
 
   const nomAffiche = (afficherNomReel && profil?.nom) ? `${profil.prenom ?? ''} ${profil.nom}`.trim() : (profil?.pseudo ?? 'Anonyme')
 

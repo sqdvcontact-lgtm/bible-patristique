@@ -4,11 +4,22 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import EditeurEssai from '../EditeurEssai'
+import type { Metadonnees } from '../EtapeMetadonnees'
 
 export default function NouvelEssaiPage() {
   const [statut, setStatut] = useState<'chargement' | 'connecte' | 'deconnecte'>('chargement')
+  const [metadonneesInitiales, setMetadonneesInitiales] = useState<Metadonnees | null>(null)
 
   useEffect(() => {
+    const brutes = window.sessionStorage.getItem('nouvel-essai-metadonnees')
+    if (brutes) {
+      try {
+        setMetadonneesInitiales(JSON.parse(brutes) as Metadonnees)
+        window.sessionStorage.removeItem('nouvel-essai-metadonnees')
+      } catch {
+        window.sessionStorage.removeItem('nouvel-essai-metadonnees')
+      }
+    }
     supabase.auth.getSession().then(({ data }) => setStatut(data.session ? 'connecte' : 'deconnecte'))
   }, [])
 
@@ -27,5 +38,5 @@ export default function NouvelEssaiPage() {
     )
   }
 
-  return <EditeurEssai />
+  return <EditeurEssai metadonneesInitiales={metadonneesInitiales} />
 }

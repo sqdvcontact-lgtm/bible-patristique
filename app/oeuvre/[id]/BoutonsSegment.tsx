@@ -5,6 +5,7 @@ import { supabase } from "@/app/lib/supabase"
 import type { SegData } from './oeuvreTypes'
 import { texteSansEnrichissement } from './texteEnrichi'
 import ModalSignalement from './ModalSignalement'
+import { insererSignalement } from './signalements'
 
 // Style partagé par tous les petits boutons d'action (segment ET verset)
 export const BTN_STYLE: React.CSSProperties = {
@@ -145,8 +146,7 @@ export function BoutonSignalerSegment({ segId, apercu, className = '' }: { segId
           titre={apercu}
           onClose={() => setOuvert(false)}
           onEnvoyer={async (msg) => {
-            const { error } = await supabase.from('signalements').insert({ id_segment: segId, message: msg })
-            if (error) throw error
+            await insererSignalement({ id_segment: segId, message: msg })
           }}
         />
       )}

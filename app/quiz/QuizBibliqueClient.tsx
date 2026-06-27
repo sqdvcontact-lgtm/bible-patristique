@@ -219,12 +219,16 @@ export default function QuizBibliqueClient() {
     if (!verset) return
     setStatutSignalement('sending')
     const { data: session } = await supabase.auth.getSession()
-    const payload = { id_verset: verset.id_verset, raison: raisonSignalement, commentaire: commentaireSignalement || null, user_id: session.session?.user.id ?? null }
-    const { error } = await supabase.from('quiz_signalements').insert(payload)
-    if (error) {
-      const fallback = await supabase.from('signalements').insert({ id_segment: null, message: `Quiz — ${verset.id_verset} — ${raisonSignalement}${commentaireSignalement ? ` : ${commentaireSignalement}` : ''}`, traite: false })
-      if (fallback.error) { setStatutSignalement('err'); return }
-    }
+    const user_id = session.session?.user.id ?? null
+    const payload = { id_verset: verset.id_verset, raison: raisonSignalement, commentaire: commentaireSignalement || null, user_id }
+    await supabase.from('quiz_signalements').insert(payload)
+    const fallback = await supabase.from('signalements').insert({
+      id_segment: null,
+      user_id,
+      message: `Quiz — ${verset.id_verset} — ${raisonSignalement}${commentaireSignalement ? ` : ${commentaireSignalement}` : ''}`,
+      traite: false,
+    })
+    if (fallback.error) { setStatutSignalement('err'); return }
     setStatutSignalement('ok')
   }
 

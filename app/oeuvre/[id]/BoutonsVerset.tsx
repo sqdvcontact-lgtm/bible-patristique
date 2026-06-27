@@ -5,6 +5,7 @@ import { supabase } from "@/app/lib/supabase"
 import type { VRef } from './oeuvreTypes'
 import { BTN_STYLE } from './BoutonsSegment'
 import ModalSignalement from './ModalSignalement'
+import { insererSignalement } from './signalements'
 
 function IconeSignet() {
   return (
@@ -86,8 +87,7 @@ export function BoutonSignalerVerset({ versetId, label }: { versetId: string; la
           titre={label}
           onClose={() => setOuvert(false)}
           onEnvoyer={async (msg) => {
-            const { error } = await supabase.from('signalements').insert({ id_segment: null, message: `Verset ${versetId} : ${msg}` })
-            if (error) throw error
+            await insererSignalement({ id_segment: null, message: `Verset ${versetId} : ${msg}` })
           }}
         />
       )}

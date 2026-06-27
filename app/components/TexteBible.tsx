@@ -132,7 +132,8 @@ function ModalSignalement({ titre, onClose, onEnvoyer }: {
 function BoutonSignaler({ versetId }: { versetId: string }) {
   const [ouvert, setOuvert] = useState(false)
   const envoyer = async (msg: string) => {
-    await supabase.from('signalements').insert({ id_segment: null, message: `Verset ${versetId} : ${msg}`, traite: false })
+    const { data } = await supabase.auth.getSession()
+    await supabase.from('signalements').insert({ id_segment: null, user_id: data.session?.user.id ?? null, message: `Verset ${versetId} : ${msg}`, traite: false })
   }
   return (
     <>
@@ -418,8 +419,12 @@ export default function TexteBible({
               id={`verset-${v.verset}`}
               onClick={() => {
                 if (!actif) {
-                  // Comptage en arrière-plan — jamais attendu, ne ralentit jamais le clic.
-                  supabase.rpc('incrementer_lecture', { p_id_verset: v.id_verset })
+                  // Comptage en arriere-plan, sans ralentir le clic.
+                  fetch('/api/versets/incrementer-lecture', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_verset: v.id_verset }),
+                  }).catch(() => {})
                 }
                 setVersetSelectionne(actif ? null : v)
               }}

@@ -18,6 +18,8 @@ type Prelevement = {
   created_at: string;
 };
 
+type Traduction = { code: string; label: string };
+
 type OeuvreInfo = {
   id_oeuvre: string; sous_titre?: string
   trad_auteur?: string; editeur?: string
@@ -38,6 +40,16 @@ const ABREV_ORDRE: Record<string, number> = {
   Rm:45,"1Co":46,"2Co":47,Ga:48,Ep:49,Ph:50,Col:51,"1Th":52,"2Th":53,
   "1Tm":54,"2Tm":55,Tt:56,Phm:57,He:58,Jc:59,"1P":60,"2P":61,
   "1Jn":62,"2Jn":63,"3Jn":64,Jude:65,Ap:66,
+};
+
+const CODE_PAR_ABREV: Record<string, string> = {
+  Gn:"GEN",Ex:"EXO",Lv:"LEV",Nb:"NUM",Dt:"DEU",Jos:"JOS",Jg:"JDG",Rt:"RUT","1S":"1SA","2S":"2SA","1R":"1KI","2R":"2KI",
+  "1Ch":"1CH","2Ch":"2CH",Esd:"EZR",Né:"NEH",Est:"EST",Jb:"JOB",Ps:"PSA",Pr:"PRO",Qo:"ECC",Ct:"SNG",
+  Is:"ISA",Jr:"JER",Lm:"LAM",Ez:"EZK",Dn:"DAN",Os:"HOS",Jl:"JOL",Am:"AMO",Ab:"OBA",Jon:"JON",Mi:"MIC",
+  Na:"NAM",Ha:"HAB",So:"ZEP",Ag:"HAG",Za:"ZEC",Ml:"MAL",Mt:"MAT",Mc:"MRK",Lc:"LUK",Jn:"JHN",Ac:"ACT",
+  Rm:"ROM","1Co":"1CO","2Co":"2CO",Ga:"GAL",Ep:"EPH",Ph:"PHP",Col:"COL","1Th":"1TH","2Th":"2TH",
+  "1Tm":"1TI","2Tm":"2TI",Tt:"TIT",Phm:"PHM",He:"HEB",Jc:"JAS","1P":"1PE","2P":"2PE",
+  "1Jn":"1JN","2Jn":"2JN","3Jn":"3JN",Jude:"JUD",Ap:"REV",
 };
 
 function trierBibliques(list: Prelevement[]): Prelevement[] {
@@ -77,7 +89,7 @@ function agglomererBibliques(sorted: Prelevement[]): GroupeBiblique[] {
 }
 
 function refBiblique(g: GroupeBiblique): string {
-  const base = `${g.ref_livre_abr} ${g.ref_chapitre},${g.verset_debut}`;
+  const base = `${g.ref_livre_abr} ${g.ref_chapitre}, ${g.verset_debut}`;
   return g.verset_debut === g.verset_fin ? base : `${base}-${g.verset_fin}`;
 }
 
@@ -165,16 +177,28 @@ export default function PrelevementsPage() {
   const [onglet, setOnglet] = useState<TypePrelevement>("biblique");
   const [groupesOuverts, setGroupesOuverts] = useState<Set<string>>(new Set());
   const [oeuvresInfo, setOeuvresInfo] = useState<Record<string, OeuvreInfo>>({});
+  const [traductions, setTraductions] = useState<Traduction[]>([]);
+  const [traductionActive, setTraductionActive] = useState("TR0001");
+  const [textesTraduits, setTextesTraduits] = useState<Record<string, string>>({});
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) { router.push("/compte"); return; }
-      const { data: rows } = await supabase
-        .from("prelevements").select("*")
-        .eq("user_id", data.session.user.id)
-        .order("created_at", { ascending: false });
+      const uid = data.session.user.id;
+      const [{ data: rows }, { data: trads }, { data: profil }] = await Promise.all([
+        supabase
+          .from("prelevements").select("*")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: false }),
+        supabase.from("traductions").select("trad_id, nom").order("ordre", { ascending: true }),
+        supabase.from("profils").select("traduction_defaut").eq("id", uid).maybeSingle(),
+      ]);
       const prelevsData = rows ?? [];
       setPrelevements(prelevsData);
+      const listeTraductions = (trads ?? []).map(t => ({ code: t.trad_id, label: t.nom }));
+      setTraductions(listeTraductions);
+      const defaut = profil?.traduction_defaut || (typeof window !== "undefined" ? localStorage.getItem("traduction_defaut") : null) || listeTraductions[0]?.code || "TR0001";
+      setTraductionActive(defaut);
       setChargement(false);
 
       // Charger les métadonnées des oeuvres pour la citation complète
@@ -191,12 +215,44 @@ export default function PrelevementsPage() {
     });
   }, [router]);
 
+  useEffect(() => {
+    const chargerTextes = async () => {
+      const bibliquesActuels = prelevements.filter(p => p.type === "biblique");
+      if (bibliquesActuels.length === 0) { setTextesTraduits({}); return; }
+      const clauses = bibliquesActuels
+        .map(p => {
+          const livre = CODE_PAR_ABREV[p.ref_livre_abr ?? ""] ?? "";
+          if (!livre || !p.ref_chapitre || !p.ref_verset) return "";
+          return `and(livre.eq.${livre},chapitre.eq.${p.ref_chapitre},verset.eq.${p.ref_verset})`;
+        })
+        .filter(Boolean);
+      if (clauses.length === 0) { setTextesTraduits({}); return; }
+      const colonne = traductions.some(t => t.code === traductionActive) ? traductionActive : "TR0001";
+      const map: Record<string, string> = {};
+      for (let i = 0; i < clauses.length; i += 80) {
+        const { data } = await supabase
+          .from("versets")
+          .select(`livre, chapitre, verset, "${colonne}"`)
+          .or(clauses.slice(i, i + 80).join(","));
+        (data ?? []).forEach((v: any) => {
+          map[`${v.livre}:${v.chapitre}:${v.verset}`] = String(v[colonne] ?? "");
+        });
+      }
+      setTextesTraduits(map);
+    };
+    chargerTextes();
+  }, [prelevements, traductionActive, traductions]);
+
   const supprimerIds = async (ids: string[]) => {
     await supabase.from("prelevements").delete().in("id", ids);
     setPrelevements(prev => prev.filter(p => !ids.includes(p.id)));
   };
 
-  const bibliques = trierBibliques(prelevements.filter(p => p.type === "biblique"));
+  const bibliques = trierBibliques(prelevements.filter(p => p.type === "biblique").map(p => {
+    const livre = CODE_PAR_ABREV[p.ref_livre_abr ?? ""];
+    const texteTraduit = livre ? textesTraduits[`${livre}:${p.ref_chapitre}:${p.ref_verset}`] : null;
+    return texteTraduit ? { ...p, texte: texteTraduit } : p;
+  }));
   const patristiques = trierPatristiques(prelevements.filter(p => p.type === "patristique"));
   const groupesBibliquesBruts = grouper(bibliques, p => p.ref_livre_abr ?? p.ref_livre ?? "");
   const groupesPatristiques = grouper(patristiques, p => `${p.auteur ?? ""}||${p.titre_oeuvre ?? ""}`);
@@ -228,17 +284,18 @@ export default function PrelevementsPage() {
     <main style={{ background:"#f7f4ef", minHeight:"calc(100vh - 48px)" }}>
       <div style={{ maxWidth:"760px", margin:"0 auto", padding:"40px 24px 80px" }}>
 
-        <div style={{ marginBottom:"32px" }}>
-          <h1 style={{ fontFamily:"Georgia, 'Times New Roman', serif", fontSize:"26px", fontWeight:"normal", color:"#2a3d30", margin:"0 0 6px" }}>
+        <div style={{ textAlign:"center", marginBottom:"28px" }}>
+          <h1 style={{ fontFamily:"Georgia, 'Times New Roman', serif", fontSize:"clamp(22px, 4vw, 32px)", fontWeight:"normal", color:"#1e2e24", margin:"0 0 14px" }}>
             Mes citations
           </h1>
+          <div style={{ width:"36px", height:"1px", background:"#c8c0b4", margin:"0 auto 12px" }} />
           <p style={{ fontSize:"12.5px", color:"#9a958d", margin:0 }}>
             {prelevements.length} citation{prelevements.length > 1 ? "s" : ""} enregistrée{prelevements.length > 1 ? "s" : ""}
           </p>
         </div>
 
         {/* Onglets */}
-        <div style={{ display:"flex", borderBottom:"1px solid #d6d0c4", marginBottom:"20px" }}>
+        <div style={{ display:"flex", borderBottom:"1px solid #d6d0c4", marginBottom:"20px", alignItems:"flex-end", justifyContent:"center", flexWrap:"wrap" }}>
           {(["biblique","patristique"] as TypePrelevement[]).map(t => (
             <button key={t} onClick={() => setOnglet(t)}
               style={{ padding:"9px 18px", fontSize:"12.5px", fontWeight: onglet===t ? 600 : 400, color: onglet===t ? "#3d6b4f" : "#9a958d", background:"transparent", border:"none", borderBottom: onglet===t ? "2px solid #3d6b4f" : "2px solid transparent", cursor:"pointer", letterSpacing:"0.01em", transition:"color 0.12s" }}>
@@ -252,15 +309,28 @@ export default function PrelevementsPage() {
 
         {/* Boutons tout déployer / rétracter */}
         {((onglet === "biblique" && bibliques.length > 0) || (onglet === "patristique" && patristiques.length > 0)) && (
-          <div style={{ display:"flex", gap:"8px", justifyContent:"flex-end", marginBottom:"16px" }}>
-            <button onClick={toutDeployer}
-              style={{ fontSize:"11px", color:"#6a7b6e", background:"none", border:"1px solid #d6d0c4", borderRadius:"4px", padding:"3px 10px", cursor:"pointer" }}>
-              Tout déployer
-            </button>
-            <button onClick={toutRetracter}
-              style={{ fontSize:"11px", color:"#6a7b6e", background:"none", border:"1px solid #d6d0c4", borderRadius:"4px", padding:"3px 10px", cursor:"pointer" }}>
-              Tout rétracter
-            </button>
+          <div style={{ display:"flex", gap:"8px", justifyContent:"space-between", marginBottom:"16px", alignItems:"center", flexWrap:"wrap" }}>
+            <div>
+              {onglet === "biblique" && traductions.length > 0 && (
+                <label style={{ display:"inline-flex", alignItems:"center", gap:"8px", fontSize:"11.5px", color:"#6a7b6e" }}>
+                  Traduction
+                  <select value={traductionActive} onChange={e => setTraductionActive(e.target.value)}
+                    style={{ fontSize:"11.5px", color:"#2a3d30", background:"#fff", border:"1px solid #d6d0c4", borderRadius:"5px", padding:"4px 24px 4px 8px", outline:"none" }}>
+                    {traductions.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
+                  </select>
+                </label>
+              )}
+            </div>
+            <div style={{ display:"flex", gap:"8px" }}>
+              <button onClick={toutDeployer}
+                style={{ fontSize:"11px", color:"#6a7b6e", background:"none", border:"1px solid #d6d0c4", borderRadius:"4px", padding:"3px 10px", cursor:"pointer" }}>
+                Tout déployer
+              </button>
+              <button onClick={toutRetracter}
+                style={{ fontSize:"11px", color:"#6a7b6e", background:"none", border:"1px solid #d6d0c4", borderRadius:"4px", padding:"3px 10px", cursor:"pointer" }}>
+                Tout rétracter
+              </button>
+            </div>
           </div>
         )}
 
@@ -271,7 +341,7 @@ export default function PrelevementsPage() {
               <p style={{ fontSize:"13px", color:"#9a958d", fontStyle:"italic", marginBottom:"16px" }}>
                 Aucun verset enregistré. Cliquez sur ⊕ à côté d'un verset dans la Bible.
               </p>
-              <Link href="/" style={{ fontSize:"12.5px", color:"#3d6b4f", textDecoration:"none", borderBottom:"1px solid #3d6b4f" }}>Ouvrir la Bible →</Link>
+              <Link href="/?livre=GEN&chapitre=1" style={{ fontSize:"12.5px", color:"#3d6b4f", textDecoration:"none", borderBottom:"1px solid #3d6b4f" }}>Ouvrir la Bible →</Link>
             </div>
           ) : (
             <div style={{ display:"flex", flexDirection:"column", gap:"20px" }}>

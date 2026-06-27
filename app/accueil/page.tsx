@@ -9,6 +9,11 @@ export const metadata = {
 export default function AccueilPage() {
   return (
     <>
+      <style>{`
+        html {
+          scroll-behavior: smooth;
+        }
+      `}</style>
       {/* ── Première page : hero + cartes, inchangé ──────────────────────── */}
       <main style={{
         minHeight: "calc(100vh - 48px)",

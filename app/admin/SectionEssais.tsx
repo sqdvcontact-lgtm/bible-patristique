@@ -10,7 +10,7 @@ export default function SectionEssais({
 }: {
   essaisEnAttente: Essai[]
   actionPublierEssai: (id: number) => Promise<void>
-  actionRenvoyerBrouillonEssai: (id: number) => Promise<void>
+  actionRenvoyerBrouillonEssai: (id: number, note: string, refus?: boolean) => Promise<void>
 }) {
   const [liste, setListe] = useState<Essai[]>(init)
   const [action, setAction] = useState<Record<number, 'publie' | 'renvoye' | 'loading'>>({})
@@ -21,9 +21,17 @@ export default function SectionEssais({
     setAction(p => ({ ...p, [id]: 'publie' }))
     setTimeout(() => setListe(p => p.filter(e => e.id !== id)), 700)
   }
-  const renvoyer = async (id: number) => {
+  const renvoyer = async (id: number, refus = false) => {
+    const note = window.prompt(refus
+      ? "Motif du refus transmis à l'auteur :"
+      : "Commentaire transmis à l'auteur pour améliorer ou reprendre l'essai :")
+    if (note === null) return
+    if (!note.trim()) {
+      window.alert('Merci d’indiquer un motif ou une consigne pour l’auteur.')
+      return
+    }
     setAction(p => ({ ...p, [id]: 'loading' }))
-    await actionRenvoyerBrouillonEssai(id)
+    await actionRenvoyerBrouillonEssai(id, note.trim(), refus)
     setAction(p => ({ ...p, [id]: 'renvoye' }))
     setTimeout(() => setListe(p => p.filter(e => e.id !== id)), 700)
   }
@@ -62,8 +70,11 @@ export default function SectionEssais({
                 <span style={{ fontSize: '11.5px', color: '#c0562a' }}>Renvoyé en brouillon</span>
               ) : (
                 <>
-                  <button onClick={() => renvoyer(e.id)} className="btn-rouge" style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', cursor: 'pointer' }}>
+                  <button onClick={() => renvoyer(e.id)} className="btn-gris" style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', cursor: 'pointer' }}>
                     Renvoyer en brouillon
+                  </button>
+                  <button onClick={() => renvoyer(e.id, true)} className="btn-rouge" style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', cursor: 'pointer' }}>
+                    Refus
                   </button>
                   <button onClick={() => publier(e.id)} className="btn-vert" style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', cursor: 'pointer' }}>
                     Publier ✓

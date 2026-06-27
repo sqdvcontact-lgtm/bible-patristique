@@ -7,11 +7,11 @@ import { supabase } from "@/app/lib/supabase";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 
 const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean }[] = [
-  { href: "/", label: "Bible", exact: true },
+  { href: "/?livre=GEN&chapitre=1", label: "Bible", exact: true },
   { href: "/bibliotheque", label: "Patristique" },
+  { href: "/essais", label: "Publications" },
 ];
 const LIENS_SECONDAIRES: { href: string; label: string }[] = [
-  { href: "/essais", label: "Essais" },
   { href: "/traductions", label: "Aller plus loin" },
 ];
 
@@ -120,18 +120,29 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!user?.id) { setNbNotifications(0); return }
-    supabase
-      .from('essais')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .not('note_admin', 'is', null)
-      .then(({ count }) => setNbNotifications(count ?? 0))
+    Promise.all([
+      supabase
+        .from('essais')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .not('note_admin', 'is', null),
+      supabase
+        .from('commentaires')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .not('message_admin', 'is', null),
+      supabase
+        .from('signalements')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .not('message_admin', 'is', null),
+    ]).then(resultats => setNbNotifications(resultats.reduce((total, r) => total + (r.count ?? 0), 0)))
   }, [user?.id]);
 
   useEffect(() => {
     if (!user?.id || !(estAdmin || estAdminEmail)) { setNbActionsAdmin(0); return }
     Promise.all([
-      supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false),
+      supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false'),
       supabase.from('signalements').select('id', { count: 'exact', head: true }).eq('traite', false),
       supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('demande_validation', true),
       supabase.from('essais').select('id', { count: 'exact', head: true }).in('statut', ['en_attente', 'a_reviser']),
@@ -145,7 +156,8 @@ export default function Navbar() {
   };
 
   const styleLien = (href: string, exact: boolean | undefined, primaire: boolean) => {
-    const actif = exact ? pathname === href : pathname.startsWith(href);
+    const chemin = href.split("?")[0] || "/";
+    const actif = exact ? pathname === chemin : pathname.startsWith(chemin);
     return {
       display: "inline-block", padding: "4px 11px", borderRadius: "5px",
       fontSize: "13px", letterSpacing: "0.01em", textDecoration: "none",
@@ -275,7 +287,7 @@ export default function Navbar() {
         )}
         {[
           { href: "/compte", label: "Mon compte", badge: 0 },
-          { href: "/notifications", label: "Notification", badge: nbNotifications + nbActionsAdmin },
+          { href: "/notifications", label: "Notifications", badge: nbNotifications + nbActionsAdmin },
           ...(estAdminAffiche ? [{ href: "/admin", label: "Administration", badge: 0 }] : []),
         ].map(item => (
           <Link key={item.href} href={item.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}
@@ -362,12 +374,16 @@ export default function Navbar() {
         {mobileOuvert && (
           <div className="md:hidden" style={{ background: "#345c43", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-              {[...LIENS_PRIMAIRES, ...LIENS_SECONDAIRES].map(({ href, label }) => (
-                <Link key={href} href={href} onClick={() => setMobileOuvert(false)}
-                  style={{ padding: "9px 10px", borderRadius: "6px", fontSize: "14px", color: "#fff", textDecoration: "none", background: pathname === href || (href !== "/" && pathname.startsWith(href)) ? "rgba(255,255,255,0.12)" : "transparent" }}>
-                  {label}
-                </Link>
-              ))}
+              {[...LIENS_PRIMAIRES, ...LIENS_SECONDAIRES].map(({ href, label }) => {
+                const chemin = href.split("?")[0] || "/";
+                const actif = pathname === chemin || (chemin !== "/" && pathname.startsWith(chemin));
+                return (
+                  <Link key={href} href={href} onClick={() => setMobileOuvert(false)}
+                    style={{ padding: "9px 10px", borderRadius: "6px", fontSize: "14px", color: "#fff", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
+                    {label}
+                  </Link>
+                );
+              })}
             </div>
             {blocRecherche(true)}
             {user && (
