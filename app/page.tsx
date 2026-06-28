@@ -109,17 +109,10 @@ export default async function Home({
   const chapitre = parseInt(params.chapitre || '1')
   const trad = params.trad || 'TR0001'
 
-  const { data: versets } = await supabase
-    .from('versets')
-    .select('*')
-    .eq('livre', livre)
-    .eq('chapitre', chapitre)
-    .order('verset')
-
-  const { data: traductions } = await supabase
-    .from('traductions')
-    .select('trad_id, nom')
-    .order('ordre', { ascending: true })
+  const [{ data: versets }, { data: traductions }] = await Promise.all([
+    supabase.from('versets').select('*').eq('livre', livre).eq('chapitre', chapitre).order('verset'),
+    supabase.from('traductions').select('trad_id, nom').order('ordre', { ascending: true }),
+  ])
 
   return (
     <Suspense fallback={null}>

@@ -71,9 +71,14 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
   const supprimerTitre = async () => {
     if (cible.type !== 'titre') return
     setStatut('envoi')
-    const resultat = await appelerAPI('/api/admin/segment-titre', {
-      id_oeuvre: idOeuvre, niveau: cible.niveau, action: 'supprimer', groupe: cible.groupe,
-    })
+    // schemaTexte = true → on vide uniquement le champ _texte (ne pas toucher au titre principal)
+    const resultat = cible.schemaTexte
+      ? await appelerAPI('/api/admin/segment-titre', {
+          id_oeuvre: idOeuvre, niveau: cible.niveau, action: 'modifier', valeur: '', schemaTexte: true, groupe: cible.groupe,
+        })
+      : await appelerAPI('/api/admin/segment-titre', {
+          id_oeuvre: idOeuvre, niveau: cible.niveau, action: 'supprimer', groupe: cible.groupe,
+        })
     if (!resultat.ok) { setStatut('erreur'); setEtape('edition'); return }
     onEnregistre(); onClose()
   }
@@ -110,6 +115,12 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             <button onClick={() => inserer('\u202F')} title="Espace fine insécable" style={{ ...BTN_MODAL, fontSize: '10px' }}>Esp. fine</button>
             <button onClick={() => entourer('«\u202F', '\u202F»')} title="Guillemets français" style={BTN_MODAL}>« »</button>
             <button onClick={() => entourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)" style={BTN_MODAL}>“ ”</button>
+            {cible.type !== 'segment' && (
+              <>
+                <span style={{ width: '1px', background: '#e4dfd8' }} />
+                <button onClick={() => inserer('\n')} title="Insérer un saut de ligne dans le titre" style={{ ...BTN_MODAL, fontSize: '10px' }}>↵ Saut de ligne</button>
+              </>
+            )}
           </div>
           <textarea ref={taRef} value={valeur} onChange={e => setValeur(e.target.value)}
             rows={cible.type === 'segment' ? 8 : cible.type === 'titre_oeuvre' ? 4 : 2} autoFocus
@@ -118,7 +129,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
             {cible.type === 'titre' ? (
               <button onClick={supprimerTitre} style={{ fontSize: '10.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                Supprimer ce titre
+                {cible.schemaTexte ? 'Vider le sous-titre' : 'Supprimer ce titre'}
               </button>
             ) : cible.type === 'segment' ? (
               <button onClick={() => setEtape('confirmation-suppression')} style={{ fontSize: '10.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>

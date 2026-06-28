@@ -70,6 +70,73 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
 
 const inputStyleAuteur: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '12px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#fff', color: '#1e1a16', outline: 'none', boxSizing: 'border-box' }
 const lbl: React.CSSProperties = { fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b0a89e', display: 'block', marginBottom: '2px' }
+const sepOeuvre: React.CSSProperties = { borderTop: '1px solid #ede9e2', gridColumn: '1 / -1', margin: '2px 0' }
+
+const GENRES_PAR_CATEGORIE: { cat: string; genres: string[] }[] = [
+  { cat: 'Écriture & exégèse', genres: ['Commentaire biblique', 'Homélie exégétique', 'Chaîne (catena)', 'Scolie'] },
+  { cat: 'Théologie', genres: ['Traité théologique', 'Apologie', 'Réfutation / Controverse', 'Symbole de foi', 'Questions & réponses'] },
+  { cat: 'Pastorale & discipline', genres: ['Homélie / Sermon', 'Catéchèse / Mystagogíe', 'Lettre pastorale', 'Règle monastique', 'Droit canonique'] },
+  { cat: 'Spiritualité & ascèse', genres: ['Sentence / Apophtegme', 'Traité ascétique', 'Hagiographie (vie de saint)', 'Actes de martyre', 'Récit monastique'] },
+  { cat: 'Liturgie & prière', genres: ['Anaphore / Liturgie', 'Hymne', 'Prière / Invocation'] },
+  { cat: 'Littérature', genres: ['Confession / Autobiographie', 'Poème', 'Dialogue philosophique', 'Florilège', 'Encyclopédie'] },
+]
+
+function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]) => void }) {
+  const [nouveau, setNouveau] = React.useState(false)
+  const [saisie, setSaisie] = React.useState('')
+  const ajouter = (v: string) => { if (!tags.includes(v)) onChange([...tags, v]) }
+  const supprimer = (v: string) => onChange(tags.filter(x => x !== v))
+  const ajouterCustom = () => {
+    const v = saisie.trim()
+    if (v) { ajouter(v); setSaisie(''); setNouveau(false) }
+  }
+  return (
+    <div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '8px' }}>
+        {GENRES_PAR_CATEGORIE.map(({ cat, genres }) => (
+          <div key={cat} style={{ display: 'flex', gap: '6px', alignItems: 'baseline', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '9px', color: '#b0a89e', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', flexShrink: 0, minWidth: '120px' }}>{cat}</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+              {genres.map(g => {
+                const actif = tags.includes(g)
+                return (
+                  <button key={g} onClick={() => actif ? supprimer(g) : ajouter(g)}
+                    style={{ fontSize: '10.5px', borderRadius: '3px', padding: '2px 7px', cursor: 'pointer', border: actif ? '1px solid rgba(61,107,79,0.35)' : '1px solid #d6d0c4', background: actif ? 'rgba(61,107,79,0.10)' : '#f7f4ef', color: actif ? '#2e5440' : '#6b6560', fontWeight: actif ? 600 : 400 }}>
+                    {g}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: tags.length > 0 ? '8px' : '0' }}>
+        {nouveau ? (
+          <>
+            <input value={saisie} onChange={e => setSaisie(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') ajouterCustom(); if (e.key === 'Escape') { setNouveau(false); setSaisie('') } }}
+              autoFocus style={{ ...inputStyleAuteur, width: '160px', fontSize: '11px', padding: '4px 8px' }} />
+            <button onClick={ajouterCustom} style={{ fontSize: '10.5px', padding: '3px 10px', borderRadius: '3px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer' }}>Ajouter</button>
+            <button onClick={() => { setNouveau(false); setSaisie('') }} style={{ fontSize: '10.5px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#9a958d', cursor: 'pointer' }}>Annuler</button>
+          </>
+        ) : (
+          <button onClick={() => setNouveau(true)} style={{ fontSize: '10.5px', color: '#6b6560', border: '1px dashed #d6d0c4', background: 'transparent', borderRadius: '3px', padding: '2px 10px', cursor: 'pointer' }}>
+            + Autre genre
+          </button>
+        )}
+      </div>
+      {tags.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', paddingTop: '6px', borderTop: '1px solid #ede9e2' }}>
+          {tags.map(t => (
+            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', background: 'rgba(61,107,79,0.10)', color: '#2e5440', border: '1px solid rgba(61,107,79,0.25)', borderRadius: '3px', padding: '1px 8px' }}>
+              {t}<button onClick={() => supprimer(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9a958d', fontSize: '10px', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 type ValeursAuteur = {
   nom: string; nom_original: string; titre: string;
@@ -270,7 +337,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     })
   }
 
-  const CHAMPS_OEUVRE: { key: string; label: string }[] = [
+  const CHAMPS_OEUVRE_TEXTE: { key: string; label: string }[] = [
     { key: 'titre', label: 'Titre *' },
     { key: 'sous_titre', label: 'Sous-titre' },
     { key: 'titre_original', label: 'Titre original' },
@@ -279,6 +346,8 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     { key: 'collection', label: 'Collection' },
     { key: 'ville', label: 'Ville' },
     { key: 'date_publication', label: 'Date de publication' },
+    { key: 'date_composition', label: 'Date de composition originale' },
+    { key: 'url_source', label: 'URL source' },
   ]
 
   const ouvrirEditionOeuvre = (o: any) => {
@@ -287,25 +356,37 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       titre: o.titre ?? '', sous_titre: o.sous_titre ?? '', titre_original: o.titre_original ?? '',
       trad_auteur: o.trad_auteur ?? '', editeur: o.editeur ?? '', collection: o.collection ?? '',
       ville: o.ville ?? '', date_publication: o.date_publication ?? '',
+      date_composition: o.date_composition ?? '', url_source: o.url_source ?? '',
+      langue: o.langue ?? '',
     })
+    setFormOeuvreGenres(Array.isArray(o.genres) ? o.genres : [])
     setStatutOeuvre(null)
   }
-  const fermerEditionOeuvre = () => { setEditionOeuvre(null); setFormOeuvre({}) }
+  const fermerEditionOeuvre = () => { setEditionOeuvre(null); setFormOeuvre({}); setFormOeuvreGenres([]) }
 
   const sauvegarderOeuvre = async (idOeuvre: string) => {
     if (!formOeuvre.titre?.trim()) { setStatutOeuvre({ id: idOeuvre, ok: false, msg: 'Le titre est requis.' }); return }
     try {
       const headers = await headersAdmin({ 'Content-Type': 'application/json' })
-      const resultats = await Promise.all(
-        CHAMPS_OEUVRE.map(c => fetch('/api/admin/update-oeuvre', {
+      const requetes = [
+        ...CHAMPS_OEUVRE_TEXTE.map(c => fetch('/api/admin/update-oeuvre', {
           method: 'POST', headers,
           body: JSON.stringify({ id_oeuvre: idOeuvre, champ: c.key, valeur: formOeuvre[c.key] || null }),
-        }))
-      )
+        })),
+        fetch('/api/admin/update-oeuvre', {
+          method: 'POST', headers,
+          body: JSON.stringify({ id_oeuvre: idOeuvre, champ: 'langue', valeur: formOeuvre.langue || null }),
+        }),
+        fetch('/api/admin/update-oeuvre', {
+          method: 'POST', headers,
+          body: JSON.stringify({ id_oeuvre: idOeuvre, champ: 'genres', valeur: formOeuvreGenres }),
+        }),
+      ]
+      const resultats = await Promise.all(requetes)
       if (resultats.some(r => !r.ok)) { setStatutOeuvre({ id: idOeuvre, ok: false, msg: 'Erreur lors de l\u2019enregistrement.' }); return }
       setAuteurs(prev => prev.map(a => ({
         ...a,
-        oeuvres: a.oeuvres.map((o: any) => o.id_oeuvre === idOeuvre ? { ...o, ...formOeuvre } : o),
+        oeuvres: a.oeuvres.map((o: any) => o.id_oeuvre === idOeuvre ? { ...o, ...formOeuvre, genres: formOeuvreGenres } : o),
       })))
       setStatutOeuvre({ id: idOeuvre, ok: true, msg: 'Enregistré.' })
       setTimeout(() => { setStatutOeuvre(null); fermerEditionOeuvre() }, 1200)
@@ -331,6 +412,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   const [niveauxConfig, setNiveauxConfig] = useState<Record<string, { sommaire: number; corps: number; txtSommaire: boolean[]; txtCorps: boolean[]; afficherNumeros: boolean }>>({})
   const [editionOeuvre, setEditionOeuvre] = useState<string | null>(null)
   const [formOeuvre, setFormOeuvre] = useState<Record<string, string>>({})
+  const [formOeuvreGenres, setFormOeuvreGenres] = useState<string[]>([])
   const [statutOeuvre, setStatutOeuvre] = useState<{ id: string; ok: boolean; msg: string } | null>(null)
 
   // Initialiser profondeurs depuis les données
@@ -584,12 +666,6 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
               <button onClick={() => setAuteurOuvert(auteurOuvert === auteur.id_auteur ? null : auteur.id_auteur)}
                 style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
                 <span style={{ fontFamily: "Georgia, serif", fontSize: '15px', fontWeight: 700, color: '#3d6b4f' }}>{auteur.nom}</span>
-                {(auteur as any).nom_original && <span style={{ fontSize: '10.5px', color: '#b0a89e', fontStyle: 'italic' }}>{(auteur as any).nom_original}</span>}
-                {auteur.dates && <span style={{ fontSize: '11px', color: '#9a958d' }}>{auteur.dates}</span>}
-                {auteur.siecle && <span style={{ fontSize: '10.5px', color: '#9a958d' }}><SiecleDisplay n={parseInt(auteur.siecle)} /></span>}
-                {((auteur as any).traditions as string[] | null)?.map((t: string) => (
-                  <span key={t} style={{ fontSize: '10px', color: '#3d6b4f', background: 'rgba(61,107,79,0.09)', padding: '1px 6px', borderRadius: '3px', border: '1px solid rgba(61,107,79,0.2)' }}>{t}</span>
-                ))}
                 <span style={{ fontSize: '11px', color: '#b0a89e' }}>{auteur.oeuvres.length} œuvre{auteur.oeuvres.length > 1 ? 's' : ''}</span>
               </button>
               <div style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center', marginLeft: '12px' }}>
@@ -621,14 +697,20 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
             {/* Formulaire d'édition de l'auteur */}
             {editionAuteur === auteur.id_auteur && (
-              <div style={{ padding: '14px 16px 16px', borderBottom: auteurOuvert === auteur.id_auteur ? '1px solid #e4dfd8' : 'none', background: '#faf8f4' }}>
+              <div style={{ padding: '16px 20px 18px', borderBottom: auteurOuvert === auteur.id_auteur ? '1px solid #e4dfd8' : 'none', background: '#fff', borderLeft: '3px solid #3d6b4f' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid #ede9e2' }}>
+                  <span style={{ fontFamily: "Georgia, serif", fontSize: '13.5px', color: '#2a3d30' }}>
+                    Modification — <em>{auteur.nom}</em>
+                  </span>
+                  <code style={{ fontSize: '9.5px', background: '#f0ece6', padding: '2px 6px', borderRadius: '3px', color: '#6b6560' }}>{auteur.id_auteur}</code>
+                </div>
                 <ChampsAuteur
                   valeurs={formAuteur}
                   onChange={(champ, val) => setFormAuteur(p => ({ ...p, [champ]: val }))}
                   onChangeTags={tags => setFormAuteur(p => ({ ...p, traditions: tags }))}
                   tousLesTags={tousLesTags}
                 />
-                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center', marginTop: '14px' }}>
                   {statutAuteur?.id === auteur.id_auteur && (
                     <span style={{ fontSize: '11.5px', color: statutAuteur?.ok ? '#3d6b4f' : '#c0562a' }}>
                       {statutAuteur?.ok ? '✓' : '✗'} {statutAuteur?.msg}
@@ -660,7 +742,6 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', minWidth: 0, overflow: 'hidden' }}>
                       <code style={{ fontSize: '9px', background: '#f0ece6', padding: '1px 4px', borderRadius: '3px', color: '#8a8278', flexShrink: 0 }}>{oeuvre.id_oeuvre}</code>
                       <span style={{ fontSize: '12px', color: '#3a3530', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{surbrillance(oeuvre.titre)}</span>
-                      {oeuvre.titre_original && <span style={{ fontSize: '10.5px', color: '#9a958d', fontStyle: 'italic', whiteSpace: 'nowrap', flexShrink: 0 }}>{surbrillance(oeuvre.titre_original)}</span>}
                       {resultat?.idOeuvre === oeuvre.id_oeuvre && <span style={{ fontSize: '10.5px', color: resultat.ok ? '#3d6b4f' : '#c0562a', flexShrink: 0 }}>{resultat.ok ? '✓' : '✗'} {resultat.msg}</span>}
                     </div>
                     <div style={{ display: 'flex', gap: '4px', flexShrink: 0, alignItems: 'center' }}>
@@ -691,16 +772,66 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
                   {/* Formulaire d'édition de l'œuvre */}
                   {editionOeuvre === oeuvre.id_oeuvre && (
-                    <div style={{ padding: '12px 18px 14px 34px', background: '#faf8f4', borderTop: '1px solid #ede9e2' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
-                        {CHAMPS_OEUVRE.map(c => (
-                          <div key={c.key}>
-                            <label style={lbl}>{c.label.toUpperCase()}</label>
-                            <input type="text" value={formOeuvre[c.key] ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, [c.key]: e.target.value }))} style={inputStyleAuteur} />
-                          </div>
-                        ))}
+                    <div style={{ padding: '16px 22px 18px', background: '#fff', borderTop: '1px solid #ede9e2', borderLeft: '3px solid #3d6b4f' }}>
+                      {/* En-tête */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid #ede9e2' }}>
+                        <span style={{ fontFamily: "Georgia, serif", fontSize: '13.5px', color: '#2a3d30' }}>
+                          Modification — <em>{oeuvre.titre}</em>
+                        </span>
+                        <code style={{ fontSize: '9.5px', background: '#f0ece6', padding: '2px 6px', borderRadius: '3px', color: '#6b6560' }}>{oeuvre.id_oeuvre}</code>
                       </div>
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        {/* Titres */}
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <label style={lbl}>Titre *</label>
+                          <input type="text" value={formOeuvre.titre ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, titre: e.target.value }))} style={inputStyleAuteur} />
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <label style={lbl}>Sous-titre</label>
+                          <input type="text" value={formOeuvre.sous_titre ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, sous_titre: e.target.value }))} style={inputStyleAuteur} />
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <label style={lbl}>Titre original</label>
+                          <input type="text" value={formOeuvre.titre_original ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, titre_original: e.target.value }))} style={inputStyleAuteur} />
+                        </div>
+
+                        <hr style={sepOeuvre} />
+
+                        {/* Édition */}
+                        <div><label style={lbl}>Éditeur</label><input type="text" value={formOeuvre.editeur ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, editeur: e.target.value }))} style={inputStyleAuteur} /></div>
+                        <div><label style={lbl}>Traducteur</label><input type="text" value={formOeuvre.trad_auteur ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, trad_auteur: e.target.value }))} style={inputStyleAuteur} /></div>
+                        <div><label style={lbl}>Ville</label><input type="text" value={formOeuvre.ville ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, ville: e.target.value }))} style={inputStyleAuteur} /></div>
+                        <div><label style={lbl}>Collection</label><input type="text" value={formOeuvre.collection ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, collection: e.target.value }))} style={inputStyleAuteur} /></div>
+                        <div><label style={lbl}>Date de publication</label><input type="text" value={formOeuvre.date_publication ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, date_publication: e.target.value }))} style={inputStyleAuteur} /></div>
+                        <div><label style={lbl}>Date de composition originale</label><input type="text" value={formOeuvre.date_composition ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, date_composition: e.target.value }))} style={inputStyleAuteur} /></div>
+                        <div>
+                          <label style={lbl}>Langue originale</label>
+                          <select value={formOeuvre.langue ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, langue: e.target.value }))} style={inputStyleAuteur}>
+                            <option value="">—</option>
+                            <option value="Latin">Latin</option>
+                            <option value="Grec">Grec</option>
+                            <option disabled style={{ color: '#d6d0c4' }}>──────</option>
+                            <option value="Syriaque">Syriaque</option>
+                            <option value="Copte">Copte</option>
+                            <option value="Arménien">Arménien</option>
+                            <option value="Géorgien">Géorgien</option>
+                            <option value="Arabe chrétien">Arabe chrétien</option>
+                            <option value="Guèze">Guèze</option>
+                          </select>
+                        </div>
+                        <div><label style={lbl}>URL source</label><input type="text" value={formOeuvre.url_source ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, url_source: e.target.value }))} style={inputStyleAuteur} /></div>
+
+                        <hr style={sepOeuvre} />
+
+                        {/* Genre */}
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <label style={lbl}>Genre</label>
+                          <TagsGenres tags={formOeuvreGenres} onChange={setFormOeuvreGenres} />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center', marginTop: '16px' }}>
                         {statutOeuvre?.id === oeuvre.id_oeuvre && (
                           <span style={{ fontSize: '11.5px', color: statutOeuvre?.ok ? '#3d6b4f' : '#c0562a' }}>
                             {statutOeuvre?.ok ? '✓' : '✗'} {statutOeuvre?.msg}

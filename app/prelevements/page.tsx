@@ -205,7 +205,7 @@ export default function PrelevementsPage() {
       const uid = data.session.user.id;
       const [{ data: rows }, { data: trads }, { data: profil }] = await Promise.all([
         supabase
-          .from("prelevements").select("*")
+          .from("prelevements").select("id, type, ref_livre, ref_livre_abr, ref_chapitre, ref_verset, texte, traduction, auteur, titre_oeuvre, ref_niv1, ref_niv2, id_oeuvre, segment_numero, created_at")
           .eq("user_id", uid)
           .order("created_at", { ascending: false }),
         supabase.from("traductions").select("trad_id, nom").order("ordre", { ascending: true }),
@@ -246,16 +246,17 @@ export default function PrelevementsPage() {
         .filter(Boolean);
       if (clauses.length === 0) { setTextesTraduits({}); return; }
       const colonne = traductions.some(t => t.code === traductionActive) ? traductionActive : "TR0001";
+      const batches: string[][] = []
+      for (let i = 0; i < clauses.length; i += 80) batches.push(clauses.slice(i, i + 80))
+      const results = await Promise.all(
+        batches.map(batch => supabase.from("versets").select(`livre, chapitre, verset, "${colonne}"`).or(batch.join(",")))
+      )
       const map: Record<string, string> = {};
-      for (let i = 0; i < clauses.length; i += 80) {
-        const { data } = await supabase
-          .from("versets")
-          .select(`livre, chapitre, verset, "${colonne}"`)
-          .or(clauses.slice(i, i + 80).join(","));
+      results.forEach(({ data }) => {
         (data ?? []).forEach((v: any) => {
           map[`${v.livre}:${v.chapitre}:${v.verset}`] = String(v[colonne] ?? "");
         });
-      }
+      })
       setTextesTraduits(map);
     };
     chargerTextes();

@@ -11,7 +11,7 @@ const supabaseAdmin = createClient(
 export default async function EssaiPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const { data: essai } = await supabaseAdmin.from('essais').select('*').eq('id', id).single()
+  const { data: essai } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, contenu, statut, nb_vues, user_id, created_at, publie_at, afficher_nom_reel').eq('id', id).single()
   if (!essai) {
     return (
       <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

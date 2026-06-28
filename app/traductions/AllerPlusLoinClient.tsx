@@ -101,6 +101,7 @@ type Traduction = {
   confession: string | null; langue: string | null;
   commentaire_editorial: string | null; ordre: number;
   photo: string | null;
+  import_maj_le: string | null;
   photo_position: {
     bandeau:  { x: number; y: number; scale: number }
     lateral:  { x: number; y: number; scale: number }
@@ -224,6 +225,17 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
             {meta}
           </span>
         )}
+        {t.import_maj_le && (
+          <span style={{
+            fontSize: '10px', fontStyle: 'italic',
+            color: t.photo ? (fondSombre ? 'rgba(242,239,232,0.48)' : 'rgba(24,19,15,0.38)') : '#b0a89e',
+            display: 'block', marginTop: '3px',
+            textShadow: t.photo ? ombreTexte : 'none',
+            transition: 'color 0.2s',
+          }}>
+            Mis à jour le {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </span>
+        )}
       </div>
 
       {/* Chevron */}
@@ -255,14 +267,8 @@ function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }
   const [ouvert, setOuvert] = useState<string | null>(null);
 
   useEffect(() => {
-    const charger = () => {
-      supabase.from("traductions").select("*").order("ordre", { ascending: true })
-        .then(({ data }) => setTraductions(data ?? []));
-    };
-    charger();
-    const onVisible = () => { if (!document.hidden) charger(); };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
+    supabase.from("traductions").select("*").order("ordre", { ascending: true })
+      .then(({ data }) => setTraductions(data ?? []));
   }, []);
 
   useEffect(() => {

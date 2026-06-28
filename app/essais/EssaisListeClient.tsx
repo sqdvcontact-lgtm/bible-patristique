@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
@@ -14,7 +14,7 @@ type Onglet = 'communaute' | 'mes-ecrits' | 'ecrire'
 
 type EssaiResume = {
   id: number; titre: string; sous_titre: string | null; resume: string | null
-  categories: string[]; nb_vues: number; publie_at: string | null; auteur: string; auteur_score: number
+  categories: string[]; nb_vues: number; nb_likes: number; publie_at: string | null; auteur: string; auteur_score: number
 }
 
 type EssaiPerso = {
@@ -82,11 +82,11 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
   }
 
   const q = sansAccents(recherche.trim())
-  const essaisFiltres = essais.filter(e => {
+  const essaisFiltres = useMemo(() => essais.filter(e => {
     if (filtreCategorie && !e.categories.includes(filtreCategorie)) return false
     if (!q) return true
     return sansAccents(e.auteur).includes(q) || sansAccents(e.titre).includes(q) || (e.resume && sansAccents(e.resume).includes(q))
-  })
+  }), [essais, filtreCategorie, q])
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '48px' }}>
@@ -175,6 +175,41 @@ function OngletCommunaute({
         </div>
       </div>
 
+      <style>{`
+        .essai-carte { position: relative; display: block; background: #fff; border: 1px solid #e2ddd5; border-radius: 6px; padding: 18px 22px 16px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; overflow: hidden; }
+        .essai-carte:hover { border-color: #c8b89a; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .essai-carte:hover .essai-contenu { opacity: 0.10; transform: translateX(-8px); }
+        .essai-carte::after {
+          content: "Lire cette publication";
+          position: absolute; top: 50%; left: 50%;
+          width: 220px; height: 34px;
+          display: flex; align-items: center; justify-content: center;
+          transform: translate(-50%, -50%) translateX(14px);
+          font-family: Georgia, serif; font-size: 13.5px; font-style: italic;
+          color: rgba(35,79,51,0); letter-spacing: 0.01em;
+          pointer-events: none;
+          transition: color 0.18s ease, transform 0.18s ease;
+          white-space: nowrap;
+        }
+        .essai-carte:hover::after {
+          color: rgba(35,79,51,0.52);
+          transform: translate(-50%, -50%) translateX(0);
+        }
+        .essai-carte .fleche-lire {
+          position: absolute; top: 50%; left: calc(50% + 106px);
+          width: 22px; height: 22px;
+          transform: translate(-50%, -50%) translateX(-14px);
+          color: rgba(61,107,79,0);
+          pointer-events: none;
+          transition: color 0.18s ease, transform 0.18s ease;
+          z-index: 2;
+        }
+        .essai-carte:hover .fleche-lire {
+          color: rgba(61,107,79,0.40);
+          transform: translate(-50%, -50%) translateX(0);
+        }
+        .essai-contenu { transition: opacity 0.18s ease, transform 0.18s ease; }
+      `}</style>
       {tries.length === 0 ? (
         <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Aucun essai trouvé.</p>
       ) : (
@@ -187,6 +222,7 @@ function OngletCommunaute({
 }
 
 function EssaiCarte({ essai: e }: { essai: EssaiResume }) {
+  const router = useRouter()
   const estNouveau = !!(e.publie_at && (Date.now() - new Date(e.publie_at).getTime()) < SEMAINE_MS)
   const dateFormatee = e.publie_at
     ? new Date(e.publie_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -195,63 +231,73 @@ function EssaiCarte({ essai: e }: { essai: EssaiResume }) {
   const couleurs = couleurRang(rang.rang)
 
   return (
-    <Link href={`/essais/${e.id}`}
-      style={{ display: 'block', background: '#fff', border: '1px solid #e2ddd5', borderRadius: '6px', padding: '18px 22px 16px', textDecoration: 'none', transition: 'border-color 0.15s, box-shadow 0.15s' }}
-      onMouseEnter={ev => { ev.currentTarget.style.borderColor = '#c8b89a'; ev.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.06)' }}
-      onMouseLeave={ev => { ev.currentTarget.style.borderColor = '#e2ddd5'; ev.currentTarget.style.boxShadow = 'none' }}>
+    <div className="essai-carte" onClick={() => router.push(`/essais/${e.id}`)}>
+        <svg className="fleche-lire" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <path d="M4 14H22" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" />
+          <path d="M15 7L22.5 14L15 21" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
 
-      {/* Ligne supérieure : auteur + rang + date */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: 'Georgia, serif', fontSize: '12px', fontStyle: 'italic', color: '#3d6b4f', flexShrink: 0 }}>
-          {e.auteur}
-        </span>
-        <span style={{ fontSize: '7.5px', fontWeight: 700, color: couleurs.texte, background: couleurs.fond, padding: '1.5px 6px', borderRadius: '3px', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>
-          {rang.rang}
-        </span>
-        <div style={{ flex: 1, height: '1px', background: '#eae5de', minWidth: '12px' }} />
-        {estNouveau && (
-          <span style={{ fontSize: '7.5px', color: '#9a5a2a', background: 'rgba(192,86,42,0.10)', padding: '2px 7px', borderRadius: '3px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', flexShrink: 0 }}>
-            Nouveau
-          </span>
-        )}
-        {dateFormatee && (
-          <span style={{ fontFamily: 'Georgia, serif', fontSize: '11px', color: '#a09488', fontStyle: 'italic', flexShrink: 0 }}>
-            {dateFormatee}
-          </span>
-        )}
+        <div className="essai-contenu">
+          {/* Ligne supérieure : auteur + rang + date */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: 'Georgia, serif', fontSize: '12px', fontStyle: 'italic', color: '#3d6b4f', flexShrink: 0 }}>
+              {e.auteur}
+            </span>
+            <span style={{ fontSize: '7.5px', fontWeight: 700, color: couleurs.texte, background: couleurs.fond, padding: '1.5px 6px', borderRadius: '3px', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>
+              {rang.rang}
+            </span>
+            <div style={{ flex: 1, height: '1px', background: '#eae5de', minWidth: '12px' }} />
+            {estNouveau && (
+              <span style={{ fontSize: '7.5px', color: '#9a5a2a', background: 'rgba(192,86,42,0.10)', padding: '2px 7px', borderRadius: '3px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', flexShrink: 0 }}>
+                Nouveau
+              </span>
+            )}
+            {dateFormatee && (
+              <span style={{ fontFamily: 'Georgia, serif', fontSize: '11px', color: '#a09488', fontStyle: 'italic', flexShrink: 0 }}>
+                {dateFormatee}
+              </span>
+            )}
+          </div>
+
+          {/* Titre */}
+          <p style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#1a2820', margin: '0 0 4px', lineHeight: 1.25, letterSpacing: '0.01em' }}>
+            {e.titre}
+          </p>
+
+          {/* Sous-titre */}
+          {e.sous_titre && (
+            <p style={{ fontFamily: 'Georgia, serif', fontSize: '13px', fontStyle: 'italic', color: '#7a7268', margin: '0 0 10px', lineHeight: 1.4 }}>
+              {e.sous_titre}
+            </p>
+          )}
+
+          {/* Résumé */}
+          {e.resume && (
+            <p style={{ fontFamily: 'Georgia, serif', fontSize: '12.5px', color: '#6a6258', lineHeight: 1.65, margin: `${e.sous_titre ? '0' : '8px'} 0 12px`, fontStyle: 'italic' }}>
+              {e.resume.length > 180 ? e.resume.slice(0, 180) + ' …' : e.resume}
+            </p>
+          )}
+
+          {/* Pied : catégories + vues + likes */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: e.resume || e.sous_titre ? '0' : '10px', flexWrap: 'wrap' }}>
+            {e.categories.slice(0, 3).map(c => (
+              <span key={c} style={{ fontSize: '9px', color: '#5a7060', background: 'rgba(61,107,79,0.08)', padding: '2px 8px', borderRadius: '3px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                {c}
+              </span>
+            ))}
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {e.nb_likes > 0 && (
+                <span style={{ fontSize: '10.5px', color: '#b8b0a4', fontVariantNumeric: 'tabular-nums' }}>
+                  ♥ {e.nb_likes}
+                </span>
+              )}
+              <span style={{ fontSize: '10.5px', color: '#b8b0a4', fontVariantNumeric: 'tabular-nums' }}>
+                {e.nb_vues} vue{e.nb_vues > 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Titre */}
-      <p style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#1a2820', margin: '0 0 4px', lineHeight: 1.25, letterSpacing: '0.01em' }}>
-        {e.titre}
-      </p>
-
-      {/* Sous-titre */}
-      {e.sous_titre && (
-        <p style={{ fontFamily: 'Georgia, serif', fontSize: '13px', fontStyle: 'italic', color: '#7a7268', margin: '0 0 10px', lineHeight: 1.4 }}>
-          {e.sous_titre}
-        </p>
-      )}
-
-      {/* Résumé */}
-      {e.resume && (
-        <p style={{ fontFamily: 'Georgia, serif', fontSize: '12.5px', color: '#6a6258', lineHeight: 1.65, margin: `${e.sous_titre ? '0' : '8px'} 0 12px`, fontStyle: 'italic' }}>
-          {e.resume.length > 180 ? e.resume.slice(0, 180) + ' …' : e.resume}
-        </p>
-      )}
-
-      {/* Pied : catégories + vues */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: e.resume || e.sous_titre ? '0' : '10px', flexWrap: 'wrap' }}>
-        {e.categories.slice(0, 3).map(c => (
-          <span key={c} style={{ fontSize: '9px', color: '#5a7060', background: 'rgba(61,107,79,0.08)', padding: '2px 8px', borderRadius: '3px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-            {c}
-          </span>
-        ))}
-        <span style={{ marginLeft: 'auto', fontSize: '10.5px', color: '#b8b0a4', fontVariantNumeric: 'tabular-nums' }}>
-          {e.nb_vues} vue{e.nb_vues > 1 ? 's' : ''}
-        </span>
-      </div>
-    </Link>
   )
 }
 
@@ -281,9 +327,17 @@ function OngletMesEcrits({
   const [maintenant, setMaintenant] = useState(Date.now())
 
   useEffect(() => {
-    const timer = window.setInterval(() => setMaintenant(Date.now()), 1000)
+    const aUnTimerActif = () => essais.some(e => {
+      const t = toggles[e.id] ?? Number(window.localStorage.getItem(`essai-publication-toggle-${e.id}`) ?? 0)
+      return t > 0 && (Date.now() - t) < 60 * 60 * 1000
+    })
+    if (!aUnTimerActif()) return
+    const timer = window.setInterval(() => {
+      setMaintenant(Date.now())
+      if (!aUnTimerActif()) window.clearInterval(timer)
+    }, 1000)
     return () => window.clearInterval(timer)
-  }, [])
+  }, [essais, toggles])
 
   if (connecte === false) {
     return <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a4a2a', fontStyle: 'italic' }}>Connectez-vous pour voir vos écrits.</p>

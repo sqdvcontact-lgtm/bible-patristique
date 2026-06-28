@@ -9,6 +9,8 @@ import SectionDepotOeuvre from './SectionDepotOeuvre'
 import SectionTraductions from './SectionTraductions'
 import SectionModeration from './SectionModeration'
 import SectionEssaisAdmin from './SectionEssaisAdmin'
+import SectionCharte from './SectionCharte'
+import SectionPropositions from './SectionPropositions'
 import type { AdminProps as Props, Onglet } from './adminTypes'
 
 export default function AdminClient({
@@ -47,11 +49,13 @@ export default function AdminClient({
   const ONGLETS: { key: Onglet; label: string; badge?: number; separateur?: boolean }[] = [
     { key: 'bibliotheque',        label: 'Bibliothèque' },
     { key: 'ajouter-oeuvre',      label: '+ Ajouter une œuvre' },
-    { key: 'depot-oeuvre',        label: '▣ Dépôt IA' },
+    { key: 'depot-oeuvre',        label: 'Outils IA' },
     { key: 'traductions',         label: 'Traductions' },
     { key: 'essais',              label: 'Essais', badge: nbEssais },
     { key: 'verifications',       label: 'Vérifications', badge: nbVerif, separateur: true },
     { key: 'moderation',          label: 'Modération', badge: nbMod },
+    { key: 'propositions',         label: 'Propositions', separateur: true },
+    { key: 'charte',              label: 'Charte IA' },
   ]
 
   return (
@@ -93,6 +97,8 @@ export default function AdminClient({
 
       {/* Contenu */}
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '28px 24px 64px' }}>
+        {onglet === 'charte'         && <SectionCharte />}
+        {onglet === 'propositions'   && <SectionPropositions />}
         {onglet === 'bibliotheque'   && <SectionBibliotheque auteurs={auteurs} />}
         {onglet === 'verifications'  && <SectionVerifications onCountChange={setNbVerif} />}
         {onglet === 'ajouter-oeuvre' && <SectionAjouterOeuvre auteurs={auteurs} />}

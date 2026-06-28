@@ -127,20 +127,42 @@ export default async function AdminPage() {
     )
   }
 
-  // Modération
-  const { data: commentaires } = await supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id').eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false').order('created_at', { ascending: false })
-  let { data: signalements, error: signalementsError } = await supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, id_verset, user_id').eq('traite', false).order('created_at', { ascending: false })
-  if (signalementsError) {
+  // ── Vague 1 : 12 requêtes indépendantes en parallèle ─────────────────────
+  const [
+    { data: commentaires },
+    signResult,
+    quizResult,
+    { data: demandesCertification },
+    { data: essaisEnAttenteRaw },
+    { data: essaisAReviserRaw },
+    { data: essaisPubliesRaw },
+    { data: essaisBrouillonsRaw },
+    { data: signalementsEssais },
+    { data: auteursData },
+    { data: traductions },
+    { count: nbVerifications },
+  ] = await Promise.all([
+    supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id').eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false').order('created_at', { ascending: false }),
+    supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, id_verset, user_id').eq('traite', false).order('created_at', { ascending: false }),
+    supabaseAdmin.from('quiz_signalements').select('id, raison, commentaire, created_at, id_verset, user_id').eq('traite', false).order('created_at', { ascending: false }).limit(200),
+    supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, demande_validation, certifie').eq('demande_validation', true).order('created_at', { ascending: false }),
+    supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, updated_at, publie_at, user_id').eq('statut', 'en_attente').order('created_at', { ascending: false }),
+    supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, updated_at, publie_at, user_id').eq('statut', 'a_reviser').order('created_at', { ascending: false }),
+    supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, statut, nb_vues').eq('statut', 'publie').order('publie_at', { ascending: false, nullsFirst: false }),
+    supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, statut, nb_vues').eq('statut', 'brouillon').order('updated_at', { ascending: false, nullsFirst: false }),
+    supabaseAdmin.from('signalements').select('message'),
+    supabaseAdmin.from('auteurs').select('id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, traditions, note_biographique, note_theologique, langue_principale, oeuvres(id_oeuvre, titre, sous_titre, titre_original, trad_auteur, editeur, collection, ville, date_publication, date_composition, url_source, genre, genres, langue, profondeur_sommaire, nb_signes, niveaux_sommaire, niveaux_corps, texte_sommaire, texte_corps, afficher_numeros)').order('siecle', { ascending: true, nullsFirst: false }),
+    supabaseAdmin.from('traductions').select('*').order('ordre', { ascending: true }),
+    supabaseAdmin.from('segments').select('id', { count: 'exact', head: true }).eq('fiabilite', 'probable'),
+  ])
+
+  // Signalements : fallback si la colonne id_verset manque
+  let signalements = signResult.data
+  if (signResult.error) {
     const fallback = await supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, user_id').eq('traite', false).order('created_at', { ascending: false })
     signalements = (fallback.data ?? []).map(s => ({ ...s, id_verset: null }))
   }
-  // Signalements du quiz (table séparée)
-  let quizSignalements: any[] | null = null
-  try {
-    const { data } = await supabaseAdmin.from('quiz_signalements').select('id, raison, commentaire, created_at, id_verset, user_id').eq('traite', false).order('created_at', { ascending: false }).limit(200)
-    quizSignalements = data
-  } catch { quizSignalements = null }
-  const quizMapped = (quizSignalements ?? []).map((s: any) => ({
+  const quizMapped = ((quizResult.data) ?? []).map((s: any) => ({
     id: `quiz_${s.id}`,
     message: [s.raison, s.commentaire].filter(Boolean).join(' — '),
     traite: false,
@@ -152,80 +174,75 @@ export default async function AdminPage() {
   }))
   const tousSignalements = [...(signalements ?? []).map(s => ({ ...s, source: 'signalements' as const })), ...quizMapped]
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-  const { data: demandesCertification } = await supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, demande_validation, certifie').eq('demande_validation', true).order('created_at', { ascending: false })
-  const segIds = [...(commentaires?.map(c => c.id_segment).filter(Boolean) ?? []), ...(signalements?.map(s => s.id_segment).filter(Boolean) ?? []), ...(demandesCertification?.map(c => c.id_segment).filter(Boolean) ?? [])]
-  const segIdsUniques = [...new Set(segIds)]
-  const { data: segmentsCtx } = segIdsUniques.length > 0
-    ? await supabaseAdmin.from('segments').select('id, segment_texte, segment_numero, id_oeuvre').in('id', segIdsUniques)
-    : { data: [] }
-  const segMap: Record<number, { texte: string; numero: number; id_oeuvre: string }> = {}
-  segmentsCtx?.forEach(s => { segMap[s.id] = { texte: s.segment_texte, numero: s.segment_numero, id_oeuvre: s.id_oeuvre } })
 
+  // Calcul des IDs dépendants
+  const essaisValidationRaw = (essaisEnAttenteRaw ?? []).filter(e => !e.publie_at)
+  const essaisModificationDepuisPublieRaw = (essaisEnAttenteRaw ?? []).filter(e => !!e.publie_at)
+  const essaisModificationRaw = [...essaisModificationDepuisPublieRaw, ...(essaisAReviserRaw ?? [])]
+  const essaisListesRaw = [...(essaisPubliesRaw ?? []), ...(essaisBrouillonsRaw ?? [])]
+
+  const segIds = [
+    ...(commentaires?.map(c => c.id_segment).filter(Boolean) ?? []),
+    ...(signalements?.map(s => s.id_segment).filter(Boolean) ?? []),
+    ...(demandesCertification?.map(c => c.id_segment).filter(Boolean) ?? []),
+  ]
+  const segIdsUniques = [...new Set(segIds)]
   const idsVersetsCertif = [...new Set([
     ...((demandesCertification?.map(c => c.id_verset).filter(Boolean) ?? []) as string[]),
     ...((signalements?.map(s => s.id_verset).filter(Boolean) ?? []) as string[]),
   ])]
-  const { data: versetsCtx } = idsVersetsCertif.length > 0
-    ? await supabaseAdmin.from('versets').select('id_verset, ref').in('id_verset', idsVersetsCertif)
-    : { data: [] }
+  const idsAuteursEssais = [...new Set(essaisValidationRaw.map(e => e.user_id))]
+  const idsAuteursModification = [...new Set(essaisModificationRaw.map(e => e.user_id))]
+  const idsEssaisListes = essaisListesRaw.map(e => e.id)
+  const idsAuteursPublies = [...new Set(essaisListesRaw.map(e => e.user_id))]
+
+  // ── Vague 2 : 7 requêtes dépendantes en parallèle ────────────────────────
+  const [
+    { data: segmentsCtx },
+    { data: versetsCtx },
+    { data: profilsEssais },
+    { data: profilsModification },
+    { data: appreciationsEssais },
+    { data: commentairesEssais },
+    { data: profilsPublies },
+  ] = await Promise.all([
+    segIdsUniques.length > 0 ? supabaseAdmin.from('segments').select('id, segment_texte, segment_numero, id_oeuvre').in('id', segIdsUniques) : Promise.resolve({ data: [] as any[], error: null }),
+    idsVersetsCertif.length > 0 ? supabaseAdmin.from('versets').select('id_verset, ref').in('id_verset', idsVersetsCertif) : Promise.resolve({ data: [] as any[], error: null }),
+    idsAuteursEssais.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursEssais) : Promise.resolve({ data: [] as any[], error: null }),
+    idsAuteursModification.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursModification) : Promise.resolve({ data: [] as any[], error: null }),
+    idsEssaisListes.length > 0 ? supabaseAdmin.from('essais_appreciations').select('id_essai').in('id_essai', idsEssaisListes) : Promise.resolve({ data: [] as any[], error: null }),
+    idsEssaisListes.length > 0 ? supabaseAdmin.from('essais_commentaires').select('id_essai').in('id_essai', idsEssaisListes) : Promise.resolve({ data: [] as any[], error: null }),
+    idsAuteursPublies.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo, nom, prenom').in('id', idsAuteursPublies) : Promise.resolve({ data: [] as any[], error: null }),
+  ])
+
+  // ── Traitement ─────────────────────────────────────────────────────────────
+  const segMap: Record<number, { texte: string; numero: number; id_oeuvre: string }> = {}
+  segmentsCtx?.forEach(s => { segMap[s.id] = { texte: s.segment_texte, numero: s.segment_numero, id_oeuvre: s.id_oeuvre } })
+
   const versetMap: Record<string, string> = {}
   versetsCtx?.forEach(v => { versetMap[v.id_verset] = v.ref })
 
-  const { data: essaisRaw } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, updated_at, publie_at, user_id').eq('statut', 'en_attente').order('created_at', { ascending: false })
-  const essaisValidationRaw = (essaisRaw ?? []).filter(e => !e.publie_at)
-  const essaisModificationDepuisPublieRaw = (essaisRaw ?? []).filter(e => !!e.publie_at)
-  const idsAuteursEssais = [...new Set(essaisValidationRaw.map(e => e.user_id))]
-  const { data: profilsEssais } = idsAuteursEssais.length > 0
-    ? await supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursEssais)
-    : { data: [] }
   const pseudoMap: Record<string, string> = {}
   profilsEssais?.forEach(p => { pseudoMap[p.id] = p.pseudo })
   const essaisEnAttente = essaisValidationRaw.map(e => ({ ...e, auteur_pseudo: pseudoMap[e.user_id] ?? null }))
 
-  const { data: essaisModificationStatutRaw } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, updated_at, publie_at, user_id').eq('statut', 'a_reviser').order('created_at', { ascending: false })
-  const essaisModificationRaw = [...essaisModificationDepuisPublieRaw, ...(essaisModificationStatutRaw ?? [])]
-  const idsAuteursModification = [...new Set(essaisModificationRaw.map(e => e.user_id))]
-  const { data: profilsModification } = idsAuteursModification.length > 0
-    ? await supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursModification)
-    : { data: [] }
   const pseudoMapModification: Record<string, string> = {}
   profilsModification?.forEach(p => { pseudoMapModification[p.id] = p.pseudo })
   const essaisModification = essaisModificationRaw.map(e => ({ ...e, auteur_pseudo: pseudoMapModification[e.user_id] ?? null }))
 
-  const { data: essaisPubliesRaw } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, statut, nb_vues').eq('statut', 'publie').order('publie_at', { ascending: false, nullsFirst: false })
-  const { data: essaisBrouillonsRaw } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, statut, nb_vues').eq('statut', 'brouillon').order('updated_at', { ascending: false, nullsFirst: false })
-  const essaisListesRaw = [...(essaisPubliesRaw ?? []), ...(essaisBrouillonsRaw ?? [])]
-  const idsEssaisListes = essaisListesRaw.map(e => e.id)
-  const { data: appreciationsEssais } = idsEssaisListes.length > 0
-    ? await supabaseAdmin.from('essais_appreciations').select('id_essai').in('id_essai', idsEssaisListes)
-    : { data: [] }
   const likesParEssai = new Map<number, number>()
   ;(appreciationsEssais ?? []).forEach((a: any) => likesParEssai.set(a.id_essai, (likesParEssai.get(a.id_essai) ?? 0) + 1))
-  const { data: commentairesEssais } = idsEssaisListes.length > 0
-    ? await supabaseAdmin.from('essais_commentaires').select('id_essai').in('id_essai', idsEssaisListes)
-    : { data: [] }
   const commentairesParEssai = new Map<number, number>()
   ;(commentairesEssais ?? []).forEach((c: any) => commentairesParEssai.set(c.id_essai, (commentairesParEssai.get(c.id_essai) ?? 0) + 1))
-  const { data: signalementsEssais } = await supabaseAdmin.from('signalements').select('message')
-  const idsAuteursPublies = [...new Set(essaisListesRaw.map(e => e.user_id))]
-  const { data: profilsPublies } = idsAuteursPublies.length > 0
-    ? await supabaseAdmin.from('profils').select('id, pseudo, nom, prenom').in('id', idsAuteursPublies)
-    : { data: [] }
   const profilMapPublies: Record<string, { pseudo: string | null; nom: string | null; prenom: string | null }> = {}
   profilsPublies?.forEach(p => { profilMapPublies[p.id] = p })
   const resoudreEssaiListe = (e: any) => {
     const p = profilMapPublies[e.user_id]
     const auteur = (e.afficher_nom_reel && p?.nom) ? `${p.prenom ? p.prenom + ' ' : ''}${p.nom}` : (p?.pseudo ?? 'Anonyme')
     return {
-      id: e.id,
-      titre: e.titre,
-      sous_titre: e.sous_titre,
-      auteur,
-      created_at: e.created_at,
-      updated_at: e.updated_at ?? null,
-      publie_at: e.publie_at ?? null,
-      statut: e.statut,
-      nb_vues: e.nb_vues ?? 0,
+      id: e.id, titre: e.titre, sous_titre: e.sous_titre, auteur,
+      created_at: e.created_at, updated_at: e.updated_at ?? null, publie_at: e.publie_at ?? null,
+      statut: e.statut, nb_vues: e.nb_vues ?? 0,
       nb_likes: likesParEssai.get(e.id) ?? 0,
       nb_commentaires: commentairesParEssai.get(e.id) ?? 0,
       nb_signes: compterSignes(e.contenu),
@@ -234,17 +251,7 @@ export default async function AdminPage() {
   }
   const essaisPublies = (essaisPubliesRaw ?? []).map(resoudreEssaiListe)
   const essaisBrouillons = (essaisBrouillonsRaw ?? []).map(resoudreEssaiListe)
-
-  // Bibliothèque
-  const { data: auteursData } = await supabaseAdmin.from('auteurs').select('id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, traditions, note_biographique, note_theologique, langue_principale, oeuvres(id_oeuvre, titre, sous_titre, titre_original, trad_auteur, trad_date, editeur, collection, ville, date_publication, url_source, genre, langue, profondeur_sommaire, nb_signes, niveaux_sommaire, niveaux_corps, texte_sommaire, texte_corps, afficher_numeros)').order('siecle', { ascending: true, nullsFirst: false })
-  const auteurs = (auteursData ?? [])
-
-  // Traductions
-  const { data: traductions } = await supabaseAdmin.from('traductions').select('*').order('ordre', { ascending: true })
-  const { count: nbVerifications } = await supabaseAdmin
-    .from('segments')
-    .select('id', { count: 'exact', head: true })
-    .eq('fiabilite', 'probable')
+  const auteurs = auteursData ?? []
 
   return (
     <AdminClient

@@ -43,9 +43,9 @@ function IconCrayon() {
 
 function IconDon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ opacity: 0.7 }}>
       <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z"
-        stroke="currentColor" strokeWidth="1" fill="none" strokeLinejoin="round"/>
+        stroke="currentColor" strokeWidth="1.1" fill="none" strokeLinejoin="round"/>
     </svg>
   );
 }
@@ -96,12 +96,12 @@ export default function AccueilCards() {
           align-items: center;
           justify-content: center;
           gap: 13px;
-          border-radius: 12px;
+          border-radius: 10px;
           text-decoration: none;
           padding: 32px 20px;
-          border: 1px solid rgba(255,255,255,0.22);
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 12px 30px rgba(31,76,52,0.13);
-          transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+          border: 1px solid rgba(255,255,255,0.10);
+          box-shadow: 0 6px 24px rgba(0,0,0,0.22);
+          transition: transform 0.18s ease, box-shadow 0.18s ease;
           position: relative;
           overflow: hidden;
         }
@@ -109,48 +109,47 @@ export default function AccueilCards() {
           content: "";
           position: absolute;
           inset: 0;
-          background: linear-gradient(145deg, rgba(255,255,255,0.20), transparent 42%, rgba(20,57,38,0.16));
+          background: linear-gradient(160deg, rgba(255,255,255,0.07) 0%, transparent 55%);
           pointer-events: none;
         }
         .ac-card > svg,
         .ac-card > span { position: relative; z-index: 1; }
         .ac-card:hover {
-          transform: translateY(-3px);
-          filter: saturate(1.04);
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 16px 38px rgba(31,76,52,0.20);
+          transform: translateY(-2px);
+          box-shadow: 0 10px 32px rgba(0,0,0,0.28);
         }
         .ac-bible {
-          background: linear-gradient(142deg, #1e3d2c 0%, #2f6045 48%, #5a8c6a 100%);
+          background: linear-gradient(155deg, #1a2e22 0%, #253d2c 100%);
         }
         .ac-patristique {
-          background: linear-gradient(142deg, #2e3e28 0%, #546c48 52%, #8eaa72 100%);
+          background: linear-gradient(155deg, #2c2418 0%, #42361e 100%);
         }
         .ac-publications {
-          background: linear-gradient(142deg, #2a3a22 0%, #4a6438 52%, #7a9458 100%);
+          background: linear-gradient(155deg, #1c2428 0%, #2c383e 100%);
         }
         .ac-title {
           font-family: Georgia, 'Times New Roman', serif;
           font-size: 20px;
           font-weight: normal;
-          color: #fff;
-          text-shadow: 0 1px 8px rgba(20,57,38,0.28);
+          color: rgba(255,255,255,0.90);
+          letter-spacing: 0.01em;
         }
         .ac-don {
           display: inline-flex;
           align-items: center;
           gap: 7px;
-          font-size: 13px;
-          font-weight: 600;
-          color: #fff;
-          background: #3d6b4f;
+          font-size: 12.5px;
+          color: #7a8a6e;
+          background: none;
           text-decoration: none;
-          padding: 9px 20px;
-          border-radius: 18px;
-          letter-spacing: 0.01em;
-          box-shadow: 0 2px 8px rgba(61,107,79,0.25);
-          transition: transform 0.15s, box-shadow 0.15s;
+          padding: 6px 4px;
+          letter-spacing: 0.04em;
+          font-family: Georgia, serif;
+          font-style: italic;
+          transition: color 0.15s;
+          border-bottom: 1px solid transparent;
         }
-        .ac-don:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(61,107,79,0.32); }
+        .ac-don:hover { color: #4a6040; border-bottom-color: #c8b89e; }
         @media (max-width: 620px) {
           .ac-grid { grid-template-columns: 1fr; max-width: 320px; }
           .ac-card { padding: 24px 16px; }

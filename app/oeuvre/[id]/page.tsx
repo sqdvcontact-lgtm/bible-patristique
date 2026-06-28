@@ -122,66 +122,6 @@ export default async function OeuvrePage({
   // côté serveur via la session Supabase Auth — remplace l'ancien cookie
   // bp_admin_session, qui n'est plus jamais posé depuis la suppression de la
   // page de connexion par mot de passe.
-  const estAdmin = await verifierEstAdmin()
-
-  // 1. Charger l'œuvre
-  const { data: oeuvre } = await supabase
-    .from('oeuvres').select('*, auteurs(id_auteur, nom)').eq('id_oeuvre', id).single()
-
-  if (!oeuvre) return (
-    <div className="min-h-screen flex items-center justify-center" style={{background:'#f7f4ef'}}>
-      <p style={{color:'#8a8278'}}>Œuvre introuvable.</p>
-    </div>
-  )
-
-  // 2. Récupérer les niv1 distincts ordonnés via RPC
-  const { data: niv1Raw, error: rpcError } = await supabase.rpc('get_niv1_list', { p_id_oeuvre: id })
-  if (rpcError) {
-    console.error('get_niv1_list error:', rpcError)
-  }
-  const niv1Complet: string[] = (niv1Raw ?? []).map((r: any) => r.ref_niv1).filter(Boolean)
-
-  // Carte niv1 → niv1_texte (label humain) : d'abord via le RPC s'il le fournit,
-  // sinon via une petite requête dédiée.
-  const niv1TexteMap: Record<string, string> = {}
-  ;(niv1Raw ?? []).forEach((r: any) => {
-    if (r.ref_niv1 && r.ref_niv1_texte) niv1TexteMap[r.ref_niv1] = r.ref_niv1_texte
-  })
-  if (Object.keys(niv1TexteMap).length === 0 && niv1Complet.length > 0) {
-    const { data: niv1TexteData } = await supabase
-      .from('segments')
-      .select('ref_niv1, ref_niv1_texte')
-      .eq('id_oeuvre', id)
-      .in('ref_niv1', niv1Complet)
-      .not('ref_niv1_texte', 'is', null)
-      .limit(niv1Complet.length * 5)
-    ;(niv1TexteData ?? []).forEach((r: any) => {
-      if (r.ref_niv1 && r.ref_niv1_texte && !niv1TexteMap[r.ref_niv1])
-        niv1TexteMap[r.ref_niv1] = r.ref_niv1_texte
-    })
-  }
-
-  // Les niv1 entièrement composés d'apparat critique (ex. un glossaire) ne
-  // doivent pas apparaître dans le sommaire normal : ils sont déjà accessibles
-  // via le bloc « Apparat critique » dédié, sinon ils apparaissent en double.
-  const { data: niv1ApparatRaw } = await supabase
-    .from('segments').select('ref_niv1').eq('id_oeuvre', id).eq('nature', 'apparat_critique')
-  const niv1ApparatSet = new Set((niv1ApparatRaw ?? []).map((r: any) => r.ref_niv1).filter(Boolean))
-  const niv1List = niv1Complet.filter(n1 => !niv1ApparatSet.has(n1))
-  const { data: segmentCible } = Number.isFinite(segmentCibleId) && segmentCibleId > 0
-    ? await supabase
-        .from('segments')
-        .select('id,ref_niv1,nature')
-        .eq('id_oeuvre', id)
-        .eq('id', segmentCibleId)
-        .maybeSingle()
-    : { data: null }
-  const vueInitiale = segmentCible?.nature === 'apparat_critique' ? 'apparat' : 'texte'
-  const premierNiv1 = vueInitiale === 'texte' && segmentCible?.ref_niv1
-    ? segmentCible.ref_niv1
-    : niv1List[0] ?? null
-
-  // 3. Charger les segments du premier niv1 + l'apparat
   const SELECT_SEG = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature'
 
   async function chargerTousSegments(filtre: Record<string, string>) {
@@ -199,10 +139,55 @@ export default async function OeuvrePage({
     return acc
   }
 
-  const [segmentsTexteRaw, segmentsApparatRaw] = await Promise.all([
-    premierNiv1 ? chargerTousSegments({ ref_niv1: premierNiv1 }) : Promise.resolve([]),
+  // ── Vague 1 : 5 requêtes indépendantes en parallèle ──────────────────────
+  const [estAdmin, { data: oeuvre }, { data: niv1Raw, error: rpcError }, { data: segmentCibleData }, segmentsApparatRaw] = await Promise.all([
+    verifierEstAdmin(),
+    supabase.from('oeuvres').select('*, auteurs(id_auteur, nom)').eq('id_oeuvre', id).single(),
+    supabase.rpc('get_niv1_list', { p_id_oeuvre: id }),
+    Number.isFinite(segmentCibleId) && segmentCibleId > 0
+      ? supabase.from('segments').select('id,ref_niv1,nature').eq('id_oeuvre', id).eq('id', segmentCibleId).maybeSingle()
+      : Promise.resolve({ data: null }),
     chargerTousSegments({ nature: 'apparat_critique' }),
   ])
+
+  if (!oeuvre) return (
+    <div className="min-h-screen flex items-center justify-center" style={{background:'#f7f4ef'}}>
+      <p style={{color:'#8a8278'}}>Œuvre introuvable.</p>
+    </div>
+  )
+
+  if (rpcError) console.error('get_niv1_list error:', rpcError)
+
+  // Calcul des niv1 + niv1TexteMap
+  const niv1Complet: string[] = (niv1Raw ?? []).map((r: any) => r.ref_niv1).filter(Boolean)
+  const niv1TexteMap: Record<string, string> = {}
+  ;(niv1Raw ?? []).forEach((r: any) => {
+    if (r.ref_niv1 && r.ref_niv1_texte) niv1TexteMap[r.ref_niv1] = r.ref_niv1_texte
+  })
+
+  // Fallback niv1_texte si le RPC ne le fournit pas (rare)
+  if (Object.keys(niv1TexteMap).length === 0 && niv1Complet.length > 0) {
+    const { data: niv1TexteData } = await supabase
+      .from('segments').select('ref_niv1, ref_niv1_texte').eq('id_oeuvre', id)
+      .in('ref_niv1', niv1Complet).not('ref_niv1_texte', 'is', null).limit(niv1Complet.length * 5)
+    ;(niv1TexteData ?? []).forEach((r: any) => {
+      if (r.ref_niv1 && r.ref_niv1_texte && !niv1TexteMap[r.ref_niv1])
+        niv1TexteMap[r.ref_niv1] = r.ref_niv1_texte
+    })
+  }
+
+  // Les niv1 d'apparat ne doivent pas apparaître dans le sommaire normal
+  const niv1ApparatSet = new Set((segmentsApparatRaw as Segment[]).map(s => s.ref_niv1).filter(Boolean))
+  const niv1List = niv1Complet.filter(n1 => !niv1ApparatSet.has(n1))
+
+  const segmentCible = segmentCibleData
+  const vueInitiale = segmentCible?.nature === 'apparat_critique' ? 'apparat' : 'texte'
+  const premierNiv1 = vueInitiale === 'texte' && segmentCible?.ref_niv1
+    ? segmentCible.ref_niv1
+    : niv1List[0] ?? null
+
+  // ── Vague 2 : segments du premier niv1 ───────────────────────────────────
+  const segmentsTexteRaw = premierNiv1 ? await chargerTousSegments({ ref_niv1: premierNiv1 }) : []
 
   const segmentsTexte = segmentsTexteRaw as Segment[]
   const segmentsApparat = segmentsApparatRaw as Segment[]

@@ -42,6 +42,7 @@ export default function AccueilPage() {
             color: "#1a2820",
             lineHeight: 1.2,
             letterSpacing: "0.04em",
+            paddingLeft: "0.04em",
             marginBottom: "14px",
           }}>
             Corpus Scriptura

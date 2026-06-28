@@ -719,11 +719,12 @@ export default function PanneauPatristique({
     if (!verset) { setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); return }
     setLoading(true)
 
+    const SEG_COLS = 'id, id_oeuvre, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, fiabilite'
     Promise.all([
-      supabase.from('segments').select('*').ilike('lien_1', `%${verset.id_verset}%`),
-      supabase.from('segments').select('*').ilike('lien_2', `%${verset.id_verset}%`),
-      supabase.from('segments').select('*').ilike('lien_3', `%${verset.id_verset}%`),
-      supabase.from('segments').select('*').ilike('lien_4', `%${verset.id_verset}%`),
+      supabase.from('segments').select(SEG_COLS).ilike('lien_1', `%${verset.id_verset}%`),
+      supabase.from('segments').select(SEG_COLS).ilike('lien_2', `%${verset.id_verset}%`),
+      supabase.from('segments').select(SEG_COLS).ilike('lien_3', `%${verset.id_verset}%`),
+      supabase.from('segments').select(SEG_COLS).ilike('lien_4', `%${verset.id_verset}%`),
     ]).then(([r1, r2, r3, r4]) => {
       // Fusionner lien_1 + lien_2, sans doublons, en marquant la colonne d'origine
       const seen = new Set<number>()

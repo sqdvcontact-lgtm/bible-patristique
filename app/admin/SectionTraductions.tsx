@@ -369,6 +369,105 @@ export default function SectionTraductions({ traductions: init }: { traductions:
   const photoRefs = React.useRef<Record<string, HTMLInputElement | null>>({})
   const [photoStatut, setPhotoStatut] = useState<Record<string, 'loading' | 'ok' | 'err'>>({})
   const [positionModal, setPositionModal] = useState<string | null>(null) // trad_id ouvert
+  const [exportStatut, setExportStatut] = useState<Record<string, 'loading' | 'ok' | 'err'>>({})
+  const [replaceModal, setReplaceModal] = useState<string | null>(null) // trad_id en cours de remplacement
+  const replaceFileRef = React.useRef<HTMLInputElement>(null)
+  const [replaceLignes, setReplaceLignes] = useState<{ id_verset: string; texte: string }[]>([])
+  const [replaceNom, setReplaceNom] = useState('')
+  const [replaceStatut, setReplaceStatut] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle')
+  const [replaceMsg, setReplaceMsg] = useState('')
+
+  const escapeCsv = (val: string) => {
+    if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+      return `"${val.replace(/"/g, '""')}"`
+    }
+    return val
+  }
+
+  const exporterCSV = async (tradId: string, nom: string) => {
+    setExportStatut(prev => ({ ...prev, [tradId]: 'loading' }))
+    try {
+      const BATCH = 1000
+      const tous: any[] = []
+      let from = 0
+      while (true) {
+        const { data, error } = await supabase
+          .from('versets')
+          .select(`id_verset,"${tradId}"`)
+          .order('id_verset')
+          .range(from, from + BATCH - 1)
+        if (error) throw error
+        if (!data || data.length === 0) break
+        tous.push(...data)
+        if (data.length < BATCH) break
+        from += BATCH
+      }
+      const rows = tous.map((v: any) => `${escapeCsv(v.id_verset)},${escapeCsv(v[tradId] ?? '')}`)
+      const csv = [`id_verset,${tradId}`, ...rows].join('\n')
+      const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${tradId}_${nom.replace(/[^a-z0-9]/gi, '_')}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      setExportStatut(prev => ({ ...prev, [tradId]: 'ok' }))
+      setTimeout(() => setExportStatut(prev => { const n = { ...prev }; delete n[tradId]; return n }), 2500)
+    } catch {
+      setExportStatut(prev => ({ ...prev, [tradId]: 'err' }))
+      setTimeout(() => setExportStatut(prev => { const n = { ...prev }; delete n[tradId]; return n }), 3000)
+    }
+  }
+
+  const ouvrirRemplacement = (tradId: string) => {
+    setReplaceModal(tradId)
+    setReplaceLignes([])
+    setReplaceNom('')
+    setReplaceStatut('idle')
+    setReplaceMsg('')
+    setTimeout(() => replaceFileRef.current?.click(), 50)
+  }
+
+  const handleReplaceCSV = async (fichier: File) => {
+    setReplaceNom(fichier.name)
+    const texte = await fichier.text()
+    const lignesCSV = parseCSV(texte)
+    const entetes = (lignesCSV[0] ?? []).map(h => h.trim())
+    const idxId = entetes.findIndex(h => h === 'id_verset')
+    const idxTexte = entetes.findIndex((_, i) => i !== idxId)
+    if (idxId === -1) { setReplaceMsg('Colonne id_verset manquante.'); return }
+    const parsed = lignesCSV.slice(1).map(l => ({
+      id_verset: (l[idxId] ?? '').trim(), texte: l[idxTexte] ?? ''
+    })).filter(r => r.id_verset)
+    setReplaceLignes(parsed)
+    setReplaceMsg(`${parsed.length} versets prêts à importer.`)
+  }
+
+  const confirmerRemplacement = async () => {
+    if (!replaceModal) return
+    if (replaceLignes.length === 0) { setReplaceMsg('Aucune ligne chargée.'); return }
+    setReplaceStatut('loading')
+    setReplaceMsg('')
+    try {
+      const res = await fetch('/api/admin/remplacer-traduction', {
+        method: 'POST',
+        headers: await headersAdmin({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ trad_id: replaceModal, lignes: replaceLignes }),
+      })
+      const json = await res.json()
+      if (!res.ok) { setReplaceStatut('err'); setReplaceMsg(json.error ?? 'Erreur.'); return }
+      const maintenant = new Date().toISOString()
+      setLignes(prev => prev.map(l => l.trad_id === replaceModal ? { ...l, import_maj_le: maintenant } : l))
+      setReplaceStatut('ok')
+      setReplaceMsg(`✓ ${json.maj} versets mis à jour${json.ignores ? ` · ${json.ignores} id_verset inconnus ignorés` : ''}.`)
+      setTimeout(() => { setReplaceModal(null); setReplaceStatut('idle'); setReplaceMsg('') }, 3000)
+    } catch (e: unknown) {
+      setReplaceStatut('err')
+      setReplaceMsg(e instanceof Error ? e.message : 'Erreur réseau.')
+    }
+  }
 
   const sauvegarderPosition = async (tradId: string, pos: PhotoPositions) => {
     await supabase.from('traductions').update({ photo_position: pos }).eq('trad_id', tradId)
@@ -546,9 +645,14 @@ export default function SectionTraductions({ traductions: init }: { traductions:
         <div key={t.trad_id} style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', overflow: 'hidden' }}>
           {/* En-tête */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
               <span style={{ fontFamily: "Georgia, serif", fontSize: '14px', color: '#2a3d30' }}>{t.nom}</span>
               {t.dates && <span style={{ fontSize: '11px', color: '#9a958d' }}>{t.dates}</span>}
+              {t.import_maj_le && (
+                <span style={{ fontSize: '10px', color: '#b0a89e', fontStyle: 'italic' }}>
+                  import · {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
             </div>
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
               <code style={{ fontSize: '10.5px', background: '#f0ece6', padding: '2px 6px', borderRadius: '3px', color: '#6b6560' }}>{t.trad_id}</code>
@@ -588,6 +692,28 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                   await uploadPhoto(t.trad_id, fichierRenomme, estRemplacement)
                   e.target.value = ''
                 }} />
+              {exportStatut[t.trad_id] === 'loading' && (
+                <span style={{ fontSize: '10.5px', color: '#9a958d', fontStyle: 'italic' }}>Export…</span>
+              )}
+              {exportStatut[t.trad_id] === 'ok' && (
+                <span style={{ fontSize: '10.5px', color: '#3d6b4f', fontWeight: 600 }}>✓ Téléchargé</span>
+              )}
+              {exportStatut[t.trad_id] === 'err' && (
+                <span style={{ fontSize: '10.5px', color: '#c0562a', fontWeight: 600 }}>✗ Erreur</span>
+              )}
+              <button
+                onClick={() => exporterCSV(t.trad_id, t.nom)}
+                disabled={exportStatut[t.trad_id] === 'loading'}
+                title="Exporter cette traduction en CSV"
+                style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: exportStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+                ↓ CSV
+              </button>
+              <button
+                onClick={() => ouvrirRemplacement(t.trad_id)}
+                title="Remplacer les versets de cette traduction via un CSV"
+                style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#9a7e3d', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                ↑ Remplacer
+              </button>
               <button onClick={() => edition === t.trad_id ?fermer() : ouvrir(t)}
                 style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer' }}>
                 {edition === t.trad_id ?'Fermer' : 'Modifier'}
@@ -633,6 +759,62 @@ export default function SectionTraductions({ traductions: init }: { traductions:
           )}
         </div>
       ))}
+      {/* Input fichier caché pour le remplacement CSV */}
+      <input
+        ref={replaceFileRef}
+        type="file"
+        accept=".csv"
+        style={{ display: 'none' }}
+        onChange={e => { const f = e.target.files?.[0]; if (f) handleReplaceCSV(f); e.target.value = '' }}
+      />
+
+      {/* Modale remplacement traduction */}
+      {replaceModal && (() => {
+        const t = lignes.find(l => l.trad_id === replaceModal)
+        if (!t) return null
+        return (
+          <div onClick={() => { if (replaceStatut !== 'loading') setReplaceModal(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: '#f7f4ef', borderRadius: '10px', padding: '22px 24px', maxWidth: '440px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '14px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
+                  Remplacer · <em style={{ color: '#7a7268' }}>{t.nom}</em>
+                  <code style={{ fontSize: '10px', background: '#f0ece6', padding: '1px 5px', borderRadius: '3px', marginLeft: '8px', color: '#6b6560' }}>{t.trad_id}</code>
+                </h3>
+                <button onClick={() => setReplaceModal(null)} disabled={replaceStatut === 'loading'} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '15px', color: '#b0a89e', padding: 0, lineHeight: 1 }}>✕</button>
+              </div>
+              <p style={{ fontSize: '11px', color: '#9a958d', marginBottom: '14px', lineHeight: 1.6 }}>
+                Le CSV doit contenir deux colonnes : <code style={{ background: '#f0ece6', padding: '1px 4px', borderRadius: '3px' }}>id_verset</code> et le texte. Tous les versets identifiés par leur <code style={{ background: '#f0ece6', padding: '1px 4px', borderRadius: '3px' }}>id_verset</code> seront écrasés.
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                <button
+                  onClick={() => replaceFileRef.current?.click()}
+                  disabled={replaceStatut === 'loading'}
+                  style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer', fontWeight: 500, flexShrink: 0 }}>
+                  ↑ Choisir un CSV
+                </button>
+                {replaceNom && (
+                  <span style={{ fontSize: '11px', color: '#6b6560', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{replaceNom}</span>
+                )}
+              </div>
+              {replaceMsg && (
+                <p style={{ fontSize: '11.5px', marginBottom: '14px', color: replaceStatut === 'err' ? '#c0562a' : replaceStatut === 'ok' ? '#3d6b4f' : '#5a6b5e', fontWeight: replaceStatut === 'ok' || replaceStatut === 'err' ? 600 : 400 }}>
+                  {replaceMsg}
+                </p>
+              )}
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid #e8e3dc', paddingTop: '14px' }}>
+                <button onClick={() => setReplaceModal(null)} disabled={replaceStatut === 'loading'} style={{ fontSize: '12px', padding: '7px 16px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
+                <button
+                  onClick={confirmerRemplacement}
+                  disabled={replaceLignes.length === 0 || replaceStatut === 'loading' || replaceStatut === 'ok'}
+                  style={{ fontSize: '12px', padding: '7px 18px', borderRadius: '5px', border: 'none', background: replaceLignes.length === 0 || replaceStatut === 'loading' || replaceStatut === 'ok' ? '#a0b8aa' : '#9a7e3d', color: '#fff', cursor: replaceLignes.length === 0 || replaceStatut === 'loading' || replaceStatut === 'ok' ? 'default' : 'pointer', fontWeight: 500 }}>
+                  {replaceStatut === 'loading' ? 'Mise à jour…' : `Écraser ${replaceLignes.length > 0 ? replaceLignes.length + ' versets' : '…'}`}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Modale positionnement photo */}
       {positionModal && (() => {
         const t = lignes.find(l => l.trad_id === positionModal)

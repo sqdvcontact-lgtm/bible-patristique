@@ -26,7 +26,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const [revelees, setRevelees] = useState<Set<number>>(new Set())
 
   useEffect(() => {
-    supabase.from('essais_commentaires').select('*').eq('id_essai', idEssai).order('created_at', { ascending: true })
+    supabase.from('essais_commentaires').select('id, texte, passage_cite, reponse_a, user_id, auteur_nom, valide, created_at, supprime').eq('id_essai', idEssai).order('created_at', { ascending: true })
       .then(async ({ data }) => {
         const lignes = data ?? []
         const ids = [...new Set(lignes.map(c => c.user_id).filter((id): id is string => !!id))]

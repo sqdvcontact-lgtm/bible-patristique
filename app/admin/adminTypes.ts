@@ -16,6 +16,7 @@ export type Traduction = {
   commentaire_editorial: string
   ordre: number
   photo: string | null
+  import_maj_le: string | null
   photo_position: {
     bandeau:  { x: number; y: number; scale: number }
     lateral:  { x: number; y: number; scale: number }
@@ -70,4 +71,4 @@ export type AdminProps = {
   actionRenvoyerBrouillonEssai: (id: number, note: string, refus?: boolean) => Promise<void>
 }
 
-export type Onglet = 'bibliotheque' | 'ajouter-oeuvre' | 'depot-oeuvre' | 'traductions' | 'verifications' | 'moderation' | 'essais'
+export type Onglet = 'bibliotheque' | 'ajouter-oeuvre' | 'depot-oeuvre' | 'traductions' | 'verifications' | 'moderation' | 'essais' | 'charte' | 'propositions'
