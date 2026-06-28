@@ -327,7 +327,7 @@ function OngletMesEcrits({
   const [maintenant, setMaintenant] = useState(Date.now())
 
   useEffect(() => {
-    const aUnTimerActif = () => essais.some(e => {
+    const aUnTimerActif = () => (essais ?? []).some(e => {
       const t = toggles[e.id] ?? Number(window.localStorage.getItem(`essai-publication-toggle-${e.id}`) ?? 0)
       return t > 0 && (Date.now() - t) < 60 * 60 * 1000
     })
