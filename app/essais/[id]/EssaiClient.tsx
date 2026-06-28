@@ -71,25 +71,25 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         .essai-lecture-corps p,
         .essai-lecture-corps blockquote {
           text-align: left !important;
-          line-height: 1.62 !important;
-          word-spacing: 0.018em !important;
-          letter-spacing: 0.004em !important;
+          line-height: 1.66 !important;
+          word-spacing: 0.042em !important;
+          letter-spacing: 0.013em !important;
         }
         .essai-lecture-corps p {
           margin-top: 0 !important;
-          margin-bottom: 0.62em !important;
+          margin-bottom: 1.05em !important;
         }
         .essai-lecture-corps blockquote {
-          margin-top: 0.48em !important;
-          margin-bottom: 0.76em !important;
+          margin-top: 0.72em !important;
+          margin-bottom: 1.1em !important;
         }
         .essai-lecture-corps h2 {
-          padding-left: 0.72em !important;
+          padding-left: 1.1em !important;
           margin-top: 1.65em !important;
           margin-bottom: 0.72em !important;
         }
         .essai-lecture-corps h3 {
-          padding-left: 1.08em !important;
+          padding-left: 1.5em !important;
           margin-top: 1.18em !important;
           margin-bottom: 0.52em !important;
         }

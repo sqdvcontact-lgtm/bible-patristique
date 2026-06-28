@@ -16,10 +16,16 @@ function IconBible() {
 function IconPere() {
   return (
     <svg width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
-      <path d="M21 5.8c-4.1 0-7.3 3.2-7.3 7.2 0 2.6 1.2 5.4 3.1 7.2l.6 3.2h7.2l.6-3.2c1.9-1.8 3.1-4.6 3.1-7.2 0-4-3.2-7.2-7.3-7.2Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.78)" strokeWidth="1.35" strokeLinejoin="round"/>
-      <path d="M15.4 17.2c1.4.9 3.3 1.4 5.6 1.4s4.2-.5 5.6-1.4" stroke="rgba(255,255,255,0.62)" strokeWidth="1.1" strokeLinecap="round"/>
-      <path d="M17.4 13.8c.8-.5 1.5-.7 2.1-.7M22.5 13.1c.7 0 1.4.2 2.1.7" stroke="#fff" strokeWidth="1.2" strokeLinecap="round"/>
-      <path d="M19.2 23.4 16 35.5h10l-3.2-12.1M16 27.8c-3.2 1.5-5.3 4.1-5.9 7.7h21.8c-.6-3.6-2.7-6.2-5.9-7.7" stroke="rgba(255,255,255,0.78)" strokeWidth="1.35" strokeLinejoin="round" strokeLinecap="round"/>
+      {/* Robe ample */}
+      <path d="M15 24Q7 27 6 38h30Q35 27 27 24" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.80)" strokeWidth="1.35" strokeLinejoin="round"/>
+      {/* Barbe */}
+      <path d="M16 14Q13.5 19 14.5 23Q17.5 27.5 21 27.5Q24.5 27.5 27.5 23Q28.5 19 26 14" fill="rgba(255,255,255,0.11)" stroke="rgba(255,255,255,0.78)" strokeWidth="1.35" strokeLinejoin="round"/>
+      {/* Tête */}
+      <circle cx="21" cy="10" r="5" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.85)" strokeWidth="1.35"/>
+      {/* Détails barbe */}
+      <path d="M18.5 18.5Q19.5 23.5 21 25.5M23.5 18.5Q22.5 23.5 21 25.5" stroke="rgba(255,255,255,0.36)" strokeWidth="0.9" strokeLinecap="round"/>
+      {/* Pli de la robe */}
+      <path d="M11.5 31Q21 28.5 30.5 31" stroke="rgba(255,255,255,0.38)" strokeWidth="1" strokeLinecap="round"/>
     </svg>
   );
 }
@@ -114,13 +120,13 @@ export default function AccueilCards() {
           box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 16px 38px rgba(31,76,52,0.20);
         }
         .ac-bible {
-          background: linear-gradient(142deg, #244a35 0%, #3d6b4f 48%, #6f9778 100%);
+          background: linear-gradient(142deg, #1e3d2c 0%, #2f6045 48%, #5a8c6a 100%);
         }
         .ac-patristique {
-          background: linear-gradient(142deg, #315a42 0%, #557d5f 52%, #91ad86 100%);
+          background: linear-gradient(142deg, #2e3e28 0%, #546c48 52%, #8eaa72 100%);
         }
         .ac-publications {
-          background: linear-gradient(142deg, #2e6044 0%, #4f8a62 52%, #a2ba8d 100%);
+          background: linear-gradient(142deg, #2a3a22 0%, #4a6438 52%, #7a9458 100%);
         }
         .ac-title {
           font-family: Georgia, 'Times New Roman', serif;

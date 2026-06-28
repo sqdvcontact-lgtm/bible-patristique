@@ -20,8 +20,8 @@ export default function SectionModeration({
   versetMap: Record<string, string>
   actionValider: (id: number) => Promise<void>
   actionSupprimerCommentaire: (id: number) => Promise<void>
-  actionMarquerTraite: (id: number) => Promise<void>
-  actionSupprimerSignalement: (id: number) => Promise<void>
+  actionMarquerTraite: (id: number | string) => Promise<void>
+  actionSupprimerSignalement: (id: number | string) => Promise<void>
   actionCertifier: (id: number) => Promise<void>
   actionRetirerDemandeCertification: (id: number) => Promise<void>
 }) {

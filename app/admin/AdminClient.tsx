@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { supabase } from '@/app/lib/supabase'
 import SectionBibliotheque from './SectionBibliotheque'
 import SectionVerifications from './SectionVerifications'
 import SectionAjouterOeuvre from './SectionAjouterOeuvre'
@@ -19,16 +20,38 @@ export default function AdminClient({
   actionPublierEssai, actionRenvoyerBrouillonEssai,
 }: Props) {
   const [onglet, setOnglet] = useState<Onglet>('bibliotheque')
-  const nbModeration = commentaires.length + signalements.length + demandesCertification.length
-  const nbEssais = essaisEnAttente.length + essaisModification.length
+  const [nbVerif, setNbVerif] = useState(nbVerifications)
+  const [nbMod, setNbMod] = useState(commentaires.length + signalements.length + demandesCertification.length)
+  const [nbEssais, setNbEssais] = useState(essaisEnAttente.length + essaisModification.length)
+
+  useEffect(() => {
+    const charger = async () => {
+      const [mod1, mod2, mod3, ess] = await Promise.all([
+        supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false'),
+        supabase.from('signalements').select('id', { count: 'exact', head: true }).eq('traite', false),
+        supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('demande_validation', true),
+        supabase.from('essais').select('id', { count: 'exact', head: true }).in('statut', ['en_attente', 'a_reviser']),
+      ])
+      setNbMod((mod1.count ?? 0) + (mod2.count ?? 0) + (mod3.count ?? 0))
+      setNbEssais(ess.count ?? 0)
+    }
+    charger()
+    const interval = window.setInterval(charger, 30000)
+    const onVisible = () => { if (!document.hidden) charger() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { window.clearInterval(interval); document.removeEventListener('visibilitychange', onVisible) }
+  }, [])
+
+  const decrMod = async (fn: () => Promise<void>) => { await fn(); setNbMod(n => Math.max(0, n - 1)) }
+
   const ONGLETS: { key: Onglet; label: string; badge?: number; separateur?: boolean }[] = [
     { key: 'bibliotheque',        label: 'Bibliothèque' },
     { key: 'ajouter-oeuvre',      label: '+ Ajouter une œuvre' },
     { key: 'depot-oeuvre',        label: '▣ Dépôt IA' },
     { key: 'traductions',         label: 'Traductions' },
     { key: 'essais',              label: 'Essais', badge: nbEssais },
-    { key: 'verifications',       label: 'Vérifications', badge: nbVerifications, separateur: true },
-    { key: 'moderation',          label: 'Modération', badge: nbModeration },
+    { key: 'verifications',       label: 'Vérifications', badge: nbVerif, separateur: true },
+    { key: 'moderation',          label: 'Modération', badge: nbMod },
   ]
 
   return (
@@ -68,7 +91,7 @@ export default function AdminClient({
         </div>
 
         {onglet === 'bibliotheque'  && <SectionBibliotheque auteurs={auteurs} />}
-        {onglet === 'verifications'  && <SectionVerifications />}
+        {onglet === 'verifications'  && <SectionVerifications onCountChange={setNbVerif} />}
         {onglet === 'ajouter-oeuvre' && <SectionAjouterOeuvre auteurs={auteurs} />}
         {onglet === 'depot-oeuvre' && <SectionDepotOeuvre />}
         {onglet === 'traductions'   && <SectionTraductions traductions={traductions} />}
@@ -80,12 +103,12 @@ export default function AdminClient({
             demandesCertification={demandesCertification}
             segMap={segMap}
             versetMap={versetMap}
-            actionValider={actionValider}
-            actionSupprimerCommentaire={actionSupprimerCommentaire}
-            actionMarquerTraite={actionMarquerTraite}
-            actionSupprimerSignalement={actionSupprimerSignalement}
-            actionCertifier={actionCertifier}
-            actionRetirerDemandeCertification={actionRetirerDemandeCertification}
+            actionValider={id => decrMod(() => actionValider(id))}
+            actionSupprimerCommentaire={id => decrMod(() => actionSupprimerCommentaire(id))}
+            actionMarquerTraite={id => decrMod(() => actionMarquerTraite(id))}
+            actionSupprimerSignalement={id => decrMod(() => actionSupprimerSignalement(id))}
+            actionCertifier={id => decrMod(() => actionCertifier(id))}
+            actionRetirerDemandeCertification={id => decrMod(() => actionRetirerDemandeCertification(id))}
           />
         )}
 

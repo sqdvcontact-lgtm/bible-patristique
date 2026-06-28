@@ -80,7 +80,7 @@ export function rendreEssai(texte: string, options: RenduOptions = {}): React.Re
       if (i > 0) contenuLignes.push(<br key={`br-${blocs.length}-${i}`} />)
       contenuLignes.push(...rendreInline(ligne, cleNote, options))
     })
-    blocs.push(<p key={blocs.length} style={{ margin: '0 0 2.2mm', lineHeight: 1.56, textAlign: 'left', wordSpacing: '0.01em', letterSpacing: '0.003em', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>{contenuLignes}</p>)
+    blocs.push(<p key={blocs.length} style={{ margin: '0 0 4.5mm', lineHeight: 1.66, textAlign: 'left', wordSpacing: '0.042em', letterSpacing: '0.013em', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>{contenuLignes}</p>)
     paragraphe = []
   }
 

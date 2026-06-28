@@ -23,29 +23,33 @@ async function actionValiderCommentaire(id: number) {
     message_admin: 'Votre commentaire a ete valide par la moderation.',
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
-  redirect('/admin')
 }
 async function actionSupprimerCommentaire(id: number) {
   'use server'
   if (!(await estAdmin())) return
   await supabaseAdmin.from('commentaires').delete().eq('id', id)
-  redirect('/admin')
 }
-async function actionMarquerTraite(id: number) {
+async function actionMarquerTraite(id: number | string) {
   'use server'
   if (!(await estAdmin())) return
+  if (String(id).startsWith('quiz_')) {
+    await supabaseAdmin.from('quiz_signalements').update({ traite: true }).eq('id', String(id).replace(/^quiz_/, ''))
+    return
+  }
   await supabaseAdmin.from('signalements').update({
     traite: true,
     message_admin: 'Merci pour votre signalement. Il a ete transmis a la moderation et marque comme traite.',
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
-  redirect('/admin')
 }
-async function actionSupprimerSignalement(id: number) {
+async function actionSupprimerSignalement(id: number | string) {
   'use server'
   if (!(await estAdmin())) return
+  if (String(id).startsWith('quiz_')) {
+    await supabaseAdmin.from('quiz_signalements').delete().eq('id', String(id).replace(/^quiz_/, ''))
+    return
+  }
   await supabaseAdmin.from('signalements').delete().eq('id', id)
-  redirect('/admin')
 }
 async function actionCertifierCommentaire(id: number) {
   'use server'
@@ -57,7 +61,6 @@ async function actionCertifierCommentaire(id: number) {
     message_admin: 'Votre commentaire a ete valide et certifie par la moderation.',
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
-  redirect('/admin')
 }
 async function actionRetirerDemandeCertification(id: number) {
   'use server'
@@ -69,7 +72,6 @@ async function actionRetirerDemandeCertification(id: number) {
     message_admin: 'Votre commentaire a ete valide par la moderation, mais la demande de certification n a pas ete retenue.',
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
-  redirect('/admin')
 }
 async function actionPublierEssai(id: number) {
   'use server'
@@ -78,7 +80,6 @@ async function actionPublierEssai(id: number) {
   const payload: any = { statut: 'publie', note_admin: null, updated_at: new Date().toISOString() }
   if (!actuel?.publie_at) payload.publie_at = new Date().toISOString()
   await supabaseAdmin.from('essais').update(payload).eq('id', id)
-  redirect('/admin')
 }
 async function actionRenvoyerBrouillonEssai(id: number, note: string, refus = false) {
   'use server'
@@ -90,7 +91,6 @@ async function actionRenvoyerBrouillonEssai(id: number, note: string, refus = fa
       : 'Votre publication a été renvoyée en brouillon par la modération.'),
     updated_at: new Date().toISOString(),
   }).eq('id', id)
-  redirect('/admin')
 }
 
 function compterSignes(contenu: string | null | undefined): number {
@@ -134,6 +134,24 @@ export default async function AdminPage() {
     const fallback = await supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, user_id').eq('traite', false).order('created_at', { ascending: false })
     signalements = (fallback.data ?? []).map(s => ({ ...s, id_verset: null }))
   }
+  // Signalements du quiz (table séparée)
+  let quizSignalements: any[] | null = null
+  try {
+    const { data } = await supabaseAdmin.from('quiz_signalements').select('id, raison, commentaire, created_at, id_verset, user_id').eq('traite', false).order('created_at', { ascending: false }).limit(200)
+    quizSignalements = data
+  } catch { quizSignalements = null }
+  const quizMapped = (quizSignalements ?? []).map((s: any) => ({
+    id: `quiz_${s.id}`,
+    message: [s.raison, s.commentaire].filter(Boolean).join(' — '),
+    traite: false,
+    created_at: s.created_at,
+    id_segment: null,
+    id_verset: s.id_verset ?? null,
+    user_id: s.user_id ?? null,
+    source: 'quiz_signalements' as const,
+  }))
+  const tousSignalements = [...(signalements ?? []).map(s => ({ ...s, source: 'signalements' as const })), ...quizMapped]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
   const { data: demandesCertification } = await supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, demande_validation, certifie').eq('demande_validation', true).order('created_at', { ascending: false })
   const segIds = [...(commentaires?.map(c => c.id_segment).filter(Boolean) ?? []), ...(signalements?.map(s => s.id_segment).filter(Boolean) ?? []), ...(demandesCertification?.map(c => c.id_segment).filter(Boolean) ?? [])]
   const segIdsUniques = [...new Set(segIds)]
@@ -226,12 +244,12 @@ export default async function AdminPage() {
   const { count: nbVerifications } = await supabaseAdmin
     .from('segments')
     .select('id', { count: 'exact', head: true })
-    .in('fiabilite', ['probable', 'Lien à constituer'])
+    .eq('fiabilite', 'probable')
 
   return (
     <AdminClient
       commentaires={commentaires ?? []}
-      signalements={signalements ?? []}
+      signalements={tousSignalements}
       demandesCertification={demandesCertification ?? []}
       essaisEnAttente={essaisEnAttente}
       essaisModification={essaisModification}

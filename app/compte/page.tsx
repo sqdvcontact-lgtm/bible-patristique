@@ -247,6 +247,153 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
   );
 }
 
+// ── Section rang avec barre animée ──────────────────────────────────────────
+function SectionRang({ classement }: { classement: { score: number; nb_commentaires: number; nb_valides: number; nb_likes_recus: number } }) {
+  const { rang, rangSuivant, seuilSuivant, seuilPrecedent } = calculerRang(classement.score);
+  const couleurs = couleurRang(rang);
+  const [infoOuverte, setInfoOuverte] = useState(false);
+  const [largeur, setLargeur] = useState(0);
+
+  const pourcentage = rangSuivant
+    ? Math.min(((classement.score - seuilPrecedent) / (seuilSuivant! - seuilPrecedent)) * 100, 100)
+    : 100;
+
+  // Anime la barre au montage
+  useEffect(() => {
+    const t = setTimeout(() => setLargeur(pourcentage), 80);
+    return () => clearTimeout(t);
+  }, [pourcentage]);
+
+  const RANGS: { rang: string; couleur: string }[] = [
+    { rang: 'Catéchumène', couleur: '#c8c0b4' },
+    { rang: 'Disciple',    couleur: '#3d6b4f' },
+    { rang: 'Docteur',     couleur: '#9a4a1f' },
+  ];
+
+  return (
+    <>
+      <div style={{ background: "#fff", border: "1px solid #e4dfd8", borderRadius: "10px", padding: "24px 26px", marginBottom: "20px" }}>
+
+        {/* En-tête : badge rang + score + bouton info */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "18px" }}>
+          <span style={{ fontSize: "13px", fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: "4px 12px", borderRadius: "5px", letterSpacing: "0.01em" }}>
+            {rang}
+          </span>
+          <span style={{ fontSize: "12px", color: "#9a958d" }}>
+            {classement.score} point{classement.score > 1 ? "s" : ""}
+          </span>
+          <button
+            onClick={() => setInfoOuverte(true)}
+            title="Comment fonctionne le rang ?"
+            style={{ marginLeft: "auto", width: "22px", height: "22px", borderRadius: "50%", border: "1.5px solid #d6d0c4", background: "#fff", color: "#9a958d", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontStyle: "italic", fontFamily: "Georgia, serif", lineHeight: 1 }}>
+            i
+          </button>
+        </div>
+
+        {/* Barre de progression */}
+        <div style={{ marginBottom: "14px" }}>
+          {/* Étiquettes des rangs */}
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+            {RANGS.map((r, i) => (
+              <span key={r.rang} style={{
+                fontSize: "9.5px", fontWeight: r.rang === rang ? 700 : 400,
+                color: r.rang === rang ? couleurs.texte : "#b0a89e",
+                letterSpacing: "0.04em", textAlign: i === 0 ? "left" : i === 2 ? "right" : "center",
+                flex: 1,
+              }}>
+                {r.rang.toUpperCase()}
+              </span>
+            ))}
+          </div>
+
+          {/* Piste de la barre */}
+          <div style={{ position: "relative", height: "8px", background: "#ece8df", borderRadius: "999px", overflow: "hidden" }}>
+            {/* Segment AT (Catéchumène → Disciple) : 1/3 de la piste */}
+            <div style={{
+              position: "absolute", left: 0, top: 0, height: "100%",
+              width: `${rang === 'Catéchumène' ? largeur / 3 : rang === 'Disciple' ? 33.33 + largeur / 3 : 100}%`,
+              background: rang === 'Docteur'
+                ? "linear-gradient(90deg, #c8c0b4 0%, #3d6b4f 33%, #9a4a1f 100%)"
+                : rang === 'Disciple'
+                  ? "linear-gradient(90deg, #c8c0b4 0%, #3d6b4f 100%)"
+                  : "#c8c0b4",
+              borderRadius: "999px",
+              transition: "width 1s cubic-bezier(0.4,0,0.2,1)",
+            }} />
+            {/* Marqueur Disciple */}
+            <div style={{ position: "absolute", left: "33.3%", top: 0, bottom: 0, width: "2px", background: "#f7f4ef", zIndex: 1 }} />
+            {/* Marqueur Docteur */}
+            <div style={{ position: "absolute", left: "66.6%", top: 0, bottom: 0, width: "2px", background: "#f7f4ef", zIndex: 1 }} />
+          </div>
+
+          {/* Points restants */}
+          {rangSuivant && (
+            <p style={{ fontSize: "10.5px", color: "#b0a89e", margin: "8px 0 0", fontStyle: "italic", textAlign: "right" }}>
+              {seuilSuivant! - classement.score} point{seuilSuivant! - classement.score > 1 ? "s" : ""} avant <em>{rangSuivant}</em>
+            </p>
+          )}
+        </div>
+
+        {/* Statistiques */}
+        <div style={{ display: "flex", gap: "0", borderTop: "1px solid #f0ece6", paddingTop: "14px", flexWrap: "wrap" }}>
+          {[
+            { valeur: classement.nb_commentaires, label: "commentaire" },
+            { valeur: classement.nb_valides,       label: "validé" },
+            { valeur: classement.nb_likes_recus,   label: "like reçu" },
+          ].map((s, i) => (
+            <div key={i} style={{ flex: 1, textAlign: "center", borderLeft: i > 0 ? "1px solid #f0ece6" : "none", padding: "0 8px" }}>
+              <p style={{ fontSize: "17px", fontFamily: "Georgia, serif", color: "#2a3d30", margin: "0 0 2px" }}>{s.valeur}</p>
+              <p style={{ fontSize: "10px", color: "#b0a89e", margin: 0 }}>{s.label}{s.valeur > 1 ? "s" : ""}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Modale info */}
+      {infoOuverte && (
+        <div onClick={() => setInfoOuverte(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.32)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "10px", padding: "28px 28px 24px", maxWidth: "380px", width: "100%", boxShadow: "0 16px 48px rgba(0,0,0,0.18)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <h3 style={{ fontFamily: "Georgia, serif", fontSize: "16px", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>Système de rang</h3>
+              <button onClick={() => setInfoOuverte(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "16px", color: "#b0a89e", lineHeight: 1, padding: "2px" }}>✕</button>
+            </div>
+            <p style={{ fontSize: "12.5px", color: "#5a5450", lineHeight: 1.7, margin: "0 0 14px" }}>
+              Votre rang reflète votre implication dans la vie des commentaires. Il est calculé à partir de votre <strong>score</strong>, obtenu ainsi :
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
+              {[
+                { label: "+1 point", detail: "par commentaire publié" },
+                { label: "+2 points", detail: "par commentaire validé par la modération" },
+                { label: "+1 point", detail: "par « j'aime » reçu sur vos commentaires" },
+              ].map((r, i) => (
+                <div key={i} style={{ display: "flex", gap: "10px", alignItems: "baseline" }}>
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#3d6b4f", flexShrink: 0, minWidth: "58px" }}>{r.label}</span>
+                  <span style={{ fontSize: "12px", color: "#6b6560" }}>{r.detail}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ borderTop: "1px solid #ede9e2", paddingTop: "14px", display: "flex", flexDirection: "column", gap: "7px" }}>
+              {[
+                { rang: "Catéchumène", detail: "Rang de départ", couleur: "#8a8278", fond: "#f0ece6" },
+                { rang: "Disciple",    detail: `À partir de 50 points`, couleur: "#3d6b4f", fond: "rgba(61,107,79,0.10)" },
+                { rang: "Docteur",     detail: `À partir de 300 points`, couleur: "#9a4a1f", fond: "rgba(192,86,42,0.10)" },
+              ].map(r => (
+                <div key={r.rang} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <span style={{ fontSize: "11px", fontWeight: 600, color: r.couleur, background: r.fond, padding: "2px 9px", borderRadius: "4px", flexShrink: 0 }}>{r.rang}</span>
+                  <span style={{ fontSize: "11.5px", color: "#9a958d" }}>{r.detail}</span>
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize: "11px", color: "#b0a89e", fontStyle: "italic", margin: "14px 0 0", lineHeight: 1.6 }}>
+              Les rangs sont inspirés des Docteurs de l'Église, dont l'œuvre de commentaire des Écritures demeure une référence.
+            </p>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function FormulaireCompte({ user, profilInit, router }: { user: { id: string; email: string; email_confirmed_at: string | null }; profilInit: Profil; router: ReturnType<typeof useRouter> }) {
   const [nom, setNom] = useState(profilInit.nom ?? "");
   const [prenom, setPrenom] = useState(profilInit.prenom ?? "");
@@ -409,31 +556,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
         </div>
 
         {/* Classement */}
-        {classement && (() => {
-          const { rang, rangSuivant, seuilSuivant } = calculerRang(classement.score);
-          const couleurs = couleurRang(rang);
-          return (
-            <div style={{ background: "#fff", border: "1px solid #e4dfd8", borderRadius: "10px", padding: "24px 26px", marginBottom: "20px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
-                <span style={{ fontSize: "13px", fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: "4px 12px", borderRadius: "5px" }}>{rang}</span>
-                <span style={{ fontSize: "12px", color: "#9a958d" }}>{classement.score} point{classement.score > 1 ? "s" : ""}</span>
-              </div>
-              <p style={{ fontSize: "12.5px", color: "#5a5450", lineHeight: 1.65, margin: "0 0 10px" }}>
-                Votre rang reflète votre contribution aux commentaires du site. Il est calculé selon trois critères : un point par commentaire publié, deux points supplémentaires pour chaque commentaire validé par la modération, et un point pour chaque « j’aime » reçu. Trois rangs existent, du plus récent au plus expérimenté : <strong>Catéchumène</strong>, <strong>Disciple</strong> et <strong>Docteur</strong>, en référence aux grands Docteurs de l’Église et à leur œuvre de commentaire des Écritures.
-              </p>
-              <div style={{ fontSize: "11.5px", color: "#9a958d", display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: rangSuivant ? "8px" : 0 }}>
-                <span>{classement.nb_commentaires} commentaire{classement.nb_commentaires > 1 ? "s" : ""}</span>
-                <span>{classement.nb_valides} validé{classement.nb_valides > 1 ? "s" : ""}</span>
-                <span>{classement.nb_likes_recus} like{classement.nb_likes_recus > 1 ? "s" : ""} reçu{classement.nb_likes_recus > 1 ? "s" : ""}</span>
-              </div>
-              {rangSuivant && (
-                <p style={{ fontSize: "11px", color: "#b0a89e", margin: 0, fontStyle: "italic" }}>
-                  {seuilSuivant! - classement.score} point{seuilSuivant! - classement.score > 1 ? "s" : ""} avant le rang {rangSuivant}.
-                </p>
-              )}
-            </div>
-          );
-        })()}
+        {classement && <SectionRang classement={classement} />}
 
         {/* Zone dangereuse */}
         <div style={{ background: "#fff", border: "1px solid #e8d4cc", borderRadius: "10px", padding: "20px 26px" }}>

@@ -1,17 +1,18 @@
 export type Rang = 'Catéchumène' | 'Disciple' | 'Docteur'
 
-// Seuils ajustables au même endroit — voir la charte pour le détail du calcul.
-const SEUIL_DISCIPLE = 15
-const SEUIL_DOCTEUR = 50
+// Seuils : un commentateur régulier (2-3 fois/semaine, validés + quelques likes)
+// atteint Disciple en ~1 mois, Docteur en ~4-6 mois.
+export const SEUIL_DISCIPLE = 50
+export const SEUIL_DOCTEUR  = 300
 
 export function calculerScore(nbCommentaires: number, nbValides: number, nbLikes: number): number {
   return nbCommentaires + 2 * nbValides + nbLikes
 }
 
-export function calculerRang(score: number): { rang: Rang; rangSuivant: Rang | null; seuilSuivant: number | null } {
-  if (score < SEUIL_DISCIPLE) return { rang: 'Catéchumène', rangSuivant: 'Disciple', seuilSuivant: SEUIL_DISCIPLE }
-  if (score < SEUIL_DOCTEUR) return { rang: 'Disciple', rangSuivant: 'Docteur', seuilSuivant: SEUIL_DOCTEUR }
-  return { rang: 'Docteur', rangSuivant: null, seuilSuivant: null }
+export function calculerRang(score: number): { rang: Rang; rangSuivant: Rang | null; seuilSuivant: number | null; seuilPrecedent: number } {
+  if (score < SEUIL_DISCIPLE) return { rang: 'Catéchumène', rangSuivant: 'Disciple', seuilSuivant: SEUIL_DISCIPLE, seuilPrecedent: 0 }
+  if (score < SEUIL_DOCTEUR)  return { rang: 'Disciple',    rangSuivant: 'Docteur',   seuilSuivant: SEUIL_DOCTEUR,  seuilPrecedent: SEUIL_DISCIPLE }
+  return { rang: 'Docteur', rangSuivant: null, seuilSuivant: null, seuilPrecedent: SEUIL_DOCTEUR }
 }
 
 export function couleurRang(rang: Rang): { fond: string; texte: string } {

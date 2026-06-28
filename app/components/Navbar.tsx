@@ -152,12 +152,18 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!user?.id || !(estAdmin || estAdminEmail)) { setNbActionsAdmin(0); return }
-    Promise.all([
+    const charger = () => Promise.all([
       supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false'),
       supabase.from('signalements').select('id', { count: 'exact', head: true }).eq('traite', false),
       supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('demande_validation', true),
       supabase.from('essais').select('id', { count: 'exact', head: true }).in('statut', ['en_attente', 'a_reviser']),
+      supabase.from('segments').select('id', { count: 'exact', head: true }).eq('fiabilite', 'probable'),
     ]).then(resultats => setNbActionsAdmin(resultats.reduce((total, r) => total + (r.count ?? 0), 0)))
+    charger()
+    const interval = window.setInterval(charger, 30000)
+    const onVisible = () => { if (!document.hidden) charger() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { window.clearInterval(interval); document.removeEventListener('visibilitychange', onVisible) }
   }, [user?.id, estAdmin, estAdminEmail]);
 
   const seDeconnecter = async () => {
@@ -308,7 +314,7 @@ export default function Navbar() {
         {[
           { href: "/compte", label: "Mon compte", badge: 0 },
           { href: "/notifications", label: "Notifications", badge: nbNotifications },
-          ...(estAdminAffiche ? [{ href: "/admin", label: "Administration", badge: 0 }] : []),
+          ...(estAdminAffiche ? [{ href: "/admin", label: "Administration", badge: nbActionsAdmin }] : []),
         ].map(item => (
           <Link key={item.href} href={item.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}
             style={mobile

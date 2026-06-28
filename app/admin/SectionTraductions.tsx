@@ -1,8 +1,238 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import { supabase, headersAdmin } from './adminShared'
 import type { Traduction } from './adminTypes'
+import { revaliderTraductions } from '@/app/actions/revalider'
+
+type PhotoPos = { x: number; y: number; scale: number }
+type PhotoPositions = { bandeau: PhotoPos; lateral: PhotoPos }
+
+const POS_DEFAUT: PhotoPos = { x: 50, y: 20, scale: 1 }
+
+function parsePositions(raw: Traduction['photo_position']): PhotoPositions {
+  if (!raw) return { bandeau: { ...POS_DEFAUT }, lateral: { ...POS_DEFAUT } }
+  // Rétro-compatibilité avec ancien format plat { x, y, scale }
+  const r = raw as any
+  if (typeof r.x === 'number') return { bandeau: { x: r.x, y: r.y, scale: r.scale ?? 1 }, lateral: { ...POS_DEFAUT } }
+  return {
+    bandeau: r.bandeau ?? { ...POS_DEFAUT },
+    lateral: r.lateral ?? { ...POS_DEFAUT },
+  }
+}
+
+// ── Modale positionnement photo ───────────────────────────────────────────────
+// Rend la VRAIE carte (code identique à la page publique, données réelles)
+// avec un calque drag transparent par-dessus chaque image.
+function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
+  t: Traduction
+  posInit: PhotoPositions
+  onClose: () => void
+  onSauvegarde: (pos: PhotoPositions) => Promise<void>
+}) {
+  const [positions, setPositions] = useState<PhotoPositions>(posInit)
+  const [active, setActive] = useState<'bandeau' | 'lateral'>('bandeau')
+  const [saving, setSaving] = useState(false)
+  const bandeauRef = useRef<HTMLDivElement>(null)
+  const lateralRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<{
+    zone: 'bandeau' | 'lateral'
+    startX: number; startY: number; baseX: number; baseY: number
+  } | null>(null)
+
+  const startDrag = (zone: 'bandeau' | 'lateral') => (e: React.MouseEvent) => {
+    e.preventDefault()
+    setActive(zone)
+    const p = positions[zone]
+    dragRef.current = { zone, startX: e.clientX, startY: e.clientY, baseX: p.x, baseY: p.y }
+  }
+
+  const onMove = (e: React.MouseEvent) => {
+    if (!dragRef.current) return
+    const { zone, startX, startY, baseX, baseY } = dragRef.current
+    const el = zone === 'bandeau' ? bandeauRef.current : lateralRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const scale = positions[zone].scale
+    const sensX = 100 / (rect.width * Math.max(scale, 1))
+    const sensY = 100 / (rect.height * Math.max(scale, 1))
+    setPositions(prev => ({
+      ...prev,
+      [zone]: {
+        ...prev[zone],
+        x: Math.max(0, Math.min(100, baseX - (e.clientX - startX) * sensX)),
+        y: Math.max(0, Math.min(100, baseY - (e.clientY - startY) * sensY)),
+      },
+    }))
+  }
+
+  const endDrag = () => { dragRef.current = null }
+
+  const zoomer = (delta: number) =>
+    setPositions(prev => ({
+      ...prev,
+      [active]: { ...prev[active], scale: Math.round(Math.max(0.8, Math.min(3, prev[active].scale + delta)) * 100) / 100 },
+    }))
+
+  // Styles d'image calculés depuis les positions courantes (même logique que la page publique)
+  const posStyle = (zone: 'bandeau' | 'lateral'): React.CSSProperties => {
+    const p = positions[zone]
+    return {
+      objectFit: 'cover',
+      objectPosition: `${p.x}% ${p.y}%`,
+      transform: `scale(${p.scale})`,
+      transformOrigin: `${p.x}% ${p.y}%`,
+    }
+  }
+
+  const sauvegarder = async () => {
+    setSaving(true)
+    await onSauvegarde(positions)
+    setSaving(false)
+    onClose()
+  }
+
+  const meta = [t.langue, t.date_publication].filter(Boolean).join(' · ')
+  const ombre = '0 1px 2px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.65), 0 4px 20px rgba(0,0,0,0.35)'
+  const activePos = positions[active]
+  const isDragging = !!dragRef.current
+  const btnZ: React.CSSProperties = {
+    width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #d6d0c4',
+    background: '#fff', color: '#3a3530', fontSize: '17px', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1,
+  }
+  const badgeStyle: React.CSSProperties = {
+    position: 'absolute', zIndex: 3, background: '#3d6b4f', color: '#fff',
+    fontSize: '8px', fontWeight: 700, padding: '2px 7px', borderRadius: '3px',
+    letterSpacing: '0.07em', textTransform: 'uppercase', pointerEvents: 'none',
+  }
+
+  // Simplification du commentaire editorial pour l'affichage dans la modale
+  const htmlEditorial = t.commentaire_editorial
+    ? (t.commentaire_editorial.startsWith('<')
+        ? t.commentaire_editorial
+        : t.commentaire_editorial.split(/\n+/).filter(Boolean)
+            .map(l => `<p style="color:#2a2520;font-size:13.5px;line-height:1.78;margin:0 0 12px">${l}</p>`)
+            .join(''))
+    : ''
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 2000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#f7f4ef', borderRadius: '10px', padding: '18px 18px 16px', maxWidth: '680px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>
+
+        {/* En-tête */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <h3 style={{ fontFamily: "Georgia, serif", fontSize: '14px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
+            Positionner l'image · <em style={{ color: '#7a7268' }}>{t.nom}</em>
+          </h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '15px', color: '#b0a89e', padding: 0, lineHeight: 1 }}>✕</button>
+        </div>
+        <p style={{ fontSize: '10.5px', color: '#9a958d', margin: '0 0 12px', lineHeight: 1.5 }}>
+          Glissez directement sur le bandeau ou la miniature pour cadrer · + / − pour zoomer
+        </p>
+
+        {/* ════════════════════════════════════════════════════════════
+            APERÇU : rendu identique à la page publique
+            ════════════════════════════════════════════════════════════ */}
+        <div
+          onMouseMove={onMove}
+          onMouseUp={endDrag}
+          onMouseLeave={endDrag}
+          style={{ border: '1px solid #ddd8cf', borderRadius: '8px', overflow: 'hidden', background: '#fff', userSelect: 'none' }}>
+
+          {/* ── Bandeau (copie exacte de BandeauTraduction) ── */}
+          <div
+            ref={bandeauRef}
+            style={{
+              position: 'relative', width: '100%', minHeight: '92px',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              overflow: 'hidden',
+              outline: active === 'bandeau' ? '3px solid #3d6b4f' : '3px solid transparent',
+              outlineOffset: '-3px', transition: 'outline-color 0.12s',
+            }}>
+            <img src={t.photo!} alt="" aria-hidden="true" draggable={false} style={{
+              position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block',
+              filter: 'brightness(0.9)', transition: 'filter 0.2s',
+              ...posStyle('bandeau'),
+            }} />
+            <div aria-hidden="true" style={{
+              position: 'absolute', inset: 0, zIndex: 0,
+              background: 'linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 100%)',
+            }} />
+            <div style={{ position: 'relative', zIndex: 1, flex: 1, minWidth: 0, padding: '18px 14px 18px 20px' }}>
+              <h2 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '17px', fontWeight: 'normal', color: '#f2efe8', margin: 0, lineHeight: 1.25, textShadow: ombre }}>
+                {t.nom}
+              </h2>
+              {meta && (
+                <span style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '11px', fontStyle: 'italic', color: 'rgba(242,239,232,0.72)', display: 'block', marginTop: '4px', textShadow: ombre }}>
+                  {meta}
+                </span>
+              )}
+            </div>
+            <span style={{ position: 'relative', zIndex: 1, fontSize: '10px', flexShrink: 0, marginRight: '18px', color: 'rgba(255,255,255,0.75)', textShadow: ombre }}>▼</span>
+            {/* Calque drag invisible par-dessus tout */}
+            <div onMouseDown={startDrag('bandeau')} style={{ position: 'absolute', inset: 0, zIndex: 2, cursor: isDragging ? 'grabbing' : 'grab' }} />
+            {active === 'bandeau' && <div style={{ ...badgeStyle, top: 6, right: 6 }}>bandeau</div>}
+          </div>
+
+          {/* ── Volet déplié (copie exacte de OngletTraductions) ── */}
+          <div style={{ borderTop: '1px solid #ede9e2', display: 'flex', alignItems: 'stretch' }}>
+
+            {/* Miniature latérale */}
+            <div
+              ref={lateralRef}
+              style={{
+                position: 'relative', width: '140px', flexShrink: 0,
+                borderRight: '1px solid #ede9e2', overflow: 'hidden',
+                outline: active === 'lateral' ? '3px solid #3d6b4f' : '3px solid transparent',
+                outlineOffset: '-3px', transition: 'outline-color 0.12s',
+              }}>
+              <img src={t.photo!} alt="" aria-hidden="true" draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', ...posStyle('lateral') }} />
+              <div onMouseDown={startDrag('lateral')} style={{ position: 'absolute', inset: 0, zIndex: 1, cursor: isDragging ? 'grabbing' : 'grab' }} />
+              {active === 'lateral' && <div style={{ ...badgeStyle, bottom: 6, left: '50%', transform: 'translateX(-50%)' }}>miniature</div>}
+            </div>
+
+            {/* Texte réel */}
+            <div style={{ flex: 1, minWidth: 0, padding: '18px 20px 22px' }}>
+              {t.bio_courte && (
+                <p style={{ fontSize: '12.5px', color: '#5a6b5e', lineHeight: 1.65, margin: '0 0 12px', fontStyle: 'italic', textAlign: 'justify', hyphens: 'auto' }}>
+                  {t.bio_courte}
+                </p>
+              )}
+              {htmlEditorial && (
+                <div className="trad-article" style={{ color: '#2a2520', fontSize: '13.5px', lineHeight: 1.65, textAlign: 'justify', hyphens: 'auto' }}
+                  dangerouslySetInnerHTML={{ __html: htmlEditorial }} />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Contrôles ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px' }}>
+          <p style={{ fontSize: '11px', color: '#9a958d', margin: 0, flex: 1 }}>
+            Zone active : <strong style={{ color: active === 'bandeau' ? '#3d6b4f' : '#9a7e3d' }}>{active === 'bandeau' ? 'bandeau' : 'miniature'}</strong>
+          </p>
+          <button onClick={() => zoomer(-0.1)} style={btnZ}>−</button>
+          <span style={{ fontSize: '12px', fontWeight: 600, color: '#2a3d30', minWidth: '44px', textAlign: 'center' }}>{Math.round(activePos.scale * 100)} %</span>
+          <button onClick={() => zoomer(+0.1)} style={btnZ}>+</button>
+          <button onClick={() => setPositions(prev => ({ ...prev, [active]: { ...POS_DEFAUT } }))}
+            style={{ fontSize: '10px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: '0 4px' }}>
+            Réinit.
+          </button>
+        </div>
+
+        {/* ── Actions ── */}
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '14px', borderTop: '1px solid #e8e3dc', paddingTop: '14px' }}>
+          <button onClick={onClose} style={{ fontSize: '12px', padding: '7px 16px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
+          <button onClick={sauvegarder} disabled={saving} style={{ fontSize: '12px', padding: '7px 18px', borderRadius: '5px', border: 'none', background: saving ? '#a0b8aa' : '#3d6b4f', color: '#fff', cursor: saving ? 'default' : 'pointer', fontWeight: 500 }}>
+            {saving ? 'Enregistrement…' : 'Enregistrer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const labelStyle: React.CSSProperties = { fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em', color: '#9a958d', display: 'block', marginBottom: '4px' }
 
@@ -136,6 +366,33 @@ export default function SectionTraductions({ traductions: init }: { traductions:
   const [importStatut, setImportStatut] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle')
   const [importMsg, setImportMsg] = useState('')
   const fileRef = React.useRef<HTMLInputElement>(null)
+  const photoRefs = React.useRef<Record<string, HTMLInputElement | null>>({})
+  const [photoStatut, setPhotoStatut] = useState<Record<string, 'loading' | 'ok' | 'err'>>({})
+  const [positionModal, setPositionModal] = useState<string | null>(null) // trad_id ouvert
+
+  const sauvegarderPosition = async (tradId: string, pos: PhotoPositions) => {
+    await supabase.from('traductions').update({ photo_position: pos }).eq('trad_id', tradId)
+    setLignes(prev => prev.map(t => t.trad_id === tradId ? { ...t, photo_position: pos } : t))
+    await revaliderTraductions()
+  }
+
+  const uploadPhoto = async (tradId: string, fichier: File, estRemplacement: boolean) => {
+    setPhotoStatut(prev => ({ ...prev, [tradId]: 'loading' }))
+    const formData = new FormData()
+    formData.append('trad_id', tradId)
+    formData.append('fichier', fichier)
+    const headers = await headersAdmin()
+    const res = await fetch('/api/admin/traduction-photo', { method: 'POST', headers, body: formData })
+    const json = await res.json()
+    if (!res.ok) {
+      setPhotoStatut(prev => ({ ...prev, [tradId]: 'err' }))
+      setTimeout(() => setPhotoStatut(prev => ({ ...prev, [tradId]: undefined as any })), 3000)
+      return
+    }
+    setLignes(prev => prev.map(t => t.trad_id === tradId ? { ...t, photo: json.url } : t))
+    setPhotoStatut(prev => ({ ...prev, [tradId]: 'ok' }))
+    setTimeout(() => setPhotoStatut(prev => ({ ...prev, [tradId]: undefined as any })), 3000)
+  }
 
   const CHAMPS_SIMPLES: { key: keyof Traduction; label: string }[] = [
     { key: 'nom', label: 'Nom' },
@@ -155,6 +412,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
     if (error) { setStatut({ id: edition, ok: false, msg: error.message }); return }
     setLignes(prev => prev.map(t => t.trad_id === edition ?{ ...t, ...form } as Traduction : t))
     setStatut({ id: edition, ok: true, msg: 'Enregistré.' })
+    await revaliderTraductions()
     setTimeout(() => { setStatut(null); fermer() }, 1200)
   }
 
@@ -294,6 +552,42 @@ export default function SectionTraductions({ traductions: init }: { traductions:
             </div>
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
               <code style={{ fontSize: '10.5px', background: '#f0ece6', padding: '2px 6px', borderRadius: '3px', color: '#6b6560' }}>{t.trad_id}</code>
+              {photoStatut[t.trad_id] === 'loading' && (
+                <span style={{ fontSize: '10.5px', color: '#9a958d', fontStyle: 'italic' }}>Envoi…</span>
+              )}
+              {photoStatut[t.trad_id] === 'ok' && (
+                <span style={{ fontSize: '10.5px', color: '#3d6b4f', fontWeight: 600 }}>
+                  {t.photo ? '✓ Nouvelle image chargée' : '✓ Image ajoutée'}
+                </span>
+              )}
+              {photoStatut[t.trad_id] === 'err' && (
+                <span style={{ fontSize: '10.5px', color: '#c0562a', fontWeight: 600 }}>✗ Erreur</span>
+              )}
+              <button
+                onClick={() => photoRefs.current[t.trad_id]?.click()}
+                disabled={photoStatut[t.trad_id] === 'loading'}
+                title={t.photo ? 'Remplacer la photo' : 'Ajouter une photo'}
+                style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: `1px solid ${t.photo ? '#3d6b4f' : '#d6d0c4'}`, background: t.photo ? 'rgba(61,107,79,0.08)' : '#fff', color: t.photo ? '#3d6b4f' : '#9a958d', cursor: photoStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+                {t.photo ? '✓ Photo' : '+ Photo'}
+              </button>
+              {t.photo && (
+                <button
+                  onClick={() => setPositionModal(t.trad_id)}
+                  title="Cadrer et zoomer l'image"
+                  style={{ fontSize: '13px', padding: '3px 8px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer', lineHeight: 1 }}>
+                  ⊹
+                </button>
+              )}
+              <input ref={el => { photoRefs.current[t.trad_id] = el }} type="file" accept="image/*" style={{ display: 'none' }}
+                onChange={async e => {
+                  const f = e.target.files?.[0]
+                  if (!f) return
+                  const estRemplacement = !!t.photo
+                  const blob = f.slice(0, f.size, 'image/jpeg')
+                  const fichierRenomme = new File([blob], `${t.trad_id}.jpg`, { type: 'image/jpeg' })
+                  await uploadPhoto(t.trad_id, fichierRenomme, estRemplacement)
+                  e.target.value = ''
+                }} />
               <button onClick={() => edition === t.trad_id ?fermer() : ouvrir(t)}
                 style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer' }}>
                 {edition === t.trad_id ?'Fermer' : 'Modifier'}
@@ -339,6 +633,19 @@ export default function SectionTraductions({ traductions: init }: { traductions:
           )}
         </div>
       ))}
+      {/* Modale positionnement photo */}
+      {positionModal && (() => {
+        const t = lignes.find(l => l.trad_id === positionModal)
+        if (!t?.photo) return null
+        return (
+          <ModalPositionPhoto
+            t={t}
+            posInit={parsePositions(t.photo_position)}
+            onClose={() => setPositionModal(null)}
+            onSauvegarde={pos => sauvegarderPosition(t.trad_id, pos)}
+          />
+        )
+      })()}
     </div>
   )
 }

@@ -42,6 +42,25 @@ const ABREV_ORDRE: Record<string, number> = {
   "1Jn":62,"2Jn":63,"3Jn":64,Jude:65,Ap:66,
 };
 
+const NOM_COMPLET: Record<string, string> = {
+  Gn:"Genèse", Ex:"Exode", Lv:"Lévitique", Nb:"Nombres", Dt:"Deutéronome",
+  Jos:"Josué", Jg:"Juges", Rt:"Ruth", "1S":"1 Samuel", "2S":"2 Samuel",
+  "1R":"1 Rois", "2R":"2 Rois", "1Ch":"1 Chroniques", "2Ch":"2 Chroniques",
+  Esd:"Esdras", Né:"Néhémie", Est:"Esther", Jb:"Job", Ps:"Psaumes",
+  Pr:"Proverbes", Qo:"Qohéleth", Ct:"Cantique des cantiques",
+  Is:"Isaïe", Jr:"Jérémie", Lm:"Lamentations", Ez:"Ézéchiel", Dn:"Daniel",
+  Os:"Osée", Jl:"Joël", Am:"Amos", Ab:"Abdias", Jon:"Jonas", Mi:"Michée",
+  Na:"Nahum", Ha:"Habacuc", So:"Sophonie", Ag:"Aggée", Za:"Zacharie", Ml:"Malachie",
+  Mt:"Évangile selon Matthieu", Mc:"Évangile selon Marc", Lc:"Évangile selon Luc",
+  Jn:"Évangile selon Jean", Ac:"Actes des Apôtres",
+  Rm:"Romains", "1Co":"1 Corinthiens", "2Co":"2 Corinthiens", Ga:"Galates",
+  Ep:"Éphésiens", Ph:"Philippiens", Col:"Colossiens",
+  "1Th":"1 Thessaloniciens", "2Th":"2 Thessaloniciens",
+  "1Tm":"1 Timothée", "2Tm":"2 Timothée", Tt:"Tite", Phm:"Philémon",
+  He:"Hébreux", Jc:"Jacques", "1P":"1 Pierre", "2P":"2 Pierre",
+  "1Jn":"1 Jean", "2Jn":"2 Jean", "3Jn":"3 Jean", Jude:"Jude", Ap:"Apocalypse",
+};
+
 const CODE_PAR_ABREV: Record<string, string> = {
   Gn:"GEN",Ex:"EXO",Lv:"LEV",Nb:"NUM",Dt:"DEU",Jos:"JOS",Jg:"JDG",Rt:"RUT","1S":"1SA","2S":"2SA","1R":"1KI","2R":"2KI",
   "1Ch":"1CH","2Ch":"2CH",Esd:"EZR",Né:"NEH",Est:"EST",Jb:"JOB",Ps:"PSA",Pr:"PRO",Qo:"ECC",Ct:"SNG",
@@ -349,7 +368,7 @@ export default function PrelevementsPage() {
                 const agglomeres = agglomererBibliques(items);
                 const ouvert = groupesOuverts.has(label);
                 return (
-                  <GroupeRepliable key={label} label={<span style={{ textTransform:"uppercase" }}>{items[0].ref_livre ?? label}</span>} count={agglomeres.length} ouvert={ouvert} onToggle={() => toggleGroupe(label)}>
+                  <GroupeRepliable key={label} label={<span style={{ textTransform:"uppercase" }}>{NOM_COMPLET[label] ?? items[0].ref_livre ?? label}</span>} count={agglomeres.length} ouvert={ouvert} onToggle={() => toggleGroupe(label)}>
                     <div style={{ display:"flex", flexDirection:"column", gap:"6px", marginBottom:"4px" }}>
                       {agglomeres.map((g, i) => (
                         <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:"10px", padding:"8px 10px", borderRadius:"5px", background:"#faf8f4", border:"1px solid #ede9e2" }}>

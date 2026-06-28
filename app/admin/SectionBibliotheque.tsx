@@ -239,6 +239,17 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
   const handleExport = async (idOeuvre: string, titre: string) => { setExporting(idOeuvre); await exporterOeuvre(idOeuvre, titre); setExporting(null) }
 
+  const supprimerOeuvre = async (idOeuvre: string, titre: string) => {
+    if (!confirm(`Supprimer définitivement l'œuvre « ${titre } » (${idOeuvre}) ?\n\nCette action supprimera aussi tous ses segments. Elle est irréversible.`)) return
+    const res = await fetch('/api/admin/oeuvre-supprimer', {
+      method: 'POST',
+      headers: await headersAdmin({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ id_oeuvre: idOeuvre }),
+    })
+    if (!res.ok) { const j = await res.json(); alert('Erreur : ' + (j.error ?? 'inconnue')); return }
+    setAuteurs(prev => prev.map(a => ({ ...a, oeuvres: a.oeuvres.filter((o: any) => o.id_oeuvre !== idOeuvre) })))
+  }
+
   const [configOeuvre, setConfigOeuvre] = useState<string | null>(null)
   const [niveauxConfig, setNiveauxConfig] = useState<Record<string, { sommaire: number; corps: number; txtSommaire: boolean[]; txtCorps: boolean[]; afficherNumeros: boolean }>>({})
   const [editionOeuvre, setEditionOeuvre] = useState<string | null>(null)
@@ -539,35 +550,46 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                 {auteur.oeuvres.length === 0 && (
                   <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic', padding: '8px 18px' }}>Aucune œuvre pour cet auteur — utilisez « + Ajouter une œuvre ».</p>
                 )}
-                {[...auteur.oeuvres].sort((a, b) => a.titre.localeCompare(b.titre, 'fr')).map(oeuvre => (
-                  <div key={oeuvre.id_oeuvre} style={{ borderBottom: '1px solid #f0ece6' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 18px 5px 34px' }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: '12px', color: '#3a3530' }}>{oeuvre.titre}</span>
-                      {oeuvre.titre_original && <span style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic' }}>{oeuvre.titre_original}</span>}
-                      {(oeuvre as any).nb_signes && <span style={{ fontSize: '10px', color: '#b0a89e' }}>{Number((oeuvre as any).nb_signes).toLocaleString('fr')} signes</span>}
-                      {resultat?.idOeuvre === oeuvre.id_oeuvre && <span style={{ fontSize: '11px', color: resultat.ok ? '#3d6b4f' : '#c0562a' }}>{resultat.ok ? '✓' : '✗'} {resultat.msg}</span>}
+                {[...auteur.oeuvres].sort((a, b) => a.titre.localeCompare(b.titre, 'fr')).map(oeuvre => {
+                  const titreMatch = rechercheNormalisee && oeuvre.titre.toLowerCase().includes(rechercheNormalisee)
+                  const surbrillance = (texte: string) => {
+                    if (!rechercheNormalisee) return <>{texte}</>
+                    const idx = texte.toLowerCase().indexOf(rechercheNormalisee)
+                    if (idx === -1) return <>{texte}</>
+                    return <>{texte.slice(0, idx)}<mark style={{ background: 'rgba(61,107,79,0.18)', color: 'inherit', borderRadius: '2px', padding: '0 1px' }}>{texte.slice(idx, idx + rechercheNormalisee.length)}</mark>{texte.slice(idx + rechercheNormalisee.length)}</>
+                  }
+                  return (
+                  <div key={oeuvre.id_oeuvre} style={{ borderBottom: '1px solid #f0ece6', background: titreMatch ? 'rgba(61,107,79,0.03)' : undefined }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 18px 4px 34px', gap: '10px', flexWrap: 'nowrap', minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', minWidth: 0, overflow: 'hidden' }}>
+                      <code style={{ fontSize: '9px', background: '#f0ece6', padding: '1px 4px', borderRadius: '3px', color: '#8a8278', flexShrink: 0 }}>{oeuvre.id_oeuvre}</code>
+                      <span style={{ fontSize: '12px', color: '#3a3530', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{surbrillance(oeuvre.titre)}</span>
+                      {oeuvre.titre_original && <span style={{ fontSize: '10.5px', color: '#9a958d', fontStyle: 'italic', whiteSpace: 'nowrap', flexShrink: 0 }}>{surbrillance(oeuvre.titre_original)}</span>}
+                      {resultat?.idOeuvre === oeuvre.id_oeuvre && <span style={{ fontSize: '10.5px', color: resultat.ok ? '#3d6b4f' : '#c0562a', flexShrink: 0 }}>{resultat.ok ? '✓' : '✗'} {resultat.msg}</span>}
                     </div>
-                    <div style={{ display: 'flex', gap: '6px', flexShrink: 0, marginLeft: '16px', alignItems: 'center' }}>
-                      {/* Config niveaux */}
+                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0, alignItems: 'center' }}>
                       <button onClick={() => setConfigOeuvre(configOeuvre === oeuvre.id_oeuvre ? null : oeuvre.id_oeuvre)}
                         title="Configurer les niveaux d'affichage"
-                        style={{ fontSize: '11px', padding: '4px 8px', borderRadius: '4px', border: '1px solid #d6d0c4', background: configOeuvre === oeuvre.id_oeuvre ? '#3d6b4f' : '#fff', color: configOeuvre === oeuvre.id_oeuvre ? '#fff' : '#9a958d', cursor: 'pointer' }}>
-                        ⚙ Niveaux
+                        style={{ fontSize: '10.5px', padding: '3px 7px', borderRadius: '4px', border: '1px solid #d6d0c4', background: configOeuvre === oeuvre.id_oeuvre ? '#3d6b4f' : '#fff', color: configOeuvre === oeuvre.id_oeuvre ? '#fff' : '#9a958d', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        ⚙
                       </button>
-                      <a href={`/oeuvre/${oeuvre.id_oeuvre}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: '#9a958d', textDecoration: 'none', padding: '4px 10px', border: '1px solid #d6d0c4', borderRadius: '4px' }}>Lire ↗</a>
+                      <a href={`/oeuvre/${oeuvre.id_oeuvre}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '10.5px', color: '#9a958d', textDecoration: 'none', padding: '3px 7px', border: '1px solid #d6d0c4', borderRadius: '4px', whiteSpace: 'nowrap' }}>↗</a>
                       <button onClick={() => editionOeuvre === oeuvre.id_oeuvre ? fermerEditionOeuvre() : ouvrirEditionOeuvre(oeuvre)}
-                        style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: editionOeuvre === oeuvre.id_oeuvre ? '#3d6b4f' : '#fff', color: editionOeuvre === oeuvre.id_oeuvre ? '#fff' : '#3d6b4f', cursor: 'pointer', fontWeight: 500 }}>
+                        style={{ fontSize: '10.5px', padding: '3px 8px', borderRadius: '4px', border: '1px solid #d6d0c4', background: editionOeuvre === oeuvre.id_oeuvre ? '#3d6b4f' : '#fff', color: editionOeuvre === oeuvre.id_oeuvre ? '#fff' : '#3d6b4f', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
                         {editionOeuvre === oeuvre.id_oeuvre ? 'Fermer' : 'Modifier'}
                       </button>
                       <button onClick={() => handleExport(oeuvre.id_oeuvre, oeuvre.titre)} disabled={exporting === oeuvre.id_oeuvre}
-                        style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: exporting === oeuvre.id_oeuvre ? '#e4dfd8' : '#3d6b4f', color: exporting === oeuvre.id_oeuvre ? '#9a958d' : '#fff', fontWeight: 500 }}>
-                        {exporting === oeuvre.id_oeuvre ? 'Export…' : 'Exporter CSV'}
+                        style={{ fontSize: '10.5px', padding: '3px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: exporting === oeuvre.id_oeuvre ? '#e4dfd8' : '#3d6b4f', color: exporting === oeuvre.id_oeuvre ? '#9a958d' : '#fff', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                        {exporting === oeuvre.id_oeuvre ? 'Export…' : 'CSV ↓'}
                       </button>
                       <button onClick={() => { setResultat(null); inputRefs.current[oeuvre.id_oeuvre]?.click() }}
-                        style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer', fontWeight: 500 }}>Importer CSV</button>
+                        style={{ fontSize: '10.5px', padding: '3px 8px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>CSV ↑</button>
                       <input ref={el => { inputRefs.current[oeuvre.id_oeuvre] = el }} type="file" accept=".csv" style={{ display: 'none' }}
                         onChange={e => { const f = e.target.files?.[0]; if (f) handleFichierChoisi(oeuvre.id_oeuvre, f) }} />
+                      <button onClick={() => supprimerOeuvre(oeuvre.id_oeuvre, oeuvre.titre)}
+                        style={{ fontSize: '10.5px', padding: '3px 8px', borderRadius: '4px', border: '1px solid #e4c4b8', background: '#fff', color: '#c0562a', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                        ✕
+                      </button>
                     </div>
                   </div>
 
@@ -594,7 +616,8 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     </div>
                   )}
                   </div>
-                ))}
+                )
+                })}
               </div>
             )}
           </div>

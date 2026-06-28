@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-export const CATEGORIES_ESSAIS = ['Exégèse', 'Théologie', 'Spiritualité', 'Patristique', 'Philosophie', 'Histoire', 'Littérature', 'Poésie', 'Méditation']
+export const CATEGORIES_ESSAIS = ['Exégèse', 'Fiction', 'Histoire', 'Méditation', 'Patristique', 'Philosophie', 'Poésie', 'Spiritualité', 'Théologie']
 const RESUME_MIN = 50
 const RESUME_MAX = 200
 

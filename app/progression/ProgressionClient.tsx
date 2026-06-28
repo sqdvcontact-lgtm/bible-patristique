@@ -368,6 +368,7 @@ export default function ProgressionClient() {
         <section style={{
           background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px',
           padding: '20px 22px', marginBottom: '24px', boxShadow: '0 8px 28px rgba(61,107,79,0.06)',
+          position: 'sticky', top: '56px', zIndex: 10,
         }}>
           <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '22px', alignItems: 'center' }}>
             <div style={{

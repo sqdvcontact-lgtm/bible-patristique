@@ -177,8 +177,9 @@ function OngletCommunaute({
             const couleurs = couleurRang(rang.rang)
             return (
               <section key={auteur} style={{ background: '#fff', borderRadius: '8px', border: '1px solid #e4dfd8', overflow: 'hidden' }}>
-                <div style={{ padding: '12px 16px 8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '13px', fontWeight: 700, color: '#3d6b4f', letterSpacing: '0.05em', textTransform: 'uppercase', margin: 0 }}>
+                <div style={{ padding: '10px 16px 9px', display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(to right, rgba(61,107,79,0.07) 0%, transparent 100%)', borderBottom: '1px solid rgba(61,107,79,0.10)' }}>
+                  <span style={{ width: '3px', height: '13px', borderRadius: '2px', background: '#3d6b4f', flexShrink: 0, display: 'inline-block' }} />
+                  <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '12px', fontWeight: 700, color: '#2a4a36', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
                     {auteur}
                   </h2>
                   <span style={{ fontSize: '8.5px', fontWeight: 700, color: couleurs.texte, background: couleurs.fond, padding: '1px 6px', borderRadius: '4px', letterSpacing: '0.03em' }}>{rang.rang}</span>
@@ -248,7 +249,7 @@ function OngletMesEcrits({
   const [maintenant, setMaintenant] = useState(Date.now())
 
   useEffect(() => {
-    const timer = window.setInterval(() => setMaintenant(Date.now()), 30000)
+    const timer = window.setInterval(() => setMaintenant(Date.now()), 1000)
     return () => window.clearInterval(timer)
   }, [])
 

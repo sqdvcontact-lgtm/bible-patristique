@@ -75,7 +75,10 @@ export default function SectionCommentaires({
               {/* Actions */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                 {statut === 'loading' ? (
-                  <span style={{ fontSize: '11.5px', color: '#9a958d' }}>…</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: '#9a958d' }}>
+                    <span style={{ width: '12px', height: '12px', border: '2px solid #d6d0c4', borderTopColor: '#3d6b4f', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
+                    En cours…
+                  </span>
                 ) : statut === 'valide' ? (
                   <span style={{ fontSize: '11.5px', color: '#3d6b4f', fontWeight: 600 }}>✓ Publié</span>
                 ) : statut === 'rejete' ? (

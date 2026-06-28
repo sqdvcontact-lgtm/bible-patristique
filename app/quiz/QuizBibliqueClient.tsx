@@ -1,28 +1,22 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react'
 import { supabase } from '@/app/lib/supabase'
 
-type Testament = 'Ancien Testament' | 'Nouveau Testament'
-type Etape = 'testament' | 'livre' | 'resultat'
+/* ── Types ──────────────────────────────────────────────────────────────── */
+type Mode = 'biblique' | 'patristique'
+type EtapeBiblique = 'testament' | 'livre' | 'resultat'
+type EtapePatristique = 'auteur' | 'oeuvre' | 'resultat'
 type Resultat = { label: string; points: number; detail: string; reponse?: string }
-type VersetQuiz = {
-  id_verset: string
-  livre: string
-  chapitre: number
-  verset: number
-  ref: string
-  TR0001: string | null
-}
-type LivreBiblique = {
-  code: string
-  nom: string
-  testament: Testament
-  famille: FamilleCode
-  ordre: number
-}
+type VersetQuiz = { id_verset: string; livre: string; chapitre: number; verset: number; ref: string; TR0001: string | null }
+type SegmentQuiz = { id: number; texte: string; id_oeuvre: string; id_auteur: string; nomAuteur: string; titreOeuvre: string; siecle: string | null }
+type LivreBiblique = { code: string; nom: string; testament: Testament; famille: FamilleCode; ordre: number }
+type Testament = 'Ancien Testament' | 'Nouveau Testament'
 type FamilleCode = 'pentateuque' | 'historiques-at' | 'poetiques' | 'grands-prophetes' | 'petits-prophetes' | 'evangiles-actes' | 'paul' | 'catholiques' | 'apocalypse'
+type Auteur = { id_auteur: string; nom: string; siecle: string | null }
+type Oeuvre = { id_oeuvre: string; titre: string; id_auteur: string }
 
+/* ── Données bibliques ───────────────────────────────────────────────────── */
 const LIVRES: LivreBiblique[] = [
   ['GEN','Genèse','Ancien Testament','pentateuque',1], ['EXO','Exode','Ancien Testament','pentateuque',2], ['LEV','Lévitique','Ancien Testament','pentateuque',3], ['NUM','Nombres','Ancien Testament','pentateuque',4], ['DEU','Deutéronome','Ancien Testament','pentateuque',5],
   ['JOS','Josué','Ancien Testament','historiques-at',6], ['JDG','Juges','Ancien Testament','historiques-at',7], ['RUT','Ruth','Ancien Testament','historiques-at',8], ['1SA','1 Samuel','Ancien Testament','historiques-at',9], ['2SA','2 Samuel','Ancien Testament','historiques-at',10], ['1KI','1 Rois','Ancien Testament','historiques-at',11], ['2KI','2 Rois','Ancien Testament','historiques-at',12], ['1CH','1 Chroniques','Ancien Testament','historiques-at',13], ['2CH','2 Chroniques','Ancien Testament','historiques-at',14], ['EZR','Esdras','Ancien Testament','historiques-at',15], ['NEH','Néhémie','Ancien Testament','historiques-at',16], ['EST','Esther','Ancien Testament','historiques-at',17],
@@ -36,45 +30,39 @@ const LIVRES: LivreBiblique[] = [
 ].map(([code, nom, testament, famille, ordre]) => ({ code, nom, testament, famille, ordre } as LivreBiblique))
 
 const livreParCode = new Map(LIVRES.map(l => [l.code, l]))
+
 const familles: Record<FamilleCode, { titre: string; messages: string[] }> = {
-  pentateuque: { titre: 'Pentateuque', messages: ['Presque ! Le verset se trouve bien dans le Pentateuque, mais vous n’avez pas nommé le bon livre.', 'Très chaud : on reste parmi les cinq premiers livres.'] },
-  'historiques-at': { titre: 'Livres historiques', messages: ['Il est bien question de l’histoire d’Israël, mais vous n’avez pas nommé le bon livre !', 'Vous êtes dans la bonne mémoire historique, mais pas dans le bon livre.'] },
-  poetiques: { titre: 'Livres poétiques', messages: ['Vous avez perçu la substance poétique de l’ouvrage, mais ce n’est pas le bon livre.', 'L’intuition est bonne : c’est bien le monde sapiential et poétique.'] },
-  'petits-prophetes': { titre: 'Petits prophètes', messages: ['L’auteur est un tout petit prophète, oui, mais vous ne l’avez pas nommé correctement !', 'On entend bien un petit prophète, mais pas celui-là.'] },
-  'grands-prophetes': { titre: 'Grands prophètes', messages: ['L’auteur est un grand prophète, oui, mais vous ne l’avez pas nommé correctement !', 'Vous êtes dans le grand souffle prophétique, mais pas au bon endroit.'] },
-  'evangiles-actes': { titre: 'Évangiles et Actes', messages: ['Pas loin. L’un des quatre évangélistes a bien écrit ce verset !', 'Vous êtes du côté de l’Évangile et des Actes, mais ce livre n’est pas le bon.'] },
-  paul: { titre: 'Épîtres de Paul', messages: ['Oui, c’est bien Paul, mais pas cette épître.', 'Vous avez reconnu la voix paulinienne, mais pas la bonne lettre.'] },
-  catholiques: { titre: 'Épîtres catholiques ou générales', messages: ['Oui, c’est bien une épître, mais l’auteur n’est pas Paul.', 'Bonne famille d’épîtres, mauvais livre.'] },
+  pentateuque: { titre: 'Pentateuque', messages: ["Presque ! Le verset se trouve bien dans le Pentateuque, mais vous n'avez pas nommé le bon livre."] },
+  'historiques-at': { titre: 'Livres historiques', messages: ["Il est bien question de l'histoire d'Israël, mais vous n'avez pas nommé le bon livre."] },
+  poetiques: { titre: 'Livres poétiques', messages: ["Vous avez perçu la substance poétique de l'ouvrage, mais ce n'est pas le bon livre."] },
+  'petits-prophetes': { titre: 'Petits prophètes', messages: ["L'auteur est un tout petit prophète, mais vous ne l'avez pas nommé correctement."] },
+  'grands-prophetes': { titre: 'Grands prophètes', messages: ["L'auteur est un grand prophète, mais vous ne l'avez pas nommé correctement."] },
+  'evangiles-actes': { titre: 'Évangiles et Actes', messages: ["L'un des quatre évangélistes a bien écrit ce verset !"] },
+  paul: { titre: 'Épîtres de Paul', messages: ["Oui, c'est bien Paul, mais pas cette épître."] },
+  catholiques: { titre: 'Épîtres catholiques', messages: ["Bonne famille d'épîtres, mauvais livre."] },
   apocalypse: { titre: 'Apocalypse', messages: ['Vous tournez autour de Patmos, mais il faut nommer le livre exact.'] },
 }
 
 const aliases: Record<string, string> = {
-  gn: 'GEN', gen: 'GEN', genese: 'GEN',
-  ex: 'EXO', exo: 'EXO', exode: 'EXO',
-  lv: 'LEV', lev: 'LEV', levitique: 'LEV',
-  nb: 'NUM', nom: 'NUM', nombres: 'NUM',
-  dt: 'DEU', deut: 'DEU', deuteronome: 'DEU',
-  jos: 'JOS', josue: 'JOS', jg: 'JDG', juges: 'JDG', rt: 'RUT', ruth: 'RUT',
-  '1s': '1SA', '1sa': '1SA', '1samuel': '1SA', '2s': '2SA', '2sa': '2SA', '2samuel': '2SA',
-  '1r': '1KI', '1rois': '1KI', '2r': '2KI', '2rois': '2KI', '1ch': '1CH', '1chroniques': '1CH', '2ch': '2CH', '2chroniques': '2CH',
-  esd: 'EZR', esdras: 'EZR', ne: 'NEH', nehemie: 'NEH', est: 'EST', esther: 'EST',
-  job: 'JOB', ps: 'PSA', psaume: 'PSA', psaumes: 'PSA', pr: 'PRO', proverbes: 'PRO', qo: 'ECC', ec: 'ECC', ecclesiaste: 'ECC', ct: 'SNG', cantique: 'SNG',
-  is: 'ISA', isaie: 'ISA', esaie: 'ISA', jer: 'JER', jeremie: 'JER', lm: 'LAM', lamentations: 'LAM', ez: 'EZK', ezechiel: 'EZK', dan: 'DAN', daniel: 'DAN',
-  os: 'HOS', osee: 'HOS', jl: 'JOL', joel: 'JOL', am: 'AMO', amos: 'AMO', ab: 'OBA', abdias: 'OBA', jon: 'JON', jonas: 'JON', mi: 'MIC', michee: 'MIC', na: 'NAM', nahum: 'NAM', ha: 'HAB', habacuc: 'HAB', so: 'ZEP', sophonie: 'ZEP', ag: 'HAG', aggee: 'HAG', za: 'ZEC', zacharie: 'ZEC', ml: 'MAL', malachie: 'MAL',
-  mt: 'MAT', matthieu: 'MAT', mc: 'MRK', marc: 'MRK', lc: 'LUK', luc: 'LUK', jn: 'JHN', jean: 'JHN', ac: 'ACT', actes: 'ACT',
-  rm: 'ROM', romains: 'ROM', '1co': '1CO', '1corinthiens': '1CO', '2co': '2CO', '2corinthiens': '2CO', ga: 'GAL', galates: 'GAL', ep: 'EPH', ephesiens: 'EPH', ph: 'PHP', philippiens: 'PHP', col: 'COL', colossiens: 'COL', '1th': '1TH', '1thessaloniciens': '1TH', '2th': '2TH', '2thessaloniciens': '2TH', '1tm': '1TI', '1timothee': '1TI', '2tm': '2TI', '2timothee': '2TI', tt: 'TIT', tite: 'TIT', phm: 'PHM', philemon: 'PHM',
-  he: 'HEB', hebreux: 'HEB', jc: 'JAS', jacques: 'JAS', '1p': '1PE', '1pierre': '1PE', '2p': '2PE', '2pierre': '2PE', '1jn': '1JN', '1jean': '1JN', '2jn': '2JN', '2jean': '2JN', '3jn': '3JN', '3jean': '3JN', jude: 'JUD', ap: 'REV', apocalypse: 'REV',
+  gn:'GEN',gen:'GEN',genese:'GEN',ex:'EXO',exo:'EXO',exode:'EXO',lv:'LEV',lev:'LEV',levitique:'LEV',nb:'NUM',nom:'NUM',nombres:'NUM',dt:'DEU',deut:'DEU',deuteronome:'DEU',
+  jos:'JOS',josue:'JOS',jg:'JDG',juges:'JDG',rt:'RUT',ruth:'RUT','1s':'1SA','1sa':'1SA','1samuel':'1SA','2s':'2SA','2sa':'2SA','2samuel':'2SA',
+  '1r':'1KI','1rois':'1KI','2r':'2KI','2rois':'2KI','1ch':'1CH','1chroniques':'1CH','2ch':'2CH','2chroniques':'2CH',esd:'EZR',esdras:'EZR',ne:'NEH',nehemie:'NEH',est:'EST',esther:'EST',
+  job:'JOB',ps:'PSA',psaume:'PSA',psaumes:'PSA',pr:'PRO',proverbes:'PRO',qo:'ECC',ec:'ECC',ecclesiaste:'ECC',ct:'SNG',cantique:'SNG',
+  is:'ISA',isaie:'ISA',esaie:'ISA',jer:'JER',jeremie:'JER',lm:'LAM',lamentations:'LAM',ez:'EZK',ezechiel:'EZK',dan:'DAN',daniel:'DAN',
+  os:'HOS',osee:'HOS',jl:'JOL',joel:'JOL',am:'AMO',amos:'AMO',ab:'OBA',abdias:'OBA',jon:'JON',jonas:'JON',mi:'MIC',michee:'MIC',na:'NAM',nahum:'NAM',ha:'HAB',habacuc:'HAB',so:'ZEP',sophonie:'ZEP',ag:'HAG',aggee:'HAG',za:'ZEC',zacharie:'ZEC',ml:'MAL',malachie:'MAL',
+  mt:'MAT',matthieu:'MAT',mc:'MRK',marc:'MRK',lc:'LUK',luc:'LUK',jn:'JHN',jean:'JHN',ac:'ACT',actes:'ACT',
+  rm:'ROM',romains:'ROM','1co':'1CO','1corinthiens':'1CO','2co':'2CO','2corinthiens':'2CO',ga:'GAL',galates:'GAL',ep:'EPH',ephesiens:'EPH',ph:'PHP',philippiens:'PHP',col:'COL',colossiens:'COL','1th':'1TH','1thessaloniciens':'1TH','2th':'2TH','2thessaloniciens':'2TH','1tm':'1TI','1timothee':'1TI','2tm':'2TI','2timothee':'2TI',tt:'TIT',tite:'TIT',phm:'PHM',philemon:'PHM',
+  he:'HEB',hebreux:'HEB',jc:'JAS',jacques:'JAS','1p':'1PE','1pierre':'1PE','2p':'2PE','2pierre':'2PE','1jn':'1JN','1jean':'1JN','2jn':'2JN','2jean':'2JN','3jn':'3JN','3jean':'3JN',jude:'JUD',ap:'REV',apocalypse:'REV',
 }
 
+/* ── Helpers ─────────────────────────────────────────────────────────────── */
 function normaliser(s: string) {
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’']/g, '').replace(/\s+/g, ' ').trim()
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/['']/g, '').replace(/\s+/g, ' ').trim()
 }
-
 function codeDepuisNom(s: string) {
   const n = normaliser(s).replace(/\s/g, '')
   return aliases[n] ?? LIVRES.find(l => normaliser(l.nom).replace(/\s/g, '') === n)?.code ?? null
 }
-
 function parserReference(s: string) {
   const match = normaliser(s).match(/^(.+?)\s+(\d+)\s*[,.:]\s*(\d+)$/)
   if (!match) return null
@@ -82,134 +70,256 @@ function parserReference(s: string) {
   if (!code) return null
   return { code, chapitre: Number(match[2]), verset: Number(match[3]) }
 }
-
 function refLisible(v: VersetQuiz) {
-  const livre = livreParCode.get(v.livre)?.nom ?? v.livre
-  return `${livre} ${v.chapitre}, ${v.verset}`
+  return `${livreParCode.get(v.livre)?.nom ?? v.livre} ${v.chapitre}, ${v.verset}`
+}
+function melanger<T>(arr: T[]): T[] { return [...arr].sort(() => Math.random() - 0.5) }
+function messageScore(score: number) {
+  if (score >= 90) return 'Jacob file vers le sommet.'
+  if (score >= 55) return 'Belle ascension.'
+  if (score >= 25) return "On commence à voir l'échelle."
+  return 'Premier barreau.'
 }
 
-function melanger<T>(items: T[]): T[] {
-  return [...items].sort(() => Math.random() - 0.5)
-}
-
+/* ── Chargeurs asynchrones ───────────────────────────────────────────────── */
 async function chargerVersetAleatoire(): Promise<VersetQuiz> {
   const base = () => supabase.from('versets').select('id_verset, ref, livre, chapitre, verset, TR0001', { count: 'exact' }).not('TR0001', 'is', null)
-  let countRes = await base().or('quiz_exclu.is.null,quiz_exclu.eq.false').limit(1)
-  let avecExclusion = true
-  if (countRes.error) {
-    avecExclusion = false
-    countRes = await base().limit(1)
-  }
-  const count = countRes.count ?? 0
+  let res = await base().or('quiz_exclu.is.null,quiz_exclu.eq.false').limit(1)
+  const avecExclusion = !res.error
+  const count = res.count ?? 0
   if (count <= 0) throw new Error('Aucun verset disponible.')
-
-  for (let essai = 0; essai < 10; essai++) {
+  for (let i = 0; i < 10; i++) {
     const offset = Math.floor(Math.random() * count)
     let q = base().range(offset, offset)
     if (avecExclusion) q = q.or('quiz_exclu.is.null,quiz_exclu.eq.false') as typeof q
     const { data, error } = await q
     if (error) throw error
     const v = data?.[0] as VersetQuiz | undefined
-    if (v && (v.TR0001 ?? '').replace(/\s+/g, ' ').trim().length >= 35) return v
+    if (v && (v.TR0001 ?? '').trim().length >= 35) return v
   }
-  throw new Error('Aucun verset assez substantiel trouvé.')
+  throw new Error('Aucun verset convenable trouvé.')
 }
 
-function messageScore(score: number) {
-  if (score >= 90) return 'Jacob file vers le sommet.'
-  if (score >= 55) return 'Belle ascension biblique.'
-  if (score >= 25) return 'On commence à voir l’échelle.'
-  return 'Premier barreau, et c’est déjà quelque chose.'
+async function chargerSegmentAleatoire(): Promise<SegmentQuiz> {
+  const { count } = await supabase.from('segments')
+    .select('id', { count: 'exact', head: true })
+    .not('segment_texte', 'is', null)
+    .not('id_oeuvre', 'is', null)
+  if (!count || count === 0) throw new Error('Aucun segment disponible.')
+  for (let i = 0; i < 10; i++) {
+    const offset = Math.floor(Math.random() * count)
+    const { data } = await supabase.from('segments')
+      .select('id, segment_texte, id_oeuvre, oeuvres(id_oeuvre, titre, id_auteur, auteurs(id_auteur, nom, siecle))')
+      .not('segment_texte', 'is', null)
+      .range(offset, offset)
+    const s = data?.[0] as any
+    if (!s || !s.segment_texte || s.segment_texte.trim().length < 80) continue
+    if (!s.oeuvres?.auteurs) continue
+    return {
+      id: s.id,
+      texte: s.segment_texte,
+      id_oeuvre: s.id_oeuvre,
+      id_auteur: s.oeuvres.id_auteur,
+      nomAuteur: s.oeuvres.auteurs.nom,
+      titreOeuvre: s.oeuvres.titre,
+      siecle: s.oeuvres.auteurs.siecle ?? null,
+    }
+  }
+  throw new Error('Aucun segment convenable trouvé.')
 }
 
+/* ── Composant principal ────────────────────────────────────────────────── */
 export default function QuizBibliqueClient() {
+  const [mode, setMode] = useState<Mode>('biblique')
+
+  // Biblique
   const [verset, setVerset] = useState<VersetQuiz | null>(null)
-  const [etape, setEtape] = useState<Etape>('testament')
-  const [resultats, setResultats] = useState<Resultat[]>([])
-  const [chargement, setChargement] = useState(true)
-  const [erreur, setErreur] = useState<string | null>(null)
+  const [etapeB, setEtapeB] = useState<EtapeBiblique>('testament')
   const [saisieLivre, setSaisieLivre] = useState('')
   const [essaisLivres, setEssaisLivres] = useState<LivreBiblique[]>([])
   const [messageChaud, setMessageChaud] = useState<string | null>(null)
   const [reponseExacte, setReponseExacte] = useState('')
+
+  // Patristique
+  const [segment, setSegment] = useState<SegmentQuiz | null>(null)
+  const [etapeP, setEtapeP] = useState<EtapePatristique>('auteur')
+  const [saisieAuteur, setSaisieAuteur] = useState('')
+  const [saisieOeuvre, setSaisieOeuvre] = useState('')
+  const [essaisAuteurs, setEssaisAuteurs] = useState<Auteur[]>([])
+  const [essaisOeuvres, setEssaisOeuvres] = useState<Oeuvre[]>([])
+  const [auteurConfirme, setAuteurConfirme] = useState<Auteur | null>(null)
+  const [suggestionsAuteur, setSuggestionsAuteur] = useState<Auteur[]>([])
+  const [suggestionsOeuvre, setSuggestionsOeuvre] = useState<Oeuvre[]>([])
+  const [messageChaudP, setMessageChaudP] = useState<string | null>(null)
+
+  // Partagé
+  const [resultats, setResultats] = useState<Resultat[]>([])
+  const [chargement, setChargement] = useState(true)
+  const [erreur, setErreur] = useState<string | null>(null)
   const [flashScore, setFlashScore] = useState(false)
   const [signalementOuvert, setSignalementOuvert] = useState(false)
   const [raisonSignalement, setRaisonSignalement] = useState('verset trop générique')
   const [commentaireSignalement, setCommentaireSignalement] = useState('')
   const [statutSignalement, setStatutSignalement] = useState<'idle'|'sending'|'ok'|'err'>('idle')
 
-  const livreCorrect = verset ? livreParCode.get(verset.livre) : null
   const score = resultats.reduce((s, r) => s + r.points, 0)
+  const livreCorrect = verset ? livreParCode.get(verset.livre) : null
+
   const suggestionsLivre = useMemo(() => {
     const q = normaliser(saisieLivre)
     if (!q) return []
     return LIVRES.filter(l => normaliser(l.nom).startsWith(q) && !essaisLivres.some(e => e.code === l.code)).slice(0, 6)
   }, [saisieLivre, essaisLivres])
 
-  const celebrer = (points: number) => {
-    if (points <= 0) return
+  // Debounce auteur search
+  useEffect(() => {
+    const q = saisieAuteur.trim()
+    if (q.length < 2) { setSuggestionsAuteur([]); return }
+    const t = setTimeout(async () => {
+      const { data } = await supabase.from('auteurs').select('id_auteur, nom, siecle').ilike('nom', `%${q}%`).limit(7)
+      setSuggestionsAuteur(((data ?? []) as Auteur[]).filter(a => !essaisAuteurs.some(e => e.id_auteur === a.id_auteur)))
+    }, 250)
+    return () => clearTimeout(t)
+  }, [saisieAuteur, essaisAuteurs])
+
+  // Debounce oeuvre search
+  useEffect(() => {
+    const q = saisieOeuvre.trim()
+    if (q.length < 2) { setSuggestionsOeuvre([]); return }
+    const t = setTimeout(async () => {
+      let req = supabase.from('oeuvres').select('id_oeuvre, titre, id_auteur').ilike('titre', `%${q}%`).limit(7)
+      if (auteurConfirme) req = req.eq('id_auteur', auteurConfirme.id_auteur)
+      const { data } = await req
+      setSuggestionsOeuvre(((data ?? []) as Oeuvre[]).filter(o => !essaisOeuvres.some(e => e.id_oeuvre === o.id_oeuvre)))
+    }, 250)
+    return () => clearTimeout(t)
+  }, [saisieOeuvre, essaisOeuvres, auteurConfirme])
+
+  const celebrer = (pts: number) => {
+    if (pts <= 0) return
     setFlashScore(true)
     window.setTimeout(() => setFlashScore(false), 900)
   }
 
-  const ajouterResultat = (r: Resultat, prochaine: Etape) => {
+  const ajouterResultat = (r: Resultat) => {
     setResultats(prev => [...prev, r])
-    setEtape(prochaine)
     celebrer(r.points)
   }
 
+  /* ── Nouveau verset (biblique) ─────────────────────────────────────────── */
   const nouveauVerset = async () => {
-    setChargement(true); setErreur(null); setResultats([]); setEtape('testament'); setEssaisLivres([])
-    setSaisieLivre(''); setMessageChaud(null); setReponseExacte(''); setSignalementOuvert(false); setStatutSignalement('idle')
-    try {
-      setVerset(await chargerVersetAleatoire())
-    } catch (e: any) {
-      setErreur(e?.message ?? 'Impossible de charger un verset.')
-    } finally {
-      setChargement(false)
-    }
+    setChargement(true); setErreur(null); setResultats([]); setEtapeB('testament')
+    setEssaisLivres([]); setSaisieLivre(''); setMessageChaud(null)
+    setReponseExacte(''); setSignalementOuvert(false); setStatutSignalement('idle')
+    try { setVerset(await chargerVersetAleatoire()) }
+    catch (e: any) { setErreur(e?.message ?? 'Impossible de charger un verset.') }
+    finally { setChargement(false) }
+  }
+
+  /* ── Nouveau segment (patristique) ────────────────────────────────────── */
+  const nouveauSegment = async () => {
+    setChargement(true); setErreur(null); setResultats([]); setEtapeP('auteur')
+    setEssaisAuteurs([]); setEssaisOeuvres([]); setSaisieAuteur(''); setSaisieOeuvre('')
+    setAuteurConfirme(null); setMessageChaudP(null); setSuggestionsAuteur([]); setSuggestionsOeuvre([])
+    try { setSegment(await chargerSegmentAleatoire()) }
+    catch (e: any) { setErreur(e?.message ?? 'Impossible de charger un extrait.') }
+    finally { setChargement(false) }
+  }
+
+  const changerMode = (m: Mode) => {
+    setMode(m)
+    setResultats([]); setChargement(true); setErreur(null)
+    if (m === 'biblique') nouveauVerset()
+    else nouveauSegment()
   }
 
   useEffect(() => { nouveauVerset() }, [])
 
+  /* ── Actions bibliques ─────────────────────────────────────────────────── */
   const repondreTestament = (choix: Testament) => {
     if (!livreCorrect) return
     const ok = choix === livreCorrect.testament
-    ajouterResultat({ label: 'Testament', points: ok ? 8 : 0, reponse: choix, detail: `Réponse : ${livreCorrect.testament}` }, 'livre')
+    ajouterResultat({ label: 'Testament', points: ok ? 8 : 0, reponse: choix, detail: `Réponse : ${livreCorrect.testament}` })
+    setEtapeB('livre')
   }
 
   const proposerLivre = (livre?: LivreBiblique) => {
-    if (!livreCorrect || etape === 'resultat') return
+    if (!livreCorrect || etapeB === 'resultat') return
     const choisi = livre ?? LIVRES.find(l => l.code === codeDepuisNom(saisieLivre))
     if (!choisi || essaisLivres.some(l => l.code === choisi.code) || essaisLivres.length >= 5) return
-    const nouvelIndex = essaisLivres.length + 1
+    const idx = essaisLivres.length + 1
     setEssaisLivres(prev => [...prev, choisi])
-    setSaisieLivre('')
+    setSaisieLivre(''); setSuggestionsLivreVisible(false)
 
     if (choisi.code === livreCorrect.code) {
-      const points = Math.max(12, 42 - (nouvelIndex - 1) * 6)
+      const pts = Math.max(12, 42 - (idx - 1) * 6)
       setMessageChaud(null)
-      ajouterResultat({ label: `Livre, essai ${nouvelIndex}`, points, reponse: choisi.nom, detail: `Réponse : ${livreCorrect.nom}` }, 'livre')
+      ajouterResultat({ label: `Livre, essai ${idx}`, points: pts, reponse: choisi.nom, detail: `Réponse : ${livreCorrect.nom}` })
+      setEtapeB('resultat')
       return
     }
-
     if (choisi.famille === livreCorrect.famille) {
-      const variants = familles[choisi.famille].messages
-      setMessageChaud(variants[(nouvelIndex - 1) % variants.length])
-    } else {
-      setMessageChaud(null)
-    }
-    setResultats(prev => [...prev, { label: `Livre, essai ${nouvelIndex}`, points: 0, reponse: choisi.nom, detail: `Réponse : ${livreCorrect.nom}` }])
-    if (nouvelIndex >= 5) setEtape('resultat')
+      const msgs = familles[choisi.famille].messages
+      setMessageChaud(msgs[(idx - 1) % msgs.length])
+    } else setMessageChaud(null)
+    ajouterResultat({ label: `Livre, essai ${idx}`, points: 0, reponse: choisi.nom, detail: `Réponse : ${livreCorrect.nom}` })
+    if (idx >= 5) setEtapeB('resultat')
   }
 
   const validerExact = () => {
     if (!verset) return
     const ref = parserReference(reponseExacte)
     const ok = !!ref && ref.code === verset.livre && ref.chapitre === verset.chapitre && ref.verset === verset.verset
-    ajouterResultat({ label: 'Je sais !', points: ok ? 50 : 0, reponse: reponseExacte, detail: `Réponse : ${refLisible(verset)}` }, 'resultat')
+    ajouterResultat({ label: 'Je sais !', points: ok ? 50 : 0, reponse: reponseExacte, detail: `Réponse : ${refLisible(verset)}` })
+    setEtapeB('resultat')
   }
 
+  /* ── Actions patristiques ──────────────────────────────────────────────── */
+  const proposerAuteur = (auteur?: Auteur) => {
+    if (!segment || etapeP === 'resultat') return
+    const choisi = auteur ?? (suggestionsAuteur.find(a => normaliser(a.nom) === normaliser(saisieAuteur)) ?? suggestionsAuteur[0])
+    if (!choisi || essaisAuteurs.some(a => a.id_auteur === choisi.id_auteur) || essaisAuteurs.length >= 5) return
+    const idx = essaisAuteurs.length + 1
+    const nouvellesEssais = [...essaisAuteurs, choisi]
+    setEssaisAuteurs(nouvellesEssais)
+    setSaisieAuteur(''); setSuggestionsAuteur([])
+
+    if (choisi.id_auteur === segment.id_auteur) {
+      const pts = [35, 22, 12, 5, 2][idx - 1] ?? 0
+      setMessageChaudP(null)
+      setAuteurConfirme(choisi)
+      ajouterResultat({ label: `Père de l'Église, essai ${idx}`, points: pts, reponse: choisi.nom, detail: `Réponse : ${segment.nomAuteur}` })
+      setEtapeP('oeuvre')
+      return
+    }
+
+    // Même siècle → indice chaud
+    if (segment.siecle && choisi.siecle === segment.siecle) {
+      setMessageChaudP(`Vous êtes dans le bon siècle (${segment.siecle}), mais ce n'est pas le bon père de l'Église.`)
+    } else setMessageChaudP(null)
+    ajouterResultat({ label: `Père de l'Église, essai ${idx}`, points: 0, reponse: choisi.nom, detail: `Réponse : ${segment.nomAuteur}` })
+    if (idx >= 5) setEtapeP('oeuvre') // continuer quand même l'oeuvre si auteur épuisé
+  }
+
+  const proposerOeuvre = (oeuvre?: Oeuvre) => {
+    if (!segment || etapeP !== 'oeuvre') return
+    const choisi = oeuvre ?? (suggestionsOeuvre.find(o => normaliser(o.titre) === normaliser(saisieOeuvre)) ?? suggestionsOeuvre[0])
+    if (!choisi || essaisOeuvres.some(o => o.id_oeuvre === choisi.id_oeuvre) || essaisOeuvres.length >= 5) return
+    const idx = essaisOeuvres.length + 1
+    setEssaisOeuvres(prev => [...prev, choisi])
+    setSaisieOeuvre(''); setSuggestionsOeuvre([])
+
+    if (choisi.id_oeuvre === segment.id_oeuvre) {
+      const pts = [25, 15, 8, 3, 1][idx - 1] ?? 0
+      ajouterResultat({ label: `Œuvre, essai ${idx}`, points: pts, reponse: choisi.titre, detail: `Réponse : ${segment.titreOeuvre}` })
+      setEtapeP('resultat')
+      return
+    }
+    ajouterResultat({ label: `Œuvre, essai ${idx}`, points: 0, reponse: choisi.titre, detail: `Réponse : ${segment.titreOeuvre}` })
+    if (idx >= 5) setEtapeP('resultat')
+  }
+
+  /* ── Signalement ───────────────────────────────────────────────────────── */
   const signaler = async () => {
     if (!verset) return
     setStatutSignalement('sending')
@@ -217,111 +327,118 @@ export default function QuizBibliqueClient() {
     const user_id = session.session?.user.id ?? null
     await supabase.from('quiz_signalements').insert({ id_verset: verset.id_verset, raison: raisonSignalement, commentaire: commentaireSignalement || null, user_id })
     const fallback = await supabase.from('signalements').insert({
-      id_segment: null,
-      user_id,
+      id_segment: null, user_id,
       message: `Quiz — ${verset.id_verset} — ${raisonSignalement}${commentaireSignalement ? ` : ${commentaireSignalement}` : ''}`,
       traite: false,
     })
-    if (fallback.error) { setStatutSignalement('err'); return }
-    setStatutSignalement('ok')
+    setStatutSignalement(fallback.error ? 'err' : 'ok')
   }
 
+  // Pour fermer suggestions livre au clic dehors
+  const [suggestionsLivreVisible, setSuggestionsLivreVisible] = useState(false)
+
+  // Étapes restantes (pour la barre de progression)
+  const etapesRestantes: string[] = mode === 'biblique'
+    ? etapeB === 'testament' ? ['Testament', 'Livre'] : etapeB === 'livre' ? ['Livre'] : []
+    : etapeP === 'auteur' ? ['Père de l\'Église', 'Œuvre'] : etapeP === 'oeuvre' ? ['Œuvre'] : []
+
   return (
-    <section style={{ maxWidth: '1040px', margin: '0 auto', padding: '24px 20px 82px', fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+    <section style={{ maxWidth: '1040px', margin: '0 auto', padding: '24px 20px 82px', fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, sans-serif' }}>
       <style>{`
-        @keyframes bibleGamesGlow { 0% { box-shadow: 0 0 0 rgba(206,236,170,0); transform: scale(1); } 35% { box-shadow: 0 0 34px rgba(210,241,153,0.75); transform: scale(1.035); } 100% { box-shadow: 0 0 0 rgba(206,236,170,0); transform: scale(1); } }
-        @keyframes bibleGamesSpark { 0% { opacity: 0; transform: scale(0.6) translateY(8px); } 35% { opacity: 1; } 100% { opacity: 0; transform: scale(1.35) translateY(-20px); } }
-        @keyframes jacobClimb { 0% { transform: translateY(3px); } 100% { transform: translateY(-3px); } }
-        @media (max-width: 880px) {
-          .bible-games-layout { grid-template-columns: 1fr !important; }
-          .bible-games-score { min-height: auto !important; }
-          .bible-games-ladder { min-height: 300px !important; }
-          .bible-games-answer { grid-template-columns: 1fr !important; }
-        }
+        @keyframes bibleGamesGlow { 0%{box-shadow:0 0 0 rgba(206,236,170,0);transform:scale(1)} 35%{box-shadow:0 0 34px rgba(210,241,153,0.75);transform:scale(1.035)} 100%{box-shadow:0 0 0 rgba(206,236,170,0);transform:scale(1)} }
+        @keyframes bibleGamesSpark { 0%{opacity:0;transform:scale(0.6) translateY(8px)} 35%{opacity:1} 100%{opacity:0;transform:scale(1.35) translateY(-20px)} }
+        @keyframes jacobClimb { 0%{transform:translateY(3px)} 100%{transform:translateY(-3px)} }
+        @media (max-width:880px) { .bg-layout{grid-template-columns:1fr !important} .bg-score{min-height:auto !important} .bg-ladder{display:none !important} .bg-answer{grid-template-columns:1fr !important} }
       `}</style>
+
       <div style={{ background: 'linear-gradient(135deg, #f8fbf2 0%, #eef6e7 46%, #dfeedd 100%)', border: '1px solid rgba(61,107,79,0.24)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 18px 42px rgba(33,68,45,0.12)', position: 'relative' }}>
         {flashScore && <FeuArtifice />}
-        <div className="bible-games-layout" style={{ display: 'grid', gridTemplateColumns: '150px minmax(0,1fr) 190px', gap: '16px', padding: '18px', alignItems: 'stretch' }}>
-          <aside className="bible-games-score" style={{ background: 'rgba(255,255,255,0.72)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '12px', padding: '14px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '420px' }}>
+        <div className="bg-layout" style={{ display: 'grid', gridTemplateColumns: '150px minmax(0,1fr) 190px', gap: '16px', padding: '18px', alignItems: 'stretch' }}>
+
+          {/* ── Panneau score ──────────────────────────────────────────────── */}
+          <aside className="bg-score" style={{ background: 'rgba(255,255,255,0.72)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '12px', padding: '14px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '420px' }}>
             <div>
               <p style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#6b8a70', fontWeight: 800, margin: '0 0 8px' }}>Score</p>
               <div style={{ fontSize: '42px', lineHeight: 1, fontWeight: 900, color: '#2f6a48', animation: flashScore ? 'bibleGamesGlow 0.9s ease-out' : 'none', borderRadius: '12px', padding: '4px 0' }}>{score}</div>
               <p style={{ fontSize: '11px', lineHeight: 1.35, color: '#5f725f', margin: '8px 0 0' }}>{messageScore(score)}</p>
             </div>
-            <button onClick={nouveauVerset} style={btnSecondaire}>Nouveau verset</button>
+            <button onClick={mode === 'biblique' ? nouveauVerset : nouveauSegment} style={btnSecondaire}>
+              {mode === 'biblique' ? 'Nouveau verset' : 'Nouvel extrait'}
+            </button>
           </aside>
 
+          {/* ── Zone de jeu ────────────────────────────────────────────────── */}
           <div>
-            <div style={{ marginBottom: '12px' }}>
-              <p style={{ margin: '0 0 4px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.16em', color: '#477658', fontWeight: 900 }}>Où est-il écrit ?</p>
-              <h2 style={{ margin: 0, fontSize: '24px', lineHeight: 1.1, color: '#193824', fontWeight: 900 }}>Bible games</h2>
+            {/* En-tête + sélecteur de mode */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+              <div>
+                <p style={{ margin: '0 0 3px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.16em', color: '#477658', fontWeight: 900 }}>
+                  {mode === 'biblique' ? 'Où est-il écrit ?' : "Qui l'a écrit ?"}
+                </p>
+                <h2 style={{ margin: 0, fontSize: '22px', lineHeight: 1.1, color: '#193824', fontWeight: 900 }}>Bible games</h2>
+              </div>
+              <div style={{ display: 'flex', gap: '5px' }}>
+                {([['biblique', 'Verset biblique'], ['patristique', 'Texte patristique']] as [Mode, string][]).map(([m, label]) => (
+                  <button key={m} onClick={() => changerMode(m)} style={{
+                    fontSize: '11px', padding: '5px 11px', borderRadius: '7px', fontWeight: 700, cursor: 'pointer',
+                    border: mode === m ? 'none' : '1px solid rgba(61,107,79,0.28)',
+                    background: mode === m ? '#3d6b4f' : 'rgba(255,255,255,0.7)',
+                    color: mode === m ? '#fff' : '#3d6b4f',
+                  }}>{label}</button>
+                ))}
+              </div>
             </div>
 
-            {chargement ? <p style={etatTexte}>Chargement…</p> : erreur ? <p style={{ ...etatTexte, color: '#c0562a' }}>{erreur}</p> : verset && livreCorrect ? (
-              <>
-                <div style={{ position: 'sticky', top: '58px', zIndex: 5, background: 'rgba(248,251,242,0.96)', border: '1px solid rgba(61,107,79,0.20)', borderRadius: '13px', padding: '13px 14px', backdropFilter: 'blur(8px)' }}>
-                  <p lang="fr" style={{ margin: 0, fontSize: '16px', lineHeight: 1.58, color: '#203528', textAlign: 'justify', fontWeight: 560 }}>« {verset.TR0001} »</p>
-                  <BarreProgression resultats={resultats} etape={etape} />
-                </div>
-
-                <div style={{ marginTop: '14px', display: 'grid', gap: '12px' }}>
-                  <div className="bible-games-answer" style={blocJeSais}>
-                    <div>
-                      <p style={{ margin: '0 0 3px', fontSize: '12px', color: '#214d34', fontWeight: 900 }}>Je sais !</p>
-                      <p style={{ margin: 0, fontSize: '11px', color: '#6c7b6d' }}>Entrez la référence exacte, par exemple : Gn 1, 1.</p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '7px', minWidth: 0 }}>
-                      <input value={reponseExacte} onChange={e => setReponseExacte(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') validerExact() }} placeholder="Gn 1, 1" style={inputStyle} />
-                      <button onClick={validerExact} disabled={!reponseExacte.trim()} style={btnPrincipal}>Valider</button>
-                    </div>
-                  </div>
-
-                  {etape === 'testament' && <BlocJeu titre="1. Testament">
-                    <div style={ligneBoutons}>
-                      <button onClick={() => repondreTestament('Ancien Testament')} style={btnPrincipal}>Ancien Testament</button>
-                      <button onClick={() => repondreTestament('Nouveau Testament')} style={btnPrincipal}>Nouveau Testament</button>
-                    </div>
-                  </BlocJeu>}
-
-                  {etape === 'livre' && <BlocJeu titre={`2. Livre biblique (${Math.min(essaisLivres.length + 1, 5)}/5)`}>
-                    <p style={aide}>Faites vos choix un par un. Si vous êtes dans la bonne famille de livres, le jeu vous le dira.</p>
-                    <div style={{ position: 'relative' }}>
-                      <input value={saisieLivre} onChange={e => setSaisieLivre(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') proposerLivre() }} placeholder="Ex. Genèse, Isaïe, Romains…" style={{ ...inputStyle, width: '100%' }} />
-                      {suggestionsLivre.length > 0 && <div style={menuSuggestions}>
-                        {suggestionsLivre.map(l => <button key={l.code} onClick={() => proposerLivre(l)} style={suggestionStyle}>{l.nom}</button>)}
-                      </div>}
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', marginTop: '10px', flexWrap: 'wrap' }}>
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                        {essaisLivres.map((l, i) => <span key={l.code} style={tagStyle}>{i + 1}. {l.nom}</span>)}
-                      </div>
-                      <button onClick={() => proposerLivre()} disabled={!saisieLivre.trim() || essaisLivres.length >= 5} style={btnPrincipal}>Proposer</button>
-                    </div>
-                    {messageChaud && <div style={{ marginTop: '10px', padding: '9px 11px', borderRadius: '9px', background: '#fff4df', border: '1px solid rgba(194,112,38,0.26)', color: '#9a5520', fontSize: '12px', fontWeight: 700 }}>{messageChaud}</div>}
-                  </BlocJeu>}
-
-                  {etape === 'resultat' && <BlocJeu titre="Résultat">
-                    <p style={{ fontSize: '20px', color: '#163422', margin: '0 0 5px', fontWeight: 900 }}>{refLisible(verset)}</p>
-                    <p style={{ fontSize: '13px', color: '#3d6b4f', fontWeight: 800, margin: '0 0 12px' }}>{score} points — {messageScore(score)}</p>
-                    {resultats.map((r, i) => <p key={`${r.label}-${i}`} style={{ fontSize: '12px', color: '#536756', margin: '4px 0' }}>{r.label} : <strong>{r.points}</strong> pts{r.reponse ? ` — ${r.reponse}` : ''}. {r.detail}</p>)}
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '16px' }}>
-                      <button onClick={nouveauVerset} style={btnPrincipal}>Nouveau verset</button>
-                      <button onClick={() => setSignalementOuvert(o => !o)} style={btnSecondaire}>Signaler ce verset comme trop vague</button>
-                    </div>
-                    {signalementOuvert && <div style={{ marginTop: '14px', padding: '12px', border: '1px solid #d7e3d3', borderRadius: '10px', background: '#fbfdf8' }}>
-                      <select value={raisonSignalement} onChange={e => setRaisonSignalement(e.target.value)} style={{ ...inputStyle, width: '100%' }}>
-                        {['verset trop générique','verset trop court','doublon ou quasi-doublon','dépend trop du verset précédent','problème de traduction','autre'].map(r => <option key={r}>{r}</option>)}
-                      </select>
-                      <textarea value={commentaireSignalement} onChange={e => setCommentaireSignalement(e.target.value)} placeholder="Commentaire optionnel" rows={3} style={{ ...inputStyle, width: '100%', marginTop: '8px', resize: 'vertical' }} />
-                      <button onClick={signaler} disabled={statutSignalement === 'sending' || statutSignalement === 'ok'} style={{ ...btnPrincipal, marginTop: '8px' }}>{statutSignalement === 'ok' ? 'Signalement envoyé' : 'Envoyer'}</button>
-                      {statutSignalement === 'err' && <span style={{ marginLeft: '10px', color: '#c0562a', fontSize: '11px' }}>Erreur d’envoi.</span>}
-                    </div>}
-                  </BlocJeu>}
-                </div>
-              </>
+            {chargement ? (
+              <p style={etatTexte}>Chargement…</p>
+            ) : erreur ? (
+              <p style={{ ...etatTexte, color: '#c0562a' }}>{erreur}</p>
+            ) : mode === 'biblique' && verset && livreCorrect ? (
+              <JeuBiblique
+                verset={verset}
+                livreCorrect={livreCorrect}
+                etape={etapeB}
+                resultats={resultats}
+                etapesRestantes={etapesRestantes}
+                saisieLivre={saisieLivre} setSaisieLivre={setSaisieLivre}
+                suggestionsLivre={suggestionsLivre}
+                suggestionsLivreVisible={suggestionsLivreVisible} setSuggestionsLivreVisible={setSuggestionsLivreVisible}
+                essaisLivres={essaisLivres}
+                messageChaud={messageChaud}
+                reponseExacte={reponseExacte} setReponseExacte={setReponseExacte}
+                repondreTestament={repondreTestament}
+                proposerLivre={proposerLivre}
+                validerExact={validerExact}
+                nouveauVerset={nouveauVerset}
+                signalementOuvert={signalementOuvert} setSignalementOuvert={setSignalementOuvert}
+                raisonSignalement={raisonSignalement} setRaisonSignalement={setRaisonSignalement}
+                commentaireSignalement={commentaireSignalement} setCommentaireSignalement={setCommentaireSignalement}
+                statutSignalement={statutSignalement} signaler={signaler}
+                score={score}
+              />
+            ) : mode === 'patristique' && segment ? (
+              <JeuPatristique
+                segment={segment}
+                etape={etapeP}
+                resultats={resultats}
+                etapesRestantes={etapesRestantes}
+                saisieAuteur={saisieAuteur} setSaisieAuteur={setSaisieAuteur}
+                saisieOeuvre={saisieOeuvre} setSaisieOeuvre={setSaisieOeuvre}
+                suggestionsAuteur={suggestionsAuteur}
+                suggestionsOeuvre={suggestionsOeuvre}
+                essaisAuteurs={essaisAuteurs}
+                essaisOeuvres={essaisOeuvres}
+                auteurConfirme={auteurConfirme}
+                messageChaudP={messageChaudP}
+                proposerAuteur={proposerAuteur}
+                proposerOeuvre={proposerOeuvre}
+                nouveauSegment={nouveauSegment}
+                score={score}
+              />
             ) : null}
           </div>
 
+          {/* ── Échelle de Jacob ────────────────────────────────────────────── */}
           <EchelleJacob score={score} flash={flashScore} />
         </div>
       </div>
@@ -329,76 +446,373 @@ export default function QuizBibliqueClient() {
   )
 }
 
-function BarreProgression({ resultats, etape }: { resultats: Resultat[]; etape: Etape }) {
-  const prochain = etape === 'testament' ? 'Testament' : etape === 'livre' ? 'Livre suivant' : 'Résultat'
-  const lignes = resultats.length > 0
-    ? [...resultats, ...(etape !== 'resultat' ? [{ label: prochain, points: 0, detail: 'À jouer' }] : [])]
-    : [{ label: prochain, points: 0, detail: 'À jouer' }]
+/* ── Jeu biblique ────────────────────────────────────────────────────────── */
+function JeuBiblique({ verset, livreCorrect, etape, resultats, etapesRestantes, saisieLivre, setSaisieLivre, suggestionsLivre, suggestionsLivreVisible, setSuggestionsLivreVisible, essaisLivres, messageChaud, reponseExacte, setReponseExacte, repondreTestament, proposerLivre, validerExact, nouveauVerset, signalementOuvert, setSignalementOuvert, raisonSignalement, setRaisonSignalement, commentaireSignalement, setCommentaireSignalement, statutSignalement, signaler, score }: {
+  verset: VersetQuiz; livreCorrect: LivreBiblique; etape: EtapeBiblique
+  resultats: Resultat[]; etapesRestantes: string[]
+  saisieLivre: string; setSaisieLivre: (s: string) => void
+  suggestionsLivre: LivreBiblique[]; suggestionsLivreVisible: boolean; setSuggestionsLivreVisible: (b: boolean) => void
+  essaisLivres: LivreBiblique[]; messageChaud: string | null
+  reponseExacte: string; setReponseExacte: (s: string) => void
+  repondreTestament: (t: 'Ancien Testament' | 'Nouveau Testament') => void
+  proposerLivre: (l?: LivreBiblique) => void
+  validerExact: () => void
+  nouveauVerset: () => void
+  signalementOuvert: boolean; setSignalementOuvert: Dispatch<SetStateAction<boolean>>
+  raisonSignalement: string; setRaisonSignalement: (s: string) => void
+  commentaireSignalement: string; setCommentaireSignalement: (s: string) => void
+  statutSignalement: string; signaler: () => void
+  score: number
+}) {
+  return (
+    <>
+      <div style={{ position: 'sticky', top: '58px', zIndex: 5, background: 'rgba(248,251,242,0.96)', border: '1px solid rgba(61,107,79,0.20)', borderRadius: '13px', padding: '13px 14px', backdropFilter: 'blur(8px)' }}>
+        <p lang="fr" style={{ margin: 0, fontSize: '16px', lineHeight: 1.58, color: '#203528', textAlign: 'justify', fontWeight: 560 }}>« {verset.TR0001} »</p>
+        <BarreProgression resultats={resultats} etapesRestantes={etapesRestantes} />
+      </div>
+
+      <div style={{ marginTop: '14px', display: 'grid', gap: '12px' }}>
+        {/* Je sais ! */}
+        <div className="bg-answer" style={blocJeSaisStyle}>
+          <div>
+            <p style={{ margin: '0 0 3px', fontSize: '12px', color: '#214d34', fontWeight: 900 }}>Je sais !</p>
+            <p style={{ margin: 0, fontSize: '11px', color: '#6c7b6d' }}>Entrez la référence exacte, ex. : Gn 1, 1.</p>
+          </div>
+          <div style={{ display: 'flex', gap: '7px', minWidth: 0 }}>
+            <input value={reponseExacte} onChange={e => setReponseExacte(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') validerExact() }} placeholder="Gn 1, 1" style={inputStyle} />
+            <button onClick={validerExact} disabled={!reponseExacte.trim()} style={btnPrincipal}>Valider</button>
+          </div>
+        </div>
+
+        {etape === 'testament' && (
+          <BlocJeu titre="1. Testament">
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button onClick={() => repondreTestament('Ancien Testament')} style={btnPrincipal}>Ancien Testament</button>
+              <button onClick={() => repondreTestament('Nouveau Testament')} style={btnPrincipal}>Nouveau Testament</button>
+            </div>
+          </BlocJeu>
+        )}
+
+        {etape === 'livre' && (
+          <BlocJeu titre={`2. Livre biblique (essai ${Math.min(essaisLivres.length + 1, 5)}/5)`}>
+            <p style={aideStyle}>Faites vos choix un par un. Si vous êtes dans la bonne famille de livres, le jeu vous le dira.</p>
+            <div style={{ position: 'relative' }}>
+              <input value={saisieLivre}
+                onChange={e => { setSaisieLivre(e.target.value); setSuggestionsLivreVisible(true) }}
+                onKeyDown={e => { if (e.key === 'Enter') proposerLivre() }}
+                onFocus={() => setSuggestionsLivreVisible(true)}
+                placeholder="Ex. Genèse, Isaïe, Romains…" style={{ ...inputStyle, width: '100%' }} />
+              {suggestionsLivreVisible && suggestionsLivre.length > 0 && (
+                <div style={menuSuggestionsStyle}>
+                  {suggestionsLivre.map(l => <button key={l.code} onClick={() => { proposerLivre(l); setSuggestionsLivreVisible(false) }} style={suggestionStyle}>{l.nom}</button>)}
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', marginTop: '10px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {essaisLivres.map((l, i) => <span key={l.code} style={tagStyle}>{i + 1}. {l.nom}</span>)}
+              </div>
+              <button onClick={() => proposerLivre()} disabled={!saisieLivre.trim() || essaisLivres.length >= 5} style={btnPrincipal}>Proposer</button>
+            </div>
+            {messageChaud && <div style={messageChaudStyle}>{messageChaud}</div>}
+          </BlocJeu>
+        )}
+
+        {etape === 'resultat' && (
+          <BlocResultat verset={verset} livreCorrect={livreCorrect} score={score} resultats={resultats}
+            nouveauVerset={nouveauVerset} signalementOuvert={signalementOuvert} setSignalementOuvert={setSignalementOuvert}
+            raisonSignalement={raisonSignalement} setRaisonSignalement={setRaisonSignalement}
+            commentaireSignalement={commentaireSignalement} setCommentaireSignalement={setCommentaireSignalement}
+            statutSignalement={statutSignalement} signaler={signaler} />
+        )}
+      </div>
+    </>
+  )
+}
+
+/* ── Jeu patristique ─────────────────────────────────────────────────────── */
+function JeuPatristique({ segment, etape, resultats, etapesRestantes, saisieAuteur, setSaisieAuteur, saisieOeuvre, setSaisieOeuvre, suggestionsAuteur, suggestionsOeuvre, essaisAuteurs, essaisOeuvres, auteurConfirme, messageChaudP, proposerAuteur, proposerOeuvre, nouveauSegment, score }: {
+  segment: SegmentQuiz; etape: EtapePatristique
+  resultats: Resultat[]; etapesRestantes: string[]
+  saisieAuteur: string; setSaisieAuteur: (s: string) => void
+  saisieOeuvre: string; setSaisieOeuvre: (s: string) => void
+  suggestionsAuteur: Auteur[]; suggestionsOeuvre: Oeuvre[]
+  essaisAuteurs: Auteur[]; essaisOeuvres: Oeuvre[]
+  auteurConfirme: Auteur | null; messageChaudP: string | null
+  proposerAuteur: (a?: Auteur) => void
+  proposerOeuvre: (o?: Oeuvre) => void
+  nouveauSegment: () => void
+  score: number
+}) {
+  return (
+    <>
+      <div style={{ position: 'sticky', top: '58px', zIndex: 5, background: 'rgba(248,251,242,0.96)', border: '1px solid rgba(61,107,79,0.20)', borderRadius: '13px', padding: '13px 14px', backdropFilter: 'blur(8px)' }}>
+        <p lang="fr" style={{ margin: 0, fontSize: '15px', lineHeight: 1.65, color: '#203528', textAlign: 'justify', fontWeight: 500, fontStyle: 'italic' }}>« {segment.texte} »</p>
+        <BarreProgression resultats={resultats} etapesRestantes={etapesRestantes} />
+      </div>
+
+      <div style={{ marginTop: '14px', display: 'grid', gap: '12px' }}>
+        {etape === 'auteur' && (
+          <BlocJeu titre={`1. Père de l'Église (essai ${Math.min(essaisAuteurs.length + 1, 5)}/5)`}>
+            <p style={aideStyle}>Entrez le nom d'un père de l'Église. Si vous êtes dans le bon siècle, le jeu vous le dira.</p>
+            <div style={{ position: 'relative' }}>
+              <input value={saisieAuteur}
+                onChange={e => setSaisieAuteur(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && suggestionsAuteur[0]) proposerAuteur(suggestionsAuteur[0]) }}
+                placeholder="Ex. Augustin, Origène, Jean Chrysostome…"
+                style={{ ...inputStyle, width: '100%' }} />
+              {suggestionsAuteur.length > 0 && (
+                <div style={menuSuggestionsStyle}>
+                  {suggestionsAuteur.map(a => <button key={a.id_auteur} onClick={() => proposerAuteur(a)} style={suggestionStyle}>{a.nom}</button>)}
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', marginTop: '10px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {essaisAuteurs.map((a, i) => <span key={a.id_auteur} style={tagStyle}>{i + 1}. {a.nom}</span>)}
+              </div>
+              <button onClick={() => proposerAuteur(suggestionsAuteur[0])} disabled={!saisieAuteur.trim() || essaisAuteurs.length >= 5 || !suggestionsAuteur[0]} style={btnPrincipal}>Proposer</button>
+            </div>
+            {messageChaudP && <div style={messageChaudStyle}>{messageChaudP}</div>}
+          </BlocJeu>
+        )}
+
+        {etape === 'oeuvre' && (
+          <BlocJeu titre={`2. Œuvre ${auteurConfirme ? `de ${auteurConfirme.nom}` : ''} (essai ${Math.min(essaisOeuvres.length + 1, 5)}/5)`}>
+            <p style={aideStyle}>
+              {auteurConfirme
+                ? `Vous avez identifié l'auteur. Dans quelle œuvre cet extrait est-il tiré ?`
+                : `L'auteur n'a pas été trouvé. Essayez de nommer l'œuvre.`}
+            </p>
+            <div style={{ position: 'relative' }}>
+              <input value={saisieOeuvre}
+                onChange={e => setSaisieOeuvre(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && suggestionsOeuvre[0]) proposerOeuvre(suggestionsOeuvre[0]) }}
+                placeholder="Titre de l'œuvre…"
+                style={{ ...inputStyle, width: '100%' }} />
+              {suggestionsOeuvre.length > 0 && (
+                <div style={menuSuggestionsStyle}>
+                  {suggestionsOeuvre.map(o => <button key={o.id_oeuvre} onClick={() => proposerOeuvre(o)} style={suggestionStyle}>{o.titre}</button>)}
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', marginTop: '10px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {essaisOeuvres.map((o, i) => <span key={o.id_oeuvre} style={tagStyle}>{i + 1}. {o.titre}</span>)}
+              </div>
+              <button onClick={() => proposerOeuvre(suggestionsOeuvre[0])} disabled={!saisieOeuvre.trim() || essaisOeuvres.length >= 5 || !suggestionsOeuvre[0]} style={btnPrincipal}>Proposer</button>
+            </div>
+          </BlocJeu>
+        )}
+
+        {etape === 'resultat' && (
+          <BlocJeu titre="Résultat">
+            <p style={{ fontSize: '14px', color: '#163422', margin: '0 0 2px', fontWeight: 900 }}>{segment.nomAuteur}</p>
+            <p style={{ fontSize: '13px', color: '#3d6b4f', fontStyle: 'italic', margin: '0 0 8px' }}>{segment.titreOeuvre}</p>
+            <p style={{ fontSize: '13px', color: '#3d6b4f', fontWeight: 800, margin: '0 0 12px' }}>{score} points — {messageScore(score)}</p>
+            {resultats.map((r, i) => (
+              <p key={`${r.label}-${i}`} style={{ fontSize: '12px', color: '#536756', margin: '4px 0' }}>
+                {r.label} : <strong>{r.points}</strong> pts{r.reponse ? ` — ${r.reponse}` : ''}. {r.detail}
+              </p>
+            ))}
+            <button onClick={nouveauSegment} style={{ ...btnPrincipal, marginTop: '16px' }}>Nouvel extrait</button>
+          </BlocJeu>
+        )}
+      </div>
+    </>
+  )
+}
+
+/* ── Résultat biblique ───────────────────────────────────────────────────── */
+function BlocResultat({ verset, livreCorrect, score, resultats, nouveauVerset, signalementOuvert, setSignalementOuvert, raisonSignalement, setRaisonSignalement, commentaireSignalement, setCommentaireSignalement, statutSignalement, signaler }: {
+  verset: VersetQuiz; livreCorrect: LivreBiblique; score: number; resultats: Resultat[]
+  nouveauVerset: () => void
+  signalementOuvert: boolean; setSignalementOuvert: Dispatch<SetStateAction<boolean>>
+  raisonSignalement: string; setRaisonSignalement: (s: string) => void
+  commentaireSignalement: string; setCommentaireSignalement: (s: string) => void
+  statutSignalement: string; signaler: () => void
+}) {
+  const ref = `${livreCorrect.nom} ${verset.chapitre}, ${verset.verset}`
+  return (
+    <BlocJeu titre="Résultat">
+      <p style={{ fontSize: '20px', color: '#163422', margin: '0 0 5px', fontWeight: 900 }}>{ref}</p>
+      <p style={{ fontSize: '13px', color: '#3d6b4f', fontWeight: 800, margin: '0 0 12px' }}>{score} points — {messageScore(score)}</p>
+      {resultats.map((r, i) => (
+        <p key={`${r.label}-${i}`} style={{ fontSize: '12px', color: '#536756', margin: '4px 0' }}>
+          {r.label} : <strong>{r.points}</strong> pts{r.reponse ? ` — ${r.reponse}` : ''}. {r.detail}
+        </p>
+      ))}
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '16px' }}>
+        <button onClick={nouveauVerset} style={btnPrincipal}>Nouveau verset</button>
+        <button onClick={() => setSignalementOuvert(o => !o)} style={btnSecondaire}>Signaler ce verset</button>
+      </div>
+      {signalementOuvert && (
+        <div style={{ marginTop: '14px', padding: '12px', border: '1px solid #d7e3d3', borderRadius: '10px', background: '#fbfdf8' }}>
+          <select value={raisonSignalement} onChange={e => setRaisonSignalement(e.target.value)} style={{ ...inputStyle, width: '100%' }}>
+            {['verset trop générique','verset trop court','doublon ou quasi-doublon','dépend trop du verset précédent','problème de traduction','autre'].map(r => <option key={r}>{r}</option>)}
+          </select>
+          <textarea value={commentaireSignalement} onChange={e => setCommentaireSignalement(e.target.value)} placeholder="Commentaire optionnel" rows={2} style={{ ...inputStyle, width: '100%', marginTop: '8px', resize: 'vertical' }} />
+          <button onClick={signaler} disabled={statutSignalement === 'sending' || statutSignalement === 'ok'} style={{ ...btnPrincipal, marginTop: '8px' }}>
+            {statutSignalement === 'ok' ? 'Signalement envoyé ✓' : 'Envoyer'}
+          </button>
+          {statutSignalement === 'err' && <span style={{ marginLeft: '10px', color: '#c0562a', fontSize: '11px' }}>Erreur.</span>}
+        </div>
+      )}
+    </BlocJeu>
+  )
+}
+
+/* ── Barre de progression ────────────────────────────────────────────────── */
+function BarreProgression({ resultats, etapesRestantes }: { resultats: Resultat[]; etapesRestantes: string[] }) {
+  const lignes = [
+    ...resultats,
+    ...etapesRestantes.map(label => ({ label, points: 0, detail: 'À jouer', reponse: undefined }))
+  ]
   return (
     <div style={{ display: 'flex', gap: '5px', marginTop: '11px', overflowX: 'auto', paddingBottom: '1px' }}>
       {lignes.map((r, i) => {
-        const estAVenir = i >= resultats.length
-        return <div key={`${r.label}-${i}`} style={{ flex: '1 0 108px', minHeight: '36px', borderRadius: '8px', padding: '6px 7px', background: estAVenir ? 'rgba(255,255,255,0.68)' : r.points > 0 ? 'rgba(61,107,79,0.13)' : 'rgba(194,112,38,0.10)', border: `1px solid ${estAVenir ? 'rgba(61,107,79,0.14)' : r.points > 0 ? 'rgba(61,107,79,0.20)' : 'rgba(194,112,38,0.18)'}` }}>
-          <p style={{ margin: 0, fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.08em', color: estAVenir ? '#66806a' : r.points > 0 ? '#3d6b4f' : '#9a5520', fontWeight: 900 }}>{r.label}</p>
-          <p style={{ margin: '2px 0 0', fontSize: '10px', color: '#294b35', fontWeight: 800 }}>{estAVenir ? 'À jouer' : `${r.points} pts${r.reponse ? ` — ${r.reponse}` : ''}`}</p>
-        </div>
+        const aVenir = i >= resultats.length
+        return (
+          <div key={`${r.label}-${i}`} style={{ flex: '1 0 100px', minHeight: '36px', borderRadius: '8px', padding: '6px 7px', background: aVenir ? 'rgba(255,255,255,0.68)' : r.points > 0 ? 'rgba(61,107,79,0.13)' : 'rgba(194,112,38,0.10)', border: `1px solid ${aVenir ? 'rgba(61,107,79,0.14)' : r.points > 0 ? 'rgba(61,107,79,0.20)' : 'rgba(194,112,38,0.18)'}` }}>
+            <p style={{ margin: 0, fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.08em', color: aVenir ? '#66806a' : r.points > 0 ? '#3d6b4f' : '#9a5520', fontWeight: 900 }}>{r.label}</p>
+            <p style={{ margin: '2px 0 0', fontSize: '10px', color: '#294b35', fontWeight: 800 }}>{aVenir ? 'À jouer' : `${r.points} pts${r.reponse ? ` — ${r.reponse}` : ''}`}</p>
+          </div>
+        )
       })}
     </div>
   )
 }
 
+/* ── Échelle de Jacob (redesign) ─────────────────────────────────────────── */
 function EchelleJacob({ score, flash }: { score: number; flash: boolean }) {
-  const y = 244 - Math.min(100, score) * 1.75
+  const progress = Math.min(100, Math.max(0, score)) / 100
+  // Jacob monte de y=248 (score=0) à y=28 (score=100)
+  const yJacob = 248 - progress * 220
+
+  const etoiles = [[22,18],[68,12],[108,8],[132,28],[90,22],[38,35],[120,42],[14,50],[55,5],[100,55]]
+
   return (
-    <aside className="bible-games-ladder" style={{ background: 'rgba(255,255,255,0.58)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '12px', padding: '10px', minHeight: '420px', position: 'relative', overflow: 'hidden' }}>
+    <aside className="bg-ladder" style={{ background: 'rgba(255,255,255,0.58)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '12px', padding: '10px 8px', minHeight: '420px', position: 'relative', overflow: 'hidden' }}>
       <p style={{ margin: '0 0 6px', textAlign: 'center', fontSize: '10px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#6a7b68', fontWeight: 900 }}>Échelle de Jacob</p>
-      <svg viewBox="0 0 150 300" width="100%" height="320" aria-hidden="true">
+      <svg viewBox="0 0 160 310" width="100%" height="320" aria-hidden="true" style={{ display: 'block' }}>
         <defs>
-          <pattern id="hachuresJacob" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
-            <path d="M0 0h1" stroke="#8f7b5e" strokeWidth="0.5" opacity="0.35" />
-          </pattern>
+          <linearGradient id="cielGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#0d1c2e" />
+            <stop offset="65%" stopColor="#1a3348" />
+            <stop offset="100%" stopColor="#2e5c42" />
+          </linearGradient>
+          <linearGradient id="solGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#4a3820" />
+            <stop offset="100%" stopColor="#2a1e0e" />
+          </linearGradient>
+          <linearGradient id="echelleGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#f5e098" />
+            <stop offset="100%" stopColor="#c8a040" />
+          </linearGradient>
+          <filter id="lueur">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
         </defs>
-        <rect x="0" y="0" width="150" height="300" fill="rgba(252,249,239,0.42)" />
-        <path d="M45 270 L93 28 M80 270 L128 28" stroke="#5f513e" strokeWidth="4" fill="none" strokeLinecap="round" />
-        {Array.from({ length: 10 }).map((_, i) => {
-          const yy = 250 - i * 23
-          return <path key={i} d={`M${50 + i * 4.7} ${yy} L${84 + i * 4.7} ${yy}`} stroke="#7b684f" strokeWidth="3" strokeLinecap="round" />
+
+        {/* Ciel */}
+        <rect x="0" y="0" width="160" height="280" fill="url(#cielGrad)" />
+
+        {/* Étoiles */}
+        {etoiles.map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 1.4 : 0.9} fill="#fff" opacity={0.5 + (i % 4) * 0.12} />
+        ))}
+
+        {/* Croissant de lune */}
+        <circle cx="128" cy="30" r="12" fill="#e8d870" opacity="0.65" />
+        <circle cx="133" cy="27" r="10" fill="#1a3348" opacity="0.95" />
+
+        {/* Sol */}
+        <rect x="0" y="278" width="160" height="32" fill="url(#solGrad)" />
+        <ellipse cx="80" cy="278" rx="62" ry="6" fill="#3a2c14" opacity="0.8" />
+        {/* Herbe / buisson */}
+        <path d="M20 278 Q28 268 36 278 M40 278 Q46 271 52 278 M110 278 Q118 269 126 278 M130 278 Q137 272 144 278" stroke="#2e5c42" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+
+        {/* Échelle — montants */}
+        <line x1="62" y1="272" x2="62" y2="18" stroke="url(#echelleGrad)" strokeWidth="4" strokeLinecap="round" />
+        <line x1="98" y1="272" x2="98" y2="18" stroke="url(#echelleGrad)" strokeWidth="4" strokeLinecap="round" />
+
+        {/* Échelle — barreaux (11 barreaux) */}
+        {Array.from({ length: 11 }).map((_, i) => {
+          const yy = 255 - i * 22
+          return (
+            <line key={i} x1="62" y1={yy} x2="98" y2={yy}
+              stroke="#f0d278" strokeWidth="3" strokeLinecap="round"
+              opacity={0.85 + (i / 11) * 0.15}
+            />
+          )
         })}
-        <path d="M18 276 C46 260 88 264 138 276" stroke="#9d8b65" strokeWidth="2" fill="url(#hachuresJacob)" />
-        <g style={{ transform: `translate(0px, ${y}px)`, transition: 'transform 0.7s cubic-bezier(.2,.8,.2,1)', animation: flash ? 'jacobClimb 0.18s ease-in-out 4 alternate' : 'none' }}>
-          <circle cx="70" cy="24" r="9" fill="#f1d8b3" stroke="#5f513e" strokeWidth="1.4" />
-          <path d="M63 21 Q70 13 78 21" stroke="#4b3828" strokeWidth="3" fill="none" strokeLinecap="round" />
-          <path d="M70 34 L68 58 M68 42 L54 53 M69 43 L82 53 M68 58 L58 76 M68 58 L78 76" stroke="#365c42" strokeWidth="4" fill="none" strokeLinecap="round" />
-          <path d="M61 36 Q70 43 79 36 L77 59 Q70 65 63 59 Z" fill="#78a36f" stroke="#365c42" strokeWidth="1" />
+
+        {/* Lueur divine en haut */}
+        <ellipse cx="80" cy="14" rx="22" ry="10" fill="#f5e098" opacity={0.12 + progress * 0.25} filter="url(#lueur)" />
+        <ellipse cx="80" cy="14" rx="10" ry="5" fill="#fff" opacity={0.08 + progress * 0.20} />
+
+        {/* Jacob — groupe animé */}
+        <g style={{ transform: `translateY(${yJacob - 248}px)`, transition: 'transform 0.8s cubic-bezier(.2,.8,.2,1)', animation: flash ? 'jacobClimb 0.18s ease-in-out 4 alternate' : 'none' }}>
+          {/* Tête */}
+          <circle cx="80" cy="232" r="8" fill="#f2c99a" stroke="#7a5228" strokeWidth="1.3" />
+          {/* Cheveux / coiffe */}
+          <path d="M74 229 Q80 222 86 229" stroke="#5a3820" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          {/* Corps */}
+          <line x1="80" y1="240" x2="80" y2="260" stroke="#4a6e56" strokeWidth="4" strokeLinecap="round" />
+          {/* Bras gauche — tient le montant gauche */}
+          <path d="M80 244 Q72 240 62 242" stroke="#4a6e56" strokeWidth="3" fill="none" strokeLinecap="round" />
+          {/* Bras droit — tient le montant droit */}
+          <path d="M80 244 Q88 240 98 242" stroke="#4a6e56" strokeWidth="3" fill="none" strokeLinecap="round" />
+          {/* Jambe gauche — pied sur barreau */}
+          <path d="M80 260 Q75 268 68 272" stroke="#4a6e56" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+          {/* Jambe droite — légèrement relevée */}
+          <path d="M80 260 Q84 265 90 262" stroke="#4a6e56" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+          {/* Pied sur barreau gauche */}
+          <circle cx="67" cy="272" r="3" fill="#3a5540" />
+          {/* Manteau / drapé */}
+          <path d="M76 241 Q70 252 72 262 Q76 268 80 260 Q84 268 88 262 Q90 252 84 241 Z" fill="#5a8a6a" opacity="0.6" stroke="#3a5540" strokeWidth="0.8" />
+        </g>
+
+        {/* Badge score — suit Jacob */}
+        <g style={{ transform: `translateY(${yJacob - 248}px)`, transition: 'transform 0.8s cubic-bezier(.2,.8,.2,1)' }}>
+          <rect x="104" y="228" width="38" height="16" rx="5" fill="rgba(0,0,0,0.45)" />
+          <text x="123" y="240" textAnchor="middle" fontSize="10" fontWeight="800" fill="#f5e098" fontFamily="Inter, system-ui, sans-serif">{score} pts</text>
         </g>
       </svg>
-      <div style={{ position: 'absolute', right: '12px', top: `${Math.max(58, y + 42)}px`, transition: 'top 0.7s cubic-bezier(.2,.8,.2,1)', background: '#fffdf6', color: '#38543d', border: '1px solid #d7c9a8', borderRadius: '6px', padding: '4px 7px', fontSize: '11px', fontWeight: 900, boxShadow: '0 4px 12px rgba(74,68,48,0.10)' }}>{score} pts</div>
     </aside>
   )
 }
 
+/* ── Feu d'artifice ──────────────────────────────────────────────────────── */
 function FeuArtifice() {
-  return <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 20 }}>
-    {Array.from({ length: 18 }).map((_, i) => (
-      <span key={i} style={{ position: 'absolute', left: `${18 + (i * 37) % 70}%`, top: `${10 + (i * 23) % 55}%`, width: '7px', height: '7px', borderRadius: '50%', background: i % 3 === 0 ? '#f6cf62' : i % 3 === 1 ? '#8bcf83' : '#ffffff', animation: `bibleGamesSpark ${0.55 + (i % 4) * 0.08}s ease-out forwards`, boxShadow: '0 0 12px currentColor' }} />
-    ))}
-  </div>
+  return (
+    <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 20 }}>
+      {Array.from({ length: 18 }).map((_, i) => (
+        <span key={i} style={{ position: 'absolute', left: `${18 + (i * 37) % 70}%`, top: `${10 + (i * 23) % 55}%`, width: '7px', height: '7px', borderRadius: '50%', background: i % 3 === 0 ? '#f6cf62' : i % 3 === 1 ? '#8bcf83' : '#ffffff', animation: `bibleGamesSpark ${0.55 + (i % 4) * 0.08}s ease-out forwards`, boxShadow: '0 0 12px currentColor' }} />
+      ))}
+    </div>
+  )
 }
 
+/* ── Bloc jeu générique ──────────────────────────────────────────────────── */
 function BlocJeu({ titre, children }: { titre: string; children: React.ReactNode }) {
-  return <div style={{ background: 'rgba(255,255,255,0.74)', border: '1px solid rgba(61,107,79,0.16)', borderRadius: '12px', padding: '14px' }}>
-    <h3 style={{ fontSize: '15px', color: '#1d3e29', margin: '0 0 10px', fontWeight: 900 }}>{titre}</h3>
-    {children}
-  </div>
+  return (
+    <div style={{ background: 'rgba(255,255,255,0.74)', border: '1px solid rgba(61,107,79,0.16)', borderRadius: '12px', padding: '14px' }}>
+      <h3 style={{ fontSize: '15px', color: '#1d3e29', margin: '0 0 10px', fontWeight: 900 }}>{titre}</h3>
+      {children}
+    </div>
+  )
 }
 
+/* ── Styles partagés ─────────────────────────────────────────────────────── */
 const btnPrincipal = { fontSize: '12px', padding: '8px 13px', borderRadius: '8px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 800, whiteSpace: 'nowrap' } as const
 const btnSecondaire = { fontSize: '12px', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(61,107,79,0.24)', background: '#fff', color: '#3d6b4f', cursor: 'pointer', fontWeight: 800 } as const
-const ligneBoutons = { display: 'flex', gap: '8px', flexWrap: 'wrap' } as const
-const aide = { fontSize: '12px', color: '#5d735f', margin: '0 0 10px', lineHeight: 1.45 } as const
 const inputStyle = { minWidth: 0, fontSize: '12px', padding: '8px 10px', border: '1px solid #bdd2bf', borderRadius: '8px', background: '#fff', color: '#203528', outline: 'none', boxSizing: 'border-box' } as const
 const tagStyle = { fontSize: '11px', color: '#2f6a48', background: 'rgba(61,107,79,0.10)', border: '1px solid rgba(61,107,79,0.20)', borderRadius: '999px', padding: '4px 8px', fontWeight: 700 } as const
-const menuSuggestions = { position: 'absolute', left: 0, right: 0, top: 'calc(100% + 4px)', background: '#fff', border: '1px solid #bdd2bf', borderRadius: '9px', zIndex: 30, boxShadow: '0 10px 26px rgba(35,66,44,0.14)', overflow: 'hidden' } as const
+const menuSuggestionsStyle = { position: 'absolute', left: 0, right: 0, top: 'calc(100% + 4px)', background: '#fff', border: '1px solid #bdd2bf', borderRadius: '9px', zIndex: 30, boxShadow: '0 10px 26px rgba(35,66,44,0.14)', overflow: 'hidden' } as const
 const suggestionStyle = { display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '12px', color: '#203528', background: '#fff', border: 'none', borderBottom: '1px solid #eef3eb', cursor: 'pointer' } as const
-const blocJeSais = { display: 'grid', gridTemplateColumns: 'minmax(150px, 1fr) minmax(220px, 1.25fr)', gap: '12px', alignItems: 'center', background: '#fffdf6', border: '1px solid rgba(190,154,73,0.28)', borderRadius: '12px', padding: '12px' } as const
+const blocJeSaisStyle = { display: 'grid', gridTemplateColumns: 'minmax(150px,1fr) minmax(220px,1.25fr)', gap: '12px', alignItems: 'center', background: '#fffdf6', border: '1px solid rgba(190,154,73,0.28)', borderRadius: '12px', padding: '12px' } as const
+const aideStyle = { fontSize: '12px', color: '#5d735f', margin: '0 0 10px', lineHeight: 1.45 } as const
+const messageChaudStyle = { marginTop: '10px', padding: '9px 11px', borderRadius: '9px', background: '#fff4df', border: '1px solid rgba(194,112,38,0.26)', color: '#9a5520', fontSize: '12px', fontWeight: 700 } as const
 const etatTexte = { textAlign: 'center', color: '#6c7b6d', fontStyle: 'italic', fontSize: '13px' } as const

@@ -41,7 +41,7 @@ export default function SectionCertification({
       <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
         {([['bible', `Bible (${bible.length})`], ['patristique', `Patristique (${patristique.length})`]] as const).map(([k, l]) => (
           <button key={k} onClick={() => setSousOnglet(k)}
-            style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', border: 'none', cursor: 'pointer', background: sousOnglet === k ? '#7a5a9e' : '#e4dfd8', color: sousOnglet === k ? '#fff' : '#6b6560', fontWeight: sousOnglet === k ? 600 : 400 }}>
+            style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', border: 'none', cursor: 'pointer', background: sousOnglet === k ? '#3d6b4f' : '#e4dfd8', color: sousOnglet === k ? '#fff' : '#6b6560', fontWeight: sousOnglet === k ? 600 : 400 }}>
             {l}
           </button>
         ))}
@@ -87,7 +87,7 @@ export default function SectionCertification({
                       Accepter sans certifier
                     </button>
                     <button onClick={() => certifier(c.id)}
-                      style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', border: 'none', cursor: 'pointer', background: '#7a5a9e', color: '#fff', fontWeight: 600 }}>
+                      style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', border: 'none', cursor: 'pointer', background: '#3d6b4f', color: '#fff', fontWeight: 600 }}>
                       Certifier ✓
                     </button>
                   </>
