@@ -30,7 +30,7 @@ const STATUTS: Record<string, { label: string; couleur: string }> = {
   refuse: { label: 'Refusé', couleur: '#c0562a' },
 }
 
-function sansAccents(s: string): string { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() }
+function sansAccents(s: string): string { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase() }
 
 export default function EssaisListeClient({ essais }: { essais: EssaiResume[] }) {
   const router = useRouter()
@@ -88,33 +88,33 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
     return sansAccents(e.auteur).includes(q) || sansAccents(e.titre).includes(q) || (e.resume && sansAccents(e.resume).includes(q))
   })
 
-  const parAuteur = new Map<string, EssaiResume[]>()
-  essaisFiltres.forEach(e => {
-    const liste = parAuteur.get(e.auteur) ?? []
-    liste.push(e)
-    parAuteur.set(e.auteur, liste)
-  })
-  const auteurs = [...parAuteur.keys()].sort((a, b) => a.localeCompare(b, 'fr'))
-
   return (
     <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '48px' }}>
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '40px 32px 80px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '22px' }}>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 'normal', color: '#1e2e24', marginBottom: '14px' }}>
+      <div style={{ maxWidth: '820px', margin: '0 auto', padding: '40px 28px 80px' }}>
+
+        {/* En-tête */}
+        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(20px, 3.5vw, 28px)', fontWeight: 'normal', color: '#1e2e24', marginBottom: '8px', letterSpacing: '0.02em' }}>
             Publications
           </h1>
-          <p style={{ fontFamily: 'Georgia, serif', fontSize: '15px', fontStyle: 'italic', color: '#8a8278', margin: '-8px 0 16px' }}>
+          <p style={{ fontFamily: 'Georgia, serif', fontSize: '13.5px', fontStyle: 'italic', color: '#8a8278', margin: '0 0 18px' }}>
             Communications savantes, spirituelles et poétiques
           </p>
-          <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 18px' }} />
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', borderBottom: '1px solid #ddd8cf', marginBottom: '14px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', maxWidth: '180px', margin: '0 auto 20px' }}>
+            <div style={{ flex: 1, height: '1px', background: '#d6cfc4' }} />
+            <span style={{ fontSize: '9px', color: '#b0a088', letterSpacing: '0.2em' }}>· · ·</span>
+            <div style={{ flex: 1, height: '1px', background: '#d6cfc4' }} />
+          </div>
+
+          {/* Onglets */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', borderBottom: '1px solid #ddd8cf', flexWrap: 'wrap' }}>
             {([
-              { key: 'communaute' as const, label: 'Communications de la communauté' },
+              { key: 'communaute' as const, label: 'Communauté' },
               { key: 'mes-ecrits' as const, label: 'Mes écrits' },
               { key: 'ecrire' as const, label: '+ Écrire' },
             ]).map(o => (
               <button key={o.key} onClick={() => setOnglet(o.key)}
-                style={{ padding: '10px 14px', fontSize: '12.5px', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                style={{ padding: '9px 16px', fontSize: '12px', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: '0.01em' }}>
                 {o.label}
               </button>
             ))}
@@ -127,8 +127,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
             setRecherche={setRecherche}
             filtreCategorie={filtreCategorie}
             setFiltreCategorie={setFiltreCategorie}
-            auteurs={auteurs}
-            parAuteur={parAuteur}
+            essais={essaisFiltres}
           />
         ) : onglet === 'mes-ecrits' ? (
           <OngletMesEcrits connecte={connecte} essais={mesEcrits} changerStatut={changerStatut} supprimer={supprimer} />
@@ -144,19 +143,28 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
 }
 
 function OngletCommunaute({
-  recherche, setRecherche, filtreCategorie, setFiltreCategorie, auteurs, parAuteur,
+  recherche, setRecherche, filtreCategorie, setFiltreCategorie, essais,
 }: {
   recherche: string; setRecherche: (v: string) => void
   filtreCategorie: string | null; setFiltreCategorie: (v: string | null) => void
-  auteurs: string[]; parAuteur: Map<string, EssaiResume[]>
+  essais: EssaiResume[]
 }) {
+  // Tri : par auteur alphabétique, puis par date décroissante au sein de chaque auteur
+  const tries = [...essais].sort((a, b) => {
+    const cmp = a.auteur.localeCompare(b.auteur, 'fr')
+    if (cmp !== 0) return cmp
+    return (b.publie_at ?? '').localeCompare(a.publie_at ?? '')
+  })
+
   return (
     <>
-      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-        <div style={{ position: 'relative', maxWidth: '320px', margin: '0 auto 16px' }}>
-          <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)} placeholder="Rechercher un auteur, un titre, un résumé"
+      {/* Barre de recherche + filtres */}
+      <div style={{ marginBottom: '28px' }}>
+        <div style={{ position: 'relative', maxWidth: '300px', margin: '0 auto 14px' }}>
+          <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
+            placeholder="Auteur, titre, résumé…"
             style={{ width: '100%', fontSize: '13px', padding: '8px 14px 8px 36px', border: '1px solid #d6d0c4', borderRadius: '20px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', opacity: 0.38 }}>
             <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
             <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
           </svg>
@@ -167,32 +175,83 @@ function OngletCommunaute({
         </div>
       </div>
 
-      {auteurs.length === 0 ? (
+      {tries.length === 0 ? (
         <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Aucun essai trouvé.</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {auteurs.map(auteur => {
-            const score = parAuteur.get(auteur)?.[0]?.auteur_score ?? 0
-            const rang = calculerRang(score)
-            const couleurs = couleurRang(rang.rang)
-            return (
-              <section key={auteur} style={{ background: '#fff', borderRadius: '8px', border: '1px solid #e4dfd8', overflow: 'hidden' }}>
-                <div style={{ padding: '10px 16px 9px', display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(to right, rgba(61,107,79,0.07) 0%, transparent 100%)', borderBottom: '1px solid rgba(61,107,79,0.10)' }}>
-                  <span style={{ width: '3px', height: '13px', borderRadius: '2px', background: '#3d6b4f', flexShrink: 0, display: 'inline-block' }} />
-                  <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '12px', fontWeight: 700, color: '#2a4a36', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
-                    {auteur}
-                  </h2>
-                  <span style={{ fontSize: '8.5px', fontWeight: 700, color: couleurs.texte, background: couleurs.fond, padding: '1px 6px', borderRadius: '4px', letterSpacing: '0.03em' }}>{rang.rang}</span>
-                </div>
-                <div>
-                  {parAuteur.get(auteur)!.map(e => <EssaiCarte key={e.id} essai={e} />)}
-                </div>
-              </section>
-            )
-          })}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {tries.map(e => <EssaiCarte key={e.id} essai={e} />)}
         </div>
       )}
     </>
+  )
+}
+
+function EssaiCarte({ essai: e }: { essai: EssaiResume }) {
+  const estNouveau = !!(e.publie_at && (Date.now() - new Date(e.publie_at).getTime()) < SEMAINE_MS)
+  const dateFormatee = e.publie_at
+    ? new Date(e.publie_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+    : ''
+  const rang = calculerRang(e.auteur_score)
+  const couleurs = couleurRang(rang.rang)
+
+  return (
+    <Link href={`/essais/${e.id}`}
+      style={{ display: 'block', background: '#fff', border: '1px solid #e2ddd5', borderRadius: '6px', padding: '18px 22px 16px', textDecoration: 'none', transition: 'border-color 0.15s, box-shadow 0.15s' }}
+      onMouseEnter={ev => { ev.currentTarget.style.borderColor = '#c8b89a'; ev.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.06)' }}
+      onMouseLeave={ev => { ev.currentTarget.style.borderColor = '#e2ddd5'; ev.currentTarget.style.boxShadow = 'none' }}>
+
+      {/* Ligne supérieure : auteur + rang + date */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: 'Georgia, serif', fontSize: '12px', fontStyle: 'italic', color: '#3d6b4f', flexShrink: 0 }}>
+          {e.auteur}
+        </span>
+        <span style={{ fontSize: '7.5px', fontWeight: 700, color: couleurs.texte, background: couleurs.fond, padding: '1.5px 6px', borderRadius: '3px', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>
+          {rang.rang}
+        </span>
+        <div style={{ flex: 1, height: '1px', background: '#eae5de', minWidth: '12px' }} />
+        {estNouveau && (
+          <span style={{ fontSize: '7.5px', color: '#9a5a2a', background: 'rgba(192,86,42,0.10)', padding: '2px 7px', borderRadius: '3px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', flexShrink: 0 }}>
+            Nouveau
+          </span>
+        )}
+        {dateFormatee && (
+          <span style={{ fontFamily: 'Georgia, serif', fontSize: '11px', color: '#a09488', fontStyle: 'italic', flexShrink: 0 }}>
+            {dateFormatee}
+          </span>
+        )}
+      </div>
+
+      {/* Titre */}
+      <p style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#1a2820', margin: '0 0 4px', lineHeight: 1.25, letterSpacing: '0.01em' }}>
+        {e.titre}
+      </p>
+
+      {/* Sous-titre */}
+      {e.sous_titre && (
+        <p style={{ fontFamily: 'Georgia, serif', fontSize: '13px', fontStyle: 'italic', color: '#7a7268', margin: '0 0 10px', lineHeight: 1.4 }}>
+          {e.sous_titre}
+        </p>
+      )}
+
+      {/* Résumé */}
+      {e.resume && (
+        <p style={{ fontFamily: 'Georgia, serif', fontSize: '12.5px', color: '#6a6258', lineHeight: 1.65, margin: `${e.sous_titre ? '0' : '8px'} 0 12px`, fontStyle: 'italic' }}>
+          {e.resume.length > 180 ? e.resume.slice(0, 180) + ' …' : e.resume}
+        </p>
+      )}
+
+      {/* Pied : catégories + vues */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: e.resume || e.sous_titre ? '0' : '10px', flexWrap: 'wrap' }}>
+        {e.categories.slice(0, 3).map(c => (
+          <span key={c} style={{ fontSize: '9px', color: '#5a7060', background: 'rgba(61,107,79,0.08)', padding: '2px 8px', borderRadius: '3px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+            {c}
+          </span>
+        ))}
+        <span style={{ marginLeft: 'auto', fontSize: '10.5px', color: '#b8b0a4', fontVariantNumeric: 'tabular-nums' }}>
+          {e.nb_vues} vue{e.nb_vues > 1 ? 's' : ''}
+        </span>
+      </div>
+    </Link>
   )
 }
 
@@ -209,33 +268,6 @@ function OngletEcrire({ connecte, onValider }: { connecte: boolean | null; onVal
   }
   if (connecte === null) return <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
   return <EtapeMetadonnees mode="bloc" onValider={onValider} />
-}
-
-function EssaiCarte({ essai: e }: { essai: EssaiResume }) {
-  const estNouveau = e.publie_at && (Date.now() - new Date(e.publie_at).getTime()) < SEMAINE_MS
-  const tags = [...e.categories.slice(0, 3), ...(estNouveau ? ['Nouveau'] : [])]
-  return (
-    <Link href={`/essais/${e.id}`} style={{ display: 'block', padding: '10px 16px 12px', borderTop: '1px solid #ede9e2', textDecoration: 'none' }}
-      onMouseEnter={ev => (ev.currentTarget.style.background = 'rgba(61,107,79,0.035)')}
-      onMouseLeave={ev => (ev.currentTarget.style.background = 'transparent')}>
-      <div style={{ float: 'left', maxWidth: '52%', margin: '0 12px 4px 0', padding: '6px 9px', borderRadius: '6px', background: '#faf8f4', border: '1px solid #ede9e2' }}>
-        <p style={{ margin: 0, lineHeight: 1.25 }}>
-          <span style={{ fontFamily: 'Georgia, serif', fontSize: '14.5px', color: '#1e2e24' }}>{e.titre}</span>
-          {e.sous_titre && <span style={{ fontSize: '11.5px', color: '#8a8278', fontStyle: 'italic' }}> · {e.sous_titre}</span>}
-        </p>
-        <p style={{ fontSize: '9.5px', color: '#b0a89e', margin: '3px 0 0' }}>
-          {e.publie_at ? new Date(e.publie_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''} · {e.nb_vues} vue{e.nb_vues > 1 ? 's' : ''}
-        </p>
-      </div>
-      <div style={{ float: 'right', display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '34%', margin: '0 0 5px 10px' }}>
-        {tags.map(c => (
-          <span key={c} style={c === 'Nouveau' ? tagNouveau() : tagGenre()}>{c}</span>
-        ))}
-      </div>
-      {e.resume && <p style={{ fontSize: '12px', color: '#5a5450', lineHeight: 1.48, margin: 0, textAlign: 'justify' }}>{e.resume}</p>}
-      <div style={{ clear: 'both' }} />
-    </Link>
-  )
 }
 
 function OngletMesEcrits({
@@ -257,7 +289,7 @@ function OngletMesEcrits({
     return <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a4a2a', fontStyle: 'italic' }}>Connectez-vous pour voir vos écrits.</p>
   }
   if (essais === null) return <p style={{ fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
-  if (essais.length === 0) return <p style={{ fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Aucun écrit pour l'instant.</p>
+  if (essais.length === 0) return <p style={{ fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Aucun écrit pour l&apos;instant.</p>
 
   const groupes = [
     { key: 'tous' as const, label: 'Tous', test: (_: EssaiPerso) => true },
@@ -269,6 +301,7 @@ function OngletMesEcrits({
   ]
   const groupeActif = groupes.find(g => g.key === filtre) ?? groupes[0]
   const essaisFiltres = essais.filter(groupeActif.test)
+
   const derniereAction = (id: number) => {
     if (toggles[id]) return toggles[id]
     if (typeof window === 'undefined') return 0
@@ -277,10 +310,7 @@ function OngletMesEcrits({
   const basculerPublication = async (e: EssaiPerso) => {
     const dernier = derniereAction(e.id)
     const dejaValide = e.statut === 'publie' || (e.statut === 'brouillon' && !!e.publie_at && (!e.updated_at || new Date(e.updated_at).getTime() <= new Date(e.publie_at).getTime() + 1000))
-    if (!dejaValide) {
-      alert("Cet écrit doit d'abord être validé par l'administration.")
-      return
-    }
+    if (!dejaValide) { alert("Cet écrit doit d'abord être validé par l'administration."); return }
     const restant = 60 * 60 * 1000 - (Date.now() - dernier)
     if (restant > 0) {
       const minutes = Math.ceil(restant / 60000)
@@ -288,14 +318,14 @@ function OngletMesEcrits({
       return
     }
     await changerStatut(e.id, e.statut === 'publie' ? 'brouillon' : 'publie')
-    const maintenant = Date.now()
-    if (typeof window !== 'undefined') window.localStorage.setItem(`essai-publication-toggle-${e.id}`, String(maintenant))
-    setToggles(prev => ({ ...prev, [e.id]: maintenant }))
+    const now = Date.now()
+    if (typeof window !== 'undefined') window.localStorage.setItem(`essai-publication-toggle-${e.id}`, String(now))
+    setToggles(prev => ({ ...prev, [e.id]: now }))
   }
 
   return (
     <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', flexWrap: 'wrap', marginBottom: '14px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', flexWrap: 'wrap', marginBottom: '16px' }}>
         {groupes.map(g => {
           const actif = filtre === g.key
           const nb = essais.filter(g.test).length
@@ -310,48 +340,48 @@ function OngletMesEcrits({
       {essaisFiltres.length === 0 ? (
         <p style={{ textAlign: 'center', fontSize: '12.5px', color: '#9a958d', fontStyle: 'italic' }}>Aucun écrit dans cet onglet.</p>
       ) : (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      {essaisFiltres.map(e => {
-        const st = STATUTS[e.statut] ?? { label: e.statut, couleur: '#9a958d' }
-        const date = e.publie_at ?? e.updated_at
-        const statutStyle = styleStatut(e.statut)
-        const dernier = derniereAction(e.id)
-        const restant = Math.max(0, 60 * 60 * 1000 - (maintenant - dernier))
-        const verrouille = restant > 0
-        const dejaValide = e.statut === 'publie' || (e.statut === 'brouillon' && !!e.publie_at && (!e.updated_at || new Date(e.updated_at).getTime() <= new Date(e.publie_at).getTime() + 1000))
-        const peutBasculer = dejaValide && (e.statut === 'publie' || e.statut === 'brouillon')
-        const timer = verrouille ? formatTimer(restant) : ''
-        return (
-          <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'center', background: statutStyle.fond, border: `1px solid ${statutStyle.bordure}`, borderLeft: `4px solid ${statutStyle.accent}`, borderRadius: '8px', padding: '10px 13px 10px 12px' }}>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                <p style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: '#1e2e24', margin: 0 }}>{e.titre}</p>
-                {e.sous_titre && <p style={{ fontSize: '12px', color: '#8a8278', fontStyle: 'italic', margin: 0 }}>{e.sous_titre}</p>}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {essaisFiltres.map(e => {
+            const st = STATUTS[e.statut] ?? { label: e.statut, couleur: '#9a958d' }
+            const date = e.publie_at ?? e.updated_at
+            const statutStyle = styleStatut(e.statut)
+            const dernier = derniereAction(e.id)
+            const restant = Math.max(0, 60 * 60 * 1000 - (maintenant - dernier))
+            const verrouille = restant > 0
+            const dejaValide = e.statut === 'publie' || (e.statut === 'brouillon' && !!e.publie_at && (!e.updated_at || new Date(e.updated_at).getTime() <= new Date(e.publie_at).getTime() + 1000))
+            const peutBasculer = dejaValide && (e.statut === 'publie' || e.statut === 'brouillon')
+            const timer = verrouille ? formatTimer(restant) : ''
+            return (
+              <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'center', background: statutStyle.fond, border: `1px solid ${statutStyle.bordure}`, borderLeft: `4px solid ${statutStyle.accent}`, borderRadius: '8px', padding: '10px 13px 10px 12px' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
+                    <p style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: '#1e2e24', margin: 0 }}>{e.titre}</p>
+                    {e.sous_titre && <p style={{ fontSize: '12px', color: '#8a8278', fontStyle: 'italic', margin: 0 }}>{e.sous_titre}</p>}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', fontSize: '10px', color: '#b0a89e', marginTop: '3px' }}>
+                    <span>{date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Sans date'}</span>
+                    <span>{e.nb_vues ?? 0} vue{(e.nb_vues ?? 0) > 1 ? 's' : ''}</span>
+                    <span>♥ {e.nb_likes ?? 0}</span>
+                    <span style={{ color: st.couleur, fontWeight: 700 }}>{st.label}</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  <button onClick={() => basculerPublication(e)} disabled={!peutBasculer || verrouille}
+                    title={!dejaValide ? "Publication possible après validation par l'administration." : verrouille ? 'Interrupteur disponible une heure après le dernier changement.' : e.statut === 'publie' ? 'Dépublier' : 'Publier'}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '10.5px', color: e.statut === 'publie' ? '#3d6b4f' : '#8a8278', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.45 : 1, fontWeight: 700 }}>
+                    <span>Publié</span>
+                    {timer && <span style={{ fontSize: '9.5px', color: '#9a958d', fontWeight: 600 }}>{timer}</span>}
+                    <span style={{ width: '28px', height: '15px', borderRadius: '999px', background: e.statut === 'publie' ? '#3d6b4f' : '#d6d0c4', position: 'relative', display: 'inline-block', transition: 'background 0.15s' }}>
+                      <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '15px' : '2px', width: '11px', height: '11px', borderRadius: '50%', background: '#fff', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
+                    </span>
+                  </button>
+                  <Link href={`/essais/${e.id}/modifier`} style={{ fontSize: '10.5px', color: '#3d6b4f', textDecoration: 'none', fontWeight: 600 }}>Modifier</Link>
+                  <button onClick={() => supprimer(e.id)} style={{ fontSize: '10.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Supprimer</button>
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', fontSize: '10px', color: '#b0a89e', marginTop: '3px' }}>
-                <span>{date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Sans date'}</span>
-                <span>{e.nb_vues ?? 0} vue{(e.nb_vues ?? 0) > 1 ? 's' : ''}</span>
-                <span>♥ {e.nb_likes ?? 0}</span>
-                <span style={{ color: st.couleur, fontWeight: 700 }}>{st.label}</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-              <button onClick={() => basculerPublication(e)} disabled={!peutBasculer || verrouille}
-                title={!dejaValide ? "Publication possible après validation par l'administration." : verrouille ? 'Interrupteur disponible une heure après le dernier changement.' : e.statut === 'publie' ? 'Dépublier' : 'Publier'}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '10.5px', color: e.statut === 'publie' ? '#3d6b4f' : '#8a8278', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.45 : 1, fontWeight: 700 }}>
-                <span>Publié</span>
-                {timer && <span style={{ fontSize: '9.5px', color: '#9a958d', fontWeight: 600 }}>{timer}</span>}
-                <span style={{ width: '28px', height: '15px', borderRadius: '999px', background: e.statut === 'publie' ? '#3d6b4f' : '#d6d0c4', position: 'relative', display: 'inline-block', transition: 'background 0.15s' }}>
-                  <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '15px' : '2px', width: '11px', height: '11px', borderRadius: '50%', background: '#fff', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
-                </span>
-              </button>
-              <Link href={`/essais/${e.id}/modifier`} style={actionLien()}>Modifier</Link>
-              <button onClick={() => supprimer(e.id)} style={actionBouton('#c0562a')}>Supprimer</button>
-            </div>
-          </div>
-        )
-      })}
-      </div>
+            )
+          })}
+        </div>
       )}
     </div>
   )
@@ -372,16 +402,4 @@ function styleStatut(statut: string): { fond: string; bordure: string; accent: s
   if (statut === 'a_reviser') return { fond: 'rgba(192,86,42,0.08)', bordure: 'rgba(192,86,42,0.25)', accent: '#c0562a' }
   if (statut === 'refuse') return { fond: 'rgba(160,45,45,0.08)', bordure: 'rgba(160,45,45,0.25)', accent: '#a02d2d' }
   return { fond: '#fff', bordure: '#e4dfd8', accent: '#d6d0c4' }
-}
-function tagGenre(): React.CSSProperties {
-  return { fontSize: '9px', color: '#3d6b4f', background: 'rgba(61,107,79,0.08)', padding: '1px 7px', borderRadius: '8px', fontWeight: 600 }
-}
-function tagNouveau(): React.CSSProperties {
-  return { fontSize: '9px', color: '#9a5a2a', background: 'rgba(192,86,42,0.10)', padding: '1px 7px', borderRadius: '8px', fontWeight: 700 }
-}
-function actionLien(): React.CSSProperties {
-  return { fontSize: '10.5px', color: '#3d6b4f', textDecoration: 'none', fontWeight: 600 }
-}
-function actionBouton(couleur: string): React.CSSProperties {
-  return { fontSize: '10.5px', color: couleur, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }
 }

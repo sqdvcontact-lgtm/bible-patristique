@@ -477,7 +477,12 @@ export default function TexteBible({
                       onSupprimer={() => retirerSauvegarde(v.verset)}
                     />
                   )}
-                  <BoutonCopie texte={`« ${convertirGuillemetsInternes(String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? ''))} » (${nomLivre} ${chapitreActif},${v.verset})`} />
+                  <BoutonCopie texte={(() => {
+                    const texteVerset = String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')
+                    const abr = ABREV_FR[livreActif] || nomLivre
+                    const textrePropre = convertirGuillemetsInternes(texteVerset).replace(/[.!?]$/, '')
+                    return `« ${textrePropre} » (${abr} ${chapitreActif}, ${v.verset})`
+                  })()} />
                   <BoutonSignaler versetId={v.id_verset} />
                   {estAdmin && !modeUtilisateurStandard && (
                     <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"

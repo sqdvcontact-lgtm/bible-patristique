@@ -66,17 +66,15 @@ function construireCitationPatristique(
   const parts: string[] = []
   if (auteur) parts.push(auteur)
   let titreComplet = titre || ''
-  if (sousTitre) titreComplet += '. ' + sousTitre + '.'
-  else if (titre) titreComplet += '.'
+  if (sousTitre) titreComplet += '. ' + sousTitre
   if (titreComplet) parts.push(titreComplet)
   if (editeur) parts.push(editeur)
   if (tradAuteur) parts.push('trad. ' + tradAuteur)
   if (collection) parts.push(collection)
   if (ville) parts.push(ville)
   if (datePublication) parts.push(datePublication)
-  parts.push('« disponible sur Corpus Scriptura »')
-  parts.push('« ' + convertirGuillemetsInternes(texte) + ' »')
-  return parts.join(', ') + '.'
+  parts.push('disponible sur le site Corpus Scriptura')
+  return parts.join(', ') + ' : « ' + convertirGuillemetsInternes(texte) + ' »'
 }
 
 // ── Bouton copie segment ──────────────────────────────────────────────────────

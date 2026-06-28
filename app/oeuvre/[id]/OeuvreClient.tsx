@@ -50,7 +50,7 @@ async function chargerCodesTraductions() {
 }
 
 // ── Composant principal ───────────────────────────────────────────────────────
-export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, vueInitiale = 'texte' }: Props) {
+export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, vueInitiale = 'texte' }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   const [segActif, setSegActif] = useState<number | null>(segmentCibleId)
@@ -106,6 +106,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
   // Navigation lazy par niv1
   const niv1List = niv1ListProp
+  // Carte niv1 → label humain, enrichie au fil des chargements client
+  const [niv1TexteMap, setNiv1TexteMap] = useState<Record<string, string>>(niv1TexteMapProp)
   const [niv1Actif, setNiv1Actif] = useState<string>(niv1List[0] ?? '')
   const [groupes, setGroupes] = useState<GroupeData[]>(groupesInit)
   const [segments, setSegments] = useState<SegData[]>(segmentsInit)
@@ -144,13 +146,22 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   }
 
   const chargerNiv1Data = async (n1: string): Promise<{ groupes: GroupeData[]; segments: SegData[] }> => {
-    const { data } = await supabase
-      .from('segments')
-      .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature')
-      .eq('id_oeuvre', idOeuvre)
-      .eq('ref_niv1', n1)
-      .order('segment_numero')
-    const segs = (data ?? []) as any[]
+    const SELECT = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature'
+    const segs: any[] = []
+    let from = 0
+    while (true) {
+      const { data: batch } = await supabase
+        .from('segments')
+        .select(SELECT)
+        .eq('id_oeuvre', idOeuvre)
+        .eq('ref_niv1', n1)
+        .order('segment_numero')
+        .range(from, from + 999)
+      if (!batch || batch.length === 0) break
+      segs.push(...batch)
+      if (batch.length < 1000) break
+      from += 1000
+    }
 
     const tousIds = new Set<string>()
     segs.forEach((s: any) => {
@@ -197,6 +208,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       } else cur.itemIds.push(s.id)
     })
     if (cur.itemIds.length > 0) newGroupes.push({ ...cur, anchor: `g${gi}` })
+
+    // Enrichir la carte niv1 → niv1_texte avec ce qu'on vient de charger
+    const niv1TexteEntries: Record<string, string> = {}
+    newGroupes.forEach(g => { if (g.niv1 && g.niv1_texte) niv1TexteEntries[g.niv1] = g.niv1_texte })
+    if (Object.keys(niv1TexteEntries).length > 0)
+      setNiv1TexteMap(prev => ({ ...prev, ...niv1TexteEntries }))
 
     return { groupes: newGroupes, segments: newSegs }
   }
@@ -480,6 +497,9 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   <button onClick={() => changerNiv1(n1)}
                     style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '11.5px', fontWeight: estActif ? 600 : 400, color: estActif ? '#3d6b4f' : '#3a3530', lineHeight: 1.35 }}>
                     {n1}
+                    {niv1TexteMap[n1] && txtSommaire[0] && (
+                      <span style={{ fontSize: '9.5px', color: estActif ? '#3d6b4f' : '#9a958d', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{niv1TexteMap[n1]}</span>
+                    )}
                   </button>
 
                   {/* Niv2 — affiché si profondeur >= 2 ET niv1 actif */}
@@ -548,7 +568,17 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 {niv1Prev ? '‹' : ''}
               </button>
               <span style={{ fontSize: '16px', fontWeight: 500, color: '#2a3d30', fontFamily: "Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'normal', overflowWrap: 'break-word', position: 'relative' }}>
-                {niv1Loading ? <span style={{ fontSize: '13px', color: '#b0a89e' }}>Chargement…</span> : rendreTexteEnrichi(groupes[0]?.niv1_texte || niv1Actif)}
+                {niv1Loading ? <span style={{ fontSize: '13px', color: '#b0a89e' }}>Chargement…</span> : (
+                  <>
+                    {rendreTexteEnrichi(niv1Actif)}
+                    {(() => {
+                      const txt = groupes[0]?.niv1_texte || niv1TexteMap[niv1Actif] || ''
+                      return txt && txtCorps[0]
+                        ? <span style={{ display: 'block', fontSize: '12px', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', marginTop: '3px', fontFamily: "Georgia, serif" }}>{rendreTexteEnrichi(txt)}</span>
+                        : null
+                    })()}
+                  </>
+                )}
                 {estAdmin && !niv1Loading && (
                   <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe: groupes[0] ?? { niv1: niv1Actif, niv2: '', niv3: '', niv4: '', anchor: '', itemIds: [] }, texteActuel: groupes[0]?.niv1_texte || niv1Actif, schemaTexte: true })}
                     title="Modifier ce titre (admin)" style={{ fontSize: '10px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', marginLeft: '6px', verticalAlign: 'middle' }}>✎</button>

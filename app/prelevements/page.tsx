@@ -131,16 +131,15 @@ function construireCitationPatristique(
   const parts: string[] = [];
   if (auteur) parts.push(auteur);
   let titreComplet = titre || '';
-  if (info?.sous_titre) titreComplet += '. ' + info.sous_titre + '.';
-  else if (titre) titreComplet += '.';
+  if (info?.sous_titre) titreComplet += '. ' + info.sous_titre;
   if (titreComplet) parts.push(titreComplet);
   if (info?.trad_auteur) parts.push('trad. ' + info.trad_auteur);
   if (info?.editeur) parts.push(info.editeur);
   if (info?.collection) parts.push(info.collection);
   if (info?.ville) parts.push(info.ville);
   if (info?.date_publication) parts.push(info.date_publication);
-  const ref = parts.join(', ');
-  return ref + (ref ? ' : ' : '') + '« ' + texte + ' » — disponible sur Corpus Scriptura';
+  parts.push('disponible sur le site Corpus Scriptura');
+  return parts.join(', ') + ' : « ' + texte + ' »';
 }
 
 function BoutonCopie({ texte }: { texte: string }) {
@@ -379,7 +378,7 @@ export default function PrelevementsPage() {
                             {texteGroupe(g)}
                           </p>
                           <div style={{ display:"flex", gap:"2px", flexShrink:0, marginTop:"1px" }}>
-                            <BoutonCopie texte={`« ${texteGroupe(g)} » (${refBiblique(g)})`} />
+                            <BoutonCopie texte={`« ${texteGroupe(g).replace(/[.!?]$/, '')} » (${refBiblique(g)})`} />
                             <BoutonSuppr ids={g.ids} onSuppr={() => supprimerIds(g.ids)} />
                           </div>
                         </div>

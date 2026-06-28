@@ -96,7 +96,7 @@ export default function VotesClient() {
   }, [userId, mesVotes, enCours])
 
   return (
-    <section style={{ maxWidth: '600px', width: '100%', margin: '0 auto' }}>
+    <section style={{ maxWidth: '600px', width: '100%', margin: '0 auto', padding: '64px 24px 80px' }}>
       <div style={{ textAlign: 'center', marginBottom: '32px' }}>
         <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 28px' }} />
         <h2 style={{

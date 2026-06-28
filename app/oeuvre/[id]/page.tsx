@@ -141,6 +141,26 @@ export default async function OeuvrePage({
   }
   const niv1Complet: string[] = (niv1Raw ?? []).map((r: any) => r.ref_niv1).filter(Boolean)
 
+  // Carte niv1 → niv1_texte (label humain) : d'abord via le RPC s'il le fournit,
+  // sinon via une petite requête dédiée.
+  const niv1TexteMap: Record<string, string> = {}
+  ;(niv1Raw ?? []).forEach((r: any) => {
+    if (r.ref_niv1 && r.ref_niv1_texte) niv1TexteMap[r.ref_niv1] = r.ref_niv1_texte
+  })
+  if (Object.keys(niv1TexteMap).length === 0 && niv1Complet.length > 0) {
+    const { data: niv1TexteData } = await supabase
+      .from('segments')
+      .select('ref_niv1, ref_niv1_texte')
+      .eq('id_oeuvre', id)
+      .in('ref_niv1', niv1Complet)
+      .not('ref_niv1_texte', 'is', null)
+      .limit(niv1Complet.length * 5)
+    ;(niv1TexteData ?? []).forEach((r: any) => {
+      if (r.ref_niv1 && r.ref_niv1_texte && !niv1TexteMap[r.ref_niv1])
+        niv1TexteMap[r.ref_niv1] = r.ref_niv1_texte
+    })
+  }
+
   // Les niv1 entièrement composés d'apparat critique (ex. un glossaire) ne
   // doivent pas apparaître dans le sommaire normal : ils sont déjà accessibles
   // via le bloc « Apparat critique » dédié, sinon ils apparaissent en double.
@@ -162,23 +182,30 @@ export default async function OeuvrePage({
     : niv1List[0] ?? null
 
   // 3. Charger les segments du premier niv1 + l'apparat
-  const [segTexteResult, segApparatResult] = await Promise.all([
-    premierNiv1
-      ? supabase.from('segments')
-          .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature')
-          .eq('id_oeuvre', id)
-          .eq('ref_niv1', premierNiv1)
-          .order('id', { ascending: true })
-      : Promise.resolve({ data: [] }),
-    supabase.from('segments')
-      .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature')
-      .eq('id_oeuvre', id)
-      .eq('nature', 'apparat_critique')
-      .order('id', { ascending: true }),
+  const SELECT_SEG = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature'
+
+  async function chargerTousSegments(filtre: Record<string, string>) {
+    const acc: any[] = []
+    let from = 0
+    while (true) {
+      let q = supabase.from('segments').select(SELECT_SEG).eq('id_oeuvre', id).order('id', { ascending: true }).range(from, from + 999)
+      for (const [k, v] of Object.entries(filtre)) q = q.eq(k, v)
+      const { data: batch } = await q
+      if (!batch || batch.length === 0) break
+      acc.push(...batch)
+      if (batch.length < 1000) break
+      from += 1000
+    }
+    return acc
+  }
+
+  const [segmentsTexteRaw, segmentsApparatRaw] = await Promise.all([
+    premierNiv1 ? chargerTousSegments({ ref_niv1: premierNiv1 }) : Promise.resolve([]),
+    chargerTousSegments({ nature: 'apparat_critique' }),
   ])
 
-  const segmentsTexte = (segTexteResult.data ?? []) as Segment[]
-  const segmentsApparat = (segApparatResult.data ?? []) as Segment[]
+  const segmentsTexte = segmentsTexteRaw as Segment[]
+  const segmentsApparat = segmentsApparatRaw as Segment[]
 
   // 4. Versets pour le premier livre seulement
   const versetMap = await enrichirAvecVersets(segmentsTexte)
@@ -240,6 +267,7 @@ export default async function OeuvrePage({
       idOeuvre={id}
       estAdmin={estAdmin}
       niv1List={niv1List}
+      niv1TexteMap={niv1TexteMap}
       niveauxSommaire={oeuvre.niveaux_sommaire ?? oeuvre.profondeur_sommaire ?? 1}
       niveauxCorps={oeuvre.niveaux_corps ?? 1}
       txtSommaire={(oeuvre.texte_sommaire ?? '0,0,0,0,0').split(',').map((v: string) => v === '1')}

@@ -15,6 +15,7 @@ export type Props = {
   idOeuvre: string
   estAdmin: boolean
   niv1List: string[]
+  niv1TexteMap?: Record<string, string>
   niveauxSommaire?: number
   niveauxCorps?: number
   txtSommaire?: boolean[]

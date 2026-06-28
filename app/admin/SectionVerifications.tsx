@@ -127,8 +127,8 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
     })
   })
 
-  // Mettre à jour le badge de l'onglet en temps réel (par segment, pas par paire)
-  React.useEffect(() => { onCountChange?.(segments.length) }, [segments.length])
+  // Mettre à jour le badge de l'onglet en temps réel
+  React.useEffect(() => { onCountChange?.(paires.length) }, [paires.length])
 
   const nbPages = Math.ceil(paires.length / PAGE_SIZE)
   const pageCourante = paires.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
