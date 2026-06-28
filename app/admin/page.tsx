@@ -129,7 +129,11 @@ export default async function AdminPage() {
 
   // Modération
   const { data: commentaires } = await supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id').eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false').order('created_at', { ascending: false })
-  const { data: signalements } = await supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, user_id').eq('traite', false).order('created_at', { ascending: false })
+  let { data: signalements, error: signalementsError } = await supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, id_verset, user_id').eq('traite', false).order('created_at', { ascending: false })
+  if (signalementsError) {
+    const fallback = await supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, user_id').eq('traite', false).order('created_at', { ascending: false })
+    signalements = (fallback.data ?? []).map(s => ({ ...s, id_verset: null }))
+  }
   const { data: demandesCertification } = await supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, demande_validation, certifie').eq('demande_validation', true).order('created_at', { ascending: false })
   const segIds = [...(commentaires?.map(c => c.id_segment).filter(Boolean) ?? []), ...(signalements?.map(s => s.id_segment).filter(Boolean) ?? []), ...(demandesCertification?.map(c => c.id_segment).filter(Boolean) ?? [])]
   const segIdsUniques = [...new Set(segIds)]
@@ -139,7 +143,10 @@ export default async function AdminPage() {
   const segMap: Record<number, { texte: string; numero: number; id_oeuvre: string }> = {}
   segmentsCtx?.forEach(s => { segMap[s.id] = { texte: s.segment_texte, numero: s.segment_numero, id_oeuvre: s.id_oeuvre } })
 
-  const idsVersetsCertif = [...new Set((demandesCertification?.map(c => c.id_verset).filter(Boolean) ?? []) as string[])]
+  const idsVersetsCertif = [...new Set([
+    ...((demandesCertification?.map(c => c.id_verset).filter(Boolean) ?? []) as string[]),
+    ...((signalements?.map(s => s.id_verset).filter(Boolean) ?? []) as string[]),
+  ])]
   const { data: versetsCtx } = idsVersetsCertif.length > 0
     ? await supabaseAdmin.from('versets').select('id_verset, ref').in('id_verset', idsVersetsCertif)
     : { data: [] }

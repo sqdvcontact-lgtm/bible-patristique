@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
+import { chargerNotificationsUtilisateur, cleArchivesNotifications, cleNotificationsConnues, lireSetLocalStorage } from "@/app/lib/notificationsClient";
 
 const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean }[] = [
   { href: "/?livre=GEN&chapitre=1", label: "Bible", exact: true },
@@ -121,33 +122,19 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!user?.id) { setNbNotifications(0); return }
-    const cleArchives = `notifications_archivees:${user.id}`
-    const cleConnues = `notifications_connues:${user.id}`
-
-    const lireSet = (cle: string) => {
-      try { return new Set<string>(JSON.parse(localStorage.getItem(cle) ?? '[]')) }
-      catch { return new Set<string>() }
-    }
+    const cleArchives = cleArchivesNotifications(user.id)
+    const cleConnues = cleNotificationsConnues(user.id)
 
     const chargerNotifications = async (avecToast: boolean) => {
-      const [essais, commentaires, signalements] = await Promise.all([
-        supabase.from('essais').select('id, titre, note_admin, updated_at').eq('user_id', user.id).not('note_admin', 'is', null),
-        supabase.from('commentaires').select('id, texte, message_admin, message_admin_at').eq('user_id', user.id).not('message_admin', 'is', null),
-        supabase.from('signalements').select('id, message, message_admin, message_admin_at').eq('user_id', user.id).not('message_admin', 'is', null),
-      ])
-      const toutes = [
-        ...((essais.data ?? []) as any[]).map(e => ({ key: `essai:${e.id}:${e.updated_at ?? ''}`, titre: 'Proposition de texte', message: e.note_admin || e.titre || '' })),
-        ...((commentaires.data ?? []) as any[]).map(c => ({ key: `commentaire:${c.id}:${c.message_admin_at ?? ''}`, titre: 'Commentaire', message: c.message_admin || c.texte || '' })),
-        ...((signalements.data ?? []) as any[]).map(s => ({ key: `signalement:${s.id}:${s.message_admin_at ?? ''}`, titre: 'Signalement', message: s.message_admin || s.message || '' })),
-      ]
-      const archives = lireSet(cleArchives)
-      const connues = lireSet(cleConnues)
+      const toutes = await chargerNotificationsUtilisateur(user.id)
+      const archives = lireSetLocalStorage(cleArchives)
+      const connues = lireSetLocalStorage(cleConnues)
       const actives = toutes.filter(n => !archives.has(n.key))
       const nouvelles = actives.filter(n => !connues.has(n.key))
       setNbNotifications(actives.length)
       if (avecToast && nouvelles.length > 0 && connues.size > 0) {
         const n = nouvelles[0]
-        setToastNotification({ titre: n.titre, message: String(n.message).slice(0, 120) })
+        setToastNotification({ titre: n.titre, message: String(n.message || n.objet).slice(0, 120) })
         window.setTimeout(() => setToastNotification(null), 5200)
       }
       localStorage.setItem(cleConnues, JSON.stringify(toutes.map(n => n.key)))

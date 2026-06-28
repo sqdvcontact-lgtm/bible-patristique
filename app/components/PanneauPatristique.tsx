@@ -290,7 +290,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignal
       </div>
 
       {/* Ligne 4 : niveaux de référence */}
-      <div style={{ display:'flex', alignItems:'baseline', gap:'5px', marginTop:'-5px', marginBottom:'6px', flexWrap:'wrap' }}>
+      <div style={{ display:'flex', alignItems:'baseline', gap:'5px', marginTop:'-4px', marginBottom:'10px', flexWrap:'wrap' }}>
         {niveaux && (
           <span style={{ fontSize:'10px', color:'#b0a89e', lineHeight:1.12 }}>
             {niveaux}
@@ -382,11 +382,18 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
     })
   const principaux = trierCommentaires(commentaires.filter(c => !c.reponse_a))
   const reponsesDe = (id: number) => trierCommentaires(commentaires.filter(c => c.reponse_a === id))
+  const dateHeureCommentaire = (date: string) =>
+    new Date(date).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  const setCommentairesAvecTransition = (updater: (prev: Commentaire2[]) => Commentaire2[]) => {
+    const doc = document as Document & { startViewTransition?: (callback: () => void) => void }
+    if (doc.startViewTransition) doc.startViewTransition(() => setCommentaires(updater))
+    else setCommentaires(updater)
+  }
 
   const basculerVote = async (c: { id: number; monVote: 1 | -1 | null }, valeur: 1 | -1) => {
     if (!userId) { alert('Connectez-vous pour réagir à un commentaire.'); return }
     const retire = c.monVote === valeur
-    setCommentaires(prev => prev.map(x => {
+    setCommentairesAvecTransition(prev => prev.map(x => {
       if (x.id !== c.id) return x
       let { nbLikes, nbDislikes } = x
       if (x.monVote === 1) nbLikes--
@@ -441,14 +448,15 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
   }
 
   const renderCommentaire = (c: Commentaire2, estReponse: boolean) => {
-    const cache = false && !c.supprime && !c.valide && !revelees.has(c.id)
+    const cache = !c.supprime && !c.valide && !revelees.has(c.id)
     if (cache) {
       return (
         <div key={c.id} style={{ marginLeft: estReponse ? '16px' : 0, marginBottom:'8px' }}>
-          <button onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
-            style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(176,58,42,0.07)', border:'1px solid rgba(176,58,42,0.22)', borderRadius:'20px', cursor:'pointer', padding:'4px 12px', fontSize:'10px', color:'#b0392b' }}>
-            <span>Commentaire en cours de révision</span>
-            <span style={{ fontWeight:700, textDecoration:'underline' }}>Afficher</span>
+          <button className="commentaire-retracte" onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
+            style={{ width:'100%', display:'block', position:'relative', overflow:'hidden', background:'rgba(176,58,42,0.06)', border:'1px solid rgba(176,58,42,0.20)', borderRadius:'6px', cursor:'pointer', padding:'7px 10px', textAlign:'left' }}>
+            <span className="commentaire-retracte-contenu" style={{ display:'block', fontSize:'10px', color:'#b0392b', fontWeight:600 }}>
+              Commentaire en attente de contrôle.
+            </span>
           </button>
         </div>
       )
@@ -463,7 +471,7 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
     const fondTexte = estCertifie ? 'rgba(255,255,255,0.42)' : estRevision ? 'rgba(255,255,255,0.48)' : 'rgba(255,255,255,0.54)'
     const couleurTexte = estRevision ? '#6f3d35' : '#2a2520'
     return (
-      <div key={c.id} style={{ marginLeft: estReponse ? '14px' : 0, marginBottom:'7px', padding:'7px 9px', background: fondCarte, border:'1px solid ' + bordureCarte, borderLeft:'4px solid ' + accentCarte, borderRadius:'6px' }}>
+      <div className="commentaire-carte" key={c.id} style={{ marginLeft: estReponse ? '14px' : 0, marginBottom:'7px', padding:'7px 9px', background: fondCarte, border:'1px solid ' + bordureCarte, borderLeft:'4px solid ' + accentCarte, borderRadius:'6px', viewTransitionName: `commentaire-bible-${c.id}` }}>
         {c.supprime ? (
           <p style={{ fontSize:'10.5px', color:'#9a958d', fontStyle:'italic', margin:0 }}>
             {c.pseudo ?? c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
@@ -471,22 +479,24 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
         ) : (
         <>
         {/* Ligne 1 : pseudo + rang */}
-        <div style={{ display:'flex', alignItems:'center', gap:'6px', marginBottom:'4px', flexWrap:'wrap' }}>
-          <span style={{ fontSize:'10px', fontWeight:600, color:'#2a3d30' }}>{c.pseudo ?? c.auteur_nom}</span>
-          {couleurs && rangInfo && (
-            <span style={{ fontSize:'8px', fontWeight:600, color:couleurs.texte, background:couleurs.fond, padding:'0px 5px', borderRadius:'3px', letterSpacing:'0.02em' }}>
-              {rangInfo.rang}
-            </span>
-          )}
-          {estCertifie && <span style={{ fontSize:'8px', fontWeight:700, color:'#2f6a48', background:'rgba(61,107,79,0.14)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>CERTIFIÉ</span>}
-          {estRevision && <span style={{ fontSize:'8px', fontWeight:700, color:'#b0392b', background:'rgba(176,58,42,0.10)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>EN RÉVISION</span>}
+        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'8px', marginBottom:'4px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', minWidth:0 }}>
+            <span style={{ fontSize:'10px', fontWeight:600, color:'#2a3d30' }}>{c.pseudo ?? c.auteur_nom}</span>
+            {couleurs && rangInfo && (
+              <span style={{ fontSize:'8px', fontWeight:600, color:couleurs.texte, background:couleurs.fond, padding:'0px 5px', borderRadius:'3px', letterSpacing:'0.02em' }}>
+                {rangInfo.rang}
+              </span>
+            )}
+            {estCertifie && <span style={{ fontSize:'8px', fontWeight:700, color:'#2f6a48', background:'rgba(61,107,79,0.14)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>CERTIFIÉ</span>}
+            {estRevision && <span style={{ fontSize:'8px', fontWeight:700, color:'#b0392b', background:'rgba(176,58,42,0.10)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>EN RÉVISION</span>}
+          </div>
+          <span style={{ marginLeft:'auto', textAlign:'right', fontSize:'8.7px', color:'#b0a89e', flexShrink:0 }}>{dateHeureCommentaire(c.created_at)}</span>
         </div>
         {/* Ligne 2 : texte (gras/italique/liens interprétés, sauts de ligne respectés) */}
         <div style={{ fontSize:'10.8px', lineHeight:'1.42', color: couleurTexte, margin:0, whiteSpace:'pre-line', background: fondTexte, borderRadius:'4px', padding:'5px 6px' }}>{rendreTexteEnrichi(c.texte)}</div>
         {/* Ligne 3 : date + votes (négatif puis positif) + actions */}
-        <div style={{ display:'flex', alignItems:'center', gap:'7px', marginTop:'5px', flexWrap:'nowrap', whiteSpace:'nowrap', minWidth:0 }}>
-          <span style={{ fontSize:'9px', color:'#b0a89e', flexShrink:0 }}>{new Date(c.created_at).toLocaleDateString('fr-FR')}</span>
-          <div style={{ display:'flex', alignItems:'center', gap:'7px', flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'5px', flexWrap:'nowrap', whiteSpace:'nowrap', minWidth:0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'3px', flexShrink:0 }}>
             <button onClick={() => basculerVote(c, -1)} title="Je n'aime pas"
               style={{ display:'flex', alignItems:'center', gap:'3px', color: c.monVote === -1 ? '#9a4a2a' : '#b0a89e', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
               <svg width="10" height="10" viewBox="0 0 20 20" fill="none" style={{ transform:'rotate(180deg)' }} aria-hidden="true">
@@ -508,22 +518,22 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
               Répondre
             </button>
           )}
-          <button onClick={() => setCommentaireSignale(c)} title="Signaler ce commentaire"
-            style={{ fontSize:'10.5px', color:'#c8c0b4', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft:'auto', flexShrink:0 }}>
-            ⚑
-          </button>
           {userId === c.user_id && (
             <button onClick={() => supprimerMonCommentaire(c)} title="Supprimer mon commentaire"
-              style={{ fontSize:'10px', color:'#9a958d', background:'none', border:'none', cursor:'pointer', padding:0 }}>
+              style={{ fontSize:'10px', color:'#9a958d', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft:'auto', flexShrink:0 }}>
               Supprimer
             </button>
           )}
           {isAdmin && userId !== c.user_id && (
             <button onClick={() => supprimerCommentaire(c)} title="Supprimer ce commentaire"
-              style={{ fontSize:'10px', color:'#c0392b', background:'none', border:'none', cursor:'pointer', padding:0 }}>
+              style={{ fontSize:'10px', color:'#c0392b', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft:'auto', flexShrink:0 }}>
               Supprimer (admin)
             </button>
           )}
+          <button onClick={() => setCommentaireSignale(c)} title="Signaler ce commentaire"
+            style={{ fontSize:'10.5px', color:'#c8c0b4', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft: userId === c.user_id || (isAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink:0 }}>
+            ⚑
+          </button>
         </div>
         </>
         )}
@@ -533,6 +543,45 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
 
   return (
     <div style={{ padding:'10px 0' }}>
+      <style>{`
+        .commentaire-carte {
+          transition: opacity 180ms ease, box-shadow 180ms ease, margin 180ms ease;
+        }
+        .commentaire-retracte {
+          transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+        }
+        .commentaire-retracte:hover {
+          background: rgba(176,58,42,0.09) !important;
+          border-color: rgba(176,58,42,0.30) !important;
+          transform: translateX(1px);
+        }
+        .commentaire-retracte-contenu {
+          transition: opacity 150ms ease, transform 150ms ease;
+        }
+        .commentaire-retracte:hover .commentaire-retracte-contenu {
+          opacity: 0.13;
+          transform: translateX(-6px);
+        }
+        .commentaire-retracte::after {
+          content: "Lire tout de même  →";
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: rgba(176,58,42,0);
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.04em;
+          pointer-events: none;
+          transform: translateX(-10px);
+          transition: color 160ms ease, transform 160ms ease;
+        }
+        .commentaire-retracte:hover::after {
+          color: rgba(176,58,42,0.82);
+          transform: translateX(0);
+        }
+      `}</style>
       {loading && <p style={{ fontSize:'10.5px', color:'#9a958d', fontStyle:'italic' }}>Chargement…</p>}
       {!loading && commentaires.length === 0 && (
         <p style={{ fontSize:'10.5px', color:'#b0a89e', fontStyle:'italic', marginBottom:'12px' }}>Aucun commentaire pour ce verset.</p>
@@ -582,8 +631,18 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
           onClose={() => setCommentaireSignale(null)}
           onEnvoyer={async (msg) => {
             const { data } = await supabase.auth.getSession()
-            const { error } = await supabase.from('signalements').insert({ id_segment: null, user_id: data.session?.user.id ?? null, message: `Commentaire #${commentaireSignale.id} : ${msg}`, traite: false })
-            if (error) throw error
+            const headers: HeadersInit = { 'Content-Type': 'application/json' }
+            const token = data.session?.access_token
+            if (token) headers.Authorization = `Bearer ${token}`
+            const res = await fetch('/api/signalements', {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({ id_verset: verset.id_verset, message: `Commentaire #${commentaireSignale.id} : ${msg}` }),
+            })
+            if (!res.ok) {
+              const details = await res.json().catch(() => null)
+              throw new Error(details?.error ?? "Erreur d'envoi du signalement")
+            }
           }}
         />
       )}
@@ -600,19 +659,17 @@ export default function PanneauPatristique({
   chapitreActif: number
 }) {
   type Onglet = 'patristique' | 'commentaires'
-  type Filtre = 'tous' | 'citations' | 'doctrine'
+  type Filtre = 'citations' | 'doctrine'
   const ITEMS_PAR_PAGE = 20
   const [onglet, setOnglet] = useState<Onglet>('patristique')
-  const [filtre, setFiltre] = useState<Filtre>('tous')
+  const [filtre, setFiltre] = useState<Filtre>('citations')
   const [pageItems, setPageItems] = useState(0)
   const [ouvert, setOuvert] = useState(true)
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 880) setOuvert(false)
   }, [])
 
-  // Citations = lien_1 (exactes) + lien_2 (libres) fusionnés ; Doctrine = lien_3 ; Écho = lien_4.
-  // L'onglet « Patristique » réunit les quatre niveaux ; les filtres permettent de
-  // n'afficher que les Citations ou que la Doctrine (l'Écho n'apparaît que dans « Tout »).
+  // Citations = lien_1 (exactes) + lien_2 (libres) fusionnés ; Doctrine = lien_3.
   const [segmentsCitations, setSegmentsCitations] = useState<{ seg: Segment; col: string }[]>([])
   const [segmentsDoctrine, setSegmentsDoctrine] = useState<Segment[]>([])
   const [segmentsEcho, setSegmentsEcho] = useState<Segment[]>([])
@@ -704,11 +761,9 @@ export default function PanneauPatristique({
   type ItemAffiche = { seg: Segment; col: string; type: 'exacte' | 'libre' | 'doctrine' | 'echo'; onSupprime: (id: number) => void }
   const itemsCitations: ItemAffiche[] = segmentsCitations.map(({ seg, col }) => ({ seg, col, type: (col === 'lien_1' ? 'exacte' : 'libre') as 'exacte' | 'libre', onSupprime: supprimerDeCitations }))
   const itemsDoctrine: ItemAffiche[] = segmentsDoctrine.map(seg => ({ seg, col: 'lien_3', type: 'doctrine' as const, onSupprime: supprimerDeDoctrine }))
-  const itemsEcho: ItemAffiche[] = segmentsEcho.map(seg => ({ seg, col: 'lien_4', type: 'echo' as const, onSupprime: supprimerDeEcho }))
   const itemsAffiches: ItemAffiche[] =
     filtre === 'citations' ? itemsCitations :
-    filtre === 'doctrine' ? itemsDoctrine :
-    [...itemsCitations, ...itemsDoctrine, ...itemsEcho]
+    itemsDoctrine
   const nbPagesItems = Math.ceil(itemsAffiches.length / ITEMS_PAR_PAGE)
   const pageCouranteItems = Math.min(pageItems, Math.max(nbPagesItems - 1, 0))
   const debutItems = pageCouranteItems * ITEMS_PAR_PAGE
@@ -773,7 +828,6 @@ export default function PanneauPatristique({
                 {/* Filtres rapides */}
                 <div style={{ display: 'flex', gap: '5px', padding: '10px 0 8px', flexWrap: 'wrap' }}>
                   {([
-                    { code: 'tous' as const, label: 'Tout' },
                     { code: 'citations' as const, label: 'Citations' },
                     { code: 'doctrine' as const, label: 'Doctrine' },
                   ]).map(f => (

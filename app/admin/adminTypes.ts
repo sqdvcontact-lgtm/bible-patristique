@@ -1,5 +1,5 @@
 export type Commentaire = { id: number; texte: string; auteur_nom: string; auteur_mail: string; valide: boolean; created_at: string; id_segment: number | null; id_verset: string | null; user_id?: string | null; demande_validation?: boolean; certifie?: boolean }
-export type Signalement  = { id: number; message: string; traite: boolean; created_at: string; id_segment: number | null; user_id?: string | null; source?: 'signalements' | 'quiz_signalements' }
+export type Signalement  = { id: number; message: string; traite: boolean; created_at: string; id_segment: number | null; id_verset?: string | null; user_id?: string | null; source?: 'signalements' | 'quiz_signalements' }
 export type SegInfo      = { texte: string; numero: number; id_oeuvre: string }
 export type Oeuvre       = { id_oeuvre: string; titre: string; titre_original: string | null; profondeur_sommaire?: number | null }
 export type Auteur       = { id_auteur: string; nom: string; dates: string | null; siecle: string | null; tradition?: string | null; note?: string | null; aire_geographique?: string | null; langue_principale?: string | null; oeuvres: Oeuvre[] }

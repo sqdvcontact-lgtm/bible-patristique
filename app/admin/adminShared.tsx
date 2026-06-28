@@ -53,6 +53,16 @@ export function ContexteSegment({ segId, segMap }: { segId: number | null; segMa
 }
 
 // ── Parser CSV ────────────────────────────────────────────────────────────────
+export function ContexteVerset({ versetId, versetMap }: { versetId: string | null | undefined; versetMap: Record<string, string> }) {
+  if (!versetId) return null
+  const ref = versetMap[versetId] ?? versetId
+  return (
+    <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', margin: '4px 0 8px', lineHeight: 1.4 }}>
+      Verset biblique — <a href={`/?verset=${encodeURIComponent(versetId)}`} target="_blank" rel="noopener noreferrer" style={{ color: '#9a958d', textDecoration: 'underline' }}>{ref}</a>
+    </p>
+  )
+}
+
 export function parseCSV(texte: string): Record<string, string>[] {
   const lignes = texte.split(/\r?\n/)
   if (lignes.length < 2) return []

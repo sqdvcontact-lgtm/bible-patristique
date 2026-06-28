@@ -133,7 +133,18 @@ function BoutonSignaler({ versetId }: { versetId: string }) {
   const [ouvert, setOuvert] = useState(false)
   const envoyer = async (msg: string) => {
     const { data } = await supabase.auth.getSession()
-    await supabase.from('signalements').insert({ id_segment: null, user_id: data.session?.user.id ?? null, message: `Verset ${versetId} : ${msg}`, traite: false })
+    const headers: HeadersInit = { 'Content-Type': 'application/json' }
+    const token = data.session?.access_token
+    if (token) headers.Authorization = `Bearer ${token}`
+    const res = await fetch('/api/signalements', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ id_verset: versetId, message: `Verset ${versetId} : ${msg}` }),
+    })
+    if (!res.ok) {
+      const details = await res.json().catch(() => null)
+      throw new Error(details?.error ?? "Erreur d'envoi du signalement")
+    }
   }
   return (
     <>
@@ -373,16 +384,17 @@ export default function TexteBible({
           <div style={{ position: 'relative' }}>
             <button onClick={() => setTradOuverte(!tradOuverte)} style={{
               display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '6px 16px', borderRadius: '7px', border: '1px solid #d6d0c4',
-              background: '#fff', fontSize: '12px', color: '#2a3d30', cursor: 'pointer', fontWeight: 500,
-              fontFamily: "Georgia, 'Times New Roman', serif", letterSpacing: '0.01em',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'border-color 0.15s, box-shadow 0.15s',
+              padding: '5px 4px 5px 8px', borderRadius: '0', border: 'none',
+              borderBottom: '1px solid rgba(61,107,79,0.38)',
+              background: 'transparent', fontSize: '12.5px', color: '#35694c', cursor: 'pointer', fontWeight: 500,
+              fontFamily: "Georgia, 'Times New Roman', serif", letterSpacing: '0.015em',
+              boxShadow: 'none', transition: 'color 0.15s, border-color 0.15s',
             }}>
               <span>{traductionLabel}</span>
-              <span style={{ color: '#9a958d', fontSize: '8px' }}>{tradOuverte ? '▲' : '▼'}</span>
+              <span style={{ color: '#6f8d78', fontSize: '8px', opacity: 0.8 }}>{tradOuverte ? '▲' : '▼'}</span>
             </button>
             {tradOuverte && (
-              <div style={{ position: 'absolute', top: 'calc(100% + 5px)', left: '50%', transform: 'translateX(-50%)', background: '#fff', border: '1px solid #d6d0c4', borderRadius: '8px', zIndex: 50, boxShadow: '0 10px 32px rgba(0,0,0,0.12)', minWidth: '230px', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)', background: '#fff', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '7px', zIndex: 50, boxShadow: '0 10px 26px rgba(47,63,53,0.12)', minWidth: '230px', overflow: 'hidden' }}>
                 {traductions.map((t, i) => (
                   <button key={t.code} onClick={() => { setTraductionIndex(i); setTradOuverte(false) }} style={{
                     width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '13px',

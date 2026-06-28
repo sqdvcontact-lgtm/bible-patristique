@@ -13,7 +13,7 @@ export default function ModalSignalement({ titre, onClose, onEnvoyer }: {
     if (!message.trim()) return
     setStatut('sending')
     try { await onEnvoyer(message.trim()); setStatut('ok'); setTimeout(onClose, 1800) }
-    catch { setStatut('err') }
+    catch (error) { console.error('Erreur signalement:', error); setStatut('err') }
   }
 
   return (

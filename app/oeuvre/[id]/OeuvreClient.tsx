@@ -622,7 +622,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                           <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} className="seg-btn-action" />
                           <BoutonSignalerSegment segId={sid} apercu={`§${s.numero} — ${texteSansEnrichissement(s.texte).slice(0,60)}…`} className="seg-btn-action" />
                           {estAdmin && (
-                            <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" style={{ ...BTN_STYLE }}>✎</button>
+                            <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" aria-label="Modifier ce segment"
+                              className="seg-btn-action"
+                              style={{ ...BTN_STYLE, color: '#c8c0b4' }}>
+                              ✎
+                            </button>
                           )}
                         </div>
                       </div>
@@ -675,7 +679,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                             </p>
                             {estAdmin && (
                               <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)"
-                                style={{ position: 'absolute', right: '-10px', top: '1px', ...BTN_STYLE }}>✎</button>
+                                aria-label="Modifier ce segment"
+                                className="seg-btn-action"
+                                style={{ position: 'absolute', right: '-10px', top: '1px', ...BTN_STYLE, color: '#c8c0b4' }}>
+                                ✎
+                              </button>
                             )}
                           </div>
                         )
@@ -740,15 +748,15 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                 <a href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${encodeURIComponent(v.chapitre)}&verset=${encodeURIComponent(v.verset)}&trad=${encodeURIComponent(trad)}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '11px', fontWeight: 600, color: '#3d6b4f', margin: 0, textDecoration: 'none' }}>{v.label}</a>
                                 {estAdmin && (
                                   <button onClick={() => supprimerLienBiblique(segActifData.id, v.id)} title="Supprimer ce renvoi biblique"
-                                    style={{ fontSize: '10px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 2px', lineHeight: 1 }}>
-                                    ✎
+                                    style={{ fontSize: '9.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                    Supprimer le lien
                                   </button>
                                 )}
                               </div>
                               <div style={{ display: 'flex', gap: '1px', alignItems: 'center' }}>
                                 <BoutonEnregistrerVerset verset={v} trad={trad} userId={userId} />
                                 <BoutonCopieVerset texte={v.textes[trad] || v.textes['TR0001'] || ''} label={v.label} />
-                                <BoutonSignalerVerset versetId={v.id} label={v.label} />
+                                <BoutonSignalerVerset versetId={v.id} label={v.label} segmentId={segActifData.id} />
                               </div>
                             </div>
                             <p lang="fr" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12px', lineHeight: '1.38', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', marginBottom: '4px' } as React.CSSProperties}>

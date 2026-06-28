@@ -145,11 +145,18 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     })
   const principaux = trierCommentaires(commentaires.filter(c => !c.reponse_a))
   const reponsesDe = (id: number) => trierCommentaires(commentaires.filter(c => c.reponse_a === id))
+  const dateHeureCommentaire = (date: string) =>
+    new Date(date).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  const setCommentairesAvecTransition = (updater: (prev: CommentaireAvecAuteur[]) => CommentaireAvecAuteur[]) => {
+    const doc = document as Document & { startViewTransition?: (callback: () => void) => void }
+    if (doc.startViewTransition) doc.startViewTransition(() => setCommentaires(updater))
+    else setCommentaires(updater)
+  }
 
   const basculerVote = async (c: CommentaireAvecAuteur, valeur: 1 | -1) => {
     if (!userId) { alert('Connectez-vous pour réagir à un commentaire.'); return }
     const retire = c.monVote === valeur
-    setCommentaires(prev => prev.map(x => {
+    setCommentairesAvecTransition(prev => prev.map(x => {
       if (x.id !== c.id) return x
       let { nbLikes, nbDislikes } = x
       if (x.monVote === 1) nbLikes--
@@ -201,7 +208,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   if (segActif === null) return <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d', padding: '8px 0' }}>Cliquez sur un paragraphe pour voir ou ajouter des commentaires.</p>
 
   const VoteBoutons = ({ c }: { c: CommentaireAvecAuteur }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flexShrink: 0 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
       <button onClick={() => basculerVote(c, -1)} title="Je n'aime pas"
         style={{ display: 'flex', alignItems: 'center', gap: '3px', color: c.monVote === -1 ? '#9a4a2a' : '#b0a89e', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
         <svg width="10" height="10" viewBox="0 0 20 20" fill="none" style={{ transform: 'rotate(180deg)' }} aria-hidden="true">
@@ -220,14 +227,15 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   )
 
   const renderCommentaire = (c: CommentaireAvecAuteur, estReponse: boolean) => {
-    const cache = false && !c.supprime && !c.valide && !revelees.has(c.id)
+    const cache = !c.supprime && !c.valide && !revelees.has(c.id)
     if (cache) {
       return (
         <div key={c.id} style={{ marginLeft: estReponse ? '20px' : 0, padding: '9px 0', borderBottom: '1px solid #ede9e2' }}>
-          <button onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(176,58,42,0.07)', border: '1px solid rgba(176,58,42,0.22)', borderRadius: '20px', cursor: 'pointer', padding: '5px 13px', fontSize: '11px', color: '#b0392b' }}>
-            <span>Commentaire en cours de révision</span>
-            <span style={{ fontWeight: 700, textDecoration: 'underline' }}>Afficher</span>
+          <button className="commentaire-retracte" onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
+            style={{ width: '100%', display: 'block', position: 'relative', overflow: 'hidden', background: 'rgba(176,58,42,0.06)', border: '1px solid rgba(176,58,42,0.20)', borderRadius: '6px', cursor: 'pointer', padding: '8px 11px', textAlign: 'left' }}>
+            <span className="commentaire-retracte-contenu" style={{ display: 'block', fontSize: '11px', color: '#b0392b', fontWeight: 600 }}>
+              Commentaire en attente de contrôle.
+            </span>
           </button>
         </div>
       )
@@ -242,26 +250,28 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     const fondTexte = estCertifie ? 'rgba(255,255,255,0.42)' : estRevision ? 'rgba(255,255,255,0.48)' : 'rgba(255,255,255,0.54)'
     const couleurTexte = estRevision ? '#6f3d35' : '#2a2520'
     return (
-      <div key={c.id} style={{ marginLeft: estReponse ? '18px' : 0, padding: '7px 9px', marginBottom:'7px', border:'1px solid ' + bordureCarte, borderLeft:'4px solid ' + accentCarte, borderRadius:'6px', background: fondCarte }}>
+      <div className="commentaire-carte" key={c.id} style={{ marginLeft: estReponse ? '18px' : 0, padding: '7px 9px', marginBottom:'7px', border:'1px solid ' + bordureCarte, borderLeft:'4px solid ' + accentCarte, borderRadius:'6px', background: fondCarte, viewTransitionName: `commentaire-oeuvre-${c.id}` }}>
         {c.supprime ? (
           <p style={{ fontSize: '11.5px', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>
             {c.pseudo ?? 'Un utilisateur'} a supprimé un commentaire
           </p>
         ) : (
         <>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: '#2a3d30' }}>{c.pseudo ?? 'Anonyme'}</span>
-          {couleurs && rangInfo && (
-            <span style={{ fontSize: '9px', fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.02em' }}>
-              {rangInfo.rang}
-            </span>
-          )}
-          {estCertifie && <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#2f6a48', background: 'rgba(61,107,79,0.14)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>CERTIFIÉ</span>}
-          {estRevision && <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#b03a2a', background: 'rgba(176,58,42,0.10)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>EN RÉVISION</span>}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0 }}>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: '#2a3d30' }}>{c.pseudo ?? 'Anonyme'}</span>
+            {couleurs && rangInfo && (
+              <span style={{ fontSize: '9px', fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.02em' }}>
+                {rangInfo.rang}
+              </span>
+            )}
+            {estCertifie && <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#2f6a48', background: 'rgba(61,107,79,0.14)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>CERTIFIÉ</span>}
+            {estRevision && <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#b03a2a', background: 'rgba(176,58,42,0.10)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>EN RÉVISION</span>}
+          </div>
+          <span style={{ marginLeft: 'auto', textAlign: 'right', fontSize: '9px', color: '#b0a89e', flexShrink: 0 }}>{dateHeureCommentaire(c.created_at)}</span>
         </div>
         <div style={{ fontSize: '11.8px', color: couleurTexte, lineHeight: 1.43, margin: 0, whiteSpace: 'pre-line', background: fondTexte, borderRadius: '4px', padding: '5px 6px' }}>{rendreTexteEnrichi(c.texte)}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '5px', flexWrap: 'nowrap', whiteSpace: 'nowrap', minWidth: 0 }}>
-          <p style={{ fontSize: '9.5px', color: '#b0a89e', margin: 0, flexShrink: 0 }}>{new Date(c.created_at).toLocaleDateString('fr-FR')}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '5px', flexWrap: 'nowrap', whiteSpace: 'nowrap', minWidth: 0 }}>
           <VoteBoutons c={c} />
           {!estReponse && (
             <button onClick={() => setCibleReponse(c)}
@@ -269,22 +279,22 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
               Répondre
             </button>
           )}
-          <button onClick={() => setCommentaireSignale(c)} title="Signaler ce commentaire"
-            style={{ fontSize: '11px', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: 'auto', flexShrink: 0 }}>
-            ⚑
-          </button>
           {userId === c.user_id && (
             <button onClick={() => supprimerMonCommentaire(c)} title="Supprimer mon commentaire"
-              style={{ fontSize: '10px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}>
+              style={{ fontSize: '10px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: 'auto', flexShrink: 0 }}>
               Supprimer
             </button>
           )}
           {estAdmin && userId !== c.user_id && (
             <button onClick={() => supprimerCommentaire(c)} title="Supprimer ce commentaire"
-              style={{ fontSize: '10px', color: '#c0392b', background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}>
+              style={{ fontSize: '10px', color: '#c0392b', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: 'auto', flexShrink: 0 }}>
               Supprimer (admin)
             </button>
           )}
+          <button onClick={() => setCommentaireSignale(c)} title="Signaler ce commentaire"
+            style={{ fontSize: '11px', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: userId === c.user_id || (estAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink: 0 }}>
+            ⚑
+          </button>
         </div>
         </>
         )}
@@ -294,6 +304,45 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
 
   return (
     <div>
+      <style>{`
+        .commentaire-carte {
+          transition: opacity 180ms ease, box-shadow 180ms ease, margin 180ms ease;
+        }
+        .commentaire-retracte {
+          transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+        }
+        .commentaire-retracte:hover {
+          background: rgba(176,58,42,0.09) !important;
+          border-color: rgba(176,58,42,0.30) !important;
+          transform: translateX(1px);
+        }
+        .commentaire-retracte-contenu {
+          transition: opacity 150ms ease, transform 150ms ease;
+        }
+        .commentaire-retracte:hover .commentaire-retracte-contenu {
+          opacity: 0.13;
+          transform: translateX(-6px);
+        }
+        .commentaire-retracte::after {
+          content: "Lire tout de même  →";
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: rgba(176,58,42,0);
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.04em;
+          pointer-events: none;
+          transform: translateX(-10px);
+          transition: color 160ms ease, transform 160ms ease;
+        }
+        .commentaire-retracte:hover::after {
+          color: rgba(176,58,42,0.82);
+          transform: translateX(0);
+        }
+      `}</style>
       {loading && <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>}
       {!loading && commentaires.length === 0 && <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', marginBottom: '12px' }}>Aucun commentaire pour ce passage.</p>}
       {principaux.map(c => (
@@ -334,7 +383,8 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           titre={`${commentaireSignale.pseudo ?? 'Anonyme'} — ${commentaireSignale.texte.slice(0, 60)}…`}
           onClose={() => setCommentaireSignale(null)}
           onEnvoyer={async (msg) => {
-            await insererSignalement({ id_segment: null, message: `Commentaire #${commentaireSignale.id} : ${msg}` })
+            if (segActif === null) throw new Error('Segment actif manquant.')
+            await insererSignalement({ id_segment: segActif, message: `Commentaire #${commentaireSignale.id} : ${msg}` })
           }}
         />
       )}

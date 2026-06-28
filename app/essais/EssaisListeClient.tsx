@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
-import EtapeMetadonnees, { type Metadonnees } from './EtapeMetadonnees'
+import EtapeMetadonnees, { CATEGORIES_ESSAIS, type Metadonnees } from './EtapeMetadonnees'
 
-const CATEGORIES = ['Philosophie', 'Théologie', 'Exégèse', 'Spiritualité', 'Littérature', 'Poésie', 'Histoire', 'Patristique']
+const CATEGORIES = CATEGORIES_ESSAIS
 const SEMAINE_MS = 7 * 24 * 60 * 60 * 1000
 
 type Onglet = 'communaute' | 'mes-ecrits' | 'ecrire'
@@ -19,7 +19,7 @@ type EssaiResume = {
 
 type EssaiPerso = {
   id: number; titre: string; sous_titre: string | null; statut: string
-  updated_at: string | null; publie_at: string | null; nb_vues: number | null
+  updated_at: string | null; publie_at: string | null; nb_vues: number | null; nb_likes: number
 }
 
 const STATUTS: Record<string, { label: string; couleur: string }> = {
@@ -57,7 +57,14 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
       .select('id, titre, sous_titre, statut, updated_at, publie_at, nb_vues')
       .eq('user_id', id)
       .order('updated_at', { ascending: false })
-    setMesEcrits(data ?? [])
+    const lignes = data ?? []
+    const ids = lignes.map(e => e.id)
+    const { data: likes } = ids.length
+      ? await supabase.from('essais_appreciations').select('id_essai').in('id_essai', ids)
+      : { data: [] as any[] }
+    const likesParEssai = new Map<number, number>()
+    ;(likes ?? []).forEach((l: any) => likesParEssai.set(l.id_essai, (likesParEssai.get(l.id_essai) ?? 0) + 1))
+    setMesEcrits(lignes.map(e => ({ ...e, nb_likes: likesParEssai.get(e.id) ?? 0 })))
   }
 
   const changerStatut = async (id: number, statut: string) => {
@@ -236,44 +243,134 @@ function OngletMesEcrits({
   connecte: boolean | null; essais: EssaiPerso[] | null
   changerStatut: (id: number, statut: string) => Promise<void>; supprimer: (id: number) => Promise<void>
 }) {
+  const [filtre, setFiltre] = useState<'tous' | 'brouillon' | 'verification' | 'publie' | 'a_reviser' | 'refuse'>('tous')
+  const [toggles, setToggles] = useState<Record<number, number>>({})
+  const [maintenant, setMaintenant] = useState(Date.now())
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setMaintenant(Date.now()), 30000)
+    return () => window.clearInterval(timer)
+  }, [])
+
   if (connecte === false) {
     return <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a4a2a', fontStyle: 'italic' }}>Connectez-vous pour voir vos écrits.</p>
   }
   if (essais === null) return <p style={{ fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
   if (essais.length === 0) return <p style={{ fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Aucun écrit pour l'instant.</p>
 
+  const groupes = [
+    { key: 'tous' as const, label: 'Tous', test: (_: EssaiPerso) => true },
+    { key: 'brouillon' as const, label: 'Brouillons', test: (e: EssaiPerso) => e.statut === 'brouillon' },
+    { key: 'verification' as const, label: 'En vérification', test: (e: EssaiPerso) => e.statut === 'en_attente' },
+    { key: 'publie' as const, label: 'Publiés', test: (e: EssaiPerso) => e.statut === 'publie' },
+    { key: 'a_reviser' as const, label: 'À réviser', test: (e: EssaiPerso) => e.statut === 'a_reviser' },
+    { key: 'refuse' as const, label: 'Refusés', test: (e: EssaiPerso) => e.statut === 'refuse' },
+  ]
+  const groupeActif = groupes.find(g => g.key === filtre) ?? groupes[0]
+  const essaisFiltres = essais.filter(groupeActif.test)
+  const derniereAction = (id: number) => {
+    if (toggles[id]) return toggles[id]
+    if (typeof window === 'undefined') return 0
+    return Number(window.localStorage.getItem(`essai-publication-toggle-${id}`) ?? 0)
+  }
+  const basculerPublication = async (e: EssaiPerso) => {
+    const dernier = derniereAction(e.id)
+    const dejaValide = e.statut === 'publie' || (e.statut === 'brouillon' && !!e.publie_at && (!e.updated_at || new Date(e.updated_at).getTime() <= new Date(e.publie_at).getTime() + 1000))
+    if (!dejaValide) {
+      alert("Cet écrit doit d'abord être validé par l'administration.")
+      return
+    }
+    const restant = 60 * 60 * 1000 - (Date.now() - dernier)
+    if (restant > 0) {
+      const minutes = Math.ceil(restant / 60000)
+      alert(`Vous pourrez modifier la publication de cet écrit dans ${minutes} minute${minutes > 1 ? 's' : ''}.`)
+      return
+    }
+    await changerStatut(e.id, e.statut === 'publie' ? 'brouillon' : 'publie')
+    const maintenant = Date.now()
+    if (typeof window !== 'undefined') window.localStorage.setItem(`essai-publication-toggle-${e.id}`, String(maintenant))
+    setToggles(prev => ({ ...prev, [e.id]: maintenant }))
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      {essais.map(e => {
+    <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', flexWrap: 'wrap', marginBottom: '14px' }}>
+        {groupes.map(g => {
+          const actif = filtre === g.key
+          const nb = essais.filter(g.test).length
+          return (
+            <button key={g.key} onClick={() => setFiltre(g.key)}
+              style={{ fontSize: '10.5px', padding: '4px 10px', borderRadius: '12px', border: `1px solid ${actif ? '#3d6b4f' : '#d6d0c4'}`, background: actif ? 'rgba(61,107,79,0.10)' : '#fff', color: actif ? '#3d6b4f' : '#8a8278', cursor: 'pointer', fontWeight: actif ? 700 : 500 }}>
+              {g.label} <span style={{ opacity: 0.65 }}>{nb}</span>
+            </button>
+          )
+        })}
+      </div>
+      {essaisFiltres.length === 0 ? (
+        <p style={{ textAlign: 'center', fontSize: '12.5px', color: '#9a958d', fontStyle: 'italic' }}>Aucun écrit dans cet onglet.</p>
+      ) : (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {essaisFiltres.map(e => {
         const st = STATUTS[e.statut] ?? { label: e.statut, couleur: '#9a958d' }
         const date = e.publie_at ?? e.updated_at
-        const peutRepublier = e.statut === 'brouillon' && !!e.publie_at && (!e.updated_at || new Date(e.updated_at).getTime() <= new Date(e.publie_at).getTime() + 1000)
+        const statutStyle = styleStatut(e.statut)
+        const dernier = derniereAction(e.id)
+        const restant = Math.max(0, 60 * 60 * 1000 - (maintenant - dernier))
+        const verrouille = restant > 0
+        const dejaValide = e.statut === 'publie' || (e.statut === 'brouillon' && !!e.publie_at && (!e.updated_at || new Date(e.updated_at).getTime() <= new Date(e.publie_at).getTime() + 1000))
+        const peutBasculer = dejaValide && (e.statut === 'publie' || e.statut === 'brouillon')
+        const timer = verrouille ? formatTimer(restant) : ''
         return (
-          <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'center', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '11px 14px' }}>
+          <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'center', background: statutStyle.fond, border: `1px solid ${statutStyle.bordure}`, borderLeft: `4px solid ${statutStyle.accent}`, borderRadius: '8px', padding: '10px 13px 10px 12px' }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
                 <p style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: '#1e2e24', margin: 0 }}>{e.titre}</p>
                 {e.sous_titre && <p style={{ fontSize: '12px', color: '#8a8278', fontStyle: 'italic', margin: 0 }}>{e.sous_titre}</p>}
               </div>
-              <p style={{ fontSize: '10px', color: '#b0a89e', margin: '3px 0 0' }}>
-                {date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Sans date'} · {e.nb_vues ?? 0} vue{(e.nb_vues ?? 0) > 1 ? 's' : ''} · <span style={{ color: st.couleur, fontWeight: 700 }}>{st.label}</span>
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', fontSize: '10px', color: '#b0a89e', marginTop: '3px' }}>
+                <span>{date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Sans date'}</span>
+                <span>{e.nb_vues ?? 0} vue{(e.nb_vues ?? 0) > 1 ? 's' : ''}</span>
+                <span>♥ {e.nb_likes ?? 0}</span>
+                <span style={{ color: st.couleur, fontWeight: 700 }}>{st.label}</span>
+              </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <button onClick={() => basculerPublication(e)} disabled={!peutBasculer || verrouille}
+                title={!dejaValide ? "Publication possible après validation par l'administration." : verrouille ? 'Interrupteur disponible une heure après le dernier changement.' : e.statut === 'publie' ? 'Dépublier' : 'Publier'}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '10.5px', color: e.statut === 'publie' ? '#3d6b4f' : '#8a8278', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.45 : 1, fontWeight: 700 }}>
+                <span>Publié</span>
+                {timer && <span style={{ fontSize: '9.5px', color: '#9a958d', fontWeight: 600 }}>{timer}</span>}
+                <span style={{ width: '28px', height: '15px', borderRadius: '999px', background: e.statut === 'publie' ? '#3d6b4f' : '#d6d0c4', position: 'relative', display: 'inline-block', transition: 'background 0.15s' }}>
+                  <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '15px' : '2px', width: '11px', height: '11px', borderRadius: '50%', background: '#fff', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
+                </span>
+              </button>
               <Link href={`/essais/${e.id}/modifier`} style={actionLien()}>Modifier</Link>
-              {e.statut === 'publie' && <button onClick={() => changerStatut(e.id, 'brouillon')} style={actionBouton('#9a5a2a')}>Dépublier</button>}
-              {peutRepublier && <button onClick={() => changerStatut(e.id, 'publie')} style={actionBouton('#3d6b4f')}>Republier</button>}
               <button onClick={() => supprimer(e.id)} style={actionBouton('#c0562a')}>Supprimer</button>
             </div>
           </div>
         )
       })}
+      </div>
+      )}
     </div>
   )
 }
 
 function tagFiltre(actif: boolean): React.CSSProperties {
   return { fontSize: '11px', padding: '4px 12px', borderRadius: '12px', border: `1px solid ${actif ? '#3d6b4f' : '#d6d0c4'}`, background: actif ? 'rgba(61,107,79,0.10)' : '#fff', color: actif ? '#3d6b4f' : '#8a8278', cursor: 'pointer', fontWeight: actif ? 600 : 400 }
+}
+function formatTimer(ms: number): string {
+  const total = Math.ceil(ms / 1000)
+  const minutes = Math.floor(total / 60)
+  const secondes = total % 60
+  return `${minutes}:${String(secondes).padStart(2, '0')}`
+}
+function styleStatut(statut: string): { fond: string; bordure: string; accent: string } {
+  if (statut === 'publie') return { fond: 'rgba(61,107,79,0.075)', bordure: 'rgba(61,107,79,0.24)', accent: '#3d6b4f' }
+  if (statut === 'en_attente') return { fond: 'rgba(154,90,42,0.075)', bordure: 'rgba(154,90,42,0.24)', accent: '#9a5a2a' }
+  if (statut === 'a_reviser') return { fond: 'rgba(192,86,42,0.08)', bordure: 'rgba(192,86,42,0.25)', accent: '#c0562a' }
+  if (statut === 'refuse') return { fond: 'rgba(160,45,45,0.08)', bordure: 'rgba(160,45,45,0.25)', accent: '#a02d2d' }
+  return { fond: '#fff', bordure: '#e4dfd8', accent: '#d6d0c4' }
 }
 function tagGenre(): React.CSSProperties {
   return { fontSize: '9px', color: '#3d6b4f', background: 'rgba(61,107,79,0.08)', padding: '1px 7px', borderRadius: '8px', fontWeight: 600 }

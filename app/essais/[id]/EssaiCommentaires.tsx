@@ -23,6 +23,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const [pseudo, setPseudo] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [envoi, setEnvoi] = useState(false)
+  const [revelees, setRevelees] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     supabase.from('essais_commentaires').select('*').eq('id_essai', idEssai).order('created_at', { ascending: true })
@@ -93,10 +94,16 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
     const diff = nbReponses(b.id) - nbReponses(a.id)
     return diff !== 0 ? diff : +new Date(b.created_at) - +new Date(a.created_at)
   })
+  const dateHeureCommentaire = (date: string) =>
+    new Date(date).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  const changerTri = (valeur: 'pertinents' | 'recents') => {
+    const doc = document as Document & { startViewTransition?: (callback: () => void) => void }
+    if (doc.startViewTransition) doc.startViewTransition(() => setTri(valeur))
+    else setTri(valeur)
+  }
 
   const LigneActions = ({ c, petit = false }: { c: CommentaireEssai; petit?: boolean }) => (
-    <div style={{ display: 'flex', gap: petit ? '8px' : '10px', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap', marginTop: petit ? '4px' : '5px' }}>
-      <span style={{ fontSize: petit ? '10px' : '10.5px', color: '#b0a89e' }}>{new Date(c.created_at).toLocaleDateString('fr-FR')}</span>
+    <div style={{ display: 'flex', gap: petit ? '7px' : '8px', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap', marginTop: petit ? '4px' : '5px' }}>
       {userId && !petit && (
         <button onClick={() => setCibleReponse(c)} style={{ fontSize: '10.5px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Répondre</button>
       )}
@@ -109,8 +116,18 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
     </div>
   )
 
+  const CommentaireRetracte = ({ c, petit = false }: { c: CommentaireEssai; petit?: boolean }) => (
+    <button className="commentaire-retracte" onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
+      style={{ width: '100%', display: 'block', position: 'relative', overflow: 'hidden', background: 'rgba(176,58,42,0.06)', border: '1px solid rgba(176,58,42,0.20)', borderRadius: petit ? '5px' : '6px', cursor: 'pointer', padding: petit ? '7px 9px' : '8px 11px', textAlign: 'left' }}>
+      <span className="commentaire-retracte-contenu" style={{ display: 'block', fontSize: petit ? '11px' : '12px', color: '#b0392b', fontWeight: 600 }}>
+        Commentaire en attente de contrôle.
+      </span>
+    </button>
+  )
+
   const Carte = ({ c }: { c: CommentaireEssai }) => {
     const reponses = commentaires.filter(r => r.reponse_a === c.id)
+    const cache = !c.supprime && !c.valide && !revelees.has(c.id)
     const styleCarte: React.CSSProperties = c.valide
       ? { border: '1px solid #e4dfd8', borderLeft: '4px solid #d6d0c4', background: '#fff' }
       : { border: '1px solid rgba(176,58,42,0.26)', borderLeft: '4px solid #b03a2a', background: 'rgba(176,58,42,0.07)' }
@@ -118,13 +135,16 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
     const rangCouleur = rang ? couleurRang(rang) : null
 
     return (
-      <article style={{ padding: '12px 0', borderBottom: '1px solid #ede9e2' }}>
+      <article className="commentaire-carte" style={{ padding: '12px 0', borderBottom: '1px solid #ede9e2', viewTransitionName: `commentaire-essai-${c.id}` }}>
         {c.supprime ? (
           <p style={{ fontSize: '12.5px', color: '#9a958d', fontStyle: 'italic', margin: 0, background: '#f3f0ea', padding: '8px 10px', borderRadius: '4px' }}>
             {c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
           </p>
+        ) : cache ? (
+          <CommentaireRetracte c={c} />
         ) : (
-          <div style={{ ...styleCarte, padding: '8px 10px', borderRadius: '6px' }}>
+          <div className="commentaire-carte" style={{ ...styleCarte, position: 'relative', padding: '8px 112px 8px 10px', borderRadius: '6px' }}>
+            <span style={{ position: 'absolute', top: '8px', right: '10px', textAlign: 'right', fontSize: '10px', color: '#b0a89e', whiteSpace: 'nowrap' }}>{dateHeureCommentaire(c.created_at)}</span>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'baseline', marginBottom: '4px', flexWrap: 'wrap' }}>
               <p style={{ fontSize: '11.5px', fontWeight: 700, color: '#2a3d30', margin: 0 }}>
                 {c.auteur_nom ?? 'Anonyme'}
@@ -146,14 +166,18 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
           (() => {
             const rangR = r.score !== null && r.score !== undefined ? calculerRang(r.score).rang : null
             const rangCouleurR = rangR ? couleurRang(rangR) : null
+            const cacheReponse = !r.supprime && !r.valide && !revelees.has(r.id)
             return (
-          <div key={r.id} style={{ marginLeft: '20px', marginTop: '10px', paddingLeft: '12px', borderLeft: '2px solid #ede9e2' }}>
+          <div className="commentaire-carte" key={r.id} style={{ marginLeft: '20px', marginTop: '10px', paddingLeft: '12px', borderLeft: '2px solid #ede9e2', viewTransitionName: `commentaire-essai-${r.id}` }}>
             {r.supprime ? (
               <p style={{ fontSize: '11.5px', color: '#9a958d', fontStyle: 'italic', margin: 0, background: '#f3f0ea', padding: '6px 9px', borderRadius: '4px' }}>
                 {r.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
               </p>
+            ) : cacheReponse ? (
+              <CommentaireRetracte c={r} petit />
             ) : (
-              <div style={{ padding: '7px 9px', borderRadius: '5px', background: r.valide ? '#fff' : 'rgba(176,58,42,0.07)', border: `1px solid ${r.valide ? '#e4dfd8' : 'rgba(176,58,42,0.26)'}`, borderLeft: `4px solid ${r.valide ? '#d6d0c4' : '#b03a2a'}` }}>
+              <div className="commentaire-carte" style={{ position: 'relative', padding: '7px 104px 7px 9px', borderRadius: '5px', background: r.valide ? '#fff' : 'rgba(176,58,42,0.07)', border: `1px solid ${r.valide ? '#e4dfd8' : 'rgba(176,58,42,0.26)'}`, borderLeft: `4px solid ${r.valide ? '#d6d0c4' : '#b03a2a'}` }}>
+                <span style={{ position: 'absolute', top: '7px', right: '9px', textAlign: 'right', fontSize: '9.5px', color: '#b0a89e', whiteSpace: 'nowrap' }}>{dateHeureCommentaire(r.created_at)}</span>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'baseline', marginBottom: '4px', flexWrap: 'wrap' }}>
                   <p style={{ fontSize: '11px', fontWeight: 700, color: '#2a3d30', margin: 0 }}>
                     {r.auteur_nom ?? 'Anonyme'}
@@ -178,11 +202,50 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
 
   return (
     <section style={{ marginTop: '48px', paddingTop: '24px', borderTop: '1px solid #d6d0c4' }}>
+      <style>{`
+        .commentaire-carte {
+          transition: opacity 180ms ease, box-shadow 180ms ease, margin 180ms ease;
+        }
+        .commentaire-retracte {
+          transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+        }
+        .commentaire-retracte:hover {
+          background: rgba(176,58,42,0.09) !important;
+          border-color: rgba(176,58,42,0.30) !important;
+          transform: translateX(1px);
+        }
+        .commentaire-retracte-contenu {
+          transition: opacity 150ms ease, transform 150ms ease;
+        }
+        .commentaire-retracte:hover .commentaire-retracte-contenu {
+          opacity: 0.13;
+          transform: translateX(-6px);
+        }
+        .commentaire-retracte::after {
+          content: "Lire tout de même  →";
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: rgba(176,58,42,0);
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 0.04em;
+          pointer-events: none;
+          transform: translateX(-10px);
+          transition: color 160ms ease, transform 160ms ease;
+        }
+        .commentaire-retracte:hover::after {
+          color: rgba(176,58,42,0.82);
+          transform: translateX(0);
+        }
+      `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '16px' }}>
         <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '17px', color: '#2a3d30', margin: 0 }}>Commentaires ({racines.length})</h2>
         <div style={{ display: 'flex', gap: '6px' }}>
           {(['pertinents', 'recents'] as const).map(t => (
-            <button key={t} onClick={() => setTri(t)}
+            <button key={t} onClick={() => changerTri(t)}
               style={{ fontSize: '10.5px', padding: '3px 10px', borderRadius: '10px', border: `1px solid ${tri === t ? '#3d6b4f' : '#d6d0c4'}`, background: tri === t ? 'rgba(61,107,79,0.10)' : '#fff', color: tri === t ? '#3d6b4f' : '#8a8278', cursor: 'pointer' }}>
               {t === 'pertinents' ? 'Pertinents' : 'Récents'}
             </button>

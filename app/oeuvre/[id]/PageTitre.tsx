@@ -14,7 +14,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifierT
         {auteur}
       </p>
       <div style={{ position: 'relative', maxWidth: '560px' }}>
-        <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.2, marginBottom: oeuvre.sous_titre ? '10px' : oeuvre.titre_original ? '14px' : '32px', whiteSpace: 'pre-line' }}>
+        <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.2, marginBottom: oeuvre.sous_titre ? '4px' : oeuvre.titre_original ? '18px' : '32px', whiteSpace: 'pre-line' }}>
           {rendreTexteEnrichi(titre)}
         </h1>
         {estAdmin && (
@@ -23,7 +23,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifierT
         )}
       </div>
       {oeuvre.sous_titre && (
-        <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 'clamp(16px, 2vw, 20px)', fontStyle: 'italic', color: '#6f675f', margin: oeuvre.titre_original ? '0 0 12px' : '0 0 40px', lineHeight: 1.35 }}>
+        <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 'clamp(16px, 2vw, 20px)', fontStyle: 'normal', color: '#6f675f', margin: oeuvre.titre_original ? '0 0 22px' : '0 0 40px', lineHeight: 1.32 }}>
           {rendreTexteEnrichi(oeuvre.sous_titre)}
         </p>
       )}

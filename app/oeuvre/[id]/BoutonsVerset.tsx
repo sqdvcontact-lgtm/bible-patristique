@@ -76,7 +76,7 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
   )
 }
 
-export function BoutonSignalerVerset({ versetId, label }: { versetId: string; label: string }) {
+export function BoutonSignalerVerset({ versetId, label, segmentId }: { versetId: string; label: string; segmentId: number }) {
   const [ouvert, setOuvert] = useState(false)
   return (
     <>
@@ -87,7 +87,7 @@ export function BoutonSignalerVerset({ versetId, label }: { versetId: string; la
           titre={label}
           onClose={() => setOuvert(false)}
           onEnvoyer={async (msg) => {
-            await insererSignalement({ id_segment: null, message: `Verset ${versetId} : ${msg}` })
+            await insererSignalement({ id_segment: segmentId, message: `Verset ${versetId} : ${msg}` })
           }}
         />
       )}

@@ -14,6 +14,24 @@ const ABREV_FR: Record<string, string> = {
   '2TI':'2Tm',TIT:'Tt',PHM:'Phm',HEB:'He',JAS:'Jc','1PE':'1P','2PE':'2P',
   '1JN':'1Jn','2JN':'2Jn','3JN':'3Jn',JUD:'Jude',REV:'Ap',
 }
+const NOM_FR: Record<string, string> = {
+  GEN:'Genèse',EXO:'Exode',LEV:'Lévitique',NUM:'Nombres',DEU:'Deutéronome',JOS:'Josué',JDG:'Juges',RUT:'Ruth',
+  '1SA':'1 Samuel','2SA':'2 Samuel','1KI':'1 Rois','2KI':'2 Rois','1CH':'1 Chroniques','2CH':'2 Chroniques',
+  EZR:'Esdras',NEH:'Néhémie',EST:'Esther',JOB:'Job',PSA:'Psaumes',PRO:'Proverbes',ECC:'Ecclésiaste',SNG:'Cantique des cantiques',
+  ISA:'Isaïe',JER:'Jérémie',LAM:'Lamentations',EZK:'Ézéchiel',DAN:'Daniel',HOS:'Osée',JOL:'Joël',AMO:'Amos',
+  OBA:'Abdias',JON:'Jonas',MIC:'Michée',NAM:'Nahum',HAB:'Habacuc',ZEP:'Sophonie',HAG:'Aggée',ZEC:'Zacharie',MAL:'Malachie',
+  MAT:'Matthieu',MRK:'Marc',LUK:'Luc',JHN:'Jean',ACT:'Actes',ROM:'Romains','1CO':'1 Corinthiens','2CO':'2 Corinthiens',
+  GAL:'Galates',EPH:'Éphésiens',PHP:'Philippiens',COL:'Colossiens','1TH':'1 Thessaloniciens','2TH':'2 Thessaloniciens','1TI':'1 Timothée',
+  '2TI':'2 Timothée',TIT:'Tite',PHM:'Philémon',HEB:'Hébreux',JAS:'Jacques','1PE':'1 Pierre','2PE':'2 Pierre',
+  '1JN':'1 Jean','2JN':'2 Jean','3JN':'3 Jean',JUD:'Jude',REV:'Apocalypse',
+}
+const CODE_PAR_LIBELLE = new Map<string, string>(
+  Object.keys(ABREV_FR).flatMap((code): [string, string][] => [
+    [sansAccents(code), code],
+    [sansAccents(ABREV_FR[code]), code],
+    [sansAccents(NOM_FR[code] ?? ''), code],
+  ]).filter(([k]) => !!k)
+)
 const NB_CHAPITRES: Record<string, number> = {
   GEN:50,EXO:40,LEV:27,NUM:36,DEU:34,JOS:24,JDG:21,RUT:4,
   '1SA':31,'2SA':24,'1KI':22,'2KI':25,'1CH':29,'2CH':36,
@@ -30,7 +48,7 @@ type Choix = { label: string; type: 'verset' | 'segment'; id: string }
 type Props = { onChoisir: (c: Choix) => void; onFermer: () => void }
 
 function sansAccents(s: string): string {
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  return String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’']/g, '').trim()
 }
 
 function correspondDebutsDeMots(texte: string, requete: string): boolean {
@@ -41,7 +59,35 @@ function correspondDebutsDeMots(texte: string, requete: string): boolean {
 }
 
 function labelVerset(livre: string, chapitre: number | string, verset: number | string): string {
-  return `${ABREV_FR[livre] ?? livre} ${chapitre}, ${verset}`
+  const code = codeLivre(livre) ?? livre
+  return `${ABREV_FR[code] ?? livre} ${chapitre}, ${verset}`
+}
+
+function codeLivre(...valeurs: unknown[]): string | null {
+  for (const valeur of valeurs) {
+    const brut = String(valeur ?? '')
+    const normalise = sansAccents(brut)
+    const sansEspaces = normalise.replace(/\s+/g, '')
+    const code = CODE_PAR_LIBELLE.get(normalise) ?? CODE_PAR_LIBELLE.get(sansEspaces)
+    if (code) return code
+  }
+  return null
+}
+
+function convertirGuillemetsInternes(texte: string): string {
+  return texte.replace(/«\s*/g, '“').replace(/\s*»/g, '”')
+}
+
+function texteSansPointFinal(texte: string): string {
+  return convertirGuillemetsInternes(String(texte ?? '').trim()).replace(/[.\u2026]\s*$/u, '').trim()
+}
+
+function citationBibliqueComplete(texte: string, ref: string): string {
+  return `« ${texteSansPointFinal(texte)} » (${ref}).`
+}
+
+function citationPatristiqueComplete(texte: string): string {
+  return `« ${convertirGuillemetsInternes(String(texte ?? '').trim())} »`
 }
 
 function refsSegment(s: { ref_niv1?: string | null; ref_niv2?: string | null; ref_niv3?: string | null; ref_niv4?: string | null; ref_niv5?: string | null; segment_numero: number }): string {
@@ -147,7 +193,7 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
               <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{v.texte}</span>
               <BoutonsChoix
                 onAbrege={() => onChoisir({ label: ref, type: 'verset', id: v.id_verset })}
-                onComplet={() => onChoisir({ label: `« ${v.texte} » (${ref})`, type: 'verset', id: v.id_verset })}
+                onComplet={() => onChoisir({ label: citationBibliqueComplete(v.texte, ref), type: 'verset', id: v.id_verset })}
               />
             </div>
           )})}
@@ -231,7 +277,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
                 <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{s.segment_texte.slice(0, 200)}{s.segment_texte.length > 200 ? '…' : ''}</span>
                 <BoutonsChoix
                   onAbrege={() => onChoisir({ label: `${auteurNom}, ${oeuvreTitre}, ${refsSegment(s)}`, type: 'segment', id: String(s.id) })}
-                  onComplet={() => onChoisir({ label: `« ${s.segment_texte} »`, type: 'segment', id: String(s.id) })}
+                  onComplet={() => onChoisir({ label: citationPatristiqueComplete(s.segment_texte), type: 'segment', id: String(s.id) })}
                 />
               </div>
             )
@@ -261,17 +307,19 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
 
   const choisir = async (it: any, complet = false) => {
     if (source === 'bible') {
-      const { data } = await supabase.from('versets').select('id_verset').eq('livre', it.ref_livre).eq('chapitre', it.ref_chapitre).eq('verset', it.ref_verset).single()
-      const ref = labelVerset(it.ref_livre, it.ref_chapitre, it.ref_verset)
+      const livreCode = codeLivre(it.ref_livre, it.ref_livre_abr, it.livre)
+      if (!livreCode) return
+      const { data } = await supabase.from('versets').select('id_verset').eq('livre', livreCode).eq('chapitre', it.ref_chapitre).eq('verset', it.ref_verset).maybeSingle()
+      const ref = labelVerset(livreCode, it.ref_chapitre, it.ref_verset)
       const texte = it.texte ?? ''
-      if (data) onChoisir({ label: complet ? `« ${texte} » (${ref})` : ref, type: 'verset', id: data.id_verset })
+      if (data) onChoisir({ label: complet ? citationBibliqueComplete(texte, ref) : ref, type: 'verset', id: data.id_verset })
     } else {
       const { data } = await supabase.from('segments').select('id, segment_numero, ref_niv1, ref_niv2, ref_niv3, ref_niv4, ref_niv5').eq('id_oeuvre', it.id_oeuvre).eq('segment_numero', it.segment_numero).single()
       if (data) {
         const auteur = it.auteur ?? it.auteur_nom ?? ''
         const titre = it.titre_oeuvre ?? ''
         const ref = `${auteur}, ${titre}, ${refsSegment(data)}`
-        onChoisir({ label: complet ? `« ${it.texte ?? ''} »` : ref, type: 'segment', id: String(data.id) })
+        onChoisir({ label: complet ? citationPatristiqueComplete(it.texte ?? '') : ref, type: 'segment', id: String(data.id) })
       }
     }
   }
@@ -280,7 +328,7 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
       {items.map(it => {
         const label = source === 'bible'
-          ? labelVerset(it.ref_livre, it.ref_chapitre, it.ref_verset)
+          ? labelVerset(codeLivre(it.ref_livre, it.ref_livre_abr, it.livre) ?? it.ref_livre, it.ref_chapitre, it.ref_verset)
           : `${it.auteur ?? it.auteur_nom ?? ''}, ${it.titre_oeuvre ?? ''} §${it.segment_numero}`
         return (
           <div key={it.id}

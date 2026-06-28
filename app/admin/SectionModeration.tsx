@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Carte, ContexteSegment, dateFormat } from './adminShared'
+import { Carte, ContexteSegment, ContexteVerset, dateFormat } from './adminShared'
 import SectionCommentaires from './SectionCommentaires'
 import SectionCertification from './SectionCertification'
 import type { Commentaire, Signalement, SegInfo } from './adminTypes'
@@ -61,6 +61,7 @@ export default function SectionModeration({
           : signalements.map(s => (
             <Carte key={s.id}>
               <ContexteSegment segId={s.id_segment} segMap={segMap} />
+              {!s.id_segment && <ContexteVerset versetId={s.id_verset} versetMap={versetMap} />}
               <p style={{ fontSize: '13.5px', color: '#2a2520', lineHeight: 1.6, margin: '0 0 10px' }}>{s.message}</p>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                 <span style={{ fontSize: '11px', color: '#b0a89e' }}>{dateFormat(s.created_at)}</span>
