@@ -8,7 +8,7 @@ const supabaseAdmin = createClient(
 )
 
 type MetaOeuvre = {
-  id_oeuvre: string
+  id_oeuvre?: string
   id_auteur: string
   titre: string
   sous_titre?: string | null
@@ -18,29 +18,19 @@ type MetaOeuvre = {
   editeur?: string | null
   collection?: string | null
   ville?: string | null
-  date_publication?: string | null
   url_source?: string | null
-  genre?: string | null
+  date_publication?: string | null
+  date_composition?: string | null
+  genres?: string[] | null
   langue?: string | null
 }
 
 type SegmentCsv = Record<string, string | number | null | undefined>
 
 const COLONNES_SEGMENTS = [
-  'id_oeuvre',
-  'segment_numero',
-  'segment_texte',
-  'ref_niv1',
-  'ref_niv2',
-  'ref_niv3',
-  'ref_niv4',
-  'ref_niv5',
-  'lien_1',
-  'lien_2',
-  'lien_3',
-  'lien_4',
-  'fiabilite',
-  'nature',
+  'id_oeuvre', 'segment_numero', 'segment_texte',
+  'ref_niv1', 'ref_niv2', 'ref_niv3', 'ref_niv4', 'ref_niv5',
+  'lien_1', 'lien_2', 'lien_3', 'lien_4', 'fiabilite', 'nature',
 ] as const
 
 function nulSiVide(v: unknown): string | null {
@@ -54,15 +44,11 @@ function normaliserSegment(s: SegmentCsv, idOeuvre: string, index: number) {
     id_oeuvre: idOeuvre,
     segment_numero: Number.parseInt(String(s.segment_numero ?? ''), 10) || index + 1,
     segment_texte: String(s.segment_texte ?? ''),
-    ref_niv1: nulSiVide(s.ref_niv1),
-    ref_niv2: nulSiVide(s.ref_niv2),
-    ref_niv3: nulSiVide(s.ref_niv3),
-    ref_niv4: nulSiVide(s.ref_niv4),
+    ref_niv1: nulSiVide(s.ref_niv1), ref_niv2: nulSiVide(s.ref_niv2),
+    ref_niv3: nulSiVide(s.ref_niv3), ref_niv4: nulSiVide(s.ref_niv4),
     ref_niv5: nulSiVide(s.ref_niv5),
-    lien_1: nulSiVide(s.lien_1),
-    lien_2: nulSiVide(s.lien_2),
-    lien_3: nulSiVide(s.lien_3),
-    lien_4: nulSiVide(s.lien_4),
+    lien_1: nulSiVide(s.lien_1), lien_2: nulSiVide(s.lien_2),
+    lien_3: nulSiVide(s.lien_3), lien_4: nulSiVide(s.lien_4),
     fiabilite: nulSiVide(s.fiabilite),
     nature: nulSiVide(s.nature) ?? 'texte',
   }
@@ -74,6 +60,21 @@ async function rollback(idOeuvre: string) {
   await supabaseAdmin.from('oeuvres').delete().eq('id_oeuvre', idOeuvre)
 }
 
+async function genererIdOeuvre(idAuteur: string): Promise<string> {
+  const { data } = await supabaseAdmin
+    .from('oeuvres').select('id_oeuvre').eq('id_auteur', idAuteur)
+    .order('id_oeuvre', { ascending: false })
+  let prochainNum = 1
+  if (data && data.length > 0) {
+    const nums = data.map((d: any) => {
+      const match = (d.id_oeuvre as string).match(/O(\d+)$/)
+      return match ? parseInt(match[1]) : 0
+    })
+    prochainNum = Math.max(...nums) + 1
+  }
+  return `${idAuteur}O${String(prochainNum).padStart(4, '0')}`
+}
+
 export async function POST(request: Request) {
   if (!(await estAdminUtilisateur(request))) {
     return NextResponse.json({ error: 'Import refusé : utilisateur non administrateur ou session absente.' }, { status: 403 })
@@ -83,38 +84,29 @@ export async function POST(request: Request) {
   const meta = body?.meta as MetaOeuvre | undefined
   const segments = body?.segments as SegmentCsv[] | undefined
 
-  if (!meta?.id_oeuvre || !meta?.id_auteur || !meta?.titre?.trim()) {
-    return NextResponse.json({ error: 'Titre, auteur et id_oeuvre sont requis.' }, { status: 400 })
+  if (!meta?.id_auteur || !meta?.titre?.trim()) {
+    return NextResponse.json({ error: 'Titre et auteur sont requis.' }, { status: 400 })
   }
   if (!Array.isArray(segments) || segments.length === 0) {
     return NextResponse.json({ error: 'Aucun segment à importer.' }, { status: 400 })
   }
 
-  const { data: existante, error: existanteError } = await supabaseAdmin
-    .from('oeuvres')
-    .select('id_oeuvre')
-    .eq('id_oeuvre', meta.id_oeuvre)
-    .maybeSingle()
+  const idOeuvre = meta.id_oeuvre?.trim() || await genererIdOeuvre(meta.id_auteur)
 
-  if (existanteError) {
-    return NextResponse.json({ error: existanteError.message }, { status: 500 })
-  }
+  const { data: existante } = await supabaseAdmin
+    .from('oeuvres').select('id_oeuvre').eq('id_oeuvre', idOeuvre).maybeSingle()
+
   if (existante) {
-    const { count, error: countError } = await supabaseAdmin
-      .from('segments')
-      .select('id', { count: 'exact', head: true })
-      .eq('id_oeuvre', meta.id_oeuvre)
-    if (countError) {
-      return NextResponse.json({ error: countError.message }, { status: 500 })
-    }
+    const { count } = await supabaseAdmin
+      .from('segments').select('id', { count: 'exact', head: true }).eq('id_oeuvre', idOeuvre)
     if ((count ?? 0) > 0) {
-      return NextResponse.json({ error: `L'ID ${meta.id_oeuvre} existe déjà et contient ${count} segment(s). Régénérez un ID ou supprimez l'œuvre explicitement.` }, { status: 409 })
+      return NextResponse.json({ error: `L'ID ${idOeuvre} existe déjà et contient ${count} segment(s).` }, { status: 409 })
     }
-    await rollback(meta.id_oeuvre)
+    await rollback(idOeuvre)
   }
 
   const oeuvrePayload = {
-    id_oeuvre: meta.id_oeuvre,
+    id_oeuvre: idOeuvre,
     id_auteur: meta.id_auteur,
     titre: meta.titre.trim(),
     sous_titre: nulSiVide(meta.sous_titre),
@@ -124,9 +116,10 @@ export async function POST(request: Request) {
     editeur: nulSiVide(meta.editeur),
     collection: nulSiVide(meta.collection),
     ville: nulSiVide(meta.ville),
-    date_publication: nulSiVide(meta.date_publication),
     url_source: nulSiVide(meta.url_source),
-    genre: nulSiVide(meta.genre),
+    date_publication: nulSiVide(meta.date_publication),
+    date_composition: nulSiVide(meta.date_composition),
+    genres: Array.isArray(meta.genres) ? meta.genres : [],
     langue: nulSiVide(meta.langue),
   }
 
@@ -136,14 +129,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const rows = segments.map((s, i) => normaliserSegment(s, meta.id_oeuvre, i))
+    const rows = segments.map((s, i) => normaliserSegment(s, idOeuvre, i))
     for (let i = 0; i < rows.length; i += 500) {
       const { error } = await supabaseAdmin.from('segments').insert(rows.slice(i, i + 500))
       if (error) throw error
     }
-    return NextResponse.json({ ok: true, idOeuvre: meta.id_oeuvre, count: rows.length })
+    return NextResponse.json({ ok: true, idOeuvre, count: rows.length })
   } catch (error: any) {
-    await rollback(meta.id_oeuvre)
+    await rollback(idOeuvre)
     return NextResponse.json({ error: `Erreur import segments : ${error?.message ?? String(error)}` }, { status: 500 })
   }
 }

@@ -251,8 +251,11 @@ export default function NavLivres({
   if (!ouvert) {
     return (
       <button onClick={() => setOuvert(true)} title="Ouvrir le sommaire des livres"
-        style={{ width: '22px', flexShrink: 0, background: '#faf8f4', border: 'none', borderRight: '1px solid #d6d0c4', cursor: 'pointer', color: '#9a958d', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl' as any, height: '100%' }}>
-        ☰
+        style={{ width: '22px', flexShrink: 0, background: '#faf8f4', border: 'none', borderRight: '1px solid #d6d0c4', cursor: 'pointer', color: '#9a958d', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '100%' }}>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <span style={{ writingMode: 'vertical-rl' as any, fontSize: '8px', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>Livres de la Bible</span>
       </button>
     )
   }
@@ -272,8 +275,12 @@ export default function NavLivres({
           onKeyDown={e => { if (e.key === 'Enter' && refParsee) appliquerRefParsee() }}
           style={{ flex: 1, minWidth: 0, fontSize: '10.5px', padding: '4px 7px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#f0ede7', color: '#3a3530', outline: 'none', boxSizing: 'border-box' }}
         />
-        <button onClick={() => setOuvert(false)} title="Fermer ce volet"
-          style={{ flexShrink: 0, fontSize: '11px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✕</button>
+        <button onClick={() => setOuvert(false)} title="Réduire le volet"
+          style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#b0a89e', display: 'flex', alignItems: 'center' }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
       </div>
 
       {/* Suggestion de ref parsée — remplace toute la liste tant qu'une référence est reconnue */}

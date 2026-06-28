@@ -367,34 +367,42 @@ export default function TexteBible({
     <div className="flex-1 flex flex-col h-screen overflow-hidden" style={{ background: '#f7f4ef' }}>
 
       {/* En-tête */}
-      <div className="px-8 py-3 border-b" style={{ borderColor: '#d6d0c4', background: '#f7f4ef' }}>
-        <div className="flex items-center justify-center gap-4">
+      <div style={{ borderBottom: '1px solid #d6d0c4', background: '#f7f4ef', padding: '14px 32px 10px' }}>
+
+        {/* Titre + navigation chapitres */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
           {chapitreActif > 1 ? (
-            <a href={`/?livre=${livreActif}&chapitre=${chapitreActif - 1}&trad=${tradCode}`} className="nav-chap-arrow text-lg leading-none transition-colors" style={{ color: '#9a958d' }} title="Chapitre précédent">‹</a>
+            <a href={`/?livre=${livreActif}&chapitre=${chapitreActif - 1}&trad=${tradCode}`} className="nav-chap-arrow" style={{ color: '#b0a89e', fontSize: '20px', lineHeight: 1, textDecoration: 'none', transition: 'color 0.15s' }} title="Chapitre précédent">‹</a>
           ) : (
-            <span className="text-lg leading-none" style={{ color: '#d6d0c4' }}>‹</span>
+            <span style={{ color: '#d6d0c4', fontSize: '20px', lineHeight: 1 }}>‹</span>
           )}
-          <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '1.15rem', fontWeight: 'normal', color: '#2a3d30', letterSpacing: '0.01em' }}>
-            {nomLivre} &ndash; Chapitre {chapitreActif}
+
+          <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+            <span style={{ fontSize: '1.25rem', color: '#1e2e24', letterSpacing: '0.01em' }}>{nomLivre}</span>
+            <span style={{ color: '#b0a088', fontSize: '1.25rem', lineHeight: 1 }}>❧</span>
+            <span style={{ fontSize: '1.05rem', color: '#5a7260', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>
           </h1>
-          <a href={`/?livre=${livreActif}&chapitre=${chapitreActif + 1}&trad=${tradCode}`} className="nav-chap-arrow text-lg leading-none transition-colors" style={{ color: '#9a958d' }} title="Chapitre suivant">›</a>
+
+          <a href={`/?livre=${livreActif}&chapitre=${chapitreActif + 1}&trad=${tradCode}`} className="nav-chap-arrow" style={{ color: '#b0a89e', fontSize: '20px', lineHeight: 1, textDecoration: 'none', transition: 'color 0.15s' }} title="Chapitre suivant">›</a>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '8px' }}>
+        {/* Séparateur fin */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '8px auto 0', maxWidth: '260px' }}>
+          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, transparent, #d6d0c4)' }} />
           <div style={{ position: 'relative' }}>
             <button onClick={() => setTradOuverte(!tradOuverte)} style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '5px 4px 5px 8px', borderRadius: '0', border: 'none',
-              borderBottom: '1px solid rgba(61,107,79,0.38)',
-              background: 'transparent', fontSize: '12.5px', color: '#35694c', cursor: 'pointer', fontWeight: 500,
-              fontFamily: "Georgia, 'Times New Roman', serif", letterSpacing: '0.015em',
-              boxShadow: 'none', transition: 'color 0.15s, border-color 0.15s',
+              display: 'flex', alignItems: 'center', gap: '5px',
+              padding: '0', border: 'none', background: 'transparent',
+              fontSize: '11.5px', color: '#6b8270', cursor: 'pointer',
+              fontFamily: "Georgia, 'Times New Roman', serif",
+              fontStyle: 'italic', letterSpacing: '0.01em',
+              transition: 'color 0.15s',
             }}>
               <span>{traductionLabel}</span>
-              <span style={{ color: '#6f8d78', fontSize: '8px', opacity: 0.8 }}>{tradOuverte ? '▲' : '▼'}</span>
+              <span style={{ color: '#a0b8a8', fontSize: '7px', fontStyle: 'normal' }}>{tradOuverte ? '▲' : '▼'}</span>
             </button>
             {tradOuverte && (
-              <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)', background: '#fff', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '7px', zIndex: 50, boxShadow: '0 10px 26px rgba(47,63,53,0.12)', minWidth: '230px', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', background: '#fff', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '7px', zIndex: 50, boxShadow: '0 10px 26px rgba(47,63,53,0.12)', minWidth: '230px', overflow: 'hidden' }}>
                 {traductions.map((t, i) => (
                   <button key={t.code} onClick={() => { setTraductionIndex(i); setTradOuverte(false) }} style={{
                     width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '13px',
@@ -413,7 +421,9 @@ export default function TexteBible({
               </div>
             )}
           </div>
+          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to left, transparent, #d6d0c4)' }} />
         </div>
+
       </div>
 
       <div className="overflow-y-auto flex-1" style={{ paddingTop: '20px', paddingBottom: '20px' }}>

@@ -8,6 +8,13 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+function deriverSiecle(dateMort: string | null | undefined): number | null {
+  if (!dateMort) return null
+  const annee = parseInt(dateMort.replace(/[^-\d]/g, ''))
+  if (isNaN(annee)) return null
+  return annee > 0 ? Math.ceil(annee / 100) : Math.floor(annee / 100)
+}
+
 export async function POST(request: Request) {
   if (!(await estAdminUtilisateur(request)) && !(await estAdmin())) return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
 
@@ -19,13 +26,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Le nom est requis.' }, { status: 400 })
   }
 
+  const dateNaissance = champs.date_naissance || null
+  const dateMort = champs.date_mort || null
+  const datesReconstituees = [dateNaissance, dateMort].filter(Boolean).join('–') || null
+  const siecle = deriverSiecle(dateMort)
+  const traditions = Array.isArray(champs.traditions) ? champs.traditions : []
+
   const { error } = await supabaseAdmin.from('auteurs').update({
     nom: String(champs.nom).trim(),
-    dates: champs.dates || null,
-    siecle: champs.siecle || null,
-    tradition: champs.tradition || null,
-    note: champs.note || null,
-    aire_geographique: champs.aire_geographique || null,
+    nom_original: champs.nom_original || null,
+    titre: champs.titre || null,
+    date_naissance: dateNaissance,
+    date_mort: dateMort,
+    dates: datesReconstituees,
+    siecle: siecle,
+    traditions: traditions,
+    note_biographique: champs.note_biographique || null,
+    note_theologique: champs.note_theologique || null,
     langue_principale: champs.langue_principale || null,
   }).eq('id_auteur', id_auteur)
 

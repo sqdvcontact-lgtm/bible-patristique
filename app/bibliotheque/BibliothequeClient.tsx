@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
@@ -16,9 +16,11 @@ type Oeuvre = {
   editeur: string | null; ville: string | null; date_publication: string | null
 }
 type Auteur = {
-  id_auteur: number; nom: string; dates: string | null
-  siecle: number | null; tradition: string | null
-  note: string | null; oeuvres: Oeuvre[]
+  id_auteur: number; nom: string; nom_original?: string | null; titre?: string | null
+  dates: string | null; siecle: number | null
+  traditions?: string[] | null; tradition?: string | null
+  note?: string | null; note_biographique?: string | null; note_theologique?: string | null
+  oeuvres: Oeuvre[]
 }
 
 function sansAccents(s: string): string { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() }
@@ -66,14 +68,24 @@ function PanneauAuteur({ auteur, recherche }: { auteur: Auteur; recherche: strin
             <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '15px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 1px' }}>
               {auteur.nom}
             </h2>
+            {auteur.nom_original && (
+              <p style={{ fontSize: '11px', color: '#b0a89e', fontStyle: 'italic', margin: '0 0 1px' }}>{auteur.nom_original}</p>
+            )}
             {auteur.dates && (
               <p style={{ fontSize: '11px', color: '#9a958d', margin: 0, letterSpacing: '0.02em' }}>{auteur.dates}</p>
             )}
+            {(auteur.traditions && auteur.traditions.length > 0) && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '4px' }}>
+                {auteur.traditions.map(t => (
+                  <span key={t} style={{ fontSize: '9.5px', color: '#6b8270', background: 'rgba(61,107,79,0.07)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '3px', padding: '0 5px' }}>{t}</span>
+                ))}
+              </div>
+            )}
           </div>
 
-          {auteur.note && (
+          {(auteur.note_biographique || auteur.note) && (
             <p style={{ fontSize: '11.5px', color: '#5a5450', lineHeight: 1.6, margin: 0, fontStyle: 'italic' }}>
-              {auteur.note}
+              {auteur.note_biographique || auteur.note}
             </p>
           )}
 
@@ -124,13 +136,63 @@ function PanneauAuteur({ auteur, recherche }: { auteur: Auteur; recherche: strin
   )
 }
 
+const PERIODES: { label: string; min: number; max: number }[] = [
+  { label: 'Iᵉʳ–IIᵉ s.', min: 1, max: 2 },
+  { label: 'IIIᵉ–IVᵉ s.', min: 3, max: 4 },
+  { label: 'Vᵉ–VIᵉ s.', min: 5, max: 6 },
+  { label: 'VIIᵉ–IXᵉ s.', min: 7, max: 9 },
+  { label: 'Xᵉ–XIIIᵉ s.', min: 10, max: 13 },
+]
+
+const LANGUES = ['Grec', 'Latin', 'Syriaque', 'Copte', 'Arménien']
+
+const REGISTRES: { label: string; mots: string[] }[] = [
+  { label: 'Homélie', mots: ['homélie', 'homelie', 'sermon'] },
+  { label: 'Traité', mots: ['traité', 'traite', 'de '] },
+  { label: 'Commentaire', mots: ['commentaire', 'sur '] },
+  { label: 'Lettre', mots: ['lettre', 'épître', 'epitre'] },
+]
+
+function Chip({ actif, onClick, children }: { actif: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button onClick={onClick} style={{
+      padding: '4px 11px', borderRadius: '20px', fontSize: '11.5px',
+      border: actif ? '1px solid #3d6b4f' : '1px solid #d6d0c4',
+      background: actif ? 'rgba(61,107,79,0.10)' : '#fff',
+      color: actif ? '#3d6b4f' : '#6b6560',
+      cursor: 'pointer', fontFamily: 'Georgia, serif', fontStyle: 'italic',
+      transition: 'all 0.12s',
+    }}>
+      {children}
+    </button>
+  )
+}
+
 export default function BibliothequeClient({ auteurs }: { auteurs: Auteur[] }) {
   const searchParams = useSearchParams()
   const [recherche, setRecherche] = useState(searchParams.get('q') ?? '')
+  const [periodeActive, setPeriodeActive] = useState<number | null>(null)
+  const [langueActive, setLangueActive] = useState<string | null>(null)
+  const [registreActif, setRegistreActif] = useState<string | null>(null)
 
   const qNorm = sansAccents(recherche.trim())
   const auteursFiltres = auteurs
-    .filter(a => !qNorm || sansAccents(a.nom).includes(qNorm) || a.oeuvres.some(o => sansAccents(o.titre).includes(qNorm)))
+    .filter(a => {
+      if (qNorm && !sansAccents(a.nom).includes(qNorm) && !a.oeuvres.some(o => sansAccents(o.titre).includes(qNorm))) return false
+      if (periodeActive !== null) {
+        const p = PERIODES[periodeActive]
+        if (!a.siecle || a.siecle < p.min || a.siecle > p.max) return false
+      }
+      if (langueActive) {
+        const trad = a.traditions?.length ? a.traditions : (a.tradition ? [a.tradition] : [])
+        if (!trad.some(t => sansAccents(t) === sansAccents(langueActive))) return false
+      }
+      if (registreActif) {
+        const r = REGISTRES.find(r => r.label === registreActif)
+        if (r && !a.oeuvres.some(o => r.mots.some(m => sansAccents(o.titre).includes(m)))) return false
+      }
+      return true
+    })
     .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
 
   return (
@@ -138,15 +200,21 @@ export default function BibliothequeClient({ auteurs }: { auteurs: Auteur[] }) {
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '40px 32px 80px' }}>
 
         {/* En-tête */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-            <h1 style={{ fontFamily: "Georgia, serif", fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 'normal', color: '#1e2e24', margin: 0 }}>
-              Bibliothèque
-            </h1>
+        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+          <h1 style={{ fontFamily: "Georgia, serif", fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 8px' }}>
+            Bibliothèque
+          </h1>
+          <p style={{ fontFamily: 'Georgia, serif', fontSize: '13.5px', fontStyle: 'italic', color: '#8a8278', margin: '0 0 16px' }}>
+            Écrits des Pères de l'Église du <span style={{ fontVariant: 'small-caps' }}>Ier</span> au <span style={{ fontVariant: 'small-caps' }}>XIIIe</span> siècle
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', maxWidth: '180px', margin: '0 auto 20px' }}>
+            <div style={{ flex: 1, height: '1px', background: '#d6cfc4' }} />
+            <span style={{ fontSize: '9px', color: '#b0a088', letterSpacing: '0.2em' }}>· · ·</span>
+            <div style={{ flex: 1, height: '1px', background: '#d6cfc4' }} />
           </div>
 
           {/* Recherche */}
-          <div style={{ position: 'relative', maxWidth: '320px', margin: '0 auto' }}>
+          <div style={{ position: 'relative', maxWidth: '320px', margin: '0 auto 20px' }}>
             <input
               type="text"
               value={recherche}
@@ -158,6 +226,34 @@ export default function BibliothequeClient({ auteurs }: { auteurs: Auteur[] }) {
               <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
               <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
             </svg>
+          </div>
+
+          {/* Filtres */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center' }}>
+              <span style={{ fontSize: '10px', color: '#b0a088', letterSpacing: '0.12em', textTransform: 'uppercase', alignSelf: 'center', marginRight: '2px' }}>Période</span>
+              {PERIODES.map((p, i) => (
+                <Chip key={i} actif={periodeActive === i} onClick={() => setPeriodeActive(periodeActive === i ? null : i)}>
+                  {p.label}
+                </Chip>
+              ))}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center' }}>
+              <span style={{ fontSize: '10px', color: '#b0a088', letterSpacing: '0.12em', textTransform: 'uppercase', alignSelf: 'center', marginRight: '2px' }}>Langue</span>
+              {LANGUES.map(l => (
+                <Chip key={l} actif={langueActive === l} onClick={() => setLangueActive(langueActive === l ? null : l)}>
+                  {l}
+                </Chip>
+              ))}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center' }}>
+              <span style={{ fontSize: '10px', color: '#b0a088', letterSpacing: '0.12em', textTransform: 'uppercase', alignSelf: 'center', marginRight: '2px' }}>Registre</span>
+              {REGISTRES.map(r => (
+                <Chip key={r.label} actif={registreActif === r.label} onClick={() => setRegistreActif(registreActif === r.label ? null : r.label)}>
+                  {r.label}
+                </Chip>
+              ))}
+            </div>
           </div>
         </div>
 

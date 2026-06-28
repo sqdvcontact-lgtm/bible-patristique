@@ -68,38 +68,109 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
   )
 }
 
-// Champs d'identité d'un auteur — partagés entre la création et l'édition
-const CHAMPS_AUTEUR: { key: string; label: string; type?: string }[] = [
-  { key: 'nom', label: 'Nom *' },
-  { key: 'dates', label: 'Dates (ex. 354-430)' },
-  { key: 'siecle', label: 'Siècle', type: 'number' },
-  { key: 'tradition', label: 'Tradition', type: 'select' },
-  { key: 'aire_geographique', label: 'Aire géographique' },
-  { key: 'langue_principale', label: 'Langue principale' },
-  { key: 'note', label: 'Note' },
-]
-const TRADITIONS_AUTEUR = ['apostolique','apologétique','alexandrine','antiochienne','cappadocienne','latine','africaine','syriaque','monastique','liturgique','conciliaire','pastorale']
-const inputStyleAuteur: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '12px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#f9f7f4', color: '#1e1a16', outline: 'none', boxSizing: 'border-box' }
-const labelStyleAuteur: React.CSSProperties = { fontSize: '9.5px', fontWeight: 600, letterSpacing: '0.08em', color: '#9a958d', display: 'block', marginBottom: '3px' }
+const inputStyleAuteur: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '12px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#fff', color: '#1e1a16', outline: 'none', boxSizing: 'border-box' }
+const lbl: React.CSSProperties = { fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b0a89e', display: 'block', marginBottom: '2px' }
 
-function ChampsAuteur({ valeurs, onChange }: { valeurs: Record<string, string>; onChange: (champ: string, val: string) => void }) {
+type ValeursAuteur = {
+  nom: string; nom_original: string; titre: string;
+  date_naissance: string; date_mort: string;
+  traditions: string[];
+  langue_principale: string;
+  note_biographique: string; note_theologique: string;
+}
+
+const VIDE_AUTEUR: ValeursAuteur = {
+  nom: '', nom_original: '', titre: '',
+  date_naissance: '', date_mort: '',
+  traditions: [],
+  langue_principale: '',
+  note_biographique: '', note_theologique: '',
+}
+
+function TagsInput({ tags, onChange, tousLesTags }: { tags: string[]; onChange: (t: string[]) => void; tousLesTags: string[] }) {
+  const [saisie, setSaisie] = React.useState('')
+  const ajouter = (val?: string) => {
+    const v = (val ?? saisie).trim()
+    if (v && !tags.includes(v)) onChange([...tags, v])
+    setSaisie('')
+  }
+  const supprimer = (t: string) => onChange(tags.filter(x => x !== t))
+  const suggestions = saisie.trim()
+    ? tousLesTags.filter(t => !tags.includes(t) && t.toLowerCase().includes(saisie.toLowerCase()))
+    : tousLesTags.filter(t => !tags.includes(t))
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
-      {CHAMPS_AUTEUR.map(c => (
-        <div key={c.key} style={c.key === 'note' ? { gridColumn: '1 / -1' } : {}}>
-          <label style={labelStyleAuteur}>{c.label.toUpperCase()}</label>
-          {c.key === 'note'
-            ? <textarea value={valeurs[c.key] ?? ''} onChange={e => onChange(c.key, e.target.value)} rows={2} style={{ ...inputStyleAuteur, resize: 'vertical' }} />
-            : c.type === 'select'
-            ? <select value={valeurs[c.key] ?? ''} onChange={e => onChange(c.key, e.target.value)} style={inputStyleAuteur}>
-                <option value="">— Choisir —</option>
-                {TRADITIONS_AUTEUR.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            : <input type={c.type === 'number' ? 'number' : 'text'} value={valeurs[c.key] ?? ''} onChange={e => onChange(c.key, e.target.value)} style={inputStyleAuteur}
-                placeholder={c.key === 'nom' ? "Augustin d'Hippone" : c.key === 'siecle' ? '5 (négatif = av. J.-C.)' : ''} />
-          }
+    <div>
+      <input value={saisie} onChange={e => setSaisie(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); ajouter() } }}
+        placeholder="Taper puis Entrée pour ajouter…"
+        style={{ ...inputStyleAuteur, width: '100%', marginBottom: '6px' }} />
+      {/* Tags actifs */}
+      {tags.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '5px' }}>
+          {tags.map(t => (
+            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', background: 'rgba(61,107,79,0.10)', color: '#2e5440', border: '1px solid rgba(61,107,79,0.25)', borderRadius: '3px', padding: '1px 7px' }}>
+              {t}
+              <button onClick={() => supprimer(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9a958d', fontSize: '10px', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+            </span>
+          ))}
         </div>
-      ))}
+      )}
+      {/* Suggestions */}
+      {suggestions.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+          {suggestions.map(t => (
+            <button key={t} onClick={() => ajouter(t)}
+              style={{ fontSize: '10.5px', background: '#f7f4ef', color: '#6b6560', border: '1px solid #d6d0c4', borderRadius: '3px', padding: '1px 7px', cursor: 'pointer' }}>
+              {t}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ChampsAuteur({ valeurs, onChange, onChangeTags, tousLesTags }: {
+  valeurs: ValeursAuteur;
+  onChange: (champ: keyof ValeursAuteur, val: string) => void;
+  onChangeTags: (tags: string[]) => void;
+  tousLesTags: string[];
+}) {
+  const inp = (key: keyof ValeursAuteur, label: string, placeholder?: string) => (
+    <div key={key}>
+      <label style={lbl}>{label}</label>
+      <input type="text" value={valeurs[key] as string} onChange={e => onChange(key, e.target.value)}
+        placeholder={placeholder} style={inputStyleAuteur} />
+    </div>
+  )
+  const sep = { borderTop: '1px solid #ede9e2', margin: '10px 0 8px' }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', alignItems: 'start' }}>
+        {inp('nom', 'Nom *', "Augustin d'Hippone")}
+        {inp('nom_original', 'Nom original', 'Αὐγουστῖνος')}
+        {inp('langue_principale', 'Langue', 'Latin, Grec…')}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        {inp('date_naissance', 'Naissance', '354')}
+        {inp('date_mort', 'Mort', '430')}
+      </div>
+      <hr style={sep} />
+      <div>
+        <label style={lbl}>Tradition / École</label>
+        <TagsInput tags={valeurs.traditions} onChange={onChangeTags} tousLesTags={tousLesTags} />
+      </div>
+      <hr style={sep} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        <div>
+          <label style={lbl}>Note biographique</label>
+          <textarea value={valeurs.note_biographique} onChange={e => onChange('note_biographique', e.target.value)} rows={2} style={{ ...inputStyleAuteur, resize: 'vertical' }} />
+        </div>
+        <div>
+          <label style={lbl}>Note théologique</label>
+          <textarea value={valeurs.note_theologique} onChange={e => onChange('note_theologique', e.target.value)} rows={2} style={{ ...inputStyleAuteur, resize: 'vertical' }} />
+        </div>
+      </div>
     </div>
   )
 }
@@ -119,10 +190,10 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   // ── Gestion des auteurs (recherche, création, édition, photo) ──────────────
   const [recherche, setRecherche] = useState('')
   const [ajoutAuteur, setAjoutAuteur] = useState(false)
-  const [nouvelAuteur, setNouvelAuteur] = useState({ nom: '', dates: '', siecle: '', tradition: '', note: '', aire_geographique: '', langue_principale: '' })
+  const [nouvelAuteur, setNouvelAuteur] = useState<ValeursAuteur>(VIDE_AUTEUR)
   const [msgAjoutAuteur, setMsgAjoutAuteur] = useState<string | null>(null)
   const [editionAuteur, setEditionAuteur] = useState<string | null>(null)
-  const [formAuteur, setFormAuteur] = useState<Record<string, string>>({})
+  const [formAuteur, setFormAuteur] = useState<ValeursAuteur>(VIDE_AUTEUR)
   const [statutAuteur, setStatutAuteur] = useState<{ id: string; ok: boolean; msg: string } | null>(null)
   const [photos, setPhotos] = useState<Record<string, boolean>>({})
   const photoRefs = useRef<Record<string, HTMLInputElement | null>>({})
@@ -148,13 +219,19 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   const ouvrirEditionAuteur = (a: Auteur) => {
     setEditionAuteur(a.id_auteur)
     setFormAuteur({
-      nom: a.nom, dates: a.dates ?? '', siecle: a.siecle ?? '',
-      tradition: (a as any).tradition ?? '', note: (a as any).note ?? '',
-      aire_geographique: (a as any).aire_geographique ?? '', langue_principale: (a as any).langue_principale ?? '',
+      nom: a.nom,
+      nom_original: (a as any).nom_original ?? '',
+      titre: (a as any).titre ?? '',
+      date_naissance: (a as any).date_naissance ?? '',
+      date_mort: (a as any).date_mort ?? '',
+      traditions: Array.isArray((a as any).traditions) ? (a as any).traditions : [],
+      langue_principale: (a as any).langue_principale ?? '',
+      note_biographique: (a as any).note_biographique ?? '',
+      note_theologique: (a as any).note_theologique ?? '',
     })
     setStatutAuteur(null)
   }
-  const fermerEditionAuteur = () => { setEditionAuteur(null); setFormAuteur({}) }
+  const fermerEditionAuteur = () => { setEditionAuteur(null); setFormAuteur(VIDE_AUTEUR) }
 
   const sauvegarderAuteur = async () => {
     if (!editionAuteur) return
@@ -180,7 +257,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     if (!res.ok) { setMsgAjoutAuteur('Erreur : ' + (json.error ?? 'inconnue')); return }
     setAuteurs(prev => [...prev, { ...json.auteur, oeuvres: [] }])
     setAjoutAuteur(false)
-    setNouvelAuteur({ nom: '', dates: '', siecle: '', tradition: '', note: '', aire_geographique: '', langue_principale: '' })
+    setNouvelAuteur(VIDE_AUTEUR)
     setMsgAjoutAuteur(null)
   }
 
@@ -342,6 +419,12 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     Object.values(inputRefs.current).forEach(el => { if (el) el.value = '' })
   }
 
+  const tousLesTags = React.useMemo(() => {
+    const set = new Set<string>()
+    auteurs.forEach(a => ((a as any).traditions as string[] | null)?.forEach(t => set.add(t)))
+    return [...set].sort()
+  }, [auteurs])
+
   const rechercheNormalisee = recherche.trim().toLowerCase()
   const auteursFiltres = rechercheNormalisee
     ? auteurs.filter(a =>
@@ -469,7 +552,12 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       {ajoutAuteur && (
         <div style={{ background: '#fff', border: '2px solid #3d6b4f', borderRadius: '8px', padding: '16px 20px', marginBottom: '8px' }}>
           <p style={{ fontSize: '12px', fontWeight: 600, color: '#3d6b4f', marginBottom: '14px' }}>Nouvel auteur</p>
-          <ChampsAuteur valeurs={nouvelAuteur} onChange={(champ, val) => setNouvelAuteur(p => ({ ...p, [champ]: val }))} />
+          <ChampsAuteur
+            valeurs={nouvelAuteur}
+            onChange={(champ, val) => setNouvelAuteur(p => ({ ...p, [champ]: val }))}
+            onChangeTags={tags => setNouvelAuteur(p => ({ ...p, traditions: tags }))}
+            tousLesTags={tousLesTags}
+          />
           {msgAjoutAuteur && <p style={{ fontSize: '11.5px', color: '#c0562a', marginBottom: '8px' }}>{msgAjoutAuteur}</p>}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <button onClick={() => { setAjoutAuteur(false); setMsgAjoutAuteur(null) }} style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
@@ -496,9 +584,12 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
               <button onClick={() => setAuteurOuvert(auteurOuvert === auteur.id_auteur ? null : auteur.id_auteur)}
                 style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
                 <span style={{ fontFamily: "Georgia, serif", fontSize: '15px', fontWeight: 700, color: '#3d6b4f' }}>{auteur.nom}</span>
+                {(auteur as any).nom_original && <span style={{ fontSize: '10.5px', color: '#b0a89e', fontStyle: 'italic' }}>{(auteur as any).nom_original}</span>}
                 {auteur.dates && <span style={{ fontSize: '11px', color: '#9a958d' }}>{auteur.dates}</span>}
                 {auteur.siecle && <span style={{ fontSize: '10.5px', color: '#9a958d' }}><SiecleDisplay n={parseInt(auteur.siecle)} /></span>}
-                {(auteur as any).tradition && <span style={{ fontSize: '10.5px', color: '#9a958d', background: '#eeeae4', padding: '1px 6px', borderRadius: '3px' }}>{(auteur as any).tradition}</span>}
+                {((auteur as any).traditions as string[] | null)?.map((t: string) => (
+                  <span key={t} style={{ fontSize: '10px', color: '#3d6b4f', background: 'rgba(61,107,79,0.09)', padding: '1px 6px', borderRadius: '3px', border: '1px solid rgba(61,107,79,0.2)' }}>{t}</span>
+                ))}
                 <span style={{ fontSize: '11px', color: '#b0a89e' }}>{auteur.oeuvres.length} œuvre{auteur.oeuvres.length > 1 ? 's' : ''}</span>
               </button>
               <div style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center', marginLeft: '12px' }}>
@@ -531,7 +622,12 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
             {/* Formulaire d'édition de l'auteur */}
             {editionAuteur === auteur.id_auteur && (
               <div style={{ padding: '14px 16px 16px', borderBottom: auteurOuvert === auteur.id_auteur ? '1px solid #e4dfd8' : 'none', background: '#faf8f4' }}>
-                <ChampsAuteur valeurs={formAuteur} onChange={(champ, val) => setFormAuteur(p => ({ ...p, [champ]: val }))} />
+                <ChampsAuteur
+                  valeurs={formAuteur}
+                  onChange={(champ, val) => setFormAuteur(p => ({ ...p, [champ]: val }))}
+                  onChangeTags={tags => setFormAuteur(p => ({ ...p, traditions: tags }))}
+                  tousLesTags={tousLesTags}
+                />
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
                   {statutAuteur?.id === auteur.id_auteur && (
                     <span style={{ fontSize: '11.5px', color: statutAuteur?.ok ? '#3d6b4f' : '#c0562a' }}>
@@ -599,7 +695,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
                         {CHAMPS_OEUVRE.map(c => (
                           <div key={c.key}>
-                            <label style={labelStyleAuteur}>{c.label.toUpperCase()}</label>
+                            <label style={lbl}>{c.label.toUpperCase()}</label>
                             <input type="text" value={formOeuvre[c.key] ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, [c.key]: e.target.value }))} style={inputStyleAuteur} />
                           </div>
                         ))}

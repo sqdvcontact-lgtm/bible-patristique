@@ -248,16 +248,21 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignal
   return (
     <div style={{ paddingTop:'6px', paddingBottom:'4px', borderBottom:'1px solid #ede9e2' }}>
 
-      {/* Ligne 1 : auteur + titre (gauche), badge puis actions juste dessous (droite) */}
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:0 }}>
-        <div style={{ minWidth:0, paddingTop:'1px' }}>
+      {/* Ligne méta : auteur + titre + niveaux (gauche), badge + actions (droite) */}
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'8px' }}>
+        <div style={{ minWidth:0 }}>
           <a href={`/oeuvre/${s.id_oeuvre}#s${s.segment_numero}`} target="_blank" rel="noopener noreferrer"
-            style={{ display:'block', fontSize:'11px', fontWeight:600, color:'#3d6b4f', margin:'0 0 2px', lineHeight:1.12, letterSpacing:'0.026em', textDecoration:'none' }}>
+            style={{ display:'block', fontSize:'11px', fontWeight:600, color:'#3d6b4f', margin:'0 0 3px', lineHeight:1.3, letterSpacing:'0.026em', textDecoration:'none' }}>
             {info?.auteur_nom || s.id_oeuvre}
           </a>
-          <p style={{ fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:0, lineHeight:1.06, letterSpacing:'0.02em' }}>
+          <p style={{ fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:'0 0 3px', lineHeight:1.3, letterSpacing:'0.02em' }}>
             {info?.titre || ''}
           </p>
+          {niveaux && (
+            <p style={{ fontSize:'10px', color:'#b0a89e', margin:0, lineHeight:1.3 }}>
+              {niveaux}
+            </p>
+          )}
         </div>
         <div style={{ display:'flex', flexDirection:'column', gap:'4px', alignItems:'flex-end', flexShrink:0 }}>
           <span style={{
@@ -285,15 +290,6 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignal
             />
           </div>
         </div>
-      </div>
-
-      {/* Ligne 4 : niveaux de référence */}
-      <div style={{ display:'flex', alignItems:'baseline', gap:'5px', marginTop:'-4px', marginBottom:'10px', flexWrap:'wrap' }}>
-        {niveaux && (
-          <span style={{ fontSize:'10px', color:'#b0a89e', lineHeight:1.12 }}>
-            {niveaux}
-          </span>
-        )}
       </div>
 
       {/* Texte du segment */}
@@ -680,7 +676,7 @@ export default function PanneauPatristique({
   const [segSignale, setSegSignale] = useState<Segment | null>(null)
 
   const ONGLETS: { code: Onglet; label: string }[] = [
-    { code: 'patristique',  label: 'Patristique' },
+    { code: 'patristique',  label: 'Pères de l\'Église' },
     { code: 'commentaires', label: 'Commentaires' },
   ]
 
@@ -772,9 +768,12 @@ export default function PanneauPatristique({
 
   if (!ouvert) {
     return (
-      <button onClick={() => setOuvert(true)} title="Ouvrir les citations patristiques"
-        style={{ width: '22px', flexShrink: 0, background: '#faf8f4', borderTop: 'none', borderBottom: 'none', borderRight: 'none', borderLeft: '1px solid #d6d0c4', cursor: 'pointer', color: '#9a958d', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl' as any, height: '100%' }}>
-        ☰
+      <button onClick={() => setOuvert(true)} title="Ouvrir les textes patristiques"
+        style={{ width: '22px', flexShrink: 0, background: '#faf8f4', border: 'none', borderLeft: '1px solid #d6d0c4', cursor: 'pointer', color: '#9a958d', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '100%' }}>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M10 4l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <span style={{ writingMode: 'vertical-rl' as any, fontSize: '8px', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>Commentaires</span>
       </button>
     )
   }
@@ -783,44 +782,49 @@ export default function PanneauPatristique({
     <div style={{ width:'288px', flexShrink:0, background:'#fff', borderLeft:'1px solid #d6d0c4', display:'flex', flexDirection:'column', height:'100%', minHeight:0 }}>
 
       {/* En-tête */}
-      <div style={{ padding:'10px 14px', borderBottom:'1px solid #d6d0c4', display:'flex', justifyContent:'space-between', alignItems:'center', gap:'6px' }}>
-        <div style={{ minWidth:0 }}>
-          <h2 style={{ fontFamily:"Georgia, 'Times New Roman', serif", fontSize:'13px', fontWeight:500, color:'#2a3d30', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-            {refFr ?? 'Patristique'}
-          </h2>
-          <p style={{ fontSize:'9px', color:'#9a958d', margin:'2px 0 0', letterSpacing:'0.05em', textTransform:'uppercase' }}>Textes associés</p>
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
-          <button onClick={() => setOuvert(false)} title="Fermer ce volet"
-            style={{ fontSize:'11px', color:'#b0a89e', background:'none', border:'none', cursor:'pointer', padding:'2px' }}>✕</button>
+      <div style={{ padding:'10px 10px 10px 8px', borderBottom:'1px solid #d6d0c4', display:'flex', alignItems:'center', gap:'6px' }}>
+        <button onClick={() => setOuvert(false)} title="Réduire le volet"
+          style={{ background:'none', border:'none', cursor:'pointer', padding:'3px', color:'#b0a89e', display:'flex', alignItems:'center', flexShrink:0 }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <div style={{ minWidth:0, flex:1 }}>
+          {refFr && (
+            <h2 style={{ fontFamily:"Georgia, 'Times New Roman', serif", fontSize:'13px', fontWeight:500, color:'#2a3d30', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+              {refFr}
+            </h2>
+          )}
         </div>
       </div>
 
       {verset ? (
         <div style={{ display:'flex', flexDirection:'column', flex:1, minHeight:0 }}>
 
-          {/* Onglets */}
-          <div style={{ display:'flex', padding:'0 10px', borderBottom:'1px solid #d6d0c4', overflowX:'auto' }}>
+          {/* Onglets pleine largeur */}
+          <div style={{ display:'flex', borderBottom:'1px solid #d6d0c4' }}>
             {ONGLETS.map(t => (
               <button key={t.code} onClick={() => setOnglet(t.code)}
                 style={{
-                  fontSize:'10px', padding:'7px 8px', border:'none',
+                  flex:1, padding:'9px 6px 8px', border:'none',
                   borderBottom: onglet === t.code ? '2px solid #3d6b4f' : '2px solid transparent',
-                  cursor:'pointer', background:'transparent',
-                  color: onglet === t.code ? '#3d6b4f' : '#6b6560',
+                  cursor:'pointer',
+                  background: onglet === t.code ? 'rgba(61,107,79,0.04)' : 'transparent',
+                  color: onglet === t.code ? '#2a3d30' : '#8a8278',
                   fontWeight: onglet === t.code ? 600 : 400,
-                  whiteSpace:'nowrap', flexShrink:0,
+                  fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
+                  fontSize:'9.5px', letterSpacing:'0.08em', textTransform:'uppercase',
+                  transition:'color 0.12s, background 0.12s',
                 }}>
                 {t.label}
               </button>
             ))}
           </div>
 
-          {/* Contenu */}
+          {/* Contenu scrollable */}
           <div style={{ overflowY:'auto', flex:1, padding:'0 12px' }}>
             {onglet === 'commentaires' ? (
               <OngletCommentaires verset={verset} userId={userId} isAdmin={isAdmin} />
-
             ) : (
               <>
                 {/* Filtres rapides */}
@@ -840,7 +844,6 @@ export default function PanneauPatristique({
                     </button>
                   ))}
                 </div>
-
                 {loading && <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'16px 0' }}>Chargement…</p>}
                 {!loading && itemsAffiches.length === 0 && (
                   <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'16px 0', fontStyle:'italic' }}>Aucun lien.</p>
@@ -849,32 +852,32 @@ export default function PanneauPatristique({
                   <SegmentCard
                     key={`${col}-${seg.id}`} s={seg} info={oeuvres[seg.id_oeuvre]}
                     userId={userId} isAdmin={isAdmin}
-                    colonneLien={col}
-                    typeLien={type}
-                    onSignaler={setSegSignale}
-                    onSupprimeLien={onSupprime}
+                    colonneLien={col} typeLien={type}
+                    onSignaler={setSegSignale} onSupprimeLien={onSupprime}
                   />
                 ))}
-                {!loading && nbPagesItems > 1 && (
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'10px', padding:'10px 0 14px', borderTop:'1px solid #ede9e2', marginTop:'2px' }}>
-                    <button onClick={() => setPageItems(Math.max(pageCouranteItems - 1, 0))} disabled={pageCouranteItems === 0}
-                      title="Page précédente"
-                      style={{ fontSize:'17px', lineHeight:1, width:'24px', height:'24px', padding:0, border:'1px solid #d6d0c4', borderRadius:'50%', background:'#fff', color: pageCouranteItems === 0 ? '#c8c0b4' : '#6b6560', cursor: pageCouranteItems === 0 ? 'default' : 'pointer' }}>
-                      ‹
-                    </button>
-                    <span style={{ fontSize:'9.5px', color:'#9a958d', whiteSpace:'nowrap' }}>
-                      {debutItems + 1}-{finItems} / {itemsAffiches.length}
-                    </span>
-                    <button onClick={() => setPageItems(Math.min(pageCouranteItems + 1, nbPagesItems - 1))} disabled={pageCouranteItems >= nbPagesItems - 1}
-                      title="Page suivante"
-                      style={{ fontSize:'17px', lineHeight:1, width:'24px', height:'24px', padding:0, border:'1px solid #d6d0c4', borderRadius:'50%', background:'#fff', color: pageCouranteItems >= nbPagesItems - 1 ? '#c8c0b4' : '#6b6560', cursor: pageCouranteItems >= nbPagesItems - 1 ? 'default' : 'pointer' }}>
-                      ›
-                    </button>
-                  </div>
-                )}
               </>
             )}
           </div>
+
+          {/* Pagination — fixée en pied de panneau, hors zone scrollable */}
+          {onglet !== 'commentaires' && !loading && nbPagesItems > 1 && (
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', padding:'8px 0 10px', borderTop:'1px solid #e4dfd8', background:'#fff', flexShrink:0 }}>
+              <button onClick={() => setPageItems(Math.max(pageCouranteItems - 1, 0))} disabled={pageCouranteItems === 0}
+                title="Page précédente"
+                style={{ fontSize:'18px', lineHeight:1, padding:'0 6px', border:'none', background:'none', color: pageCouranteItems === 0 ? '#c8c0b4' : '#6b6560', cursor: pageCouranteItems === 0 ? 'default' : 'pointer' }}>
+                ‹
+              </button>
+              <span style={{ fontSize:'9.5px', color:'#9a958d', whiteSpace:'nowrap', padding:'0 2px' }}>
+                {debutItems + 1}–{finItems} / {itemsAffiches.length}
+              </span>
+              <button onClick={() => setPageItems(Math.min(pageCouranteItems + 1, nbPagesItems - 1))} disabled={pageCouranteItems >= nbPagesItems - 1}
+                title="Page suivante"
+                style={{ fontSize:'18px', lineHeight:1, padding:'0 6px', border:'none', background:'none', color: pageCouranteItems >= nbPagesItems - 1 ? '#c8c0b4' : '#6b6560', cursor: pageCouranteItems >= nbPagesItems - 1 ? 'default' : 'pointer' }}>
+                ›
+              </button>
+            </div>
+          )}
 
           {segSignale && (
             <ModalSignalement
@@ -889,10 +892,27 @@ export default function PanneauPatristique({
           )}
         </div>
       ) : (
-        <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <p style={{ fontSize:'11.5px', color:'#9a958d', textAlign:'center', padding:'0 20px', fontStyle:'italic' }}>
-            Cliquez sur un verset pour voir les textes patristiques associés.
-          </p>
+        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-start', padding:'48px 24px 0' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'8px', width:'100%', marginBottom:'22px' }}>
+            <div style={{ flex:1, height:'1px', background:'linear-gradient(to right, transparent, #d6d0c4)' }} />
+            <span style={{ fontSize:'9px', color:'#c8c0b4', letterSpacing:'0.2em', flexShrink:0 }}>· · ·</span>
+            <div style={{ flex:1, height:'1px', background:'linear-gradient(to left, transparent, #d6d0c4)' }} />
+          </div>
+          <div style={{ fontFamily:"Georgia, 'Times New Roman', serif", fontSize:'12px', fontStyle:'italic', color:'#9a958d', lineHeight:1.85, textAlign:'center' }}>
+            {[
+              ['Cliquez sur un verset pour voir', '220px'],
+              ['les textes des Pères', '155px'],
+              ['de l\'Église', '100px'],
+              ['associés.', '76px'],
+            ].map(([line, width], i) => (
+              <p key={i} style={{ maxWidth: width, margin: '0 auto' }}>{line}</p>
+            ))}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:'8px', width:'100%', marginTop:'22px' }}>
+            <div style={{ flex:1, height:'1px', background:'linear-gradient(to right, transparent, #d6d0c4)' }} />
+            <span style={{ fontSize:'9px', color:'#c8c0b4', letterSpacing:'0.2em', flexShrink:0 }}>· · ·</span>
+            <div style={{ flex:1, height:'1px', background:'linear-gradient(to left, transparent, #d6d0c4)' }} />
+          </div>
         </div>
       )}
     </div>

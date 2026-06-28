@@ -236,7 +236,7 @@ export default async function AdminPage() {
   const essaisBrouillons = (essaisBrouillonsRaw ?? []).map(resoudreEssaiListe)
 
   // Bibliothèque
-  const { data: auteursData } = await supabaseAdmin.from('auteurs').select('id_auteur, nom, dates, siecle, tradition, note, aire_geographique, langue_principale, oeuvres(id_oeuvre, titre, sous_titre, titre_original, trad_auteur, trad_date, editeur, collection, ville, date_publication, url_source, genre, langue, profondeur_sommaire, nb_signes, niveaux_sommaire, niveaux_corps, texte_sommaire, texte_corps, afficher_numeros)').order('siecle', { ascending: true, nullsFirst: false })
+  const { data: auteursData } = await supabaseAdmin.from('auteurs').select('id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, traditions, note_biographique, note_theologique, langue_principale, oeuvres(id_oeuvre, titre, sous_titre, titre_original, trad_auteur, trad_date, editeur, collection, ville, date_publication, url_source, genre, langue, profondeur_sommaire, nb_signes, niveaux_sommaire, niveaux_corps, texte_sommaire, texte_corps, afficher_numeros)').order('siecle', { ascending: true, nullsFirst: false })
   const auteurs = (auteursData ?? [])
 
   // Traductions
