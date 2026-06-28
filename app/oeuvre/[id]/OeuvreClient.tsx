@@ -45,15 +45,17 @@ const TRADUCTIONS_FALLBACK = [
   { code: 'TR0004', label: 'Vulgate' },
 ]
 
-let _codesTraductionsCache: Promise<string[]> | null = null
-function chargerCodesTraductions(): Promise<string[]> {
+let _codesTraductionsCache: PromiseLike<string[]> | null = null
+function chargerCodesTraductions(): PromiseLike<string[]> {
   if (!_codesTraductionsCache) {
     _codesTraductionsCache = supabase.from('traductions').select('trad_id').order('ordre', { ascending: true })
-      .then(({ data }) => {
-        const codes = (data ?? []).map((t: any) => t.trad_id).filter((code: string) => /^TR\d{4}$/.test(code))
-        return codes.length > 0 ? codes : TRADUCTIONS_FALLBACK.map(t => t.code)
-      })
-      .catch(() => TRADUCTIONS_FALLBACK.map(t => t.code))
+      .then(
+        ({ data }) => {
+          const codes = (data ?? []).map((t: any) => t.trad_id).filter((code: string) => /^TR\d{4}$/.test(code))
+          return codes.length > 0 ? codes : TRADUCTIONS_FALLBACK.map(t => t.code)
+        },
+        () => TRADUCTIONS_FALLBACK.map(t => t.code)
+      )
   }
   return _codesTraductionsCache
 }
