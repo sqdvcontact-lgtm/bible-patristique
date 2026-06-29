@@ -87,7 +87,9 @@ export default function Navbar() {
         .or(`titre.ilike.%${q}%,resume.ilike.%${q}%`).limit(4)
         .then(({ data }) => setEssaisTrouves(data ?? []));
       supabase.from('oeuvres').select('id_oeuvre, titre, auteurs(nom)').ilike('titre', `%${q}%`).limit(5)
-        .then(({ data }) => setOeuvresTrouvees((data ?? []) as typeof oeuvresTrouvees));
+        .then(({ data }) => setOeuvresTrouvees(
+          (data ?? []).map((o: any) => ({ ...o, auteurs: Array.isArray(o.auteurs) ? (o.auteurs[0] ?? null) : o.auteurs }))
+        ));
     }, 250);
     return () => clearTimeout(t);
   }, [requeteRapide]);
