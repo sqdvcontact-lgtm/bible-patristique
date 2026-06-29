@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { supabase } from '@/app/lib/supabase'
+import { useFavoris } from '@/app/lib/useFavoris'
+import EtoileFavori from '@/app/components/EtoileFavori'
 
 type Oeuvre = {
   id_oeuvre: string; titre: string; sous_titre: string | null
@@ -35,7 +37,10 @@ const CHIFFRES_FR = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'h
 function enLettres(n: number): string { return n >= 1 && n <= 20 ? CHIFFRES_FR[n - 1] : String(n) }
 
 // ── Bandeau auteur ────────────────────────────────────────────────────────────
-function PanneauAuteur({ auteur, recherche }: { auteur: Auteur; recherche: string }) {
+function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }: {
+  auteur: Auteur; recherche: string
+  favorisOeuvres: Set<string>; toggleFavoriOeuvre: (id: string) => void
+}) {
   const q = sansAccents(recherche.trim())
   const oeuvreCorrespondante = q ? auteur.oeuvres.find(o => sansAccents(o.titre).includes(q)) : null
   const [ouvert, setOuvert] = useState(false)
@@ -109,19 +114,23 @@ function PanneauAuteur({ auteur, recherche }: { auteur: Auteur; recherche: strin
         <div style={{ borderTop: '1px solid #ede9e2', padding: '10px 16px 14px' }}>
           {auteur.oeuvres.map(o => {
             const correspond = oeuvreCorrespondante?.id_oeuvre === o.id_oeuvre
+            const estFavori = favorisOeuvres.has(o.id_oeuvre)
             const metas = [o.editeur, o.ville, o.date_publication, o.trad_auteur ? `trad. ${o.trad_auteur}` : null].filter(Boolean)
             return (
-              <Link key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
-                style={{ display: 'block', padding: '5px 8px', borderRadius: '4px', textDecoration: 'none', marginBottom: '1px', background: correspond ? 'rgba(61,107,79,0.10)' : 'transparent', border: correspond ? '1px solid rgba(61,107,79,0.25)' : '1px solid transparent' }}
-                onMouseEnter={e => { if (!correspond) (e.currentTarget as HTMLElement).style.background = 'rgba(61,107,79,0.06)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = correspond ? 'rgba(61,107,79,0.10)' : 'transparent' }}>
-                <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '12.5px', color: '#2a3d30', fontWeight: correspond ? 600 : 400 }}>{o.titre}</span>
-                </span>
-                {metas.length > 0 && (
-                  <span style={{ display: 'block', fontSize: '10.5px', color: '#9a958d', lineHeight: 1.3 }}>{metas.join(' · ')}</span>
-                )}
-              </Link>
+              <div key={o.id_oeuvre} style={{ display: 'flex', alignItems: 'flex-start', gap: '4px', marginBottom: '1px' }}>
+                <Link href={`/oeuvre/${o.id_oeuvre}`}
+                  style={{ flex: 1, display: 'block', padding: '5px 8px', borderRadius: '4px', textDecoration: 'none', background: correspond ? 'rgba(61,107,79,0.10)' : 'transparent', border: correspond ? '1px solid rgba(61,107,79,0.25)' : '1px solid transparent' }}
+                  onMouseEnter={e => { if (!correspond) (e.currentTarget as HTMLElement).style.background = 'rgba(61,107,79,0.06)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = correspond ? 'rgba(61,107,79,0.10)' : 'transparent' }}>
+                  <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '12.5px', color: '#2a3d30', fontWeight: correspond ? 600 : 400 }}>{o.titre}</span>
+                  </span>
+                  {metas.length > 0 && (
+                    <span style={{ display: 'block', fontSize: '10.5px', color: '#9a958d', lineHeight: 1.3 }}>{metas.join(' · ')}</span>
+                  )}
+                </Link>
+                <EtoileFavori actif={estFavori} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} style={{ marginTop: '6px', paddingRight: '2px' }} />
+              </div>
             )
           })}
         </div>
@@ -383,6 +392,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
   const searchParams = useSearchParams()
   const [auteurs, setAuteurs] = useState<Auteur[]>(auteursInitiaux)
   const [onglet, setOnglet] = useState<Onglet>('bibliotheque')
+  const { favoris: favorisOeuvres, pret: favorisPret, toggle: toggleFavoriOeuvre } = useFavoris('oeuvre')
 
   const refetch = useCallback(async () => {
     const { data } = await supabase.from('auteurs').select(SELECT_AUTEURS).order('siecle', { ascending: true, nullsFirst: false })
@@ -441,6 +451,41 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
         {/* Contenu onglet Bibliothèque */}
         {onglet === 'bibliotheque' && (
           <>
+            {/* Section Favoris */}
+            {favorisPret && favorisOeuvres.size > 0 && (() => {
+              const oeuvresFavorites: { oeuvre: Oeuvre; auteur: Auteur }[] = []
+              for (const a of auteurs) {
+                for (const o of a.oeuvres) {
+                  if (favorisOeuvres.has(o.id_oeuvre)) oeuvresFavorites.push({ oeuvre: o, auteur: a })
+                }
+              }
+              if (oeuvresFavorites.length === 0) return null
+              return (
+                <div style={{ marginBottom: '36px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="#c8933a" style={{ flexShrink: 0 }}>
+                      <path d="M8 1.5l1.854 3.756 4.146.603-3 2.924.708 4.131L8 10.765l-3.708 1.949.708-4.131-3-2.924 4.146-.603z"/>
+                    </svg>
+                    <span style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#9a8a6e' }}>Œuvres favorites</span>
+                    <div style={{ flex: 1, height: '1px', background: '#e4dfd8' }} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {oeuvresFavorites.map(({ oeuvre: o, auteur: a }) => (
+                      <div key={o.id_oeuvre} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', border: '1px solid #ede9e2', borderLeft: '3px solid #c8933a', borderRadius: '0 6px 6px 0', padding: '10px 14px' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ textDecoration: 'none' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 500, color: '#2a3d30', display: 'block' }}>{o.titre}</span>
+                            <span style={{ fontSize: '11px', color: '#9a8a6e', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>{a.nom}</span>
+                          </Link>
+                        </div>
+                        <EtoileFavori actif={true} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* Recherche */}
             <div style={{ position: 'relative', maxWidth: '340px', margin: '0 auto 24px' }}>
               <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
@@ -466,7 +511,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {auteursFiltres.map(auteur => (
-                  <PanneauAuteur key={auteur.id_auteur} auteur={auteur} recherche={recherche} />
+                  <PanneauAuteur key={auteur.id_auteur} auteur={auteur} recherche={recherche} favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} />
                 ))}
               </div>
             )}

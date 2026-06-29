@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import EtapeMetadonnees, { CATEGORIES_ESSAIS, type Metadonnees } from './EtapeMetadonnees'
+import { useFavoris } from '@/app/lib/useFavoris'
+import EtoileFavori from '@/app/components/EtoileFavori'
 
 const CATEGORIES = CATEGORIES_ESSAIS
 const SEMAINE_MS = 7 * 24 * 60 * 60 * 1000
@@ -149,6 +151,8 @@ function OngletCommunaute({
   filtreCategorie: string | null; setFiltreCategorie: (v: string | null) => void
   essais: EssaiResume[]
 }) {
+  const { favoris: favorisEssais, toggle: toggleFavoriEssai } = useFavoris('essai')
+
   // Tri : par auteur alphabétique, puis par date décroissante au sein de chaque auteur
   const tries = [...essais].sort((a, b) => {
     const cmp = a.auteur.localeCompare(b.auteur, 'fr')
@@ -209,19 +213,21 @@ function OngletCommunaute({
           transform: translate(-50%, -50%) translateX(0);
         }
         .essai-contenu { transition: opacity 0.18s ease, transform 0.18s ease; }
+        .essai-etoile { opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+        .essai-carte:hover .essai-etoile { opacity: 1; pointer-events: auto; }
       `}</style>
       {tries.length === 0 ? (
         <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Aucun essai trouvé.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {tries.map(e => <EssaiCarte key={e.id} essai={e} />)}
+          {tries.map(e => <EssaiCarte key={e.id} essai={e} favorisEssais={favorisEssais} toggleFavoriEssai={toggleFavoriEssai} />)}
         </div>
       )}
     </>
   )
 }
 
-function EssaiCarte({ essai: e }: { essai: EssaiResume }) {
+function EssaiCarte({ essai: e, favorisEssais, toggleFavoriEssai }: { essai: EssaiResume; favorisEssais: Set<string>; toggleFavoriEssai: (id: string) => void }) {
   const router = useRouter()
   const estNouveau = !!(e.publie_at && (Date.now() - new Date(e.publie_at).getTime()) < SEMAINE_MS)
   const dateFormatee = e.publie_at
@@ -236,6 +242,10 @@ function EssaiCarte({ essai: e }: { essai: EssaiResume }) {
           <path d="M4 14H22" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" />
           <path d="M15 7L22.5 14L15 21" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
+
+        <div className="essai-etoile" style={{ position: 'absolute', bottom: '14px', right: '14px', zIndex: 20 }}>
+          <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={15} />
+        </div>
 
         <div className="essai-contenu">
           {/* Ligne supérieure : auteur + rang + date */}

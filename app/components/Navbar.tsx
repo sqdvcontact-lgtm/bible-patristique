@@ -75,16 +75,19 @@ export default function Navbar() {
   const [rechercheOuverte, setRechercheOuverte] = useState(false);
   const [auteursTrouves, setAuteursTrouves] = useState<{ id_auteur: string; nom: string }[]>([]);
   const [essaisTrouves, setEssaisTrouves] = useState<{ id: number; titre: string }[]>([]);
+  const [oeuvresTrouvees, setOeuvresTrouvees] = useState<{ id_oeuvre: string; titre: string; auteurs: { nom: string } | null }[]>([]);
 
   useEffect(() => {
     const q = requeteRapide.trim();
-    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); return; }
+    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); setOeuvresTrouvees([]); return; }
     const t = setTimeout(() => {
-      supabase.from('auteurs').select('id_auteur, nom').ilike('nom', `%${q}%`).limit(5)
+      supabase.from('auteurs').select('id_auteur, nom').ilike('nom', `%${q}%`).limit(4)
         .then(({ data }) => setAuteursTrouves(data ?? []));
       supabase.from('essais').select('id, titre').eq('statut', 'publie')
-        .or(`titre.ilike.%${q}%,resume.ilike.%${q}%`).limit(5)
+        .or(`titre.ilike.%${q}%,resume.ilike.%${q}%`).limit(4)
         .then(({ data }) => setEssaisTrouves(data ?? []));
+      supabase.from('oeuvres').select('id_oeuvre, titre, auteurs(nom)').ilike('titre', `%${q}%`).limit(5)
+        .then(({ data }) => setOeuvresTrouvees((data ?? []) as typeof oeuvresTrouvees));
     }, 250);
     return () => clearTimeout(t);
   }, [requeteRapide]);
@@ -92,7 +95,7 @@ export default function Navbar() {
   const qNorm = sansAccents(requeteRapide.trim());
   const livresTrouves = qNorm ? LIVRES_RECHERCHE.filter(l => sansAccents(l.nom).includes(qNorm)).slice(0, 5) : [];
   const traductionsTrouvees = qNorm ? TRADUCTIONS_RECHERCHE.filter(t => sansAccents(t.nom).includes(qNorm)) : [];
-  const aucunResultat = qNorm.length > 0 && auteursTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0;
+  const aucunResultat = qNorm.length > 0 && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0;
 
   const fermerRechercheRapide = () => { setRechercheOuverte(false); setRequeteRapide(""); setMobileOuvert(false); };
   const validerRechercheRapide = () => {
@@ -227,8 +230,22 @@ export default function Navbar() {
                   ))}
                 </div>
               )}
-              {essaisTrouves.length > 0 && (
+              {oeuvresTrouvees.length > 0 && (
                 <div style={{ padding: "8px 0 6px", borderTop: auteursTrouves.length > 0 ? "1px solid #ede9e2" : "none" }}>
+                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Œuvres patristiques</p>
+                  {oeuvresTrouvees.map(o => (
+                    <Link key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`} onClick={fermerRechercheRapide}
+                      style={{ display: "block", padding: "7px 14px", fontSize: "13px", color: "#2a3d30", textDecoration: "none" }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                      {o.titre}
+                      {o.auteurs?.nom && <span style={{ fontSize: "11px", color: "#9a958d", marginLeft: "7px" }}>{o.auteurs.nom}</span>}
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {essaisTrouves.length > 0 && (
+                <div style={{ padding: "8px 0 6px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0) ? "1px solid #ede9e2" : "none" }}>
                   <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Essais et méditations</p>
                   {essaisTrouves.map(e => (
                     <Link key={e.id} href={`/essais/${e.id}`} onClick={fermerRechercheRapide}
@@ -241,7 +258,7 @@ export default function Navbar() {
                 </div>
               )}
               {livresTrouves.length > 0 && (
-                <div style={{ padding: "8px 0 6px", borderTop: auteursTrouves.length > 0 ? "1px solid #ede9e2" : "none" }}>
+                <div style={{ padding: "8px 0 6px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || essaisTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
                   <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Livres bibliques</p>
                   {livresTrouves.map(l => (
                     <Link key={l.code} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}

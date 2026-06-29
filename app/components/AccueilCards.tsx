@@ -1,6 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+type DernierBible   = { livre: string; chapitre: number; trad: string; nomLivre: string }
+type DerniereOeuvre = { id: string; titre: string; auteur: string }
 
 function IconBible() {
   return (
@@ -50,7 +54,28 @@ function IconDon() {
   );
 }
 
+function IconReprendre() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true" style={{ opacity: 0.7 }}>
+      <path d="M2.5 6.5A4 4 0 1 0 4 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+      <path d="M2.5 1.5v2.2h2.2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
 export default function AccueilCards() {
+  const [bible, setBible]   = useState<DernierBible | null>(null)
+  const [oeuvre, setOeuvre] = useState<DerniereOeuvre | null>(null)
+
+  useEffect(() => {
+    try {
+      const b = localStorage.getItem('cs_dernier_bible')
+      const o = localStorage.getItem('cs_derniere_oeuvre')
+      if (b) setBible(JSON.parse(b))
+      if (o) setOeuvre(JSON.parse(o))
+    } catch {}
+  }, [])
+
   return (
     <div className="ac-root">
       <div className="ac-grid">
@@ -69,6 +94,23 @@ export default function AccueilCards() {
           <span className="ac-title">Publications</span>
         </Link>
       </div>
+
+      {(bible || oeuvre) && (
+        <div className="ac-reprendre-wrap">
+          {bible && (
+            <Link href={`/?livre=${bible.livre}&chapitre=${bible.chapitre}&trad=${bible.trad}`} className="ac-reprendre">
+              <IconReprendre />
+              <span>{bible.nomLivre} {bible.chapitre}</span>
+            </Link>
+          )}
+          {oeuvre && (
+            <Link href={`/oeuvre/${oeuvre.id}`} className="ac-reprendre">
+              <IconReprendre />
+              <span style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{oeuvre.titre}</span>
+            </Link>
+          )}
+        </div>
+      )}
 
       <Link href="/soutenir" className="ac-don">
         <IconDon />
@@ -150,6 +192,29 @@ export default function AccueilCards() {
           border-bottom: 1px solid transparent;
         }
         .ac-don:hover { color: #4a6040; border-bottom-color: #c8b89e; }
+        .ac-reprendre-wrap {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+        .ac-reprendre {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 11.5px;
+          color: #7a8a6e;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(200,184,158,0.25);
+          text-decoration: none;
+          padding: 5px 12px;
+          border-radius: 20px;
+          font-family: Georgia, serif;
+          font-style: italic;
+          letter-spacing: 0.02em;
+          transition: color 0.15s, border-color 0.15s;
+        }
+        .ac-reprendre:hover { color: #4a6040; border-color: #c8b89e; }
         @media (max-width: 620px) {
           .ac-grid { grid-template-columns: 1fr; max-width: 320px; }
           .ac-card { padding: 24px 16px; }

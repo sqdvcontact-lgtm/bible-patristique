@@ -6,6 +6,8 @@ import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee } from './
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces } from './texteEnrichi'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
 import PageTitre from './PageTitre'
+import EtoileFavori from '@/app/components/EtoileFavori'
+import { useFavoris } from '@/app/lib/useFavoris'
 import OngletCommentaires from './OngletCommentaires'
 import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
@@ -64,6 +66,7 @@ function chargerCodesTraductions(): PromiseLike<string[]> {
 export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, vueInitiale = 'texte' }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
+  const { favoris: favorisOeuvres, pret: favorisPret, toggle: toggleFavoriOeuvre } = useFavoris('oeuvre')
   const [segActif, setSegActif] = useState<number | null>(segmentCibleId)
   const [tradIndex, setTradIndex] = useState(0)
   const [traductionsBible, setTraductionsBible] = useState(TRADUCTIONS_FALLBACK)
@@ -411,6 +414,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   }, [idOeuvre])
 
   useEffect(() => {
+    if (idOeuvre && oeuvre?.titre) {
+      localStorage.setItem('cs_derniere_oeuvre', JSON.stringify({ id: idOeuvre, titre: oeuvre.titre, auteur }))
+    }
+  }, [idOeuvre, oeuvre?.titre, auteur])
+
+  useEffect(() => {
     if (!auteurId) return
     supabase.from('oeuvres').select('id_oeuvre, titre')
       .eq('id_auteur', auteurId)
@@ -614,8 +623,15 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
         {/* ── TEXTE CENTRAL ── */}
         <main lang="fr" style={{ flex: 1, minWidth: 0, padding: '0 48px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: '560px', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
-          <PageTitre auteur={auteur} oeuvre={oeuvre} titre={titreAffiche} estAdmin={estAdmin}
-            onModifierTitre={() => setEditionCible({ type: 'titre_oeuvre', texteActuel: titreAffiche })} />
+          <div style={{ position: 'relative' }}>
+            <PageTitre auteur={auteur} oeuvre={oeuvre} titre={titreAffiche} estAdmin={estAdmin}
+              onModifierTitre={() => setEditionCible({ type: 'titre_oeuvre', texteActuel: titreAffiche })} />
+            {favorisPret && (
+              <div style={{ position: 'absolute', top: '16px', right: '0' }}>
+                <EtoileFavori actif={favorisOeuvres.has(idOeuvre)} onToggle={() => toggleFavoriOeuvre(idOeuvre)} size={20} title={favorisOeuvres.has(idOeuvre) ? 'Retirer des favoris' : 'Ajouter aux favoris'} />
+              </div>
+            )}
+          </div>
 
           {/* Navigation précédent/suivant — toujours au niveau 1 */}
           {vue === 'texte' && (

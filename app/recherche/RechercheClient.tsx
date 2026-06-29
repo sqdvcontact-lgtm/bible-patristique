@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 
@@ -106,6 +106,7 @@ export default function RechercheClient() {
   const [pageV, setPageV] = useState(0)
   const [pageS, setPageS] = useState(0)
   const [pageE, setPageE] = useState(0)
+  const dejaLanceRef = useRef('')
 
   useEffect(() => {
     const appliquer = (code?: string | null) => {
@@ -183,6 +184,16 @@ export default function RechercheClient() {
 
     setLastQuery(q)
     setLoading(false); setDone(true)
+
+    // Basculer vers l'onglet le plus riche si l'onglet actif est vide
+    const counts = { bible: versets.length, patristique: segs.length, essais: essais.length }
+    setOnglet(prev => {
+      const actuel = counts[prev]
+      if (actuel > 0) return prev
+      if (counts.patristique >= counts.bible && counts.patristique >= counts.essais) return 'patristique'
+      if (counts.bible >= counts.essais) return 'bible'
+      return 'essais'
+    })
   }
 
   useEffect(() => {
@@ -191,7 +202,11 @@ export default function RechercheClient() {
     const modeParam: Mode = searchParams.get('mode') === 'exact' ? 'exact' : 'prefixe'
     setQuery(q)
     setMode(modeParam)
+    const cle = `${q}|${modeParam}`
+    if (dejaLanceRef.current === cle) return
+    dejaLanceRef.current = cle
     void lancer(q, modeParam)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
   const versetsPage = versetsRes.slice(pageV * PAGE, (pageV + 1) * PAGE)

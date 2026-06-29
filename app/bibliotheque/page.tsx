@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export const revalidate = 86400
+export const revalidate = 3600
 
 export const metadata = {
   title: "Bibliothèque — Corpus Scriptura",
@@ -21,9 +21,10 @@ export default async function BibliothequePage() {
     .order("siecle", { ascending: true, nullsFirst: false })
 
   const base = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/auteurs`
+  const cacheV = Math.floor(Date.now() / (3600 * 1000))
   const auteurs = ((data ?? []) as any[])
     .filter(a => a.oeuvres?.length > 0)
-    .map(a => ({ ...a, imageUrl: `${base}/${a.id_auteur}.jpg` }))
+    .map(a => ({ ...a, imageUrl: `${base}/${a.id_auteur}.jpg?v=${cacheV}` }))
 
   return (
     <Suspense fallback={null}>

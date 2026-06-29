@@ -55,6 +55,11 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
     })
   }, [listeTraductions])
 
+  useEffect(() => {
+    const trad = listeTraductions[traductionIndex]?.code ?? 'TR0001'
+    localStorage.setItem('cs_dernier_bible', JSON.stringify({ livre: livreActif, chapitre: chapitreActif, trad, nomLivre }))
+  }, [livreActif, chapitreActif, traductionIndex, listeTraductions, nomLivre])
+
   const traduction = listeTraductions[traductionIndex]?.code ?? 'TR0001'
 
   return (

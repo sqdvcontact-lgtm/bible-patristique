@@ -5,6 +5,8 @@ import { supabase } from '@/app/lib/supabase'
 import { rendreEssai, extraireSommaire, type ElementPanneau } from '@/app/lib/texteEnrichiEssai'
 import VoletEssai from '@/app/lib/VoletEssai'
 import EssaiCommentaires from './EssaiCommentaires'
+import { useFavoris } from '@/app/lib/useFavoris'
+import EtoileFavori from '@/app/components/EtoileFavori'
 
 type Essai = {
   id: number; titre: string; sous_titre: string | null; resume: string | null
@@ -20,6 +22,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   const [aApprecie, setApprecie] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
 
+  const { favoris: favorisEssais, pret: favorisPret, toggle: toggleFavoriEssai } = useFavoris('essai')
   const sommaire = extraireSommaire(essai.contenu)
   const aDesNotes = /\[\^.+?\]/.test(essai.contenu)
   const dateAffichee = essai.publie_at ?? essai.created_at
@@ -137,6 +140,9 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             </svg>
             {nbAppreciations}
           </button>
+          {favorisPret && (
+            <EtoileFavori actif={favorisEssais.has(String(essai.id))} onToggle={() => toggleFavoriEssai(String(essai.id))} size={15} />
+          )}
           {aDesNotes && !voletOuvert && (
             <button onClick={() => setVoletOuvert(true)} style={{ marginLeft: 'auto', fontSize: '11px', color: '#3d6b4f', background: 'none', border: '1px solid #3d6b4f', borderRadius: '4px', padding: '3px 9px', cursor: 'pointer' }}>
               Notes et citations ›
