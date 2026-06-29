@@ -28,6 +28,7 @@ export type Props = {
   groupesApparat: GroupeData[]
   segmentsApparat: SegData[]
   segmentCibleId?: number | null
+  niv1Initial?: string | null
   vueInitiale?: 'texte' | 'apparat'
 }
 

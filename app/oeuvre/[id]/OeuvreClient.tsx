@@ -63,7 +63,7 @@ function chargerCodesTraductions(): PromiseLike<string[]> {
 }
 
 // ── Composant principal ───────────────────────────────────────────────────────
-export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, vueInitiale = 'texte' }: Props) {
+export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte' }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   const { favoris: favorisOeuvres, pret: favorisPret, toggle: toggleFavoriOeuvre } = useFavoris('oeuvre')
@@ -98,13 +98,6 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
     }
   }, [])
   useEffect(() => {
-    if (!segmentCibleId) return
-    const timer = window.setTimeout(() => {
-      document.getElementById(`segment-${segmentCibleId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 80)
-    return () => window.clearTimeout(timer)
-  }, [segmentCibleId, vue])
-  useEffect(() => {
     if (!tradOuverte) return
     const fermerAuClicExterieur = (event: MouseEvent) => {
       if (tradSelectRef.current && !tradSelectRef.current.contains(event.target as Node)) {
@@ -122,7 +115,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const niv1List = niv1ListProp
   // Carte niv1 → label humain, enrichie au fil des chargements client
   const [niv1TexteMap, setNiv1TexteMap] = useState<Record<string, string>>(niv1TexteMapProp)
-  const [niv1Actif, setNiv1Actif] = useState<string>(niv1List[0] ?? '')
+  const [niv1Actif, setNiv1Actif] = useState<string>((niv1Initial && niv1List.includes(niv1Initial) ? niv1Initial : null) ?? niv1List[0] ?? '')
   const [groupes, setGroupes] = useState<GroupeData[]>(groupesInit)
   const [segments, setSegments] = useState<SegData[]>(segmentsInit)
   const [groupesApparat, setGroupesApparat] = useState<GroupeData[]>(groupesApparatInit)
@@ -199,6 +192,27 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       document.getElementById(ancre)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }, [pages, pageActuelle])
+
+  // Deep link : aller à la bonne page de pagination puis scroller sur le segment
+  useEffect(() => {
+    if (!segmentCibleId) return
+    const pageIdx = pages.findIndex(p => p.some(g => g.itemIds.includes(segmentCibleId)))
+    if (pageIdx >= 0 && pageIdx !== pageActuelle) setPageActuelle(pageIdx)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [segmentCibleId, pages])
+
+  useEffect(() => {
+    if (!segmentCibleId) return
+    let stopped = false
+    const tryScroll = (attempt = 0) => {
+      if (stopped) return
+      const el = document.getElementById(`segment-${segmentCibleId}`)
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
+      else if (attempt < 15) window.setTimeout(() => tryScroll(attempt + 1), 200)
+    }
+    const timer = window.setTimeout(() => tryScroll(), 100)
+    return () => { stopped = true; window.clearTimeout(timer) }
+  }, [segmentCibleId, pageActuelle])
 
   const allerAuNiv2 = (n2: string | null) => {
     setNiv2Actif(n2)
@@ -498,13 +512,20 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
             <p style={{ fontSize: '12px', fontWeight: 600, color: '#3d6b4f', marginBottom: '4px' }}>{auteur}</p>
-            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '13px', color: '#2a3d30', lineHeight: 1.35, marginBottom: oeuvre.titre_original ? '3px' : '0', whiteSpace: 'pre-line', position: 'relative', paddingRight: estAdmin ? '16px' : 0 }}>
-              {rendreTexteEnrichi(titreAffiche)}
-              {estAdmin && (
-                <button onClick={() => setEditionCible({ type: 'titre_oeuvre', texteActuel: titreAffiche })}
-                  title="Modifier le titre de l'œuvre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '10px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✎</button>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
+              {favorisPret && (
+                <EtoileFavori actif={favorisOeuvres.has(idOeuvre)} onToggle={() => toggleFavoriOeuvre(idOeuvre)} size={13}
+                  title={favorisOeuvres.has(idOeuvre) ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                  style={{ marginTop: '2px', flexShrink: 0 }} />
               )}
-            </p>
+              <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '13px', color: '#2a3d30', lineHeight: 1.35, marginBottom: oeuvre.titre_original ? '3px' : '0', whiteSpace: 'pre-line', position: 'relative', paddingRight: estAdmin ? '16px' : 0, flex: 1, minWidth: 0 }}>
+                {rendreTexteEnrichi(titreAffiche)}
+                {estAdmin && (
+                  <button onClick={() => setEditionCible({ type: 'titre_oeuvre', texteActuel: titreAffiche })}
+                    title="Modifier le titre de l'œuvre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '10px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✎</button>
+                )}
+              </p>
+            </div>
             {oeuvre.titre_original && <p style={{ fontSize: '11.5px', color: '#8a8278', fontStyle: 'italic', marginBottom: '0' }}>{oeuvre.titre_original}</p>}
             {oeuvre.trad_auteur && (
               <p style={{ fontSize: '11px', color: '#9a958d', marginTop: '6px' }}>Trad. {oeuvre.trad_auteur}</p>
@@ -623,15 +644,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
         {/* ── TEXTE CENTRAL ── */}
         <main lang="fr" style={{ flex: 1, minWidth: 0, padding: '0 48px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: '560px', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
-          <div style={{ position: 'relative' }}>
-            <PageTitre auteur={auteur} oeuvre={oeuvre} titre={titreAffiche} estAdmin={estAdmin}
-              onModifierTitre={() => setEditionCible({ type: 'titre_oeuvre', texteActuel: titreAffiche })} />
-            {favorisPret && (
-              <div style={{ position: 'absolute', top: '16px', right: '0' }}>
-                <EtoileFavori actif={favorisOeuvres.has(idOeuvre)} onToggle={() => toggleFavoriOeuvre(idOeuvre)} size={20} title={favorisOeuvres.has(idOeuvre) ? 'Retirer des favoris' : 'Ajouter aux favoris'} />
-              </div>
-            )}
-          </div>
+          <PageTitre auteur={auteur} oeuvre={oeuvre} titre={titreAffiche} estAdmin={estAdmin}
+            onModifierTitre={() => setEditionCible({ type: 'titre_oeuvre', texteActuel: titreAffiche })} />
 
           {/* Navigation précédent/suivant — toujours au niveau 1 */}
           {vue === 'texte' && (

@@ -262,6 +262,7 @@ export default async function OeuvrePage({
       groupes={groupesData} segments={segmentsData}
       tocApparat={tocApparat} groupesApparat={groupesApparatData} segmentsApparat={segmentsApparatData}
       segmentCibleId={Number.isFinite(segmentCibleId) && segmentCibleId > 0 ? segmentCibleId : null}
+      niv1Initial={premierNiv1 ?? niv1List[0] ?? null}
       vueInitiale={vueInitiale}
     />
   )
