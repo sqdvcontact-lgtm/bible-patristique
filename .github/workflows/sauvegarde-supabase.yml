@@ -30,6 +30,8 @@ jobs:
         env:
           DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
+          export PATH="/usr/lib/postgresql/17/bin:$PATH"
+          pg_dump --version
           pg_dump "$DB_URL" \
             --no-owner --no-privileges \
             --format=plain \
