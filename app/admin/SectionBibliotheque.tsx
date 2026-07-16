@@ -6,6 +6,7 @@ import SectionRemplacerSegments from './SectionRemplacerSegments'
 import SectionAjouterOeuvre from './SectionAjouterOeuvre'
 import type { Auteur, AuteurPhotoPos, AuteurPhotoPositions, Oeuvre, LignePreview } from './adminTypes'
 import { revaliderBibliotheque } from '@/app/actions/revalider'
+import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 
 async function exporterOeuvre(idOeuvre: string, titreOeuvre: string) {
   const res = await fetch(`/api/admin/export-segments?id_oeuvre=${idOeuvre}`, { headers: await headersAdmin() })
@@ -75,16 +76,43 @@ const lbl: React.CSSProperties = { fontSize: '9px', fontWeight: 700, letterSpaci
 const sepOeuvre: React.CSSProperties = { borderTop: '1px solid #ede9e2', gridColumn: '1 / -1', margin: '2px 0' }
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
-const POS_AUTEUR_DEFAUT: AuteurPhotoPos = { x: 50, y: 14, scale: 1, scaleX: 1, scaleY: 1 }
-const POS_AUTEUR_FICHE: AuteurPhotoPos = { x: 50, y: 24, scale: 1, scaleX: 1, scaleY: 1 }
+function redimensionnerImage(fichier: File, largeur: number, hauteur: number): Promise<File> {
+  return new Promise(resolve => {
+    const img = new window.Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = largeur
+      canvas.height = hauteur
+      const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+      const nw = img.naturalWidth
+      const nh = img.naturalHeight
+      const ratio = Math.max(largeur / nw, hauteur / nh)
+      const sw = largeur / ratio
+      const sh = hauteur / ratio
+      const sx = (nw - sw) * 0.5
+      const sy = (nh - sh) * 0.5
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, largeur, hauteur)
+      URL.revokeObjectURL(img.src)
+      canvas.toBlob(blob => {
+        if (!blob) return
+        const nom = fichier.name
+        const dot = nom.lastIndexOf('.')
+        const base = dot >= 0 ? nom.slice(0, dot) : nom
+        resolve(new File([blob], base + '.jpg', { type: 'image/jpeg' }))
+      }, 'image/jpeg', 0.9)
+    }
+    img.src = URL.createObjectURL(fichier)
+  })
+}
+
+const POS_AUTEUR_DEFAUT: AuteurPhotoPos = { x: 50, y: 14, scale: 1 }
+const POS_AUTEUR_FICHE: AuteurPhotoPos = { x: 50, y: 24, scale: 1 }
 
 function normaliserPhotoPos(pos: Partial<AuteurPhotoPos> | null | undefined, defaut: AuteurPhotoPos): AuteurPhotoPos {
   return {
     x: typeof pos?.x === 'number' ? pos.x : defaut.x,
     y: typeof pos?.y === 'number' ? pos.y : defaut.y,
     scale: typeof pos?.scale === 'number' ? pos.scale : defaut.scale,
-    scaleX: typeof pos?.scaleX === 'number' ? pos.scaleX : defaut.scaleX,
-    scaleY: typeof pos?.scaleY === 'number' ? pos.scaleY : defaut.scaleY,
   }
 }
 
@@ -105,10 +133,12 @@ function stylePhotoAuteur(pos: AuteurPhotoPos): React.CSSProperties {
   return {
     objectFit: 'cover',
     objectPosition: `${pos.x}% ${pos.y}%`,
-    transform: `scale(${pos.scale}) scaleX(${pos.scaleX ?? 1}) scaleY(${pos.scaleY ?? 1})`,
+    transform: `scale(${pos.scale})`,
     transformOrigin: `${pos.x}% ${pos.y}%`,
   }
 }
+
+type ModalDragState = { startX: number; startY: number; baseX: number; baseY: number }
 
 function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde }: {
   auteur: Auteur
@@ -117,77 +147,58 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
   onClose: () => void
   onSauvegarde: (pos: AuteurPhotoPositions) => Promise<void>
 }) {
-  const [positions, setPositions] = useState<AuteurPhotoPositions>(posInit)
-  const [active, setActive] = useState<'carte' | 'fiche'>('carte')
+  const [pos, setPos] = useState<AuteurPhotoPos>(posInit.carte)
   const [saving, setSaving] = useState(false)
   const carteRef = useRef<HTMLDivElement>(null)
-  const ficheRef = useRef<HTMLDivElement>(null)
-  const dragRef = useRef<{ zone: 'carte' | 'fiche'; startX: number; startY: number; baseX: number; baseY: number } | null>(null)
+  const dragRef = useRef<ModalDragState | null>(null)
 
-  const startDrag = (zone: 'carte' | 'fiche') => (e: React.MouseEvent) => {
+  const startDrag = (e: React.MouseEvent) => {
     e.preventDefault()
-    setActive(zone)
-    const p = positions[zone]
-    dragRef.current = { zone, startX: e.clientX, startY: e.clientY, baseX: p.x, baseY: p.y }
+    dragRef.current = { startX: e.clientX, startY: e.clientY, baseX: pos.x, baseY: pos.y }
   }
 
   const onMove = (e: React.MouseEvent) => {
     if (!dragRef.current) return
-    const { zone, startX, startY, baseX, baseY } = dragRef.current
-    const el = zone === 'carte' ? carteRef.current : ficheRef.current
+    const { startX, startY, baseX, baseY } = dragRef.current
+    const el = carteRef.current
     if (!el) return
     const rect = el.getBoundingClientRect()
-    const scale = Math.max(positions[zone].scale, 1)
-    const sensX = 100 / (rect.width * scale)
-    const sensY = 100 / (rect.height * scale)
-    setPositions(prev => ({
+    const zoom = Math.max(pos.scale, 1)
+    const sensX = 100 / (rect.width * zoom)
+    const sensY = 100 / (rect.height * zoom)
+    setPos(prev => ({
       ...prev,
-      [zone]: {
-        ...prev[zone],
-        x: Math.max(0, Math.min(100, baseX - (e.clientX - startX) * sensX)),
-        y: Math.max(0, Math.min(100, baseY - (e.clientY - startY) * sensY)),
-      },
+      x: Math.max(0, Math.min(100, baseX - (e.clientX - startX) * sensX)),
+      y: Math.max(0, Math.min(100, baseY - (e.clientY - startY) * sensY)),
     }))
   }
 
   const endDrag = () => { dragRef.current = null }
-  const regler = (champ: keyof AuteurPhotoPos, delta: number, min: number, max: number) => {
-    setPositions(prev => {
-      const actuel = prev[active][champ]
-      const valeur = typeof actuel === 'number' ? actuel : 1
-      return {
-        ...prev,
-        [active]: {
-          ...prev[active],
-          [champ]: Math.round(Math.max(min, Math.min(max, valeur + delta)) * 100) / 100,
-        },
-      }
+
+  const zoomer = (delta: number) => {
+    setPos(prev => {
+      const nouvel = Math.max(1, Math.min(3.5, prev.scale + delta))
+      const arrondi = Math.round(nouvel * 100) * 0.01
+      return { ...prev, scale: arrondi }
     })
   }
-  const resetActive = () => setPositions(prev => ({ ...prev, [active]: active === 'carte' ? { ...POS_AUTEUR_DEFAUT } : { ...POS_AUTEUR_FICHE } }))
+
+  const reset = () => setPos({ ...POS_AUTEUR_DEFAUT })
+
   const sauvegarder = async () => {
     setSaving(true)
     try {
-      await onSauvegarde(positions)
+      await onSauvegarde({ carte: pos, fiche: pos })
       onClose()
-    } catch {
-      // L'erreur a deja ete affichee par l'appelant.
+    } catch (_err) {
     } finally {
       setSaving(false)
     }
   }
 
-  const btn: React.CSSProperties = {
-    width: '27px', height: '27px', borderRadius: '50%', border: '1px solid #d6d0c4',
-    background: '#fff', color: '#3a3530', cursor: 'pointer', display: 'inline-flex',
-    alignItems: 'center', justifyContent: 'center', lineHeight: 1,
-  }
-  const activePos = positions[active]
-  const zoneActive = active === 'carte' ? 'Carte Bibliothèque' : 'Fiche auteur'
-
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 2100, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '720px', background: '#f7f4ef', borderRadius: '10px', padding: '18px', boxShadow: '0 20px 60px rgba(0,0,0,0.32)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '600px', background: '#f7f4ef', borderRadius: '10px', padding: '18px', boxShadow: '0 20px 60px rgba(0,0,0,0.32)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '15px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
             Cadrer la photo – <em style={{ color: '#7a7268' }}>{auteur.nom}</em>
@@ -195,62 +206,33 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a89e', fontSize: '15px', padding: 0 }}>×</button>
         </div>
         <p style={{ fontSize: '10.5px', color: '#9a958d', margin: '0 0 12px', lineHeight: 1.5 }}>
-          Glissez l’image dans l’aperçu actif. Le zoom et l’étirement s’appliquent seulement à l’usage sélectionné.
+          Glissez l'image dans l'aperçu pour la repositionner. Utilisez le zoom pour recadrer.
         </p>
 
-        <div onMouseMove={onMove} onMouseUp={endDrag} onMouseLeave={endDrag} style={{ display: 'grid', gridTemplateColumns: '1.35fr 0.85fr', gap: '14px', alignItems: 'stretch', userSelect: 'none' }}>
-          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', minHeight: '176px' }}>
-              <div ref={carteRef} style={{ width: '132px', flexShrink: 0, position: 'relative', overflow: 'hidden', background: '#ede9e2', outline: active === 'carte' ? '3px solid #3d6b4f' : '3px solid transparent', outlineOffset: '-3px' }}>
-                <img src={photoUrl} alt="" draggable={false} style={{ width: '100%', height: '100%', display: 'block', ...stylePhotoAuteur(positions.carte) }} />
-                <div onMouseDown={startDrag('carte')} style={{ position: 'absolute', inset: 0, cursor: dragRef.current ? 'grabbing' : 'grab' }} />
-              </div>
-              <div style={{ flex: 1, padding: '16px 18px', minWidth: 0 }}>
-                <p style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#b0a89e', margin: '0 0 8px' }}>Carte Bibliothèque</p>
-                <h4 style={{ fontFamily: 'Helvetica Neue, Arial, sans-serif', fontSize: '15px', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 4px' }}>{auteur.nom}</h4>
-                {auteur.dates && <p style={{ fontSize: '11px', color: '#9a958d', margin: '0 0 10px' }}>{auteur.dates}</p>}
-                <p style={{ fontFamily: 'Georgia, serif', fontSize: '12px', color: '#5a5450', lineHeight: 1.55, margin: 0, fontStyle: 'italic' }}>
-                  {auteur.note_biographique || auteur.note || 'Aperçu de la fiche auteur dans la bibliothèque.'}
-                </p>
-              </div>
+        <div onMouseMove={onMove} onMouseUp={endDrag} onMouseLeave={endDrag}
+          style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', overflow: 'hidden', userSelect: 'none' }}>
+          <div style={{ display: 'flex', minHeight: '176px' }}>
+            <div ref={carteRef} style={{ width: '132px', flexShrink: 0, position: 'relative', overflow: 'hidden', background: '#ede9e2' }}>
+              <img src={photoUrl} alt="" draggable={false} style={{ width: '100%', height: '100%', display: 'block', ...stylePhotoAuteur(pos) }} />
+              <div onMouseDown={startDrag} style={{ position: 'absolute', inset: 0, cursor: dragRef.current ? 'grabbing' : 'grab' }} />
             </div>
-          </div>
-
-          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <p style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#b0a89e', margin: '0 0 12px' }}>Fiche auteur</p>
-            <div ref={ficheRef} style={{ width: '104px', height: '104px', borderRadius: '50%', position: 'relative', overflow: 'hidden', background: '#ede9e2', border: '1px solid #e4dfd8', outline: active === 'fiche' ? '3px solid #3d6b4f' : '3px solid transparent', outlineOffset: '-3px' }}>
-              <img src={photoUrl} alt="" draggable={false} style={{ width: '100%', height: '100%', display: 'block', ...stylePhotoAuteur(positions.fiche) }} />
-              <div onMouseDown={startDrag('fiche')} style={{ position: 'absolute', inset: 0, cursor: dragRef.current ? 'grabbing' : 'grab' }} />
+            <div style={{ flex: 1, padding: '16px 18px', minWidth: 0 }}>
+              <p style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#b0a89e', margin: '0 0 8px' }}>Aperçu — Carte Bibliothèque</p>
+              <h4 style={{ fontFamily: 'Helvetica Neue, Arial, sans-serif', fontSize: '15px', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 4px' }}>{auteur.nom}</h4>
+              {auteur.dates && <p style={{ fontSize: '11px', color: '#9a958d', margin: '0 0 10px' }}>{auteur.dates}</p>}
+              <p style={{ fontFamily: 'Georgia, serif', fontSize: '12px', color: '#5a5450', lineHeight: 1.55, margin: 0, fontStyle: 'italic' }}>
+                {auteur.note_biographique || auteur.note || 'Aperçu de la carte auteur dans la bibliothèque.'}
+              </p>
             </div>
-            <p style={{ fontFamily: 'Georgia, serif', fontSize: '14px', color: '#2a3d30', margin: '12px 0 0', textAlign: 'center' }}>{auteur.nom}</p>
           </div>
         </div>
 
-        <div style={{ marginTop: '12px', padding: '12px', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', display: 'grid', gridTemplateColumns: '1fr auto auto auto auto auto', alignItems: 'center', gap: '8px' }}>
-          <p style={{ fontSize: '11px', color: '#9a958d', margin: 0 }}>
-            Zone active : <strong style={{ color: '#3d6b4f' }}>{zoneActive}</strong>
-          </p>
-          <button onClick={() => setActive('carte')} style={{ fontSize: '10.5px', padding: '5px 9px', borderRadius: '4px', border: '1px solid #d6d0c4', background: active === 'carte' ? 'rgba(61,107,79,0.10)' : '#fff', color: '#3d6b4f', cursor: 'pointer' }}>Carte</button>
-          <button onClick={() => setActive('fiche')} style={{ fontSize: '10.5px', padding: '5px 9px', borderRadius: '4px', border: '1px solid #d6d0c4', background: active === 'fiche' ? 'rgba(61,107,79,0.10)' : '#fff', color: '#3d6b4f', cursor: 'pointer' }}>Fiche</button>
-          <span style={{ fontSize: '11px', color: '#6b6560', minWidth: '48px', textAlign: 'center' }}>{Math.round(activePos.scale * 100)} %</span>
-          <button onClick={() => regler('scale', -0.1, 0.7, 3.5)} style={btn}>−</button>
-          <button onClick={() => regler('scale', 0.1, 0.7, 3.5)} style={btn}>+</button>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
-          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '10.5px', color: '#6b6560', flex: 1 }}>Étirement horizontal</span>
-            <button onClick={() => regler('scaleX', -0.05, 0.65, 1.7)} style={btn}>−</button>
-            <span style={{ fontSize: '11px', color: '#2a3d30', minWidth: '42px', textAlign: 'center' }}>{Math.round((activePos.scaleX ?? 1) * 100)} %</span>
-            <button onClick={() => regler('scaleX', 0.05, 0.65, 1.7)} style={btn}>+</button>
-          </div>
-          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '10.5px', color: '#6b6560', flex: 1 }}>Étirement vertical</span>
-            <button onClick={() => regler('scaleY', -0.05, 0.65, 1.7)} style={btn}>−</button>
-            <span style={{ fontSize: '11px', color: '#2a3d30', minWidth: '42px', textAlign: 'center' }}>{Math.round((activePos.scaleY ?? 1) * 100)} %</span>
-            <button onClick={() => regler('scaleY', 0.05, 0.65, 1.7)} style={btn}>+</button>
-          </div>
-          <button onClick={resetActive} style={{ fontSize: '11px', color: '#9a958d', background: '#fff', border: '1px solid #d6d0c4', borderRadius: '5px', padding: '8px 12px', cursor: 'pointer' }}>Réinit.</button>
+        <div style={{ marginTop: '12px', padding: '12px', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '11px', color: '#9a958d', flex: 1 }}>Zoom</span>
+          <button onClick={() => zoomer(-0.1)} style={{ width: 27, height: 27, borderRadius: '50%', border: '1px solid #d6d0c4', background: '#fff', color: '#3a3530', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>−</button>
+          <span style={{ fontSize: '11px', color: '#6b6560', minWidth: '48px', textAlign: 'center' }}>{Math.round(pos.scale * 100)} %</span>
+          <button onClick={() => zoomer(0.1)} style={{ width: 27, height: 27, borderRadius: '50%', border: '1px solid #d6d0c4', background: '#fff', color: '#3a3530', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>+</button>
+          <button onClick={reset} style={{ fontSize: '11px', color: '#9a958d', background: '#fff', border: '1px solid #d6d0c4', borderRadius: '5px', padding: '6px 12px', cursor: 'pointer', marginLeft: '6px' }}>Réinit.</button>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #e4dfd8' }}>
@@ -314,8 +296,8 @@ function majPremierMotCatalogue(valeur: unknown) {
 
 function dateCatalogue(n?: NoticeCatalogueAdmin) {
   if (!n) return null
-  if (n.annee_edition) return String(n.annee_edition)
-  return n.siecle_edition
+  if (n.annee_edition) return formaterDateHistorique(n.annee_edition)
+  return formaterDateHistorique(n.siecle_edition)
 }
 
 function labelDecisionCatalogue(decision?: string | null) {
@@ -465,7 +447,7 @@ function BlocCatalogueOeuvre({ oeuvre, notices }: { oeuvre: Oeuvre; notices: Not
             <LigneCatalogue titre="Auteur">
               <ChampCatalogue label="Auteur" valeur={n.auteur} />
               <ChampCatalogue label="Authenticité" valeur={n.authenticite} transform={v => String(v).toUpperCase()} />
-              <ChampCatalogue label="Dates" valeur={n.dates_auteur} />
+              <ChampCatalogue label="Dates" valeur={formaterDateHistorique(n.dates_auteur)} />
             </LigneCatalogue>
             <LigneCatalogue titre="Titres">
               <ChampCatalogue label="Stable" valeur={n.titre_stable} />
@@ -476,12 +458,12 @@ function BlocCatalogueOeuvre({ oeuvre, notices }: { oeuvre: Oeuvre; notices: Not
               <ChampCatalogue label="Éditeur" valeur={n.editeur ?? oeuvre.editeur} />
               <ChampCatalogue label="Ville" valeur={oeuvre.ville} />
               <ChampCatalogue label="Collection" valeur={n.collection_nom ?? oeuvre.collection} />
-              <ChampCatalogue label="Publication" valeur={dateCatalogue(n) ?? oeuvre.date_publication} />
+              <ChampCatalogue label="Publication" valeur={dateCatalogue(n) || formaterDateHistorique(oeuvre.date_publication)} />
             </LigneCatalogue>
             <LigneCatalogue titre="Classement">
               <ChampCatalogue label="Genre" valeur={n.genre ?? oeuvre.genres?.[0]} transform={majPremierMotCatalogue} />
               <ChampCatalogue label="Langue" valeur={n.langue_originale ?? oeuvre.langue} transform={majPremierMotCatalogue} />
-              <ChampCatalogue label="Composition" valeur={n.date_oeuvre ?? oeuvre.date_composition} />
+              <ChampCatalogue label="Composition" valeur={formaterDateHistorique(n.date_oeuvre ?? oeuvre.date_composition)} />
             </LigneCatalogue>
             <LigneCatalogue titre="Import">
               <ChampCatalogue label="Décision" valeur={n.decision_import} accent transform={() => labelDecisionCatalogue(n.decision_import)} />
@@ -743,9 +725,10 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   }, [auteurs])
 
   const uploadPhoto = async (idAuteur: string, fichier: File) => {
+    const fichierRedim = await redimensionnerImage(fichier, 300, 450)
     const formData = new FormData()
     formData.append('id_auteur', idAuteur)
-    formData.append('fichier', fichier)
+    formData.append('fichier', fichierRedim)
     const res = await fetch('/api/admin/auteur-photo', { method: 'POST', headers: await headersAdmin(), body: formData })
     if (res.ok) {
       const json = await res.json().catch(() => ({}))
