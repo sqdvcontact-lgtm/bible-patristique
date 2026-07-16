@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import { formaterSieclesHTML } from '@/app/oeuvre/[id]/texteEnrichi'
+import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import ProgressionClient from '../progression/ProgressionClient'
 import QuizBibliqueClient from '../quiz/QuizBibliqueClient'
 
@@ -109,155 +110,13 @@ type Traduction = {
   } | null;
 };
 
-function useImageLuminance(url: string | null): boolean | null {
-  const [estSombre, setEstSombre] = useState<boolean | null>(null)
-  useEffect(() => {
-    if (!url) { setEstSombre(null); return }
-    let annule = false
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      if (annule) return
-      try {
-        const canvas = document.createElement('canvas')
-        // Échantillonner uniquement le quart supérieur gauche — là où se pose le texte
-        const sw = Math.round(Math.min(img.naturalWidth, 400) * 0.45)
-        const sh = Math.round(Math.min(img.naturalHeight, 300) * 0.65)
-        canvas.width = sw; canvas.height = sh
-        const ctx = canvas.getContext('2d')!
-        ctx.drawImage(img, 0, 0, sw * (img.naturalWidth / Math.min(img.naturalWidth, 400)), sh * (img.naturalHeight / Math.min(img.naturalHeight, 300)), 0, 0, sw, sh)
-        const { data } = ctx.getImageData(0, 0, sw, sh)
-        let lum = 0
-        const n = sw * sh
-        for (let i = 0; i < data.length; i += 4) {
-          lum += 0.2126 * (data[i] / 255) + 0.7152 * (data[i + 1] / 255) + 0.0722 * (data[i + 2] / 255)
-        }
-        setEstSombre(lum / n < 0.55)
-      } catch { setEstSombre(null) }
-    }
-    img.onerror = () => { if (!annule) setEstSombre(null) }
-    img.src = url
-    return () => { annule = true }
-  }, [url])
-  return estSombre
-}
-
-function BandeauTraduction({ t, estOuvert, onToggle }: {
-  t: Traduction; estOuvert: boolean; onToggle: () => void
-}) {
-  const estSombre = useImageLuminance(t.photo ?? null)
-  const meta = [t.langue, t.date_publication].filter(Boolean).join(' · ')
-
-  // Texte clair sur fond sombre, texte sombre sur fond clair
-  // estSombre=null (calcul en cours) → on suppose sombre par défaut (texte clair + scrim)
-  const fondSombre = estSombre !== false
-  const couleurTexte = t.photo ? (fondSombre ? '#f2efe8' : '#18130f') : '#1e2e24'
-  const couleurMeta  = t.photo ? (fondSombre ? 'rgba(242,239,232,0.72)' : 'rgba(24,19,15,0.58)') : '#7a7268'
-  const couleurChevron = t.photo ? (fondSombre ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.4)') : '#c8c0b4'
-
-  // Ombres multicouches pour garantir la lisibilité dans tous les cas
-  const ombreForte = fondSombre
-    ? '0 1px 2px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.65), 0 4px 20px rgba(0,0,0,0.35)'
-    : '0 1px 2px rgba(255,255,255,0.95), 0 2px 8px rgba(255,255,255,0.75), 0 4px 16px rgba(255,255,255,0.4)'
-  const ombreTexte = t.photo ? ombreForte : 'none'
-
-  return (
-    <button
-      onClick={onToggle}
-      style={{
-        width: '100%', position: 'relative',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0', minHeight: t.photo ? '92px' : undefined,
-        background: t.photo ? 'transparent' : estOuvert ? 'rgba(61,107,79,0.04)' : '#fff',
-        border: 'none', cursor: 'pointer', textAlign: 'left',
-        transition: 'background 0.15s', overflow: 'hidden',
-      }}
-    >
-      {/* Image plein bandeau */}
-      {t.photo && (() => {
-        const p = t.photo_position?.bandeau
-        const px = p?.x ?? 50; const py = p?.y ?? 20; const ps = p?.scale ?? 1
-        return (
-          <img src={t.photo} alt="" aria-hidden="true" style={{
-            position: 'absolute', inset: 0, width: '100%', height: '100%',
-            objectFit: 'cover', objectPosition: `${px}% ${py}%`, display: 'block',
-            transform: `scale(${ps})`, transformOrigin: `${px}% ${py}%`,
-            filter: estOuvert ? 'brightness(0.78)' : 'brightness(0.9)',
-            transition: 'filter 0.2s',
-          }} />
-        )
-      })()}
-
-      {/* Scrim gauche — dégradé discret qui renforce le contraste sans alourdir l'image */}
-      {t.photo && (
-        <div aria-hidden="true" style={{
-          position: 'absolute', inset: 0, zIndex: 0,
-          background: fondSombre
-            ? 'linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 100%)'
-            : 'linear-gradient(to right, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.08) 55%, transparent 100%)',
-          transition: 'background 0.2s',
-        }} />
-      )}
-
-      {/* Titre + méta directement sur l'image */}
-      <div style={{
-        position: 'relative', zIndex: 1,
-        flex: 1, minWidth: 0,
-        padding: t.photo ? '18px 14px 18px 20px' : '14px 18px',
-      }}>
-        <h2 style={{
-          fontFamily: "Georgia, 'Times New Roman', serif",
-          fontSize: '17px', fontWeight: 'normal',
-          color: couleurTexte, margin: 0, lineHeight: 1.25,
-          textShadow: ombreTexte,
-          transition: 'color 0.2s, text-shadow 0.2s',
-        }}>
-          {t.nom}
-        </h2>
-        {meta && (
-          <span style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
-            fontSize: '11px', fontStyle: 'italic',
-            color: couleurMeta, letterSpacing: '0.02em',
-            display: 'block', marginTop: '4px',
-            textShadow: ombreTexte,
-            transition: 'color 0.2s',
-          }}>
-            {meta}
-          </span>
-        )}
-        {t.import_maj_le && (
-          <span style={{
-            fontSize: '10px', fontStyle: 'italic',
-            color: t.photo ? (fondSombre ? 'rgba(242,239,232,0.48)' : 'rgba(24,19,15,0.38)') : '#b0a89e',
-            display: 'block', marginTop: '3px',
-            textShadow: t.photo ? ombreTexte : 'none',
-            transition: 'color 0.2s',
-          }}>
-            Mis à jour le {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-          </span>
-        )}
-      </div>
-
-      {/* Chevron */}
-      <span style={{
-        position: 'relative', zIndex: 1, fontSize: '10px', flexShrink: 0,
-        marginRight: '18px', color: couleurChevron,
-        textShadow: t.photo ? ombreTexte : 'none',
-        display: 'inline-block', transition: 'transform 0.18s, color 0.2s',
-        transform: estOuvert ? 'rotate(180deg)' : 'none',
-      }}>▼</span>
-    </button>
-  )
-}
-
 function normaliserContenu(texte: string): string {
   if (!texte) return '';
   let html: string;
   if (/^\s*<(p|h[1-6]|div|ul|ol|blockquote)[\s>]/i.test(texte)) {
     html = texte;
   } else {
-    const pStyle = 'color:#2a2520;font-size:13.5px;line-height:1.78;margin:0 0 12px;text-decoration:none';
+    const pStyle = 'color:#2a2218;font-size:13.5px;line-height:1.78;margin:0 0 12px;text-decoration:none';
     html = texte
       .split(/\n+/)
       .map(l => l.trim())
@@ -266,6 +125,82 @@ function normaliserContenu(texte: string): string {
       .join('');
   }
   return formaterSieclesHTML(html);
+}
+
+function CarteTraduction({ t, estOuvert, onToggle }: {
+  t: Traduction; estOuvert: boolean; onToggle: () => void
+}) {
+  const [imgErreur, setImgErreur] = useState(false)
+  const px = t.photo_position?.lateral?.x ?? 50
+  const py = t.photo_position?.lateral?.y ?? 20
+  const ps = t.photo_position?.lateral?.scale ?? 1
+  const meta = [t.auteur, t.langue].filter(Boolean).join(' · ')
+  const datePub = formaterDateHistorique(t.date_publication)
+
+  return (
+    <div id={t.trad_id} style={{ scrollMarginTop: '60px', border: '1px solid #ddd8d0', borderRadius: '10px', overflow: 'hidden', background: '#fff' }}>
+
+      {/* ── En-tête cliquable ── */}
+      <button onClick={onToggle} style={{
+        width: '100%', display: 'flex', alignItems: 'stretch',
+        background: estOuvert ? '#fdf9f2' : '#fff',
+        border: 'none', cursor: 'pointer', textAlign: 'left',
+        transition: 'background 0.14s', padding: 0,
+      }}>
+
+        {/* Photo latérale */}
+        {t.photo && !imgErreur && (
+          <div style={{ width: '90px', flexShrink: 0, position: 'relative', overflow: 'hidden', borderRight: '1px solid #ede9e0' }}>
+            <img src={t.photo} alt="" aria-hidden="true" onError={() => setImgErreur(true)}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${px}% ${py}%`, transform: `scale(${ps})`, transformOrigin: `${px}% ${py}%`, display: 'block' }} />
+          </div>
+        )}
+
+        {/* Texte */}
+        <div style={{ flex: 1, minWidth: 0, padding: '18px 14px 16px 20px' }}>
+          <h2 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '16.5px', fontWeight: 'normal', color: '#1e1a12', margin: '0 0 3px', lineHeight: 1.25 }}>
+            {t.nom}
+          </h2>
+          {meta && (
+            <span style={{ fontSize: '11px', color: '#8a7e70', letterSpacing: '0.02em', display: 'block', marginBottom: '2px' }}>
+              {meta}
+            </span>
+          )}
+          {datePub && (
+            <span style={{ fontSize: '10.5px', fontStyle: 'italic', color: '#b0a48e', display: 'block' }}>
+              {datePub}
+            </span>
+          )}
+          {t.bio_courte && (
+            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12.5px', fontStyle: 'italic', color: '#5a5040', lineHeight: 1.6, margin: '10px 0 0' }}>
+              {t.bio_courte}
+            </p>
+          )}
+          {t.import_maj_le && (
+            <span style={{ fontSize: '9.5px', color: '#c8bfb0', display: 'block', marginTop: '8px', letterSpacing: '0.02em' }}>
+              Mis à jour le {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
+          )}
+        </div>
+
+        {/* Chevron */}
+        <div style={{ display: 'flex', alignItems: 'center', paddingRight: '18px', flexShrink: 0 }}>
+          <span style={{ fontSize: '9px', color: '#c8bfb0', display: 'inline-block', transition: 'transform 0.18s', transform: estOuvert ? 'rotate(180deg)' : 'none' }}>▼</span>
+        </div>
+      </button>
+
+      {/* ── Contenu déployé ── */}
+      {estOuvert && t.commentaire_editorial && (
+        <div style={{ borderTop: '1px solid #ede9e0', padding: '20px 24px 24px', background: '#fdf9f2' }}>
+          <div
+            className="trad-article"
+            style={{ color: '#2a2218', fontSize: '13.5px', lineHeight: 1.72, textAlign: 'justify', hyphens: 'auto' }}
+            dangerouslySetInnerHTML={{ __html: normaliserContenu(t.commentaire_editorial) }}
+          />
+        </div>
+      )}
+    </div>
+  )
 }
 
 function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }) {
@@ -285,56 +220,20 @@ function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }
   }, [hashTraduction, traductions]);
 
   return (
-    <div style={{ maxWidth: "680px", margin: "0 auto", padding: "24px 24px 80px" }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        {traductions.map((t) => {
-          const estOuvert = ouvert === t.trad_id;
-          return (
-            <div key={t.trad_id} id={t.trad_id} style={{
-              scrollMarginTop: "60px",
-              border: "1px solid #ddd8cf", borderRadius: "8px",
-              overflow: "hidden", background: "#fff",
-            }}>
-              <BandeauTraduction t={t} estOuvert={estOuvert} onToggle={() => setOuvert(prev => prev === t.trad_id ? null : t.trad_id)} />
-
-              {/* ── Contenu déployé ── */}
-              {estOuvert && (
-                <div style={{ borderTop: "1px solid #ede9e2", display: "flex", alignItems: "stretch" }}>
-                  {/* Colonne image */}
-                  {t.photo && (
-                    <div style={{
-                      width: "140px", flexShrink: 0,
-                      borderRight: "1px solid #ede9e2",
-                      overflow: "hidden",
-                    }}>
-                      <img src={t.photo} alt="" aria-hidden="true"
-                        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: `${t.photo_position?.lateral?.x ?? 50}% ${t.photo_position?.lateral?.y ?? 20}%`, transform: `scale(${t.photo_position?.lateral?.scale ?? 1})`, transformOrigin: `${t.photo_position?.lateral?.x ?? 50}% ${t.photo_position?.lateral?.y ?? 20}%`, display: "block" }} />
-                    </div>
-                  )}
-                  {/* Texte */}
-                  <div style={{ flex: 1, minWidth: 0, padding: "18px 20px 22px" }}>
-                    {t.bio_courte && (
-                      <p style={{
-                        fontSize: "12.5px", color: "#5a6b5e", lineHeight: 1.65,
-                        margin: "0 0 12px", fontStyle: "italic",
-                        textAlign: "justify", hyphens: "auto",
-                      }}>
-                        {t.bio_courte}
-                      </p>
-                    )}
-                    {t.commentaire_editorial && (
-                      <div
-                        className="trad-article"
-                        style={{ color: "#2a2520", fontSize: "13.5px", lineHeight: 1.65, textAlign: "justify", hyphens: "auto" }}
-                        dangerouslySetInnerHTML={{ __html: normaliserContenu(t.commentaire_editorial) }}
-                      />
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+    <div style={{ maxWidth: '680px', margin: '0 auto', padding: '24px 24px 80px' }}>
+      <style>{`
+        .trad-article p { color: #2a2218; font-size: 13.5px; line-height: 1.78; margin: 0 0 12px; }
+        .trad-article p:last-child { margin-bottom: 0; }
+      `}</style>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {traductions.map(t => (
+          <CarteTraduction
+            key={t.trad_id}
+            t={t}
+            estOuvert={ouvert === t.trad_id}
+            onToggle={() => setOuvert(prev => prev === t.trad_id ? null : t.trad_id)}
+          />
+        ))}
       </div>
     </div>
   );
