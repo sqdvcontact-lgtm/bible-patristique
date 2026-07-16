@@ -176,8 +176,8 @@ export default function AccueilCards() {
           text-decoration: none;
           min-height: 142px;
           padding: 0;
-          border: 1px solid rgba(255,255,255,0.09);
-          box-shadow: 0 6px 22px rgba(10,18,12,0.28), inset 0 1px 0 rgba(255,255,255,0.07);
+          border: 1px solid rgba(255,255,255,0.10);
+          box-shadow: 0 6px 24px rgba(10,18,8,0.30), inset 0 1px 0 rgba(255,255,255,0.08);
           transition: transform 0.18s ease, box-shadow 0.18s ease;
           position: relative;
           overflow: hidden;
@@ -225,7 +225,7 @@ export default function AccueilCards() {
         }
         .ac-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 12px 34px rgba(44,54,36,0.28), inset 0 1px 0 rgba(255,255,255,0.10);
+          box-shadow: 0 14px 36px rgba(20,30,16,0.34), inset 0 1px 0 rgba(255,255,255,0.12);
         }
         .ac-card:hover .ac-card-main,
         .ac-card:focus-within .ac-card-main {
@@ -233,13 +233,13 @@ export default function AccueilCards() {
           transform: scale(0.99);
         }
         .ac-bible {
-          background: #1a3020;
+          background: linear-gradient(160deg, #1e3828 0%, #162a1e 100%);
         }
         .ac-patristique {
-          background: #38240f;
+          background: linear-gradient(160deg, #3a2c10 0%, #2c2008 100%);
         }
         .ac-publications {
-          background: #1c2b3a;
+          background: linear-gradient(160deg, #283820 0%, #1e2c18 100%);
         }
         .ac-title {
           font-family: Georgia, 'Times New Roman', serif;
