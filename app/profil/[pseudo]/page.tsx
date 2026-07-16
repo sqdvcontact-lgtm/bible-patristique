@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
+import type { CitationPreferee } from '@/app/prelevements/page'
 
 type ProfilPublic = {
   pseudo: string
@@ -31,6 +32,7 @@ export default function ProfilPublicPage() {
   const [profil, setProfil] = useState<ProfilPublic | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
   const [monPseudo, setMonPseudo] = useState<string | null>(null)
+  const [citationPreferee, setCitationPreferee] = useState<CitationPreferee | null>(null)
 
   useEffect(() => {
     if (!pseudo) return
@@ -47,7 +49,16 @@ export default function ProfilPublicPage() {
         const uid = data.session?.user.id
         if (!uid) return
         const { data: p } = await supabase.from('profils').select('pseudo').eq('id', uid).maybeSingle()
-        if (p) setMonPseudo(p.pseudo)
+        if (p) {
+          setMonPseudo(p.pseudo)
+          // Charger la citation préférée depuis localStorage uniquement pour son propre profil
+          if (p.pseudo === pseudo) {
+            try {
+              const saved = localStorage.getItem('cs_citation_preferee')
+              if (saved) setCitationPreferee(JSON.parse(saved))
+            } catch {}
+          }
+        }
       })
     })
   }, [pseudo])
@@ -134,6 +145,23 @@ export default function ProfilPublicPage() {
             </div>
           )}
         </div>
+
+        {/* ── CITATION PRÉFÉRÉE ────────────────────────────────── */}
+        {citationPreferee && (
+          <div style={{ background: '#fdf9f3', border: '1px solid #ddd8d0', borderTop: '1px solid #e8e2da', padding: '28px 36px 24px', textAlign: 'center' }}>
+            <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.20em', textTransform: 'uppercase', color: '#9a7a38', margin: '0 0 14px' }}>
+              Citation préférée
+            </p>
+            <p style={{ fontFamily: 'Georgia, serif', fontSize: '14px', fontStyle: 'italic', color: '#2a2218', lineHeight: 1.75, margin: '0 0 10px' }}>
+              «&#8201;{citationPreferee.texte.length > 200 ? citationPreferee.texte.slice(0, 200) + '…' : citationPreferee.texte}&#8201;»
+            </p>
+            <p style={{ fontSize: '10px', color: '#a89e8e', margin: 0, letterSpacing: '0.08em', fontFamily: 'Georgia, serif' }}>
+              {citationPreferee.type === 'biblique'
+                ? citationPreferee.ref
+                : [citationPreferee.auteur, citationPreferee.titre_oeuvre].filter(Boolean).join(', ')}
+            </p>
+          </div>
+        )}
 
         {/* ── BIBLIOTHÈQUE ─────────────────────────────────────── */}
         {aBibliotheque && (

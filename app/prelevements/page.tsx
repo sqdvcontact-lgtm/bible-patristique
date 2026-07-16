@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
+import { formaterDateHistorique } from "@/app/lib/datesHistoriques";
 
 type TypePrelevement = "biblique" | "patristique";
 
@@ -31,6 +32,11 @@ type GroupeBiblique = {
   ref_chapitre: number; verset_debut: number; verset_fin: number;
   textes: string[]; traduction?: string;
 };
+
+export type CitationPreferee = {
+  id: string; texte: string; type: "biblique" | "patristique";
+  ref?: string; auteur?: string; titre_oeuvre?: string;
+}
 
 const ABREV_ORDRE: Record<string, number> = {
   Gn:1,Ex:2,Lv:3,Nb:4,Dt:5,Jos:6,Jg:7,Rt:8,"1S":9,"2S":10,"1R":11,"2R":12,
@@ -109,7 +115,7 @@ function agglomererBibliques(sorted: Prelevement[]): GroupeBiblique[] {
 
 function refBiblique(g: GroupeBiblique): string {
   const base = `${g.ref_livre_abr} ${g.ref_chapitre}, ${g.verset_debut}`;
-  return g.verset_debut === g.verset_fin ? base : `${base}-${g.verset_fin}`;
+  return g.verset_debut === g.verset_fin ? base : `${base}–${g.verset_fin}`;
 }
 
 function texteGroupe(g: GroupeBiblique): string { return g.textes.join(" "); }
@@ -137,17 +143,19 @@ function construireCitationPatristique(
   if (info?.editeur) parts.push(info.editeur);
   if (info?.collection) parts.push(info.collection);
   if (info?.ville) parts.push(info.ville);
-  if (info?.date_publication) parts.push(info.date_publication);
+  if (info?.date_publication) parts.push(formaterDateHistorique(info.date_publication));
   parts.push('disponible sur le site Corpus Scriptura');
   return parts.join(', ') + ' : « ' + texte + ' »';
 }
 
+// ── Micro-composants ──────────────────────────────────────────────────────────
+
 function BoutonCopie({ texte }: { texte: string }) {
   const [ok, setOk] = useState(false);
   return (
-    <button onClick={() => { navigator.clipboard.writeText(texte).then(() => { setOk(true); setTimeout(() => setOk(false), 1400); }); }}
-      title="Copier"
-      style={{ background:"none", border:"none", cursor:"pointer", fontSize:"14px", color: ok ? "#3d6b4f" : "#c0b8b0", padding:"1px 4px" }}>
+    <button onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(texte).then(() => { setOk(true); setTimeout(() => setOk(false), 1400); }); }}
+      className="prel-action" title="Copier"
+      style={{ color: ok ? "#3d6b4f" : undefined }}>
       {ok ? "✓" : "⧉"}
     </button>
   );
@@ -156,14 +164,24 @@ function BoutonCopie({ texte }: { texte: string }) {
 function BoutonSuppr({ ids, onSuppr }: { ids: string[]; onSuppr: () => void }) {
   const [conf, setConf] = useState(false);
   if (conf) return (
-    <span style={{ fontSize:"11px", color:"#9a2a2a", display:"flex", alignItems:"center", gap:"4px" }}>
-      Supprimer ?
-      <button onClick={onSuppr} style={{ background:"none", border:"none", cursor:"pointer", color:"#9a2a2a", fontSize:"11px", fontWeight:600 }}>Oui</button>
-      <button onClick={() => setConf(false)} style={{ background:"none", border:"none", cursor:"pointer", color:"#9a958d", fontSize:"11px" }}>Non</button>
+    <span className="prel-confirm" onClick={e => e.stopPropagation()}>
+      Supprimer ?&ensp;
+      <button onClick={onSuppr} style={{ fontWeight: 600, color: "#9a2a2a", background: "none", border: "none", cursor: "pointer", fontSize: "inherit", padding: 0 }}>Oui</button>
+      &ensp;
+      <button onClick={() => setConf(false)} style={{ color: "#9a958d", background: "none", border: "none", cursor: "pointer", fontSize: "inherit", padding: 0 }}>Non</button>
     </span>
   );
   return (
-    <button onClick={() => setConf(true)} title="Supprimer" style={{ background:"none", border:"none", cursor:"pointer", fontSize:"13px", color:"#3d6b4f", padding:"1px 4px" }}>✕</button>
+    <button onClick={e => { e.stopPropagation(); setConf(true); }} className="prel-action" title="Supprimer">✕</button>
+  );
+}
+
+function BoutonEtoile({ active, onClick }: { active: boolean; onClick: (e: React.MouseEvent) => void }) {
+  return (
+    <button onClick={onClick} className="prel-action prel-star" title={active ? "Retirer comme citation préférée" : "Marquer comme citation préférée"}
+      style={{ color: active ? "#9a7a38" : undefined, opacity: active ? 1 : undefined }}>
+      {active ? "★" : "☆"}
+    </button>
   );
 }
 
@@ -172,22 +190,25 @@ function GroupeRepliable({ label, count, ouvert, onToggle, children }: {
   label: React.ReactNode; count: number; ouvert: boolean; onToggle: () => void; children: React.ReactNode;
 }) {
   return (
-    <div>
-      <button
-        onClick={onToggle}
-        style={{ display:"flex", alignItems:"center", gap:"8px", background:"none", border:"none", cursor:"pointer", padding:"0 0 8px", width:"100%" }}
-      >
-        <span style={{ fontSize:"10.5px", fontWeight:700, letterSpacing:"0.10em", color:"#6a7b6e" }}>
+    <div style={{ borderTop: "1px solid #ddd5c8" }}>
+      <button onClick={onToggle}
+        style={{ display: "flex", alignItems: "center", gap: "10px", background: "none", border: "none", cursor: "pointer", padding: "14px 0 12px", width: "100%", textAlign: "left" }}>
+        <span style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#3d6b4f", fontFamily: "Georgia, serif" }}>
           {label}
         </span>
-        <span style={{ fontSize:"10px", color:"#b0a89e", background:"#eeebe4", padding:"1px 6px", borderRadius:"10px" }}>{count}</span>
-        <span style={{ fontSize:"9px", color:"#b0a89e", marginLeft:"auto", transition:"transform 0.18s", display:"inline-block", transform: ouvert ? "rotate(180deg)" : "none" }}>▼</span>
+        <span style={{ fontSize: "9.5px", color: "#b0a89e", background: "transparent", padding: "0 4px", letterSpacing: "0.04em" }}>{count}</span>
+        <span style={{ fontSize: "8px", color: "#c0b8b0", marginLeft: "auto", transition: "transform 0.18s", display: "inline-block", transform: ouvert ? "rotate(180deg)" : "none" }}>▼</span>
       </button>
-      {ouvert && children}
+      {ouvert && (
+        <div style={{ paddingBottom: "6px" }}>
+          {children}
+        </div>
+      )}
     </div>
   );
 }
 
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function PrelevementsPage() {
   const router = useRouter();
   const [chargement, setChargement] = useState(true);
@@ -198,6 +219,24 @@ export default function PrelevementsPage() {
   const [traductions, setTraductions] = useState<Traduction[]>([]);
   const [traductionActive, setTraductionActive] = useState("TR0001");
   const [textesTraduits, setTextesTraduits] = useState<Record<string, string>>({});
+  const [citationPreferee, setCitationPreferee] = useState<CitationPreferee | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("cs_citation_preferee");
+      if (saved) setCitationPreferee(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  const marquerPreferee = (pref: CitationPreferee) => {
+    if (citationPreferee?.id === pref.id) {
+      localStorage.removeItem("cs_citation_preferee");
+      setCitationPreferee(null);
+    } else {
+      localStorage.setItem("cs_citation_preferee", JSON.stringify(pref));
+      setCitationPreferee(pref);
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -219,7 +258,6 @@ export default function PrelevementsPage() {
       setTraductionActive(defaut);
       setChargement(false);
 
-      // Charger les métadonnées des oeuvres pour la citation complète
       const ids = [...new Set(prelevsData.filter(p => p.id_oeuvre).map(p => p.id_oeuvre as string))];
       if (ids.length > 0) {
         const { data: od } = await supabase
@@ -246,17 +284,17 @@ export default function PrelevementsPage() {
         .filter(Boolean);
       if (clauses.length === 0) { setTextesTraduits({}); return; }
       const colonne = traductions.some(t => t.code === traductionActive) ? traductionActive : "TR0001";
-      const batches: string[][] = []
-      for (let i = 0; i < clauses.length; i += 80) batches.push(clauses.slice(i, i + 80))
+      const batches: string[][] = [];
+      for (let i = 0; i < clauses.length; i += 80) batches.push(clauses.slice(i, i + 80));
       const results = await Promise.all(
         batches.map(batch => supabase.from("versets").select(`livre, chapitre, verset, "${colonne}"`).or(batch.join(",")))
-      )
+      );
       const map: Record<string, string> = {};
       results.forEach(({ data }) => {
         (data ?? []).forEach((v: any) => {
           map[`${v.livre}:${v.chapitre}:${v.verset}`] = String(v[colonne] ?? "");
         });
-      })
+      });
       setTextesTraduits(map);
     };
     chargerTextes();
@@ -265,6 +303,11 @@ export default function PrelevementsPage() {
   const supprimerIds = async (ids: string[]) => {
     await supabase.from("prelevements").delete().in("id", ids);
     setPrelevements(prev => prev.filter(p => !ids.includes(p.id)));
+    // Si la citation préférée est supprimée, la retirer
+    if (citationPreferee && ids.includes(citationPreferee.id)) {
+      localStorage.removeItem("cs_citation_preferee");
+      setCitationPreferee(null);
+    }
   };
 
   const bibliques = trierBibliques(prelevements.filter(p => p.type === "biblique").map(p => {
@@ -288,65 +331,131 @@ export default function PrelevementsPage() {
     return next;
   });
 
-  // Déployer tous par défaut au changement d'onglet
   useEffect(() => {
     setGroupesOuverts(new Set(tousLesGroupes));
   }, [onglet, prelevements]);
 
   if (chargement) return (
-    <main style={{ minHeight:"calc(100vh - 48px)", background:"#f7f4ef", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <p style={{ fontSize:"13px", color:"#9a958d", fontStyle:"italic" }}>Chargement…</p>
+    <main style={{ minHeight: "calc(100vh - 48px)", background: "#f0ebe0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <p style={{ fontSize: "13px", color: "#9a8a72", fontStyle: "italic", fontFamily: "Georgia, serif" }}>Chargement…</p>
     </main>
   );
 
-  return (
-    <main style={{ background:"#f7f4ef", minHeight:"calc(100vh - 48px)" }}>
-      <div style={{ maxWidth:"760px", margin:"0 auto", padding:"40px 24px 80px" }}>
+  const listeActive = onglet === "biblique" ? bibliques : patristiques;
 
-        <div style={{ textAlign:"center", marginBottom:"28px" }}>
-          <h1 style={{ fontFamily:"Georgia, 'Times New Roman', serif", fontSize:"clamp(22px, 4vw, 32px)", fontWeight:"normal", color:"#1e2e24", margin:"0 0 14px" }}>
+  return (
+    <main style={{ background: "#f0ebe0", minHeight: "calc(100vh - 48px)" }}>
+      <style>{`
+        .prel-item { display: flex; align-items: flex-start; gap: 0; padding: 11px 0; border-bottom: 1px solid #e8e1d8; position: relative; }
+        .prel-item:last-child { border-bottom: none; }
+        .prel-actions { display: flex; gap: 1px; align-items: center; flex-shrink: 0; margin-left: 10px; opacity: 0; transition: opacity 0.15s; }
+        .prel-item:hover .prel-actions { opacity: 1; }
+        .prel-action { background: none; border: none; cursor: pointer; font-size: 13px; color: #b0a89e; padding: 2px 5px; line-height: 1; transition: color 0.12s; font-family: inherit; }
+        .prel-action:hover { color: #3d6b4f; }
+        .prel-star { font-size: 14px; }
+        .prel-confirm { font-size: 10.5px; color: #9a8a72; display: flex; align-items: center; white-space: nowrap; }
+        .prel-trad-sel {
+          appearance: none; -webkit-appearance: none;
+          font-family: Georgia, serif; font-size: 12.5px; font-style: italic;
+          color: #3d6b4f; background: transparent; border: none;
+          border-bottom: 1px solid #b8a898; padding: 2px 20px 2px 0;
+          cursor: pointer; outline: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239a8a72'/%3E%3C/svg%3E");
+          background-repeat: no-repeat; background-position: right 2px center; background-size: 8px;
+        }
+        .prel-trad-sel:focus { border-bottom-color: #3d6b4f; }
+      `}</style>
+
+      <div style={{ maxWidth: "680px", margin: "0 auto", padding: "52px 24px 96px" }}>
+
+        {/* ── En-tête ── */}
+        <div style={{ textAlign: "center", marginBottom: "40px" }}>
+          <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "#9a8a72", margin: "0 0 14px" }}>
+            Corpus Scriptura
+          </p>
+          <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "clamp(22px, 4vw, 30px)", fontWeight: "normal", color: "#1e1a14", margin: "0 0 12px", letterSpacing: "0.01em" }}>
             Mes citations
           </h1>
-          <div style={{ width:"36px", height:"1px", background:"#c8c0b4", margin:"0 auto 12px" }} />
-          <p style={{ fontSize:"12.5px", color:"#9a958d", margin:0 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", maxWidth: "160px", margin: "0 auto 12px" }}>
+            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #c8b8a4)" }} />
+            <span style={{ fontSize: "8px", color: "#b0a088", letterSpacing: "0.2em" }}>⁂</span>
+            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #c8b8a4)" }} />
+          </div>
+          <p style={{ fontSize: "11px", color: "#b0a088", margin: 0, fontFamily: "Georgia, serif", fontStyle: "italic" }}>
             {prelevements.length} citation{prelevements.length > 1 ? "s" : ""} enregistrée{prelevements.length > 1 ? "s" : ""}
           </p>
         </div>
 
-        {/* Onglets */}
-        <div style={{ display:"flex", borderBottom:"1px solid #d6d0c4", marginBottom:"20px", alignItems:"flex-end", justifyContent:"center", flexWrap:"wrap" }}>
-          {(["biblique","patristique"] as TypePrelevement[]).map(t => (
+        {/* ── Citation préférée — exergue ── */}
+        {citationPreferee && (
+          <div style={{ textAlign: "center", margin: "0 0 48px", padding: "28px 32px 24px", borderTop: "1px solid #c8b8a4", borderBottom: "1px solid #c8b8a4", position: "relative" }}>
+            <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "#9a7a38", margin: "0 0 16px" }}>
+              Citation préférée
+            </p>
+            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "15px", fontStyle: "italic", color: "#1e1a14", lineHeight: 1.75, margin: "0 0 12px" }}>
+              «&#8201;{citationPreferee.texte.length > 220 ? citationPreferee.texte.slice(0, 220) + "…" : citationPreferee.texte}&#8201;»
+            </p>
+            {(citationPreferee.ref || citationPreferee.auteur) && (
+              <p style={{ fontSize: "10px", color: "#9a8a72", margin: 0, letterSpacing: "0.08em", fontFamily: "Georgia, serif" }}>
+                {citationPreferee.type === "biblique"
+                  ? citationPreferee.ref
+                  : [citationPreferee.auteur, citationPreferee.titre_oeuvre].filter(Boolean).join(", ")}
+              </p>
+            )}
+            <button onClick={() => { localStorage.removeItem("cs_citation_preferee"); setCitationPreferee(null); }}
+              title="Effacer"
+              style={{ position: "absolute", top: "10px", right: "12px", background: "none", border: "none", cursor: "pointer", fontSize: "11px", color: "#c8b8a4", lineHeight: 1, padding: "2px 4px" }}>
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* ── Onglets ── */}
+        <div style={{ display: "flex", justifyContent: "center", borderBottom: "1px solid #ddd5c8", marginBottom: "28px" }}>
+          {(["biblique", "patristique"] as TypePrelevement[]).map(t => (
             <button key={t} onClick={() => setOnglet(t)}
-              style={{ padding:"9px 18px", fontSize:"12.5px", fontWeight: onglet===t ? 600 : 400, color: onglet===t ? "#3d6b4f" : "#9a958d", background:"transparent", border:"none", borderBottom: onglet===t ? "2px solid #3d6b4f" : "2px solid transparent", cursor:"pointer", letterSpacing:"0.01em", transition:"color 0.12s" }}>
-              {t === "biblique" ? "Citations bibliques" : "Citations patristiques"}
-              <span style={{ marginLeft:"6px", fontSize:"10.5px", background: onglet===t ? "rgba(61,107,79,0.10)" : "#eeebe4", color: onglet===t ? "#3d6b4f" : "#9a958d", padding:"1px 6px", borderRadius:"10px" }}>
+              style={{
+                padding: "10px 22px", fontSize: "12px", fontFamily: "Georgia, serif",
+                fontWeight: "normal", fontStyle: onglet === t ? "normal" : "italic",
+                color: onglet === t ? "#1e1a14" : "#a89e8e",
+                background: "transparent", border: "none",
+                borderBottom: onglet === t ? "1px solid #1e1a14" : "1px solid transparent",
+                cursor: "pointer", letterSpacing: "0.01em", transition: "color 0.12s",
+                marginBottom: "-1px",
+              }}>
+              {t === "biblique" ? "Textes bibliques" : "Textes patristiques"}
+              <span style={{ marginLeft: "7px", fontSize: "9.5px", color: onglet === t ? "#9a7a38" : "#c0b8b0" }}>
                 {t === "biblique" ? bibliques.length : patristiques.length}
               </span>
             </button>
           ))}
         </div>
 
-        {/* Boutons tout déployer / rétracter */}
-        {((onglet === "biblique" && bibliques.length > 0) || (onglet === "patristique" && patristiques.length > 0)) && (
-          <div style={{ display:"flex", gap:"8px", justifyContent:"space-between", marginBottom:"16px", alignItems:"center", flexWrap:"wrap" }}>
-            <div>
-              {onglet === "biblique" && traductions.length > 0 && (
-                <label style={{ display:"inline-flex", alignItems:"center", gap:"8px", fontSize:"11.5px", color:"#6a7b6e" }}>
+        {/* ── Barre de contrôles ── */}
+        {listeActive.length > 0 && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
+
+            {/* Sélecteur de traduction — centré, élégant */}
+            {onglet === "biblique" && traductions.length > 0 ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "10.5px", color: "#9a8a72", fontFamily: "Georgia, serif", fontStyle: "italic" }}>
                   Traduction
-                  <select value={traductionActive} onChange={e => setTraductionActive(e.target.value)}
-                    style={{ fontSize:"11.5px", color:"#2a3d30", background:"#fff", border:"1px solid #d6d0c4", borderRadius:"5px", padding:"4px 24px 4px 8px", outline:"none" }}>
-                    {traductions.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
-                  </select>
-                </label>
-              )}
-            </div>
-            <div style={{ display:"flex", gap:"8px" }}>
+                </span>
+                <select value={traductionActive} onChange={e => setTraductionActive(e.target.value)}
+                  className="prel-trad-sel">
+                  {traductions.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
+                </select>
+              </div>
+            ) : <span />}
+
+            {/* Déployer / rétracter */}
+            <div style={{ display: "flex", gap: "16px" }}>
               <button onClick={toutDeployer}
-                style={{ fontSize:"11px", color:"#6a7b6e", background:"none", border:"1px solid #d6d0c4", borderRadius:"4px", padding:"3px 10px", cursor:"pointer" }}>
+                style={{ fontSize: "10.5px", color: "#9a8a72", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Georgia, serif", fontStyle: "italic" }}>
                 Tout déployer
               </button>
               <button onClick={toutRetracter}
-                style={{ fontSize:"11px", color:"#6a7b6e", background:"none", border:"1px solid #d6d0c4", borderRadius:"4px", padding:"3px 10px", cursor:"pointer" }}>
+                style={{ fontSize: "10.5px", color: "#9a8a72", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Georgia, serif", fontStyle: "italic" }}>
                 Tout rétracter
               </button>
             </div>
@@ -356,35 +465,44 @@ export default function PrelevementsPage() {
         {/* ── Citations bibliques ── */}
         {onglet === "biblique" && (
           bibliques.length === 0 ? (
-            <div style={{ textAlign:"center", padding:"48px 0" }}>
-              <p style={{ fontSize:"13px", color:"#9a958d", fontStyle:"italic", marginBottom:"16px" }}>
-                Aucun verset enregistré. Cliquez sur ⊕ à côté d'un verset dans la Bible.
+            <div style={{ textAlign: "center", padding: "64px 0" }}>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "#9a8a72", fontStyle: "italic", marginBottom: "20px" }}>
+                Aucun verset enregistré.
               </p>
-              <Link href="/?livre=GEN&chapitre=1" style={{ fontSize:"12.5px", color:"#3d6b4f", textDecoration:"none", borderBottom:"1px solid #3d6b4f" }}>Ouvrir la Bible →</Link>
+              <Link href="/?livre=GEN&chapitre=1" style={{ fontSize: "11.5px", color: "#3d6b4f", textDecoration: "none", letterSpacing: "0.04em" }}>Ouvrir la Bible →</Link>
             </div>
           ) : (
-            <div style={{ display:"flex", flexDirection:"column", gap:"20px" }}>
+            <div>
               {groupesBibliquesBruts.map(({ label, items }) => {
                 const agglomeres = agglomererBibliques(items);
                 const ouvert = groupesOuverts.has(label);
                 return (
-                  <GroupeRepliable key={label} label={<span style={{ textTransform:"uppercase" }}>{NOM_COMPLET[label] ?? items[0].ref_livre ?? label}</span>} count={agglomeres.length} ouvert={ouvert} onToggle={() => toggleGroupe(label)}>
-                    <div style={{ display:"flex", flexDirection:"column", gap:"6px", marginBottom:"4px" }}>
-                      {agglomeres.map((g, i) => (
-                        <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:"10px", padding:"8px 10px", borderRadius:"5px", background:"#faf8f4", border:"1px solid #ede9e2" }}>
-                          <span style={{ fontSize:"10.5px", fontWeight:600, color:"#3d6b4f", flexShrink:0, marginTop:"2px", minWidth:"60px" }}>
-                            {refBiblique(g)}
-                          </span>
-                          <p style={{ fontSize:"12.5px", lineHeight:"1.55", color:"#1e1a16", margin:0, flex:1 }}>
-                            {texteGroupe(g)}
-                          </p>
-                          <div style={{ display:"flex", gap:"2px", flexShrink:0, marginTop:"1px" }}>
-                            <BoutonCopie texte={`« ${texteGroupe(g).replace(/[.!?]$/, '')} » (${refBiblique(g)})`} />
+                  <GroupeRepliable key={label}
+                    label={NOM_COMPLET[label] ?? items[0].ref_livre ?? label}
+                    count={agglomeres.length} ouvert={ouvert} onToggle={() => toggleGroupe(label)}>
+                    {agglomeres.map((g, i) => {
+                      const texte = texteGroupe(g);
+                      const ref = refBiblique(g);
+                      const estPref = citationPreferee?.id === g.ids[0];
+                      return (
+                        <div key={i} className="prel-item">
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "13.5px", fontStyle: "italic", color: "#1e1a14", lineHeight: 1.7, margin: "0 0 4px" }}>
+                              «&#8201;{texte}&#8201;»
+                            </p>
+                            <p style={{ fontSize: "9.5px", color: "#9a8a72", margin: 0, letterSpacing: "0.10em", fontFamily: "Georgia, serif" }}>
+                              {ref}
+                              {g.traduction && <span style={{ marginLeft: "6px", opacity: 0.7 }}>· {g.traduction}</span>}
+                            </p>
+                          </div>
+                          <div className="prel-actions">
+                            <BoutonEtoile active={estPref} onClick={e => { e.stopPropagation(); marquerPreferee({ id: g.ids[0], texte, type: "biblique", ref }); }} />
+                            <BoutonCopie texte={`« ${texte.replace(/[.!?]$/, '')} » (${ref})`} />
                             <BoutonSuppr ids={g.ids} onSuppr={() => supprimerIds(g.ids)} />
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </GroupeRepliable>
                 );
               })}
@@ -395,14 +513,14 @@ export default function PrelevementsPage() {
         {/* ── Citations patristiques ── */}
         {onglet === "patristique" && (
           patristiques.length === 0 ? (
-            <div style={{ textAlign:"center", padding:"48px 0" }}>
-              <p style={{ fontSize:"13px", color:"#9a958d", fontStyle:"italic", marginBottom:"16px" }}>
-                Aucun segment enregistré. Cliquez sur ⊕ à côté d'un passage dans une œuvre.
+            <div style={{ textAlign: "center", padding: "64px 0" }}>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "#9a8a72", fontStyle: "italic", marginBottom: "20px" }}>
+                Aucun passage enregistré.
               </p>
-              <Link href="/bibliotheque" style={{ fontSize:"12.5px", color:"#3d6b4f", textDecoration:"none", borderBottom:"1px solid #3d6b4f" }}>Ouvrir la bibliothèque →</Link>
+              <Link href="/bibliotheque" style={{ fontSize: "11.5px", color: "#3d6b4f", textDecoration: "none", letterSpacing: "0.04em" }}>Ouvrir la bibliothèque →</Link>
             </div>
           ) : (
-            <div style={{ display:"flex", flexDirection:"column", gap:"20px" }}>
+            <div>
               {groupesPatristiques.map(({ label, items }) => {
                 const [auteur, titre] = label.split("||");
                 const ouvert = groupesOuverts.has(label);
@@ -412,41 +530,48 @@ export default function PrelevementsPage() {
                     <>
                       {idAuteur ? (
                         <Link href={`/auteur/${idAuteur}`} onClick={e => e.stopPropagation()}
-                          style={{ textTransform:"uppercase", color:"#3d6b4f", textDecoration:"none", fontWeight:"inherit" }}>
+                          style={{ color: "inherit", textDecoration: "none" }}>
                           {auteur}
                         </Link>
-                      ) : (
-                        <span style={{ textTransform:"uppercase" }}>{auteur}</span>
-                      )}
-                      {titre && <span style={{ textTransform:"none", fontStyle:"italic", fontWeight:400 }}>, {titre}</span>}
+                      ) : auteur}
+                      {titre && <span style={{ textTransform: "none", fontStyle: "italic", fontWeight: 400, color: "#7a6e5e" }}>,&ensp;{titre}</span>}
                     </>
                   } count={items.length} ouvert={ouvert} onToggle={() => toggleGroupe(label)}>
-                    <div style={{ display:"flex", flexDirection:"column", gap:"6px", marginBottom:"4px" }}>
-                      {items.map(p => {
-                        return (
-                          <div key={p.id} style={{ display:"flex", alignItems:"flex-start", gap:"10px", padding:"8px 10px", borderRadius:"5px", background:"#faf8f4", border:"1px solid #ede9e2" }}>
-                            <p style={{ fontSize:"12.5px", lineHeight:"1.55", color:"#1e1a16", margin:0, flex:1 }}>{p.texte}</p>
-                            <div style={{ display:"flex", gap:"2px", flexShrink:0, marginTop:"1px", alignItems:"center" }}>
-                              <BoutonCopie texte={construireCitationPatristique(p.texte, auteur, titre, p.id_oeuvre ? oeuvresInfo[p.id_oeuvre] : undefined)} />
-                              <BoutonSuppr ids={[p.id]} onSuppr={() => supprimerIds([p.id])} />
-                              {p.id_oeuvre && (
-                                <Link href={`/oeuvre/${p.id_oeuvre}${p.segment_numero ? `#s${p.segment_numero}` : ''}`} target="_blank" rel="noopener noreferrer"
-                                  title="Accéder à ce passage dans l'œuvre"
-                                  style={{ fontSize:"12px", color:"#c8c0b4", textDecoration:"none", padding:"1px 4px" }}>
-                                  ↗
-                                </Link>
-                              )}
-                            </div>
+                    {items.map(p => {
+                      const estPref = citationPreferee?.id === p.id;
+                      return (
+                        <div key={p.id} className="prel-item">
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "13.5px", fontStyle: "italic", color: "#1e1a14", lineHeight: 1.7, margin: "0 0 4px" }}>
+                              «&#8201;{p.texte}&#8201;»
+                            </p>
+                            {(p.ref_niv1 || p.ref_niv2) && (
+                              <p style={{ fontSize: "9.5px", color: "#9a8a72", margin: 0, letterSpacing: "0.08em", fontFamily: "Georgia, serif" }}>
+                                {[p.ref_niv1, p.ref_niv2].filter(Boolean).join(", ")}
+                              </p>
+                            )}
                           </div>
-                        );
-                      })}
-                    </div>
+                          <div className="prel-actions">
+                            <BoutonEtoile active={estPref} onClick={e => { e.stopPropagation(); marquerPreferee({ id: p.id, texte: p.texte, type: "patristique", auteur: p.auteur, titre_oeuvre: p.titre_oeuvre }); }} />
+                            <BoutonCopie texte={construireCitationPatristique(p.texte, auteur, titre, p.id_oeuvre ? oeuvresInfo[p.id_oeuvre] : undefined)} />
+                            {p.id_oeuvre && (
+                              <Link href={`/oeuvre/${p.id_oeuvre}${p.segment_numero ? `#s${p.segment_numero}` : ''}`} target="_blank" rel="noopener noreferrer"
+                                title="Accéder à ce passage" className="prel-action" style={{ textDecoration: "none", fontSize: "12px" }}>
+                                ↗
+                              </Link>
+                            )}
+                            <BoutonSuppr ids={[p.id]} onSuppr={() => supprimerIds([p.id])} />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </GroupeRepliable>
                 );
               })}
             </div>
           )
         )}
+
       </div>
     </main>
   );
