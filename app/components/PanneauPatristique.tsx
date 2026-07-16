@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from "@/app/lib/supabase"
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
@@ -56,6 +56,11 @@ function convertirGuillemetsInternes(texte: string): string {
   return texte
     .replace(/«[\u202F\u00A0\s]*/g, '“')
     .replace(/[\u202F\u00A0\s]*»/g, '”')
+}
+
+function siecleEnRomain(n: number): string {
+  const r = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV']
+  return (r[n - 1] ?? String(n)) + 'e'
 }
 
 function construireCitationPatristique(
@@ -187,15 +192,23 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
 }
 
 // ── Modale signalement ────────────────────────────────────────────────────────
-function ModalSignalement({ titre, titreEntete = 'Signaler une erreur', onClose, onEnvoyer }: {
-  titre: string; titreEntete?: string; onClose: () => void; onEnvoyer: (msg: string) => Promise<void>
+const PP_NIVEAUX = [
+  { val: 'mineur',    label: 'Mineur',    bg: '#f0f0ee', bgOn: '#d6d6d2', color: '#6b6560' },
+  { val: 'important', label: 'Important', bg: '#fef5e8', bgOn: '#f0a830', color: '#8a5a00' },
+  { val: 'bloquant',  label: 'Bloquant',  bg: '#fde8e8', bgOn: '#c0562a', color: '#fff' },
+] as const
+type PPNiveau = 'mineur' | 'important' | 'bloquant'
+
+function ModalSignalement({ titre, titreEntete = 'Signaler une erreur', onClose, onEnvoyer, avecNiveauImportance = false }: {
+  titre: string; titreEntete?: string; onClose: () => void; onEnvoyer: (msg: string, importance?: string) => Promise<void>; avecNiveauImportance?: boolean
 }) {
   const [message, setMessage] = useState('')
   const [statut, setStatut] = useState<'idle'|'sending'|'ok'|'err'>('idle')
+  const [importance, setImportance] = useState<PPNiveau>('important')
   const envoyer = async () => {
     if (!message.trim()) return
     setStatut('sending')
-    try { await onEnvoyer(message.trim()); setStatut('ok'); setTimeout(onClose, 1800) }
+    try { await onEnvoyer(message.trim(), avecNiveauImportance ? importance : undefined); setStatut('ok'); setTimeout(onClose, 1800) }
     catch { setStatut('err') }
   }
   return (
@@ -210,6 +223,23 @@ function ModalSignalement({ titre, titreEntete = 'Signaler une erreur', onClose,
           <p style={{ fontSize:'11.5px', color:'#3d6b4f', fontStyle:'italic', textAlign:'center', padding:'8px 0' }}>Signalement envoyé, merci !</p>
         ) : (
           <>
+            {avecNiveauImportance && (
+              <div style={{ display:'flex', gap:'6px', marginBottom:'10px' }}>
+                <span style={{ fontSize:'10.5px', color:'#9a958d', alignSelf:'center', flexShrink:0 }}>Niveau :</span>
+                {PP_NIVEAUX.map(n => {
+                  const actif = importance === n.val
+                  return (
+                    <button key={n.val} onClick={() => setImportance(n.val)}
+                      style={{ fontSize:'10.5px', padding:'3px 10px', borderRadius:'12px', border:'none', cursor:'pointer', fontWeight: actif ? 600 : 400,
+                        background: actif ? n.bgOn : n.bg,
+                        color: actif && n.val === 'bloquant' ? '#fff' : n.color,
+                        transition:'background 0.15s' }}>
+                      {n.label}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
             <textarea value={message} onChange={e => setMessage(e.target.value)}
               placeholder="Décrivez l'erreur constatée…" rows={4} autoFocus
               style={{ width:'100%', fontSize:'11px', padding:'7px 9px', border:'1px solid #d6d0c4', borderRadius:'5px', background:'#fff', color:'#2a2520', resize:'vertical', outline:'none', lineHeight:1.5, boxSizing:'border-box' }} />
@@ -229,12 +259,13 @@ function ModalSignalement({ titre, titreEntete = 'Signaler une erreur', onClose,
 }
 
 // ── Carte segment ─────────────────────────────────────────────────────────────
-function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignaler, onSupprimeLien }: {
+function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignaler, onSupprimeLien, dejaLu }: {
   s: Segment; info?: OeuvreInfo; userId: string | null; isAdmin: boolean
   colonneLien: string
   typeLien: 'exacte' | 'libre' | 'doctrine' | 'echo'
   onSignaler: (s: Segment) => void
   onSupprimeLien: (id: number) => void
+  dejaLu?: boolean
 }) {
   const niveaux = [s.ref_niv1, s.ref_niv2, s.ref_niv3].filter(Boolean).join(', ')
   const BADGE: Record<typeof typeLien, { label: string; couleur: string; bordure: string }> = {
@@ -246,18 +277,30 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignal
   const badge = BADGE[typeLien]
 
   return (
-    <div style={{ paddingTop:'6px', paddingBottom:'4px', borderBottom:'1px solid #ede9e2' }}>
+    <div style={{ paddingTop:'6px', paddingBottom:'4px', borderBottom:'1px solid #ede9e2', opacity: dejaLu ? 0.52 : 1, transition: 'opacity 0.3s' }}>
 
       {/* Ligne méta : auteur + titre + niveaux (gauche), badge + actions (droite) */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'8px' }}>
         <div style={{ minWidth:0 }}>
-          <a href={`/oeuvre/${s.id_oeuvre}#s${s.segment_numero}`} target="_blank" rel="noopener noreferrer"
-            style={{ display:'block', fontSize:'11px', fontWeight:600, color:'#3d6b4f', margin:'0 0 3px', lineHeight:1.3, letterSpacing:'0.026em', textDecoration:'none' }}>
-            {info?.auteur_nom || s.id_oeuvre}
-          </a>
-          <p style={{ fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:'0 0 3px', lineHeight:1.3, letterSpacing:'0.02em' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'4px', marginBottom:'3px' }}>
+            {info?.id_auteur ? (
+              <a href={`/auteur/${info.id_auteur}`} target="_blank" rel="noopener noreferrer"
+                style={{ fontSize:'11px', fontWeight:600, color:'#3d6b4f', lineHeight:1.3, letterSpacing:'0.026em', textDecoration:'none' }}>
+                {info.auteur_nom || s.id_oeuvre}
+              </a>
+            ) : (
+              <span style={{ fontSize:'11px', fontWeight:600, color:'#3d6b4f', lineHeight:1.3, letterSpacing:'0.026em' }}>
+                {info?.auteur_nom || s.id_oeuvre}
+              </span>
+            )}
+            <a href={`/oeuvre/${s.id_oeuvre}#s${s.segment_numero}`} target="_blank" rel="noopener noreferrer"
+              title="Accéder au passage dans l'œuvre"
+              style={{ fontSize:'10px', color:'#b0a89e', textDecoration:'none', flexShrink:0 }}>↗</a>
+          </div>
+          <a href={`/oeuvre/${s.id_oeuvre}`} target="_blank" rel="noopener noreferrer"
+            style={{ display:'block', fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:'0 0 3px', lineHeight:1.3, letterSpacing:'0.02em', textDecoration:'none' }}>
             {info?.titre || ''}
-          </p>
+          </a>
           {niveaux && (
             <p style={{ fontSize:'10px', color:'#b0a89e', margin:0, lineHeight:1.3 }}>
               {niveaux}
@@ -265,14 +308,21 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignal
           )}
         </div>
         <div style={{ display:'flex', flexDirection:'column', gap:'4px', alignItems:'flex-end', flexShrink:0 }}>
-          <span style={{
-            fontSize:'9px', fontStyle:'italic', whiteSpace:'nowrap',
-            border:`1px solid ${badge.bordure}`,
-            color: badge.couleur,
-            borderRadius:'3px', padding:'0px 4px', lineHeight:'1.6',
-          }}>
-            {badge.label}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {dejaLu && (
+              <span style={{ fontSize: '8.5px', color: '#b0a89e', letterSpacing: '0.06em', fontStyle: 'italic' }}>
+                déjà lu
+              </span>
+            )}
+            <span style={{
+              fontSize:'9px', fontStyle:'italic', whiteSpace:'nowrap',
+              border:`1px solid ${badge.bordure}`,
+              color: badge.couleur,
+              borderRadius:'3px', padding:'0px 4px', lineHeight:'1.6',
+            }}>
+              {badge.label}
+            </span>
+          </div>
           <div style={{ display:'flex', gap:'1px', alignItems:'center', justifyContent:'flex-end' }}>
             <BoutonEnregistrerSegment segment={s} info={info} userId={userId} />
             <BoutonCopieSegment
@@ -647,10 +697,13 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
 // ── Panneau principal ─────────────────────────────────────────────────────────
 export default function PanneauPatristique({
   verset, nomLivre, chapitreActif,
+  panelWidth = 288, onWidthChange,
 }: {
   verset: Verset | null
   nomLivre: string
   chapitreActif: number
+  panelWidth?: number
+  onWidthChange?: (w: number) => void
 }) {
   type Onglet = 'patristique' | 'commentaires'
   type Filtre = 'citations' | 'doctrine'
@@ -675,9 +728,33 @@ export default function PanneauPatristique({
   const isAdmin = isAdminReel && !modeUtilisateurStandard
   const [segSignale, setSegSignale] = useState<Segment | null>(null)
 
-  const ONGLETS: { code: Onglet; label: string }[] = [
-    { code: 'patristique',  label: 'Pères de l\'Église' },
-    { code: 'commentaires', label: 'Commentaires' },
+  // ── Compteurs onglets ────────────────────────────────────────────────────────
+  const [nbCommentairesBible, setNbCommentairesBible] = useState<number | null>(null)
+  useEffect(() => {
+    if (!verset) { setNbCommentairesBible(null); return }
+    supabase.from('commentaires').select('id', { count: 'exact', head: true })
+      .eq('id_verset', verset.id_verset)
+      .then(({ count }) => setNbCommentairesBible(count ?? 0))
+  }, [verset?.id_verset])
+
+  // ── Filtres avancés ──────────────────────────────────────────────────────────
+  const [filtreVoletOuvert, setFiltreVoletOuvert] = useState(false)
+  const [filtreAuteursIds, setFiltreAuteursIds] = useState<Set<string>>(new Set())
+  const [filtreAuteursBlancs, setFiltreAuteursBlancs] = useState<{ id_auteur: string; nom: string }[]>([])
+  const [filtreTraditions, setFiltreTraditions] = useState<Set<string>>(new Set())
+  const [filtreSiecles, setFiltreSiecles] = useState<Set<number>>(new Set())
+  const [rechercheAuteur, setRechercheAuteur] = useState('')
+  const [resultatsAuteur, setResultatsAuteur] = useState<{ id_auteur: string; nom: string }[]>([])
+  const [auteurMeta, setAuteurMeta] = useState<Record<string, { traditions: string[]; siecle: number | null }>>({})
+
+  // ── Déjà lu (session) ────────────────────────────────────────────────────────
+  const [segmentsLus, setSegmentsLus] = useState<Set<number>>(new Set())
+  const itemsPageRef = useRef<{ seg: Segment }[]>([])
+
+  const nbPatristique = segmentsCitations.length + segmentsDoctrine.length
+  const ONGLETS: { code: Onglet; label: string; count?: number | null }[] = [
+    { code: 'patristique',  label: 'Pères de l\'Église', count: nbPatristique },
+    { code: 'commentaires', label: 'Commentaires', count: nbCommentairesBible },
   ]
 
   useEffect(() => {
@@ -692,9 +769,14 @@ export default function PanneauPatristique({
       .select('id_oeuvre, titre, sous_titre, id_auteur, trad_auteur, editeur, collection, ville, date_publication')
       .then(async ({ data: od }) => {
         if (!od) return
-        const { data: ad } = await supabase.from('auteurs').select('id_auteur, nom')
+        const { data: ad } = await supabase.from('auteurs').select('id_auteur, nom, traditions, siecle')
         const am: Record<string, string> = {}
-        ad?.forEach(a => { am[a.id_auteur] = a.nom })
+        const meta: Record<string, { traditions: string[]; siecle: number | null }> = {}
+        ad?.forEach((a: any) => {
+          am[a.id_auteur] = a.nom
+          meta[a.id_auteur] = { traditions: a.traditions ?? [], siecle: a.siecle ?? null }
+        })
+        setAuteurMeta(meta)
         const map: Record<string, OeuvreInfo> = {}
         od.forEach(o => {
           map[o.id_oeuvre] = {
@@ -746,6 +828,27 @@ export default function PanneauPatristique({
     setPageItems(0)
   }, [filtre])
 
+  // Recherche auteur en direct
+  useEffect(() => {
+    const q = rechercheAuteur.trim()
+    if (!q) { setResultatsAuteur([]); return }
+    const t = setTimeout(() => {
+      supabase.from('auteurs').select('id_auteur, nom').ilike('nom', `%${q}%`).limit(6)
+        .then(({ data }) => setResultatsAuteur((data ?? []).filter((a: any) => !filtreAuteursIds.has(a.id_auteur))))
+    }, 200)
+    return () => clearTimeout(t)
+  }, [rechercheAuteur, filtreAuteursIds])
+
+  // Marquer comme lu après 5 s sur la page courante
+  useEffect(() => {
+    const ids = itemsPageRef.current.map(({ seg }) => seg.id)
+    if (!ids.length) return
+    const t = setTimeout(() => {
+      setSegmentsLus(prev => { const n = new Set(prev); ids.forEach(id => n.add(id)); return n })
+    }, 5000)
+    return () => clearTimeout(t)
+  }, [pageItems, filtre, verset?.id_verset])
+
   const supprimerDeCitations = (id: number) =>
     setSegmentsCitations(prev => prev.filter(({ seg }) => seg.id !== id))
   const supprimerDeDoctrine = (id: number) =>
@@ -756,14 +859,53 @@ export default function PanneauPatristique({
   type ItemAffiche = { seg: Segment; col: string; type: 'exacte' | 'libre' | 'doctrine' | 'echo'; onSupprime: (id: number) => void }
   const itemsCitations: ItemAffiche[] = segmentsCitations.map(({ seg, col }) => ({ seg, col, type: (col === 'lien_1' ? 'exacte' : 'libre') as 'exacte' | 'libre', onSupprime: supprimerDeCitations }))
   const itemsDoctrine: ItemAffiche[] = segmentsDoctrine.map(seg => ({ seg, col: 'lien_3', type: 'doctrine' as const, onSupprime: supprimerDeDoctrine }))
-  const itemsAffiches: ItemAffiche[] =
-    filtre === 'citations' ? itemsCitations :
-    itemsDoctrine
-  const nbPagesItems = Math.ceil(itemsAffiches.length / ITEMS_PAR_PAGE)
+  const itemsAffiches: ItemAffiche[] = filtre === 'citations' ? itemsCitations : itemsDoctrine
+
+  const nombreFiltresActifs = filtreAuteursIds.size + filtreTraditions.size + filtreSiecles.size
+
+  const itemsFiltres = useMemo(() => {
+    if (!nombreFiltresActifs) return itemsAffiches
+    return itemsAffiches.filter(({ seg }) => {
+      const info = oeuvres[seg.id_oeuvre]
+      const auteurId = info?.id_auteur
+      if (filtreAuteursIds.size > 0 && (!auteurId || !filtreAuteursIds.has(auteurId))) return false
+      if (filtreTraditions.size > 0) {
+        const meta = auteurId ? auteurMeta[auteurId] : null
+        if (!meta?.traditions?.some(t => filtreTraditions.has(t))) return false
+      }
+      if (filtreSiecles.size > 0) {
+        const meta = auteurId ? auteurMeta[auteurId] : null
+        if (!meta?.siecle || !filtreSiecles.has(meta.siecle)) return false
+      }
+      return true
+    })
+  }, [itemsAffiches, filtreAuteursIds, filtreTraditions, filtreSiecles, oeuvres, auteurMeta, nombreFiltresActifs])
+
+  const traditionsDisponibles = useMemo(() => {
+    const t = new Set<string>()
+    itemsAffiches.forEach(({ seg }) => {
+      const id = oeuvres[seg.id_oeuvre]?.id_auteur
+      if (id) auteurMeta[id]?.traditions?.forEach(tr => t.add(tr))
+    })
+    return [...t].sort()
+  }, [itemsAffiches, oeuvres, auteurMeta])
+
+  const sieclesDisponibles = useMemo(() => {
+    const s = new Set<number>()
+    itemsAffiches.forEach(({ seg }) => {
+      const id = oeuvres[seg.id_oeuvre]?.id_auteur
+      const siecle = id ? auteurMeta[id]?.siecle : null
+      if (siecle) s.add(siecle)
+    })
+    return [...s].sort((a, b) => a - b)
+  }, [itemsAffiches, oeuvres, auteurMeta])
+
+  const nbPagesItems = Math.ceil(itemsFiltres.length / ITEMS_PAR_PAGE)
   const pageCouranteItems = Math.min(pageItems, Math.max(nbPagesItems - 1, 0))
   const debutItems = pageCouranteItems * ITEMS_PAR_PAGE
-  const finItems = Math.min(debutItems + ITEMS_PAR_PAGE, itemsAffiches.length)
-  const itemsPage = itemsAffiches.slice(debutItems, finItems)
+  const finItems = Math.min(debutItems + ITEMS_PAR_PAGE, itemsFiltres.length)
+  const itemsPage = itemsFiltres.slice(debutItems, finItems)
+  itemsPageRef.current = itemsPage
 
   const refFr = verset ? `${nomLivre} ${chapitreActif}, ${verset.verset}` : null
 
@@ -779,8 +921,31 @@ export default function PanneauPatristique({
     )
   }
 
+  const handleDrag = onWidthChange ? (e: React.MouseEvent) => {
+    e.preventDefault()
+    const startX = e.clientX, startW = panelWidth
+    const onMove = (ev: MouseEvent) => onWidthChange(Math.max(200, Math.min(560, startW - (ev.clientX - startX))))
+    const onUp = () => document.removeEventListener('mousemove', onMove)
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp, { once: true })
+  } : undefined
+
   return (
-    <div style={{ width:'288px', flexShrink:0, background:'#fff', borderLeft:'1px solid #d6d0c4', display:'flex', flexDirection:'column', height:'100%', minHeight:0 }}>
+    <div style={{ width: panelWidth + 'px', flexShrink:0, background:'#fff', borderLeft:'1px solid #d6d0c4', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
+      {handleDrag && (
+        <div onMouseDown={handleDrag} title="Glisser pour redimensionner"
+          style={{ position:'absolute', left:'-4px', top:0, bottom:0, width:'9px', cursor:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex:10,
+            background:'transparent', transition:'background 0.14s, box-shadow 0.14s' }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(198,184,158,0.08)'
+            e.currentTarget.style.boxShadow = 'inset 1px 0 rgba(122,96,64,0.08)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.boxShadow = 'none'
+          }}
+        />
+      )}
 
       {/* En-tête */}
       <div style={{ padding:'10px 10px 10px 8px', borderBottom:'1px solid #d6d0c4', display:'flex', alignItems:'center', gap:'6px' }}>
@@ -807,17 +972,19 @@ export default function PanneauPatristique({
             {ONGLETS.map(t => (
               <button key={t.code} onClick={() => setOnglet(t.code)}
                 style={{
-                  flex:1, padding:'9px 6px 8px', border:'none',
+                  flex:1, padding:'8px 6px 7px', border:'none',
                   borderBottom: onglet === t.code ? '2px solid #3d6b4f' : '2px solid transparent',
                   cursor:'pointer',
                   background: onglet === t.code ? 'rgba(61,107,79,0.04)' : 'transparent',
                   color: onglet === t.code ? '#2a3d30' : '#8a8278',
-                  fontWeight: onglet === t.code ? 600 : 400,
                   fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
-                  fontSize:'9.5px', letterSpacing:'0.08em', textTransform:'uppercase',
                   transition:'color 0.12s, background 0.12s',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
                 }}>
-                {t.label}
+                <span style={{ fontSize:'9.5px', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: onglet === t.code ? 600 : 400 }}>{t.label}</span>
+                {t.count != null && t.count > 0 && (
+                  <span style={{ fontSize: '9px', color: onglet === t.code ? '#3d6b4f' : '#b0a89e', fontWeight: 500, lineHeight: 1 }}>{t.count}</span>
+                )}
               </button>
             ))}
           </div>
@@ -828,8 +995,8 @@ export default function PanneauPatristique({
               <OngletCommentaires verset={verset} userId={userId} isAdmin={isAdmin} />
             ) : (
               <>
-                {/* Filtres rapides */}
-                <div style={{ display: 'flex', gap: '5px', padding: '10px 0 8px', flexWrap: 'wrap' }}>
+                {/* Barre de type + bouton filtres */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '10px 0 0', flexWrap: 'wrap' }}>
                   {([
                     { code: 'citations' as const, label: 'Citations' },
                     { code: 'doctrine' as const, label: 'Doctrine' },
@@ -844,19 +1011,151 @@ export default function PanneauPatristique({
                       {f.label}
                     </button>
                   ))}
+                  <button onClick={() => setFiltreVoletOuvert(o => !o)} style={{
+                    marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '4px',
+                    fontSize: '9.5px', padding: '4px 9px', borderRadius: '12px', cursor: 'pointer',
+                    border: `1px solid ${filtreVoletOuvert || nombreFiltresActifs > 0 ? '#3d6b4f' : '#d6d0c4'}`,
+                    background: filtreVoletOuvert || nombreFiltresActifs > 0 ? 'rgba(61,107,79,0.10)' : '#fff',
+                    color: filtreVoletOuvert || nombreFiltresActifs > 0 ? '#3d6b4f' : '#8a8278',
+                    fontWeight: 500,
+                  }}>
+                    <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                      <path d="M2 4h10M4 7h6M6 10h2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                    </svg>
+                    Filtres
+                    {nombreFiltresActifs > 0 && (
+                      <span style={{ background: '#3d6b4f', color: '#fff', borderRadius: '8px', fontSize: '8px', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
+                        {nombreFiltresActifs}
+                      </span>
+                    )}
+                  </button>
                 </div>
+
+                {/* Volet filtres dépliant */}
+                {filtreVoletOuvert && (
+                  <div style={{ margin: '8px 0 4px', padding: '12px', background: '#faf9f6', border: '1px solid #e8e3dc', borderRadius: '8px' }}>
+
+                    {/* Recherche auteur */}
+                    <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b0a89e', margin: '0 0 7px' }}>Auteurs</p>
+                    <div style={{ position: 'relative', marginBottom: resultatsAuteur.length ? '0' : '8px' }}>
+                      <input
+                        type="text"
+                        value={rechercheAuteur}
+                        onChange={e => setRechercheAuteur(e.target.value)}
+                        placeholder="Chercher un auteur…"
+                        style={{ width: '100%', fontSize: '11px', padding: '5px 8px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a3d30', boxSizing: 'border-box', outline: 'none' }}
+                      />
+                      {resultatsAuteur.length > 0 && (
+                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #d6d0c4', borderTop: 'none', borderRadius: '0 0 5px 5px', zIndex: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.10)' }}>
+                          {resultatsAuteur.map(a => (
+                            <button key={a.id_auteur} onClick={() => {
+                              setFiltreAuteursIds(prev => new Set([...prev, a.id_auteur]))
+                              setFiltreAuteursBlancs(prev => prev.find(x => x.id_auteur === a.id_auteur) ? prev : [...prev, a])
+                              setRechercheAuteur('')
+                              setResultatsAuteur([])
+                              setPageItems(0)
+                            }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '6px 10px', fontSize: '11px', color: '#2a3d30', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(61,107,79,0.07)')}
+                              onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
+                              {a.nom}
+                              <span style={{ fontSize: '13px', color: '#3d6b4f', lineHeight: 1 }}>+</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {filtreAuteursBlancs.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '7px', marginBottom: '8px' }}>
+                        {filtreAuteursBlancs.map(a => (
+                          <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '10px', padding: '2px 7px 2px 8px', background: 'rgba(61,107,79,0.12)', color: '#2a5a38', borderRadius: '10px', fontWeight: 500 }}>
+                            {a.nom}
+                            <button onClick={() => {
+                              setFiltreAuteursIds(prev => { const n = new Set(prev); n.delete(a.id_auteur); return n })
+                              setFiltreAuteursBlancs(prev => prev.filter(x => x.id_auteur !== a.id_auteur))
+                              setPageItems(0)
+                            }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#3d6b4f', fontSize: '12px', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Traditions */}
+                    {traditionsDisponibles.length > 0 && (
+                      <>
+                        <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b0a89e', margin: '10px 0 6px' }}>Tradition</p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {traditionsDisponibles.map(t => {
+                            const actif = filtreTraditions.has(t)
+                            return (
+                              <button key={t} onClick={() => {
+                                setFiltreTraditions(prev => { const n = new Set(prev); actif ? n.delete(t) : n.add(t); return n })
+                                setPageItems(0)
+                              }} style={{
+                                fontSize: '10px', padding: '3px 9px', borderRadius: '10px', cursor: 'pointer',
+                                border: `1px solid ${actif ? '#3d6b4f' : '#d6d0c4'}`,
+                                background: actif ? 'rgba(61,107,79,0.12)' : '#fff',
+                                color: actif ? '#2a5a38' : '#6b6560', fontWeight: actif ? 600 : 400,
+                              }}>{t}</button>
+                            )
+                          })}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Siècles */}
+                    {sieclesDisponibles.length > 0 && (
+                      <>
+                        <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b0a89e', margin: '10px 0 6px' }}>Période</p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {sieclesDisponibles.map(s => {
+                            const actif = filtreSiecles.has(s)
+                            return (
+                              <button key={s} onClick={() => {
+                                setFiltreSiecles(prev => { const n = new Set(prev); actif ? n.delete(s) : n.add(s); return n })
+                                setPageItems(0)
+                              }} style={{
+                                fontSize: '10px', padding: '3px 9px', borderRadius: '10px', cursor: 'pointer',
+                                border: `1px solid ${actif ? '#9a7e3d' : '#d6d0c4'}`,
+                                background: actif ? 'rgba(154,126,61,0.10)' : '#fff',
+                                color: actif ? '#7a5e1a' : '#6b6560', fontWeight: actif ? 600 : 400,
+                              }}>{siecleEnRomain(s)}</button>
+                            )
+                          })}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Tout effacer */}
+                    {nombreFiltresActifs > 0 && (
+                      <button onClick={() => {
+                        setFiltreAuteursIds(new Set()); setFiltreAuteursBlancs([])
+                        setFiltreTraditions(new Set()); setFiltreSiecles(new Set())
+                        setPageItems(0)
+                      }} style={{ marginTop: '12px', fontSize: '9.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                        Tout effacer
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 {loading && <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'16px 0' }}>Chargement…</p>}
-                {!loading && itemsAffiches.length === 0 && (
+                {!loading && itemsFiltres.length === 0 && itemsAffiches.length === 0 && (
                   <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'16px 0', fontStyle:'italic' }}>Aucun lien.</p>
                 )}
+                {!loading && itemsFiltres.length === 0 && itemsAffiches.length > 0 && (
+                  <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'12px 0', fontStyle:'italic' }}>Aucun résultat pour ces filtres.</p>
+                )}
+                <div style={{ marginTop: '6px' }}>
                 {itemsPage.map(({ seg, col, type, onSupprime }) => (
                   <SegmentCard
                     key={`${col}-${seg.id}`} s={seg} info={oeuvres[seg.id_oeuvre]}
                     userId={userId} isAdmin={isAdmin}
                     colonneLien={col} typeLien={type}
                     onSignaler={setSegSignale} onSupprimeLien={onSupprime}
+                    dejaLu={segmentsLus.has(seg.id)}
                   />
                 ))}
+                </div>
               </>
             )}
           </div>
@@ -870,7 +1169,7 @@ export default function PanneauPatristique({
                 ‹
               </button>
               <span style={{ fontSize:'9.5px', color:'#9a958d', whiteSpace:'nowrap', padding:'0 2px' }}>
-                {debutItems + 1}–{finItems} / {itemsAffiches.length}
+                {debutItems + 1}–{finItems} / {itemsFiltres.length}{nombreFiltresActifs > 0 ? ` (${itemsAffiches.length})` : ''}
               </span>
               <button onClick={() => setPageItems(Math.min(pageCouranteItems + 1, nbPagesItems - 1))} disabled={pageCouranteItems >= nbPagesItems - 1}
                 title="Page suivante"
@@ -883,10 +1182,11 @@ export default function PanneauPatristique({
           {segSignale && (
             <ModalSignalement
               titre={`${segSignale.ref_niv1}${segSignale.ref_niv2 ? ' · ' + segSignale.ref_niv2 : ''} — ${segSignale.segment_texte.slice(0, 60)}…`}
+              avecNiveauImportance
               onClose={() => setSegSignale(null)}
-                onEnvoyer={async (msg) => {
+              onEnvoyer={async (msg, importance) => {
                 const { data } = await supabase.auth.getSession()
-                const { error } = await supabase.from('signalements').insert({ id_segment: segSignale.id, user_id: data.session?.user.id ?? null, message: msg, traite: false })
+                const { error } = await supabase.from('signalements').insert({ id_segment: segSignale.id, user_id: data.session?.user.id ?? null, message: msg, importance: importance ?? null, url_source: window.location.href, traite: false })
                 if (error) throw error
               }}
             />

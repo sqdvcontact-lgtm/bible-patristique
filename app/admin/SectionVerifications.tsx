@@ -127,11 +127,59 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
     })
   })
 
-  // Mettre à jour le badge de l'onglet en temps réel
-  React.useEffect(() => { onCountChange?.(paires.length) }, [paires.length])
+  // Mettre à jour le badge de l'onglet et notifier la Navbar
+  React.useEffect(() => {
+    onCountChange?.(paires.length)
+    if (!chargement) {
+      localStorage.setItem('admin_verif_count', String(paires.length))
+      window.dispatchEvent(new CustomEvent('admin-verif-count', { detail: paires.length }))
+    }
+  }, [paires.length, chargement])
 
   const nbPages = Math.ceil(paires.length / PAGE_SIZE)
   const pageCourante = paires.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+
+  const [trageEnCours, setTriageEnCours] = React.useState(false)
+  const [triageStats, setTriageStats] = React.useState<{ traite: number; garde: number; rejete: number; ambigu: number; restant: number } | null>(null)
+  const [triageErreur, setTriageErreur] = React.useState<string | null>(null)
+  const triageRef = React.useRef(false)
+
+  const lancerTriage = async () => {
+    setTriageEnCours(true)
+    setTriageErreur(null)
+    triageRef.current = true
+    let totalTraite = 0, totalGarde = 0, totalRejete = 0, totalAmbigu = 0
+    let offset = 0
+
+    while (triageRef.current) {
+      const res = await fetch('/api/admin/triage-ia', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ offset, batchSize: 20 }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        setTriageErreur(err.error ?? 'Erreur serveur')
+        break
+      }
+      const data = await res.json()
+      totalTraite += data.traite
+      totalGarde += data.garde
+      totalRejete += data.rejete
+      totalAmbigu += data.ambigu
+      setTriageStats({ traite: totalTraite, garde: totalGarde, rejete: totalRejete, ambigu: totalAmbigu, restant: data.restant ?? 0 })
+
+      if (data.termine) break
+      offset += data.traite - data.ambigu
+    }
+
+    triageRef.current = false
+    setTriageEnCours(false)
+    // Recharger les données locales
+    window.location.reload()
+  }
+
+  const arreterTriage = () => { triageRef.current = false; setTriageEnCours(false) }
 
   return (
     <div>
@@ -139,10 +187,46 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
         <p style={{ margin: 0, fontSize: '12px', color: '#7a7268' }}>
           Liens suggérés par l'IA à confirmer ou rejeter, un par un.
         </p>
-        <span style={{ fontSize: '11.5px', color: '#9a958d' }}>
-          {chargement ? 'Chargement…' : `${paires.length} lien${paires.length > 1 ? 's' : ''} à vérifier`}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '11.5px', color: '#9a958d' }}>
+            {chargement ? 'Chargement…' : `${paires.length} lien${paires.length > 1 ? 's' : ''} à vérifier`}
+          </span>
+          {!chargement && paires.length > 0 && !trageEnCours && (
+            <button onClick={lancerTriage}
+              style={{ fontSize: '11.5px', padding: '5px 12px', borderRadius: '5px', border: '1px solid #9a4a1f', background: '#fff', color: '#9a4a1f', cursor: 'pointer', fontWeight: 600 }}>
+              ✦ Triage IA
+            </button>
+          )}
+          {trageEnCours && (
+            <button onClick={arreterTriage}
+              style={{ fontSize: '11.5px', padding: '5px 12px', borderRadius: '5px', border: '1px solid #c8c0b4', background: '#fff', color: '#8a8278', cursor: 'pointer' }}>
+              Arrêter
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Panneau de progression du triage */}
+      {(trageEnCours || triageStats) && (
+        <div style={{ background: '#faf8f4', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '14px 16px', marginBottom: '16px' }}>
+          {trageEnCours && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: triageStats ? '10px' : '0' }}>
+              <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: '#9a4a1f', animation: 'pulse 1.2s infinite' }} />
+              <span style={{ fontSize: '12px', color: '#5a5450' }}>Triage en cours…</span>
+            </div>
+          )}
+          {triageStats && (
+            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '12px', color: '#3d6b4f' }}>✓ {triageStats.garde} gardés</span>
+              <span style={{ fontSize: '12px', color: '#9a2a2a' }}>✗ {triageStats.rejete} rejetés</span>
+              <span style={{ fontSize: '12px', color: '#9a4a1f' }}>? {triageStats.ambigu} ambigus</span>
+              <span style={{ fontSize: '12px', color: '#9a958d' }}>Traités : {triageStats.traite} · Restants : {triageStats.restant}</span>
+            </div>
+          )}
+          {triageErreur && <p style={{ fontSize: '12px', color: '#9a2a2a', margin: '8px 0 0' }}>{triageErreur}</p>}
+        </div>
+      )}
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }`}</style>
 
       {!chargement && paires.length === 0 && (
         <p style={{ fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -11,15 +11,17 @@ import SelecteurCitation from '@/app/lib/SelecteurCitation'
 import EtapeMetadonnees, { type Metadonnees } from './EtapeMetadonnees'
 
 const MAX_CARACTERES = 8000
+const MIN_CARACTERES_PUBLICATION = 2000
 const BTN: React.CSSProperties = { fontSize: '10.5px', padding: '8px 6px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer', width: '100%', textAlign: 'center' }
 
 type Props = {
-  essaiExistant?: { id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean; publie_at?: string | null }
+  essaiExistant?: { id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean; publie_at?: string | null; verset_en_tete?: string | null }
   modeAdmin?: boolean
   metadonneesInitiales?: Metadonnees | null
+  versetEnTeteInitial?: { ref: string; texte: string } | null
 }
 
-export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInitiales }: Props) {
+export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInitiales, versetEnTeteInitial }: Props) {
   const router = useRouter()
   const [etape, setEtape] = useState<'metadonnees' | 'redaction'>(essaiExistant || metadonneesInitiales ? 'redaction' : 'metadonnees')
   const [meta, setMeta] = useState<Metadonnees>({
@@ -31,6 +33,13 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   const [userId, setUserId] = useState<string | null>(null)
   const [profil, setProfil] = useState<{ pseudo: string | null; nom: string | null; prenom: string | null } | null>(null)
   const [afficherNomReel, setAfficherNomReel] = useState(essaiExistant?.afficher_nom_reel ?? false)
+  const [versetEnTete] = useState<{ ref: string; texte: string } | null>(() => {
+    if (versetEnTeteInitial) return versetEnTeteInitial
+    if (essaiExistant?.verset_en_tete) {
+      try { return JSON.parse(essaiExistant.verset_en_tete) } catch {}
+    }
+    return null
+  })
   const [id, setId] = useState<number | null>(essaiExistant?.id ?? null)
   const idRef = useRef<number | null>(id)
   idRef.current = id
@@ -42,8 +51,19 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   const [statutEnr, setStatutEnr] = useState<'idle' | 'enregistrement' | 'enregistre' | 'erreur'>('idle')
   const [blocActif, setBlocActif] = useState<'h2' | 'h3' | 'blockquote' | 'p' | null>(null)
   const [comparaisonOuverte, setComparaisonOuverte] = useState(false)
+  const [confirmPublier, setConfirmPublier] = useState(false)
   const contenuOriginalRef = useRef(essaiExistant?.contenu ?? '')
   const creationInitialeRef = useRef(false)
+
+  // Refs toujours à jour pour les closures du setInterval (pas de dépendance stale)
+  const contenuTexteRef = useRef(contenuTexte)
+  contenuTexteRef.current = contenuTexte
+  const metaRef = useRef(meta)
+  metaRef.current = meta
+  const afficherNomReelRef = useRef(afficherNomReel)
+  afficherNomReelRef.current = afficherNomReel
+  const derniereCleSauvegardeeRef = useRef('')
+  const [derniereSauvegardeAt, setDerniereSauvegardeAt] = useState<Date | null>(null)
 
   const editableRef = useRef<HTMLDivElement>(null)
   const savedRange = useRef<Range | null>(null)
@@ -91,6 +111,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     const payload: any = {
       titre: meta.titre, sous_titre: meta.sousTitre || null, resume: meta.resume,
       categories: meta.categories, contenu: contenuTexte, afficher_nom_reel: afficherNomReel,
+      verset_en_tete: versetEnTete ? JSON.stringify(versetEnTete) : null,
       updated_at: new Date().toISOString(),
     }
     if (statutForce) payload.statut = statutForce
@@ -105,6 +126,33 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     const t = setTimeout(() => sauvegarder(), 2500)
     return () => clearTimeout(t)
   }, [contenuTexte, etape, sauvegarder])
+
+  // ── Auto-sauvegarde périodique toutes les 30 secondes ────────────────────
+  useEffect(() => {
+    if (!userId || etape !== 'redaction') return
+    const sauvegarderAuto = async () => {
+      if (!idRef.current) return
+      const cle = `${contenuTexteRef.current}:::${afficherNomReelRef.current}:::${JSON.stringify(metaRef.current)}`
+      if (!contenuTexteRef.current.trim() || cle === derniereCleSauvegardeeRef.current) return
+      setStatutEnr('enregistrement')
+      const payload: Record<string, unknown> = {
+        titre: metaRef.current.titre, sous_titre: metaRef.current.sousTitre || null,
+        resume: metaRef.current.resume, categories: metaRef.current.categories,
+        contenu: contenuTexteRef.current, afficher_nom_reel: afficherNomReelRef.current,
+        verset_en_tete: versetEnTete ? JSON.stringify(versetEnTete) : null,
+        updated_at: new Date().toISOString(),
+      }
+      const { error } = await supabase.from('essais').update(payload).eq('id', idRef.current!)
+      if (!error) {
+        derniereCleSauvegardeeRef.current = cle
+        setDerniereSauvegardeAt(new Date())
+      }
+      setStatutEnr(error ? 'erreur' : 'enregistre')
+      setTimeout(() => setStatutEnr('idle'), 2000)
+    }
+    const t = setInterval(sauvegarderAuto, 30000)
+    return () => clearInterval(t)
+  }, [userId, etape])
 
   // ── Charger le contenu initial dans la zone éditable ──────────────────────
   useEffect(() => {
@@ -339,11 +387,16 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   }
 
   const nbCar = compterCaracteres(contenuTexte)
+  const publicationTropCourte = !(modeAdmin && essaiExistant?.statut === 'publie') && nbCar < MIN_CARACTERES_PUBLICATION
 
   const publier = async () => {
     if (modeAdmin && essaiExistant?.statut === 'publie') {
       await sauvegarder()
       router.push(`/essais/${idRef.current}`)
+      return
+    }
+    if (nbCar < MIN_CARACTERES_PUBLICATION) {
+      alert(`Votre texte doit compter au moins ${MIN_CARACTERES_PUBLICATION.toLocaleString('fr')} caractères pour être soumis à publication.`)
       return
     }
     await sauvegarder('en_attente')
@@ -461,6 +514,17 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                     </div>
                   </div>
 
+                  {/* Verset en tête — non modifiable */}
+                  {versetEnTete && (
+                    <div style={{ borderBottom: '1px solid #ede9e2', padding: '28px 40px 24px', textAlign: 'center', background: '#fdfcf9' }}>
+                      <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '14.5px', lineHeight: 1.8, color: '#4a4440', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
+                        {'« '}{versetEnTete.texte}{' »'}
+                      </p>
+                      <p style={{ fontSize: '10.5px', letterSpacing: '0.1em', color: '#a09890', margin: 0, fontFamily: "'Helvetica Neue', Arial, sans-serif", textTransform: 'uppercase' }}>
+                        {versetEnTete.ref}
+                      </p>
+                    </div>
+                  )}
                   {/* La mise en forme s'affiche directement ici — pas de bascule édition/aperçu */}
                   <div
                     ref={editableRef}
@@ -481,27 +545,75 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                     }}
                   />
                 </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px' }}>
-                  <span style={{ fontSize: '11px', color: statutEnr === 'erreur' ? '#c0562a' : '#9a958d' }}>
-                    {statutEnr === 'enregistrement' ? 'Enregistrement…' : statutEnr === 'enregistre' ? 'Brouillon enregistré ✓' : statutEnr === 'erreur' ? 'Erreur d\u2019enregistrement' : '\u00a0'}
-                  </span>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    {!(modeAdmin && essaiExistant?.statut === 'publie') && (
-                      <button onClick={() => sauvegarder('brouillon')} style={{ fontSize: '12.5px', padding: '8px 18px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a3530', cursor: 'pointer' }}>
-                        Enregistrer le brouillon
-                      </button>
-                    )}
-                    <button onClick={publier} style={{ fontSize: '12.5px', padding: '8px 20px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
-                      {modeAdmin && essaiExistant?.statut === 'publie' ? 'Enregistrer les corrections' : 'Publier (soumettre à validation)'}
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
           </>
         )}
       </div>
+
+      {/* ── Barre d'action sticky ────────────────────────────────────────────── */}
+      {etape === 'redaction' && !comparaisonOuverte && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: '128px', right: '320px', zIndex: 60,
+          background: '#faf8f4', borderTop: '1px solid #d6d0c4',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '10px 24px', gap: '12px',
+        }}>
+          <span style={{ fontSize: '11px', color: statutEnr === 'erreur' ? '#c0562a' : nbCar > MAX_CARACTERES ? '#c0562a' : '#9a958d', flexShrink: 0 }}>
+            {statutEnr === 'enregistrement' ? 'Enregistrement…'
+              : statutEnr === 'enregistre' ? 'Enregistré ✓'
+              : statutEnr === 'erreur' ? 'Erreur d’enregistrement'
+              : nbCar > MAX_CARACTERES ? `Limite dépassée (${nbCar.toLocaleString('fr')} / ${MAX_CARACTERES.toLocaleString('fr')} caractères)`
+              : publicationTropCourte ? `Publication possible à partir de ${MIN_CARACTERES_PUBLICATION.toLocaleString('fr')} caractères (${nbCar.toLocaleString('fr')} actuellement)`
+              : derniereSauvegardeAt ? `Enregistré à ${derniereSauvegardeAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} ✓`
+              : ' '}
+          </span>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            {!(modeAdmin && essaiExistant?.statut === 'publie') && (
+              <button
+                onClick={() => sauvegarder('brouillon')}
+                style={{ fontSize: '12.5px', padding: '7px 18px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a3530', cursor: 'pointer' }}>
+                Enregistrer comme brouillon
+              </button>
+            )}
+            <button
+              onClick={modeAdmin && essaiExistant?.statut === 'publie' ? publier : () => setConfirmPublier(true)}
+              disabled={nbCar > MAX_CARACTERES || publicationTropCourte}
+              style={{ fontSize: '12.5px', padding: '7px 20px', borderRadius: '5px', border: 'none', background: nbCar > MAX_CARACTERES || publicationTropCourte ? '#9ab0a4' : '#3d6b4f', color: '#fff', cursor: nbCar > MAX_CARACTERES || publicationTropCourte ? 'not-allowed' : 'pointer', fontWeight: 600 }}>
+              {modeAdmin && essaiExistant?.statut === 'publie' ? 'Enregistrer les corrections' : 'Soumettre pour publication'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modale de confirmation avant soumission ──────────────────────────── */}
+      {confirmPublier && (
+        <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.32)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '28px 28px 24px', maxWidth: '400px', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
+            <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 12px' }}>
+              Soumettre cet essai ?
+            </h3>
+            <p style={{ fontSize: '13px', color: '#5a5450', lineHeight: 1.65, margin: '0 0 8px' }}>
+              L&apos;essai sera transmis à la modération pour relecture. Vous ne pourrez plus le modifier tant qu&apos;il sera en attente.
+            </p>
+            <p style={{ fontSize: '12px', color: '#9a958d', lineHeight: 1.6, margin: '0 0 22px', fontStyle: 'italic' }}>
+              {meta.titre}
+            </p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setConfirmPublier(false)}
+                style={{ fontSize: '12.5px', padding: '8px 18px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a3530', cursor: 'pointer' }}>
+                Annuler
+              </button>
+              <button
+                onClick={async () => { setConfirmPublier(false); await publier() }}
+                style={{ fontSize: '12.5px', padding: '8px 20px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                Confirmer la soumission
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {selecteurOuvert && <SelecteurCitation onChoisir={inserrerCitation} onFermer={() => setSelecteurOuvert(false)} />}
       <VoletEssai element={panneau} onFermer={() => setPanneau(null)} toujoursVisible editionNote={editionNote ? { actif: true, mode: editionNote.mode } : undefined} onEnregistrerNote={enregistrerNoteDepuisVolet} enTete={
@@ -510,10 +622,17 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             Modifier titre / résumé / catégories
           </button>
           {profil?.nom && (
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '10.5px', color: '#8a8278', cursor: 'pointer', lineHeight: 1.4 }}>
-              <input type="checkbox" checked={afficherNomReel} onChange={e => setAfficherNomReel(e.target.checked)} style={{ marginTop: '2px' }} />
-              Publier sous mon nom réel ({profil.prenom ? `${profil.prenom} ` : ''}{profil.nom}) plutôt que mon pseudonyme
-            </label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '10.5px', color: '#8a8278', cursor: 'pointer', lineHeight: 1.4 }}>
+                <input type="checkbox" checked={afficherNomReel} onChange={e => setAfficherNomReel(e.target.checked)} style={{ marginTop: '2px' }} />
+                Publier sous mon nom réel ({profil.prenom ? `${profil.prenom} ` : ''}{profil.nom}) plutôt que mon pseudonyme
+              </label>
+              {afficherNomReel && (
+                <p style={{ fontSize: '10px', color: '#7a5a30', background: '#fef9ec', border: '1px solid #e8d5a0', borderRadius: '4px', padding: '6px 9px', margin: 0, lineHeight: 1.55 }}>
+                  Votre nom réel apparaîtra sur cet essai et sur votre profil public.
+                </p>
+              )}
+            </div>
           )}
         </div>
       } />

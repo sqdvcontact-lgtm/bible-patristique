@@ -1,6 +1,6 @@
 export const metadata = {
   title: "Conditions d'utilisation — Corpus Scriptura",
-  description: "Conditions générales d'utilisation du site labibledesperes.com.",
+  description: "Conditions générales d'utilisation du site Corpus Scriptura (labibledesperes.com).",
 };
 
 export default function ConditionsUtilisationPage() {
@@ -23,16 +23,17 @@ export default function ConditionsUtilisationPage() {
         </h1>
 
         <p style={{ fontSize: "12px", color: "#9a958d", marginBottom: "40px", fontStyle: "italic" }}>
-          Dernière mise à jour : juin 2026
+          Dernière mise à jour : juillet 2026
         </p>
 
         <div style={{ fontSize: "13.5px", lineHeight: 1.75, color: "#3a3530" }}>
 
           <Section titre="1. Présentation du site">
             <p>
-              Le site <strong>labibledesperes.com</strong> (ci-après « le site ») propose un accès libre et gratuit
-              à plusieurs traductions françaises de la Bible, mises en regard de commentaires issus de la
-              tradition patristique chrétienne (Pères de l&rsquo;Église, docteurs et auteurs anciens).
+              Le site <strong>Corpus Scriptura</strong> (accessible à l&rsquo;adresse <strong>labibledesperes.com</strong>,
+              ci-après « le site ») propose un accès libre et gratuit à plusieurs traductions françaises de
+              la Bible, mises en regard de commentaires issus de la tradition patristique chrétienne (Pères
+              de l&rsquo;Église, docteurs et auteurs anciens).
             </p>
             <p>
               Le site est édité à titre non professionnel et non commercial par une personne physique.
@@ -51,16 +52,16 @@ export default function ConditionsUtilisationPage() {
           <Section titre="2. Hébergement">
             <p>
               Le site est hébergé par <strong>Vercel Inc.</strong>, 440 N Barranca Ave #4133, Covina, CA 91723,
-              États-Unis. La base de données et les services d&rsquo;authentification sont fournis par
-              <strong> Supabase Inc.</strong>, 970 Toa Payoh North #07-04, Singapour.
+              États-Unis. La base de données et les services d&rsquo;authentification sont fournis par{' '}
+              <strong>Supabase Inc.</strong>, 970 Toa Payoh North #07-04, Singapour.
             </p>
           </Section>
 
           <Section titre="3. Accès au site">
             <p>
-              Le site est accessible gratuitement à tout utilisateur disposant d&rsquo;un accès à internet. Tous les
-              frais nécessaires pour y accéder (matériel informatique, connexion internet, etc.) sont à la
-              charge de l&rsquo;utilisateur.
+              Le site est accessible gratuitement à tout utilisateur disposant d&rsquo;un accès à internet. Tous
+              les frais nécessaires pour y accéder (matériel informatique, connexion internet, etc.) sont à
+              la charge de l&rsquo;utilisateur.
             </p>
             <p>
               L&rsquo;éditeur s&rsquo;efforce de permettre l&rsquo;accès au site 24 heures sur 24, 7 jours sur 7, sans
@@ -73,41 +74,47 @@ export default function ConditionsUtilisationPage() {
           <Section titre="4. Création d'un compte utilisateur">
             <p>
               Certaines fonctionnalités (enregistrement de prélèvements bibliques ou patristiques, dépôt de
-              commentaires) nécessitent la création d&rsquo;un compte à partir d&rsquo;une adresse e-mail valide.
+              commentaires, soumission d&rsquo;essais) nécessitent la création d&rsquo;un compte à partir d&rsquo;une adresse
+              e-mail valide.
             </p>
             <p>
-              L&rsquo;utilisateur s&rsquo;engage à fournir des informations exactes et à conserver la confidentialité
-              de ses identifiants de connexion. Il est seul responsable de toute activité effectuée depuis
-              son compte. Le compte est gratuit et peut être supprimé à tout moment sur simple demande.
+              L&rsquo;utilisateur s&rsquo;engage à fournir des informations exactes et à conserver la confidentialité de
+              ses identifiants de connexion. Il est seul responsable de toute activité effectuée depuis son
+              compte. Le compte est gratuit et peut être supprimé à tout moment sur simple demande.
             </p>
           </Section>
 
           <Section titre="5. Contenus déposés par les utilisateurs">
             <p>
-              Les utilisateurs peuvent soumettre des commentaires associés à un verset biblique, ainsi que
-              des signalements d&rsquo;erreurs. Ces contenus sont systématiquement soumis à une modération avant
-              toute publication.
+              Les utilisateurs peuvent soumettre des commentaires associés à un verset biblique, des
+              signalements d&rsquo;erreurs, ainsi que des essais de réflexion thématique ou exégétique. Ces
+              contenus sont systématiquement soumis à une modération avant toute publication.
             </p>
             <p>L&rsquo;utilisateur s&rsquo;engage à ne pas déposer de contenu :</p>
             <ul style={{ paddingLeft: "20px", margin: "8px 0" }}>
               <li>contraire aux lois et règlements en vigueur ;</li>
               <li>à caractère injurieux, diffamatoire, discriminatoire ou outrageant ;</li>
               <li>portant atteinte aux droits de tiers, notamment aux droits d&rsquo;auteur ;</li>
-              <li>sans rapport avec l&rsquo;objet du site.</li>
+              <li>sans rapport avec l&rsquo;objet du site (lecture de la Bible et tradition patristique).</li>
             </ul>
             <p>
               L&rsquo;éditeur se réserve le droit de refuser, modifier ou retirer, sans préavis, tout contenu ne
-              respectant pas ces règles, ainsi que de suspendre le compte d&rsquo;un utilisateur en cas de manquement
-              répété.
+              respectant pas ces règles, ainsi que de suspendre le compte d&rsquo;un utilisateur en cas de
+              manquement répété.
+            </p>
+            <p>
+              En soumettant un contenu, l&rsquo;utilisateur concède à Corpus Scriptura une licence non exclusive,
+              gratuite et mondiale d&rsquo;affichage et de diffusion de ce contenu dans le cadre du site, pour la
+              durée légale de protection des droits d&rsquo;auteur.
             </p>
           </Section>
 
           <Section titre="6. Propriété intellectuelle">
             <p>
-              Les traductions bibliques reproduites sur le site relèvent, selon les cas, du domaine public ou
-              de droits d&rsquo;usage spécifiques mentionnés sur la page « Traductions ». Les textes patristiques
-              proposés sont, sauf indication contraire, issus d&rsquo;éditions et de traductions tombées dans le
-              domaine public.
+              Les traductions bibliques reproduites sur le site relèvent, selon les cas, du domaine public
+              ou de droits d&rsquo;usage spécifiques mentionnés sur la page « Traductions ». Les textes
+              patristiques proposés sont, sauf indication contraire, issus d&rsquo;éditions et de traductions
+              tombées dans le domaine public.
             </p>
             <p>
               La structuration des données, les segmentations, les liens établis entre versets et textes
@@ -117,8 +124,8 @@ export default function ConditionsUtilisationPage() {
             </p>
             <p>
               Le contenu copié par les utilisateurs via les fonctions de citation du site doit conserver la
-              mention de la source (« disponible sur Corpus Scriptura ») lorsqu&rsquo;il est réutilisé
-              publiquement.
+              mention de la source (« disponible sur Corpus Scriptura — labibledesperes.com ») lorsqu&rsquo;il est
+              réutilisé publiquement.
             </p>
           </Section>
 
@@ -133,21 +140,29 @@ export default function ConditionsUtilisationPage() {
 
           <Section titre="8. Données personnelles">
             <p>
-              Le traitement des données personnelles des utilisateurs (adresse e-mail, contenus déposés) est
-              décrit dans la <a href="/confidentialite" style={{ color: "#3d6b4f", textDecoration: "underline" }}>politique de confidentialité</a> du
-              site, accessible depuis le pied de page. Conformément au Règlement général sur la protection
-              des données (RGPD) et à la loi Informatique et Libertés, vous disposez d&rsquo;un droit d&rsquo;accès, de
-              rectification, d&rsquo;effacement et de portabilité de vos données, ainsi que du droit d&rsquo;introduire
-              une réclamation auprès de la CNIL (<a href="https://www.cnil.fr/fr/plaintes" target="_blank" rel="noopener noreferrer" style={{ color: "#3d6b4f", textDecoration: "underline" }}>www.cnil.fr/fr/plaintes</a>).
+              Le traitement des données personnelles des utilisateurs (adresse e-mail, contenus déposés)
+              est décrit dans la{' '}
+              <a href="/confidentialite" style={{ color: "#3d6b4f", textDecoration: "underline" }}>
+                politique de confidentialité
+              </a>{' '}
+              du site, accessible depuis le pied de page. Conformément au Règlement général sur la
+              protection des données (RGPD) et à la loi Informatique et Libertés, vous disposez d&rsquo;un droit
+              d&rsquo;accès, de rectification, d&rsquo;effacement et de portabilité de vos données, ainsi que du droit
+              d&rsquo;introduire une réclamation auprès de la CNIL (
+              <a href="https://www.cnil.fr/fr/plaintes" target="_blank" rel="noopener noreferrer"
+                style={{ color: "#3d6b4f", textDecoration: "underline" }}>
+                www.cnil.fr/fr/plaintes
+              </a>).
             </p>
           </Section>
 
           <Section titre="9. Limitation de responsabilité">
             <p>
-              Le site est le fruit d&rsquo;un travail éditorial collaboratif et bénévole. Si le plus grand soin est
-              apporté à l&rsquo;exactitude des textes, des traductions et des liens établis, l&rsquo;éditeur ne garantit
-              pas l&rsquo;absence totale d&rsquo;erreurs, d&rsquo;omissions ou d&rsquo;inexactitudes. Les utilisateurs sont invités
-              à signaler toute erreur constatée via la fonction de signalement intégrée au site.
+              Corpus Scriptura est le fruit d&rsquo;un travail éditorial collaboratif et bénévole. Si le plus
+              grand soin est apporté à l&rsquo;exactitude des textes, des traductions et des liens établis,
+              l&rsquo;éditeur ne garantit pas l&rsquo;absence totale d&rsquo;erreurs, d&rsquo;omissions ou d&rsquo;inexactitudes. Les
+              utilisateurs sont invités à signaler toute erreur constatée via la fonction de signalement
+              intégrée au site.
             </p>
             <p>
               L&rsquo;éditeur ne pourra être tenu responsable des dommages directs ou indirects résultant de
@@ -158,9 +173,9 @@ export default function ConditionsUtilisationPage() {
 
           <Section titre="10. Liens vers des sites tiers">
             <p>
-              Le site peut contenir des liens vers des sites tiers. L&rsquo;éditeur n&rsquo;exerce aucun contrôle sur ces
-              sites et décline toute responsabilité quant à leur contenu ou à leurs pratiques en matière de
-              données personnelles.
+              Le site peut contenir des liens vers des sites tiers. L&rsquo;éditeur n&rsquo;exerce aucun contrôle sur
+              ces sites et décline toute responsabilité quant à leur contenu ou à leurs pratiques en matière
+              de données personnelles.
             </p>
           </Section>
 

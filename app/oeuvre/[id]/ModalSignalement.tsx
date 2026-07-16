@@ -2,18 +2,33 @@
 
 import { useState } from 'react'
 
+const NIVEAUX = [
+  { val: 'mineur',    label: 'Mineur',    bg: '#f0f0ee', bgOn: '#d6d6d2', color: '#6b6560' },
+  { val: 'important', label: 'Important', bg: '#fef5e8', bgOn: '#f0a830', color: '#8a5a00' },
+  { val: 'bloquant',  label: 'Bloquant',  bg: '#fde8e8', bgOn: '#c0562a', color: '#fff' },
+] as const
+
+type Niveau = 'mineur' | 'important' | 'bloquant'
+
 // ── Modale signalement (centrée, overlay) ────────────────────────────────────
-export default function ModalSignalement({ titre, onClose, onEnvoyer }: {
-  titre: string; onClose: () => void; onEnvoyer: (msg: string) => Promise<void>
+export default function ModalSignalement({ titre, onClose, onEnvoyer, avecNiveauImportance = false }: {
+  titre: string
+  onClose: () => void
+  onEnvoyer: (msg: string, importance?: string) => Promise<void>
+  avecNiveauImportance?: boolean
 }) {
   const [message, setMessage] = useState('')
   const [statut, setStatut] = useState<'idle'|'sending'|'ok'|'err'>('idle')
+  const [importance, setImportance] = useState<Niveau>('important')
 
   const envoyer = async () => {
     if (!message.trim()) return
     setStatut('sending')
-    try { await onEnvoyer(message.trim()); setStatut('ok'); setTimeout(onClose, 1800) }
-    catch (error) { console.error('Erreur signalement:', error); setStatut('err') }
+    try {
+      await onEnvoyer(message.trim(), avecNiveauImportance ? importance : undefined)
+      setStatut('ok')
+      setTimeout(onClose, 1800)
+    } catch (error) { console.error('Erreur signalement:', error); setStatut('err') }
   }
 
   return (
@@ -30,6 +45,23 @@ export default function ModalSignalement({ titre, onClose, onEnvoyer }: {
           <p style={{ fontSize:'11.5px', color:'#3d6b4f', fontStyle:'italic', textAlign:'center', padding:'8px 0' }}>Signalement envoyé, merci !</p>
         ) : (
           <>
+            {avecNiveauImportance && (
+              <div style={{ display:'flex', gap:'6px', marginBottom:'10px' }}>
+                <span style={{ fontSize:'10.5px', color:'#9a958d', alignSelf:'center', flexShrink:0 }}>Niveau :</span>
+                {NIVEAUX.map(n => {
+                  const actif = importance === n.val
+                  return (
+                    <button key={n.val} onClick={() => setImportance(n.val)}
+                      style={{ fontSize:'10.5px', padding:'3px 10px', borderRadius:'12px', border:'none', cursor:'pointer', fontWeight: actif ? 600 : 400,
+                        background: actif ? n.bgOn : n.bg,
+                        color: actif && n.val === 'bloquant' ? '#fff' : n.color,
+                        transition:'background 0.15s' }}>
+                      {n.label}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
             <textarea value={message} onChange={e => setMessage(e.target.value)}
               placeholder="Décrivez l'erreur constatée…" rows={4} autoFocus
               style={{ width:'100%', fontSize:'11px', padding:'7px 9px', border:'1px solid #d6d0c4', borderRadius:'5px', background:'#faf8f4', color:'#2a2520', resize:'vertical', outline:'none', lineHeight:1.5, boxSizing:'border-box' }} />

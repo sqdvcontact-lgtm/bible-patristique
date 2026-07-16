@@ -1,4 +1,4 @@
-// app/api/admin/update-oeuvre/route.ts
+﻿// app/api/admin/update-oeuvre/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
@@ -19,10 +19,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Paramètres manquants' }, { status: 400 })
   }
 
-  const { error } = await supabaseAdmin
-    .from('oeuvres')
-    .update({ [champ]: valeur })
-    .eq('id_oeuvre', id_oeuvre)
+  const { error } = await supabaseAdmin.rpc('admin_update_oeuvre_champ', {
+    p_id_oeuvre: id_oeuvre,
+    p_champ: champ,
+    p_valeur: valeur ?? null,
+  })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })

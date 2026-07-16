@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   const existants = ((seg as any)[champ] as string | null ?? '').split(';').map(s => s.trim()).filter(Boolean)
   const aAjouter = nouveaux.filter(v => !existants.includes(v))
   if (aAjouter.length === 0) {
-    return NextResponse.json({ error: 'Ces versets sont déjà tous associés à ce niveau.' }, { status: 409 })
+    return NextResponse.json({ error: 'Ces versets figurent déjà dans ce type de lien.' }, { status: 409 })
   }
   const nouvelleValeur = [...existants, ...aAjouter].join('; ')
 

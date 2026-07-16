@@ -2,93 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
-
-type LivreInfo = { code: string; nom: string; testament: 'AT' | 'NT'; nbVersets: number }
-
-// Le projet Supabase plafonne chaque réponse à 1000 lignes (réglage serveur) :
-// sur ~41 900 versets, il faut donc paginer pour tout récupérer.
-async function fetchPagine<T>(requete: (debut: number, fin: number) => PromiseLike<{ data: T[] | null }>): Promise<T[]> {
-  const PAGE = 1000
-  let tout: T[] = []
-  let debut = 0
-  while (true) {
-    const { data } = await requete(debut, debut + PAGE - 1)
-    const lot = data ?? []
-    tout = tout.concat(lot)
-    if (lot.length < PAGE) break
-    debut += PAGE
-  }
-  return tout
-}
-
-const LIVRES: { code: string; nom: string; testament: 'AT' | 'NT' }[] = [
-  { code: 'GEN', nom: 'Genèse', testament: 'AT' },
-  { code: 'EXO', nom: 'Exode', testament: 'AT' },
-  { code: 'LEV', nom: 'Lévitique', testament: 'AT' },
-  { code: 'NUM', nom: 'Nombres', testament: 'AT' },
-  { code: 'DEU', nom: 'Deutéronome', testament: 'AT' },
-  { code: 'JOS', nom: 'Josué', testament: 'AT' },
-  { code: 'JDG', nom: 'Juges', testament: 'AT' },
-  { code: 'RUT', nom: 'Ruth', testament: 'AT' },
-  { code: '1SA', nom: '1 Samuel', testament: 'AT' },
-  { code: '2SA', nom: '2 Samuel', testament: 'AT' },
-  { code: '1KI', nom: '1 Rois', testament: 'AT' },
-  { code: '2KI', nom: '2 Rois', testament: 'AT' },
-  { code: '1CH', nom: '1 Chroniques', testament: 'AT' },
-  { code: '2CH', nom: '2 Chroniques', testament: 'AT' },
-  { code: 'EZR', nom: 'Esdras', testament: 'AT' },
-  { code: 'NEH', nom: 'Néhémie', testament: 'AT' },
-  { code: 'EST', nom: 'Esther', testament: 'AT' },
-  { code: 'JOB', nom: 'Job', testament: 'AT' },
-  { code: 'PSA', nom: 'Psaumes', testament: 'AT' },
-  { code: 'PRO', nom: 'Proverbes', testament: 'AT' },
-  { code: 'ECC', nom: 'Ecclésiaste', testament: 'AT' },
-  { code: 'SNG', nom: 'Cantique des cantiques', testament: 'AT' },
-  { code: 'ISA', nom: 'Isaïe', testament: 'AT' },
-  { code: 'JER', nom: 'Jérémie', testament: 'AT' },
-  { code: 'LAM', nom: 'Lamentations', testament: 'AT' },
-  { code: 'EZK', nom: 'Ézéchiel', testament: 'AT' },
-  { code: 'DAN', nom: 'Daniel', testament: 'AT' },
-  { code: 'HOS', nom: 'Osée', testament: 'AT' },
-  { code: 'JOL', nom: 'Joël', testament: 'AT' },
-  { code: 'AMO', nom: 'Amos', testament: 'AT' },
-  { code: 'OBA', nom: 'Abdias', testament: 'AT' },
-  { code: 'JON', nom: 'Jonas', testament: 'AT' },
-  { code: 'MIC', nom: 'Michée', testament: 'AT' },
-  { code: 'NAM', nom: 'Nahum', testament: 'AT' },
-  { code: 'HAB', nom: 'Habacuc', testament: 'AT' },
-  { code: 'ZEP', nom: 'Sophonie', testament: 'AT' },
-  { code: 'HAG', nom: 'Aggée', testament: 'AT' },
-  { code: 'ZEC', nom: 'Zacharie', testament: 'AT' },
-  { code: 'MAL', nom: 'Malachie', testament: 'AT' },
-  { code: 'MAT', nom: 'Matthieu', testament: 'NT' },
-  { code: 'MRK', nom: 'Marc', testament: 'NT' },
-  { code: 'LUK', nom: 'Luc', testament: 'NT' },
-  { code: 'JHN', nom: 'Jean', testament: 'NT' },
-  { code: 'ACT', nom: 'Actes', testament: 'NT' },
-  { code: 'ROM', nom: 'Romains', testament: 'NT' },
-  { code: '1CO', nom: '1 Corinthiens', testament: 'NT' },
-  { code: '2CO', nom: '2 Corinthiens', testament: 'NT' },
-  { code: 'GAL', nom: 'Galates', testament: 'NT' },
-  { code: 'EPH', nom: 'Éphésiens', testament: 'NT' },
-  { code: 'PHP', nom: 'Philippiens', testament: 'NT' },
-  { code: 'COL', nom: 'Colossiens', testament: 'NT' },
-  { code: '1TH', nom: '1 Thessaloniciens', testament: 'NT' },
-  { code: '2TH', nom: '2 Thessaloniciens', testament: 'NT' },
-  { code: '1TI', nom: '1 Timothée', testament: 'NT' },
-  { code: '2TI', nom: '2 Timothée', testament: 'NT' },
-  { code: 'TIT', nom: 'Tite', testament: 'NT' },
-  { code: 'PHM', nom: 'Philémon', testament: 'NT' },
-  { code: 'HEB', nom: 'Hébreux', testament: 'NT' },
-  { code: 'JAS', nom: 'Jacques', testament: 'NT' },
-  { code: '1PE', nom: '1 Pierre', testament: 'NT' },
-  { code: '2PE', nom: '2 Pierre', testament: 'NT' },
-  { code: '1JN', nom: '1 Jean', testament: 'NT' },
-  { code: '2JN', nom: '2 Jean', testament: 'NT' },
-  { code: '3JN', nom: '3 Jean', testament: 'NT' },
-  { code: 'JUD', nom: 'Jude', testament: 'NT' },
-  { code: 'REV', nom: 'Apocalypse', testament: 'NT' },
-]
+import { LIVRES, LivreBible } from '@/app/lib/bible'
 
 // ── Feu d'artifice ─────────────────────────────────────────────────────────────
 const COULEURS_FEU = ['#3d6b4f', '#c0562a', '#d4af37', '#8a6fb0', '#3d8bc0', '#c0566a']
@@ -203,7 +117,7 @@ function useValeurAnimee(cible: number, duree = 1100) {
 }
 
 // ── Carte livre ─────────────────────────────────────────────────────────────────
-function CarteLivre({ livre, lu, onToggle }: { livre: LivreInfo; lu: boolean; onToggle: (e: React.MouseEvent) => void }) {
+function CarteLivre({ livre, lu, onToggle }: { livre: LivreBible; lu: boolean; onToggle: (e: React.MouseEvent) => void }) {
   return (
     <button onClick={onToggle} style={{
       display: 'flex', alignItems: 'center', gap: '10px',
@@ -240,52 +154,33 @@ function CarteLivre({ livre, lu, onToggle }: { livre: LivreInfo; lu: boolean; on
 }
 
 export default function ProgressionClient() {
-  const [livres, setLivres] = useState<LivreInfo[]>([])
   const [lus, setLus] = useState<Set<string>>(new Set())
   const [userId, setUserId] = useState<string | null>(null)
   const [chargement, setChargement] = useState(true)
   const [feux, setFeux] = useState<{ id: number; x: number; y: number }[]>([])
   const feuId = useRef(0)
 
-  // Charger session + nb versets par livre + livres déjà lus
   useEffect(() => {
     const chargerProgression = async (proprietaire: string | null) => {
-      if (!proprietaire) {
-        setLus(new Set())
-        return
-      }
-      const { data: progData } = await supabase
+      if (!proprietaire) { setLus(new Set()); return }
+      const { data } = await supabase
         .from('progression_lecture')
         .select('livre_code')
         .eq('user_id', proprietaire)
-      setLus(new Set((progData ?? []).map((p: any) => p.livre_code)))
+      setLus(new Set((data ?? []).map((p: any) => p.livre_code)))
     }
 
     const { data: abonnement } = supabase.auth.onAuthStateChange((_event, session) => {
-      const prochainUid = session?.user.id ?? null
-      setUserId(prochainUid)
-      void chargerProgression(prochainUid)
+      const uid = session?.user.id ?? null
+      setUserId(uid)
+      void chargerProgression(uid)
     });
 
     (async () => {
       const { data: session } = await supabase.auth.getSession()
       const uid = session.session?.user.id ?? null
       setUserId(uid)
-
-      // Compter les versets par livre
-      const versetsData = await fetchPagine<{ livre: string }>((d, f) => supabase.from('versets').select('livre').range(d, f))
-      const compte: Record<string, number> = {}
-      ;(versetsData ?? []).forEach((v: any) => {
-        compte[v.livre] = (compte[v.livre] ?? 0) + 1
-      })
-      const infos: LivreInfo[] = LIVRES.map(l => ({
-        ...l,
-        nbVersets: compte[l.code] ?? 0,
-      }))
-      setLivres(infos)
-
       await chargerProgression(uid)
-
       setChargement(false)
     })()
 
@@ -333,24 +228,35 @@ export default function ProgressionClient() {
     setFeux(prev => prev.filter(f => f.id !== id))
   }, [])
 
-  // Calcul des pourcentages, pondérés par nombre de versets
-  const totalVersets = livres.reduce((s, l) => s + l.nbVersets, 0)
-  const totalAT = livres.filter(l => l.testament === 'AT').reduce((s, l) => s + l.nbVersets, 0)
-  const totalNT = livres.filter(l => l.testament === 'NT').reduce((s, l) => s + l.nbVersets, 0)
+  // Calcul des pourcentages, pondérés par nombre de versets (comptages statiques)
+  const livresAT = LIVRES.filter(l => l.testament === 'AT')
+  const livresNT = LIVRES.filter(l => l.testament === 'NT')
 
-  const versetsLusAT = livres.filter(l => l.testament === 'AT' && lus.has(l.code)).reduce((s, l) => s + l.nbVersets, 0)
-  const versetsLusNT = livres.filter(l => l.testament === 'NT' && lus.has(l.code)).reduce((s, l) => s + l.nbVersets, 0)
+  const totalVersets = LIVRES.reduce((s, l) => s + l.nbVersets, 0)
+  const totalAT = livresAT.reduce((s, l) => s + l.nbVersets, 0)
+  const totalNT = livresNT.reduce((s, l) => s + l.nbVersets, 0)
+
+  const versetsLusAT = livresAT.filter(l => lus.has(l.code)).reduce((s, l) => s + l.nbVersets, 0)
+  const versetsLusNT = livresNT.filter(l => lus.has(l.code)).reduce((s, l) => s + l.nbVersets, 0)
   const versetsLusTotal = versetsLusAT + versetsLusNT
 
-  const pourcentTotal = totalVersets > 0 ? (versetsLusTotal / totalVersets) * 100 : 0
-  const pourcentAT = totalAT > 0 ? (versetsLusAT / totalAT) * 100 : 0
-  const pourcentNT = totalNT > 0 ? (versetsLusNT / totalNT) * 100 : 0
-  const livresLus = livres.filter(l => lus.has(l.code)).length
+  const livresLus = LIVRES.filter(l => lus.has(l.code)).length
+
+  const tousATLus = livresAT.length > 0 && livresAT.every(l => lus.has(l.code))
+  const tousNTLus = livresNT.length > 0 && livresNT.every(l => lus.has(l.code))
+  const tousTousLus = tousATLus && tousNTLus
+
+  const pourcentATBrut = totalAT > 0 ? (versetsLusAT / totalAT) * 100 : 0
+  const pourcentNTBrut = totalNT > 0 ? (versetsLusNT / totalNT) * 100 : 0
+  const pourcentTotalBrut = totalVersets > 0 ? (versetsLusTotal / totalVersets) * 100 : 0
+
+  // Bloquer à 99 max si au moins un livre du testament n'est pas lu
+  const pourcentAT = tousATLus ? pourcentATBrut : Math.min(pourcentATBrut, 99)
+  const pourcentNT = tousNTLus ? pourcentNTBrut : Math.min(pourcentNTBrut, 99)
+  const pourcentTotal = tousTousLus ? pourcentTotalBrut : Math.min(pourcentTotalBrut, 99)
+
   const pourcentTotalAnime = useValeurAnimee(pourcentTotal, 1300)
   const versetsLusAnimes = useValeurAnimee(versetsLusTotal, 1150)
-
-  const livresAT = livres.filter(l => l.testament === 'AT')
-  const livresNT = livres.filter(l => l.testament === 'NT')
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 48px)', padding: '24px 24px 64px' }}>
@@ -383,7 +289,7 @@ export default function ProgressionClient() {
             </div>
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px', marginBottom: '14px' }}>
-                <StatutLecture label="livres achevés" valeur={`${livresLus}/${livres.length || 66}`} />
+                <StatutLecture label="livres achevés" valeur={`${livresLus}/${LIVRES.length}`} />
                 <StatutLecture label="versets couverts" valeur={Math.round(versetsLusAnimes).toLocaleString('fr-FR')} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '11px' }}>

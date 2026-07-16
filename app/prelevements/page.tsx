@@ -21,7 +21,7 @@ type Prelevement = {
 type Traduction = { code: string; label: string };
 
 type OeuvreInfo = {
-  id_oeuvre: string; sous_titre?: string
+  id_oeuvre: string; id_auteur?: string; sous_titre?: string
   trad_auteur?: string; editeur?: string
   collection?: string; ville?: string; date_publication?: string
 };
@@ -224,7 +224,7 @@ export default function PrelevementsPage() {
       if (ids.length > 0) {
         const { data: od } = await supabase
           .from("oeuvres")
-          .select("id_oeuvre, sous_titre, trad_auteur, editeur, collection, ville, date_publication")
+          .select("id_oeuvre, id_auteur, sous_titre, trad_auteur, editeur, collection, ville, date_publication")
           .in("id_oeuvre", ids);
         const map: Record<string, OeuvreInfo> = {};
         (od ?? []).forEach(o => { map[o.id_oeuvre] = o; });
@@ -406,10 +406,18 @@ export default function PrelevementsPage() {
               {groupesPatristiques.map(({ label, items }) => {
                 const [auteur, titre] = label.split("||");
                 const ouvert = groupesOuverts.has(label);
+                const idAuteur = items[0]?.id_oeuvre ? oeuvresInfo[items[0].id_oeuvre]?.id_auteur : undefined;
                 return (
                   <GroupeRepliable key={label} label={
                     <>
-                      <span style={{ textTransform:"uppercase" }}>{auteur}</span>
+                      {idAuteur ? (
+                        <Link href={`/auteur/${idAuteur}`} onClick={e => e.stopPropagation()}
+                          style={{ textTransform:"uppercase", color:"#3d6b4f", textDecoration:"none", fontWeight:"inherit" }}>
+                          {auteur}
+                        </Link>
+                      ) : (
+                        <span style={{ textTransform:"uppercase" }}>{auteur}</span>
+                      )}
                       {titre && <span style={{ textTransform:"none", fontStyle:"italic", fontWeight:400 }}>, {titre}</span>}
                     </>
                   } count={items.length} ouvert={ouvert} onToggle={() => toggleGroupe(label)}>

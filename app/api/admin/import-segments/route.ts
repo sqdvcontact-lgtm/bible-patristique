@@ -1,8 +1,9 @@
-// app/api/admin/import-segments/route.ts
+﻿// app/api/admin/import-segments/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
+import { erreur500 } from '@/app/lib/apiErreur'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
       .delete()
       .eq('id_oeuvre', idOeuvre)
     if (deleteError) {
-      return NextResponse.json({ error: `Erreur suppression : ${deleteError.message}` }, { status: 500 })
+      return erreur500(deleteError, "Erreur suppression : ")
     }
   }
 
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
     .insert(rows, { count: 'exact' })
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return erreur500(error)
   }
 
   return NextResponse.json({ inserted: count ?? rows.length })

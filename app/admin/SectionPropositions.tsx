@@ -8,7 +8,7 @@ type Proposition = {
   traducteur: string | null; editeur: string | null; collection: string | null
   ville: string | null; date_publication: string | null; siecle: string | null
   langue: string | null; note: string | null; texte: string | null
-  statut: string; created_at: string
+  statut: string; created_at: string; nb_30j?: number | null
 }
 
 const STATUTS: Record<string, { label: string; couleur: string; bg: string }> = {
@@ -27,38 +27,72 @@ async function getHeaders(): Promise<Record<string, string>> {
 export default function SectionPropositions() {
   const [propositions, setPropositions] = useState<Proposition[]>([])
   const [chargement, setChargement] = useState(true)
+  const [erreur, setErreur] = useState<string | null>(null)
   const [ouverte, setOuverte] = useState<number | null>(null)
-  const [filtreStatut, setFiltreStatut] = useState('en_attente')
+  const [filtreStatut, setFiltreStatut] = useState('a_traiter')
 
   const charger = async () => {
-    const headers = await getHeaders()
-    const res = await fetch('/api/admin/propositions', { headers })
-    if (res.ok) setPropositions(await res.json())
-    setChargement(false)
+    setErreur(null)
+    setChargement(true)
+    try {
+      const headers = await getHeaders()
+      const res = await fetch('/api/admin/propositions', { headers })
+      if (!res.ok) throw new Error(`Erreur ${res.status}`)
+      setPropositions(await res.json())
+    } catch {
+      setErreur('Impossible de charger les propositions. Vérifiez la connexion.')
+    } finally {
+      setChargement(false)
+    }
   }
 
   useEffect(() => { charger() }, [])
 
   const changerStatut = async (id: number, statut: string) => {
-    const headers = await getHeaders()
-    await fetch('/api/admin/propositions', { method: 'PATCH', headers, body: JSON.stringify({ id, statut }) })
+    const avant = propositions.find(p => p.id === id)?.statut
     setPropositions(prev => prev.map(p => p.id === id ? { ...p, statut } : p))
+    try {
+      const headers = await getHeaders()
+      const res = await fetch('/api/admin/propositions', { method: 'PATCH', headers, body: JSON.stringify({ id, statut }) })
+      if (!res.ok) throw new Error(`Erreur ${res.status}`)
+    } catch {
+      if (avant !== undefined) setPropositions(prev => prev.map(p => p.id === id ? { ...p, statut: avant } : p))
+      alert('Impossible de modifier le statut. Réessayez.')
+    }
   }
 
   const supprimer = async (id: number) => {
     if (!confirm('Supprimer définitivement cette proposition ?')) return
-    const headers = await getHeaders()
-    await fetch('/api/admin/propositions', { method: 'DELETE', headers, body: JSON.stringify({ id }) })
+    const sauvegarde = propositions.find(p => p.id === id)
     setPropositions(prev => prev.filter(p => p.id !== id))
     if (ouverte === id) setOuverte(null)
+    try {
+      const headers = await getHeaders()
+      const res = await fetch('/api/admin/propositions', { method: 'DELETE', headers, body: JSON.stringify({ id }) })
+      if (!res.ok) throw new Error(`Erreur ${res.status}`)
+    } catch {
+      if (sauvegarde) setPropositions(prev => [...prev, sauvegarde].sort((a, b) => a.id - b.id))
+      alert('Impossible de supprimer la proposition. Réessayez.')
+    }
   }
 
-  const filtrees = propositions.filter(p => filtreStatut === 'toutes' || p.statut === filtreStatut)
+  const filtrees = propositions.filter(p =>
+    filtreStatut === 'a_traiter'
+      ? p.statut === 'en_attente' || p.statut === 'en_cours'
+      : p.statut === filtreStatut
+  )
   const comptes: Record<string, number> = Object.fromEntries(
     ['en_attente', 'en_cours', 'acceptee', 'refusee'].map(s => [s, propositions.filter(p => p.statut === s).length])
   )
+  const compteATraiter = (comptes.en_attente ?? 0) + (comptes.en_cours ?? 0)
 
   if (chargement) return <p style={{ fontSize: '12px', color: '#b0a89e', fontStyle: 'italic' }}>Chargement…</p>
+  if (erreur) return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: '#fdf2ee', border: '1px solid #e4c4b8', borderRadius: '7px', maxWidth: '500px' }}>
+      <span style={{ fontSize: '12px', color: '#c0562a' }}>{erreur}</span>
+      <button onClick={charger} style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #e4c4b8', background: '#fff', color: '#c0562a', cursor: 'pointer', whiteSpace: 'nowrap' }}>Réessayer</button>
+    </div>
+  )
 
   return (
     <div style={{ maxWidth: '820px' }}>
@@ -71,7 +105,7 @@ export default function SectionPropositions() {
 
       {/* Onglets statut */}
       <div style={{ display: 'flex', gap: '0', borderBottom: '1px solid #344d3e', marginBottom: '20px' }}>
-        {([['toutes', 'Toutes', propositions.length], ['en_attente', 'En attente', comptes.en_attente], ['en_cours', 'En cours', comptes.en_cours], ['acceptee', 'Acceptées', comptes.acceptee], ['refusee', 'Refusées', comptes.refusee]] as [string, string, number][]).map(([key, label, count]) => (
+        {([['a_traiter', 'En attente', compteATraiter], ['acceptee', 'Acceptées', comptes.acceptee], ['refusee', 'Refusées', comptes.refusee]] as [string, string, number][]).map(([key, label, count]) => (
           <button key={key} onClick={() => setFiltreStatut(key)} style={{
             padding: '7px 14px', fontSize: '11px', background: 'none', border: 'none',
             borderBottom: filtreStatut === key ? '2px solid #7aaa8e' : '2px solid transparent',
@@ -80,7 +114,7 @@ export default function SectionPropositions() {
           }}>
             {label}
             {count > 0 && (
-              <span style={{ fontSize: '9.5px', background: key === 'en_attente' ? '#c0562a' : '#4a6459', color: '#fff', borderRadius: '10px', padding: '1px 5px' }}>{count}</span>
+              <span style={{ fontSize: '9.5px', background: key === 'a_traiter' ? '#c0562a' : '#4a6459', color: '#fff', borderRadius: '10px', padding: '1px 5px' }}>{count}</span>
             )}
           </button>
         ))}
@@ -103,10 +137,14 @@ export default function SectionPropositions() {
                       <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#2a3d30' }}>{p.titre}</span>
                       <span style={{ fontSize: '12px', color: '#8a8278' }}>{p.auteur_nom}</span>
                     </div>
-                    <div style={{ fontSize: '11px', color: '#b0a89e', marginTop: '2px' }}>
-                      {[p.traducteur ? `trad. ${p.traducteur}` : null, p.editeur, p.date_publication].filter(Boolean).join(' · ')}
-                      {' · '}
-                      {new Date(p.created_at).toLocaleDateString('fr-FR')}
+                    <div style={{ fontSize: '11px', color: '#b0a89e', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span>{[p.traducteur ? `trad. ${p.traducteur}` : null, p.editeur, p.date_publication].filter(Boolean).join(' · ')}</span>
+                      <span>{new Date(p.created_at).toLocaleDateString('fr-FR')}</span>
+                      {p.nb_30j != null && p.nb_30j > 1 && (
+                        <span style={{ fontSize: '10px', fontWeight: 600, padding: '1px 6px', borderRadius: '8px', background: p.nb_30j >= 3 ? '#fdf2ee' : '#fef5e8', color: p.nb_30j >= 3 ? '#c0562a' : '#9a5a2a' }}>
+                          {p.nb_30j} propositions / 30 j
+                        </span>
+                      )}
                     </div>
                   </div>
                   <span style={{ fontSize: '10px', fontWeight: 600, padding: '3px 9px', borderRadius: '4px', background: s.bg, color: s.couleur, whiteSpace: 'nowrap' }}>

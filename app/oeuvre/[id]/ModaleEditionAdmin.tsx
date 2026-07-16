@@ -16,9 +16,16 @@ async function appelerAPI(chemin: string, corps: object): Promise<{ ok: boolean;
 // Toutes les écritures passent par des routes serveur (/api/admin/...), qui
 // vérifient elles-mêmes le cookie admin avant d'utiliser la clé de service.
 // Aucune écriture directe n'est faite depuis ce composant.
+const CHAMP_LABEL: Record<string, string> = {
+  titre: "Modifier le titre de l'œuvre",
+  sous_titre: 'Modifier le sous-titre',
+  titre_original: 'Modifier le titre original',
+  trad_auteur: 'Modifier le traducteur',
+}
+
 export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregistre, onTitreOeuvreModifie }: {
   cible: EditionCible; idOeuvre: string; onClose: () => void; onEnregistre: () => void
-  onTitreOeuvreModifie?: (texte: string) => void
+  onTitreOeuvreModifie?: (champ: string, valeur: string) => void
 }) {
   const [valeur, setValeur] = useState(cible.type === 'segment' ? cible.seg.texte : cible.texteActuel)
   const [etape, setEtape] = useState<'edition' | 'confirmation' | 'confirmation-suppression'>('edition')
@@ -55,7 +62,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
     if (cible.type === 'segment') {
       resultat = await appelerAPI('/api/admin/segment-modifier', { id: cible.seg.id, segment_texte: valeur })
     } else if (cible.type === 'titre_oeuvre') {
-      resultat = await appelerAPI('/api/admin/update-oeuvre', { id_oeuvre: idOeuvre, champ: 'titre', valeur })
+      resultat = await appelerAPI('/api/admin/update-oeuvre', { id_oeuvre: idOeuvre, champ: cible.champ, valeur: valeur || null })
     } else {
       resultat = await appelerAPI('/api/admin/segment-titre', {
         id_oeuvre: idOeuvre, niveau: cible.niveau, action: 'modifier', valeur,
@@ -63,7 +70,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
       })
     }
     if (!resultat.ok) { setStatut('erreur'); setEtape('edition'); return }
-    if (cible.type === 'titre_oeuvre') onTitreOeuvreModifie?.(valeur)
+    if (cible.type === 'titre_oeuvre') onTitreOeuvreModifie?.(cible.champ, valeur)
     else onEnregistre()
     onClose()
   }
@@ -99,7 +106,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
       <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '8px', padding: '20px 22px', width: '520px', maxWidth: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <p style={{ fontSize: '12px', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>
-            {cible.type === 'segment' ? 'Modifier le segment' : cible.type === 'titre_oeuvre' ? "Modifier le titre de l'œuvre" : `Modifier le titre de niveau ${cible.niveau}`}
+            {cible.type === 'segment' ? 'Modifier le segment' : cible.type === 'titre_oeuvre' ? (CHAMP_LABEL[cible.champ] ?? "Modifier le titre de l'œuvre") : `Modifier le titre de niveau ${cible.niveau}`}
           </p>
           <button onClick={onClose} style={{ fontSize: '14px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
@@ -123,7 +130,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             )}
           </div>
           <textarea ref={taRef} value={valeur} onChange={e => setValeur(e.target.value)}
-            rows={cible.type === 'segment' ? 8 : cible.type === 'titre_oeuvre' ? 4 : 2} autoFocus
+            rows={cible.type === 'segment' ? 8 : cible.type === 'titre_oeuvre' && cible.champ === 'titre' ? 3 : 2} autoFocus
             style={{ width: '100%', fontSize: '12.5px', padding: '8px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#2a2520', resize: 'vertical', outline: 'none', lineHeight: 1.55, boxSizing: 'border-box', fontFamily: cible.type === 'segment' ? 'Arial, sans-serif' : 'inherit' }} />
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
@@ -138,7 +145,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             ) : <span />}
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={onClose} style={{ fontSize: '11px', padding: '5px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
-              <button onClick={() => setEtape('confirmation')} disabled={!valeur.trim()}
+              <button onClick={() => setEtape('confirmation')} disabled={cible.type === 'segment' || (cible.type === 'titre_oeuvre' && cible.champ === 'titre') ? !valeur.trim() : false}
                 style={{ fontSize: '11px', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: valeur.trim() ? 'pointer' : 'default', background: valeur.trim() ? '#3d6b4f' : '#e4dfd8', color: '#fff', fontWeight: 500 }}>
                 Modifier
               </button>

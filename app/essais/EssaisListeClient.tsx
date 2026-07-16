@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
@@ -8,14 +9,15 @@ import { calculerRang, couleurRang } from '@/app/lib/classement'
 import EtapeMetadonnees, { CATEGORIES_ESSAIS, type Metadonnees } from './EtapeMetadonnees'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
+import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 
 const CATEGORIES = CATEGORIES_ESSAIS
 const SEMAINE_MS = 7 * 24 * 60 * 60 * 1000
 
-type Onglet = 'communaute' | 'mes-ecrits' | 'ecrire'
+type Onglet = 'communaute' | 'mes-ecrits' | 'ecrire' | 'suggestion'
 
 type EssaiResume = {
-  id: number; titre: string; sous_titre: string | null; resume: string | null
+  id: number; titre: string; sous_titre: string | null; resume: string | null; contenu?: string | null
   categories: string[]; nb_vues: number; nb_likes: number; publie_at: string | null; auteur: string; auteur_score: number
 }
 
@@ -92,7 +94,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '48px' }}>
-      <div style={{ maxWidth: '820px', margin: '0 auto', padding: '40px 28px 80px' }}>
+      <div style={{ maxWidth: '920px', margin: '0 auto', padding: '40px 28px 80px' }}>
 
         {/* En-tête */}
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
@@ -108,18 +110,33 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
             <div style={{ flex: 1, height: '1px', background: '#d6cfc4' }} />
           </div>
 
-          {/* Onglets */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', borderBottom: '1px solid #ddd8cf', flexWrap: 'wrap' }}>
+          {/* Onglets — groupe navigation à gauche, groupe action à droite */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '2px', borderBottom: '1px solid #ddd8cf', flexWrap: 'wrap' }}>
+            {/* Navigation */}
             {([
               { key: 'communaute' as const, label: 'Communauté' },
               { key: 'mes-ecrits' as const, label: 'Mes écrits' },
-              { key: 'ecrire' as const, label: '+ Écrire' },
             ]).map(o => (
               <button key={o.key} onClick={() => setOnglet(o.key)}
                 style={{ padding: '9px 16px', fontSize: '12px', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: '0.01em' }}>
                 {o.label}
               </button>
             ))}
+            {/* Séparateur */}
+            <span style={{ width: '1px', height: '18px', background: '#ddd8cf', margin: '0 8px 11px', flexShrink: 0 }} />
+            {/* Actions — style distinct : fond vert léger sur actif, police italique */}
+            {([
+              { key: 'ecrire' as const, label: '+ Écrire' },
+              { key: 'suggestion' as const, label: '✦ Suggestion' },
+            ]).map(o => {
+              const actif = onglet === o.key
+              return (
+                <button key={o.key} onClick={() => setOnglet(o.key)}
+                  style={{ padding: '7px 14px', fontSize: '11.5px', fontStyle: 'italic', fontWeight: actif ? 600 : 400, color: actif ? '#fff' : '#5a8a6a', background: actif ? '#3d6b4f' : 'transparent', border: 'none', borderRadius: '5px 5px 0 0', borderBottom: actif ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: '0.01em', transition: 'background 0.13s, color 0.13s' }}>
+                  {o.label}
+                </button>
+              )
+            })}
           </div>
         </div>
 
@@ -133,11 +150,13 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
           />
         ) : onglet === 'mes-ecrits' ? (
           <OngletMesEcrits connecte={connecte} essais={mesEcrits} changerStatut={changerStatut} supprimer={supprimer} />
-        ) : (
+        ) : onglet === 'ecrire' ? (
           <OngletEcrire connecte={connecte} onValider={(m) => {
             window.sessionStorage.setItem('nouvel-essai-metadonnees', JSON.stringify(m))
             router.push('/essais/nouveau?depuis=publications')
           }} />
+        ) : (
+          <OngletSuggestion connecte={connecte} />
         )}
       </div>
     </main>
@@ -159,6 +178,11 @@ function OngletCommunaute({
     if (cmp !== 0) return cmp
     return (b.publie_at ?? '').localeCompare(a.publie_at ?? '')
   })
+  const populaires = [...essais]
+    .sort((a, b) => (b.nb_likes - a.nb_likes) || (b.nb_vues - a.nb_vues) || (b.publie_at ?? '').localeCompare(a.publie_at ?? ''))
+    .slice(0, 3)
+  const populairesIds = new Set(populaires.map(e => e.id))
+  const articlesJournal = tries.filter(e => !populairesIds.has(e.id))
 
   return (
     <>
@@ -180,54 +204,423 @@ function OngletCommunaute({
       </div>
 
       <style>{`
-        .essai-carte { position: relative; display: block; background: #fff; border: 1px solid #e2ddd5; border-radius: 6px; padding: 18px 22px 16px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; overflow: hidden; }
-        .essai-carte:hover { border-color: #c8b89a; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
-        .essai-carte:hover .essai-contenu { opacity: 0.10; transform: translateX(-8px); }
+        .publications-populaires-tete {
+          position: relative;
+          margin: 0 auto 24px;
+          border-top: 1px solid #d9d2c8;
+          border-bottom: 1px solid #d9d2c8;
+          padding: 16px 0;
+        }
+        .publications-populaires-titre {
+          margin: 0 0 12px;
+          text-align: center;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: #9a8c72;
+        }
+        .publications-populaires-grille {
+          display: grid;
+          grid-template-columns: 1.25fr 0.9fr 0.9fr;
+          gap: 14px;
+        }
+        .publication-populaire-item {
+          position: relative;
+          display: block;
+          min-height: 104px;
+          padding: 13px 14px 12px;
+          color: #332c23;
+          text-decoration: none;
+          background: rgba(255,255,255,0.42);
+          border-left: 2px solid rgba(61,107,79,0.35);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.55);
+          transition: background 0.16s ease, transform 0.16s ease;
+        }
+        .publication-populaire-item:hover {
+          background: rgba(255,255,255,0.72);
+          transform: translateY(-1px);
+        }
+        .publication-populaire-item:first-child {
+          min-height: 128px;
+          padding: 16px 18px 15px;
+          border-left-color: rgba(159,135,87,0.62);
+        }
+        .publication-populaire-rang {
+          display: block;
+          margin-bottom: 5px;
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          color: #a09078;
+          text-transform: uppercase;
+        }
+        .publication-populaire-titre {
+          display: block;
+          font-family: Georgia, serif;
+          font-size: 15px;
+          line-height: 1.22;
+          color: #1e2e24;
+        }
+        .publication-populaire-item:first-child .publication-populaire-titre {
+          font-size: 20px;
+          line-height: 1.12;
+        }
+        .publication-populaire-resume {
+          display: block;
+          margin-top: 7px;
+          font-family: Georgia, serif;
+          font-size: 11.5px;
+          line-height: 1.42;
+          color: #71685d;
+          text-align: justify;
+        }
+        .publication-populaire-meta {
+          display: block;
+          margin-top: 8px;
+          font-size: 10px;
+          color: #a49b90;
+        }
+        .publications-litteraires {
+          position: relative;
+          padding: 2px 0 0;
+        }
+        .essais-journal {
+          column-count: 3;
+          column-gap: 24px;
+          column-rule: 1px solid rgba(214,208,196,0.55);
+        }
+        .essai-carte {
+          position: relative;
+          display: block;
+          break-inside: avoid;
+          margin: 0 0 14px;
+          background: transparent;
+          border: 0;
+          border-top: 1px solid rgba(214,208,196,0.78);
+          border-radius: 0;
+          padding: 11px 2px 12px;
+          cursor: pointer;
+          transition: background 0.16s, transform 0.16s;
+          overflow: hidden;
+        }
+        .essai-carte:hover { background: rgba(255,255,255,0.44); transform: translateY(-1px); }
+        .essai-carte:not(.featured)::before {
+          content: "";
+          position: absolute;
+          inset: 10px 8px 12px;
+          background: rgba(250, 248, 243, 0.78);
+          opacity: 0;
+          pointer-events: none;
+          z-index: 2;
+          transition: opacity 0.16s ease;
+        }
+        .essai-carte:not(.featured):hover::before {
+          opacity: 1;
+        }
+        .essai-carte.featured {
+          grid-row: span 3;
+          padding: 28px 28px 26px;
+          border: 1px solid #d8d0c4;
+          background: rgba(255,255,255,0.62);
+          box-shadow: 0 8px 20px rgba(53,39,22,0.045);
+        }
+        .essai-carte.featured::before {
+          content: "";
+          position: absolute;
+          left: 18px;
+          top: 18px;
+          bottom: 18px;
+          width: 1px;
+          background: linear-gradient(to bottom, transparent, #bfae8f, transparent);
+          opacity: 0.7;
+        }
+        .essai-carte:hover .essai-contenu { opacity: 0.04; transform: translateX(-5px); }
         .essai-carte::after {
           content: "Lire cette publication";
-          position: absolute; top: 50%; left: 50%;
-          width: 220px; height: 34px;
+          position: absolute; top: 29%; left: 50%;
+          width: min(82%, 250px); height: 28px;
           display: flex; align-items: center; justify-content: center;
-          transform: translate(-50%, -50%) translateX(14px);
-          font-family: Georgia, serif; font-size: 13.5px; font-style: italic;
+          transform: translate(-50%, -50%) translateY(8px);
+          font-family: Georgia, serif; font-size: 15px; font-style: italic;
           color: rgba(35,79,51,0); letter-spacing: 0.01em;
           pointer-events: none;
+          text-shadow: 0 1px 0 rgba(255,255,255,0.35);
           transition: color 0.18s ease, transform 0.18s ease;
           white-space: nowrap;
+          z-index: 3;
         }
         .essai-carte:hover::after {
-          color: rgba(35,79,51,0.52);
-          transform: translate(-50%, -50%) translateX(0);
+          color: rgba(24,20,17,0.88);
+          transform: translate(-50%, -50%) translateY(0);
+        }
+        .essai-survol-resume {
+          position: absolute;
+          left: 50%;
+          top: calc(29% + 52px);
+          width: min(78%, 245px);
+          transform: translate(-50%, -50%) translateY(9px);
+          opacity: 0;
+          z-index: 3;
+          pointer-events: none;
+          font-family: Georgia, serif;
+          font-size: 11.8px;
+          line-height: 1.36;
+          color: rgba(24,20,17,0.84);
+          text-align: center;
+          text-shadow: 0 1px 0 rgba(255,255,255,0.38);
+          transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+        .essai-carte:hover .essai-survol-resume {
+          opacity: 1;
+          transform: translate(-50%, -50%) translateY(0);
         }
         .essai-carte .fleche-lire {
-          position: absolute; top: 50%; left: calc(50% + 106px);
-          width: 22px; height: 22px;
-          transform: translate(-50%, -50%) translateX(-14px);
+          position: absolute; top: calc(29% - 28px); left: 50%;
+          width: 24px; height: 24px;
+          transform: translate(-50%, -50%) translateY(8px);
           color: rgba(61,107,79,0);
           pointer-events: none;
           transition: color 0.18s ease, transform 0.18s ease;
-          z-index: 2;
+          z-index: 3;
         }
         .essai-carte:hover .fleche-lire {
-          color: rgba(61,107,79,0.40);
-          transform: translate(-50%, -50%) translateX(0);
+          color: rgba(54,49,44,0.44);
+          transform: translate(-50%, -50%) translateY(0);
         }
         .essai-contenu { transition: opacity 0.18s ease, transform 0.18s ease; }
         .essai-etoile { opacity: 0; transition: opacity 0.15s; pointer-events: none; }
         .essai-carte:hover .essai-etoile { opacity: 1; pointer-events: auto; }
+        .article-journal-normal {
+          position: relative;
+          min-height: 218px;
+          color: #3d3832;
+        }
+        .article-journal-lignes {
+          font-family: Georgia, serif;
+          font-size: 10.9px;
+          line-height: 1.18;
+          letter-spacing: -0.006em;
+          word-spacing: 0.015em;
+          color: #4f4942;
+          font-stretch: condensed;
+          hyphens: auto;
+          overflow-wrap: anywhere;
+          text-rendering: geometricPrecision;
+        }
+        .article-journal-ligne {
+          display: block;
+          min-height: 12.8px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-align: left;
+        }
+        .article-journal-ligne-fracturee {
+          display: flex;
+          align-items: baseline;
+          gap: var(--trou, 96px);
+          min-height: 12.8px;
+        }
+        .article-journal-ligne-fracturee .article-journal-fragment {
+          flex: 1 1 0;
+          min-width: 0;
+          white-space: nowrap;
+          overflow: hidden;
+          hyphens: auto;
+        }
+        .article-journal-ligne-fracturee .article-journal-fragment:first-child {
+          text-align: right;
+        }
+        .article-journal-ligne-fracturee .article-journal-fragment:last-child {
+          text-align: left;
+        }
+        .article-journal-ilot {
+          position: absolute;
+          top: calc(12.8px * 8.5);
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 2;
+          padding: 0;
+          width: min(158px, 56%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+        }
+        .article-journal-auteur {
+          margin: 0 0 3px;
+          padding: 0;
+          font-size: 10.8px;
+          line-height: 1.15;
+          font-style: normal;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: #36312c;
+          text-align: center;
+        }
+        .article-journal-titre {
+          margin: 0;
+          padding: 0;
+          font-family: Georgia, serif;
+          font-size: 15.2px;
+          line-height: 1.05;
+          font-weight: normal;
+          color: #2f6848;
+          text-align: center;
+          hyphens: auto;
+        }
+        .article-journal-titre-ligne {
+          display: block;
+          white-space: nowrap;
+        }
+        .article-journal-categories {
+          display: flex;
+          justify-content: center;
+          gap: 7px;
+          flex-wrap: wrap;
+          margin-top: 10px;
+          clear: both;
+        }
+        .article-journal-categorie {
+          font-size: 8.5px;
+          color: #4f4942;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+        @media (max-width: 780px) {
+          .publications-populaires-grille { grid-template-columns: 1fr; }
+          .publications-litteraires { padding: 18px 10px 28px; }
+          .essais-journal { column-count: 1; column-rule: 0; }
+          .essai-carte.featured { grid-row: auto; padding: 22px 20px 20px; }
+        }
+        @media (min-width: 781px) and (max-width: 980px) {
+          .essais-journal { column-count: 2; }
+        }
       `}</style>
       {tries.length === 0 ? (
         <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Aucun essai trouvé.</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {tries.map(e => <EssaiCarte key={e.id} essai={e} favorisEssais={favorisEssais} toggleFavoriEssai={toggleFavoriEssai} />)}
-        </div>
+        <>
+          <EnTetePublicationsPopulaires essais={populaires} />
+          <div className="publications-litteraires">
+            <div className="essais-journal">
+              {articlesJournal.map(e => <EssaiCarte key={e.id} essai={e} favorisEssais={favorisEssais} toggleFavoriEssai={toggleFavoriEssai} />)}
+            </div>
+          </div>
+        </>
       )}
     </>
   )
 }
 
-function EssaiCarte({ essai: e, favorisEssais, toggleFavoriEssai }: { essai: EssaiResume; favorisEssais: Set<string>; toggleFavoriEssai: (id: string) => void }) {
+function EnTetePublicationsPopulaires({ essais }: { essais: EssaiResume[] }) {
+  if (essais.length === 0) return null
+  return (
+    <section className="publications-populaires-tete" aria-label="Publications populaires">
+      <p className="publications-populaires-titre">Œuvres les plus lues</p>
+      <div className="publications-populaires-grille">
+        {essais.map((e, i) => (
+          <Link key={e.id} href={`/essais/${e.id}`} className="publication-populaire-item">
+            <span className="publication-populaire-rang">{i + 1}</span>
+            <span className="publication-populaire-titre">{e.titre}</span>
+            {e.resume && (
+              <span className="publication-populaire-resume">
+                {e.resume.length > (i === 0 ? 190 : 105) ? e.resume.slice(0, i === 0 ? 190 : 105) + ' …' : e.resume}
+              </span>
+            )}
+            <span className="publication-populaire-meta">
+              {e.nb_likes > 0 ? `♥ ${e.nb_likes}` : `${e.nb_vues} vue${e.nb_vues > 1 ? 's' : ''}`}
+            </span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+type LigneHabillage = { gauche?: string; droite?: string; pleine?: string; trou?: number }
+
+function prendreLongueur(mots: string[], index: number, cible: number) {
+  const pris: string[] = []
+  let longueur = 0
+  while (pris.length < 18 && (longueur < cible || pris.length < 3)) {
+    const mot = mots[index % mots.length]
+    pris.push(mot)
+    longueur += mot.length + (pris.length > 1 ? 1 : 0)
+    index += 1
+  }
+  return { texte: pris.join(' '), index }
+}
+
+function bornerNombre(valeur: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, valeur))
+}
+
+function largeurApproxTexte(texte: string, type: 'auteur' | 'titre') {
+  const nettoye = texte.replace(/\s+/g, ' ').trim()
+  const moyenne = type === 'auteur' ? 6.9 : 7.35
+  const espace = type === 'auteur' ? 4.2 : 4.4
+  return nettoye.split('').reduce((total, caractere) => total + (caractere === ' ' ? espace : moyenne), 0)
+}
+
+function lignesTitreCentre(titre: string) {
+  const mots = titre.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean)
+  if (mots.length <= 2 || titre.length <= 22) return [titre]
+  const total = mots.reduce((s, mot) => s + mot.length, 0) + mots.length - 1
+  const cible = total / 2
+  const premiere: string[] = []
+  let longueur = 0
+  while (mots.length > 1 && longueur < cible) {
+    const mot = mots.shift()!
+    premiere.push(mot)
+    longueur += mot.length + (premiere.length > 1 ? 1 : 0)
+  }
+  return [premiere.join(' '), mots.join(' ')].filter(Boolean)
+}
+
+function creerHabillageJournal(texte: string, auteur: string, titre: string): LigneHabillage[] {
+  const base = texte.replace(/\s+/g, ' ').trim() || 'Lire cette contribution dans son entier pour en suivre le développement et les nuances.'
+  const mots = base.split(' ').filter(Boolean)
+  const lignes: LigneHabillage[] = []
+  let index = 0
+  const marge = 18
+  const lignesTitre = lignesTitreCentre(titre)
+  const trouAuteur = bornerNombre(largeurApproxTexte(auteur, 'auteur') + marge, 54, 164)
+  const trouTitre1 = bornerNombre(largeurApproxTexte(lignesTitre[0] ?? titre, 'titre') + marge, 88, 184)
+  const trouTitre2 = bornerNombre(largeurApproxTexte(lignesTitre[1] ?? lignesTitre[0] ?? titre, 'titre') + marge, 88, 184)
+  const trouInterligne = bornerNombre(Math.max(trouAuteur, Math.min(trouTitre1, trouTitre2)) * 0.62, 56, 118)
+  const enveloppeCentrale: Record<number, { trou: number; gauche: number; droite: number }> = {
+    6: { trou: trouAuteur, gauche: 44, droite: 44 },
+    7: { trou: trouInterligne, gauche: 44, droite: 44 },
+    8: { trou: trouTitre1, gauche: 42, droite: 42 },
+    9: { trou: trouTitre2, gauche: 42, droite: 42 },
+  }
+  for (let ligne = 0; ligne < 17; ligne++) {
+    const enveloppe = enveloppeCentrale[ligne]
+    if (enveloppe) {
+      const gauche = prendreLongueur(mots, index, enveloppe.gauche); index = gauche.index
+      const droite = prendreLongueur(mots, index, enveloppe.droite); index = droite.index
+      lignes.push({ gauche: gauche.texte, droite: droite.texte, trou: enveloppe.trou })
+    } else {
+      const pleine = prendreLongueur(mots, index, 72); index = pleine.index
+      lignes.push({ pleine: pleine.texte })
+    }
+  }
+  return lignes
+}
+
+function nettoyerTextePublication(texte: string) {
+  return texte
+    .replace(/\[\^.+?\]/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[#*_`>{}]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function EssaiCarte({ essai: e, miseEnAvant = false, favorisEssais, toggleFavoriEssai }: { essai: EssaiResume; miseEnAvant?: boolean; favorisEssais: Set<string>; toggleFavoriEssai: (id: string) => void }) {
   const router = useRouter()
   const estNouveau = !!(e.publie_at && (Date.now() - new Date(e.publie_at).getTime()) < SEMAINE_MS)
   const dateFormatee = e.publie_at
@@ -235,9 +628,57 @@ function EssaiCarte({ essai: e, favorisEssais, toggleFavoriEssai }: { essai: Ess
     : ''
   const rang = calculerRang(e.auteur_score)
   const couleurs = couleurRang(rang.rang)
+  const resume = nettoyerTextePublication(e.contenu?.trim() || e.resume?.trim() || e.sous_titre?.trim() || '')
+  const resumeJournal = resume
+    ? (resume.length < 150 ? `${resume} ${resume}` : resume)
+    : 'Lire cette contribution dans son entier pour en suivre le développement et les nuances.'
+  const lignesHabillage = creerHabillageJournal(resumeJournal, e.auteur, e.titre)
+  const lignesTitreAffichees = lignesTitreCentre(e.titre)
+
+  if (!miseEnAvant) {
+    return (
+      <div className="essai-carte" onClick={() => router.push(`/essais/${e.id}`)}>
+        <svg className="fleche-lire" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <path d="M4 14H22" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" />
+          <path d="M15 7L22.5 14L15 21" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {e.resume && (
+          <span className="essai-survol-resume">
+            {e.resume.length > 170 ? `${e.resume.slice(0, 170).replace(/\s+\S*$/, '')} …` : e.resume}
+          </span>
+        )}
+
+        <div className="essai-etoile" style={{ position: 'absolute', bottom: '12px', right: '10px', zIndex: 20 }}>
+          <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={14} />
+        </div>
+
+        <div className="essai-contenu article-journal-normal">
+          <div className="article-journal-lignes" aria-hidden="true">
+            {lignesHabillage.map((ligne, i) => ligne.pleine ? (
+              <span key={i} className="article-journal-ligne">{ligne.pleine}</span>
+            ) : (
+              <span key={i} className="article-journal-ligne-fracturee" style={{ '--trou': `${ligne.trou ?? 96}px` } as CSSProperties}>
+                <span className="article-journal-fragment">{ligne.gauche}</span>
+                <span className="article-journal-fragment">{ligne.droite}</span>
+              </span>
+            ))}
+          </div>
+          <div className="article-journal-ilot">
+            <p className="article-journal-auteur">{e.auteur}</p>
+            <p className="article-journal-titre">
+              {lignesTitreAffichees.map((ligne, i) => <span key={i} className="article-journal-titre-ligne">{ligne}</span>)}
+            </p>
+          </div>
+          <div className="article-journal-categories">
+            {e.categories.slice(0, 3).map(c => <span key={c} className="article-journal-categorie">{c}</span>)}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="essai-carte" onClick={() => router.push(`/essais/${e.id}`)}>
+    <div className={`essai-carte${miseEnAvant ? ' featured' : ''}`} onClick={() => router.push(`/essais/${e.id}`)}>
         <svg className="fleche-lire" viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <path d="M4 14H22" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" />
           <path d="M15 7L22.5 14L15 21" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -249,7 +690,7 @@ function EssaiCarte({ essai: e, favorisEssais, toggleFavoriEssai }: { essai: Ess
 
         <div className="essai-contenu">
           {/* Ligne supérieure : auteur + rang + date */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: miseEnAvant ? '16px' : '10px', flexWrap: 'wrap' }}>
             <span style={{ fontFamily: 'Georgia, serif', fontSize: '12px', fontStyle: 'italic', color: '#3d6b4f', flexShrink: 0 }}>
               {e.auteur}
             </span>
@@ -270,21 +711,21 @@ function EssaiCarte({ essai: e, favorisEssais, toggleFavoriEssai }: { essai: Ess
           </div>
 
           {/* Titre */}
-          <p style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#1a2820', margin: '0 0 4px', lineHeight: 1.25, letterSpacing: '0.01em' }}>
+          <p style={{ fontFamily: 'Georgia, serif', fontSize: miseEnAvant ? '25px' : '16px', fontWeight: 'normal', color: '#1a2820', margin: '0 0 4px', lineHeight: miseEnAvant ? 1.14 : 1.25, letterSpacing: '0.01em' }}>
             {e.titre}
           </p>
 
           {/* Sous-titre */}
           {e.sous_titre && (
-            <p style={{ fontFamily: 'Georgia, serif', fontSize: '13px', fontStyle: 'italic', color: '#7a7268', margin: '0 0 10px', lineHeight: 1.4 }}>
+            <p style={{ fontFamily: 'Georgia, serif', fontSize: miseEnAvant ? '15px' : '12.5px', fontStyle: 'italic', color: '#7a7268', margin: '0 0 10px', lineHeight: 1.4 }}>
               {e.sous_titre}
             </p>
           )}
 
           {/* Résumé */}
           {e.resume && (
-            <p style={{ fontFamily: 'Georgia, serif', fontSize: '12.5px', color: '#6a6258', lineHeight: 1.65, margin: `${e.sous_titre ? '0' : '8px'} 0 12px`, fontStyle: 'italic' }}>
-              {e.resume.length > 180 ? e.resume.slice(0, 180) + ' …' : e.resume}
+            <p style={{ fontFamily: 'Georgia, serif', fontSize: miseEnAvant ? '13.5px' : '12px', color: '#6a6258', lineHeight: miseEnAvant ? 1.72 : 1.55, margin: `${e.sous_titre ? '0' : '8px'} 0 12px`, fontStyle: 'italic', textAlign: miseEnAvant ? 'justify' : 'left' }}>
+              {e.resume.length > (miseEnAvant ? 340 : 150) ? e.resume.slice(0, miseEnAvant ? 340 : 150) + ' …' : e.resume}
             </p>
           )}
 
@@ -446,6 +887,137 @@ function OngletMesEcrits({
             )
           })}
         </div>
+      )}
+    </div>
+  )
+}
+
+// ── Suggestion aléatoire ─────────────────────────────────────────────────────
+
+const TOTAL_VERSETS = 41899
+const MAX_SUGGESTIONS_JOUR = 3
+
+type VerseSug = { id_verset: string; livre: string; chapitre: number; verset: number; texte: string }
+
+function cleJour() {
+  return `suggestion-versets-${new Date().toISOString().slice(0, 10)}`
+}
+
+function lireSuggestionsJour(): VerseSug[] {
+  if (typeof window === 'undefined') return []
+  try { return JSON.parse(localStorage.getItem(cleJour()) ?? '[]') }
+  catch { return [] }
+}
+
+async function piocherVerset(essais = 0): Promise<VerseSug | null> {
+  if (essais > 5) return null
+  const offset = Math.floor(Math.random() * TOTAL_VERSETS)
+  const { data } = await supabase
+    .from('versets')
+    .select('id_verset, livre, chapitre, verset, TR0001, TR0002')
+    .range(offset, offset)
+  const row = data?.[0]
+  if (!row) return piocherVerset(essais + 1)
+  const texte = ((row.TR0001 as string | null) || (row.TR0002 as string | null) || '').trim()
+  if (!texte) return piocherVerset(essais + 1)
+  return { id_verset: row.id_verset as string, livre: row.livre as string, chapitre: row.chapitre as number, verset: row.verset as number, texte }
+}
+
+function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
+  const [versets, setVersets] = useState<VerseSug[]>([])
+  const [index, setIndex] = useState(0)
+  const [chargement, setChargement] = useState(false)
+  const initialise = useRef(false)
+
+  useEffect(() => {
+    if (initialise.current) return
+    initialise.current = true
+    const existants = lireSuggestionsJour()
+    if (existants.length > 0) {
+      setVersets(existants)
+      setIndex(existants.length - 1)
+    } else {
+      charger([])
+    }
+  }, [])
+
+  const charger = async (base: VerseSug[]) => {
+    if (base.length >= MAX_SUGGESTIONS_JOUR) return
+    setChargement(true)
+    const v = await piocherVerset()
+    setChargement(false)
+    if (!v) return
+    const nouveaux = [...base, v]
+    localStorage.setItem(cleJour(), JSON.stringify(nouveaux))
+    setVersets(nouveaux)
+    setIndex(nouveaux.length - 1)
+  }
+
+  const verset = versets[index]
+  const peutRelancer = versets.length < MAX_SUGGESTIONS_JOUR
+
+  return (
+    <div style={{ maxWidth: '560px', margin: '0 auto', textAlign: 'center', paddingTop: '8px' }}>
+      {!verset ? (
+        <p style={{ fontSize: '13px', color: '#9a958d', fontStyle: 'italic', marginTop: '20px' }}>
+          {chargement ? 'Chargement…' : 'Impossible de charger une suggestion.'}
+        </p>
+      ) : (
+        <>
+          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '34px 36px 28px', marginBottom: '18px' }}>
+            <p style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 20px' }}>
+              Verset proposé à la méditation
+            </p>
+            <p style={{ fontFamily: 'Georgia, serif', fontSize: '16px', lineHeight: 1.8, color: '#1e2e24', fontStyle: 'italic', margin: '0 0 18px' }}>
+              «&#8201;{verset.texte}&#8201;»
+            </p>
+            <p style={{ fontSize: '12px', color: '#8a8278', margin: 0 }}>
+              {ABREV_FR[verset.livre] ?? verset.livre} {verset.chapitre},{verset.verset}
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '16px' }}>
+            <Link
+              href="/essais/nouveau?depuis=publications"
+              onClick={() => {
+                const ref = `${LIVRES.find(l => l.code === verset.livre)?.nom ?? verset.livre} ${verset.chapitre},${verset.verset}`
+                sessionStorage.setItem('suggestion-verset-en-tete', JSON.stringify({ ref, texte: verset.texte }))
+              }}
+              style={{ display: 'inline-block', padding: '9px 22px', fontSize: '12.5px', fontWeight: 600, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
+              Écrire sur ce verset
+            </Link>
+            <Link
+              href={`/?livre=${verset.livre}&chapitre=${verset.chapitre}`}
+              style={{ display: 'inline-block', padding: '9px 16px', fontSize: '12.5px', color: '#3d6b4f', borderRadius: '6px', textDecoration: 'none', border: '1px solid #c8d8cc' }}>
+              Lire dans la Bible
+            </Link>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <button
+              onClick={() => charger(versets)}
+              disabled={!peutRelancer || chargement}
+              style={{ fontSize: '11.5px', color: peutRelancer ? '#3d6b4f' : '#b0a89e', background: 'none', border: 'none', cursor: peutRelancer ? 'pointer' : 'default', padding: 0, textDecoration: peutRelancer && !chargement ? 'underline' : 'none', fontStyle: 'italic' }}>
+              {chargement ? 'Chargement…' : peutRelancer ? 'Autre suggestion' : 'Limite atteinte pour aujourd\'hui'}
+            </button>
+            <span style={{ fontSize: '10px', color: '#c8c0b4' }}>({versets.length}/{MAX_SUGGESTIONS_JOUR})</span>
+          </div>
+
+          {versets.length > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '14px' }}>
+              {versets.map((_, i) => (
+                <button key={i} onClick={() => setIndex(i)}
+                  style={{ width: '6px', height: '6px', borderRadius: '50%', background: i === index ? '#3d6b4f' : '#d6d0c4', border: 'none', cursor: 'pointer', padding: 0, transition: 'background 0.13s' }} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {connecte === false && (
+        <p style={{ fontSize: '11px', color: '#9a958d', marginTop: '18px', fontStyle: 'italic' }}>
+          <Link href="/compte" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>Connectez-vous</Link> pour enregistrer votre méditation.
+        </p>
       )}
     </div>
   )

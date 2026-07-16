@@ -3,7 +3,8 @@
 import React, { useState, useRef } from 'react'
 import { supabase, parseCSV, SiecleDisplay, headersAdmin } from './adminShared'
 import SectionRemplacerSegments from './SectionRemplacerSegments'
-import type { Auteur, LignePreview } from './adminTypes'
+import SectionAjouterOeuvre from './SectionAjouterOeuvre'
+import type { Auteur, Oeuvre, LignePreview } from './adminTypes'
 
 async function exporterOeuvre(idOeuvre: string, titreOeuvre: string) {
   const res = await fetch(`/api/admin/export-segments?id_oeuvre=${idOeuvre}`, { headers: await headersAdmin() })
@@ -71,6 +72,242 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
 const inputStyleAuteur: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '12px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#fff', color: '#1e1a16', outline: 'none', boxSizing: 'border-box' }
 const lbl: React.CSSProperties = { fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b0a89e', display: 'block', marginBottom: '2px' }
 const sepOeuvre: React.CSSProperties = { borderTop: '1px solid #ede9e2', gridColumn: '1 / -1', margin: '2px 0' }
+
+type NoticeCatalogueAdmin = {
+  id: number
+  id_ligne: string
+  id_auteur: string | null
+  auteur: string
+  dates_auteur: string | null
+  id_oeuvre_stable: string
+  titre_stable: string
+  titre_original: string | null
+  titre_edition: string | null
+  traducteur: string | null
+  annee_edition: number | null
+  siecle_edition: string | null
+  editeur: string | null
+  collection_nom: string | null
+  domaine_public: string | null
+  url_source: string | null
+  decision_import: string | null
+  niveau_verification: string | null
+  score_fiabilite: number | null
+  presence_sur_le_site: boolean
+  verifie: boolean
+  genre: string | null
+  langue_originale: string | null
+  date_oeuvre: string | null
+  authenticite: string | null
+  created_at: string
+}
+
+function couleurScoreCatalogue(score: number | null | undefined) {
+  if (score == null) return '#b14b38'
+  if (score >= 90) return '#3d6b4f'
+  if (score >= 70) return '#8a5a00'
+  return '#c0562a'
+}
+
+function valeurAVerifier(valeur: unknown) {
+  if (valeur == null || valeur === '') return true
+  if (typeof valeur !== 'string') return false
+  const v = valeur.trim().toLowerCase()
+  return !v || v.includes('à vérifier') || v.includes('a verifier') || v.includes('verif') || v.includes('vérif')
+}
+
+function majPremierMotCatalogue(valeur: unknown) {
+  const texte = String(valeur ?? '').trim()
+  return texte ? texte.charAt(0).toUpperCase() + texte.slice(1) : ''
+}
+
+function dateCatalogue(n?: NoticeCatalogueAdmin) {
+  if (!n) return null
+  if (n.annee_edition) return String(n.annee_edition)
+  return n.siecle_edition
+}
+
+function labelDecisionCatalogue(decision?: string | null) {
+  if (!decision) return 'A verifier'
+  if (decision.startsWith('Candidat')) return 'Candidat'
+  if (decision.startsWith('Bibliographie')) return 'Biblio seulement'
+  if (decision.startsWith('Repérage') || decision.startsWith('Reperage')) return 'A verifier'
+  if (decision.startsWith('Écarter') || decision.startsWith('Ecarter')) return 'A ecarter'
+  return decision
+}
+
+function ChampCatalogue({ label, valeur, accent = false, transform }: {
+  label: string
+  valeur: unknown
+  accent?: boolean
+  transform?: (valeur: unknown) => string
+}) {
+  const rouge = valeurAVerifier(valeur)
+  const texte = rouge ? 'À compléter' : (transform ? transform(valeur) : String(valeur))
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '2px',
+      minWidth: 0,
+      padding: '4px 8px 5px',
+      borderRadius: '5px',
+      background: rouge ? '#fff5f3' : '#f7f4ef',
+      border: `1px solid ${rouge ? 'rgba(229,155,141,0.45)' : '#e8e3da'}`,
+    }}>
+      <span style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: rouge ? '#c06050' : '#a09080', lineHeight: 1 }}>{label}</span>
+      <span style={{ fontSize: '12px', fontWeight: accent ? 700 : 400, color: rouge ? '#a43d2d' : '#1e2820', lineHeight: 1.3, wordBreak: 'break-word' }}>{texte}</span>
+    </div>
+  )
+}
+
+function LigneCatalogue({ titre, children }: { titre: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '80px minmax(0, 1fr)', borderTop: '1px solid #ede9e2' }}>
+      <div style={{
+        fontSize: '9px', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase',
+        color: '#8a8070', background: '#f4f1eb', borderRight: '1px solid #e8e3da',
+        padding: '8px 10px 8px 14px', display: 'flex', alignItems: 'flex-start', lineHeight: 1.35,
+      }}>{titre}</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '5px', padding: '6px 12px 7px', minWidth: 0 }}>{children}</div>
+    </div>
+  )
+}
+
+function regrouperNoticesCatalogue(notices: NoticeCatalogueAdmin[], titreFallback: string) {
+  const groupes = new Map<string, { cle: string; titre: string; notices: NoticeCatalogueAdmin[] }>()
+  notices.forEach(n => {
+    const titre = n.titre_stable || titreFallback
+    const cle = n.id_oeuvre_stable || titre
+    const groupe = groupes.get(cle) ?? { cle, titre, notices: [] }
+    groupe.notices.push(n)
+    groupes.set(cle, groupe)
+  })
+  return [...groupes.values()].map(groupe => ({
+    ...groupe,
+    notices: groupe.notices.sort((a, b) =>
+      String(dateCatalogue(a) ?? '').localeCompare(String(dateCatalogue(b) ?? ''), 'fr') ||
+      String(a.titre_edition ?? a.titre_original ?? a.titre_stable ?? '').localeCompare(String(b.titre_edition ?? b.titre_original ?? b.titre_stable ?? ''), 'fr')
+    ),
+  })).sort((a, b) => a.titre.localeCompare(b.titre, 'fr'))
+}
+
+function BlocCatalogueOeuvre({ oeuvre, notices }: { oeuvre: Oeuvre; notices: NoticeCatalogueAdmin[] }) {
+  if (notices.length === 0) {
+    return (
+      <div style={{ margin: '0 18px 8px 34px', padding: '10px 14px', borderRadius: '7px', border: '1px solid #f0c4b8', background: '#fff5f3', color: '#a43d2d', fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span style={{ fontSize: '15px', lineHeight: 1 }}>⚠</span>
+        Aucune fiche catalogue reliée à cette œuvre.
+      </div>
+    )
+  }
+  const groupes = regrouperNoticesCatalogue(notices, oeuvre.titre)
+  return (
+    <div style={{ margin: '0 18px 8px 34px', background: '#fdfcf9', border: '1px solid #ddd5c0', borderRadius: '8px', overflow: 'hidden' }}>
+      {groupes.map((groupe, gi) => (
+        <div key={groupe.cle} style={{ borderTop: gi > 0 ? '2px solid #d8cfbc' : 'none' }}>
+          <div style={{ padding: '9px 14px', background: '#f2ede4', borderBottom: '1px solid #e0d8ca' }}>
+            <span style={{ fontFamily: 'Georgia, serif', fontSize: '13.8px', fontWeight: 700, color: '#1a2820', lineHeight: 1.3 }}>
+              {groupe.titre}
+            </span>
+            <span style={{ fontSize: '10px', color: '#9a958d', marginLeft: '8px' }}>
+              {groupe.notices.length} titre{groupe.notices.length > 1 ? 's' : ''} répertorié{groupe.notices.length > 1 ? 's' : ''}
+            </span>
+          </div>
+
+          {groupe.notices.map((n, ni) => (
+            <div key={n.id} style={{ borderTop: ni > 0 ? '1px solid #e8e1d4' : 'none' }}>
+
+          {/* En-tête de la notice */}
+          <div style={{ padding: '10px 14px 9px', background: '#f5f1e8', borderBottom: '1px solid #e4dfd8', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: '12.6px', fontWeight: 500, color: '#4a4038', marginBottom: '8px', lineHeight: 1.3, fontStyle: n.titre_edition || n.titre_original ? 'italic' : 'normal' }}>
+                {n.titre_edition || n.titre_original || n.titre_stable || oeuvre.titre}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                {([
+                  ['Ligne', n.id_ligne],
+                  ['Œuvre', n.id_oeuvre_stable || oeuvre.id_oeuvre],
+                  ['Auteur', n.id_auteur],
+                ] as [string, string | null | undefined][]).map(([label, val]) => (
+                  <span key={label} style={{
+                    fontSize: '9.5px', fontFamily: 'monospace',
+                    background: val ? '#ede9e0' : '#fff5f3',
+                    color: val ? '#5a5650' : '#a43d2d',
+                    padding: '2px 7px', borderRadius: '3px',
+                    border: `1px solid ${val ? '#d6d0c4' : '#e5a99b'}`,
+                    display: 'inline-flex', gap: '4px',
+                  }}>
+                    <span style={{ color: '#9a958d' }}>{label}</span>
+                    {val ?? <span style={{ fontStyle: 'italic' }}>—</span>}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Badges score + statut */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'flex-end', flexShrink: 0 }}>
+              <span style={{
+                fontSize: '16px', fontWeight: 700, lineHeight: 1,
+                color: couleurScoreCatalogue(n.score_fiabilite),
+                background: '#fff',
+                border: `2px solid ${couleurScoreCatalogue(n.score_fiabilite)}`,
+                padding: '3px 9px', borderRadius: '5px',
+                minWidth: '42px', textAlign: 'center',
+              }}>
+                {n.score_fiabilite ?? '?'}
+              </span>
+              <span style={{
+                fontSize: '9.5px', fontWeight: 600, padding: '3px 8px', borderRadius: '3px',
+                border: `1px solid ${n.verifie ? '#b8d4c4' : '#e5a99b'}`,
+                background: n.verifie ? '#edf5f0' : '#fff5f3',
+                color: n.verifie ? '#2f6046' : '#a43d2d',
+                whiteSpace: 'nowrap',
+              }}>
+                {n.verifie ? '✓ Validée' : '· À vérifier'}
+              </span>
+            </div>
+          </div>
+
+          {/* Corps — lignes de catalogue */}
+          <div>
+            <LigneCatalogue titre="Auteur">
+              <ChampCatalogue label="Auteur" valeur={n.auteur} />
+              <ChampCatalogue label="Authenticité" valeur={n.authenticite} transform={v => String(v).toUpperCase()} />
+              <ChampCatalogue label="Dates" valeur={n.dates_auteur} />
+            </LigneCatalogue>
+            <LigneCatalogue titre="Titres">
+              <ChampCatalogue label="Stable" valeur={n.titre_stable} />
+              <ChampCatalogue label="Original" valeur={n.titre_original ?? oeuvre.titre_original} />
+              <ChampCatalogue label="Édition" valeur={n.titre_edition} />
+            </LigneCatalogue>
+            <LigneCatalogue titre="Édition">
+              <ChampCatalogue label="Éditeur" valeur={n.editeur ?? oeuvre.editeur} />
+              <ChampCatalogue label="Ville" valeur={oeuvre.ville} />
+              <ChampCatalogue label="Collection" valeur={n.collection_nom ?? oeuvre.collection} />
+              <ChampCatalogue label="Publication" valeur={dateCatalogue(n) ?? oeuvre.date_publication} />
+            </LigneCatalogue>
+            <LigneCatalogue titre="Classement">
+              <ChampCatalogue label="Genre" valeur={n.genre ?? oeuvre.genres?.[0]} transform={majPremierMotCatalogue} />
+              <ChampCatalogue label="Langue" valeur={n.langue_originale ?? oeuvre.langue} transform={majPremierMotCatalogue} />
+              <ChampCatalogue label="Composition" valeur={n.date_oeuvre ?? oeuvre.date_composition} />
+            </LigneCatalogue>
+            <LigneCatalogue titre="Import">
+              <ChampCatalogue label="Décision" valeur={n.decision_import} accent transform={() => labelDecisionCatalogue(n.decision_import)} />
+              <ChampCatalogue label="Vérif." valeur={n.niveau_verification} />
+              <ChampCatalogue label="URL" valeur={n.url_source ?? oeuvre.url_source} />
+              <ChampCatalogue label="Sur site" valeur={n.presence_sur_le_site} transform={v => v ? 'OUI' : 'NON'} />
+              <ChampCatalogue label="Notice" valeur={n.verifie} transform={v => v ? 'VALIDÉE' : 'NON VALIDÉE'} />
+            </LigneCatalogue>
+          </div>
+
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
 
 const GENRES_PAR_CATEGORIE: { cat: string; genres: string[] }[] = [
   { cat: 'Écriture & exégèse', genres: ['Commentaire biblique', 'Homélie exégétique', 'Chaîne (catena)', 'Scolie'] },
@@ -246,6 +483,9 @@ function ChampsAuteur({ valeurs, onChange, onChangeTags, tousLesTags }: {
 export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs: Auteur[] }) {
   const [auteurs, setAuteurs] = useState<Auteur[]>(auteursInit)
   const [vueBibliotheque, setVueBibliotheque] = useState<'oeuvres' | 'segments'>('oeuvres')
+  const [afficherTousAuteurs, setAfficherTousAuteurs] = useState(false)
+  const [catalogueParOeuvre, setCatalogueParOeuvre] = useState<Record<string, NoticeCatalogueAdmin[]>>({})
+  const [catalogueDeploye, setCatalogueDeploye] = useState<Record<string, boolean>>({})
   const [auteurOuvert, setAuteurOuvert] = useState<string | null>(null)
   const [exporting, setExporting] = useState<string | null>(null)
   const [preview, setPreview] = useState<{ lignes: LignePreview[]; nomFichier: string; idOeuvre: string } | null>(null)
@@ -257,6 +497,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   // ── Gestion des auteurs (recherche, création, édition, photo) ──────────────
   const [recherche, setRecherche] = useState('')
   const [ajoutAuteur, setAjoutAuteur] = useState(false)
+  const [ajoutOeuvre, setAjoutOeuvre] = useState(false)
   const [nouvelAuteur, setNouvelAuteur] = useState<ValeursAuteur>(VIDE_AUTEUR)
   const [msgAjoutAuteur, setMsgAjoutAuteur] = useState<string | null>(null)
   const [editionAuteur, setEditionAuteur] = useState<string | null>(null)
@@ -274,6 +515,40 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     })
   }, [])
 
+  React.useEffect(() => {
+    const ids = Array.from(new Set(auteurs.flatMap(a => a.oeuvres.map(o => o.id_oeuvre)))).filter(Boolean)
+    if (ids.length === 0) {
+      setCatalogueParOeuvre({})
+      return
+    }
+    let annule = false
+    ;(async () => {
+      try {
+        const groupes: Record<string, NoticeCatalogueAdmin[]> = {}
+        const headers = await headersAdmin()
+        for (let i = 0; i < ids.length; i += 400) {
+          const lot = ids.slice(i, i + 400)
+          const params = new URLSearchParams({ oeuvres: lot.join(','), limit: '5000' })
+          const res = await fetch(`/api/admin/catalogue?${params}`, { headers })
+          if (!res.ok) continue
+          const json = await res.json()
+          ;(json.data ?? []).forEach((notice: NoticeCatalogueAdmin) => {
+            if (!groupes[notice.id_oeuvre_stable]) groupes[notice.id_oeuvre_stable] = []
+            groupes[notice.id_oeuvre_stable].push(notice)
+          })
+        }
+        Object.values(groupes).forEach(liste => liste.sort((a, b) => {
+          if (Number(b.verifie) !== Number(a.verifie)) return Number(b.verifie) - Number(a.verifie)
+          return (b.score_fiabilite ?? -1) - (a.score_fiabilite ?? -1)
+        }))
+        if (!annule) setCatalogueParOeuvre(groupes)
+      } catch {
+        if (!annule) setCatalogueParOeuvre({})
+      }
+    })()
+    return () => { annule = true }
+  }, [auteurs])
+
   const uploadPhoto = async (idAuteur: string, fichier: File) => {
     const formData = new FormData()
     formData.append('id_auteur', idAuteur)
@@ -287,14 +562,14 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     setEditionAuteur(a.id_auteur)
     setFormAuteur({
       nom: a.nom,
-      nom_original: (a as any).nom_original ?? '',
-      titre: (a as any).titre ?? '',
-      date_naissance: (a as any).date_naissance ?? '',
-      date_mort: (a as any).date_mort ?? '',
-      traditions: Array.isArray((a as any).traditions) ? (a as any).traditions : [],
-      langue_principale: (a as any).langue_principale ?? '',
-      note_biographique: (a as any).note_biographique ?? '',
-      note_theologique: (a as any).note_theologique ?? '',
+      nom_original: a.nom_original ?? '',
+      titre: a.titre ?? '',
+      date_naissance: a.date_naissance ?? '',
+      date_mort: a.date_mort ?? '',
+      traditions: Array.isArray(a.traditions) ? a.traditions : [],
+      langue_principale: a.langue_principale ?? '',
+      note_biographique: a.note_biographique ?? '',
+      note_theologique: a.note_theologique ?? '',
     })
     setStatutAuteur(null)
   }
@@ -350,7 +625,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     { key: 'url_source', label: 'URL source' },
   ]
 
-  const ouvrirEditionOeuvre = (o: any) => {
+  const ouvrirEditionOeuvre = (o: Oeuvre) => {
     setEditionOeuvre(o.id_oeuvre)
     setFormOeuvre({
       titre: o.titre ?? '', sous_titre: o.sous_titre ?? '', titre_original: o.titre_original ?? '',
@@ -386,7 +661,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       if (resultats.some(r => !r.ok)) { setStatutOeuvre({ id: idOeuvre, ok: false, msg: 'Erreur lors de l\u2019enregistrement.' }); return }
       setAuteurs(prev => prev.map(a => ({
         ...a,
-        oeuvres: a.oeuvres.map((o: any) => o.id_oeuvre === idOeuvre ? { ...o, ...formOeuvre, genres: formOeuvreGenres } : o),
+        oeuvres: a.oeuvres.map(o => o.id_oeuvre === idOeuvre ? { ...o, ...formOeuvre, genres: formOeuvreGenres } : o),
       })))
       setStatutOeuvre({ id: idOeuvre, ok: true, msg: 'Enregistré.' })
       setTimeout(() => { setStatutOeuvre(null); fermerEditionOeuvre() }, 1200)
@@ -405,7 +680,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       body: JSON.stringify({ id_oeuvre: idOeuvre }),
     })
     if (!res.ok) { const j = await res.json(); alert('Erreur : ' + (j.error ?? 'inconnue')); return }
-    setAuteurs(prev => prev.map(a => ({ ...a, oeuvres: a.oeuvres.filter((o: any) => o.id_oeuvre !== idOeuvre) })))
+    setAuteurs(prev => prev.map(a => ({ ...a, oeuvres: a.oeuvres.filter(o => o.id_oeuvre !== idOeuvre) })))
   }
 
   const [configOeuvre, setConfigOeuvre] = useState<string | null>(null)
@@ -419,9 +694,9 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   React.useEffect(() => {
     const init: Record<string, number> = {}
     const initNiv: Record<string, { sommaire: number; corps: number; txtSommaire: boolean[]; txtCorps: boolean[]; afficherNumeros: boolean }> = {}
-    auteurs.forEach(a => a.oeuvres.forEach((o: any) => {
+    auteurs.forEach(a => a.oeuvres.forEach(o => {
       if (o.profondeur_sommaire) init[o.id_oeuvre] = o.profondeur_sommaire
-      const parseBool = (s: string | null) => (s ?? '0,0,0,0,0').split(',').map(v => v === '1')
+      const parseBool = (s: string | null | undefined) => (s ?? '0,0,0,0,0').split(',').map(v => v === '1')
       initNiv[o.id_oeuvre] = {
         sommaire: o.niveaux_sommaire ?? o.profondeur_sommaire ?? 1,
         corps: o.niveaux_corps ?? 1,
@@ -503,21 +778,23 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
   const tousLesTags = React.useMemo(() => {
     const set = new Set<string>()
-    auteurs.forEach(a => ((a as any).traditions as string[] | null)?.forEach(t => set.add(t)))
+    auteurs.forEach(a => a.traditions?.forEach(t => set.add(t)))
     return [...set].sort()
   }, [auteurs])
 
   const rechercheNormalisee = recherche.trim().toLowerCase()
+  const auteursAvecPresence = afficherTousAuteurs ? auteurs : auteurs.filter(a => a.oeuvres.length > 0)
+  const nbAuteursMasques = auteurs.length - auteursAvecPresence.length
   const auteursFiltres = rechercheNormalisee
-    ? auteurs.filter(a =>
+    ? auteursAvecPresence.filter(a =>
         a.nom.toLowerCase().includes(rechercheNormalisee) ||
         a.oeuvres.some(o =>
           o.titre.toLowerCase().includes(rechercheNormalisee) ||
-          ((o as any).sous_titre ?? '').toLowerCase().includes(rechercheNormalisee) ||
-          ((o as any).titre_original ?? '').toLowerCase().includes(rechercheNormalisee)
+          (o.sous_titre ?? '').toLowerCase().includes(rechercheNormalisee) ||
+          (o.titre_original ?? '').toLowerCase().includes(rechercheNormalisee)
         )
       )
-    : auteurs
+    : auteursAvecPresence
 
   return (
     <>
@@ -526,7 +803,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       {/* Modale config niveaux */}
       {configOeuvre && (() => {
         const cfg = niveauxConfig[configOeuvre] ?? { sommaire: 1, corps: 1, txtSommaire: [false,false,false,false,false], txtCorps: [false,false,false,false,false], afficherNumeros: true }
-        const oeuvreNom = auteurs.flatMap((a: any) => a.oeuvres).find((o: any) => o.id_oeuvre === configOeuvre)?.titre ?? configOeuvre
+        const oeuvreNom = auteurs.flatMap(a => a.oeuvres).find(o => o.id_oeuvre === configOeuvre)?.titre ?? configOeuvre
         const setCfg = (patch: Partial<typeof cfg>) => setNiveauxConfig(prev => ({ ...prev, [configOeuvre]: { ...prev[configOeuvre] ?? cfg, ...patch } }))
         const toggleTxt = (type: 'txtSommaire'|'txtCorps', idx: number) => {
           const arr = [...(cfg[type] ?? [false,false,false,false,false])]
@@ -617,8 +894,17 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           style={{ flex: 1, fontSize: '12px', padding: '6px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#fff', color: '#1e1a16', outline: 'none' }} />
         {recherche && <button onClick={() => setRecherche('')} style={{ fontSize: '11px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>}
         <button onClick={() => { setAjoutAuteur(!ajoutAuteur); setMsgAjoutAuteur(null) }}
-          style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: 'none', background: ajoutAuteur ? '#2e5440' : '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
-          {ajoutAuteur ? 'Annuler' : '+ Nouvel auteur'}
+          style={{ width: '118px', textAlign: 'center', fontSize: '12px', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutAuteur ? '#2e5440' : '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          {ajoutAuteur ? 'Fermer' : '+ Nouvel auteur'}
+        </button>
+        <button onClick={() => { setAjoutOeuvre(!ajoutOeuvre); setVueBibliotheque('oeuvres') }}
+          style={{ width: '128px', textAlign: 'center', fontSize: '12px', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutOeuvre ? '#2e5440' : '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          {ajoutOeuvre ? 'Fermer' : '+ Nouvelle œuvre'}
+        </button>
+        <button onClick={() => setAfficherTousAuteurs(v => !v)}
+          title={afficherTousAuteurs ? 'Masquer les auteurs sans œuvre publiée' : 'Afficher aussi les auteurs sans œuvre publiée'}
+          style={{ fontSize: '12px', padding: '6px 12px', borderRadius: '5px', border: '1px solid #d6d0c4', background: afficherTousAuteurs ? '#f7f4ef' : '#fff', color: '#6b6560', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          {afficherTousAuteurs ? 'Auteurs présents' : `Tout afficher${nbAuteursMasques > 0 ? ` (${nbAuteursMasques})` : ''}`}
         </button>
         <button onClick={() => setVueBibliotheque(v => v === 'segments' ? 'oeuvres' : 'segments')}
           style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: '1px solid #3d6b4f', background: vueBibliotheque === 'segments' ? '#3d6b4f' : '#fff', color: vueBibliotheque === 'segments' ? '#fff' : '#3d6b4f', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}>
@@ -629,6 +915,12 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       {vueBibliotheque === 'segments' && <SectionRemplacerSegments auteurs={auteurs} />}
       {vueBibliotheque === 'oeuvres' && (
       <>
+
+      {ajoutOeuvre && (
+        <div style={{ background: '#fff', border: '2px solid #3d6b4f', borderRadius: '8px', padding: '18px 20px', marginBottom: '10px' }}>
+          <SectionAjouterOeuvre auteurs={auteurs} />
+        </div>
+      )}
 
       {/* Formulaire nouvel auteur */}
       {ajoutAuteur && (
@@ -656,8 +948,8 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
         {[...auteursFiltres].sort((a, b) => a.nom.localeCompare(b.nom, 'fr')).map(auteur => {
           const oeuvreTrouvee = !!rechercheNormalisee && auteur.oeuvres.some(o =>
             o.titre.toLowerCase().includes(rechercheNormalisee) ||
-            ((o as any).sous_titre ?? '').toLowerCase().includes(rechercheNormalisee) ||
-            ((o as any).titre_original ?? '').toLowerCase().includes(rechercheNormalisee)
+            (o.sous_titre ?? '').toLowerCase().includes(rechercheNormalisee) ||
+            (o.titre_original ?? '').toLowerCase().includes(rechercheNormalisee)
           )
           const ouvert = auteurOuvert === auteur.id_auteur || oeuvreTrouvee
           return (
@@ -736,39 +1028,99 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     if (idx === -1) return <>{texte}</>
                     return <>{texte.slice(0, idx)}<mark style={{ background: 'rgba(61,107,79,0.18)', color: 'inherit', borderRadius: '2px', padding: '0 1px' }}>{texte.slice(idx, idx + rechercheNormalisee.length)}</mark>{texte.slice(idx + rechercheNormalisee.length)}</>
                   }
+                  const noticesCatalogue = catalogueParOeuvre[oeuvre.id_oeuvre] ?? []
+                  const noticeCatalogue = noticesCatalogue[0]
+                  const catalogueOuvert = !!catalogueDeploye[oeuvre.id_oeuvre]
+                  const btnSobre = {
+                    fontSize: '10.5px',
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                    border: '1px solid #d8d1c6',
+                    background: '#fffdf9',
+                    color: '#5f5952',
+                    cursor: 'pointer',
+                    fontWeight: 500,
+                    whiteSpace: 'nowrap' as const,
+                    textDecoration: 'none',
+                  }
+                  const btnVert = {
+                    ...btnSobre,
+                    border: '1px solid #c8d8ce',
+                    background: '#f7fbf8',
+                    color: '#2f6046',
+                  }
+                  const btnActif = {
+                    ...btnSobre,
+                    border: '1px solid #3d6b4f',
+                    background: '#3d6b4f',
+                    color: '#fff',
+                  }
                   return (
                   <div key={oeuvre.id_oeuvre} style={{ borderBottom: '1px solid #f0ece6', background: titreMatch ? 'rgba(61,107,79,0.03)' : undefined }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 18px 4px 34px', gap: '10px', flexWrap: 'nowrap', minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', minWidth: 0, overflow: 'hidden' }}>
-                      <code style={{ fontSize: '9px', background: '#f0ece6', padding: '1px 4px', borderRadius: '3px', color: '#8a8278', flexShrink: 0 }}>{oeuvre.id_oeuvre}</code>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 18px 5px 14px', gap: '12px', flexWrap: 'nowrap', minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, overflow: 'hidden', flex: 1 }}>
+                      <a href={`/oeuvre/${oeuvre.id_oeuvre}`} target="_blank" rel="noopener noreferrer" title="Ouvrir l'œuvre"
+                        style={{ flexShrink: 0, width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#9a958d', textDecoration: 'none', lineHeight: 1 }}>
+                        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                          <path d="M5 11L11 5" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round"/>
+                          <path d="M7.2 5H11v3.8" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </a>
                       <span style={{ fontSize: '12px', color: '#3a3530', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{surbrillance(oeuvre.titre)}</span>
+                      {oeuvre.trad_auteur && (
+                        <span style={{ fontSize: '10.5px', color: '#9a958d', fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px', flexShrink: 0 }}>
+                          Trad. {oeuvre.trad_auteur}
+                        </span>
+                      )}
                       {resultat?.idOeuvre === oeuvre.id_oeuvre && <span style={{ fontSize: '10.5px', color: resultat.ok ? '#3d6b4f' : '#c0562a', flexShrink: 0 }}>{resultat.ok ? '✓' : '✗'} {resultat.msg}</span>}
                     </div>
-                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0, alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '5px', flexShrink: 0, alignItems: 'center' }}>
+                      <span style={{ width: '1px', height: '16px', background: '#e4dfd8', display: 'inline-block' }} />
                       <button onClick={() => setConfigOeuvre(configOeuvre === oeuvre.id_oeuvre ? null : oeuvre.id_oeuvre)}
                         title="Configurer les niveaux d'affichage"
-                        style={{ fontSize: '10.5px', padding: '3px 7px', borderRadius: '4px', border: '1px solid #d6d0c4', background: configOeuvre === oeuvre.id_oeuvre ? '#3d6b4f' : '#fff', color: configOeuvre === oeuvre.id_oeuvre ? '#fff' : '#9a958d', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        style={configOeuvre === oeuvre.id_oeuvre ? btnActif : { ...btnSobre, padding: '3px 7px', color: '#8a8278' }}>
                         ⚙
                       </button>
-                      <a href={`/oeuvre/${oeuvre.id_oeuvre}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '10.5px', color: '#9a958d', textDecoration: 'none', padding: '3px 7px', border: '1px solid #d6d0c4', borderRadius: '4px', whiteSpace: 'nowrap' }}>↗</a>
                       <button onClick={() => editionOeuvre === oeuvre.id_oeuvre ? fermerEditionOeuvre() : ouvrirEditionOeuvre(oeuvre)}
-                        style={{ fontSize: '10.5px', padding: '3px 8px', borderRadius: '4px', border: '1px solid #d6d0c4', background: editionOeuvre === oeuvre.id_oeuvre ? '#3d6b4f' : '#fff', color: editionOeuvre === oeuvre.id_oeuvre ? '#fff' : '#3d6b4f', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                        style={editionOeuvre === oeuvre.id_oeuvre ? btnActif : btnSobre}>
                         {editionOeuvre === oeuvre.id_oeuvre ? 'Fermer' : 'Modifier'}
                       </button>
-                      <button onClick={() => handleExport(oeuvre.id_oeuvre, oeuvre.titre)} disabled={exporting === oeuvre.id_oeuvre}
-                        style={{ fontSize: '10.5px', padding: '3px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: exporting === oeuvre.id_oeuvre ? '#e4dfd8' : '#3d6b4f', color: exporting === oeuvre.id_oeuvre ? '#9a958d' : '#fff', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                        {exporting === oeuvre.id_oeuvre ? 'Export…' : 'CSV ↓'}
-                      </button>
                       <button onClick={() => { setResultat(null); inputRefs.current[oeuvre.id_oeuvre]?.click() }}
-                        style={{ fontSize: '10.5px', padding: '3px 8px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>CSV ↑</button>
+                        style={btnSobre}>Import CSV</button>
                       <input ref={el => { inputRefs.current[oeuvre.id_oeuvre] = el }} type="file" accept=".csv" style={{ display: 'none' }}
                         onChange={e => { const f = e.target.files?.[0]; if (f) handleFichierChoisi(oeuvre.id_oeuvre, f) }} />
+                      <button onClick={() => handleExport(oeuvre.id_oeuvre, oeuvre.titre)} disabled={exporting === oeuvre.id_oeuvre}
+                        style={exporting === oeuvre.id_oeuvre ? { ...btnSobre, opacity: .65, cursor: 'default' } : btnSobre}>
+                        {exporting === oeuvre.id_oeuvre ? 'Export…' : 'Export CSV'}
+                      </button>
+                      <span style={{ width: '1px', height: '16px', background: '#e4dfd8', display: 'inline-block', marginLeft: '2px' }} />
+                      <span title="Score de la fiche catalogue"
+                        style={{ fontSize: '10px', padding: '3px 7px', borderRadius: '4px', border: '1px solid #ded8ce', background: '#faf8f4', color: couleurScoreCatalogue(noticeCatalogue?.score_fiabilite), fontWeight: 700, minWidth: '34px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                        Score {noticeCatalogue?.score_fiabilite ?? '?'}
+                      </span>
+                      <span title="Etat de validation de la fiche catalogue"
+                        style={{ fontSize: '10px', padding: '3px 7px', borderRadius: '4px', border: `1px solid ${noticeCatalogue?.verifie ? '#c8d8ce' : '#e4d3c8'}`, background: noticeCatalogue?.verifie ? '#f7fbf8' : '#fbf7f2', color: noticeCatalogue?.verifie ? '#2f6046' : '#8a5a32', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                        {noticeCatalogue?.verifie ? 'Statut validé' : 'Statut à vérifier'}
+                      </span>
+                      <button onClick={() => setCatalogueDeploye(prev => ({ ...prev, [oeuvre.id_oeuvre]: !prev[oeuvre.id_oeuvre] }))}
+                        style={catalogueOuvert ? btnActif : btnVert}>
+                        {catalogueOuvert ? 'Replier' : 'Détails'}
+                      </button>
+                      <a href={`/admin?onglet=controle-oeuvres&id_oeuvre=${oeuvre.id_oeuvre}`}
+                        style={btnVert}>
+                        Contrôle
+                      </a>
+                      <span style={{ width: '1px', height: '16px', background: '#e4dfd8', display: 'inline-block', marginLeft: '4px' }} />
                       <button onClick={() => supprimerOeuvre(oeuvre.id_oeuvre, oeuvre.titre)}
-                        style={{ fontSize: '10.5px', padding: '3px 8px', borderRadius: '4px', border: '1px solid #e4c4b8', background: '#fff', color: '#c0562a', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                        ✕
+                        style={{ ...btnSobre, border: '1px solid #e6c8be', background: '#fffaf8', color: '#b44a34', marginLeft: '4px' }}>
+                        Supprimer
                       </button>
                     </div>
                   </div>
+
+                  {catalogueOuvert && (
+                    <BlocCatalogueOeuvre oeuvre={oeuvre} notices={noticesCatalogue} />
+                  )}
 
                   {/* Formulaire d'édition de l'œuvre */}
                   {editionOeuvre === oeuvre.id_oeuvre && (

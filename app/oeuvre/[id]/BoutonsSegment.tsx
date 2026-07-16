@@ -6,6 +6,7 @@ import type { SegData } from './oeuvreTypes'
 import { texteSansEnrichissement } from './texteEnrichi'
 import ModalSignalement from './ModalSignalement'
 import { insererSignalement } from './signalements'
+import { Bulle } from '@/app/components/Bulle'
 
 // Style partagé par tous les petits boutons d'action (segment ET verset)
 export const BTN_STYLE: React.CSSProperties = {
@@ -49,10 +50,12 @@ export function BoutonEnregistrerSegment({
 
   if ((dejaSauvegarde && !supprime) || idPrelev) {
     return (
-      <button onClick={supprimer} disabled={loading} title="Retirer des prélèvements"
-        className="seg-btn-enreg"
-        style={{ ...BTN_STYLE, color:'#3d6b4f' }}
-        aria-label="Retirer">{loading ? '…' : '✕'}</button>
+      <Bulle texte="Retirer des prélèvements">
+        <button onClick={supprimer} disabled={loading}
+          className="seg-btn-enreg"
+          style={{ ...BTN_STYLE, color:'#3d6b4f' }}
+          aria-label="Retirer">{loading ? '…' : '✕'}</button>
+      </Bulle>
     )
   }
 
@@ -69,16 +72,18 @@ export function BoutonEnregistrerSegment({
   }
 
   return (
-    <button onClick={enregistrer} disabled={loading} title="Enregistrer dans mes prélèvements"
-      className="seg-btn-enreg"
-      style={{ ...BTN_STYLE, color:'#c8c0b4' }}
-      aria-label="Enregistrer">
-      {loading ? '…' : (
-        <svg width="12" height="13" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display:'block' }}>
-          <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round"/>
-        </svg>
-      )}
-    </button>
+    <Bulle texte="Enregistrer dans mes prélèvements">
+      <button onClick={enregistrer} disabled={loading}
+        className="seg-btn-enreg"
+        style={{ ...BTN_STYLE, color:'#c8c0b4' }}
+        aria-label="Enregistrer">
+        {loading ? '…' : (
+          <svg width="12" height="13" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display:'block' }}>
+            <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round"/>
+          </svg>
+        )}
+      </button>
+    </Bulle>
   )
 }
 
@@ -125,10 +130,13 @@ export function BoutonCopieSegment({ texte, auteur, titre, sousTitre, tradAuteur
     navigator.clipboard.writeText(citation).then(() => { setCopie(true); setTimeout(() => setCopie(false), 1400) })
   }
   return (
-    <button onClick={handle} title="Copier ce passage" className={className}
-      style={{ ...BTN_STYLE, color: copie ? '#3d6b4f' : '#c8c0b4' }}>
-      {copie ? '✓' : '⧉'}
-    </button>
+    <Bulle texte="Copier ce passage">
+      <button onClick={handle} className={className}
+        style={{ ...BTN_STYLE, color: copie ? '#3d6b4f' : '#c8c0b4' }}
+        aria-label="Copier ce passage">
+        {copie ? '✓' : '⧉'}
+      </button>
+    </Bulle>
   )
 }
 
@@ -136,17 +144,21 @@ export function BoutonSignalerSegment({ segId, apercu, className = '' }: { segId
   const [ouvert, setOuvert] = useState(false)
   return (
     <>
-      <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
-        title="Signaler une erreur" className={className}
-        style={{ ...BTN_STYLE, color:'#c8c0b4' }}>
-        ⚑
-      </button>
+      <Bulle texte="Signaler une erreur">
+        <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
+          className={className}
+          style={{ ...BTN_STYLE, color:'#c8c0b4' }}
+          aria-label="Signaler une erreur">
+          ⚑
+        </button>
+      </Bulle>
       {ouvert && (
         <ModalSignalement
           titre={apercu}
+          avecNiveauImportance
           onClose={() => setOuvert(false)}
-          onEnvoyer={async (msg) => {
-            await insererSignalement({ id_segment: segId, message: msg })
+          onEnvoyer={async (msg, importance) => {
+            await insererSignalement({ id_segment: segId, message: msg, importance, url_source: window.location.href })
           }}
         />
       )}

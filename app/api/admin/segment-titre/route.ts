@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     champs = niveau === 1 ? { ref_niv1_texte: '' } : { [`ref_niv${niveau}`]: '', [`ref_niv${niveau}_texte`]: '' }
   } else {
     if (typeof valeur !== 'string') return NextResponse.json({ error: 'Valeur manquante.' }, { status: 400 })
-    const champ = niveau === 1 ? 'ref_niv1_texte' : (schemaTexte ? `ref_niv${niveau}_texte` : `ref_niv${niveau}`)
+    const champ = schemaTexte ? `ref_niv${niveau}_texte` : `ref_niv${niveau}`
     champs = { [champ]: valeur }
   }
 

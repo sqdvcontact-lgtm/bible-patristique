@@ -94,6 +94,8 @@ type Props = {
   traductionIndex: number
   setTraductionIndex: (i: number) => void
   traductions: Traduction[]
+  panelWidth?: number
+  onWidthChange?: (w: number) => void
 }
 
 /**
@@ -123,7 +125,8 @@ function parseRefBiblique(saisie: string): { code: string; chapitre: number; ver
 
 export default function NavLivres({
   livres, livreActif, chapitreActif,
-  traductionIndex, setTraductionIndex, traductions
+  traductionIndex, setTraductionIndex, traductions,
+  panelWidth = 192, onWidthChange,
 }: Props) {
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
@@ -260,11 +263,34 @@ export default function NavLivres({
     )
   }
 
+  const handleDrag = onWidthChange ? (e: React.MouseEvent) => {
+    e.preventDefault()
+    const startX = e.clientX, startW = panelWidth
+    const onMove = (ev: MouseEvent) => onWidthChange(Math.max(120, Math.min(400, startW + ev.clientX - startX)))
+    const onUp = () => document.removeEventListener('mousemove', onMove)
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp, { once: true })
+  } : undefined
+
   return (
     <div style={{
-      width: '192px', flexShrink: 0, background: '#faf8f4',
+      width: panelWidth + 'px', flexShrink: 0, background: '#faf8f4',
       borderRight: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', height: '100%',
+      position: 'relative',
     }}>
+      {handleDrag && (
+        <div onMouseDown={handleDrag} title="Glisser pour redimensionner"
+          style={{ position: 'absolute', right: '-4px', top: 0, bottom: 0, width: '9px', cursor: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex: 10, background: 'transparent', transition: 'background 0.14s, box-shadow 0.14s' }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(198,184,158,0.08)'
+            e.currentTarget.style.boxShadow = 'inset -1px 0 rgba(122,96,64,0.08)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.boxShadow = 'none'
+          }}
+        />
+      )}
       {/* Barre de recherche */}
       <div style={{ padding: '8px 8px 6px', borderBottom: '1px solid #d6d0c4', display: 'flex', alignItems: 'center', gap: '6px' }}>
         <input

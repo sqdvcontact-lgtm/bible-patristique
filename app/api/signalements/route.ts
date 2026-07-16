@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { erreur500 } from '@/app/lib/apiErreur'
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +13,8 @@ export async function POST(request: Request) {
 
     const body = await request.json()
     const message = typeof body?.message === 'string' ? body.message.trim() : ''
+    const importance = typeof body?.importance === 'string' && body.importance ? body.importance : null
+    const urlSource = typeof body?.url_source === 'string' && body.url_source ? body.url_source.slice(0, 500) : null
     const idSegmentRaw = body?.id_segment
     let idSegment = typeof idSegmentRaw === 'number' && Number.isFinite(idSegmentRaw)
       ? idSegmentRaw
@@ -33,11 +36,7 @@ export async function POST(request: Request) {
     const token = auth?.replace('Bearer ', '').trim()
     let userId: string | null = null
 
-    const supabaseAdmin = createClient(
-      supabaseUrl,
-      serviceKey ?? anonKey!,
-      token && !serviceKey ? { global: { headers: { Authorization: `Bearer ${token}` } } } : undefined
-    )
+    const supabaseAdmin = createClient(supabaseUrl, serviceKey ?? anonKey!)
 
     if (token) {
       const { data } = await supabaseAdmin.auth.getUser(token)
@@ -60,34 +59,20 @@ export async function POST(request: Request) {
       }
     }
 
-    const signalement = {
+    const { error } = await supabaseAdmin.from('signalements').insert({
       id_segment: idSegment,
       id_verset: idVerset,
       user_id: userId,
       message,
+      importance,
+      url_source: urlSource,
       traite: false,
-    }
+    })
 
-    let { error } = await supabaseAdmin.from('signalements').insert(signalement)
-    if (error && /user_id|schema cache|column/i.test(error.message)) {
-      const minimal = { id_segment: idSegment, id_verset: idVerset, message, traite: false }
-      const retry = await supabaseAdmin.from('signalements').insert(minimal)
-      error = retry.error
-    }
-    if (error && idSegment && /id_verset|schema cache|column/i.test(error.message)) {
-      const ancienSchema = { id_segment: idSegment, message, traite: false }
-      const retry = await supabaseAdmin.from('signalements').insert(ancienSchema)
-      error = retry.error
-    }
-
-    if (error) {
-      console.error('signalements insert error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
+    if (error) return erreur500(error, 'Erreur lors de l\'envoi du signalement.')
 
     return NextResponse.json({ ok: true })
-  } catch (error: any) {
-    console.error('signalements api error:', error)
-    return NextResponse.json({ error: error?.message ?? 'erreur inconnue' }, { status: 500 })
+  } catch (error) {
+    return erreur500(error)
   }
 }

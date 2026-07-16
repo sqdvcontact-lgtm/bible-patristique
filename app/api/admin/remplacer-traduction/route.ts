@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
+import { erreur500 } from '@/app/lib/apiErreur'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
@@ -61,7 +62,7 @@ let majCount = 0
         `
       })
       if (error) {
-        return NextResponse.json({ error: `Erreur lors de la mise à jour : ${error.message}` }, { status: 500 })
+        return erreur500(error, "Erreur lors de la mise à jour : ")
       }
       majCount += lignesValides.length
     }
@@ -73,6 +74,6 @@ let majCount = 0
 
     return NextResponse.json({ ok: true, maj: majCount, ignores })
   } catch (e: unknown) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : 'Erreur inconnue' }, { status: 500 })
+    return erreur500(e)
   }
 }

@@ -31,6 +31,7 @@ Corpus Scriptura est une bibliothèque patristique numérique. Les utilisateurs 
 - Server Components fetchent les données, Client Components gèrent l'UI
 - Les routes API admin vérifient toutes le cookie admin (estAdminServeur)
 - Modèle de données segments : chaque segment est un paragraphe numéroté, groupé par niveaux de titres (ref_niv1, ref_niv2, ref_niv3, ref_niv4 pour le titre principal ; ref_niv1_texte, etc. pour le sous-titre)
+- Hiérarchie des titres : éviter les doublons de type « Livre I » / « Livre premier » entre le titre et le sous-titre. Pour un même niveau, préférer la forme littéraire dans \`ref_niv1\` (\`Livre premier\`, \`Livre deuxième\`, etc.) et laisser vide le champ \`_texte\` s'il ne fait que répéter la même information.
 - Lettrine (drop cap) sur le premier segment de chaque niv1, page 0 seulement, Georgia 3.4em
 
 ## Règles typographiques
@@ -38,6 +39,33 @@ Corpus Scriptura est une bibliothèque patristique numérique. Les utilisateurs 
 - Colophon « à l'ancienne » : triangle pointe en bas, lignes décroissantes, Georgia italique, filets ornementaux
 - Guillemets français : « texte » avec espace fine insécable (U+202F)
 - Volets latéraux page Œuvre : modèle identique à la page Bible (NavLivres.tsx et PanneauPatristique.tsx)
+
+## Règles absolues — préparation des CSV
+
+### Liens bibliques
+
+- Les champs lien_1 à lien_4 doivent **toujours** contenir des identifiants de la forme Bxxxxxx (ex. B028266), jamais des références lisibles comme « Rom 10:10 » ou « Gen 1:1 ».
+- Plusieurs références dans un même champ : séparées par ; sans espace (ex. B000001;B029548).
+- Pour une plage de versets (ex. Gen 1:26-28), pointer le premier verset de la plage.
+- Ne jamais dupliquer la même référence entre lien_1, lien_2, lien_3 et lien_4 ; consolider tout dans lien_1 en priorité.
+
+### Casse
+
+- **Passer systématiquement en bas de casse** tout titre, bout de phrase ou mot écrit entièrement en capitales dans la source si cette capitalisation n'est pas justifiée (nom propre, sigle, titre de dignité consacré). Règle : si ce n'est pas une majuscule de sens, c'est une majuscule de mise en page à supprimer.
+- Les titres de niveau (ref_niv1, ref_niv2…) doivent suivre la même règle : seule la première lettre du titre est en majuscule, plus les noms propres.
+- Exemple : « CHAPITRE PREMIER. LE SYMBOLE, RÈGLE DE FOI. » → ref_niv1 = « Chapitre premier », ref_niv1_texte = « Le symbole, règle de foi. »
+
+### Orthotypographie française
+
+- Espace **avant** les signes de ponctuation doubles : « ; », « : », « ! », « ? » (espace insécable si possible : U+202F).
+- Espace **après** ces mêmes signes.
+- Ne pas mettre d'espace avant la virgule ni le point.
+- Les guillemets français s'écrivent « texte » avec une espace insécable à l'intérieur.
+
+### O invocatoire
+
+- Le « O » d'invocation ou d'exclamation prend toujours un accent : **Ô** (et non O).
+- Exemples corrects : « Ô bonté infinie ! », « Ô Seigneur ! »
 
 ## Fichiers clés
 

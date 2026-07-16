@@ -15,6 +15,8 @@ export default function AccueilPage() {
         .colophon-body { font-family: Georgia, 'Times New Roman', serif; }
         .colophon-ornement { font-size: 18px; color: #7a6a52; letter-spacing: 0.25em; }
         .colophon-regle { display: block; width: 36px; height: 1px; background: #c8b89e; margin: 0 auto; }
+        .hero-title-ornament { width: min(265px, 48vw); height: auto; display: block; margin: 0 auto 8px; opacity: .82; }
+        .hero-title-ornament + div { display: none; }
       `}</style>
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
@@ -24,14 +26,29 @@ export default function AccueilPage() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
-        padding: "48px 24px 28px",
+        padding: "0 24px 28px",
       }}>
-        <header style={{ textAlign: "center", marginBottom: "36px" }}>
+        {/* Contenu centré — prend tout l'espace disponible */}
+        <div style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+          padding: "42px 0 0",
+        }}>
+        <header style={{ textAlign: "center", marginBottom: "34px" }}>
+          <img
+            src="/icons/home-title-ornament.png"
+            alt=""
+            aria-hidden="true"
+            className="hero-title-ornament"
+          />
 
           {/* Marque typographique supérieure */}
-          <div style={{ fontSize: "22px", color: "#8a7a5e", marginBottom: "22px", letterSpacing: "0.3em" }}>
-            ✦
+          <div style={{ fontSize: "13px", color: "#8a7a5e", marginBottom: "22px", letterSpacing: "0.45em" }}>
+            ❧ · ❧
           </div>
 
           {/* Titre principal */}
@@ -80,7 +97,7 @@ export default function AccueilPage() {
         <AccueilCards />
 
         <a href="#apropos" aria-label="En savoir plus" style={{
-          marginTop: "24px",
+          marginTop: "12px",
           display: "flex", flexDirection: "column", alignItems: "center", gap: "3px",
           color: "#9a8a72", textDecoration: "none", fontSize: "10.5px", letterSpacing: "0.08em",
           fontFamily: "Georgia, serif", fontStyle: "italic",
@@ -88,6 +105,31 @@ export default function AccueilPage() {
           <span>Le projet</span>
           <span style={{ fontSize: "14px", lineHeight: 1 }}>⌄</span>
         </a>
+        </div>
+
+        {/* Soutenir — ancré en bas du viewport initial */}
+        <Link href="/soutenir" style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "7px",
+          fontSize: "12.5px",
+          color: "#42583c",
+          background: "rgba(255,252,242,0.96)",
+          textDecoration: "none",
+          padding: "8px 20px",
+          border: "1px solid rgba(154,126,61,0.38)",
+          borderRadius: "999px",
+          boxShadow: "0 4px 16px rgba(74,55,32,0.09), inset 0 1px 0 rgba(255,255,255,0.78)",
+          letterSpacing: "0.04em",
+          fontFamily: "Georgia, serif",
+          fontStyle: "italic",
+        }}>
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ opacity: 0.65 }}>
+            <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z"
+              stroke="currentColor" strokeWidth="1.1" strokeLinejoin="round"/>
+          </svg>
+          Soutenir le projet
+        </Link>
       </main>
 
       {/* ── À propos — style colophon ─────────────────────────────────────── */}
@@ -186,7 +228,7 @@ function OrnementsTriple() {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", margin: "0 auto", maxWidth: "280px" }}>
       <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #c8b49a)" }} />
-      <span style={{ fontSize: "13px", color: "#9a8a6e", letterSpacing: "0.3em" }}>· · ·</span>
+      <span style={{ fontSize: "15px", color: "#9a8a6e" }}>⁂</span>
       <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #c8b49a)" }} />
     </div>
   )

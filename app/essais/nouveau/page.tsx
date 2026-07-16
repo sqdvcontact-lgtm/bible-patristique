@@ -9,6 +9,7 @@ import type { Metadonnees } from '../EtapeMetadonnees'
 export default function NouvelEssaiPage() {
   const [statut, setStatut] = useState<'chargement' | 'connecte' | 'deconnecte'>('chargement')
   const [metadonneesInitiales, setMetadonneesInitiales] = useState<Metadonnees | null>(null)
+  const [versetEnTete, setVersetEnTete] = useState<{ ref: string; texte: string } | null>(null)
 
   useEffect(() => {
     const brutes = window.sessionStorage.getItem('nouvel-essai-metadonnees')
@@ -19,6 +20,13 @@ export default function NouvelEssaiPage() {
       } catch {
         window.sessionStorage.removeItem('nouvel-essai-metadonnees')
       }
+    }
+    const bruteVerset = window.sessionStorage.getItem('suggestion-verset-en-tete')
+    if (bruteVerset) {
+      try {
+        setVersetEnTete(JSON.parse(bruteVerset) as { ref: string; texte: string })
+      } catch {}
+      window.sessionStorage.removeItem('suggestion-verset-en-tete')
     }
     supabase.auth.getSession().then(({ data }) => setStatut(data.session ? 'connecte' : 'deconnecte'))
   }, [])
@@ -38,5 +46,5 @@ export default function NouvelEssaiPage() {
     )
   }
 
-  return <EditeurEssai metadonneesInitiales={metadonneesInitiales} />
+  return <EditeurEssai metadonneesInitiales={metadonneesInitiales} versetEnTeteInitial={versetEnTete} />
 }

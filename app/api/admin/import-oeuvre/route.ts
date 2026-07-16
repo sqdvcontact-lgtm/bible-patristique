@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
+import { erreur500 } from '@/app/lib/apiErreur'
 import { createClient } from '@supabase/supabase-js'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
 
@@ -14,7 +15,6 @@ type MetaOeuvre = {
   sous_titre?: string | null
   titre_original?: string | null
   trad_auteur?: string | null
-  trad_date?: string | null
   editeur?: string | null
   collection?: string | null
   ville?: string | null
@@ -39,6 +39,9 @@ function nulSiVide(v: unknown): string | null {
   return s ? s : null
 }
 
+const FIABILITE_VALIDES = ['vérifié', 'probable', 'erreur probable', 'Lien à constituer']
+const NATURE_VALIDES = ['texte', 'separateur', 'apparat_critique', 'citation', 'texte absent']
+
 function normaliserSegment(s: SegmentCsv, idOeuvre: string, index: number) {
   const row: Record<string, string | number | null> = {
     id_oeuvre: idOeuvre,
@@ -49,10 +52,18 @@ function normaliserSegment(s: SegmentCsv, idOeuvre: string, index: number) {
     ref_niv5: nulSiVide(s.ref_niv5),
     lien_1: nulSiVide(s.lien_1), lien_2: nulSiVide(s.lien_2),
     lien_3: nulSiVide(s.lien_3), lien_4: nulSiVide(s.lien_4),
-    fiabilite: nulSiVide(s.fiabilite),
-    nature: nulSiVide(s.nature) ?? 'texte',
+    fiabilite: FIABILITE_VALIDES.includes(String(s.fiabilite ?? '')) ? String(s.fiabilite) : null,
+    nature: NATURE_VALIDES.includes(String(s.nature ?? '')) ? String(s.nature) : 'texte',
   }
   return Object.fromEntries(COLONNES_SEGMENTS.map(c => [c, row[c]]))
+}
+
+function segmentUtile(row: Record<string, string | number | null>) {
+  return Boolean(
+    String(row.segment_texte ?? '').trim() ||
+    row.lien_1 || row.lien_2 || row.lien_3 || row.lien_4 ||
+    row.fiabilite
+  )
 }
 
 async function rollback(idOeuvre: string) {
@@ -112,7 +123,6 @@ export async function POST(request: Request) {
     sous_titre: nulSiVide(meta.sous_titre),
     titre_original: nulSiVide(meta.titre_original),
     trad_auteur: nulSiVide(meta.trad_auteur),
-    trad_date: nulSiVide(meta.trad_date),
     editeur: nulSiVide(meta.editeur),
     collection: nulSiVide(meta.collection),
     ville: nulSiVide(meta.ville),
@@ -125,11 +135,17 @@ export async function POST(request: Request) {
 
   const { error: errOeuvre } = await supabaseAdmin.from('oeuvres').insert(oeuvrePayload)
   if (errOeuvre) {
-    return NextResponse.json({ error: `Erreur création œuvre : ${errOeuvre.message}` }, { status: 500 })
+    return erreur500(errOeuvre, "Erreur création œuvre : ")
   }
 
   try {
-    const rows = segments.map((s, i) => normaliserSegment(s, idOeuvre, i))
+    const rows = segments
+      .map((s, i) => normaliserSegment(s, idOeuvre, i))
+      .filter(segmentUtile)
+      .map((row, i) => ({ ...row, segment_numero: i + 1 }))
+    if (rows.length === 0) {
+      throw new Error('Aucun segment non vide à importer.')
+    }
     for (let i = 0; i < rows.length; i += 500) {
       const { error } = await supabaseAdmin.from('segments').insert(rows.slice(i, i + 500))
       if (error) throw error
@@ -137,6 +153,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, idOeuvre, count: rows.length })
   } catch (error: any) {
     await rollback(idOeuvre)
-    return NextResponse.json({ error: `Erreur import segments : ${error?.message ?? String(error)}` }, { status: 500 })
+    const msg = error?.message ?? error?.code ?? String(error)
+    return NextResponse.json({ error: `Erreur import segments : ${msg}` }, { status: 500 })
   }
 }

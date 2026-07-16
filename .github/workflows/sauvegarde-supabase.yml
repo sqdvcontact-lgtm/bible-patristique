@@ -1,0 +1,47 @@
+# Sauvegarde automatique de la base Corpus Scriptura — GRATUIT (GitHub Actions)
+# Emplacement obligatoire dans le dépôt : .github/workflows/sauvegarde-supabase.yml
+#
+# Ce qu'il fait : chaque dimanche à 3h (et à la demande via le bouton "Run workflow"),
+# il exporte TOUTE la base (structure + données) avec pg_dump et conserve l'archive
+# 90 jours comme artefact GitHub. Aucun coût, aucun abonnement Supabase requis.
+#
+# RESTAURATION (le jour où) : télécharger l'artefact, le décompresser, puis
+#   psql "URI_DE_CONNEXION" < sauvegarde.sql
+
+name: Sauvegarde Supabase
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'   # chaque dimanche 03:00 UTC
+  workflow_dispatch: {}    # bouton manuel "Run workflow"
+
+jobs:
+  sauvegarde:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Installer le client PostgreSQL 17
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-17
+
+      - name: Exporter la base (structure + données)
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          export PATH="/usr/lib/postgresql/17/bin:$PATH"
+          pg_dump --version
+          pg_dump "$DB_URL" \
+            --no-owner --no-privileges \
+            --format=plain \
+            --file=sauvegarde.sql
+          gzip -9 sauvegarde.sql
+          ls -lh sauvegarde.sql.gz
+
+      - name: Conserver l'archive (90 jours)
+        uses: actions/upload-artifact@v4
+        with:
+          name: corpus-scriptura-${{ github.run_id }}
+          path: sauvegarde.sql.gz
+          retention-days: 90

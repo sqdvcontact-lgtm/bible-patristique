@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "./components/Navbar";
+import BandeauMobile from "./components/BandeauMobile";
 import { ProvisionAffichageAdmin } from "./lib/contexteAffichageAdmin";
 import "./globals.css";
 
@@ -32,6 +33,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ProvisionAffichageAdmin>
           <Navbar />
+          <BandeauMobile />
           {/* Offset navbar fixe 48px */}
           <div className="pt-[48px] flex flex-col flex-1">{children}</div>
         </ProvisionAffichageAdmin>

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { chargerNotificationsUtilisateur, cleArchivesNotifications, cleNotificationsConnues, lireSetLocalStorage } from "@/app/lib/notificationsClient";
+import { LIVRES } from "@/app/lib/bible";
 
 const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean }[] = [
   { href: "/?livre=GEN&chapitre=1", label: "Bible", exact: true },
@@ -17,35 +18,20 @@ const LIENS_SECONDAIRES: { href: string; label: string }[] = [
 ];
 
 // ── Données statiques pour la recherche rapide ───────────────────────────────
-const LIVRES_RECHERCHE: { code: string; nom: string }[] = [
-  { code: 'GEN', nom: 'Genèse' }, { code: 'EXO', nom: 'Exode' }, { code: 'LEV', nom: 'Lévitique' },
-  { code: 'NUM', nom: 'Nombres' }, { code: 'DEU', nom: 'Deutéronome' }, { code: 'JOS', nom: 'Josué' },
-  { code: 'JDG', nom: 'Juges' }, { code: 'RUT', nom: 'Ruth' }, { code: '1SA', nom: '1 Samuel' },
-  { code: '2SA', nom: '2 Samuel' }, { code: '1KI', nom: '1 Rois' }, { code: '2KI', nom: '2 Rois' },
-  { code: '1CH', nom: '1 Chroniques' }, { code: '2CH', nom: '2 Chroniques' }, { code: 'EZR', nom: 'Esdras' },
-  { code: 'NEH', nom: 'Néhémie' }, { code: 'EST', nom: 'Esther' }, { code: 'JOB', nom: 'Job' },
-  { code: 'PSA', nom: 'Psaumes' }, { code: 'PRO', nom: 'Proverbes' }, { code: 'ECC', nom: 'Ecclésiaste' },
-  { code: 'SNG', nom: 'Cantique des cantiques' }, { code: 'ISA', nom: 'Isaïe' }, { code: 'JER', nom: 'Jérémie' },
-  { code: 'LAM', nom: 'Lamentations' }, { code: 'EZK', nom: 'Ézéchiel' }, { code: 'DAN', nom: 'Daniel' },
-  { code: 'HOS', nom: 'Osée' }, { code: 'JOL', nom: 'Joël' }, { code: 'AMO', nom: 'Amos' },
-  { code: 'OBA', nom: 'Abdias' }, { code: 'JON', nom: 'Jonas' }, { code: 'MIC', nom: 'Michée' },
-  { code: 'NAM', nom: 'Nahum' }, { code: 'HAB', nom: 'Habacuc' }, { code: 'ZEP', nom: 'Sophonie' },
-  { code: 'HAG', nom: 'Aggée' }, { code: 'ZEC', nom: 'Zacharie' }, { code: 'MAL', nom: 'Malachie' },
-  { code: 'MAT', nom: 'Matthieu' }, { code: 'MRK', nom: 'Marc' }, { code: 'LUK', nom: 'Luc' },
-  { code: 'JHN', nom: 'Jean' }, { code: 'ACT', nom: 'Actes' }, { code: 'ROM', nom: 'Romains' },
-  { code: '1CO', nom: '1 Corinthiens' }, { code: '2CO', nom: '2 Corinthiens' }, { code: 'GAL', nom: 'Galates' },
-  { code: 'EPH', nom: 'Éphésiens' }, { code: 'PHP', nom: 'Philippiens' }, { code: 'COL', nom: 'Colossiens' },
-  { code: '1TH', nom: '1 Thessaloniciens' }, { code: '2TH', nom: '2 Thessaloniciens' }, { code: '1TI', nom: '1 Timothée' },
-  { code: '2TI', nom: '2 Timothée' }, { code: 'TIT', nom: 'Tite' }, { code: 'PHM', nom: 'Philémon' },
-  { code: 'HEB', nom: 'Hébreux' }, { code: 'JAS', nom: 'Jacques' }, { code: '1PE', nom: '1 Pierre' },
-  { code: '2PE', nom: '2 Pierre' }, { code: '1JN', nom: '1 Jean' }, { code: '2JN', nom: '2 Jean' },
-  { code: '3JN', nom: '3 Jean' }, { code: 'JUD', nom: 'Jude' }, { code: 'REV', nom: 'Apocalypse' },
-];
+const LIVRES_RECHERCHE = LIVRES.map(({ code, nom }) => ({ code, nom }));
 const TRADUCTIONS_RECHERCHE: { code: string; nom: string }[] = [
   { code: 'TR0001', nom: 'Bible de Sacy' }, { code: 'TR0002', nom: 'Bible Segond' },
   { code: 'TR0003', nom: 'Bible Crampon' }, { code: 'TR0004', nom: 'Vulgate' },
 ];
 function sansAccents(s: string): string { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() }
+
+function extraireExtrait(texte: string, q: string, longueur = 110): string {
+  const idx = texte.toLowerCase().indexOf(q.toLowerCase())
+  if (idx < 0) return texte.slice(0, longueur) + (texte.length > longueur ? '\u2026' : '')
+  const debut = Math.max(0, idx - 40)
+  const fin = Math.min(texte.length, idx + q.length + 70)
+  return (debut > 0 ? '\u2026' : '') + texte.slice(debut, fin) + (fin < texte.length ? '\u2026' : '')
+}
 
 function IconCoeur() {
   return (
@@ -53,6 +39,38 @@ function IconCoeur() {
       <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z" stroke="currentColor" strokeWidth="1.1" fill="none" strokeLinejoin="round"/>
     </svg>
   );
+}
+
+function IconParchemin() {
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        display: 'inline-block',
+        width: '19px',
+        height: '25px',
+        background: 'currentColor',
+        WebkitMask: 'url("/icons/parchemin-message-silhouette.png") center / contain no-repeat',
+        mask: 'url("/icons/parchemin-message-silhouette.png") center / contain no-repeat',
+      }}
+    />
+  )
+}
+
+function IconAngeTrompette() {
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        display: 'inline-block',
+        width: '28px',
+        height: '27px',
+        background: 'currentColor',
+        WebkitMask: 'url("/icons/ange-trompette-silhouette.png") center / contain no-repeat',
+        mask: 'url("/icons/ange-trompette-silhouette.png") center / contain no-repeat',
+      }}
+    />
+  )
 }
 
 export default function Navbar() {
@@ -64,7 +82,9 @@ export default function Navbar() {
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [mobileOuvert, setMobileOuvert] = useState(false);
   const [nbNotifications, setNbNotifications] = useState(0);
+  const [nbMessages, setNbMessages] = useState(0);
   const [nbActionsAdmin, setNbActionsAdmin] = useState(0);
+  const [nbVerifAdmin, setNbVerifAdmin] = useState(0);
   const [toastNotification, setToastNotification] = useState<{ titre: string; message: string } | null>(null);
   const { modeUtilisateurStandard, setModeUtilisateurStandard } = useAffichageAdmin();
   const estAdminEmail = !!(user && user.email && user.email.trim().toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase());
@@ -76,10 +96,11 @@ export default function Navbar() {
   const [auteursTrouves, setAuteursTrouves] = useState<{ id_auteur: string; nom: string }[]>([]);
   const [essaisTrouves, setEssaisTrouves] = useState<{ id: number; titre: string }[]>([]);
   const [oeuvresTrouvees, setOeuvresTrouvees] = useState<{ id_oeuvre: string; titre: string; auteurs: { nom: string } | null }[]>([]);
+  const [segmentsTrouves, setSegmentsTrouves] = useState<{ id: number; segment_texte: string; id_oeuvre: string; auteur_nom: string; oeuvre_titre: string }[]>([]);
 
   useEffect(() => {
     const q = requeteRapide.trim();
-    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); setOeuvresTrouvees([]); return; }
+    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); setOeuvresTrouvees([]); setSegmentsTrouves([]); return; }
     const t = setTimeout(() => {
       supabase.from('auteurs').select('id_auteur, nom').ilike('nom', `%${q}%`).limit(4)
         .then(({ data }) => setAuteursTrouves(data ?? []));
@@ -90,6 +111,22 @@ export default function Navbar() {
         .then(({ data }) => setOeuvresTrouvees(
           (data ?? []).map((o: any) => ({ ...o, auteurs: Array.isArray(o.auteurs) ? (o.auteurs[0] ?? null) : o.auteurs }))
         ));
+      supabase.from('segments').select('id, segment_texte, id_oeuvre')
+        .ilike('segment_texte', `%${q}%`).eq('nature', 'texte').limit(3)
+        .then(async ({ data }) => {
+          const segs = data ?? []
+          if (!segs.length) { setSegmentsTrouves([]); return }
+          const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
+          const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, auteurs(nom)').in('id_oeuvre', oeuvreIds)
+          const oMap: Record<string, { oeuvre_titre: string; auteur_nom: string }> = {}
+          for (const o of (oeuvres ?? []) as any[]) {
+            oMap[o.id_oeuvre] = {
+              oeuvre_titre: o.titre ?? '',
+              auteur_nom: (Array.isArray(o.auteurs) ? o.auteurs[0]?.nom : o.auteurs?.nom) ?? '',
+            }
+          }
+          setSegmentsTrouves(segs.map((s: any) => ({ id: s.id, segment_texte: s.segment_texte, id_oeuvre: s.id_oeuvre, ...(oMap[s.id_oeuvre] ?? { oeuvre_titre: '', auteur_nom: '' }) })))
+        });
     }, 250);
     return () => clearTimeout(t);
   }, [requeteRapide]);
@@ -97,7 +134,7 @@ export default function Navbar() {
   const qNorm = sansAccents(requeteRapide.trim());
   const livresTrouves = qNorm ? LIVRES_RECHERCHE.filter(l => sansAccents(l.nom).includes(qNorm)).slice(0, 5) : [];
   const traductionsTrouvees = qNorm ? TRADUCTIONS_RECHERCHE.filter(t => sansAccents(t.nom).includes(qNorm)) : [];
-  const aucunResultat = qNorm.length > 0 && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0;
+  const aucunResultat = qNorm.length > 0 && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0;
 
   const fermerRechercheRapide = () => { setRechercheOuverte(false); setRequeteRapide(""); setMobileOuvert(false); };
   const validerRechercheRapide = () => {
@@ -120,7 +157,7 @@ export default function Navbar() {
     const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ? { id: session.user.id, email: session.user.email ?? '' } : null);
       if (session?.user) chargerProfil(session.user.id);
-      else { setPseudo(null); setEstAdmin(false); setNbNotifications(0); setNbActionsAdmin(0); }
+      else { setPseudo(null); setEstAdmin(false); setNbNotifications(0); setNbMessages(0); setNbActionsAdmin(0); }
     });
     return () => listener.subscription.unsubscribe();
   }, []);
@@ -131,18 +168,22 @@ export default function Navbar() {
     const cleConnues = cleNotificationsConnues(user.id)
 
     const chargerNotifications = async (avecToast: boolean) => {
-      const toutes = await chargerNotificationsUtilisateur(user.id)
-      const archives = lireSetLocalStorage(cleArchives)
-      const connues = lireSetLocalStorage(cleConnues)
-      const actives = toutes.filter(n => !archives.has(n.key))
-      const nouvelles = actives.filter(n => !connues.has(n.key))
-      setNbNotifications(actives.length)
-      if (avecToast && nouvelles.length > 0 && connues.size > 0) {
-        const n = nouvelles[0]
-        setToastNotification({ titre: n.titre, message: String(n.message || n.objet).slice(0, 120) })
-        window.setTimeout(() => setToastNotification(null), 5200)
+      try {
+        const toutes = await chargerNotificationsUtilisateur(user.id)
+        const archives = lireSetLocalStorage(cleArchives)
+        const connues = lireSetLocalStorage(cleConnues)
+        const actives = toutes.filter(n => !archives.has(n.key))
+        const nouvelles = actives.filter(n => !connues.has(n.key))
+        setNbNotifications(actives.length)
+        if (avecToast && nouvelles.length > 0 && connues.size > 0) {
+          const n = nouvelles[0]
+          setToastNotification({ titre: n.titre, message: String(n.message || n.objet).slice(0, 120) })
+          window.setTimeout(() => setToastNotification(null), 5200)
+        }
+        localStorage.setItem(cleConnues, JSON.stringify(toutes.map(n => n.key)))
+      } catch {
+        // fail silencieux : les notifications sont non-critiques
       }
-      localStorage.setItem(cleConnues, JSON.stringify(toutes.map(n => n.key)))
     }
 
     void chargerNotifications(false)
@@ -156,25 +197,53 @@ export default function Navbar() {
   }, [user?.id]);
 
   useEffect(() => {
+    if (!user?.id) { setNbMessages(0); return }
+    const chargerMessages = async () => {
+      const session = await supabase.auth.getSession()
+      const token = session.data.session?.access_token
+      if (!token) return
+      try {
+        const res = await fetch('/api/messagerie/nb-non-lus', { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) { const d = await res.json(); setNbMessages(d.nb ?? 0) }
+      } catch { /* non-critique */ }
+    }
+    chargerMessages()
+    const interval = window.setInterval(chargerMessages, 60000)
+    return () => window.clearInterval(interval)
+  }, [user?.id]);
+
+  useEffect(() => {
     if (!user?.id || !(estAdmin || estAdminEmail)) { setNbActionsAdmin(0); return }
-    const charger = () => Promise.all([
-      supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false'),
-      supabase.from('signalements').select('id', { count: 'exact', head: true }).eq('traite', false),
-      supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('demande_validation', true),
-      supabase.from('essais').select('id', { count: 'exact', head: true }).in('statut', ['en_attente', 'a_reviser']),
-      supabase.from('segments').select('id', { count: 'exact', head: true }).eq('fiabilite', 'probable'),
-    ]).then(resultats => setNbActionsAdmin(resultats.reduce((total, r) => total + (r.count ?? 0), 0)))
+    const charger = async () => {
+      const [r0, r1, r2, r3, r4] = await Promise.all([
+        supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false'),
+        supabase.from('signalements').select('id', { count: 'exact', head: true }).eq('traite', false),
+        supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('demande_validation', true),
+        supabase.from('essais').select('id', { count: 'exact', head: true }).in('statut', ['en_attente', 'a_reviser']),
+        supabase.rpc('count_verifications_pending'),
+      ])
+      const moderation = (r0.count ?? 0) + (r1.count ?? 0) + (r2.count ?? 0) + (r3.count ?? 0)
+      const verif = (r4.data as number | null) ?? 0
+      setNbActionsAdmin(moderation)
+      setNbVerifAdmin(verif)
+    }
     charger()
-    const interval = window.setInterval(charger, 30000)
+    const interval = window.setInterval(charger, 60000)
     const onVisible = () => { if (!document.hidden) charger() }
+    const onVerif = (e: Event) => setNbVerifAdmin((e as CustomEvent<number>).detail)
     document.addEventListener('visibilitychange', onVisible)
-    return () => { window.clearInterval(interval); document.removeEventListener('visibilitychange', onVisible) }
+    window.addEventListener('admin-verif-count', onVerif)
+    return () => { window.clearInterval(interval); document.removeEventListener('visibilitychange', onVisible); window.removeEventListener('admin-verif-count', onVerif) }
   }, [user?.id, estAdmin, estAdminEmail]);
 
   const seDeconnecter = async () => {
-    await supabase.auth.signOut();
-    setMenuOuvert(false);
-    router.push("/accueil");
+    try {
+      await supabase.auth.signOut()
+    } catch {
+      // Continuer même si signOut échoue côté réseau : le token est invalidé localement
+    }
+    setMenuOuvert(false)
+    router.push("/accueil")
   };
 
   const styleLien = (href: string, exact: boolean | undefined, primaire: boolean) => {
@@ -223,7 +292,7 @@ export default function Navbar() {
                 <div style={{ padding: "10px 0 6px" }}>
                   <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "0 14px 4px" }}>Auteurs</p>
                   {auteursTrouves.map(a => (
-                    <Link key={a.id_auteur} href={`/bibliotheque?q=${encodeURIComponent(a.nom)}`} onClick={fermerRechercheRapide}
+                    <Link key={a.id_auteur} href={`/auteur/${a.id_auteur}`} onClick={fermerRechercheRapide}
                       style={{ display: "block", padding: "7px 14px", fontSize: "13px", color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
@@ -246,8 +315,22 @@ export default function Navbar() {
                   ))}
                 </div>
               )}
-              {essaisTrouves.length > 0 && (
+              {segmentsTrouves.length > 0 && (
                 <div style={{ padding: "8px 0 6px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0) ? "1px solid #ede9e2" : "none" }}>
+                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Extraits patristiques</p>
+                  {segmentsTrouves.map(s => (
+                    <Link key={s.id} href={`/oeuvre/${s.id_oeuvre}`} onClick={fermerRechercheRapide}
+                      style={{ display: "block", padding: "7px 14px", fontSize: "12px", color: "#2a3d30", textDecoration: "none" }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                      <span style={{ fontStyle: "italic", display: "block", lineHeight: 1.5, color: "#3a3530" }}>{extraireExtrait(s.segment_texte, requeteRapide.trim())}</span>
+                      <span style={{ fontSize: "10.5px", color: "#9a958d", marginTop: "3px", display: "block" }}>{s.auteur_nom}{s.auteur_nom && s.oeuvre_titre ? ' · ' : ''}{s.oeuvre_titre}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {essaisTrouves.length > 0 && (
+                <div style={{ padding: "8px 0 6px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
                   <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Essais et méditations</p>
                   {essaisTrouves.map(e => (
                     <Link key={e.id} href={`/essais/${e.id}`} onClick={fermerRechercheRapide}
@@ -260,7 +343,7 @@ export default function Navbar() {
                 </div>
               )}
               {livresTrouves.length > 0 && (
-                <div style={{ padding: "8px 0 6px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || essaisTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
+                <div style={{ padding: "8px 0 6px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0 || essaisTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
                   <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Livres bibliques</p>
                   {livresTrouves.map(l => (
                     <Link key={l.code} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}
@@ -297,7 +380,7 @@ export default function Navbar() {
   const toggleAdmin = (mobile: boolean) => (estAdmin || estAdminEmail) && (
     <div style={mobile
       ? { display: "flex", alignItems: "center", gap: "8px", padding: "9px 12px", fontSize: "13px", color: "rgba(255,255,255,0.85)" }
-      : { display: "flex", alignItems: "center", gap: "7px", fontSize: "11.5px", color: "rgba(255,255,255,0.75)" }}>
+      : { display: "inline-flex", alignItems: "center", gap: "5px", height: "28px", padding: "0 6px 0 2px", fontSize: "11px", color: "rgba(255,255,255,0.74)", letterSpacing: "0.01em" }}>
       <button type="button" role="switch" aria-checked={modeUtilisateurStandard}
         onClick={() => setModeUtilisateurStandard(!modeUtilisateurStandard)}
         title="Affichage seulement — vos droits réels ne changent pas"
@@ -309,7 +392,7 @@ export default function Navbar() {
         }}>
         <span style={{ position: "absolute", top: "2px", left: modeUtilisateurStandard ? "14px" : "2px", width: "11px", height: "11px", borderRadius: "50%", background: modeUtilisateurStandard ? "#fff" : "#3d6b4f", transition: "left 0.15s, background 0.15s" }} />
       </button>
-      <span>Mode admin</span>
+      <span>Admin</span>
     </div>
   );
 
@@ -317,9 +400,9 @@ export default function Navbar() {
   const blocCompte = (mobile: boolean) => user ? (
     <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", alignItems: mobile ? "stretch" : "center", gap: mobile ? "2px" : "6px", width: mobile ? "100%" : undefined }}>
       {!mobile && (
-        <button onClick={() => setMenuOuvert(!menuOuvert)} style={{ display: "flex", alignItems: "center", gap: "7px", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: "6px", padding: "4px 10px 4px 8px", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "12.5px" }}>
+        <button onClick={() => setMenuOuvert(!menuOuvert)} style={{ display: "flex", alignItems: "center", gap: "5px", height: "30px", background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.17)", borderRadius: "6px", padding: "0 8px 0 7px", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "12px", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="5" r="2.8" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M1.5 13c0-3 2.5-4.5 5.5-4.5S12.5 10 12.5 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>
-          <span style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email.split("@")[0]}</span>
+          <span style={{ maxWidth: "96px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email.split("@")[0]}</span>
           <span style={{ fontSize: "9px", opacity: 0.6 }}>▼</span>
         </button>
       )}
@@ -332,8 +415,10 @@ export default function Navbar() {
         )}
         {[
           { href: "/compte", label: "Mon compte", badge: 0 },
+          { href: "/messagerie", label: "Messages", badge: nbMessages },
           { href: "/notifications", label: "Notifications", badge: nbNotifications },
-          ...(estAdminAffiche ? [{ href: "/admin", label: "Administration", badge: nbActionsAdmin }] : []),
+          ...(pseudo ? [{ href: `/profil/${encodeURIComponent(pseudo)}`, label: "Ma page", badge: 0 }] : []),
+          ...(estAdminAffiche ? [{ href: "/admin", label: "Administration", badge: nbActionsAdmin + nbVerifAdmin }] : []),
         ].map(item => (
           <Link key={item.href} href={item.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}
             style={mobile
@@ -398,9 +483,36 @@ export default function Navbar() {
           </nav>
 
           {/* ── Compte desktop ──────────────────────────────────────────────── */}
-          <div className="hidden md:flex items-center gap-2" style={{ marginLeft: "auto", flexShrink: 0 }}>
+          <div className="hidden md:flex items-center" style={{ marginLeft: "auto", flexShrink: 0, gap: "3px", paddingLeft: "8px" }}>
             {toggleAdmin(false)}
-            <div style={{ position: "relative" }}>
+            {(estAdmin || estAdminEmail) && (
+              <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 4px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
+            )}
+            {user && (
+              <Link href="/messagerie" aria-label="Messages" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', color: nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', textDecoration: 'none', background: nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.95)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
+                <IconParchemin />
+                {nbMessages > 0 && (
+                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: '#c0562a', color: '#fff', borderRadius: '7px', fontSize: '9px', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
+                    {nbMessages > 99 ? '99+' : nbMessages}
+                  </span>
+                )}
+              </Link>
+            )}
+            {user && (
+              <Link href="/notifications" aria-label="Notifications" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', color: nbNotifications > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', textDecoration: 'none', background: nbNotifications > 0 ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.95)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = nbNotifications > 0 ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = nbNotifications > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
+                <IconAngeTrompette />
+                {nbNotifications > 0 && (
+                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: '#c0562a', color: '#fff', borderRadius: '7px', fontSize: '9px', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
+                    {nbNotifications > 99 ? '99+' : nbNotifications}
+                  </span>
+                )}
+              </Link>
+            )}
+            <div style={{ position: "relative", marginLeft: "4px" }}>
               {blocCompte(false)}
             </div>
           </div>

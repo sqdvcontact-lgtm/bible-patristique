@@ -5,6 +5,8 @@ import { supabase } from '@/app/lib/supabase'
 type SignalementPayload = {
   id_segment: number | null
   message: string
+  importance?: string
+  url_source?: string
 }
 
 export async function insererSignalement(payload: SignalementPayload) {
@@ -26,6 +28,8 @@ export async function insererSignalement(payload: SignalementPayload) {
     id_segment: payload.id_segment,
     user_id: data.session?.user.id ?? null,
     message: payload.message,
+    importance: payload.importance ?? null,
+    url_source: payload.url_source ?? null,
     traite: false,
   })
   if (error && /user_id|schema cache|column/i.test(error.message)) {

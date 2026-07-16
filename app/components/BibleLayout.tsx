@@ -31,11 +31,31 @@ const TRADUCTIONS_DEFAUT = [
   { code: 'TR0004', label: 'Vulgate' },
 ]
 
+const NAV_DEFAULT = 192
+const PANN_DEFAULT = 288
+
 export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale }: Props) {
   const listeTraductions = traductions.length > 0 ? traductions : TRADUCTIONS_DEFAUT
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
   const [versetSelectionne, setVersetSelectionne] = useState<Verset | null>(null)
+
+  const [navWidth, setNavWidth] = useState(NAV_DEFAULT)
+  const [pannWidth, setPannWidth] = useState(PANN_DEFAULT)
+  const isDirty = navWidth !== NAV_DEFAULT || pannWidth !== PANN_DEFAULT
+  const reset = () => { setNavWidth(NAV_DEFAULT); setPannWidth(PANN_DEFAULT) }
+
+  // Persist widths
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('cs_volets_bible') ?? 'null')
+      if (saved?.nav) setNavWidth(saved.nav)
+      if (saved?.pann) setPannWidth(saved.pann)
+    } catch {}
+  }, [])
+  useEffect(() => {
+    localStorage.setItem('cs_volets_bible', JSON.stringify({ nav: navWidth, pann: pannWidth }))
+  }, [navWidth, pannWidth])
 
   useEffect(() => {
     const appliquer = (code?: string | null) => {
@@ -63,7 +83,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   const traduction = listeTraductions[traductionIndex]?.code ?? 'TR0001'
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden" style={{ position: 'relative' }}>
       <NavLivres
         livres={livres}
         livreActif={livreActif}
@@ -71,6 +91,8 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         traductionIndex={traductionIndex}
         setTraductionIndex={setTraductionIndex}
         traductions={listeTraductions}
+        panelWidth={navWidth}
+        onWidthChange={setNavWidth}
       />
       <TexteBible
         versets={versets}
@@ -88,7 +110,32 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         verset={versetSelectionne}
         nomLivre={nomLivre}
         chapitreActif={chapitreActif}
+        panelWidth={pannWidth}
+        onWidthChange={setPannWidth}
       />
+      {isDirty && (
+        <button
+          onClick={reset}
+          style={{
+            position: 'fixed',
+            left: '18px',
+            bottom: '18px',
+            zIndex: 2500,
+            padding: '7px 12px',
+            borderRadius: '999px',
+            border: '1px solid rgba(198,184,158,0.62)',
+            background: 'rgba(250,246,237,0.86)',
+            color: '#6f665b',
+            boxShadow: '0 6px 20px rgba(55,45,35,0.12)',
+            backdropFilter: 'blur(6px)',
+            fontSize: '11.5px',
+            fontFamily: 'Georgia, serif',
+            fontStyle: 'italic',
+            cursor: 'pointer',
+          }}>
+          Rétablir les proportions
+        </button>
+      )}
     </div>
   )
 }

@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
+import { ABREV_FR } from '@/app/lib/bible'
+import { parseNotes } from '@/app/lib/notes'
 import OeuvreClient from './OeuvreClient'
 
 const supabase = createClient(
@@ -21,6 +23,11 @@ function extraireVersets(s: Segment): string[] {
   return [s.lien_1,s.lien_2,s.lien_3,s.lien_4].filter(Boolean).join(';').split(';').map(v=>v.trim()).filter(Boolean)
 }
 
+function segmentAffichable(s: Segment) {
+  if (s.nature === 'separateur') return false
+  return Boolean((s.segment_texte ?? '').trim() || extraireVersets(s).length > 0)
+}
+
 function grouper(segments: Segment[]) {
   type G = { niv1:string; niv2:string; niv3:string; niv4:string
     niv1_texte:string; niv2_texte:string; niv3_texte:string; niv4_texte:string
@@ -28,8 +35,8 @@ function grouper(segments: Segment[]) {
   const gs:G[]=[]
   let cur={niv1:'',niv2:'',niv3:'',niv4:'',niv1_texte:'',niv2_texte:'',niv3_texte:'',niv4_texte:'',items:[] as Segment[]}
   for(const s of segments){
-    // Ignorer les séparateurs dans le groupement
-    if(s.nature==='separateur') continue
+    // Ignorer les séparateurs et les rubriques réellement vides.
+    if(!segmentAffichable(s)) continue
     const n1=s.ref_niv1||'',n2=s.ref_niv2||'',n3=s.ref_niv3||'',n4=s.ref_niv4||''
     if(n1!==cur.niv1||n2!==cur.niv2||n3!==cur.niv3||n4!==cur.niv4){
       if(cur.items.length>0)gs.push({...cur})
@@ -48,23 +55,12 @@ function numerotationLocale(segments: Segment[]): Map<number,number> {
   const map=new Map<number,number>()
   let c=0,n1c=''
   for(const s of segments){
-    if(s.nature==='separateur') continue
+    if(!segmentAffichable(s)) continue
     const n1=s.ref_niv1||'';if(n1!==n1c){c=0;n1c=n1};map.set(s.id,++c)
   }
   return map
 }
 
-const ABREV_FR:Record<string,string>={
-  GEN:'Gn',EXO:'Ex',LEV:'Lv',NUM:'Nb',DEU:'Dt',JOS:'Jos',JDG:'Jg',RUT:'Rt',
-  '1SA':'1S','2SA':'2S','1KI':'1R','2KI':'2R','1CH':'1Ch','2CH':'2Ch',
-  EZR:'Esd',NEH:'Né',EST:'Est',JOB:'Jb',PSA:'Ps',PRO:'Pr',ECC:'Qo',SNG:'Ct',
-  ISA:'Is',JER:'Jr',LAM:'Lm',EZK:'Ez',DAN:'Dn',HOS:'Os',JOL:'Jl',AMO:'Am',
-  OBA:'Ab',JON:'Jon',MIC:'Mi',NAM:'Na',HAB:'Ha',ZEP:'So',HAG:'Ag',ZEC:'Za',MAL:'Ml',
-  MAT:'Mt',MRK:'Mc',LUK:'Lc',JHN:'Jn',ACT:'Ac',ROM:'Rm','1CO':'1Co','2CO':'2Co',
-  GAL:'Ga',EPH:'Ep',PHP:'Ph',COL:'Col','1TH':'1Th','2TH':'2Th','1TI':'1Tm',
-  '2TI':'2Tm',TIT:'Tt',PHM:'Phm',HEB:'He',JAS:'Jc','1PE':'1P','2PE':'2P',
-  '1JN':'1Jn','2JN':'2Jn','3JN':'3Jn',JUD:'Jude',REV:'Ap',
-}
 
 function detailsRefBiblique(ref:string): { label: string; livre: string; chapitre: string; verset: string } {
   const p=ref.trim().split(' ')
@@ -122,7 +118,7 @@ export default async function OeuvrePage({
   // côté serveur via la session Supabase Auth — remplace l'ancien cookie
   // bp_admin_session, qui n'est plus jamais posé depuis la suppression de la
   // page de connexion par mot de passe.
-  const SELECT_SEG = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature'
+  const SELECT_SEG = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature,notes'
 
   async function chargerTousSegments(filtre: Record<string, string>) {
     const acc: any[] = []
@@ -139,8 +135,8 @@ export default async function OeuvrePage({
     return acc
   }
 
-  // ── Vague 1 : 5 requêtes indépendantes en parallèle ──────────────────────
-  const [estAdmin, { data: oeuvre }, { data: niv1Raw, error: rpcError }, { data: segmentCibleData }, segmentsApparatRaw] = await Promise.all([
+  // ── Vague 1 : 6 requêtes indépendantes en parallèle ──────────────────────
+  const [estAdmin, { data: oeuvre }, { data: niv1Raw, error: rpcError }, { data: segmentCibleData }, segmentsApparatRaw, { data: niv1TexeRaw }] = await Promise.all([
     verifierEstAdmin(),
     supabase.from('oeuvres').select('*, auteurs(id_auteur, nom)').eq('id_oeuvre', id).single(),
     supabase.rpc('get_niv1_list', { p_id_oeuvre: id }),
@@ -148,6 +144,7 @@ export default async function OeuvrePage({
       ? supabase.from('segments').select('id,ref_niv1,nature').eq('id_oeuvre', id).eq('id', segmentCibleId).maybeSingle()
       : Promise.resolve({ data: null }),
     chargerTousSegments({ nature: 'apparat_critique' }),
+    supabase.from('segments').select('ref_niv1').eq('id_oeuvre', id).eq('nature', 'texte').not('ref_niv1', 'is', null),
   ])
 
   if (!oeuvre) return (
@@ -176,9 +173,11 @@ export default async function OeuvrePage({
     })
   }
 
-  // Les niv1 d'apparat ne doivent pas apparaître dans le sommaire normal
-  const niv1ApparatSet = new Set((segmentsApparatRaw as Segment[]).map(s => s.ref_niv1).filter(Boolean))
-  const niv1List = niv1Complet.filter(n1 => !niv1ApparatSet.has(n1))
+  // Seuls les niv1 ayant au moins un segment de nature 'texte' apparaissent
+  // dans le sommaire. L'ancienne logique (exclure si présence d'apparat) était
+  // erronée : les catéchèses avec des segments apparat résiduels disparaissaient.
+  const niv1TexteSet = new Set((niv1TexeRaw ?? []).map((r: any) => r.ref_niv1).filter(Boolean))
+  const niv1List = niv1Complet.filter(n1 => niv1TexteSet.has(n1))
 
   const segmentCible = segmentCibleData
   const vueInitiale = segmentCible?.nature === 'apparat_critique' ? 'apparat' : 'texte'
@@ -186,8 +185,8 @@ export default async function OeuvrePage({
     ? segmentCible.ref_niv1
     : niv1List[0] ?? null
 
-  // ── Vague 2 : segments du premier niv1 ───────────────────────────────────
-  const segmentsTexteRaw = premierNiv1 ? await chargerTousSegments({ ref_niv1: premierNiv1 }) : []
+  // ── Vague 2 : segments texte du premier niv1 (apparat_critique exclus) ──
+  const segmentsTexteRaw = premierNiv1 ? await chargerTousSegments({ ref_niv1: premierNiv1, nature: 'texte' }) : []
 
   const segmentsTexte = segmentsTexteRaw as Segment[]
   const segmentsApparat = segmentsApparatRaw as Segment[]
@@ -218,10 +217,11 @@ export default async function OeuvrePage({
   })
 
   const segmentsData = segmentsTexte
-    .filter(s => s.nature !== 'separateur')
+    .filter(segmentAffichable)
     .map(s => ({
       id: s.id, numero: numLocaux.get(s.id) || s.segment_numero,
       texte: s.segment_texte, versets: versetParSegment[s.id] || [],
+      notes: parseNotes((s as any).notes),
     }))
 
   const groupesData = groupes.map((g, gi) => ({
@@ -232,7 +232,7 @@ export default async function OeuvrePage({
   }))
 
   const segmentsApparatData = segmentsApparat
-    .filter(s => s.nature !== 'separateur')
+    .filter(segmentAffichable)
     .map(s => ({
       id: s.id, numero: numLocauxApparat.get(s.id) || s.segment_numero,
       texte: s.segment_texte, versets: [],

@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
+import { erreur500 } from '@/app/lib/apiErreur'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
@@ -65,7 +66,7 @@ export async function POST(req: Request) {
         body: JSON.stringify({ sql: `ALTER TABLE versets ADD COLUMN IF NOT EXISTS "${trad_id}" TEXT;` })
       })
       if (!res.ok) {
-        return NextResponse.json({ error: `Impossible de créer la colonne : ${colErr.message}` }, { status: 500 })
+        return erreur500(colErr, "Impossible de créer la colonne : ")
       }
     }
     await rechargerCacheSchema()
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
         .select('id_verset')
         .in('id_verset', ids)
       if (existErr) {
-        return NextResponse.json({ error: `Erreur vérification versets : ${existErr.message}` }, { status: 500 })
+        return erreur500(existErr, "Erreur vérification versets : ")
       }
 
       const idsExistants = new Set((versetsExistants ?? []).map(v => v.id_verset as string))
@@ -101,7 +102,7 @@ export async function POST(req: Request) {
         `
       })
       if (updateErr) {
-        return NextResponse.json({ error: `Erreur update : ${updateErr.message}` }, { status: 500 })
+        return erreur500(updateErr, "Erreur update : ")
       }
       inseres += lignesExistantes.length
     }
@@ -120,11 +121,11 @@ export async function POST(req: Request) {
       ordre: ordre ? parseInt(ordre) : 99,
     })
     if (tradErr) {
-      return NextResponse.json({ error: `Traduction créée mais erreur metadata : ${tradErr.message}` }, { status: 500 })
+      return erreur500(tradErr, "Traduction créée mais erreur metadata : ")
     }
 
     return NextResponse.json({ ok: true, trad_id, inseres, ignores })
   } catch (e: unknown) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : 'Erreur inconnue' }, { status: 500 })
+    return erreur500(e)
   }
 }

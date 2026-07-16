@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
+import { erreur500 } from '@/app/lib/apiErreur'
 import { createClient } from '@supabase/supabase-js'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
 
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
   await supabaseAdmin.from('segments').delete().eq('id_oeuvre', id_oeuvre)
 
   const { error } = await supabaseAdmin.from('oeuvres').delete().eq('id_oeuvre', id_oeuvre)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return erreur500(error)
 
   return NextResponse.json({ ok: true })
 }

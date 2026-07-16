@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo, useEffect, useCallback } from 'react'
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -183,6 +183,173 @@ function LigneFiltres({ label, children }: { label: string; children: React.Reac
   )
 }
 
+// ── Catalogue des œuvres non disponibles ─────────────────────────────────────
+type NoticeCompacte = {
+  id: number
+  auteur: string
+  id_oeuvre_stable: string | null
+  titre_stable: string
+  titre_original: string | null
+  titre_edition: string | null
+  traducteur: string | null
+  annee_edition: number | null
+  siecle_edition: string | null
+  domaine_public: string | null
+}
+
+function cleOeuvreCatalogue(n: NoticeCompacte) {
+  return `${n.auteur}__${n.id_oeuvre_stable || n.titre_stable}`
+}
+
+function titreDeclineCatalogue(n: NoticeCompacte) {
+  return n.titre_edition || n.titre_original || n.titre_stable
+}
+
+function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
+  const [notices, setNotices] = useState<NoticeCompacte[]>([])
+  const [chargement, setChargement] = useState(false)
+  const [chargé, setChargé] = useState(false)
+  const [votes, setVotes] = useState<Record<number, number>>({})
+  const [mesVotes, setMesVotes] = useState<Set<number>>(new Set())
+  const [userId, setUserId] = useState<string | null>(null)
+
+  const charger = async () => {
+    if (chargé) return
+    setChargement(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      setUserId(session?.user.id ?? null)
+
+      const { data } = await supabase
+        .from('catalogue_notices')
+        .select('id, auteur, id_oeuvre_stable, titre_stable, titre_original, titre_edition, traducteur, annee_edition, siecle_edition, domaine_public')
+        .eq('presence_sur_le_site', false)
+        .order('auteur')
+        .order('titre_stable')
+        .limit(600)
+
+      if (data) {
+        setNotices(data)
+        const ids = data.map((n: NoticeCompacte) => n.id)
+        if (ids.length > 0) {
+          const { data: voteData } = await supabase.from('catalogue_votes').select('id_notice, user_id').in('id_notice', ids)
+          if (voteData) {
+            const counts: Record<number, number> = {}
+            const miens = new Set<number>()
+            for (const v of voteData) {
+              counts[v.id_notice] = (counts[v.id_notice] ?? 0) + 1
+              if (session?.user.id && v.user_id === session.user.id) miens.add(v.id_notice)
+            }
+            setVotes(counts)
+            setMesVotes(miens)
+          }
+        }
+      }
+      setChargé(true)
+    } finally { setChargement(false) }
+  }
+
+  useEffect(() => { void charger() }, [])
+
+  const voter = async (idNotice: number) => {
+    if (!userId) return
+    const avait = mesVotes.has(idNotice)
+    setMesVotes(prev => { const s = new Set(prev); avait ? s.delete(idNotice) : s.add(idNotice); return s })
+    setVotes(prev => ({ ...prev, [idNotice]: Math.max(0, (prev[idNotice] ?? 0) + (avait ? -1 : 1)) }))
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+    const headers: HeadersInit = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+    await fetch('/api/catalogue/votes', { method: avait ? 'DELETE' : 'POST', headers, body: JSON.stringify({ id_notice: idNotice }) })
+  }
+
+  // Grouper par auteur, puis par œuvre stabilisée.
+  const parAuteur: Record<string, { cle: string; titreStable: string; notices: NoticeCompacte[] }[]> = {}
+  const groupes = new Map<string, { cle: string; auteur: string; titreStable: string; notices: NoticeCompacte[] }>()
+  for (const n of notices) {
+    const cle = cleOeuvreCatalogue(n)
+    const groupe = groupes.get(cle) ?? { cle, auteur: n.auteur, titreStable: n.titre_stable, notices: [] }
+    groupe.notices.push(n)
+    groupes.set(cle, groupe)
+  }
+  for (const groupe of groupes.values()) {
+    if (!parAuteur[groupe.auteur]) parAuteur[groupe.auteur] = []
+    groupe.notices.sort((a, b) =>
+      String(a.annee_edition ?? a.siecle_edition ?? '').localeCompare(String(b.annee_edition ?? b.siecle_edition ?? ''), 'fr') ||
+      titreDeclineCatalogue(a).localeCompare(titreDeclineCatalogue(b), 'fr')
+    )
+    parAuteur[groupe.auteur].push({ cle: groupe.cle, titreStable: groupe.titreStable, notices: groupe.notices })
+  }
+  Object.values(parAuteur).forEach(groupesAuteur => {
+    groupesAuteur.sort((a, b) => a.titreStable.localeCompare(b.titreStable, 'fr'))
+  })
+
+  const nbOeuvresStables = groupes.size
+
+  const totalVotesGroupe = (ns: NoticeCompacte[]) => ns.reduce((s, n) => s + (votes[n.id] ?? 0), 0)
+  const aVoteDansGroupe = (ns: NoticeCompacte[]) => ns.some(n => mesVotes.has(n.id))
+  const voterGroupe = async (ns: NoticeCompacte[]) => {
+    const cible = ns.find(n => mesVotes.has(n.id)) ?? ns[0]
+    if (cible) await voter(cible.id)
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <span style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#b0a89e' }}>
+          Traductions répertoriées non disponibles ({nbOeuvresStables} œuvres, {notices.length} notices)
+        </span>
+        <button onClick={onProposer}
+          style={{ fontSize: '11px', color: '#3d6b4f', background: 'rgba(61,107,79,0.07)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '5px', cursor: 'pointer', padding: '6px 10px' }}>
+          Proposer une œuvre
+        </button>
+      </div>
+
+      {chargement ? (
+        <p style={{ fontSize: '12px', color: '#b0a89e', fontStyle: 'italic' }}>Chargement…</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {Object.entries(parAuteur).map(([auteur, groupesAuteur]) => (
+            <div key={auteur}>
+              <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#9a8a6e', margin: '12px 0 4px', letterSpacing: '0.04em' }}>{auteur}</p>
+              {groupesAuteur.map(groupe => (
+                <div key={groupe.cle} style={{ marginBottom: '5px', borderLeft: '2px solid #e0d7c8', background: 'rgba(0,0,0,0.018)', borderRadius: '4px', padding: '6px 8px 5px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: '12.7px', color: '#3a342e', fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>{groupe.titreStable}</span>
+                      <span style={{ fontSize: '10px', color: '#b0a89e', marginLeft: '8px' }}>
+                        {groupe.notices.length} traduction{groupe.notices.length > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <button onClick={() => voterGroupe(groupe.notices)} title={userId ? (aVoteDansGroupe(groupe.notices) ? 'Retirer mon vote' : 'Je veux cette œuvre') : 'Connectez-vous pour voter'}
+                      style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: userId ? 'pointer' : 'default', padding: '2px 6px', borderRadius: '4px', color: aVoteDansGroupe(groupe.notices) ? '#c0562a' : '#b0a89e', fontSize: '11px' }}>
+                      <span style={{ fontSize: '13px', lineHeight: 1 }}>{aVoteDansGroupe(groupe.notices) ? '♥' : '♡'}</span>
+                      {totalVotesGroupe(groupe.notices) ? <span>{totalVotesGroupe(groupe.notices)}</span> : null}
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px', paddingLeft: '12px' }}>
+                    {groupe.notices.map(n => (
+                      <div key={n.id} style={{ display: 'flex', alignItems: 'baseline', gap: '7px', minWidth: 0 }}>
+                        <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#d6d0c4', flexShrink: 0 }} />
+                        <span style={{ fontSize: '11.4px', color: '#5a5450', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titreDeclineCatalogue(n)}</span>
+                        <span style={{ fontSize: '10.5px', color: '#b0a89e', flexShrink: 0 }}>
+                          {[n.traducteur ? `Trad. ${n.traducteur}` : null, n.annee_edition ?? n.siecle_edition].filter(Boolean).join(' · ')}
+                        </span>
+                        {n.domaine_public && n.domaine_public.includes('oui') && (
+                          <span style={{ fontSize: '9.5px', color: '#3d6b4f', fontWeight: 600, flexShrink: 0 }}>DP</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Onglet Proposer ───────────────────────────────────────────────────────────
 const CHAMP_STYLE: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', fontSize: '13px', padding: '8px 11px',
@@ -190,10 +357,169 @@ const CHAMP_STYLE: React.CSSProperties = {
   color: '#2a2520', outline: 'none', fontFamily: 'Georgia, serif',
 }
 
+/* ── Autocomplétion auteur ──────────────────────────────────────────────── */
+function ComboAuteur({ value, onChange, onAuteurId }: {
+  value: string
+  onChange: (v: string) => void
+  onAuteurId: (id: string | null) => void
+}) {
+  const [saisie, setSaisie] = useState(value)
+  const [suggestions, setSuggestions] = useState<{ nom: string; id_auteur: string }[]>([])
+  const [ouvert, setOuvert] = useState(false)
+  const [libre, setLibre] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOuvert(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  useEffect(() => {
+    if (libre || saisie.trim().length < 2) { setSuggestions([]); return }
+    const t = setTimeout(async () => {
+      const { data } = await supabase.from('auteurs').select('id_auteur, nom').ilike('nom', `%${saisie.trim()}%`).order('nom').limit(12)
+      setSuggestions(data ?? [])
+      setOuvert(true)
+    }, 220)
+    return () => clearTimeout(t)
+  }, [saisie, libre])
+
+  function choisir(nom: string, id: string) {
+    setSaisie(nom); onChange(nom); onAuteurId(id)
+    setSuggestions([]); setOuvert(false); setLibre(false)
+  }
+
+  function choisirAutre() {
+    setSaisie(''); onChange(''); onAuteurId(null)
+    setSuggestions([]); setOuvert(false); setLibre(true)
+  }
+
+  if (libre) return (
+    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+      <input autoFocus value={saisie} onChange={e => { setSaisie(e.target.value); onChange(e.target.value) }}
+        placeholder="Nom de l'auteur" style={CHAMP_STYLE} />
+      <button type="button" onClick={() => { setLibre(false); setSaisie(''); onChange(''); onAuteurId(null) }}
+        style={{ fontSize: '11px', padding: '6px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#8a7f74', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+        ← Catalogue
+      </button>
+    </div>
+  )
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <input value={saisie} onChange={e => { setSaisie(e.target.value); onChange(''); onAuteurId(null) }}
+        onFocus={() => saisie.trim().length >= 2 && setOuvert(true)}
+        placeholder="Commencez à taper…" style={CHAMP_STYLE} autoComplete="off" />
+      {ouvert && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: '#fff', border: '1px solid #d6d0c4', borderRadius: '5px', boxShadow: '0 4px 12px rgba(0,0,0,.1)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
+          {suggestions.map(s => (
+            <div key={s.id_auteur} onMouseDown={() => choisir(s.nom, s.id_auteur)}
+              style={{ padding: '8px 12px', fontSize: '13px', color: '#2a2520', cursor: 'pointer', fontFamily: 'Georgia, serif' }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#f5f2ec')}
+              onMouseLeave={e => (e.currentTarget.style.background = '')}>
+              {s.nom}
+            </div>
+          ))}
+          <div onMouseDown={choisirAutre}
+            style={{ padding: '8px 12px', fontSize: '12px', color: '#8a7f74', cursor: 'pointer', borderTop: suggestions.length ? '1px solid #ede9e2' : 'none', fontStyle: 'italic' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#f5f2ec')}
+            onMouseLeave={e => (e.currentTarget.style.background = '')}>
+            Autre auteur (saisie libre)
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── Autocomplétion titre ───────────────────────────────────────────────── */
+function ComboTitre({ value, onChange, auteurNom }: {
+  value: string
+  onChange: (v: string) => void
+  auteurNom: string
+}) {
+  const [saisie, setSaisie] = useState(value)
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [ouvert, setOuvert] = useState(false)
+  const [libre, setLibre] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOuvert(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  useEffect(() => {
+    if (libre || saisie.trim().length < 2) { setSuggestions([]); return }
+    const t = setTimeout(async () => {
+      let q = supabase.from('catalogue_notices').select('titre_stable').ilike('titre_stable', `%${saisie.trim()}%`).not('titre_stable', 'is', null)
+      if (auteurNom.trim().length >= 2) q = q.ilike('auteur', `%${auteurNom.trim()}%`)
+      const { data } = await q.order('titre_stable').limit(12)
+      const titres = [...new Set((data ?? []).map(d => d.titre_stable as string).filter(Boolean))]
+      setSuggestions(titres)
+      setOuvert(true)
+    }, 220)
+    return () => clearTimeout(t)
+  }, [saisie, auteurNom, libre])
+
+  function choisir(titre: string) {
+    setSaisie(titre); onChange(titre)
+    setSuggestions([]); setOuvert(false); setLibre(false)
+  }
+
+  function choisirAutre() {
+    setSaisie(''); onChange(''); setSuggestions([]); setOuvert(false); setLibre(true)
+  }
+
+  if (libre) return (
+    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+      <input autoFocus value={saisie} onChange={e => { setSaisie(e.target.value); onChange(e.target.value) }}
+        placeholder="Titre de l'œuvre" style={CHAMP_STYLE} />
+      <button type="button" onClick={() => { setLibre(false); setSaisie(''); onChange('') }}
+        style={{ fontSize: '11px', padding: '6px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#8a7f74', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+        ← Catalogue
+      </button>
+    </div>
+  )
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <input value={saisie} onChange={e => { setSaisie(e.target.value); onChange('') }}
+        onFocus={() => saisie.trim().length >= 2 && setOuvert(true)}
+        placeholder="Commencez à taper…" style={CHAMP_STYLE} autoComplete="off" />
+      {ouvert && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: '#fff', border: '1px solid #d6d0c4', borderRadius: '5px', boxShadow: '0 4px 12px rgba(0,0,0,.1)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
+          {suggestions.map((titre, i) => (
+            <div key={i} onMouseDown={() => choisir(titre)}
+              style={{ padding: '8px 12px', fontSize: '13px', color: '#2a2520', cursor: 'pointer', fontFamily: 'Georgia, serif' }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#f5f2ec')}
+              onMouseLeave={e => (e.currentTarget.style.background = '')}>
+              {titre}
+            </div>
+          ))}
+          <div onMouseDown={choisirAutre}
+            style={{ padding: '8px 12px', fontSize: '12px', color: '#8a7f74', cursor: 'pointer', borderTop: suggestions.length ? '1px solid #ede9e2' : 'none', fontStyle: 'italic' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#f5f2ec')}
+            onMouseLeave={e => (e.currentTarget.style.background = '')}>
+            Autre titre (saisie libre)
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function OngletProposer() {
   const [connecte, setConnecte] = useState<boolean | null>(null)
-  const [userId, setUserId] = useState<string | null>(null)
-  const [statut, setStatut] = useState<'idle' | 'envoi' | 'ok' | 'erreur'>('idle')
+  const [token, setToken] = useState<string | null>(null)
+  const [statut, setStatut] = useState<'idle' | 'envoi' | 'ok' | 'erreur' | 'limite'>('idle')
+  const [messageErreur, setMessageErreur] = useState<string | null>(null)
+  const [afficherNom, setAfficherNom] = useState(false)
+  const [droitsGarantis, setDroitsGarantis] = useState(false)
+  const [quotaRestant, setQuotaRestant] = useState<number | null>(null)
+  const [auteurId, setAuteurId] = useState<string | null>(null)
   const [form, setForm] = useState({
     auteur_nom: '', titre: '', traducteur: '', editeur: '',
     collection: '', ville: '', date_publication: '', siecle: '', langue: '', note: '', texte: '',
@@ -201,9 +527,13 @@ function OngletProposer() {
 
   React.useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      const uid = data.session?.user.id ?? null
-      setUserId(uid)
-      setConnecte(!!uid)
+      const session = data.session
+      setConnecte(!!session)
+      setToken(session?.access_token ?? null)
+      if (session?.access_token) {
+        fetch('/api/propositions', { headers: { Authorization: `Bearer ${session.access_token}` } })
+          .then(r => r.json()).then(d => setQuotaRestant(d.restantes ?? null)).catch(() => {})
+      }
     })
   }, [])
 
@@ -211,25 +541,23 @@ function OngletProposer() {
     setForm(prev => ({ ...prev, [k]: e.target.value }))
 
   const envoyer = async () => {
-    if (!userId || !form.auteur_nom.trim() || !form.titre.trim()) return
+    if (!token || !form.auteur_nom.trim() || !form.titre.trim() || !form.texte.trim() || !droitsGarantis) return
+    if (quotaRestant !== null && quotaRestant <= 0) { setStatut('limite'); return }
     setStatut('envoi')
-    const { error } = await supabase.from('propositions_oeuvres').insert({
-      user_id: userId,
-      auteur_nom: form.auteur_nom.trim(),
-      titre: form.titre.trim(),
-      traducteur: form.traducteur.trim() || null,
-      editeur: form.editeur.trim() || null,
-      collection: form.collection.trim() || null,
-      ville: form.ville.trim() || null,
-      date_publication: form.date_publication.trim() || null,
-      siecle: form.siecle.trim() || null,
-      langue: form.langue.trim() || null,
-      note: form.note.trim() || null,
-      texte: form.texte.trim() || null,
+    const res = await fetch('/api/propositions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...form, afficher_nom: afficherNom }),
     })
-    if (error) { setStatut('erreur'); return }
+    const json = await res.json()
+    if (!res.ok) {
+      if (res.status === 429) { setStatut('limite'); setMessageErreur(json.error ?? null); return }
+      setStatut('erreur'); setMessageErreur(json.error ?? null); return
+    }
     setStatut('ok')
+    if (typeof json.restantes === 'number') setQuotaRestant(json.restantes)
     setForm({ auteur_nom: '', titre: '', traducteur: '', editeur: '', collection: '', ville: '', date_publication: '', siecle: '', langue: '', note: '', texte: '' })
+    setAuteurId(null); setDroitsGarantis(false); setAfficherNom(false)
   }
 
   if (connecte === null) return null
@@ -247,6 +575,15 @@ function OngletProposer() {
       <a href="/compte" style={{ display: 'inline-block', padding: '9px 22px', background: '#3d6b4f', color: '#fff', borderRadius: '6px', fontSize: '13px', textDecoration: 'none', fontWeight: 500 }}>
         Se connecter
       </a>
+    </div>
+  )
+
+  if (statut === 'limite') return (
+    <div style={{ maxWidth: '520px', margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
+      <p style={{ fontFamily: 'Georgia, serif', fontSize: '16px', color: '#9a5a2a', marginBottom: '8px' }}>Limite journalière atteinte</p>
+      <p style={{ fontSize: '12.5px', color: '#8a8278', lineHeight: 1.65, marginBottom: '24px' }}>
+        {messageErreur ?? 'Vous avez atteint le nombre maximum de propositions pour aujourd\'hui. Revenez demain.'}
+      </p>
     </div>
   )
 
@@ -272,6 +609,13 @@ function OngletProposer() {
           Vous souhaitez enrichir la bibliothèque patristique ? Proposez un texte <strong>libre de droits</strong> (auteur décédé depuis plus de 70 ans, ou traduction ancienne dans le domaine public).
           Fournissez de préférence un texte propre, déjà structuré. L'équipe éditoriale vous contactera si nécessaire.
         </p>
+        {quotaRestant !== null && (
+          <p style={{ fontSize: '11px', color: quotaRestant === 0 ? '#c0562a' : '#6a8c78', margin: '10px 0 0', borderTop: '1px solid rgba(61,107,79,0.15)', paddingTop: '10px' }}>
+            {quotaRestant === 0
+              ? 'Vous avez atteint votre limite de propositions pour aujourd\'hui.'
+              : `${quotaRestant} proposition${quotaRestant > 1 ? 's' : ''} restante${quotaRestant > 1 ? 's' : ''} aujourd'hui.`}
+          </p>
+        )}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -281,13 +625,17 @@ function OngletProposer() {
             <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>
               Auteur patristique <span style={{ color: '#c0562a' }}>*</span>
             </label>
-            <input value={form.auteur_nom} onChange={set('auteur_nom')} placeholder="ex. Augustin d'Hippone" style={CHAMP_STYLE} />
+            <ComboAuteur value={form.auteur_nom}
+              onChange={v => setForm(prev => ({ ...prev, auteur_nom: v }))}
+              onAuteurId={id => setAuteurId(id)} />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>
               Titre de l'œuvre <span style={{ color: '#c0562a' }}>*</span>
             </label>
-            <input value={form.titre} onChange={set('titre')} placeholder="ex. Les Confessions" style={CHAMP_STYLE} />
+            <ComboTitre value={form.titre}
+              onChange={v => setForm(prev => ({ ...prev, titre: v }))}
+              auteurNom={form.auteur_nom} />
           </div>
         </div>
 
@@ -359,17 +707,42 @@ function OngletProposer() {
           )}
         </div>
 
+        {/* Garantie droits */}
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', padding: '12px 14px', background: 'rgba(61,107,79,0.05)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '6px' }}>
+          <input type="checkbox" checked={droitsGarantis} onChange={e => setDroitsGarantis(e.target.checked)}
+            style={{ marginTop: '2px', accentColor: '#3d6b4f', flexShrink: 0, width: '14px', height: '14px' }} />
+          <span style={{ fontSize: '12px', color: '#3a5040', lineHeight: 1.6 }}>
+            <strong>J'atteste</strong> que cette traduction est <strong>libre de droits</strong> (auteur décédé depuis plus de 70 ans ou édition dans le domaine public) et que le texte n'a pas été dénaturé.
+          </span>
+        </label>
+
+        {/* Afficher le nom */}
+        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+          <input type="checkbox" checked={afficherNom} onChange={e => setAfficherNom(e.target.checked)}
+            style={{ accentColor: '#3d6b4f', width: '14px', height: '14px' }} />
+          <span style={{ fontSize: '12.5px', color: '#6b6560' }}>
+            Faire apparaître mon nom ou pseudo comme apporteur de cette contribution
+          </span>
+        </label>
+
+        <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>
+          Les contributions acceptées rapportent des points à leur apporteur et sont visibles dans votre profil.
+        </p>
+
         {statut === 'erreur' && (
           <p style={{ fontSize: '12px', color: '#c0562a', margin: 0 }}>Une erreur est survenue. Veuillez réessayer.</p>
         )}
 
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button
-            onClick={envoyer}
-            disabled={statut === 'envoi' || !form.auteur_nom.trim() || !form.titre.trim()}
-            style={{ padding: '10px 28px', background: '#3d6b4f', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', opacity: (!form.auteur_nom.trim() || !form.titre.trim()) ? 0.5 : 1 }}>
-            {statut === 'envoi' ? 'Envoi…' : 'Envoyer la proposition'}
-          </button>
+          {(() => {
+            const pret = !!form.auteur_nom.trim() && !!form.titre.trim() && !!form.texte.trim() && droitsGarantis
+            return (
+              <button onClick={envoyer} disabled={statut === 'envoi' || !pret}
+                style={{ padding: '10px 28px', background: '#3d6b4f', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: 500, cursor: pret ? 'pointer' : 'default', opacity: pret ? 1 : 0.45, transition: 'opacity 0.15s' }}>
+                {statut === 'envoi' ? 'Envoi…' : 'Envoyer la proposition'}
+              </button>
+            )
+          })()}
         </div>
       </div>
     </div>
@@ -377,7 +750,70 @@ function OngletProposer() {
 }
 
 // ── Page principale ────────────────────────────────────────────────────────────
-type Onglet = 'bibliotheque' | 'proposer'
+type Onglet = 'bibliotheque' | 'favoris' | 'catalogue' | 'proposer'
+
+function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvre }: {
+  auteurs: Auteur[]
+  favorisOeuvres: Set<string>
+  favorisPret: boolean
+  toggleFavoriOeuvre: (id: string) => void
+}) {
+  const oeuvresFavorites = useMemo(() => {
+    const lignes: { oeuvre: Oeuvre; auteur: Auteur }[] = []
+    for (const a of auteurs) {
+      for (const o of a.oeuvres) {
+        if (favorisOeuvres.has(o.id_oeuvre)) lignes.push({ oeuvre: o, auteur: a })
+      }
+    }
+    return lignes.sort((a, b) => a.auteur.nom.localeCompare(b.auteur.nom, 'fr') || a.oeuvre.titre.localeCompare(b.oeuvre.titre, 'fr'))
+  }, [auteurs, favorisOeuvres])
+
+  if (!favorisPret) {
+    return <p style={{ textAlign: 'center', fontSize: '12.5px', color: '#9a958d', fontStyle: 'italic' }}>Chargement des favoris…</p>
+  }
+
+  if (oeuvresFavorites.length === 0) {
+    return (
+      <div style={{ maxWidth: '520px', margin: '0 auto', textAlign: 'center', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '22px 24px' }}>
+        <p style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: '#2a3d30', margin: '0 0 6px' }}>Aucune œuvre favorite</p>
+        <p style={{ fontSize: '12px', color: '#9a958d', lineHeight: 1.6, margin: 0 }}>
+          Ajoutez une œuvre à vos favoris depuis sa ligne dans la bibliothèque ou depuis sa page de lecture.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ maxWidth: '680px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="#b88a45" style={{ flexShrink: 0 }}>
+          <path d="M8 1.5l1.854 3.756 4.146.603-3 2.924.708 4.131L8 10.765l-3.708 1.949.708-4.131-3-2.924 4.146-.603z"/>
+        </svg>
+        <span style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#9a8a6e' }}>Œuvres favorites</span>
+        <div style={{ flex: 1, height: '1px', background: '#e4dfd8' }} />
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+        {oeuvresFavorites.map(({ oeuvre: o, auteur: a }) => {
+          const metas = [o.editeur, o.ville, o.date_publication, o.trad_auteur ? `Trad. ${o.trad_auteur}` : null].filter(Boolean)
+          return (
+            <div key={o.id_oeuvre} style={{ display: 'flex', alignItems: 'center', gap: '9px', background: '#fff', border: '1px solid #ede9e2', borderLeft: '3px solid #b88a45', borderRadius: '0 6px 6px 0', padding: '10px 14px' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ textDecoration: 'none' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: '#2a3d30', display: 'block' }}>{o.titre}</span>
+                  <span style={{ fontSize: '11px', color: '#9a8a6e', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>{a.nom}</span>
+                  {metas.length > 0 && (
+                    <span style={{ display: 'block', fontSize: '10.5px', color: '#a59c90', marginTop: '2px' }}>{metas.join(' · ')}</span>
+                  )}
+                </Link>
+              </div>
+              <EtoileFavori actif={true} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} />
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SELECT_AUTEURS = `id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, langue_principale, traditions, note, note_biographique, note_theologique,
@@ -435,7 +871,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
 
         {/* Tabs */}
         <div style={{ display: 'flex', justifyContent: 'center', borderBottom: '1px solid #ddd8cf', marginBottom: '32px' }}>
-          {([['bibliotheque', 'Bibliothèque'], ['proposer', 'Proposer une œuvre']] as [Onglet, string][]).map(([key, label]) => (
+          {([['bibliotheque', 'Bibliothèque'], ['favoris', 'Favoris'], ['catalogue', 'Traductions indisponibles']] as [Onglet, string][]).map(([key, label]) => (
             <button key={key} onClick={() => setOnglet(key)} style={{
               padding: '10px 24px', fontSize: '12.5px', fontFamily: 'Georgia, serif',
               background: 'none', border: 'none', borderBottom: onglet === key ? '2px solid #3d6b4f' : '2px solid transparent',
@@ -451,41 +887,6 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
         {/* Contenu onglet Bibliothèque */}
         {onglet === 'bibliotheque' && (
           <>
-            {/* Section Favoris */}
-            {favorisPret && favorisOeuvres.size > 0 && (() => {
-              const oeuvresFavorites: { oeuvre: Oeuvre; auteur: Auteur }[] = []
-              for (const a of auteurs) {
-                for (const o of a.oeuvres) {
-                  if (favorisOeuvres.has(o.id_oeuvre)) oeuvresFavorites.push({ oeuvre: o, auteur: a })
-                }
-              }
-              if (oeuvresFavorites.length === 0) return null
-              return (
-                <div style={{ marginBottom: '36px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="#c8933a" style={{ flexShrink: 0 }}>
-                      <path d="M8 1.5l1.854 3.756 4.146.603-3 2.924.708 4.131L8 10.765l-3.708 1.949.708-4.131-3-2.924 4.146-.603z"/>
-                    </svg>
-                    <span style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#9a8a6e' }}>Œuvres favorites</span>
-                    <div style={{ flex: 1, height: '1px', background: '#e4dfd8' }} />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {oeuvresFavorites.map(({ oeuvre: o, auteur: a }) => (
-                      <div key={o.id_oeuvre} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', border: '1px solid #ede9e2', borderLeft: '3px solid #c8933a', borderRadius: '0 6px 6px 0', padding: '10px 14px' }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ textDecoration: 'none' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 500, color: '#2a3d30', display: 'block' }}>{o.titre}</span>
-                            <span style={{ fontSize: '11px', color: '#9a8a6e', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>{a.nom}</span>
-                          </Link>
-                        </div>
-                        <EtoileFavori actif={true} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })()}
-
             {/* Recherche */}
             <div style={{ position: 'relative', maxWidth: '340px', margin: '0 auto 24px' }}>
               <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
@@ -517,6 +918,19 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
             )}
           </>
         )}
+
+        {/* Contenu onglet Favoris */}
+        {onglet === 'favoris' && (
+          <OngletFavoris
+            auteurs={auteurs}
+            favorisOeuvres={favorisOeuvres}
+            favorisPret={favorisPret}
+            toggleFavoriOeuvre={toggleFavoriOeuvre}
+          />
+        )}
+
+        {/* Contenu onglet Traductions indisponibles */}
+        {onglet === 'catalogue' && <SectionCatalogueManquant onProposer={() => setOnglet('proposer')} />}
 
         {/* Contenu onglet Proposer */}
         {onglet === 'proposer' && <OngletProposer />}

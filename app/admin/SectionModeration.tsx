@@ -62,6 +62,26 @@ export default function SectionModeration({
             <Carte key={s.id}>
               <ContexteSegment segId={s.id_segment} segMap={segMap} />
               {!s.id_segment && <ContexteVerset versetId={s.id_verset} versetMap={versetMap} />}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                {s.source === 'quiz_signalements' && (
+                  <span style={{ fontSize: '10px', background: '#eeebf6', color: '#6b5fa0', padding: '2px 8px', borderRadius: '10px', fontWeight: 500 }}>Quiz</span>
+                )}
+                {s.importance && (
+                  <span style={{
+                    fontSize: '10px', padding: '2px 8px', borderRadius: '10px', fontWeight: 600,
+                    background: s.importance === 'bloquant' ? '#fde8e8' : s.importance === 'important' ? '#fef0e0' : '#f0f0ee',
+                    color: s.importance === 'bloquant' ? '#c0562a' : s.importance === 'important' ? '#8a5a00' : '#6b6560',
+                  }}>
+                    {s.importance === 'mineur' ? 'Mineur' : s.importance === 'important' ? 'Important' : s.importance === 'bloquant' ? 'Bloquant' : s.importance}
+                  </span>
+                )}
+                {s.url_source && (
+                  <a href={s.url_source} target="_blank" rel="noopener noreferrer"
+                    style={{ fontSize: '10px', color: '#6b9ab5', textDecoration: 'underline', maxWidth: '260px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                    {s.url_source.replace(/^https?:\/\/[^/]+/, '') || s.url_source}
+                  </a>
+                )}
+              </div>
               <p style={{ fontSize: '13.5px', color: '#2a2520', lineHeight: 1.6, margin: '0 0 10px' }}>{s.message}</p>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                 <span style={{ fontSize: '11px', color: '#b0a89e' }}>{dateFormat(s.created_at)}</span>

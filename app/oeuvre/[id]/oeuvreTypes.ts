@@ -1,5 +1,5 @@
 export type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
-export type SegData = { id: number; numero: number; texte: string; versets: VRef[] }
+export type SegData = { id: number; numero: number; texte: string; versets: VRef[]; notes?: Record<string, string> }
 export type GroupeData = {
   niv1: string; niv2: string; niv3: string; niv4: string
   niv1_texte?: string; niv2_texte?: string; niv3_texte?: string; niv4_texte?: string
@@ -32,10 +32,12 @@ export type Props = {
   vueInitiale?: 'texte' | 'apparat'
 }
 
+export type ChampOeuvre = 'titre' | 'sous_titre' | 'titre_original' | 'trad_auteur'
+
 // Description de ce qui est en cours d'édition dans la modale admin :
 // un segment de texte, un titre de niveau 2/3/4 rattaché à un groupe,
-// ou le titre principal de l'œuvre (table oeuvres, hors segments).
+// ou un champ de la fiche œuvre (titre, sous_titre, titre_original, trad_auteur…).
 export type EditionCible =
   | { type: 'segment'; seg: SegData }
   | { type: 'titre'; niveau: 1 | 2 | 3 | 4; groupe: GroupeData; texteActuel: string; schemaTexte: boolean }
-  | { type: 'titre_oeuvre'; texteActuel: string }
+  | { type: 'titre_oeuvre'; champ: ChampOeuvre; texteActuel: string }

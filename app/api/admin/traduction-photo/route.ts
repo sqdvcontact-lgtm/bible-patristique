@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
+import { erreur500 } from '@/app/lib/apiErreur'
 import { createClient } from '@supabase/supabase-js'
 import { estAdminServeur } from '@/app/lib/verifAdmin'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
@@ -23,14 +24,14 @@ export async function POST(request: Request) {
   const { error: uploadError } = await supabaseAdmin.storage.from('traductions').upload(`${tradId}.jpg`, buffer, {
     upsert: true, contentType: 'image/jpeg',
   })
-  if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
+  if (uploadError) return erreur500(uploadError)
 
   const { data: urlData } = supabaseAdmin.storage.from('traductions').getPublicUrl(`${tradId}.jpg`)
   // Cache-buster en DB pour contourner le CDN Supabase lors des remplacements
   const url = `${urlData.publicUrl}?v=${Date.now()}`
 
   const { error: dbError } = await supabaseAdmin.from('traductions').update({ photo: url }).eq('trad_id', tradId)
-  if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 })
+  if (dbError) return erreur500(dbError)
 
   return NextResponse.json({ ok: true, url })
 }

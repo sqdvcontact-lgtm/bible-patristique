@@ -1,20 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import type React from "react";
 import { useEffect, useState } from "react";
 
 type DernierBible   = { livre: string; chapitre: number; trad: string; nomLivre: string }
 type DerniereOeuvre = { id: string; titre: string; auteur: string }
+type DernierePublication = { id: number; titre: string; auteur?: string | null }
+
+function abregerTexte(texte?: string, max = 30) {
+  const propre = (texte ?? '').trim()
+  if (propre.length <= max) return propre
+  return `${propre.slice(0, Math.max(0, max - 3)).trimEnd()}...`
+}
 
 function IconBible() {
-  return (
-    <svg width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
-      <path d="M11 6.5h17.5c2.2 0 4 1.8 4 4v25H14.2A5.2 5.2 0 0 1 9 30.3V8.5c0-1.1.9-2 2-2Z" fill="rgba(255,255,255,0.13)" stroke="rgba(255,255,255,0.78)" strokeWidth="1.35"/>
-      <path d="M14.5 6.5v29" stroke="rgba(255,255,255,0.45)" strokeWidth="1.1"/>
-      <path d="M14.5 31.5h18" stroke="rgba(255,255,255,0.5)" strokeWidth="1.1" strokeLinecap="round"/>
-      <path d="M23.5 14v11.5M18.8 18.6h9.4" stroke="#fff" strokeWidth="1.45" strokeLinecap="round"/>
-    </svg>
-  );
+  return <img className="ac-icon-img ac-icon-bible" src="/icons/home-bible-book.png" alt="" aria-hidden="true" />;
 }
 
 function IconPere() {
@@ -45,6 +46,14 @@ function IconCrayon() {
   );
 }
 
+function IconPereImage() {
+  return <img className="ac-icon-img ac-icon-pere" src="/icons/home-patristique-buste.png" alt="" aria-hidden="true" />;
+}
+
+function IconPublicationsImage() {
+  return <img className="ac-icon-img ac-icon-publications" src="/icons/home-publications-writing.png" alt="" aria-hidden="true" />;
+}
+
 function IconDon() {
   return (
     <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ opacity: 0.7 }}>
@@ -54,75 +63,100 @@ function IconDon() {
   );
 }
 
-function IconReprendre() {
+function CarteAccueil({
+  href,
+  className,
+  icon,
+  titre,
+  reprendreHref,
+  reprendreLabel,
+}: {
+  href: string
+  className: string
+  icon: React.ReactNode
+  titre: string
+  reprendreHref?: string
+  reprendreLabel?: string
+}) {
   return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true" style={{ opacity: 0.7 }}>
-      <path d="M2.5 6.5A4 4 0 1 0 4 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-      <path d="M2.5 1.5v2.2h2.2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
+    <div className={`ac-card ${className}`}>
+      <Link href={href} className="ac-card-main" aria-label={titre}>
+        {icon}
+        <span className="ac-title">{titre}</span>
+      </Link>
+      <div className="ac-hover-panel">
+        {reprendreHref ? (
+          <Link href={reprendreHref} className="ac-hover-choice">
+            <span className="ac-hover-kicker">Reprendre la lecture</span>
+            <span className="ac-hover-line" title={reprendreLabel}>{abregerTexte(reprendreLabel, 31)}</span>
+          </Link>
+        ) : (
+          <span className="ac-hover-choice ac-hover-choice--disabled">
+            <span className="ac-hover-kicker">Reprendre la lecture</span>
+            <span className="ac-hover-line">Aucune lecture récente</span>
+          </span>
+        )}
+        <Link href={href} className="ac-hover-choice">
+          <span className="ac-hover-kicker">Nouvelle lecture</span>
+        </Link>
+      </div>
+    </div>
   )
 }
 
 export default function AccueilCards() {
   const [bible, setBible]   = useState<DernierBible | null>(null)
   const [oeuvre, setOeuvre] = useState<DerniereOeuvre | null>(null)
+  const [publication, setPublication] = useState<DernierePublication | null>(null)
 
   useEffect(() => {
     try {
       const b = localStorage.getItem('cs_dernier_bible')
       const o = localStorage.getItem('cs_derniere_oeuvre')
+      const p = localStorage.getItem('cs_derniere_publication')
       if (b) setBible(JSON.parse(b))
       if (o) setOeuvre(JSON.parse(o))
+      if (p) setPublication(JSON.parse(p))
     } catch {}
   }, [])
 
   return (
     <div className="ac-root">
       <div className="ac-grid">
-        <Link href="/?livre=GEN&chapitre=1" className="ac-card ac-bible">
-          <IconBible />
-          <span className="ac-title">Bibles</span>
-        </Link>
+        <CarteAccueil
+          href="/?livre=GEN&chapitre=1"
+          className="ac-bible"
+          icon={<IconBible />}
+          titre="Bible"
+          reprendreHref={bible ? `/?livre=${bible.livre}&chapitre=${bible.chapitre}&trad=${bible.trad}` : undefined}
+          reprendreLabel={bible ? `${bible.nomLivre} ${bible.chapitre}` : undefined}
+        />
 
-        <Link href="/bibliotheque" className="ac-card ac-patristique">
-          <IconPere />
-          <span className="ac-title">Patristique</span>
-        </Link>
+        <CarteAccueil
+          href="/bibliotheque"
+          className="ac-patristique"
+          icon={<IconPereImage />}
+          titre="Patristique"
+          reprendreHref={oeuvre ? `/oeuvre/${oeuvre.id}` : undefined}
+          reprendreLabel={oeuvre ? oeuvre.titre : undefined}
+        />
 
-        <Link href="/essais" className="ac-card ac-publications">
-          <IconCrayon />
-          <span className="ac-title">Publications</span>
-        </Link>
+        <CarteAccueil
+          href="/essais"
+          className="ac-publications"
+          icon={<IconPublicationsImage />}
+          titre="Publications"
+          reprendreHref={publication ? `/essais/${publication.id}` : undefined}
+          reprendreLabel={publication ? publication.titre : undefined}
+        />
       </div>
-
-      {(bible || oeuvre) && (
-        <div className="ac-reprendre-wrap">
-          {bible && (
-            <Link href={`/?livre=${bible.livre}&chapitre=${bible.chapitre}&trad=${bible.trad}`} className="ac-reprendre">
-              <IconReprendre />
-              <span>{bible.nomLivre} {bible.chapitre}</span>
-            </Link>
-          )}
-          {oeuvre && (
-            <Link href={`/oeuvre/${oeuvre.id}`} className="ac-reprendre">
-              <IconReprendre />
-              <span style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{oeuvre.titre}</span>
-            </Link>
-          )}
-        </div>
-      )}
-
-      <Link href="/soutenir" className="ac-don">
-        <IconDon />
-        Soutenir le projet
-      </Link>
 
       <style>{`
         .ac-root {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 20px;
+          gap: 0;
           width: 100%;
         }
         .ac-grid {
@@ -140,34 +174,72 @@ export default function AccueilCards() {
           gap: 13px;
           border-radius: 10px;
           text-decoration: none;
-          padding: 32px 20px;
-          border: 1px solid rgba(255,255,255,0.10);
-          box-shadow: 0 6px 24px rgba(0,0,0,0.22);
+          min-height: 142px;
+          padding: 0;
+          border: 1px solid rgba(255,255,255,0.09);
+          box-shadow: 0 6px 22px rgba(10,18,12,0.28), inset 0 1px 0 rgba(255,255,255,0.07);
           transition: transform 0.18s ease, box-shadow 0.18s ease;
           position: relative;
           overflow: hidden;
+        }
+        .ac-card-main {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          text-decoration: none;
+          transition: opacity 0.16s ease, transform 0.18s ease;
         }
         .ac-card::after {
           content: "";
           position: absolute;
           inset: 0;
-          background: linear-gradient(160deg, rgba(255,255,255,0.07) 0%, transparent 55%);
+          background: linear-gradient(to bottom, rgba(255,255,255,0.07) 0%, transparent 45%);
           pointer-events: none;
         }
-        .ac-card > svg,
-        .ac-card > span { position: relative; z-index: 1; }
+        .ac-card-main > svg,
+        .ac-card-main > img,
+        .ac-card-main > span { position: relative; z-index: 1; }
+        .ac-icon-img {
+          width: 76px;
+          height: 76px;
+          object-fit: contain;
+          opacity: 0.86;
+          mix-blend-mode: screen;
+        }
+        .ac-icon-bible {
+          width: 86px;
+          height: 70px;
+        }
+        .ac-icon-pere {
+          width: 74px;
+          height: 74px;
+        }
+        .ac-icon-publications {
+          width: 92px;
+          height: 74px;
+        }
         .ac-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 10px 32px rgba(0,0,0,0.28);
+          box-shadow: 0 12px 34px rgba(44,54,36,0.28), inset 0 1px 0 rgba(255,255,255,0.10);
+        }
+        .ac-card:hover .ac-card-main,
+        .ac-card:focus-within .ac-card-main {
+          opacity: 0.12;
+          transform: scale(0.99);
         }
         .ac-bible {
-          background: linear-gradient(155deg, #1a2e22 0%, #253d2c 100%);
+          background: #1a3020;
         }
         .ac-patristique {
-          background: linear-gradient(155deg, #2c2418 0%, #42361e 100%);
+          background: #38240f;
         }
         .ac-publications {
-          background: linear-gradient(155deg, #1c2428 0%, #2c383e 100%);
+          background: #1c2b3a;
         }
         .ac-title {
           font-family: Georgia, 'Times New Roman', serif;
@@ -176,48 +248,91 @@ export default function AccueilCards() {
           color: rgba(255,255,255,0.90);
           letter-spacing: 0.01em;
         }
-        .ac-don {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          font-size: 12.5px;
-          color: #7a8a6e;
-          background: none;
-          text-decoration: none;
-          padding: 6px 4px;
-          letter-spacing: 0.04em;
-          font-family: Georgia, serif;
-          font-style: italic;
-          transition: color 0.15s;
-          border-bottom: 1px solid transparent;
+        .ac-hover-panel {
+          position: absolute;
+          inset: 0;
+          z-index: 3;
+          display: grid;
+          grid-template-columns: 1fr;
+          grid-template-rows: 1fr 1fr;
+          gap: 0;
+          width: 100%;
+          opacity: 0;
+          transform: none;
+          pointer-events: none;
+          transition: opacity 0.16s ease, transform 0.18s ease;
         }
-        .ac-don:hover { color: #4a6040; border-bottom-color: #c8b89e; }
-        .ac-reprendre-wrap {
+        .ac-card:hover .ac-hover-panel,
+        .ac-card:focus-within .ac-hover-panel {
+          opacity: 1;
+          pointer-events: auto;
+        }
+        .ac-hover-choice {
           display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
+          flex-direction: column;
           justify-content: center;
-        }
-        .ac-reprendre {
-          display: inline-flex;
+          gap: 4px;
+          min-width: 0;
+          max-width: 100%;
+          overflow: hidden;
+          padding: 9px 16px;
           align-items: center;
-          gap: 6px;
-          font-size: 11.5px;
-          color: #7a8a6e;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(200,184,158,0.25);
+          text-align: center;
+          border-radius: 0;
+          border: none;
+          background: rgba(255,255,255,0.08);
+          color: rgba(255,255,255,0.92);
           text-decoration: none;
-          padding: 5px 12px;
-          border-radius: 20px;
-          font-family: Georgia, serif;
-          font-style: italic;
-          letter-spacing: 0.02em;
-          transition: color 0.15s, border-color 0.15s;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+          transition: background 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
         }
-        .ac-reprendre:hover { color: #4a6040; border-color: #c8b89e; }
+        .ac-hover-choice:first-child {
+          border-bottom: 1px solid rgba(255,255,255,0.20);
+          border-radius: 10px 10px 0 0;
+        }
+        .ac-hover-choice:last-child {
+          border-radius: 0 0 10px 10px;
+        }
+        .ac-hover-choice:hover,
+        .ac-hover-choice:focus-visible {
+          background: rgba(255,255,255,0.16);
+          transform: none;
+          outline: none;
+        }
+        .ac-hover-choice--disabled {
+          color: rgba(255,255,255,0.52);
+          pointer-events: none;
+        }
+        .ac-hover-kicker {
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.10em;
+          text-transform: uppercase;
+          line-height: 1.15;
+          color: rgba(255,255,255,0.70);
+          text-align: center;
+        }
+        .ac-hover-line {
+          display: block;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          min-width: 0;
+          max-width: 100%;
+          padding: 0 10px;
+          box-sizing: border-box;
+          font-family: Georgia, 'Times New Roman', serif;
+          font-size: 12px;
+          font-style: italic;
+          line-height: 1.25;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          text-align: center;
+        }
         @media (max-width: 620px) {
           .ac-grid { grid-template-columns: 1fr; max-width: 320px; }
-          .ac-card { padding: 24px 16px; }
+          .ac-card { min-height: 124px; }
         }
       `}</style>
     </div>

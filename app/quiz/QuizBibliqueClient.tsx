@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import { supabase } from '@/app/lib/supabase'
+import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
 type Mode = 'biblique' | 'patristique' | 'chasse'
@@ -169,7 +170,8 @@ async function verifierVersetContientMot(ref: string, mot: string): Promise<{ ok
 }
 
 /* ── Composant principal ────────────────────────────────────────────────── */
-export default function QuizBibliqueClient() {
+export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boolean }) {
+  const { modeUtilisateurStandard } = useAffichageAdmin()
   const [mode, setMode] = useState<Mode>('biblique')
 
   // Biblique
@@ -377,6 +379,18 @@ export default function QuizBibliqueClient() {
   ]
 
   const avecEchelle = mode !== 'chasse'
+
+  if (!estAdminReel || modeUtilisateurStandard) {
+    return (
+      <main style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', padding: '2rem' }}>
+        <div style={{ maxWidth: 480, textAlign: 'center', padding: '2.5rem 2rem', border: '1px solid #d4b896', borderRadius: 8, background: '#fdf8f2', fontFamily: 'Georgia, serif' }}>
+          <p style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🚧</p>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 'normal', marginBottom: '1rem', color: '#5a3e28' }}>Jeu en cours de construction</h1>
+          <p style={{ color: '#7a6250', lineHeight: 1.7, margin: 0 }}>Le quiz biblique est actuellement en cours de développement.<br />Il sera bientôt disponible.</p>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <section style={{ maxWidth: '1040px', margin: '0 auto', padding: '24px 20px 82px', fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, sans-serif' }}>

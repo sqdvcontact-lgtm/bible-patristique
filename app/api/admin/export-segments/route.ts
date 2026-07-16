@@ -1,8 +1,9 @@
-// app/api/admin/export-segments/route.ts
+﻿// app/api/admin/export-segments/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
+import { erreur500 } from '@/app/lib/apiErreur'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error('[export-segments] Supabase error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return erreur500(error)
     }
     if (!batch || batch.length === 0) break
     data = data.concat(batch)

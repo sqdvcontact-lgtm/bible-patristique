@@ -1,3 +1,4 @@
+import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
 import QuizBibliqueClient from './QuizBibliqueClient'
 
 export const metadata = {
@@ -5,6 +6,7 @@ export const metadata = {
   description: "Un quiz biblique pour retrouver progressivement la référence d'un verset.",
 }
 
-export default function QuizPage() {
-  return <QuizBibliqueClient />
+export default async function QuizPage() {
+  const estAdminReel = await verifierEstAdmin()
+  return <QuizBibliqueClient estAdminReel={estAdminReel} />
 }

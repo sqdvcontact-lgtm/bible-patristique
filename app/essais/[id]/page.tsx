@@ -11,7 +11,7 @@ const supabaseAdmin = createClient(
 export default async function EssaiPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const { data: essai } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, contenu, statut, nb_vues, user_id, created_at, publie_at, afficher_nom_reel').eq('id', id).single()
+  const { data: essai } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, contenu, statut, nb_vues, user_id, created_at, publie_at, afficher_nom_reel, verset_en_tete').eq('id', id).single()
   if (!essai) {
     return (
       <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -44,7 +44,7 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
       id: essai.id, titre: essai.titre, sous_titre: essai.sous_titre, resume: essai.resume,
       categories: essai.categories ?? [], contenu: essai.contenu, statut: essai.statut,
       nb_vues: essai.nb_vues, user_id: essai.user_id, created_at: essai.created_at, publie_at: essai.publie_at,
-      auteur_pseudo: nomAffiche,
+      auteur_pseudo: nomAffiche, verset_en_tete: essai.verset_en_tete ?? null,
     }} />
   )
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { erreur500 } from '@/app/lib/apiErreur'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,7 +22,7 @@ export async function POST(req: Request) {
     .eq('id_verset', id_verset)
     .maybeSingle()
 
-  if (selectError) return NextResponse.json({ error: selectError.message }, { status: 500 })
+  if (selectError) return erreur500(selectError)
 
   const actuel = Number((data as any)?.nb_lectures ?? 0)
   const { error: updateError } = await supabaseAdmin
@@ -29,6 +30,6 @@ export async function POST(req: Request) {
     .update({ nb_lectures: actuel + 1 })
     .eq('id_verset', id_verset)
 
-  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 })
+  if (updateError) return erreur500(updateError)
   return NextResponse.json({ ok: true })
 }

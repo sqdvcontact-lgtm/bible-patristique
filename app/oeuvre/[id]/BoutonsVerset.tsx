@@ -6,6 +6,7 @@ import type { VRef } from './oeuvreTypes'
 import { BTN_STYLE } from './BoutonsSegment'
 import ModalSignalement from './ModalSignalement'
 import { insererSignalement } from './signalements'
+import { Bulle } from '@/app/components/Bulle'
 
 function IconeSignet() {
   return (
@@ -30,9 +31,11 @@ export function BoutonCopieVerset({ texte, label }: { texte: string; label: stri
     navigator.clipboard.writeText(`« ${convertirGuillemetsInternes(texte)} » (${label})`).then(() => { setCopie(true); setTimeout(() => setCopie(false), 1400) })
   }
   return (
-    <button onClick={handle} title="Copier ce verset" style={{ ...BTN_STYLE, color: copie ? '#3d6b4f' : '#c8c0b4' }}>
-      {copie ? '✓' : '⧉'}
-    </button>
+    <Bulle texte="Copier ce verset">
+      <button onClick={handle} style={{ ...BTN_STYLE, color: copie ? '#3d6b4f' : '#c8c0b4' }} aria-label="Copier ce verset">
+        {copie ? '✓' : '⧉'}
+      </button>
+    </Bulle>
   )
 }
 
@@ -50,9 +53,11 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
   }
 
   if (idPrelev) return (
-    <button onClick={supprimer} disabled={loading} title="Retirer des prélèvements" style={{ ...BTN_STYLE, color:'#3d6b4f' }}>
-      {loading ? '…' : '✕'}
-    </button>
+    <Bulle texte="Retirer des prélèvements">
+      <button onClick={supprimer} disabled={loading} style={{ ...BTN_STYLE, color:'#3d6b4f' }} aria-label="Retirer des prélèvements">
+        {loading ? '…' : '✕'}
+      </button>
+    </Bulle>
   )
 
   const enregistrer = async (e: React.MouseEvent) => {
@@ -70,9 +75,11 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
   }
 
   return (
-    <button onClick={enregistrer} disabled={loading} title="Enregistrer dans mes prélèvements" style={{ ...BTN_STYLE, color:'#c8c0b4' }}>
-      {loading ? '…' : <IconeSignet />}
-    </button>
+    <Bulle texte="Enregistrer dans mes prélèvements">
+      <button onClick={enregistrer} disabled={loading} style={{ ...BTN_STYLE, color:'#c8c0b4' }} aria-label="Enregistrer dans mes prélèvements">
+        {loading ? '…' : <IconeSignet />}
+      </button>
+    </Bulle>
   )
 }
 
@@ -85,9 +92,10 @@ export function BoutonSignalerVerset({ versetId, label, segmentId }: { versetId:
       {ouvert && (
         <ModalSignalement
           titre={label}
+          avecNiveauImportance
           onClose={() => setOuvert(false)}
-          onEnvoyer={async (msg) => {
-            await insererSignalement({ id_segment: segmentId, message: `Verset ${versetId} : ${msg}` })
+          onEnvoyer={async (msg, importance) => {
+            await insererSignalement({ id_segment: segmentId, message: `Verset ${versetId} : ${msg}`, importance, url_source: window.location.href })
           }}
         />
       )}

@@ -4,13 +4,13 @@ import React, { useState, useEffect } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import SectionBibliotheque from './SectionBibliotheque'
 import SectionVerifications from './SectionVerifications'
-import SectionAjouterOeuvre from './SectionAjouterOeuvre'
-import SectionDepotOeuvre from './SectionDepotOeuvre'
 import SectionTraductions from './SectionTraductions'
 import SectionModeration from './SectionModeration'
 import SectionEssaisAdmin from './SectionEssaisAdmin'
 import SectionCharte from './SectionCharte'
 import SectionPropositions from './SectionPropositions'
+import SectionTaches from './SectionTaches'
+import SectionControleOeuvres from './SectionControleOeuvres'
 import type { AdminProps as Props, Onglet } from './adminTypes'
 
 export default function AdminClient({
@@ -25,6 +25,11 @@ export default function AdminClient({
   const [nbVerif, setNbVerif] = useState(nbVerifications)
   const [nbMod, setNbMod] = useState(commentaires.length + signalements.length + demandesCertification.length)
   const [nbEssais, setNbEssais] = useState(essaisEnAttente.length + essaisModification.length)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('onglet') === 'controle-oeuvres') setOnglet('controle-oeuvres')
+  }, [])
 
   useEffect(() => {
     const charger = async () => {
@@ -48,14 +53,14 @@ export default function AdminClient({
 
   const ONGLETS: { key: Onglet; label: string; badge?: number; separateur?: boolean }[] = [
     { key: 'bibliotheque',        label: 'Bibliothèque' },
-    { key: 'ajouter-oeuvre',      label: '+ Ajouter une œuvre' },
-    { key: 'depot-oeuvre',        label: 'Outils IA' },
+    { key: 'controle-oeuvres',    label: 'Contrôle œuvres' },
     { key: 'traductions',         label: 'Traductions' },
     { key: 'essais',              label: 'Essais', badge: nbEssais },
     { key: 'verifications',       label: 'Vérifications', badge: nbVerif, separateur: true },
     { key: 'moderation',          label: 'Modération', badge: nbMod },
     { key: 'propositions',         label: 'Propositions', separateur: true },
     { key: 'charte',              label: 'Charte IA' },
+    { key: 'taches',              label: 'À faire', separateur: true },
   ]
 
   return (
@@ -96,13 +101,13 @@ export default function AdminClient({
       </div>
 
       {/* Contenu */}
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '28px 24px 64px' }}>
+      <div style={{ maxWidth: onglet === 'controle-oeuvres' ? '1320px' : '960px', margin: '0 auto', padding: '28px 24px 64px' }}>
+        {onglet === 'taches'         && <SectionTaches />}
         {onglet === 'charte'         && <SectionCharte />}
         {onglet === 'propositions'   && <SectionPropositions />}
         {onglet === 'bibliotheque'   && <SectionBibliotheque auteurs={auteurs} />}
+        {onglet === 'controle-oeuvres' && <SectionControleOeuvres auteurs={auteurs} />}
         {onglet === 'verifications'  && <SectionVerifications onCountChange={setNbVerif} />}
-        {onglet === 'ajouter-oeuvre' && <SectionAjouterOeuvre auteurs={auteurs} />}
-        {onglet === 'depot-oeuvre'   && <SectionDepotOeuvre />}
         {onglet === 'traductions'    && <SectionTraductions traductions={traductions} />}
 
         {onglet === 'moderation' && (

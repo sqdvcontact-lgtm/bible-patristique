@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, type CSSProperties } from 'react'
 import { supabase } from '@/app/lib/supabase'
 
 type Proposition = {
@@ -50,6 +50,12 @@ const TAG_COULEUR: Record<string, { fond: string; texte: string }> = {
   'Abonnement': { fond: 'rgba(90,80,140,0.10)',  texte: '#4a3e7a' },
 }
 
+const fondParchemin: CSSProperties = {
+  background: 'rgba(255,253,249,0.92)',
+  border: '1px solid #ded6ca',
+  boxShadow: '0 4px 14px rgba(44,35,24,0.035)',
+}
+
 export default function VotesClient() {
   const [userId, setUserId] = useState<string | null>(null)
   const [votes, setVotes] = useState<Record<string, number>>({})
@@ -96,7 +102,7 @@ export default function VotesClient() {
   }, [userId, mesVotes, enCours])
 
   return (
-    <section style={{ maxWidth: '600px', width: '100%', margin: '0 auto', padding: '64px 24px 80px' }}>
+    <section style={{ maxWidth: '640px', width: '100%', margin: '0 auto', padding: '64px 24px 80px' }}>
       <div style={{ textAlign: 'center', marginBottom: '32px' }}>
         <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 28px' }} />
         <h2 style={{
@@ -106,10 +112,18 @@ export default function VotesClient() {
         }}>
           Pistes de monétisation
         </h2>
-        <p style={{ fontSize: '13.5px', color: '#5a6b5e', lineHeight: 1.75, margin: '0 auto', maxWidth: '480px' }}>
+        <div style={{
+          ...fondParchemin,
+          maxWidth: '520px',
+          margin: '0 auto',
+          borderRadius: '8px',
+          padding: '13px 18px',
+        }}>
+        <p style={{ fontSize: '13.5px', color: '#4f604f', lineHeight: 1.72, margin: 0 }}>
           Pour continuer à développer Corpus Scriptura et y consacrer davantage de temps, j'explore plusieurs pistes.
           Aucune décision n'est prise : vos votes m'aident à comprendre ce qui vous semble acceptable.
         </p>
+        </div>
       </div>
 
       {chargement ? (
@@ -122,13 +136,25 @@ export default function VotesClient() {
             const tag = p.tag ? TAG_COULEUR[p.tag] : null
             return (
               <div key={p.id} style={{
-                background: '#fff',
-                border: `1px solid ${vote ? 'rgba(61,107,79,0.35)' : '#e4dfd8'}`,
-                borderRadius: '10px',
-                padding: '16px 18px',
+                ...fondParchemin,
+                background: vote ? 'rgba(250,253,250,0.96)' : fondParchemin.background,
+                border: `1px solid ${vote ? 'rgba(61,107,79,0.34)' : '#ded6ca'}`,
+                borderRadius: '8px',
+                padding: '15px 18px 15px 20px',
                 display: 'flex', gap: '16px', alignItems: 'flex-start',
-                transition: 'border-color 0.15s',
+                transition: 'border-color 0.15s, box-shadow 0.15s, background 0.15s',
+                position: 'relative',
+                overflow: 'hidden',
               }}>
+                <span aria-hidden style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: vote ? '3px' : '1px',
+                  background: vote ? '#3d6b4f' : '#d8d0c4',
+                  opacity: vote ? 0.72 : 0.9,
+                }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
                     <span style={{
@@ -157,9 +183,9 @@ export default function VotesClient() {
                     title={vote ? 'Retirer mon soutien' : 'Soutenir cette proposition'}
                     style={{
                       width: '36px', height: '36px', borderRadius: '50%',
-                      border: `1.5px solid ${vote ? '#3d6b4f' : '#d6d0c4'}`,
+                      border: `1px solid ${vote ? '#3d6b4f' : '#d8d0c4'}`,
                       background: vote ? '#3d6b4f' : '#fff',
-                      color: vote ? '#fff' : '#9a958d',
+                      color: vote ? '#fff' : '#8a8278',
                       cursor: 'pointer', fontSize: '15px',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'background 0.15s, border-color 0.15s, color 0.15s',

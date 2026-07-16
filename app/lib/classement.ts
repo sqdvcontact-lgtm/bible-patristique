@@ -5,8 +5,9 @@ export type Rang = 'Catéchumène' | 'Disciple' | 'Docteur'
 export const SEUIL_DISCIPLE = 50
 export const SEUIL_DOCTEUR  = 300
 
-export function calculerScore(nbCommentaires: number, nbValides: number, nbLikes: number): number {
-  return nbCommentaires + 2 * nbValides + nbLikes
+// +1 pt/commentaire · +4 pts/commentaire validé · +2 pts/like reçu · +15 pts/essai publié
+export function calculerScore(nbCommentaires: number, nbValides: number, nbLikes: number, nbEssais = 0): number {
+  return nbCommentaires + 4 * nbValides + 2 * nbLikes + 15 * nbEssais
 }
 
 export function calculerRang(score: number): { rang: Rang; rangSuivant: Rang | null; seuilSuivant: number | null; seuilPrecedent: number } {

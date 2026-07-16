@@ -1,19 +1,22 @@
-'use client'
+﻿'use client'
+import { ABREV_FR } from '@/app/lib/bible'
 
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
+import { nettoyerFin } from '@/app/lib/ponctuation'
 
-const ABREV_FR: Record<string, string> = {
-  GEN:'Gn',EXO:'Ex',LEV:'Lv',NUM:'Nb',DEU:'Dt',JOS:'Jos',JDG:'Jg',RUT:'Rt',
-  '1SA':'1S','2SA':'2S','1KI':'1R','2KI':'2R','1CH':'1Ch','2CH':'2Ch',
-  EZR:'Esd',NEH:'Né',EST:'Est',JOB:'Jb',PSA:'Ps',PRO:'Pr',ECC:'Qo',SNG:'Ct',
-  ISA:'Is',JER:'Jr',LAM:'Lm',EZK:'Ez',DAN:'Dn',HOS:'Os',JOL:'Jl',AMO:'Am',
-  OBA:'Ab',JON:'Jon',MIC:'Mi',NAM:'Na',HAB:'Ha',ZEP:'So',HAG:'Ag',ZEC:'Za',MAL:'Ml',
-  MAT:'Mt',MRK:'Mc',LUK:'Lc',JHN:'Jn',ACT:'Ac',ROM:'Rm','1CO':'1Co','2CO':'2Co',
-  GAL:'Ga',EPH:'Ep',PHP:'Ph',COL:'Col','1TH':'1Th','2TH':'2Th','1TI':'1Tm',
-  '2TI':'2Tm',TIT:'Tt',PHM:'Phm',HEB:'He',JAS:'Jc','1PE':'1P','2PE':'2P',
-  '1JN':'1Jn','2JN':'2Jn','3JN':'3Jn',JUD:'Jude',REV:'Ap',
+// ── Graphies & normalisation (hérités de la concordance) ─────────────────────
+function normaliser(s: string): string {
+  return s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[''ʼ]/g, "'")
+}
+function graphiesVariantes(base: string): string[] {
+  const v = new Set([base])
+  if (base.includes('j'))          v.add(base.replaceAll('j', 'i'))
+  if (/^i[aeiouy]/.test(base))     v.add('j' + base.slice(1))
+  if (base.includes('v'))          v.add(base.replaceAll('v', 'u'))
+  if (base.includes('u'))          v.add(base.replaceAll('u', 'v'))
+  return [...v].filter(s => s.length >= 2)
 }
 
 const NOMBRES_FR = ['','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix',
@@ -81,7 +84,13 @@ function contientTerme(texte: string, terme: string, mode: Mode): boolean {
   if (!termes.length) return false
   const sep = '(^|[\\s\\u202f\\u00a0«»,;:!?—.(\\[])'
   const fin = mode === 'exact' ? '(?=[\\s\\u202f\\u00a0«»,;:!?—.)\\]]|$)' : ''
-  try { return termes.every(t => new RegExp(`${sep}${echapperRegex(t)}${fin}`, 'i').test(texte)) }
+  const texteN = normaliser(texte)
+  try {
+    return termes.every(t => {
+      const tN = normaliser(t)
+      return new RegExp(`${sep}${echapperRegex(tN)}${fin}`, 'i').test(texteN)
+    })
+  }
   catch { return false }
 }
 function highlighter(texte: string, terme: string, mode: Mode): React.ReactNode {
@@ -90,18 +99,23 @@ function highlighter(texte: string, terme: string, mode: Mode): React.ReactNode 
   if (!termes.length) return texte
   const sep = '(^|[\\s\\u202f\\u00a0«»,;:!?—.(\\[])'
   const fin = mode === 'exact' ? '(?=[\\s\\u202f\\u00a0«»,;:!?—.)\\]]|$)' : ''
+  // On construit le regex sur le texte normalisé pour trouver les positions,
+  // puis on surligne les caractères originaux aux mêmes positions.
   try {
-    const alt = termes.sort((a, b) => b.length - a.length).map(echapperRegex).join('|')
+    const termesN = termes.map(normaliser).sort((a, b) => b.length - a.length)
+    const alt = termesN.map(echapperRegex).join('|')
     const re = new RegExp(`${sep}(${alt})${fin}`, 'gi')
+    const texteN = normaliser(texte)
     const parts: React.ReactNode[] = []; let last = 0; let m: RegExpExecArray | null
-    while ((m = re.exec(texte)) !== null) {
+    while ((m = re.exec(texteN)) !== null) {
       const s = m.index + m[1].length
+      const e = s + m[2].length
       if (s > last) parts.push(texte.slice(last, s))
-      parts.push(<mark key={s} style={{ background: '#c9e8d4', color: '#1a2e20', borderRadius: '2px', padding: '0 2px' }}>{m[2]}</mark>)
-      last = s + m[2].length
+      parts.push(<mark key={s} style={{ background: '#c9e8d4', color: '#1a2e20', borderRadius: '2px', padding: '0 2px' }}>{texte.slice(s, e)}</mark>)
+      last = e
     }
     if (last < texte.length) parts.push(texte.slice(last))
-    return parts.length ? parts : texte
+    return parts.length > 1 ? parts : texte
   } catch { return texte }
 }
 
@@ -129,6 +143,11 @@ export default function RechercheClient() {
   const [pageE, setPageE] = useState(0)
   const [hoveredVerset, setHoveredVerset] = useState<string | null>(null)
   const dejaLanceRef = useRef('')
+  const [sugg, setSugg]         = useState<{ mot: string; freq: number }[]>([])
+  const [showSugg, setShowSugg] = useState(false)
+  const inputRef   = useRef<HTMLInputElement>(null)
+  const suggTimer  = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const suggRef    = useRef<HTMLUListElement>(null)
 
   useEffect(() => {
     const appliquer = (code?: string | null) => {
@@ -150,6 +169,27 @@ export default function RechercheClient() {
     })
   }, [])
 
+  // Fermer suggestions au clic extérieur
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (!suggRef.current?.contains(e.target as Node) && e.target !== inputRef.current) setShowSugg(false)
+    }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [])
+
+  // Autocomplétion (même RPC que la concordance)
+  useEffect(() => {
+    const val = normaliser(query)
+    if (val.length < 2) { setSugg([]); setShowSugg(false); return }
+    clearTimeout(suggTimer.current)
+    suggTimer.current = setTimeout(async () => {
+      const { data } = await supabase.rpc('suggestions_concordance_fr', { p_prefixe: val, p_limit: 10 })
+      if (data?.length) { setSugg(data); setShowSugg(true) } else setShowSugg(false)
+    }, 180)
+    return () => clearTimeout(suggTimer.current)
+  }, [query])
+
   const lancer = async (queryForce?: string, modeForce?: Mode, scopeForce?: string) => {
     const q = (queryForce ?? query).trim()
     const modeActif = modeForce ?? mode
@@ -162,13 +202,45 @@ export default function RechercheClient() {
     const termes = termesRecherche(q)
     const fragments = modeActif === 'prefixe' && termes.length > 1
     const chercheTout = scopeActif === 'ALL'
+    const termeNorm = normaliser(q)
+    const vars = (!fragments && termeNorm.length >= 2) ? graphiesVariantes(termeNorm) : null
 
     const tradCodes = traductions.map(t => t.code)
     const selVersets = `id_verset, ref, livre, chapitre, verset, ${tradCodes.join(', ')}`
 
-    // Versets
+    // Traductions couvertes par concordance_versets (texte normalisé)
+    const TRADS_CONC = new Set(['TR0001', 'TR0002', 'TR0003'])
+
+    // Versets — pour les recherches mono-mot, on passe par concordance_versets
+    // (texte_norm sans accents) pour éviter les ratés sur "yahve" vs "Yahvé".
     let reqV: any
-    if (chercheTout) {
+    if (!fragments && vars) {
+      // Récupérer les IDs via l'index normalisé
+      const trsFiltres = chercheTout
+        ? [...TRADS_CONC]
+        : TRADS_CONC.has(scopeActif) ? [scopeActif] : null
+
+      if (trsFiltres) {
+        const orClause = vars.map(v => `texte_norm.ilike.%${v}%`).join(',')
+        const { data: cvData } = await supabase
+          .from('concordance_versets')
+          .select('id_verset')
+          .in('tr', trsFiltres)
+          .or(orClause)
+          .limit(10000)
+        const ids = [...new Set((cvData ?? []).map((r: any) => r.id_verset))]
+        if (ids.length) {
+          reqV = supabase.from('versets').select(selVersets).in('id_verset', ids).limit(10000)
+        } else {
+          reqV = Promise.resolve({ data: [] })
+        }
+      } else {
+        // TR0004 (Vulgate) ou autre non couvert — fallback ilike classique
+        reqV = supabase.from('versets').select(selVersets)
+          .or(vars.map(v => `${scopeActif}.ilike.%${v}%`).join(','))
+          .limit(10000)
+      }
+    } else if (chercheTout) {
       reqV = supabase.from('versets').select(selVersets)
       if (fragments) {
         for (const t of termes) reqV = reqV.or(tradCodes.map(c => `${c}.ilike.%${t}%`).join(','))
@@ -176,20 +248,32 @@ export default function RechercheClient() {
         reqV = reqV.or(tradCodes.map(c => `${c}.ilike.%${q}%`).join(','))
       }
       reqV = reqV.limit(10000)
-    } else if (fragments) {
+    } else {
+      // fragments multi-mots sur colonne spécifique
       reqV = supabase.from('versets').select(selVersets)
       for (const t of termes) reqV = reqV.ilike(scopeActif, `%${t}%`)
       reqV = reqV.limit(10000)
-    } else {
-      reqV = supabase.from('versets').select(selVersets).ilike(scopeActif, `%${q}%`).limit(10000)
     }
 
-    // Segments
-    let reqS: any = supabase.rpc('recherche_segments', { p_terme: q, p_exact: modeActif === 'exact' }).limit(10000)
+    // Segments : graphies variantes via plusieurs appels RPC dédoublonnés
+    let segsFromRpc: any[]
     if (fragments) {
-      reqS = supabase.from('segments').select('id, segment_texte, id_oeuvre, ref_niv1, ref_niv3')
-      for (const t of termes) reqS = reqS.ilike('segment_texte', `%${t}%`)
-      reqS = reqS.limit(10000)
+      let reqFrag = supabase.from('segments').select('id, segment_texte, id_oeuvre, ref_niv1, ref_niv3') as any
+      for (const t of termes) reqFrag = reqFrag.ilike('segment_texte', `%${t}%`)
+      const { data } = await reqFrag.limit(10000)
+      segsFromRpc = data ?? []
+    } else if (vars && vars.length > 1) {
+      const seenSeg = new Set<number>()
+      segsFromRpc = []
+      for (const v of vars) {
+        const { data } = await supabase.rpc('recherche_segments', { p_terme: v, p_exact: modeActif === 'exact' }).limit(10000)
+        for (const row of (data ?? [])) {
+          if (!seenSeg.has(row.id)) { seenSeg.add(row.id); segsFromRpc.push(row) }
+        }
+      }
+    } else {
+      const { data } = await supabase.rpc('recherche_segments', { p_terme: q, p_exact: modeActif === 'exact' }).limit(10000)
+      segsFromRpc = data ?? []
     }
 
     // Essais
@@ -200,7 +284,7 @@ export default function RechercheClient() {
       : supabase.from('essais').select('id, titre, sous_titre, resume, contenu, categories').eq('statut', 'publie')
           .or(`titre.ilike.%${q}%,sous_titre.ilike.%${q}%,resume.ilike.%${q}%,contenu.ilike.%${q}%`).limit(200)
 
-    const [resV, resS, resE] = await Promise.all([reqV, reqS, reqE])
+    const [resV, resE] = await Promise.all([reqV, reqE])
 
     // Filtre client versets
     const versetsRaw = (resV.data ?? []) as VersetResult[]
@@ -223,7 +307,7 @@ export default function RechercheClient() {
     setEssaisRes(fragments ? essais.filter(e => contientTerme([e.titre, e.sous_titre, e.resume, e.contenu].filter(Boolean).join(' '), q, modeActif)) : essais)
 
     // Segments + oeuvres
-    const segsBruts = (resS.data ?? []) as any[]
+    const segsBruts = segsFromRpc as any[]
     const segs = fragments ? segsBruts.filter((s: any) => contientTerme(s.segment_texte, q, modeActif)) : segsBruts
     const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
     let oeuvreMap: Record<string, { titre: string; auteur: string }> = {}
@@ -328,47 +412,63 @@ export default function RechercheClient() {
       <div style={{ background:'#f7f4ef', height:'100vh', display:'flex', flexDirection:'column', overflow:'hidden', paddingTop:'48px' }}>
 
         {/* ── En-tête ── */}
-        <div style={{ padding:'14px 40px 12px', borderBottom:'1px solid #d6d0c4', background:'#f7f4ef', flexShrink:0 }}>
-          <div style={{ maxWidth:'1100px', margin:'0 auto', display:'flex', flexDirection:'column', gap:'10px' }}>
+        <div style={{ padding:'22px 40px 16px', borderBottom:'1px solid #d6d0c4', background:'#f7f4ef', flexShrink:0 }}>
+          <div style={{ maxWidth:'640px', margin:'0 auto', display:'flex', flexDirection:'column', alignItems:'center', gap:'14px' }}>
 
-            {/* Ligne 1 : titre + mode */}
-            <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-              <span style={{ fontFamily:"Georgia, serif", fontSize:'16px', color:'#1e2e24', fontWeight:400 }}>Recherche</span>
+            {/* Titre */}
+            <span style={{ fontFamily:"Georgia, serif", fontSize:'13px', letterSpacing:'0.12em', textTransform:'uppercase', color:'#9a958d', fontWeight:400 }}>Recherche</span>
+
+            {/* Champ principal */}
+            <div style={{ position:'relative', width:'100%' }}>
+              <input ref={inputRef} type="text" value={query}
+                onChange={e => setQuery(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') { setShowSugg(false); lancer() }
+                  if (e.key === 'Escape') setShowSugg(false)
+                }}
+                onFocus={() => sugg.length > 0 && setShowSugg(true)}
+                placeholder="Chercher un mot, une expression…"
+                autoFocus
+                style={{ width:'100%', fontSize:'16px', padding:'11px 44px 11px 18px', border:'1px solid #c8c0b4', borderRadius:'8px', background:'#fff', color:'#2a2520', outline:'none', fontFamily:"Georgia, serif", boxSizing:'border-box', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }} />
+              {query ? (
+                <button onClick={() => { setQuery(''); setDone(false); setVersetsRes([]); setSegmentsRes([]); setEssaisRes([]); setShowSugg(false) }}
+                  style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#c0b8ae', fontSize:'16px', lineHeight:1, padding:0 }} title="Effacer">×</button>
+              ) : (
+                <svg style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', color:'#c8c0b4', pointerEvents:'none' }} width="15" height="15" viewBox="0 0 20 20" fill="none">
+                  <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6"/>
+                  <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                </svg>
+              )}
+              {showSugg && sugg.length > 0 && (
+                <ul ref={suggRef} style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, background:'#fff', border:'1px solid #c8c0b4', borderRadius:'8px', boxShadow:'0 6px 20px rgba(0,0,0,0.09)', margin:0, padding:'5px 0', listStyle:'none', zIndex:100, maxHeight:'240px', overflowY:'auto' }}>
+                  {sugg.map(s => (
+                    <li key={s.mot}
+                      onMouseDown={e => { e.preventDefault(); setQuery(s.mot); setShowSugg(false); lancer(s.mot) }}
+                      style={{ padding:'7px 18px', fontSize:'14px', color:'#2a2520', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:"Georgia, serif" }}
+                      onMouseEnter={e => (e.currentTarget.style.background='#f4f0ea')}
+                      onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
+                      <span>{s.mot}</span>
+                      <span style={{ fontSize:'10px', color:'#c0b8ae' }}>{s.freq}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Contrôles secondaires */}
+            <div style={{ display:'flex', alignItems:'center', gap:'16px', flexWrap:'wrap', justifyContent:'center' }}>
+              {/* Mode */}
               <div style={{ display:'inline-flex', border:'1px solid #d6d0c4', borderRadius:'5px', overflow:'hidden' }}>
                 <button className={`mode-btn ${mode==='prefixe'?'mode-btn--actif':'mode-btn--inactif'}`} onClick={()=>setMode('prefixe')}>Préfixe</button>
                 <button className={`mode-btn ${mode==='exact'?'mode-btn--actif':'mode-btn--inactif'}`} onClick={()=>setMode('exact')} style={{borderLeft:'1px solid #d6d0c4'}}>Mot exact</button>
               </div>
-              <span style={{ fontSize:'10.5px', color:'#b0a89e', fontStyle:'italic' }}>
-                {mode==='prefixe' ? 'Mots commençant par le terme — plusieurs termes combinables' : 'Terme exact uniquement'}
-              </span>
-            </div>
 
-            {/* Ligne 2 : saisie + contrôles */}
-            <div style={{ display:'flex', gap:'8px', alignItems:'center', flexWrap:'wrap' }}>
-              {/* Champ + bouton effacer */}
-              <div style={{ position:'relative', display:'flex', alignItems:'center' }}>
-                <input type="text" value={query}
-                  onChange={e => setQuery(e.target.value)}
-                  onKeyDown={e => e.key==='Enter' && lancer()}
-                  placeholder="Rechercher…"
-                  autoFocus
-                  style={{ width:'300px', fontSize:'14px', padding:'7px 32px 7px 12px', border:'1px solid #c8c0b4', borderRadius:'6px', background:'#fff', color:'#2a2520', outline:'none', fontFamily:"Georgia, serif" }} />
-                {query && (
-                  <button onClick={() => { setQuery(''); setDone(false); setVersetsRes([]); setSegmentsRes([]); setEssaisRes([]) }}
-                    style={{ position:'absolute', right:'8px', background:'none', border:'none', cursor:'pointer', color:'#b0a89e', fontSize:'14px', lineHeight:1, padding:'2px' }} title="Effacer">×</button>
-                )}
-              </div>
+              {/* Séparateur */}
+              <div style={{ width:'1px', height:'18px', background:'#d6d0c4' }} />
 
-              <button onClick={() => lancer()} disabled={loading || !query.trim()}
-                style={{ padding:'7px 22px', borderRadius:'6px', border:'none', background:query.trim()?'#3d6b4f':'#c8c0b4', color:'#fff', fontSize:'13px', cursor:query.trim()?'pointer':'default', fontWeight:500, transition:'background 0.12s' }}>
-                {loading ? '…' : 'Chercher →'}
-              </button>
-
-              <div style={{ width:'1px', height:'24px', background:'#d6d0c4', margin:'0 2px' }} />
-
-              {/* Périmètre */}
-              <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
-                <span style={{ fontSize:'11px', color:'#9a958d' }}>Chercher dans</span>
+              {/* Traduction */}
+              <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                <span style={{ fontSize:'11px', color:'#b0a89e' }}>dans</span>
                 <select className="ctrl-sel" value={tradScope}
                   onChange={e => { const v=e.target.value; setTradScope(v); if(v!=='ALL') setTradAffichage(v) }}>
                   {traductions.map(t=><option key={t.code} value={t.code}>{t.label}</option>)}
@@ -376,20 +476,20 @@ export default function RechercheClient() {
                 </select>
               </div>
 
-              {/* Affichage (seulement si ALL) */}
-              {tradScope==='ALL' && (
-                <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
-                  <span style={{ fontSize:'11px', color:'#9a958d' }}>Afficher en</span>
+              {tradScope==='ALL' && (<>
+                <div style={{ width:'1px', height:'18px', background:'#d6d0c4' }} />
+                <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                  <span style={{ fontSize:'11px', color:'#b0a89e' }}>afficher en</span>
                   <select className="ctrl-sel" value={tradAffichage} onChange={e=>setTradAffichage(e.target.value)}>
                     {traductions.map(t=><option key={t.code} value={t.code}>{t.label}</option>)}
                   </select>
                 </div>
-              )}
+              </>)}
 
-              {/* Compteur résultats */}
+              {/* Compteur */}
               {done && (
-                <span style={{ marginLeft:'auto', fontSize:'10.5px', color:'#b0a89e', fontStyle:'italic' }}>
-                  {versetsRes.length + segmentsRes.length + essaisRes.length} résultats
+                <span style={{ fontSize:'10.5px', color:'#b8b0a6', fontStyle:'italic' }}>
+                  {versetsRes.length + segmentsRes.length + essaisRes.length} résultat{versetsRes.length + segmentsRes.length + essaisRes.length > 1 ? 's' : ''}
                 </span>
               )}
             </div>
@@ -518,7 +618,7 @@ export default function RechercheClient() {
                         </span>
                       </div>
                       <p style={{ fontFamily:"Georgia, serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
-                        {highlighter(s.segment_texte, lastQuery, mode)}
+                        {highlighter(nettoyerFin(s.segment_texte), lastQuery, mode)}
                       </p>
                     </a>
                   ))}

@@ -1,4 +1,5 @@
-'use client'
+﻿'use client'
+import { ABREV_FR } from '@/app/lib/bible'
 
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -6,17 +7,6 @@ import { supabase } from "@/app/lib/supabase"
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin"
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
-const ABREV_FR: Record<string, string> = {
-  GEN:'Gn',EXO:'Ex',LEV:'Lv',NUM:'Nb',DEU:'Dt',JOS:'Jos',JDG:'Jg',RUT:'Rt',
-  '1SA':'1S','2SA':'2S','1KI':'1R','2KI':'2R','1CH':'1Ch','2CH':'2Ch',
-  EZR:'Esd',NEH:'Né',EST:'Est',JOB:'Jb',PSA:'Ps',PRO:'Pr',ECC:'Qo',SNG:'Ct',
-  ISA:'Is',JER:'Jr',LAM:'Lm',EZK:'Ez',DAN:'Dn',HOS:'Os',JOL:'Jl',AMO:'Am',
-  OBA:'Ab',JON:'Jon',MIC:'Mi',NAM:'Na',HAB:'Ha',ZEP:'So',HAG:'Ag',ZEC:'Za',MAL:'Ml',
-  MAT:'Mt',MRK:'Mc',LUK:'Lc',JHN:'Jn',ACT:'Ac',ROM:'Rm','1CO':'1Co','2CO':'2Co',
-  GAL:'Ga',EPH:'Ep',PHP:'Ph',COL:'Col','1TH':'1Th','2TH':'2Th','1TI':'1Tm',
-  '2TI':'2Tm',TIT:'Tt',PHM:'Phm',HEB:'He',JAS:'Jc','1PE':'1P','2PE':'2P',
-  '1JN':'1Jn','2JN':'2Jn','3JN':'3Jn',JUD:'Jude',REV:'Ap',
-}
 
 function IconeSignet() {
   return (
@@ -84,16 +74,24 @@ function BoutonCopie({ texte }: { texte: string }) {
 }
 
 // ── Modale signalement ────────────────────────────────────────────────────────
+const TB_NIVEAUX = [
+  { val: 'mineur',    label: 'Mineur',    bg: '#f0f0ee', bgOn: '#d6d6d2', color: '#6b6560' },
+  { val: 'important', label: 'Important', bg: '#fef5e8', bgOn: '#f0a830', color: '#8a5a00' },
+  { val: 'bloquant',  label: 'Bloquant',  bg: '#fde8e8', bgOn: '#c0562a', color: '#fff' },
+] as const
+type TBNiveau = 'mineur' | 'important' | 'bloquant'
+
 function ModalSignalement({ titre, onClose, onEnvoyer }: {
-  titre: string; onClose: () => void; onEnvoyer: (msg: string) => Promise<void>
+  titre: string; onClose: () => void; onEnvoyer: (msg: string, importance: string) => Promise<void>
 }) {
   const [message, setMessage] = useState('')
   const [statut, setStatut] = useState<'idle'|'sending'|'ok'|'err'>('idle')
+  const [importance, setImportance] = useState<TBNiveau>('important')
 
   const envoyer = async () => {
     if (!message.trim()) return
     setStatut('sending')
-    try { await onEnvoyer(message.trim()); setStatut('ok'); setTimeout(onClose, 1800) }
+    try { await onEnvoyer(message.trim(), importance); setStatut('ok'); setTimeout(onClose, 1800) }
     catch { setStatut('err') }
   }
 
@@ -111,6 +109,21 @@ function ModalSignalement({ titre, onClose, onEnvoyer }: {
           <p style={{ fontSize:'11.5px', color:'#3d6b4f', fontStyle:'italic', textAlign:'center', padding:'8px 0' }}>Signalement envoyé, merci !</p>
         ) : (
           <>
+            <div style={{ display:'flex', gap:'6px', marginBottom:'10px' }}>
+              <span style={{ fontSize:'10.5px', color:'#9a958d', alignSelf:'center', flexShrink:0 }}>Niveau :</span>
+              {TB_NIVEAUX.map(n => {
+                const actif = importance === n.val
+                return (
+                  <button key={n.val} onClick={() => setImportance(n.val)}
+                    style={{ fontSize:'10.5px', padding:'3px 10px', borderRadius:'12px', border:'none', cursor:'pointer', fontWeight: actif ? 600 : 400,
+                      background: actif ? n.bgOn : n.bg,
+                      color: actif && n.val === 'bloquant' ? '#fff' : n.color,
+                      transition:'background 0.15s' }}>
+                    {n.label}
+                  </button>
+                )
+              })}
+            </div>
             <textarea value={message} onChange={e => setMessage(e.target.value)}
               placeholder="Décrivez l'erreur constatée…" rows={4} autoFocus
               style={{ width:'100%', fontSize:'11px', padding:'7px 9px', border:'1px solid #d6d0c4', borderRadius:'5px', background:'#faf8f4', color:'#2a2520', resize:'vertical', outline:'none', lineHeight:1.5, boxSizing:'border-box' }} />
@@ -131,7 +144,7 @@ function ModalSignalement({ titre, onClose, onEnvoyer }: {
 
 function BoutonSignaler({ versetId }: { versetId: string }) {
   const [ouvert, setOuvert] = useState(false)
-  const envoyer = async (msg: string) => {
+  const envoyer = async (msg: string, importance: string) => {
     const { data } = await supabase.auth.getSession()
     const headers: HeadersInit = { 'Content-Type': 'application/json' }
     const token = data.session?.access_token
@@ -139,7 +152,7 @@ function BoutonSignaler({ versetId }: { versetId: string }) {
     const res = await fetch('/api/signalements', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ id_verset: versetId, message: `Verset ${versetId} : ${msg}` }),
+      body: JSON.stringify({ id_verset: versetId, message: `Verset ${versetId} : ${msg}`, importance, url_source: window.location.href }),
     })
     if (!res.ok) {
       const details = await res.json().catch(() => null)

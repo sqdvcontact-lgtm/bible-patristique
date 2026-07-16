@@ -1,7 +1,27 @@
 export type Commentaire = { id: number; texte: string; auteur_nom: string; auteur_mail: string; valide: boolean; created_at: string; id_segment: number | null; id_verset: string | null; user_id?: string | null; demande_validation?: boolean; certifie?: boolean }
-export type Signalement  = { id: number | string; message: string; traite: boolean; created_at: string; id_segment: number | null; id_verset?: string | null; user_id?: string | null; source?: 'signalements' | 'quiz_signalements' }
+export type Signalement  = { id: number | string; message: string; traite: boolean; created_at: string; id_segment: number | null; id_verset?: string | null; user_id?: string | null; source?: 'signalements' | 'quiz_signalements'; importance?: string | null; url_source?: string | null }
 export type SegInfo      = { texte: string; numero: number; id_oeuvre: string }
-export type Oeuvre       = { id_oeuvre: string; titre: string; titre_original: string | null; profondeur_sommaire?: number | null }
+export type Oeuvre = {
+  id_oeuvre: string
+  titre: string
+  titre_original: string | null
+  profondeur_sommaire?: number | null
+  sous_titre?: string | null
+  trad_auteur?: string | null
+  editeur?: string | null
+  collection?: string | null
+  ville?: string | null
+  date_publication?: string | null
+  date_composition?: string | null
+  url_source?: string | null
+  langue?: string | null
+  genres?: string[] | null
+  niveaux_sommaire?: number | null
+  niveaux_corps?: number | null
+  texte_sommaire?: string | null
+  texte_corps?: string | null
+  afficher_numeros?: boolean | null
+}
 export type Auteur       = { id_auteur: string; nom: string; nom_original?: string | null; titre?: string | null; dates: string | null; date_naissance?: string | null; date_mort?: string | null; siecle?: string | null; tradition?: string | null; traditions?: string[] | null; note?: string | null; note_biographique?: string | null; note_theologique?: string | null; langue_principale?: string | null; oeuvres: Oeuvre[] }
 
 export type Traduction = {
@@ -71,4 +91,4 @@ export type AdminProps = {
   actionRenvoyerBrouillonEssai: (id: number, note: string, refus?: boolean) => Promise<void>
 }
 
-export type Onglet = 'bibliotheque' | 'ajouter-oeuvre' | 'depot-oeuvre' | 'traductions' | 'verifications' | 'moderation' | 'essais' | 'charte' | 'propositions'
+export type Onglet = 'bibliotheque' | 'controle-oeuvres' | 'traductions' | 'verifications' | 'moderation' | 'essais' | 'charte' | 'propositions' | 'taches'

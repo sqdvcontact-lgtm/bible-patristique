@@ -140,10 +140,10 @@ export default async function AdminPage() {
     { data: signalementsEssais },
     { data: auteursData },
     { data: traductions },
-    { count: nbVerifications },
+    { data: nbVerifRaw },
   ] = await Promise.all([
     supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id').eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false').order('created_at', { ascending: false }),
-    supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, id_verset, user_id').eq('traite', false).order('created_at', { ascending: false }),
+    supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, id_verset, user_id, importance, url_source').eq('traite', false).order('created_at', { ascending: false }),
     supabaseAdmin.from('quiz_signalements').select('id, raison, commentaire, created_at, id_verset, user_id').eq('traite', false).order('created_at', { ascending: false }).limit(200),
     supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, demande_validation, certifie').eq('demande_validation', true).order('created_at', { ascending: false }),
     supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, updated_at, publie_at, user_id').eq('statut', 'en_attente').order('created_at', { ascending: false }),
@@ -153,14 +153,15 @@ export default async function AdminPage() {
     supabaseAdmin.from('signalements').select('message'),
     supabaseAdmin.from('auteurs').select('id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, traditions, note_biographique, note_theologique, langue_principale, oeuvres(id_oeuvre, titre, sous_titre, titre_original, trad_auteur, editeur, collection, ville, date_publication, date_composition, url_source, genre, genres, langue, profondeur_sommaire, nb_signes, niveaux_sommaire, niveaux_corps, texte_sommaire, texte_corps, afficher_numeros)').order('siecle', { ascending: true, nullsFirst: false }),
     supabaseAdmin.from('traductions').select('*').order('ordre', { ascending: true }),
-    supabaseAdmin.from('segments').select('id', { count: 'exact', head: true }).eq('fiabilite', 'probable'),
+    supabaseAdmin.rpc('count_verifications_pending'),
   ])
+  const nbVerifications = (nbVerifRaw as number | null) ?? 0
 
   // Signalements : fallback si la colonne id_verset manque
   let signalements = signResult.data
   if (signResult.error) {
     const fallback = await supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, user_id').eq('traite', false).order('created_at', { ascending: false })
-    signalements = (fallback.data ?? []).map(s => ({ ...s, id_verset: null }))
+    signalements = (fallback.data ?? []).map(s => ({ ...s, id_verset: null, importance: null, url_source: null }))
   }
   const quizMapped = ((quizResult.data) ?? []).map((s: any) => ({
     id: `quiz_${s.id}`,

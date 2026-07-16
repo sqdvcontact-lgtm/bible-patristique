@@ -177,7 +177,7 @@ export default function NotificationsPage() {
                       {n.href && (
                         <Link href={n.href} onClick={e => { e.stopPropagation(); archiver(n) }}
                           style={{ display: 'inline-block', marginTop: '7px', fontSize: '11px', color: '#3d6b4f', fontWeight: 600, textDecoration: 'none' }}>
-                          Ouvrir la proposition
+                          {n.type === 'essai' ? 'Voir la publication' : n.type === 'commentaire' ? 'Voir le commentaire' : 'Ouvrir'}
                         </Link>
                       )}
                     </div>

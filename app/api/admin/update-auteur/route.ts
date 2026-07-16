@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
+import { erreur500 } from '@/app/lib/apiErreur'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
@@ -46,6 +47,6 @@ export async function POST(request: Request) {
     langue_principale: champs.langue_principale || null,
   }).eq('id_auteur', id_auteur)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return erreur500(error)
   return NextResponse.json({ ok: true })
 }

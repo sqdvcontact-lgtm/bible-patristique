@@ -1,26 +1,15 @@
-import { cookies } from 'next/headers'
-import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
+Dans les versets cités hors page "Bible" la main page qui contient le texte biblique ; si le guillemet ouvrant ou le guillemet fermant est absent de la citation, qu'on a donc un guillemet tout seul dans un bloc, il faut ajouter l'autre guillemet au début ou à la fin du verset. 
 
-// Page de diagnostic TEMPORAIRE — à supprimer une fois le problème d'accès admin résolu.
-export default async function AdminDebugPage() {
-  const cookieStore = await cookies()
-  const cookiesSb = cookieStore.getAll().filter(c => c.name.startsWith('sb-')).map(c => c.name)
+Quand je ne dispose pas du prénom du traducteur, j'ai "Traduction de abbé Joyeux" - ce n'est pas correct.
 
-  const supabase = await creerSupabaseServeur()
-  const { data, error } = await supabase.auth.getUser()
+Si quelqu'un veut télécharger les oeuvres sur lesuquelles j'ai travaillé, il doit voir la tête 
 
-  const adminEmailEnv = process.env.ADMIN_EMAIL ?? null
-  const emailUtilisateur = data?.user?.email ?? null
-  const correspond = !!(emailUtilisateur && adminEmailEnv && emailUtilisateur.trim().toLowerCase() === adminEmailEnv.trim().toLowerCase())
+CHANGER LA flèche pour lire l'article ; la rendr eplus sobre et élégante 
 
-  return (
-    <main style={{ padding: '40px', fontFamily: 'monospace', fontSize: '13px', lineHeight: 1.8, background: '#fff', color: '#000', minHeight: '100vh' }}>
-      <h1 style={{ fontSize: '16px', marginBottom: '20px' }}>Diagnostic admin (page temporaire — à supprimer après usage)</h1>
-      <p>1. Cookies « sb- » trouvés : <b>{cookiesSb.length === 0 ? 'AUCUN' : cookiesSb.join(', ')}</b></p>
-      <p>2. Utilisateur lu côté serveur : <b>{emailUtilisateur ? emailUtilisateur : 'AUCUN'}</b></p>
-      <p>3. Erreur éventuelle de getUser() : <b>{error ? error.message : 'aucune'}</b></p>
-      <p>4. Valeur de ADMIN_EMAIL côté serveur : <b>{adminEmailEnv ? adminEmailEnv : 'ABSENTE — variable non définie'}</b></p>
-      <p>5. Correspondance e-mail : <b>{correspond ? 'OUI ✓' : 'NON ✗'}</b></p>
-    </main>
-  )
-}
+Dans le sommairie, le texte des niv. ne s'affiche que tardivement ; 
+
+le numéro de segment se situe entre la latrine et la seconde lettre ; il faut qu'il se trouve avant la lettrine ; 
+
+
+
+- Revoir l'intégralité du texte associé à la bible de Glaire (dans le descriptif de la traduction) ; ne pas citer Wiki comme source ; amplifier un peu le texte ; 

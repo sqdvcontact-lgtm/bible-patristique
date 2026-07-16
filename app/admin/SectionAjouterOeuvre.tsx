@@ -17,21 +17,15 @@ const GENRES_PAR_CATEGORIE: { cat: string; genres: string[] }[] = [
   { cat: 'Liturgie & prière', genres: ['Anaphore / Liturgie', 'Hymne', 'Prière / Invocation'] },
   { cat: 'Littérature', genres: ['Confession / Autobiographie', 'Poème', 'Dialogue philosophique', 'Florilège', 'Encyclopédie'] },
 ]
-const TOUS_GENRES = GENRES_PAR_CATEGORIE.flatMap(c => c.genres)
 
 function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]) => void }) {
   const [nouveau, setNouveau] = React.useState(false)
   const [saisie, setSaisie] = React.useState('')
   const ajouter = (v: string) => { if (!tags.includes(v)) onChange([...tags, v]) }
   const supprimer = (v: string) => onChange(tags.filter(x => x !== v))
-  const ajouterCustom = () => {
-    const v = saisie.trim()
-    if (v) { ajouter(v); setSaisie(''); setNouveau(false) }
-  }
-
+  const ajouterCustom = () => { const v = saisie.trim(); if (v) { ajouter(v); setSaisie(''); setNouveau(false) } }
   return (
     <div>
-      {/* Genres par catégorie */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '8px' }}>
         {GENRES_PAR_CATEGORIE.map(({ cat, genres }) => (
           <div key={cat} style={{ display: 'flex', gap: '6px', alignItems: 'baseline', flexWrap: 'wrap' }}>
@@ -50,27 +44,21 @@ function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]
           </div>
         ))}
       </div>
-
-      {/* Nouveau genre */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: tags.length > 0 ? '8px' : '0' }}>
         {nouveau ? (
           <>
             <input value={saisie} onChange={e => setSaisie(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') ajouterCustom(); if (e.key === 'Escape') { setNouveau(false); setSaisie('') } }}
-              autoFocus
-              style={{ ...inp, width: '180px', fontSize: '11px', padding: '4px 8px' }} />
+              autoFocus style={{ ...inp, width: '180px', fontSize: '11px', padding: '4px 8px' }} />
             <button onClick={ajouterCustom} style={{ fontSize: '10.5px', padding: '3px 10px', borderRadius: '3px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer' }}>Ajouter</button>
             <button onClick={() => { setNouveau(false); setSaisie('') }} style={{ fontSize: '10.5px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#9a958d', cursor: 'pointer' }}>Annuler</button>
           </>
         ) : (
-          <button onClick={() => setNouveau(true)}
-            style={{ fontSize: '10.5px', color: '#6b6560', border: '1px dashed #d6d0c4', background: 'transparent', borderRadius: '3px', padding: '2px 10px', cursor: 'pointer' }}>
+          <button onClick={() => setNouveau(true)} style={{ fontSize: '10.5px', color: '#6b6560', border: '1px dashed #d6d0c4', background: 'transparent', borderRadius: '3px', padding: '2px 10px', cursor: 'pointer' }}>
             + Nouveau genre
           </button>
         )}
       </div>
-
-      {/* Tags actifs */}
       {tags.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', paddingTop: '6px', borderTop: '1px solid #ede9e2' }}>
           {tags.map(t => (
@@ -92,25 +80,14 @@ function ComboboxAuteur({ auteurs, value, onChange }: { auteurs: AuteurOpt[]; va
   const [saisie, setSaisie] = React.useState('')
   const [ouvert, setOuvert] = React.useState(false)
   const ref = React.useRef<HTMLDivElement>(null)
-
   const auteurActuel = auteurs.find(a => String(a.id_auteur) === value)
-
-  const filtres = saisie.trim()
-    ? auteurs.filter(a => a.nom.toLowerCase().includes(saisie.toLowerCase()))
-    : auteurs
-
+  const filtres = saisie.trim() ? auteurs.filter(a => a.nom.toLowerCase().includes(saisie.toLowerCase())) : auteurs
   React.useEffect(() => {
     const fermer = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOuvert(false) }
     document.addEventListener('mousedown', fermer)
     return () => document.removeEventListener('mousedown', fermer)
   }, [])
-
-  const selectionner = (a: AuteurOpt) => {
-    onChange(String(a.id_auteur))
-    setSaisie('')
-    setOuvert(false)
-  }
-
+  const selectionner = (a: AuteurOpt) => { onChange(String(a.id_auteur)); setSaisie(''); setOuvert(false) }
   return (
     <div ref={ref} style={{ position: 'relative', flex: 1 }}>
       <div style={{ display: 'flex', gap: '0', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#fff', overflow: 'hidden' }}>
@@ -149,11 +126,7 @@ const VIDE_AUTEUR: NouvelAuteurForm = { nom: '', nom_original: '', date_naissanc
 
 function TagsTraditions({ tags, onChange, tousLesTags }: { tags: string[]; onChange: (t: string[]) => void; tousLesTags: string[] }) {
   const [saisie, setSaisie] = React.useState('')
-  const ajouter = (v?: string) => {
-    const val = (v ?? saisie).trim()
-    if (val && !tags.includes(val)) onChange([...tags, val])
-    setSaisie('')
-  }
+  const ajouter = (v?: string) => { const val = (v ?? saisie).trim(); if (val && !tags.includes(val)) onChange([...tags, val]); setSaisie('') }
   const supprimer = (v: string) => onChange(tags.filter(x => x !== v))
   const suggestions = tousLesTags.filter(t => !tags.includes(t) && (!saisie || t.toLowerCase().includes(saisie.toLowerCase())))
   return (
@@ -184,8 +157,137 @@ function TagsTraditions({ tags, onChange, tousLesTags }: { tags: string[]; onCha
   )
 }
 
+// ── Catalogue ─────────────────────────────────────────────────────────────────
+type NoticesCatalogue = {
+  id_oeuvre_stable: string
+  titre_stable: string
+  titre_original: string | null
+  id_auteur: string
+  auteur: string
+  date_oeuvre: string | null
+  traducteur: string | null
+  editeur: string | null
+  lieu_edition: string | null
+  annee_edition: number | null
+  collection_nom: string | null
+  langue_originale: string | null
+  url_source: string | null
+  genre: string | null
+  decision_import: string | null
+  presence_sur_le_site: boolean | null
+}
+
+const LANGUES_MAP: Record<string, string> = {
+  'latin': 'Latin', 'grec': 'Grec', 'grec ancien': 'Grec', 'grec classique': 'Grec',
+  'syriaque': 'Syriaque', 'copte': 'Copte', 'arménien': 'Arménien',
+  'géorgien': 'Géorgien', 'arabe': 'Arabe chrétien', 'arabe chrétien': 'Arabe chrétien',
+  'guèze': 'Guèze', 'éthiopien': 'Guèze',
+}
+
+function normaliserLangue(l: string | null): string {
+  if (!l) return ''
+  return LANGUES_MAP[l.toLowerCase().trim()] ?? l
+}
+
+function RechercheCatalogue({ onSelect }: { onSelect: (n: NoticesCatalogue) => void }) {
+  const [saisie, setSaisie] = React.useState('')
+  const [resultats, setResultats] = React.useState<NoticesCatalogue[]>([])
+  const [chargement, setChargement] = React.useState(false)
+  const [afficher, setAfficher] = React.useState(false)
+  const ref = React.useRef<HTMLDivElement>(null)
+  const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  React.useEffect(() => {
+    const fermer = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setAfficher(false) }
+    document.addEventListener('mousedown', fermer)
+    return () => document.removeEventListener('mousedown', fermer)
+  }, [])
+
+  const chercher = React.useCallback(async (q: string) => {
+    if (q.length < 2) { setResultats([]); setAfficher(false); return }
+    setChargement(true)
+    const { data } = await supabase
+      .from('catalogue_notices')
+      .select('id_oeuvre_stable, titre_stable, titre_original, id_auteur, auteur, date_oeuvre, traducteur, editeur, lieu_edition, annee_edition, collection_nom, langue_originale, url_source, genre, decision_import, presence_sur_le_site')
+      .or(`titre_stable.ilike.%${q}%,titre_original.ilike.%${q}%,auteur.ilike.%${q}%`)
+      .order('auteur')
+      .order('titre_stable')
+      .limit(60)
+    if (data) {
+      // Dédupliquer par id_oeuvre_stable, garder la notice vérifiée
+      const map = new Map<string, NoticesCatalogue>()
+      for (const n of data as NoticesCatalogue[]) {
+        const ex = map.get(n.id_oeuvre_stable)
+        if (!ex) map.set(n.id_oeuvre_stable, n)
+      }
+      setResultats([...map.values()].slice(0, 20))
+    }
+    setChargement(false)
+    setAfficher(true)
+  }, [])
+
+  const onChange = (v: string) => {
+    setSaisie(v)
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => chercher(v), 250)
+  }
+
+  const selectionner = (n: NoticesCatalogue) => {
+    setSaisie('')
+    setAfficher(false)
+    setResultats([])
+    onSelect(n)
+  }
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <div style={{ position: 'relative' }}>
+        <input
+          value={saisie}
+          onChange={e => onChange(e.target.value)}
+          onFocus={() => { if (resultats.length > 0) setAfficher(true) }}
+          placeholder="Auteur, titre français ou latin…"
+          style={{ ...inp, paddingRight: chargement ? '30px' : '9px' }}
+        />
+        {chargement && (
+          <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '11px', color: '#b0a89e' }}>…</span>
+        )}
+      </div>
+      {afficher && resultats.length > 0 && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200, background: '#fff', border: '1px solid #d6d0c4', borderTop: 'none', borderRadius: '0 0 6px 6px', maxHeight: '340px', overflowY: 'auto', boxShadow: '0 6px 16px rgba(0,0,0,0.10)' }}>
+          {resultats.map(n => (
+            <div key={n.id_oeuvre_stable} onMouseDown={() => selectionner(n)}
+              style={{ padding: '9px 12px', cursor: 'pointer', borderBottom: '1px solid #f0ece6' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(61,107,79,0.04)')}
+              onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px' }}>
+                <span style={{ fontSize: '12px', color: '#1e1a16', fontWeight: 500 }}>{n.titre_stable}</span>
+                <span style={{ fontSize: '10px', color: '#b0a89e', flexShrink: 0, fontFamily: 'monospace' }}>{n.id_oeuvre_stable}</span>
+              </div>
+              <div style={{ fontSize: '11px', color: '#9a958d', marginTop: '2px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <span>{n.auteur}</span>
+                {n.titre_original && <span style={{ fontStyle: 'italic' }}>{n.titre_original}</span>}
+                {n.date_oeuvre && <span>{n.date_oeuvre}</span>}
+                {n.presence_sur_le_site && (
+                  <span style={{ color: '#c0562a', fontWeight: 500 }}>déjà en ligne</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {afficher && resultats.length === 0 && saisie.length >= 2 && !chargement && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200, background: '#fff', border: '1px solid #d6d0c4', borderTop: 'none', borderRadius: '0 0 6px 6px', padding: '12px', fontSize: '12px', color: '#9a958d', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+          Aucune œuvre trouvée dans le catalogue.
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 type MetaOeuvre = {
+  id_oeuvre: string
   id_auteur: string; titre: string; sous_titre: string; titre_original: string
   trad_auteur: string; editeur: string; collection: string
   ville: string; url_source: string; date_publication: string; date_composition: string
@@ -193,6 +295,7 @@ type MetaOeuvre = {
 }
 
 const VIDE_META: MetaOeuvre = {
+  id_oeuvre: '',
   id_auteur: '', titre: '', sous_titre: '', titre_original: '',
   trad_auteur: '', editeur: '', collection: '',
   ville: '', url_source: '', date_publication: '', date_composition: '',
@@ -203,9 +306,10 @@ type AuteurAvecDates = Auteur & { date_naissance?: string | null; date_mort?: st
 
 // ── Composant principal ───────────────────────────────────────────────────────
 export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] }) {
-  const [etape, setEtape] = React.useState<'meta' | 'csv' | 'preview' | 'done'>('meta')
+  const [etape, setEtape] = React.useState<'selection' | 'meta' | 'csv' | 'preview' | 'done'>('selection')
   const [meta, setMeta] = React.useState<MetaOeuvre>(VIDE_META)
   const set = (k: keyof MetaOeuvre, v: string) => setMeta(m => ({ ...m, [k]: v }))
+  const [noticeSelectionnee, setNoticeSelectionnee] = React.useState<NoticesCatalogue | null>(null)
 
   // Auteurs
   const [auteursCourants, setAuteursCourants] = React.useState<AuteurAvecDates[]>(auteurs as AuteurAvecDates[])
@@ -220,17 +324,45 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
 
   const dateCompositionAuto = React.useMemo(() => {
     if (!auteurSelectionne) return ''
-    const dn = parseInt((auteurSelectionne as any).date_naissance ?? '')
-    const dm = parseInt((auteurSelectionne as any).date_mort ?? '')
+    const dn = parseInt(auteurSelectionne.date_naissance ?? '')
+    const dm = parseInt(auteurSelectionne.date_mort ?? '')
     if (isNaN(dn) || isNaN(dm)) return ''
     return `vers ${Math.round((dn + dm) / 2)}`
   }, [auteurSelectionne])
 
   const tousLesTags = React.useMemo(() => {
     const s = new Set<string>()
-    auteursCourants.forEach(a => (a as any).traditions?.forEach((t: string) => s.add(t)))
+    auteursCourants.forEach(a => a.traditions?.forEach(t => s.add(t)))
     return [...s].sort()
   }, [auteursCourants])
+
+  // Sélection depuis le catalogue
+  const selectionnerDepuisCatalogue = (n: NoticesCatalogue) => {
+    setNoticeSelectionnee(n)
+    setMeta({
+      id_oeuvre: n.id_oeuvre_stable,
+      id_auteur: n.id_auteur,
+      titre: n.titre_stable,
+      sous_titre: '',
+      titre_original: n.titre_original ?? '',
+      trad_auteur: n.traducteur ?? '',
+      editeur: n.editeur ?? '',
+      collection: n.collection_nom ?? '',
+      ville: n.lieu_edition ?? '',
+      url_source: n.url_source ?? '',
+      date_publication: n.annee_edition ? String(n.annee_edition) : '',
+      date_composition: n.date_oeuvre ?? '',
+      genres: n.genre ? [n.genre] : [],
+      langue: normaliserLangue(n.langue_originale),
+    })
+    setEtape('meta')
+  }
+
+  const creerSansCatalogue = () => {
+    setNoticeSelectionnee(null)
+    setMeta(VIDE_META)
+    setEtape('meta')
+  }
 
   // Nouvel auteur
   const [ajoutAuteur, setAjoutAuteur] = React.useState(false)
@@ -290,37 +422,74 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
   }
 
   const reset = () => {
-    setEtape('meta'); setMeta(VIDE_META)
+    setEtape('selection'); setMeta(VIDE_META); setNoticeSelectionnee(null)
     setSegments([]); setNomFichier(''); setCsvErreur(null); setResultat(null); setAjoutAuteur(false)
   }
+
+  // ── Indicateur d'étapes
+  const ETAPES_LABEL: [string, string][] = [['selection', 'Sélection'], ['meta', 'Métadonnées'], ['csv', 'Import CSV'], ['preview', 'Prévisualisation']]
+  const indexEtape = ETAPES_LABEL.findIndex(([k]) => k === etape)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-      {/* Étapes */}
-      <div style={{ display: 'flex', gap: '0', marginBottom: '4px' }}>
-        {([['meta', 'Métadonnées'], ['csv', 'Import CSV'], ['preview', 'Prévisualisation']] as const).map(([k, l], i) => (
-          <div key={k} style={{ display: 'flex', alignItems: 'center' }}>
-            <span style={{ fontSize: '11.5px', fontWeight: etape === k ? 600 : 400, color: etape === k ? '#3d6b4f' : '#b0a89e' }}>{i + 1}. {l}</span>
-            {i < 2 && <span style={{ margin: '0 10px', color: '#d6d0c4' }}>→</span>}
-          </div>
-        ))}
-      </div>
+      {/* Barre d'étapes */}
+      {etape !== 'done' && (
+        <div style={{ display: 'flex', gap: '0', marginBottom: '4px' }}>
+          {ETAPES_LABEL.map(([k, l], i) => (
+            <div key={k} style={{ display: 'flex', alignItems: 'center' }}>
+              <span style={{ fontSize: '11.5px', fontWeight: etape === k ? 600 : 400, color: etape === k ? '#3d6b4f' : i < indexEtape ? '#9a958d' : '#c8c3bc' }}>
+                {i + 1}. {l}
+              </span>
+              {i < ETAPES_LABEL.length - 1 && <span style={{ margin: '0 10px', color: '#d6d0c4' }}>→</span>}
+            </div>
+          ))}
+        </div>
+      )}
 
-      {/* ── ÉTAPE 1 ── */}
+      {/* ── ÉTAPE 0 : SÉLECTION ── */}
+      {etape === 'selection' && (
+        <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '22px 24px' }}>
+          <p style={{ fontSize: '12px', color: '#6b6560', marginBottom: '14px', marginTop: 0 }}>
+            Recherchez l'œuvre dans le catalogue pour pré-remplir les métadonnées automatiquement.
+          </p>
+          <label style={lbl}>Titre, auteur ou titre original</label>
+          <RechercheCatalogue onSelect={selectionnerDepuisCatalogue} />
+          <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #ede9e2', display: 'flex', justifyContent: 'flex-end' }}>
+            <button onClick={creerSansCatalogue}
+              style={{ fontSize: '12px', padding: '7px 16px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>
+              Créer sans catalogue →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── ÉTAPE 1 : MÉTADONNÉES ── */}
       {(etape === 'meta' || etape === 'csv') && (
         <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '18px 22px' }}>
+
+          {/* Bandeau catalogue */}
+          {noticeSelectionnee && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(61,107,79,0.07)', border: '1px solid rgba(61,107,79,0.20)', borderRadius: '5px', padding: '8px 12px', marginBottom: '14px' }}>
+              <div>
+                <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#3d6b4f', marginRight: '8px' }}>Catalogue</span>
+                <span style={{ fontSize: '12px', color: '#2a3d30', fontWeight: 500 }}>{noticeSelectionnee.titre_stable}</span>
+                <span style={{ fontSize: '11px', color: '#9a958d', marginLeft: '8px', fontFamily: 'monospace' }}>{noticeSelectionnee.id_oeuvre_stable}</span>
+              </div>
+              <button onClick={() => setEtape('selection')}
+                style={{ fontSize: '10.5px', padding: '3px 9px', borderRadius: '3px', border: '1px solid rgba(61,107,79,0.25)', background: 'transparent', color: '#3d6b4f', cursor: 'pointer' }}>
+                Changer
+              </button>
+            </div>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
 
             {/* Auteur */}
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>Auteur *</label>
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                <ComboboxAuteur
-                  auteurs={auteursCourants}
-                  value={meta.id_auteur}
-                  onChange={id => setMeta(m => ({ ...m, id_auteur: id }))}
-                />
+                <ComboboxAuteur auteurs={auteursCourants} value={meta.id_auteur} onChange={id => setMeta(m => ({ ...m, id_auteur: id }))} />
                 <button onClick={() => setAjoutAuteur(!ajoutAuteur)}
                   style={{ fontSize: '11px', padding: '6px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: ajoutAuteur ? '#3d6b4f' : '#fff', color: ajoutAuteur ? '#fff' : '#3d6b4f', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   + Nouvel auteur
@@ -373,15 +542,14 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
             <div><label style={lbl}>Date de publication</label><input value={meta.date_publication} onChange={e => set('date_publication', e.target.value)} style={inp} /></div>
             <div>
               <label style={lbl}>
-                Date de publication originale
+                Date de composition
                 {dateCompositionAuto && !meta.date_composition && (
                   <span style={{ fontWeight: 400, color: '#b0a89e', marginLeft: '6px', textTransform: 'none', letterSpacing: 0, fontSize: '9px' }}>
                     — si vide : <em>{dateCompositionAuto}</em>
                   </span>
                 )}
               </label>
-              <input value={meta.date_composition} onChange={e => set('date_composition', e.target.value)} style={inp}
-                placeholder={dateCompositionAuto || ''} />
+              <input value={meta.date_composition} onChange={e => set('date_composition', e.target.value)} style={inp} placeholder={dateCompositionAuto || ''} />
             </div>
             <div>
               <label style={lbl}>Langue originale</label>
@@ -409,7 +577,11 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
 
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px' }}>
+            <button onClick={() => setEtape('selection')}
+              style={{ fontSize: '12px', padding: '7px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>
+              ← Sélection
+            </button>
             <button onClick={() => { if (!meta.id_auteur || !meta.titre.trim()) { alert('Titre et auteur sont requis.'); return } setEtape('csv') }}
               style={{ fontSize: '12px', padding: '7px 18px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>
               Suivant : import CSV →
@@ -418,7 +590,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
         </div>
       )}
 
-      {/* ── ÉTAPE 2 ── */}
+      {/* ── ÉTAPE 2 : CSV ── */}
       {(etape === 'csv' || etape === 'preview') && (
         <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '20px 24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '16px' }}>
@@ -457,12 +629,13 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
         </div>
       )}
 
-      {/* ── ÉTAPE 3 ── */}
+      {/* ── ÉTAPE 3 : PRÉVISUALISATION ── */}
       {etape === 'preview' && segments.length > 0 && (
         <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', overflow: 'hidden' }}>
           <div style={{ padding: '14px 20px', borderBottom: '1px solid #e4dfd8', background: '#f7f4ef' }}>
             <p style={{ fontSize: '12px', color: '#2a3d30', fontWeight: 500, margin: '0 0 2px' }}>
               {auteursCourants.find(a => String(a.id_auteur) === meta.id_auteur)?.nom} — {meta.titre}
+              {meta.id_oeuvre && <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#9a958d', marginLeft: '10px' }}>{meta.id_oeuvre}</span>}
             </p>
             <p style={{ fontSize: '11px', color: '#9a958d', margin: 0 }}>
               {segments.length} segments{meta.trad_auteur ? ` · trad. ${meta.trad_auteur}` : ''}{meta.genres.length > 0 ? ` · ${meta.genres.join(', ')}` : ''}
@@ -503,7 +676,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
         </div>
       )}
 
-      {/* ── ÉTAPE 4 ── */}
+      {/* ── ÉTAPE 4 : SUCCÈS ── */}
       {etape === 'done' && resultat?.ok && (
         <div style={{ background: '#fff', border: '2px solid #3d6b4f', borderRadius: '8px', padding: '28px 24px', textAlign: 'center' }}>
           <p style={{ fontSize: '22px', marginBottom: '10px' }}>✓</p>

@@ -7,11 +7,37 @@ import VoletEssai from '@/app/lib/VoletEssai'
 import EssaiCommentaires from './EssaiCommentaires'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
+import { ABREV_FR, LIVRES } from '@/app/lib/bible'
+
+const ABREV_VERS_NOM: Record<string, string> = Object.fromEntries(
+  Object.entries(ABREV_FR).map(([code, abrev]) => [abrev, LIVRES.find(l => l.code === code)?.nom ?? abrev])
+)
+
+function expanderRef(ref: string): string {
+  return ref
+    .replace(/^([^\s\d]+)/, (_, abrev) => ABREV_VERS_NOM[abrev] ?? abrev)
+    .replace(/,(\S)/g, ', $1')
+}
 
 type Essai = {
   id: number; titre: string; sous_titre: string | null; resume: string | null
   categories: string[]; contenu: string; statut: string; nb_vues: number
   user_id: string; created_at: string; publie_at: string | null; auteur_pseudo: string | null
+  verset_en_tete?: string | null
+}
+
+function BoutonPartage({ label, onClick, children, loading }: { label: string; onClick: () => void; children: React.ReactNode; loading?: boolean }) {
+  const [flash, setFlash] = useState(false)
+  const handleClick = () => {
+    onClick()
+    if (label === 'Copier le lien') { setFlash(true); setTimeout(() => setFlash(false), 1600) }
+  }
+  return (
+    <button onClick={handleClick} title={label} disabled={loading}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: '5px', border: '1px solid #ddd8cf', background: flash ? '#edf5f0' : '#fff', color: flash ? '#3d6b4f' : loading ? '#c8c0b4' : '#9a958d', cursor: loading ? 'default' : 'pointer', transition: 'background 0.2s, color 0.2s', flexShrink: 0 }}>
+      {children}
+    </button>
+  )
 }
 
 export default function EssaiClient({ essai }: { essai: Essai }) {
@@ -41,6 +67,14 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   }, [essai.id])
 
   useEffect(() => {
+    localStorage.setItem('cs_derniere_publication', JSON.stringify({
+      id: essai.id,
+      titre: essai.titre,
+      auteur: essai.auteur_pseudo,
+    }))
+  }, [essai.id, essai.titre, essai.auteur_pseudo])
+
+  useEffect(() => {
     supabase.from('essais_appreciations').select('user_id', { count: 'exact' }).eq('id_essai', essai.id)
       .then(({ data, count }) => {
         setNbAppreciations(count ?? data?.length ?? 0)
@@ -67,6 +101,41 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   }
 
   const ouvrirPanneau = (el: ElementPanneau) => { setPanneau(el); setVoletOuvert(true) }
+
+  const [pdfEnCours, setPdfEnCours] = useState(false)
+
+  const copierLien = () => {
+    navigator.clipboard.writeText(window.location.href).catch(() => {})
+  }
+
+  const partager = async () => {
+    if (navigator.share) {
+      await navigator.share({ title: essai.titre, url: window.location.href }).catch(() => {})
+    } else {
+      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(essai.titre)}`, '_blank', 'noopener')
+    }
+  }
+
+  const telechargerPDF = async () => {
+    if (pdfEnCours) return
+    setPdfEnCours(true)
+    try {
+      const { telechargerPDF: fn } = await import('./EssaiPDF')
+      await fn({
+        titre: essai.titre,
+        sousTitre: essai.sous_titre,
+        auteur: essai.auteur_pseudo,
+        date: new Date(dateAffichee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+        verset: versetParse,
+        contenu: essai.contenu,
+      })
+    } finally {
+      setPdfEnCours(false)
+    }
+  }
+
+  const dateFormatee = new Date(dateAffichee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  const versetParse = (() => { try { return essai.verset_en_tete ? JSON.parse(essai.verset_en_tete) as { ref: string; texte: string } : null } catch { return null } })()
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 48px)', paddingRight: (aDesNotes && voletOuvert) ? '320px' : 0, transition: 'padding-right 0.15s' }}>
@@ -97,6 +166,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           margin-bottom: 0.52em !important;
         }
       `}</style>
+
       <div style={{ maxWidth: '660px', margin: '0 auto', padding: '0 32px 80px' }}>
 
         {essai.statut === 'en_attente' && (
@@ -143,8 +213,41 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           {favorisPret && (
             <EtoileFavori actif={favorisEssais.has(String(essai.id))} onToggle={() => toggleFavoriEssai(String(essai.id))} size={15} />
           )}
+
+          {/* Boutons de partage */}
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <BoutonPartage label="Copier le lien" onClick={copierLien}>
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+                <path d="M5 7.5a2.5 2.5 0 0 0 3.5.5l2-2A2.5 2.5 0 0 0 7 2.5L5.8 3.8"/>
+                <path d="M8 5.5a2.5 2.5 0 0 0-3.5-.5l-2 2A2.5 2.5 0 0 0 6 10.5l1.2-1.2"/>
+              </svg>
+            </BoutonPartage>
+            <BoutonPartage label={pdfEnCours ? 'Génération…' : 'Télécharger en PDF'} onClick={telechargerPDF} loading={pdfEnCours}>
+              {pdfEnCours ? (
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+                  <circle cx="6.5" cy="6.5" r="4.5" strokeDasharray="12 8" strokeDashoffset="0">
+                    <animateTransform attributeName="transform" type="rotate" from="0 6.5 6.5" to="360 6.5 6.5" dur="0.8s" repeatCount="indefinite"/>
+                  </circle>
+                </svg>
+              ) : (
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2.5 9.5v1a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-1"/>
+                  <path d="M6.5 1.5v6M4 5.5l2.5 2.5 2.5-2.5"/>
+                </svg>
+              )}
+            </BoutonPartage>
+            <BoutonPartage label="Partager" onClick={partager}>
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="10" cy="2.5" r="1.3"/>
+                <circle cx="10" cy="10.5" r="1.3"/>
+                <circle cx="3" cy="6.5" r="1.3"/>
+                <path d="M4.2 7.2l4.7 2.6M8.9 3.2 4.2 5.8"/>
+              </svg>
+            </BoutonPartage>
+          </div>
+
           {aDesNotes && !voletOuvert && (
-            <button onClick={() => setVoletOuvert(true)} style={{ marginLeft: 'auto', fontSize: '11px', color: '#3d6b4f', background: 'none', border: '1px solid #3d6b4f', borderRadius: '4px', padding: '3px 9px', cursor: 'pointer' }}>
+            <button onClick={() => setVoletOuvert(true)} style={{ fontSize: '11px', color: '#3d6b4f', background: 'none', border: '1px solid #3d6b4f', borderRadius: '4px', padding: '3px 9px', cursor: 'pointer' }}>
               Notes et citations ›
             </button>
           )}
@@ -159,19 +262,32 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           </div>
         )}
 
+        {versetParse && (
+          <div style={{ margin: "0 auto 52px", maxWidth: "420px", textAlign: "center" }}>
+            <p style={{ fontFamily: "Georgia, serif", fontSize: "14.5px", lineHeight: 1.8, color: "#4a4440", fontStyle: "italic", margin: "0 0 10px", letterSpacing: "0.01em" }}>
+              {'« '}{versetParse.texte}{' »'}
+            </p>
+            <p style={{ fontSize: "10.5px", letterSpacing: "0.1em", color: "#a09890", margin: 0, fontFamily: "Helvetica Neue, Arial, sans-serif", textTransform: "uppercase" }}>
+              {expanderRef(versetParse.ref)}
+            </p>
+          </div>
+        )}
+
         <div className="essai-lecture-corps" style={{ fontSize: '15px', color: '#1e1a16', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
           {rendreEssai(essai.contenu, { onOuvrirPanneau: ouvrirPanneau })}
         </div>
 
-        <EssaiCommentaires idEssai={essai.id} />
+        <div><EssaiCommentaires idEssai={essai.id} /></div>
       </div>
 
       {aDesNotes && voletOuvert && (
-        <VoletEssai element={panneau} onFermer={() => setPanneau(null)} toujoursVisible enTete={
-          <button onClick={() => setVoletOuvert(false)} style={{ fontSize: '11px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            › Réduire ce volet
-          </button>
-        } />
+        <div>
+          <VoletEssai element={panneau} onFermer={() => setPanneau(null)} toujoursVisible enTete={
+            <button onClick={() => setVoletOuvert(false)} style={{ fontSize: '11px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              › Réduire ce volet
+            </button>
+          } />
+        </div>
       )}
     </main>
   )
