@@ -1,6 +1,17 @@
 import type { Props, ChampOeuvre } from './oeuvreTypes'
 import { rendreTexteEnrichi } from './texteEnrichi'
 
+const TITRES_RE = /^(M\.|Mme\.?|Mlle\.?|Dr\.?|Pr\.?|Dom |Père |Frère |Sœur |Abbé |Saint |Sainte |Rev\.? ?|Mgr\.?|R\.\s*P\.|l['']abbé|le père)/i
+
+export function libelleTrad(trad: string | null | undefined): string {
+  const t = (trad ?? '').trim()
+  if (!t) return ''
+  if (t.toLowerCase() === 'anonyme') return 'Traduction anonyme'
+  if (TITRES_RE.test(t)) return `Traduction : ${t}`
+  if (t.includes(' ')) return `Traduction par ${t}`
+  return `Traduction de ${t}`
+}
+
 const BTN: React.CSSProperties = {
   position: 'absolute', fontSize: '11px', color: '#c8c0b4',
   background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1,
@@ -68,7 +79,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier 
       {(oeuvre.trad_auteur || estAdmin) && (
         <div style={{ position: 'relative' }}>
           <p style={{ fontSize: '13px', color: '#7a7268', marginBottom: '6px' }}>
-            {oeuvre.trad_auteur ? <>Traduction de {oeuvre.trad_auteur}</> : estAdmin ? <span style={{ color: '#d6d0c4', fontStyle: 'italic', fontSize: '12px' }}>Traduction de…</span> : null}
+            {oeuvre.trad_auteur ? <>{libelleTrad(oeuvre.trad_auteur)}</> : estAdmin ? <span style={{ color: '#d6d0c4', fontStyle: 'italic', fontSize: '12px' }}>Traduction de…</span> : null}
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('trad_auteur', oeuvre.trad_auteur ?? '')} title="Modifier le traducteur"

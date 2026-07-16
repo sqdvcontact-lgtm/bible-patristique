@@ -31,7 +31,7 @@ body {
 
 /* ── Page Traductions ── */
 .trad-article p,
-.trad-article p * {
+.trad-article p :not(sup) {
   font-size: 13.5px !important;
   color: #2a2520 !important;
   line-height: 1.65 !important;
@@ -39,6 +39,9 @@ body {
   text-decoration: none !important;
   text-align: justify !important;
   hyphens: auto !important;
+}
+.trad-article sup {
+  font-size: 0.6em !important;
 }
 .trad-article h1 {
   font-family: Georgia, 'Times New Roman', serif !important;
@@ -68,4 +71,9 @@ body {
 }
 .trad-article .sc {
   font-variant: small-caps !important;
+}
+
+/* ── Chiffres romains de siècle ── */
+.num-romain {
+  font-variant: all-small-caps;
 }

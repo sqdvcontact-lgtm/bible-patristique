@@ -8,6 +8,7 @@ import SectionTraductions from './SectionTraductions'
 import SectionModeration from './SectionModeration'
 import SectionEssaisAdmin from './SectionEssaisAdmin'
 import SectionCharte from './SectionCharte'
+import SectionCharteAccentuation from './SectionCharteAccentuation'
 import SectionPropositions from './SectionPropositions'
 import SectionTaches from './SectionTaches'
 import SectionControleOeuvres from './SectionControleOeuvres'
@@ -60,6 +61,7 @@ export default function AdminClient({
     { key: 'moderation',          label: 'Modération', badge: nbMod },
     { key: 'propositions',         label: 'Propositions', separateur: true },
     { key: 'charte',              label: 'Charte IA' },
+    { key: 'charte-accentuation', label: 'Accentuation' },
     { key: 'taches',              label: 'À faire', separateur: true },
   ]
 
@@ -102,8 +104,9 @@ export default function AdminClient({
 
       {/* Contenu */}
       <div style={{ maxWidth: onglet === 'controle-oeuvres' ? '1320px' : '960px', margin: '0 auto', padding: '28px 24px 64px' }}>
-        {onglet === 'taches'         && <SectionTaches />}
-        {onglet === 'charte'         && <SectionCharte />}
+        {onglet === 'taches'               && <SectionTaches />}
+        {onglet === 'charte'               && <SectionCharte />}
+        {onglet === 'charte-accentuation'  && <SectionCharteAccentuation />}
         {onglet === 'propositions'   && <SectionPropositions />}
         {onglet === 'bibliotheque'   && <SectionBibliotheque auteurs={auteurs} />}
         {onglet === 'controle-oeuvres' && <SectionControleOeuvres auteurs={auteurs} />}

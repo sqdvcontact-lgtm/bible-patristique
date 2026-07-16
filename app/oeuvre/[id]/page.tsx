@@ -135,8 +135,44 @@ export default async function OeuvrePage({
     return acc
   }
 
-  // ── Vague 1 : 6 requêtes indépendantes en parallèle ──────────────────────
-  const [estAdmin, { data: oeuvre }, { data: niv1Raw, error: rpcError }, { data: segmentCibleData }, segmentsApparatRaw, { data: niv1TexeRaw }] = await Promise.all([
+  async function completerNiv1TexteMap(niv1Cibles: string[], cible: Record<string, string>) {
+    const manquants = niv1Cibles.filter(n1 => n1 && !cible[n1])
+    if (manquants.length === 0) return
+
+    const tailleLot = 25
+    for (let i = 0; i < manquants.length; i += tailleLot) {
+      const lot = manquants.slice(i, i + tailleLot)
+      const attendus = new Set(lot)
+      let from = 0
+
+      while (attendus.size > 0) {
+        const { data: batch } = await supabase
+          .from('segments')
+          .select('ref_niv1, ref_niv1_texte')
+          .eq('id_oeuvre', id)
+          .eq('nature', 'texte')
+          .in('ref_niv1', lot)
+          .not('ref_niv1_texte', 'is', null)
+          .order('id', { ascending: true })
+          .range(from, from + 999)
+
+        if (!batch || batch.length === 0) break
+
+        batch.forEach((r: any) => {
+          if (r.ref_niv1 && r.ref_niv1_texte && attendus.has(r.ref_niv1)) {
+            cible[r.ref_niv1] = r.ref_niv1_texte
+            attendus.delete(r.ref_niv1)
+          }
+        })
+
+        if (batch.length < 1000) break
+        from += 1000
+      }
+    }
+  }
+
+  // ── Vague 1 : 5 requêtes indépendantes en parallèle ──────────────────────
+  const [estAdmin, { data: oeuvre }, { data: niv1Raw, error: rpcError }, { data: segmentCibleData }, segmentsApparatRaw] = await Promise.all([
     verifierEstAdmin(),
     supabase.from('oeuvres').select('*, auteurs(id_auteur, nom)').eq('id_oeuvre', id).single(),
     supabase.rpc('get_niv1_list', { p_id_oeuvre: id }),
@@ -144,7 +180,6 @@ export default async function OeuvrePage({
       ? supabase.from('segments').select('id,ref_niv1,nature').eq('id_oeuvre', id).eq('id', segmentCibleId).maybeSingle()
       : Promise.resolve({ data: null }),
     chargerTousSegments({ nature: 'apparat_critique' }),
-    supabase.from('segments').select('ref_niv1').eq('id_oeuvre', id).eq('nature', 'texte').not('ref_niv1', 'is', null),
   ])
 
   if (!oeuvre) return (
@@ -162,31 +197,42 @@ export default async function OeuvrePage({
     if (r.ref_niv1 && r.ref_niv1_texte) niv1TexteMap[r.ref_niv1] = r.ref_niv1_texte
   })
 
-  // Fallback niv1_texte si le RPC ne le fournit pas (rare)
-  if (Object.keys(niv1TexteMap).length === 0 && niv1Complet.length > 0) {
-    const { data: niv1TexteData } = await supabase
-      .from('segments').select('ref_niv1, ref_niv1_texte').eq('id_oeuvre', id)
-      .in('ref_niv1', niv1Complet).not('ref_niv1_texte', 'is', null).limit(niv1Complet.length * 5)
-    ;(niv1TexteData ?? []).forEach((r: any) => {
-      if (r.ref_niv1 && r.ref_niv1_texte && !niv1TexteMap[r.ref_niv1])
-        niv1TexteMap[r.ref_niv1] = r.ref_niv1_texte
+  // Exclure du sommaire les niv1 qui n'ont AUCUN segment texte (uniquement apparat).
+  // Stratégie : on part des niv1 présents dans segmentsApparatRaw (déjà chargés
+  // en entier via pagination) et on vérifie en parallèle si chacun a aussi des
+  // segments texte. Évite de scanner tous les segments texte, ce qui était limité
+  // à 1000 lignes et cassait les grandes œuvres (ex. Discours sur les Psaumes).
+  const apparatNiv1List = Array.from(
+    new Set((segmentsApparatRaw as Segment[]).map(s => s.ref_niv1).filter(Boolean) as string[])
+  )
+  const niv1OnlyApparat = new Set<string>()
+  if (apparatNiv1List.length > 0) {
+    const texteChecks = await Promise.all(
+      apparatNiv1List.map(n1 =>
+        supabase.from('segments').select('id', { count: 'estimated', head: true })
+          .eq('id_oeuvre', id).eq('ref_niv1', n1).eq('nature', 'texte')
+      )
+    )
+    apparatNiv1List.forEach((n1, i) => {
+      if ((texteChecks[i].count ?? 0) === 0) niv1OnlyApparat.add(n1)
     })
   }
-
-  // Seuls les niv1 ayant au moins un segment de nature 'texte' apparaissent
-  // dans le sommaire. L'ancienne logique (exclure si présence d'apparat) était
-  // erronée : les catéchèses avec des segments apparat résiduels disparaissaient.
-  const niv1TexteSet = new Set((niv1TexeRaw ?? []).map((r: any) => r.ref_niv1).filter(Boolean))
-  const niv1List = niv1Complet.filter(n1 => niv1TexteSet.has(n1))
+  const niv1List = niv1Complet.filter(n1 => !niv1OnlyApparat.has(n1))
+  await completerNiv1TexteMap(niv1List, niv1TexteMap)
 
   const segmentCible = segmentCibleData
   const vueInitiale = segmentCible?.nature === 'apparat_critique' ? 'apparat' : 'texte'
+  const texteSansNiveaux = niv1List.length === 0
   const premierNiv1 = vueInitiale === 'texte' && segmentCible?.ref_niv1
     ? segmentCible.ref_niv1
     : niv1List[0] ?? null
 
   // ── Vague 2 : segments texte du premier niv1 (apparat_critique exclus) ──
-  const segmentsTexteRaw = premierNiv1 ? await chargerTousSegments({ ref_niv1: premierNiv1, nature: 'texte' }) : []
+  const segmentsTexteRaw = texteSansNiveaux
+    ? await chargerTousSegments({ nature: 'texte' })
+    : premierNiv1
+      ? await chargerTousSegments({ ref_niv1: premierNiv1, nature: 'texte' })
+      : []
 
   const segmentsTexte = segmentsTexteRaw as Segment[]
   const segmentsApparat = segmentsApparatRaw as Segment[]
@@ -258,7 +304,7 @@ export default async function OeuvrePage({
       txtSommaire={(oeuvre.texte_sommaire ?? '0,0,0,0,0').split(',').map((v: string) => v === '1')}
       txtCorps={(oeuvre.texte_corps ?? '0,0,0,0,0').split(',').map((v: string) => v === '1')}
       afficherNumeros={oeuvre.afficher_numeros !== false}
-      oeuvre={{titre:oeuvre.titre,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,id_oeuvre:oeuvre.id_oeuvre}}
+      oeuvre={{titre:oeuvre.titre,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,id_oeuvre:oeuvre.id_oeuvre,date_composition:oeuvre.date_composition,langue:oeuvre.langue,genres:oeuvre.genres,url_source:oeuvre.url_source}}
       groupes={groupesData} segments={segmentsData}
       tocApparat={tocApparat} groupesApparat={groupesApparatData} segmentsApparat={segmentsApparatData}
       segmentCibleId={Number.isFinite(segmentCibleId) && segmentCibleId > 0 ? segmentCibleId : null}

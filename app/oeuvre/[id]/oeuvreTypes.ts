@@ -21,7 +21,7 @@ export type Props = {
   txtSommaire?: boolean[]
   txtCorps?: boolean[]
   afficherNumeros?: boolean
-  oeuvre: { titre: string; sous_titre?: string; titre_original?: string; trad_auteur?: string; trad_date?: string; editeur?: string; collection?: string; ville?: string; date_publication?: string; id_oeuvre?: string }
+  oeuvre: { titre: string; sous_titre?: string; titre_original?: string; trad_auteur?: string; trad_date?: string; editeur?: string; collection?: string; ville?: string; date_publication?: string; id_oeuvre?: string; date_composition?: string | null; langue?: string | null; genres?: string[] | null; url_source?: string | null }
   groupes: GroupeData[]
   segments: SegData[]
   tocApparat: TocEntry[]

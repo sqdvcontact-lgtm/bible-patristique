@@ -23,6 +23,14 @@ export async function POST(request: Request) {
   if (!id_auteur || !champs || typeof champs !== 'object') {
     return NextResponse.json({ error: 'Paramètres invalides.' }, { status: 400 })
   }
+  if (Object.prototype.hasOwnProperty.call(champs, 'photo_position') && Object.keys(champs).length === 1) {
+    const { error } = await supabaseAdmin
+      .from('auteurs')
+      .update({ photo_position: champs.photo_position ?? null })
+      .eq('id_auteur', id_auteur)
+    if (error) return erreur500(error)
+    return NextResponse.json({ ok: true })
+  }
   if (!champs.nom || !String(champs.nom).trim()) {
     return NextResponse.json({ error: 'Le nom est requis.' }, { status: 400 })
   }

@@ -8,12 +8,13 @@ type Props = {
   element: ElementPanneau | null
   onFermer: () => void
   toujoursVisible?: boolean
+  inline?: boolean
   enTete?: ReactNode
   editionNote?: { actif: boolean; mode: 'creation' | 'modification' }
   onEnregistrerNote?: (texte: string) => void
 }
 
-export default function VoletEssai({ element, onFermer, toujoursVisible, enTete, editionNote, onEnregistrerNote }: Props) {
+export default function VoletEssai({ element, onFermer, toujoursVisible, inline, enTete, editionNote, onEnregistrerNote }: Props) {
   const [contenu, setContenu] = useState<string | null>(null)
   const [texteNote, setTexteNote] = useState('')
   const [chargement, setChargement] = useState(false)
@@ -63,12 +64,8 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, enTete,
 
   if (!elementActif && !toujoursVisible) return null
 
-  return (
-    <div style={{
-      position: 'fixed', top: '48px', right: 0, width: '320px', height: 'calc(100vh - 48px)',
-      background: '#faf8f4', borderLeft: '1px solid #d6d0c4', padding: '20px', overflowY: 'auto',
-      zIndex: 50, boxShadow: '-4px 0 16px rgba(0,0,0,0.06)',
-    }}>
+  const contenuVolet = (
+    <>
       {enTete && <div style={{ marginBottom: '18px', paddingBottom: '16px', borderBottom: '1px solid #ede9e2' }}>{enTete}</div>}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
         <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d' }}>
@@ -109,6 +106,18 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, enTete,
           )}
         </>
       )}
+    </>
+  )
+
+  if (inline) return <div style={{ padding: '14px 16px' }}>{contenuVolet}</div>
+
+  return (
+    <div style={{
+      position: 'fixed', top: '48px', right: 0, width: '320px', height: 'calc(100vh - 48px)',
+      background: '#faf8f4', borderLeft: '1px solid #d6d0c4', padding: '20px', overflowY: 'auto',
+      zIndex: 50, boxShadow: '-4px 0 16px rgba(0,0,0,0.06)',
+    }}>
+      {contenuVolet}
     </div>
   )
 }

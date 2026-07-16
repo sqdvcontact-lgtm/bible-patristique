@@ -8,7 +8,7 @@ import { syntaxeVersHtml, htmlVersSyntaxe } from '@/app/lib/serialisationEssai'
 import { diffMots } from '@/app/lib/diffTexte'
 import VoletEssai from '@/app/lib/VoletEssai'
 import SelecteurCitation from '@/app/lib/SelecteurCitation'
-import EtapeMetadonnees, { type Metadonnees } from './EtapeMetadonnees'
+import { CATEGORIES_ESSAIS, CONDITIONS, RESUME_MAX, RESUME_MIN, type Metadonnees } from './EtapeMetadonnees'
 
 const MAX_CARACTERES = 8000
 const MIN_CARACTERES_PUBLICATION = 2000
@@ -23,7 +23,6 @@ type Props = {
 
 export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInitiales, versetEnTeteInitial }: Props) {
   const router = useRouter()
-  const [etape, setEtape] = useState<'metadonnees' | 'redaction'>(essaiExistant || metadonneesInitiales ? 'redaction' : 'metadonnees')
   const [meta, setMeta] = useState<Metadonnees>({
     titre: essaiExistant?.titre ?? metadonneesInitiales?.titre ?? '',
     sousTitre: essaiExistant?.sous_titre ?? metadonneesInitiales?.sousTitre ?? '',
@@ -52,6 +51,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   const [blocActif, setBlocActif] = useState<'h2' | 'h3' | 'blockquote' | 'p' | null>(null)
   const [comparaisonOuverte, setComparaisonOuverte] = useState(false)
   const [confirmPublier, setConfirmPublier] = useState(false)
+  const [accepteConditions, setAccepteConditions] = useState(false)
+  const [erreurConditions, setErreurConditions] = useState<string | null>(null)
   const contenuOriginalRef = useRef(essaiExistant?.contenu ?? '')
   const creationInitialeRef = useRef(false)
 
@@ -91,45 +92,49 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
   const nomAffiche = (afficherNomReel && profil?.nom) ? `${profil.prenom ?? ''} ${profil.nom}`.trim() : (profil?.pseudo ?? 'Anonyme')
 
-  // ── Création de l'essai (brouillon) dès la validation des métadonnées ─────
-  const validerMetadonnees = async (m: Metadonnees) => {
-    setMeta(m)
-    if (!idRef.current && userId) {
-      const { data } = await supabase.from('essais').insert({
-        user_id: userId, titre: m.titre, sous_titre: m.sousTitre || null,
-        resume: m.resume, categories: m.categories, contenu: '', statut: 'brouillon',
-      }).select('id').single()
-      if (data) { setId(data.id); idRef.current = data.id }
-    }
-    setEtape('redaction')
-  }
-
   // ── Sauvegarde automatique ────────────────────────────────────────────────
   const sauvegarder = useCallback(async (statutForce?: 'brouillon' | 'en_attente') => {
-    if (!userId || !idRef.current) return
+    if (!userId) return false
+    const titre = meta.titre.trim()
+    if (!titre) {
+      if (statutForce) alert('Le titre est obligatoire.')
+      return false
+    }
     setStatutEnr('enregistrement')
     const payload: any = {
-      titre: meta.titre, sous_titre: meta.sousTitre || null, resume: meta.resume,
+      titre, sous_titre: meta.sousTitre.trim() || null, resume: meta.resume.trim(),
       categories: meta.categories, contenu: contenuTexte, afficher_nom_reel: afficherNomReel,
       verset_en_tete: versetEnTete ? JSON.stringify(versetEnTete) : null,
       updated_at: new Date().toISOString(),
     }
     if (statutForce) payload.statut = statutForce
     else if (!modeAdmin && essaiExistant?.publie_at && contenuTexte !== contenuOriginalRef.current) payload.statut = 'en_attente'
-    const { error } = await supabase.from('essais').update(payload).eq('id', idRef.current)
+    let error: any = null
+    if (idRef.current) {
+      ;({ error } = await supabase.from('essais').update(payload).eq('id', idRef.current))
+    } else {
+      const { data, error: insertError } = await supabase
+        .from('essais')
+        .insert({ ...payload, user_id: userId, statut: statutForce ?? 'brouillon' })
+        .select('id')
+        .single()
+      error = insertError
+      if (data) { setId(data.id); idRef.current = data.id }
+    }
     setStatutEnr(error ? 'erreur' : 'enregistre')
     setTimeout(() => setStatutEnr('idle'), 1500)
-  }, [userId, meta, contenuTexte, afficherNomReel])
+    return !error
+  }, [userId, meta, contenuTexte, afficherNomReel, versetEnTete, modeAdmin, essaiExistant?.publie_at])
 
   useEffect(() => {
-    if (etape !== 'redaction' || !contenuTexte.trim()) return
+    if (!contenuTexte.trim()) return
     const t = setTimeout(() => sauvegarder(), 2500)
     return () => clearTimeout(t)
-  }, [contenuTexte, etape, sauvegarder])
+  }, [contenuTexte, sauvegarder])
 
   // ── Auto-sauvegarde périodique toutes les 30 secondes ────────────────────
   useEffect(() => {
-    if (!userId || etape !== 'redaction') return
+    if (!userId) return
     const sauvegarderAuto = async () => {
       if (!idRef.current) return
       const cle = `${contenuTexteRef.current}:::${afficherNomReelRef.current}:::${JSON.stringify(metaRef.current)}`
@@ -152,16 +157,16 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     }
     const t = setInterval(sauvegarderAuto, 30000)
     return () => clearInterval(t)
-  }, [userId, etape])
+  }, [userId])
 
   // ── Charger le contenu initial dans la zone éditable ──────────────────────
   useEffect(() => {
-    if (etape === 'redaction' && editableRef.current && !editableRef.current.dataset.charge) {
+    if (editableRef.current && !editableRef.current.dataset.charge) {
       editableRef.current.innerHTML = syntaxeVersHtml(contenuTexte)
       editableRef.current.dataset.charge = '1'
       renumeroterNotes()
     }
-  }, [etape, contenuTexte])
+  }, [contenuTexte])
 
   // ── Sélection : on la mémorise pour pouvoir cliquer sur la barre d'outils ─
   const memoriserSelection = () => {
@@ -387,24 +392,62 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   }
 
   const nbCar = compterCaracteres(contenuTexte)
-  const publicationTropCourte = !(modeAdmin && essaiExistant?.statut === 'publie') && nbCar < MIN_CARACTERES_PUBLICATION
+  const resumeLen = meta.resume.trim().length
+  const resumeOk = resumeLen >= RESUME_MIN && resumeLen <= RESUME_MAX
+  const toggleCategorie = (categorie: string) => {
+    setMeta(prev => ({
+      ...prev,
+      categories: prev.categories.includes(categorie)
+        ? prev.categories.filter(c => c !== categorie)
+        : [...prev.categories, categorie],
+    }))
+  }
 
-  const publier = async () => {
-    if (modeAdmin && essaiExistant?.statut === 'publie') {
-      await sauvegarder()
-      router.push(`/essais/${idRef.current}`)
-      return
+  const validerAvantSoumission = () => {
+    if (!userId) {
+      alert('Vous devez être connecté pour soumettre une publication.')
+      return false
+    }
+    if (!meta.titre.trim()) {
+      alert('Le titre est obligatoire.')
+      return false
+    }
+    if (!resumeOk) {
+      alert(`Le résumé doit faire entre ${RESUME_MIN} et ${RESUME_MAX} caractères.`)
+      return false
+    }
+    if (meta.categories.length === 0) {
+      alert('Choisissez au moins une catégorie.')
+      return false
     }
     if (nbCar < MIN_CARACTERES_PUBLICATION) {
       alert(`Votre texte doit compter au moins ${MIN_CARACTERES_PUBLICATION.toLocaleString('fr')} caractères pour être soumis à publication.`)
-      return
+      return false
     }
-    await sauvegarder('en_attente')
-    if (idRef.current) router.push(`/essais/${idRef.current}`)
+    if (nbCar > MAX_CARACTERES) {
+      alert(`Votre texte dépasse la limite de ${MAX_CARACTERES.toLocaleString('fr')} caractères.`)
+      return false
+    }
+    return true
   }
 
-  if (etape === 'metadonnees') {
-    return <EtapeMetadonnees valeursInitiales={meta} onValider={validerMetadonnees} />
+  const ouvrirConfirmationPublication = () => {
+    if (!validerAvantSoumission()) return
+    setAccepteConditions(false)
+    setErreurConditions(null)
+    setConfirmPublier(true)
+  }
+
+  const publier = async () => {
+    if (modeAdmin && essaiExistant?.statut === 'publie') {
+      const ok = await sauvegarder()
+      if (ok && idRef.current) router.push(`/essais/${idRef.current}`)
+      return
+    }
+    if (!validerAvantSoumission()) return
+    const ok = await sauvegarder('en_attente')
+    if (!ok) return
+    if (idRef.current) router.push(`/essais/${idRef.current}`)
   }
 
   const diff = comparaisonOuverte ? diffMots(contenuOriginalRef.current, contenuTexte) : null
@@ -469,10 +512,90 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
           </div>
         ) : (
           <>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '6px' }}>
-              <span style={{ fontSize: '11px', color: nbCar > MAX_CARACTERES ? '#c0562a' : '#9a958d', fontWeight: nbCar > MAX_CARACTERES ? 600 : 400 }}>
-                {nbCar.toLocaleString('fr')} / {MAX_CARACTERES.toLocaleString('fr')}
-              </span>
+            <div style={{ paddingLeft: '128px', marginBottom: '14px' }}>
+              <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '7px', padding: '16px 18px 18px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '18px', alignItems: 'flex-start', marginBottom: '14px' }}>
+                  <div>
+                    <p style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 4px' }}>
+                      Informations de publication
+                    </p>
+                    <p style={{ fontSize: '11px', color: '#9a958d', margin: 0 }}>
+                      Ces informations accompagnent le texte au moment de la soumission.
+                    </p>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <p style={{ fontSize: '11px', color: nbCar > MAX_CARACTERES ? '#c0562a' : '#6b6560', fontWeight: nbCar > MAX_CARACTERES ? 700 : 600, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
+                      {nbCar.toLocaleString('fr')} / {MAX_CARACTERES.toLocaleString('fr')} caractères
+                    </p>
+                    {nbCar < MIN_CARACTERES_PUBLICATION && !(modeAdmin && essaiExistant?.statut === 'publie') && (
+                      <p style={{ fontSize: '10.5px', color: '#9a958d', margin: '3px 0 0' }}>
+                        Publication possible à partir de {MIN_CARACTERES_PUBLICATION.toLocaleString('fr')} caractères
+                      </p>
+                    )}
+                    {nbCar > MAX_CARACTERES && (
+                      <p style={{ fontSize: '10.5px', color: '#c0562a', margin: '3px 0 0' }}>
+                        Limite dépassée
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '12px', marginBottom: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.08em', color: '#9a958d', textTransform: 'uppercase' }}>Titre *</label>
+                    <input
+                      value={meta.titre}
+                      onChange={e => setMeta(prev => ({ ...prev, titre: e.target.value }))}
+                      autoComplete="off"
+                      placeholder="Titre"
+                      style={{ width: '100%', fontSize: '16px', fontFamily: 'Georgia, serif', padding: '7px 0 5px', border: 'none', borderBottom: '1px solid #d6d0c4', outline: 'none', color: '#1e2e24', background: 'transparent', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.08em', color: '#9a958d', textTransform: 'uppercase' }}>Sous-titre</label>
+                    <input
+                      value={meta.sousTitre}
+                      onChange={e => setMeta(prev => ({ ...prev, sousTitre: e.target.value }))}
+                      autoComplete="off"
+                      placeholder="Sous-titre"
+                      style={{ width: '100%', fontSize: '13px', padding: '8px 0 5px', border: 'none', borderBottom: '1px solid #ede9e2', outline: 'none', color: '#3a3530', background: 'transparent', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', marginBottom: '5px' }}>
+                    <label style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.08em', color: '#9a958d', textTransform: 'uppercase' }}>Résumé *</label>
+                    <span style={{ fontSize: '10.5px', color: meta.resume.length > 0 && !resumeOk ? '#c0562a' : '#9a958d', fontVariantNumeric: 'tabular-nums' }}>
+                      {resumeLen.toLocaleString('fr')} / {RESUME_MAX.toLocaleString('fr')} caractères
+                    </span>
+                  </div>
+                  <textarea
+                    value={meta.resume}
+                    onChange={e => setMeta(prev => ({ ...prev, resume: e.target.value }))}
+                    rows={3}
+                    placeholder={`${RESUME_MIN} à ${RESUME_MAX} caractères présentant la publication`}
+                    style={{ width: '100%', fontSize: '12.5px', padding: '7px 9px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#2a2520', resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5 }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.08em', color: '#9a958d', textTransform: 'uppercase', display: 'block', marginBottom: '7px' }}>Catégories *</label>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {CATEGORIES_ESSAIS.map(categorie => {
+                      const actif = meta.categories.includes(categorie)
+                      return (
+                        <button
+                          key={categorie}
+                          onClick={() => toggleCategorie(categorie)}
+                          style={{ fontSize: '11px', padding: '4px 11px', borderRadius: '12px', cursor: 'pointer', border: `1px solid ${actif ? '#3d6b4f' : '#d6d0c4'}`, background: actif ? 'rgba(61,107,79,0.10)' : '#fff', color: actif ? '#3d6b4f' : '#8a8278', fontWeight: actif ? 600 : 400 }}>
+                          {categorie}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Barre d'outils et zone de rédaction */}
@@ -552,7 +675,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       </div>
 
       {/* ── Barre d'action sticky ────────────────────────────────────────────── */}
-      {etape === 'redaction' && !comparaisonOuverte && (
+      {!comparaisonOuverte && (
         <div style={{
           position: 'fixed', bottom: 0, left: '128px', right: '320px', zIndex: 60,
           background: '#faf8f4', borderTop: '1px solid #d6d0c4',
@@ -564,7 +687,6 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
               : statutEnr === 'enregistre' ? 'Enregistré ✓'
               : statutEnr === 'erreur' ? 'Erreur d’enregistrement'
               : nbCar > MAX_CARACTERES ? `Limite dépassée (${nbCar.toLocaleString('fr')} / ${MAX_CARACTERES.toLocaleString('fr')} caractères)`
-              : publicationTropCourte ? `Publication possible à partir de ${MIN_CARACTERES_PUBLICATION.toLocaleString('fr')} caractères (${nbCar.toLocaleString('fr')} actuellement)`
               : derniereSauvegardeAt ? `Enregistré à ${derniereSauvegardeAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} ✓`
               : ' '}
           </span>
@@ -577,10 +699,9 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
               </button>
             )}
             <button
-              onClick={modeAdmin && essaiExistant?.statut === 'publie' ? publier : () => setConfirmPublier(true)}
-              disabled={nbCar > MAX_CARACTERES || publicationTropCourte}
-              style={{ fontSize: '12.5px', padding: '7px 20px', borderRadius: '5px', border: 'none', background: nbCar > MAX_CARACTERES || publicationTropCourte ? '#9ab0a4' : '#3d6b4f', color: '#fff', cursor: nbCar > MAX_CARACTERES || publicationTropCourte ? 'not-allowed' : 'pointer', fontWeight: 600 }}>
-              {modeAdmin && essaiExistant?.statut === 'publie' ? 'Enregistrer les corrections' : 'Soumettre pour publication'}
+              onClick={modeAdmin && essaiExistant?.statut === 'publie' ? publier : ouvrirConfirmationPublication}
+              style={{ fontSize: '12.5px', padding: '7px 20px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+              {modeAdmin && essaiExistant?.statut === 'publie' ? 'Enregistrer les corrections' : 'Soumettre la publication'}
             </button>
           </div>
         </div>
@@ -589,24 +710,44 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       {/* ── Modale de confirmation avant soumission ──────────────────────────── */}
       {confirmPublier && (
         <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.32)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '28px 28px 24px', maxWidth: '400px', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '24px 26px 22px', maxWidth: '520px', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
             <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 12px' }}>
-              Soumettre cet essai ?
+              Soumettre cette publication ?
             </h3>
             <p style={{ fontSize: '13px', color: '#5a5450', lineHeight: 1.65, margin: '0 0 8px' }}>
-              L&apos;essai sera transmis à la modération pour relecture. Vous ne pourrez plus le modifier tant qu&apos;il sera en attente.
+              Votre texte sera transmis à la modération pour relecture. Vous ne pourrez plus le modifier tant qu&apos;il sera en attente.
             </p>
-            <p style={{ fontSize: '12px', color: '#9a958d', lineHeight: 1.6, margin: '0 0 22px', fontStyle: 'italic' }}>
+            <p style={{ fontSize: '12px', color: '#9a958d', lineHeight: 1.6, margin: '0 0 14px', fontStyle: 'italic' }}>
               {meta.titre}
             </p>
+            <div style={{ maxHeight: '240px', overflowY: 'auto', fontSize: '11.5px', color: '#5a5450', lineHeight: 1.58, whiteSpace: 'pre-line', background: '#faf8f4', border: '1px solid #ede9e2', borderRadius: '5px', padding: '11px 13px', marginBottom: '12px' }}>
+              {CONDITIONS}
+            </div>
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '11.5px', color: '#3a3530', margin: '0 0 8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={accepteConditions}
+                onChange={e => { setAccepteConditions(e.target.checked); if (e.target.checked) setErreurConditions(null) }}
+                style={{ marginTop: '2px', accentColor: '#3d6b4f' }}
+              />
+              Je certifie respecter ces conditions de publication.
+            </label>
+            {erreurConditions && <p style={{ fontSize: '11px', color: '#c0562a', margin: '0 0 10px' }}>{erreurConditions}</p>}
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button
-                onClick={() => setConfirmPublier(false)}
+                onClick={() => { setConfirmPublier(false); setErreurConditions(null) }}
                 style={{ fontSize: '12.5px', padding: '8px 18px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a3530', cursor: 'pointer' }}>
                 Annuler
               </button>
               <button
-                onClick={async () => { setConfirmPublier(false); await publier() }}
+                onClick={async () => {
+                  if (!accepteConditions) {
+                    setErreurConditions('Vous devez attester respecter les conditions de publication.')
+                    return
+                  }
+                  setConfirmPublier(false)
+                  await publier()
+                }}
                 style={{ fontSize: '12.5px', padding: '8px 20px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
                 Confirmer la soumission
               </button>
@@ -618,9 +759,6 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       {selecteurOuvert && <SelecteurCitation onChoisir={inserrerCitation} onFermer={() => setSelecteurOuvert(false)} />}
       <VoletEssai element={panneau} onFermer={() => setPanneau(null)} toujoursVisible editionNote={editionNote ? { actif: true, mode: editionNote.mode } : undefined} onEnregistrerNote={enregistrerNoteDepuisVolet} enTete={
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <button onClick={() => setEtape('metadonnees')} style={{ fontSize: '11px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
-            Modifier titre / résumé / catégories
-          </button>
           {profil?.nom && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '10.5px', color: '#8a8278', cursor: 'pointer', lineHeight: 1.4 }}>

@@ -27,7 +27,11 @@ export default function SectionAuteurs() {
   }, [])
 
   const uploadPhoto = async (idAuteur: string, fichier: File) => {
-    const { error } = await supabase.storage.from('auteurs').upload(`${idAuteur}.jpg`, fichier, { upsert: true, contentType: 'image/jpeg' })
+    const { error } = await supabase.storage.from('auteurs').upload(`${idAuteur}.jpg`, fichier, {
+      upsert: true,
+      contentType: fichier.type && fichier.type.startsWith('image/') ? fichier.type : 'application/octet-stream',
+      cacheControl: '60',
+    })
     if (!error) setPhotos(prev => ({ ...prev, [idAuteur]: true }))
     else alert('Erreur upload : ' + error.message)
   }
@@ -173,10 +177,7 @@ export default function SectionAuteurs() {
                         onChange={async e => {
                           const f = e.target.files?.[0]
                           if (!f) return
-                          // Renommer automatiquement en id_auteur.jpg
-                          const blob = f.slice(0, f.size, 'image/jpeg')
-                          const fichierRenomme = new File([blob], `${a.id_auteur}.jpg`, { type: 'image/jpeg' })
-                          await uploadPhoto(a.id_auteur, fichierRenomme)
+                          await uploadPhoto(a.id_auteur, f)
                           e.target.value = ''
                         }} />
                       <button onClick={() => edition === a.id_auteur ? fermer() : ouvrir(a)}

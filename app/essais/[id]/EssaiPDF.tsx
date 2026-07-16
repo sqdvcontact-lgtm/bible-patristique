@@ -10,7 +10,7 @@ const MARGE_TOP = 72   // ≈ 2,54 cm
 const MARGE_BOT = 56   // ≈ 2 cm contenu + 24pt footer
 
 // Retrait première ligne : injecté en tête du premier nœud texte du paragraphe.
-// String TypeScript — le compilateur interprète   en espace insécable (non étirable).
+// String TypeScript – le compilateur interprète   en espace insécable (non étirable).
 // 4 × U+00A0 à 11,5 pt Times-Roman ≈ 4 × 2,9 pt = 11,6 pt ≈ 4,1 mm.
 const ALINEA = '    '
 
@@ -108,8 +108,9 @@ function typographier(s: string): string {
     // Guillemets français : espace après «, espace avant »
     .replace(/«\s*/g, `«${NB}`)
     .replace(/\s*»/g, `${NB}»`)
-    // Tiret cadratin — avec espaces insécables
-    .replace(/\s—\s/g, `${NB}—${NB}`)
+    // Tiret d'incise : demi-cadratin avec espaces insécables
+    .replace(/—/g, '–')
+    .replace(/\s–\s/g, `${NB}–${NB}`)
     // Pourcentage
     .replace(/(\d)\s*%/g, `$1${NB}%`)
     // Points de suspension

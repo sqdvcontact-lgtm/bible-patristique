@@ -75,6 +75,14 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
     onClose()
   }
 
+  const viderChampOeuvre = async (champ: string) => {
+    setStatut('envoi')
+    const resultat = await appelerAPI('/api/admin/update-oeuvre', { id_oeuvre: idOeuvre, champ, valeur: null })
+    if (!resultat.ok) { setStatut('erreur'); setEtape('edition'); return }
+    onTitreOeuvreModifie?.(champ, '')
+    onClose()
+  }
+
   const supprimerTitre = async () => {
     if (cible.type !== 'titre') return
     setStatut('envoi')
@@ -136,16 +144,20 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
             {cible.type === 'titre' ? (
               <button onClick={supprimerTitre} style={{ fontSize: '10.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                {cible.schemaTexte ? 'Vider le sous-titre' : 'Supprimer ce titre'}
+                Supprimer
               </button>
             ) : cible.type === 'segment' ? (
               <button onClick={() => setEtape('confirmation-suppression')} style={{ fontSize: '10.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                Supprimer ce segment
+                Supprimer
+              </button>
+            ) : cible.type === 'titre_oeuvre' && cible.champ !== 'titre' ? (
+              <button onClick={() => viderChampOeuvre(cible.champ)} style={{ fontSize: '10.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                Supprimer
               </button>
             ) : <span />}
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={onClose} style={{ fontSize: '11px', padding: '5px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
-              <button onClick={() => setEtape('confirmation')} disabled={cible.type === 'segment' || (cible.type === 'titre_oeuvre' && cible.champ === 'titre') ? !valeur.trim() : false}
+              <button onClick={() => setEtape('confirmation')} disabled={!valeur.trim()}
                 style={{ fontSize: '11px', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: valeur.trim() ? 'pointer' : 'default', background: valeur.trim() ? '#3d6b4f' : '#e4dfd8', color: '#fff', fontWeight: 500 }}>
                 Modifier
               </button>

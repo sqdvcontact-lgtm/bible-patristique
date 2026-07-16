@@ -21,10 +21,12 @@ export async function POST(request: Request) {
   }
 
   const buffer = Buffer.from(await fichier.arrayBuffer())
+  const version = Date.now()
+  const contentType = fichier.type && fichier.type.startsWith('image/') ? fichier.type : 'application/octet-stream'
   const { error } = await supabaseAdmin.storage.from('auteurs').upload(`${idAuteur}.jpg`, buffer, {
-    upsert: true, contentType: 'image/jpeg',
+    upsert: true, contentType, cacheControl: '60',
   })
 
   if (error) return erreur500(error)
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, version })
 }

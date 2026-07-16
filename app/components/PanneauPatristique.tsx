@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { supabase } from "@/app/lib/supabase"
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
@@ -17,6 +17,7 @@ type OeuvreInfo = {
   titre: string; sous_titre?: string; auteur_nom: string; id_auteur?: string
   trad_auteur: string | null; editeur: string | null
   collection?: string; ville: string | null; date_publication: string | null
+  genre?: string | null
 }
 type Commentaire = { id: number; texte: string; auteur_nom: string; created_at: string }
 
@@ -259,70 +260,46 @@ function ModalSignalement({ titre, titreEntete = 'Signaler une erreur', onClose,
 }
 
 // ── Carte segment ─────────────────────────────────────────────────────────────
-function SegmentCard({ s, info, userId, isAdmin, colonneLien, typeLien, onSignaler, onSupprimeLien, dejaLu }: {
+function SegmentCard({ s, info, userId, isAdmin, colonneLien, onSignaler, onSupprimeLien }: {
   s: Segment; info?: OeuvreInfo; userId: string | null; isAdmin: boolean
   colonneLien: string
-  typeLien: 'exacte' | 'libre' | 'doctrine' | 'echo'
   onSignaler: (s: Segment) => void
   onSupprimeLien: (id: number) => void
-  dejaLu?: boolean
 }) {
   const niveaux = [s.ref_niv1, s.ref_niv2, s.ref_niv3].filter(Boolean).join(', ')
-  const BADGE: Record<typeof typeLien, { label: string; couleur: string; bordure: string }> = {
-    exacte:   { label: 'citation exacte',  couleur: '#3d6b4f', bordure: 'rgba(61,107,79,0.25)' },
-    libre:    { label: 'citation libre',   couleur: '#8a8278', bordure: '#d6d0c4' },
-    doctrine: { label: 'doctrine',         couleur: '#3d6b4f', bordure: 'rgba(61,107,79,0.28)' },
-    echo:     { label: 'écho thématique',  couleur: '#9a7e3d', bordure: 'rgba(154,126,61,0.28)' },
-  }
-  const badge = BADGE[typeLien]
 
   return (
-    <div style={{ paddingTop:'6px', paddingBottom:'4px', borderBottom:'1px solid #ede9e2', opacity: dejaLu ? 0.52 : 1, transition: 'opacity 0.3s' }}>
+    <div style={{ paddingTop:'6px', paddingBottom:'4px', borderBottom:'1px solid #ede9e2' }}>
 
       {/* Ligne méta : auteur + titre + niveaux (gauche), badge + actions (droite) */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'8px' }}>
         <div style={{ minWidth:0 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:'4px', marginBottom:'3px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'4px', marginBottom:'1px' }}>
             {info?.id_auteur ? (
               <a href={`/auteur/${info.id_auteur}`} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize:'11px', fontWeight:600, color:'#3d6b4f', lineHeight:1.3, letterSpacing:'0.026em', textDecoration:'none' }}>
+                style={{ fontSize:'11px', fontWeight:600, color:'#3d6b4f', lineHeight:1.2, letterSpacing:'0.026em', textDecoration:'none' }}>
                 {info.auteur_nom || s.id_oeuvre}
               </a>
             ) : (
-              <span style={{ fontSize:'11px', fontWeight:600, color:'#3d6b4f', lineHeight:1.3, letterSpacing:'0.026em' }}>
+              <span style={{ fontSize:'11px', fontWeight:600, color:'#3d6b4f', lineHeight:1.2, letterSpacing:'0.026em' }}>
                 {info?.auteur_nom || s.id_oeuvre}
               </span>
             )}
             <a href={`/oeuvre/${s.id_oeuvre}#s${s.segment_numero}`} target="_blank" rel="noopener noreferrer"
               title="Accéder au passage dans l'œuvre"
-              style={{ fontSize:'10px', color:'#b0a89e', textDecoration:'none', flexShrink:0 }}>↗</a>
+              style={{ color:'#b0a89e', textDecoration:'none', flexShrink:0, display:'flex', alignItems:'center' }}>
+              <svg width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                <path d="M4 1.5H8.5V6M8.5 1.5L2 8" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
           </div>
           <a href={`/oeuvre/${s.id_oeuvre}`} target="_blank" rel="noopener noreferrer"
-            style={{ display:'block', fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:'0 0 3px', lineHeight:1.3, letterSpacing:'0.02em', textDecoration:'none' }}>
+            title={niveaux || undefined}
+            style={{ display:'block', fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:0, lineHeight:1.2, letterSpacing:'0.02em', textDecoration:'none' }}>
             {info?.titre || ''}
           </a>
-          {niveaux && (
-            <p style={{ fontSize:'10px', color:'#b0a89e', margin:0, lineHeight:1.3 }}>
-              {niveaux}
-            </p>
-          )}
         </div>
         <div style={{ display:'flex', flexDirection:'column', gap:'4px', alignItems:'flex-end', flexShrink:0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            {dejaLu && (
-              <span style={{ fontSize: '8.5px', color: '#b0a89e', letterSpacing: '0.06em', fontStyle: 'italic' }}>
-                déjà lu
-              </span>
-            )}
-            <span style={{
-              fontSize:'9px', fontStyle:'italic', whiteSpace:'nowrap',
-              border:`1px solid ${badge.bordure}`,
-              color: badge.couleur,
-              borderRadius:'3px', padding:'0px 4px', lineHeight:'1.6',
-            }}>
-              {badge.label}
-            </span>
-          </div>
           <div style={{ display:'flex', gap:'1px', alignItems:'center', justifyContent:'flex-end' }}>
             <BoutonEnregistrerSegment segment={s} info={info} userId={userId} />
             <BoutonCopieSegment
@@ -706,10 +683,8 @@ export default function PanneauPatristique({
   onWidthChange?: (w: number) => void
 }) {
   type Onglet = 'patristique' | 'commentaires'
-  type Filtre = 'citations' | 'doctrine'
   const ITEMS_PAR_PAGE = 20
   const [onglet, setOnglet] = useState<Onglet>('patristique')
-  const [filtre, setFiltre] = useState<Filtre>('citations')
   const [pageItems, setPageItems] = useState(0)
   const [ouvert, setOuvert] = useState(true)
   useEffect(() => {
@@ -743,13 +718,10 @@ export default function PanneauPatristique({
   const [filtreAuteursBlancs, setFiltreAuteursBlancs] = useState<{ id_auteur: string; nom: string }[]>([])
   const [filtreTraditions, setFiltreTraditions] = useState<Set<string>>(new Set())
   const [filtreSiecles, setFiltreSiecles] = useState<Set<number>>(new Set())
+  const [filtreGenres, setFiltreGenres] = useState<Set<string>>(new Set())
   const [rechercheAuteur, setRechercheAuteur] = useState('')
   const [resultatsAuteur, setResultatsAuteur] = useState<{ id_auteur: string; nom: string }[]>([])
   const [auteurMeta, setAuteurMeta] = useState<Record<string, { traditions: string[]; siecle: number | null }>>({})
-
-  // ── Déjà lu (session) ────────────────────────────────────────────────────────
-  const [segmentsLus, setSegmentsLus] = useState<Set<number>>(new Set())
-  const itemsPageRef = useRef<{ seg: Segment }[]>([])
 
   const nbPatristique = segmentsCitations.length + segmentsDoctrine.length
   const ONGLETS: { code: Onglet; label: string; count?: number | null }[] = [
@@ -766,7 +738,7 @@ export default function PanneauPatristique({
   // Charger les infos des oeuvres une seule fois
   useEffect(() => {
     supabase.from('oeuvres')
-      .select('id_oeuvre, titre, sous_titre, id_auteur, trad_auteur, editeur, collection, ville, date_publication')
+      .select('id_oeuvre, titre, sous_titre, id_auteur, trad_auteur, editeur, collection, ville, date_publication, genre')
       .then(async ({ data: od }) => {
         if (!od) return
         const { data: ad } = await supabase.from('auteurs').select('id_auteur, nom, traditions, siecle')
@@ -789,6 +761,7 @@ export default function PanneauPatristique({
             collection: o.collection || undefined,
             ville: o.ville || null,
             date_publication: o.date_publication || null,
+            genre: o.genre || null,
           }
         })
         setOeuvres(map)
@@ -824,10 +797,6 @@ export default function PanneauPatristique({
     })
   }, [verset])
 
-  useEffect(() => {
-    setPageItems(0)
-  }, [filtre])
-
   // Recherche auteur en direct
   useEffect(() => {
     const q = rechercheAuteur.trim()
@@ -839,16 +808,6 @@ export default function PanneauPatristique({
     return () => clearTimeout(t)
   }, [rechercheAuteur, filtreAuteursIds])
 
-  // Marquer comme lu après 5 s sur la page courante
-  useEffect(() => {
-    const ids = itemsPageRef.current.map(({ seg }) => seg.id)
-    if (!ids.length) return
-    const t = setTimeout(() => {
-      setSegmentsLus(prev => { const n = new Set(prev); ids.forEach(id => n.add(id)); return n })
-    }, 5000)
-    return () => clearTimeout(t)
-  }, [pageItems, filtre, verset?.id_verset])
-
   const supprimerDeCitations = (id: number) =>
     setSegmentsCitations(prev => prev.filter(({ seg }) => seg.id !== id))
   const supprimerDeDoctrine = (id: number) =>
@@ -856,12 +815,12 @@ export default function PanneauPatristique({
   const supprimerDeEcho = (id: number) =>
     setSegmentsEcho(prev => prev.filter(s => s.id !== id))
 
-  type ItemAffiche = { seg: Segment; col: string; type: 'exacte' | 'libre' | 'doctrine' | 'echo'; onSupprime: (id: number) => void }
-  const itemsCitations: ItemAffiche[] = segmentsCitations.map(({ seg, col }) => ({ seg, col, type: (col === 'lien_1' ? 'exacte' : 'libre') as 'exacte' | 'libre', onSupprime: supprimerDeCitations }))
-  const itemsDoctrine: ItemAffiche[] = segmentsDoctrine.map(seg => ({ seg, col: 'lien_3', type: 'doctrine' as const, onSupprime: supprimerDeDoctrine }))
-  const itemsAffiches: ItemAffiche[] = filtre === 'citations' ? itemsCitations : itemsDoctrine
+  type ItemAffiche = { seg: Segment; col: string; onSupprime: (id: number) => void }
+  const itemsCitations: ItemAffiche[] = segmentsCitations.map(({ seg, col }) => ({ seg, col, onSupprime: supprimerDeCitations }))
+  const itemsDoctrine: ItemAffiche[] = segmentsDoctrine.map(seg => ({ seg, col: 'lien_3', onSupprime: supprimerDeDoctrine }))
+  const itemsAffiches: ItemAffiche[] = [...itemsCitations, ...itemsDoctrine]
 
-  const nombreFiltresActifs = filtreAuteursIds.size + filtreTraditions.size + filtreSiecles.size
+  const nombreFiltresActifs = filtreAuteursIds.size + filtreTraditions.size + filtreSiecles.size + filtreGenres.size
 
   const itemsFiltres = useMemo(() => {
     if (!nombreFiltresActifs) return itemsAffiches
@@ -877,9 +836,13 @@ export default function PanneauPatristique({
         const meta = auteurId ? auteurMeta[auteurId] : null
         if (!meta?.siecle || !filtreSiecles.has(meta.siecle)) return false
       }
+      if (filtreGenres.size > 0) {
+        const genre = info?.genre
+        if (!genre || !filtreGenres.has(genre)) return false
+      }
       return true
     })
-  }, [itemsAffiches, filtreAuteursIds, filtreTraditions, filtreSiecles, oeuvres, auteurMeta, nombreFiltresActifs])
+  }, [itemsAffiches, filtreAuteursIds, filtreTraditions, filtreSiecles, filtreGenres, oeuvres, auteurMeta, nombreFiltresActifs])
 
   const traditionsDisponibles = useMemo(() => {
     const t = new Set<string>()
@@ -900,13 +863,20 @@ export default function PanneauPatristique({
     return [...s].sort((a, b) => a - b)
   }, [itemsAffiches, oeuvres, auteurMeta])
 
+  const genresDisponibles = useMemo(() => {
+    const g = new Set<string>()
+    itemsAffiches.forEach(({ seg }) => {
+      const genre = oeuvres[seg.id_oeuvre]?.genre
+      if (genre) g.add(genre)
+    })
+    return [...g].sort()
+  }, [itemsAffiches, oeuvres])
+
   const nbPagesItems = Math.ceil(itemsFiltres.length / ITEMS_PAR_PAGE)
   const pageCouranteItems = Math.min(pageItems, Math.max(nbPagesItems - 1, 0))
   const debutItems = pageCouranteItems * ITEMS_PAR_PAGE
   const finItems = Math.min(debutItems + ITEMS_PAR_PAGE, itemsFiltres.length)
   const itemsPage = itemsFiltres.slice(debutItems, finItems)
-  itemsPageRef.current = itemsPage
-
   const refFr = verset ? `${nomLivre} ${chapitreActif}, ${verset.verset}` : null
 
   if (!ouvert) {
@@ -948,20 +918,18 @@ export default function PanneauPatristique({
       )}
 
       {/* En-tête */}
-      <div style={{ padding:'10px 10px 10px 8px', borderBottom:'1px solid #d6d0c4', display:'flex', alignItems:'center', gap:'6px' }}>
+      <div style={{ position:'relative', borderBottom:'1px solid #d6d0c4', minHeight:'38px', display:'flex', alignItems:'center', justifyContent:'center', padding:'6px 36px' }}>
         <button onClick={() => setOuvert(false)} title="Réduire le volet"
-          style={{ background:'none', border:'none', cursor:'pointer', padding:'3px', color:'#b0a89e', display:'flex', alignItems:'center', flexShrink:0 }}>
+          style={{ position:'absolute', left:'8px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', padding:'3px', color:'#b0a89e', display:'flex', alignItems:'center' }}>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-        <div style={{ minWidth:0, flex:1 }}>
-          {refFr && (
-            <h2 style={{ fontFamily:"Georgia, 'Times New Roman', serif", fontSize:'13px', fontWeight:500, color:'#2a3d30', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-              {refFr}
-            </h2>
-          )}
-        </div>
+        {refFr && (
+          <h2 style={{ fontFamily:"Georgia, 'Times New Roman', serif", fontSize:'13px', fontWeight:500, color:'#2a3d30', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', textAlign:'center' }}>
+            {refFr}
+          </h2>
+        )}
       </div>
 
       {verset ? (
@@ -985,6 +953,9 @@ export default function PanneauPatristique({
                 {t.count != null && t.count > 0 && (
                   <span style={{ fontSize: '9px', color: onglet === t.code ? '#3d6b4f' : '#b0a89e', fontWeight: 500, lineHeight: 1 }}>{t.count}</span>
                 )}
+                {t.count != null && t.count === 0 && !loading && (
+                  <span style={{ fontSize: '8.5px', color: '#c0b8b0', fontStyle: 'italic', lineHeight: 1 }}>Aucune occurrence</span>
+                )}
               </button>
             ))}
           </div>
@@ -995,31 +966,17 @@ export default function PanneauPatristique({
               <OngletCommentaires verset={verset} userId={userId} isAdmin={isAdmin} />
             ) : (
               <>
-                {/* Barre de type + bouton filtres */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '10px 0 0', flexWrap: 'wrap' }}>
-                  {([
-                    { code: 'citations' as const, label: 'Citations' },
-                    { code: 'doctrine' as const, label: 'Doctrine' },
-                  ]).map(f => (
-                    <button key={f.code} onClick={() => setFiltre(f.code)} style={{
-                      fontSize: '10px', padding: '4px 10px', borderRadius: '12px', cursor: 'pointer',
-                      border: `1px solid ${filtre === f.code ? '#3d6b4f' : '#d6d0c4'}`,
-                      background: filtre === f.code ? 'rgba(61,107,79,0.10)' : '#fff',
-                      color: filtre === f.code ? '#3d6b4f' : '#8a8278',
-                      fontWeight: filtre === f.code ? 600 : 400,
-                    }}>
-                      {f.label}
-                    </button>
-                  ))}
+                {/* Bouton filtres */}
+                <div style={{ display: 'flex', alignItems: 'center', padding: '8px 0 0' }}>
                   <button onClick={() => setFiltreVoletOuvert(o => !o)} style={{
-                    marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '4px',
-                    fontSize: '9.5px', padding: '4px 9px', borderRadius: '12px', cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', gap: '4px',
+                    fontSize: '9.5px', padding: '3px 9px', borderRadius: '12px', cursor: 'pointer',
                     border: `1px solid ${filtreVoletOuvert || nombreFiltresActifs > 0 ? '#3d6b4f' : '#d6d0c4'}`,
                     background: filtreVoletOuvert || nombreFiltresActifs > 0 ? 'rgba(61,107,79,0.10)' : '#fff',
                     color: filtreVoletOuvert || nombreFiltresActifs > 0 ? '#3d6b4f' : '#8a8278',
                     fontWeight: 500,
                   }}>
-                    <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <svg width="10" height="10" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                       <path d="M2 4h10M4 7h6M6 10h2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
                     </svg>
                     Filtres
@@ -1033,20 +990,20 @@ export default function PanneauPatristique({
 
                 {/* Volet filtres dépliant */}
                 {filtreVoletOuvert && (
-                  <div style={{ margin: '8px 0 4px', padding: '12px', background: '#faf9f6', border: '1px solid #e8e3dc', borderRadius: '8px' }}>
+                  <div style={{ margin: '6px 0 2px', padding: '8px 10px', background: '#f0ebe1', border: '1px solid #d3c9b4', borderRadius: '7px' }}>
 
                     {/* Recherche auteur */}
-                    <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b0a89e', margin: '0 0 7px' }}>Auteurs</p>
-                    <div style={{ position: 'relative', marginBottom: resultatsAuteur.length ? '0' : '8px' }}>
+                    <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 5px' }}>Auteurs</p>
+                    <div style={{ position: 'relative', marginBottom: resultatsAuteur.length ? '0' : '4px' }}>
                       <input
                         type="text"
                         value={rechercheAuteur}
                         onChange={e => setRechercheAuteur(e.target.value)}
                         placeholder="Chercher un auteur…"
-                        style={{ width: '100%', fontSize: '11px', padding: '5px 8px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a3d30', boxSizing: 'border-box', outline: 'none' }}
+                        style={{ width: '100%', fontSize: '10.5px', padding: '4px 7px', borderRadius: '4px', border: '1px solid #cfc4ae', background: '#fdf9f4', color: '#2a3d30', boxSizing: 'border-box', outline: 'none' }}
                       />
                       {resultatsAuteur.length > 0 && (
-                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #d6d0c4', borderTop: 'none', borderRadius: '0 0 5px 5px', zIndex: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.10)' }}>
+                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fdf9f4', border: '1px solid #cfc4ae', borderTop: 'none', borderRadius: '0 0 4px 4px', zIndex: 20, boxShadow: '0 4px 10px rgba(176,160,136,0.18)' }}>
                           {resultatsAuteur.map(a => (
                             <button key={a.id_auteur} onClick={() => {
                               setFiltreAuteursIds(prev => new Set([...prev, a.id_auteur]))
@@ -1054,84 +1011,113 @@ export default function PanneauPatristique({
                               setRechercheAuteur('')
                               setResultatsAuteur([])
                               setPageItems(0)
-                            }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '6px 10px', fontSize: '11px', color: '#2a3d30', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                            }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '5px 8px', fontSize: '10.5px', color: '#2a3d30', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
                               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(61,107,79,0.07)')}
                               onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
                               {a.nom}
-                              <span style={{ fontSize: '13px', color: '#3d6b4f', lineHeight: 1 }}>+</span>
+                              <span style={{ fontSize: '12px', color: '#3d6b4f', lineHeight: 1 }}>+</span>
                             </button>
                           ))}
                         </div>
                       )}
                     </div>
                     {filtreAuteursBlancs.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '7px', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '5px' }}>
                         {filtreAuteursBlancs.map(a => (
-                          <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '10px', padding: '2px 7px 2px 8px', background: 'rgba(61,107,79,0.12)', color: '#2a5a38', borderRadius: '10px', fontWeight: 500 }}>
+                          <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '9px', padding: '1px 5px 1px 7px', background: 'rgba(61,107,79,0.12)', color: '#2a5a38', borderRadius: '9px', fontWeight: 500 }}>
                             {a.nom}
                             <button onClick={() => {
                               setFiltreAuteursIds(prev => { const n = new Set(prev); n.delete(a.id_auteur); return n })
                               setFiltreAuteursBlancs(prev => prev.filter(x => x.id_auteur !== a.id_auteur))
                               setPageItems(0)
-                            }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#3d6b4f', fontSize: '12px', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
+                            }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#3d6b4f', fontSize: '11px', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
                           </span>
                         ))}
                       </div>
                     )}
 
                     {/* Traditions */}
-                    {traditionsDisponibles.length > 0 && (
-                      <>
-                        <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b0a89e', margin: '10px 0 6px' }}>Tradition</p>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                          {traditionsDisponibles.map(t => {
-                            const actif = filtreTraditions.has(t)
-                            return (
-                              <button key={t} onClick={() => {
-                                setFiltreTraditions(prev => { const n = new Set(prev); actif ? n.delete(t) : n.add(t); return n })
-                                setPageItems(0)
-                              }} style={{
-                                fontSize: '10px', padding: '3px 9px', borderRadius: '10px', cursor: 'pointer',
-                                border: `1px solid ${actif ? '#3d6b4f' : '#d6d0c4'}`,
-                                background: actif ? 'rgba(61,107,79,0.12)' : '#fff',
-                                color: actif ? '#2a5a38' : '#6b6560', fontWeight: actif ? 600 : 400,
-                              }}>{t}</button>
-                            )
-                          })}
+                    {(traditionsDisponibles.some(t => !filtreTraditions.has(t)) || filtreTraditions.size > 0) && (
+                      <div style={{ marginTop: '8px' }}>
+                        <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Tradition</p>
+                        {filtreTraditions.size > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginBottom: '4px' }}>
+                            {[...filtreTraditions].map(t => (
+                              <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '9px', padding: '1px 5px 1px 7px', background: 'rgba(61,107,79,0.12)', color: '#2a5a38', borderRadius: '9px', fontWeight: 500 }}>
+                                {t}
+                                <button onClick={() => { setFiltreTraditions(prev => { const n = new Set(prev); n.delete(t); return n }); setPageItems(0) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#3d6b4f', fontSize: '11px', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                          {traditionsDisponibles.filter(t => !filtreTraditions.has(t)).map(t => (
+                            <button key={t} onClick={() => { setFiltreTraditions(prev => new Set([...prev, t])); setPageItems(0) }} style={{
+                              fontSize: '9px', padding: '2px 7px', borderRadius: '9px', cursor: 'pointer',
+                              border: '1px solid #cfc4ae', background: 'rgba(255,255,255,0.6)', color: '#6b5f4a', fontWeight: 400,
+                            }}>{t}</button>
+                          ))}
                         </div>
-                      </>
+                      </div>
+                    )}
+
+                    {/* Genre */}
+                    {(genresDisponibles.some(g => !filtreGenres.has(g)) || filtreGenres.size > 0) && (
+                      <div style={{ marginTop: '8px' }}>
+                        <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Genre</p>
+                        {filtreGenres.size > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginBottom: '4px' }}>
+                            {[...filtreGenres].map(g => (
+                              <span key={g} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '9px', padding: '1px 5px 1px 7px', background: 'rgba(61,107,79,0.12)', color: '#2a5a38', borderRadius: '9px', fontWeight: 500 }}>
+                                {g}
+                                <button onClick={() => { setFiltreGenres(prev => { const n = new Set(prev); n.delete(g); return n }); setPageItems(0) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#3d6b4f', fontSize: '11px', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                          {genresDisponibles.filter(g => !filtreGenres.has(g)).map(g => (
+                            <button key={g} onClick={() => { setFiltreGenres(prev => new Set([...prev, g])); setPageItems(0) }} style={{
+                              fontSize: '9px', padding: '2px 7px', borderRadius: '9px', cursor: 'pointer',
+                              border: '1px solid #cfc4ae', background: 'rgba(255,255,255,0.6)', color: '#6b5f4a', fontWeight: 400,
+                            }}>{g}</button>
+                          ))}
+                        </div>
+                      </div>
                     )}
 
                     {/* Siècles */}
-                    {sieclesDisponibles.length > 0 && (
-                      <>
-                        <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b0a89e', margin: '10px 0 6px' }}>Période</p>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                          {sieclesDisponibles.map(s => {
-                            const actif = filtreSiecles.has(s)
-                            return (
-                              <button key={s} onClick={() => {
-                                setFiltreSiecles(prev => { const n = new Set(prev); actif ? n.delete(s) : n.add(s); return n })
-                                setPageItems(0)
-                              }} style={{
-                                fontSize: '10px', padding: '3px 9px', borderRadius: '10px', cursor: 'pointer',
-                                border: `1px solid ${actif ? '#9a7e3d' : '#d6d0c4'}`,
-                                background: actif ? 'rgba(154,126,61,0.10)' : '#fff',
-                                color: actif ? '#7a5e1a' : '#6b6560', fontWeight: actif ? 600 : 400,
-                              }}>{siecleEnRomain(s)}</button>
-                            )
-                          })}
+                    {(sieclesDisponibles.some(s => !filtreSiecles.has(s)) || filtreSiecles.size > 0) && (
+                      <div style={{ marginTop: '8px' }}>
+                        <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Période</p>
+                        {filtreSiecles.size > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginBottom: '4px' }}>
+                            {[...filtreSiecles].map(s => (
+                              <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '9px', padding: '1px 5px 1px 7px', background: 'rgba(154,126,61,0.12)', color: '#7a5e1a', borderRadius: '9px', fontWeight: 500 }}>
+                                {siecleEnRomain(s)}
+                                <button onClick={() => { setFiltreSiecles(prev => { const n = new Set(prev); n.delete(s); return n }); setPageItems(0) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#9a7e3d', fontSize: '11px', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                          {sieclesDisponibles.filter(s => !filtreSiecles.has(s)).map(s => (
+                            <button key={s} onClick={() => { setFiltreSiecles(prev => new Set([...prev, s])); setPageItems(0) }} style={{
+                              fontSize: '9px', padding: '2px 7px', borderRadius: '9px', cursor: 'pointer',
+                              border: '1px solid #cfc4ae', background: 'rgba(255,255,255,0.6)', color: '#6b5f4a', fontWeight: 400,
+                            }}>{siecleEnRomain(s)}</button>
+                          ))}
                         </div>
-                      </>
+                      </div>
                     )}
 
                     {/* Tout effacer */}
                     {nombreFiltresActifs > 0 && (
                       <button onClick={() => {
                         setFiltreAuteursIds(new Set()); setFiltreAuteursBlancs([])
-                        setFiltreTraditions(new Set()); setFiltreSiecles(new Set())
+                        setFiltreTraditions(new Set()); setFiltreSiecles(new Set()); setFiltreGenres(new Set())
                         setPageItems(0)
-                      }} style={{ marginTop: '12px', fontSize: '9.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                      }} style={{ marginTop: '8px', fontSize: '9px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
                         Tout effacer
                       </button>
                     )}
@@ -1140,19 +1126,18 @@ export default function PanneauPatristique({
 
                 {loading && <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'16px 0' }}>Chargement…</p>}
                 {!loading && itemsFiltres.length === 0 && itemsAffiches.length === 0 && (
-                  <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'16px 0', fontStyle:'italic' }}>Aucun lien.</p>
+                  <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'16px 0', fontStyle:'italic' }}>Aucune occurrence.</p>
                 )}
                 {!loading && itemsFiltres.length === 0 && itemsAffiches.length > 0 && (
                   <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'12px 0', fontStyle:'italic' }}>Aucun résultat pour ces filtres.</p>
                 )}
                 <div style={{ marginTop: '6px' }}>
-                {itemsPage.map(({ seg, col, type, onSupprime }) => (
+                {itemsPage.map(({ seg, col, onSupprime }) => (
                   <SegmentCard
                     key={`${col}-${seg.id}`} s={seg} info={oeuvres[seg.id_oeuvre]}
                     userId={userId} isAdmin={isAdmin}
-                    colonneLien={col} typeLien={type}
+                    colonneLien={col}
                     onSignaler={setSegSignale} onSupprimeLien={onSupprime}
-                    dejaLu={segmentsLus.has(seg.id)}
                   />
                 ))}
                 </div>

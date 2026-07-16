@@ -4,7 +4,8 @@ import React, { useState, useRef } from 'react'
 import { supabase, parseCSV, SiecleDisplay, headersAdmin } from './adminShared'
 import SectionRemplacerSegments from './SectionRemplacerSegments'
 import SectionAjouterOeuvre from './SectionAjouterOeuvre'
-import type { Auteur, Oeuvre, LignePreview } from './adminTypes'
+import type { Auteur, AuteurPhotoPos, AuteurPhotoPositions, Oeuvre, LignePreview } from './adminTypes'
+import { revaliderBibliotheque } from '@/app/actions/revalider'
 
 async function exporterOeuvre(idOeuvre: string, titreOeuvre: string) {
   const res = await fetch(`/api/admin/export-segments?id_oeuvre=${idOeuvre}`, { headers: await headersAdmin() })
@@ -72,6 +73,196 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
 const inputStyleAuteur: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '12px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#fff', color: '#1e1a16', outline: 'none', boxSizing: 'border-box' }
 const lbl: React.CSSProperties = { fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b0a89e', display: 'block', marginBottom: '2px' }
 const sepOeuvre: React.CSSProperties = { borderTop: '1px solid #ede9e2', gridColumn: '1 / -1', margin: '2px 0' }
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+
+const POS_AUTEUR_DEFAUT: AuteurPhotoPos = { x: 50, y: 14, scale: 1, scaleX: 1, scaleY: 1 }
+const POS_AUTEUR_FICHE: AuteurPhotoPos = { x: 50, y: 24, scale: 1, scaleX: 1, scaleY: 1 }
+
+function normaliserPhotoPos(pos: Partial<AuteurPhotoPos> | null | undefined, defaut: AuteurPhotoPos): AuteurPhotoPos {
+  return {
+    x: typeof pos?.x === 'number' ? pos.x : defaut.x,
+    y: typeof pos?.y === 'number' ? pos.y : defaut.y,
+    scale: typeof pos?.scale === 'number' ? pos.scale : defaut.scale,
+    scaleX: typeof pos?.scaleX === 'number' ? pos.scaleX : defaut.scaleX,
+    scaleY: typeof pos?.scaleY === 'number' ? pos.scaleY : defaut.scaleY,
+  }
+}
+
+function parseAuteurPhotoPositions(raw: Auteur['photo_position']): AuteurPhotoPositions {
+  const r = raw as any
+  if (!r) return { carte: { ...POS_AUTEUR_DEFAUT }, fiche: { ...POS_AUTEUR_FICHE } }
+  if (typeof r.x === 'number') {
+    const plat = normaliserPhotoPos(r, POS_AUTEUR_DEFAUT)
+    return { carte: plat, fiche: { ...plat } }
+  }
+  return {
+    carte: normaliserPhotoPos(r.carte, POS_AUTEUR_DEFAUT),
+    fiche: normaliserPhotoPos(r.fiche, POS_AUTEUR_FICHE),
+  }
+}
+
+function stylePhotoAuteur(pos: AuteurPhotoPos): React.CSSProperties {
+  return {
+    objectFit: 'cover',
+    objectPosition: `${pos.x}% ${pos.y}%`,
+    transform: `scale(${pos.scale}) scaleX(${pos.scaleX ?? 1}) scaleY(${pos.scaleY ?? 1})`,
+    transformOrigin: `${pos.x}% ${pos.y}%`,
+  }
+}
+
+function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde }: {
+  auteur: Auteur
+  photoUrl: string
+  posInit: AuteurPhotoPositions
+  onClose: () => void
+  onSauvegarde: (pos: AuteurPhotoPositions) => Promise<void>
+}) {
+  const [positions, setPositions] = useState<AuteurPhotoPositions>(posInit)
+  const [active, setActive] = useState<'carte' | 'fiche'>('carte')
+  const [saving, setSaving] = useState(false)
+  const carteRef = useRef<HTMLDivElement>(null)
+  const ficheRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<{ zone: 'carte' | 'fiche'; startX: number; startY: number; baseX: number; baseY: number } | null>(null)
+
+  const startDrag = (zone: 'carte' | 'fiche') => (e: React.MouseEvent) => {
+    e.preventDefault()
+    setActive(zone)
+    const p = positions[zone]
+    dragRef.current = { zone, startX: e.clientX, startY: e.clientY, baseX: p.x, baseY: p.y }
+  }
+
+  const onMove = (e: React.MouseEvent) => {
+    if (!dragRef.current) return
+    const { zone, startX, startY, baseX, baseY } = dragRef.current
+    const el = zone === 'carte' ? carteRef.current : ficheRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const scale = Math.max(positions[zone].scale, 1)
+    const sensX = 100 / (rect.width * scale)
+    const sensY = 100 / (rect.height * scale)
+    setPositions(prev => ({
+      ...prev,
+      [zone]: {
+        ...prev[zone],
+        x: Math.max(0, Math.min(100, baseX - (e.clientX - startX) * sensX)),
+        y: Math.max(0, Math.min(100, baseY - (e.clientY - startY) * sensY)),
+      },
+    }))
+  }
+
+  const endDrag = () => { dragRef.current = null }
+  const regler = (champ: keyof AuteurPhotoPos, delta: number, min: number, max: number) => {
+    setPositions(prev => {
+      const actuel = prev[active][champ]
+      const valeur = typeof actuel === 'number' ? actuel : 1
+      return {
+        ...prev,
+        [active]: {
+          ...prev[active],
+          [champ]: Math.round(Math.max(min, Math.min(max, valeur + delta)) * 100) / 100,
+        },
+      }
+    })
+  }
+  const resetActive = () => setPositions(prev => ({ ...prev, [active]: active === 'carte' ? { ...POS_AUTEUR_DEFAUT } : { ...POS_AUTEUR_FICHE } }))
+  const sauvegarder = async () => {
+    setSaving(true)
+    try {
+      await onSauvegarde(positions)
+      onClose()
+    } catch {
+      // L'erreur a deja ete affichee par l'appelant.
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const btn: React.CSSProperties = {
+    width: '27px', height: '27px', borderRadius: '50%', border: '1px solid #d6d0c4',
+    background: '#fff', color: '#3a3530', cursor: 'pointer', display: 'inline-flex',
+    alignItems: 'center', justifyContent: 'center', lineHeight: 1,
+  }
+  const activePos = positions[active]
+  const zoneActive = active === 'carte' ? 'Carte Bibliothèque' : 'Fiche auteur'
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 2100, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '720px', background: '#f7f4ef', borderRadius: '10px', padding: '18px', boxShadow: '0 20px 60px rgba(0,0,0,0.32)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '15px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
+            Cadrer la photo – <em style={{ color: '#7a7268' }}>{auteur.nom}</em>
+          </h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a89e', fontSize: '15px', padding: 0 }}>×</button>
+        </div>
+        <p style={{ fontSize: '10.5px', color: '#9a958d', margin: '0 0 12px', lineHeight: 1.5 }}>
+          Glissez l’image dans l’aperçu actif. Le zoom et l’étirement s’appliquent seulement à l’usage sélectionné.
+        </p>
+
+        <div onMouseMove={onMove} onMouseUp={endDrag} onMouseLeave={endDrag} style={{ display: 'grid', gridTemplateColumns: '1.35fr 0.85fr', gap: '14px', alignItems: 'stretch', userSelect: 'none' }}>
+          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', minHeight: '176px' }}>
+              <div ref={carteRef} style={{ width: '132px', flexShrink: 0, position: 'relative', overflow: 'hidden', background: '#ede9e2', outline: active === 'carte' ? '3px solid #3d6b4f' : '3px solid transparent', outlineOffset: '-3px' }}>
+                <img src={photoUrl} alt="" draggable={false} style={{ width: '100%', height: '100%', display: 'block', ...stylePhotoAuteur(positions.carte) }} />
+                <div onMouseDown={startDrag('carte')} style={{ position: 'absolute', inset: 0, cursor: dragRef.current ? 'grabbing' : 'grab' }} />
+              </div>
+              <div style={{ flex: 1, padding: '16px 18px', minWidth: 0 }}>
+                <p style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#b0a89e', margin: '0 0 8px' }}>Carte Bibliothèque</p>
+                <h4 style={{ fontFamily: 'Helvetica Neue, Arial, sans-serif', fontSize: '15px', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 4px' }}>{auteur.nom}</h4>
+                {auteur.dates && <p style={{ fontSize: '11px', color: '#9a958d', margin: '0 0 10px' }}>{auteur.dates}</p>}
+                <p style={{ fontFamily: 'Georgia, serif', fontSize: '12px', color: '#5a5450', lineHeight: 1.55, margin: 0, fontStyle: 'italic' }}>
+                  {auteur.note_biographique || auteur.note || 'Aperçu de la fiche auteur dans la bibliothèque.'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <p style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#b0a89e', margin: '0 0 12px' }}>Fiche auteur</p>
+            <div ref={ficheRef} style={{ width: '104px', height: '104px', borderRadius: '50%', position: 'relative', overflow: 'hidden', background: '#ede9e2', border: '1px solid #e4dfd8', outline: active === 'fiche' ? '3px solid #3d6b4f' : '3px solid transparent', outlineOffset: '-3px' }}>
+              <img src={photoUrl} alt="" draggable={false} style={{ width: '100%', height: '100%', display: 'block', ...stylePhotoAuteur(positions.fiche) }} />
+              <div onMouseDown={startDrag('fiche')} style={{ position: 'absolute', inset: 0, cursor: dragRef.current ? 'grabbing' : 'grab' }} />
+            </div>
+            <p style={{ fontFamily: 'Georgia, serif', fontSize: '14px', color: '#2a3d30', margin: '12px 0 0', textAlign: 'center' }}>{auteur.nom}</p>
+          </div>
+        </div>
+
+        <div style={{ marginTop: '12px', padding: '12px', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', display: 'grid', gridTemplateColumns: '1fr auto auto auto auto auto', alignItems: 'center', gap: '8px' }}>
+          <p style={{ fontSize: '11px', color: '#9a958d', margin: 0 }}>
+            Zone active : <strong style={{ color: '#3d6b4f' }}>{zoneActive}</strong>
+          </p>
+          <button onClick={() => setActive('carte')} style={{ fontSize: '10.5px', padding: '5px 9px', borderRadius: '4px', border: '1px solid #d6d0c4', background: active === 'carte' ? 'rgba(61,107,79,0.10)' : '#fff', color: '#3d6b4f', cursor: 'pointer' }}>Carte</button>
+          <button onClick={() => setActive('fiche')} style={{ fontSize: '10.5px', padding: '5px 9px', borderRadius: '4px', border: '1px solid #d6d0c4', background: active === 'fiche' ? 'rgba(61,107,79,0.10)' : '#fff', color: '#3d6b4f', cursor: 'pointer' }}>Fiche</button>
+          <span style={{ fontSize: '11px', color: '#6b6560', minWidth: '48px', textAlign: 'center' }}>{Math.round(activePos.scale * 100)} %</span>
+          <button onClick={() => regler('scale', -0.1, 0.7, 3.5)} style={btn}>−</button>
+          <button onClick={() => regler('scale', 0.1, 0.7, 3.5)} style={btn}>+</button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
+          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '10.5px', color: '#6b6560', flex: 1 }}>Étirement horizontal</span>
+            <button onClick={() => regler('scaleX', -0.05, 0.65, 1.7)} style={btn}>−</button>
+            <span style={{ fontSize: '11px', color: '#2a3d30', minWidth: '42px', textAlign: 'center' }}>{Math.round((activePos.scaleX ?? 1) * 100)} %</span>
+            <button onClick={() => regler('scaleX', 0.05, 0.65, 1.7)} style={btn}>+</button>
+          </div>
+          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '10.5px', color: '#6b6560', flex: 1 }}>Étirement vertical</span>
+            <button onClick={() => regler('scaleY', -0.05, 0.65, 1.7)} style={btn}>−</button>
+            <span style={{ fontSize: '11px', color: '#2a3d30', minWidth: '42px', textAlign: 'center' }}>{Math.round((activePos.scaleY ?? 1) * 100)} %</span>
+            <button onClick={() => regler('scaleY', 0.05, 0.65, 1.7)} style={btn}>+</button>
+          </div>
+          <button onClick={resetActive} style={{ fontSize: '11px', color: '#9a958d', background: '#fff', border: '1px solid #d6d0c4', borderRadius: '5px', padding: '8px 12px', cursor: 'pointer' }}>Réinit.</button>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #e4dfd8' }}>
+          <button onClick={onClose} style={{ fontSize: '12px', padding: '7px 16px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
+          <button onClick={sauvegarder} disabled={saving} style={{ fontSize: '12px', padding: '7px 18px', borderRadius: '5px', border: 'none', background: saving ? '#a0b8aa' : '#3d6b4f', color: '#fff', cursor: saving ? 'default' : 'pointer', fontWeight: 500 }}>
+            {saving ? 'Enregistrement…' : 'Enregistrer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 type NoticeCatalogueAdmin = {
   id: number
@@ -504,6 +695,8 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   const [formAuteur, setFormAuteur] = useState<ValeursAuteur>(VIDE_AUTEUR)
   const [statutAuteur, setStatutAuteur] = useState<{ id: string; ok: boolean; msg: string } | null>(null)
   const [photos, setPhotos] = useState<Record<string, boolean>>({})
+  const [photoVersions, setPhotoVersions] = useState<Record<string, number>>({})
+  const [positionAuteur, setPositionAuteur] = useState<string | null>(null)
   const photoRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
   React.useEffect(() => {
@@ -554,8 +747,31 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     formData.append('id_auteur', idAuteur)
     formData.append('fichier', fichier)
     const res = await fetch('/api/admin/auteur-photo', { method: 'POST', headers: await headersAdmin(), body: formData })
-    if (res.ok) setPhotos(prev => ({ ...prev, [idAuteur]: true }))
+    if (res.ok) {
+      const json = await res.json().catch(() => ({}))
+      setPhotos(prev => ({ ...prev, [idAuteur]: true }))
+      setPhotoVersions(prev => ({ ...prev, [idAuteur]: Number(json.version ?? Date.now()) }))
+    }
     else { const json = await res.json().catch(() => ({})); alert('Erreur upload : ' + (json.error ?? 'erreur inconnue')) }
+  }
+
+  const photoUrlAuteur = (idAuteur: string) =>
+    `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg?v=${photoVersions[idAuteur] ?? Date.now()}`
+
+  const sauvegarderPositionAuteur = async (idAuteur: string, pos: AuteurPhotoPositions) => {
+    const res = await fetch('/api/admin/update-auteur', {
+      method: 'POST',
+      headers: await headersAdmin({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ id_auteur: idAuteur, champs: { photo_position: pos } }),
+    })
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      const msg = json.error ?? 'erreur inconnue'
+      alert('Erreur de cadrage : ' + msg)
+      throw new Error(msg)
+    }
+    setAuteurs(prev => prev.map(a => a.id_auteur === idAuteur ? { ...a, photo_position: pos } : a))
+    await revaliderBibliotheque()
   }
 
   const ouvrirEditionAuteur = (a: Auteur) => {
@@ -799,6 +1015,19 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   return (
     <>
       {preview && <ModaleImport lignes={preview.lignes} nomFichier={preview.nomFichier} onConfirmer={handleConfirmerImport} onAnnuler={() => { setPreview(null); Object.values(inputRefs.current).forEach(el => { if (el) el.value = '' }) }} importing={importing} />}
+      {positionAuteur && (() => {
+        const auteur = auteurs.find(a => a.id_auteur === positionAuteur)
+        if (!auteur) return null
+        return (
+          <ModalPositionAuteur
+            auteur={auteur}
+            photoUrl={photoUrlAuteur(auteur.id_auteur)}
+            posInit={parseAuteurPhotoPositions(auteur.photo_position)}
+            onClose={() => setPositionAuteur(null)}
+            onSauvegarde={pos => sauvegarderPositionAuteur(auteur.id_auteur, pos)}
+          />
+        )
+      })()}
 
       {/* Modale config niveaux */}
       {configOeuvre && (() => {
@@ -968,13 +1197,19 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                   style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: `1px solid ${photos[auteur.id_auteur] ? '#3d6b4f' : '#d6d0c4'}`, background: photos[auteur.id_auteur] ? 'rgba(61,107,79,0.08)' : '#fff', color: photos[auteur.id_auteur] ? '#3d6b4f' : '#9a958d', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   {photos[auteur.id_auteur] ? '✓ Photo' : '+ Photo'}
                 </button>
+                {photos[auteur.id_auteur] && (
+                  <button
+                    onClick={() => setPositionAuteur(auteur.id_auteur)}
+                    title="Cadrer la photo"
+                    style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    Cadrer
+                  </button>
+                )}
                 <input ref={el => { photoRefs.current[auteur.id_auteur] = el }} type="file" accept="image/*" style={{ display: 'none' }}
                   onChange={async e => {
                     const f = e.target.files?.[0]
                     if (!f) return
-                    const blob = f.slice(0, f.size, 'image/jpeg')
-                    const fichierRenomme = new File([blob], `${auteur.id_auteur}.jpg`, { type: 'image/jpeg' })
-                    await uploadPhoto(auteur.id_auteur, fichierRenomme)
+                    await uploadPhoto(auteur.id_auteur, f)
                     e.target.value = ''
                   }} />
                 <button onClick={() => editionAuteur === auteur.id_auteur ? fermerEditionAuteur() : ouvrirEditionAuteur(auteur)}

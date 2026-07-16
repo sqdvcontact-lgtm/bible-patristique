@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
@@ -13,12 +14,50 @@ type OeuvreResumee = {
   ville: string | null; date_publication: string | null; langue: string | null
 }
 
+type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
+type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }
 type Auteur = {
   id_auteur: string; nom: string; nom_original: string | null
   titre: string | null; dates: string | null; siecle: number | null
   traditions: string[] | null; note_biographique: string | null
   note_theologique: string | null; langue_principale: string | null
+  photo_position?: AuteurPhotoPositions | null
   oeuvres: OeuvreResumee[]
+}
+
+const POS_AUTEUR_CARTE: AuteurPhotoPos = { x: 50, y: 14, scale: 1, scaleX: 1, scaleY: 1 }
+const POS_AUTEUR_FICHE: AuteurPhotoPos = { x: 50, y: 24, scale: 1, scaleX: 1, scaleY: 1 }
+
+function normaliserPhotoPos(pos: Partial<AuteurPhotoPos> | null | undefined, defaut: AuteurPhotoPos): AuteurPhotoPos {
+  return {
+    x: typeof pos?.x === 'number' ? pos.x : defaut.x,
+    y: typeof pos?.y === 'number' ? pos.y : defaut.y,
+    scale: typeof pos?.scale === 'number' ? pos.scale : defaut.scale,
+    scaleX: typeof pos?.scaleX === 'number' ? pos.scaleX : defaut.scaleX,
+    scaleY: typeof pos?.scaleY === 'number' ? pos.scaleY : defaut.scaleY,
+  }
+}
+
+function parseAuteurPhotoPositions(raw: Auteur['photo_position']): AuteurPhotoPositions {
+  const r = raw as any
+  if (!r) return { carte: { ...POS_AUTEUR_CARTE }, fiche: { ...POS_AUTEUR_FICHE } }
+  if (typeof r.x === 'number') {
+    const plat = normaliserPhotoPos(r, POS_AUTEUR_CARTE)
+    return { carte: plat, fiche: { ...plat } }
+  }
+  return {
+    carte: normaliserPhotoPos(r.carte, POS_AUTEUR_CARTE),
+    fiche: normaliserPhotoPos(r.fiche, POS_AUTEUR_FICHE),
+  }
+}
+
+function stylePhotoAuteur(pos: AuteurPhotoPos): CSSProperties {
+  return {
+    objectFit: 'cover',
+    objectPosition: `${pos.x}% ${pos.y}%`,
+    transform: `scale(${pos.scale}) scaleX(${pos.scaleX ?? 1}) scaleY(${pos.scaleY ?? 1})`,
+    transformOrigin: `${pos.x}% ${pos.y}%`,
+  }
 }
 
 const lbl: React.CSSProperties = {
@@ -42,12 +81,15 @@ export default function PageAuteur() {
   const [auteur, setAuteur] = useState<Auteur | null>(null)
   const [erreur, setErreur] = useState(false)
   const [photoOk, setPhotoOk] = useState(true)
+  const [photoVersion, setPhotoVersion] = useState(0)
 
   useEffect(() => {
     if (!id) return
+    setPhotoOk(true)
+    setPhotoVersion(Date.now())
     supabase
       .from('auteurs')
-      .select(`id_auteur, nom, nom_original, titre, dates, siecle, traditions,
+      .select(`id_auteur, nom, nom_original, titre, dates, siecle, traditions, photo_position,
         note_biographique, note_theologique, langue_principale,
         oeuvres ( id_oeuvre, titre, sous_titre, trad_auteur, editeur, ville, date_publication, langue )`)
       .eq('id_auteur', id)
@@ -73,7 +115,8 @@ export default function PageAuteur() {
     </main>
   )
 
-  const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${id}.jpg`
+  const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${id}.jpg${photoVersion ? `?v=${photoVersion}` : ''}`
+  const photoPos = parseAuteurPhotoPositions(auteur.photo_position).fiche
   const siecleLabel = auteur.siecle ? `${enChiffresRomains(auteur.siecle)}e siècle` : null
 
   return (
@@ -83,12 +126,14 @@ export default function PageAuteur() {
         {/* En-tête */}
         <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '28px', display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
           {photoOk && (
-            <img
-              src={photoUrl}
-              alt={auteur.nom}
-              onError={() => setPhotoOk(false)}
-              style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid #e4dfd8' }}
-            />
+            <div style={{ width: '72px', height: '72px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '1px solid #e4dfd8', background: '#ede9e2' }}>
+              <img
+                src={photoUrl}
+                alt={auteur.nom}
+                onError={() => setPhotoOk(false)}
+                style={{ width: '100%', height: '100%', display: 'block', ...stylePhotoAuteur(photoPos) }}
+              />
+            </div>
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: 'normal', color: '#2a3d30', margin: '0 0 4px' }}>

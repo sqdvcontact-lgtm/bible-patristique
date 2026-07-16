@@ -22,7 +22,10 @@ export type Oeuvre = {
   texte_corps?: string | null
   afficher_numeros?: boolean | null
 }
-export type Auteur       = { id_auteur: string; nom: string; nom_original?: string | null; titre?: string | null; dates: string | null; date_naissance?: string | null; date_mort?: string | null; siecle?: string | null; tradition?: string | null; traditions?: string[] | null; note?: string | null; note_biographique?: string | null; note_theologique?: string | null; langue_principale?: string | null; oeuvres: Oeuvre[] }
+export type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
+export type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }
+
+export type Auteur       = { id_auteur: string; nom: string; nom_original?: string | null; titre?: string | null; dates: string | null; date_naissance?: string | null; date_mort?: string | null; siecle?: string | null; tradition?: string | null; traditions?: string[] | null; note?: string | null; note_biographique?: string | null; note_theologique?: string | null; langue_principale?: string | null; photo_position?: AuteurPhotoPositions | null; oeuvres: Oeuvre[] }
 
 export type Traduction = {
   trad_id: string
@@ -91,4 +94,4 @@ export type AdminProps = {
   actionRenvoyerBrouillonEssai: (id: number, note: string, refus?: boolean) => Promise<void>
 }
 
-export type Onglet = 'bibliotheque' | 'controle-oeuvres' | 'traductions' | 'verifications' | 'moderation' | 'essais' | 'charte' | 'propositions' | 'taches'
+export type Onglet = 'bibliotheque' | 'controle-oeuvres' | 'traductions' | 'verifications' | 'moderation' | 'essais' | 'charte' | 'charte-accentuation' | 'propositions' | 'taches'

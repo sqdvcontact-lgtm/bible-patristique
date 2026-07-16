@@ -143,21 +143,21 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
         ) : cache ? (
           <CommentaireRetracte c={c} />
         ) : (
-          <div className="commentaire-carte" style={{ ...styleCarte, position: 'relative', padding: '8px 112px 8px 10px', borderRadius: '6px' }}>
-            <span style={{ position: 'absolute', top: '8px', right: '10px', textAlign: 'right', fontSize: '10px', color: '#b0a89e', whiteSpace: 'nowrap' }}>{dateHeureCommentaire(c.created_at)}</span>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'baseline', marginBottom: '4px', flexWrap: 'wrap' }}>
-              <p style={{ fontSize: '11.5px', fontWeight: 700, color: '#2a3d30', margin: 0 }}>
+          <div className="commentaire-carte" style={{ ...styleCarte, padding: '10px 12px', borderRadius: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px', gap: '10px' }}>
+              <p style={{ fontSize: '11.5px', fontWeight: 600, color: '#2a3d30', margin: 0 }}>
                 {c.auteur_nom ?? 'Anonyme'}
                 {rang && rangCouleur && <span style={{ marginLeft: '7px', fontSize: '9px', color: rangCouleur.texte, background: rangCouleur.fond, borderRadius: '3px', padding: '1px 6px' }}>{rang}</span>}
+                {!c.valide && <span style={{ marginLeft: '8px', fontSize: '8px', fontWeight: 700, color: '#b03a2a', background: 'rgba(176,58,42,0.10)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>En révision</span>}
               </p>
-              {!c.valide && <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#b03a2a', background: 'rgba(176,58,42,0.10)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>En révision</span>}
+              <span style={{ fontSize: '10px', color: '#b0a89e', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateHeureCommentaire(c.created_at)}</span>
             </div>
             {c.passage_cite && (
               <blockquote style={{ fontSize: '12px', color: '#756d64', fontStyle: 'italic', borderLeft: '2px solid #d6d0c4', paddingLeft: '10px', margin: '0 0 7px' }}>
                 « {c.passage_cite} »
               </blockquote>
             )}
-            <div style={{ fontSize: '12.5px', color: c.valide ? '#2a2520' : '#6f3d35', lineHeight: 1.45, margin: 0, whiteSpace: 'pre-line', background: c.valide ? 'rgba(255,255,255,0.54)' : 'rgba(255,255,255,0.48)', borderRadius: '4px', padding: '5px 6px' }}>{rendreTexteEnrichi(c.texte)}</div>
+            <div style={{ fontSize: '12.5px', color: c.valide ? '#3a3020' : '#6f3d35', lineHeight: 1.55 }}>{rendreTexteEnrichi(c.texte)}</div>
             <LigneActions c={c} />
           </div>
         )}
@@ -176,19 +176,19 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
             ) : cacheReponse ? (
               <CommentaireRetracte c={r} petit />
             ) : (
-              <div className="commentaire-carte" style={{ position: 'relative', padding: '7px 104px 7px 9px', borderRadius: '5px', background: r.valide ? '#fff' : 'rgba(176,58,42,0.07)', border: `1px solid ${r.valide ? '#e4dfd8' : 'rgba(176,58,42,0.26)'}`, borderLeft: `4px solid ${r.valide ? '#d6d0c4' : '#b03a2a'}` }}>
-                <span style={{ position: 'absolute', top: '7px', right: '9px', textAlign: 'right', fontSize: '9.5px', color: '#b0a89e', whiteSpace: 'nowrap' }}>{dateHeureCommentaire(r.created_at)}</span>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'baseline', marginBottom: '4px', flexWrap: 'wrap' }}>
-                  <p style={{ fontSize: '11px', fontWeight: 700, color: '#2a3d30', margin: 0 }}>
+              <div className="commentaire-carte" style={{ padding: '9px 11px', borderRadius: '5px', background: r.valide ? '#fff' : 'rgba(176,58,42,0.07)', border: `1px solid ${r.valide ? '#e4dfd8' : 'rgba(176,58,42,0.26)'}`, borderLeft: `3px solid ${r.valide ? '#d6d0c4' : '#b03a2a'}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '5px', gap: '8px' }}>
+                  <p style={{ fontSize: '11px', fontWeight: 600, color: '#2a3d30', margin: 0 }}>
                     {r.auteur_nom ?? 'Anonyme'}
                     {rangR && rangCouleurR && <span style={{ marginLeft: '6px', fontSize: '8.5px', color: rangCouleurR.texte, background: rangCouleurR.fond, borderRadius: '3px', padding: '1px 5px' }}>{rangR}</span>}
+                    {!r.valide && <span style={{ marginLeft: '7px', fontSize: '7.5px', fontWeight: 700, color: '#b03a2a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>En révision</span>}
                   </p>
-                  {!r.valide && <span style={{ fontSize: '8.5px', fontWeight: 700, color: '#b03a2a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>En révision</span>}
+                  <span style={{ fontSize: '9.5px', color: '#b0a89e', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateHeureCommentaire(r.created_at)}</span>
                 </div>
                 {r.passage_cite && (
                   <blockquote style={{ fontSize: '11.5px', color: '#756d64', fontStyle: 'italic', borderLeft: '2px solid #d6d0c4', paddingLeft: '8px', margin: '0 0 5px' }}>« {r.passage_cite} »</blockquote>
                 )}
-                <div style={{ fontSize: '12px', color: r.valide ? '#2a2520' : '#6f3d35', lineHeight: 1.43, margin: 0, whiteSpace: 'pre-line', background: r.valide ? 'rgba(255,255,255,0.54)' : 'rgba(255,255,255,0.48)', borderRadius: '4px', padding: '5px 6px' }}>{rendreTexteEnrichi(r.texte)}</div>
+                <div style={{ fontSize: '12px', color: r.valide ? '#3a3020' : '#6f3d35', lineHeight: 1.55 }}>{rendreTexteEnrichi(r.texte)}</div>
                 <LigneActions c={r} petit />
               </div>
             )}
@@ -242,7 +242,11 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
         }
       `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '16px' }}>
-        <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '17px', color: '#2a3d30', margin: 0 }}>Commentaires ({racines.length})</h2>
+        <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
+          {racines.length > 0
+            ? <>{racines.length} <span style={{ fontStyle: 'italic' }}>commentaire{racines.length > 1 ? 's' : ''}</span></>
+            : <span style={{ fontStyle: 'italic' }}>Commentaires</span>}
+        </h2>
         <div style={{ display: 'flex', gap: '6px' }}>
           {(['pertinents', 'recents'] as const).map(t => (
             <button key={t} onClick={() => changerTri(t)}

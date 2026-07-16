@@ -30,7 +30,7 @@ type SegmentCsv = Record<string, string | number | null | undefined>
 const COLONNES_SEGMENTS = [
   'id_oeuvre', 'segment_numero', 'segment_texte',
   'ref_niv1', 'ref_niv2', 'ref_niv3', 'ref_niv4', 'ref_niv5',
-  'lien_1', 'lien_2', 'lien_3', 'lien_4', 'fiabilite', 'nature',
+  'lien_1', 'lien_2', 'lien_3', 'lien_4', 'fiabilite', 'nature', 'notes',
 ] as const
 
 function nulSiVide(v: unknown): string | null {

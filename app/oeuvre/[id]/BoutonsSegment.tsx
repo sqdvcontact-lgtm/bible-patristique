@@ -113,8 +113,9 @@ export function construireCitationPatristique(
   if (collection) parts.push(collection)
   if (ville) parts.push(ville)
   if (datePublication) parts.push(datePublication)
-  parts.push('« disponible sur Corpus Scriptura »')
-  parts.push('« ' + convertirGuillemetsInternes(texte) + ' »')
+  parts.push('disponible sur Corpus Scriptura')
+  const textePonctue = texte.replace(/[,;]/g, '.')
+  parts.push('« ' + convertirGuillemetsInternes(textePonctue) + ' »')
   return parts.join(', ') + '.'
 }
 

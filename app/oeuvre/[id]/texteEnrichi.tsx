@@ -12,7 +12,7 @@ export function normaliserEspaces(texte: string): string {
 // (lecture) ou texteSansEnrichissement (citation/copie/brut).
 export function rendreTexteEnrichi(texte: string): React.ReactNode {
   const noeuds: React.ReactNode[] = []
-  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)/g
+  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)/g
   let dernierIndex = 0, k = 0, m: RegExpExecArray | null
   while ((m = regex.exec(texte))) {
     if (m.index > dernierIndex) noeuds.push(texte.slice(dernierIndex, m.index))
@@ -22,10 +22,22 @@ export function rendreTexteEnrichi(texte: string): React.ReactNode {
     else if (m[4] !== undefined) noeuds.push(
       <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{m[4]}</a>
     )
+    else if (m[6] !== undefined) {
+      noeuds.push(<span key={k++} style={{ fontVariant: 'all-small-caps' }}>{m[6]}</span>)
+      noeuds.push(<sup key={k++} style={{ fontSize: '0.6em' }}>{m[7]}</sup>)
+      noeuds.push(m[8])
+    }
     dernierIndex = regex.lastIndex
   }
   if (dernierIndex < texte.length) noeuds.push(texte.slice(dernierIndex))
   return noeuds
+}
+
+export function formaterSieclesHTML(html: string): string {
+  return html.replace(
+    /\b([IVXLCDM]+)(?:<sup>)?(e|er|ère|ème|ième)(?:<\/sup>)?(\s+siècles?)/g,
+    '<span style="font-variant:all-small-caps">$1</span><sup style="font-size:0.6em !important">$2</sup>$3'
+  )
 }
 
 export function texteSansEnrichissement(texte: string): string {

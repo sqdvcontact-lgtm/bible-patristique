@@ -16,7 +16,7 @@ export const metadata = {
 export default async function BibliothequePage() {
   const { data } = await supabase
     .from("auteurs")
-    .select(`id_auteur, nom, nom_original, titre, dates, siecle, date_naissance, date_mort, langue_principale, traditions, note, note_biographique, note_theologique,
+    .select(`id_auteur, nom, nom_original, titre, dates, siecle, date_naissance, date_mort, langue_principale, traditions, note, note_biographique, note_theologique, photo_position,
       oeuvres ( id_oeuvre, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication, genre )`)
     .order("siecle", { ascending: true, nullsFirst: false })
 

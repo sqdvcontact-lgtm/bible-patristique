@@ -14,14 +14,52 @@ type Oeuvre = {
   editeur: string | null; ville: string | null; date_publication: string | null
   genre: string | null
 }
+type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
+type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }
 type Auteur = {
-  id_auteur: number; nom: string; nom_original?: string | null; titre?: string | null
+  id_auteur: string; nom: string; nom_original?: string | null; titre?: string | null
   dates: string | null; date_naissance?: string | null; date_mort?: string | null
   siecle: string | null; langue_principale?: string | null
   traditions?: string[] | null
   note?: string | null; note_biographique?: string | null; note_theologique?: string | null
+  photo_position?: AuteurPhotoPositions | null
   imageUrl: string
   oeuvres: Oeuvre[]
+}
+
+const POS_AUTEUR_CARTE: AuteurPhotoPos = { x: 50, y: 14, scale: 1, scaleX: 1, scaleY: 1 }
+const POS_AUTEUR_FICHE: AuteurPhotoPos = { x: 50, y: 24, scale: 1, scaleX: 1, scaleY: 1 }
+
+function normaliserPhotoPos(pos: Partial<AuteurPhotoPos> | null | undefined, defaut: AuteurPhotoPos): AuteurPhotoPos {
+  return {
+    x: typeof pos?.x === 'number' ? pos.x : defaut.x,
+    y: typeof pos?.y === 'number' ? pos.y : defaut.y,
+    scale: typeof pos?.scale === 'number' ? pos.scale : defaut.scale,
+    scaleX: typeof pos?.scaleX === 'number' ? pos.scaleX : defaut.scaleX,
+    scaleY: typeof pos?.scaleY === 'number' ? pos.scaleY : defaut.scaleY,
+  }
+}
+
+function parseAuteurPhotoPositions(raw: Auteur['photo_position']): AuteurPhotoPositions {
+  const r = raw as any
+  if (!r) return { carte: { ...POS_AUTEUR_CARTE }, fiche: { ...POS_AUTEUR_FICHE } }
+  if (typeof r.x === 'number') {
+    const plat = normaliserPhotoPos(r, POS_AUTEUR_CARTE)
+    return { carte: plat, fiche: { ...plat } }
+  }
+  return {
+    carte: normaliserPhotoPos(r.carte, POS_AUTEUR_CARTE),
+    fiche: normaliserPhotoPos(r.fiche, POS_AUTEUR_FICHE),
+  }
+}
+
+function stylePhotoAuteur(pos: AuteurPhotoPos): React.CSSProperties {
+  return {
+    objectFit: 'cover',
+    objectPosition: `${pos.x}% ${pos.y}%`,
+    transform: `scale(${pos.scale}) scaleX(${pos.scaleX ?? 1}) scaleY(${pos.scaleY ?? 1})`,
+    transformOrigin: `${pos.x}% ${pos.y}%`,
+  }
 }
 
 function sansAccents(s: string): string { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase() }
@@ -48,6 +86,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
   const listeOuverte = ouvert || !!oeuvreCorrespondante
   const nb = auteur.oeuvres.length
   const nbMot = enLettres(nb)
+  const photoPos = parseAuteurPhotoPositions(auteur.photo_position).carte
 
   return (
     <div
@@ -58,9 +97,9 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
       <div style={{ display: 'flex' }}>
         <div style={{ width: '120px', flexShrink: 0, background: '#ede9e2', position: 'relative', minHeight: '170px' }}>
           {!imgErreur && (
-            <Image src={auteur.imageUrl} alt={auteur.nom} fill sizes="120px"
+            <Image src={auteur.imageUrl} alt={auteur.nom} fill sizes="240px" unoptimized
               onError={() => setImgErreur(true)}
-              style={{ objectFit: 'cover', objectPosition: 'top', filter: 'sepia(20%) contrast(1.05)' }} />
+              style={{ ...stylePhotoAuteur(photoPos), imageRendering: 'auto' }} />
           )}
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
             <svg width="36" height="44" viewBox="0 0 40 48" fill="none" opacity={imgErreur ? 0.2 : 0}>
@@ -816,12 +855,15 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const SELECT_AUTEURS = `id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, langue_principale, traditions, note, note_biographique, note_theologique,
+const SELECT_AUTEURS = `id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, langue_principale, traditions, note, note_biographique, note_theologique, photo_position,
   oeuvres ( id_oeuvre, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication, genre )`
+const imageVersionAuteur = () => Math.floor(Date.now() / 1000)
+const urlImageAuteur = (idAuteur: string, version = imageVersionAuteur()) =>
+  `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg?v=${version}`
 
 function normaliserAuteurs(data: any[]): Auteur[] {
-  const base = `${SUPABASE_URL}/storage/v1/object/public/auteurs`
-  return data.filter(a => a.oeuvres?.length > 0).map(a => ({ ...a, imageUrl: `${base}/${a.id_auteur}.jpg` }))
+  const version = imageVersionAuteur()
+  return data.filter(a => a.oeuvres?.length > 0).map(a => ({ ...a, imageUrl: urlImageAuteur(String(a.id_auteur), version) }))
 }
 
 export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteurs: Auteur[] }) {
@@ -829,6 +871,11 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
   const [auteurs, setAuteurs] = useState<Auteur[]>(auteursInitiaux)
   const [onglet, setOnglet] = useState<Onglet>('bibliotheque')
   const { favoris: favorisOeuvres, pret: favorisPret, toggle: toggleFavoriOeuvre } = useFavoris('oeuvre')
+
+  useEffect(() => {
+    const version = imageVersionAuteur()
+    setAuteurs(prev => prev.map(a => ({ ...a, imageUrl: urlImageAuteur(String(a.id_auteur), version) })))
+  }, [])
 
   const refetch = useCallback(async () => {
     const { data } = await supabase.from('auteurs').select(SELECT_AUTEURS).order('siecle', { ascending: true, nullsFirst: false })

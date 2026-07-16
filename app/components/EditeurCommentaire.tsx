@@ -27,6 +27,7 @@ function echapper(s: string) {
 function syntaxeVersHtml(s: string) {
   return echapper(s)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\+\+(.+?)\+\+/g, '<span style="font-variant:small-caps;letter-spacing:0.04em">$1</span>')
     .replace(/\^\^(.+?)\^\^/g, '<sup>$1</sup>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>')
@@ -46,6 +47,7 @@ function htmlVersSyntaxe(html: string) {
     if (tag === 'strong' || tag === 'b') return `**${enfants}**`
     if (tag === 'em' || tag === 'i') return `*${enfants}*`
     if (tag === 'sup') return `^^${enfants}^^`
+    if (tag === 'span' && el.style.fontVariant === 'small-caps') return `++${enfants}++`
     if (tag === 'a') return `[${enfants}](${el.getAttribute('href') ?? ''})`
     if (tag === 'div' || tag === 'p') return `${enfants}\n`
     return enfants
@@ -83,6 +85,22 @@ export default function EditeurCommentaire({ value, onChange, placeholder = 'Vot
     synchroniser()
   }
 
+  const petitesCapitales = () => {
+    ref.current?.focus()
+    const selection = window.getSelection()
+    if (!selection || selection.rangeCount === 0) return
+    const texte = selection.toString() || 'texte'
+    const range = selection.getRangeAt(0)
+    range.deleteContents()
+    const span = document.createElement('span')
+    span.style.fontVariant = 'small-caps'
+    span.style.letterSpacing = '0.04em'
+    span.textContent = texte
+    range.insertNode(span)
+    selection.collapseToEnd()
+    synchroniser()
+  }
+
   const creerLien = () => {
     const url = window.prompt('URL du lien :', 'https://')
     if (url) commande('createLink', url)
@@ -93,6 +111,7 @@ export default function EditeurCommentaire({ value, onChange, placeholder = 'Vot
       <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '4px' }}>
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => commande('bold')} title="Gras" style={{ ...boutonOutil, fontWeight: 700 }}>G</button>
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => commande('italic')} title="Italique" style={{ ...boutonOutil, fontStyle: 'italic' }}>I</button>
+        <button type="button" onMouseDown={e => e.preventDefault()} onClick={petitesCapitales} title="Petites capitales" style={{ ...boutonOutil, fontVariant: 'small-caps', letterSpacing: '0.03em' }}>Pc</button>
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => commande('superscript')} title="Exposant" style={boutonOutil}>x²</button>
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={creerLien} title="Lien" style={boutonOutil}>Lien</button>
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => entourerTexte('« ', ' »')} title="Guillemets français" style={boutonOutil}>« »</button>

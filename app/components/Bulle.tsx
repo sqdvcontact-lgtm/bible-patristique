@@ -12,6 +12,7 @@ type Props = {
   texte: string
   children: React.ReactNode
   position?: Position
+  avecFixation?: boolean
 }
 
 function posStyle(pos: Position): React.CSSProperties {
@@ -33,7 +34,7 @@ function fleche(pos: Position): React.CSSProperties {
   }
 }
 
-export function Bulle({ texte, children, position = 'top' }: Props) {
+export function Bulle({ texte, children, position = 'top', avecFixation = false }: Props) {
   const [visible,  setVisible]  = useState(false)
   const [fixee,    setFixee]    = useState(false)
   const [progress, setProgress] = useState(0)
@@ -50,6 +51,7 @@ export function Bulle({ texte, children, position = 'top' }: Props) {
   const entrer = useCallback(() => {
     if (fixee) return
     setVisible(true)
+    if (!avecFixation) return
     setProgress(0)
     startRef.current = Date.now()
 
@@ -62,7 +64,7 @@ export function Bulle({ texte, children, position = 'top' }: Props) {
       setProgress(1)
       setFixee(true)
     }, DELAI_MS)
-  }, [fixee])
+  }, [fixee, avecFixation])
 
   const sortir = useCallback(() => {
     if (fixee) return
@@ -116,7 +118,7 @@ export function Bulle({ texte, children, position = 'top' }: Props) {
 
           {texte}
 
-          {!fixee ? (
+          {avecFixation && (!fixee ? (
             <svg width="16" height="16" viewBox="0 0 16 16" style={{ flexShrink: 0 }} aria-hidden="true">
               <circle cx="8" cy="8" r={R} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1.8" />
               <circle
@@ -144,7 +146,7 @@ export function Bulle({ texte, children, position = 'top' }: Props) {
             >
               ×
             </button>
-          )}
+          ))}
         </span>
       )}
     </span>

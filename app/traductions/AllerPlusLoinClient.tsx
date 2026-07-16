@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
+import { formaterSieclesHTML } from '@/app/oeuvre/[id]/texteEnrichi'
 import ProgressionClient from '../progression/ProgressionClient'
 import QuizBibliqueClient from '../quiz/QuizBibliqueClient'
 
@@ -252,14 +253,19 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
 
 function normaliserContenu(texte: string): string {
   if (!texte) return '';
-  if (/^\s*<(p|h[1-6]|div|ul|ol|blockquote)[\s>]/i.test(texte)) return texte;
-  const pStyle = 'color:#2a2520;font-size:13.5px;line-height:1.78;margin:0 0 12px;text-decoration:none';
-  return texte
-    .split(/\n+/)
-    .map(l => l.trim())
-    .filter(Boolean)
-    .map(l => `<p style="${pStyle}">${l}</p>`)
-    .join('');
+  let html: string;
+  if (/^\s*<(p|h[1-6]|div|ul|ol|blockquote)[\s>]/i.test(texte)) {
+    html = texte;
+  } else {
+    const pStyle = 'color:#2a2520;font-size:13.5px;line-height:1.78;margin:0 0 12px;text-decoration:none';
+    html = texte
+      .split(/\n+/)
+      .map(l => l.trim())
+      .filter(Boolean)
+      .map(l => `<p style="${pStyle}">${l}</p>`)
+      .join('');
+  }
+  return formaterSieclesHTML(html);
 }
 
 function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }) {
@@ -338,96 +344,75 @@ function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }
    Onglet « Acheter des livres »
    ════════════════════════════════════════════════════════════════════════ */
 
-function IconLivreNeuf() {
-  return (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3d6b4f" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-    </svg>
-  );
-}
-
-function IconLivreAncien() {
-  return (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#7a6448" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 5.5C10.3 4.4 7.8 4 5 4.3v14.5c2.8-.3 5.3.1 7 1.2" />
-      <path d="M12 5.5C13.7 4.4 16.2 4 19 4.3v14.5c-2.8-.3-5.3.1-7 1.2" />
-      <path d="M12 5.5v15.5" />
-      <path d="M5 7.3c1.8-.2 3.5 0 5 .7M5 11c1.8-.2 3.5 0 5 .7M14 8c1.5-.7 3.2-.9 5-.7M14 11.7c1.5-.7 3.2-.9 5-.7" strokeWidth="0.9" />
-    </svg>
-  );
-}
-
-function IconTetePere() {
-  return (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#5a5040" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <ellipse cx="12" cy="3.3" rx="6.2" ry="1.3" stroke="#b08a30" strokeWidth="1.1" />
-      <path d="M8 8.2c0-2.4 1.8-4 4-4s4 1.6 4 4v1.3c0 1-.2 1.8-.7 2.6l-.8 1.3c-.6 1-1.5 1.6-2.5 1.6s-1.9-.6-2.5-1.6l-.8-1.3c-.5-.8-.7-1.6-.7-2.6V8.2z" />
-      <path d="M8.6 12.5c-1 .5-1.8 1.3-2.1 2.4l-1 4.3c-.1.6.3 1.1.9 1.1h2" />
-      <path d="M15.4 12.5c1 .5 1.8 1.3 2.1 2.4l1 4.3c.1.6-.3 1.1-.9 1.1h-2" />
-      <path d="M9.6 17.5c.7 1.6 1.6 2.7 2.4 2.7s1.7-1.1 2.4-2.7" />
-    </svg>
-  );
-}
-
 type ThemeLibrairie = {
   fond: string
   bordure: string
   accent: string
   titre: string
   texte: string
-  iconeFond: string
+  logo: string
+  filigraneLogo?: string
+  logoStyle?: CSSProperties
+  filigraneStyle?: CSSProperties
   motif?: CSSProperties
 }
 
 const THEMES_LIBRAIRIE: Record<string, ThemeLibrairie> = {
   procure: {
-    fond: 'linear-gradient(135deg, rgba(248,251,253,0.98), rgba(230,239,247,0.98))',
-    bordure: 'rgba(22,63,125,0.26)',
-    accent: '#c59b35',
-    titre: '#173f7a',
-    texte: '#4d6272',
-    iconeFond: 'rgba(23,63,122,0.08)',
-    motif: { right: '-34px', top: '-42px', width: '140px', height: '105px', opacity: 0.16, borderRadius: '90px 90px 12px 12px', background: 'repeating-conic-gradient(from 216deg at 50% 100%, transparent 0deg, transparent 7deg, #c59b35 8deg, #c59b35 11deg)' },
+    fond: 'linear-gradient(135deg, rgba(248,251,253,0.99), rgba(229,238,246,0.98))',
+    bordure: 'rgba(22,63,125,0.24)',
+    accent: '#b89642',
+    titre: '#153f78',
+    texte: '#4a6072',
+    logo: '/icons/librairies/procure-eventail.png',
+    filigraneLogo: '/icons/librairies/procure-rayonnage.png',
+    logoStyle: { width: '76px', transform: 'translateY(2px)' },
+    filigraneStyle: { width: '300px', right: '-58px', top: '-54px', opacity: 0.095, mixBlendMode: 'multiply', filter: 'grayscale(1) contrast(1.12)' },
   },
   brunet: {
-    fond: 'linear-gradient(135deg, rgba(253,247,235,0.98), rgba(232,216,188,0.98))',
-    bordure: 'rgba(122,86,45,0.34)',
+    fond: 'linear-gradient(135deg, rgba(253,248,238,0.99), rgba(233,218,190,0.98))',
+    bordure: 'rgba(124,88,47,0.30)',
     accent: '#8a5a2b',
-    titre: '#5f3b1d',
-    texte: '#695747',
-    iconeFond: 'rgba(122,86,45,0.10)',
-    motif: { inset: 0, opacity: 0.16, background: 'repeating-linear-gradient(0deg, transparent 0, transparent 12px, rgba(122,86,45,0.16) 13px)' },
+    titre: '#5e3a1c',
+    texte: '#665445',
+    logo: '/icons/librairies/pierre-brunet-livre.png',
+    filigraneLogo: '/icons/librairies/pierre-brunet-portrait.png',
+    logoStyle: { width: '54px', transform: 'translateY(1px)' },
+    filigraneStyle: { width: '188px', right: '-34px', top: '-54px', opacity: 0.13, mixBlendMode: 'multiply', filter: 'grayscale(1) contrast(1.18)' },
+    motif: { inset: 0, opacity: 0.10, background: 'repeating-linear-gradient(0deg, transparent 0, transparent 13px, rgba(122,86,45,0.15) 14px)' },
   },
   sources: {
-    fond: 'linear-gradient(135deg, rgba(255,248,247,0.98), rgba(244,224,219,0.98))',
-    bordure: 'rgba(161,24,31,0.30)',
-    accent: '#a1181f',
-    titre: '#8d141b',
-    texte: '#684b4d',
-    iconeFond: 'rgba(161,24,31,0.08)',
-    motif: { right: '18px', top: '50%', transform: 'translateY(-50%)', color: '#a1181f', opacity: 0.08, fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '82px', lineHeight: 1 },
+    fond: 'linear-gradient(135deg, rgba(255,248,247,0.99), rgba(244,225,221,0.98))',
+    bordure: 'rgba(151,30,37,0.28)',
+    accent: '#9a1c25',
+    titre: '#8b1720',
+    texte: '#664a4c',
+    logo: '/icons/librairies/sources-chretiennes-chrisme.png',
+    filigraneLogo: '/icons/librairies/sources-chretiennes-pere.png',
+    logoStyle: { width: '66px', transform: 'translateY(1px)' },
+    filigraneStyle: { width: '136px', right: '-22px', bottom: '-46px', opacity: 0.09 },
   },
 }
 
-function CarteLibrairie({ icone, titre, description, url, theme }: { icone: ReactNode; titre: string; description: string; url: string; theme: ThemeLibrairie }) {
+function CarteLibrairie({ titre, description, url, theme }: { titre: string; description: string; url: string; theme: ThemeLibrairie }) {
   return (
     <a className="librairie-carte" href={url} target="_blank" rel="noopener noreferrer" style={{
       display: "flex", alignItems: "center", gap: "18px",
       background: theme.fond, border: `1px solid ${theme.bordure}`, borderRadius: "8px",
-      padding: "18px 20px", textDecoration: "none", transition: "box-shadow 0.15s, transform 0.15s",
-      position: 'relative', overflow: 'hidden', boxShadow: '0 10px 26px rgba(74,55,32,0.08)',
+      padding: "17px 20px", minHeight: '88px', textDecoration: "none", transition: "box-shadow 0.15s, transform 0.15s",
+      position: 'relative', overflow: 'hidden', boxShadow: '0 10px 26px rgba(74,55,32,0.075)',
     }}>
       {theme.motif && (
-        <span aria-hidden style={{ position: 'absolute', pointerEvents: 'none', zIndex: 0, ...theme.motif }}>
-          {titre === 'Sources Chr?tiennes' ? '\u2627' : ''}
-        </span>
+        <span aria-hidden style={{ position: 'absolute', pointerEvents: 'none', zIndex: 0, ...theme.motif }} />
       )}
+      <img className="librairie-filigrane" src={theme.filigraneLogo ?? theme.logo} alt="" aria-hidden="true" style={theme.filigraneStyle} />
       <span aria-hidden style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px', background: theme.accent, opacity: 0.86 }} />
       <div className="librairie-contenu" style={{ display: 'flex', alignItems: 'center', gap: '18px', flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
-        <div style={{ flexShrink: 0, width: "46px", height: "46px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", background: theme.iconeFond, color: theme.titre }}>{icone}</div>
+        <div className="librairie-logo-cadre">
+          <img className="librairie-logo" src={theme.logo} alt="" aria-hidden="true" style={theme.logoStyle} />
+        </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "15px", color: theme.titre, margin: "0 0 4px" }}>
+          <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "15.5px", color: theme.titre, margin: "0 0 4px" }}>
             {titre}
           </p>
           <p style={{ fontSize: "12px", color: theme.texte, lineHeight: 1.6, margin: 0 }}>{description}</p>
@@ -446,21 +431,18 @@ function OngletAcheter() {
   return (
     <div style={{ maxWidth: "680px", margin: "0 auto", padding: "24px 24px 80px", display: "flex", flexDirection: "column", gap: "14px" }}>
       <CarteLibrairie
-        icone={<IconLivreNeuf />}
         titre="La Procure"
         description="Éditions contemporaines, annotées ou liturgiques — livres neufs."
         url="https://www.laprocure.com/"
         theme={THEMES_LIBRAIRIE.procure}
       />
       <CarteLibrairie
-        icone={<IconLivreAncien />}
         titre="Librairie Pierre-Brunet"
         description="Éditions anciennes et épuisées — livres d'occasion et anciens."
         url="https://www.librairie-pierre-brunet.fr/librairie-en-ligne.html"
         theme={THEMES_LIBRAIRIE.brunet}
       />
       <CarteLibrairie
-        icone={<IconTetePere />}
         titre="Sources Chrétiennes"
         description="La grande collection bilingue des textes patristiques, en édition critique."
         url="https://sourceschretiennes.org/"
@@ -470,6 +452,33 @@ function OngletAcheter() {
         .librairie-carte:hover {
           transform: translateY(-1px);
           box-shadow: 0 14px 32px rgba(74,55,32,0.12), inset 0 1px 0 rgba(255,255,255,0.78) !important;
+        }
+        .librairie-logo-cadre {
+          position: relative;
+          flex-shrink: 0;
+          width: 74px;
+          height: 58px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: visible;
+        }
+        .librairie-logo {
+          display: block;
+          height: auto;
+          max-height: 82px;
+          object-fit: contain;
+          filter: drop-shadow(0 4px 8px rgba(24,20,16,0.13));
+          pointer-events: none;
+          user-select: none;
+        }
+        .librairie-filigrane {
+          position: absolute;
+          z-index: 0;
+          height: auto;
+          pointer-events: none;
+          user-select: none;
+          filter: grayscale(1) contrast(1.08);
         }
         .librairie-contenu {
           transition: opacity 0.18s ease, transform 0.18s ease;
