@@ -7,12 +7,15 @@ import Image from 'next/image'
 import { supabase } from '@/app/lib/supabase'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
+import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import { formaterDateHistorique, parserDateHistorique } from '@/app/lib/datesHistoriques'
+import { libelleTrad } from '@/app/oeuvre/[id]/PageTitre'
 
 type Oeuvre = {
   id_oeuvre: string; titre: string; sous_titre: string | null
   titre_original: string | null; trad_auteur: string | null
   editeur: string | null; ville: string | null; date_publication: string | null
-  genre: string | null
+  genre: string | null; note?: string | null
 }
 type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }
@@ -57,12 +60,26 @@ function stylePhotoAuteur(pos: AuteurPhotoPos): React.CSSProperties {
   return {
     objectFit: 'cover',
     objectPosition: `${pos.x}% ${pos.y}%`,
-    transform: `scale(${pos.scale}) scaleX(${pos.scaleX ?? 1}) scaleY(${pos.scaleY ?? 1})`,
+    transform: `scale(${pos.scale})`,
     transformOrigin: `${pos.x}% ${pos.y}%`,
   }
 }
 
 function sansAccents(s: string): string { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase() }
+
+function formaterDatesElegant(dates: string | null | undefined): string {
+  if (!dates) return ''
+  const periode = parserDateHistorique(dates)
+  if (!periode) return formaterDateHistorique(dates)
+  const b = (borne: { annee: number; precision?: string | null }) => {
+    const prefix = borne.precision === 'vers' ? 'v. ' : borne.precision === 'circa' ? 'c. ' : ''
+    return prefix + String(borne.annee)
+  }
+  if (periode.debut && periode.fin) return `${b(periode.debut)} – ${b(periode.fin)}`
+  if (periode.debut) return b(periode.debut)
+  if (periode.fin) return `† ${b(periode.fin)}`
+  return ''
+}
 
 function extraireAnnee(s: string | null | undefined): number | null {
   if (!s) return null
@@ -80,13 +97,18 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
   favorisOeuvres: Set<string>; toggleFavoriOeuvre: (id: string) => void
 }) {
   const q = sansAccents(recherche.trim())
-  const oeuvreCorrespondante = q ? auteur.oeuvres.find(o => sansAccents(o.titre).includes(q)) : null
+  const oeuvresTriees = useMemo(
+    () => [...auteur.oeuvres].sort((a, b) => a.titre.localeCompare(b.titre, 'fr')),
+    [auteur.oeuvres]
+  )
+  const oeuvreCorrespondante = q ? oeuvresTriees.find(o => sansAccents(o.titre).includes(q)) : null
   const [ouvert, setOuvert] = useState(false)
   const [imgErreur, setImgErreur] = useState(false)
   const listeOuverte = ouvert || !!oeuvreCorrespondante
   const nb = auteur.oeuvres.length
   const nbMot = enLettres(nb)
   const photoPos = parseAuteurPhotoPositions(auteur.photo_position).carte
+  const datesAuteur = formaterDatesElegant(auteur.dates)
 
   return (
     <div
@@ -95,7 +117,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
       onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}>
 
       <div style={{ display: 'flex' }}>
-        <div style={{ width: '120px', flexShrink: 0, background: '#ede9e2', position: 'relative', minHeight: '170px' }}>
+        <div style={{ width: '120px', flexShrink: 0, background: '#ede9e2', position: 'relative', minHeight: '170px', overflow: 'hidden' }}>
           {!imgErreur && (
             <Image src={auteur.imageUrl} alt={auteur.nom} fill sizes="240px" unoptimized
               onError={() => setImgErreur(true)}
@@ -111,21 +133,13 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
 
         <div style={{ flex: 1, padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
           <div>
-            <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '14.5px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 2px' }}>
+            <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '14.5px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 3px' }}>
               {auteur.nom}
             </h2>
-            {auteur.dates && (
-              <p style={{ fontSize: '11px', color: '#9a958d', margin: '0', letterSpacing: '0.02em' }}>{auteur.dates}</p>
+            {datesAuteur && (
+              <p style={{ fontSize: '11.5px', color: '#9a8a70', margin: 0, fontFamily: 'Georgia, serif', fontStyle: 'italic', letterSpacing: '0.01em' }}>{datesAuteur}</p>
             )}
           </div>
-
-          {auteur.traditions && auteur.traditions.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-              {auteur.traditions.map(t => (
-                <span key={t} style={{ fontSize: '9.5px', color: '#6b8270', background: 'rgba(61,107,79,0.07)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '3px', padding: '1px 6px' }}>{t}</span>
-              ))}
-            </div>
-          )}
 
           {(auteur.note_biographique || auteur.note) && (
             <p style={{ fontSize: '11.5px', color: '#5a5450', lineHeight: 1.6, margin: 0, fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>
@@ -150,25 +164,27 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
       </div>
 
       {listeOuverte && (
-        <div style={{ borderTop: '1px solid #ede9e2', padding: '10px 16px 14px' }}>
-          {auteur.oeuvres.map(o => {
+        <div style={{ borderTop: '1px solid #ede9e2', padding: '8px 0 12px' }}>
+          {oeuvresTriees.map((o, idx) => {
             const correspond = oeuvreCorrespondante?.id_oeuvre === o.id_oeuvre
             const estFavori = favorisOeuvres.has(o.id_oeuvre)
-            const metas = [o.editeur, o.ville, o.date_publication, o.trad_auteur ? `trad. ${o.trad_auteur}` : null].filter(Boolean)
+            const edition = [o.editeur, o.ville, formaterDateHistorique(o.date_publication)].filter(Boolean).join(', ')
+            const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
+            const meta = edition && trad ? `${edition} – ${trad}` : edition || trad
             return (
-              <div key={o.id_oeuvre} style={{ display: 'flex', alignItems: 'flex-start', gap: '4px', marginBottom: '1px' }}>
+              <div key={o.id_oeuvre} style={{ display: 'flex', alignItems: 'stretch', borderTop: idx > 0 ? '1px solid #f3efe9' : 'none' }}>
                 <Link href={`/oeuvre/${o.id_oeuvre}`}
-                  style={{ flex: 1, display: 'block', padding: '5px 8px', borderRadius: '4px', textDecoration: 'none', background: correspond ? 'rgba(61,107,79,0.10)' : 'transparent', border: correspond ? '1px solid rgba(61,107,79,0.25)' : '1px solid transparent' }}
-                  onMouseEnter={e => { if (!correspond) (e.currentTarget as HTMLElement).style.background = 'rgba(61,107,79,0.06)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = correspond ? 'rgba(61,107,79,0.10)' : 'transparent' }}>
-                  <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '12.5px', color: '#2a3d30', fontWeight: correspond ? 600 : 400 }}>{o.titre}</span>
-                  </span>
-                  {metas.length > 0 && (
-                    <span style={{ display: 'block', fontSize: '10.5px', color: '#9a958d', lineHeight: 1.3 }}>{metas.join(' · ')}</span>
+                  style={{ flex: 1, display: 'block', padding: '9px 16px 9px 20px', textDecoration: 'none', background: correspond ? 'rgba(61,107,79,0.07)' : 'transparent', borderLeft: correspond ? '3px solid #3d6b4f' : '3px solid transparent', transition: 'background 0.12s' }}
+                  onMouseEnter={e => { if (!correspond) (e.currentTarget as HTMLElement).style.background = 'rgba(61,107,79,0.04)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = correspond ? 'rgba(61,107,79,0.07)' : 'transparent' }}>
+                  <span style={{ display: 'block', fontSize: '13px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: correspond ? '#2a4d35' : '#2a3d30', fontWeight: correspond ? 600 : 400, lineHeight: 1.35 }}>{o.titre}</span>
+                  {meta && (
+                    <span style={{ display: 'block', fontSize: '10.5px', color: '#a59c90', marginTop: '2px', lineHeight: 1.4 }}>{meta}</span>
                   )}
                 </Link>
-                <EtoileFavori actif={estFavori} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} style={{ marginTop: '6px', paddingRight: '2px' }} />
+                <div style={{ display: 'flex', alignItems: 'center', paddingRight: '14px' }}>
+                  <EtoileFavori actif={estFavori} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} />
+                </div>
               </div>
             )
           })}
@@ -371,7 +387,7 @@ function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
                         <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#d6d0c4', flexShrink: 0 }} />
                         <span style={{ fontSize: '11.4px', color: '#5a5450', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titreDeclineCatalogue(n)}</span>
                         <span style={{ fontSize: '10.5px', color: '#b0a89e', flexShrink: 0 }}>
-                          {[n.traducteur ? `Trad. ${n.traducteur}` : null, n.annee_edition ?? n.siecle_edition].filter(Boolean).join(' · ')}
+                          {[n.traducteur ? `Trad. ${n.traducteur}` : null, formaterDateHistorique(n.annee_edition ?? n.siecle_edition)].filter(Boolean).join(' · ')}
                         </span>
                         {n.domaine_public && n.domaine_public.includes('oui') && (
                           <span style={{ fontSize: '9.5px', color: '#3d6b4f', fontWeight: 600, flexShrink: 0 }}>DP</span>
@@ -833,7 +849,7 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
         {oeuvresFavorites.map(({ oeuvre: o, auteur: a }) => {
-          const metas = [o.editeur, o.ville, o.date_publication, o.trad_auteur ? `Trad. ${o.trad_auteur}` : null].filter(Boolean)
+          const metas = [o.editeur, o.ville, formaterDateHistorique(o.date_publication), o.trad_auteur ? `Trad. ${o.trad_auteur}` : null].filter(Boolean)
           return (
             <div key={o.id_oeuvre} style={{ display: 'flex', alignItems: 'center', gap: '9px', background: '#fff', border: '1px solid #ede9e2', borderLeft: '3px solid #b88a45', borderRadius: '0 6px 6px 0', padding: '10px 14px' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -856,14 +872,17 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SELECT_AUTEURS = `id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, langue_principale, traditions, note, note_biographique, note_theologique, photo_position,
-  oeuvres ( id_oeuvre, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication, genre )`
+  oeuvres ( id_oeuvre, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication, genre, note )`
 const imageVersionAuteur = () => Math.floor(Date.now() / 1000)
 const urlImageAuteur = (idAuteur: string, version = imageVersionAuteur()) =>
   `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg?v=${version}`
 
 function normaliserAuteurs(data: any[]): Auteur[] {
   const version = imageVersionAuteur()
-  return data.filter(a => a.oeuvres?.length > 0).map(a => ({ ...a, imageUrl: urlImageAuteur(String(a.id_auteur), version) }))
+  return data
+    .map(a => ({ ...a, oeuvres: (a.oeuvres ?? []).filter(estOeuvrePubliee) }))
+    .filter(a => a.oeuvres?.length > 0)
+    .map(a => ({ ...a, imageUrl: urlImageAuteur(String(a.id_auteur), version) }))
 }
 
 export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteurs: Auteur[] }) {
