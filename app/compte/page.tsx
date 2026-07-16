@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import { calculerRang, couleurRang } from "@/app/lib/classement";
@@ -31,7 +31,7 @@ type Profil = {
   membre_depuis?: string | null;
 };
 
-type PhotoProfil = { id_auteur: string; nom: string; imageUrl: string };
+type PhotoProfil = { id_auteur: string; nom: string; imageUrl: string; posX?: number; posY?: number; zoom?: number };
 type CitationPreferee = { id: string; texte: string; type: "biblique" | "patristique"; ref?: string; auteur?: string; titre_oeuvre?: string };
 
 const inputStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: "13.5px", border: "1px solid #d6d0c4", borderRadius: "6px", background: "#f9f7f4", color: "#1e1a16", outline: "none", boxSizing: "border-box" };
@@ -167,7 +167,17 @@ function MonCompte({ user, router }: { user: { id: string; email: string; email_
   useEffect(() => {
     supabase.from("profils").select("id, pseudo, nom, prenom, traduction_defaut, bio, contact_email, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, onboarding_vu, membre_depuis")
       .eq("id", user.id).maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) {
+          // membre_depuis absent de la table : retenter sans ce champ
+          supabase.from("profils").select("id, pseudo, nom, prenom, traduction_defaut, bio, contact_email, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, onboarding_vu")
+            .eq("id", user.id).maybeSingle()
+            .then(({ data: d2 }) => {
+              if (d2 && !d2.onboarding_vu) { router.replace("/bienvenue"); return; }
+              setProfil(d2 ?? null); setChargement(false);
+            });
+          return;
+        }
         if (data && !data.onboarding_vu) { router.replace("/bienvenue"); return; }
         setProfil(data ?? null); setChargement(false);
       });
@@ -222,7 +232,6 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
 function SectionRang({ score }: { score: number }) {
   const { rang, rangSuivant, seuilSuivant, seuilPrecedent } = calculerRang(score);
   const couleurs = couleurRang(rang);
-  const [infoOuverte, setInfoOuverte] = useState(false);
   const [largeur, setLargeur] = useState(0);
 
   const pourcentage = rangSuivant
@@ -236,10 +245,7 @@ function SectionRang({ score }: { score: number }) {
 
   const RANGS = ["Catéchumène", "Disciple", "Docteur"];
 
-  const barreBackground =
-    rang === "Docteur"
-      ? "linear-gradient(90deg,#3d6b4f 0%,#5a9a6f 55%,#9a7a38 100%)"
-      : "linear-gradient(90deg,#3d6b4f,#4a8262)";
+  const barreBackground = "linear-gradient(90deg, #8ec98e 0% 33.33%, #3d7a3d 33.33% 66.66%, #1a3a1a 66.66% 100%)";
 
   const barreWidth =
     rang === "Catéchumène" ? `${largeur / 3}%`
@@ -255,10 +261,6 @@ function SectionRang({ score }: { score: number }) {
         <span style={{ fontSize: "12px", color: "#8a8278", fontFamily: "Georgia, serif" }}>
           {score} point{score !== 1 ? "s" : ""}
         </span>
-        <button onClick={() => setInfoOuverte(true)} title="Comment fonctionne le rang ?"
-          style={{ marginLeft: "auto", width: "19px", height: "19px", borderRadius: "50%", border: "1.5px solid #d6d0c4", background: "#fff", color: "#9a958d", fontSize: "10px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontStyle: "italic", fontFamily: "Georgia, serif" }}>
-          i
-        </button>
       </div>
 
       <div style={{ marginBottom: "4px" }}>
@@ -281,44 +283,6 @@ function SectionRang({ score }: { score: number }) {
         )}
       </div>
 
-      {infoOuverte && (
-        <div onClick={() => setInfoOuverte(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.32)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "10px", padding: "28px 28px 24px", maxWidth: "380px", width: "100%", boxShadow: "0 16px 48px rgba(0,0,0,0.18)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <h3 style={{ fontFamily: "Georgia, serif", fontSize: "16px", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>Système de rang</h3>
-              <button onClick={() => setInfoOuverte(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "16px", color: "#b0a89e", lineHeight: 1, padding: "2px" }}>✕</button>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
-              {[
-                { label: "+1 pt",   detail: "par commentaire publié" },
-                { label: "+4 pts",  detail: "par commentaire validé" },
-                { label: "+2 pts",  detail: "par « j’aime » reçu" },
-                { label: "+15 pts", detail: "par essai publié" },
-              ].map((r, i) => (
-                <div key={i} style={{ display: "flex", gap: "10px", alignItems: "baseline" }}>
-                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#3d6b4f", flexShrink: 0, minWidth: "54px" }}>{r.label}</span>
-                  <span style={{ fontSize: "12px", color: "#6b6560" }}>{r.detail}</span>
-                </div>
-              ))}
-            </div>
-            <div style={{ borderTop: "1px solid #ede9e2", paddingTop: "14px", display: "flex", flexDirection: "column", gap: "7px" }}>
-              {[
-                { rang: "Catéchumène", detail: "Rang de départ",      couleur: "#8a8278", fond: "#f0ece6" },
-                { rang: "Disciple",              detail: "À partir de 50 pts",  couleur: "#3d6b4f", fond: "rgba(61,107,79,0.10)" },
-                { rang: "Docteur",               detail: "À partir de 300 pts", couleur: "#9a4a1f", fond: "rgba(192,86,42,0.10)" },
-              ].map(r => (
-                <div key={r.rang} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ fontSize: "11px", fontWeight: 600, color: r.couleur, background: r.fond, padding: "2px 9px", borderRadius: "4px", flexShrink: 0 }}>{r.rang}</span>
-                  <span style={{ fontSize: "11.5px", color: "#9a958d" }}>{r.detail}</span>
-                </div>
-              ))}
-            </div>
-            <p style={{ fontSize: "11px", color: "#b0a89e", fontStyle: "italic", margin: "14px 0 0", lineHeight: 1.6 }}>
-              Les rangs s’inspirent des Docteurs de l’Église, dont le commentaire des Écritures demeure une référence.
-            </p>
-          </div>
-        </div>
-      )}
     </>
   );
 }
@@ -391,6 +355,74 @@ function SectionFavoris({ userId }: { userId: string }) {
   );
 }
 
+// ── Modale recadrage photo ────────────────────────────────────────────────────
+function ModaleRecadrage({ photo, onSauvegarder, onChanger, onClose }: {
+  photo: PhotoProfil;
+  onSauvegarder: (posX: number, posY: number, zoom: number) => void;
+  onChanger: () => void;
+  onClose: () => void;
+}) {
+  const [posX, setPosX] = React.useState(photo.posX ?? 50);
+  const [posY, setPosY] = React.useState(photo.posY ?? 20);
+  const [zoom, setZoom] = React.useState(photo.zoom ?? 1);
+  const [dragging, setDragging] = React.useState(false);
+  const lastPos = React.useRef<{ x: number; y: number } | null>(null);
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    setDragging(true);
+    lastPos.current = { x: e.clientX, y: e.clientY };
+  };
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!dragging || !lastPos.current) return;
+    const dx = (e.clientX - lastPos.current.x) / 2;
+    const dy = (e.clientY - lastPos.current.y) / 2;
+    lastPos.current = { x: e.clientX, y: e.clientY };
+    setPosX(v => Math.max(0, Math.min(100, v - dx)));
+    setPosY(v => Math.max(0, Math.min(100, v - dy)));
+  };
+  const onMouseUp = () => { setDragging(false); lastPos.current = null; };
+
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1300, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "12px", padding: "28px", width: "340px", maxWidth: "100%", boxShadow: "0 16px 48px rgba(0,0,0,0.22)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+          <h3 style={{ fontFamily: "Georgia, serif", fontSize: "16px", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>Recadrer la photo</h3>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "16px", color: "#b0a89e", padding: "2px" }}>x</button>
+        </div>
+        <div
+          style={{ width: "160px", height: "160px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 20px", border: "2px solid #c8d8cc", cursor: dragging ? "grabbing" : "grab", position: "relative" }}
+          onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={onMouseUp}
+          onMouseLeave={onMouseUp}
+        >
+          <Image
+            src={photo.imageUrl}
+            alt={photo.nom}
+            fill sizes="160px" unoptimized
+            style={{ objectFit: "cover", objectPosition: `${posX}% ${posY}%`, transform: `scale(${zoom})`, transformOrigin: "center center", userSelect: "none", pointerEvents: "none" }}
+          />
+        </div>
+        <p style={{ fontSize: "10px", color: "#a89e8e", textAlign: "center", margin: "0 0 16px", fontStyle: "italic" }}>Faites glisser pour repositionner</p>
+        <div style={{ marginBottom: "20px" }}>
+          <label style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.08em", color: "#6a7b6e", display: "block", marginBottom: "6px" }}>ZOOM</label>
+          <input type="range" min="1" max="2.5" step="0.05" value={zoom} onChange={e => setZoom(Number(e.target.value))}
+            style={{ width: "100%", accentColor: "#3d6b4f" }} />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <button onClick={() => onSauvegarder(posX, posY, zoom)}
+            style={{ padding: "8px 16px", borderRadius: "6px", border: "none", background: "#3d6b4f", color: "#fff", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
+            Appliquer
+          </button>
+          <button onClick={onChanger}
+            style={{ padding: "7px 16px", borderRadius: "6px", border: "1px solid #d6d0c4", background: "#fff", color: "#6a7b6e", fontSize: "12px", cursor: "pointer" }}>
+            Changer de photo
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 // ── Modal photo Père de l'Église ─────────────────────────────────────────────
 type AuteurPhoto = { id_auteur: string; nom: string }
 
@@ -477,12 +509,11 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
   // Photo de profil
   const [photoProfil, setPhotoProfil] = useState<PhotoProfil | null>(null);
   const [modalePhotoOuverte, setModalePhotoOuverte] = useState(false);
-
-  // Citation favorite
-  const [citationPreferee, setCitationPreferee] = useState<CitationPreferee | null>(null);
+  const [modaleRecadrageOuverte, setModaleRecadrageOuverte] = useState(false);
 
   // Checklist data
   const [checklistDB, setChecklistDB] = useState<{ essai: boolean; passage: boolean; nbCommentaires: number; favoriOeuvre: boolean } | null>(null);
+  const [checklistDefinitivementFaite, setChecklistDefinitivementFaite] = useState(false);
 
   // Suppression
   const [modaleSuppressionOuverte, setModaleSuppressionOuverte] = useState(false);
@@ -515,11 +546,9 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
       if (saved) setPhotoProfil(JSON.parse(saved));
     } catch {}
 
-    // Citation favorite (localStorage)
-    try {
-      const saved = localStorage.getItem("cs_citation_preferee");
-      if (saved) setCitationPreferee(JSON.parse(saved));
-    } catch {}
+    // Checklist permanente
+    if (localStorage.getItem("cs_checklist_complete") === "1") setChecklistDefinitivementFaite(true);
+
   }, [user.id]);
 
   // Mettre à jour nbCommentaires depuis classement quand les deux sont chargés
@@ -533,6 +562,15 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
     setPhotoProfil(photo);
     localStorage.setItem("cs_photo_profil", JSON.stringify(photo));
     setModalePhotoOuverte(false);
+    setModaleRecadrageOuverte(false);
+  };
+
+  const sauvegarderRecadrage = (posX: number, posY: number, zoom: number) => {
+    if (!photoProfil) return;
+    const updated = { ...photoProfil, posX, posY, zoom };
+    setPhotoProfil(updated);
+    localStorage.setItem("cs_photo_profil", JSON.stringify(updated));
+    setModaleRecadrageOuverte(false);
   };
 
   const retirerPhoto = () => {
@@ -611,13 +649,22 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
   const checkFavoriOeuvre = checklistDB?.favoriOeuvre ?? false;
 
   const etapesChecklist = [
-    { fait: checkBio,           label: "Compléter ma présentation",          lien: null },
-    { fait: checkEssai,         label: "Publier un premier essai",                    lien: "/essais/nouveau" },
-    { fait: checkPassage,       label: "Enregistrer un passage",                       lien: "/bible" },
-    { fait: checkCommentaires,  label: "Publier trois commentaires",                   lien: null },
-    { fait: checkFavoriOeuvre,  label: "Mettre une œuvre en favori",             lien: "/bibliotheque" },
+    { fait: checkBio,           label: "Compléter ma présentation",   pts: "+2 pts",  lien: null },
+    { fait: checkEssai,         label: "Publier un premier essai",    pts: "+15 pts", lien: "/essais/nouveau" },
+    { fait: checkPassage,       label: "Enregistrer un passage",      pts: "+1 pt",   lien: "/bible" },
+    { fait: checkCommentaires,  label: "Publier trois commentaires",  pts: "+3 pts",  lien: null },
+    { fait: checkFavoriOeuvre,  label: "Mettre une œuvre en favori", pts: "+1 pt",   lien: "/bibliotheque" },
   ];
   const checklistComplete = etapesChecklist.every(e => e.fait);
+
+  // Sauvegarder dans localStorage quand toutes les etapes sont faites
+  useEffect(() => {
+    if (checklistComplete && checklistDB !== null) {
+      localStorage.setItem("cs_checklist_complete", "1");
+      setChecklistDefinitivementFaite(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checklistComplete]);
 
   const anneeInscription = profilInit.membre_depuis ? new Date(profilInit.membre_depuis).getFullYear() : null;
 
@@ -638,22 +685,33 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
           {/* Photo ou avatar */}
           <div style={{ position: "relative", display: "inline-block", marginBottom: "16px" }}>
             {photoProfil ? (
-              <div style={{ width: "88px", height: "110px", borderRadius: "6px", overflow: "hidden", position: "relative", border: "1px solid #e4dfd8", margin: "0 auto" }}>
-                <Image src={photoProfil.imageUrl} alt={photoProfil.nom} fill sizes="88px" unoptimized style={{ objectFit: "cover", objectPosition: "top" }} />
+              <div style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", position: "relative", border: "2px solid #c8d8cc", margin: "0 auto" }}>
+                <Image
+                  src={photoProfil.imageUrl}
+                  alt={photoProfil.nom}
+                  fill sizes="80px" unoptimized
+                  style={{
+                    objectFit: "cover",
+                    objectPosition: `${photoProfil.posX ?? 50}% ${photoProfil.posY ?? 20}%`,
+                    transform: `scale(${photoProfil.zoom ?? 1})`,
+                    transformOrigin: "center center",
+                  }}
+                />
               </div>
             ) : (
-              <div style={{ width: "72px", height: "72px", borderRadius: "50%", background: "linear-gradient(135deg,#3d6b4f,#2a3d30)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", border: "2px solid #c8d8cc" }}>
+              <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "linear-gradient(135deg,#3d6b4f,#2a3d30)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", border: "2px solid #c8d8cc" }}>
                 <span style={{ fontFamily: "Georgia, serif", fontSize: "28px", color: "#e8f0eb", fontWeight: "normal" }}>
                   {profilInit.pseudo.charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
-            <button onClick={() => setModalePhotoOuverte(true)} title="Choisir une illustration"
-              style={{ position: "absolute", bottom: "-6px", right: "-6px", width: "22px", height: "22px", borderRadius: "50%", border: "1.5px solid #d6d0c4", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#6a7b6e" }}>
+            <button
+              onClick={() => photoProfil ? setModaleRecadrageOuverte(true) : setModalePhotoOuverte(true)}
+              title={photoProfil ? "Recadrer la photo" : "Choisir une illustration"}
+              style={{ position: "absolute", bottom: "-4px", right: "-4px", width: "22px", height: "22px", borderRadius: "50%", border: "1.5px solid #d6d0c4", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#6a7b6e" }}>
               ✎
             </button>
           </div>
-
           {photoProfil && (
             <p style={{ fontSize: "9px", color: "#a89e8e", fontStyle: "italic", margin: "-8px 0 12px", letterSpacing: "0.04em" }}>
               {photoProfil.nom}
@@ -691,39 +749,28 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
           )}
 
           {/* Citation favorite */}
-          {citationPreferee && (
-            <div style={{ marginTop: "20px", paddingTop: "18px", borderTop: "1px solid #ede9e2" }}>
-              <p style={{ fontSize: "8px", fontWeight: 700, letterSpacing: "0.20em", textTransform: "uppercase", color: "#9a7a38", margin: "0 0 10px" }}>
-                Citation préférée
-              </p>
-              <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", fontStyle: "italic", color: "#2a2218", lineHeight: 1.7, margin: "0 0 6px" }}>
-                &laquo;&#8201;{citationPreferee.texte.length > 180 ? citationPreferee.texte.slice(0, 180) + "…" : citationPreferee.texte}&#8201;&raquo;
-              </p>
-              <p style={{ fontSize: "10px", color: "#a89e8e", margin: 0, letterSpacing: "0.06em", fontFamily: "Georgia, serif" }}>
-                {citationPreferee.type === "biblique"
-                  ? citationPreferee.ref
-                  : [citationPreferee.auteur, citationPreferee.titre_oeuvre].filter(Boolean).join(", ")}
-              </p>
-            </div>
-          )}
+          
 
           {/* Checklist intégrée */}
-          {!checklistComplete && checklistDB !== null && (
+          {!checklistDefinitivementFaite && checklistDB !== null && (
             <div style={{ marginTop: "20px", paddingTop: "18px", borderTop: "1px solid #ede9e2", textAlign: "left" }}>
               <p style={{ fontSize: "8.5px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#3d6b4f", margin: "0 0 12px" }}>
                 Pour commencer
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {etapesChecklist.map(({ fait, label, lien }) => (
+                {etapesChecklist.map(({ fait, label, pts, lien }) => (
                   <div key={label} className="cs-check-item">
                     <span className="cs-check-circle" style={{ background: fait ? "#edf5f0" : "#f5f3ef", border: `1.5px solid ${fait ? "#7aaa8e" : "#d6d0c4"}`, color: fait ? "#3d6b4f" : "transparent" }}>
                       {fait ? "✓" : ""}
                     </span>
-                    {lien && !fait ? (
-                      <a href={lien} style={{ fontSize: "12.5px", color: "#3d6b4f", textDecoration: "none" }}>{label}</a>
-                    ) : (
-                      <span style={{ fontSize: "12.5px", color: fait ? "#b0a89e" : "#3a3530", textDecoration: fait ? "line-through" : "none" }}>{label}</span>
-                    )}
+                    <span style={{ flex: 1 }}>
+                      {lien && !fait ? (
+                        <a href={lien} style={{ fontSize: "12.5px", color: "#3d6b4f", textDecoration: "none" }}>{label}</a>
+                      ) : (
+                        <span style={{ fontSize: "12.5px", color: fait ? "#b0a89e" : "#3a3530", textDecoration: fait ? "line-through" : "none" }}>{label}</span>
+                      )}
+                    </span>
+                    <span style={{ fontSize: "9.5px", color: "#a89e8e", flexShrink: 0 }}>{pts}</span>
                   </div>
                 ))}
               </div>
@@ -853,6 +900,9 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
       </div>
 
       {/* Modale photo */}
+            {modaleRecadrageOuverte && photoProfil && (
+        <ModaleRecadrage photo={photoProfil} onSauvegarder={sauvegarderRecadrage} onChanger={() => { setModaleRecadrageOuverte(false); setModalePhotoOuverte(true); }} onClose={() => setModaleRecadrageOuverte(false)} />
+      )}
       {modalePhotoOuverte && (
         <ModalePhoto onChoisir={choisirPhoto} onClose={() => setModalePhotoOuverte(false)} />
       )}
