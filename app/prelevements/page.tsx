@@ -178,8 +178,8 @@ function BoutonSuppr({ ids, onSuppr }: { ids: string[]; onSuppr: () => void }) {
 
 function BoutonEtoile({ active, onClick }: { active: boolean; onClick: (e: React.MouseEvent) => void }) {
   return (
-    <button onClick={onClick} className="prel-action prel-star" title={active ? "Retirer comme citation préférée" : "Marquer comme citation préférée"}
-      style={{ color: active ? "#9a7a38" : undefined, opacity: active ? 1 : undefined }}>
+    <button onClick={onClick} className={`prel-action prel-star${active ? " prel-star-active" : ""}`}
+      title={active ? "Retirer comme citation préférée" : "Marquer comme citation préférée"}>
       {active ? "★" : "☆"}
     </button>
   );
@@ -192,7 +192,7 @@ function GroupeRepliable({ label, count, ouvert, onToggle, children }: {
   return (
     <div style={{ borderTop: "1px solid #ddd5c8" }}>
       <button onClick={onToggle}
-        style={{ display: "flex", alignItems: "center", gap: "10px", background: "none", border: "none", cursor: "pointer", padding: "14px 0 12px", width: "100%", textAlign: "left" }}>
+        style={{ display: "flex", alignItems: "center", gap: "10px", background: "none", border: "none", cursor: "pointer", padding: "13px 0 11px", width: "100%", textAlign: "left" }}>
         <span style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#3d6b4f", fontFamily: "Georgia, serif" }}>
           {label}
         </span>
@@ -200,7 +200,7 @@ function GroupeRepliable({ label, count, ouvert, onToggle, children }: {
         <span style={{ fontSize: "8px", color: "#c0b8b0", marginLeft: "auto", transition: "transform 0.18s", display: "inline-block", transform: ouvert ? "rotate(180deg)" : "none" }}>▼</span>
       </button>
       {ouvert && (
-        <div style={{ paddingBottom: "6px" }}>
+        <div style={{ paddingBottom: "4px" }}>
           {children}
         </div>
       )}
@@ -220,6 +220,13 @@ export default function PrelevementsPage() {
   const [traductionActive, setTraductionActive] = useState("TR0001");
   const [textesTraduits, setTextesTraduits] = useState<Record<string, string>>({});
   const [citationPreferee, setCitationPreferee] = useState<CitationPreferee | null>(null);
+
+  // Résoudre un code de traduction (TR0003) ou un nom brut en nom lisible
+  const nomTraduction = (val?: string | null): string | null => {
+    if (!val) return null;
+    if (/^TR\d+$/.test(val)) return traductions.find(t => t.code === val)?.label ?? val;
+    return val;
+  };
 
   useEffect(() => {
     try {
@@ -303,7 +310,6 @@ export default function PrelevementsPage() {
   const supprimerIds = async (ids: string[]) => {
     await supabase.from("prelevements").delete().in("id", ids);
     setPrelevements(prev => prev.filter(p => !ids.includes(p.id)));
-    // Si la citation préférée est supprimée, la retirer
     if (citationPreferee && ids.includes(citationPreferee.id)) {
       localStorage.removeItem("cs_citation_preferee");
       setCitationPreferee(null);
@@ -346,30 +352,47 @@ export default function PrelevementsPage() {
   return (
     <main style={{ background: "#f0ebe0", minHeight: "calc(100vh - 48px)" }}>
       <style>{`
-        .prel-item { display: flex; align-items: flex-start; gap: 0; padding: 11px 0; border-bottom: 1px solid #e8e1d8; position: relative; }
+        .prel-item {
+          display: flex; align-items: flex-start; gap: 0;
+          padding: 9px 10px 9px 12px;
+          border-bottom: 1px solid #e8e1d8;
+          position: relative;
+          border-left: 2px solid transparent;
+          transition: background 0.12s;
+        }
         .prel-item:last-child { border-bottom: none; }
+        .prel-item:hover { background: rgba(61,107,79,0.03); }
+
+        /* Citation préférée — mise en évidence dorée */
+        .prel-pref {
+          background: rgba(154,122,56,0.06) !important;
+          border-left: 2px solid #9a7a38 !important;
+        }
+        .prel-pref .prel-actions { opacity: 1 !important; }
+
         .prel-actions { display: flex; gap: 1px; align-items: center; flex-shrink: 0; margin-left: 10px; opacity: 0; transition: opacity 0.15s; }
         .prel-item:hover .prel-actions { opacity: 1; }
         .prel-action { background: none; border: none; cursor: pointer; font-size: 13px; color: #b0a89e; padding: 2px 5px; line-height: 1; transition: color 0.12s; font-family: inherit; }
         .prel-action:hover { color: #3d6b4f; }
         .prel-star { font-size: 14px; }
+        .prel-star-active { color: #9a7a38 !important; opacity: 1 !important; }
         .prel-confirm { font-size: 10.5px; color: #9a8a72; display: flex; align-items: center; white-space: nowrap; }
         .prel-trad-sel {
           appearance: none; -webkit-appearance: none;
-          font-family: Georgia, serif; font-size: 12.5px; font-style: italic;
+          font-family: Georgia, serif; font-size: 13px; font-style: italic;
           color: #3d6b4f; background: transparent; border: none;
-          border-bottom: 1px solid #b8a898; padding: 2px 20px 2px 0;
-          cursor: pointer; outline: none;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239a8a72'/%3E%3C/svg%3E");
+          border-bottom: 1px solid #b8a898; padding: 3px 24px 3px 0;
+          cursor: pointer; outline: none; text-align: center;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239a7a38'/%3E%3C/svg%3E");
           background-repeat: no-repeat; background-position: right 2px center; background-size: 8px;
         }
-        .prel-trad-sel:focus { border-bottom-color: #3d6b4f; }
+        .prel-trad-sel:focus { border-bottom-color: #9a7a38; }
       `}</style>
 
       <div style={{ maxWidth: "680px", margin: "0 auto", padding: "52px 24px 96px" }}>
 
         {/* ── En-tête ── */}
-        <div style={{ textAlign: "center", marginBottom: "40px" }}>
+        <div style={{ textAlign: "center", marginBottom: "36px" }}>
           <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "#9a8a72", margin: "0 0 14px" }}>
             Corpus Scriptura
           </p>
@@ -386,32 +409,8 @@ export default function PrelevementsPage() {
           </p>
         </div>
 
-        {/* ── Citation préférée — exergue ── */}
-        {citationPreferee && (
-          <div style={{ textAlign: "center", margin: "0 0 48px", padding: "28px 32px 24px", borderTop: "1px solid #c8b8a4", borderBottom: "1px solid #c8b8a4", position: "relative" }}>
-            <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "#9a7a38", margin: "0 0 16px" }}>
-              Citation préférée
-            </p>
-            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "15px", fontStyle: "italic", color: "#1e1a14", lineHeight: 1.75, margin: "0 0 12px" }}>
-              «&#8201;{citationPreferee.texte.length > 220 ? citationPreferee.texte.slice(0, 220) + "…" : citationPreferee.texte}&#8201;»
-            </p>
-            {(citationPreferee.ref || citationPreferee.auteur) && (
-              <p style={{ fontSize: "10px", color: "#9a8a72", margin: 0, letterSpacing: "0.08em", fontFamily: "Georgia, serif" }}>
-                {citationPreferee.type === "biblique"
-                  ? citationPreferee.ref
-                  : [citationPreferee.auteur, citationPreferee.titre_oeuvre].filter(Boolean).join(", ")}
-              </p>
-            )}
-            <button onClick={() => { localStorage.removeItem("cs_citation_preferee"); setCitationPreferee(null); }}
-              title="Effacer"
-              style={{ position: "absolute", top: "10px", right: "12px", background: "none", border: "none", cursor: "pointer", fontSize: "11px", color: "#c8b8a4", lineHeight: 1, padding: "2px 4px" }}>
-              ✕
-            </button>
-          </div>
-        )}
-
         {/* ── Onglets ── */}
-        <div style={{ display: "flex", justifyContent: "center", borderBottom: "1px solid #ddd5c8", marginBottom: "28px" }}>
+        <div style={{ display: "flex", justifyContent: "center", borderBottom: "1px solid #ddd5c8", marginBottom: "24px" }}>
           {(["biblique", "patristique"] as TypePrelevement[]).map(t => (
             <button key={t} onClick={() => setOnglet(t)}
               style={{
@@ -431,34 +430,33 @@ export default function PrelevementsPage() {
           ))}
         </div>
 
-        {/* ── Barre de contrôles ── */}
-        {listeActive.length > 0 && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
-
-            {/* Sélecteur de traduction — centré, élégant */}
-            {onglet === "biblique" && traductions.length > 0 ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "10.5px", color: "#9a8a72", fontFamily: "Georgia, serif", fontStyle: "italic" }}>
-                  Traduction
-                </span>
-                <select value={traductionActive} onChange={e => setTraductionActive(e.target.value)}
-                  className="prel-trad-sel">
-                  {traductions.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
-                </select>
-              </div>
-            ) : <span />}
-
-            {/* Déployer / rétracter */}
-            <div style={{ display: "flex", gap: "16px" }}>
-              <button onClick={toutDeployer}
-                style={{ fontSize: "10.5px", color: "#9a8a72", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Georgia, serif", fontStyle: "italic" }}>
-                Tout déployer
-              </button>
-              <button onClick={toutRetracter}
-                style={{ fontSize: "10.5px", color: "#9a8a72", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Georgia, serif", fontStyle: "italic" }}>
-                Tout rétracter
-              </button>
+        {/* ── Sélecteur de traduction (biblique) — centré ── */}
+        {onglet === "biblique" && traductions.length > 0 && listeActive.length > 0 && (
+          <div style={{ textAlign: "center", marginBottom: "20px" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", padding: "7px 18px", background: "#fff", border: "1px solid #ddd5c8", borderRadius: "20px" }}>
+              <span style={{ fontSize: "10px", color: "#9a8a72", fontFamily: "Georgia, serif", fontStyle: "italic", letterSpacing: "0.04em" }}>
+                Traduction affichée
+              </span>
+              <span style={{ width: "1px", height: "12px", background: "#ddd5c8" }} />
+              <select value={traductionActive} onChange={e => setTraductionActive(e.target.value)}
+                className="prel-trad-sel">
+                {traductions.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
+              </select>
             </div>
+          </div>
+        )}
+
+        {/* ── Déployer / rétracter ── */}
+        {listeActive.length > 0 && (
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "16px", marginBottom: "12px" }}>
+            <button onClick={toutDeployer}
+              style={{ fontSize: "10.5px", color: "#9a8a72", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Georgia, serif", fontStyle: "italic" }}>
+              Tout déployer
+            </button>
+            <button onClick={toutRetracter}
+              style={{ fontSize: "10.5px", color: "#9a8a72", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Georgia, serif", fontStyle: "italic" }}>
+              Tout rétracter
+            </button>
           </div>
         )}
 
@@ -484,20 +482,26 @@ export default function PrelevementsPage() {
                       const texte = texteGroupe(g);
                       const ref = refBiblique(g);
                       const estPref = citationPreferee?.id === g.ids[0];
+                      const nomTrad = nomTraduction(g.traduction);
                       return (
-                        <div key={i} className="prel-item">
+                        <div key={i} className={`prel-item${estPref ? " prel-pref" : ""}`}>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "13.5px", fontStyle: "italic", color: "#1e1a14", lineHeight: 1.7, margin: "0 0 4px" }}>
+                            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "13px", fontStyle: "italic", color: "#1e1a14", lineHeight: 1.5, margin: "0 0 3px", wordSpacing: "-0.02em" }}>
                               «&#8201;{texte}&#8201;»
                             </p>
-                            <p style={{ fontSize: "9.5px", color: "#9a8a72", margin: 0, letterSpacing: "0.10em", fontFamily: "Georgia, serif" }}>
-                              {ref}
-                              {g.traduction && <span style={{ marginLeft: "6px", opacity: 0.7 }}>· {g.traduction}</span>}
+                            <p style={{ fontSize: "9px", color: "#9a8a72", margin: 0, letterSpacing: "0.06em", fontFamily: "Georgia, serif", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                              <span style={{ fontWeight: 600, color: estPref ? "#9a7a38" : "#6a7b6e" }}>{ref}</span>
+                              {nomTrad && (
+                                <>
+                                  <span style={{ opacity: 0.4 }}>·</span>
+                                  <span style={{ fontStyle: "italic" }}>enregistré depuis la {nomTrad}</span>
+                                </>
+                              )}
                             </p>
                           </div>
                           <div className="prel-actions">
                             <BoutonEtoile active={estPref} onClick={e => { e.stopPropagation(); marquerPreferee({ id: g.ids[0], texte, type: "biblique", ref }); }} />
-                            <BoutonCopie texte={`« ${texte.replace(/[.!?]$/, '')} » (${ref})`} />
+                            <BoutonCopie texte={`« ${texte.replace(/[.!?]$/, '')} » (${ref})`} />
                             <BoutonSuppr ids={g.ids} onSuppr={() => supprimerIds(g.ids)} />
                           </div>
                         </div>
@@ -540,14 +544,16 @@ export default function PrelevementsPage() {
                     {items.map(p => {
                       const estPref = citationPreferee?.id === p.id;
                       return (
-                        <div key={p.id} className="prel-item">
+                        <div key={p.id} className={`prel-item${estPref ? " prel-pref" : ""}`}>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "13.5px", fontStyle: "italic", color: "#1e1a14", lineHeight: 1.7, margin: "0 0 4px" }}>
+                            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "13px", fontStyle: "italic", color: "#1e1a14", lineHeight: 1.5, margin: "0 0 3px", wordSpacing: "-0.02em" }}>
                               «&#8201;{p.texte}&#8201;»
                             </p>
                             {(p.ref_niv1 || p.ref_niv2) && (
-                              <p style={{ fontSize: "9.5px", color: "#9a8a72", margin: 0, letterSpacing: "0.08em", fontFamily: "Georgia, serif" }}>
-                                {[p.ref_niv1, p.ref_niv2].filter(Boolean).join(", ")}
+                              <p style={{ fontSize: "9px", color: "#9a8a72", margin: 0, letterSpacing: "0.06em", fontFamily: "Georgia, serif" }}>
+                                <span style={{ fontWeight: 600, color: estPref ? "#9a7a38" : "#6a7b6e" }}>
+                                  {[p.ref_niv1, p.ref_niv2].filter(Boolean).join(", ")}
+                                </span>
                               </p>
                             )}
                           </div>
