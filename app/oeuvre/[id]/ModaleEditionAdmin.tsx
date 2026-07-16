@@ -30,6 +30,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
   const [valeur, setValeur] = useState(cible.type === 'segment' ? cible.seg.texte : cible.texteActuel)
   const [etape, setEtape] = useState<'edition' | 'confirmation' | 'confirmation-suppression'>('edition')
   const [statut, setStatut] = useState<'idle' | 'envoi' | 'erreur'>('idle')
+  const [erreurMsg, setErreurMsg] = useState<string | null>(null)
   const taRef = useRef<HTMLTextAreaElement>(null)
 
   const entourer = (avant: string, apres: string = avant) => {
@@ -40,15 +41,6 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
     const nouveau = valeur.slice(0, d) + avant + selection + apres + valeur.slice(f)
     setValeur(nouveau)
     setTimeout(() => { ta.focus(); ta.setSelectionRange(d + avant.length, d + avant.length + selection.length) }, 0)
-  }
-
-  const inserer = (texte: string) => {
-    const ta = taRef.current
-    if (!ta) return
-    const d = ta.selectionStart, f = ta.selectionEnd
-    const nouveau = valeur.slice(0, d) + texte + valeur.slice(f)
-    setValeur(nouveau)
-    setTimeout(() => { ta.focus(); ta.setSelectionRange(d + texte.length, d + texte.length) }, 0)
   }
 
   const inserrerLien = () => {
@@ -69,7 +61,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
         schemaTexte: cible.schemaTexte, groupe: cible.groupe,
       })
     }
-    if (!resultat.ok) { setStatut('erreur'); setEtape('edition'); return }
+    if (!resultat.ok) { setStatut('erreur'); setErreurMsg(resultat.error ?? null); setEtape('edition'); return }
     if (cible.type === 'titre_oeuvre') onTitreOeuvreModifie?.(cible.champ, valeur)
     else onEnregistre()
     onClose()
@@ -78,7 +70,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
   const viderChampOeuvre = async (champ: string) => {
     setStatut('envoi')
     const resultat = await appelerAPI('/api/admin/update-oeuvre', { id_oeuvre: idOeuvre, champ, valeur: null })
-    if (!resultat.ok) { setStatut('erreur'); setEtape('edition'); return }
+    if (!resultat.ok) { setStatut('erreur'); setErreurMsg(resultat.error ?? null); setEtape('edition'); return }
     onTitreOeuvreModifie?.(champ, '')
     onClose()
   }
@@ -94,7 +86,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
       : await appelerAPI('/api/admin/segment-titre', {
           id_oeuvre: idOeuvre, niveau: cible.niveau, action: 'supprimer', groupe: cible.groupe,
         })
-    if (!resultat.ok) { setStatut('erreur'); setEtape('edition'); return }
+    if (!resultat.ok) { setStatut('erreur'); setErreurMsg(resultat.error ?? null); setEtape('edition'); return }
     onEnregistre(); onClose()
   }
 
@@ -105,13 +97,13 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
     if (cible.type !== 'segment') return
     setStatut('envoi')
     const resultat = await appelerAPI('/api/admin/segment-supprimer', { id: cible.seg.id })
-    if (!resultat.ok) { setStatut('erreur'); setEtape('edition'); return }
+    if (!resultat.ok) { setStatut('erreur'); setErreurMsg(resultat.error ?? null); setEtape('edition'); return }
     onEnregistre(); onClose()
   }
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '8px', padding: '20px 22px', width: '520px', maxWidth: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '8px', padding: '20px 24px', width: '680px', maxWidth: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <p style={{ fontSize: '12px', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>
             {cible.type === 'segment' ? 'Modifier le segment' : cible.type === 'titre_oeuvre' ? (CHAMP_LABEL[cible.champ] ?? "Modifier le titre de l'œuvre") : `Modifier le titre de niveau ${cible.niveau}`}
@@ -126,16 +118,8 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             <button onClick={() => entourer('^^')} title="Exposant" style={BTN_MODAL}>x²</button>
             <button onClick={inserrerLien} title="Insérer un lien" style={BTN_MODAL}>Lien</button>
             <span style={{ width: '1px', background: '#e4dfd8' }} />
-            <button onClick={() => inserer('\u00A0')} title="Espace insécable" style={{ ...BTN_MODAL, fontSize: '10px' }}>Esp. insécable</button>
-            <button onClick={() => inserer('\u202F')} title="Espace fine insécable" style={{ ...BTN_MODAL, fontSize: '10px' }}>Esp. fine</button>
-            <button onClick={() => entourer('«\u202F', '\u202F»')} title="Guillemets français" style={BTN_MODAL}>« »</button>
-            <button onClick={() => entourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)" style={BTN_MODAL}>“ ”</button>
-            {cible.type !== 'segment' && (
-              <>
-                <span style={{ width: '1px', background: '#e4dfd8' }} />
-                <button onClick={() => inserer('\n')} title="Insérer un saut de ligne dans le titre" style={{ ...BTN_MODAL, fontSize: '10px' }}>↵ Saut de ligne</button>
-              </>
-            )}
+            <button onClick={() => entourer('« ', ' »')} title="Guillemets français" style={BTN_MODAL}>« »</button>
+            <button onClick={() => entourer('“', '”')} title="Guillemets anglais (citation imbriquée)" style={BTN_MODAL}>" "</button>
           </div>
           <textarea ref={taRef} value={valeur} onChange={e => setValeur(e.target.value)}
             rows={cible.type === 'segment' ? 8 : cible.type === 'titre_oeuvre' && cible.champ === 'titre' ? 3 : 2} autoFocus
@@ -163,7 +147,11 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
               </button>
             </div>
           </div>
-          {statut === 'erreur' && <p style={{ fontSize: '10px', color: '#c0562a', marginTop: '8px' }}>Erreur d'enregistrement — rien n'a été modifié.</p>}
+          {statut === 'erreur' && (
+            <p style={{ fontSize: '10px', color: '#c0562a', marginTop: '8px' }}>
+              Erreur d&rsquo;enregistrement{erreurMsg ? ` — ${erreurMsg}` : ' — rien n’a été modifié.'}
+            </p>
+          )}
         </> : etape === 'confirmation' ? <>
           <p style={{ fontSize: '11px', color: '#6b6560', marginBottom: '10px' }}>Confirmer cette modification ?</p>
           <div style={{ background: '#faf8f4', border: '1px solid #ede9e2', borderRadius: '5px', padding: '8px 10px', fontSize: '11.5px', color: '#2a2520', marginBottom: '12px', maxHeight: '160px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>

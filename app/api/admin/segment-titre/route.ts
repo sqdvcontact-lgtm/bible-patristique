@@ -31,6 +31,6 @@ export async function POST(request: Request) {
   if (niveau >= 4) q = q.eq('ref_niv4', groupe.niv4)
 
   const { error } = await q
-  if (error) return NextResponse.json({ error: "Erreur lors de l'enregistrement." }, { status: 500 })
+  if (error) return NextResponse.json({ error: error.message ?? "Erreur lors de l'enregistrement." }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
