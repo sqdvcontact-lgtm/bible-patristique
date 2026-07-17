@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
         lien_2:           l.lien_2            || null,
         lien_3:           l.lien_3            || null,
         lien_4:           l.lien_4            || null,
-        fiabilite:        l.fiabilite         || null,
+        fiabilite:        ['probable', 'Lien à constituer'].includes(String(l.fiabilite ?? '')) ? String(l.fiabilite) : null,
         nature:           l.nature            || 'texte',
       }
     })

@@ -22,13 +22,6 @@ type ProfilPublic = {
 
 type PhotoProfil = { id_auteur: string; nom: string; imageUrl: string; posX?: number; posY?: number; zoom?: number }
 
-function toRomain(n: number): string {
-  const table: [number, string][] = [[10,'x'],[9,'ix'],[5,'v'],[4,'iv'],[1,'i']]
-  let r = ''
-  for (const [v, s] of table) { while (n >= v) { r += s; n -= v } }
-  return r
-}
-
 // ── Filet ornemental ─────────────────────────────────────────────────────────
 function Filet({ couleur = '#c8b89e', symbole = '✦', maxWidth = '200px' }: { couleur?: string; symbole?: string; maxWidth?: string }) {
   return (
@@ -124,7 +117,7 @@ export default function ProfilPublicPage() {
         }
         .profil-livre-link {
           display: flex; align-items: baseline; gap: 0;
-          padding: 8px 0; text-decoration: none;
+          padding: 5px 0; text-decoration: none;
           border-bottom: 1px solid #ede8df;
           transition: background 0.1s;
         }
@@ -132,7 +125,7 @@ export default function ProfilPublicPage() {
         .profil-livre-link:hover { background: #f4f1ea; }
         .profil-essai-link {
           display: flex; align-items: baseline; gap: 10px;
-          padding: 8px 0; text-decoration: none;
+          padding: 5px 0; text-decoration: none;
           border-bottom: 1px solid #ede8df;
           transition: opacity 0.1s;
         }
@@ -143,16 +136,16 @@ export default function ProfilPublicPage() {
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
 
         {/* ── EN-TÊTE CENTRÉ ────────────────────────────────────────────────── */}
-        <div style={{ textAlign: 'center', marginBottom: '10px', background: '#faf8f2', border: '1px solid #d8cdb0', borderRadius: '10px', padding: '44px 36px 36px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '10px', background: '#faf8f2', border: '1px solid #d8cdb0', borderRadius: '10px', padding: '28px 28px 22px' }}>
 
           {/* Photo ou monogramme */}
-          <div style={{ marginBottom: '20px' }}>
+          <div style={{ marginBottom: '12px' }}>
             {photoProfil ? (
-              <div style={{ width: '88px', height: '88px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto', border: '2px solid #c8b89e', position: 'relative' }}>
+              <div title={photoProfil.nom} style={{ width: '72px', height: '72px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto', border: '2px solid #c8b89e', position: 'relative', cursor: 'default' }}>
                 <Image
                   src={photoProfil.imageUrl}
                   alt={photoProfil.nom}
-                  fill sizes="88px" unoptimized
+                  fill sizes="72px" unoptimized
                   style={{
                     objectFit: 'cover',
                     objectPosition: `${photoProfil.posX ?? 50}% ${photoProfil.posY ?? 20}%`,
@@ -162,32 +155,27 @@ export default function ProfilPublicPage() {
                 />
               </div>
             ) : (
-              <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'linear-gradient(145deg, #3a5030, #2a3d22)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '2px solid #b8c8b0', boxShadow: '0 2px 12px rgba(40,60,30,0.14)' }}>
-                <span style={{ fontFamily: 'Georgia, serif', fontSize: '26px', color: '#e0ead8', fontWeight: 'normal', lineHeight: 1 }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(145deg, #3a5030, #2a3d22)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '2px solid #b8c8b0', boxShadow: '0 2px 12px rgba(40,60,30,0.14)' }}>
+                <span style={{ fontFamily: 'Georgia, serif', fontSize: '22px', color: '#e0ead8', fontWeight: 'normal', lineHeight: 1 }}>
                   {profil.pseudo.charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
-            {photoProfil && (
-              <p style={{ fontSize: '8.5px', color: '#a89e8e', fontStyle: 'italic', margin: '8px 0 0', letterSpacing: '0.04em' }}>
-                {photoProfil.nom}
-              </p>
-            )}
           </div>
 
           {/* Pseudo */}
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '28px', fontWeight: 'normal', color: '#1a2818', margin: '0 0 6px', letterSpacing: '0.01em' }}>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '24px', fontWeight: 'normal', color: '#1a2818', margin: '0 0 4px', letterSpacing: '0.01em' }}>
             {profil.pseudo}
           </h1>
 
           {profil.nom_reel && (
-            <p style={{ fontFamily: 'Georgia, serif', fontSize: '13px', color: '#6a6050', margin: '0 0 8px', fontStyle: 'italic' }}>
+            <p style={{ fontFamily: 'Georgia, serif', fontSize: '12px', color: '#6a6050', margin: '0 0 6px', fontStyle: 'italic' }}>
               {profil.nom_reel}
             </p>
           )}
 
           {/* Date + email */}
-          <p style={{ fontSize: '10.5px', color: '#9a8e82', margin: '0 0 16px', letterSpacing: '0.06em' }}>
+          <p style={{ fontSize: '10px', color: '#9a8e82', margin: '0 0 12px', letterSpacing: '0.05em' }}>
             Lecteur depuis {annee}
             {profil.contact_email && (
               <>
@@ -200,18 +188,18 @@ export default function ProfilPublicPage() {
           </p>
 
           {/* Filet */}
-          <div style={{ marginBottom: rang || profil.bio ? '20px' : '0' }}>
+          <div style={{ marginBottom: rang || profil.bio ? '14px' : '0' }}>
             <Filet couleur='#c8b89e' symbole='❧' maxWidth='120px' />
           </div>
 
           {/* Rang */}
           {rang && couleurs && (
-            <div style={{ marginBottom: profil.bio ? '20px' : '0' }}>
-              <span style={{ display: 'inline-block', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.06em', color: couleurs.texte, background: couleurs.fond, padding: '4px 14px', borderRadius: '4px' }}>
+            <div style={{ marginBottom: profil.bio ? '14px' : '0' }}>
+              <span style={{ fontFamily: 'Georgia, serif', fontSize: '11px', fontStyle: 'italic', color: couleurs.texte }}>
                 {rang.rang}
               </span>
-              <span style={{ fontSize: '10px', color: '#9a8e82', marginLeft: '10px', fontFamily: 'Georgia, serif' }}>
-                {profil.classement!.score} point{profil.classement!.score !== 1 ? 's' : ''}
+              <span style={{ fontSize: '10px', color: '#b0a898', marginLeft: '8px', fontFamily: 'Georgia, serif' }}>
+                · {profil.classement!.score} pt{profil.classement!.score !== 1 ? 's' : ''}
               </span>
             </div>
           )}
@@ -241,12 +229,9 @@ export default function ProfilPublicPage() {
 
         {/* ── CITATION PRÉFÉRÉE ─────────────────────────────────────────────── */}
         {citationPreferee && (
-          <div style={{ textAlign: 'center', margin: '0 0 10px', background: 'rgba(154,122,56,0.06)', border: '1px solid rgba(154,122,56,0.28)', borderRadius: '8px', padding: '28px 36px 24px', position: 'relative' }}>
-            <p style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', color: '#9a7a38', margin: '0 0 4px', fontFamily: 'Georgia, serif' }}>
-              ★
-            </p>
-            <Filet couleur='#c8a858' symbole='·' maxWidth='80px' />
-            <p style={{ fontFamily: 'Georgia, serif', fontSize: '14.5px', fontStyle: 'italic', color: '#2a2010', lineHeight: 1.72, margin: '14px 0 12px' }}>
+          <div style={{ textAlign: 'center', margin: '0 0 10px', background: 'rgba(154,122,56,0.06)', border: '1px solid rgba(154,122,56,0.28)', borderRadius: '8px', padding: '16px 28px 14px', position: 'relative' }}>
+            <Filet couleur='#c8a858' symbole='★' maxWidth='80px' />
+            <p style={{ fontFamily: 'Georgia, serif', fontSize: '14px', fontStyle: 'italic', color: '#2a2010', lineHeight: 1.45, margin: '10px 0 8px' }}>
               «&#8201;{citationPreferee.texte.length > 220 ? citationPreferee.texte.slice(0, 220) + '…' : citationPreferee.texte}&#8201;»
             </p>
             {(citationPreferee.ref || citationPreferee.auteur) && (
@@ -262,13 +247,10 @@ export default function ProfilPublicPage() {
         {/* ── BIBLIOTHÈQUE ──────────────────────────────────────────────────── */}
         {aBibliotheque && (
           <div className="profil-section">
-            <Etiquette>Bibliothèque · {profil.bibliotheque!.length} {profil.bibliotheque!.length > 1 ? 'œuvres' : 'œuvre'}</Etiquette>
+            <Etiquette>Bibliothèque</Etiquette>
             <div>
-              {profil.bibliotheque!.map((o, i) => (
+              {profil.bibliotheque!.map((o) => (
                 <Link key={o.id} href={`/oeuvre/${o.id}`} className="profil-livre-link">
-                  <span style={{ fontFamily: 'Georgia, serif', fontSize: '10px', color: '#c0b0a0', minWidth: '20px', flexShrink: 0, userSelect: 'none' }}>
-                    {toRomain(i + 1)}.
-                  </span>
                   <span style={{ fontFamily: 'Georgia, serif', fontSize: '13.5px', color: '#1a2818', flex: 1, lineHeight: 1.4 }}>
                     {o.titre}
                   </span>

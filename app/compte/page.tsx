@@ -245,7 +245,7 @@ function SectionRang({ score }: { score: number }) {
 
   const RANGS = ["Catéchumène", "Disciple", "Docteur"];
 
-  const barreBackground = "linear-gradient(90deg, #8ec98e 0% 33.33%, #3d7a3d 33.33% 66.66%, #1a3a1a 66.66% 100%)";
+  const barreColor = rang === 'Catéchumène' ? '#8ec98e' : rang === 'Disciple' ? '#3d7a3d' : '#9a4a1f';
 
   const barreWidth =
     rang === "Catéchumène" ? `${largeur / 3}%`
@@ -272,7 +272,7 @@ function SectionRang({ score }: { score: number }) {
           ))}
         </div>
         <div style={{ position: "relative", height: "5px", background: "#ece8df", borderRadius: "999px", overflow: "hidden" }}>
-          <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: barreWidth, background: barreBackground, borderRadius: "999px", transition: "width 1s cubic-bezier(0.4,0,0.2,1)" }} />
+          <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: barreWidth, background: barreColor, borderRadius: "999px", transition: "width 1s cubic-bezier(0.4,0,0.2,1), background 0.4s ease" }} />
           <div style={{ position: "absolute", left: "33.3%", top: 0, bottom: 0, width: "2px", background: "#f3efe3", zIndex: 1 }} />
           <div style={{ position: "absolute", left: "66.6%", top: 0, bottom: 0, width: "2px", background: "#f3efe3", zIndex: 1 }} />
         </div>
@@ -367,20 +367,27 @@ function ModaleRecadrage({ photo, onSauvegarder, onChanger, onClose }: {
   const [zoom, setZoom] = React.useState(photo.zoom ?? 1);
   const [dragging, setDragging] = React.useState(false);
   const lastPos = React.useRef<{ x: number; y: number } | null>(null);
+  const zoomRef = React.useRef(zoom);
+  React.useEffect(() => { zoomRef.current = zoom; }, [zoom]);
 
-  const onMouseDown = (e: React.MouseEvent) => {
+  const onPointerDown = (e: React.PointerEvent) => {
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     setDragging(true);
     lastPos.current = { x: e.clientX, y: e.clientY };
   };
-  const onMouseMove = (e: React.MouseEvent) => {
+  const onPointerMove = (e: React.PointerEvent) => {
     if (!dragging || !lastPos.current) return;
-    const dx = (e.clientX - lastPos.current.x) / 2;
-    const dy = (e.clientY - lastPos.current.y) / 2;
+    const rawDx = e.clientX - lastPos.current.x;
+    const rawDy = e.clientY - lastPos.current.y;
     lastPos.current = { x: e.clientX, y: e.clientY };
-    setPosX(v => Math.max(0, Math.min(100, v - dx)));
-    setPosY(v => Math.max(0, Math.min(100, v - dy)));
+    const sens = Math.max(0.6, (zoomRef.current - 1) * 2.5);
+    setPosX(v => Math.max(0, Math.min(100, v - rawDx / sens)));
+    setPosY(v => Math.max(0, Math.min(100, v - rawDy / sens)));
   };
-  const onMouseUp = () => { setDragging(false); lastPos.current = null; };
+  const onPointerUp = (e: React.PointerEvent) => {
+    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    setDragging(false); lastPos.current = null;
+  };
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1300, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
@@ -391,10 +398,10 @@ function ModaleRecadrage({ photo, onSauvegarder, onChanger, onClose }: {
         </div>
         <div
           style={{ width: "160px", height: "160px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 20px", border: "2px solid #c8d8cc", cursor: dragging ? "grabbing" : "grab", position: "relative" }}
-          onMouseDown={onMouseDown}
-          onMouseMove={onMouseMove}
-          onMouseUp={onMouseUp}
-          onMouseLeave={onMouseUp}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
         >
           <Image
             src={photo.imageUrl}
@@ -406,7 +413,7 @@ function ModaleRecadrage({ photo, onSauvegarder, onChanger, onClose }: {
         <p style={{ fontSize: "10px", color: "#a89e8e", textAlign: "center", margin: "0 0 16px", fontStyle: "italic" }}>Faites glisser pour repositionner</p>
         <div style={{ marginBottom: "20px" }}>
           <label style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.08em", color: "#6a7b6e", display: "block", marginBottom: "6px" }}>ZOOM</label>
-          <input type="range" min="1" max="2.5" step="0.05" value={zoom} onChange={e => setZoom(Number(e.target.value))}
+          <input type="range" min="1" max="1.8" step="0.05" value={zoom} onChange={e => setZoom(Number(e.target.value))}
             style={{ width: "100%", accentColor: "#3d6b4f" }} />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>

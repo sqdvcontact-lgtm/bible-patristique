@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
+import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 
 type Proposition = {
   id: number; user_id: string; auteur_nom: string; titre: string
@@ -138,7 +139,7 @@ export default function SectionPropositions() {
                       <span style={{ fontSize: '12px', color: '#8a8278' }}>{p.auteur_nom}</span>
                     </div>
                     <div style={{ fontSize: '11px', color: '#b0a89e', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <span>{[p.traducteur ? `trad. ${p.traducteur}` : null, p.editeur, p.date_publication].filter(Boolean).join(' · ')}</span>
+                      <span>{[p.traducteur ? `trad. ${p.traducteur}` : null, p.editeur, formaterDateHistorique(p.date_publication)].filter(Boolean).join(' · ')}</span>
                       <span>{new Date(p.created_at).toLocaleDateString('fr-FR')}</span>
                       {p.nb_30j != null && p.nb_30j > 1 && (
                         <span style={{ fontSize: '10px', fontWeight: 600, padding: '1px 6px', borderRadius: '8px', background: p.nb_30j >= 3 ? '#fdf2ee' : '#fef5e8', color: p.nb_30j >= 3 ? '#c0562a' : '#9a5a2a' }}>
@@ -159,7 +160,7 @@ export default function SectionPropositions() {
                 {estOuverte && (
                   <div style={{ borderTop: '1px solid #ede9e2', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '10px' }}>
-                      {([['Auteur', p.auteur_nom], ['Titre', p.titre], ['Traducteur', p.traducteur], ['Éditeur', p.editeur], ['Collection', p.collection], ['Ville', p.ville], ['Publication', p.date_publication], ['Siècle', p.siecle], ['Langue', p.langue]] as [string, string | null][])
+                      {([['Auteur', p.auteur_nom], ['Titre', p.titre], ['Traducteur', p.traducteur], ['Éditeur', p.editeur], ['Collection', p.collection], ['Ville', p.ville], ['Publication', formaterDateHistorique(p.date_publication)], ['Siècle', formaterDateHistorique(p.siecle)], ['Langue', p.langue]] as [string, string | null][])
                         .filter(([, v]) => v)
                         .map(([k, v]) => (
                           <div key={k}>

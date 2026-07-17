@@ -1,5 +1,6 @@
 import type { Props, ChampOeuvre } from './oeuvreTypes'
 import { rendreTexteEnrichi } from './texteEnrichi'
+import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 
 const TITRES_RE = /^(M\.|Mme\.?|Mlle\.?|Dr\.?|Pr\.?|Dom |Père |Frère |Sœur |Abbé |Saint |Sainte |Rev\.? ?|Mgr\.?|R\.\s*P\.|l['']abbé|le père)/i
 
@@ -93,7 +94,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier 
       </p>
       {(oeuvre.editeur || oeuvre.ville || oeuvre.date_publication) && (
         <p style={{ fontSize: '11px', color: '#c0b8b0' }}>
-          D&rsquo;après l&rsquo;édition de {[oeuvre.editeur, oeuvre.ville, oeuvre.date_publication].filter(Boolean).join(', ')}
+          D&rsquo;après l&rsquo;édition de {[oeuvre.editeur, oeuvre.ville, formaterDateHistorique(oeuvre.date_publication)].filter(Boolean).join(', ')}
         </p>
       )}
     </div>

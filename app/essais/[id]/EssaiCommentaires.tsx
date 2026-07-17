@@ -135,29 +135,29 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
     const rangCouleur = rang ? couleurRang(rang) : null
 
     return (
-      <article className="commentaire-carte" style={{ padding: '12px 0', borderBottom: '1px solid #ede9e2', viewTransitionName: `commentaire-essai-${c.id}` }}>
+      <article className="commentaire-carte" style={{ padding: '9px 0', borderBottom: '1px solid #ede9e2', viewTransitionName: `commentaire-essai-${c.id}` }}>
         {c.supprime ? (
-          <p style={{ fontSize: '12.5px', color: '#9a958d', fontStyle: 'italic', margin: 0, background: '#f3f0ea', padding: '8px 10px', borderRadius: '4px' }}>
+          <p style={{ fontSize: '11.5px', color: '#9a958d', fontStyle: 'italic', margin: 0, background: '#f3f0ea', padding: '6px 9px', borderRadius: '4px' }}>
             {c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
           </p>
         ) : cache ? (
           <CommentaireRetracte c={c} />
         ) : (
-          <div className="commentaire-carte" style={{ ...styleCarte, padding: '10px 12px', borderRadius: '6px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px', gap: '10px' }}>
-              <p style={{ fontSize: '11.5px', fontWeight: 600, color: '#2a3d30', margin: 0 }}>
+          <div className="commentaire-carte" style={{ ...styleCarte, padding: '8px 10px', borderRadius: '5px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px', gap: '8px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 600, color: '#2a3d30', margin: 0 }}>
                 {c.auteur_nom ?? 'Anonyme'}
-                {rang && rangCouleur && <span style={{ marginLeft: '7px', fontSize: '9px', color: rangCouleur.texte, background: rangCouleur.fond, borderRadius: '3px', padding: '1px 6px' }}>{rang}</span>}
-                {!c.valide && <span style={{ marginLeft: '8px', fontSize: '8px', fontWeight: 700, color: '#b03a2a', background: 'rgba(176,58,42,0.10)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>En révision</span>}
+                {rang && rangCouleur && <span style={{ marginLeft: '6px', fontSize: '8.5px', color: rangCouleur.texte, background: rangCouleur.fond, borderRadius: '3px', padding: '1px 5px' }}>{rang}</span>}
+                {!c.valide && <span style={{ marginLeft: '6px', fontSize: '7.5px', fontWeight: 700, color: '#b03a2a', background: 'rgba(176,58,42,0.10)', padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>En révision</span>}
               </p>
-              <span style={{ fontSize: '10px', color: '#b0a89e', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateHeureCommentaire(c.created_at)}</span>
+              <span style={{ fontSize: '9px', color: '#b0a89e', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateHeureCommentaire(c.created_at)}</span>
             </div>
             {c.passage_cite && (
-              <blockquote style={{ fontSize: '12px', color: '#756d64', fontStyle: 'italic', borderLeft: '2px solid #d6d0c4', paddingLeft: '10px', margin: '0 0 7px' }}>
+              <blockquote style={{ fontSize: '11.5px', color: '#756d64', fontStyle: 'italic', borderLeft: '2px solid #d6d0c4', paddingLeft: '8px', margin: '0 0 5px' }}>
                 « {c.passage_cite} »
               </blockquote>
             )}
-            <div style={{ fontSize: '12.5px', color: c.valide ? '#3a3020' : '#6f3d35', lineHeight: 1.55 }}>{rendreTexteEnrichi(c.texte)}</div>
+            <div style={{ fontSize: '12px', color: c.valide ? '#3a3020' : '#6f3d35', lineHeight: 1.5 }}>{rendreTexteEnrichi(c.texte)}</div>
             <LigneActions c={c} />
           </div>
         )}
@@ -168,27 +168,27 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
             const rangCouleurR = rangR ? couleurRang(rangR) : null
             const cacheReponse = !r.supprime && !r.valide && !revelees.has(r.id)
             return (
-          <div className="commentaire-carte" key={r.id} style={{ marginLeft: '20px', marginTop: '10px', paddingLeft: '12px', borderLeft: '2px solid #ede9e2', viewTransitionName: `commentaire-essai-${r.id}` }}>
+          <div className="commentaire-carte" key={r.id} style={{ marginLeft: '14px', marginTop: '7px', paddingLeft: '10px', borderLeft: '2px solid #ede9e2', viewTransitionName: `commentaire-essai-${r.id}` }}>
             {r.supprime ? (
-              <p style={{ fontSize: '11.5px', color: '#9a958d', fontStyle: 'italic', margin: 0, background: '#f3f0ea', padding: '6px 9px', borderRadius: '4px' }}>
+              <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', margin: 0, background: '#f3f0ea', padding: '5px 8px', borderRadius: '4px' }}>
                 {r.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
               </p>
             ) : cacheReponse ? (
               <CommentaireRetracte c={r} petit />
             ) : (
-              <div className="commentaire-carte" style={{ padding: '9px 11px', borderRadius: '5px', background: r.valide ? '#fff' : 'rgba(176,58,42,0.07)', border: `1px solid ${r.valide ? '#e4dfd8' : 'rgba(176,58,42,0.26)'}`, borderLeft: `3px solid ${r.valide ? '#d6d0c4' : '#b03a2a'}` }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '5px', gap: '8px' }}>
-                  <p style={{ fontSize: '11px', fontWeight: 600, color: '#2a3d30', margin: 0 }}>
+              <div className="commentaire-carte" style={{ padding: '7px 9px', borderRadius: '4px', background: r.valide ? '#fff' : 'rgba(176,58,42,0.07)', border: `1px solid ${r.valide ? '#e4dfd8' : 'rgba(176,58,42,0.26)'}`, borderLeft: `3px solid ${r.valide ? '#d6d0c4' : '#b03a2a'}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '3px', gap: '6px' }}>
+                  <p style={{ fontSize: '10.5px', fontWeight: 600, color: '#2a3d30', margin: 0 }}>
                     {r.auteur_nom ?? 'Anonyme'}
-                    {rangR && rangCouleurR && <span style={{ marginLeft: '6px', fontSize: '8.5px', color: rangCouleurR.texte, background: rangCouleurR.fond, borderRadius: '3px', padding: '1px 5px' }}>{rangR}</span>}
-                    {!r.valide && <span style={{ marginLeft: '7px', fontSize: '7.5px', fontWeight: 700, color: '#b03a2a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>En révision</span>}
+                    {rangR && rangCouleurR && <span style={{ marginLeft: '5px', fontSize: '8px', color: rangCouleurR.texte, background: rangCouleurR.fond, borderRadius: '3px', padding: '1px 4px' }}>{rangR}</span>}
+                    {!r.valide && <span style={{ marginLeft: '5px', fontSize: '7px', fontWeight: 700, color: '#b03a2a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>En révision</span>}
                   </p>
-                  <span style={{ fontSize: '9.5px', color: '#b0a89e', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateHeureCommentaire(r.created_at)}</span>
+                  <span style={{ fontSize: '9px', color: '#b0a89e', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateHeureCommentaire(r.created_at)}</span>
                 </div>
                 {r.passage_cite && (
-                  <blockquote style={{ fontSize: '11.5px', color: '#756d64', fontStyle: 'italic', borderLeft: '2px solid #d6d0c4', paddingLeft: '8px', margin: '0 0 5px' }}>« {r.passage_cite} »</blockquote>
+                  <blockquote style={{ fontSize: '11px', color: '#756d64', fontStyle: 'italic', borderLeft: '2px solid #d6d0c4', paddingLeft: '7px', margin: '0 0 4px' }}>« {r.passage_cite} »</blockquote>
                 )}
-                <div style={{ fontSize: '12px', color: r.valide ? '#3a3020' : '#6f3d35', lineHeight: 1.55 }}>{rendreTexteEnrichi(r.texte)}</div>
+                <div style={{ fontSize: '11.5px', color: r.valide ? '#3a3020' : '#6f3d35', lineHeight: 1.48 }}>{rendreTexteEnrichi(r.texte)}</div>
                 <LigneActions c={r} petit />
               </div>
             )}
@@ -201,7 +201,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   }
 
   return (
-    <section style={{ marginTop: '48px', paddingTop: '24px', borderTop: '1px solid #d6d0c4' }}>
+    <div>
       <style>{`
         .commentaire-carte {
           transition: opacity 180ms ease, box-shadow 180ms ease, margin 180ms ease;
@@ -241,16 +241,14 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
           transform: translateX(0);
         }
       `}</style>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '16px' }}>
-        <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
-          {racines.length > 0
-            ? <>{racines.length} <span style={{ fontStyle: 'italic' }}>commentaire{racines.length > 1 ? 's' : ''}</span></>
-            : <span style={{ fontStyle: 'italic' }}>Commentaires</span>}
-        </h2>
-        <div style={{ display: 'flex', gap: '6px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <span style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic' }}>
+          {racines.length > 0 ? `${racines.length} commentaire${racines.length > 1 ? 's' : ''}` : 'Aucun commentaire'}
+        </span>
+        <div style={{ display: 'flex', gap: '4px' }}>
           {(['pertinents', 'recents'] as const).map(t => (
             <button key={t} onClick={() => changerTri(t)}
-              style={{ fontSize: '10.5px', padding: '3px 10px', borderRadius: '10px', border: `1px solid ${tri === t ? '#3d6b4f' : '#d6d0c4'}`, background: tri === t ? 'rgba(61,107,79,0.10)' : '#fff', color: tri === t ? '#3d6b4f' : '#8a8278', cursor: 'pointer' }}>
+              style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '10px', border: `1px solid ${tri === t ? '#3d6b4f' : '#d6d0c4'}`, background: tri === t ? 'rgba(61,107,79,0.10)' : 'transparent', color: tri === t ? '#3d6b4f' : '#9a958d', cursor: 'pointer' }}>
               {t === 'pertinents' ? 'Pertinents' : 'Récents'}
             </button>
           ))}
@@ -258,30 +256,29 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
       </div>
 
       {userId ? (
-        <div style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '7px' }}>
+        <div style={{ marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid #ede9e2', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {cibleReponse && (
-            <p style={{ fontSize: '11px', color: '#6b6560', background: '#faf8f4', padding: '5px 9px', borderRadius: '4px', margin: 0 }}>
-              En réponse à {cibleReponse.auteur_nom} - <button onClick={() => setCibleReponse(null)} style={{ color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', fontSize: '11px' }}>annuler</button>
+            <p style={{ fontSize: '10.5px', color: '#6b6560', background: '#faf8f4', padding: '4px 8px', borderRadius: '4px', margin: 0 }}>
+              ↳ En réponse à <strong>{cibleReponse.auteur_nom}</strong>{' '}
+              <button onClick={() => setCibleReponse(null)} style={{ color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', fontSize: '10.5px', padding: 0 }}>✕</button>
             </p>
           )}
-          <EditeurCommentaire value={texte} onChange={setTexte} placeholder="Votre commentaire…" minHeight={76} />
+          <EditeurCommentaire value={texte} onChange={setTexte} placeholder="Votre commentaire…" minHeight={64} />
           {!afficherPassage ? (
-            <button onClick={() => setAfficherPassage(true)} style={{ fontSize: '10.5px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', alignSelf: 'flex-start', padding: 0 }}>+ Citer un passage précis de l'essai</button>
+            <button onClick={() => setAfficherPassage(true)} style={{ fontSize: '10px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', alignSelf: 'flex-start', padding: 0 }}>+ Citer un passage</button>
           ) : (
-            <textarea value={passageCite} onChange={e => setPassageCite(e.target.value)} rows={2} placeholder="Collez ici le passage exact que vous commentez…"
-              style={{ width: '100%', fontSize: '12px', fontStyle: 'italic', padding: '7px 9px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#5a5450', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
+            <textarea value={passageCite} onChange={e => setPassageCite(e.target.value)} rows={2} placeholder="Passage exact à commenter…"
+              style={{ width: '100%', fontSize: '11.5px', fontStyle: 'italic', padding: '6px 8px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#faf8f4', color: '#5a5450', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
           )}
-          <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '11.5px', padding: '6px 16px', borderRadius: '5px', border: 'none', background: texte.trim() ? '#3d6b4f' : '#e4dfd8', color: texte.trim() ? '#fff' : '#9a958d', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
+          <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '11px', padding: '5px 14px', borderRadius: '4px', border: 'none', background: texte.trim() ? '#3d6b4f' : '#e4dfd8', color: texte.trim() ? '#fff' : '#9a958d', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
             {envoi ? 'Envoi…' : 'Publier'}
           </button>
         </div>
       ) : (
-        <p style={{ fontSize: '12px', color: '#9a958d', marginBottom: '20px' }}>Connectez-vous pour commenter.</p>
+        <p style={{ fontSize: '11.5px', color: '#9a958d', fontStyle: 'italic', marginBottom: '14px' }}>Connectez-vous pour commenter.</p>
       )}
 
-      {racinesTriees.length === 0 ? (
-        <p style={{ fontSize: '12.5px', color: '#9a958d', fontStyle: 'italic' }}>Aucun commentaire pour l'instant.</p>
-      ) : racinesTriees.map(c => <Carte key={c.id} c={c} />)}
-    </section>
+      {racinesTriees.map(c => <Carte key={c.id} c={c} />)}
+    </div>
   )
 }

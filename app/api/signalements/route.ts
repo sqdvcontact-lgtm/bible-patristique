@@ -36,7 +36,10 @@ export async function POST(request: Request) {
     const token = auth?.replace('Bearer ', '').trim()
     let userId: string | null = null
 
-    const supabaseAdmin = createClient(supabaseUrl, serviceKey ?? anonKey!)
+    if (!serviceKey) {
+      return NextResponse.json({ error: 'Configuration Supabase incomplète.' }, { status: 500 })
+    }
+    const supabaseAdmin = createClient(supabaseUrl, serviceKey)
 
     if (token) {
       const { data } = await supabaseAdmin.auth.getUser(token)
@@ -44,6 +47,10 @@ export async function POST(request: Request) {
     }
 
     if (!idSegment && idVerset) {
+      // Validation du format id_verset avant usage dans ILIKE (prévient l'injection de wildcards)
+      if (!/^[A-Z0-9]{1,6}\.\d{1,3}\.\d{1,3}$/.test(idVerset)) {
+        return NextResponse.json({ error: 'Format id_verset invalide.' }, { status: 400 })
+      }
       const colonnes = ['lien_1', 'lien_2', 'lien_3', 'lien_4'] as const
       for (const colonne of colonnes) {
         const { data: segmentLie } = await supabaseAdmin

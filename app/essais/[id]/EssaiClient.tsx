@@ -186,6 +186,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           text-indent: 0 !important;
         }
         @keyframes essai-note-spin { to { transform: rotate(360deg) } }
+        @keyframes essai-note-progress { from { width: 0% } to { width: 100% } }
         .essai-note-spinner {
           display: inline-block;
           width: 14px; height: 14px;
@@ -272,15 +273,15 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
       {voletOuvert ? (
         <div style={{ width: '300px', flexShrink: 0, background: '#faf8f4', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', height: '100%' }}>
 
-          {/* Barre supérieure : fermer + partager sur la même ligne */}
-          <div style={{ padding: '6px 10px 6px 6px', borderBottom: '1px solid #ede9e2', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {/* Barre supérieure : fermer | titre | partager */}
+          <div style={{ padding: '6px 8px 6px 6px', borderBottom: '1px solid #ede9e2', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
             <button onClick={() => setVoletOuvert(false)} title="Réduire le volet"
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#b0a89e', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <div style={{ flex: 1 }} />
+            <span style={{ flex: 1, textAlign: 'center', fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#9a958d' }}>Commentaires</span>
             <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
               <BoutonPartage label="Copier le lien" onClick={copierLien}>
                 <svg width="11" height="11" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
@@ -314,8 +315,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           </div>
 
           {/* Commentaires */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '14px 14px' }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', margin: '0 0 12px' }}>Commentaires</p>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px' }}>
             <EssaiCommentaires idEssai={essai.id} />
           </div>
         </div>

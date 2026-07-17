@@ -219,7 +219,7 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
             <div style={{ flex: 1, padding: '16px 18px', minWidth: 0 }}>
               <p style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#b0a89e', margin: '0 0 8px' }}>Aperçu — Carte Bibliothèque</p>
               <h4 style={{ fontFamily: 'Helvetica Neue, Arial, sans-serif', fontSize: '15px', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 4px' }}>{auteur.nom}</h4>
-              {auteur.dates && <p style={{ fontSize: '11px', color: '#9a958d', margin: '0 0 10px' }}>{auteur.dates}</p>}
+              {auteur.dates && <p style={{ fontSize: '11px', color: '#9a958d', margin: '0 0 10px' }}>{formaterDateHistorique(auteur.dates)}</p>}
               <p style={{ fontFamily: 'Georgia, serif', fontSize: '12px', color: '#5a5450', lineHeight: 1.55, margin: 0, fontStyle: 'italic' }}>
                 {auteur.note_biographique || auteur.note || 'Aperçu de la carte auteur dans la bibliothèque.'}
               </p>

@@ -3,6 +3,7 @@
 import React from 'react'
 import { supabase, parseCSV, telechargerCSVModele, headersAdmin } from './adminShared'
 import type { Auteur } from './adminTypes'
+import { formaterDateHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
 
 const lbl: React.CSSProperties = { fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9a958d', display: 'block', marginBottom: '3px' }
 const inp: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '12px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#fff', color: '#1e1a16', outline: 'none', boxSizing: 'border-box' }
@@ -267,7 +268,7 @@ function RechercheCatalogue({ onSelect }: { onSelect: (n: NoticesCatalogue) => v
               <div style={{ fontSize: '11px', color: '#9a958d', marginTop: '2px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <span>{n.auteur}</span>
                 {n.titre_original && <span style={{ fontStyle: 'italic' }}>{n.titre_original}</span>}
-                {n.date_oeuvre && <span>{n.date_oeuvre}</span>}
+                {n.date_oeuvre && <span>{formaterDateHistorique(n.date_oeuvre)}</span>}
                 {n.presence_sur_le_site && (
                   <span style={{ color: '#c0562a', fontWeight: 500 }}>déjà en ligne</span>
                 )}
@@ -350,8 +351,8 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
       collection: n.collection_nom ?? '',
       ville: n.lieu_edition ?? '',
       url_source: n.url_source ?? '',
-      date_publication: n.annee_edition ? String(n.annee_edition) : '',
-      date_composition: n.date_oeuvre ?? '',
+      date_publication: n.annee_edition ? formaterDateHistorique(n.annee_edition) : '',
+      date_composition: formaterDateHistorique(n.date_oeuvre) ?? '',
       genres: n.genre ? [n.genre] : [],
       langue: normaliserLangue(n.langue_originale),
     })
@@ -409,11 +410,11 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
     const { data: sessionData } = await supabase.auth.getSession()
     const token = sessionData.session?.access_token
     if (!token) { setResultat({ ok: false, msg: 'Session expirée. Reconnectez-vous.' }); setImporting(false); return }
-    const dateComp = meta.date_composition.trim() || dateCompositionAuto || null
+    const dateComp = normaliserDateHistoriqueTexte(meta.date_composition.trim() || dateCompositionAuto)
     const res = await fetch('/api/admin/import-oeuvre', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ meta: { ...meta, titre: meta.titre.trim(), date_composition: dateComp }, segments }),
+      body: JSON.stringify({ meta: { ...meta, titre: meta.titre.trim(), date_publication: normaliserDateHistoriqueTexte(meta.date_publication), date_composition: dateComp }, segments }),
     })
     const json = await res.json().catch(() => ({}))
     if (!res.ok || !json.ok) { setResultat({ ok: false, msg: json.error ?? `Erreur (${res.status})` }); setImporting(false); return }

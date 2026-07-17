@@ -7,7 +7,7 @@ export type GroupeData = {
 }
 export type TocEntry = { niv1: string; niv2: string; anchor: string }
 export type Commentaire = { id: number; texte: string; valide: boolean; created_at: string }
-export type OeuvreResumee = { id_oeuvre: string; titre: string }
+export type OeuvreResumee = { id_oeuvre: string; titre: string; note?: string | null }
 
 export type Props = {
   auteur: string

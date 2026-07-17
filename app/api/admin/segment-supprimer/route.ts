@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estAdminServeur } from '@/app/lib/verifAdmin'
+import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,9 +9,16 @@ const supabaseAdmin = createClient(
 )
 
 export async function POST(request: Request) {
-  if (!(await estAdminServeur())) return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
+  if (!(await estAdminUtilisateur(request)) && !(await estAdminServeur())) {
+    return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
+  }
 
-  const { id } = await request.json()
+  let id: unknown
+  try {
+    ;({ id } = await request.json())
+  } catch {
+    return NextResponse.json({ error: 'Corps JSON invalide.' }, { status: 400 })
+  }
   if (!id) return NextResponse.json({ error: 'Paramètre id manquant.' }, { status: 400 })
 
   const { data: seg, error: e0 } = await supabaseAdmin
@@ -20,16 +28,12 @@ export async function POST(request: Request) {
   const { error: eDel } = await supabaseAdmin.from('segments').delete().eq('id', id)
   if (eDel) return NextResponse.json({ error: 'Erreur lors de la suppression.' }, { status: 500 })
 
-  const { data: suivants, error: eSel } = await supabaseAdmin
-    .from('segments').select('id, segment_numero')
-    .eq('id_oeuvre', seg.id_oeuvre).gt('segment_numero', seg.segment_numero)
-    .order('segment_numero', { ascending: true })
-  if (eSel) return NextResponse.json({ error: 'Erreur lors de la renumérotation.' }, { status: 500 })
+  // Renumérotation en une seule requête SQL atomique (évite N×UPDATE et rollback partiel)
+  const idOeuvre = seg.id_oeuvre.replace(/[^A-Za-z0-9]/g, '')
+  const { error: eRen } = await supabaseAdmin.rpc('exec_sql', {
+    sql: `UPDATE segments SET segment_numero = segment_numero - 1 WHERE id_oeuvre = '${idOeuvre}' AND segment_numero > ${seg.segment_numero}`,
+  })
+  if (eRen) return NextResponse.json({ error: 'Erreur lors de la renumérotation.' }, { status: 500 })
 
-  if (suivants && suivants.length > 0) {
-    await Promise.all(suivants.map((s: any) =>
-      supabaseAdmin.from('segments').update({ segment_numero: s.segment_numero - 1 }).eq('id', s.id)
-    ))
-  }
   return NextResponse.json({ ok: true })
 }

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { nettoyerFin } from '@/app/lib/ponctuation'
+import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 
 // ── Graphies & normalisation (hérités de la concordance) ─────────────────────
 function normaliser(s: string): string {
@@ -312,15 +313,16 @@ export default function RechercheClient() {
     const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
     let oeuvreMap: Record<string, { titre: string; auteur: string }> = {}
     if (oeuvreIds.length) {
-      const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, auteurs(nom)').in('id_oeuvre', oeuvreIds)
-      ;(oeuvres ?? []).forEach((o: any) => { oeuvreMap[o.id_oeuvre] = { titre: o.titre, auteur: o.auteurs?.nom || '' } })
+      const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs(nom)').in('id_oeuvre', oeuvreIds)
+      ;((oeuvres ?? []) as any[]).filter(estOeuvrePubliee).forEach((o: any) => { oeuvreMap[o.id_oeuvre] = { titre: o.titre, auteur: o.auteurs?.nom || '' } })
     }
-    setSegmentsRes(segs.map((s: any) => ({ ...s, auteur_nom: oeuvreMap[s.id_oeuvre]?.auteur || '', oeuvre_titre: oeuvreMap[s.id_oeuvre]?.titre || '' })))
+    const segsPublies = segs.filter((s: any) => oeuvreMap[s.id_oeuvre])
+    setSegmentsRes(segsPublies.map((s: any) => ({ ...s, auteur_nom: oeuvreMap[s.id_oeuvre]?.auteur || '', oeuvre_titre: oeuvreMap[s.id_oeuvre]?.titre || '' })))
 
     setLastQuery(q); setLastScope(scopeActif)
     setLoading(false); setDone(true)
 
-    const counts = { bible: versets.length, patristique: segs.length, essais: essais.length }
+    const counts = { bible: versets.length, patristique: segsPublies.length, essais: essais.length }
     setOnglet(prev => {
       if (prev === 'polyglotte') return 'polyglotte'
       const actuel = counts[prev as keyof typeof counts] ?? 0

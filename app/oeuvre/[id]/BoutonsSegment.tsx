@@ -7,6 +7,7 @@ import { texteSansEnrichissement } from './texteEnrichi'
 import ModalSignalement from './ModalSignalement'
 import { insererSignalement } from './signalements'
 import { Bulle } from '@/app/components/Bulle'
+import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 
 // Style partagé par tous les petits boutons d'action (segment ET verset)
 export const BTN_STYLE: React.CSSProperties = {
@@ -112,7 +113,7 @@ export function construireCitationPatristique(
   if (tradAuteur) parts.push('trad. ' + tradAuteur)
   if (collection) parts.push(collection)
   if (ville) parts.push(ville)
-  if (datePublication) parts.push(datePublication)
+  if (datePublication) parts.push(formaterDateHistorique(datePublication))
   parts.push('disponible sur Corpus Scriptura')
   const textePonctue = texte.replace(/[,;]/g, '.')
   parts.push('« ' + convertirGuillemetsInternes(textePonctue) + ' »')

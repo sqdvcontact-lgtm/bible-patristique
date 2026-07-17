@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
 import { ABREV_FR } from '@/app/lib/bible'
 import { parseNotes } from '@/app/lib/notes'
+import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import OeuvreClient from './OeuvreClient'
 
 const supabase = createClient(
@@ -182,7 +183,7 @@ export default async function OeuvrePage({
     chargerTousSegments({ nature: 'apparat_critique' }),
   ])
 
-  if (!oeuvre) return (
+  if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre as any))) return (
     <div className="min-h-screen flex items-center justify-center" style={{background:'#f7f4ef'}}>
       <p style={{color:'#8a8278'}}>Œuvre introuvable.</p>
     </div>

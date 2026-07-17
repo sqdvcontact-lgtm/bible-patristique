@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import type { ElementPanneau } from './texteEnrichiEssai'
 
-function ContenuNote({ el, profond, onNaviguer }: {
+const DUREE_FIXATION = 4000
+const DELAI_FERMETURE = 1000
+
+function ContenuNote({ el, onNaviguer }: {
   el: ElementPanneau
-  profond?: boolean
   onNaviguer: (cible: ElementPanneau) => void
 }) {
   const [texte, setTexte] = useState<string | null>(el.type === 'note' ? el.texte : null)
@@ -24,8 +26,7 @@ function ContenuNote({ el, profond, onNaviguer }: {
     }
   }, [el.type, el.type !== 'note' ? (el as { id: string }).id : ''])
 
-  // Rend le texte de la note avec liens internes cliquables
-  const rendreTexte = (s: string) => {
+  const rendreTexteAvecLiens = (s: string) => {
     const morceaux: React.ReactNode[] = []
     const regex = /\[(.+?)\]\((verset|segment):(.+?)\)/g
     let dernier = 0, k = 0, m: RegExpExecArray | null
@@ -34,7 +35,7 @@ function ContenuNote({ el, profond, onNaviguer }: {
       const [, label, type, id] = m
       morceaux.push(
         <button key={k++} onClick={() => onNaviguer({ type: type as 'verset' | 'segment', id, label })}
-          style={{ color: '#3d6b4f', textDecoration: 'underline', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}>
+          style={{ color: '#3d6b4f', textDecoration: 'underline', textDecorationStyle: 'dotted', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}>
           {label}
         </button>
       )
@@ -45,26 +46,34 @@ function ContenuNote({ el, profond, onNaviguer }: {
   }
 
   if (chargement) return (
-    <span style={{ display: 'flex', justifyContent: 'center', padding: '6px 0' }}>
+    <span style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
       <span className="essai-note-spinner" />
     </span>
   )
 
   if (el.type !== 'note') {
     return (
-      <>
-        <span style={{ display: 'block', fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '6px' }}>
+      <span style={{ display: 'block' }}>
+        <span style={{ display: 'block', fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '5px', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
           {el.type === 'verset' ? 'Référence biblique' : 'Référence patristique'}
         </span>
-        <span style={{ fontSize: '11px', fontWeight: 600, color: '#3d6b4f', display: 'block', marginBottom: '5px' }}>{el.label}</span>
-        <span style={{ fontSize: '11.5px', lineHeight: 1.5, color: '#2a2520' }}>{texte}</span>
-      </>
+        <span style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#3d6b4f', marginBottom: '6px', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>{el.label}</span>
+        <span style={{ display: 'block', fontSize: '12px', lineHeight: 1.52, color: '#3a3020', fontFamily: "'Helvetica Neue', Arial, sans-serif", fontStyle: 'normal' }}>{texte}</span>
+      </span>
     )
   }
 
   return (
-    <span style={{ fontSize: '11.5px', lineHeight: 1.5, color: '#2a2520' }}>
-      {texte !== null ? rendreTexte(texte) : null}
+    <span style={{
+      display: 'block',
+      fontSize: '12.5px',
+      lineHeight: 1.32,
+      color: '#2a2016',
+      fontFamily: "Georgia, 'Times New Roman', serif",
+      fontStyle: 'italic',
+      letterSpacing: '0.005em',
+    }}>
+      {texte !== null ? rendreTexteAvecLiens(texte) : null}
     </span>
   )
 }
@@ -77,75 +86,153 @@ export default function NoteTooltip({ lettre, el, isRef }: {
   const [ouvert, setOuvert] = useState(false)
   const [fixe, setFixe] = useState(false)
   const [profondeur, setProfondeur] = useState<ElementPanneau>(el)
+  const [cleAnim, setCleAnim] = useState(0)
   const ref = useRef<HTMLSpanElement>(null)
+  const timerFermeture = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timerFixation = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Ferme si clic en dehors quand fixé
   useEffect(() => {
     if (!fixe) return
     const handler = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) { setFixe(false); setOuvert(false); setProfondeur(el) }
+      if (!ref.current?.contains(e.target as Node)) fermerComplet()
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
-  }, [fixe, el])
+  }, [fixe])
 
-  // Réinitialise la profondeur quand l'élément de base change
   useEffect(() => { setProfondeur(el) }, [el])
+  useEffect(() => () => viderTimers(), [])
 
-  const traiterEntrer = () => { if (!fixe) setOuvert(true) }
-  const traiterSortir = () => { if (!fixe) setOuvert(false) }
-  const traiterClic = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    const prochainFixe = !fixe
-    setFixe(prochainFixe)
-    setOuvert(prochainFixe)
-    if (!prochainFixe) setProfondeur(el)
+  const viderTimers = () => {
+    if (timerFermeture.current) { clearTimeout(timerFermeture.current); timerFermeture.current = null }
+    if (timerFixation.current) { clearTimeout(timerFixation.current); timerFixation.current = null }
   }
 
-  const boutonStyle: React.CSSProperties = isRef
-    ? { color: '#3d6b4f', cursor: 'pointer', background: 'none', border: 'none', padding: 0, textDecoration: 'underline', textDecorationStyle: 'dotted', font: 'inherit' }
-    : { color: fixe ? '#1e2e24' : '#3d6b4f', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: '0.78em', fontWeight: 600 }
+  const fermerComplet = () => {
+    viderTimers(); setOuvert(false); setFixe(false); setProfondeur(el)
+  }
+
+  const traiterEntrer = useCallback(() => {
+    if (fixe) return
+    if (timerFermeture.current) { clearTimeout(timerFermeture.current); timerFermeture.current = null }
+    if (!ouvert) { setOuvert(true); setCleAnim(n => n + 1) }
+    if (!timerFixation.current) {
+      timerFixation.current = setTimeout(() => { timerFixation.current = null; setFixe(true) }, DUREE_FIXATION)
+    }
+  }, [fixe, ouvert])
+
+  const traiterSortir = useCallback(() => {
+    if (fixe) return
+    if (timerFermeture.current) clearTimeout(timerFermeture.current)
+    timerFermeture.current = setTimeout(() => {
+      timerFermeture.current = null; viderTimers(); setOuvert(false); setProfondeur(el)
+    }, DELAI_FERMETURE)
+  }, [fixe, el])
+
+  const traiterClic = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (fixe) { fermerComplet(); return }
+    viderTimers(); setFixe(true); setOuvert(true)
+  }
+
+  const declencheur = isRef ? (
+    <button onMouseEnter={traiterEntrer} onMouseLeave={traiterSortir} onClick={traiterClic}
+      style={{ color: '#3d6b4f', cursor: 'pointer', background: 'none', border: 'none', padding: 0, textDecoration: 'underline', textDecorationStyle: 'dotted', font: 'inherit' }}>
+      {lettre}
+    </button>
+  ) : (
+    <sup style={{ marginLeft: '0.1em' }}>
+      <button onMouseEnter={traiterEntrer} onMouseLeave={traiterSortir} onClick={traiterClic}
+        style={{ color: fixe ? '#1e2e24' : '#3d6b4f', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: '0.76em', fontFamily: "Georgia, serif", fontStyle: 'italic', lineHeight: 1 }}>
+        {lettre}
+      </button>
+    </sup>
+  )
+
+  // Position de la flèche selon le type de déclencheur
+  const flecheLeft = isRef ? '16px' : '28%'
 
   return (
     <span ref={ref} style={{ position: 'relative', display: 'inline' }}>
-      {isRef ? (
-        <button onMouseEnter={traiterEntrer} onMouseLeave={traiterSortir} onClick={traiterClic} style={boutonStyle}>
-          {lettre}
-        </button>
-      ) : (
-        <sup style={{ marginLeft: '0.08em' }}>
-          <button onMouseEnter={traiterEntrer} onMouseLeave={traiterSortir} onClick={traiterClic} style={boutonStyle}>
-            {lettre}
-          </button>
-        </sup>
-      )}
+      {declencheur}
+
       {ouvert && (
-        <span style={{
-          position: 'absolute',
-          bottom: 'calc(100% + 5px)',
-          left: isRef ? '0' : '50%',
-          transform: isRef ? 'none' : 'translateX(-30%)',
-          zIndex: 200,
-          display: 'block',
-          background: '#fff',
-          border: '1px solid #d6d0c4',
-          borderRadius: '5px',
-          padding: '10px 12px',
-          width: '230px',
-          boxShadow: '0 3px 14px rgba(0,0,0,0.11)',
-          pointerEvents: fixe ? 'auto' : 'none',
-        }}>
-          {profondeur !== el && (
-            <button onClick={() => setProfondeur(el)}
-              style={{ fontSize: '10px', color: '#3d6b4f', background: 'none', border: 'none', padding: '0 0 6px', cursor: 'pointer', display: 'block' }}>
-              ← Retour
-            </button>
-          )}
-          <ContenuNote el={profondeur} onNaviguer={cible => { setProfondeur(cible); setFixe(true); setOuvert(true) }} />
-          {fixe && (
-            <button onClick={() => { setFixe(false); setOuvert(false); setProfondeur(el) }}
-              style={{ position: 'absolute', top: '4px', right: '6px', background: 'none', border: 'none', color: '#c0b8b0', cursor: 'pointer', fontSize: '13px', lineHeight: 1 }}>×</button>
-          )}
+        // Conteneur de positionnement — sépare la logique position de la carte visuelle
+        <span
+          onMouseEnter={traiterEntrer}
+          onMouseLeave={traiterSortir}
+          style={{
+            position: 'absolute',
+            bottom: 'calc(100% + 10px)',
+            left: isRef ? '0' : '50%',
+            transform: isRef ? 'none' : 'translateX(-30%)',
+            zIndex: 200,
+            display: 'block',
+            pointerEvents: 'auto',
+          }}>
+
+          {/* Flèche vers le bas — bordure */}
+          <span aria-hidden="true" style={{
+            position: 'absolute', top: '100%',
+            left: flecheLeft,
+            width: 0, height: 0,
+            borderLeft: '7px solid transparent',
+            borderRight: '7px solid transparent',
+            borderTop: '7px solid rgba(185,165,120,0.35)',
+          }} />
+          {/* Flèche vers le bas — remplissage */}
+          <span aria-hidden="true" style={{
+            position: 'absolute', top: 'calc(100% + 1px)',
+            left: `calc(${flecheLeft} + 1px)`,
+            width: 0, height: 0,
+            borderLeft: '6px solid transparent',
+            borderRight: '6px solid transparent',
+            borderTop: '6px solid #f7f3ec',
+          }} />
+
+          {/* Carte */}
+          <span style={{
+            display: 'block',
+            background: '#f7f3ec',
+            border: '1px solid rgba(185,165,120,0.35)',
+            borderTop: `2px solid ${fixe ? '#2a5a3a' : '#3d6b4f'}`,
+            borderRadius: '6px',
+            padding: '11px 13px 14px',
+            width: '220px',
+            boxShadow: '0 6px 24px rgba(10,8,4,0.13), 0 1px 4px rgba(10,8,4,0.06)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}>
+
+            {/* Retour (navigation dans la note) */}
+            {profondeur !== el && (
+              <button onClick={() => setProfondeur(el)}
+                style={{ fontSize: '10px', color: '#3d6b4f', background: 'none', border: 'none', padding: '0 0 6px', cursor: 'pointer', display: 'block', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+                ← Retour
+              </button>
+            )}
+
+            <ContenuNote el={profondeur} onNaviguer={cible => { viderTimers(); setProfondeur(cible); setFixe(true); setOuvert(true) }} />
+
+            {/* Bouton fermeture (fixe seulement) */}
+            {fixe && (
+              <button onClick={fermerComplet}
+                style={{ position: 'absolute', top: '5px', right: '7px', background: 'none', border: 'none', color: '#c0b0a0', cursor: 'pointer', fontSize: '12px', lineHeight: 1, fontFamily: 'sans-serif' }}>
+                ×
+              </button>
+            )}
+
+            {/* Barre de progression 4 s */}
+            {!fixe && (
+              <span key={cleAnim} style={{
+                position: 'absolute',
+                bottom: 0, left: 0,
+                height: '2px',
+                background: 'linear-gradient(90deg, #3d6b4f 0%, #8abf9e 100%)',
+                animation: `essai-note-progress ${DUREE_FIXATION}ms linear forwards`,
+              }} />
+            )}
+          </span>
         </span>
       )}
     </span>

@@ -3,6 +3,7 @@ import { ABREV_FR } from '@/app/lib/bible'
 
 import { useState, useEffect, type CSSProperties } from 'react'
 import { supabase } from '@/app/lib/supabase'
+import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 
 const NOM_FR: Record<string, string> = {
   GEN:'Genèse',EXO:'Exode',LEV:'Lévitique',NUM:'Nombres',DEU:'Deutéronome',JOS:'Josué',JDG:'Juges',RUT:'Ruth',
@@ -196,7 +197,7 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
 function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) {
   const [auteurs, setAuteurs] = useState<{ id_auteur: string; nom: string }[]>([])
   const [auteur, setAuteur] = useState('')
-  const [oeuvres, setOeuvres] = useState<{ id_oeuvre: string; titre: string }[]>([])
+  const [oeuvres, setOeuvres] = useState<{ id_oeuvre: string; titre: string; note?: string | null }[]>([])
   const [oeuvre, setOeuvre] = useState('')
   const [segments, setSegments] = useState<{ id: number; segment_numero: number; segment_texte: string; ref_niv1: string | null; ref_niv2: string | null; ref_niv3: string | null; ref_niv4: string | null; ref_niv5: string | null }[]>([])
   const [chargement, setChargement] = useState(false)
@@ -206,8 +207,8 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
 
   const choisirAuteur = async (id: string) => {
     setAuteur(id); setOeuvre('')
-    const { data } = await supabase.from('oeuvres').select('id_oeuvre, titre').eq('id_auteur', id).order('titre')
-    setOeuvres(data ?? [])
+    const { data } = await supabase.from('oeuvres').select('id_oeuvre, titre, note').eq('id_auteur', id).order('titre')
+    setOeuvres(((data ?? []) as any[]).filter(estOeuvrePubliee))
   }
   const choisirOeuvre = async (id: string) => {
     setOeuvre(id); setRecherche(''); setChargement(true)

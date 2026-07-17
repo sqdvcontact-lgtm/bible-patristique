@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { erreur500 } from '@/app/lib/apiErreur'
+import { normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
 
 const LIMITE_JOUR = 3
 
@@ -69,8 +70,8 @@ export async function POST(req: Request) {
       editeur: body.editeur?.trim() || null,
       collection: body.collection?.trim() || null,
       ville: body.ville?.trim() || null,
-      date_publication: body.date_publication?.trim() || null,
-      siecle: body.siecle?.trim() || null,
+      date_publication: normaliserDateHistoriqueTexte(body.date_publication),
+      siecle: normaliserDateHistoriqueTexte(body.siecle),
       langue: body.langue?.trim() || null,
       note: body.note?.trim() || null,
       texte: texte.trim(),

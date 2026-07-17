@@ -3,19 +3,18 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
 import { formaterSieclesHTML } from '@/app/oeuvre/[id]/texteEnrichi'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
-import ProgressionClient from '../progression/ProgressionClient'
 import QuizBibliqueClient from '../quiz/QuizBibliqueClient'
 
-type Onglet = 'traductions' | 'acheter' | 'populaires' | 'progression' | 'quiz'
+type Onglet = 'traductions' | 'acheter' | 'populaires' | 'quiz'
 
 const ONGLETS: { code: Onglet; label: string }[] = [
   { code: 'traductions', label: 'Les traductions' },
   { code: 'acheter', label: 'Acheter des livres' },
   { code: 'populaires', label: 'Versets populaires' },
-  { code: 'progression', label: 'Ma progression' },
   { code: 'quiz', label: 'Quiz biblique' },
 ]
 
@@ -70,7 +69,6 @@ export default function AllerPlusLoinClient() {
       {onglet === 'traductions' && <OngletTraductions hashTraduction={hashTraduction} />}
       {onglet === 'acheter' && <OngletAcheter />}
       {onglet === 'populaires' && <OngletPopulaires />}
-      {onglet === 'progression' && <ProgressionClient />}
       {onglet === 'quiz' && <OngletQuiz />}
     </main>
   )
@@ -110,13 +108,36 @@ type Traduction = {
   } | null;
 };
 
+function AvatarTraduction({ t }: { t: Traduction }) {
+  const px = t.photo_position?.lateral?.x ?? 50
+  const py = t.photo_position?.lateral?.y ?? 20
+  const ps = t.photo_position?.lateral?.scale ?? 1
+  if (!t.photo) return (
+    <div style={{ width: '52px', height: '52px', borderRadius: '50%', flexShrink: 0, background: '#f0ece4', border: '2px solid #e0d8cc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c8b888" strokeWidth="1.4" aria-hidden="true">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+      </svg>
+    </div>
+  )
+  return (
+    <div style={{ width: '52px', height: '52px', borderRadius: '50%', flexShrink: 0, overflow: 'hidden', border: '2px solid #e0d8cc' }}>
+      <img src={t.photo} alt="" aria-hidden="true"
+        style={{ width: '100%', height: '100%', objectFit: 'cover',
+          objectPosition: `${px}% ${py}%`,
+          transform: `scale(${ps})`,
+          transformOrigin: `${px}% ${py}%`,
+          display: 'block' }} />
+    </div>
+  )
+}
+
 function normaliserContenu(texte: string): string {
-  if (!texte) return '';
+  if (!texte || typeof window === 'undefined') return '';
   let html: string;
   if (/^\s*<(p|h[1-6]|div|ul|ol|blockquote)[\s>]/i.test(texte)) {
     html = texte;
   } else {
-    const pStyle = 'color:#2a2218;font-size:13.5px;line-height:1.78;margin:0 0 12px;text-decoration:none';
+    const pStyle = 'color:#2a2520;font-size:13.5px;line-height:1.78;margin:0 0 12px;text-decoration:none';
     html = texte
       .split(/\n+/)
       .map(l => l.trim())
@@ -124,83 +145,7 @@ function normaliserContenu(texte: string): string {
       .map(l => `<p style="${pStyle}">${l}</p>`)
       .join('');
   }
-  return formaterSieclesHTML(html);
-}
-
-function CarteTraduction({ t, estOuvert, onToggle }: {
-  t: Traduction; estOuvert: boolean; onToggle: () => void
-}) {
-  const [imgErreur, setImgErreur] = useState(false)
-  const px = t.photo_position?.lateral?.x ?? 50
-  const py = t.photo_position?.lateral?.y ?? 20
-  const ps = t.photo_position?.lateral?.scale ?? 1
-  const meta = [t.auteur, t.langue].filter(Boolean).join(' · ')
-  const datePub = formaterDateHistorique(t.date_publication)
-
-  return (
-    <div id={t.trad_id} style={{ scrollMarginTop: '60px', border: '1px solid #ddd8d0', borderRadius: '10px', overflow: 'hidden', background: '#fff' }}>
-
-      {/* ── En-tête cliquable ── */}
-      <button onClick={onToggle} style={{
-        width: '100%', display: 'flex', alignItems: 'stretch',
-        background: estOuvert ? '#fdf9f2' : '#fff',
-        border: 'none', cursor: 'pointer', textAlign: 'left',
-        transition: 'background 0.14s', padding: 0,
-      }}>
-
-        {/* Photo latérale */}
-        {t.photo && !imgErreur && (
-          <div style={{ width: '90px', flexShrink: 0, position: 'relative', overflow: 'hidden', borderRight: '1px solid #ede9e0' }}>
-            <img src={t.photo} alt="" aria-hidden="true" onError={() => setImgErreur(true)}
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${px}% ${py}%`, transform: `scale(${ps})`, transformOrigin: `${px}% ${py}%`, display: 'block' }} />
-          </div>
-        )}
-
-        {/* Texte */}
-        <div style={{ flex: 1, minWidth: 0, padding: '18px 14px 16px 20px' }}>
-          <h2 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '16.5px', fontWeight: 'normal', color: '#1e1a12', margin: '0 0 3px', lineHeight: 1.25 }}>
-            {t.nom}
-          </h2>
-          {meta && (
-            <span style={{ fontSize: '11px', color: '#8a7e70', letterSpacing: '0.02em', display: 'block', marginBottom: '2px' }}>
-              {meta}
-            </span>
-          )}
-          {datePub && (
-            <span style={{ fontSize: '10.5px', fontStyle: 'italic', color: '#b0a48e', display: 'block' }}>
-              {datePub}
-            </span>
-          )}
-          {t.bio_courte && (
-            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12.5px', fontStyle: 'italic', color: '#5a5040', lineHeight: 1.6, margin: '10px 0 0' }}>
-              {t.bio_courte}
-            </p>
-          )}
-          {t.import_maj_le && (
-            <span style={{ fontSize: '9.5px', color: '#c8bfb0', display: 'block', marginTop: '8px', letterSpacing: '0.02em' }}>
-              Mis à jour le {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </span>
-          )}
-        </div>
-
-        {/* Chevron */}
-        <div style={{ display: 'flex', alignItems: 'center', paddingRight: '18px', flexShrink: 0 }}>
-          <span style={{ fontSize: '9px', color: '#c8bfb0', display: 'inline-block', transition: 'transform 0.18s', transform: estOuvert ? 'rotate(180deg)' : 'none' }}>▼</span>
-        </div>
-      </button>
-
-      {/* ── Contenu déployé ── */}
-      {estOuvert && t.commentaire_editorial && (
-        <div style={{ borderTop: '1px solid #ede9e0', padding: '20px 24px 24px', background: '#fdf9f2' }}>
-          <div
-            className="trad-article"
-            style={{ color: '#2a2218', fontSize: '13.5px', lineHeight: 1.72, textAlign: 'justify', hyphens: 'auto' }}
-            dangerouslySetInnerHTML={{ __html: normaliserContenu(t.commentaire_editorial) }}
-          />
-        </div>
-      )}
-    </div>
-  )
+  return DOMPurify.sanitize(formaterSieclesHTML(html));
 }
 
 function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }) {
@@ -222,18 +167,83 @@ function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }
   return (
     <div style={{ maxWidth: '680px', margin: '0 auto', padding: '24px 24px 80px' }}>
       <style>{`
-        .trad-article p { color: #2a2218; font-size: 13.5px; line-height: 1.78; margin: 0 0 12px; }
+        .trad-article p { color: #2a2520; font-size: 13px; line-height: 1.75; margin: 0 0 10px; }
         .trad-article p:last-child { margin-bottom: 0; }
+        .trad-entete { width: 100%; display: flex; align-items: center; gap: 14px; padding: 13px 16px; background: transparent; border: none; cursor: pointer; text-align: left; transition: background 0.12s; }
+        .trad-entete:hover { background: rgba(138,112,72,0.05); }
+        .trad-entete-ouvert { background: rgba(138,112,72,0.07); }
+        .trad-corps { display: flex; align-items: stretch; border-top: 1px solid #e8e2d8; }
+        .trad-photo-lat { width: 110px; flex-shrink: 0; border-right: 1px solid #e8e2d8; overflow: hidden; }
+        .trad-photo-lat img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .trad-texte { flex: 1; min-width: 0; padding: 15px 18px 18px; }
       `}</style>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {traductions.map(t => (
-          <CarteTraduction
-            key={t.trad_id}
-            t={t}
-            estOuvert={ouvert === t.trad_id}
-            onToggle={() => setOuvert(prev => prev === t.trad_id ? null : t.trad_id)}
-          />
-        ))}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+        {traductions.map(t => {
+          const estOuvert = ouvert === t.trad_id;
+          const meta = [t.langue, t.date_publication].filter(Boolean).join(' · ');
+          const px = t.photo_position?.lateral?.x ?? 50;
+          const py = t.photo_position?.lateral?.y ?? 20;
+          const ps = t.photo_position?.lateral?.scale ?? 1;
+          return (
+            <div key={t.trad_id} id={t.trad_id}
+              style={{ scrollMarginTop: '60px', border: '1px solid #ddd8ce', borderRadius: '9px', overflow: 'hidden', background: '#fff', boxShadow: estOuvert ? '0 2px 14px rgba(0,0,0,0.07)' : 'none', transition: 'box-shadow 0.18s' }}>
+              {/* En-tête repliable */}
+              <button
+                className={`trad-entete${estOuvert ? ' trad-entete-ouvert' : ''}`}
+                onClick={() => setOuvert(prev => prev === t.trad_id ? null : t.trad_id)}>
+                <AvatarTraduction t={t} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
+                    <h2 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '15px', fontWeight: 'normal', color: '#1e1a16', margin: 0, lineHeight: 1.2 }}>
+                      {t.auteur ?? t.nom}
+                    </h2>
+                    {t.dates && (
+                      <span style={{ fontSize: '11px', color: '#9a8a6a', fontStyle: 'italic', flexShrink: 0 }}>{t.dates}</span>
+                    )}
+                  </div>
+                  <span style={{ display: 'block', fontSize: '12px', color: '#8a7248', fontFamily: "Georgia, 'Times New Roman', serif", fontStyle: 'italic', marginTop: '3px', lineHeight: 1.3 }}>
+                    {t.nom}{meta ? <span style={{ color: '#b0a080', fontStyle: 'normal', fontSize: '11px' }}> — {meta}</span> : null}
+                  </span>
+                </div>
+                {/* Flèche SVG */}
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"
+                  style={{ flexShrink: 0, color: '#c0b098', transition: 'transform 0.18s', transform: estOuvert ? 'rotate(180deg)' : 'none' }}>
+                  <path d="M2.5 4.5L6.5 8.5L10.5 4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+
+              {/* Corps déployé */}
+              {estOuvert && (
+                <div className="trad-corps">
+                  {t.photo && (
+                    <div className="trad-photo-lat">
+                      <img src={t.photo} alt="" aria-hidden="true"
+                        style={{ objectPosition: `${px}% ${py}%`, transform: `scale(${ps})`, transformOrigin: `${px}% ${py}%` }} />
+                    </div>
+                  )}
+                  <div className="trad-texte">
+                    {t.bio_courte && (
+                      <p style={{ fontSize: '12.5px', color: '#5a5045', lineHeight: 1.65, margin: '0 0 10px', fontStyle: 'italic', textAlign: 'justify', hyphens: 'auto' }}>
+                        {t.bio_courte}
+                      </p>
+                    )}
+                    {t.commentaire_editorial && (
+                      <div className="trad-article"
+                        style={{ color: '#2a2520', textAlign: 'justify', hyphens: 'auto' }}
+                        dangerouslySetInnerHTML={{ __html: normaliserContenu(t.commentaire_editorial) }}
+                      />
+                    )}
+                    {t.import_maj_le && (
+                      <p style={{ fontSize: '10px', color: '#b8b0a4', margin: '10px 0 0', fontStyle: 'italic' }}>
+                        Mis à jour le {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -252,83 +262,115 @@ type ThemeLibrairie = {
   logo: string
   filigraneLogo?: string
   logoStyle?: CSSProperties
-  filigraneStyle?: CSSProperties
-  motif?: CSSProperties
+}
+
+// Filigrane : même traitement graphique pour les trois cartes.
+// height fixe 120px (> hauteur carte ~100px) pour couverture uniforme,
+// calé en haut-droite avec léger débordement.
+const FIL_COMMUN: CSSProperties = {
+  position: 'absolute', zIndex: 0, height: '120px', width: 'auto',
+  right: '-16px', top: '-10px',
+  opacity: 0.09, filter: 'grayscale(1) contrast(1.1)',
+  mixBlendMode: 'multiply', pointerEvents: 'none', userSelect: 'none',
 }
 
 const THEMES_LIBRAIRIE: Record<string, ThemeLibrairie> = {
   procure: {
-    fond: 'linear-gradient(135deg, rgba(248,251,253,0.99), rgba(229,238,246,0.98))',
-    bordure: 'rgba(22,63,125,0.24)',
-    accent: '#b89642',
+    fond: 'rgba(234,242,250,0.52)',
+    bordure: 'rgba(22,63,125,0.18)',
+    accent: '#1a4a8a',
     titre: '#153f78',
     texte: '#4a6072',
     logo: '/icons/librairies/procure-eventail.png',
     filigraneLogo: '/icons/librairies/procure-rayonnage.png',
-    logoStyle: { width: '76px', transform: 'translateY(2px)' },
-    filigraneStyle: { width: '300px', right: '-58px', top: '-54px', opacity: 0.095, mixBlendMode: 'multiply', filter: 'grayscale(1) contrast(1.12)' },
+    logoStyle: { height: '54px', width: 'auto' },
   },
   brunet: {
-    fond: 'linear-gradient(135deg, rgba(253,248,238,0.99), rgba(233,218,190,0.98))',
-    bordure: 'rgba(124,88,47,0.30)',
-    accent: '#8a5a2b',
+    fond: 'rgba(246,237,222,0.55)',
+    bordure: 'rgba(124,88,47,0.20)',
+    accent: '#7a4820',
     titre: '#5e3a1c',
     texte: '#665445',
     logo: '/icons/librairies/pierre-brunet-livre.png',
     filigraneLogo: '/icons/librairies/pierre-brunet-portrait.png',
-    logoStyle: { width: '54px', transform: 'translateY(1px)' },
-    filigraneStyle: { width: '188px', right: '-34px', top: '-54px', opacity: 0.13, mixBlendMode: 'multiply', filter: 'grayscale(1) contrast(1.18)' },
-    motif: { inset: 0, opacity: 0.10, background: 'repeating-linear-gradient(0deg, transparent 0, transparent 13px, rgba(122,86,45,0.15) 14px)' },
+    logoStyle: { height: '62px', width: 'auto' },
   },
   sources: {
-    fond: 'linear-gradient(135deg, rgba(255,248,247,0.99), rgba(244,225,221,0.98))',
-    bordure: 'rgba(151,30,37,0.28)',
+    fond: 'rgba(252,232,230,0.52)',
+    bordure: 'rgba(151,30,37,0.18)',
     accent: '#9a1c25',
     titre: '#8b1720',
     texte: '#664a4c',
     logo: '/icons/librairies/sources-chretiennes-chrisme.png',
     filigraneLogo: '/icons/librairies/sources-chretiennes-pere.png',
-    logoStyle: { width: '66px', transform: 'translateY(1px)' },
-    filigraneStyle: { width: '136px', right: '-22px', bottom: '-46px', opacity: 0.09 },
+    logoStyle: { height: '56px', width: 'auto' },
   },
 }
 
 function CarteLibrairie({ titre, description, url, theme }: { titre: string; description: string; url: string; theme: ThemeLibrairie }) {
   return (
-    <a className="librairie-carte" href={url} target="_blank" rel="noopener noreferrer" style={{
-      display: "flex", alignItems: "center", gap: "18px",
-      background: theme.fond, border: `1px solid ${theme.bordure}`, borderRadius: "8px",
-      padding: "17px 20px", minHeight: '88px', textDecoration: "none", transition: "box-shadow 0.15s, transform 0.15s",
-      position: 'relative', overflow: 'hidden', boxShadow: '0 10px 26px rgba(74,55,32,0.075)',
+    <a className="lib-carte" href={url} target="_blank" rel="noopener noreferrer" style={{
+      display: 'flex', alignItems: 'center', gap: '20px',
+      background: theme.fond,
+      border: `1px solid ${theme.bordure}`,
+      borderRadius: '7px',
+      padding: '18px 22px 18px 18px',
+      textDecoration: 'none',
+      position: 'relative', overflow: 'hidden',
+      boxShadow: '0 2px 10px rgba(0,0,0,0.055)',
     }}>
-      {theme.motif && (
-        <span aria-hidden style={{ position: 'absolute', pointerEvents: 'none', zIndex: 0, ...theme.motif }} />
+      {/* Filet coloré gauche */}
+      <span aria-hidden="true" style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '3px', background: theme.accent }} />
+      {/* Filigrane — traitement uniforme */}
+      {theme.filigraneLogo && (
+        <img src={theme.filigraneLogo} alt="" aria-hidden="true" style={FIL_COMMUN} />
       )}
-      <img className="librairie-filigrane" src={theme.filigraneLogo ?? theme.logo} alt="" aria-hidden="true" style={theme.filigraneStyle} />
-      <span aria-hidden style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px', background: theme.accent, opacity: 0.86 }} />
-      <div className="librairie-contenu" style={{ display: 'flex', alignItems: 'center', gap: '18px', flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
-        <div className="librairie-logo-cadre">
-          <img className="librairie-logo" src={theme.logo} alt="" aria-hidden="true" style={theme.logoStyle} />
+      {/* Contenu — s'efface légèrement au survol */}
+      <div className="lib-contenu" style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
+        {/* Logo */}
+        <div style={{ width: '72px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <img src={theme.logo} alt="" aria-hidden="true"
+            style={{ maxWidth: '72px', maxHeight: '66px', objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.13))', pointerEvents: 'none', ...(theme.logoStyle ?? {}) }} />
         </div>
+        {/* Texte */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "15.5px", color: theme.titre, margin: "0 0 4px" }}>
+          <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '15.5px', fontWeight: 'normal', color: theme.titre, margin: '0 0 5px', lineHeight: 1.2 }}>
             {titre}
           </p>
-          <p style={{ fontSize: "12px", color: theme.texte, lineHeight: 1.6, margin: 0 }}>{description}</p>
+          <p style={{ fontSize: '12px', color: theme.texte, margin: 0, lineHeight: 1.65 }}>
+            {description}
+          </p>
         </div>
       </div>
-      <span className="librairie-survol" style={{ color: theme.accent }}>Visiter la librairie</span>
-      <svg className="librairie-fleche" viewBox="0 0 28 28" fill="none" aria-hidden="true" style={{ color: theme.accent }}>
-        <path d="M4 14H22" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" />
-        <path d="M15 7L22.5 14L15 21" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      {/* Overlay survol */}
+      <div className="lib-survol" style={{ color: theme.accent }}>
+        <span style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '14px', letterSpacing: '0.01em' }}>
+          Visiter la librairie en ligne
+        </span>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+          <path d="M4 10H16M11.5 5.5L16 10L11.5 14.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
     </a>
-  );
+  )
 }
 
 function OngletAcheter() {
   return (
-    <div style={{ maxWidth: "680px", margin: "0 auto", padding: "24px 24px 80px", display: "flex", flexDirection: "column", gap: "14px" }}>
+    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '24px 24px 80px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <style>{`
+        .lib-carte { transition: box-shadow 0.18s, transform 0.18s; }
+        .lib-carte:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,0,0,0.12) !important; }
+        .lib-contenu { transition: opacity 0.20s ease; }
+        .lib-carte:hover .lib-contenu { opacity: 0.12; }
+        .lib-survol {
+          position: absolute; inset: 0; z-index: 2;
+          display: flex; align-items: center; justify-content: center; gap: 10px;
+          opacity: 0; pointer-events: none;
+          transition: opacity 0.20s ease;
+        }
+        .lib-carte:hover .lib-survol { opacity: 1; }
+      `}</style>
       <CarteLibrairie
         titre="La Procure"
         description="Éditions contemporaines, annotées ou liturgiques — livres neufs."
@@ -336,7 +378,7 @@ function OngletAcheter() {
         theme={THEMES_LIBRAIRIE.procure}
       />
       <CarteLibrairie
-        titre="Librairie Pierre-Brunet"
+        titre="Librairie Pierre Brunet"
         description="Éditions anciennes et épuisées — livres d'occasion et anciens."
         url="https://www.librairie-pierre-brunet.fr/librairie-en-ligne.html"
         theme={THEMES_LIBRAIRIE.brunet}
@@ -347,82 +389,8 @@ function OngletAcheter() {
         url="https://sourceschretiennes.org/"
         theme={THEMES_LIBRAIRIE.sources}
       />
-      <style>{`
-        .librairie-carte:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 14px 32px rgba(74,55,32,0.12), inset 0 1px 0 rgba(255,255,255,0.78) !important;
-        }
-        .librairie-logo-cadre {
-          position: relative;
-          flex-shrink: 0;
-          width: 74px;
-          height: 58px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: visible;
-        }
-        .librairie-logo {
-          display: block;
-          height: auto;
-          max-height: 82px;
-          object-fit: contain;
-          filter: drop-shadow(0 4px 8px rgba(24,20,16,0.13));
-          pointer-events: none;
-          user-select: none;
-        }
-        .librairie-filigrane {
-          position: absolute;
-          z-index: 0;
-          height: auto;
-          pointer-events: none;
-          user-select: none;
-          filter: grayscale(1) contrast(1.08);
-        }
-        .librairie-contenu {
-          transition: opacity 0.18s ease, transform 0.18s ease;
-        }
-        .librairie-carte:hover .librairie-contenu {
-          opacity: 0.11;
-          transform: translateX(-8px);
-        }
-        .librairie-survol {
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          z-index: 2;
-          transform: translate(-50%, -46%);
-          opacity: 0;
-          pointer-events: none;
-          font-family: Georgia, 'Times New Roman', serif;
-          font-size: 15px;
-          letter-spacing: 0.01em;
-          white-space: nowrap;
-          transition: opacity 0.16s ease, transform 0.16s ease;
-        }
-        .librairie-carte:hover .librairie-survol {
-          opacity: 1;
-          transform: translate(-50%, -50%);
-        }
-        .librairie-fleche {
-          position: absolute;
-          top: 50%;
-          left: calc(50% + 105px);
-          width: 22px;
-          height: 22px;
-          z-index: 2;
-          opacity: 0;
-          pointer-events: none;
-          transform: translate(-50%, -50%) translateX(-14px);
-          transition: opacity 0.18s ease, transform 0.18s ease;
-        }
-        .librairie-carte:hover .librairie-fleche {
-          opacity: 0.48;
-          transform: translate(-50%, -50%) translateX(0);
-        }
-      `}</style>
     </div>
-  );
+  )
 }
 
 /* ════════════════════════════════════════════════════════════════════════

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
+import { estAdminServeur } from '@/app/lib/verifAdmin'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -66,19 +67,28 @@ ${lignes}
 
 Réponds uniquement avec le JSON, sans explication. Exemple : ["GARDER","REJETER","AMBIGU"]`
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 256,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  })
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 25_000)
+
+  let res: Response
+  try {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: process.env.CLAUDE_TRIAGE_MODEL ?? 'claude-haiku-4-5-20251001',
+        max_tokens: 256,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    })
+  } finally {
+    clearTimeout(timeout)
+  }
 
   if (!res.ok) {
     const err = await res.text()
@@ -128,10 +138,12 @@ async function appliquerDecision(
 // POST /api/admin/triage-ia
 // Body: { offset: number, batchSize: number }
 export async function POST(req: NextRequest) {
-  const admin = await estAdminUtilisateur(req)
-  if (!admin) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 })
+  if (!(await estAdminUtilisateur(req)) && !(await estAdminServeur())) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 403 })
+  }
 
   const { offset = 0, batchSize = 20 } = await req.json()
+  const taille = Math.max(1, Math.min(50, Number.isInteger(batchSize) ? batchSize : 20))
 
   // 1. Récupérer les segments probable avec leurs liens
   const { data: segs, error: segErr } = await supabaseAdmin
@@ -150,10 +162,10 @@ export async function POST(req: NextRequest) {
     for (const { col, idVerset } of idsLiensSeg(seg)) {
       if (!vv.includes(idVerset)) {
         paires.push({ seg, col, idVerset })
-        if (paires.length >= batchSize) break
+        if (paires.length >= taille) break
       }
     }
-    if (paires.length >= batchSize) break
+    if (paires.length >= taille) break
   }
 
   if (paires.length === 0) {
@@ -202,6 +214,6 @@ export async function POST(req: NextRequest) {
     rejete,
     ambigu,
     restant: (restantCount as number) ?? null,
-    termine: paires.length < batchSize,
+    termine: paires.length < taille,
   })
 }

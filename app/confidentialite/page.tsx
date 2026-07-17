@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "Politique de confidentialité — Corpus Scriptura",
-  description: "Traitement des données personnelles sur Corpus Scriptura (labibledesperes.com).",
+  title: "Politique de confidentialité - Corpus Scriptura",
+  description: "Traitement des données personnelles sur Corpus Scriptura (corpus-scriptura.com).",
 };
 
 export default function ConfidentialitePage() {
@@ -31,7 +31,7 @@ export default function ConfidentialitePage() {
           <Section titre="1. Responsable du traitement">
             <p>
               Le responsable du traitement des données personnelles collectées sur{' '}
-              <strong>Corpus Scriptura</strong> (labibledesperes.com) est l&rsquo;éditeur du site, personne
+              <strong>Corpus Scriptura</strong> (corpus-scriptura.com) est l&rsquo;éditeur du site, personne
               physique agissant à titre non professionnel. Conformément à la loi pour la confiance dans
               l&rsquo;économie numérique, ses coordonnées complètes ont été communiquées à l&rsquo;hébergeur et peuvent
               être obtenues, en cas de besoin légitime, auprès de ce dernier ou de l&rsquo;autorité judiciaire
@@ -48,32 +48,32 @@ export default function ConfidentialitePage() {
             <p>Le site collecte les données suivantes, selon votre usage :</p>
             <ul style={{ paddingLeft: "20px", margin: "8px 0" }}>
               <li>
-                <strong>Adresse e-mail</strong> — lors de la création d&rsquo;un compte, via le service
+                <strong>Adresse e-mail</strong> - lors de la création d&rsquo;un compte, via le service
                 d&rsquo;authentification Supabase. Elle est utilisée pour l&rsquo;identification et, le cas échéant,
                 la récupération de compte.
               </li>
               <li>
-                <strong>Identifiant de compte</strong> — généré automatiquement, sans valeur identifiante
+                <strong>Identifiant de compte</strong> - généré automatiquement, sans valeur identifiante
                 en lui-même.
               </li>
               <li>
-                <strong>Prélèvements</strong> — versets bibliques ou extraits patristiques que vous
+                <strong>Prélèvements</strong> - versets bibliques ou extraits patristiques que vous
                 choisissez d&rsquo;enregistrer dans votre espace personnel. Ces données sont privées par défaut.
               </li>
               <li>
-                <strong>Commentaires et essais</strong> — textes que vous soumettez volontairement, associés
+                <strong>Commentaires et essais</strong> - textes que vous soumettez volontairement, associés
                 à votre compte. Ils sont stockés en base de données en attente de modération.
               </li>
               <li>
-                <strong>Signalements</strong> — message libre transmis lors du signalement d&rsquo;une erreur,
+                <strong>Signalements</strong> - message libre transmis lors du signalement d&rsquo;une erreur,
                 éventuellement associé à votre compte si vous êtes connecté.
               </li>
               <li>
-                <strong>Données de profil public</strong> — pseudonyme, biographie et bibliothèque
+                <strong>Données de profil public</strong> - pseudonyme, biographie et bibliothèque
                 personnelle que vous choisissez de rendre publics depuis les paramètres de votre compte.
               </li>
               <li>
-                <strong>Compteurs de consultation</strong> — le site enregistre en base de données le nombre
+                <strong>Compteurs de consultation</strong> - le site enregistre en base de données le nombre
                 de vues par verset et par essai (<em>nb_vues</em>, <em>nb_lectures</em>) à des fins de mise
                 en avant éditoriale. Ces compteurs sont agrégés et ne permettent pas d&rsquo;identifier un
                 utilisateur individuellement.
@@ -180,12 +180,12 @@ export default function ConfidentialitePage() {
               Conformément au RGPD et à la loi Informatique et Libertés, vous disposez des droits suivants :
             </p>
             <ul style={{ paddingLeft: "20px", margin: "8px 0" }}>
-              <li><strong>Droit d&rsquo;accès</strong> — obtenir la confirmation que vos données sont traitées et en obtenir une copie ;</li>
-              <li><strong>Droit de rectification</strong> — corriger des données inexactes ou incomplètes ;</li>
-              <li><strong>Droit à l&rsquo;effacement</strong> — demander la suppression de vos données ;</li>
-              <li><strong>Droit à la limitation</strong> — restreindre temporairement le traitement ;</li>
-              <li><strong>Droit d&rsquo;opposition</strong> — vous opposer à un traitement fondé sur l&rsquo;intérêt légitime ;</li>
-              <li><strong>Droit à la portabilité</strong> — recevoir vos données dans un format structuré et lisible par machine.</li>
+              <li><strong>Droit d&rsquo;accès</strong> - obtenir la confirmation que vos données sont traitées et en obtenir une copie ;</li>
+              <li><strong>Droit de rectification</strong> - corriger des données inexactes ou incomplètes ;</li>
+              <li><strong>Droit à l&rsquo;effacement</strong> - demander la suppression de vos données ;</li>
+              <li><strong>Droit à la limitation</strong> - restreindre temporairement le traitement ;</li>
+              <li><strong>Droit d&rsquo;opposition</strong> - vous opposer à un traitement fondé sur l&rsquo;intérêt légitime ;</li>
+              <li><strong>Droit à la portabilité</strong> - recevoir vos données dans un format structuré et lisible par machine.</li>
             </ul>
             <p>
               Pour exercer ces droits, utilisez le formulaire de signalement du site en précisant votre
@@ -206,7 +206,7 @@ export default function ConfidentialitePage() {
             <p>
               Des mesures techniques raisonnables sont mises en œuvre pour protéger vos données contre
               l&rsquo;accès non autorisé, la perte ou l&rsquo;altération : chiffrement des échanges en HTTPS, contrôle
-              d&rsquo;accès aux données via des règles de sécurité au niveau des lignes (Row Level Security —
+              d&rsquo;accès aux données via des règles de sécurité au niveau des lignes (Row Level Security -
               RLS), et séparation des accès entre rôles utilisateur et rôle administrateur.
             </p>
           </Section>

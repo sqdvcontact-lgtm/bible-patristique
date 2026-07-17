@@ -58,6 +58,13 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   }, [navWidth, pannWidth])
 
   useEffect(() => {
+    // Priorité : traduction choisie manuellement sur cette page
+    const active = localStorage.getItem('cs_trad_bible_active')
+    if (active) {
+      const idx = listeTraductions.findIndex(t => t.code === active)
+      if (idx >= 0) { setTraductionIndex(idx); return }
+    }
+    // Sinon : traduction favorite du profil
     const appliquer = (code?: string | null) => {
       if (!code) return
       const idx = listeTraductions.findIndex(t => t.code === code)
@@ -82,6 +89,12 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
 
   const traduction = listeTraductions[traductionIndex]?.code ?? 'TR0001'
 
+  const handleSetTraductionIndex = (idx: number) => {
+    setTraductionIndex(idx)
+    const code = listeTraductions[idx]?.code
+    if (code) localStorage.setItem('cs_trad_bible_active', code)
+  }
+
   return (
     <div className="flex h-screen overflow-hidden" style={{ position: 'relative' }}>
       <NavLivres
@@ -89,7 +102,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         livreActif={livreActif}
         chapitreActif={chapitreActif}
         traductionIndex={traductionIndex}
-        setTraductionIndex={setTraductionIndex}
+        setTraductionIndex={handleSetTraductionIndex}
         traductions={listeTraductions}
         panelWidth={navWidth}
         onWidthChange={setNavWidth}
@@ -98,7 +111,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         versets={versets}
         traduction={traduction}
         traductionIndex={traductionIndex}
-        setTraductionIndex={setTraductionIndex}
+        setTraductionIndex={handleSetTraductionIndex}
         traductions={listeTraductions}
         livreActif={livreActif}
         chapitreActif={chapitreActif}

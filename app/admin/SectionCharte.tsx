@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/app/lib/supabase'
 
-const MODELE = `# CORPUS SCRIPTURA – Charte pour l'assistant IA
+const MODELE = `# CORPUS SCRIPTURA - Charte pour l'assistant IA
 
 ## Projet
 
@@ -11,7 +11,7 @@ Corpus Scriptura est une bibliothèque patristique numérique. Les utilisateurs 
 
 ## Stack technique
 
-- Next.js App Router (version très récente – toujours lire node_modules/next/dist/docs/ avant de modifier des APIs)
+- Next.js App Router (version très récente - toujours lire node_modules/next/dist/docs/ avant de modifier des APIs)
 - Supabase (base de données PostgreSQL, stockage fichiers)
 - TypeScript
 - Déploiement Vercel
@@ -38,10 +38,11 @@ Corpus Scriptura est une bibliothèque patristique numérique. Les utilisateurs 
 
 - Colophon « à l'ancienne » : triangle pointe en bas, lignes décroissantes, Georgia italique, filets ornementaux
 - Guillemets français : « texte » avec espace fine insécable (U+202F)
-- Tiret d'incise : utiliser exclusivement le tiret demi-cadratin « – », entouré d'espaces. Ne jamais employer le tiret cadratin dans les textes, les libellés du site, les titres, les commentaires éditoriaux ni les CSV.
+- Tiret d'incise et séparateurs rédactionnels : utiliser exclusivement le trait d'union simple « - », entouré d'espaces quand il sert d'incise. Ne jamais employer de tiret moyen ni de tiret long dans les textes, les libellés du site, les titres, les commentaires éditoriaux ni les CSV.
+- Dates historiques : pour les auteurs, œuvres, traducteurs, traductions et éditions, conserver des bornes début et fin quand il s'agit d'une période. Utiliser un trait d'union simple entre les bornes, par exemple « 354-430 ». Pour toute approximation, écrire simplement « Vers » au début de la borne concernée.
 - Volets latéraux page Œuvre : modèle identique à la page Bible (NavLivres.tsx et PanneauPatristique.tsx)
 
-## Règles absolues – préparation des CSV
+## Règles absolues - préparation des CSV
 
 ### Liens bibliques
 
@@ -70,12 +71,12 @@ Corpus Scriptura est une bibliothèque patristique numérique. Les utilisateurs 
 
 ## Fichiers clés
 
-- app/oeuvre/[id]/OeuvreClient.tsx – composant principal de la page Œuvre
-- app/oeuvre/[id]/ModaleEditionAdmin.tsx – modale d'édition admin des segments et titres
-- app/components/NavLivres.tsx – volet gauche de la page Bible (modèle)
-- app/components/PanneauPatristique.tsx – volet droit de la page Bible (modèle)
-- app/admin/AdminClient.tsx + SectionBibliotheque.tsx – interface admin
-- app/api/admin/segment-titre/route.ts – API modification/suppression des titres de niveaux
+- app/oeuvre/[id]/OeuvreClient.tsx - composant principal de la page Œuvre
+- app/oeuvre/[id]/ModaleEditionAdmin.tsx - modale d'édition admin des segments et titres
+- app/components/NavLivres.tsx - volet gauche de la page Bible (modèle)
+- app/components/PanneauPatristique.tsx - volet droit de la page Bible (modèle)
+- app/admin/AdminClient.tsx + SectionBibliotheque.tsx - interface admin
+- app/api/admin/segment-titre/route.ts - API modification/suppression des titres de niveaux
 `
 
 export default function SectionCharte() {

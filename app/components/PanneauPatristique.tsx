@@ -6,6 +6,8 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import EditeurCommentaire from '@/app/components/EditeurCommentaire'
+import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 
 type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
 type Segment = {
@@ -78,7 +80,7 @@ function construireCitationPatristique(
   if (tradAuteur) parts.push('trad. ' + tradAuteur)
   if (collection) parts.push(collection)
   if (ville) parts.push(ville)
-  if (datePublication) parts.push(datePublication)
+  if (datePublication) parts.push(formaterDateHistorique(datePublication))
   parts.push('disponible sur le site Corpus Scriptura')
   return parts.join(', ') + ' : « ' + convertirGuillemetsInternes(texte) + ' »'
 }
@@ -738,7 +740,7 @@ export default function PanneauPatristique({
   // Charger les infos des oeuvres une seule fois
   useEffect(() => {
     supabase.from('oeuvres')
-      .select('id_oeuvre, titre, sous_titre, id_auteur, trad_auteur, editeur, collection, ville, date_publication, genre')
+      .select('id_oeuvre, titre, sous_titre, id_auteur, trad_auteur, editeur, collection, ville, date_publication, genre, note')
       .then(async ({ data: od }) => {
         if (!od) return
         const { data: ad } = await supabase.from('auteurs').select('id_auteur, nom, traditions, siecle')
@@ -750,7 +752,7 @@ export default function PanneauPatristique({
         })
         setAuteurMeta(meta)
         const map: Record<string, OeuvreInfo> = {}
-        od.forEach(o => {
+        od.filter(estOeuvrePubliee).forEach(o => {
           map[o.id_oeuvre] = {
             titre: o.titre || o.id_oeuvre,
             sous_titre: o.sous_titre || undefined,
@@ -818,7 +820,7 @@ export default function PanneauPatristique({
   type ItemAffiche = { seg: Segment; col: string; onSupprime: (id: number) => void }
   const itemsCitations: ItemAffiche[] = segmentsCitations.map(({ seg, col }) => ({ seg, col, onSupprime: supprimerDeCitations }))
   const itemsDoctrine: ItemAffiche[] = segmentsDoctrine.map(seg => ({ seg, col: 'lien_3', onSupprime: supprimerDeDoctrine }))
-  const itemsAffiches: ItemAffiche[] = [...itemsCitations, ...itemsDoctrine]
+  const itemsAffiches: ItemAffiche[] = [...itemsCitations, ...itemsDoctrine].filter(({ seg }) => Boolean(oeuvres[seg.id_oeuvre]))
 
   const nombreFiltresActifs = filtreAuteursIds.size + filtreTraditions.size + filtreSiecles.size + filtreGenres.size
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estAdminServeur } from '@/app/lib/verifAdmin'
+import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,7 +9,9 @@ const supabaseAdmin = createClient(
 )
 
 export async function POST(request: Request) {
-  if (!(await estAdminServeur())) return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
+  if (!(await estAdminUtilisateur(request)) && !(await estAdminServeur())) {
+    return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
+  }
 
   const { id, segment_texte } = await request.json()
   if (!id || typeof segment_texte !== 'string') {

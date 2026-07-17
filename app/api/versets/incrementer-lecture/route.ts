@@ -16,20 +16,11 @@ export async function POST(req: Request) {
   const { error: rpcError } = await supabaseAdmin.rpc('incrementer_lecture', { p_id_verset: id_verset })
   if (!rpcError) return NextResponse.json({ ok: true })
 
-  const { data, error: selectError } = await supabaseAdmin
-    .from('versets')
-    .select('nb_lectures')
-    .eq('id_verset', id_verset)
-    .maybeSingle()
-
-  if (selectError) return erreur500(selectError)
-
-  const actuel = Number((data as any)?.nb_lectures ?? 0)
-  const { error: updateError } = await supabaseAdmin
-    .from('versets')
-    .update({ nb_lectures: actuel + 1 })
-    .eq('id_verset', id_verset)
-
-  if (updateError) return erreur500(updateError)
+  // Fallback atomique si le RPC échoue — évite la course lecture+écriture du fallback précédent
+  const escaped = id_verset.replace(/'/g, "''")
+  const { error: sqlError } = await supabaseAdmin.rpc('exec_sql', {
+    sql: `UPDATE versets SET nb_lectures = COALESCE(nb_lectures, 0) + 1 WHERE id_verset = '${escaped}'`,
+  })
+  if (sqlError) return erreur500(sqlError)
   return NextResponse.json({ ok: true })
 }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
+import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
 type Mode = 'biblique' | 'patristique' | 'chasse'
@@ -15,7 +16,7 @@ type LivreBiblique = { code: string; nom: string; testament: Testament; famille:
 type Testament = 'Ancien Testament' | 'Nouveau Testament'
 type FamilleCode = 'pentateuque' | 'historiques-at' | 'poetiques' | 'grands-prophetes' | 'petits-prophetes' | 'evangiles-actes' | 'paul' | 'catholiques' | 'apocalypse'
 type Auteur = { id_auteur: string; nom: string; siecle: string | null }
-type Oeuvre = { id_oeuvre: string; titre: string; id_auteur: string }
+type Oeuvre = { id_oeuvre: string; titre: string; id_auteur: string; note?: string | null }
 
 /* ── Données bibliques ───────────────────────────────────────────────────── */
 const LIVRES: LivreBiblique[] = [
@@ -148,8 +149,8 @@ async function chargerSegmentAleatoire(): Promise<SegmentQuiz> {
     const { data: segs } = await supabase.from('segments').select('id, segment_texte, id_oeuvre').not('segment_texte', 'is', null).not('id_oeuvre', 'is', null).range(offset, offset)
     const seg = segs?.[0] as any
     if (!seg || (seg.segment_texte ?? '').trim().length < 80) continue
-    const { data: oeuvre } = await supabase.from('oeuvres').select('id_oeuvre, titre, id_auteur').eq('id_oeuvre', seg.id_oeuvre).maybeSingle()
-    if (!oeuvre) continue
+    const { data: oeuvre } = await supabase.from('oeuvres').select('id_oeuvre, titre, id_auteur, note').eq('id_oeuvre', seg.id_oeuvre).maybeSingle()
+    if (!oeuvre || !estOeuvrePubliee(oeuvre as any)) continue
     const { data: auteur } = await supabase.from('auteurs').select('id_auteur, nom, siecle').eq('id_auteur', (oeuvre as any).id_auteur).maybeSingle()
     if (!auteur) continue
     return { id: seg.id, texte: seg.segment_texte, id_oeuvre: seg.id_oeuvre, id_auteur: (oeuvre as any).id_auteur, nomAuteur: (auteur as any).nom, titreOeuvre: (oeuvre as any).titre, siecle: (auteur as any).siecle ?? null }
@@ -237,10 +238,10 @@ export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boo
     const q = saisieOeuvre.trim()
     if (q.length < 2) { setSuggestionsOeuvre([]); return }
     const t = setTimeout(async () => {
-      let req = supabase.from('oeuvres').select('id_oeuvre, titre, id_auteur').ilike('titre', `%${q}%`).limit(7)
+      let req = supabase.from('oeuvres').select('id_oeuvre, titre, id_auteur, note').ilike('titre', `%${q}%`).limit(7)
       if (auteurConfirme) req = req.eq('id_auteur', auteurConfirme.id_auteur)
       const { data } = await req
-      setSuggestionsOeuvre(((data ?? []) as Oeuvre[]).filter(o => !essaisOeuvres.some(e => e.id_oeuvre === o.id_oeuvre)))
+      setSuggestionsOeuvre(((data ?? []) as Oeuvre[]).filter(o => estOeuvrePubliee(o) && !essaisOeuvres.some(e => e.id_oeuvre === o.id_oeuvre)))
     }, 250)
     return () => clearTimeout(t)
   }, [saisieOeuvre, essaisOeuvres, auteurConfirme])

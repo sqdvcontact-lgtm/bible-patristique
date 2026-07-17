@@ -3,6 +3,7 @@ import { erreur500 } from '@/app/lib/apiErreur'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
+import { colonnesPeriodeHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -108,14 +109,18 @@ export async function POST(req: Request) {
     }
 
     // 4. Créer la ligne dans traductions
+    const datesNormalisees = normaliserDateHistoriqueTexte(dates)
+    const datePublicationNormalisee = normaliserDateHistoriqueTexte(date_publication)
     const { error: tradErr } = await supabaseAdmin.from('traductions').insert({
       trad_id,
       nom,
       auteur: auteur || null,
-      dates: dates || null,
+      dates: datesNormalisees,
+      ...colonnesPeriodeHistorique('traducteur', datesNormalisees),
       bio_courte: bio_courte || null,
       commentaire_editorial: commentaire_editorial || null,
-      date_publication: date_publication || null,
+      date_publication: datePublicationNormalisee,
+      ...colonnesPeriodeHistorique('publication', datePublicationNormalisee),
       confession: confession || null,
       langue: langue || null,
       ordre: ordre ? parseInt(ordre) : 99,

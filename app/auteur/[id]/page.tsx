@@ -5,13 +5,15 @@ import type { CSSProperties } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
+import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
 type OeuvreResumee = {
   id_oeuvre: string; titre: string; sous_titre: string | null
   trad_auteur: string | null; editeur: string | null
-  ville: string | null; date_publication: string | null; langue: string | null
+  ville: string | null; date_publication: string | null; langue: string | null; note?: string | null
 }
 
 type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
@@ -91,12 +93,12 @@ export default function PageAuteur() {
       .from('auteurs')
       .select(`id_auteur, nom, nom_original, titre, dates, siecle, traditions, photo_position,
         note_biographique, note_theologique, langue_principale,
-        oeuvres ( id_oeuvre, titre, sous_titre, trad_auteur, editeur, ville, date_publication, langue )`)
+        oeuvres ( id_oeuvre, titre, sous_titre, trad_auteur, editeur, ville, date_publication, langue, note )`)
       .eq('id_auteur', id)
       .maybeSingle()
       .then(({ data, error }) => {
         if (error || !data) { setErreur(true); return }
-        setAuteur(data as Auteur)
+        setAuteur({ ...(data as Auteur), oeuvres: ((data as Auteur).oeuvres ?? []).filter(estOeuvrePubliee) })
       })
   }, [id])
 
@@ -118,6 +120,7 @@ export default function PageAuteur() {
   const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${id}.jpg${photoVersion ? `?v=${photoVersion}` : ''}`
   const photoPos = parseAuteurPhotoPositions(auteur.photo_position).fiche
   const siecleLabel = auteur.siecle ? `${enChiffresRomains(auteur.siecle)}e siècle` : null
+  const datesAuteur = formaterDateHistorique(auteur.dates)
 
   return (
     <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', padding: '48px 20px 80px', display: 'flex', justifyContent: 'center' }}>
@@ -143,7 +146,7 @@ export default function PageAuteur() {
               <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic', margin: '0 0 6px' }}>{auteur.nom_original}</p>
             )}
             <p style={{ fontSize: '11.5px', color: '#b0a89e', margin: 0 }}>
-              {[auteur.dates, siecleLabel, auteur.langue_principale].filter(Boolean).join(' · ')}
+              {[datesAuteur, siecleLabel, auteur.langue_principale].filter(Boolean).join(' · ')}
             </p>
             {auteur.traditions && auteur.traditions.length > 0 && (
               <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginTop: '8px' }}>
@@ -193,7 +196,7 @@ export default function PageAuteur() {
                   )}
                   {(o.trad_auteur || o.editeur || o.date_publication) && (
                     <p style={{ fontSize: '10.5px', color: '#b0a89e', margin: 0 }}>
-                      {[o.trad_auteur ? `trad. ${o.trad_auteur}` : null, o.editeur, o.date_publication].filter(Boolean).join(' · ')}
+                      {[o.trad_auteur ? `trad. ${o.trad_auteur}` : null, o.editeur, formaterDateHistorique(o.date_publication)].filter(Boolean).join(' · ')}
                     </p>
                   )}
                 </Link>

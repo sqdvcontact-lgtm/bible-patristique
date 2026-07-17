@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
+import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 
 type Notice = {
   id: number
@@ -83,8 +84,8 @@ function majPremierMot(valeur: unknown) {
 }
 
 function datePublication(n: Notice) {
-  if (n.annee_edition) return String(n.annee_edition)
-  return n.siecle_edition
+  if (n.annee_edition) return formaterDateHistorique(n.annee_edition)
+  return formaterDateHistorique(n.siecle_edition)
 }
 
 function titreDeclineNotice(n: Notice) {
@@ -166,7 +167,7 @@ function DetailNotice({ n }: { n: Notice }) {
       <GroupeNotice titre="Auteur">
         <ChampNotice label="Auteur" valeur={n.auteur} />
         <ChampNotice label="Authenticite" valeur={n.authenticite} transform={majuscule} />
-        <ChampNotice label="Dates auteur" valeur={n.dates_auteur} />
+        <ChampNotice label="Dates auteur" valeur={formaterDateHistorique(n.dates_auteur)} />
       </GroupeNotice>
 
       <GroupeNotice titre="Titres">
@@ -185,7 +186,7 @@ function DetailNotice({ n }: { n: Notice }) {
       <GroupeNotice titre="Classification">
         <ChampNotice label="Genre" valeur={n.genre} transform={majPremierMot} />
         <ChampNotice label="Langue d'origine" valeur={n.langue_originale} transform={majPremierMot} />
-        <ChampNotice label="Date de premiere publication" valeur={n.date_oeuvre} />
+        <ChampNotice label="Date de premiere publication" valeur={formaterDateHistorique(n.date_oeuvre)} />
       </GroupeNotice>
 
       <GroupeNotice titre="Import">
@@ -326,7 +327,7 @@ export default function SectionVerificationCatalogue() {
                       <span style={{ fontSize: '12.2px', fontWeight: 500, color: '#3f3832', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '360px', fontStyle: n.titre_edition || n.titre_original ? 'italic' : 'normal' }}>
                         {titreDeclineNotice(n)}
                       </span>
-                      {n.dates_auteur && <span style={{ fontSize: '10px', color: '#b0a89e' }}>{n.dates_auteur}</span>}
+                      {n.dates_auteur && <span style={{ fontSize: '10px', color: '#b0a89e' }}>{formaterDateHistorique(n.dates_auteur)}</span>}
                     </div>
                     <div style={{ fontSize: '10px', color: '#b0a89e', marginTop: '2px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                       {n.traducteur && <span>trad. {n.traducteur}</span>}

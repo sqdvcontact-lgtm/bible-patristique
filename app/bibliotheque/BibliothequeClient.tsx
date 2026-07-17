@@ -8,7 +8,7 @@ import { supabase } from '@/app/lib/supabase'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
-import { formaterDateHistorique, parserDateHistorique } from '@/app/lib/datesHistoriques'
+import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { libelleTrad } from '@/app/oeuvre/[id]/PageTitre'
 
 type Oeuvre = {
@@ -67,20 +67,6 @@ function stylePhotoAuteur(pos: AuteurPhotoPos): React.CSSProperties {
 
 function sansAccents(s: string): string { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase() }
 
-function formaterDatesElegant(dates: string | null | undefined): string {
-  if (!dates) return ''
-  const periode = parserDateHistorique(dates)
-  if (!periode) return formaterDateHistorique(dates)
-  const b = (borne: { annee: number; precision?: string | null }) => {
-    const prefix = borne.precision === 'vers' ? 'v. ' : borne.precision === 'circa' ? 'c. ' : ''
-    return prefix + String(borne.annee)
-  }
-  if (periode.debut && periode.fin) return `${b(periode.debut)} – ${b(periode.fin)}`
-  if (periode.debut) return b(periode.debut)
-  if (periode.fin) return `† ${b(periode.fin)}`
-  return ''
-}
-
 function extraireAnnee(s: string | null | undefined): number | null {
   if (!s) return null
   const m = s.match(/\d+/)
@@ -108,7 +94,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
   const nb = auteur.oeuvres.length
   const nbMot = enLettres(nb)
   const photoPos = parseAuteurPhotoPositions(auteur.photo_position).carte
-  const datesAuteur = formaterDatesElegant(auteur.dates)
+  const datesAuteur = formaterDateHistorique(auteur.dates)
 
   return (
     <div
@@ -131,13 +117,13 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
           </div>
         </div>
 
-        <div style={{ flex: 1, padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+        <div style={{ flex: 1, padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div>
-            <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '14.5px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 3px' }}>
+            <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '14.5px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
               {auteur.nom}
             </h2>
             {datesAuteur && (
-              <p style={{ fontSize: '11.5px', color: '#9a8a70', margin: 0, fontFamily: 'Georgia, serif', fontStyle: 'italic', letterSpacing: '0.01em' }}>{datesAuteur}</p>
+              <p style={{ fontSize: '11.5px', color: '#9a8a70', margin: '2px 0 0', fontFamily: 'Georgia, serif', fontStyle: 'italic', letterSpacing: '0.01em' }}>{datesAuteur}</p>
             )}
           </div>
 
@@ -165,18 +151,29 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
 
       {listeOuverte && (
         <div style={{ borderTop: '1px solid #ede9e2', padding: '8px 0 12px' }}>
+          <style>{`
+            .bib-ligne { display: flex; align-items: stretch; transition: background 0.12s; }
+            .bib-ligne:hover:not(.bib-correspond) { background: rgba(61,107,79,0.04); }
+            .bib-correspond { background: rgba(61,107,79,0.07); }
+            .bib-ligne:first-child:hover:not(.bib-correspond) {
+              background: linear-gradient(to bottom, transparent 0%, rgba(61,107,79,0.04) 45%);
+            }
+            .bib-ligne:last-child:hover:not(.bib-correspond) {
+              background: linear-gradient(to top, transparent 0%, rgba(61,107,79,0.04) 45%);
+            }
+          `}</style>
           {oeuvresTriees.map((o, idx) => {
             const correspond = oeuvreCorrespondante?.id_oeuvre === o.id_oeuvre
             const estFavori = favorisOeuvres.has(o.id_oeuvre)
             const edition = [o.editeur, o.ville, formaterDateHistorique(o.date_publication)].filter(Boolean).join(', ')
             const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
-            const meta = edition && trad ? `${edition} – ${trad}` : edition || trad
+            const meta = edition && trad ? `${edition} - ${trad}` : edition || trad
             return (
-              <div key={o.id_oeuvre} style={{ display: 'flex', alignItems: 'stretch', borderTop: idx > 0 ? '1px solid #f3efe9' : 'none' }}>
+              <div key={o.id_oeuvre}
+                className={`bib-ligne${correspond ? ' bib-correspond' : ''}`}
+                style={{ borderTop: idx > 0 ? '1px solid #f3efe9' : 'none' }}>
                 <Link href={`/oeuvre/${o.id_oeuvre}`}
-                  style={{ flex: 1, display: 'block', padding: '9px 16px 9px 20px', textDecoration: 'none', background: correspond ? 'rgba(61,107,79,0.07)' : 'transparent', borderLeft: correspond ? '3px solid #3d6b4f' : '3px solid transparent', transition: 'background 0.12s' }}
-                  onMouseEnter={e => { if (!correspond) (e.currentTarget as HTMLElement).style.background = 'rgba(61,107,79,0.04)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = correspond ? 'rgba(61,107,79,0.07)' : 'transparent' }}>
+                  style={{ flex: 1, display: 'block', padding: '9px 16px 9px 20px', textDecoration: 'none', borderLeft: correspond ? '3px solid #3d6b4f' : '3px solid transparent' }}>
                   <span style={{ display: 'block', fontSize: '13px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: correspond ? '#2a4d35' : '#2a3d30', fontWeight: correspond ? 600 : 400, lineHeight: 1.35 }}>{o.titre}</span>
                   {meta && (
                     <span style={{ display: 'block', fontSize: '10.5px', color: '#a59c90', marginTop: '2px', lineHeight: 1.4 }}>{meta}</span>

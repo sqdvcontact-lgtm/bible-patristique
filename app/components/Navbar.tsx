@@ -7,15 +7,15 @@ import { supabase } from "@/app/lib/supabase";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { chargerNotificationsUtilisateur, cleArchivesNotifications, cleNotificationsConnues, lireSetLocalStorage } from "@/app/lib/notificationsClient";
 import { LIVRES } from "@/app/lib/bible";
+import { estOeuvrePubliee } from "@/app/lib/oeuvresPublication";
 
 const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean }[] = [
   { href: "/?livre=GEN&chapitre=1", label: "Bible", exact: true },
   { href: "/bibliotheque", label: "Patristique" },
   { href: "/essais", label: "Publications" },
-];
-const LIENS_SECONDAIRES: { href: string; label: string }[] = [
   { href: "/traductions", label: "Aller plus loin" },
 ];
+const LIENS_SECONDAIRES: { href: string; label: string }[] = [];
 
 // ── Données statiques pour la recherche rapide ───────────────────────────────
 const LIVRES_RECHERCHE = LIVRES.map(({ code, nom }) => ({ code, nom }));
@@ -95,7 +95,7 @@ export default function Navbar() {
   const [rechercheOuverte, setRechercheOuverte] = useState(false);
   const [auteursTrouves, setAuteursTrouves] = useState<{ id_auteur: string; nom: string }[]>([]);
   const [essaisTrouves, setEssaisTrouves] = useState<{ id: number; titre: string }[]>([]);
-  const [oeuvresTrouvees, setOeuvresTrouvees] = useState<{ id_oeuvre: string; titre: string; auteurs: { nom: string } | null }[]>([]);
+  const [oeuvresTrouvees, setOeuvresTrouvees] = useState<{ id_oeuvre: string; titre: string; auteurs: { nom: string } | null; note?: string | null }[]>([]);
   const [segmentsTrouves, setSegmentsTrouves] = useState<{ id: number; segment_texte: string; id_oeuvre: string; auteur_nom: string; oeuvre_titre: string }[]>([]);
 
   useEffect(() => {
@@ -107,9 +107,9 @@ export default function Navbar() {
       supabase.from('essais').select('id, titre').eq('statut', 'publie')
         .or(`titre.ilike.%${q}%,resume.ilike.%${q}%`).limit(4)
         .then(({ data }) => setEssaisTrouves(data ?? []));
-      supabase.from('oeuvres').select('id_oeuvre, titre, auteurs(nom)').ilike('titre', `%${q}%`).limit(5)
+      supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs(nom)').ilike('titre', `%${q}%`).limit(5)
         .then(({ data }) => setOeuvresTrouvees(
-          (data ?? []).map((o: any) => ({ ...o, auteurs: Array.isArray(o.auteurs) ? (o.auteurs[0] ?? null) : o.auteurs }))
+          (data ?? []).filter(estOeuvrePubliee).map((o: any) => ({ ...o, auteurs: Array.isArray(o.auteurs) ? (o.auteurs[0] ?? null) : o.auteurs }))
         ));
       supabase.from('segments').select('id, segment_texte, id_oeuvre')
         .ilike('segment_texte', `%${q}%`).eq('nature', 'texte').limit(3)
@@ -117,15 +117,15 @@ export default function Navbar() {
           const segs = data ?? []
           if (!segs.length) { setSegmentsTrouves([]); return }
           const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
-          const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, auteurs(nom)').in('id_oeuvre', oeuvreIds)
+          const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs(nom)').in('id_oeuvre', oeuvreIds)
           const oMap: Record<string, { oeuvre_titre: string; auteur_nom: string }> = {}
-          for (const o of (oeuvres ?? []) as any[]) {
+          for (const o of ((oeuvres ?? []) as any[]).filter(estOeuvrePubliee)) {
             oMap[o.id_oeuvre] = {
               oeuvre_titre: o.titre ?? '',
               auteur_nom: (Array.isArray(o.auteurs) ? o.auteurs[0]?.nom : o.auteurs?.nom) ?? '',
             }
           }
-          setSegmentsTrouves(segs.map((s: any) => ({ id: s.id, segment_texte: s.segment_texte, id_oeuvre: s.id_oeuvre, ...(oMap[s.id_oeuvre] ?? { oeuvre_titre: '', auteur_nom: '' }) })))
+          setSegmentsTrouves(segs.filter((s: any) => oMap[s.id_oeuvre]).map((s: any) => ({ id: s.id, segment_texte: s.segment_texte, id_oeuvre: s.id_oeuvre, ...(oMap[s.id_oeuvre] ?? { oeuvre_titre: '', auteur_nom: '' }) })))
         });
     }, 250);
     return () => clearTimeout(t);
@@ -414,19 +414,35 @@ export default function Navbar() {
           </div>
         )}
         {[
-          { href: "/compte", label: "Mon compte", badge: 0 },
-          { href: "/messagerie", label: "Messages", badge: nbMessages },
-          { href: "/notifications", label: "Notifications", badge: nbNotifications },
-          ...(pseudo ? [{ href: `/profil/${encodeURIComponent(pseudo)}`, label: "Ma page", badge: 0 }] : []),
-          ...(estAdminAffiche ? [{ href: "/admin", label: "Administration", badge: nbActionsAdmin + nbVerifAdmin }] : []),
+          { href: "/compte", label: "Mon compte", badge: 0, icone: null },
+          ...(pseudo ? [{ href: `/profil/${encodeURIComponent(pseudo)}`, label: "Ma page", badge: 0, icone: null }] : []),
+          { href: "/prelevements", label: "Mes citations", badge: 0, icone: null },
+          { href: "/progression", label: "Ma progression", badge: 0, icone: null },
+          ...(estAdminAffiche ? [{ href: "/admin", label: "Administration", badge: nbActionsAdmin + nbVerifAdmin, icone: "epee" }] : []),
         ].map(item => (
           <Link key={item.href} href={item.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}
             style={mobile
-              ? { display: "block", padding: "10px 12px", fontSize: "13px", color: "rgba(255,255,255,0.85)", textDecoration: "none" }
-              : { display: "block", padding: "10px 14px", fontSize: "12.5px", color: "#2a3d30", textDecoration: "none", borderBottom: "1px solid #ede9e2" }}>
+              ? { display: "flex", alignItems: "center", gap: "7px", padding: "10px 12px", fontSize: "13px", color: "rgba(255,255,255,0.85)", textDecoration: "none" }
+              : { display: "flex", alignItems: "center", gap: "7px", padding: "10px 14px", fontSize: "12.5px", color: "#2a3d30", textDecoration: "none", borderBottom: "1px solid #ede9e2" }}>
+            {item.icone === "epee" && (
+              <svg width="11" height="14" viewBox="0 0 12 15" aria-hidden="true" style={{ flexShrink: 0, opacity: 0.72 }}>
+                {/* Flamme */}
+                <path d="M6 1.2C5 2.8 3.4 4.3 3.4 6.5C3.4 8.6 4.5 9.8 6 9.8C7.5 9.8 8.6 8.6 8.6 6.5C8.6 4.3 7 2.8 6 1.2Z" fill="currentColor" opacity="0.28"/>
+                {/* Lame — pointe en haut */}
+                <path d="M6 0.5L4.6 6.2H7.4Z" fill="currentColor"/>
+                {/* Corps de la lame */}
+                <rect x="5.3" y="6.2" width="1.4" height="3.2" fill="currentColor"/>
+                {/* Garde */}
+                <rect x="2.2" y="9.2" width="7.6" height="1.2" rx="0.5" fill="currentColor"/>
+                {/* Poignée */}
+                <rect x="5.3" y="10.4" width="1.4" height="2.4" fill="currentColor"/>
+                {/* Pommeau */}
+                <circle cx="6" cy="13.7" r="1" fill="currentColor"/>
+              </svg>
+            )}
             <span>{item.label}</span>
             {item.badge > 0 && (
-              <span style={{ marginLeft: '8px', fontSize: '10px', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
+              <span style={{ marginLeft: '4px', fontSize: '10px', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
             )}
           </Link>
         ))}
@@ -465,18 +481,6 @@ export default function Navbar() {
             {LIENS_PRIMAIRES.map(({ href, label, exact }) => (
               <Link key={href} href={href} style={styleLien(href, exact, true)}>{label}</Link>
             ))}
-            <span style={{ width: "1px", height: "18px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)", margin: "0 5px" }} />
-            <div style={{ display: "flex", alignItems: "center", gap: "1px", flexShrink: 0 }}>
-              {LIENS_SECONDAIRES.map(({ href, label }) => (
-                <Link key={href} href={href} style={styleLienDiscret(href)}>{label}</Link>
-              ))}
-              {user && (
-                <Link href="/prelevements" style={styleLienDiscret("/prelevements")}>Mes citations</Link>
-              )}
-              <Link href="/soutenir" style={styleLienDiscret("/soutenir")}>
-                <IconCoeur /> Soutenir le projet
-              </Link>
-            </div>
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "8px", paddingLeft: "12px", borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
               {blocRecherche(false)}
             </div>
@@ -487,6 +491,12 @@ export default function Navbar() {
             {toggleAdmin(false)}
             {(estAdmin || estAdminEmail) && (
               <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 4px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
+            )}
+            <Link href="/soutenir" style={styleLienDiscret("/soutenir")}>
+              <IconCoeur /> Soutenir le projet
+            </Link>
+            {user && (
+              <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 2px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
             )}
             {user && (
               <Link href="/messagerie" aria-label="Messages" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', color: nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', textDecoration: 'none', background: nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
@@ -547,12 +557,6 @@ export default function Navbar() {
               })}
             </div>
             {blocRecherche(true)}
-            {user && (
-              <Link href="/prelevements" onClick={() => setMobileOuvert(false)}
-                style={{ padding: "9px 10px", borderRadius: "6px", fontSize: "14px", color: "#fff", textDecoration: "none", background: pathname.startsWith("/prelevements") ? "rgba(255,255,255,0.12)" : "transparent" }}>
-                Mes citations
-              </Link>
-            )}
             <Link href="/soutenir" onClick={() => setMobileOuvert(false)}
               style={{ display: "flex", alignItems: "center", gap: "6px", padding: "9px 10px", borderRadius: "6px", fontSize: "14px", color: "#fff", textDecoration: "none" }}>
               <IconCoeur /> Soutenir le projet

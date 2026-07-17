@@ -1,9 +1,11 @@
 'use client'
 
 import React, { useState, useRef, useCallback } from 'react'
+import DOMPurify from 'dompurify'
 import { supabase, headersAdmin } from './adminShared'
 import type { Traduction } from './adminTypes'
 import { revaliderTraductions } from '@/app/actions/revalider'
+import { colonnesPeriodeHistorique, formaterDateHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
 
 type PhotoPos = { x: number; y: number; scale: number }
 type PhotoPositions = { bandeau: PhotoPos; lateral: PhotoPos }
@@ -92,7 +94,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
     onClose()
   }
 
-  const meta = [t.langue, t.date_publication].filter(Boolean).join(' · ')
+  const meta = [t.langue, formaterDateHistorique(t.date_publication)].filter(Boolean).join(' · ')
   const ombre = '0 1px 2px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.65), 0 4px 20px rgba(0,0,0,0.35)'
   const activePos = positions[active]
   const isDragging = !!dragRef.current
@@ -109,7 +111,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
 
   // Simplification du commentaire editorial pour l'affichage dans la modale
   const htmlEditorial = t.commentaire_editorial
-    ? (t.commentaire_editorial.startsWith('<')
+    ? DOMPurify.sanitize(t.commentaire_editorial.startsWith('<')
         ? t.commentaire_editorial
         : t.commentaire_editorial.split(/\n+/).filter(Boolean)
             .map(l => `<p style="color:#2a2520;font-size:13.5px;line-height:1.78;margin:0 0 12px">${l}</p>`)
@@ -507,9 +509,16 @@ export default function SectionTraductions({ traductions: init }: { traductions:
 
   const sauvegarder = async () => {
     if (!edition) return
-    const { error } = await supabase.from('traductions').update(form).eq('trad_id', edition)
+    const datesNormalisees = Object.prototype.hasOwnProperty.call(form, 'dates') ? normaliserDateHistoriqueTexte(form.dates) : undefined
+    const datePublicationNormalisee = Object.prototype.hasOwnProperty.call(form, 'date_publication') ? normaliserDateHistoriqueTexte(form.date_publication) : undefined
+    const payload = {
+      ...form,
+      ...(datesNormalisees !== undefined ? { dates: datesNormalisees, ...colonnesPeriodeHistorique('traducteur', datesNormalisees) } : {}),
+      ...(datePublicationNormalisee !== undefined ? { date_publication: datePublicationNormalisee, ...colonnesPeriodeHistorique('publication', datePublicationNormalisee) } : {}),
+    }
+    const { error } = await supabase.from('traductions').update(payload).eq('trad_id', edition)
     if (error) { setStatut({ id: edition, ok: false, msg: error.message }); return }
-    setLignes(prev => prev.map(t => t.trad_id === edition ?{ ...t, ...form } as Traduction : t))
+    setLignes(prev => prev.map(t => t.trad_id === edition ?{ ...t, ...payload } as Traduction : t))
     setStatut({ id: edition, ok: true, msg: 'Enregistré.' })
     await revaliderTraductions()
     setTimeout(() => { setStatut(null); fermer() }, 1200)
@@ -647,7 +656,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
               <span style={{ fontFamily: "Georgia, serif", fontSize: '14px', color: '#2a3d30' }}>{t.nom}</span>
-              {t.dates && <span style={{ fontSize: '11px', color: '#9a958d' }}>{t.dates}</span>}
+              {t.dates && <span style={{ fontSize: '11px', color: '#9a958d' }}>{formaterDateHistorique(t.dates)}</span>}
               {t.import_maj_le && (
                 <span style={{ fontSize: '10px', color: '#b0a89e', fontStyle: 'italic' }}>
                   import · {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}

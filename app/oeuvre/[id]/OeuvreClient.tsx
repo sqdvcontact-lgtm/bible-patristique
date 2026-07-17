@@ -19,6 +19,8 @@ import AssocierVerset from './AssocierVerset'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import ModalSignalement from './ModalSignalement'
 import { insererSignalement } from './signalements'
+import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 
 const CHARS_PAR_PAGE = 15000
 
@@ -152,10 +154,10 @@ function rendreTitreColophon(texte: string) {
     <span
       className="titre-colophon"
       lang="fr"
-      style={{ display: 'block', maxWidth: '650px', margin: '0 auto', textAlign: 'center', lineHeight: 1.24, wordSpacing: '-0.04em', letterSpacing: '-0.004em', hyphens: 'auto', WebkitHyphens: 'auto' } as React.CSSProperties}
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '650px', margin: '0 auto', lineHeight: 1.24, wordSpacing: '-0.04em', letterSpacing: '-0.004em', hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}
     >
       {lignes.map((ligne, index) => (
-        <span key={`${ligne}-${index}`} style={{ display: 'block', width: largeurs[index] ?? '14%', margin: '0 auto' }}>
+        <span key={`${ligne}-${index}`} style={{ display: 'block', whiteSpace: 'nowrap', textAlign: 'center' }}>
           {rendreTexteEnrichi(ligne)}
         </span>
       ))}
@@ -819,11 +821,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
   useEffect(() => {
     if (!auteurId) return
-    supabase.from('oeuvres').select('id_oeuvre, titre')
+    supabase.from('oeuvres').select('id_oeuvre, titre, note')
       .eq('id_auteur', auteurId)
       .neq('id_oeuvre', idOeuvre)
       .order('titre')
-      .then(({ data }) => setOeuvresAuteur(data ?? []))
+      .then(({ data }) => setOeuvresAuteur(((data ?? []) as any[]).filter(estOeuvrePubliee)))
   }, [auteurId, idOeuvre])
 
   const chargerSauvegardesSegs = async (uid: string, oeuvreId: string) => {
@@ -1140,7 +1142,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               return (
                 <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
                   {showNiv2 && (
-                    <div style={{ textAlign: 'center', marginTop: marginTop, marginBottom: '1rem', paddingTop: '0.5rem', paddingRight: estAdmin ? '52px' : '8px', position: 'relative' }}>
+                    <div style={{ textAlign: 'center', marginTop: marginTop, marginBottom: '1rem', paddingTop: '0.5rem', paddingRight: estAdmin ? '52px' : '60px', position: 'relative' }}>
                       <h3 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '1.1rem', fontWeight: 400, color: '#2a3d30', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophon(groupe.niv2)}</h3>
                       {groupe.niv2_texte && configNiveaux.txtCorps[1] && <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '0.92rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophon(groupe.niv2_texte)}</p>}
                       {estAdmin && (
@@ -1449,7 +1451,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 {oeuvreLocale.date_composition && (
                   <div style={{ marginBottom: '6px' }}>
                     <span style={{ fontSize: '9px', color: '#b0a89e', display: 'block', marginBottom: '1px' }}>Date de composition</span>
-                    <span style={{ fontSize: '12px', color: '#3a3530' }}>{oeuvreLocale.date_composition}</span>
+                    <span style={{ fontSize: '12px', color: '#3a3530' }}>{formaterDateHistorique(oeuvreLocale.date_composition)}</span>
                   </div>
                 )}
                 {oeuvreLocale.langue && (
@@ -1478,13 +1480,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 {oeuvreLocale.trad_auteur && (
                   <div style={{ marginBottom: '6px' }}>
                     <span style={{ fontSize: '9px', color: '#b0a89e', display: 'block', marginBottom: '1px' }}>Traduction</span>
-                    <span style={{ fontSize: '12px', color: '#3a3530' }}>{libelleTrad(oeuvreLocale.trad_auteur)}{oeuvreLocale.trad_date ? ` (${oeuvreLocale.trad_date})` : ''}</span>
+                    <span style={{ fontSize: '12px', color: '#3a3530' }}>{libelleTrad(oeuvreLocale.trad_auteur)}{oeuvreLocale.trad_date ? ` (${formaterDateHistorique(oeuvreLocale.trad_date)})` : ''}</span>
                   </div>
                 )}
                 {(oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication) && (
                   <div style={{ marginBottom: '6px' }}>
                     <span style={{ fontSize: '9px', color: '#b0a89e', display: 'block', marginBottom: '1px' }}>Publication</span>
-                    <span style={{ fontSize: '12px', color: '#3a3530' }}>{[oeuvreLocale.editeur, oeuvreLocale.ville, oeuvreLocale.date_publication].filter(Boolean).join(', ')}</span>
+                    <span style={{ fontSize: '12px', color: '#3a3530' }}>{[oeuvreLocale.editeur, oeuvreLocale.ville, formaterDateHistorique(oeuvreLocale.date_publication)].filter(Boolean).join(', ')}</span>
                   </div>
                 )}
                 {oeuvreLocale.collection && (

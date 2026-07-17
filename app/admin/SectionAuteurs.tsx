@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { supabase, SiecleDisplay } from './adminShared'
+import { colonnesPeriodeHistorique, formaterDateHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
 
 export default function SectionAuteurs() {
   const [auteurs, setAuteurs] = React.useState<any[]>([])
@@ -67,10 +68,12 @@ export default function SectionAuteurs() {
       if (!isNaN(num)) prochainNum = num + 1
     }
     const idAuteur = `A${String(prochainNum).padStart(4, '0')}`
+    const datesNormalisees = normaliserDateHistoriqueTexte(nouvel.dates)
     const { data, error } = await supabase.from('auteurs').insert({
       id_auteur: idAuteur,
       nom: nouvel.nom.trim(),
-      dates: nouvel.dates || null,
+      dates: datesNormalisees,
+      ...colonnesPeriodeHistorique('date', datesNormalisees),
       siecle: nouvel.siecle || null,
       tradition: nouvel.tradition || null,
       note: nouvel.note || null,
@@ -161,7 +164,7 @@ export default function SectionAuteurs() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flex: 1, minWidth: 0 }}>
                       <span style={{ fontFamily: "Georgia, serif", fontSize: '14px', color: '#2a3d30' }}>{a.nom}</span>
-                      {a.dates && <span style={{ fontSize: '11px', color: '#9a958d' }}>{a.dates}</span>}
+                      {a.dates && <span style={{ fontSize: '11px', color: '#9a958d' }}>{formaterDateHistorique(a.dates)}</span>}
                       {a.siecle && <span style={{ fontSize: '10.5px', color: '#9a958d' }}><SiecleDisplay n={parseInt(a.siecle)} /></span>}
                       {a.tradition && <span style={{ fontSize: '10.5px', color: '#9a958d', background: '#eeeae4', padding: '1px 6px', borderRadius: '3px' }}>{a.tradition}</span>}
                     </div>

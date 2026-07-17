@@ -3,6 +3,7 @@ import { erreur500 } from '@/app/lib/apiErreur'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
+import { colonnesPeriodeHistoriqueDepuisBornes, extraireAnneeDateHistorique, formaterPeriodeHistoriqueDepuisBornes, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,9 +11,8 @@ const supabaseAdmin = createClient(
 )
 
 function deriverSiecle(dateMort: string | null | undefined): number | null {
-  if (!dateMort) return null
-  const annee = parseInt(dateMort.replace(/[^-\d]/g, ''))
-  if (isNaN(annee)) return null
+  const annee = extraireAnneeDateHistorique(dateMort)
+  if (annee === null) return null
   return annee > 0 ? Math.ceil(annee / 100) : Math.floor(annee / 100)
 }
 
@@ -35,9 +35,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Le nom est requis.' }, { status: 400 })
   }
 
-  const dateNaissance = champs.date_naissance || null
-  const dateMort = champs.date_mort || null
-  const datesReconstituees = [dateNaissance, dateMort].filter(Boolean).join('–') || null
+  const dateNaissance = normaliserDateHistoriqueTexte(champs.date_naissance)
+  const dateMort = normaliserDateHistoriqueTexte(champs.date_mort)
+  const datesReconstituees = formaterPeriodeHistoriqueDepuisBornes(dateNaissance, dateMort)
   const siecle = deriverSiecle(dateMort)
   const traditions = Array.isArray(champs.traditions) ? champs.traditions : []
 
@@ -48,6 +48,7 @@ export async function POST(request: Request) {
     date_naissance: dateNaissance,
     date_mort: dateMort,
     dates: datesReconstituees,
+    ...colonnesPeriodeHistoriqueDepuisBornes('date', dateNaissance, dateMort),
     siecle: siecle,
     traditions: traditions,
     note_biographique: champs.note_biographique || null,

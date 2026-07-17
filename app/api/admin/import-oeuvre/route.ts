@@ -2,6 +2,7 @@
 import { erreur500 } from '@/app/lib/apiErreur'
 import { createClient } from '@supabase/supabase-js'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
+import { colonnesPeriodeHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,7 +40,7 @@ function nulSiVide(v: unknown): string | null {
   return s ? s : null
 }
 
-const FIABILITE_VALIDES = ['vérifié', 'probable', 'erreur probable', 'Lien à constituer']
+const FIABILITE_VALIDES = ['probable', 'Lien à constituer']
 const NATURE_VALIDES = ['texte', 'separateur', 'apparat_critique', 'citation', 'texte absent']
 
 function normaliserSegment(s: SegmentCsv, idOeuvre: string, index: number) {
@@ -71,19 +72,14 @@ async function rollback(idOeuvre: string) {
   await supabaseAdmin.from('oeuvres').delete().eq('id_oeuvre', idOeuvre)
 }
 
-async function genererIdOeuvre(idAuteur: string): Promise<string> {
+async function prochainIdOeuvre(idAuteur: string): Promise<string> {
   const { data } = await supabaseAdmin
     .from('oeuvres').select('id_oeuvre').eq('id_auteur', idAuteur)
-    .order('id_oeuvre', { ascending: false })
-  let prochainNum = 1
-  if (data && data.length > 0) {
-    const nums = data.map((d: any) => {
-      const match = (d.id_oeuvre as string).match(/O(\d+)$/)
-      return match ? parseInt(match[1]) : 0
-    })
-    prochainNum = Math.max(...nums) + 1
-  }
-  return `${idAuteur}O${String(prochainNum).padStart(4, '0')}`
+    .order('id_oeuvre', { ascending: false }).limit(1)
+  const dernier = data?.[0]?.id_oeuvre as string | undefined
+  const match = dernier?.match(/O(\d+)$/)
+  const num = match ? parseInt(match[1]) + 1 : 1
+  return `${idAuteur}O${String(num).padStart(4, '0')}`
 }
 
 export async function POST(request: Request) {
@@ -102,7 +98,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Aucun segment à importer.' }, { status: 400 })
   }
 
-  const idOeuvre = meta.id_oeuvre?.trim() || await genererIdOeuvre(meta.id_auteur)
+  const idOeuvre = meta.id_oeuvre?.trim() || await prochainIdOeuvre(meta.id_auteur)
 
   const { data: existante } = await supabaseAdmin
     .from('oeuvres').select('id_oeuvre').eq('id_oeuvre', idOeuvre).maybeSingle()
@@ -116,6 +112,9 @@ export async function POST(request: Request) {
     await rollback(idOeuvre)
   }
 
+  const datePublication = normaliserDateHistoriqueTexte(meta.date_publication)
+  const dateComposition = normaliserDateHistoriqueTexte(meta.date_composition)
+
   const oeuvrePayload = {
     id_oeuvre: idOeuvre,
     id_auteur: meta.id_auteur,
@@ -127,8 +126,10 @@ export async function POST(request: Request) {
     collection: nulSiVide(meta.collection),
     ville: nulSiVide(meta.ville),
     url_source: nulSiVide(meta.url_source),
-    date_publication: nulSiVide(meta.date_publication),
-    date_composition: nulSiVide(meta.date_composition),
+    date_publication: datePublication,
+    date_composition: dateComposition,
+    ...colonnesPeriodeHistorique('publication', datePublication),
+    ...colonnesPeriodeHistorique('composition', dateComposition),
     genres: Array.isArray(meta.genres) ? meta.genres : [],
     langue: nulSiVide(meta.langue),
   }
