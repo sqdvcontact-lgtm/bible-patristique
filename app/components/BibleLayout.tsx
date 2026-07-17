@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import NavLivres from './NavLivres'
 import TexteBible from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
@@ -45,6 +45,56 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   const isDirty = navWidth !== NAV_DEFAULT || pannWidth !== PANN_DEFAULT
   const reset = () => { setNavWidth(NAV_DEFAULT); setPannWidth(PANN_DEFAULT) }
 
+  // Cache des livres vides par traduction : { TR0001: Set<'GEN'|'SIR'|...>, ... }
+  const livresVidesCache = useRef<Record<string, Set<string>>>({})
+  const [, setLivresVidesVersion] = useState(0)
+
+  const traduction = listeTraductions[traductionIndex]?.code ?? 'TR0001'
+
+  useEffect(() => {
+    const trad = traduction
+    const livre = livreActif
+    const tousVides = versets.length === 0 || versets.every(v => !v[trad])
+    const cache = livresVidesCache.current
+    if (!cache[trad]) cache[trad] = new Set()
+    const estVideEnCache = cache[trad].has(livre)
+    if (tousVides && !estVideEnCache) {
+      cache[trad].add(livre)
+      setLivresVidesVersion(v => v + 1)
+    } else if (!tousVides && estVideEnCache) {
+      cache[trad].delete(livre)
+      setLivresVidesVersion(v => v + 1)
+    }
+  }, [versets, traduction, livreActif])
+
+  // Pré-remplit le cache dès que la traduction change :
+  // interroge la DB pour obtenir la liste des livres qui ont au moins un verset
+  // dans cette traduction, puis marque tous les autres comme vides.
+  useEffect(() => {
+    const trad = traduction
+    supabase
+      .from('versets')
+      .select('livre')
+      .not(trad, 'is', null)
+      .neq(trad, '')
+      .then(({ data }) => {
+        if (!data) return
+        const avecContenu = new Set(data.map((r: { livre: string }) => r.livre))
+        const cache = livresVidesCache.current
+        if (!cache[trad]) cache[trad] = new Set()
+        let changed = false
+        for (const livre of livres) {
+          const estVide = !avecContenu.has(livre.code)
+          const enCache = cache[trad].has(livre.code)
+          if (estVide && !enCache) { cache[trad].add(livre.code); changed = true }
+          else if (!estVide && enCache) { cache[trad].delete(livre.code); changed = true }
+        }
+        if (changed) setLivresVidesVersion(v => v + 1)
+      })
+  }, [traduction])
+
+  const livresVides = livresVidesCache.current[traduction] ?? new Set<string>()
+
   // Persist widths
   useEffect(() => {
     try {
@@ -87,8 +137,6 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
     localStorage.setItem('cs_dernier_bible', JSON.stringify({ livre: livreActif, chapitre: chapitreActif, trad, nomLivre }))
   }, [livreActif, chapitreActif, traductionIndex, listeTraductions, nomLivre])
 
-  const traduction = listeTraductions[traductionIndex]?.code ?? 'TR0001'
-
   const handleSetTraductionIndex = (idx: number) => {
     setTraductionIndex(idx)
     const code = listeTraductions[idx]?.code
@@ -106,6 +154,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         traductions={listeTraductions}
         panelWidth={navWidth}
         onWidthChange={setNavWidth}
+        livresVides={livresVides}
       />
       <TexteBible
         versets={versets}

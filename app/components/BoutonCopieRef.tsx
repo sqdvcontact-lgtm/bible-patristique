@@ -24,7 +24,12 @@ export default function BoutonCopieRef({ texte }: { texte: string }) {
         flexShrink: 0,
       }}
     >
-      {copie ? "✓" : "⧉"}
+      {copie ? "✓" : (
+        <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
+          <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+          <rect x="3" y="3" width="7" height="8.5" rx=".8" stroke="currentColor" strokeWidth="1.2"/>
+        </svg>
+      )}
     </button>
   );
 }

@@ -13,7 +13,8 @@ export async function POST(request: Request) {
 
     const body = await request.json()
     const message = typeof body?.message === 'string' ? body.message.trim() : ''
-    const importance = typeof body?.importance === 'string' && body.importance ? body.importance : null
+    const importanceStr = typeof body?.importance === 'string' ? body.importance : null
+    const importance: number = importanceStr === 'bloquant' ? 3 : importanceStr === 'mineur' ? 1 : 2
     const urlSource = typeof body?.url_source === 'string' && body.url_source ? body.url_source.slice(0, 500) : null
     const idSegmentRaw = body?.id_segment
     let idSegment = typeof idSegmentRaw === 'number' && Number.isFinite(idSegmentRaw)
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
 
     if (!idSegment && idVerset) {
       // Validation du format id_verset avant usage dans ILIKE (prévient l'injection de wildcards)
-      if (!/^[A-Z0-9]{1,6}\.\d{1,3}\.\d{1,3}$/.test(idVerset)) {
+      if (!/^[A-Z][0-9]{1,8}$/.test(idVerset)) {
         return NextResponse.json({ error: 'Format id_verset invalide.' }, { status: 400 })
       }
       const colonnes = ['lien_1', 'lien_2', 'lien_3', 'lien_4'] as const
@@ -66,15 +67,13 @@ export async function POST(request: Request) {
       }
     }
 
-    const { error } = await supabaseAdmin.from('signalements').insert({
-      id_segment: idSegment,
-      id_verset: idVerset,
-      user_id: userId,
-      message,
-      importance,
-      url_source: urlSource,
-      traite: false,
-    })
+    const insertPayload: Record<string, unknown> = { message, importance, traite: false }
+    if (idSegment !== null) insertPayload.id_segment = idSegment
+    if (idVerset !== null) insertPayload.id_verset = idVerset
+    if (userId !== null) insertPayload.user_id = userId
+    if (urlSource !== null) insertPayload.url_source = urlSource
+
+    const { error } = await supabaseAdmin.from('signalements').insert(insertPayload)
 
     if (error) return erreur500(error, 'Erreur lors de l\'envoi du signalement.')
 

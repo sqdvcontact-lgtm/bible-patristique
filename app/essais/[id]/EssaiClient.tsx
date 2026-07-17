@@ -199,7 +199,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
       {/* Zone de lecture — scroll indépendant */}
       <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
-        <div style={{ maxWidth: '660px', margin: '0 auto', padding: '0 32px 80px' }}>
+        <div style={{ maxWidth: '660px', margin: '0 auto', padding: '0 56px 80px' }}>
 
           {essai.statut === 'en_attente' && (
             <p style={{ fontSize: '11.5px', color: '#9a5a2a', background: '#fff8f0', border: '1px solid #e4c4a0', borderRadius: '6px', padding: '8px 12px', margin: '24px 0 0' }}>
@@ -274,15 +274,15 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         <div style={{ width: '300px', flexShrink: 0, background: '#faf8f4', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', height: '100%' }}>
 
           {/* Barre supérieure : fermer | titre | partager */}
-          <div style={{ padding: '6px 8px 6px 6px', borderBottom: '1px solid #ede9e2', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ padding: '6px 8px 6px 6px', borderBottom: '1px solid #ede9e2', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
             <button onClick={() => setVoletOuvert(false)} title="Réduire le volet"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#b0a89e', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#b0a89e', display: 'flex', alignItems: 'center', flexShrink: 0, position: 'relative', zIndex: 1 }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <span style={{ flex: 1, textAlign: 'center', fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#9a958d' }}>Commentaires</span>
-            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+            <span style={{ position: 'absolute', left: 0, right: 0, textAlign: 'center', fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#9a958d', pointerEvents: 'none' }}>Commentaires</span>
+            <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginLeft: 'auto', position: 'relative', zIndex: 1 }}>
               <BoutonPartage label="Copier le lien" onClick={copierLien}>
                 <svg width="11" height="11" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
                   <path d="M5 7.5a2.5 2.5 0 0 0 3.5.5l2-2A2.5 2.5 0 0 0 7 2.5L5.8 3.8"/>

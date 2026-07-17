@@ -68,16 +68,21 @@ function BoutonCopie({ texte }: { texte: string }) {
     <button onClick={handle} title="Copier ce verset" className="bouton-action-verset"
       style={{ ...VERSET_ACTION_BTN, opacity:0, color: copie ? '#3d6b4f' : '#c8c0b4' }}
       aria-label="Copier">
-      {copie ? '✓' : '⧉'}
+      {copie ? '✓' : (
+        <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
+          <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+          <rect x="3" y="3" width="7" height="8.5" rx=".8" stroke="currentColor" strokeWidth="1.2"/>
+        </svg>
+      )}
     </button>
   )
 }
 
 // ── Modale signalement ────────────────────────────────────────────────────────
 const TB_NIVEAUX = [
-  { val: 'mineur',    label: 'Mineur',    bg: '#f0f0ee', bgOn: '#d6d6d2', color: '#6b6560' },
-  { val: 'important', label: 'Important', bg: '#fef5e8', bgOn: '#f0a830', color: '#8a5a00' },
-  { val: 'bloquant',  label: 'Bloquant',  bg: '#fde8e8', bgOn: '#c0562a', color: '#fff' },
+  { val: 'mineur',    label: 'Mineur',    bg: '#fef4f4', bgOn: '#f0a0a0', color: '#a06060', colorOn: '#5a1010' },
+  { val: 'important', label: 'Important', bg: '#fbd8d8', bgOn: '#c53030', color: '#8a3030', colorOn: '#fff' },
+  { val: 'bloquant',  label: 'Bloquant',  bg: '#f5b8b8', bgOn: '#7b0000', color: '#6b1010', colorOn: '#fff' },
 ] as const
 type TBNiveau = 'mineur' | 'important' | 'bloquant'
 
@@ -117,7 +122,7 @@ function ModalSignalement({ titre, onClose, onEnvoyer }: {
                   <button key={n.val} onClick={() => setImportance(n.val)}
                     style={{ fontSize:'10.5px', padding:'3px 10px', borderRadius:'12px', border:'none', cursor:'pointer', fontWeight: actif ? 600 : 400,
                       background: actif ? n.bgOn : n.bg,
-                      color: actif && n.val === 'bloquant' ? '#fff' : n.color,
+                      color: actif ? n.colorOn : n.color,
                       transition:'background 0.15s' }}>
                     {n.label}
                   </button>
@@ -142,7 +147,7 @@ function ModalSignalement({ titre, onClose, onEnvoyer }: {
   )
 }
 
-function BoutonSignaler({ versetId }: { versetId: string }) {
+function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; versetRef?: string; texte?: string }) {
   const [ouvert, setOuvert] = useState(false)
   const envoyer = async (msg: string, importance: string) => {
     const { data } = await supabase.auth.getSession()
@@ -152,13 +157,15 @@ function BoutonSignaler({ versetId }: { versetId: string }) {
     const res = await fetch('/api/signalements', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ id_verset: versetId, message: `Verset ${versetId} : ${msg}`, importance, url_source: window.location.href }),
+      body: JSON.stringify({ id_verset: versetId, message: msg, importance, url_source: window.location.href }),
     })
     if (!res.ok) {
       const details = await res.json().catch(() => null)
       throw new Error(details?.error ?? "Erreur d'envoi du signalement")
     }
   }
+  const ref = versetRef || versetId
+  const titreModal = texte ? `${ref} — ${texte.slice(0, 90)}${texte.length > 90 ? '…' : ''}` : ref
   return (
     <>
       <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
@@ -167,7 +174,7 @@ function BoutonSignaler({ versetId }: { versetId: string }) {
         style={{ ...VERSET_ACTION_BTN, opacity:0, color:'#c8c0b4' }}>
         ⚑
       </button>
-      {ouvert && <ModalSignalement titre={`Verset ${versetId}`} onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
+      {ouvert && <ModalSignalement titre={titreModal} onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   )
 }
@@ -448,7 +455,16 @@ export default function TexteBible({
             .nav-chap-arrow:hover { color: #3d6b4f !important; }
           `}</style>
 
-          {versets.map(v => {
+          {(versets.length === 0 || versets.every(v => !v[traduction])) && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '18px' }}>
+              <span style={{ fontSize: '28px', color: '#c8c0b4', lineHeight: 1 }}>❧</span>
+              <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '13px', fontStyle: 'italic', color: '#9a958d', textAlign: 'center', lineHeight: 1.65, margin: 0, maxWidth: '340px' }}>
+                La traduction <em style={{ fontStyle: 'normal', color: '#6b6560' }}>{traductionLabel}</em> ne comporte pas ce livre.
+              </p>
+            </div>
+          )}
+
+          {versets.some(v => v[traduction]) && versets.map(v => {
             const actif = versetSelectionne?.id_verset === v.id_verset
             return (
             <div key={v.id_verset}
@@ -506,7 +522,7 @@ export default function TexteBible({
                     const textrePropre = convertirGuillemetsInternes(texteVerset).replace(/[.!?]$/, '')
                     return `« ${textrePropre} » (${abr} ${chapitreActif}, ${v.verset})`
                   })()} />
-                  <BoutonSignaler versetId={v.id_verset} />
+                  <BoutonSignaler versetId={v.id_verset} versetRef={v.ref} texte={String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')} />
                   {estAdmin && !modeUtilisateurStandard && (
                     <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
                       style={{ ...VERSET_ACTION_BTN, opacity:0, color:'#c8c0b4' }}>

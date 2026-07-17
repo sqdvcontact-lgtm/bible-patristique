@@ -101,7 +101,12 @@ function BoutonCopieSegment({ texte, auteur, titre, trad_auteur, editeur, collec
   return (
     <button onClick={handle} title="Copier ce segment"
       style={{ ...ACTION_BTN, color: copie ? '#3d6b4f' : '#c8c0b4' }}>
-      {copie ? '✓' : '⧉'}
+      {copie ? '✓' : (
+        <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
+          <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+          <rect x="3" y="3" width="7" height="8.5" rx=".8" stroke="currentColor" strokeWidth="1.2"/>
+        </svg>
+      )}
     </button>
   )
 }
@@ -196,9 +201,9 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
 
 // ── Modale signalement ────────────────────────────────────────────────────────
 const PP_NIVEAUX = [
-  { val: 'mineur',    label: 'Mineur',    bg: '#f0f0ee', bgOn: '#d6d6d2', color: '#6b6560' },
-  { val: 'important', label: 'Important', bg: '#fef5e8', bgOn: '#f0a830', color: '#8a5a00' },
-  { val: 'bloquant',  label: 'Bloquant',  bg: '#fde8e8', bgOn: '#c0562a', color: '#fff' },
+  { val: 'mineur',    label: 'Mineur',    bg: '#fef4f4', bgOn: '#f0a0a0', color: '#a06060', colorOn: '#5a1010' },
+  { val: 'important', label: 'Important', bg: '#fbd8d8', bgOn: '#c53030', color: '#8a3030', colorOn: '#fff' },
+  { val: 'bloquant',  label: 'Bloquant',  bg: '#f5b8b8', bgOn: '#7b0000', color: '#6b1010', colorOn: '#fff' },
 ] as const
 type PPNiveau = 'mineur' | 'important' | 'bloquant'
 
@@ -235,7 +240,7 @@ function ModalSignalement({ titre, titreEntete = 'Signaler une erreur', onClose,
                     <button key={n.val} onClick={() => setImportance(n.val)}
                       style={{ fontSize:'10.5px', padding:'3px 10px', borderRadius:'12px', border:'none', cursor:'pointer', fontWeight: actif ? 600 : 400,
                         background: actif ? n.bgOn : n.bg,
-                        color: actif && n.val === 'bloquant' ? '#fff' : n.color,
+                        color: actif ? n.colorOn : n.color,
                         transition:'background 0.15s' }}>
                       {n.label}
                     </button>
@@ -265,7 +270,7 @@ function ModalSignalement({ titre, titreEntete = 'Signaler une erreur', onClose,
 function SegmentCard({ s, info, userId, isAdmin, colonneLien, onSignaler, onSupprimeLien }: {
   s: Segment; info?: OeuvreInfo; userId: string | null; isAdmin: boolean
   colonneLien: string
-  onSignaler: (s: Segment) => void
+  onSignaler: (s: Segment, titreOeuvre?: string) => void
   onSupprimeLien: (id: number) => void
 }) {
   const niveaux = [s.ref_niv1, s.ref_niv2, s.ref_niv3].filter(Boolean).join(', ')
@@ -309,7 +314,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, onSignaler, onSupp
               trad_auteur={info?.trad_auteur ?? undefined} editeur={info?.editeur ?? undefined}
               collection={info?.collection} ville={info?.ville ?? undefined} date_publication={info?.date_publication ?? undefined}
             />
-            <button onClick={e => { e.stopPropagation(); onSignaler(s) }} title="Signaler une erreur"
+            <button onClick={e => { e.stopPropagation(); onSignaler(s, info?.titre) }} title="Signaler une erreur"
               style={{ ...ACTION_BTN, color:'#c8c0b4' }}>
               ⚑
             </button>
@@ -685,8 +690,10 @@ export default function PanneauPatristique({
   onWidthChange?: (w: number) => void
 }) {
   type Onglet = 'patristique' | 'commentaires'
+  type SousOnglet = 'tous' | 'citations' | 'doctrine' | 'echos'
   const ITEMS_PAR_PAGE = 20
   const [onglet, setOnglet] = useState<Onglet>('patristique')
+  const [sousOnglet, setSousOnglet] = useState<SousOnglet>('tous')
   const [pageItems, setPageItems] = useState(0)
   const [ouvert, setOuvert] = useState(true)
   useEffect(() => {
@@ -703,7 +710,7 @@ export default function PanneauPatristique({
   const isAdminReel = useIsAdmin(userId)
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const isAdmin = isAdminReel && !modeUtilisateurStandard
-  const [segSignale, setSegSignale] = useState<Segment | null>(null)
+  const [segSignale, setSegSignale] = useState<{ seg: Segment; titreOeuvre?: string } | null>(null)
 
   // ── Compteurs onglets ────────────────────────────────────────────────────────
   const [nbCommentairesBible, setNbCommentairesBible] = useState<number | null>(null)
@@ -725,7 +732,7 @@ export default function PanneauPatristique({
   const [resultatsAuteur, setResultatsAuteur] = useState<{ id_auteur: string; nom: string }[]>([])
   const [auteurMeta, setAuteurMeta] = useState<Record<string, { traditions: string[]; siecle: number | null }>>({})
 
-  const nbPatristique = segmentsCitations.length + segmentsDoctrine.length
+  const nbPatristique = segmentsCitations.length + segmentsDoctrine.length + segmentsEcho.length
   const ONGLETS: { code: Onglet; label: string; count?: number | null }[] = [
     { code: 'patristique',  label: 'Pères de l\'Église', count: nbPatristique },
     { code: 'commentaires', label: 'Commentaires', count: nbCommentairesBible },
@@ -817,10 +824,19 @@ export default function PanneauPatristique({
   const supprimerDeEcho = (id: number) =>
     setSegmentsEcho(prev => prev.filter(s => s.id !== id))
 
-  type ItemAffiche = { seg: Segment; col: string; onSupprime: (id: number) => void }
-  const itemsCitations: ItemAffiche[] = segmentsCitations.map(({ seg, col }) => ({ seg, col, onSupprime: supprimerDeCitations }))
-  const itemsDoctrine: ItemAffiche[] = segmentsDoctrine.map(seg => ({ seg, col: 'lien_3', onSupprime: supprimerDeDoctrine }))
-  const itemsAffiches: ItemAffiche[] = [...itemsCitations, ...itemsDoctrine].filter(({ seg }) => Boolean(oeuvres[seg.id_oeuvre]))
+  type ItemAffiche = { seg: Segment; col: string; onSupprime: (id: number) => void; categorie: 'citation' | 'doctrine' | 'echo' }
+  const itemsCitations: ItemAffiche[] = segmentsCitations.map(({ seg, col }) => ({ seg, col, onSupprime: supprimerDeCitations, categorie: 'citation' as const }))
+  const itemsDoctrine: ItemAffiche[] = segmentsDoctrine.map(seg => ({ seg, col: 'lien_3', onSupprime: supprimerDeDoctrine, categorie: 'doctrine' as const }))
+  const itemsEcho: ItemAffiche[] = segmentsEcho.map(seg => ({ seg, col: 'lien_4', onSupprime: supprimerDeEcho, categorie: 'echo' as const }))
+  const itemsTous: ItemAffiche[] = [...itemsCitations, ...itemsDoctrine, ...itemsEcho].filter(({ seg }) => Boolean(oeuvres[seg.id_oeuvre]))
+
+  const itemsAffiches: ItemAffiche[] = sousOnglet === 'tous' ? itemsTous
+    : sousOnglet === 'citations' ? itemsTous.filter(i => i.categorie === 'citation')
+    : sousOnglet === 'doctrine' ? itemsTous.filter(i => i.categorie === 'doctrine')
+    : itemsTous.filter(i => i.categorie === 'echo')
+
+  // Reset page when sous-onglet changes
+  useEffect(() => { setPageItems(0) }, [sousOnglet])
 
   const nombreFiltresActifs = filtreAuteursIds.size + filtreTraditions.size + filtreSiecles.size + filtreGenres.size
 
@@ -968,6 +984,38 @@ export default function PanneauPatristique({
               <OngletCommentaires verset={verset} userId={userId} isAdmin={isAdmin} />
             ) : (
               <>
+                {/* Sous-onglets Citations / Doctrine / Échos */}
+                {(() => {
+                  const nbCitations = itemsTous.filter(i => i.categorie === 'citation').length
+                  const nbDoctrine = itemsTous.filter(i => i.categorie === 'doctrine').length
+                  const nbEchos = itemsTous.filter(i => i.categorie === 'echo').length
+                  const subTabs: [SousOnglet, string, number][] = [
+                    ['tous', 'Tous', itemsTous.length],
+                    ['citations', 'Citations', nbCitations],
+                    ['doctrine', 'Doctrine', nbDoctrine],
+                    ['echos', 'Échos', nbEchos],
+                  ]
+                  return (
+                    <div style={{ display: 'flex', borderBottom: '1px solid #ede9e2', margin: '6px -12px 0', padding: '0 12px' }}>
+                      {subTabs.map(([key, label, nb], idx) => (
+                        <button key={key} onClick={() => setSousOnglet(key)}
+                          style={{
+                            flex: 1, background: 'none', border: 'none',
+                            borderBottom: sousOnglet === key ? '2px solid #3d6b4f' : '2px solid transparent',
+                            padding: '5px 2px 4px', cursor: 'pointer',
+                            color: sousOnglet === key ? '#3d6b4f' : '#9a958d',
+                            fontSize: '9px', fontWeight: sousOnglet === key ? 600 : 400,
+                            letterSpacing: '0.04em', lineHeight: 1.2,
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px',
+                          }}>
+                          <span>{label}</span>
+                          {nb > 0 && <span style={{ fontSize: '8px', color: sousOnglet === key ? '#3d6b4f' : '#c0b8ae' }}>{nb}</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )
+                })()}
+
                 {/* Bouton filtres */}
                 <div style={{ display: 'flex', alignItems: 'center', padding: '8px 0 0' }}>
                   <button onClick={() => setFiltreVoletOuvert(o => !o)} style={{
@@ -1139,7 +1187,7 @@ export default function PanneauPatristique({
                     key={`${col}-${seg.id}`} s={seg} info={oeuvres[seg.id_oeuvre]}
                     userId={userId} isAdmin={isAdmin}
                     colonneLien={col}
-                    onSignaler={setSegSignale} onSupprimeLien={onSupprime}
+                    onSignaler={(s, titreOeuvre) => setSegSignale({ seg: s, titreOeuvre })} onSupprimeLien={onSupprime}
                   />
                 ))}
                 </div>
@@ -1168,13 +1216,21 @@ export default function PanneauPatristique({
 
           {segSignale && (
             <ModalSignalement
-              titre={`${segSignale.ref_niv1}${segSignale.ref_niv2 ? ' · ' + segSignale.ref_niv2 : ''} — ${segSignale.segment_texte.slice(0, 60)}…`}
+              titre={segSignale.titreOeuvre
+                ? `${segSignale.titreOeuvre} — ${segSignale.seg.segment_texte.slice(0, 90)}`
+                : segSignale.seg.segment_texte.slice(0, 90)}
               avecNiveauImportance
               onClose={() => setSegSignale(null)}
               onEnvoyer={async (msg, importance) => {
                 const { data } = await supabase.auth.getSession()
-                const { error } = await supabase.from('signalements').insert({ id_segment: segSignale.id, user_id: data.session?.user.id ?? null, message: msg, importance: importance ?? null, url_source: window.location.href, traite: false })
-                if (error) throw error
+                const headers: HeadersInit = { 'Content-Type': 'application/json' }
+                const token = data.session?.access_token
+                if (token) headers.Authorization = `Bearer ${token}`
+                const res = await fetch('/api/signalements', {
+                  method: 'POST', headers,
+                  body: JSON.stringify({ id_segment: segSignale.seg.id, message: msg, importance: importance ?? undefined, url_source: window.location.href }),
+                })
+                if (!res.ok) { const d = await res.json().catch(() => null); throw new Error(d?.error ?? "Erreur d'envoi") }
               }}
             />
           )}
@@ -1185,6 +1241,9 @@ export default function PanneauPatristique({
             <div style={{ flex:1, height:'1px', background:'linear-gradient(to right, transparent, #d6d0c4)' }} />
             <span style={{ fontSize:'9px', color:'#c8c0b4', letterSpacing:'0.2em', flexShrink:0 }}>· · ·</span>
             <div style={{ flex:1, height:'1px', background:'linear-gradient(to left, transparent, #d6d0c4)' }} />
+          </div>
+          <div style={{ textAlign:'center', marginBottom:'14px' }}>
+            <span style={{ fontFamily:"Georgia, 'Times New Roman', serif", fontSize:'22px', color:'#c8c0b4', lineHeight:1 }}>❧</span>
           </div>
           <div style={{ fontFamily:"Georgia, 'Times New Roman', serif", fontSize:'12px', fontStyle:'italic', color:'#9a958d', lineHeight:1.85, textAlign:'center' }}>
             {[

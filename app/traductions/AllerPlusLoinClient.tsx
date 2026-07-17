@@ -1,12 +1,10 @@
 'use client'
 
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
 import { formaterSieclesHTML } from '@/app/oeuvre/[id]/texteEnrichi'
-import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import QuizBibliqueClient from '../quiz/QuizBibliqueClient'
 
 type Onglet = 'traductions' | 'acheter' | 'populaires' | 'quiz'
@@ -74,17 +72,6 @@ export default function AllerPlusLoinClient() {
   )
 }
 
-function IconQuestionBiblique() {
-  return (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3d6b4f" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4.5 19.5A2.5 2.5 0 0 1 7 17h13" />
-      <path d="M7 3h13v19H7a2.5 2.5 0 0 1-2.5-2.5v-14A2.5 2.5 0 0 1 7 3z" />
-      <path d="M11 8.5a2.4 2.4 0 0 1 4.6 1c0 1.8-2.2 2-2.2 3.6" />
-      <path d="M13.4 16.2h.01" />
-    </svg>
-  )
-}
-
 function OngletQuiz() {
   return (
     <QuizBibliqueClient estAdminReel={false} />
@@ -108,31 +95,142 @@ type Traduction = {
   } | null;
 };
 
-function AvatarTraduction({ t }: { t: Traduction }) {
-  const px = t.photo_position?.lateral?.x ?? 50
-  const py = t.photo_position?.lateral?.y ?? 20
-  const ps = t.photo_position?.lateral?.scale ?? 1
-  if (!t.photo) return (
-    <div style={{ width: '52px', height: '52px', borderRadius: '50%', flexShrink: 0, background: '#f0ece4', border: '2px solid #e0d8cc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c8b888" strokeWidth="1.4" aria-hidden="true">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-      </svg>
-    </div>
-  )
+function useImageLuminance(url: string | null): boolean | null {
+  const [estSombre, setEstSombre] = useState<boolean | null>(null)
+  useEffect(() => {
+    if (!url) { setEstSombre(null); return }
+    let annule = false
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      if (annule) return
+      try {
+        const canvas = document.createElement('canvas')
+        const sw = Math.round(Math.min(img.naturalWidth, 400) * 0.45)
+        const sh = Math.round(Math.min(img.naturalHeight, 300) * 0.65)
+        canvas.width = sw; canvas.height = sh
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(img, 0, 0, sw * (img.naturalWidth / Math.min(img.naturalWidth, 400)), sh * (img.naturalHeight / Math.min(img.naturalHeight, 300)), 0, 0, sw, sh)
+        const { data } = ctx.getImageData(0, 0, sw, sh)
+        let lum = 0
+        const n = sw * sh
+        for (let i = 0; i < data.length; i += 4) {
+          lum += 0.2126 * (data[i] / 255) + 0.7152 * (data[i + 1] / 255) + 0.0722 * (data[i + 2] / 255)
+        }
+        setEstSombre(lum / n < 0.55)
+      } catch { setEstSombre(null) }
+    }
+    img.onerror = () => { if (!annule) setEstSombre(null) }
+    img.src = url
+    return () => { annule = true }
+  }, [url])
+  return estSombre
+}
+
+function BandeauTraduction({ t, estOuvert, onToggle }: {
+  t: Traduction; estOuvert: boolean; onToggle: () => void
+}) {
+  const estSombre = useImageLuminance(t.photo ?? null)
+  const meta = [t.langue, t.date_publication].filter(Boolean).join(' · ')
+
+  const fondSombre = estSombre !== false
+  const couleurTexte = t.photo ? (fondSombre ? '#f2efe8' : '#18130f') : '#1e2e24'
+  const couleurMeta  = t.photo ? (fondSombre ? 'rgba(242,239,232,0.72)' : 'rgba(24,19,15,0.58)') : '#7a7268'
+  const couleurChevron = t.photo ? (fondSombre ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.4)') : '#c8c0b4'
+
+  const ombreForte = fondSombre
+    ? '0 1px 2px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.65), 0 4px 20px rgba(0,0,0,0.35)'
+    : '0 1px 2px rgba(255,255,255,0.95), 0 2px 8px rgba(255,255,255,0.75), 0 4px 16px rgba(255,255,255,0.4)'
+  const ombreTexte = t.photo ? ombreForte : 'none'
+
   return (
-    <div style={{ width: '52px', height: '52px', borderRadius: '50%', flexShrink: 0, overflow: 'hidden', border: '2px solid #e0d8cc' }}>
-      <img src={t.photo} alt="" aria-hidden="true"
-        style={{ width: '100%', height: '100%', objectFit: 'cover',
-          objectPosition: `${px}% ${py}%`,
-          transform: `scale(${ps})`,
-          transformOrigin: `${px}% ${py}%`,
-          display: 'block' }} />
-    </div>
+    <button
+      onClick={onToggle}
+      style={{
+        width: '100%', position: 'relative',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0', minHeight: t.photo ? '92px' : undefined,
+        background: t.photo ? 'transparent' : estOuvert ? 'rgba(61,107,79,0.04)' : '#fff',
+        border: 'none', cursor: 'pointer', textAlign: 'left',
+        transition: 'background 0.15s', overflow: 'hidden',
+      }}
+    >
+      {t.photo && (() => {
+        const p = t.photo_position?.bandeau
+        const px = p?.x ?? 50; const py = p?.y ?? 20; const ps = p?.scale ?? 1
+        return (
+          <img src={t.photo} alt="" aria-hidden="true" style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: `${px}% ${py}%`, display: 'block',
+            transform: `scale(${ps})`, transformOrigin: `${px}% ${py}%`,
+            filter: estOuvert ? 'brightness(0.78)' : 'brightness(0.9)',
+            transition: 'filter 0.2s',
+          }} />
+        )
+      })()}
+
+      {t.photo && (
+        <div aria-hidden="true" style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          background: fondSombre
+            ? 'linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 100%)'
+            : 'linear-gradient(to right, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.08) 55%, transparent 100%)',
+          transition: 'background 0.2s',
+        }} />
+      )}
+
+      <div style={{
+        position: 'relative', zIndex: 1,
+        flex: 1, minWidth: 0,
+        padding: t.photo ? '18px 14px 18px 20px' : '14px 18px',
+      }}>
+        <h2 style={{
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontSize: '17px', fontWeight: 'normal',
+          color: couleurTexte, margin: 0, lineHeight: 1.25,
+          textShadow: ombreTexte,
+          transition: 'color 0.2s, text-shadow 0.2s',
+        }}>
+          {t.nom}
+        </h2>
+        {meta && (
+          <span style={{
+            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontSize: '11px', fontStyle: 'italic',
+            color: couleurMeta, letterSpacing: '0.02em',
+            display: 'block', marginTop: '4px',
+            textShadow: ombreTexte,
+            transition: 'color 0.2s',
+          }}>
+            {meta}
+          </span>
+        )}
+        {t.import_maj_le && (
+          <span style={{
+            fontSize: '10px', fontStyle: 'italic',
+            color: t.photo ? (fondSombre ? 'rgba(242,239,232,0.48)' : 'rgba(24,19,15,0.38)') : '#b0a89e',
+            display: 'block', marginTop: '3px',
+            textShadow: t.photo ? ombreTexte : 'none',
+            transition: 'color 0.2s',
+          }}>
+            Mis à jour le {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </span>
+        )}
+      </div>
+
+      <span style={{
+        position: 'relative', zIndex: 1, fontSize: '10px', flexShrink: 0,
+        marginRight: '18px', color: couleurChevron,
+        textShadow: t.photo ? ombreTexte : 'none',
+        display: 'inline-block', transition: 'transform 0.18s, color 0.2s',
+        transform: estOuvert ? 'rotate(180deg)' : 'none',
+      }}>▼</span>
+    </button>
   )
 }
 
 function normaliserContenu(texte: string): string {
-  if (!texte || typeof window === 'undefined') return '';
+  if (!texte) return '';
   let html: string;
   if (/^\s*<(p|h[1-6]|div|ul|ol|blockquote)[\s>]/i.test(texte)) {
     html = texte;
@@ -145,7 +243,7 @@ function normaliserContenu(texte: string): string {
       .map(l => `<p style="${pStyle}">${l}</p>`)
       .join('');
   }
-  return DOMPurify.sanitize(formaterSieclesHTML(html));
+  return formaterSieclesHTML(html);
 }
 
 function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }) {
@@ -165,78 +263,46 @@ function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }
   }, [hashTraduction, traductions]);
 
   return (
-    <div style={{ maxWidth: '680px', margin: '0 auto', padding: '24px 24px 80px' }}>
-      <style>{`
-        .trad-article p { color: #2a2520; font-size: 13px; line-height: 1.75; margin: 0 0 10px; }
-        .trad-article p:last-child { margin-bottom: 0; }
-        .trad-entete { width: 100%; display: flex; align-items: center; gap: 14px; padding: 13px 16px; background: transparent; border: none; cursor: pointer; text-align: left; transition: background 0.12s; }
-        .trad-entete:hover { background: rgba(138,112,72,0.05); }
-        .trad-entete-ouvert { background: rgba(138,112,72,0.07); }
-        .trad-corps { display: flex; align-items: stretch; border-top: 1px solid #e8e2d8; }
-        .trad-photo-lat { width: 110px; flex-shrink: 0; border-right: 1px solid #e8e2d8; overflow: hidden; }
-        .trad-photo-lat img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .trad-texte { flex: 1; min-width: 0; padding: 15px 18px 18px; }
-      `}</style>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-        {traductions.map(t => {
+    <div style={{ maxWidth: "680px", margin: "0 auto", padding: "24px 24px 80px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        {traductions.map((t) => {
           const estOuvert = ouvert === t.trad_id;
-          const meta = [t.langue, t.date_publication].filter(Boolean).join(' · ');
-          const px = t.photo_position?.lateral?.x ?? 50;
-          const py = t.photo_position?.lateral?.y ?? 20;
-          const ps = t.photo_position?.lateral?.scale ?? 1;
           return (
-            <div key={t.trad_id} id={t.trad_id}
-              style={{ scrollMarginTop: '60px', border: '1px solid #ddd8ce', borderRadius: '9px', overflow: 'hidden', background: '#fff', boxShadow: estOuvert ? '0 2px 14px rgba(0,0,0,0.07)' : 'none', transition: 'box-shadow 0.18s' }}>
-              {/* En-tête repliable */}
-              <button
-                className={`trad-entete${estOuvert ? ' trad-entete-ouvert' : ''}`}
-                onClick={() => setOuvert(prev => prev === t.trad_id ? null : t.trad_id)}>
-                <AvatarTraduction t={t} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                    <h2 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '15px', fontWeight: 'normal', color: '#1e1a16', margin: 0, lineHeight: 1.2 }}>
-                      {t.auteur ?? t.nom}
-                    </h2>
-                    {t.dates && (
-                      <span style={{ fontSize: '11px', color: '#9a8a6a', fontStyle: 'italic', flexShrink: 0 }}>{t.dates}</span>
-                    )}
-                  </div>
-                  <span style={{ display: 'block', fontSize: '12px', color: '#8a7248', fontFamily: "Georgia, 'Times New Roman', serif", fontStyle: 'italic', marginTop: '3px', lineHeight: 1.3 }}>
-                    {t.nom}{meta ? <span style={{ color: '#b0a080', fontStyle: 'normal', fontSize: '11px' }}> — {meta}</span> : null}
-                  </span>
-                </div>
-                {/* Flèche SVG */}
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"
-                  style={{ flexShrink: 0, color: '#c0b098', transition: 'transform 0.18s', transform: estOuvert ? 'rotate(180deg)' : 'none' }}>
-                  <path d="M2.5 4.5L6.5 8.5L10.5 4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
+            <div key={t.trad_id} id={t.trad_id} style={{
+              scrollMarginTop: "60px",
+              border: "1px solid #ddd8cf", borderRadius: "8px",
+              overflow: "hidden", background: "#fff",
+            }}>
+              <BandeauTraduction t={t} estOuvert={estOuvert} onToggle={() => setOuvert(prev => prev === t.trad_id ? null : t.trad_id)} />
 
-              {/* Corps déployé */}
               {estOuvert && (
-                <div className="trad-corps">
+                <div style={{ borderTop: "1px solid #ede9e2", display: "flex", alignItems: "stretch" }}>
                   {t.photo && (
-                    <div className="trad-photo-lat">
+                    <div style={{
+                      width: "140px", flexShrink: 0,
+                      borderRight: "1px solid #ede9e2",
+                      overflow: "hidden",
+                    }}>
                       <img src={t.photo} alt="" aria-hidden="true"
-                        style={{ objectPosition: `${px}% ${py}%`, transform: `scale(${ps})`, transformOrigin: `${px}% ${py}%` }} />
+                        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: `${t.photo_position?.lateral?.x ?? 50}% ${t.photo_position?.lateral?.y ?? 20}%`, transform: `scale(${t.photo_position?.lateral?.scale ?? 1})`, transformOrigin: `${t.photo_position?.lateral?.x ?? 50}% ${t.photo_position?.lateral?.y ?? 20}%`, display: "block" }} />
                     </div>
                   )}
-                  <div className="trad-texte">
+                  <div style={{ flex: 1, minWidth: 0, padding: "18px 20px 22px" }}>
                     {t.bio_courte && (
-                      <p style={{ fontSize: '12.5px', color: '#5a5045', lineHeight: 1.65, margin: '0 0 10px', fontStyle: 'italic', textAlign: 'justify', hyphens: 'auto' }}>
+                      <p style={{
+                        fontSize: "12.5px", color: "#5a6b5e", lineHeight: 1.65,
+                        margin: "0 0 12px", fontStyle: "italic",
+                        textAlign: "justify", hyphens: "auto",
+                      }}>
                         {t.bio_courte}
                       </p>
                     )}
                     {t.commentaire_editorial && (
-                      <div className="trad-article"
-                        style={{ color: '#2a2520', textAlign: 'justify', hyphens: 'auto' }}
+                      <div
+                        className="trad-article"
+                        style={{ color: "#2a2520", fontSize: "13.5px", lineHeight: 1.65, textAlign: "justify", hyphens: "auto" }}
                         dangerouslySetInnerHTML={{ __html: normaliserContenu(t.commentaire_editorial) }}
                       />
-                    )}
-                    {t.import_maj_le && (
-                      <p style={{ fontSize: '10px', color: '#b8b0a4', margin: '10px 0 0', fontStyle: 'italic' }}>
-                        Mis à jour le {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                      </p>
                     )}
                   </div>
                 </div>
@@ -253,142 +319,124 @@ function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }
    Onglet « Acheter des livres »
    ════════════════════════════════════════════════════════════════════════ */
 
-type ThemeLibrairie = {
-  fond: string
-  bordure: string
-  accent: string
-  titre: string
-  texte: string
-  logo: string
-  filigraneLogo?: string
-  logoStyle?: CSSProperties
-}
-
-// Filigrane : même traitement graphique pour les trois cartes.
-// height fixe 120px (> hauteur carte ~100px) pour couverture uniforme,
-// calé en haut-droite avec léger débordement.
-const FIL_COMMUN: CSSProperties = {
-  position: 'absolute', zIndex: 0, height: '120px', width: 'auto',
-  right: '-16px', top: '-10px',
-  opacity: 0.09, filter: 'grayscale(1) contrast(1.1)',
-  mixBlendMode: 'multiply', pointerEvents: 'none', userSelect: 'none',
-}
-
-const THEMES_LIBRAIRIE: Record<string, ThemeLibrairie> = {
-  procure: {
-    fond: 'rgba(234,242,250,0.52)',
-    bordure: 'rgba(22,63,125,0.18)',
-    accent: '#1a4a8a',
-    titre: '#153f78',
-    texte: '#4a6072',
-    logo: '/icons/librairies/procure-eventail.png',
-    filigraneLogo: '/icons/librairies/procure-rayonnage.png',
-    logoStyle: { height: '54px', width: 'auto' },
-  },
-  brunet: {
-    fond: 'rgba(246,237,222,0.55)',
-    bordure: 'rgba(124,88,47,0.20)',
-    accent: '#7a4820',
-    titre: '#5e3a1c',
-    texte: '#665445',
-    logo: '/icons/librairies/pierre-brunet-livre.png',
-    filigraneLogo: '/icons/librairies/pierre-brunet-portrait.png',
-    logoStyle: { height: '62px', width: 'auto' },
-  },
-  sources: {
-    fond: 'rgba(252,232,230,0.52)',
-    bordure: 'rgba(151,30,37,0.18)',
-    accent: '#9a1c25',
-    titre: '#8b1720',
-    texte: '#664a4c',
-    logo: '/icons/librairies/sources-chretiennes-chrisme.png',
-    filigraneLogo: '/icons/librairies/sources-chretiennes-pere.png',
-    logoStyle: { height: '56px', width: 'auto' },
-  },
-}
-
-function CarteLibrairie({ titre, description, url, theme }: { titre: string; description: string; url: string; theme: ThemeLibrairie }) {
-  return (
-    <a className="lib-carte" href={url} target="_blank" rel="noopener noreferrer" style={{
-      display: 'flex', alignItems: 'center', gap: '20px',
-      background: theme.fond,
-      border: `1px solid ${theme.bordure}`,
-      borderRadius: '7px',
-      padding: '18px 22px 18px 18px',
-      textDecoration: 'none',
-      position: 'relative', overflow: 'hidden',
-      boxShadow: '0 2px 10px rgba(0,0,0,0.055)',
-    }}>
-      {/* Filet coloré gauche */}
-      <span aria-hidden="true" style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '3px', background: theme.accent }} />
-      {/* Filigrane — traitement uniforme */}
-      {theme.filigraneLogo && (
-        <img src={theme.filigraneLogo} alt="" aria-hidden="true" style={FIL_COMMUN} />
-      )}
-      {/* Contenu — s'efface légèrement au survol */}
-      <div className="lib-contenu" style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
-        {/* Logo */}
-        <div style={{ width: '72px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <img src={theme.logo} alt="" aria-hidden="true"
-            style={{ maxWidth: '72px', maxHeight: '66px', objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.13))', pointerEvents: 'none', ...(theme.logoStyle ?? {}) }} />
-        </div>
-        {/* Texte */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '15.5px', fontWeight: 'normal', color: theme.titre, margin: '0 0 5px', lineHeight: 1.2 }}>
-            {titre}
-          </p>
-          <p style={{ fontSize: '12px', color: theme.texte, margin: 0, lineHeight: 1.65 }}>
-            {description}
-          </p>
-        </div>
-      </div>
-      {/* Overlay survol */}
-      <div className="lib-survol" style={{ color: theme.accent }}>
-        <span style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '14px', letterSpacing: '0.01em' }}>
-          Visiter la librairie en ligne
-        </span>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
-          <path d="M4 10H16M11.5 5.5L16 10L11.5 14.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </div>
-    </a>
-  )
-}
-
 function OngletAcheter() {
+  const librairies = [
+    {
+      nom: 'La Procure',
+      description: 'Éditions contemporaines, annotées ou liturgiques — livres neufs.',
+      url: 'https://www.laprocure.com/',
+      logo: '/icons/librairies/procure-eventail.png',
+      couleur: '#153f78',
+      sep: 'rgba(22,63,125,0.32)',
+    },
+    {
+      nom: 'Librairie Pierre Brunet',
+      description: "Éditions anciennes et épuisées — livres d'occasion et anciens.",
+      url: 'https://www.librairie-pierre-brunet.fr/librairie-en-ligne.html',
+      logo: '/icons/librairies/pierre-brunet-livre.png',
+      couleur: '#5e3a1c',
+      sep: 'rgba(124,88,47,0.38)',
+    },
+    {
+      nom: 'Sources Chrétiennes',
+      description: 'La grande collection bilingue des textes patristiques, en édition critique.',
+      url: 'https://sourceschretiennes.org/',
+      logo: '/icons/librairies/sources-chretiennes-chrisme.png',
+      couleur: '#8b1720',
+      sep: 'rgba(151,30,37,0.36)',
+    },
+  ]
   return (
-    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '24px 24px 80px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div style={{ maxWidth: '660px', margin: '0 auto', padding: '8px 24px 80px' }}>
       <style>{`
-        .lib-carte { transition: box-shadow 0.18s, transform 0.18s; }
-        .lib-carte:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,0,0,0.12) !important; }
-        .lib-contenu { transition: opacity 0.20s ease; }
-        .lib-carte:hover .lib-contenu { opacity: 0.12; }
-        .lib-survol {
-          position: absolute; inset: 0; z-index: 2;
-          display: flex; align-items: center; justify-content: center; gap: 10px;
-          opacity: 0; pointer-events: none;
-          transition: opacity 0.20s ease;
+        .lib-row {
+          display: flex;
+          align-items: center;
+          padding: 24px 0;
+          text-decoration: none;
+          border-bottom: 1px solid rgba(214,208,196,0.55);
+          position: relative;
+          overflow: hidden;
         }
-        .lib-carte:hover .lib-survol { opacity: 1; }
+        .lib-row:first-of-type { border-top: 1px solid rgba(214,208,196,0.55); }
+        .lib-contenu {
+          display: flex;
+          align-items: center;
+          flex: 1;
+          min-width: 0;
+          transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+        .lib-row:hover .lib-contenu {
+          opacity: 0.06;
+          transform: translateX(-10px);
+        }
+        .lib-survol {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.18s ease;
+          font-family: Georgia, 'Times New Roman', serif;
+          font-size: 15.5px;
+          letter-spacing: 0.01em;
+        }
+        .lib-row:hover .lib-survol { opacity: 1; }
+        .lib-logo-zone {
+          width: 78px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .lib-sep {
+          width: 1px;
+          height: 52px;
+          flex-shrink: 0;
+          margin: 0 22px;
+        }
+        .lib-nom {
+          font-family: Georgia, 'Times New Roman', serif;
+          font-size: 18px;
+          font-weight: normal;
+          margin: 0 0 5px;
+          line-height: 1.2;
+        }
+        .lib-desc {
+          font-size: 12.5px;
+          color: #6a6258;
+          margin: 0;
+          line-height: 1.5;
+        }
+        .lib-fleche {
+          margin-left: auto;
+          padding-left: 18px;
+          font-size: 18px;
+          flex-shrink: 0;
+          opacity: 0.82;
+        }
       `}</style>
-      <CarteLibrairie
-        titre="La Procure"
-        description="Éditions contemporaines, annotées ou liturgiques — livres neufs."
-        url="https://www.laprocure.com/"
-        theme={THEMES_LIBRAIRIE.procure}
-      />
-      <CarteLibrairie
-        titre="Librairie Pierre Brunet"
-        description="Éditions anciennes et épuisées — livres d'occasion et anciens."
-        url="https://www.librairie-pierre-brunet.fr/librairie-en-ligne.html"
-        theme={THEMES_LIBRAIRIE.brunet}
-      />
-      <CarteLibrairie
-        titre="Sources Chrétiennes"
-        description="La grande collection bilingue des textes patristiques, en édition critique."
-        url="https://sourceschretiennes.org/"
-        theme={THEMES_LIBRAIRIE.sources}
-      />
+      {librairies.map(lib => (
+        <a key={lib.nom} href={lib.url} target="_blank" rel="noopener noreferrer" className="lib-row">
+          <div className="lib-contenu">
+            <div className="lib-logo-zone">
+              <img src={lib.logo} alt="" aria-hidden style={{ width: '58px', height: 'auto', objectFit: 'contain' }} />
+            </div>
+            <div className="lib-sep" style={{ background: lib.sep }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p className="lib-nom" style={{ color: lib.couleur }}>{lib.nom}</p>
+              <p className="lib-desc">{lib.description}</p>
+            </div>
+            <span className="lib-fleche" style={{ color: lib.couleur }}>→</span>
+          </div>
+          <span className="lib-survol" style={{ color: lib.couleur }}>
+            Visiter la librairie <span style={{ fontSize: '13px', opacity: 0.7 }}>→</span>
+          </span>
+        </a>
+      ))}
     </div>
   )
 }

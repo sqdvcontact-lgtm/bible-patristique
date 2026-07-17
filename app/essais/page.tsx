@@ -25,7 +25,7 @@ export default async function EssaisPage() {
   const ids = essais.map(e => e.id)
   const [profilsRes, classementsRes, appreciationsRes] = await Promise.all([
     idsAuteurs.length > 0
-      ? supabaseAdmin.from('profils').select('id, pseudo, nom, prenom').in('id', idsAuteurs)
+      ? supabaseAdmin.from('profils').select('id, pseudo, nom, prenom, avatar_url').in('id', idsAuteurs)
       : Promise.resolve({ data: [] as any[] }),
     idsAuteurs.length > 0
       ? supabaseAdmin.from('classement_utilisateurs').select('user_id, score').in('user_id', idsAuteurs)
@@ -51,6 +51,7 @@ export default async function EssaisPage() {
       id: e.id, titre: e.titre, sous_titre: e.sous_titre, resume: e.resume, contenu: e.contenu,
       categories: e.categories ?? [], nb_vues: e.nb_vues, nb_likes: likesParEssai.get(e.id) ?? 0,
       publie_at: e.publie_at, auteur: nomAffiche, auteur_score: scoreMap[e.user_id] ?? 0,
+      avatar_url: (p as any)?.avatar_url ?? null, user_id: e.user_id,
     }
   })
 

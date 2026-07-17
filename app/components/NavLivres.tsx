@@ -96,6 +96,7 @@ type Props = {
   traductions: Traduction[]
   panelWidth?: number
   onWidthChange?: (w: number) => void
+  livresVides?: Set<string>
 }
 
 /**
@@ -127,6 +128,7 @@ export default function NavLivres({
   livres, livreActif, chapitreActif,
   traductionIndex, setTraductionIndex, traductions,
   panelWidth = 192, onWidthChange,
+  livresVides,
 }: Props) {
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
@@ -160,6 +162,7 @@ export default function NavLivres({
   const NT = filtrer(livres.filter(l => l.testament === 'NT'))
 
   const handleLivre = (code: string) => {
+    if (livresVides?.has(code)) return
     const pos = scrollRef.current?.scrollTop || 0
     setLivreActifLocal(code)
     if (livreOuvert === code) {
@@ -195,8 +198,8 @@ export default function NavLivres({
   const renderLivre = (livre: Livre) => {
     const ouvert = livreOuvert === livre.code
     const actif  = livreActifLocal === livre.code
-    // Si ref parsée, mettre en avant le livre correspondant
     const suggere = refParsee?.code === livre.code
+    const vide = livresVides?.has(livre.code) ?? false
     const nb = NB_CHAPITRES[livre.code] || 1
 
     return (
@@ -206,16 +209,17 @@ export default function NavLivres({
           padding: '2px 6px', borderRadius: '4px', fontSize: '11px',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           background: suggere ? 'rgba(61,107,79,0.12)' : actif ? 'rgba(61,107,79,0.10)' : 'transparent',
-          color: actif || suggere ? '#2a3d30' : '#4a4540',
+          color: vide ? '#c0b8ae' : actif || suggere ? '#2a3d30' : '#4a4540',
           fontWeight: actif || suggere ? 600 : 400,
           border: suggere ? '1px solid rgba(61,107,79,0.30)' : '1px solid transparent',
           cursor: 'pointer', lineHeight: 1.4, boxSizing: 'border-box',
+          opacity: vide ? 0.55 : 1,
         }}>
           <span>{livre.nom}</span>
-          <span style={{ color: '#c0bab0', fontSize: '6.5px', flexShrink: 0, opacity: 0.55 }}>{ouvert ? '▲' : '▼'}</span>
+          {!vide && <span style={{ color: '#c0bab0', fontSize: '6.5px', flexShrink: 0, opacity: 0.55 }}>{ouvert ? '▲' : '▼'}</span>}
         </button>
 
-        {(ouvert || suggere) && (
+        {!vide && (ouvert || suggere) && (
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(20px, 1fr))',
@@ -258,7 +262,7 @@ export default function NavLivres({
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        <span style={{ writingMode: 'vertical-rl' as any, fontSize: '8px', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>Livres de la Bible</span>
+        <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '8px', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>Livres de la Bible</span>
       </button>
     )
   }

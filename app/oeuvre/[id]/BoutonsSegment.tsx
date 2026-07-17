@@ -106,8 +106,7 @@ export function construireCitationPatristique(
   const parts: string[] = []
   if (auteur) parts.push(auteur)
   let titreComplet = titre || ''
-  if (sousTitre) titreComplet += '. ' + sousTitre + '.'
-  else if (titre) titreComplet += '.'
+  if (sousTitre) titreComplet += '. ' + sousTitre
   if (titreComplet) parts.push(titreComplet)
   if (editeur) parts.push(editeur)
   if (tradAuteur) parts.push('trad. ' + tradAuteur)
@@ -116,8 +115,8 @@ export function construireCitationPatristique(
   if (datePublication) parts.push(formaterDateHistorique(datePublication))
   parts.push('disponible sur Corpus Scriptura')
   const textePonctue = texte.replace(/[,;]/g, '.')
-  parts.push('« ' + convertirGuillemetsInternes(textePonctue) + ' »')
-  return parts.join(', ') + '.'
+  const citation = '« ' + convertirGuillemetsInternes(textePonctue) + ' »'
+  return parts.join(', ') + ' : ' + citation
 }
 
 export function BoutonCopieSegment({ texte, auteur, titre, sousTitre, tradAuteur, editeur, collection, ville, datePublication, className = '' }: {
@@ -136,14 +135,20 @@ export function BoutonCopieSegment({ texte, auteur, titre, sousTitre, tradAuteur
       <button onClick={handle} className={className}
         style={{ ...BTN_STYLE, color: copie ? '#3d6b4f' : '#c8c0b4' }}
         aria-label="Copier ce passage">
-        {copie ? '✓' : '⧉'}
+        {copie ? '✓' : (
+          <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
+            <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+            <rect x="3" y="3" width="7" height="8.5" rx=".8" stroke="currentColor" strokeWidth="1.2"/>
+          </svg>
+        )}
       </button>
     </Bulle>
   )
 }
 
-export function BoutonSignalerSegment({ segId, apercu, className = '' }: { segId: number; apercu: string; className?: string }) {
+export function BoutonSignalerSegment({ segId, apercu, titreOeuvre, className = '' }: { segId: number; apercu: string; titreOeuvre?: string; className?: string }) {
   const [ouvert, setOuvert] = useState(false)
+  const titreModal = titreOeuvre ? `${titreOeuvre} — ${apercu}` : apercu
   return (
     <>
       <Bulle texte="Signaler une erreur">
@@ -156,7 +161,7 @@ export function BoutonSignalerSegment({ segId, apercu, className = '' }: { segId
       </Bulle>
       {ouvert && (
         <ModalSignalement
-          titre={apercu}
+          titre={titreModal}
           avecNiveauImportance
           onClose={() => setOuvert(false)}
           onEnvoyer={async (msg, importance) => {

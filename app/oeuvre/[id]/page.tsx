@@ -77,13 +77,11 @@ async function chargerCodesTraductions() {
   return codes.length > 0 ? codes : ['TR0001', 'TR0002', 'TR0003', 'TR0004']
 }
 
-async function enrichirAvecVersets(segments: Segment[]) {
+async function enrichirAvecVersets(segments: Segment[], codesTraductions: string[]) {
   const tousIds = new Set<string>()
   segments.forEach(s => extraireVersets(s).forEach(v => tousIds.add(v)))
   const tousIdsArray = Array.from(tousIds)
   if (tousIdsArray.length === 0) return {}
-
-  const codesTraductions = await chargerCodesTraductions()
   const selectVersets = ['id_verset', 'ref', ...codesTraductions.map(code => `"${code}"`)].join(', ')
   const batchSize = 500
   const batches = Array.from({ length: Math.ceil(tousIdsArray.length / batchSize) }, (_, i) =>
@@ -172,8 +170,8 @@ export default async function OeuvrePage({
     }
   }
 
-  // ── Vague 1 : 5 requêtes indépendantes en parallèle ──────────────────────
-  const [estAdmin, { data: oeuvre }, { data: niv1Raw, error: rpcError }, { data: segmentCibleData }, segmentsApparatRaw] = await Promise.all([
+  // ── Vague 1 : 6 requêtes indépendantes en parallèle ──────────────────────
+  const [estAdmin, { data: oeuvre }, { data: niv1Raw, error: rpcError }, { data: segmentCibleData }, segmentsApparatRaw, codesTraductions] = await Promise.all([
     verifierEstAdmin(),
     supabase.from('oeuvres').select('*, auteurs(id_auteur, nom)').eq('id_oeuvre', id).single(),
     supabase.rpc('get_niv1_list', { p_id_oeuvre: id }),
@@ -181,6 +179,7 @@ export default async function OeuvrePage({
       ? supabase.from('segments').select('id,ref_niv1,nature').eq('id_oeuvre', id).eq('id', segmentCibleId).maybeSingle()
       : Promise.resolve({ data: null }),
     chargerTousSegments({ nature: 'apparat_critique' }),
+    chargerCodesTraductions(),
   ])
 
   if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre as any))) return (
@@ -239,7 +238,7 @@ export default async function OeuvrePage({
   const segmentsApparat = segmentsApparatRaw as Segment[]
 
   // 4. Versets pour le premier livre seulement
-  const versetMap = await enrichirAvecVersets(segmentsTexte)
+  const versetMap = await enrichirAvecVersets(segmentsTexte, codesTraductions)
 
   const versetParSegment: Record<number, any[]> = {}
   segmentsTexte.forEach(s => {

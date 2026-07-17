@@ -33,7 +33,12 @@ export function BoutonCopieVerset({ texte, label }: { texte: string; label: stri
   return (
     <Bulle texte="Copier ce verset">
       <button onClick={handle} style={{ ...BTN_STYLE, color: copie ? '#3d6b4f' : '#c8c0b4' }} aria-label="Copier ce verset">
-        {copie ? '✓' : '⧉'}
+        {copie ? '✓' : (
+          <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
+            <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+            <rect x="3" y="3" width="7" height="8.5" rx=".8" stroke="currentColor" strokeWidth="1.2"/>
+          </svg>
+        )}
       </button>
     </Bulle>
   )
@@ -83,19 +88,22 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
   )
 }
 
-export function BoutonSignalerVerset({ versetId, label, segmentId }: { versetId: string; label: string; segmentId: number }) {
+export function BoutonSignalerVerset({ versetId, label, texte, segmentId }: { versetId: string; label: string; texte?: string; segmentId: number }) {
   const [ouvert, setOuvert] = useState(false)
+  const titreModal = texte
+    ? `${label} — ${texte.slice(0, 90)}${texte.length > 90 ? '…' : ''}`
+    : label
   return (
     <>
       <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
         title="Signaler une erreur" style={{ ...BTN_STYLE, color:'#c8c0b4' }}>⚑</button>
       {ouvert && (
         <ModalSignalement
-          titre={label}
+          titre={titreModal}
           avecNiveauImportance
           onClose={() => setOuvert(false)}
           onEnvoyer={async (msg, importance) => {
-            await insererSignalement({ id_segment: segmentId, message: `Verset ${versetId} : ${msg}`, importance, url_source: window.location.href })
+            await insererSignalement({ id_segment: segmentId, id_verset: versetId, message: msg, importance, url_source: window.location.href })
           }}
         />
       )}

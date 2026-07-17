@@ -547,10 +547,21 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
       setChecklistDB({ essai: (ce ?? 0) > 0, passage: (cp ?? 0) > 0, favoriOeuvre: (cf ?? 0) > 0, nbCommentaires: 0 });
     });
 
-    // Photo profil (localStorage)
+    // Photo profil (localStorage + sync Supabase)
     try {
       const saved = localStorage.getItem("cs_photo_profil");
-      if (saved) setPhotoProfil(JSON.parse(saved));
+      if (saved) {
+        const photo: PhotoProfil = JSON.parse(saved);
+        setPhotoProfil(photo);
+        // Sync one-time: save imageUrl to profils.avatar_url if not yet set
+        if (photo.imageUrl) {
+          supabase.from("profils").select("avatar_url").eq("id", user.id).maybeSingle().then(({ data }) => {
+            if (!data?.avatar_url) {
+              supabase.from("profils").update({ avatar_url: photo.imageUrl }).eq("id", user.id);
+            }
+          });
+        }
+      }
     } catch {}
 
     // Checklist permanente
@@ -568,6 +579,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
   const choisirPhoto = (photo: PhotoProfil) => {
     setPhotoProfil(photo);
     localStorage.setItem("cs_photo_profil", JSON.stringify(photo));
+    supabase.from("profils").update({ avatar_url: photo.imageUrl }).eq("id", user.id);
     setModalePhotoOuverte(false);
     setModaleRecadrageOuverte(false);
   };
@@ -583,6 +595,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
   const retirerPhoto = () => {
     setPhotoProfil(null);
     localStorage.removeItem("cs_photo_profil");
+    supabase.from("profils").update({ avatar_url: null }).eq("id", user.id);
   };
 
   const enregistrer = async () => {

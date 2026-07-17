@@ -3,9 +3,9 @@
 import { useState } from 'react'
 
 const NIVEAUX = [
-  { val: 'mineur',    label: 'Mineur',    bg: '#f0f0ee', bgOn: '#d6d6d2', color: '#6b6560' },
-  { val: 'important', label: 'Important', bg: '#fef5e8', bgOn: '#f0a830', color: '#8a5a00' },
-  { val: 'bloquant',  label: 'Bloquant',  bg: '#fde8e8', bgOn: '#c0562a', color: '#fff' },
+  { val: 'mineur',    label: 'Mineur',    bg: '#fef4f4', bgOn: '#f0a0a0', color: '#a06060', colorOn: '#5a1010' },
+  { val: 'important', label: 'Important', bg: '#fbd8d8', bgOn: '#c53030', color: '#8a3030', colorOn: '#fff' },
+  { val: 'bloquant',  label: 'Bloquant',  bg: '#f5b8b8', bgOn: '#7b0000', color: '#6b1010', colorOn: '#fff' },
 ] as const
 
 type Niveau = 'mineur' | 'important' | 'bloquant'
@@ -54,7 +54,7 @@ export default function ModalSignalement({ titre, onClose, onEnvoyer, avecNiveau
                     <button key={n.val} onClick={() => setImportance(n.val)}
                       style={{ fontSize:'10.5px', padding:'3px 10px', borderRadius:'12px', border:'none', cursor:'pointer', fontWeight: actif ? 600 : 400,
                         background: actif ? n.bgOn : n.bg,
-                        color: actif && n.val === 'bloquant' ? '#fff' : n.color,
+                        color: actif ? n.colorOn : n.color,
                         transition:'background 0.15s' }}>
                       {n.label}
                     </button>

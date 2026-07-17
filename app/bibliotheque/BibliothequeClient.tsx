@@ -153,14 +153,10 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
         <div style={{ borderTop: '1px solid #ede9e2', padding: '8px 0 12px' }}>
           <style>{`
             .bib-ligne { display: flex; align-items: stretch; transition: background 0.12s; }
-            .bib-ligne:hover:not(.bib-correspond) { background: rgba(61,107,79,0.04); }
+            .bib-ligne:hover:not(.bib-correspond) {
+              background: linear-gradient(to bottom, transparent 0%, rgba(61,107,79,0.05) 22%, rgba(61,107,79,0.05) 78%, transparent 100%);
+            }
             .bib-correspond { background: rgba(61,107,79,0.07); }
-            .bib-ligne:first-child:hover:not(.bib-correspond) {
-              background: linear-gradient(to bottom, transparent 0%, rgba(61,107,79,0.04) 45%);
-            }
-            .bib-ligne:last-child:hover:not(.bib-correspond) {
-              background: linear-gradient(to top, transparent 0%, rgba(61,107,79,0.04) 45%);
-            }
           `}</style>
           {oeuvresTriees.map((o, idx) => {
             const correspond = oeuvreCorrespondante?.id_oeuvre === o.id_oeuvre
@@ -257,6 +253,104 @@ function titreDeclineCatalogue(n: NoticeCompacte) {
   return n.titre_edition || n.titre_original || n.titre_stable
 }
 
+// ── Panneau auteur catalogue (tons gris/mordorés) ────────────────────────────
+type GroupeCatalogue = { cle: string; titreStable: string; notices: NoticeCompacte[] }
+
+function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter }: {
+  nomAuteur: string
+  groupes: GroupeCatalogue[]
+  votes: Record<number, number>
+  mesVotes: Set<number>
+  userId: string | null
+  onVoter: (notices: NoticeCompacte[]) => void
+}) {
+  const [ouvert, setOuvert] = useState(false)
+  const nb = groupes.length
+  const nbMot = enLettres(nb)
+
+  const totalVotes = (ns: NoticeCompacte[]) => ns.reduce((s, n) => s + (votes[n.id] ?? 0), 0)
+  const aVote = (ns: NoticeCompacte[]) => ns.some(n => mesVotes.has(n.id))
+
+  // Initiale(s) de l'auteur pour le placeholder
+  const initiale = nomAuteur.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('')
+
+  return (
+    <div
+      style={{ background: '#faf8f4', borderRadius: '8px', border: '1px solid #ddd5c4', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'box-shadow 0.15s' }}
+      onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.07)')}
+      onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}>
+
+      {/* En-tête auteur */}
+      <div style={{ display: 'flex' }}>
+        {/* Zone initiales */}
+        <div style={{ width: '80px', flexShrink: 0, background: '#e8e2d6', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '88px' }}>
+          <span style={{ fontFamily: 'Georgia, serif', fontSize: '20px', fontStyle: 'italic', color: '#a89a80', letterSpacing: '0.04em', userSelect: 'none' }}>{initiale}</span>
+        </div>
+
+        {/* Infos auteur + bouton */}
+        <div style={{ flex: 1, padding: '14px 16px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '13.5px', fontWeight: 600, color: '#4a4030', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
+            {nomAuteur}
+          </h2>
+
+          <button onClick={() => setOuvert(!ouvert)}
+            style={{ marginTop: '10px', fontSize: '10.5px', color: '#8a7a5a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}>
+            <span style={{ fontSize: '8px' }}>{ouvert ? '▲' : '▼'}</span>
+            {nbMot.charAt(0).toUpperCase() + nbMot.slice(1)} œuvre{nb > 1 ? 's' : ''} répertoriée{nb > 1 ? 's' : ''}
+          </button>
+        </div>
+      </div>
+
+      {/* Liste des œuvres déployée */}
+      {ouvert && (
+        <div style={{ borderTop: '1px solid #e4dcd0', padding: '6px 0 10px' }}>
+          <style>{`
+            .cat-ligne { display: flex; align-items: flex-start; padding: 8px 16px 8px 20px; transition: background 0.12s; gap: 10px; }
+            .cat-ligne:hover { background: linear-gradient(to bottom, transparent 0%, rgba(139,107,60,0.045) 22%, rgba(139,107,60,0.045) 78%, transparent 100%); }
+          `}</style>
+          {groupes.map((groupe, idx) => {
+            const aVoté = aVote(groupe.notices)
+            const nbVotes = totalVotes(groupe.notices)
+            return (
+              <div key={groupe.cle}
+                className="cat-ligne"
+                style={{ borderTop: idx > 0 ? '1px solid #eee8de' : 'none' }}>
+                {/* Titre + éditions */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: '13px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#3a342e', lineHeight: 1.35 }}>{groupe.titreStable}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', marginTop: '3px' }}>
+                    {groupe.notices.map(n => {
+                      const meta = [
+                        n.traducteur ? `Trad. ${n.traducteur}` : null,
+                        formaterDateHistorique(n.annee_edition ?? n.siecle_edition),
+                      ].filter(Boolean).join(' · ')
+                      const dp = n.domaine_public?.includes('oui')
+                      return (
+                        <span key={n.id} style={{ fontSize: '10.5px', color: '#a09080', lineHeight: 1.4 }}>
+                          {meta || titreDeclineCatalogue(n)}
+                          {dp && <span style={{ marginLeft: '5px', fontSize: '9px', color: '#7a8a6a', fontWeight: 700, letterSpacing: '0.04em' }}>DP</span>}
+                        </span>
+                      )
+                    })}
+                  </div>
+                </div>
+                {/* Vote */}
+                <button
+                  onClick={() => onVoter(groupe.notices)}
+                  title={userId ? (aVoté ? 'Retirer mon vote' : 'Je veux cette œuvre') : 'Connectez-vous pour voter'}
+                  style={{ display: 'flex', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: userId ? 'pointer' : 'default', padding: '2px 4px', flexShrink: 0, color: aVoté ? '#b87a30' : '#c4b8a4', fontSize: '11px', marginTop: '1px' }}>
+                  <span style={{ fontSize: '13px', lineHeight: 1 }}>{aVoté ? '♥' : '♡'}</span>
+                  {nbVotes > 0 && <span>{nbVotes}</span>}
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
   const [notices, setNotices] = useState<NoticeCompacte[]>([])
   const [chargement, setChargement] = useState(false)
@@ -314,8 +408,12 @@ function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
     await fetch('/api/catalogue/votes', { method: avait ? 'DELETE' : 'POST', headers, body: JSON.stringify({ id_notice: idNotice }) })
   }
 
-  // Grouper par auteur, puis par œuvre stabilisée.
-  const parAuteur: Record<string, { cle: string; titreStable: string; notices: NoticeCompacte[] }[]> = {}
+  const voterGroupe = async (ns: NoticeCompacte[]) => {
+    const cible = ns.find(n => mesVotes.has(n.id)) ?? ns[0]
+    if (cible) await voter(cible.id)
+  }
+
+  // Grouper par auteur, puis par œuvre stabilisée
   const groupes = new Map<string, { cle: string; auteur: string; titreStable: string; notices: NoticeCompacte[] }>()
   for (const n of notices) {
     const cle = cleOeuvreCatalogue(n)
@@ -323,6 +421,7 @@ function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
     groupe.notices.push(n)
     groupes.set(cle, groupe)
   }
+  const parAuteur: Record<string, GroupeCatalogue[]> = {}
   for (const groupe of groupes.values()) {
     if (!parAuteur[groupe.auteur]) parAuteur[groupe.auteur] = []
     groupe.notices.sort((a, b) =>
@@ -331,27 +430,20 @@ function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
     )
     parAuteur[groupe.auteur].push({ cle: groupe.cle, titreStable: groupe.titreStable, notices: groupe.notices })
   }
-  Object.values(parAuteur).forEach(groupesAuteur => {
-    groupesAuteur.sort((a, b) => a.titreStable.localeCompare(b.titreStable, 'fr'))
-  })
-
-  const nbOeuvresStables = groupes.size
-
-  const totalVotesGroupe = (ns: NoticeCompacte[]) => ns.reduce((s, n) => s + (votes[n.id] ?? 0), 0)
-  const aVoteDansGroupe = (ns: NoticeCompacte[]) => ns.some(n => mesVotes.has(n.id))
-  const voterGroupe = async (ns: NoticeCompacte[]) => {
-    const cible = ns.find(n => mesVotes.has(n.id)) ?? ns[0]
-    if (cible) await voter(cible.id)
+  for (const gs of Object.values(parAuteur)) {
+    gs.sort((a, b) => a.titreStable.localeCompare(b.titreStable, 'fr'))
   }
+
+  const auteursTriés = Object.keys(parAuteur).sort((a, b) => a.localeCompare(b, 'fr'))
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <span style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#b0a89e' }}>
-          Traductions répertoriées non disponibles ({nbOeuvresStables} œuvres, {notices.length} notices)
+          {enLettres(groupes.size).charAt(0).toUpperCase() + enLettres(groupes.size).slice(1)} œuvre{groupes.size > 1 ? 's' : ''} répertoriée{groupes.size > 1 ? 's' : ''}, non disponible{groupes.size > 1 ? 's' : ''}
         </span>
         <button onClick={onProposer}
-          style={{ fontSize: '11px', color: '#3d6b4f', background: 'rgba(61,107,79,0.07)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '5px', cursor: 'pointer', padding: '6px 10px' }}>
+          style={{ fontSize: '11px', color: '#7a6a48', background: 'rgba(139,107,60,0.08)', border: '1px solid rgba(139,107,60,0.22)', borderRadius: '5px', cursor: 'pointer', padding: '6px 10px' }}>
           Proposer une œuvre
         </button>
       </div>
@@ -359,42 +451,17 @@ function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
       {chargement ? (
         <p style={{ fontSize: '12px', color: '#b0a89e', fontStyle: 'italic' }}>Chargement…</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {Object.entries(parAuteur).map(([auteur, groupesAuteur]) => (
-            <div key={auteur}>
-              <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#9a8a6e', margin: '12px 0 4px', letterSpacing: '0.04em' }}>{auteur}</p>
-              {groupesAuteur.map(groupe => (
-                <div key={groupe.cle} style={{ marginBottom: '5px', borderLeft: '2px solid #e0d7c8', background: 'rgba(0,0,0,0.018)', borderRadius: '4px', padding: '6px 8px 5px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: '12.7px', color: '#3a342e', fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>{groupe.titreStable}</span>
-                      <span style={{ fontSize: '10px', color: '#b0a89e', marginLeft: '8px' }}>
-                        {groupe.notices.length} traduction{groupe.notices.length > 1 ? 's' : ''}
-                      </span>
-                    </div>
-                    <button onClick={() => voterGroupe(groupe.notices)} title={userId ? (aVoteDansGroupe(groupe.notices) ? 'Retirer mon vote' : 'Je veux cette œuvre') : 'Connectez-vous pour voter'}
-                      style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: userId ? 'pointer' : 'default', padding: '2px 6px', borderRadius: '4px', color: aVoteDansGroupe(groupe.notices) ? '#c0562a' : '#b0a89e', fontSize: '11px' }}>
-                      <span style={{ fontSize: '13px', lineHeight: 1 }}>{aVoteDansGroupe(groupe.notices) ? '♥' : '♡'}</span>
-                      {totalVotesGroupe(groupe.notices) ? <span>{totalVotesGroupe(groupe.notices)}</span> : null}
-                    </button>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px', paddingLeft: '12px' }}>
-                    {groupe.notices.map(n => (
-                      <div key={n.id} style={{ display: 'flex', alignItems: 'baseline', gap: '7px', minWidth: 0 }}>
-                        <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#d6d0c4', flexShrink: 0 }} />
-                        <span style={{ fontSize: '11.4px', color: '#5a5450', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titreDeclineCatalogue(n)}</span>
-                        <span style={{ fontSize: '10.5px', color: '#b0a89e', flexShrink: 0 }}>
-                          {[n.traducteur ? `Trad. ${n.traducteur}` : null, formaterDateHistorique(n.annee_edition ?? n.siecle_edition)].filter(Boolean).join(' · ')}
-                        </span>
-                        {n.domaine_public && n.domaine_public.includes('oui') && (
-                          <span style={{ fontSize: '9.5px', color: '#3d6b4f', fontWeight: 600, flexShrink: 0 }}>DP</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {auteursTriés.map(nomAuteur => (
+            <PanneauCatalogue
+              key={nomAuteur}
+              nomAuteur={nomAuteur}
+              groupes={parAuteur[nomAuteur]}
+              votes={votes}
+              mesVotes={mesVotes}
+              userId={userId}
+              onVoter={voterGroupe}
+            />
           ))}
         </div>
       )}
@@ -916,34 +983,44 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '48px' }}>
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '40px 32px 80px' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '10px 32px 40px' }}>
 
         {/* En-tête */}
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 8px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(20px, 3.5vw, 28px)', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 4px' }}>
             Bibliothèque
           </h1>
           <p style={{ fontFamily: 'Georgia, serif', fontSize: '13.5px', fontStyle: 'italic', color: '#8a8278', margin: 0, lineHeight: 1.6 }}>
             Écrits des Pères de l'Église du{' '}
-            <span style={{ fontVariant: 'small-caps' }}>I</span><sup style={{ fontStyle: 'normal', fontSize: '0.68em', lineHeight: 1 }}>er</sup>
+            <span style={{ fontVariantCaps: 'all-small-caps' }}>I</span><sup style={{ fontSize: '0.68em', lineHeight: 1 }}>er</sup>
             {' '}au{' '}
-            <span style={{ fontVariant: 'small-caps' }}>XIII</span><sup style={{ fontStyle: 'normal', fontSize: '0.68em', lineHeight: 1 }}>e</sup>
+            <span style={{ fontVariantCaps: 'all-small-caps' }}>XIII</span><sup style={{ fontSize: '0.68em', lineHeight: 1 }}>e</sup>
             {' '}siècle
+          </p>
+          <p style={{ fontFamily: 'Georgia, serif', fontSize: '11.5px', fontStyle: 'italic', color: '#b0a89e', margin: '4px 0 0', letterSpacing: '0.01em' }}>
+            {enLettres(auteurs.length).charAt(0).toUpperCase() + enLettres(auteurs.length).slice(1)} auteur{auteurs.length > 1 ? 's' : ''}{' '}·{' '}
+            {enLettres(auteurs.reduce((s, a) => s + a.oeuvres.length, 0))} œuvre{auteurs.reduce((s, a) => s + a.oeuvres.length, 0) > 1 ? 's' : ''}
           </p>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', justifyContent: 'center', borderBottom: '1px solid #ddd8cf', marginBottom: '32px' }}>
-          {([['bibliotheque', 'Bibliothèque'], ['favoris', 'Favoris'], ['catalogue', 'Traductions indisponibles']] as [Onglet, string][]).map(([key, label]) => (
-            <button key={key} onClick={() => setOnglet(key)} style={{
-              padding: '10px 24px', fontSize: '12.5px', fontFamily: 'Georgia, serif',
-              background: 'none', border: 'none', borderBottom: onglet === key ? '2px solid #3d6b4f' : '2px solid transparent',
-              color: onglet === key ? '#3d6b4f' : '#8a8278', cursor: 'pointer',
-              fontWeight: onglet === key ? 600 : 400, marginBottom: '-1px',
-              transition: 'color 0.15s',
-            }}>
-              {label}
-            </button>
+        <div style={{ display: 'flex', alignItems: 'stretch', borderBottom: '1px solid #ddd8cf', marginBottom: '16px' }}>
+          {([['bibliotheque', 'Bibliothèque'], ['favoris', 'Favoris'], ['catalogue', 'Traductions indisponibles']] as [Onglet, string][]).map(([key, label], idx) => (
+            <React.Fragment key={key}>
+              {idx > 0 && (
+                <span style={{ width: '1px', background: '#e0d8ce', alignSelf: 'center', height: '14px', flexShrink: 0 }} />
+              )}
+              <button onClick={() => setOnglet(key)} style={{
+                flex: 1, padding: '8px 8px', fontSize: '12.5px', fontFamily: 'Georgia, serif',
+                textAlign: 'center',
+                background: 'none', border: 'none', borderBottom: onglet === key ? '2px solid #3d6b4f' : '2px solid transparent',
+                color: onglet === key ? '#3d6b4f' : '#8a8278', cursor: 'pointer',
+                fontWeight: onglet === key ? 600 : 400, marginBottom: '-1px',
+                transition: 'color 0.15s',
+              }}>
+                {label}
+              </button>
+            </React.Fragment>
           ))}
         </div>
 
@@ -951,7 +1028,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
         {onglet === 'bibliotheque' && (
           <>
             {/* Recherche */}
-            <div style={{ position: 'relative', maxWidth: '340px', margin: '0 auto 24px' }}>
+            <div style={{ position: 'relative', maxWidth: '340px', margin: '0 auto 14px' }}>
               <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
                 placeholder="Rechercher un auteur ou une œuvre"
                 style={{ width: '100%', fontSize: '13px', padding: '9px 14px 9px 38px', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
@@ -960,13 +1037,6 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
                 <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
               </svg>
             </div>
-
-            {/* Compteur */}
-            {!qNorm && (
-              <p style={{ fontSize: '11px', color: '#b0a89e', textAlign: 'center', marginBottom: '16px' }}>
-                {auteurs.length} auteurs · {auteurs.reduce((s, a) => s + a.oeuvres.length, 0)} œuvres
-              </p>
-            )}
 
             {auteursFiltres.length === 0 ? (
               <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>

@@ -4,8 +4,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import type { ElementPanneau } from './texteEnrichiEssai'
 
-const DUREE_FIXATION = 4000
-const DELAI_FERMETURE = 1000
+const DUREE_FIXATION = 3000
+const DELAI_FERMETURE = 200
 
 function ContenuNote({ el, onNaviguer }: {
   el: ElementPanneau
@@ -66,12 +66,14 @@ function ContenuNote({ el, onNaviguer }: {
   return (
     <span style={{
       display: 'block',
-      fontSize: '12.5px',
-      lineHeight: 1.32,
+      fontSize: '12px',
+      lineHeight: 1.38,
       color: '#2a2016',
       fontFamily: "Georgia, 'Times New Roman', serif",
-      fontStyle: 'italic',
-      letterSpacing: '0.005em',
+      fontStyle: 'normal',
+      letterSpacing: '0.002em',
+      wordSpacing: '-0.01em',
+      textIndent: 0,
     }}>
       {texte !== null ? rendreTexteAvecLiens(texte) : null}
     </span>
@@ -124,6 +126,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
   const traiterSortir = useCallback(() => {
     if (fixe) return
     if (timerFermeture.current) clearTimeout(timerFermeture.current)
+    if (timerFixation.current) { clearTimeout(timerFixation.current); timerFixation.current = null }
     timerFermeture.current = setTimeout(() => {
       timerFermeture.current = null; viderTimers(); setOuvert(false); setProfondeur(el)
     }, DELAI_FERMETURE)
@@ -143,7 +146,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
   ) : (
     <sup style={{ marginLeft: '0.1em' }}>
       <button onMouseEnter={traiterEntrer} onMouseLeave={traiterSortir} onClick={traiterClic}
-        style={{ color: fixe ? '#1e2e24' : '#3d6b4f', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: '0.76em', fontFamily: "Georgia, serif", fontStyle: 'italic', lineHeight: 1 }}>
+        style={{ color: fixe ? '#1e2e24' : '#3d6b4f', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: '0.82em', fontFamily: "Georgia, serif", fontStyle: 'normal', lineHeight: 1 }}>
         {lettre}
       </button>
     </sup>
@@ -195,14 +198,21 @@ export default function NoteTooltip({ lettre, el, isRef }: {
             display: 'block',
             background: '#f7f3ec',
             border: '1px solid rgba(185,165,120,0.35)',
-            borderTop: `2px solid ${fixe ? '#2a5a3a' : '#3d6b4f'}`,
             borderRadius: '6px',
-            padding: '11px 13px 14px',
+            padding: '10px 12px',
             width: '220px',
             boxShadow: '0 6px 24px rgba(10,8,4,0.13), 0 1px 4px rgba(10,8,4,0.06)',
             position: 'relative',
             overflow: 'hidden',
+            textIndent: 0,
           }}>
+
+            {/* Label « Note X » dans le coin supérieur gauche */}
+            {el.type === 'note' && profondeur === el && (
+              <span style={{ display: 'block', fontSize: '8px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a09070', marginBottom: '5px', fontFamily: "'Helvetica Neue', Arial, sans-serif", wordSpacing: 0 }}>
+                Note {lettre}
+              </span>
+            )}
 
             {/* Retour (navigation dans la note) */}
             {profondeur !== el && (
@@ -230,6 +240,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
                 height: '2px',
                 background: 'linear-gradient(90deg, #3d6b4f 0%, #8abf9e 100%)',
                 animation: `essai-note-progress ${DUREE_FIXATION}ms linear forwards`,
+
               }} />
             )}
           </span>

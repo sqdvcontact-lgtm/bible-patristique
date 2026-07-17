@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
@@ -18,6 +18,7 @@ type Onglet = 'communaute' | 'mes-ecrits' | 'ecrire' | 'suggestion'
 type EssaiResume = {
   id: number; titre: string; sous_titre: string | null; resume: string | null; contenu?: string | null
   categories: string[]; nb_vues: number; nb_likes: number; publie_at: string | null; auteur: string; auteur_score: number
+  avatar_url?: string | null; user_id?: string | null
 }
 
 type EssaiPerso = {
@@ -42,12 +43,22 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
   const [filtreCategorie, setFiltreCategorie] = useState<string | null>(null)
   const [mesEcrits, setMesEcrits] = useState<EssaiPerso[] | null>(null)
   const [connecte, setConnecte] = useState<boolean | null>(null)
+  const [monUserId, setMonUserId] = useState<string | null>(null)
+  const [monAvatarUrl, setMonAvatarUrl] = useState<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       const uid = data.session?.user.id
       setConnecte(!!uid)
       if (!uid) { setMesEcrits([]); return }
+      setMonUserId(uid)
+      try {
+        const saved = localStorage.getItem('cs_photo_profil')
+        if (saved) {
+          const photo = JSON.parse(saved)
+          if (photo?.imageUrl) setMonAvatarUrl(photo.imageUrl)
+        }
+      } catch {}
       chargerMesEcrits(uid)
     })
   }, [])
@@ -85,57 +96,66 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
   }
 
   const q = sansAccents(recherche.trim())
-  const essaisFiltres = useMemo(() => essais.filter(e => {
+  const essaisAvecPhoto = useMemo(() =>
+    monUserId && monAvatarUrl
+      ? essais.map(e => e.user_id === monUserId ? { ...e, avatar_url: monAvatarUrl } : e)
+      : essais,
+    [essais, monUserId, monAvatarUrl]
+  )
+  const essaisFiltres = useMemo(() => essaisAvecPhoto.filter(e => {
     if (filtreCategorie && !e.categories.includes(filtreCategorie)) return false
     if (!q) return true
     return sansAccents(e.auteur).includes(q) || sansAccents(e.titre).includes(q) || (e.resume && sansAccents(e.resume).includes(q))
-  }), [essais, filtreCategorie, q])
+  }), [essaisAvecPhoto, filtreCategorie, q])
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '16px' }}>
       <div style={{ maxWidth: '920px', margin: '0 auto', padding: '16px 28px 80px' }}>
 
         {/* En-tête */}
-        <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: 'normal', color: '#1e2e24', marginBottom: '3px', letterSpacing: '0.03em' }}>
+        <div style={{ position: 'relative', textAlign: 'center', marginBottom: '18px' }}>
+
+          {/* Pyramide */}
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 10px', letterSpacing: '0.03em' }}>
             Publications
           </h1>
           <p style={{ fontFamily: 'Georgia, serif', fontSize: '12px', fontStyle: 'italic', color: '#9a9088', margin: '0 0 10px', letterSpacing: '0.01em' }}>
             Communications savantes, spirituelles et poétiques
           </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', maxWidth: '260px', margin: '0 auto 14px' }}>
+            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, transparent, #d6ceb8)' }} />
+            <span style={{ fontSize: '9px', color: '#c8c0ac', letterSpacing: '0.1em' }}>✦</span>
+            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to left, transparent, #d6ceb8)' }} />
+          </div>
 
-          {/* Onglets */}
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '2px', borderBottom: '1px solid #ddd8cf', flexWrap: 'wrap' }}>
+          {/* Onglets navigation */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', borderBottom: '1px solid #ddd8cf' }}>
             {([
               { key: 'communaute' as const, label: 'Communauté' },
               { key: 'mes-ecrits' as const, label: 'Mes écrits' },
             ]).map(o => (
               <button key={o.key} onClick={() => setOnglet(o.key)}
-                style={{ padding: '6px 14px', fontSize: '11.5px', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: '0.01em' }}>
+                style={{ padding: '6px 16px', fontSize: '11.5px', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: '0.01em' }}>
                 {o.label}
               </button>
             ))}
-            <span style={{ width: '1px', height: '16px', background: '#ddd8cf', margin: '0 6px 9px', flexShrink: 0 }} />
-            {([
-              { key: 'ecrire' as const, label: '+ Écrire' },
-              { key: 'suggestion' as const, label: '✦ Suggestion' },
-            ]).map(o => {
-              const actif = onglet === o.key
-              return (
-                <button key={o.key} onClick={() => {
-                  if (o.key === 'ecrire' && connecte) {
-                    router.push('/essais/nouveau?depuis=publications')
-                    return
-                  }
-                  setOnglet(o.key)
-                }}
-                  style={{ padding: '5px 12px', fontSize: '11px', fontStyle: 'italic', fontWeight: actif ? 600 : 400, color: actif ? '#fff' : '#5a8a6a', background: actif ? '#3d6b4f' : 'transparent', border: 'none', borderRadius: '4px 4px 0 0', borderBottom: actif ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: '0.01em', transition: 'background 0.13s, color 0.13s' }}>
-                  {o.label}
-                </button>
-              )
-            })}
           </div>
         </div>
+
+          {(onglet === 'communaute' || onglet === 'mes-ecrits') && (
+          <div className="ecrire-bandeau-container">
+            <div className="ecrire-bandeau">
+              <span className="ecrire-bandeau-label">✒ Écrire</span>
+              <button className="ecrire-option"
+                onClick={() => connecte ? router.push('/essais/nouveau?depuis=publications') : setOnglet('ecrire')}>
+                Rédiger un texte
+              </button>
+              <button className="ecrire-option" onClick={() => setOnglet('suggestion')}>
+                Commenter un verset aléatoire
+              </button>
+            </div>
+          </div>
+        )}
 
         {onglet === 'communaute' ? (
           <OngletCommunaute
@@ -166,12 +186,8 @@ function OngletCommunaute({
 }) {
   const { favoris: favorisEssais, toggle: toggleFavoriEssai } = useFavoris('essai')
 
-  // Tri : par auteur alphabétique, puis par date décroissante au sein de chaque auteur
-  const tries = [...essais].sort((a, b) => {
-    const cmp = a.auteur.localeCompare(b.auteur, 'fr')
-    if (cmp !== 0) return cmp
-    return (b.publie_at ?? '').localeCompare(a.publie_at ?? '')
-  })
+  // Tri par date de publication décroissante
+  const tries = [...essais].sort((a, b) => (b.publie_at ?? '').localeCompare(a.publie_at ?? ''))
   const populaires = [...essais]
     .sort((a, b) => (b.nb_likes - a.nb_likes) || (b.nb_vues - a.nb_vues) || (b.publie_at ?? '').localeCompare(a.publie_at ?? ''))
     .slice(0, 3)
@@ -182,7 +198,7 @@ function OngletCommunaute({
     <>
       {/* Barre de recherche + filtres */}
       <div style={{ marginBottom: '10px' }}>
-        <div style={{ position: 'relative', maxWidth: '240px', margin: '0 auto 8px' }}>
+        <div style={{ position: 'relative', maxWidth: '400px', margin: '0 auto 8px' }}>
           <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
             placeholder="Auteur, titre, résumé…"
             style={{ width: '100%', fontSize: '11.5px', padding: '6px 12px 6px 30px', border: '1px solid #d6d0c4', borderRadius: '16px', background: 'rgba(255,255,255,0.72)', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
@@ -277,43 +293,80 @@ function OngletCommunaute({
           font-size: 9.5px;
           color: #a49b90;
         }
+        @keyframes podium-shimmer {
+          0%   { transform: translateX(-200%); }
+          100% { transform: translateX(300%); }
+        }
+        .podium-lien {
+          position: relative;
+          overflow: hidden;
+          display: block;
+          text-decoration: none;
+        }
+        .podium-lien::after {
+          content: '';
+          position: absolute;
+          top: 0; bottom: 0; left: 0;
+          width: 40%;
+          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0) 20%, rgba(255,255,250,0.38) 50%, rgba(255,255,255,0) 80%, transparent 100%);
+          pointer-events: none;
+          opacity: 0;
+          transform: translateX(-200%);
+        }
+        .podium-lien:hover::after {
+          opacity: 1;
+          animation: podium-shimmer 0.55s ease forwards;
+        }
+        .podium-overlay-lire {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity 0.16s;
+          pointer-events: none;
+          background: rgba(250,248,243,0.93);
+        }
+        .podium-lien:hover .podium-overlay-lire {
+          opacity: 1;
+        }
+        .podium-overlay-lire-texte {
+          font-size: 12px;
+          font-weight: 600;
+          color: #c8a84a;
+          letter-spacing: 0.03em;
+        }
         .publications-litteraires {
           position: relative;
           padding: 2px 0 0;
         }
         .essais-journal {
-          column-count: 3;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
           column-gap: 24px;
-          column-rule: 1px solid rgba(214,208,196,0.55);
+          row-gap: 0;
+        }
+        .essais-journal .essai-carte {
+          border-right: 1px solid rgba(214,208,196,0.55);
+        }
+        .essais-journal .essai-carte:nth-child(3n) {
+          border-right: none;
         }
         .essai-carte {
           position: relative;
           display: block;
-          break-inside: avoid;
           margin: 0 0 14px;
           background: transparent;
           border: 0;
           border-top: 1px solid rgba(214,208,196,0.78);
           border-radius: 0;
-          padding: 11px 2px 12px;
+          padding: 11px 8px 12px;
           cursor: pointer;
           transition: background 0.16s, transform 0.16s;
           overflow: hidden;
         }
         .essai-carte:hover { background: rgba(255,255,255,0.44); transform: translateY(-1px); }
-        .essai-carte:not(.featured)::before {
-          content: "";
-          position: absolute;
-          inset: 10px 8px 12px;
-          background: rgba(250, 248, 243, 0.78);
-          opacity: 0;
-          pointer-events: none;
-          z-index: 2;
-          transition: opacity 0.16s ease;
-        }
-        .essai-carte:not(.featured):hover::before {
-          opacity: 1;
-        }
         .essai-carte.featured {
           grid-row: span 3;
           padding: 28px 28px 26px;
@@ -331,60 +384,76 @@ function OngletCommunaute({
           background: linear-gradient(to bottom, transparent, #bfae8f, transparent);
           opacity: 0.7;
         }
-        .essai-carte:hover .essai-contenu { opacity: 0.04; transform: translateX(-5px); }
-        .essai-carte::after {
-          content: "Lire cette publication";
-          position: absolute; top: 29%; left: 50%;
-          width: min(82%, 250px); height: 28px;
-          display: flex; align-items: center; justify-content: center;
-          transform: translate(-50%, -50%) translateY(8px);
-          font-family: Georgia, serif; font-size: 15px; font-style: italic;
-          color: rgba(35,79,51,0); letter-spacing: 0.01em;
-          pointer-events: none;
-          text-shadow: 0 1px 0 rgba(255,255,255,0.35);
-          transition: color 0.18s ease, transform 0.18s ease;
-          white-space: nowrap;
-          z-index: 3;
-        }
-        .essai-carte:hover::after {
-          color: rgba(24,20,17,0.88);
-          transform: translate(-50%, -50%) translateY(0);
-        }
-        .essai-survol-resume {
+        .essai-carte:hover .essai-contenu { opacity: 0.06; transition: opacity 0.18s ease; }
+        .essai-contenu { transition: opacity 0.18s ease; }
+        .essai-hover-overlay {
           position: absolute;
-          left: 50%;
-          top: calc(29% + 52px);
-          width: min(78%, 245px);
-          transform: translate(-50%, -50%) translateY(9px);
+          inset: 0;
+          background: rgba(250,248,243,0.95);
+          display: flex;
+          align-items: center;
+          justify-content: center;
           opacity: 0;
-          z-index: 3;
+          transition: opacity 0.18s;
+          z-index: 4;
+          padding: 14px 12px;
           pointer-events: none;
-          font-family: Georgia, serif;
-          font-size: 11.8px;
-          line-height: 1.36;
-          color: rgba(24,20,17,0.84);
+        }
+        .essai-carte:hover .essai-hover-overlay { opacity: 1; pointer-events: auto; }
+        .essai-hover-contenu {
           text-align: center;
-          text-shadow: 0 1px 0 rgba(255,255,255,0.38);
-          transition: opacity 0.18s ease, transform 0.18s ease;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 3px;
+          max-width: 100%;
         }
-        .essai-carte:hover .essai-survol-resume {
-          opacity: 1;
-          transform: translate(-50%, -50%) translateY(0);
+        .essai-hover-titre {
+          font-family: Georgia, serif;
+          font-size: 13.5px;
+          color: #1e2e24;
+          margin: 0;
+          line-height: 1.25;
         }
-        .essai-carte .fleche-lire {
-          position: absolute; top: calc(29% - 28px); left: 50%;
-          width: 30px; height: 16px;
-          transform: translate(-50%, -50%) translateY(8px);
-          color: rgba(61,107,79,0);
+        .essai-hover-auteur {
+          font-size: 8.5px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #7a6a50;
+          margin: 0;
+        }
+        .essai-hover-date {
+          font-family: Georgia, serif;
+          font-size: 10px;
+          color: #a09880;
+          font-style: italic;
+          margin: 0;
+        }
+        .essai-hover-resume {
+          font-family: Georgia, serif;
+          font-size: 11px;
+          color: #5a524a;
+          line-height: 1.42;
+          margin: 6px 0 0;
+          font-style: italic;
+        }
+        .essai-hover-lire {
+          display: inline-block;
+          margin-top: 9px;
+          font-size: 11.5px;
+          color: #3d6b4f;
+          font-weight: 600;
+          letter-spacing: 0.03em;
+        }
+        .article-journal-cartouche-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(250,248,243,0.88);
+          z-index: 0;
           pointer-events: none;
-          transition: color 0.18s ease, transform 0.18s ease;
-          z-index: 3;
+          border-radius: inherit;
         }
-        .essai-carte:hover .fleche-lire {
-          color: rgba(61,107,79,0.52);
-          transform: translate(-50%, -50%) translateY(0);
-        }
-        .essai-contenu { transition: opacity 0.18s ease, transform 0.18s ease; }
         .essai-etoile { opacity: 0; transition: opacity 0.15s; pointer-events: none; }
         .essai-carte:hover .essai-etoile { opacity: 1; pointer-events: auto; }
         .article-journal-normal {
@@ -395,7 +464,7 @@ function OngletCommunaute({
         }
         .article-journal-carre {
           width: min(100%, 270px);
-          height: 270px;
+          height: 285px;
           margin: 0 auto;
           display: flex;
           flex-direction: column;
@@ -419,14 +488,14 @@ function OngletCommunaute({
         .article-journal-centre-row {
           display: grid;
           grid-template-columns: minmax(0, 1fr) clamp(150px, 54%, 220px) minmax(0, 1fr);
-          align-items: center;
+          align-items: start;
           column-gap: 7px;
-          height: 90px;
+          height: 105px;
           margin: 0;
         }
         .article-journal-lignes-cote {
           min-width: 0;
-          height: 90px;
+          height: 105px;
           line-height: 15px;
           overflow: hidden;
           hyphens: none;
@@ -470,7 +539,7 @@ function OngletCommunaute({
           position: relative;
           z-index: 2;
           width: 100%;
-          height: 72px;
+          height: 105px;
           box-sizing: border-box;
           min-width: 0;
           max-width: none;
@@ -488,23 +557,24 @@ function OngletCommunaute({
           justify-content: center;
         }
         .article-journal-cartouche-auteur {
-          margin: 0 0 3px;
-          font-size: 11.2px;
-          line-height: 1.15;
+          margin: 0 0 4px;
+          font-size: 8.5px;
+          line-height: 1.1;
           font-style: normal;
           font-weight: 700;
-          letter-spacing: 0.12em;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
-          color: #36312c;
+          color: #9a7a50;
         }
         .article-journal-cartouche-titre {
           margin: 0;
           font-family: Georgia, serif;
-          font-size: 15.4px;
-          line-height: 1.04;
+          font-size: 15px;
+          line-height: 1.1;
           font-weight: normal;
-          color: #2f6848;
+          color: #1e2e24;
           hyphens: auto;
+          letter-spacing: 0.01em;
         }
         .article-journal-cartouche-titre-ligne {
           display: block;
@@ -525,17 +595,63 @@ function OngletCommunaute({
           letter-spacing: 0.08em;
           text-transform: uppercase;
         }
+        .ecrire-bandeau-container {
+          margin: 10px auto 14px;
+          max-width: 380px;
+        }
+        .ecrire-bandeau {
+          display: flex;
+          height: 34px;
+          border: 1px solid rgba(61,107,79,0.18);
+          border-radius: 3px;
+          background: rgba(61,107,79,0.03);
+          overflow: hidden;
+          position: relative;
+          transition: border-color 0.18s, background 0.18s;
+        }
+        .ecrire-bandeau:hover {
+          border-color: rgba(61,107,79,0.32);
+          background: rgba(61,107,79,0.05);
+        }
+        .ecrire-bandeau-label {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 9.5px;
+          font-style: italic;
+          color: rgba(61,107,79,0.55);
+          letter-spacing: 0.08em;
+          transition: opacity 0.14s;
+          pointer-events: none;
+          z-index: 2;
+        }
+        .ecrire-bandeau:hover .ecrire-bandeau-label { opacity: 0; }
+        .ecrire-option {
+          flex: 1;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          font-size: 10px;
+          font-family: Georgia, serif;
+          font-style: italic;
+          color: #3d6b4f;
+          opacity: 0;
+          transition: opacity 0.14s, background 0.14s;
+          letter-spacing: 0.02em;
+        }
+        .ecrire-option:hover { background: rgba(61,107,79,0.08); }
+        .ecrire-option + .ecrire-option { border-left: 1px solid rgba(61,107,79,0.16); }
+        .ecrire-bandeau:hover .ecrire-option { opacity: 1; }
         @media (max-width: 780px) {
-          .publications-populaires-grille { grid-template-columns: 1fr; }
           .publications-litteraires { padding: 18px 10px 28px; }
-          .essais-journal { column-count: 1; column-rule: 0; }
+          .essais-journal { grid-template-columns: 1fr; }
+          .essais-journal .essai-carte { border-right: none; }
           .article-journal-centre-row { grid-template-columns: 1fr; }
           .article-journal-lignes-cote { display: none; }
           .article-journal-cartouche { width: min(82%, 230px); }
           .essai-carte.featured { grid-row: auto; padding: 22px 20px 20px; }
-        }
-        @media (min-width: 781px) and (max-width: 980px) {
-          .essais-journal { column-count: 2; }
         }
       `}</style>
       {tries.length === 0 ? (
@@ -560,37 +676,65 @@ function EnTetePublicationsPopulaires({ essais, favorisEssais, toggleFavoriEssai
   toggleFavoriEssai: (id: string) => void
 }) {
   if (essais.length === 0) return null
+  const [premier, ...autres] = essais
   return (
-    <section className="publications-populaires-tete" aria-label="Publications populaires">
-      <p className="publications-populaires-titre">Œuvres les plus lues</p>
-      <div className="publications-populaires-grille">
-        {essais.map((e, i) => (
-          <Link key={e.id} href={`/essais/${e.id}`} className="publication-populaire-item">
-            <span className="publication-populaire-auteur">{e.auteur}</span>
-            <span className="publication-populaire-titre">{e.titre}</span>
-            {e.resume && (
-              <span className="publication-populaire-resume">
-                {e.resume.length > (i === 0 ? 130 : 75) ? e.resume.slice(0, i === 0 ? 130 : 75) + ' …' : e.resume}
-              </span>
-            )}
-            <span className="publication-populaire-meta-ligne">
-              <span className="publication-populaire-meta">
-                {e.nb_likes > 0 ? `♥ ${e.nb_likes}` : `${e.nb_vues} vue${e.nb_vues > 1 ? 's' : ''}`}
-              </span>
-              <EtoileFavori
-                actif={favorisEssais.has(String(e.id))}
-                onToggle={() => toggleFavoriEssai(String(e.id))}
-                size={12}
-                style={{ color: favorisEssais.has(String(e.id)) ? '#c8933a' : '#c0b48a' }}
-              />
-            </span>
-          </Link>
-        ))}
+    <section style={{ maxWidth: '680px', margin: '0 auto 26px', border: '1px solid #c8ad72', borderRadius: '3px', overflow: 'hidden', boxShadow: '0 2px 10px rgba(140,110,45,0.09)' }} aria-label="Publications populaires">
+      {/* Bandeau titre */}
+      <div style={{ background: 'linear-gradient(to right, #c8a84a, #e0c470, #c8a84a)', padding: '6px 12px', textAlign: 'center', borderBottom: '1px solid #c8ad72' }}>
+        <span style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.26em', textTransform: 'uppercase', color: '#3a2a08' }}>
+          &#10022; Oeuvres les plus lues &#10022;
+        </span>
       </div>
+
+      {/* Bandeau superieur - #1 */}
+      <Link href={`/essais/${premier.id}`} className="podium-lien" style={{ display: 'block', padding: '16px 22px', background: 'linear-gradient(160deg, #faf3e2 0%, #f0e6c6 100%)', textDecoration: 'none', borderBottom: autres.length > 0 ? '1px solid rgba(200,180,114,0.45)' : 'none' }}>
+        <span className="podium-overlay-lire"><span className="podium-overlay-lire-texte">Lire &rarr;</span></span>
+        <span style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#9a7a28', display: 'block', marginBottom: '5px' }}>
+          {premier.auteur}
+        </span>
+        <span style={{ fontFamily: 'Georgia, serif', fontSize: '19px', lineHeight: 1.2, color: '#1e2e24', display: 'block', marginBottom: '7px' }}>
+          {premier.titre}
+        </span>
+        {premier.resume && (
+          <span style={{ fontFamily: 'Georgia, serif', fontSize: '12px', color: '#6a6050', lineHeight: 1.55, display: 'block', fontStyle: 'italic', marginBottom: '10px' }}>
+            {premier.resume.length > 155 ? premier.resume.slice(0, 155) + ' ...' : premier.resume}
+          </span>
+        )}
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '9px', color: '#a09068' }}>
+            {premier.nb_likes > 0 ? `${premier.nb_likes} likes` : `${premier.nb_vues} vue${premier.nb_vues !== 1 ? 's' : ''}`}
+          </span>
+          <EtoileFavori actif={favorisEssais.has(String(premier.id))} onToggle={() => toggleFavoriEssai(String(premier.id))} size={12} style={{ color: favorisEssais.has(String(premier.id)) ? '#c8933a' : '#c0b48a' }} />
+        </span>
+      </Link>
+
+      {/* Bandeau inferieur - #2 et #3 cote a cote */}
+      {autres.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+          {autres.map((e, i) => (
+            <Link key={e.id} href={`/essais/${e.id}`} className="podium-lien" style={{ display: 'block', padding: '12px 16px', background: i === 0 ? 'linear-gradient(160deg, #f5eedc 0%, #ece3c2 100%)' : 'linear-gradient(160deg, #ece3c2 0%, #f5eedc 100%)', textDecoration: 'none', borderLeft: i > 0 ? '1px solid rgba(200,180,114,0.42)' : 'none' }}>
+              <span className="podium-overlay-lire"><span className="podium-overlay-lire-texte">Lire &rarr;</span></span>
+              <span style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#9a7a28', display: 'block', marginBottom: '3px' }}>
+                {e.auteur}
+              </span>
+              <span style={{ fontFamily: 'Georgia, serif', fontSize: '14px', lineHeight: 1.25, color: '#2a3d30', display: 'block', marginBottom: '5px' }}>
+                {e.titre}
+              </span>
+              {e.resume && (
+                <span style={{ fontFamily: 'Georgia, serif', fontSize: '11px', color: '#7a7060', lineHeight: 1.44, display: 'block', fontStyle: 'italic', marginBottom: '7px' }}>
+                  {e.resume.length > 80 ? e.resume.slice(0, 80) + ' ...' : e.resume}
+                </span>
+              )}
+              <span style={{ fontSize: '9px', color: '#a09068' }}>
+                {e.nb_likes > 0 ? `${e.nb_likes} likes` : `${e.nb_vues} vue${e.nb_vues !== 1 ? 's' : ''}`}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   )
 }
-
 type HabillageJournal = {
   haut: string[]
   gauche: string[]
@@ -714,9 +858,9 @@ function creerHabillageJournal(texte: string): HabillageJournal {
   const hautForce = prendreLignesForcees(source, index, 6, LARGEUR_LIGNE_JOURNAL)
   index = hautForce.index
 
-  const gaucheForce = prendreLignesForcees(source, index, 6, LARGEUR_LIGNE_COTE_JOURNAL)
+  const gaucheForce = prendreLignesForcees(source, index, 7, LARGEUR_LIGNE_COTE_JOURNAL)
   index = gaucheForce.index
-  const droiteForce = prendreLignesForcees(source, index, 6, LARGEUR_LIGNE_COTE_JOURNAL)
+  const droiteForce = prendreLignesForcees(source, index, 7, LARGEUR_LIGNE_COTE_JOURNAL)
   index = droiteForce.index
 
   const basForce = prendreLignesForcees(source, index, 6, LARGEUR_LIGNE_JOURNAL)
@@ -755,14 +899,20 @@ function EssaiCarte({ essai: e, miseEnAvant = false, favorisEssais, toggleFavori
   if (!miseEnAvant) {
     return (
       <div className="essai-carte" onClick={() => router.push(`/essais/${e.id}`)}>
-        <svg className="fleche-lire" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-          <path d="M7 10.5L14 17.5L21 10.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        {e.resume && (
-          <span className="essai-survol-resume">
-            {e.resume.length > 170 ? `${e.resume.slice(0, 170).replace(/\s+\S*$/, '')} …` : e.resume}
-          </span>
-        )}
+        {/* Overlay au survol */}
+        <div className="essai-hover-overlay">
+          <div className="essai-hover-contenu">
+            <p className="essai-hover-titre">{e.titre}</p>
+            <p className="essai-hover-auteur">{e.auteur}</p>
+            {dateFormatee && <p className="essai-hover-date">{dateFormatee}</p>}
+            {e.resume && (
+              <p className="essai-hover-resume">
+                {e.resume.length > 130 ? e.resume.slice(0, 130).replace(/\s+\S*$/, '') + ' ...' : e.resume}
+              </p>
+            )}
+            <span className="essai-hover-lire">Lire &rarr;</span>
+          </div>
+        </div>
 
         <div className="essai-etoile" style={{ position: 'absolute', bottom: '12px', right: '10px', zIndex: 20 }}>
           <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={14} />
@@ -781,11 +931,19 @@ function EssaiCarte({ essai: e, miseEnAvant = false, favorisEssais, toggleFavori
                   <span key={i} className="article-journal-ligne">{ligne}</span>
                 ))}
               </div>
-              <div className="article-journal-cartouche">
-                <p className="article-journal-cartouche-auteur">{e.auteur}</p>
-                <p className="article-journal-cartouche-titre">
-                  {lignesTitreAffichees.map((ligne, i) => <span key={i} className="article-journal-cartouche-titre-ligne">{ligne}</span>)}
-                </p>
+              <div className="article-journal-cartouche" style={e.avatar_url ? { backgroundImage: `url(${e.avatar_url})`, backgroundSize: 'cover', backgroundPosition: 'center top' } : {}}>
+                {e.avatar_url && <div className="article-journal-cartouche-overlay" />}
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <p className="article-journal-cartouche-auteur">{e.auteur}</p>
+                  <p className="article-journal-cartouche-titre">
+                    {lignesTitreAffichees.map((ligne, i) => <span key={i} className="article-journal-cartouche-titre-ligne">{ligne}</span>)}
+                  </p>
+                  {dateFormatee && (
+                    <p style={{ margin: '7px 0 0', fontSize: '8.5px', fontStyle: 'italic', color: '#9a8a6a', fontFamily: 'Georgia, serif' }}>
+                      {dateFormatee}
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="article-journal-lignes article-journal-lignes-cote article-journal-lignes-droite" aria-hidden="true">
                 {lignesHabillage.droite.map((ligne, i) => (
@@ -806,7 +964,6 @@ function EssaiCarte({ essai: e, miseEnAvant = false, favorisEssais, toggleFavori
       </div>
     )
   }
-
   return (
       <div className={`essai-carte${miseEnAvant ? ' featured' : ''}`} onClick={() => router.push(`/essais/${e.id}`)}>
         <svg className="fleche-lire" viewBox="0 0 28 28" fill="none" aria-hidden="true">
@@ -1131,7 +1288,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
               Écrire sur ce verset
             </Link>
             <Link
-              href={`/?livre=${verset.livre}&chapitre=${verset.chapitre}`}
+              href={`/?livre=${verset.livre}&chapitre=${verset.chapitre}&verset=${verset.verset}`}
               style={{ display: 'inline-block', padding: '9px 16px', fontSize: '12.5px', color: '#3d6b4f', borderRadius: '6px', textDecoration: 'none', border: '1px solid #c8d8cc' }}>
               Lire dans la Bible
             </Link>
