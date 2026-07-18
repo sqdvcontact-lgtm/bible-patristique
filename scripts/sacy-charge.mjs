@@ -2,7 +2,7 @@
 // Respecte la versification de l'édition dans ch_orig/v_orig ; la rattache au canon par
 // une table explicite. Exporte l'état antérieur avant écriture (charte §23.10).
 //   node scripts/sacy-charge.mjs EXO exo_ [--dry]
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
 import { corrigerTypographie } from './typographie.mjs'
 const D = 'C:/Users/quins/AppData/Local/Temp/claude/C--Users-quins-OneDrive-Bureau-bible-patristique/c36e26f7-816d-4b33-a05d-7d149dfb6372/scratchpad/sacy/'
@@ -272,8 +272,29 @@ const canon = new Set((await all(sb.from('versets_canon').select('id').like('id'
 const versCanon = MAP[CODE] || (v => `${CODE}.${v.ch}.${v.v}`)
 const deux = COUVRE_DEUX[CODE] || {}
 
+// ── plan d'alignement explicite (livres à recension divergente : Tobie, Judith) ──
+// Quand il existe, il fait autorité sur la table MAP : il porte, verset par verset, soit
+// un canon_id vérifié par comparaison de contenu, soit null pour un SURNUMÉRAIRE — un
+// verset que l'édition porte et que le référent n'a pas. Un surnuméraire est chargé comme
+// les autres, avec sa numérotation d'édition dans ch_orig/v_orig ; seul canon_id est nul.
+let plan = null
+const fPlan = D + `${PREFIXE}${CODE}_plan.json`
+if (existsSync(fPlan)){
+  plan = new Map(JSON.parse(readFileSync(fPlan, 'utf8')).map(p => [`${p.ch}.${p.v}`, p.canon_id]))
+  console.log(`  plan d'alignement : ${plan.size} versets, dont ${[...plan.values()].filter(x => x === null).length} surnuméraires`)
+}
+
 const lignes = [], hors = []
 for (const v of versets){
+  if (plan){
+    if (!plan.has(`${v.ch}.${v.v}`)){ hors.push(`${v.ch},${v.v}→absent du plan`); continue }
+    const cid = plan.get(`${v.ch}.${v.v}`)
+    lignes.push({ trad_id:'TR0001', livre:CODE, ch_orig:v.ch, v_orig:v.v,
+      texte: typo(v.texte), canon_id: cid, canon_id_fin: null, est_suscription:false,
+      notes: cid ? null : 'Verset propre à la Vulgate, sans équivalent chez le référent : la traduction latine de ce livre repose sur un original différent.',
+      alignement_verifie: true })
+    continue
+  }
   const cid = versCanon(v)
   if (!canon.has(cid)){ hors.push(`${v.ch},${v.v}→${cid}`); continue }
   const fin = deux[`${v.ch}.${v.v}`] ?? null
@@ -287,7 +308,10 @@ for (const v of versets){
 // où le canon garde un seul verset). NE PAS les dédoublonner : on perdrait du texte. On les
 // range par ordre_slot, dans l'ordre de l'édition — la Polyglotte les affiche à la suite.
 const parSlot = new Map()
-for (const l of lignes) (parSlot.get(l.canon_id) ?? parSlot.set(l.canon_id, []).get(l.canon_id)).push(l)
+// Les surnuméraires ont TOUS canon_id null : les grouper ensemble en ferait un seul créneau
+// partagé de 51 versets. On les regroupe donc sous une clé propre à chacun.
+for (const l of lignes){ const cle = l.canon_id ?? `surnum:${l.ch_orig}.${l.v_orig}`
+  ;(parSlot.get(cle) ?? parSlot.set(cle, []).get(cle)).push(l) }
 const finales = []
 for (const [, groupe] of parSlot){
   groupe.sort((a, b) => a.ch_orig - b.ch_orig || a.v_orig - b.v_orig)
