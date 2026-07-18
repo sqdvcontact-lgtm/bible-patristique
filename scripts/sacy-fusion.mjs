@@ -31,7 +31,9 @@ for (const L of LOTS){
       // marquent « [suite] » le second fragment d'un verset coupé entre deux pages. C'est une
       // bonne convention — mais le marqueur ne doit pas survivre au recollage.
       const texte = (v.texte||'').replace(/^\s*\[\s*suite\s*\]\s*/i, '').trim()
-      ;(frags.get(k) ?? frags.set(k,[]).get(k)).push({page:p.pageImp, texte})
+      // Note propre à l'ÉDITION (Sacy commente lui-même les additions grecques d'Esther) :
+      // elle accompagne le verset sans en faire partie, et va dans `notes`, pas dans `texte`.
+      ;(frags.get(k) ?? frags.set(k,[]).get(k)).push({page:p.pageImp, texte, note: v.note_edition || null})
     }
 }
 if (absents.length) console.log('⚠ lots absents : '+absents.join(', '))
@@ -72,7 +74,8 @@ function normLettrine(t){
 
 const versets = [...frags].map(([k,parts])=>{
   const [ch,v] = k.split('.').map(Number)
-  return { ch, v, texte: normLettrine(recoller(parts)) }
+  const note = parts.map(p=>p.note).filter(Boolean).join(' ') || null
+  return { ch, v, texte: normLettrine(recoller(parts)), ...(note ? { note } : {}) }
 }).sort((a,b)=>a.ch-b.ch || a.v-b.v)
 
 // ── césures de fin de ligne restées ouvertes (« par- tage », « con- cevrez ») ──

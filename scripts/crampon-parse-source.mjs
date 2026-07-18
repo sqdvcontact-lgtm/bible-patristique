@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 const SCRATCH = 'C:/Users/quins/AppData/Local/Temp/claude/C--Users-quins-OneDrive-Bureau-bible-patristique/c36e26f7-816d-4b33-a05d-7d149dfb6372/scratchpad/'
 const D = SCRATCH + 'sacy/'
 
-const SOURCES = [['TOB', 'crampon_tobie.html'], ['JDT', 'crampon_judith.html']]
+const SOURCES = [['TOB', 'crampon_tobie.html'], ['JDT', 'crampon_judith.html'], ['NEH', 'crampon_nehemie.html'], ['EST', 'crampon_esther.html']]
 
 // Un numéro de verset est un entier valant exactement le précédent + 1. Ce critère de
 // SUITE est ce qui le distingue d'un nombre du texte (« quatre-vingt-dix-neuf ans »,

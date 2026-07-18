@@ -233,6 +233,25 @@ MAP['2CH'] = v => {
   return `2CH.${v.ch}.${v.v}`
 }
 
+// NEH : deux frontières décalées et deux fusions, toutes vérifiées contre le texte du
+// référent verset par verset (source JesusMarie, correctement découpée).
+//   Sacy 3,30    → canon 3,30-31  (l'édition réunit Mosollam et Melchias l'orfèvre)
+//   Sacy 3,31    → canon 3,32
+//   Sacy 4,1-6   → canon 3,33-38  (la Vulgate ouvre le ch. 4 là où l'hébreu poursuit le 3)
+//   Sacy 4,7-23  → canon 4,1-17
+//   Sacy 9,38    → canon 10,1     (« nous faisons une alliance » = Crampon 10,1)
+//   Sacy 10,v    → canon 10,v+1
+//   Sacy 12,6    → canon 12,6-7   (l'édition réunit deux listes de prêtres)
+//   Sacy 12,v≥7  → canon 12,v+1
+MAP.NEH = v => {
+  if (v.ch === 3)  return v.v <= 30 ? `NEH.3.${v.v}` : 'NEH.3.32'
+  if (v.ch === 4)  return v.v <= 6 ? `NEH.3.${v.v + 32}` : `NEH.4.${v.v - 6}`
+  if (v.ch === 9)  return v.v === 38 ? 'NEH.10.1' : `NEH.9.${v.v}`
+  if (v.ch === 10) return `NEH.10.${v.v + 1}`
+  if (v.ch === 12) return v.v <= 6 ? `NEH.12.${v.v}` : `NEH.12.${v.v + 1}`
+  return `NEH.${v.ch}.${v.v}`
+}
+
 const DOUTEUX = {}
 
 const COUVRE_DEUX = {
@@ -243,6 +262,7 @@ const COUVRE_DEUX = {
   // Sacy 1 Par. 20,7 porte à lui seul les v. 7 et 8 du canon : « … Jonathan le tua. Ce
   // sont-là les enfans des geans qui se trouverent à Geth, & qui furent tués par David. »
   '1CH': { '20.7': '1CH.20.8' },
+  NEH: { '3.30': 'NEH.3.31', '12.6': 'NEH.12.7' },
 }
 
 let versets = JSON.parse(readFileSync(D + `${PREFIXE}${CODE}_transcrit.json`, 'utf8'))
@@ -300,8 +320,8 @@ for (const v of versets){
   const fin = deux[`${v.ch}.${v.v}`] ?? null
   lignes.push({ trad_id:'TR0001', livre:CODE, ch_orig:v.ch, v_orig:v.v,
     texte: typo(v.texte), canon_id: cid, canon_id_fin: fin, est_suscription:false,
-    notes: fin ? 'Verset unique dans l’édition de 1730, couvrant plusieurs versets du canon.'
-      : (DOUTEUX[CODE]?.has(v.ch) ? 'Correspondance au canon à vérifier : ce chapitre compte un verset de moins que la Vulgate, la fusion n’a pas été localisée.' : null),
+    notes: v.note ? v.note : (fin ? 'Verset unique dans l’édition de 1730, couvrant plusieurs versets du canon.'
+      : (DOUTEUX[CODE]?.has(v.ch) ? 'Correspondance au canon à vérifier : ce chapitre compte un verset de moins que la Vulgate, la fusion n’a pas été localisée.' : null)),
     alignement_verifie: !DOUTEUX[CODE]?.has(v.ch) })
 }
 // Plusieurs versets de l'édition peuvent partager un créneau du canon (l'édition scinde là
