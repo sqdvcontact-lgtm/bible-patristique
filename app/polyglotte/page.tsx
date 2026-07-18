@@ -90,6 +90,8 @@ const LIBELLE_ONGLET: Record<Onglet, string> = {
 
 export default function PolyglottePage() {
   const [livres, setLivres] = useState<Livre[]>([]);
+  // trad_id → code du livre → nom qu'il porte dans cette édition. Seuls les écarts au canon.
+  const [livresEd, setLivresEd] = useState<Record<string, Record<string, { nom: string; abrege: string }>>>({});
   const [trads, setTrads] = useState<Trad[]>([]);
   const [points, setPoints] = useState<Point[]>([]);
   const [onglet, setOnglet] = useState<Onglet | null>(null);   // la page s'ouvre vide : on choisit un ensemble
@@ -114,6 +116,12 @@ export default function PolyglottePage() {
   // Chargement initial (livres, points, traductions migrées)
   useEffect(() => {
     supabase.from("livres").select("code, nom_fr, ordre").order("ordre").then(({ data }) => setLivres(data ?? []));
+    // Désignation des livres propre à chaque édition, quand elle diffère du canon : la
+    // Sacy de 1730 compte quatre livres des Rois là où le canon en compte deux de Samuel
+    // et deux des Rois. Seuls les écarts sont enregistrés (voir scripts/livres-editions.mjs).
+    // Passe par une route serveur : la table `parametres` est protégée par RLS et le client
+    // public n'y voit rien — elle contient aussi la charte éditoriale, qui doit le rester.
+    fetch("/api/livres-editions").then(r => r.json()).then(setLivresEd).catch(() => setLivresEd({}));
     supabase.from("points_sensibles").select("livre, reference, type, description, statut, notes").then(({ data }) => setPoints(data ?? []));
     (async () => {
       const { data: tr } = await supabase.from("traductions").select("trad_id, nom, ordre").order("ordre");
@@ -228,6 +236,14 @@ export default function PolyglottePage() {
 
   const colonnes = slots.map(id => trads.find(t => t.trad_id === id)).filter((t): t is Trad => !!t);
   const nomDe = (code: string) => livres.find(l => l.code === code)?.nom_fr ?? code;
+
+  // Sous le titre canonique du livre, la désignation que lui donnent les éditions affichées
+  // quand elle diffère. C'est la seule façon pour le lecteur de savoir que la Sacy de 1730
+  // appelle « Rois, livre troisième » ce que le canon nomme « 1 Rois ».
+  const titresEdition = (code: string) =>
+    colonnes
+      .map(c => ({ trad: c.nom, ed: livresEd[c.trad_id]?.[code] }))
+      .filter((x): x is { trad: string; ed: { nom: string; abrege: string } } => Boolean(x.ed));
   const tmpl = `58px ${colonnes.map(() => "38px minmax(150px, 1fr)").join(" ")}`;
   const HAUT_ENTETE = 34;   // hauteur de l'en-tête collant, sous lequel se cale le titre du livre
   const HAUT_NAV = 8;       // léger décollement de la NavBar quand le tableau atteint le sommet
@@ -386,6 +402,11 @@ export default function PolyglottePage() {
               <section key={l.code} style={{ contentVisibility: "auto", containIntrinsicSize: `0 ${srs.length * 34 + 40}px` } as React.CSSProperties}>
                 <h2 style={{ margin: 0, padding: "8px 12px", fontFamily: "Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: HAUT_NAV + HAUT_ENTETE, zIndex: 3, textAlign: "center" }}>
                   {l.nom_fr} <span style={{ fontSize: 12, fontWeight: 400, color: SURNUM }}>· {srs.length} surnuméraire{srs.length > 1 ? "s" : ""}</span>
+                {titresEdition(l.code).map(({ trad, ed }) => (
+                  <span key={trad} style={{ display: "block", fontSize: 11.5, fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
+                    {trad} : {ed.nom}
+                  </span>
+                ))}
                 </h2>
                 {srs.map((sr, i) => ligneSurnum(sr, `so-${l.code}-${i}`))}
               </section>
@@ -402,6 +423,11 @@ export default function PolyglottePage() {
             <section key={l.code} style={{ contentVisibility: "auto", containIntrinsicSize: `0 ${hauteur}px` } as React.CSSProperties}>
               <h2 style={{ margin: 0, padding: "8px 12px", fontFamily: "Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: HAUT_NAV + HAUT_ENTETE, zIndex: 3, textAlign: "center" }}>
                 {l.nom_fr}
+                {titresEdition(l.code).map(({ trad, ed }) => (
+                  <span key={trad} style={{ display: "block", fontSize: 11.5, fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
+                    {trad} : {ed.nom}
+                  </span>
+                ))}
               </h2>
               {debut.map((sr, i) => ligneSurnum(sr, `sd-${l.code}-${i}`))}
               {rows.map((r, idx) => {
