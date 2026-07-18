@@ -14,6 +14,14 @@ const DRY = process.argv.includes('--dry')
 const NB = ' '
 async function all(q){const o=[];let f=0;while(true){const{data,error}=await q.range(f,f+999);if(error)throw error;o.push(...data);if(data.length<1000)break;f+=1000}return o}
 
+// ── corrections de lecture communes à TOUS les livres ──
+// Dans les lettrines, le « È » accentué est régulièrement lu comme « E » suivi d'une
+// apostrophe : « APRE’s » pour « APRÈS ». Vu en Jos 1,1 puis en 2 R 1,1 — assez pour
+// en faire une règle générale plutôt qu'une correction par livre.
+const LECTURES_COMMUNES = [
+  [/\bAPRE’s\b/g, 'Après'], [/\bApre’s\b/g, 'Après'],
+]
+
 // ── corrections de lecture vérifiées, par livre ──
 const LECTURES = {
   EXO: [[/\bqni\b/g,'qui'], [/\bsils\b/g,'fils']],
@@ -54,6 +62,10 @@ const LECTURES = {
     [/\bcoucubines\b/g, 'concubines'],
     [/\bexrrêmement\b/g, 'extrêmement'],
   ],
+  // 2KI : « ses ser- teurs » — césure de « serviteurs » dont la seconde moitié a été mal
+  // lue ; la soudure « serteurs » n'est pas un mot, le contrôle automatique l'a donc
+  // signalée sans la souder.
+  '2KI': [[/\bser-\s+teurs\b/g, 'serviteurs']],
 }
 
 // ── correspondance édition → canon, par livre (vérifiée sur le fac-similé) ──
@@ -183,8 +195,11 @@ let versets = JSON.parse(readFileSync(D + `${PREFIXE}${CODE}_transcrit.json`, 'u
 for (const v of versets) v.texte = (v.texte || '').replace(/'/g, '’')
 
 let corr = 0
+const REGLES = [...LECTURES_COMMUNES, ...(LECTURES[CODE] || [])]
+// On ne signale « sans effet » que les règles PROPRES au livre : les règles communes ne
+// s'appliquent évidemment pas partout, c'est leur raison d'être.
 const inutiles = new Set((LECTURES[CODE] || []).map(([re]) => String(re)))
-for (const v of versets) for (const [re, bon] of (LECTURES[CODE] || [])){
+for (const v of versets) for (const [re, bon] of REGLES){
   const n = v.texte.replace(re, bon); if (n !== v.texte){ corr++; inutiles.delete(String(re)); v.texte = n }
 }
 if (inutiles.size) console.log(`  ⚠ corrections de lecture sans effet (motif introuvable) : ${[...inutiles].join(' ')}`)

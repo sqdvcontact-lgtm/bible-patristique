@@ -74,6 +74,16 @@ const lexFr = new Set()
 for (const r of await all(sb.from('versets_v2').select('texte').in('trad_id',['TR0002','TR0003']).order('id')))
   for (const w of (r.texte||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').match(/[a-z']{3,}/g)||[]) lexFr.add(w)
 const nfd = w => w.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+
+// Avant toute chose : « prenons- les », « dites- lui » ne sont pas des césures mais des
+// traits d'union légitimes suivis d'une espace parasite. Les souder donnerait « prenonsles ».
+// On se contente de retirer l'espace quand ce qui suit est un pronom clitique.
+const CLITIQUES = 'le|la|les|lui|leur|moi|toi|soi|nous|vous|en|y|je|tu|il|elle|on|ils|elles|ce|ci|là|même|mêmes'
+let traitsUnion = 0
+for (const v of versets)
+  v.texte = v.texte.replace(new RegExp(`([a-zà-ÿ])-\\s+(${CLITIQUES})\\b`, 'gi'),
+    (m,a,b) => { traitsUnion++; return `${a}-${b}` })
+
 let cesures = 0; const cesuresDouteuses = []
 for (const v of versets){
   // Une seule lettre peut précéder le trait (« d’ê- tre ») : c'est le contrôle du lexique,
@@ -112,7 +122,7 @@ const lex = lexFr                                  // déjà constitué pour les
 // elles remontent en « suspect » à chaque livre et noient les vraies erreurs de lecture.
 const FORMES_1730 = new Set(['pies','defirent','deffirent','dormit','suc','elire','cedat','perie','grans',
   'taillant','tendez','voi',    // « les taillant en pieces », « me tendez-vous », « je voi »
-  'sies','sies','quarre','secondes',
+  'sies','quarre','secondes','cacheta',
   // « sies » (2 S 12, 31) et « siés » (1 R 7, 9) : graphie de l'édition pour « scie / scié ».
   // Deux occurrences indépendantes de la même forme — une double erreur de lecture serait
   // improbable. C'est le signe le plus sûr qu'on a affaire à une graphie et non à une coquille.
@@ -145,7 +155,7 @@ console.log(`\n${CODE} — FUSION`)
 console.log('  versets : '+versets.length+' / '+canon.length+'  ('+Math.round(100*versets.length/canon.length)+'%)')
 console.log('  chapitres : '+parCh.size+' / '+Object.keys(MAXV).length)
 console.log('  italiques : '+versets.filter(v=>/<i>/.test(v.texte)).length+' versets')
-console.log('  réclames dédoublonnées : '+reclames+' · lettrines normalisées : '+lettrines+' · césures recollées : '+cesures)
+console.log('  réclames dédoublonnées : '+reclames+' · lettrines normalisées : '+lettrines+' · césures recollées : '+cesures+' · traits d’union rétablis : '+traitsUnion)
 if (cesuresDouteuses.length){
   console.log('  césures NON recollées (soudure non attestée) : '+cesuresDouteuses.length)
   cesuresDouteuses.slice(0,8).forEach(c=>console.log('    '+c))
