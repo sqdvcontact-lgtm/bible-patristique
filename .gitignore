@@ -40,3 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 triage-temp.ts
+
+# données de travail transcription (volumineuses, non versionnées)
+scripts/*.json
+scripts/*.docx
+scripts/giguet-revue.md
