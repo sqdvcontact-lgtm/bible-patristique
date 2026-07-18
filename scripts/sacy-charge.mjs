@@ -28,6 +28,7 @@ const LECTURES_COMMUNES = [
   [/\bAPRE’s\b/g, 'Après'], [/\bApre’s\b/g, 'Après'],
   [/\bI’s\b/g, 'Ils'],
   [/\bajourd’hui\b/g, 'aujourd’hui'],
+  [/\blorqu’il\b/g, 'lorsqu’il'],        // « s » manquant, vu en Est 1,2
 ]
 
 // ── corrections de lecture vérifiées, par livre ──
