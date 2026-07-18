@@ -21,6 +21,11 @@ type Point = { livre: string | null; reference: string | null; type: string | nu
 type CanonRow = { id: string; livre: string; ch_canon: number; v_canon: number; est_suscription: boolean };
 type V2Row = { id: string; canon_id: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; texte: string | null };
 
+// Un surnuméraire regroupé : le même verset hors ossature, tel que plusieurs éditions le
+// portent au même numéro d'origine. `par` associe chaque traduction à sa version du verset ;
+// `ancre` est le dernier créneau du canon rencontré, qui fixe la place de la ligne.
+type Surnum = { cle: string; livre: string; ch: number; v: number; ancre: string | null; par: Map<string, V2Row> };
+
 // Certaines éditions portent un enrichissement typographique dans le texte, sous la seule
 // forme <i>…</i> (Sacy 1730 : mots ajoutés par le traducteur, absents de la Vulgate).
 // On le rend en vrais éléments React — jamais via dangerouslySetInnerHTML.
@@ -213,22 +218,35 @@ export default function PolyglottePage() {
   // Surnuméraires (versets sans slot canon) ancrés à leur position logique : après le
   // dernier verset mappé de la MÊME traduction (ordre livre → chapitre → verset d'origine).
   const { surnumApres, surnumStart, surnumCount, surnumParLivre } = useMemo(() => {
-    const apres = new Map<string, V2Row[]>();   // canon_id → surnuméraires qui le suivent
-    const start = new Map<string, V2Row[]>();   // livre → surnuméraires en tête de livre
-    const count = new Map<string, number>();    // livre → nb (pour l'estimation de hauteur)
-    const parLiv = new Map<string, V2Row[]>();  // livre → tous les surnuméraires (vue « seulement »)
+    const apres = new Map<string, Surnum[]>();   // canon_id → surnuméraires qui le suivent
+    const start = new Map<string, Surnum[]>();   // livre → surnuméraires en tête de livre
+    const count = new Map<string, number>();     // livre → nb (pour l'estimation de hauteur)
+    const parLiv = new Map<string, Surnum[]>();  // livre → tous les surnuméraires (vue « seulement »)
     const parTrad = new Map<string, V2Row[]>();
     for (const r of v2) (parTrad.get(r.trad_id) ?? parTrad.set(r.trad_id, []).get(r.trad_id)!).push(r);
-    for (const rows of parTrad.values()) {
+
+    // Un surnuméraire n'a pas de créneau du canon, mais plusieurs éditions peuvent porter LE
+    // MÊME verset au même numéro d'origine — Tobie 1,23 existe chez Sacy comme chez Crampon.
+    // On les regroupe alors sur UNE ligne, colonne par colonne, au lieu d'en faire deux lignes
+    // sans rapport. La clé est la numérotation d'ÉDITION, seule chose qu'ils ont en commun.
+    const groupes = new Map<string, Surnum>();
+    for (const [trad, rows] of parTrad) {
       rows.sort((a, b) => (ordreDe.get(a.livre) ?? 999) - (ordreDe.get(b.livre) ?? 999) || a.ch_orig - b.ch_orig || a.v_orig - b.v_orig);
       let last: string | null = null, curLivre: string | null = null;
       for (const r of rows) {
         if (r.livre !== curLivre) { curLivre = r.livre; last = null; }
         if (r.canon_id) { last = r.canon_id; continue; }
-        count.set(r.livre, (count.get(r.livre) ?? 0) + 1);
-        (parLiv.get(r.livre) ?? parLiv.set(r.livre, []).get(r.livre)!).push(r);
-        if (last) (apres.get(last) ?? apres.set(last, []).get(last)!).push(r);
-        else (start.get(r.livre) ?? start.set(r.livre, []).get(r.livre)!).push(r);
+        const cle = `${r.livre}|${r.ch_orig}|${r.v_orig}`;
+        let g = groupes.get(cle);
+        if (!g) {
+          g = { cle, livre: r.livre, ch: r.ch_orig, v: r.v_orig, ancre: last, par: new Map() };
+          groupes.set(cle, g);
+          count.set(r.livre, (count.get(r.livre) ?? 0) + 1);
+          (parLiv.get(r.livre) ?? parLiv.set(r.livre, []).get(r.livre)!).push(g);
+          if (last) (apres.get(last) ?? apres.set(last, []).get(last)!).push(g);
+          else (start.get(r.livre) ?? start.set(r.livre, []).get(r.livre)!).push(g);
+        }
+        g.par.set(trad, r);
       }
     }
     return { surnumApres: apres, surnumStart: start, surnumCount: count, surnumParLivre: parLiv };
@@ -378,21 +396,30 @@ export default function PolyglottePage() {
             <div style={{ border: "1px solid #e4ded3", borderTop: "none", borderRadius: "0 0 6px 6px", background: "#fff" }}>
               {colonnes.length === 0 && <div style={{ padding: 20, color: "#a49b8c" }}>Choisir au moins une traduction dans l’en-tête ci-dessus.</div>}
         {!loading && colonnes.length > 0 && livresAffiches.map(l => {
-          // Ligne d'un verset surnuméraire (propre à la Septante, hors ossature) — violet.
-          const ligneSurnum = (r: V2Row, cle: string) => (
-            <div key={cle} style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid #e3e0f2", fontSize: 13.5 }}>
-              <div title="Verset propre à la Septante — hors ossature canonique" style={{ padding: "6px 8px", whiteSpace: "nowrap", fontWeight: 700, fontSize: 12, color: SURNUM, borderRight: `2px solid ${SURNUM}` }}>＋</div>
-              {colonnes.map((t, i) => {
-                const own = t.trad_id === r.trad_id;
-                return (
-                  <div key={i} style={{ display: "contents" }}>
-                    <div style={{ padding: "6px 3px", textAlign: "right", whiteSpace: "nowrap", fontSize: 11, color: own ? SURNUM : "#cdc9e0", borderLeft: "1px solid #e3e0f2" }}>{own ? `${r.ch_orig}, ${r.v_orig}` : ""}</div>
-                    <div style={{ padding: "6px 10px", lineHeight: 1.4, color: own ? "#3a3566" : "#cdc9e0" }}>{own ? texteEnrichi(r.texte) : "—"}</div>
-                  </div>
-                );
-              })}
-            </div>
-          );
+          // Ligne d'un verset surnuméraire — hors ossature canonique, en violet.
+          // Plusieurs éditions peuvent porter le même verset au même numéro d'origine : elles
+          // partagent alors cette ligne, chacune dans sa colonne. Une édition qui ne l'a pas
+          // affiche un tiret, comme pour un verset du canon qui lui manquerait.
+          const ligneSurnum = (g: Surnum, cle: string) => {
+            const editions = [...g.par.keys()].length;
+            const titre = editions > 1
+              ? `Verset hors ossature canonique, porté par ${editions} éditions au même numéro (${g.ch}, ${g.v})`
+              : `Verset propre à cette édition — hors ossature canonique (${g.ch}, ${g.v})`;
+            return (
+              <div key={cle} style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid #e3e0f2", fontSize: 13.5 }}>
+                <div title={titre} style={{ padding: "6px 8px", whiteSpace: "nowrap", fontWeight: 700, fontSize: 12, color: SURNUM, borderRight: `2px solid ${SURNUM}` }}>＋</div>
+                {colonnes.map((t, i) => {
+                  const r = g.par.get(t.trad_id);
+                  return (
+                    <div key={i} style={{ display: "contents" }}>
+                      <div style={{ padding: "6px 3px", textAlign: "right", whiteSpace: "nowrap", fontSize: 11, color: r ? SURNUM : "#cdc9e0", borderLeft: "1px solid #e3e0f2" }}>{r ? `${r.ch_orig}, ${r.v_orig}` : ""}</div>
+                      <div style={{ padding: "6px 10px", lineHeight: 1.4, color: r ? "#3a3566" : "#cdc9e0" }}>{r ? texteEnrichi(r.texte) : "—"}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          };
 
           // Vue « surnuméraires seulement » : uniquement les versets propres à la Septante.
           if (surnumOnly) {
