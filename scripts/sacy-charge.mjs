@@ -46,10 +46,14 @@ const LECTURES = {
     [/\bSeigneut\b/g,'Seigneur'],
     [/\bli-\s+vterez\b/g,'livrerez'],          // césure + confusion t/r
   ],
-  // 2SA 12,31 « il les coupa avec des sies » : lecture douteuse, laissée telle quelle.
-  // Ni le lexique ni le fac-similé consulté ne permettent de trancher entre une graphie
-  // de l'édition et un « scies » mal lu. À vérifier sur la page.
-  '2SA': [],
+  // 2SA : confusions de lecture t/r et u/n. « sies » (12,31) est en revanche CONSERVÉ :
+  // la même forme reparaît en 1 R 7,9 (« siés »), ce qui en fait une graphie de l'édition
+  // pour « scie / scié » et non une erreur de lecture.
+  '2SA': [
+    [/la victoire fur changée/g, 'la victoire fut changée'],
+    [/\bcoucubines\b/g, 'concubines'],
+    [/\bexrrêmement\b/g, 'extrêmement'],
+  ],
 }
 
 // ── correspondance édition → canon, par livre (vérifiée sur le fac-similé) ──
@@ -135,6 +139,30 @@ MAP['1SA'] = v => {
   if (v.ch === 20 && v.v === 43) return '1SA.21.1'
   if (v.ch === 21) return `1SA.21.${v.v + 1}`
   return `1SA.${v.ch}.${v.v}`
+}
+
+// 2SA : frontière 18/19 décalée. L'édition suit la Vulgate, qui rattache au ch. 18 le
+// verset où David monte pleurer Absalon ; le canon suit l'hébreu, qui en ouvre le ch. 19.
+// Contrôle arithmétique : 33 + 43 = 32 + 44 = 76.
+//   Sacy 18,33 → canon 19,1   ·   Sacy 19,v → canon 19,v+1
+// Vérifié : Sacy 18,33 « Le roi étant donc saisi de douleur, monta à la chambre » = Crampon
+// 19,1 ; Sacy 19,43 = Crampon 19,44.
+MAP['2SA'] = v => {
+  if (v.ch === 18 && v.v === 33) return '2SA.19.1'
+  if (v.ch === 19) return `2SA.19.${v.v + 1}`
+  return `2SA.${v.ch}.${v.v}`
+}
+
+// 1KI : frontière 4/5 décalée, et de quatorze versets. L'édition suit la Vulgate (ch. 4 de
+// 34 versets), le canon suit l'hébreu (ch. 4 de 20 versets, le reste ouvrant le ch. 5).
+// Contrôle arithmétique : 34 + 18 = 20 + 32 = 52.
+//   Sacy 4,21-34 → canon 5,1-14    ·   Sacy 5,v → canon 5,v+14
+// Vérifié : Sacy 4,21 « Salomon avoit sous sa domination tous les royaumes » = Crampon 5,1 ;
+// Sacy 4,34 = Crampon 5,14 ; Sacy 5,1 « Hiram roi de Tyr envoya » = Crampon 5,15.
+MAP['1KI'] = v => {
+  if (v.ch === 4 && v.v >= 21) return `1KI.5.${v.v - 20}`
+  if (v.ch === 5) return `1KI.5.${v.v + 14}`
+  return `1KI.${v.ch}.${v.v}`
 }
 
 const DOUTEUX = {}

@@ -111,7 +111,12 @@ const lex = lexFr                                  // déjà constitué pour les
 // Formes authentiques de 1730 que le lexique moderne ne connaît pas : sans cette liste,
 // elles remontent en « suspect » à chaque livre et noient les vraies erreurs de lecture.
 const FORMES_1730 = new Set(['pies','defirent','deffirent','dormit','suc','elire','cedat','perie','grans',
-  'taillant','tendez','voi'])   // « les taillant en pieces », « me tendez-vous », « je voi »
+  'taillant','tendez','voi',    // « les taillant en pieces », « me tendez-vous », « je voi »
+  'sies','sies','quarre','secondes',
+  // « sies » (2 S 12, 31) et « siés » (1 R 7, 9) : graphie de l'édition pour « scie / scié ».
+  // Deux occurrences indépendantes de la même forme — une double erreur de lecture serait
+  // improbable. C'est le signe le plus sûr qu'on a affaire à une graphie et non à une coquille.
+  ])
 const suspects = []
 for (const v of versets)
   for (const w of (v.texte.replace(/<\/?i>/g,'').match(/[A-Za-zÀ-ÿ]{3,}/g)||[])){
