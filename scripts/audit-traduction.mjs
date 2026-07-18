@@ -131,6 +131,19 @@ if (aJustifier.length){
 
 // ── qualité du texte ──
 const c = re => V.filter(v => re.test(v.texte || '')).length
+
+// Apostrophe mise pour une lettre : dans le fac-similé, un « l » ou un « i » est parfois lu
+// comme une apostrophe (« fi’s » pour fils, « ce’a » pour cela, « mo’s » pour mois, « I’s »
+// pour Ils). Le défaut traverse tous les livres et ne se voit à aucun autre contrôle : le
+// mot reste prononçable et la typographie est correcte. On liste donc les apostrophes dont
+// le préfixe n'est pas une élision française attestée.
+const ELISIONS = new Set(['l','d','j','m','n','s','t','c','qu','jusqu','lorsqu','puisqu',
+  'quelqu','entr','aujourd','presqu','quoiqu','parcequ','contr','grand','ç','p','v'])
+const apostrophesDouteuses = []
+for (const v of V)
+  for (const m of (v.texte || '').matchAll(/([A-Za-zÀ-ÿ]+)’([a-zà-ÿ]+)/g))
+    if (!ELISIONS.has(m[1].toLowerCase()))
+      apostrophesDouteuses.push(`${v.livre} ${v.ch_orig},${v.v_orig} « ${m[0]} »`)
 const controles = [
   ['césures de fin de ligne restées ouvertes', c(/[a-zà-ÿ]-\s/)],
   ['apostrophes droites', c(/'/)],
@@ -143,11 +156,16 @@ const controles = [
   ['espaces multiples', c(/ {2,}/)],
   ['caractères de remplacement (U+FFFD)', c(/�/)],
   ['versets vides ou quasi vides', V.filter(v => !v.texte || v.texte.trim().length < 3).length],
+  ['apostrophes mises pour une lettre', apostrophesDouteuses.length],
   ['alignements en attente de vérification', tnv],
 ]
 console.log(`\n── QUALITÉ DU TEXTE (${tn} versets) ──`)
 for (const [lab, n] of controles)
   console.log(`  ${n === 0 ? '✓' : '⚠'} ${lab.padEnd(46)} ${String(n).padStart(5)}`)
+if (apostrophesDouteuses.length){
+  console.log('     ' + apostrophesDouteuses.slice(0, VERBEUX ? 999 : 12).join('\n     '))
+  if (!VERBEUX && apostrophesDouteuses.length > 12) console.log(`     … et ${apostrophesDouteuses.length - 12} autres (--verbeux)`)
+}
 
 // ── transcriptions en attente de chargement ──
 const D = 'C:/Users/quins/AppData/Local/Temp/claude/C--Users-quins-OneDrive-Bureau-bible-patristique/c36e26f7-816d-4b33-a05d-7d149dfb6372/scratchpad/sacy/'

@@ -18,8 +18,13 @@ async function all(q){const o=[];let f=0;while(true){const{data,error}=await q.r
 // Dans les lettrines, le « È » accentué est régulièrement lu comme « E » suivi d'une
 // apostrophe : « APRE’s » pour « APRÈS ». Vu en Jos 1,1 puis en 2 R 1,1 — assez pour
 // en faire une règle générale plutôt qu'une correction par livre.
+// Second cas, plus général : une apostrophe mise pour un « l » ou un « i ». Vu en Jos 7,19
+// (« fi’s »), 2 R 11,11 (« I’s »), 1 Par 20,4 (« ce’a ») et 21,12 (« mo’s »). Le défaut ne
+// se voit à aucun autre contrôle — le mot reste prononçable et la typographie est correcte.
+// Le contrôle « apostrophes mises pour une lettre » de audit-traduction.mjs le débusque.
 const LECTURES_COMMUNES = [
   [/\bAPRE’s\b/g, 'Après'], [/\bApre’s\b/g, 'Après'],
+  [/\bI’s\b/g, 'Ils'],
 ]
 
 // ── corrections de lecture vérifiées, par livre ──
@@ -68,6 +73,12 @@ const LECTURES = {
   '2KI': [
     [/\bser-\s+teurs\b/g, 'serviteurs'],
     [/\baugmen-\s+toit\b/g, 'augmentoit'],   // césure : forme de 1730, absente du lexique
+  ],
+  // 1CH : confusion u/n, et deux apostrophes mises pour une lettre (voir LECTURES_COMMUNES).
+  '1CH': [
+    [/\bgenerensement\b/g, 'genereusement'],
+    [/Après ce’a\b/g, 'Après cela'],
+    [/\btrois mo’s\b/g, 'trois mois'],
   ],
 }
 
@@ -204,6 +215,19 @@ MAP['1CH'] = v => {
   return `1CH.${v.ch}.${v.v}`
 }
 
+// 2CH : deux frontières décalées, toutes deux d'un verset. La Vulgate rattache au chapitre
+// SUIVANT le verset que l'hébreu clôt le chapitre précédent ; le canon suit l'hébreu.
+// Contrôles arithmétiques : 17 + 18 = 18 + 17 = 35   et   22 + 15 = 23 + 14 = 37.
+//   Sacy 2,1  → canon 1,18   ·   Sacy 2,v≥2  → canon 2,v-1
+//   Sacy 14,1 → canon 13,23  ·   Sacy 14,v≥2 → canon 14,v-1
+// Vérifié : Sacy 2,1 « Salomon resolut donc de bâtir un temple » = Crampon 1,18 ;
+// Sacy 14,1 « Abia s'endormit avec ses peres » = Crampon 13,23 ; Sacy 14,2 = Crampon 14,1.
+MAP['2CH'] = v => {
+  if (v.ch === 2)  return v.v === 1 ? '2CH.1.18'  : `2CH.2.${v.v - 1}`
+  if (v.ch === 14) return v.v === 1 ? '2CH.13.23' : `2CH.14.${v.v - 1}`
+  return `2CH.${v.ch}.${v.v}`
+}
+
 const DOUTEUX = {}
 
 const COUVRE_DEUX = {
@@ -211,6 +235,9 @@ const COUVRE_DEUX = {
   LEV: { '26.45': 'LEV.26.46' },
   NUM: { '11.34': 'NUM.11.35' },
   JOS: { '2.23': 'JOS.2.24' },
+  // Sacy 1 Par. 20,7 porte à lui seul les v. 7 et 8 du canon : « … Jonathan le tua. Ce
+  // sont-là les enfans des geans qui se trouverent à Geth, & qui furent tués par David. »
+  '1CH': { '20.7': '1CH.20.8' },
 }
 
 let versets = JSON.parse(readFileSync(D + `${PREFIXE}${CODE}_transcrit.json`, 'utf8'))
