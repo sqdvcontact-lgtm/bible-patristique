@@ -157,11 +157,20 @@ const controles = [
   ['caractères de remplacement (U+FFFD)', c(/�/)],
   ['versets vides ou quasi vides', V.filter(v => !v.texte || v.texte.trim().length < 3).length],
   ['apostrophes mises pour une lettre', apostrophesDouteuses.length],
+  // « [suite] » est un marqueur de travail : il ne doit JAMAIS survivre au recollage.
+  // « [?] » au contraire est éditorial et voulu — il signale un mot illisible sur le
+  // fac-similé. On les compte séparément : l'un est un défaut, l'autre une information.
+  ['marqueurs de continuation oubliés', c(/\[\s*suite\s*\]/i)],
   ['alignements en attente de vérification', tnv],
 ]
+const illisibles = V.filter(v => /\[\s*\?\s*\]/.test(v.texte || ''))
 console.log(`\n── QUALITÉ DU TEXTE (${tn} versets) ──`)
 for (const [lab, n] of controles)
   console.log(`  ${n === 0 ? '✓' : '⚠'} ${lab.padEnd(46)} ${String(n).padStart(5)}`)
+if (illisibles.length){
+  console.log(`\n  ${illisibles.length} mot(s) illisible(s) sur le fac-similé, marqués [?] — voulu, à relire un jour :`)
+  illisibles.forEach(v => console.log(`     ${v.livre} ${v.ch_orig},${v.v_orig}`))
+}
 if (apostrophesDouteuses.length){
   console.log('     ' + apostrophesDouteuses.slice(0, VERBEUX ? 999 : 12).join('\n     '))
   if (!VERBEUX && apostrophesDouteuses.length > 12) console.log(`     … et ${apostrophesDouteuses.length - 12} autres (--verbeux)`)

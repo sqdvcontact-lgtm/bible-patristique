@@ -18,13 +18,20 @@ if (!CODE || !PREFIXE || !LOTS.length){ console.error('usage : <CODE> <prefixe> 
 // On ne retient que ceux du livre demandé. Un lot sans champ « livre » est réputé mono-livre.
 const frags = new Map(); const absents = []; let ecartes = 0
 for (const L of LOTS){
-  const f = D+`${PREFIXE}${L}.json`
+  // Un livre peut s'étendre sur deux trains, donc sur deux préfixes de lots (Esdras est
+  // à cheval sur « rois_ » et « esd_ »). Un lot peut donc s'écrire « prefixe:lot » pour
+  // désigner un autre train ; sans préfixe explicite, celui de la ligne de commande.
+  const f = D + (L.includes(':') ? L.replace(':', '') : `${PREFIXE}${L}`) + '.json'
   if (!existsSync(f)){ absents.push(L); continue }
   for (const p of JSON.parse(readFileSync(f,'utf8')).pages)
     for (const v of p.versets||[]){
       if (v.livre && v.livre !== CODE){ ecartes++; continue }
       const k = v.ch+'.'+v.v
-      ;(frags.get(k) ?? frags.set(k,[]).get(k)).push({page:p.pageImp, texte:(v.texte||'').trim()})
+      // Depuis la consigne « tout texte vu doit figurer dans un verset », les transcripteurs
+      // marquent « [suite] » le second fragment d'un verset coupé entre deux pages. C'est une
+      // bonne convention — mais le marqueur ne doit pas survivre au recollage.
+      const texte = (v.texte||'').replace(/^\s*\[\s*suite\s*\]\s*/i, '').trim()
+      ;(frags.get(k) ?? frags.set(k,[]).get(k)).push({page:p.pageImp, texte})
     }
 }
 if (absents.length) console.log('⚠ lots absents : '+absents.join(', '))
