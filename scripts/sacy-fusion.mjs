@@ -78,10 +78,15 @@ const nfd = w => w.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
 // Avant toute chose : « prenons- les », « dites- lui » ne sont pas des césures mais des
 // traits d'union légitimes suivis d'une espace parasite. Les souder donnerait « prenonsles ».
 // On se contente de retirer l'espace quand ce qui suit est un pronom clitique.
-const CLITIQUES = 'le|la|les|lui|leur|moi|toi|soi|nous|vous|en|y|je|tu|il|elle|on|ils|elles|ce|ci|là|même|mêmes'
+// Outre les pronoms, les seconds membres des composés à trait d'union courants
+// (« vis-à-vis », « peut-être ») : eux non plus ne doivent jamais être soudés.
+const CLITIQUES = 'le|la|les|lui|leur|moi|toi|soi|nous|vous|en|y|je|tu|il|elle|on|ils|elles|ce|ci|là|même|mêmes|à|être'
 let traitsUnion = 0
 for (const v of versets)
-  v.texte = v.texte.replace(new RegExp(`([a-zà-ÿ])-\\s+(${CLITIQUES})\\b`, 'gi'),
+  // ⚠️ Pas de \b en fin de motif : en JavaScript, \b ne connaît que l'ASCII et considère
+  // « à » comme un non-mot, si bien que « vis- à-vis » n'était jamais reconnu. On borne
+  // donc par une négation explicite de lettre.
+  v.texte = v.texte.replace(new RegExp(`([a-zà-ÿ])-\\s+(${CLITIQUES})(?![a-zà-ÿ])`, 'gi'),
     (m,a,b) => { traitsUnion++; return `${a}-${b}` })
 
 let cesures = 0; const cesuresDouteuses = []
@@ -122,7 +127,7 @@ const lex = lexFr                                  // déjà constitué pour les
 // elles remontent en « suspect » à chaque livre et noient les vraies erreurs de lecture.
 const FORMES_1730 = new Set(['pies','defirent','deffirent','dormit','suc','elire','cedat','perie','grans',
   'taillant','tendez','voi',    // « les taillant en pieces », « me tendez-vous », « je voi »
-  'sies','quarre','secondes','cacheta',
+  'sies','quarre','secondes','cacheta','frire',
   // « sies » (2 S 12, 31) et « siés » (1 R 7, 9) : graphie de l'édition pour « scie / scié ».
   // Deux occurrences indépendantes de la même forme — une double erreur de lecture serait
   // improbable. C'est le signe le plus sûr qu'on a affaire à une graphie et non à une coquille.

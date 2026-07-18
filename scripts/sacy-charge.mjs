@@ -65,7 +65,10 @@ const LECTURES = {
   // 2KI : « ses ser- teurs » — césure de « serviteurs » dont la seconde moitié a été mal
   // lue ; la soudure « serteurs » n'est pas un mot, le contrôle automatique l'a donc
   // signalée sans la souder.
-  '2KI': [[/\bser-\s+teurs\b/g, 'serviteurs']],
+  '2KI': [
+    [/\bser-\s+teurs\b/g, 'serviteurs'],
+    [/\baugmen-\s+toit\b/g, 'augmentoit'],   // césure : forme de 1730, absente du lexique
+  ],
 }
 
 // ── correspondance édition → canon, par livre (vérifiée sur le fac-similé) ──
@@ -175,6 +178,30 @@ MAP['1KI'] = v => {
   if (v.ch === 4 && v.v >= 21) return `1KI.5.${v.v - 20}`
   if (v.ch === 5) return `1KI.5.${v.v + 14}`
   return `1KI.${v.ch}.${v.v}`
+}
+
+// 2KI : frontière 11/12 décalée. L'édition suit la Vulgate, qui clôt le ch. 11 sur l'âge
+// de Joas ; le canon suit l'hébreu, qui en ouvre le ch. 12.
+// Contrôle arithmétique : 21 + 21 = 20 + 22 = 42.
+//   Sacy 11,21 → canon 12,1   ·   Sacy 12,v → canon 12,v+1
+// Vérifié : Sacy 11,21 « Joas avoit sept ans lorsqu'il commença à regner » = Crampon 12,1.
+MAP['2KI'] = v => {
+  if (v.ch === 11 && v.v === 21) return '2KI.12.1'
+  if (v.ch === 12) return `2KI.12.${v.v + 1}`
+  return `2KI.${v.ch}.${v.v}`
+}
+
+// 1CH : frontière 5/6 décalée de quinze versets. La Vulgate ouvre son ch. 6 sur la
+// généalogie de Lévi, que l'hébreu rattache encore au ch. 5 ; le canon suit l'hébreu.
+// Contrôle arithmétique : 26 + 81 = 41 + 66 = 107.
+//   Sacy 6,1-15  → canon 5,27-41    ·   Sacy 6,16-81 → canon 6,1-66
+// Vérifié : Sacy 6,1 « Les fils de Levi furent Gerson, Caath & Merari » = Crampon 5,27 ;
+// Sacy 6,15 « Josedec sortit du païs » = Crampon 5,41 ; Sacy 6,16 = Crampon 6,1.
+// ⚠️ L'édition répète bel et bien la liste des fils de Lévi en 6,1 et en 6,16 : ce n'est
+// pas un doublon de transcription, la Vulgate porte les deux.
+MAP['1CH'] = v => {
+  if (v.ch === 6) return v.v <= 15 ? `1CH.5.${v.v + 26}` : `1CH.6.${v.v - 15}`
+  return `1CH.${v.ch}.${v.v}`
 }
 
 const DOUTEUX = {}
