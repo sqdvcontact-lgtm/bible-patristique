@@ -22,9 +22,12 @@ async function all(q){const o=[];let f=0;while(true){const{data,error}=await q.r
 // (« fi’s »), 2 R 11,11 (« I’s »), 1 Par 20,4 (« ce’a ») et 21,12 (« mo’s »). Le défaut ne
 // se voit à aucun autre contrôle — le mot reste prononçable et la typographie est correcte.
 // Le contrôle « apostrophes mises pour une lettre » de audit-traduction.mjs le débusque.
+// « ajourd’hui » pour « aujourd’hui » : vu en Dt 28,13 puis en Esd 9,7 — deux livres
+// éloignés, donc une règle commune plutôt qu'une correction par livre.
 const LECTURES_COMMUNES = [
   [/\bAPRE’s\b/g, 'Après'], [/\bApre’s\b/g, 'Après'],
   [/\bI’s\b/g, 'Ils'],
+  [/\bajourd’hui\b/g, 'aujourd’hui'],
 ]
 
 // ── corrections de lecture vérifiées, par livre ──
@@ -70,6 +73,8 @@ const LECTURES = {
   // 2KI : « ses ser- teurs » — césure de « serviteurs » dont la seconde moitié a été mal
   // lue ; la soudure « serteurs » n'est pas un mot, le contrôle automatique l'a donc
   // signalée sans la souder.
+  // EZR : « Sil est necessaire » — apostrophe absente dans l'impression.
+  'EZR': [[/\bSil est necessaire\b/g, 'S’il est necessaire']],
   '2KI': [
     [/\bser-\s+teurs\b/g, 'serviteurs'],
     [/\baugmen-\s+toit\b/g, 'augmentoit'],   // césure : forme de 1730, absente du lexique

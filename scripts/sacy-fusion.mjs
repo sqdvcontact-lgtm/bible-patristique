@@ -34,9 +34,11 @@ if (ecartes) console.log(`  ${ecartes} versets écartés (autre livre)`)
 // c'est que l'édition a imprimé deux fois le même numéro (erreur de numérotation).
 // Les recoller en un seul verset les fusionnerait à tort — on le signale au lieu de deviner.
 const doublons = []
+const multiPages = new Map()          // clé → pages, pour le contrôle croisé plus bas
 for (const [k, parts] of frags){
   const pages = parts.map(p=>p.page)
   if (new Set(pages).size !== pages.length) doublons.push(`${k} (page ${pages.join(', ')})`)
+  if (new Set(pages).size > 1) multiPages.set(k, [...new Set(pages)])
 }
 
 // ── recollage + dédoublonnage de la réclame de bas de page ──
@@ -168,6 +170,21 @@ if (cesuresDouteuses.length){
 console.log('\nCHAPITRES INCOMPLETS : '+trous.length); trous.slice(0,12).forEach(t=>console.log(t))
 console.log('SAUTS DE NUMÉROTATION : '+sauts.length); sauts.slice(0,10).forEach(t=>console.log(t))
 if (surnum.length) console.log('HORS VULGATE : '+surnum.join(' '))
+
+// Deux versets portant le même numéro sur des pages DIFFÉRENTES sont recollés comme s'il
+// s'agissait d'une simple coupure de page — et le détecteur de doublons, qui ne regarde
+// qu'à l'intérieur d'une page, ne les voit pas. Le seul indice est alors le SAUT de
+// numérotation qu'ils laissent dans le chapitre. On croise donc les deux : un recollage
+// multi-pages dans un chapitre qui saute un numéro est suspect.
+// Cas rencontré : 2 Par. 20, où l'édition imprime « 12 » après le v.9 puis réimprime
+// « 11 » et « 12 » à la page suivante. Le recollage avait soudé deux versets distincts.
+const chSauts = new Set(sauts.map(s => +s.match(/ch (\d+)/)[1]))
+const suspectsRecollage = [...multiPages].filter(([k]) => chSauts.has(+k.split('.')[0]))
+if (suspectsRecollage.length){
+  console.log('\n⚠ RECOLLAGE MULTI-PAGES DANS UN CHAPITRE QUI SAUTE UN NUMÉRO : ' + suspectsRecollage.length)
+  console.log('   (vérifier sur l’image : s’agit-il d’une coupure de page, ou de deux versets au même numéro ?)')
+  suspectsRecollage.forEach(([k, pages]) => console.log(`   ${k} — pages ${pages.join(', ')}`))
+}
 if (doublons.length){
   console.log('\n⚠ NUMÉROS EN DOUBLE SUR UNE MÊME PAGE : '+doublons.length+'  (erreur de numérotation de l’édition — à trancher sur l’image, NE PAS recoller à l’aveugle)')
   doublons.forEach(d=>console.log('  '+d))
