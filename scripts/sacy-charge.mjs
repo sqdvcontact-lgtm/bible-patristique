@@ -42,6 +42,14 @@ const LECTURES = {
     [/en-\s+fuyoient/g,'enfuyoient'],            // césure : forme de 1730, absente du lexique
   ],
   RUT: [[/\bMoablite\b/g,'Moabite']],
+  '1SA': [
+    [/\bSeigneut\b/g,'Seigneur'],
+    [/\bli-\s+vterez\b/g,'livrerez'],          // césure + confusion t/r
+  ],
+  // 2SA 12,31 « il les coupa avec des sies » : lecture douteuse, laissée telle quelle.
+  // Ni le lexique ni le fac-similé consulté ne permettent de trancher entre une graphie
+  // de l'édition et un « scies » mal lu. À vérifier sur la page.
+  '2SA': [],
 }
 
 // ── correspondance édition → canon, par livre (vérifiée sur le fac-similé) ──
@@ -115,6 +123,18 @@ MAP.JOS = v => {
   if (v.ch === 4) return v.v <= 23 ? 'JOS.4.' + v.v : (v.v === 24 ? 'JOS.4.23' : `JOS.4.${v.v - 1}`)
   if (v.ch === 5) return v.v <= 14 ? 'JOS.5.' + v.v : (v.v === 15 ? 'JOS.5.14' : `JOS.5.${v.v - 1}`)
   return `JOS.${v.ch}.${v.v}`
+}
+
+// 1SA : une seule frontière décalée, au passage du ch. 20 au ch. 21. L'édition suit la
+// Vulgate (dernier verset de l'entrevue de David et Jonathas rattaché au ch. 20), le canon
+// suit l'hébreu (il ouvre le ch. 21). Contrôle arithmétique : 43 + 15 = 42 + 16 = 58.
+//   Sacy 20,43 → canon 21,1   ·   Sacy 21,v → canon 21,v+1
+// Vérifié mot pour mot : Sacy 20,43 « David en même-tems se retira, & Jonathas rentra dans
+// la ville » = Crampon 21,1 ; Sacy 21,1 « David alla à Nobé » = Crampon 21,2.
+MAP['1SA'] = v => {
+  if (v.ch === 20 && v.v === 43) return '1SA.21.1'
+  if (v.ch === 21) return `1SA.21.${v.v + 1}`
+  return `1SA.${v.ch}.${v.v}`
 }
 
 const DOUTEUX = {}

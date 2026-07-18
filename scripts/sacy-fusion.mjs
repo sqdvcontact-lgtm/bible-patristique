@@ -110,7 +110,8 @@ const surnum = versets.filter(v=>!MAXV[v.ch] || v.v>MAXV[v.ch]).map(v=>v.ch+','+
 const lex = lexFr                                  // déjà constitué pour les césures
 // Formes authentiques de 1730 que le lexique moderne ne connaît pas : sans cette liste,
 // elles remontent en « suspect » à chaque livre et noient les vraies erreurs de lecture.
-const FORMES_1730 = new Set(['pies','defirent','deffirent','dormit','suc','elire','cedat','perie','grans'])
+const FORMES_1730 = new Set(['pies','defirent','deffirent','dormit','suc','elire','cedat','perie','grans',
+  'taillant','tendez','voi'])   // « les taillant en pieces », « me tendez-vous », « je voi »
 const suspects = []
 for (const v of versets)
   for (const w of (v.texte.replace(/<\/?i>/g,'').match(/[A-Za-zÀ-ÿ]{3,}/g)||[])){

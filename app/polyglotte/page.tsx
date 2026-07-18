@@ -242,17 +242,26 @@ export default function PolyglottePage() {
           .poly-outil { display: none; }
           .poly-mobile { display: block; }
         }
-        /* bouton de modification : discret, révélé au survol de la cellule */
-        .poly-cell { position: relative; }
-        .poly-edit {
-          position: absolute; top: 3px; right: 4px;
-          opacity: 0; transition: opacity .12s;
-          border: 1px solid #d9d2c4; background: #fff; color: #8a8378;
-          border-radius: 4px; cursor: pointer; line-height: 1;
-          padding: 2px 5px; font-size: 11px;
+        /* Cellule modifiable (administrateur) : le survol la détoure d'un encadrement
+           léger et ombré, pour montrer qu'elle est cliquable sans déplacer le texte.
+           La bordure est posée en permanence, transparente, afin que son apparition
+           ne décale rien à l'intérieur de la grille. */
+        .poly-cell {
+          position: relative;
+          cursor: text;
+          border: 1px solid transparent;
+          border-radius: 4px;
+          transition: border-color .12s, box-shadow .12s, background-color .12s;
         }
-        .poly-cell:hover .poly-edit { opacity: 1; }
-        .poly-edit:hover { color: #3d6b4f; border-color: #3d6b4f; }
+        .poly-cell:hover {
+          border-color: #d9d2c4;
+          background: rgba(255, 255, 255, .55);
+          box-shadow: 0 1px 4px rgba(60, 50, 30, .13);
+        }
+        /* pendant l'édition, aucun effet de survol : le champ prend le relais */
+        .poly-cell.poly-edition, .poly-cell.poly-edition:hover {
+          cursor: default; border-color: transparent; background: transparent; box-shadow: none;
+        }
       `}</style>
 
       <div className="poly-mobile" style={{ maxWidth: 520, margin: "0 auto", padding: "48px 22px", fontFamily: "system-ui, sans-serif", textAlign: "center", color: "#5b544c" }}>
@@ -414,11 +423,17 @@ export default function PolyglottePage() {
                             <div style={{ padding: "6px 3px", textAlign: "right", whiteSpace: "nowrap", fontSize: 11, color: "#a08e6a", borderLeft: "1px solid #f0ece3" }}>
                               {cs.map(c => `${c.ch_orig}, ${c.v_orig}`).join(" · ")}
                             </div>
-                            <div className={estAdmin ? "poly-cell" : undefined} style={{ padding: "6px 10px", lineHeight: 1.4, color: sensible ? "#7a1d16" : "#2a2620" }}>
-                              {estAdmin && cs.length > 0 && enEdition !== cs[0].id && (
-                                <button className="poly-edit" title="Modifier ce verset"
-                                  onClick={() => { setEnEdition(cs[0].id); setBrouillon(cs[0].texte ?? ""); setEnregistre("idle"); }}>✎</button>
-                              )}
+                            <div
+                              className={estAdmin && cs.length > 0 ? `poly-cell${cs.some(c => c.id === enEdition) ? " poly-edition" : ""}` : undefined}
+                              title={estAdmin && cs.length > 0 && !cs.some(c => c.id === enEdition) ? "Cliquer pour modifier ce verset" : undefined}
+                              // Le clic porte sur la cellule entière, y compris ses marges : on ouvre
+                              // le premier verset. Les cellules qui en comptent plusieurs (verset
+                              // scindé par l'édition) restent modifiables un à un, chaque fragment
+                              // interceptant le clic pour son propre compte.
+                              onClick={estAdmin && cs.length > 0 && !cs.some(c => c.id === enEdition)
+                                ? () => { setEnEdition(cs[0].id); setBrouillon(cs[0].texte ?? ""); setEnregistre("idle"); }
+                                : undefined}
+                              style={{ padding: "6px 10px", lineHeight: 1.4, color: sensible ? "#7a1d16" : "#2a2620" }}>
                               {cs.length === 0 ? <span style={{ color: "#d3ccbf" }}>—</span> : cs.map((c, k) => (
                                 enEdition === c.id ? (
                                   <span key={k} style={{ display: "block" }}>
@@ -443,12 +458,13 @@ export default function PolyglottePage() {
                                     </span>
                                   </span>
                                 ) : (
+                                  // Cellule à plusieurs fragments : chaque fragment capte le clic
+                                  // pour lui-même, sinon celui de la cellule ouvrirait toujours le
+                                  // premier. Le survol reste géré par la cellule, d'un seul tenant.
                                   <span key={k}
-                                    onClick={estAdmin ? () => { setEnEdition(c.id); setBrouillon(c.texte ?? ""); setEnregistre("idle"); } : undefined}
-                                    title={estAdmin ? "Cliquer pour modifier ce verset" : undefined}
-                                    style={estAdmin ? { cursor: "text", borderRadius: 3, transition: "background .12s" } : undefined}
-                                    onMouseEnter={estAdmin ? e => { (e.currentTarget as HTMLElement).style.background = "#eef3ee"; } : undefined}
-                                    onMouseLeave={estAdmin ? e => { (e.currentTarget as HTMLElement).style.background = "transparent"; } : undefined}>
+                                    onClick={estAdmin && cs.length > 1
+                                      ? e => { e.stopPropagation(); setEnEdition(c.id); setBrouillon(c.texte ?? ""); setEnregistre("idle"); }
+                                      : undefined}>
                                     {k > 0 ? " " : ""}{texteEnrichi(c.texte)}
                                   </span>
                                 )
