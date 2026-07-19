@@ -15,7 +15,7 @@
 // Un psaume qui échoue n'est pas corrigé : il est écarté et signalé.
 //
 //   node scripts/psautier-integre.mjs [--ecrire]
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, readdirSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
 const D='C:/Users/quins/AppData/Local/Temp/claude/C--Users-quins-OneDrive-Bureau-bible-patristique/c36e26f7-816d-4b33-a05d-7d149dfb6372/scratchpad/sacy/'
 const env = Object.fromEntries(readFileSync('.env.local','utf8').split(/\r?\n/)
@@ -56,6 +56,13 @@ function ancreReelle(texte, ancre){
 
 // « 0→1, 1+2→2, 6→6+7 » → [{ vs:[0], sl:[1] }, { vs:[1,2], sl:[2] }, { vs:[6], sl:[6,7] }]
 function lireTable(t){
+  // Certains lecteurs écrivent la scission sous sa forme explicite — « 0+1(début)→1,
+  // 1(fin)→2 » — là où d'autres écrivent « 1→1+2 ». Les deux disent la même chose : le verset
+  // couvre deux créneaux. On efface l'annotation, le verset se retrouve nommé deux fois, et
+  // le traitement des doublons (qui exige un point de coupe déclaré) fait le reste.
+  // Mieux vaut apprendre la notation au lecteur de tables que réécrire les tables à la main :
+  // une table réécrite est une lecture que je m'approprie, et l'erreur y devient invisible.
+  t = t.replace(/\s*\((?:début|debut|fin|1re|2e)[^)]*\)/g, '')
   return t.split(',').map(seg => {
     const m = seg.trim().match(/^([\d+]+)\s*(?:→|->)\s*([\d+]+)$/)
     if (!m) throw new Error(`segment illisible : « ${seg.trim()} »`)
@@ -105,8 +112,15 @@ const plan = [], scissions = [], retenus = [], ecartes = [], signales = []
 // Les psaumes des huit lots, plus ceux que seule la table refaite décrit (Ps 49, qui ne
 // figurait dans aucun lot puisqu'il tombait juste avant la correction du référent).
 const aTraiter = []
-for (let lot = 1; lot <= 8; lot++)
-  aTraiter.push(...JSON.parse(readFileSync(D + `psa_align_LOT${lot}.json`, 'utf8')).psaumes)
+// On prend TOUS les lots présents, sans borne écrite en dur : un lot ajouté plus tard serait
+// sinon ignoré en silence, et le psaume resterait à son ancien alignement sans que rien ne le
+// dise. Les lots tardifs (relectures demandées par l'éditeur) écrasent les premiers.
+for (const f of readdirSync(D).filter(f => /^psa_align_LOT\d+\.json$/.test(f))
+                             .sort((a,b) => parseInt(a.match(/\d+/)) - parseInt(b.match(/\d+/))))
+  for (const p of JSON.parse(readFileSync(D + f, "utf8")).psaumes){
+    const i = aTraiter.findIndex(x => x.ch === p.ch)
+    if (i >= 0) aTraiter[i] = p; else aTraiter.push(p)
+  }
 for (const ch of Object.keys(REFAITES).map(Number))
   if (!aTraiter.some(p => p.ch === ch)) aTraiter.push({ ch, table: REFAITES[ch], scissions: COUPES[ch] || [] })
 
