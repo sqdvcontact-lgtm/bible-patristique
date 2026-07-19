@@ -46,6 +46,27 @@ const estTitre = t => /^(au ma[îi]tre de chant|psaume|cantique|chant|de david|d
 // les manquerait entièrement.
 const DEPART = { 115: 10, 147: 12 }
 
+// ── SOUDURES : là où le référent réunit ce que l'édition sépare ──────────────────────────
+// Le référent tasse volontiers deux stiques en un verset. Les deux versets de Sacy reçoivent
+// alors LE MÊME créneau ; ils s'affichent l'un sous l'autre dans une seule case, et chacun
+// garde son numéro d'origine. C'est le mécanisme des créneaux partagés, déjà employé ailleurs.
+// La valeur est le numéro du SECOND verset : il ne fait pas avancer le curseur de créneau.
+//
+// CHACUNE A ÉTÉ VÉRIFIÉE À L'ŒIL, du premier verset au dernier — pas seulement au point de
+// soudure. C'est indispensable : le psaume 86 et le psaume 97 annoncent eux aussi un écart de
+// +1, mais y répondent par DEUX soudures et UNE scission qui se compensent. Le détecteur, qui
+// postule une soudure unique, y trouve la bonne et s'arrête — et laisserait le milieu du
+// psaume décalé. Un compte qui tombe juste ne prouve pas que la structure est juste.
+const SOUDURES = {
+  2:   [13],   // R 12 : « Baisez le Fils… car bientôt s'allumerait sa colère » = S 12 + S 13
+  109: [2],    // R 1 : titre + « Assieds-toi à ma droite, jusqu'à… l'escabeau » = S 1 + S 2
+  122: [3],    // R 2 : l'œil du serviteur ET celui de la servante = S 2 + S 3
+  126: [2],    // R 1 : « si Yahweh ne bâtit… si Yahweh ne garde la ville » = S 1 + S 2
+  127: [4],    // R 3 : l'épouse comme une vigne ET les fils comme des oliviers = S 3 + S 4
+  133: [2],    // R 1 : titre + « bénissez Yahweh » + « qui êtes dans la maison » = S 1 + S 2
+  146: [9],    // R 8 : « il couvre les cieux… il fait croître l'herbe » = S 8 + S 9
+}
+
 const sig = t => new Set(((t||'').replace(/<\/?i>/g,'').normalize('NFD').replace(/[̀-ͯ]/g,'')
   .replace(/f/g,'s').toLowerCase().match(/[a-z]{4,}/g) || []))
 const jac = (a,b) => { if(!a.size||!b.size) return 0; let i=0; for(const w of a) if(b.has(w)) i++; return i/Math.max(a.size,b.size) }
@@ -70,12 +91,19 @@ for (let c = 1; c <= 150; c++){
 
   const emis = []
   if (susc) emis.push({ ch: c, v: 0, canon_id: suscSurnum ? null : `PSA.${c}.${base}` })
+  // Le curseur avance d'un créneau par verset, SAUF sur une soudure : le verset y rejoint le
+  // créneau du précédent au lieu d'en réclamer un nouveau.
+  const soud = new Set(SOUDURES[c] || [])
+  let n = 0
   for (const v of vs.filter(x => x.v > 0)){
-    const cible = `PSA.${c}.${v.v + decalage}`
+    if (!soud.has(v.v)) n++
+    const cible = `PSA.${c}.${n + decalage}`   // decalage porte déjà (base - 1)
     emis.push({ ch: c, v: v.v, canon_id: canon.has(cible) ? cible : null })
   }
   parPsaume[c] = emis
-  const dernier = Math.max(...vs.filter(v => v.v > 0).map(v => v.v)) + decalage
+  // Le dernier créneau atteint, soudures déduites — et non le dernier NUMÉRO de Sacy, qui
+  // ignore les soudures et ferait échouer le contrôle sur les psaumes qu''on vient de régler.
+  const dernier = n + decalage
   const juste = dernier === maxC[c] && !emis.some(e => e.canon_id === null && e.v > 0)
   ;(juste ? justes : ecarts).push(`${c} (${dernier} vs ${maxC[c]})`)
   if (juste || !SEULEMENT_JUSTES) plan.push(...emis)
@@ -84,6 +112,10 @@ console.log(`plan : ${plan.length} versets · ${plan.filter(p => p.canon_id === 
 console.log(`psaumes dont le dernier verset tombe juste : ${justes.length} / 150`)
 console.log(`psaumes en écart, à trancher un par un     : ${ecarts.length}`)
 console.log('  ' + ecarts.join(' · '))
+// Contrôle explicite : chaque soudure déclarée doit faire tomber SON psaume juste. Une règle
+// qui n'y parvient pas est une erreur de lecture, pas un détail — on veut le voir tout de suite.
+console.log('\nsoudures déclarées : ' + Object.keys(SOUDURES)
+  .map(c => c + (justes.some(j => j.startsWith(c + ' ')) ? ' ✓' : ' ✗')).join('   '))
 if (process.argv.includes('--ecrire')){
   writeFileSync(D + 'psa_PSA_plan.json', JSON.stringify(plan, null, 1))
   console.log('\nplan écrit : psa_PSA_plan.json')

@@ -307,6 +307,17 @@ for (const v of versets){
 // Un même train de lots peut couvrir plusieurs livres : le fichier de sortie porte donc
 // le code du livre, sans quoi la fusion suivante écraserait la précédente.
 const SORTIE = `${PREFIXE}${CODE}_transcrit.json`
+// ── refus d'écrire un résultat vide ───────────────────────────────────────────────────────
+// Un appel fautif (noms de lots passés avec leur préfixe, donc aucun fichier trouvé) a produit
+// 0 verset et RÉÉCRIT par-dessus une transcription complète. Le fichier vide gardait son nom
+// rassurant : rien, dans la sortie, ne disait qu'un travail venait d'être détruit.
+// Une fusion qui ne trouve rien est toujours une erreur d'appel, jamais un résultat.
+if (versets.length === 0){
+  console.error(`
+RIEN À FUSIONNER —  n'a PAS été touché.`)
+  console.error("Les lots se nomment par leur suffixe seul : « LUK nt_ 1 2 3 », non « LUK nt_ nt_1 ».")
+  process.exit(1)
+}
 writeFileSync(D+SORTIE, JSON.stringify(versets,null,1))
 
 // ── contrôle : couverture et continuité ──
