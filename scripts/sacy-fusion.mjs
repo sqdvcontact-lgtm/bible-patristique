@@ -50,6 +50,17 @@ const COQUILLES = {
     // passe ici, où elle laisse une trace, et non en amont où elle serait muette.
     { ch: 10, imprime: 10, debut: 'Il leur répondit : Je voyois satan', v: 18 },
   ],
+  TIT: [
+    // Tit 3,15 imprimé « 13 », en doublon avec le vrai 13 deux versets plus haut. C'est le
+    // dernier verset de l'épître : rien ne suit qui puisse démentir le chiffre, seule la
+    // place le fait.
+    { ch: 3, imprime: 13, debut: 'Tous ceux qui sont avec moi, vous saluent', v: 15 },
+  ],
+  HEB: [
+    // He 9,16 imprimé « 14 » : le 16 est absent, le 14 sert deux fois sur la page, et la
+    // suite reprend à 17. Les trois signes de la coquille sont réunis.
+    { ch: 9, imprime: 14, debut: 'Car où il y a un testament', v: 16 },
+  ],
   '1TH': [
     // 1 Th 5,13 imprimé « 23 », entre le 12 et le 14. Le chiffre n'a aucun sens dans un
     // chapitre qui en compte 28 au plus — et le vrai 23 arrive dix versets plus loin.
