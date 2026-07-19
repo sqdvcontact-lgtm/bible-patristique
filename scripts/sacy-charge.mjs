@@ -828,9 +828,19 @@ for (const v of versets){
   if (plan){
     if (!plan.has(`${v.ch}.${v.v}`)){ hors.push(`${v.ch},${v.v}→absent du plan`); continue }
     const cid = plan.get(`${v.ch}.${v.v}`)
-    lignes.push({ trad_id:'TR0001', livre:CODE, ch_orig:v.ch, v_orig:v.v,
-      texte: typo(v.texte), canon_id: cid, canon_id_fin: null, est_suscription:false,
-      notes: cid ? null : 'Verset propre à la Vulgate, sans équivalent chez le référent : la traduction latine de ce livre repose sur un original différent.',
+    // `v_imprime` porte le numéro que l'édition IMPRIME, quand il diffère du rang interne :
+    // c'est le cas des sections « selon les Hebreux », où la numérotation recommence à 1.
+    // La numérotation d'origine doit dire ce que l'édition porte, non ce que le canon exige.
+    lignes.push({ trad_id:'TR0001', livre:CODE, ch_orig:v.ch,
+      v_orig: v.v_imprime !== undefined ? v.v_imprime : v.v,
+      texte: typo(v.texte), canon_id: cid, canon_id_fin: null,
+      est_suscription: v.est_suscription === true,
+      notes: [
+        v.note,
+        cid ? null : (v.est_suscription === true
+          ? 'Suscription que l’édition de 1730 imprime en tête du psaume et que le référent n’a pas : la Vulgate porte ici un titre — souvent un « Alleluia » — que l’hébreu ignore. Elle est donc surnuméraire, sans créneau dans le canon.'
+          : 'Verset propre à la Vulgate, sans équivalent chez le référent.'),
+      ].filter(Boolean).join(' ') || null,
       alignement_verifie: true })
     continue
   }

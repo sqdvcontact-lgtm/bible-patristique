@@ -1,0 +1,67 @@
+// Construit le plan d'alignement du psautier de Sacy, psaume par psaume.
+//
+// LA RÈGLE, arrêtée avec l'éditeur : SUIVRE CRAMPON pour le rattachement au canon, et dire
+// le réel dans la numérotation d'origine.
+//   • Le référent compte la suscription comme le VERSET 1. Quand Sacy en porte une et que le
+//     référent ouvre bien sur un titre, la suscription prend le créneau 1 et tout le psaume
+//     glisse d'un cran.
+//   • Quand Sacy porte une suscription que le référent N'A PAS — la Vulgate met en tête un
+//     « Alleluia » que l'hébreu ignore —, cette suscription est SURNUMÉRAIRE : le texte
+//     n'apparaît nulle part chez le référent, ce qui est la définition retenue. Le corps du
+//     psaume s'aligne alors sans décalage.
+//   • Sans suscription de part ni d'autre : aucun décalage.
+//
+// LE COMPTE DES VERSETS NE PEUT PAS SERVIR D'ARBITRE ici. L'accord de contenu entre Sacy
+// (Vulgate) et le référent (hébreu) reste faible sur 134 psaumes sur 150 : la poésie diverge
+// trop lexicalement, comme dans l'Ecclésiastique. On s'appuie donc sur un signe FORMEL — la
+// nature du premier verset du référent, titre ou non —, qui se vérifie à l'œil.
+//
+//   node scripts/psautier-plan.mjs [--ecrire]
+import { readFileSync, writeFileSync } from 'node:fs'
+import { createClient } from '@supabase/supabase-js'
+const D='C:/Users/quins/AppData/Local/Temp/claude/C--Users-quins-OneDrive-Bureau-bible-patristique/c36e26f7-816d-4b33-a05d-7d149dfb6372/scratchpad/sacy/'
+const env = Object.fromEntries(readFileSync('.env.local','utf8').split(/\r?\n/)
+  .map(l=>l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/)).filter(Boolean).map(m=>[m[1],m[2].replace(/^["']|["']$/g,'')]))
+const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY)
+const all=async q=>{const o=[];let f=0;for(;;){const{data}=await q.range(f,f+999);o.push(...data);if(data.length<1000)break;f+=1000}return o}
+
+const S = JSON.parse(readFileSync(D + 'psa_PSA_transcrit.json', 'utf8'))
+const C = new Map((await all(sb.from('versets_v2').select('canon_id,texte').eq('trad_id','TR0003').eq('livre','PSA'))).map(r => [r.canon_id, r.texte]))
+const canon = new Set((await all(sb.from('versets_canon').select('id').like('id','PSA.%'))).map(r => r.id))
+const maxC = {}; for (const id of canon){ const [,c,v] = id.split('.'); maxC[+c] = Math.max(maxC[+c]||0, +v) }
+
+// Un titre se reconnaît à son vocabulaire liturgique, non à sa ressemblance avec Sacy.
+const estTitre = t => /^(au ma[îi]tre de chant|psaume|cantique|chant|de david|des fils de cor[ée]|d’asaph|pri[èe]re|hymne|pour la fin|louange|alleluia)/i.test((t||'').trim())
+
+// DEUX PSAUMES NE COMMENCENT PAS AU VERSET 1 DANS LE CANON. Le psaume 116 de l'hébreu est
+// coupé en deux par la Vulgate, et le canon conserve à la seconde moitié SES NUMÉROS
+// D'ORIGINE : PSA 115 court de 10 à 19, et PSA 147 de 12 à 20. Un décalage calculé depuis 1
+// les manquerait entièrement.
+const DEPART = { 115: 10, 147: 12 }
+
+const parCh = {}; for (const v of S) (parCh[v.ch] ??= []).push(v)
+const plan = [], justes = [], ecarts = []
+for (let c = 1; c <= 150; c++){
+  const vs = (parCh[c] || []).sort((a,b) => a.v - b.v)
+  const susc = vs.find(v => v.v === 0)
+  const titreRef = estTitre(C.get(`PSA.${c}.1`))
+  const base = DEPART[c] ?? 1
+  const decalage = ((susc && titreRef) ? 1 : 0) + (base - 1)
+  const suscSurnum = Boolean(susc) && !titreRef
+
+  if (susc) plan.push({ ch: c, v: 0, canon_id: suscSurnum ? null : `PSA.${c}.${base}` })
+  for (const v of vs.filter(x => x.v > 0)){
+    const cible = `PSA.${c}.${v.v + decalage}`
+    plan.push({ ch: c, v: v.v, canon_id: canon.has(cible) ? cible : null })
+  }
+  const dernier = Math.max(...vs.filter(v => v.v > 0).map(v => v.v)) + decalage
+  ;(dernier === maxC[c] ? justes : ecarts).push(`${c} (${dernier} vs ${maxC[c]})`)
+}
+console.log(`plan : ${plan.length} versets · ${plan.filter(p => p.canon_id === null).length} surnuméraires`)
+console.log(`psaumes dont le dernier verset tombe juste : ${justes.length} / 150`)
+console.log(`psaumes en écart, à trancher un par un     : ${ecarts.length}`)
+console.log('  ' + ecarts.join(' · '))
+if (process.argv.includes('--ecrire')){
+  writeFileSync(D + 'psa_PSA_plan.json', JSON.stringify(plan, null, 1))
+  console.log('\nplan écrit : psa_PSA_plan.json')
+}
