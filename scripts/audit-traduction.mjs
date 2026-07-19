@@ -148,7 +148,15 @@ const controles = [
   ['césures de fin de ligne restées ouvertes', c(/[a-zà-ÿ]-\s/)],
   ['apostrophes droites', c(/'/)],
   ['guillemets droits', c(/"/)],
-  ['mots en capitales (3 lettres et plus)', V.filter(v => /\b[A-ZÀ-Ü]{3,}\b/.test((v.texte||'').replace(/<\/?i>/g,''))).length],
+  // Les capitales sont proscrites dans le texte des versets (§23.9) : ce sont presque
+  // toujours une lettrine mal normalisée ou une emphase de l'édition, l'une et l'autre à
+  // ramener à la casse ordinaire. UNE exception, et une seule : l'inscription du festin de
+  // Balthazar (Dn 5, 25-28). Ce n'est pas une emphase, c'est un texte CITÉ dans le texte —
+  // les trois mots araméens que la main trace sur le mur, et que le verset suivant explique
+  // un à un. Les mettre en bas de casse effacerait la citation. Les Bibles françaises
+  // d'aujourd'hui les impriment de même.
+  ['mots en capitales (3 lettres et plus)', V.filter(v =>
+    /\b[A-ZÀ-Ü]{3,}\b/.test((v.texte||'').replace(/<\/?i>/g,'').replace(/\b(MANE|THECEL|PHARES)\b/g,''))).length],
   ['balises <i> déséquilibrées', V.filter(v => ((v.texte||'').match(/<i>/g)||[]).length !== ((v.texte||'').match(/<\/i>/g)||[]).length).length],
   ['balises autres que <i>', c(/<(?!\/?i>)[^>]*>/)],
   ['espace avant virgule ou point', c(/ [,.]/)],

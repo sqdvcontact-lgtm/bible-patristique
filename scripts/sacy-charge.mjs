@@ -54,12 +54,32 @@ const CAPITALES = {
   JER: [
     { ch: 31, v: 22, de: 'UNE FEMME ENVIRONNERA UN HOMME', a: 'une femme environnera un homme' },
   ],
+  DAN: [
+    { ch: 3, v: 98, de: 'Le ROI Nabuchodonosor', a: 'Le roi Nabuchodonosor' },
+  ],
+  MIC: [
+    { ch: 5, v: 2, de: 'Et VOUS, BETHLEHEM', a: 'Et vous, Bethlehem' },
+  ],
   EZK: [
+    { ch: 48, v: 35, de: 'LE SEIGNEUR AVEC ELLE', a: 'le Seigneur avec elle' },
     // L'édition écrit « Je SUSCITERAI SUR ELLES… » : le premier mot n'est pas en capitales.
     { ch: 34, v: 23, de: 'SUSCITERAI SUR ELLES LE PASTEUR UNIQUE', a: 'susciterai sur elles le pasteur unique' },
   ],
 }
 const NOTE_CAPITALES = 'L’édition de 1730 imprime ce passage en capitales, pour en marquer la portée prophétique. La casse ordinaire est rétablie ici, conformément à la charte ; l’emphase de l’édition est signalée par cette note.'
+
+// ── AVIS DE L'ÉDITION SUR LES RECENSIONS ───────────────────────────────────────────────
+// Sacy reproduit les avertissements par lesquels saint Jérôme signale au lecteur ce qui
+// vient du grec et non de l'hébreu. Ce ne sont ni des versets ni des sommaires de section :
+// c'est l'édition qui explique elle-même ses divergences — exactement ce qu'on cherche à
+// montrer au lecteur d'aujourd'hui. Ils sont donc portés en NOTE du verset qu'ils annoncent,
+// et non jetés avec le paratexte.
+// Relevés sur les images ; les transcripteurs sont désormais invités à les signaler.
+const AVIS_EDITION = {
+  DAN: [
+    { ch: 3, v: 24, texte: 'Avis de l’édition, imprimé en italique avant ce verset : « Ce qui suit ne se trouve pas dans l’Hebreu, & a été ajoûté par saint Jerôme. » Il ouvre le cantique des trois enfants (3, 24-90), que le canon compte dans Daniel mais que l’hébreu ignore.' },
+  ],
+}
 
 // ── corrections de lecture vérifiées, par livre ──
 const LECTURES = {
@@ -425,6 +445,67 @@ MAP.ISA = v => {
 //   Sacy 21,v     → canon 21,v+5  (contrôle : Sacy 21,32 « Tu seras la pâture du feu » =
 //                                  Crampon 21,37, dernier verset du chapitre)
 // Contrôle arithmétique : Sacy 49 + 32 = canon 44 + 37 = 81.
+// DAN : deux frontières de chapitre décalées, et un verset propre à la Vulgate.
+//   Sacy 5,31   → canon 6,1   (« Darius qui étoit Mede, lui succeda au royaume, étant âgé de
+//                              soixante-deux ans » = Crampon 6,1)  ·  Sacy 6,v → canon 6,v+1
+//   Sacy 13,65  → SURNUMÉRAIRE : « le roi Astyagès ayant été joint à ses peres, Cyrus de
+//                 Perse lui succeda ». La Vulgate le porte, le canon ne lui donne pas de
+//                 créneau — son 14,1 est déjà « Daniel mangeoit à la table du roi », que
+//                 Sacy numérote 14,1 lui aussi. Le chapitre 14 s'aligne donc directement.
+// Le créneau 14,43 du canon reste découvert : il est VIDE chez le référent.
+MAP.DAN = v => {
+  if (v.ch === 5 && v.v === 31) return 'DAN.6.1'
+  if (v.ch === 6) return `DAN.6.${v.v + 1}`
+  return `DAN.${v.ch}.${v.v}`
+}
+
+// HOS : deux frontières décalées, et une scission propre à l'édition.
+//   Sacy 1,10-11 → canon 2,1-2  ·  Sacy 2,v≤23 → canon 2,v+2
+//   Sacy 2,23 ET 2,24 → canon 2,25 : CRÉNEAU PARTAGÉ, l'édition coupant en deux le verset
+//     qui va de « Je ferai germer pour moi sa semence » à « Je dirai à celui que j'appellois
+//     Non-mon-peuple ».
+//   Sacy 11,12 → canon 12,1  ·  Sacy 12,v → canon 12,v+1
+MAP.HOS = v => {
+  if (v.ch === 1)  return v.v <= 9 ? `HOS.1.${v.v}` : `HOS.2.${v.v - 9}`
+  if (v.ch === 2)  return v.v <= 23 ? `HOS.2.${v.v + 2}` : 'HOS.2.25'
+  if (v.ch === 11) return v.v <= 11 ? `HOS.11.${v.v}` : 'HOS.12.1'
+  if (v.ch === 12) return `HOS.12.${v.v + 1}`
+  return `HOS.${v.ch}.${v.v}`
+}
+
+// JOL : la Vulgate compte trois chapitres là où le canon en compte quatre — elle range dans
+// son chapitre 2 ce que le canon met à part en chapitre 3.
+//   Sacy 2,v≤27  → canon 2,v
+//   Sacy 2,28-32 → canon 3,1-5   (l'effusion de l'Esprit, « je répandrai mon esprit sur
+//                                 toute chair », que le canon isole en un chapitre entier)
+//   Sacy 3,v     → canon 4,v
+// Contrôle arithmétique : Sacy 20+32+21 = canon 20+27+5+21 = 73.
+MAP.JOL = v => {
+  if (v.ch === 2) return v.v <= 27 ? `JOL.2.${v.v}` : `JOL.3.${v.v - 27}`
+  if (v.ch === 3) return `JOL.4.${v.v}`
+  return `JOL.${v.ch}.${v.v}`
+}
+
+// AMO : une seule scission, au chapitre 6.
+//   Sacy 6,10 ET 6,11 → canon 6,10 : CRÉNEAU PARTAGÉ. L'édition coupe après « Y a-t-il
+//     encore quelqu'un avec vous ? », le canon gardant la question et la réponse d'un seul
+//     tenant.  ·  Sacy 6,v≥12 → canon 6,v-1 (contrôle : Sacy 6,15 = Crampon 6,14).
+MAP.AMO = v => {
+  if (v.ch === 6) return v.v <= 10 ? `AMO.6.${v.v}` : (v.v === 11 ? 'AMO.6.10' : `AMO.6.${v.v - 1}`)
+  return `AMO.${v.ch}.${v.v}`
+}
+
+// MIC : la Vulgate ouvre son chapitre 5 un verset plus tôt que le canon.
+//   Sacy 5,1     → canon 4,14  (« Vous allez être pillée, ô ville de voleurs »)
+//   Sacy 5,2-10  → canon 5,1-9 (contrôle : Sacy 5,2 « Et VOUS, BETHLEHEM » = Crampon 5,1)
+//   Sacy 5,11    → canon 5,10-11 SCINDÉ (l'édition réunit la ruine des villes et la fin des
+//                  sortilèges)
+//   Sacy 5,v≥12  → canon 5,v   (le décalage se referme là)
+MAP.MIC = v => {
+  if (v.ch === 5) return v.v === 1 ? 'MIC.4.14' : (v.v <= 10 ? `MIC.5.${v.v - 1}` : `MIC.5.${v.v}`)
+  return `MIC.${v.ch}.${v.v}`
+}
+
 MAP.EZK = v => {
   if (v.ch === 20 && v.v >= 45) return `EZK.21.${v.v - 44}`
   if (v.ch === 21) return `EZK.21.${v.v + 5}`
@@ -472,6 +553,12 @@ const SCISSIONS = {
     // Sacy 12,33 réunit les deux moitiés de la liste des princes de Juda.
     { ch: 12, v: 33, coupes: ['Judas, Benjamin'],            canons: ['NEH.12.33', 'NEH.12.34'] },
   ],
+  MIC: [
+    // Sacy 5,11 réunit la ruine des villes et la fin des sortilèges, que le canon compte
+    // séparément. Le référent tranche : son 5,10 s’arrête à « je démolirai toutes tes
+    // forteresses », son 5,11 ouvre sur « Je retrancherai de ta main les sortilèges ».
+    { ch: 5, v: 11, coupes: ['j’arracherai d’entre vos mains'], canons: ['MIC.5.10', 'MIC.5.11'] },
+  ],
   EZK: [
     // Sacy 2,9 réunit la main tendue et le livre déroulé, que le canon compte séparément.
     // Le référent tranche : son 2,9 s'arrête à « elle tenait un livre roulé », son 2,10
@@ -502,7 +589,11 @@ const SURNUMERAIRES = {
   // l'édition porte et que l'ossature ignore — à ne pas confondre avec un titre éditorial,
   // qui ne se transcrit pas du tout.
   LAM: new Set(['1.0']),   // « Après que le peuple d'Israel eut été mené en captivité… »
-  BAR: new Set(['6.0']),   // « Copie de la lettre que Jeremie envoya… », en tête de Ba 6
+  BAR: new Set(['6.0']),
+  // Dn 13,65 : « le roi Astyagès ayant été joint à ses peres, Cyrus de Perse lui succeda ».
+  // La Vulgate le porte, le canon ne lui donne aucun créneau — son ch. 14 s'ouvre déjà sur
+  // « Daniel mangeoit à la table du roi ».
+  DAN: new Set(['13.65']),   // « Copie de la lettre que Jeremie envoya… », en tête de Ba 6
 }
 
 // ── L'ÉDITION COUPE LÀ OÙ LE CANON NE COUPE PAS : créneau PARTAGÉ, jamais surnuméraire ──
@@ -566,6 +657,14 @@ for (const c of (CAPITALES[CODE] || [])){
 }
 if (capsFaites) console.log(`  capitales d’emphase ramenées à la casse ordinaire : ${capsFaites}`)
 if (capsRatees.length) console.log(`  ⚠ capitales déclarées SANS EFFET : ${capsRatees.join(' · ')}`)
+
+// Avis de l'édition sur les recensions : portés en note du verset qu'ils annoncent.
+const avisNotes = new Map()
+for (const a of (AVIS_EDITION[CODE] || [])){
+  if (!versets.some(v => v.ch === a.ch && v.v === a.v)){ console.log(`  ⚠ avis déclaré pour un verset absent : ${a.ch},${a.v}`); continue }
+  avisNotes.set(`${a.ch}.${a.v}`, a.texte)
+}
+if (avisNotes.size) console.log(`  avis de l’édition consignés en note : ${avisNotes.size}`)
 
 // Passe typographique française — mutualisée avec scripts/typographie.mjs pour qu'aucun
 // livre n'y échappe. NE PAS réécrire ici : une constante d'espace insécable saisie en
@@ -641,6 +740,7 @@ for (const v of versets){
     notes: [
       v.note,
       capNotes.has(`${v.ch}.${v.v}`) ? NOTE_CAPITALES : null,
+      avisNotes.get(`${v.ch}.${v.v}`) ?? null,
       !v.note && fin ? 'Verset unique dans l’édition de 1730, couvrant plusieurs versets du canon.' : null,
       !v.note && !fin && DOUTEUX[CODE]?.has(v.ch) ? 'Correspondance au canon à vérifier : ce chapitre compte un verset de moins que la Vulgate, la fusion n’a pas été localisée.' : null,
     ].filter(Boolean).join(' ') || null,

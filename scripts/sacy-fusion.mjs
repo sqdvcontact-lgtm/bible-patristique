@@ -27,6 +27,15 @@ if (!CODE || !PREFIXE || !LOTS.length){ console.error('usage : <CODE> <prefixe> 
 // révèle la coquille — et une clé de page les rattraperait tous les deux.
 // Clé : « chapitre.numéro imprimé » → { debut, v }.
 const COQUILLES = {
+  DAN: [
+    // Dn 5,27 imprimé « 17 », entre le 26 et le 28 : le vrai 17 est sur la même page, et le
+    // recollage avait soudé les deux. Le référent tranche — THECEL est bien le v. 27.
+    { ch: 5, imprime: 17, debut: 'THECEL, vous avez été pesé', v: 27 },
+  ],
+  OBA: [
+    // Abd 6 imprimé « 9 », d'où deux « 9 » dans ce livre d'un seul chapitre.
+    { ch: 1, imprime: 9, debut: 'Mais comment les ennemis ont-ils traité Esaü', v: 6 },
+  ],
   EZK: [
     // Éz 11,25 imprimé « 23 », après le 24 : le verset est à sa place, seul le numéro est
     // faux, et le recollage l'avait soudé au vrai 11,23 — les deux étant sur la même page.
@@ -186,6 +195,18 @@ for (const v of versets)
 // seule vraisemblance : chaque entrée a été lue sur l'image, et le mot obtenu vérifié dans
 // la phrase. La liste reste courte à dessein — elle est l'exception, pas la commodité.
 const SOUDURES = new Set(['universelle', 'nabajoth', 'parceque', 'appellée', 'méchans', 'magnificence', 'notre'])
+
+// Une balise d'italique n'enveloppant QUE de la ponctuation n'a pas de sens : l'italique
+// marque les mots ajoutés par le traducteur, jamais les signes. Elle empêche en outre la
+// passe typographique de poser l'insécable, le signe se trouvant précédé d'un « > ».
+// Corrigé d'abord à la main sur Éz 36,33 — et défait au rechargement suivant, faute d'être
+// ici. Une correction qui ne remonte pas dans le pipeline ne tient pas.
+let italPonct = 0
+for (const v of versets){
+  const n = v.texte.replace(/<i>\s*([;:!?…,.])\s*<\/i>/g, '$1')
+  if (n !== v.texte){ italPonct++; v.texte = n }
+}
+if (italPonct) console.log(`  italiques n’enveloppant qu’une ponctuation, retirées : ${italPonct}`)
 
 let cesures = 0; const cesuresDouteuses = []
 for (const v of versets){
