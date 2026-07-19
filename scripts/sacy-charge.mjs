@@ -33,6 +33,13 @@ const LECTURES_COMMUNES = [
 
 // ── corrections de lecture vérifiées, par livre ──
 const LECTURES = {
+  // ISA : caractères brisés à l'impression, signalés par les transcripteurs et conservés par
+  // eux — c'est la bonne conduite : on ne corrige pas en transcrivant, on corrige ici, où la
+  // correction est écrite et vérifiable. « toures » et « sout » ne sont pas des mots français.
+  // Les autres lectures signalées par le détecteur ont été vérifiées et laissées : « sables »
+  // (Is 10,22, le sable de la mer), « bale » (Is 22,18, la balle qu'on roule), « meur »
+  // (Is 28,4, mûr en graphie de 1730) et « soulé » (Is 43,24) sont justes.
+  ISA: [[/\btoures\b/g,'toutes'], [/\bsout\b/g,'sont']],
   EXO: [[/\bqni\b/g,'qui'], [/\bsils\b/g,'fils']],
   // « an Seigneur » (Lv 1,14) : le lexique ne peut pas l'attraper, « an » étant un mot valide.
   LEV: [[/\bpat\b/g,'par'], [/holocauste an Seigneur/g,'holocauste au Seigneur']],
@@ -300,6 +307,27 @@ MAP.SNG = v => {
   if (v.ch === 6) return v.v <= 11 ? `SNG.6.${v.v + 1}` : 'SNG.7.1'
   if (v.ch === 7) return `SNG.7.${v.v + 1}`
   return `SNG.${v.ch}.${v.v}`
+}
+
+// ISA : deux ruptures, et deux seulement sur 66 chapitres — les deux points classiques où la
+// Vulgate ouvre un chapitre là où l'hébreu clôt le précédent. Tout le reste est direct.
+//   Sacy 9,1     → canon 8,23  (« Au commencement Dieu a soulagé la terre de Zabulon & la
+//                               terre de Nephthali » = Crampon 8,23, « le pays de Zabulon
+//                               et le pays de Nephtali »)
+//   Sacy 9,v≥2   → canon 9,v-1 (contrôle : Sacy 9,21 « sa fureur n'est point encore
+//                               appaisée, & son bras est toujours étendu » = Crampon 9,20)
+//   Sacy 64,1    → canon 63,19 — le créneau est PARTAGÉ avec Sacy 63,19 : le référent tient
+//                  en un seul verset « Nous sommes depuis longtemps comme un peuple que vous
+//                  ne gouvernez pas » ET « Ah ! si vous déchiriez les cieux », que l'édition
+//                  sépare de part et d'autre d'une frontière de chapitre. Les deux parts sont
+//                  chargées, rangées par ordre_slot (cf. §23.15).
+//   Sacy 64,v≥2  → canon 64,v-1 (contrôle : Sacy 64,12 « vous retiendrez-vous encore ?
+//                               Demeurerez-vous dans le silence » = Crampon 64,11)
+// Les créneaux 8,24 et 9,21 du canon restent découverts : ils sont VIDES chez le référent.
+MAP.ISA = v => {
+  if (v.ch === 9)  return v.v === 1 ? 'ISA.8.23'  : `ISA.9.${v.v - 1}`
+  if (v.ch === 64) return v.v === 1 ? 'ISA.63.19' : `ISA.64.${v.v - 1}`
+  return `ISA.${v.ch}.${v.v}`
 }
 
 const DOUTEUX = {}

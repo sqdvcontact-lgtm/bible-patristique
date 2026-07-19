@@ -150,7 +150,7 @@ for (const v of versets)
 // Soudures vérifiées à la main, que le lexique ne connaît pas. On ne soude JAMAIS sur la
 // seule vraisemblance : chaque entrée a été lue sur l'image, et le mot obtenu vérifié dans
 // la phrase. La liste reste courte à dessein — elle est l'exception, pas la commodité.
-const SOUDURES = new Set(['universelle'])
+const SOUDURES = new Set(['universelle', 'nabajoth'])
 
 let cesures = 0; const cesuresDouteuses = []
 for (const v of versets){
