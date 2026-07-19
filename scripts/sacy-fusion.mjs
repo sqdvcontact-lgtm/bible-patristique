@@ -4,6 +4,7 @@
 // Écrit <prefixe>transcrit.json et signale les anomalies. Ne corrige rien en aveugle.
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
+import { corrigeLettrineElidee } from './lib-lettrines.mjs'
 const D = 'C:/Users/quins/AppData/Local/Temp/claude/C--Users-quins-OneDrive-Bureau-bible-patristique/c36e26f7-816d-4b33-a05d-7d149dfb6372/scratchpad/sacy/'
 const env = Object.fromEntries(readFileSync('.env.local','utf8').split(/\r?\n/)
   .map(l=>l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/)).filter(Boolean).map(m=>[m[1],m[2].replace(/^["']|["']$/g,'')]))
@@ -276,6 +277,7 @@ function normLettrine(t){
   // minuscule après la lettrine, le laissaient alors tout en capitales. Quatorze versets
   // s'ouvraient ainsi sur « LE Seigneur », contre la règle §23.9.
   t = t.replace(/^([A-ZÀ-Ü])([A-ZÀ-Ü]+)(?=\s)/, (m,x,y)=>x+y.toLowerCase())
+  t = corrigeLettrineElidee(t)
   if (t!==a) lettrines++
   return t
 }
