@@ -31,6 +31,13 @@ const canon = new Set((await all(sb.from('versets_canon').select('id').like('id'
 const maxC = {}; for (const id of canon){ const [,c,v] = id.split('.'); maxC[+c] = Math.max(maxC[+c]||0, +v) }
 
 // Un titre se reconnaît à son vocabulaire liturgique, non à sa ressemblance avec Sacy.
+// ⚠️ MAIS CELA NE SUFFIT PAS, et c'est la correction du 19/07/2026 : le référent met souvent
+// dans son VERSET 1 le titre ET le début du texte — « Psaume de David. À Yahweh est la terre
+// et ce qu'elle renferme » (Ps 23). Sacy, lui, les sépare toujours. Trois cas, donc, et non
+// deux : titre seul (le corps glisse d'un cran) · titre AVEC du texte (la suscription
+// PARTAGE le créneau 1 avec le premier verset, et le corps ne glisse pas) · pas de titre
+// (la suscription est surnuméraire). On les distingue en demandant où le premier verset de
+// Sacy trouve son écho : dans le verset 1 du référent, ou dans son verset 2.
 const estTitre = t => /^(au ma[îi]tre de chant|psaume|cantique|chant|de david|des fils de cor[ée]|d’asaph|pri[èe]re|hymne|pour la fin|louange|alleluia)/i.test((t||'').trim())
 
 // DEUX PSAUMES NE COMMENCENT PAS AU VERSET 1 DANS LE CANON. Le psaume 116 de l'hébreu est
@@ -39,6 +46,10 @@ const estTitre = t => /^(au ma[îi]tre de chant|psaume|cantique|chant|de david|d
 // les manquerait entièrement.
 const DEPART = { 115: 10, 147: 12 }
 
+const sig = t => new Set(((t||'').replace(/<\/?i>/g,'').normalize('NFD').replace(/[̀-ͯ]/g,'')
+  .replace(/f/g,'s').toLowerCase().match(/[a-z]{4,}/g) || []))
+const jac = (a,b) => { if(!a.size||!b.size) return 0; let i=0; for(const w of a) if(b.has(w)) i++; return i/Math.max(a.size,b.size) }
+
 const parCh = {}; for (const v of S) (parCh[v.ch] ??= []).push(v)
 const plan = [], justes = [], ecarts = []
 for (let c = 1; c <= 150; c++){
@@ -46,7 +57,14 @@ for (let c = 1; c <= 150; c++){
   const susc = vs.find(v => v.v === 0)
   const titreRef = estTitre(C.get(`PSA.${c}.1`))
   const base = DEPART[c] ?? 1
-  const decalage = ((susc && titreRef) ? 1 : 0) + (base - 1)
+  // Où le premier verset de Sacy trouve-t-il son écho — dans le v.1 du référent, ou son v.2 ?
+  const p1 = vs.find(v => v.v > 0)
+  const dansV1 = p1 ? jac(sig(p1.texte), sig(C.get(`PSA.${c}.${base}`))) : 0
+  const dansV2 = p1 ? jac(sig(p1.texte), sig(C.get(`PSA.${c}.${base + 1}`))) : 0
+  // Titre SEUL chez le référent : le corps glisse d'un cran. Titre AVEC du texte : la
+  // suscription partage le créneau et le corps ne glisse pas.
+  const titreSeul = titreRef && dansV2 > dansV1
+  const decalage = (titreSeul ? 1 : 0) + (base - 1)
   const suscSurnum = Boolean(susc) && !titreRef
 
   if (susc) plan.push({ ch: c, v: 0, canon_id: suscSurnum ? null : `PSA.${c}.${base}` })
