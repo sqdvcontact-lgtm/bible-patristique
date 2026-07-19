@@ -877,6 +877,15 @@ for (const v of versets){
     for (const coupe of sc.coupes){
       const i = reste.indexOf(coupe)
       if (i < 0){ hors.push(`${v.ch},${v.v}→point de coupe introuvable : « ${coupe} »`); ok = false; break }
+      // UNE ANCRE AMBIGUË EST PIRE QU'UNE ANCRE ABSENTE. Absente, elle est signalée ; présente
+      // deux fois, indexOf prend la première, coupe au mauvais endroit et ne dit rien — la
+      // faute traverse tout le pipeline en silence. Le psautier en fournit le cas : au Ps 28,7
+      // la coupe porte sur la SECONDE occurrence de « C'est la voix du Seigneur qui », le
+      // verset répétant la formule. On exige donc une ancre unique, à rallonger sinon.
+      if (reste.indexOf(coupe, i + 1) >= 0){
+        hors.push(`${v.ch},${v.v}→point de coupe AMBIGU (${reste.split(coupe).length - 1} occurrences) : « ${coupe} » — rallonger l’ancre`)
+        ok = false; break
+      }
       parts.push(reste.slice(0, i).trim()); reste = reste.slice(i)
     }
     if (!ok) continue

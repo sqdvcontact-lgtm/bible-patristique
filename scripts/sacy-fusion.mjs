@@ -203,15 +203,35 @@ for (const [k, parts] of frags){
 }
 
 // ── recollage + dédoublonnage de la réclame de bas de page ──
-let reclames = 0, lettrines = 0
+let reclames = 0, lettrines = 0, chevauchements = 0
+const chevauchementsVus = []
 const nu = s => s.toLowerCase().replace(/[^a-zà-ÿ']/g,'')
 function recoller(parts){
   parts.sort((a,b)=>a.page-b.page)
   let t = parts[0].texte
   for (let i=1;i<parts.length;i++){
     const suite = parts[i].texte
-    const finA = t.split(/\s+/).pop() || '', debB = suite.split(/\s+/)[0] || ''
-    if (nu(finA) && nu(finA) === nu(debB)){ t = t.slice(0, t.length-finA.length).trimEnd(); reclames++ }
+    // CHEVAUCHEMENT DE PAGE. On ne comparait que le DERNIER mot d'une page au premier de la
+    // suivante : cela suffit pour une réclame d'un mot, pas pour une ligne entière reprise.
+    // Trois versets du psautier en portaient la trace — Ps 77,0 dont la suscription était
+    // transcrite deux fois, et Ps 112,6 dont la fin de page se répétait en tête de la
+    // suivante. On cherche donc le plus long suffixe de A qui soit préfixe de B.
+    //
+    // SEUIL À TROIS MOTS, et c'est délibéré : l'édition répète parfois pour de bon. Le
+    // Ps 95,12 porte « à cause qu'il vient, à cause qu'il vient », fidèle au « quoniam venit »
+    // redoublé de la Vulgate. Un seuil trop bas effacerait le texte au lieu d'un artefact.
+    const mA = t.split(/\s+/), mB = suite.split(/\s+/)
+    let k = 0
+    for (let n = Math.min(mA.length, mB.length); n >= 3; n--){
+      if (mA.slice(-n).map(nu).join(' ') === mB.slice(0, n).map(nu).join(' ')){ k = n; break }
+    }
+    if (k){
+      t = mA.slice(0, mA.length - k).join(' ').trimEnd(); chevauchements++
+      chevauchementsVus.push(`${k} mots : « ${mB.slice(0,k).join(' ').slice(0,48)}… »`)
+    } else {
+      const finA = t.split(/\s+/).pop() || '', debB = suite.split(/\s+/)[0] || ''
+      if (nu(finA) && nu(finA) === nu(debB)){ t = t.slice(0, t.length-finA.length).trimEnd(); reclames++ }
+    }
     t = (t+' '+suite).replace(/\s+/g,' ').trim()
   }
   return t
@@ -318,6 +338,22 @@ RIEN À FUSIONNER —  n'a PAS été touché.`)
   console.error("Les lots se nomment par leur suffixe seul : « LUK nt_ 1 2 3 », non « LUK nt_ nt_1 ».")
   process.exit(1)
 }
+// ── refus d'écrire un résultat NETTEMENT PLUS PAUVRE que le précédent ────────────────────
+// La garde ci-dessus refuse le vide ; elle ne voit pas le PARTIEL, qui est plus insidieux.
+// Le psautier est réparti sur deux trains de lots (« job_ » et « psa_ ») : en n'en passant
+// qu'un, la fusion a rendu 1 694 versets au lieu de 2 740 et écrasé le fichier — 59 psaumes
+// effacés sans un mot, le compte affiché restant plausible.
+// On compare donc au fichier existant. Un recul de plus de 10 % est presque toujours une
+// liste de lots incomplète ; si la perte est voulue, --force le dit explicitement.
+if (existsSync(D+SORTIE) && !process.argv.includes('--force')){
+  const avant = JSON.parse(readFileSync(D+SORTIE,'utf8')).length
+  if (versets.length < avant * 0.9){
+    console.error(`\n${SORTIE} contient déjà ${avant} versets ; cette fusion n'en produit que ${versets.length}.`)
+    console.error('RIEN N’A ÉTÉ ÉCRIT. Vérifiez la liste des lots — un train entier manque probablement')
+    console.error('(un livre à cheval sur deux préfixes se note « autre_:4 »). Sinon, --force.')
+    process.exit(1)
+  }
+}
 writeFileSync(D+SORTIE, JSON.stringify(versets,null,1))
 
 // ── contrôle : couverture et continuité ──
@@ -384,6 +420,7 @@ if (coquilles.length){
 console.log('  versets : '+versets.length+' / '+canon.length+'  ('+Math.round(100*versets.length/canon.length)+'%)')
 console.log('  chapitres : '+parCh.size+' / '+Object.keys(MAXV).length)
 console.log('  italiques : '+versets.filter(v=>/<i>/.test(v.texte)).length+' versets')
+if (chevauchements) console.log('  chevauchements de page supprimés : '+chevauchements+'  →  '+chevauchementsVus.join(' · '))
 console.log('  réclames dédoublonnées : '+reclames+' · lettrines normalisées : '+lettrines+' · césures recollées : '+cesures+' · traits d’union rétablis : '+traitsUnion)
 if (cesuresDouteuses.length){
   console.log('  césures NON recollées (soudure non attestée) : '+cesuresDouteuses.length)
