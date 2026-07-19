@@ -2,18 +2,19 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { chargerNotificationsUtilisateur, cleArchivesNotifications, cleNotificationsConnues, lireSetLocalStorage } from "@/app/lib/notificationsClient";
 import { LIVRES } from "@/app/lib/bible";
 import { estOeuvrePubliee } from "@/app/lib/oeuvresPublication";
 
-const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean }[] = [
+const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?: boolean }[] = [
   { href: "/?livre=GEN&chapitre=1", label: "Bible", exact: true },
   { href: "/bibliotheque", label: "Patristique" },
   { href: "/essais", label: "Publications" },
-  { href: "/traductions", label: "Aller plus loin" },
+  { href: "/polyglotte", label: "Polyglotte", discret: true },
+  { href: "/traductions", label: "Aller plus loin", discret: true },
 ];
 const LIENS_SECONDAIRES: { href: string; label: string }[] = [];
 
@@ -25,13 +26,44 @@ const TRADUCTIONS_RECHERCHE: { code: string; nom: string }[] = [
 ];
 function sansAccents(s: string): string { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() }
 
-function extraireExtrait(texte: string, q: string, longueur = 110): string {
-  const idx = texte.toLowerCase().indexOf(q.toLowerCase())
-  if (idx < 0) return texte.slice(0, longueur) + (texte.length > longueur ? '\u2026' : '')
-  const debut = Math.max(0, idx - 40)
-  const fin = Math.min(texte.length, idx + q.length + 70)
-  return (debut > 0 ? '\u2026' : '') + texte.slice(debut, fin) + (fin < texte.length ? '\u2026' : '')
+function normaliserExtrait(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
+
+function surlignerMatch(texte: string, query: string): React.ReactNode {
+  if (!query) return texte
+  const tN = normaliserExtrait(texte)
+  const qN = normaliserExtrait(query)
+  const idx = tN.indexOf(qN)
+  if (idx < 0) return texte
+  return (
+    <>
+      {texte.slice(0, idx)}
+      <strong style={{ color: '#3d6b4f', fontWeight: 700 }}>{texte.slice(idx, idx + query.length)}</strong>
+      {texte.slice(idx + query.length)}
+    </>
+  )
+}
+
+function extraireEtSurligner(texte: string, q: string, longueur = 110): React.ReactNode {
+  const texteN = normaliserExtrait(texte)
+  const qN = normaliserExtrait(q)
+  const idx = texteN.indexOf(qN)
+  const debut = idx < 0 ? 0 : Math.max(0, idx - 40)
+  const fin = idx < 0 ? Math.min(texte.length, longueur) : Math.min(texte.length, idx + q.length + 70)
+  const prefix = debut > 0
+  const suffix = fin < texte.length
+  const extrait = texte.slice(debut, fin)
+  const extractN = normaliserExtrait(extrait)
+  const mIdx = extractN.indexOf(qN)
+  if (mIdx < 0) return <>{prefix ? '\u2026' : ''}{extrait}{suffix ? '\u2026' : ''}</>
+  return (
+    <>
+      {prefix ? '\u2026' : ''}{extrait.slice(0, mIdx)}<strong style={{ color: '#3d6b4f', fontWeight: 700 }}>{extrait.slice(mIdx, mIdx + q.length)}</strong>{extrait.slice(mIdx + q.length)}{suffix ? '\u2026' : ''}
+    </>
+  )
+}
+
 
 function IconCoeur() {
   return (
@@ -97,27 +129,57 @@ export default function Navbar() {
   const [essaisTrouves, setEssaisTrouves] = useState<{ id: number; titre: string }[]>([]);
   const [oeuvresTrouvees, setOeuvresTrouvees] = useState<{ id_oeuvre: string; titre: string; auteurs: { nom: string } | null; note?: string | null }[]>([]);
   const [segmentsTrouves, setSegmentsTrouves] = useState<{ id: number; segment_texte: string; id_oeuvre: string; auteur_nom: string; oeuvre_titre: string }[]>([]);
+  const abortRef = useRef<AbortController | null>(null);
+  const [rechercheRapideLoading, setRechercheRapideLoading] = useState(false);
+  const [nbResultatsProgressif, setNbResultatsProgressif] = useState(0);
+  const [rechercheTerminee, setRechercheTerminee] = useState(false);
 
   useEffect(() => {
     const q = requeteRapide.trim();
-    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); setOeuvresTrouvees([]); setSegmentsTrouves([]); return; }
-    const t = setTimeout(() => {
-      supabase.from('auteurs').select('id_auteur, nom').ilike('nom', `%${q}%`).limit(4)
-        .then(({ data }) => setAuteursTrouves(data ?? []));
+    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); setOeuvresTrouvees([]); setSegmentsTrouves([]); setRechercheRapideLoading(false); setNbResultatsProgressif(0); setRechercheTerminee(false); return; }
+    setRechercheRapideLoading(true);
+    setNbResultatsProgressif(0);
+    setRechercheTerminee(false);
+    const timer = setTimeout(() => {
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
+      const signal = abortRef.current.signal;
+      let pending = 4;
+      const done = () => {
+        if (--pending === 0 && !signal.aborted) {
+          setRechercheRapideLoading(false);
+          setRechercheTerminee(true);
+        }
+      };
+
+      supabase.from('auteurs').select('id_auteur, nom').ilike('nom', `%${q}%`).limit(4).abortSignal(signal)
+        .then(({ data }) => {
+          if (!signal.aborted) { setAuteursTrouves(data ?? []); setNbResultatsProgressif(p => p + (data?.length ?? 0)); }
+          done();
+        });
       supabase.from('essais').select('id, titre').eq('statut', 'publie')
-        .or(`titre.ilike.%${q}%,resume.ilike.%${q}%`).limit(4)
-        .then(({ data }) => setEssaisTrouves(data ?? []));
-      supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs(nom)').ilike('titre', `%${q}%`).limit(5)
-        .then(({ data }) => setOeuvresTrouvees(
-          (data ?? []).filter(estOeuvrePubliee).map((o: any) => ({ ...o, auteurs: Array.isArray(o.auteurs) ? (o.auteurs[0] ?? null) : o.auteurs }))
-        ));
+        .or(`titre.ilike.%${q}%,resume.ilike.%${q}%`).limit(4).abortSignal(signal)
+        .then(({ data }) => {
+          if (!signal.aborted) { setEssaisTrouves(data ?? []); setNbResultatsProgressif(p => p + (data?.length ?? 0)); }
+          done();
+        });
+      supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs(nom)').ilike('titre', `%${q}%`).limit(8).abortSignal(signal)
+        .then(({ data }) => {
+          if (signal.aborted) { done(); return; }
+          const filtered = (data ?? []).filter(estOeuvrePubliee).map((o: any) => ({ ...o, auteurs: Array.isArray(o.auteurs) ? (o.auteurs[0] ?? null) : o.auteurs }));
+          setOeuvresTrouvees(filtered);
+          setNbResultatsProgressif(p => p + filtered.length);
+          done();
+        });
       supabase.from('segments').select('id, segment_texte, id_oeuvre')
-        .ilike('segment_texte', `%${q}%`).eq('nature', 'texte').limit(3)
+        .ilike('segment_texte', `%${q}%`).eq('nature', 'texte').limit(5).abortSignal(signal)
         .then(async ({ data }) => {
+          if (signal.aborted) { done(); return; }
           const segs = data ?? []
-          if (!segs.length) { setSegmentsTrouves([]); return }
+          if (!segs.length) { setSegmentsTrouves([]); done(); return }
           const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
-          const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs(nom)').in('id_oeuvre', oeuvreIds)
+          const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs(nom)').in('id_oeuvre', oeuvreIds).abortSignal(signal)
+          if (signal.aborted) { done(); return; }
           const oMap: Record<string, { oeuvre_titre: string; auteur_nom: string }> = {}
           for (const o of ((oeuvres ?? []) as any[]).filter(estOeuvrePubliee)) {
             oMap[o.id_oeuvre] = {
@@ -125,16 +187,19 @@ export default function Navbar() {
               auteur_nom: (Array.isArray(o.auteurs) ? o.auteurs[0]?.nom : o.auteurs?.nom) ?? '',
             }
           }
-          setSegmentsTrouves(segs.filter((s: any) => oMap[s.id_oeuvre]).map((s: any) => ({ id: s.id, segment_texte: s.segment_texte, id_oeuvre: s.id_oeuvre, ...(oMap[s.id_oeuvre] ?? { oeuvre_titre: '', auteur_nom: '' }) })))
+          const filtered = segs.filter((s: any) => oMap[s.id_oeuvre]).map((s: any) => ({ id: s.id, segment_texte: s.segment_texte, id_oeuvre: s.id_oeuvre, ...(oMap[s.id_oeuvre] ?? { oeuvre_titre: '', auteur_nom: '' }) }));
+          setSegmentsTrouves(filtered);
+          setNbResultatsProgressif(p => p + filtered.length);
+          done();
         });
     }, 250);
-    return () => clearTimeout(t);
+    return () => { clearTimeout(timer); abortRef.current?.abort(); setRechercheRapideLoading(false); };
   }, [requeteRapide]);
 
   const qNorm = sansAccents(requeteRapide.trim());
   const livresTrouves = qNorm ? LIVRES_RECHERCHE.filter(l => sansAccents(l.nom).includes(qNorm)).slice(0, 5) : [];
   const traductionsTrouvees = qNorm ? TRADUCTIONS_RECHERCHE.filter(t => sansAccents(t.nom).includes(qNorm)) : [];
-  const aucunResultat = qNorm.length > 0 && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0;
+  const aucunResultat = !rechercheRapideLoading && qNorm.length > 0 && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0;
 
   const fermerRechercheRapide = () => { setRechercheOuverte(false); setRequeteRapide(""); setMobileOuvert(false); };
   const validerRechercheRapide = () => {
@@ -269,103 +334,156 @@ export default function Navbar() {
   } as const);
 
   // ── Bloc recherche rapide, réutilisé en version desktop et mobile ────────────
+  const nbLocalStatique = livresTrouves.length + traductionsTrouvees.length;
+  const nbTotalResultats = nbResultatsProgressif + nbLocalStatique;
+
   const blocRecherche = (mobile: boolean) => (
     <div style={{ position: "relative", width: mobile ? "100%" : undefined }}>
-      <style>{`.recherche-rapide-input::placeholder { color: rgba(255,255,255,0.45); }`}</style>
-      <input
-        type="text"
-        value={requeteRapide}
-        onChange={e => setRequeteRapide(e.target.value)}
-        onFocus={() => setRechercheOuverte(true)}
-        onKeyDown={e => { if (e.key === 'Enter') validerRechercheRapide() }}
-        placeholder="Rechercher…"
-        className="recherche-rapide-input"
-        style={{ width: mobile ? "100%" : "150px", fontSize: "12px", padding: "6px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "#fff", outline: "none", boxSizing: "border-box" }}
-      />
+      <style>{`
+        .recherche-rapide-input::placeholder { color: rgba(255,255,255,0.45); }
+        @keyframes spin-search { to { transform: rotate(360deg); } }
+        .spinner-search { animation: spin-search 0.8s linear infinite; }
+      `}</style>
+      {/* Champ + bouton page de recherche */}
+      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        <input
+          type="text"
+          value={requeteRapide}
+          onChange={e => setRequeteRapide(e.target.value)}
+          onFocus={() => setRechercheOuverte(true)}
+          onKeyDown={e => { if (e.key === 'Enter') validerRechercheRapide() }}
+          placeholder="Rechercher…"
+          className="recherche-rapide-input"
+          style={{ width: mobile ? "100%" : "150px", fontSize: "12px", padding: "6px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "#fff", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
+        />
+        <Link href="/recherche" onClick={fermerRechercheRapide} title="Ouvrir la page de recherche"
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "28px", height: "28px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.75)", textDecoration: "none", flexShrink: 0, transition: "background 0.13s" }}
+          onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.20)"; e.currentTarget.style.color = "#fff"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.10)"; e.currentTarget.style.color = "rgba(255,255,255,0.75)"; }}>
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <circle cx="6" cy="6" r="4.2" stroke="currentColor" strokeWidth="1.4" fill="none"/>
+            <line x1="9.2" y1="9.2" x2="12.5" y2="12.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+          </svg>
+        </Link>
+      </div>
+
       {rechercheOuverte && qNorm && (
         <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: "calc(100% + 8px)", left: 0, width: mobile ? "100%" : "300px", background: "#fff", border: "1px solid #d6d0c4", borderRadius: "9px", boxShadow: mobile ? "none" : "0 12px 36px rgba(0,0,0,0.16)", zIndex: 100, overflow: "hidden", maxHeight: "440px", overflowY: "auto" }}>
-          {aucunResultat ? (
-            <p style={{ fontSize: "12px", color: "#9a958d", fontStyle: "italic", textAlign: "center", padding: "18px 12px", margin: 0 }}>Aucun résultat — Entrée pour une recherche complète.</p>
+
+          {/* Barre de statut : nb résultats + spinner/smiley */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 14px 5px", borderBottom: "1px solid #ede9e2", background: "#faf8f5" }}>
+            <span style={{ fontSize: "11px", color: "#6b6560", fontWeight: 500 }}>
+              {rechercheRapideLoading && nbTotalResultats === 0
+                ? "Recherche…"
+                : nbTotalResultats === 0 && rechercheTerminee
+                  ? "Aucun résultat"
+                  : <>{nbTotalResultats} <span style={{ color: "#9a958d", fontWeight: 400 }}>résultat{nbTotalResultats > 1 ? 's' : ''}</span></>}
+            </span>
+            {rechercheRapideLoading ? (
+              <svg className="spinner-search" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-label="Chargement">
+                <circle cx="7" cy="7" r="5.5" stroke="#d6d0c4" strokeWidth="1.6" fill="none"/>
+                <path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="#3d6b4f" strokeWidth="1.6" strokeLinecap="round" fill="none"/>
+              </svg>
+            ) : rechercheTerminee ? (
+              <span style={{ fontSize: "14px", lineHeight: 1 }} role="img" aria-label="Recherche terminée">😊</span>
+            ) : null}
+          </div>
+
+          {rechercheRapideLoading && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && essaisTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 ? (
+            <p style={{ fontSize: "12px", color: "#c0b8ae", textAlign: "center", padding: "14px 12px", margin: 0 }}>…</p>
+          ) : aucunResultat ? (
+            <p style={{ fontSize: "12px", color: "#9a958d", fontStyle: "italic", textAlign: "center", padding: "14px 12px", margin: 0 }}>Aucun résultat — Entrée pour une recherche complète.</p>
           ) : (
             <>
               {auteursTrouves.length > 0 && (
-                <div style={{ padding: "10px 0 6px" }}>
-                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "0 14px 4px" }}>Auteurs</p>
+                <div style={{ padding: "8px 0 4px" }}>
+                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "0 14px 3px" }}>Auteurs</p>
                   {auteursTrouves.map(a => (
                     <Link key={a.id_auteur} href={`/auteur/${a.id_auteur}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "7px 14px", fontSize: "13px", color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "5px 14px", fontSize: "13px", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                      {a.nom}
+                      {surlignerMatch(a.nom, requeteRapide.trim())}
                     </Link>
                   ))}
                 </div>
               )}
               {oeuvresTrouvees.length > 0 && (
-                <div style={{ padding: "8px 0 6px", borderTop: auteursTrouves.length > 0 ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Œuvres patristiques</p>
+                <div style={{ padding: "6px 0 4px", borderTop: auteursTrouves.length > 0 ? "1px solid #ede9e2" : "none" }}>
+                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Œuvres patristiques</p>
                   {oeuvresTrouvees.map(o => (
                     <Link key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "7px 14px", fontSize: "13px", color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "5px 14px", fontSize: "13px", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                      {o.titre}
+                      {surlignerMatch(o.titre, requeteRapide.trim())}
                       {o.auteurs?.nom && <span style={{ fontSize: "11px", color: "#9a958d", marginLeft: "7px" }}>{o.auteurs.nom}</span>}
                     </Link>
                   ))}
                 </div>
               )}
               {segmentsTrouves.length > 0 && (
-                <div style={{ padding: "8px 0 6px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0) ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Extraits patristiques</p>
+                <div style={{ padding: "6px 0 4px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0) ? "1px solid #ede9e2" : "none" }}>
+                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Extraits patristiques</p>
                   {segmentsTrouves.map(s => (
-                    <Link key={s.id} href={`/oeuvre/${s.id_oeuvre}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "7px 14px", fontSize: "12px", color: "#2a3d30", textDecoration: "none" }}
+                    <Link key={s.id} href={`/oeuvre/${s.id_oeuvre}?segment=${s.id}#segment-${s.id}`} onClick={fermerRechercheRapide}
+                      style={{ display: "block", padding: "5px 14px", fontSize: "12px", color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                      <span style={{ fontStyle: "italic", display: "block", lineHeight: 1.5, color: "#3a3530" }}>{extraireExtrait(s.segment_texte, requeteRapide.trim())}</span>
-                      <span style={{ fontSize: "10.5px", color: "#9a958d", marginTop: "3px", display: "block" }}>{s.auteur_nom}{s.auteur_nom && s.oeuvre_titre ? ' · ' : ''}{s.oeuvre_titre}</span>
+                      <span style={{ fontStyle: "italic", display: "block", lineHeight: 1.3, color: "#3a3530" }}>{extraireEtSurligner(s.segment_texte, requeteRapide.trim())}</span>
+                      <span style={{ fontSize: "10.5px", color: "#9a958d", marginTop: "2px", display: "block" }}>{s.auteur_nom}{s.auteur_nom && s.oeuvre_titre ? ' · ' : ''}{s.oeuvre_titre}</span>
                     </Link>
                   ))}
                 </div>
               )}
               {essaisTrouves.length > 0 && (
-                <div style={{ padding: "8px 0 6px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Essais et méditations</p>
+                <div style={{ padding: "6px 0 4px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
+                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Essais et méditations</p>
                   {essaisTrouves.map(e => (
                     <Link key={e.id} href={`/essais/${e.id}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "7px 14px", fontSize: "13px", color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "5px 14px", fontSize: "13px", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={ev => (ev.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                       onMouseLeave={ev => (ev.currentTarget.style.background = "transparent")}>
-                      {e.titre}
+                      {surlignerMatch(e.titre, requeteRapide.trim())}
                     </Link>
                   ))}
                 </div>
               )}
               {livresTrouves.length > 0 && (
-                <div style={{ padding: "8px 0 6px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0 || essaisTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Livres bibliques</p>
+                <div style={{ padding: "6px 0 4px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0 || essaisTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
+                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Livres bibliques</p>
                   {livresTrouves.map(l => (
                     <Link key={l.code} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "7px 14px", fontSize: "13px", color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "5px 14px", fontSize: "13px", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                      {l.nom}
+                      {surlignerMatch(l.nom, requeteRapide.trim())}
                     </Link>
                   ))}
                 </div>
               )}
               {traductionsTrouvees.length > 0 && (
-                <div style={{ padding: "8px 0 10px", borderTop: (auteursTrouves.length > 0 || livresTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "4px 14px 4px" }}>Traductions</p>
+                <div style={{ padding: "6px 0 8px", borderTop: (auteursTrouves.length > 0 || livresTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
+                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Traductions</p>
                   {traductionsTrouvees.map(t => (
                     <Link key={t.code} href={`/traductions#${t.code}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "7px 14px", fontSize: "13px", color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "5px 14px", fontSize: "13px", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                      {t.nom}
+                      {surlignerMatch(t.nom, requeteRapide.trim())}
                     </Link>
                   ))}
+                </div>
+              )}
+              {(auteursTrouves.length >= 4 || oeuvresTrouvees.length >= 8 || segmentsTrouves.length >= 5 || essaisTrouves.length >= 4) && (
+                <div style={{ borderTop: "1px solid #ede9e2", padding: "5px 0" }}>
+                  <Link href={`/recherche?q=${encodeURIComponent(requeteRapide.trim())}&mode=prefixe`} onClick={fermerRechercheRapide}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", padding: "7px 14px", fontSize: "12px", color: "#3d6b4f", fontWeight: 600, textDecoration: "none", letterSpacing: "0.02em" }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                    Tout voir
+                    <span style={{ fontSize: "14px", lineHeight: 1 }}>→</span>
+                  </Link>
                 </div>
               )}
             </>
@@ -478,8 +596,8 @@ export default function Navbar() {
 
           {/* ── Navigation desktop ──────────────────────────────────────────── */}
           <nav className="hidden md:flex flex-1 items-center gap-1">
-            {LIENS_PRIMAIRES.map(({ href, label, exact }) => (
-              <Link key={href} href={href} style={styleLien(href, exact, true)}>{label}</Link>
+            {LIENS_PRIMAIRES.map(({ href, label, exact, discret }) => (
+              <Link key={href} href={href} style={styleLien(href, exact, !discret)}>{label}</Link>
             ))}
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "8px", paddingLeft: "12px", borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
               {blocRecherche(false)}

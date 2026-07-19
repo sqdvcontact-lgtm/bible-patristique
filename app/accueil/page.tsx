@@ -1,5 +1,14 @@
 import Link from "next/link";
+import { IM_Fell_English } from "next/font/google";
 import AccueilCards from "../components/AccueilCards";
+
+const imFellEnglish = IM_Fell_English({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-im-fell",
+  display: "swap",
+});
 
 export const metadata = {
   title: "Corpus Scriptura",
@@ -8,10 +17,9 @@ export const metadata = {
 
 export default function AccueilPage() {
   return (
-    <>
+    <div className={imFellEnglish.variable}>
       <style>{`
         html { scroll-behavior: smooth; }
-        @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
         .colophon-body { font-family: Georgia, 'Times New Roman', serif; }
         .colophon-ornement { font-size: 18px; color: #7a6a52; letter-spacing: 0.25em; }
         .colophon-regle { display: block; width: 36px; height: 1px; background: #c8b89e; margin: 0 auto; }
@@ -145,7 +153,7 @@ export default function AccueilPage() {
               marginBottom: "18px",
               letterSpacing: "0.02em",
             }}>
-              Du projet
+              Le projet
             </h2>
             <OrnementsTriple />
           </div>
@@ -207,7 +215,7 @@ export default function AccueilPage() {
 
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

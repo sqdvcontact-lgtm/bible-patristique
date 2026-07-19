@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import type { Metadata } from 'next'
 import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
 import { ABREV_FR } from '@/app/lib/bible'
 import { parseNotes } from '@/app/lib/notes'
@@ -9,6 +10,14 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const { data } = await supabase.from('oeuvres').select('titre, auteurs(nom)').eq('id_oeuvre', id).maybeSingle()
+  if (!data) return { title: 'Corpus Scriptura' }
+  const auteur = (data.auteurs as any)?.nom
+  return { title: auteur ? `${data.titre} — ${auteur} · Corpus Scriptura` : `${data.titre} · Corpus Scriptura` }
+}
 
 type Segment = {
   id: number; segment_numero: number; segment_texte: string

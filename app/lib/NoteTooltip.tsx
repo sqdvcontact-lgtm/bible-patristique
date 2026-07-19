@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import type { ElementPanneau } from './texteEnrichiEssai'
 
-const DUREE_FIXATION = 3000
+const DUREE_FIXATION = 2300
 const DELAI_FERMETURE = 200
 
 function ContenuNote({ el, onNaviguer }: {
@@ -197,11 +197,11 @@ export default function NoteTooltip({ lettre, el, isRef }: {
           <span style={{
             display: 'block',
             background: '#f7f3ec',
-            border: '1px solid rgba(185,165,120,0.35)',
-            borderRadius: '6px',
+            border: '1px solid #c0a878',
+            borderRadius: '5px',
             padding: '10px 12px',
             width: '220px',
-            boxShadow: '0 6px 24px rgba(10,8,4,0.13), 0 1px 4px rgba(10,8,4,0.06)',
+            boxShadow: '0 6px 24px rgba(10,8,4,0.13), 0 1px 4px rgba(10,8,4,0.06), inset 0 0 0 1px rgba(255,248,235,0.7)',
             position: 'relative',
             overflow: 'hidden',
             textIndent: 0,

@@ -21,7 +21,7 @@ export const LIVRES: LivreBible[] = [
   { code: 'JOB', nom: 'Job',                      testament: 'AT', nbVersets: 1070 },
   { code: 'PSA', nom: 'Psaumes',                  testament: 'AT', nbVersets: 2461 },
   { code: 'PRO', nom: 'Proverbes',                testament: 'AT', nbVersets:  915 },
-  { code: 'ECC', nom: 'Ecclésiaste ou Qohéleth',  testament: 'AT', nbVersets:  222 },
+  { code: 'ECC', nom: 'Ecclésiaste ou Qohélet',  testament: 'AT', nbVersets:  222 },
   { code: 'SNG', nom: 'Cantique des cantiques',   testament: 'AT', nbVersets:  117 },
   { code: 'ISA', nom: 'Isaïe',                    testament: 'AT', nbVersets: 1292 },
   { code: 'JER', nom: 'Jérémie',                  testament: 'AT', nbVersets: 1364 },

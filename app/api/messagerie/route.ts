@@ -23,6 +23,7 @@ export async function GET(request: Request) {
     .select('expediteur_id, destinataire_id, contenu, lu, created_at')
     .or(`expediteur_id.eq.${uid},destinataire_id.eq.${uid}`)
     .order('created_at', { ascending: false })
+    .limit(500)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

@@ -266,6 +266,8 @@ export default function PrelevementsPage() {
     return val;
   };
 
+  useEffect(() => { document.title = 'Mes prélèvements · Corpus Scriptura' }, [])
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem("cs_citation_preferee");

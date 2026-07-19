@@ -51,7 +51,8 @@ const sig = t => new Set(((t||'').replace(/<\/?i>/g,'').normalize('NFD').replace
 const jac = (a,b) => { if(!a.size||!b.size) return 0; let i=0; for(const w of a) if(b.has(w)) i++; return i/Math.max(a.size,b.size) }
 
 const parCh = {}; for (const v of S) (parCh[v.ch] ??= []).push(v)
-const plan = [], justes = [], ecarts = []
+const SEULEMENT_JUSTES = !process.argv.includes("--tout")
+const plan = [], justes = [], ecarts = [], parPsaume = {}
 for (let c = 1; c <= 150; c++){
   const vs = (parCh[c] || []).sort((a,b) => a.v - b.v)
   const susc = vs.find(v => v.v === 0)
@@ -67,13 +68,17 @@ for (let c = 1; c <= 150; c++){
   const decalage = (titreSeul ? 1 : 0) + (base - 1)
   const suscSurnum = Boolean(susc) && !titreRef
 
-  if (susc) plan.push({ ch: c, v: 0, canon_id: suscSurnum ? null : `PSA.${c}.${base}` })
+  const emis = []
+  if (susc) emis.push({ ch: c, v: 0, canon_id: suscSurnum ? null : `PSA.${c}.${base}` })
   for (const v of vs.filter(x => x.v > 0)){
     const cible = `PSA.${c}.${v.v + decalage}`
-    plan.push({ ch: c, v: v.v, canon_id: canon.has(cible) ? cible : null })
+    emis.push({ ch: c, v: v.v, canon_id: canon.has(cible) ? cible : null })
   }
+  parPsaume[c] = emis
   const dernier = Math.max(...vs.filter(v => v.v > 0).map(v => v.v)) + decalage
-  ;(dernier === maxC[c] ? justes : ecarts).push(`${c} (${dernier} vs ${maxC[c]})`)
+  const juste = dernier === maxC[c] && !emis.some(e => e.canon_id === null && e.v > 0)
+  ;(juste ? justes : ecarts).push(`${c} (${dernier} vs ${maxC[c]})`)
+  if (juste || !SEULEMENT_JUSTES) plan.push(...emis)
 }
 console.log(`plan : ${plan.length} versets · ${plan.filter(p => p.canon_id === null).length} surnuméraires`)
 console.log(`psaumes dont le dernier verset tombe juste : ${justes.length} / 150`)

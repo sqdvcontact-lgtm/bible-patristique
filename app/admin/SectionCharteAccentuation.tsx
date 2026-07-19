@@ -34,6 +34,44 @@ Mots latins en début de segment (Ecce, Esto, Ergo…) : ne pas accentuer.
 
 ---
 
+## Règles typographiques générales
+
+### Majuscules accentuées
+
+Eglise → Église
+
+### Ligatures
+
+oe → œ · Oe → Œ
+
+### Majuscules abusives sur adjectifs / noms communs à valeur générique
+
+Les noms « saint/sainte » employés comme adjectif qualificatif ou épithète ne prennent pas de majuscule :
+
+- les Saints → les saints
+- le Saint → le saint
+- les Saintes → les saintes
+- la Sainte → la sainte
+- des Saints → des saints
+- un Saint → un saint
+- des Saintes → des saintes
+- une Sainte → une sainte
+
+⚠ Exception : Saint + nom propre (Saint Pierre, Saint Paul…) conserve la majuscule.
+
+### Saint-Esprit
+
+- saint Esprit → Saint-Esprit
+- Saint Esprit → Saint-Esprit
+- Esprit-Saint → Esprit saint
+- Esprit Saint → Esprit saint
+
+### Espaces multiples
+
+- [espace][espace] → [espace] (supprimer les doubles espaces)
+
+---
+
 ## Requête de diagnostic (à adapter par œuvre)
 
 \`\`\`sql

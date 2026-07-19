@@ -10,8 +10,16 @@ export async function POST(req: Request) {
   const body = await req.json()
   const champs: Record<string, unknown> = {}
 
-  if ('bio' in body)                   champs.bio = body.bio?.trim() || null
-  if ('contact_email' in body)         champs.contact_email = body.contact_email?.trim() || null
+  if ('bio' in body) {
+    const bio = body.bio?.trim() || null
+    if (bio && bio.length > 800) return NextResponse.json({ error: 'La bio ne peut pas dépasser 800 caractères.' }, { status: 400 })
+    champs.bio = bio
+  }
+  if ('contact_email' in body) {
+    const email = body.contact_email?.trim() || null
+    if (email && email.length > 200) return NextResponse.json({ error: 'Adresse mail trop longue.' }, { status: 400 })
+    champs.contact_email = email
+  }
   if ('pub_rang' in body)              champs.pub_rang = Boolean(body.pub_rang)
   if ('pub_essais' in body)            champs.pub_essais = Boolean(body.pub_essais)
   if ('pub_favoris_oeuvre' in body)    champs.pub_favoris_oeuvre = Boolean(body.pub_favoris_oeuvre)

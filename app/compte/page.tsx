@@ -47,6 +47,8 @@ export default function ComptePage() {
   const [verification, setVerification] = useState(true);
   const [user, setUser] = useState<{ id: string; email: string; email_confirmed_at: string | null } | null>(null);
 
+  useEffect(() => { document.title = 'Mon compte · Corpus Scriptura' }, [])
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       const u = data.session?.user;
@@ -411,9 +413,14 @@ function ModaleRecadrage({ photo, onSauvegarder, onChanger, onClose }: {
           />
         </div>
         <p style={{ fontSize: "10px", color: "#a89e8e", textAlign: "center", margin: "0 0 16px", fontStyle: "italic" }}>Faites glisser pour repositionner</p>
-        <div style={{ marginBottom: "20px" }}>
+        <div style={{ marginBottom: "12px" }}>
           <label style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.08em", color: "#6a7b6e", display: "block", marginBottom: "6px" }}>ZOOM</label>
           <input type="range" min="1" max="1.8" step="0.05" value={zoom} onChange={e => setZoom(Number(e.target.value))}
+            style={{ width: "100%", accentColor: "#3d6b4f" }} />
+        </div>
+        <div style={{ marginBottom: "20px" }}>
+          <label style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.08em", color: "#6a7b6e", display: "block", marginBottom: "6px" }}>POSITION HORIZONTALE</label>
+          <input type="range" min="0" max="100" step="1" value={posX} onChange={e => setPosX(Number(e.target.value))}
             style={{ width: "100%", accentColor: "#3d6b4f" }} />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>

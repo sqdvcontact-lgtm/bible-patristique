@@ -163,71 +163,9 @@ function rendreTitreColophon(texte: string) {
   return rendreLignesColophonAvecLargeurs(lignes, { display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '650px', margin: '0 auto', lineHeight: 1.24, wordSpacing: '-0.04em', letterSpacing: '-0.004em', hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties)
 }
 
-// Composant qui mesure la largeur réelle du conteneur pour calculer les coupes de ligne
-function ColophonLongTexte({ texte }: { texte: string }) {
-  const ref = useRef<HTMLSpanElement>(null)
-  const [lignes, setLignes] = useState<string[]>([])
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const W = el.getBoundingClientRect().width
-    if (!W) return
-
-    // Mesurer la largeur réelle d'un caractère dans la police héritée
-    const sonde = document.createElement('span')
-    sonde.style.cssText = 'position:absolute;top:-9999px;visibility:hidden;white-space:nowrap;pointer-events:none;'
-    sonde.style.font = getComputedStyle(el).font
-    const sample = 'azertyuiopmlkjhgfdsqwxcvbn azertyuiopmlkjhgfdsqwxcvbn'
-    sonde.textContent = sample
-    document.body.appendChild(sonde)
-    const cw = sonde.getBoundingClientRect().width / sample.length
-    document.body.removeChild(sonde)
-    if (!cw) return
-
-    // Ratios décroissants : la 1re ligne occupe 95 % de la largeur, la dernière 32 %
-    const ratios = [0.95, 0.78, 0.62, 0.46, 0.32]
-    const mots = texte.split(/\s+/).filter(Boolean)
-    const result: string[] = []
-    let idx = 0
-
-    for (let i = 0; i < ratios.length; i++) {
-      if (idx >= mots.length) break
-      const isLast = i === ratios.length - 1
-      if (isLast) { result.push(mots.slice(idx).join(' ')); break }
-      const maxCh = Math.floor((W * ratios[i]) / cw)
-      let lon = 0, fin = idx
-      while (fin < mots.length - (ratios.length - 1 - i)) {
-        const add = fin === idx ? mots[fin].length : mots[fin].length + 1
-        if (lon + add > maxCh && fin > idx) break
-        lon += add; fin++
-      }
-      if (fin <= idx) fin = idx + 1
-      result.push(mots.slice(idx, fin).join(' '))
-      idx = fin
-    }
-    setLignes(result)
-  }, [texte])
-
-  return (
-    <span ref={ref} className="titre-colophon" lang="fr"
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', lineHeight: 1.6, hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
-      {lignes.length === 0
-        ? <span style={{ display: 'block', textAlign: 'center' }}>{rendreTexteEnrichi(texte)}</span>
-        : lignes.map((l, i) => (
-            <span key={i} style={{ display: 'block', whiteSpace: 'nowrap', textAlign: 'center', hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
-              {rendreTexteEnrichi(l)}
-            </span>
-          ))
-      }
-    </span>
-  )
-}
-
 function rendreLongTexteColophon(texte: string) {
   const propre = preparerTitreColophon(texte)
-  if (propre.length < 40) return rendreTexteEnrichi(propre)
-  return <ColophonLongTexte texte={propre} />
+  return rendreTexteEnrichi(propre)
 }
 
 const TRADUCTIONS_FALLBACK = [
@@ -516,8 +454,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const [configOuverte, setConfigOuverte] = useState(false)
   const [configEnvoi, setConfigEnvoi] = useState(false)
   const resetVolets = () => { setNavWidth(240); setPannWidth(288) }
-  const [problemes, setProblemes] = useState<{ id: number; segment_numero: number; segment_texte: string; reference_manuelle: string | null; ref_niv1: string | null }[]>([])
+  const [problemes, setProblemes] = useState<{ id: number; segment_numero: number; segment_texte: string; reference_manuelle: string | null; ref_niv1: string | null; fiabilite: string | null; lien_1: string | null; lien_2: string | null; lien_3: string | null; lien_4: string | null }[]>([])
   const [problemesCharges, setProblemesCharges] = useState(false)
+  const [filtreProbleme, setFiltreProbleme] = useState<'lien_a_constituer' | 'probable'>('lien_a_constituer')
+  const [versetsAltMap, setVersetsAltMap] = useState<Record<string, { ref: string; chapAlt: number | null; verAlt: number | null }>>({})
   const [nbCommentairesOeuvre, setNbCommentairesOeuvre] = useState<number | null>(null)
   useEffect(() => {
     if (segActif === null) { setNbCommentairesOeuvre(null); return }
@@ -530,10 +470,27 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   useEffect(() => {
     if (ongletDroit !== 'problemes' || problemesCharges || !idOeuvre) return
     supabase.from('segments')
-      .select('id, segment_numero, segment_texte, reference_manuelle, ref_niv1')
-      .eq('id_oeuvre', idOeuvre).eq('fiabilite', 'Lien à constituer')
+      .select('id, segment_numero, segment_texte, reference_manuelle, ref_niv1, fiabilite, lien_1, lien_2, lien_3, lien_4')
+      .eq('id_oeuvre', idOeuvre).in('fiabilite', ['Lien à constituer', 'probable'])
       .order('segment_numero')
-      .then(({ data }) => { setProblemes(data ?? []); setProblemesCharges(true) })
+      .then(async ({ data }) => {
+        setProblemes(data ?? [])
+        setProblemesCharges(true)
+        const ids = new Set<string>()
+        ;(data ?? []).filter(s => s.fiabilite === 'probable').forEach(s => {
+          ;(['lien_1', 'lien_2', 'lien_3', 'lien_4'] as const).forEach(col => {
+            String((s as any)[col] ?? '').split(';').map((v: string) => v.trim()).filter(Boolean).forEach((id: string) => ids.add(id))
+          })
+        })
+        if (ids.size > 0) {
+          const { data: vs } = await supabase.from('versets')
+            .select('id_verset, ref, chapitre_alternatif, verset_alternatif')
+            .in('id_verset', Array.from(ids))
+          const map: Record<string, { ref: string; chapAlt: number | null; verAlt: number | null }> = {}
+          ;(vs ?? []).forEach((v: any) => { map[v.id_verset] = { ref: v.ref ?? v.id_verset, chapAlt: v.chapitre_alternatif ?? null, verAlt: v.verset_alternatif ?? null } })
+          setVersetsAltMap(map)
+        }
+      })
   }, [ongletDroit, idOeuvre, problemesCharges])
   useEffect(() => {
     try {
@@ -1543,51 +1500,90 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               </div>
             ) : (
               <div style={{ paddingTop: '14px' }}>
-                <div style={{ fontSize: '10.5px', color: '#8a8278', margin: '0 0 12px', lineHeight: 1.55, padding: '8px 10px', background: '#f7f4ef', borderRadius: '5px', border: '1px solid #e8e2d8' }}>
+                <div style={{ fontSize: '10.5px', color: '#8a8278', margin: '0 0 10px', lineHeight: 1.55, padding: '8px 10px', background: '#f7f4ef', borderRadius: '5px', border: '1px solid #e8e2d8' }}>
                   <p style={{ margin: '0 0 4px', fontWeight: 600, color: '#5a5450', fontSize: '10px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>À propos de cet onglet</p>
                   <p style={{ margin: 0, fontStyle: 'italic' }}>
-                    Ces paragraphes ont été signalés par le système comme ne comportant pas encore de référence biblique identifiée. Lecteurs et administrateurs peuvent ici en prendre connaissance, proposer des corrections ou identifier les versets manquants.
+                    Cet onglet regroupe les passages signalés pour correction, vérification ou identification d'un lien biblique. Lecteurs et administrateurs peuvent proposer des corrections ou confirmer les références suggérées.
                   </p>
+                </div>
+                {/* Sous-onglets par type de problème */}
+                <div style={{ display: 'flex', gap: '2px', margin: '0 0 12px', background: '#ede9e2', borderRadius: '5px', padding: '2px' }}>
+                  {([['lien_a_constituer', 'À constituer'], ['probable', 'À vérifier']] as const).map(([key, label]) => (
+                    <button key={key} onClick={() => setFiltreProbleme(key)}
+                      style={{ flex: 1, fontSize: '10px', fontWeight: filtreProbleme === key ? 700 : 400, padding: '4px 6px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: filtreProbleme === key ? '#fff' : 'transparent', color: filtreProbleme === key ? '#3a3530' : '#9a958d', boxShadow: filtreProbleme === key ? '0 1px 2px rgba(0,0,0,0.08)' : 'none', letterSpacing: '0.04em', textTransform: 'uppercase' as const, transition: 'all 0.12s' }}>
+                      {label}
+                    </button>
+                  ))}
                 </div>
                 {!problemesCharges ? (
                   <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>Chargement…</p>
-                ) : problemes.length === 0 ? (
-                  <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>Aucun passage « Lien à constituer » pour cette œuvre.</p>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {problemes.map(s => (
-                      <div key={s.id} style={{ paddingBottom: '12px', borderBottom: '1px solid #ede9e2' }}>
-                        <div lang="fr" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12px', lineHeight: 1.38, color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 7px', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                          {rendreTexteEnrichi(nettoyerFin(normaliserEspaces(s.segment_texte)))}
-                        </div>
-                        {s.reference_manuelle && (
-                          <p style={{ fontSize: '10.5px', color: '#9a5a2a', fontStyle: 'italic', margin: '0 0 6px' }}>
-                            Référence proposée : {s.reference_manuelle}
-                          </p>
-                        )}
-                        <div style={{ display:'flex', alignItems:'center', gap:'10px', justifyContent:'space-between' }}>
-                          <button onClick={() => {
-                            setSegActif(s.id)
-                            const ancreLocale = groupes.find(g => g.itemIds.includes(s.id))?.anchor
-                            if (ancreLocale) {
-                              naviguerVersAncre(ancreLocale)
-                            } else if (s.ref_niv1 && s.ref_niv1 !== niv1Actif) {
-                              pendingScrollSegRef.current = s.id
-                              changerNiv1(s.ref_niv1, { conserverPosition: true })
-                            }
-                          }} className="ref-lien"
-                            style={{ fontSize: '10.5px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                            Aller au passage
-                          </button>
-                          <button onClick={() => setSuggestionSignalee(s)} title="Suggérer une correction"
-                            style={{ fontSize:'10.5px', color:'#9a5a2a', background:'none', border:'none', cursor:'pointer', padding:0 }}>
-                            Suggérer une correction
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                ) : (() => {
+                  const filtres = problemes.filter(s =>
+                    filtreProbleme === 'lien_a_constituer' ? s.fiabilite === 'Lien à constituer' : s.fiabilite === 'probable'
+                  )
+                  if (filtres.length === 0) return (
+                    <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>
+                      {filtreProbleme === 'lien_a_constituer' ? 'Aucun passage « Lien à constituer » pour cette œuvre.' : 'Aucun passage « À vérifier » pour cette œuvre.'}
+                    </p>
+                  )
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {filtres.map(s => {
+                        const liensIds = (['lien_1', 'lien_2', 'lien_3', 'lien_4'] as const)
+                          .flatMap(col => String(s[col] ?? '').split(';').map(v => v.trim()).filter(Boolean))
+                        return (
+                          <div key={s.id} style={{ paddingBottom: '12px', borderBottom: '1px solid #ede9e2' }}>
+                            <div lang="fr" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12px', lineHeight: 1.38, color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 7px', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                              {rendreTexteEnrichi(nettoyerFin(normaliserEspaces(s.segment_texte)))}
+                            </div>
+                            {s.reference_manuelle && (
+                              <p style={{ fontSize: '10.5px', color: '#9a5a2a', fontStyle: 'italic', margin: '0 0 5px' }}>
+                                Référence proposée : {s.reference_manuelle}
+                              </p>
+                            )}
+                            {liensIds.length > 0 && (
+                              <div style={{ margin: '0 0 5px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                {liensIds.map(idV => {
+                                  const vi = versetsAltMap[idV]
+                                  if (!vi) return null
+                                  return (
+                                    <span key={idV} style={{ fontSize: '10.5px', color: '#3d5a4f' }}>
+                                      {vi.ref}
+                                      {vi.chapAlt != null && (
+                                        <span style={{ color: '#9a958d', fontStyle: 'italic' }}>
+                                          {' '}({vi.chapAlt}{vi.verAlt != null ? `,${vi.verAlt}` : ''})
+                                        </span>
+                                      )}
+                                    </span>
+                                  )
+                                })}
+                              </div>
+                            )}
+                            <div style={{ display:'flex', alignItems:'center', gap:'10px', justifyContent:'space-between' }}>
+                              <button onClick={() => {
+                                setSegActif(s.id)
+                                const ancreLocale = groupes.find(g => g.itemIds.includes(s.id))?.anchor
+                                if (ancreLocale) {
+                                  naviguerVersAncre(ancreLocale)
+                                } else if (s.ref_niv1 && s.ref_niv1 !== niv1Actif) {
+                                  pendingScrollSegRef.current = s.id
+                                  changerNiv1(s.ref_niv1, { conserverPosition: true })
+                                }
+                              }} className="ref-lien"
+                                style={{ fontSize: '10.5px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                                Aller au passage
+                              </button>
+                              <button onClick={() => setSuggestionSignalee(s)} title="Suggérer une correction"
+                                style={{ fontSize:'10.5px', color:'#9a5a2a', background:'none', border:'none', cursor:'pointer', padding:0 }}>
+                                Suggérer une correction
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
               </div>
             )}
           </div>

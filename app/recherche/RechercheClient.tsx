@@ -120,6 +120,19 @@ function highlighter(texte: string, terme: string, mode: Mode): React.ReactNode 
   } catch { return texte }
 }
 
+function snippetEssai(texte: string, terme: string, max = 220): string {
+  const termes = termesRecherche(terme)
+  let idx = -1
+  for (const t of termes) {
+    const i = normaliser(texte).indexOf(normaliser(t))
+    if (i >= 0 && (idx < 0 || i < idx)) idx = i
+  }
+  if (idx < 0) return texte.length > max ? texte.slice(0, max) + '…' : texte
+  const debut = Math.max(0, idx - 60)
+  const fin = Math.min(texte.length, debut + max)
+  return (debut > 0 ? '…' : '') + texte.slice(debut, fin) + (fin < texte.length ? '…' : '')
+}
+
 export default function RechercheClient() {
   const searchParams = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') ?? '')
@@ -146,6 +159,7 @@ export default function RechercheClient() {
   const dejaLanceRef = useRef('')
   const [sugg, setSugg]         = useState<{ mot: string; freq: number }[]>([])
   const [showSugg, setShowSugg] = useState(false)
+  const [tronque, setTronque]   = useState<string[]>([])
   const inputRef   = useRef<HTMLInputElement>(null)
   const suggTimer  = useRef<ReturnType<typeof setTimeout>>(undefined)
   const suggRef    = useRef<HTMLUListElement>(null)
@@ -179,158 +193,203 @@ export default function RechercheClient() {
     return () => document.removeEventListener('mousedown', h)
   }, [])
 
+  const suggAbortRef = useRef<AbortController | null>(null)
+
   // Autocomplétion (même RPC que la concordance)
   useEffect(() => {
     const val = normaliser(query)
     if (val.length < 2) { setSugg([]); setShowSugg(false); return }
     clearTimeout(suggTimer.current)
     suggTimer.current = setTimeout(async () => {
-      const { data } = await supabase.rpc('suggestions_concordance_fr', { p_prefixe: val, p_limit: 10 })
-      if (data?.length) { setSugg(data); setShowSugg(true) } else setShowSugg(false)
+      suggAbortRef.current?.abort()
+      suggAbortRef.current = new AbortController()
+      const signal = suggAbortRef.current.signal
+      try {
+        const [{ data: dataBible }, { data: dataAuteurs }, { data: dataOeuvres }] = await Promise.all([
+          supabase.rpc('suggestions_concordance_fr', { p_prefixe: val, p_limit: 8 }).abortSignal(signal),
+          supabase.from('auteurs').select('nom').ilike('nom', `%${val}%`).limit(3).abortSignal(signal),
+          supabase.from('oeuvres').select('titre').ilike('titre', `%${val}%`).limit(3).abortSignal(signal),
+        ])
+        if (signal.aborted) return
+        const suggsBible: { mot: string; freq: number }[] = dataBible ?? []
+        const seen = new Set(suggsBible.map(s => s.mot.toLowerCase()))
+        const suggsExtra: { mot: string; freq: number }[] = [
+          ...((dataAuteurs ?? []) as { nom: string }[]).map(a => ({ mot: a.nom, freq: 0 })),
+          ...((dataOeuvres ?? []) as { titre: string }[]).map(o => ({ mot: o.titre, freq: 0 })),
+        ].filter(s => { const k = s.mot.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
+        const merged = [...suggsBible, ...suggsExtra].slice(0, 10)
+        if (merged.length) { setSugg(merged); setShowSugg(true) } else { setSugg([]); setShowSugg(false) }
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') { setSugg([]); setShowSugg(false) }
+      }
     }, 180)
-    return () => clearTimeout(suggTimer.current)
+    return () => { clearTimeout(suggTimer.current); suggAbortRef.current?.abort() }
   }, [query])
+
+  const lancerAbortRef = useRef<AbortController | null>(null)
 
   const lancer = async (queryForce?: string, modeForce?: Mode, scopeForce?: string) => {
     const q = (queryForce ?? query).trim()
     const modeActif = modeForce ?? mode
     const scopeActif = scopeForce ?? tradScope
     if (!q) return
-    setLoading(true); setDone(false)
+
+    lancerAbortRef.current?.abort()
+    lancerAbortRef.current = new AbortController()
+    const signal = lancerAbortRef.current.signal
+
+    setLoading(true); setDone(false); setTronque([])
     setVersetsRes([]); setSegmentsRes([]); setEssaisRes([])
     setPageV(0); setPageS(0); setPageE(0)
 
-    const termes = termesRecherche(q)
-    const fragments = modeActif === 'prefixe' && termes.length > 1
-    const chercheTout = scopeActif === 'ALL'
-    const termeNorm = normaliser(q)
-    const vars = (!fragments && termeNorm.length >= 2) ? graphiesVariantes(termeNorm) : null
+    try {
+      const termes = termesRecherche(q)
+      const fragments = modeActif === 'prefixe' && termes.length > 1
+      const chercheTout = scopeActif === 'ALL'
+      const termeNorm = normaliser(q)
+      const vars = (!fragments && termeNorm.length >= 2) ? graphiesVariantes(termeNorm) : null
 
-    const tradCodes = traductions.map(t => t.code)
-    const selVersets = `id_verset, ref, livre, chapitre, verset, ${tradCodes.join(', ')}`
+      const tradCodes = traductions.map(t => t.code)
+      const selVersets = `id_verset, ref, livre, chapitre, verset, ${tradCodes.join(', ')}`
+      const TRADS_CONC = new Set(['TR0001', 'TR0002', 'TR0003'])
 
-    // Traductions couvertes par concordance_versets (texte normalisé)
-    const TRADS_CONC = new Set(['TR0001', 'TR0002', 'TR0003'])
-
-    // Versets — pour les recherches mono-mot, on passe par concordance_versets
-    // (texte_norm sans accents) pour éviter les ratés sur "yahve" vs "Yahvé".
-    let reqV: any
-    if (!fragments && vars) {
-      // Récupérer les IDs via l'index normalisé
-      const trsFiltres = chercheTout
-        ? [...TRADS_CONC]
-        : TRADS_CONC.has(scopeActif) ? [scopeActif] : null
-
-      if (trsFiltres) {
-        const orClause = vars.map(v => `texte_norm.ilike.%${v}%`).join(',')
-        const { data: cvData } = await supabase
-          .from('concordance_versets')
-          .select('id_verset')
-          .in('tr', trsFiltres)
-          .or(orClause)
-          .limit(10000)
-        const ids = [...new Set((cvData ?? []).map((r: any) => r.id_verset))]
-        if (ids.length) {
-          reqV = supabase.from('versets').select(selVersets).in('id_verset', ids).limit(10000)
+      // Essais — construit sans await, part immédiatement en parallèle
+      const reqE = (() => {
+        let r = supabase.from('essais').select('id, titre, sous_titre, resume, contenu, categories').eq('statut', 'publie')
+        if (fragments) {
+          for (const t of termes) r = r.or(`titre.ilike.%${t}%,sous_titre.ilike.%${t}%,resume.ilike.%${t}%,contenu.ilike.%${t}%`)
+          r = r.limit(500)
         } else {
-          reqV = Promise.resolve({ data: [] })
+          r = r.or(`titre.ilike.%${q}%,sous_titre.ilike.%${q}%,resume.ilike.%${q}%,contenu.ilike.%${q}%`).limit(200)
         }
+        return r.abortSignal(signal)
+      })()
+
+      // Versets, segments et essais lancés en parallèle
+      const [segsFromRpc, resV, resE] = await Promise.all([
+
+        // ── Segments ──────────────────────────────────────────────────────────
+        (async (): Promise<any[]> => {
+          if (fragments) {
+            let reqFrag = supabase.from('segments').select('id, segment_texte, id_oeuvre, ref_niv1, ref_niv3') as any
+            for (const t of termes) reqFrag = reqFrag.ilike('segment_texte', `%${t}%`)
+            const { data } = await reqFrag.limit(10000).abortSignal(signal)
+            return data ?? []
+          } else if (vars && vars.length > 1) {
+            const seenSeg = new Set<number>()
+            const resultats = await Promise.all(
+              vars.map(v => supabase.rpc('recherche_segments', { p_terme: v, p_exact: modeActif === 'exact' }).limit(10000).abortSignal(signal))
+            )
+            const merged: any[] = []
+            for (const { data } of resultats) {
+              for (const row of (data ?? [])) {
+                if (!seenSeg.has(row.id)) { seenSeg.add(row.id); merged.push(row) }
+              }
+            }
+            return merged
+          } else {
+            const { data } = await supabase.rpc('recherche_segments', { p_terme: q, p_exact: modeActif === 'exact' }).limit(10000).abortSignal(signal)
+            return data ?? []
+          }
+        })(),
+
+        // ── Versets ───────────────────────────────────────────────────────────
+        (async () => {
+          if (!fragments && vars) {
+            const trsFiltres = chercheTout
+              ? [...TRADS_CONC]
+              : TRADS_CONC.has(scopeActif) ? [scopeActif] : null
+            if (trsFiltres) {
+              const orClause = vars.map(v => `texte_norm.ilike.%${v}%`).join(',')
+              const { data: cvData } = await supabase
+                .from('concordance_versets').select('id_verset')
+                .in('tr', trsFiltres).or(orClause).limit(10000).abortSignal(signal)
+              const ids = [...new Set((cvData ?? []).map((r: any) => r.id_verset))]
+              if (!ids.length) return { data: [] }
+              return supabase.from('versets').select(selVersets).in('id_verset', ids).limit(10000).abortSignal(signal)
+            } else {
+              return supabase.from('versets').select(selVersets)
+                .or(vars.map(v => `${scopeActif}.ilike.%${v}%`).join(',')).limit(10000).abortSignal(signal)
+            }
+          } else if (chercheTout) {
+            let r = supabase.from('versets').select(selVersets)
+            if (fragments) {
+              for (const t of termes) r = r.or(tradCodes.map(c => `${c}.ilike.%${t}%`).join(','))
+            } else {
+              r = r.or(tradCodes.map(c => `${c}.ilike.%${q}%`).join(','))
+            }
+            return r.limit(10000).abortSignal(signal)
+          } else {
+            let r = supabase.from('versets').select(selVersets)
+            for (const t of termes) r = r.ilike(scopeActif, `%${t}%`)
+            return r.limit(10000).abortSignal(signal)
+          }
+        })(),
+
+        // ── Essais ────────────────────────────────────────────────────────────
+        reqE,
+      ])
+
+      if (signal.aborted) return
+
+      // Détection troncature — seuils alignés sur les limites réelles
+      const limiteE = fragments ? 500 : 200
+      const avertissements: string[] = []
+      if ((resV.data?.length ?? 0) >= 10000) avertissements.push('Bible')
+      if (segsFromRpc.length >= 10000) avertissements.push('Patristique')
+      if ((resE.data?.length ?? 0) >= limiteE) avertissements.push('Publications')
+      if (avertissements.length) setTronque(avertissements)
+
+      // Filtre client versets
+      const versetsRaw = (resV.data ?? []) as VersetResult[]
+      let versets: VersetResult[]
+      if (chercheTout) {
+        versets = (fragments || modeActif === 'exact')
+          ? versetsRaw.filter(v => tradCodes.some(c => contientTerme(v[c] ?? '', q, modeActif)))
+          : versetsRaw
+      } else if (fragments) {
+        versets = versetsRaw.filter(v => contientTerme(String(v[scopeActif] ?? ''), q, modeActif))
+      } else if (modeActif === 'exact') {
+        versets = versetsRaw.filter(v => contientTerme(String(v[scopeActif] ?? ''), q, 'exact'))
       } else {
-        // TR0004 (Vulgate) ou autre non couvert — fallback ilike classique
-        reqV = supabase.from('versets').select(selVersets)
-          .or(vars.map(v => `${scopeActif}.ilike.%${v}%`).join(','))
-          .limit(10000)
+        versets = versetsRaw
       }
-    } else if (chercheTout) {
-      reqV = supabase.from('versets').select(selVersets)
-      if (fragments) {
-        for (const t of termes) reqV = reqV.or(tradCodes.map(c => `${c}.ilike.%${t}%`).join(','))
-      } else {
-        reqV = reqV.or(tradCodes.map(c => `${c}.ilike.%${q}%`).join(','))
+      setVersetsRes(versets)
+
+      // Essais
+      const essais = (resE.data ?? []) as EssaiResult[]
+      setEssaisRes(fragments ? essais.filter(e => contientTerme([e.titre, e.sous_titre, e.resume, e.contenu].filter(Boolean).join(' '), q, modeActif)) : essais)
+
+      // Segments + oeuvres
+      const segs = (segsFromRpc as any[]).filter((s: any) => !fragments || contientTerme(s.segment_texte, q, modeActif))
+      const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
+      let oeuvreMap: Record<string, { titre: string; auteur: string }> = {}
+      if (oeuvreIds.length) {
+        const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs(nom)')
+          .in('id_oeuvre', oeuvreIds).limit(oeuvreIds.length).abortSignal(signal)
+        if (signal.aborted) return
+        ;((oeuvres ?? []) as any[]).filter(estOeuvrePubliee).forEach((o: any) => { oeuvreMap[o.id_oeuvre] = { titre: o.titre, auteur: o.auteurs?.nom || '' } })
       }
-      reqV = reqV.limit(10000)
-    } else {
-      // fragments multi-mots sur colonne spécifique
-      reqV = supabase.from('versets').select(selVersets)
-      for (const t of termes) reqV = reqV.ilike(scopeActif, `%${t}%`)
-      reqV = reqV.limit(10000)
+      const segsPublies = segs.filter((s: any) => oeuvreMap[s.id_oeuvre])
+      setSegmentsRes(segsPublies.map((s: any) => ({ ...s, auteur_nom: oeuvreMap[s.id_oeuvre]?.auteur || '', oeuvre_titre: oeuvreMap[s.id_oeuvre]?.titre || '' })))
+
+      setLastQuery(q); setLastScope(scopeActif)
+      setLoading(false); setDone(true)
+
+      const counts = { bible: versets.length, patristique: segsPublies.length, essais: essais.length }
+      setOnglet(prev => {
+        if (prev === 'polyglotte') return 'polyglotte'
+        if (Object.values(counts).every(c => c === 0)) return prev
+        const actuel = counts[prev as keyof typeof counts] ?? 0
+        if (actuel > 0) return prev
+        if (counts.patristique >= counts.bible && counts.patristique >= counts.essais) return 'patristique'
+        if (counts.bible >= counts.essais) return 'bible'
+        return 'essais'
+      })
+    } catch (err: any) {
+      if (err?.name === 'AbortError' || signal.aborted) return
+      setLoading(false)
     }
-
-    // Segments : graphies variantes via plusieurs appels RPC dédoublonnés
-    let segsFromRpc: any[]
-    if (fragments) {
-      let reqFrag = supabase.from('segments').select('id, segment_texte, id_oeuvre, ref_niv1, ref_niv3') as any
-      for (const t of termes) reqFrag = reqFrag.ilike('segment_texte', `%${t}%`)
-      const { data } = await reqFrag.limit(10000)
-      segsFromRpc = data ?? []
-    } else if (vars && vars.length > 1) {
-      const seenSeg = new Set<number>()
-      segsFromRpc = []
-      for (const v of vars) {
-        const { data } = await supabase.rpc('recherche_segments', { p_terme: v, p_exact: modeActif === 'exact' }).limit(10000)
-        for (const row of (data ?? [])) {
-          if (!seenSeg.has(row.id)) { seenSeg.add(row.id); segsFromRpc.push(row) }
-        }
-      }
-    } else {
-      const { data } = await supabase.rpc('recherche_segments', { p_terme: q, p_exact: modeActif === 'exact' }).limit(10000)
-      segsFromRpc = data ?? []
-    }
-
-    // Essais
-    const premierTerme = termes[0]
-    const reqE = fragments
-      ? supabase.from('essais').select('id, titre, sous_titre, resume, contenu, categories').eq('statut', 'publie')
-          .or(`titre.ilike.%${premierTerme}%,sous_titre.ilike.%${premierTerme}%,resume.ilike.%${premierTerme}%,contenu.ilike.%${premierTerme}%`).limit(500)
-      : supabase.from('essais').select('id, titre, sous_titre, resume, contenu, categories').eq('statut', 'publie')
-          .or(`titre.ilike.%${q}%,sous_titre.ilike.%${q}%,resume.ilike.%${q}%,contenu.ilike.%${q}%`).limit(200)
-
-    const [resV, resE] = await Promise.all([reqV, reqE])
-
-    // Filtre client versets
-    const versetsRaw = (resV.data ?? []) as VersetResult[]
-    let versets: VersetResult[]
-    if (chercheTout) {
-      versets = (fragments || modeActif === 'exact')
-        ? versetsRaw.filter(v => tradCodes.some(c => contientTerme(v[c] ?? '', q, modeActif)))
-        : versetsRaw
-    } else if (fragments) {
-      versets = versetsRaw.filter(v => contientTerme(String(v[scopeActif] ?? ''), q, modeActif))
-    } else if (modeActif === 'exact') {
-      versets = versetsRaw.filter(v => contientTerme(String(v[scopeActif] ?? ''), q, 'exact'))
-    } else {
-      versets = versetsRaw
-    }
-    setVersetsRes(versets)
-
-    // Essais
-    const essais = (resE.data ?? []) as EssaiResult[]
-    setEssaisRes(fragments ? essais.filter(e => contientTerme([e.titre, e.sous_titre, e.resume, e.contenu].filter(Boolean).join(' '), q, modeActif)) : essais)
-
-    // Segments + oeuvres
-    const segsBruts = segsFromRpc as any[]
-    const segs = fragments ? segsBruts.filter((s: any) => contientTerme(s.segment_texte, q, modeActif)) : segsBruts
-    const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
-    let oeuvreMap: Record<string, { titre: string; auteur: string }> = {}
-    if (oeuvreIds.length) {
-      const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs(nom)').in('id_oeuvre', oeuvreIds)
-      ;((oeuvres ?? []) as any[]).filter(estOeuvrePubliee).forEach((o: any) => { oeuvreMap[o.id_oeuvre] = { titre: o.titre, auteur: o.auteurs?.nom || '' } })
-    }
-    const segsPublies = segs.filter((s: any) => oeuvreMap[s.id_oeuvre])
-    setSegmentsRes(segsPublies.map((s: any) => ({ ...s, auteur_nom: oeuvreMap[s.id_oeuvre]?.auteur || '', oeuvre_titre: oeuvreMap[s.id_oeuvre]?.titre || '' })))
-
-    setLastQuery(q); setLastScope(scopeActif)
-    setLoading(false); setDone(true)
-
-    const counts = { bible: versets.length, patristique: segsPublies.length, essais: essais.length }
-    setOnglet(prev => {
-      if (prev === 'polyglotte') return 'polyglotte'
-      const actuel = counts[prev as keyof typeof counts] ?? 0
-      if (actuel > 0) return prev
-      if (counts.patristique >= counts.bible && counts.patristique >= counts.essais) return 'patristique'
-      if (counts.bible >= counts.essais) return 'bible'
-      return 'essais'
-    })
   }
 
   useEffect(() => {
@@ -433,7 +492,7 @@ export default function RechercheClient() {
                 autoFocus
                 style={{ width:'100%', fontSize:'16px', padding:'11px 44px 11px 18px', border:'1px solid #c8c0b4', borderRadius:'8px', background:'#fff', color:'#2a2520', outline:'none', fontFamily:"Georgia, serif", boxSizing:'border-box', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }} />
               {query ? (
-                <button onClick={() => { setQuery(''); setDone(false); setVersetsRes([]); setSegmentsRes([]); setEssaisRes([]); setShowSugg(false) }}
+                <button onClick={() => { setQuery(''); setSugg([]); setDone(false); setVersetsRes([]); setSegmentsRes([]); setEssaisRes([]); setShowSugg(false) }}
                   style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#c0b8ae', fontSize:'16px', lineHeight:1, padding:0 }} title="Effacer">×</button>
               ) : (
                 <svg style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', color:'#c8c0b4', pointerEvents:'none' }} width="15" height="15" viewBox="0 0 20 20" fill="none">
@@ -450,7 +509,7 @@ export default function RechercheClient() {
                       onMouseEnter={e => (e.currentTarget.style.background='#f4f0ea')}
                       onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
                       <span>{s.mot}</span>
-                      <span style={{ fontSize:'10px', color:'#c0b8ae' }}>{s.freq}</span>
+                      {s.freq > 0 && <span style={{ fontSize:'10px', color:'#c0b8ae' }}>{s.freq}</span>}
                     </li>
                   ))}
                 </ul>
@@ -523,6 +582,16 @@ export default function RechercheClient() {
               <button className={`ong-btn${onglet==='essais'?' ong-btn--actif':''}`} onClick={()=>setOnglet('essais')}>
                 Publications de la communauté<span className="ong-count">({essaisRes.length})</span>
               </button>
+            </div>
+          )}
+
+          {/* Bannière troncature */}
+          {done && tronque.length > 0 && (
+            <div style={{ flexShrink:0, background:'#fef8ec', border:'1px solid #e8c96a', borderRadius:'6px', padding:'7px 14px', margin:'10px 0 0', display:'flex', alignItems:'center', gap:'8px' }}>
+              <span style={{ fontSize:'13px' }}>⚠️</span>
+              <span style={{ fontSize:'11.5px', color:'#7a5a10' }}>
+                Résultats trop nombreux dans {tronque.join(', ')} — seuls les premiers affichés. Affinez votre recherche ou utilisez le mode <strong>Mot exact</strong>.
+              </span>
             </div>
           )}
 
@@ -633,7 +702,8 @@ export default function RechercheClient() {
                 ? <Vide texte="Aucun essai trouvé." />
                 : <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
                   {essaisPage.map(e=>{
-                    const extrait = e.contenu.length>220 ? e.contenu.slice(0,220)+'…' : e.contenu
+                    const extrait = snippetEssai(e.contenu, lastQuery)
+                    const texteAffiche = (e.resume && contientTerme(e.resume, lastQuery, mode)) ? e.resume : extrait
                     return (
                       <a key={e.id} href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer" className="res-card">
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:'3px' }}>
@@ -642,7 +712,7 @@ export default function RechercheClient() {
                         </div>
                         {e.sous_titre && <p style={{ fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:'0 0 3px' }}>{e.sous_titre}</p>}
                         <p style={{ fontFamily:"Georgia, serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
-                          {highlighter(e.resume||extrait, lastQuery, mode)}
+                          {highlighter(texteAffiche, lastQuery, mode)}
                         </p>
                       </a>
                     )
@@ -657,12 +727,14 @@ export default function RechercheClient() {
                 : <div className="poly-outer">
                   <div className="poly-wrap">
                   {(() => {
+                    const livreCompte = new Map<string, number>()
+                    for (const v of versetsPage) livreCompte.set(v.livre, (livreCompte.get(v.livre) ?? 0) + 1)
                     const livresVus = new Set<string>()
                     return versetsPage.map(v => {
                       const estNouveauLivre = !livresVus.has(v.livre)
                       if (estNouveauLivre) livresVus.add(v.livre)
                       const survolé = hoveredVerset === v.id_verset
-                      const nbLivre = versetsPage.filter(x => x.livre === v.livre).length
+                      const nbLivre = livreCompte.get(v.livre) ?? 0
                       return (
                         <div key={v.id_verset}>
                           {estNouveauLivre && (<>

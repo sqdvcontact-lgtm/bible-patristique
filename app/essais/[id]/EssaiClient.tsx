@@ -148,20 +148,20 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
       <style>{`
         .essai-lecture-corps p {
           text-align: justify !important;
-          line-height: 1.42 !important;
-          word-spacing: 0 !important;
-          letter-spacing: 0.002em !important;
+          line-height: 1.36 !important;
+          word-spacing: -0.02em !important;
+          letter-spacing: -0.006em !important;
           text-indent: 0.75em !important;
           margin-top: 0 !important;
-          margin-bottom: 1.6mm !important;
+          margin-bottom: 1.4mm !important;
         }
         .essai-lecture-corps blockquote {
           font-style: normal !important;
           font-family: 'Helvetica Neue', Arial, sans-serif !important;
           color: #4a4440 !important;
-          line-height: 1.52 !important;
-          word-spacing: 0 !important;
-          letter-spacing: 0.002em !important;
+          line-height: 1.44 !important;
+          word-spacing: -0.02em !important;
+          letter-spacing: -0.006em !important;
           text-indent: 0 !important;
           margin-top: 3mm !important;
           margin-bottom: 3mm !important;
@@ -281,7 +281,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
                 <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <span style={{ position: 'absolute', left: 0, right: 0, textAlign: 'center', fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#9a958d', pointerEvents: 'none' }}>Commentaires</span>
+            <span style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#9a958d', pointerEvents: 'none' }}>Commentaires</span>
             <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginLeft: 'auto', position: 'relative', zIndex: 1 }}>
               <BoutonPartage label="Copier le lien" onClick={copierLien}>
                 <svg width="11" height="11" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">

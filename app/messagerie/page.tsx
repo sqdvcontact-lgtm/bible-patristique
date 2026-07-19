@@ -26,6 +26,8 @@ export default function MessageriePage() {
   const [connecte, setConnecte] = useState<boolean | null>(null)
   const [conversations, setConversations] = useState<Conversation[] | null>(null)
 
+  useEffect(() => { document.title = 'Messagerie · Corpus Scriptura' }, [])
+
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       const session = data.session
