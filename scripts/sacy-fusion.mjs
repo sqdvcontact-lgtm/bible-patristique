@@ -50,6 +50,16 @@ const COQUILLES = {
     // passe ici, où elle laisse une trace, et non en amont où elle serait muette.
     { ch: 10, imprime: 10, debut: 'Il leur répondit : Je voyois satan', v: 18 },
   ],
+  '1TH': [
+    // 1 Th 5,13 imprimé « 23 », entre le 12 et le 14. Le chiffre n'a aucun sens dans un
+    // chapitre qui en compte 28 au plus — et le vrai 23 arrive dix versets plus loin.
+    { ch: 5, imprime: 23, debut: '& d’avoir pour eux une particuliere veneration', v: 13 },
+  ],
+  COL: [
+    // Col 3,19 imprimé « 10 », entre le 18 et le 20 : un 9 cassé ou renversé, ce que la casse
+    // de l'imprimeur rend très vraisemblable. Le vrai 10 est en colonne précédente.
+    { ch: 3, imprime: 10, debut: 'Maris, aimez vos femmes', v: 19 },
+  ],
   ACT: [
     // Trois doublons, tous vérifiés par agrandissement du fac-similé par le transcripteur.
     // Noter que le numéro fautif n'est pas toujours le PREMIER des deux : en Ac 3 c'est le

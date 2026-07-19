@@ -682,6 +682,12 @@ const SCISSIONS = {
     // son corps court de 2 à 9, et c'est pourquoi ce psaume paraissait manquer d'un verset.
     { ch: 121, v: 2, coupes: ['Nos piés se sont autrefois arrêtés'], canons: ['PSA.121.1', 'PSA.121.2'] },
   ],
+  '2CO': [
+    // 2 Co 1,23 tient les v. 23 et 24 : l'édition n'imprime aucun numéro 24, la matière qui
+    // le porte ailleurs suivant simplement le 23. Le transcripteur l'a vérifié à
+    // l'agrandissement plutôt que de supposer un chiffre effacé.
+    { ch: 1, v: 23, coupes: ['Ce n’est pas que nous dominions'], canons: ['2CO.1.23', '2CO.1.24'] },
+  ],
   ACT: [
     // Ac 7,55 tient les v. 55 et 56 : la vision d'Étienne et la parole qu'il en tire. C'est
     // cette soudure qui décalait d'un cran toute la fin du chapitre — Sacy s'arrêtant à 59
