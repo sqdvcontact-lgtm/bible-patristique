@@ -40,6 +40,20 @@ const COQUILLES = {
     // recollage avait soudé les deux. Le référent tranche — THECEL est bien le v. 27.
     { ch: 5, imprime: 17, debut: 'THECEL, vous avez été pesé', v: 27 },
   ],
+  LUK: [
+    // Lc 8,28 imprimé « 20 » : la page 474 porte alors DEUX versets numérotés 20, et le 28
+    // manque entre le 27 et le 29. Le transcripteur a agrandi le fac-similé pour s'assurer
+    // du chiffre plutôt que de le supposer.
+    { ch: 8, imprime: 20, debut: 'Aussi-tôt qu’il eut apperçu JESUS', v: 28 },
+    // Lc 10,18 imprimé « 10 », entre le 17 et le 19. Le transcripteur l'avait rétabli de
+    // lui-même en le signalant ; le lot a été remis à l'état imprimé pour que la correction
+    // passe ici, où elle laisse une trace, et non en amont où elle serait muette.
+    { ch: 10, imprime: 10, debut: 'Il leur répondit : Je voyois satan', v: 18 },
+  ],
+  JHN: [
+    // Jn 4,12 imprimé « 22 », entre le 11 et le 13 ; le vrai 22 est deux pages plus loin.
+    { ch: 4, imprime: 22, debut: 'Etes-vous plus grand que notre pere Jacob', v: 12 },
+  ],
   OBA: [
     // Abd 6 imprimé « 9 », d'où deux « 9 » dans ce livre d'un seul chapitre.
     { ch: 1, imprime: 9, debut: 'Mais comment les ennemis ont-ils traité Esaü', v: 6 },
@@ -131,7 +145,10 @@ for (const L of LOTS){
       if (v.livre && v.livre !== CODE){ ecartes++; continue }
       const cq = coquilles.find(c => c.ch === v.ch && c.imprime === v.v
         && sansApos(v.texte).replace(/<\/?i>/g, '').trimStart().startsWith(sansApos(c.debut)))
-      if (cq){ coquillesVues.add(`${cq.ch}.${cq.imprime}`); v.v = cq.v }
+      // On rétablit le numéro exigé par la place du verset, MAIS on garde trace de celui que
+      // l'édition imprime : v_imprime part dans la numérotation d'origine, qui doit dire
+      // l'état réel de la page — corriger sans le dire effacerait le fait éditorial.
+      if (cq){ coquillesVues.add(`${cq.ch}.${cq.imprime}`); v.v_imprime = cq.imprime; v.v = cq.v }
       // Section « selon les Hebreux » : on décale pour le canon, on garde l'imprimé.
       const sec = sections.find(s => s.page === p.pageImp && s.ch === v.ch
         && ((v.v === 0) || (v.v >= s.depuis && v.v <= s.jusqua)))

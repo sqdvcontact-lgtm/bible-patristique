@@ -880,10 +880,17 @@ for (const v of versets){
   const cid = versCanon(v)
   if (!canon.has(cid)){ hors.push(`${v.ch},${v.v}→${cid}`); continue }
   const fin = deux[`${v.ch}.${v.v}`] ?? null
-  lignes.push({ trad_id:'TR0001', livre:CODE, ch_orig:v.ch, v_orig:v.v, v_orig_suffixe:null,
+  // v_imprime : le numéro que l'édition IMPRIME, quand une coquille l'a fait rétablir.
+  // La numérotation d'origine doit dire l'état réel de la page ; le rattachement au canon,
+  // lui, suit le numéro exigé par la place du verset.
+  lignes.push({ trad_id:'TR0001', livre:CODE, ch_orig:v.ch,
+    v_orig: v.v_imprime !== undefined ? v.v_imprime : v.v, v_orig_suffixe:null,
     texte: typo(v.texte), canon_id: cid, canon_id_fin: fin, est_suscription:false,
     notes: [
       v.note,
+      v.v_imprime !== undefined
+        ? `L'édition imprime ici le numéro ${v.v_imprime} ; la place du verset exige le ${v.v}, rétabli pour l'alignement. Le numéro d'origine conserve la lecture de la page.`
+        : null,
       capNotes.has(`${v.ch}.${v.v}`) ? NOTE_CAPITALES : null,
       avisNotes.get(`${v.ch}.${v.v}`) ?? null,
       !v.note && fin ? 'Verset unique dans l’édition de 1730, couvrant plusieurs versets du canon.' : null,
