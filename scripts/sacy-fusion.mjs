@@ -128,6 +128,11 @@ function normLettrine(t){
   const a = t
   t = t.replace(/^([A-ZÀ-Ü])([A-ZÀ-Ü]+)(?=[a-zà-ÿ])/, (m,x,y)=>x+y.toLowerCase())
   t = t.replace(/^([A-ZÀ-Ü])([A-ZÀ-Ü]+)(\s+[a-zà-ÿ])/, (m,x,y,z)=>x+y.toLowerCase()+z)
+  // Le mot de la lettrine peut être suivi d'un mot qui commence lui-même par une capitale
+  // (« LE Seigneur », « VISION prophetique ») : les deux règles ci-dessus, qui exigent une
+  // minuscule après la lettrine, le laissaient alors tout en capitales. Quatorze versets
+  // s'ouvraient ainsi sur « LE Seigneur », contre la règle §23.9.
+  t = t.replace(/^([A-ZÀ-Ü])([A-ZÀ-Ü]+)(?=\s)/, (m,x,y)=>x+y.toLowerCase())
   if (t!==a) lettrines++
   return t
 }

@@ -38,6 +38,25 @@ const LECTURES_COMMUNES = [
 // sur « vis- à-vis » puis sur quatre corrections de Jérémie.
 const mot = s => new RegExp(`(?<![a-zà-ÿ0-9])${s}(?![a-zà-ÿ0-9])`, 'g')
 
+// ── CAPITALES D'EMPHASE DE L'ÉDITION (§23.9) ───────────────────────────────────────────
+// Distinct de la lettrine, que la fusion normalise déjà. Sacy imprime EN CAPITALES, au
+// milieu du verset, certains passages qu'il tient pour messianiques. La charte interdit les
+// capitales dans le texte : on les rend donc à la casse ordinaire — mais on CONSIGNE le fait
+// en note, pour que l'intention du traducteur ne se perde pas avec sa typographie.
+// « NE’ » est la manière de 1730 d'accentuer une capitale : l'apostrophe y tient lieu
+// d'accent aigu. Le mot est donc « né », et non un sigle.
+const CAPITALES = {
+  ISA: [
+    { ch: 7, v: 14, de: 'EMMANUEL',        a: 'Emmanuel' },
+    { ch: 9, v: 6,  de: 'UN PETIT ENFANT', a: 'un petit enfant' },
+    { ch: 9, v: 6,  de: 'NE’',             a: 'né' },
+  ],
+  JER: [
+    { ch: 31, v: 22, de: 'UNE FEMME ENVIRONNERA UN HOMME', a: 'une femme environnera un homme' },
+  ],
+}
+const NOTE_CAPITALES = 'L’édition de 1730 imprime ce passage en capitales, pour en marquer la portée prophétique. La casse ordinaire est rétablie ici, conformément à la charte ; l’emphase de l’édition est signalée par cette note.'
+
 // ── corrections de lecture vérifiées, par livre ──
 const LECTURES = {
   // ISA : caractères brisés à l'impression, signalés par les transcripteurs et conservés par
@@ -462,6 +481,19 @@ for (const v of versets) for (const [re, bon] of REGLES){
 }
 if (inutiles.size) console.log(`  ⚠ corrections de lecture sans effet (motif introuvable) : ${[...inutiles].join(' ')}`)
 
+// Capitales d'emphase : on remplace le passage et on marque le verset, pour que la note
+// suive au chargement. Une entrée qui ne rencontre rien est signalée, jamais tue.
+const capNotes = new Set()
+let capsFaites = 0, capsRatees = []
+for (const c of (CAPITALES[CODE] || [])){
+  const cible = versets.find(v => v.ch === c.ch && v.v === c.v && v.texte.includes(c.de))
+  if (!cible){ capsRatees.push(`${c.ch},${c.v} « ${c.de} »`); continue }
+  cible.texte = cible.texte.split(c.de).join(c.a)
+  capNotes.add(`${c.ch}.${c.v}`); capsFaites++
+}
+if (capsFaites) console.log(`  capitales d’emphase ramenées à la casse ordinaire : ${capsFaites}`)
+if (capsRatees.length) console.log(`  ⚠ capitales déclarées SANS EFFET : ${capsRatees.join(' · ')}`)
+
 // Passe typographique française — mutualisée avec scripts/typographie.mjs pour qu'aucun
 // livre n'y échappe. NE PAS réécrire ici : une constante d'espace insécable saisie en
 // littéral s'était révélée être une espace ordinaire, laissant 431 « ; » mal espacés.
@@ -530,8 +562,12 @@ for (const v of versets){
   const fin = deux[`${v.ch}.${v.v}`] ?? null
   lignes.push({ trad_id:'TR0001', livre:CODE, ch_orig:v.ch, v_orig:v.v, v_orig_suffixe:null,
     texte: typo(v.texte), canon_id: cid, canon_id_fin: fin, est_suscription:false,
-    notes: v.note ? v.note : (fin ? 'Verset unique dans l’édition de 1730, couvrant plusieurs versets du canon.'
-      : (DOUTEUX[CODE]?.has(v.ch) ? 'Correspondance au canon à vérifier : ce chapitre compte un verset de moins que la Vulgate, la fusion n’a pas été localisée.' : null)),
+    notes: [
+      v.note,
+      capNotes.has(`${v.ch}.${v.v}`) ? NOTE_CAPITALES : null,
+      !v.note && fin ? 'Verset unique dans l’édition de 1730, couvrant plusieurs versets du canon.' : null,
+      !v.note && !fin && DOUTEUX[CODE]?.has(v.ch) ? 'Correspondance au canon à vérifier : ce chapitre compte un verset de moins que la Vulgate, la fusion n’a pas été localisée.' : null,
+    ].filter(Boolean).join(' ') || null,
     alignement_verifie: !DOUTEUX[CODE]?.has(v.ch) })
 }
 // Plusieurs versets de l'édition peuvent partager un créneau du canon (l'édition scinde là
