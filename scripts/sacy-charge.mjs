@@ -946,6 +946,17 @@ for (const v of versets){
     }
     if (!ok) continue
     parts.push(reste.trim())
+    // COUPER UN VERSET AU MILIEU D'UNE ITALIQUE CASSE LES BALISES : la première part garde un
+    // <i> sans fermeture, la seconde un </i> sans ouverture, et l'italique déborde ou
+    // disparaît à l'affichage. C'est la cause des « balises qui ne fonctionnent pas ».
+    // On rééquilibre chaque part : ce qui reste ouvert est fermé, ce qui arrive fermé est
+    // rouvert. L'italique de l'édition est ainsi respectée de part et d'autre de la coupe.
+    for (let k = 0; k < parts.length; k++){
+      let p = parts[k]
+      if ((p.match(/<\/i>/g)||[]).length > (p.match(/<i>/g)||[]).length) p = '<i>' + p
+      if ((p.match(/<i>/g)||[]).length > (p.match(/<\/i>/g)||[]).length) p = p + '</i>'
+      parts[k] = p
+    }
     if (parts.length !== sc.canons.length){ hors.push(`${v.ch},${v.v}→${parts.length} parts pour ${sc.canons.length} créneaux`); continue }
     const manquants = sc.canons.filter(c => !canon.has(c))
     if (manquants.length){ hors.push(`${v.ch},${v.v}→créneau inconnu ${manquants.join(' ')}`); continue }
