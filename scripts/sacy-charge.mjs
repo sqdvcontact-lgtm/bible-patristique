@@ -31,6 +31,13 @@ const LECTURES_COMMUNES = [
   [/\blorqu’il\b/g, 'lorsqu’il'],        // « s » manquant, vu en Est 1,2
 ]
 
+// Borne de mot SÛRE, à employer partout où le motif commence ou finit par une lettre
+// accentuée. En JavaScript, `\b` ne connaît que [A-Za-z0-9_] : « \béreindre\b » ne rencontre
+// JAMAIS « éreindre », puisque « é » n'est pas un caractère de mot et qu'il n'y a donc pas de
+// frontière entre l'espace et lui. La règle échoue alors EN SILENCE — c'est arrivé deux fois,
+// sur « vis- à-vis » puis sur quatre corrections de Jérémie.
+const mot = s => new RegExp(`(?<![a-zà-ÿ0-9])${s}(?![a-zà-ÿ0-9])`, 'g')
+
 // ── corrections de lecture vérifiées, par livre ──
 const LECTURES = {
   // ISA : caractères brisés à l'impression, signalés par les transcripteurs et conservés par
@@ -40,6 +47,29 @@ const LECTURES = {
   // (Is 10,22, le sable de la mer), « bale » (Is 22,18, la balle qu'on roule), « meur »
   // (Is 28,4, mûr en graphie de 1730) et « soulé » (Is 43,24) sont justes.
   ISA: [[/\btoures\b/g,'toutes'], [/\bsout\b/g,'sont']],
+  // JER : le tirage de Jérémie est nettement plus fautif que celui d'Isaïe. On ne corrige
+  // ici que les NON-MOTS dont la cause est un caractère brisé, absent ou dédoublé — chacun
+  // signalé par un transcripteur ou par le détecteur de lectures suspectes.
+  // Sont au contraire CONSERVÉES, parce qu'elles appartiennent à l'édition et non au tirage :
+  // « J'envoyera » (8,17) · « nous ne laisseront pas de trouver » (18,18) · « on fait
+  // dessein » (48,2) · « toutes leurs fortes » (49,35) · « Je viens à roi » (50,31) ·
+  // « grandes eux » (51,13) · « successeront » (51,46).
+  // Vérifiées et laissées telles quelles, le détecteur s'étant trompé : « jouet » (24,9,
+  // l'objet de risée), « jaunes » (30,6, les visages), « édifiée » (31,4), « soulera »
+  // (46,10, le glaive qui se soûle de sang — la Vulgate porte « inebriabitur »).
+  JER: [
+    [mot('éreindre'),'éteindre'], [mot('Seigneut'),'Seigneur'], [mot('persidie'),'perfidie'],
+    [mot('Sgneur'),'Seigneur'], [mot('du prophe'),'du prophete'], [mot('di le Seigneur'),'dit le Seigneur'],
+    [mot('abanbonneront'),'abandonneront'], [mot('Babyone'),'Babylone'],
+    [mot('détruisen'),'détruisent'], [mot('tranferé'),'transferé'],
+    [mot('se viteurs'),'serviteurs'], [mot('santifie'),'sanctifie'], [mot('santifiez'),'sanctifiez'],
+    [mot('n’ont pont prêté'),'n’ont point prêté'], [/par un un chemin/g,'par un chemin'],
+  ],
+  // LAM : trois caractères brisés, signalés par les transcripteurs. « de repas » (1,3) est
+  // en revanche CONSERVÉ : « elle n'y a point trouvé de repas » est la leçon de l'édition.
+  LAM: [
+    [mot('l’epnemi'),'l’ennemi'], [mot('frapppé'),'frappé'],
+  ],
   EXO: [[/\bqni\b/g,'qui'], [/\bsils\b/g,'fils']],
   // « an Seigneur » (Lv 1,14) : le lexique ne peut pas l'attraper, « an » étant un mot valide.
   LEV: [[/\bpat\b/g,'par'], [/holocauste an Seigneur/g,'holocauste au Seigneur']],
@@ -332,6 +362,22 @@ MAP.ISA = v => {
   return `ISA.${v.ch}.${v.v}`
 }
 
+// JER : deux ruptures sur 52 chapitres. La première est celle d'Isaïe — la Vulgate ouvre le
+// chapitre là où l'hébreu clôt le précédent ; la seconde est une condensation.
+//   Sacy 9,1     → canon 8,23   (« Qui donnera de l'eau à ma tête, & à mes yeux une fontaine
+//                                de larmes » = Crampon 8,23, « Qui changera ma tête en eaux »)
+//   Sacy 9,v≥2   → canon 9,v-1  (contrôle : Sacy 9,26, dernier du chapitre, = Crampon 9,25)
+//   Sacy 37,4    → canon 37,4-5 SCINDÉ : l'édition réunit « Jeremie alloit alors librement
+//                                parmi le peuple » et « Cependant l'armée de Pharaon étant
+//                                sortie de l'Egypte », que le canon compte séparément.
+//   Sacy 37,v≥5  → canon 37,v+1 (contrôle : Sacy 37,20 « Le roi Sedecias ordonna donc que
+//                                Jeremie fût mis dans le vestibule » = Crampon 37,21)
+MAP.JER = v => {
+  if (v.ch === 9)  return v.v === 1 ? 'JER.8.23' : `JER.9.${v.v - 1}`
+  if (v.ch === 37) return v.v >= 5 ? `JER.37.${v.v + 1}` : `JER.37.${v.v}`
+  return `JER.${v.ch}.${v.v}`
+}
+
 const DOUTEUX = {}
 
 const COUVRE_DEUX = {
@@ -366,6 +412,12 @@ const SCISSIONS = {
     { ch: 7,  v: 48, coupes: ['les enfans de Lebana'],       canons: ['NEH.7.47', 'NEH.7.48'] },
     // Sacy 12,33 réunit les deux moitiés de la liste des princes de Juda.
     { ch: 12, v: 33, coupes: ['Judas, Benjamin'],            canons: ['NEH.12.33', 'NEH.12.34'] },
+  ],
+  JER: [
+    // Sacy 37,4 réunit la liberté de Jérémie et la retraite des Chaldéens. Le référent
+    // tranche : son 37,4 s'arrête à « on ne l'avait pas encore mis en prison », son 37,5
+    // ouvre sur « Or l'armée de Pharaon était sortie d'Égypte ».
+    { ch: 37, v: 4, coupes: ['Cependant l’armée de Pharaon'], canons: ['JER.37.4', 'JER.37.5'] },
   ],
   JOB: [
     // Sacy 42,16 réunit la longue vie de Job et sa mort, que le canon compte séparément.

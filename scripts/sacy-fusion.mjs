@@ -27,6 +27,13 @@ if (!CODE || !PREFIXE || !LOTS.length){ console.error('usage : <CODE> <prefixe> 
 // révèle la coquille — et une clé de page les rattraperait tous les deux.
 // Clé : « chapitre.numéro imprimé » → { debut, v }.
 const COQUILLES = {
+  JER: [
+    // Jr 5,4 imprimé « 3 » : deux versets consécutifs portent « 3 » sur la même page 76,
+    // et le recollage les avait soudés en un seul. Le référent tranche — son 5,4 porte
+    // « Et moi, je disais : Ce ne sont que les petits », ce que Sacy rend par « Pour moi
+    // je disois : Il n'y a peut-être que les pauvres qui sont sans sagesse ».
+    { ch: 5, imprime: 3, debut: 'Pour moi je disois', v: 4 },
+  ],
   JDT: [
     // Jdt 6,3 imprimé « 9 ». Le vrai 9 arrive six versets plus loin, et la fusion avait
     // soudé les deux textes en un seul — ce que le contrôle des doublons ne pouvait pas voir,
@@ -159,7 +166,7 @@ for (const v of versets)
 // Soudures vérifiées à la main, que le lexique ne connaît pas. On ne soude JAMAIS sur la
 // seule vraisemblance : chaque entrée a été lue sur l'image, et le mot obtenu vérifié dans
 // la phrase. La liste reste courte à dessein — elle est l'exception, pas la commodité.
-const SOUDURES = new Set(['universelle', 'nabajoth'])
+const SOUDURES = new Set(['universelle', 'nabajoth', 'parceque', 'appellée', 'méchans'])
 
 let cesures = 0; const cesuresDouteuses = []
 for (const v of versets){
