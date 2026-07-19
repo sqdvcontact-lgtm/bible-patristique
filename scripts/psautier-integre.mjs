@@ -63,7 +63,18 @@ function lireTable(t){
   // Mieux vaut apprendre la notation au lecteur de tables que réécrire les tables à la main :
   // une table réécrite est une lecture que je m'approprie, et l'erreur y devient invisible.
   t = t.replace(/\s*\((?:début|debut|fin|1re|2e)[^)]*\)/g, '')
+  // « 6+7a→5, 7b→6 » : troisième notation de la scission, par suffixe de lettre. Le suffixe
+  // ne désigne pas un autre verset — on l'efface, le verset se retrouve nommé deux fois, et
+  // le contrôle des doublons (qui exige un point de coupe) fait le reste, comme pour
+  // « 1(début) » et « 1→1+2 ». Trois notations pour la même chose : les lecteurs écrivent
+  // comme ils lisent, et c'est au lecteur de tables de s'adapter, pas à eux.
+  t = t.replace(/(\d)[a-c](?=\s*(?:[,+]|→|->|$))/g, '$1')
   return t.split(',').map(seg => {
+    // Un verset SANS créneau — surnuméraire — s'écrit « 0→surnuméraire » ou « 0→aucun ».
+    // Il faut le distinguer d'un verset absent de la table : le premier est une décision, le
+    // second un oubli, et seul le second doit faire échouer le contrôle de couverture.
+    const sn = seg.trim().match(/^([\d+]+)\s*(?:→|->)\s*(?:surnum|aucun|—|-)/i)
+    if (sn) return { vs: sn[1].split('+').map(Number), sl: [] }
     const m = seg.trim().match(/^([\d+]+)\s*(?:→|->)\s*([\d+]+)$/)
     if (!m) throw new Error(`segment illisible : « ${seg.trim()} »`)
     return { vs: m[1].split('+').map(Number), sl: m[2].split('+').map(Number) }
@@ -100,6 +111,17 @@ const REFAITES = {
   // Sa lecture reste exacte ; elle glisse simplement d'un cran, la suscription prenant le
   // créneau 1 pour elle seule.
   100: '0→1, 1→2, 2+3→3, 4→4, 5→5, 6+7→6, 8→7, 9→8, 10→9',
+  // Ps 117 : le lecteur tenait le v. 28 pour un doublon de transcription à supprimer, et
+  // affirmait que l'édition ne répétait pas le verset. LA PAGE DIT LE CONTRAIRE : le
+  // fac-similé (p. 754) imprime bien deux fois « Je vous rendrai graces de ce que vous m'avez
+  // exaucé, & que vous êtes devenu mon salut. », au v. 20 ET au v. 28. On ne supprime donc
+  // rien — c'est un fait de l'édition, non une faute de saisie. Le verset est SURNUMÉRAIRE :
+  // son texte existe déjà chez le référent (au créneau 21), il n'y a donc pas de second
+  // créneau à lui donner, mais il doit rester visible dans la colonne de Sacy.
+  // Une assertion sur le fac-similé se vérifie sur le fac-similé.
+  117: '0→surnuméraire, ' + Array.from({length: 15}, (_, i) => `${i+1}→${i+1}`).join(', ') +
+       ', 16→15+16, 17→17, 18→18, 19→19+20, 20→21, 21→22, 22→23, 23→24, 24→25+26, 25→26+27,' +
+       ' 26→27, 27→28, 28→surnuméraire, 29→29',
 }
 
 // Les points de coupe des psaumes que seule la table refaite décrit.
@@ -186,7 +208,7 @@ for (const ch of Object.keys(REFAITES).map(Number))
       paires.splice(ou < 0 ? paires.length : ou, 0, { vs: [v], sl: bornes })
     }
     for (const { vs, sl } of paires){
-      if (sl.length === 1) continue
+      if (sl.length <= 1) continue
       if (vs.length !== 1){ ecartes.push(`Ps ${c} : ${vs.join('+')}→${sl.join('+')} — on ne sait ni souder ni couper`); ok = false; break }
       const d = dec.get(vs[0])
       if (!d || !d.coupe){ ecartes.push(`Ps ${c},${vs[0]} : couvre ${sl.length} créneaux sans point de coupe déclaré`); ok = false; break }
@@ -199,7 +221,8 @@ for (const ch of Object.keys(REFAITES).map(Number))
     }
     if (!ok) continue
 
-    for (const { vs, sl } of paires) for (const v of vs) plan.push({ ch: c, v, canon_id: `PSA.${c}.${sl[0]}` })
+    for (const { vs, sl } of paires) for (const v of vs)
+      plan.push({ ch: c, v, canon_id: sl.length ? `PSA.${c}.${sl[0]}` : null })
     scissions.push(...sc)
     retenus.push(c)
   }

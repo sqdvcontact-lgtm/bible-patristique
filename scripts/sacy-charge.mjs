@@ -920,7 +920,18 @@ for (const v of versets){
     const parts = []
     let reste = typo(v.texte), ok = true
     for (const coupe of sc.coupes){
-      const i = reste.indexOf(coupe)
+      // L'ANCRE EST PRÉLEVÉE SUR LE TEXTE BRUT, mais on cherche ici dans le texte APRÈS
+      // normalisation typographique, qui déplace les espaces autour de la ponctuation. Une
+      // comparaison littérale échouait donc sur dix-sept coupes du psautier — signalées, donc
+      // sans dégât silencieux, mais autant de créneaux laissés vides.
+      // On compare en rendant toute suite d'espaces équivalente à une autre.
+      let i = reste.indexOf(coupe)
+      if (i < 0){
+        const souple = new RegExp(coupe.trim().split(/\s+/).map(m =>
+          m.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*'))
+        const m = reste.match(souple)
+        if (m) i = m.index
+      }
       if (i < 0){ hors.push(`${v.ch},${v.v}→point de coupe introuvable : « ${coupe} »`); ok = false; break }
       // UNE ANCRE AMBIGUË EST PIRE QU'UNE ANCRE ABSENTE. Absente, elle est signalée ; présente
       // deux fois, indexOf prend la première, coupe au mauvais endroit et ne dit rien — la
