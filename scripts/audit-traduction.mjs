@@ -156,7 +156,10 @@ const controles = [
   // un à un. Les mettre en bas de casse effacerait la citation. Les Bibles françaises
   // d'aujourd'hui les impriment de même.
   ['mots en capitales (3 lettres et plus)', V.filter(v =>
-    /\b[A-ZÀ-Ü]{3,}\b/.test((v.texte||'').replace(/<\/?i>/g,'').replace(/\b(MANE|THECEL|PHARES)\b/g,''))).length],
+    /\b[A-ZÀ-Ü]{3,}\b/.test((v.texte||'').replace(/<\/?i>/g,'')
+      .replace(/\b(MANE|THECEL|PHARES)\b/g,'')          // l'écriture sur le mur, Dn 5, 25-28
+      .replace(/C’EST Jesus LE ROI DES JUIFS|LE ROI DES JUIFS/g,'')  // le titulus, Mt 27,37 · Mc 15,26
+    )).length],
   ['balises <i> déséquilibrées', V.filter(v => ((v.texte||'').match(/<i>/g)||[]).length !== ((v.texte||'').match(/<\/i>/g)||[]).length).length],
   ['balises autres que <i>', c(/<(?!\/?i>)[^>]*>/)],
   ['espace avant virgule ou point', c(/ [,.]/)],

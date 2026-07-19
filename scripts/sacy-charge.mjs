@@ -31,6 +31,23 @@ const LECTURES_COMMUNES = [
   [/\blorqu’il\b/g, 'lorsqu’il'],        // « s » manquant, vu en Est 1,2
 ]
 
+// ── PETITES CAPITALES DU NOM DIVIN (Nouveau Testament) ─────────────────────────────────
+// L'édition imprime « JESUS », « JESUS-CHRIST » et « CHRIST » en petites capitales, des
+// centaines de fois : c'est une CONVENTION TYPOGRAPHIQUE, non une emphase. La charte
+// interdisant les capitales dans le texte (§23.9), on les ramène à la casse ordinaire.
+// On le fait ICI, en une règle, plutôt que dans la table CAPITALES qui demande une entrée
+// par verset — et plutôt qu'en le faisant juger aux transcripteurs, ce qui aurait dispersé
+// cent décisions au lieu d'en écrire une. Les transcripteurs saisissent donc les capitales
+// telles qu'ils les voient, ce qui garde la trace des irrégularités du tirage : « Jesus »
+// est imprimé en romain, et non en petites capitales, en Mc 1,25.
+// L'ordre compte : JESUS-CHRIST avant JESUS, sans quoi le composé serait coupé en deux.
+const NOM_DIVIN = [
+  [/\bJESUS-CHRIST\b/g, 'Jesus-Christ'],
+  [/\bJESUS\b/g, 'Jesus'],
+  [/\bCHRIST\b/g, 'Christ'],
+]
+LECTURES_COMMUNES.push(...NOM_DIVIN)
+
 // Borne de mot SÛRE, à employer partout où le motif commence ou finit par une lettre
 // accentuée. En JavaScript, `\b` ne connaît que [A-Za-z0-9_] : « \béreindre\b » ne rencontre
 // JAMAIS « éreindre », puisque « é » n'est pas un caractère de mot et qu'il n'y a donc pas de
@@ -56,6 +73,13 @@ const CAPITALES = {
   ],
   DAN: [
     { ch: 3, v: 98, de: 'Le ROI Nabuchodonosor', a: 'Le roi Nabuchodonosor' },
+  ],
+  MAT: [
+    // Même cas qu'Is 7,14 : le nom donné à l'enfant, imprimé en capitales par emphase.
+    // L'INSCRIPTION DE LA CROIX (Mt 27,37 et Mc 15,26) est en revanche CONSERVÉE en
+    // capitales : ce n'est pas une emphase mais un texte CITÉ dans le texte — le titulus
+    // que Pilate fit écrire —, au même titre que MANE, THECEL, PHARES.
+    { ch: 1, v: 23, de: 'EMMANUEL', a: 'Emmanuel' },
   ],
   '2MA': [
     // Le mot d'ordre de Judas Machabée, imprimé en capitales comme un cri de guerre.
@@ -469,6 +493,19 @@ MAP.ISA = v => {
 //                 créneau — son 14,1 est déjà « Daniel mangeoit à la table du roi », que
 //                 Sacy numérote 14,1 lui aussi. Le chapitre 14 s'aligne donc directement.
 // Le créneau 14,43 du canon reste découvert : il est VIDE chez le référent.
+// MRK : la Vulgate clôt son chapitre 8 un verset plus loin que le canon.
+//   Sacy 8,39 → canon 9,1  (« il y a quelques-uns de ceux qui sont ici présents qui ne
+//                            mourront point qu'ils n'aient vû le royaume de Dieu »)
+//   Sacy 9,v  → canon 9,v+1 (contrôle : Sacy 9,49, le sel, = canon 9,50)
+// ⚠️ C'est en établissant cette table qu'on a découvert que le RÉFÉRENT lui-même était
+// décalé dans ce chapitre — voir scripts/crampon-marc9.mjs. La Segond a tranché : son 9,1
+// porte bien « quelques-uns de ceux qui sont ici », son 9,50 le sel.
+MAP.MRK = v => {
+  if (v.ch === 8 && v.v === 39) return 'MRK.9.1'
+  if (v.ch === 9) return `MRK.9.${v.v + 1}`
+  return `MRK.${v.ch}.${v.v}`
+}
+
 MAP.DAN = v => {
   // Sacy 13,65 (« le roi Astyagès ayant été joint à ses peres, Cyrus de Perse lui succeda »)
   // partage le créneau 13,64 avec le verset précédent : le canon les tient ensemble.
