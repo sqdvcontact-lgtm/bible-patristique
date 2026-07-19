@@ -57,6 +57,10 @@ const CAPITALES = {
   DAN: [
     { ch: 3, v: 98, de: 'Le ROI Nabuchodonosor', a: 'Le roi Nabuchodonosor' },
   ],
+  '2MA': [
+    // Le mot d'ordre de Judas Machabée, imprimé en capitales comme un cri de guerre.
+    { ch: 13, v: 15, de: 'LA VICTOIRE DE DIEU', a: 'la victoire de Dieu' },
+  ],
   HAG: [
     { ch: 2, v: 8, de: 'ET LE DESIRE’ DE TOUTES LES NATIONS VIENDRA', a: 'et le desiré de toutes les nations viendra' },
   ],
@@ -98,6 +102,10 @@ const LECTURES = {
   // (Is 10,22, le sable de la mer), « bale » (Is 22,18, la balle qu'on roule), « meur »
   // (Is 28,4, mûr en graphie de 1730) et « soulé » (Is 43,24) sont justes.
   ISA: [[/\btoures\b/g,'toutes'], [/\bsout\b/g,'sont']],
+  '1MA': [[mot('dir'),'dit']],
+  // 2MA : trois caractères brisés. « rafraîchir » (4,46) est en revanche JUSTE — l'infinitif
+  // après « pour » — et laissé tel quel, le détecteur s'étant trompé.
+  '2MA': [[mot('lni'),'lui'], [mot('chure'),'chute'], [mot('condées'),'coudées']],
   // JER : le tirage de Jérémie est nettement plus fautif que celui d'Isaïe. On ne corrige
   // ici que les NON-MOTS dont la cause est un caractère brisé, absent ou dédoublé — chacun
   // signalé par un transcripteur ou par le détecteur de lectures suspectes.
@@ -629,7 +637,7 @@ const SURNUMERAIRES = {
   // l'édition porte et que l'ossature ignore — à ne pas confondre avec un titre éditorial,
   // qui ne se transcrit pas du tout.
   LAM: new Set(['1.0']),   // « Après que le peuple d'Israel eut été mené en captivité… »
-  BAR: new Set(['6.0']),
+  BAR: new Set(['6.0']),   // « Copie de la lettre que Jeremie envoya… », en tête de Ba 6
   // Dn 13,65 : « le roi Astyagès ayant été joint à ses peres, Cyrus de Perse lui succeda ».
   // La Vulgate le porte, le canon ne lui donne aucun créneau — son ch. 14 s'ouvre déjà sur
   // « Daniel mangeoit à la table du roi ».
@@ -637,7 +645,10 @@ const SURNUMERAIRES = {
   // 1 M 1,65-67 (le refus de manger des viandes impures, et la colère qui s'ensuit) et
   // 13,54 (Simon voyant que Jean son fils étoit un homme-de-guerre) : la Vulgate les porte,
   // le grec que suit le canon ne les a pas. Vérifié verset par verset contre le référent.
-  '1MA': new Set(['1.65', '1.66', '1.67', '13.54']),   // « Copie de la lettre que Jeremie envoya… », en tête de Ba 6
+  '1MA': new Set(['1.65', '1.66', '1.67', '13.54']),
+  // 2 M 2,33 clôt la préface (« Nous commencerons donc ici notre narration ») et 15,40 la
+  // comparaison finale du vin et de l'eau. La Vulgate les porte, le grec ne les a pas.
+  '2MA': new Set(['2.33', '15.40']),
 }
 
 // ── L'ÉDITION COUPE LÀ OÙ LE CANON NE COUPE PAS : créneau PARTAGÉ, jamais surnuméraire ──
