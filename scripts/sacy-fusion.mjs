@@ -27,6 +27,15 @@ if (!CODE || !PREFIXE || !LOTS.length){ console.error('usage : <CODE> <prefixe> 
 // révèle la coquille — et une clé de page les rattraperait tous les deux.
 // Clé : « chapitre.numéro imprimé » → { debut, v }.
 const COQUILLES = {
+  JDT: [
+    // Jdt 6,3 imprimé « 9 ». Le vrai 9 arrive six versets plus loin, et la fusion avait
+    // soudé les deux textes en un seul — ce que le contrôle des doublons ne pouvait pas voir,
+    // les deux fragments étant sur des pages différentes : le recollage multi-pages a fait
+    // son office, sur un numéro qui n'était pas le bon. Le référent tranche : son 6,3 porte
+    // « Lorsque nous les aurons tous frappés comme un seul homme », son 6,9 « Les Assyriens
+    // se détournèrent en côtoyant la montagne ».
+    { ch: 6, imprime: 9, debut: 'lorsque nous les aurons tous tués', v: 3 },
+  ],
   SIR: [
     // Si 1,12 imprimé « 22 » : suit le v. 11 ; le vrai 22 est en colonne de droite.
     { ch: 1,  imprime: 22, debut: 'La crainte du Seigneur réjouira', v: 12 },

@@ -249,7 +249,9 @@ MAP['2CH'] = v => {
 //   Sacy 4,7-23  → canon 4,1-17
 //   Sacy 9,38    → canon 10,1     (« nous faisons une alliance » = Crampon 10,1)
 //   Sacy 10,v    → canon 10,v+1
-//   Sacy 7,44    → SURNUMÉRAIRE  (l'édition coupe « Cedmihel fils | d'Oduïa » en deux)
+//   Sacy 7,44    → canon 7,43    CRÉNEAU PARTAGÉ avec Sacy 7,43 : l'édition coupe
+//                                « Cedmihel fils | d'Oduïa » en deux, le canon n'en fait
+//                                qu'un verset. Les deux moitiés se rangent par ordre_slot.
 //   Sacy 7,45-47 → canon 7,44-46 (décalage ouvert par cette coupe)
 //   Sacy 7,48    → canon 7,47-48 (SCINDÉ ; c'est ici que le décalage se referme)
 //   Sacy 12,33   → canon 12,33-34 (SCINDÉ)
@@ -261,7 +263,7 @@ MAP['2CH'] = v => {
 MAP.NEH = v => {
   if (v.ch === 3)  return v.v <= 30 ? `NEH.3.${v.v}` : 'NEH.3.32'
   if (v.ch === 4)  return v.v <= 6 ? `NEH.3.${v.v + 32}` : `NEH.4.${v.v - 6}`
-  if (v.ch === 7)  return v.v >= 45 && v.v <= 47 ? `NEH.7.${v.v - 1}` : `NEH.7.${v.v}`
+  if (v.ch === 7)  return v.v >= 44 && v.v <= 47 ? `NEH.7.${v.v - 1}` : `NEH.7.${v.v}`
   if (v.ch === 9)  return v.v === 38 ? 'NEH.10.1' : `NEH.9.${v.v}`
   if (v.ch === 10) return `NEH.10.${v.v + 1}`
   if (v.ch === 12) return v.v <= 33 ? `NEH.12.${v.v}` : `NEH.12.${v.v + 1}`
@@ -340,7 +342,7 @@ const COUVRE_DEUX = {
   // Sacy 1 Par. 20,7 porte à lui seul les v. 7 et 8 du canon : « … Jonathan le tua. Ce
   // sont-là les enfans des geans qui se trouverent à Geth, & qui furent tués par David. »
   '1CH': { '20.7': '1CH.20.8' },
-  JOB: { '42.16': 'JOB.42.17' },
+
 }
 
 // ── SCISSIONS — quand l'édition condense deux versets du canon en un seul ──────────────
@@ -365,18 +367,30 @@ const SCISSIONS = {
     // Sacy 12,33 réunit les deux moitiés de la liste des princes de Juda.
     { ch: 12, v: 33, coupes: ['Judas, Benjamin'],            canons: ['NEH.12.33', 'NEH.12.34'] },
   ],
+  JOB: [
+    // Sacy 42,16 réunit la longue vie de Job et sa mort, que le canon compte séparément.
+    // Le référent tranche : son 42,16 s'arrête à « les fils de ses fils », son 42,17 porte
+    // « Et Job mourut vieux et rassasié de jours ».
+    { ch: 42, v: 16, coupes: ['& il mourut fort âgé'], canons: ['JOB.42.16', 'JOB.42.17'] },
+  ],
 }
 
-// ── SURNUMÉRAIRES déclarés — l'inverse de la scission ──────────────────────────────────
-// L'édition COUPE en deux ce que le canon tient en un seul verset. La première moitié garde
-// le créneau ; la seconde n'en a pas et devient surnuméraire (canon_id nul, affichée en
-// violet). On préserve ainsi la forme propre de l'édition sans décaler ce qui suit.
-const SURNUMERAIRES = {
-  // Sacy coupe la liste des lévites au milieu d'un nom : 7,43 s'arrête à « Cedmihel fils »
-  // et 7,44 reprend « d'Oduïa, au nombre de soixante & quatorze ». Le canon (comme toutes
-  // les traductions d'aujourd'hui) n'en fait qu'un seul verset, le 7,43.
-  NEH: new Set(['7.44']),
-}
+// ── SURNUMÉRAIRES déclarés ─────────────────────────────────────────────────────────────
+// Un verset que l'édition porte et dont le canon n'a aucun créneau. À n'employer QUE dans ce
+// cas. Quand l'édition coupe en deux ce que le canon tient d'un seul tenant, ce n'est PAS un
+// surnuméraire : le créneau existe, il est simplement partagé — voir la note ci-dessous.
+const SURNUMERAIRES = {}
+
+// ── L'ÉDITION COUPE LÀ OÙ LE CANON NE COUPE PAS : créneau PARTAGÉ, jamais surnuméraire ──
+// Sacy arrête son Ne 7,43 sur « Cedmihel fils » et ouvre le 7,44 sur « d'Oduïa, au nombre de
+// soixante & quatorze » ; le canon n'en fait qu'un verset. La seconde moitié avait d'abord
+// été traitée en surnuméraire — c'était une erreur : un surnuméraire sort de l'ossature et
+// désaligne la colonne, alors qu'ici le créneau existe bel et bien.
+// Les deux versets de l'édition reçoivent donc LE MÊME canon_id. Le chargeur les range par
+// ordre_slot, la Polyglotte les affiche à la suite dans une seule case, et la colonne des
+// numéros porte les deux numéros d'origine l'un sous l'autre. Les traductions restent
+// alignées, et la forme propre de l'édition reste lisible.
+// C'est le mécanisme déjà employé pour Sacy Is 63,19 + 64,1 (§23.15).
 
 let versets = JSON.parse(readFileSync(D + `${PREFIXE}${CODE}_transcrit.json`, 'utf8'))
 

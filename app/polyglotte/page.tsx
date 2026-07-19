@@ -19,7 +19,7 @@ type Livre = { code: string; nom_fr: string; ordre: number };
 type Trad = { trad_id: string; nom: string; ordre: number | null };
 type Point = { livre: string | null; reference: string | null; type: string | null; description: string | null; statut: string | null; notes: string | null };
 type CanonRow = { id: string; livre: string; ch_canon: number; v_canon: number; est_suscription: boolean };
-type V2Row = { id: string; canon_id: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; texte: string | null };
+type V2Row = { id: string; canon_id: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null };
 
 // Un surnuméraire regroupé : le même verset hors ossature, tel que plusieurs éditions le
 // portent au même numéro d'origine. `par` associe chaque traduction à sa version du verset ;
@@ -194,7 +194,7 @@ export default function PolyglottePage() {
     const tradIds = trads.map(t => t.trad_id);
     const [c, vv] = await Promise.all([
       fetchPaged<CanonRow>("versets_canon", "id, livre, ch_canon, v_canon, est_suscription", q => q.in("livre", codes)),
-      fetchPaged<V2Row>("versets_v2", "id, canon_id, livre, trad_id, ch_orig, v_orig, texte", q => q.in("livre", codes).in("trad_id", tradIds)),
+      fetchPaged<V2Row>("versets_v2", "id, canon_id, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes", q => q.in("livre", codes).in("trad_id", tradIds)),
     ]);
     c.sort((a, b) => (ordreDe.get(a.livre)! - ordreDe.get(b.livre)!) || (a.ch_canon - b.ch_canon) || (a.v_canon - b.v_canon));
     setCanon(c); setV2(vv); setLoading(false);
@@ -474,7 +474,24 @@ export default function PolyglottePage() {
                         return (
                           <div key={i} style={{ display: "contents" }}>
                             <div style={{ padding: "6px 3px", textAlign: "right", whiteSpace: "nowrap", fontSize: 11, color: "#a08e6a", borderLeft: "1px solid #f0ece3" }}>
-                              {cs.map(c => `${c.ch_orig}, ${c.v_orig}`).join(" · ")}
+                              {/* Plusieurs versets de l'édition peuvent partager un créneau du
+                                  canon (l'édition coupe là où le canon ne coupe pas). Leurs
+                                  numéros d'origine s'écrivent alors l'un SOUS l'autre, en
+                                  regard du texte réuni : la numérotation propre à l'édition
+                                  reste lisible sans que la colonne se décale. */}
+                              {cs.map((c, k) => (
+                                <div key={k}>
+                                  {c.ch_orig}, {c.v_orig}
+                                  {/* Une intervention d'alignement (scission d'un verset,
+                                      rattachement corrigé) laisse toujours sa trace dans
+                                      `notes`. On la signale ici d'un repère discret : le
+                                      lecteur voit QU'il y a eu intervention, et le survol
+                                      lui dit LAQUELLE. Rien n'est corrigé en silence. */}
+                                  {c.notes ? (
+                                    <span title={c.notes} style={{ marginLeft: 3, color: "#7a6fae", cursor: "help" }}>✎</span>
+                                  ) : null}
+                                </div>
+                              ))}
                             </div>
                             <div
                               className={estAdmin && cs.length > 0 ? `poly-cell${cs.some(c => c.id === enEdition) ? " poly-edition" : ""}` : undefined}
