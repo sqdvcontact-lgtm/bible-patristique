@@ -67,6 +67,15 @@ const SOUDURES = {
   146: [9],    // R 8 : « il couvre les cieux… il fait croître l'herbe » = S 8 + S 9
 }
 
+// ── SCISSIONS : là où l'édition réunit ce que le référent sépare ─────────────────────────
+// Le mouvement inverse des soudures. Le verset de Sacy couvre DEUX créneaux ; il consomme
+// donc deux crans de curseur. La coupe elle-même — le texte où trancher — est déclarée dans
+// sacy-charge.mjs, qui seul manipule le texte ; ici on ne s'occupe que du compte.
+const SCISSIONS = {
+  121: [2],   // couvre les créneaux 1 et 2 ; l'édition numérote sa suscription « 1 »
+  150: [5],   // couvre les créneaux 5 et 6 : le « Que tout ce qui respire » final
+}
+
 const sig = t => new Set(((t||'').replace(/<\/?i>/g,'').normalize('NFD').replace(/[̀-ͯ]/g,'')
   .replace(/f/g,'s').toLowerCase().match(/[a-z]{4,}/g) || []))
 const jac = (a,b) => { if(!a.size||!b.size) return 0; let i=0; for(const w of a) if(b.has(w)) i++; return i/Math.max(a.size,b.size) }
@@ -94,11 +103,13 @@ for (let c = 1; c <= 150; c++){
   // Le curseur avance d'un créneau par verset, SAUF sur une soudure : le verset y rejoint le
   // créneau du précédent au lieu d'en réclamer un nouveau.
   const soud = new Set(SOUDURES[c] || [])
+  const scis = new Set(SCISSIONS[c] || [])
   let n = 0
   for (const v of vs.filter(x => x.v > 0)){
     if (!soud.has(v.v)) n++
     const cible = `PSA.${c}.${n + decalage}`   // decalage porte déjà (base - 1)
     emis.push({ ch: c, v: v.v, canon_id: canon.has(cible) ? cible : null })
+    if (scis.has(v.v)) n++          // le verset occupe un second créneau
   }
   parPsaume[c] = emis
   // Le dernier créneau atteint, soudures déduites — et non le dernier NUMÉRO de Sacy, qui

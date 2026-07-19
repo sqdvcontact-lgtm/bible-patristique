@@ -662,6 +662,16 @@ const COUVRE_DEUX = {
 // à l'œil nu, et une coupe devenue introuvable est signalée au lieu de glisser en silence.
 // Chaque coupe ci-dessous a été établie en confrontant le verset au référent.
 const SCISSIONS = {
+  // PSAUTIER. Vérifiées à l'œil en regard du référent (psautier-regard.mjs), sur toute la
+  // longueur du psaume et non au seul point de coupe.
+  PSA: [
+    // Ps 150,5 tient les v. 5 et 6 : l'édition range le « Que tout ce qui respire » final
+    // dans le verset des cymbales, là où le référent en fait la conclusion du psautier.
+    { ch: 150, v: 5, coupes: ['Que tout ce qui vit'], canons: ['PSA.150.5', 'PSA.150.6'] },
+    // Ps 121,2 tient les v. 1 et 2. NOTER que l'édition numérote ici sa SUSCRIPTION « 1 » :
+    // son corps court de 2 à 9, et c'est pourquoi ce psaume paraissait manquer d'un verset.
+    { ch: 121, v: 2, coupes: ['Nos piés se sont autrefois arrêtés'], canons: ['PSA.121.1', 'PSA.121.2'] },
+  ],
   NEH: [
     // Sacy 3,30 tient les v. 30 et 31 du canon ; la césure est à Melchias l'orfèvre.
     { ch: 3,  v: 30, coupes: ['Melchias fils de l’orfévre'], canons: ['NEH.3.30', 'NEH.3.31'] },
@@ -825,7 +835,10 @@ if (existsSync(fPlan)){
 
 const lignes = [], hors = []
 for (const v of versets){
-  if (plan){
+  // Une scission déclarée l'emporte sur le plan : c'est le seul cas où un verset de l'édition
+  // occupe DEUX créneaux, ce qu'une table « un verset → un créneau » ne sait pas exprimer.
+  // Sans cette priorité, le psautier ne pouvait pas décrire ses scissions du tout.
+  if (plan && !scissions.has(`${v.ch}.${v.v}`)){
     if (!plan.has(`${v.ch}.${v.v}`)){ hors.push(`${v.ch},${v.v}→absent du plan`); continue }
     const cid = plan.get(`${v.ch}.${v.v}`)
     // `v_imprime` porte le numéro que l'édition IMPRIME, quand il diffère du rang interne :
