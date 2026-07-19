@@ -27,6 +27,13 @@ if (!CODE || !PREFIXE || !LOTS.length){ console.error('usage : <CODE> <prefixe> 
 // révèle la coquille — et une clé de page les rattraperait tous les deux.
 // Clé : « chapitre.numéro imprimé » → { debut, v }.
 const COQUILLES = {
+  EZK: [
+    // Éz 11,25 imprimé « 23 », après le 24 : le verset est à sa place, seul le numéro est
+    // faux, et le recollage l'avait soudé au vrai 11,23 — les deux étant sur la même page.
+    // Le référent tranche : son 11,25 porte « Et je racontai aux captifs toutes les choses
+    // que Yahweh m'avait fait voir ».
+    { ch: 11, imprime: 23, debut: 'je dis au peuple captif', v: 25 },
+  ],
   BAR: [
     // Ba 1,18 imprimé « 28 ». Le verset est à SA PLACE dans la colonne — il suit le 17 et
     // précède le 19 —, seul son numéro est faux ; c'est le tri par numéro qui le rejetait en
@@ -178,7 +185,7 @@ for (const v of versets)
 // Soudures vérifiées à la main, que le lexique ne connaît pas. On ne soude JAMAIS sur la
 // seule vraisemblance : chaque entrée a été lue sur l'image, et le mot obtenu vérifié dans
 // la phrase. La liste reste courte à dessein — elle est l'exception, pas la commodité.
-const SOUDURES = new Set(['universelle', 'nabajoth', 'parceque', 'appellée', 'méchans'])
+const SOUDURES = new Set(['universelle', 'nabajoth', 'parceque', 'appellée', 'méchans', 'magnificence', 'notre'])
 
 let cesures = 0; const cesuresDouteuses = []
 for (const v of versets){

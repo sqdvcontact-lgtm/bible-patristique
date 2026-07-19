@@ -112,6 +112,7 @@ const LECTURES = {
     [/montent à valche/g,'montent à cheval'],     // « equos ascendentes » dans la Vulgate
     [/lé Seigneur/g,'le Seigneur'], [/toutes le étoiles/g,'toutes les étoiles'],
     [/il enseveliront/g,'ils enseveliront'], [/dires-vous/g,'dites-vous'],
+    [/Tout-d’un- coup/g,'Tout-d’un-coup'],   // césure tombée sur un trait d'union légitime
   ],
   // LAM : trois caractères brisés, signalés par les transcripteurs. « de repas » (1,3) est
   // en revanche CONSERVÉ : « elle n'y a point trouvé de repas » est la leçon de l'édition.
@@ -470,6 +471,12 @@ const SCISSIONS = {
     { ch: 7,  v: 48, coupes: ['les enfans de Lebana'],       canons: ['NEH.7.47', 'NEH.7.48'] },
     // Sacy 12,33 réunit les deux moitiés de la liste des princes de Juda.
     { ch: 12, v: 33, coupes: ['Judas, Benjamin'],            canons: ['NEH.12.33', 'NEH.12.34'] },
+  ],
+  EZK: [
+    // Sacy 2,9 réunit la main tendue et le livre déroulé, que le canon compte séparément.
+    // Le référent tranche : son 2,9 s'arrête à « elle tenait un livre roulé », son 2,10
+    // ouvre sur « Il le déroula devant moi ».
+    { ch: 2, v: 9, coupes: ['elle étendit devant moi ce livre'], canons: ['EZK.2.9', 'EZK.2.10'] },
   ],
   JER: [
     // Sacy 37,4 réunit la liberté de Jérémie et la retraite des Chaldéens. Le référent
