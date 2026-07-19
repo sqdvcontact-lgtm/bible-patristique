@@ -534,6 +534,11 @@ MAP['2MA'] = v => {
 // de l'autre. Le référent, comme les éditions modernes, n'en fait qu'un. Les deux versets de
 // Sacy reçoivent donc le même créneau, et tout le reste du chapitre glisse d'un cran —
 // ce qui explique les 72 versets de Sacy pour 71 créneaux.
+// MATTHIEU. Sacy garde dans son v. 17,14 l'arrivée de l'homme ET sa supplication, que le
+// canon compte séparément. Il court donc un cran trop bas de 15 à 26, et laissait le créneau
+// 27 vide — la même signature qu'aux Ps 49 et 100 et à Jn 11,57. La scission de 17,14 rend
+// deux créneaux ; tout ce qui suit avance d'un cran.
+MAP.MAT = v => (v.ch === 17 && v.v >= 15 ? `MAT.17.${v.v + 1}` : `MAT.${v.ch}.${v.v}`)
 MAP.JHN = v => (v.ch === 6 && v.v >= 52 ? `JHN.6.${v.v - 1}` : `JHN.${v.ch}.${v.v}`)
 // ACTES. La scission d'Ac 7,55 rend deux créneaux là où l'édition n'a qu'un verset : tout ce
 // qui suit dans le chapitre doit donc AVANCER d'un cran. Une scission sans ce décalage laisse
@@ -681,6 +686,9 @@ const SCISSIONS = {
     // Ps 121,2 tient les v. 1 et 2. NOTER que l'édition numérote ici sa SUSCRIPTION « 1 » :
     // son corps court de 2 à 9, et c'est pourquoi ce psaume paraissait manquer d'un verset.
     { ch: 121, v: 2, coupes: ['Nos piés se sont autrefois arrêtés'], canons: ['PSA.121.1', 'PSA.121.2'] },
+  ],
+  MAT: [
+    { ch: 17, v: 14, coupes: ['Seigneur, ayez pitié de mon fils'], canons: ['MAT.17.14', 'MAT.17.15'] },
   ],
   '2CO': [
     // 2 Co 1,23 tient les v. 23 et 24 : l'édition n'imprime aucun numéro 24, la matière qui
