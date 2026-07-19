@@ -253,6 +253,25 @@ MAP.NEH = v => {
   return `NEH.${v.ch}.${v.v}`
 }
 
+// JOB : l'édition suit la Vulgate, le canon l'hébreu. Quatre écarts, chacun vérifié.
+//   Sacy 16,5 + 16,6 → canon 16,5   (l'édition scinde ; rupture localisée par le test
+//                                    de rupture, gain 0,189 — cf. §23.12)
+//   Sacy 16,v≥7      → canon 16,v-1
+//   Sacy 39,31-35    → canon 40,1-5  (« Le Seigneur parla de nouveau à Job » = Crampon 40,1)
+//   Sacy 40,v≤27     → canon 40,v+5  (Sacy 40,1 « du milieu d'un tourbillon » = Crampon 40,6)
+//   Sacy 40,28       → canon 41,1    (« Il se verra trompé dans ses esperances »)
+//   Sacy 41,v        → canon 41,v+1  (Sacy 41,25 = Crampon 41,26, « le roi des superbes »)
+//   Sacy 42,16       → canon 42,16-17 (l'édition réunit « il vit ses fils » et « il mourut
+//                                    fort âgé & plein de jours »)
+// Jb 25 et 27 : les créneaux du canon qui restent découverts sont VIDES chez le référent.
+MAP.JOB = v => {
+  if (v.ch === 16) return v.v <= 6 ? `JOB.16.${Math.min(v.v, 5)}` : `JOB.16.${v.v - 1}`
+  if (v.ch === 39) return v.v <= 30 ? `JOB.39.${v.v}` : `JOB.40.${v.v - 30}`
+  if (v.ch === 40) return v.v <= 27 ? `JOB.40.${v.v + 5}` : 'JOB.41.1'
+  if (v.ch === 41) return `JOB.41.${v.v + 1}`
+  return `JOB.${v.ch}.${v.v}`
+}
+
 const DOUTEUX = {}
 
 const COUVRE_DEUX = {
@@ -264,6 +283,7 @@ const COUVRE_DEUX = {
   // sont-là les enfans des geans qui se trouverent à Geth, & qui furent tués par David. »
   '1CH': { '20.7': '1CH.20.8' },
   NEH: { '3.30': 'NEH.3.31', '12.6': 'NEH.12.7' },
+  JOB: { '42.16': 'JOB.42.17' },
 }
 
 let versets = JSON.parse(readFileSync(D + `${PREFIXE}${CODE}_transcrit.json`, 'utf8'))

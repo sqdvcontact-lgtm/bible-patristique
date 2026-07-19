@@ -33,7 +33,24 @@ for (const L of LOTS){
       const texte = (v.texte||'').replace(/^\s*\[\s*suite\s*\]\s*/i, '').trim()
       // Note propre à l'ÉDITION (Sacy commente lui-même les additions grecques d'Esther) :
       // elle accompagne le verset sans en faire partie, et va dans `notes`, pas dans `texte`.
-      ;(frags.get(k) ?? frags.set(k,[]).get(k)).push({page:p.pageImp, texte, note: v.note_edition || null})
+      // ── ARGUMENTS DE L'ÉDITEUR ──
+      // Sacy fait précéder chaque psaume d'un « argument » en italique, qui n'est pas du
+      // texte biblique. Les transcripteurs l'ont noté de TROIS façons selon les lots :
+      // champ `note_edition`, champ `argument`, ou entrée séparée marquée `est_argument`.
+      // ⚠️ Ce dernier cas est dangereux : l'entrée porte le même numéro 0 que la suscription
+      // et serait recollée AVEC elle, l'argument venant se souder au texte sacré.
+      // On le route donc vers la note, jamais vers le texte.
+      if (v.est_argument === true){
+        const cible = frags.get(k)
+        if (cible && cible.length) cible[cible.length-1].note = [cible[cible.length-1].note, texte].filter(Boolean).join(' ')
+        else (frags.get(k) ?? frags.set(k,[]).get(k)).push({ page:p.pageImp, texte:'', note: texte, suscription: true })
+        continue
+      }
+      ;(frags.get(k) ?? frags.set(k,[]).get(k)).push({
+        page: p.pageImp, texte,
+        note: v.note_edition || v.argument || null,
+        suscription: v.est_suscription === true,
+      })
     }
 }
 if (absents.length) console.log('⚠ lots absents : '+absents.join(', '))
@@ -75,7 +92,9 @@ function normLettrine(t){
 const versets = [...frags].map(([k,parts])=>{
   const [ch,v] = k.split('.').map(Number)
   const note = parts.map(p=>p.note).filter(Boolean).join(' ') || null
-  return { ch, v, texte: normLettrine(recoller(parts)), ...(note ? { note } : {}) }
+  const susc = parts.some(p=>p.suscription)
+  return { ch, v, texte: normLettrine(recoller(parts.filter(p=>p.texte))),
+    ...(note ? { note } : {}), ...(susc ? { est_suscription: true } : {}) }
 }).sort((a,b)=>a.ch-b.ch || a.v-b.v)
 
 // ── césures de fin de ligne restées ouvertes (« par- tage », « con- cevrez ») ──
