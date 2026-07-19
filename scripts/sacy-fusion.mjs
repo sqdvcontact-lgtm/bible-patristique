@@ -27,6 +27,13 @@ if (!CODE || !PREFIXE || !LOTS.length){ console.error('usage : <CODE> <prefixe> 
 // révèle la coquille — et une clé de page les rattraperait tous les deux.
 // Clé : « chapitre.numéro imprimé » → { debut, v }.
 const COQUILLES = {
+  BAR: [
+    // Ba 1,18 imprimé « 28 ». Le verset est à SA PLACE dans la colonne — il suit le 17 et
+    // précède le 19 —, seul son numéro est faux ; c'est le tri par numéro qui le rejetait en
+    // fin de chapitre. Le référent confirme : son 1,18 porte « et nous lui avons désobéi.
+    // Nous n'avons pas écouté la voix du Seigneur ».
+    { ch: 1, imprime: 28, debut: 'Nous ne lui avons point été assujettis', v: 18 },
+  ],
   JER: [
     // Jr 5,4 imprimé « 3 » : deux versets consécutifs portent « 3 » sur la même page 76,
     // et le recollage les avait soudés en un seul. Le référent tranche — son 5,4 porte

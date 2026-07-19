@@ -54,6 +54,10 @@ const CAPITALES = {
   JER: [
     { ch: 31, v: 22, de: 'UNE FEMME ENVIRONNERA UN HOMME', a: 'une femme environnera un homme' },
   ],
+  EZK: [
+    // L'édition écrit « Je SUSCITERAI SUR ELLES… » : le premier mot n'est pas en capitales.
+    { ch: 34, v: 23, de: 'SUSCITERAI SUR ELLES LE PASTEUR UNIQUE', a: 'susciterai sur elles le pasteur unique' },
+  ],
 }
 const NOTE_CAPITALES = 'L’édition de 1730 imprime ce passage en capitales, pour en marquer la portée prophétique. La casse ordinaire est rétablie ici, conformément à la charte ; l’emphase de l’édition est signalée par cette note.'
 
@@ -81,14 +85,36 @@ const LECTURES = {
     [mot('Sgneur'),'Seigneur'], [mot('du prophe'),'du prophete'], [mot('di le Seigneur'),'dit le Seigneur'],
     [mot('abanbonneront'),'abandonneront'], [mot('Babyone'),'Babylone'],
     [mot('détruisen'),'détruisent'], [mot('tranferé'),'transferé'],
-    [mot('se viteurs'),'serviteurs'], [mot('santifie'),'sanctifie'], [mot('santifiez'),'sanctifiez'],
+    [mot('se viteurs'),'serviteurs'],
     [mot('n’ont pont prêté'),'n’ont point prêté'], [/par un un chemin/g,'par un chemin'],
+    // ⚠️ « santifie » / « santifiez » ont d'abord été « corrigés » ici en sanctifie(z).
+    // C'ÉTAIT UNE FAUTE, retirée le 19/07/2026 : le dénombrement sur toute la transcription
+    // donne 262 formes en « sant… » contre 30 en « sanct… ». « santuaire », « santifier »
+    // sont donc l'ORTHOGRAPHE DE L'ÉDITION, non des coquilles — et la règle est de la
+    // conserver à la lettre. Une graphie qui se répète n'est jamais une coquille : c'est le
+    // meilleur critère pour les distinguer, et il se vérifie en comptant.
+  ],
+  // LAM : caractères brisés ou absents, chacun vérifié en contexte.
+  LAM: [
+    [mot('épagner'),'épargner'], [mot('Vout'),'Vous'],
+    [mot('autrucbe'),'autruche'], [mot('avengles'),'aveugles'],
+    [/souffert nne mort/g,'souffert une mort'],
+    [mot('l’epnemi'),'l’ennemi'], [mot('frapppé'),'frappé'],
+  ],
+  // EZK : idem. Sont au contraire CONSERVÉS, comme graphies de l'édition : « santuaire »
+  // (11 fois), « Santifiez », « envoiera » (4 fois) — ce sont des formes, pas des accidents.
+  EZK: [
+    [/s’étendoient eu haut/g,'s’étendoient en haut'], [mot('leus aîles'),'leurs aîles'],
+    [mot('sélevoit'),'s’élevoit'], [/il baissoient/g,'ils baissoient'],
+    [/qui mirrite/g,'qui m’irrite'],              // apostrophe soudée : « qui m'irrite »
+    [/de eurs idoles/g,'de leurs idoles'], [/à l entrée/g,'à l’entrée'],
+    [/de l iniquité/g,'de l’iniquité'], [mot('illustrue'),'illustre'],
+    [/montent à valche/g,'montent à cheval'],     // « equos ascendentes » dans la Vulgate
+    [/lé Seigneur/g,'le Seigneur'], [/toutes le étoiles/g,'toutes les étoiles'],
+    [/il enseveliront/g,'ils enseveliront'], [/dires-vous/g,'dites-vous'],
   ],
   // LAM : trois caractères brisés, signalés par les transcripteurs. « de repas » (1,3) est
   // en revanche CONSERVÉ : « elle n'y a point trouvé de repas » est la leçon de l'édition.
-  LAM: [
-    [mot('l’epnemi'),'l’ennemi'], [mot('frapppé'),'frappé'],
-  ],
   EXO: [[/\bqni\b/g,'qui'], [/\bsils\b/g,'fils']],
   // « an Seigneur » (Lv 1,14) : le lexique ne peut pas l'attraper, « an » étant un mot valide.
   LEV: [[/\bpat\b/g,'par'], [/holocauste an Seigneur/g,'holocauste au Seigneur']],
@@ -391,6 +417,19 @@ MAP.ISA = v => {
 //                                sortie de l'Egypte », que le canon compte séparément.
 //   Sacy 37,v≥5  → canon 37,v+1 (contrôle : Sacy 37,20 « Le roi Sedecias ordonna donc que
 //                                Jeremie fût mis dans le vestibule » = Crampon 37,21)
+// EZK : une seule rupture sur 48 chapitres, à la frontière 20/21 — la Vulgate y clôt son
+// chapitre 20 cinq versets plus loin que l'hébreu.
+//   Sacy 20,45-49 → canon 21,1-5  (Sacy 20,45 « Le Seigneur me parla encore » = Crampon
+//                                  21,1 ; Sacy 20,49 « Helas, helas, helas » = Crampon 21,5)
+//   Sacy 21,v     → canon 21,v+5  (contrôle : Sacy 21,32 « Tu seras la pâture du feu » =
+//                                  Crampon 21,37, dernier verset du chapitre)
+// Contrôle arithmétique : Sacy 49 + 32 = canon 44 + 37 = 81.
+MAP.EZK = v => {
+  if (v.ch === 20 && v.v >= 45) return `EZK.21.${v.v - 44}`
+  if (v.ch === 21) return `EZK.21.${v.v + 5}`
+  return `EZK.${v.ch}.${v.v}`
+}
+
 MAP.JER = v => {
   if (v.ch === 9)  return v.v === 1 ? 'JER.8.23' : `JER.9.${v.v - 1}`
   if (v.ch === 37) return v.v >= 5 ? `JER.37.${v.v + 1}` : `JER.37.${v.v}`
@@ -450,7 +489,14 @@ const SCISSIONS = {
 // Un verset que l'édition porte et dont le canon n'a aucun créneau. À n'employer QUE dans ce
 // cas. Quand l'édition coupe en deux ce que le canon tient d'un seul tenant, ce n'est PAS un
 // surnuméraire : le créneau existe, il est simplement partagé — voir la note ci-dessous.
-const SURNUMERAIRES = {}
+const SURNUMERAIRES = {
+  // Préambules non numérotés que la Vulgate imprime en tête de livre et auxquels le canon
+  // de l'AELF ne donne aucun créneau. Ce sont bien des surnuméraires : du texte que
+  // l'édition porte et que l'ossature ignore — à ne pas confondre avec un titre éditorial,
+  // qui ne se transcrit pas du tout.
+  LAM: new Set(['1.0']),   // « Après que le peuple d'Israel eut été mené en captivité… »
+  BAR: new Set(['6.0']),   // « Copie de la lettre que Jeremie envoya… », en tête de Ba 6
+}
 
 // ── L'ÉDITION COUPE LÀ OÙ LE CANON NE COUPE PAS : créneau PARTAGÉ, jamais surnuméraire ──
 // Sacy arrête son Ne 7,43 sur « Cedmihel fils » et ouvre le 7,44 sur « d'Oduïa, au nombre de
@@ -470,6 +516,26 @@ let versets = JSON.parse(readFileSync(D + `${PREFIXE}${CODE}_transcrit.json`, 'u
 // le texte, qui porte encore l'apostrophe droite du transcripteur — la correction échoue
 // alors en silence. Quatre corrections ont été perdues ainsi avant d'être repérées.
 for (const v of versets) v.texte = (v.texte || '').replace(/'/g, '’')
+
+// ── garde-fou : une clé déclarée DEUX FOIS dans une de ces tables ────────────────────────
+// En JavaScript, la seconde occurrence écrase la première EN SILENCE. C'est arrivé sur
+// LECTURES.LAM : cinq règles nouvelles ont été remplacées par deux anciennes, et rien ne l'a
+// dit — le contrôle « corrections sans effet » ne pouvait pas le voir, puisque les deux
+// règles survivantes, elles, fonctionnaient. Seul l'écart entre le nombre de règles écrites
+// et le nombre de corrections rapportées a mis sur la piste.
+// On relit donc le source pour compter les clés telles qu'elles sont ÉCRITES.
+{
+  const src = readFileSync(new URL(import.meta.url), 'utf8')
+  for (const [nom, bloc] of [['LECTURES','const LECTURES = {'], ['CAPITALES','const CAPITALES = {'],
+                             ['SCISSIONS','const SCISSIONS = {'], ['SURNUMERAIRES','const SURNUMERAIRES = {']]){
+    const d = src.indexOf(bloc); if (d < 0) continue
+    const f = src.indexOf('\n}\n', d)
+    const cles = [...src.slice(d, f).matchAll(/^ {2}'?([A-Z0-9]{2,4})'?:/gm)].map(m => m[1])
+    const vus = new Set(), doubles = new Set()
+    for (const c of cles){ if (vus.has(c)) doubles.add(c); vus.add(c) }
+    if (doubles.size) console.log(`  ⚠ ${nom} : clé(s) déclarée(s) deux fois — la seconde écrase la première : ${[...doubles].join(' ')}`)
+  }
+}
 
 let corr = 0
 const REGLES = [...LECTURES_COMMUNES, ...(LECTURES[CODE] || [])]
@@ -530,8 +596,11 @@ for (const v of versets){
   // Surnuméraire déclaré : l'édition coupe là où le canon ne coupe pas. Pas de créneau.
   if (SURNUMERAIRES[CODE]?.has(`${v.ch}.${v.v}`)){
     lignes.push({ trad_id:'TR0001', livre:CODE, ch_orig:v.ch, v_orig:v.v, v_orig_suffixe:null,
-      texte: typo(v.texte), canon_id: null, canon_id_fin: null, est_suscription:false,
-      notes: 'Seconde moitié d’un verset que l’édition de 1730 coupe en deux et que le canon garde entier. La forme de l’édition est conservée ; le créneau du canon est porté par la moitié précédente.',
+      texte: typo(v.texte), canon_id: null, canon_id_fin: null,
+      est_suscription: v.est_suscription === true,
+      notes: v.est_suscription === true
+        ? 'Préambule que l’édition de 1730 imprime en tête du livre, sans numéro de verset. C’est du texte, et non un titre éditorial : le canon ne lui donne simplement aucun créneau.'
+        : 'Verset propre à l’édition de 1730, sans créneau dans le canon.',
       alignement_verifie: true })
     continue
   }
