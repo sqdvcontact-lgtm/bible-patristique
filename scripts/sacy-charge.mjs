@@ -127,9 +127,12 @@ const LECTURES = {
   // (Is 28,4, mûr en graphie de 1730) et « soulé » (Is 43,24) sont justes.
   ISA: [[/\btoures\b/g,'toutes'], [/\bsout\b/g,'sont']],
   '1MA': [[mot('dir'),'dit']],
+  // MIC : artefact de lettrine — « J » ornée suivie de « ’Ai », que la normalisation ne
+  // pouvait pas voir, l'apostrophe séparant les deux capitales.
+  MIC: [[/J’Ai dit encore/g, 'J’ai dit encore']],
   // 2MA : trois caractères brisés. « rafraîchir » (4,46) est en revanche JUSTE — l'infinitif
   // après « pour » — et laissé tel quel, le détecteur s'étant trompé.
-  '2MA': [[mot('lni'),'lui'], [mot('chure'),'chute'], [mot('condées'),'coudées']],
+  '2MA': [[mot('lni'),'lui'], [mot('chure'),'chute'], [mot('condées'),'coudées'], [/la cause de e ur mort/g,'la cause de leur mort']],
   // JER : le tirage de Jérémie est nettement plus fautif que celui d'Isaïe. On ne corrige
   // ici que les NON-MOTS dont la cause est un caractère brisé, absent ou dédoublé — chacun
   // signalé par un transcripteur ou par le détecteur de lectures suspectes.
@@ -493,6 +496,32 @@ MAP.ISA = v => {
 //                 créneau — son 14,1 est déjà « Daniel mangeoit à la table du roi », que
 //                 Sacy numérote 14,1 lui aussi. Le chapitre 14 s'aligne donc directement.
 // Le créneau 14,43 du canon reste découvert : il est VIDE chez le référent.
+// ── UN SURNUMÉRAIRE N'EST LÉGITIME QUE SI LE RÉFÉRENT N'A PAS LE TEXTE ─────────────────
+// Règle posée le 19/07/2026, après vérification : « les versets surnuméraires doivent
+// constituer un ajout, qui n'apparaît NULLE PART dans la traduction de référence ».
+// Quatre versets des Machabées avaient été traités en surnuméraires à tort : le référent
+// les porte, mais À L'INTÉRIEUR du verset précédent. Le créneau existait donc, et il est
+// simplement PARTAGÉ. La vérification consiste à lire le verset entier du référent, non
+// à constater qu'aucun verset ne porte ce numéro — ce que j'avais fait.
+//   1 M 1,65-67 → canon 1,64 : le référent y dit « Cependant beaucoup d'Israélites
+//     résistèrent… ils préférèrent mourir plutôt que de se souiller… et ils moururent.
+//     C'était un très grand courroux qui se déchargeait sur Israël. »
+//   1 M 13,54 → canon 13,53 : « Puis Simon voyant que son fils Jean se montrait homme
+//     de courage, lui donna le commandement de toutes les troupes. »
+MAP['1MA'] = v => {
+  if (v.ch === 1 && v.v >= 65) return '1MA.1.64'
+  if (v.ch === 13 && v.v === 54) return '1MA.13.53'
+  return `1MA.${v.ch}.${v.v}`
+}
+//   2 M 2,33 → canon 2,32 : « Commençons donc ici notre relation. »
+//   2 M 15,40 → canon 15,39 : « Car de même qu'il ne vaut rien de boire seulement du vin
+//     ou seulement de l'eau… C'est donc ici que je termine. »
+MAP['2MA'] = v => {
+  if (v.ch === 2 && v.v === 33) return '2MA.2.32'
+  if (v.ch === 15 && v.v === 40) return '2MA.15.39'
+  return `2MA.${v.ch}.${v.v}`
+}
+
 // MRK : la Vulgate clôt son chapitre 8 un verset plus loin que le canon.
 //   Sacy 8,39 → canon 9,1  (« il y a quelques-uns de ceux qui sont ici présents qui ne
 //                            mourront point qu'ils n'aient vû le royaume de Dieu »)
@@ -642,6 +671,17 @@ const SCISSIONS = {
     // Sacy 12,33 réunit les deux moitiés de la liste des princes de Juda.
     { ch: 12, v: 33, coupes: ['Judas, Benjamin'],            canons: ['NEH.12.33', 'NEH.12.34'] },
   ],
+  MAL: [
+    // Sacy 3,14 commence par la FIN du verset 3,13 du canon — « Et cependant vous répondez :
+    // Qu'avons-nous dit contre vous ? », que le référent porte dans son 3,13 — avant
+    // d'enchaîner sur le 3,14. La première part rejoint donc Sacy 3,13 dans le créneau 3,13.
+    { ch: 3, v: 14, coupes: ['Vous avez dit'], canons: ['MAL.3.13', 'MAL.3.14'] },
+  ],
+  '2MA': [
+    // Sacy 10,37 commence par la fin du verset 10,36 du canon — le pillage de la place —
+    // avant d'enchaîner sur la mort de Timothée, qui est le 10,37 du référent.
+    { ch: 10, v: 37, coupes: ['& ayant trouvé Timothée'], canons: ['2MA.10.36', '2MA.10.37'] },
+  ],
   MIC: [
     // Sacy 5,11 réunit la ruine des villes et la fin des sortilèges, que le canon compte
     // séparément. Le référent tranche : son 5,10 s’arrête à « je démolirai toutes tes
@@ -689,13 +729,6 @@ const SURNUMERAIRES = {
   // La Vulgate le porte, le canon ne lui donne aucun créneau — son ch. 14 s'ouvre déjà sur
   // « Daniel mangeoit à la table du roi ».
 
-  // 1 M 1,65-67 (le refus de manger des viandes impures, et la colère qui s'ensuit) et
-  // 13,54 (Simon voyant que Jean son fils étoit un homme-de-guerre) : la Vulgate les porte,
-  // le grec que suit le canon ne les a pas. Vérifié verset par verset contre le référent.
-  '1MA': new Set(['1.65', '1.66', '1.67', '13.54']),
-  // 2 M 2,33 clôt la préface (« Nous commencerons donc ici notre narration ») et 15,40 la
-  // comparaison finale du vin et de l'eau. La Vulgate les porte, le grec ne les a pas.
-  '2MA': new Set(['2.33', '15.40']),
 }
 
 // ── L'ÉDITION COUPE LÀ OÙ LE CANON NE COUPE PAS : créneau PARTAGÉ, jamais surnuméraire ──

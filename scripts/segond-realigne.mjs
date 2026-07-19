@@ -32,6 +32,10 @@ const PLANS = {
     if (v.ch_orig === 6) return `DAN.6.${v.v_orig + 1}`
     return `DAN.${v.ch_orig}.${v.v_orig}`
   },
+  // ZACHARIE. Le canon clôt son chapitre 1 quatre versets plus loin que la source, qui
+  // ne les a pas : tout le chapitre 2 est donc décalé.
+  //   S 2,1 « Je levai les yeux… un homme tenant un cordeau » = canon 2,5
+  ZEC: v => (v.ch_orig === 2 ? `ZEC.2.${v.v_orig + 4}` : `ZEC.${v.ch_orig}.${v.v_orig}`),
   // OSÉE. Le canon ouvre son chapitre 14 sur « Samarie sera punie », que la source n'a pas :
   // tout le chapitre est donc décalé d'un cran.
   //   S 14,1 « Israël, reviens à l'Éternel » = canon 14,2
