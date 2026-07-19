@@ -27,6 +27,14 @@ if (!CODE || !PREFIXE || !LOTS.length){ console.error('usage : <CODE> <prefixe> 
 // révèle la coquille — et une clé de page les rattraperait tous les deux.
 // Clé : « chapitre.numéro imprimé » → { debut, v }.
 const COQUILLES = {
+  '1MA': [
+    // 1 M 7,26 imprimé « 29 » : la page 333 donne la suite 25, 29, 27, 28, 29. Le premier
+    // « 29 » est le 26, et le recollage l'avait soudé au vrai 29, huit lignes plus bas.
+    // Le référent tranche : son 7,26 porte « Alors le roi envoya Nicanor ».
+    { ch: 7, imprime: 29, debut: 'Alors le roi envoya Nicanor', v: 26 },
+  ],
+  // Ha 1,6 est imprimé « 7 » : le transcripteur l'a rétabli de lui-même et signalé, et la
+  // fusion referme à 56/56. Rien à déclarer ici — une règle sans objet serait du bruit.
   DAN: [
     // Dn 5,27 imprimé « 17 », entre le 26 et le 28 : le vrai 17 est sur la même page, et le
     // recollage avait soudé les deux. Le référent tranche — THECEL est bien le v. 27.
@@ -194,7 +202,7 @@ for (const v of versets)
 // Soudures vérifiées à la main, que le lexique ne connaît pas. On ne soude JAMAIS sur la
 // seule vraisemblance : chaque entrée a été lue sur l'image, et le mot obtenu vérifié dans
 // la phrase. La liste reste courte à dessein — elle est l'exception, pas la commodité.
-const SOUDURES = new Set(['universelle', 'nabajoth', 'parceque', 'appellée', 'méchans', 'magnificence', 'notre'])
+const SOUDURES = new Set(['universelle', 'nabajoth', 'parceque', 'appellée', 'méchans', 'magnificence', 'notre', 'parcequ'])
 
 // Une balise d'italique n'enveloppant QUE de la ponctuation n'a pas de sens : l'italique
 // marque les mots ajoutés par le traducteur, jamais les signes. Elle empêche en outre la
@@ -207,6 +215,19 @@ for (const v of versets){
   if (n !== v.texte){ italPonct++; v.texte = n }
 }
 if (italPonct) console.log(`  italiques n’enveloppant qu’une ponctuation, retirées : ${italPonct}`)
+
+// Une césure peut tomber ENTRE DEUX BALISES d'italique — « <i>no-</i> <i>tre</i> » —, le
+// transcripteur ayant balisé chaque fragment de ligne séparément. La réparation ci-dessous
+// ne voyait alors rien, tandis que le contrôle de l'audit, qui retire les balises avant de
+// tester, la signalait : d'où deux césures qui revenaient à chaque rechargement sans qu'on
+// comprenne pourquoi. On referme d'abord ces coupures-là, en gardant l'italique.
+let cesuresBalises = 0
+for (const v of versets){
+  const n = v.texte.replace(/<i>([A-Za-zÀ-ÿ]+)-<\/i>\s*<i>([a-zà-ÿ]{2,})<\/i>/g,
+    (m, a, b) => (lexFr.has(nfd(a+b)) || SOUDURES.has((a+b).toLowerCase())) ? `<i>${a}${b}</i>` : m)
+  if (n !== v.texte){ cesuresBalises++; v.texte = n }
+}
+if (cesuresBalises) console.log(`  césures recollées à travers des balises d’italique : ${cesuresBalises}`)
 
 let cesures = 0; const cesuresDouteuses = []
 for (const v of versets){

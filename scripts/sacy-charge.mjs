@@ -57,6 +57,14 @@ const CAPITALES = {
   DAN: [
     { ch: 3, v: 98, de: 'Le ROI Nabuchodonosor', a: 'Le roi Nabuchodonosor' },
   ],
+  HAG: [
+    { ch: 2, v: 8, de: 'ET LE DESIRE’ DE TOUTES LES NATIONS VIENDRA', a: 'et le desiré de toutes les nations viendra' },
+  ],
+  ZEC: [
+    { ch: 3, v: 8, de: 'JE M’EN VAIS FAIRE VENIR L’ORIENT, QUI EST MON SERVITEUR', a: 'je m’en vais faire venir l’Orient, qui est mon serviteur' },
+    { ch: 6, v: 12, de: 'VOILA L’HOMME QUI A POUR NOM L’ORIENT', a: 'voilà l’homme qui a pour nom l’Orient' },
+    { ch: 9, v: 9, de: 'VOICI VOTRE ROI', a: 'voici votre roi' },
+  ],
   MIC: [
     { ch: 5, v: 2, de: 'Et VOUS, BETHLEHEM', a: 'Et vous, Bethlehem' },
   ],
@@ -473,6 +481,38 @@ MAP.HOS = v => {
   return `HOS.${v.ch}.${v.v}`
 }
 
+// NAM : la Vulgate garde au chapitre 1 le verset que le canon ouvre au chapitre 2.
+//   Sacy 1,15 → canon 2,1  (« Je vois les piés de celui qui apporte la bonne nouvelle »)
+//   Sacy 2,v  → canon 2,v+1  (contrôle : Sacy 2,13 = Crampon 2,14)
+MAP.NAM = v => {
+  if (v.ch === 1) return v.v <= 14 ? `NAM.1.${v.v}` : 'NAM.2.1'
+  if (v.ch === 2) return `NAM.2.${v.v + 1}`
+  return `NAM.${v.ch}.${v.v}`
+}
+
+// HAG : c'est l'inverse — la Vulgate ouvre son chapitre 2 sur le verset que le canon clôt
+// au chapitre 1.
+//   Sacy 2,1   → canon 1,15 (la date : « le vingt-quatriéme jour du sixiéme mois »)
+//   Sacy 2,v≥2 → canon 2,v-1 (contrôle : Sacy 2,24 = Crampon 2,23, dernier du livre)
+MAP.HAG = v => {
+  if (v.ch === 2) return v.v === 1 ? 'HAG.1.15' : `HAG.2.${v.v - 1}`
+  return `HAG.${v.ch}.${v.v}`
+}
+
+// ZEC : la Vulgate clôt son chapitre 1 quatre versets plus loin que l'hébreu.
+//   Sacy 1,18-21 → canon 2,1-4  ·  Sacy 2,v → canon 2,v+4
+// Les créneaux 4,15 et 4,16 du canon restent découverts : ils sont VIDES chez le référent.
+MAP.ZEC = v => {
+  if (v.ch === 1) return v.v <= 17 ? `ZEC.1.${v.v}` : `ZEC.2.${v.v - 17}`
+  if (v.ch === 2) return `ZEC.2.${v.v + 4}`
+  return `ZEC.${v.ch}.${v.v}`
+}
+
+// MAL : la Vulgate coupe en quatre chapitres ce que le canon tient en trois.
+//   Sacy 4,1-6 → canon 3,19-24  (« Car il viendra un jour semblable à une fournaise »)
+// Contrôle arithmétique : Sacy 14+17+18+6 = canon 14+17+24 = 55.
+MAP.MAL = v => (v.ch === 4 ? `MAL.3.${v.v + 18}` : `MAL.${v.ch}.${v.v}`)
+
 // JOL : la Vulgate compte trois chapitres là où le canon en compte quatre — elle range dans
 // son chapitre 2 ce que le canon met à part en chapitre 3.
 //   Sacy 2,v≤27  → canon 2,v
@@ -593,7 +633,11 @@ const SURNUMERAIRES = {
   // Dn 13,65 : « le roi Astyagès ayant été joint à ses peres, Cyrus de Perse lui succeda ».
   // La Vulgate le porte, le canon ne lui donne aucun créneau — son ch. 14 s'ouvre déjà sur
   // « Daniel mangeoit à la table du roi ».
-  DAN: new Set(['13.65']),   // « Copie de la lettre que Jeremie envoya… », en tête de Ba 6
+  DAN: new Set(['13.65']),
+  // 1 M 1,65-67 (le refus de manger des viandes impures, et la colère qui s'ensuit) et
+  // 13,54 (Simon voyant que Jean son fils étoit un homme-de-guerre) : la Vulgate les porte,
+  // le grec que suit le canon ne les a pas. Vérifié verset par verset contre le référent.
+  '1MA': new Set(['1.65', '1.66', '1.67', '13.54']),   // « Copie de la lettre que Jeremie envoya… », en tête de Ba 6
 }
 
 // ── L'ÉDITION COUPE LÀ OÙ LE CANON NE COUPE PAS : créneau PARTAGÉ, jamais surnuméraire ──
