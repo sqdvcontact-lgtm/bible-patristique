@@ -83,6 +83,38 @@ const COQUILLES = {
     { ch: 10, imprime: 9,  debut: 'Le Seigneur a détruit les terres', v: 19 },
   ],
 }
+// ── SECTIONS « SELON LES HEBREUX » (psautier) ──────────────────────────────────────────
+// Deux psaumes de la Vulgate réunissent deux psaumes de l'hébreu, et l'édition de 1730 le
+// signale par une rubrique en italique au milieu du psaume — « Pseaume X. selon les
+// Hebreux. » — APRÈS LAQUELLE LA NUMÉROTATION IMPRIMÉE RECOMMENCE À 1.
+//
+// C'est un piège redoutable pour le recollage : les versets 1 à 18 de la seconde partie
+// portent les mêmes numéros que ceux de la première, et la fusion les a soudés deux à deux,
+// bout à bout. Le Ps 9,1 portait « Je vous louerai, Seigneur » SUIVI de « Pourquoi,
+// Seigneur, vous êtes-vous retiré loin » — dix-huit versets corrompus en silence. Le
+// contrôle des doublons ne pouvait rien voir : les deux moitiés sont sur des pages
+// différentes, et il ne regarde que la même page.
+//
+// On donne donc à la seconde partie son rang dans le canon (`decalage`) TOUT EN CONSERVANT
+// le numéro que l'édition imprime (`imprime`), qui part dans `v_imprime` et deviendra la
+// numérotation d'origine. La colonne des numéros dira donc « 9, 1 » deux fois dans le même
+// psaume : c'est la vérité de l'édition.
+const SECTIONS = {
+  PSA: [
+    // Ps 9 de la Vulgate = Ps 9 + Ps 10 de l'hébreu. Transcrit 1-18 → canon 22-39.
+    { page: 675, ch: 9,   depuis: 1, jusqua: 18, decalage: 21, imprime: 0,
+      rubrique: 'Pseaume X. selon les Hebreux.' },
+    // Ps 113 = Ps 114 + Ps 115 de l'hébreu. Le transcripteur avait DÉJÀ renuméroté en
+    // continu (9-26) pour éviter la collision : le décalage au canon est donc nul, et
+    // c'est le numéro IMPRIMÉ qu'il faut rétablir (1-18).
+    { page: 752, ch: 113, depuis: 9, jusqua: 26, decalage: 0,  imprime: -8,
+      rubrique: 'Pseaume CXV. selon les Hebreux.' },
+  ],
+}
+const sections = SECTIONS[CODE] || []
+const rubriques = new Map()      // clé du premier verset de la section → rubrique
+let sectionsVues = 0
+
 const coquilles = COQUILLES[CODE] || []
 const coquillesVues = new Set()
 const sansApos = s => (s || '').replace(/['’]/g, '’')
@@ -100,6 +132,17 @@ for (const L of LOTS){
       const cq = coquilles.find(c => c.ch === v.ch && c.imprime === v.v
         && sansApos(v.texte).replace(/<\/?i>/g, '').trimStart().startsWith(sansApos(c.debut)))
       if (cq){ coquillesVues.add(`${cq.ch}.${cq.imprime}`); v.v = cq.v }
+      // Section « selon les Hebreux » : on décale pour le canon, on garde l'imprimé.
+      const sec = sections.find(s => s.page === p.pageImp && s.ch === v.ch
+        && ((v.v === 0) || (v.v >= s.depuis && v.v <= s.jusqua)))
+      if (sec){
+        // La rubrique elle-même est transcrite en suscription (v. 0) : elle n'est pas un
+        // verset, et elle entrerait en collision avec la vraie suscription du psaume.
+        if (v.v === 0){ rubriques.set(`${sec.ch}.${sec.depuis + sec.decalage}`, sec.rubrique); continue }
+        v.v_imprime = v.v + sec.imprime
+        v.v = v.v + sec.decalage
+        sectionsVues++
+      }
       const k = v.ch+'.'+v.v
       // Depuis la consigne « tout texte vu doit figurer dans un verset », les transcripteurs
       // marquent « [suite] » le second fragment d'un verset coupé entre deux pages. C'est une
@@ -124,6 +167,7 @@ for (const L of LOTS){
         page: p.pageImp, texte,
         note: v.note_edition || v.argument || null,
         suscription: v.est_suscription === true,
+        v_imprime: v.v_imprime,
       })
     }
 }
@@ -172,8 +216,12 @@ const versets = [...frags].map(([k,parts])=>{
   const [ch,v] = k.split('.').map(Number)
   const note = parts.map(p=>p.note).filter(Boolean).join(' ') || null
   const susc = parts.some(p=>p.suscription)
+  const imp = parts.find(p => p.v_imprime !== undefined)?.v_imprime
+  const rub = rubriques.get(k)
   return { ch, v, texte: normLettrine(recoller(parts.filter(p=>p.texte))),
-    ...(note ? { note } : {}), ...(susc ? { est_suscription: true } : {}) }
+    ...(imp !== undefined ? { v_imprime: imp } : {}),
+    ...(note || rub ? { note: [rub && `L’édition imprime ici la rubrique « ${rub} » et RECOMMENCE la numérotation à 1 : ce psaume de la Vulgate en réunit deux de l’hébreu. Le numéro d’origine conservé est celui que l’édition imprime.`, note].filter(Boolean).join(' ') } : {}),
+    ...(susc ? { est_suscription: true } : {}) }
 }).sort((a,b)=>a.ch-b.ch || a.v-b.v)
 
 // ── césures de fin de ligne restées ouvertes (« par- tage », « con- cevrez ») ──
