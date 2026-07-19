@@ -529,6 +529,16 @@ MAP['2MA'] = v => {
 // ⚠️ C'est en établissant cette table qu'on a découvert que le RÉFÉRENT lui-même était
 // décalé dans ce chapitre — voir scripts/crampon-marc9.mjs. La Segond a tranché : son 9,1
 // porte bien « quelques-uns de ceux qui sont ici », son 9,50 le sel.
+// JEAN. La Vulgate coupe en deux le v. 51 du chapitre 6 : « Je suis le pain vivant, qui suis
+// descendu du ciel. » d'une part, « Si quelqu'un mange de ce pain, il vivra éternellement… »
+// de l'autre. Le référent, comme les éditions modernes, n'en fait qu'un. Les deux versets de
+// Sacy reçoivent donc le même créneau, et tout le reste du chapitre glisse d'un cran —
+// ce qui explique les 72 versets de Sacy pour 71 créneaux.
+MAP.JHN = v => (v.ch === 6 && v.v >= 52 ? `JHN.6.${v.v - 1}` : `JHN.${v.ch}.${v.v}`)
+// ACTES. La scission d'Ac 7,55 rend deux créneaux là où l'édition n'a qu'un verset : tout ce
+// qui suit dans le chapitre doit donc AVANCER d'un cran. Une scission sans ce décalage laisse
+// le dernier créneau vide — c'est ce qui est arrivé, et le contrôle de couverture l'a montré.
+MAP.ACT = v => (v.ch === 7 && v.v >= 56 ? `ACT.7.${v.v + 1}` : `ACT.${v.ch}.${v.v}`)
 MAP.MRK = v => {
   if (v.ch === 8 && v.v === 39) return 'MRK.9.1'
   if (v.ch === 9) return `MRK.9.${v.v + 1}`
@@ -671,6 +681,22 @@ const SCISSIONS = {
     // Ps 121,2 tient les v. 1 et 2. NOTER que l'édition numérote ici sa SUSCRIPTION « 1 » :
     // son corps court de 2 à 9, et c'est pourquoi ce psaume paraissait manquer d'un verset.
     { ch: 121, v: 2, coupes: ['Nos piés se sont autrefois arrêtés'], canons: ['PSA.121.1', 'PSA.121.2'] },
+  ],
+  ACT: [
+    // Ac 7,55 tient les v. 55 et 56 : la vision d'Étienne et la parole qu'il en tire. C'est
+    // cette soudure qui décalait d'un cran toute la fin du chapitre — Sacy s'arrêtant à 59
+    // là où le canon compte 60.
+    { ch: 7,  v: 55, coupes: ['Je voi les cieux ouverts'], canons: ['ACT.7.55', 'ACT.7.56'] },
+    // Ac 10,48 tient les v. 48 et 49. Le référent fait DE MÊME — son créneau 49 était vide —
+    // et a donc été scindé au même endroit.
+    { ch: 10, v: 48, coupes: ['Après cela ils le prierent'], canons: ['ACT.10.48', 'ACT.10.49'] },
+  ],
+  JHN: [
+    // Jn 11,56 tient les v. 56 et 57 du canon : l'édition range l'ordre des pontifes à la
+    // suite de la question posée dans le temple. Crampon fait DE MÊME — son chapitre 11
+    // s'arrête à 56 —, si bien que le créneau 57 du canon restait vide chez le référent aussi.
+    // Les deux ont donc été scindés au même endroit, pour que la colonne n'ait pas de trou.
+    { ch: 11, v: 56, coupes: ['Car les princes des prêtres'], canons: ['JHN.11.56', 'JHN.11.57'] },
   ],
   NEH: [
     // Sacy 3,30 tient les v. 30 et 31 du canon ; la césure est à Melchias l'orfèvre.

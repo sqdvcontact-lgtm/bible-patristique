@@ -50,6 +50,16 @@ const COQUILLES = {
     // passe ici, où elle laisse une trace, et non en amont où elle serait muette.
     { ch: 10, imprime: 10, debut: 'Il leur répondit : Je voyois satan', v: 18 },
   ],
+  ACT: [
+    // Trois doublons, tous vérifiés par agrandissement du fac-similé par le transcripteur.
+    // Noter que le numéro fautif n'est pas toujours le PREMIER des deux : en Ac 3 c'est le
+    // premier « 15 » qui vaut 14, en Ac 4 et 5 c'est le second. Une règle mécanique du genre
+    // « le premier doublon est le fautif » se serait trompée deux fois sur trois ; seul le
+    // contenu, comparé au référent, tranche.
+    { ch: 3, imprime: 15, debut: 'Vous avez renoncé le Saint & le Juste', v: 14 },
+    { ch: 4, imprime: 34, debut: 'qu’ils mettoient aux piés des apôtres', v: 35 },
+    { ch: 5, imprime: 37, debut: 'Voici donc le conseil que je vous donne', v: 38 },
+  ],
   JHN: [
     // Jn 4,12 imprimé « 22 », entre le 11 et le 13 ; le vrai 22 est deux pages plus loin.
     { ch: 4, imprime: 22, debut: 'Etes-vous plus grand que notre pere Jacob', v: 12 },
