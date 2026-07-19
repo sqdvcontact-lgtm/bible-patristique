@@ -272,6 +272,28 @@ MAP.JOB = v => {
   return `JOB.${v.ch}.${v.v}`
 }
 
+// ECC : la Vulgate ouvre son ch. 7 sur le verset que l'hébreu clôt le ch. 6.
+//   Sacy 7,1 → canon 6,12 (« Qu'est-il necessaire à un homme de rechercher… »)
+//   Sacy 7,v≥2 → canon 7,v-1
+MAP.ECC = v => {
+  if (v.ch === 7) return v.v === 1 ? 'ECC.6.12' : `ECC.7.${v.v - 1}`
+  return `ECC.${v.ch}.${v.v}`
+}
+
+// SNG : l'édition ne compte PAS le titre « Cantique des cantiques » comme verset, là où le
+// canon en fait le v.1 du ch. 1 — d'où un décalage de +1 sur tout le premier chapitre.
+// Deux frontières glissent ensuite. Contrôle arithmétique : 17 + 12 + 13 = 16 + 12 + 14 = 42.
+//   Sacy 1,v    → canon 1,v+1
+//   Sacy 5,17   → canon 6,1     ·  Sacy 6,v≤11 → canon 6,v+1
+//   Sacy 6,12   → canon 7,1     ·  Sacy 7,v    → canon 7,v+1
+MAP.SNG = v => {
+  if (v.ch === 1) return `SNG.1.${v.v + 1}`
+  if (v.ch === 5) return v.v <= 16 ? `SNG.5.${v.v}` : 'SNG.6.1'
+  if (v.ch === 6) return v.v <= 11 ? `SNG.6.${v.v + 1}` : 'SNG.7.1'
+  if (v.ch === 7) return `SNG.7.${v.v + 1}`
+  return `SNG.${v.ch}.${v.v}`
+}
+
 const DOUTEUX = {}
 
 const COUVRE_DEUX = {
