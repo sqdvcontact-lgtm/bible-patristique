@@ -820,6 +820,19 @@ const canon = new Set((await all(sb.from('versets_canon').select('id').like('id'
 const versCanon = MAP[CODE] || (v => `${CODE}.${v.ch}.${v.v}`)
 const deux = COUVRE_DEUX[CODE] || {}
 const scissions = new Map((SCISSIONS[CODE] || []).map(s => [`${s.ch}.${s.v}`, s]))
+// Un livre peut apporter ses propres scissions par fichier, quand elles sont trop nombreuses
+// pour une table écrite à la main : le psautier en compte 115, relevées par lecture en regard
+// et validées une à une par psautier-integre.mjs (ancre présente, unique, créneaux contigus).
+// Les déclarations du fichier NE PEUVENT PAS écraser celles du source, qui restent la règle.
+{
+  const f = D + `${PREFIXE}${CODE}_scissions.json`
+  if (existsSync(f)){
+    let n = 0
+    for (const s of JSON.parse(readFileSync(f, 'utf8')))
+      if (!scissions.has(`${s.ch}.${s.v}`)){ scissions.set(`${s.ch}.${s.v}`, s); n++ }
+    console.log(`  scissions apportées par ${PREFIXE}${CODE}_scissions.json : ${n}`)
+  }
+}
 
 // ── plan d'alignement explicite (livres à recension divergente : Tobie, Judith) ──
 // Quand il existe, il fait autorité sur la table MAP : il porte, verset par verset, soit
