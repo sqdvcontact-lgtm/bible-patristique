@@ -21,6 +21,23 @@ type Point = { livre: string | null; reference: string | null; type: string | nu
 type CanonRow = { id: string; livre: string; ch_canon: number; v_canon: number; est_suscription: boolean };
 type V2Row = { id: string; canon_id: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null };
 
+// ── Passages que toutes les traditions ne reçoivent pas ────────────────────────────────
+// Une case vide n'a pas toujours le même sens. Le plus souvent elle signale un travail en
+// cours ou un défaut de source ; mais pour les livres et passages deutérocanoniques, elle
+// dit quelque chose de tout autre : cette traduction ne les compte PAS parmi les Écritures.
+// Le lecteur doit pouvoir faire la différence, sans quoi il conclut à un oubli.
+// Ces passages nous sont parvenus en grec, non en hébreu ; les Bibles catholique et
+// orthodoxe les reçoivent, la Bible protestante et la Bible hébraïque non.
+const LIVRES_DEUTERO = new Set(["TOB", "JDT", "WIS", "SIR", "BAR", "1MA", "2MA", "ESG", "LJE", "SUS", "BEL", "S3Y"]);
+function deuterocanonique(canonId: string): boolean {
+  const [livre, ch, v] = canonId.split(".");
+  if (LIVRES_DEUTERO.has(livre)) return true;
+  // Daniel : le cantique des trois enfants, Suzanne et Bel — que le canon range dans le
+  // livre lui-même, aux chapitres 3, 13 et 14.
+  if (livre === "DAN") return (+ch === 3 && +v >= 24 && +v <= 90) || +ch === 13 || +ch === 14;
+  return false;
+}
+
 // Un surnuméraire regroupé : le même verset hors ossature, tel que plusieurs éditions le
 // portent au même numéro d'origine. `par` associe chaque traduction à sa version du verset ;
 // `ancre` est le dernier créneau du canon rencontré, qui fixe la place de la ligne.
@@ -504,7 +521,14 @@ export default function PolyglottePage() {
                                 ? () => { setEnEdition(cs[0].id); setBrouillon(cs[0].texte ?? ""); setEnregistre("idle"); }
                                 : undefined}
                               style={{ padding: "6px 10px", lineHeight: 1.4, color: sensible ? "#7a1d16" : "#2a2620" }}>
-                              {cs.length === 0 ? <span style={{ color: "#d3ccbf" }}>—</span> : cs.map((c, k) => (
+                              {cs.length === 0 ? (
+                                deuterocanonique(r.id)
+                                  ? <span title={`Ce passage nous est parvenu en grec, non en hébreu. Les Bibles catholique et orthodoxe le reçoivent ; la Bible protestante et la Bible hébraïque ne le comptent pas parmi les livres canoniques. La case est donc vide pour cette traduction, et non par oubli.`}
+                                          style={{ color: "#9a8fb5", fontStyle: "italic", fontSize: 12, cursor: "help" }}>
+                                      passage non reçu par cette tradition
+                                    </span>
+                                  : <span style={{ color: "#d3ccbf" }}>—</span>
+                              ) : cs.map((c, k) => (
                                 enEdition === c.id ? (
                                   <span key={k} style={{ display: "block" }}>
                                     <textarea autoFocus value={brouillon} onChange={e => setBrouillon(e.target.value)}

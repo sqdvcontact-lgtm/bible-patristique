@@ -470,6 +470,10 @@ MAP.ISA = v => {
 //                 Sacy numérote 14,1 lui aussi. Le chapitre 14 s'aligne donc directement.
 // Le créneau 14,43 du canon reste découvert : il est VIDE chez le référent.
 MAP.DAN = v => {
+  // Sacy 13,65 (« le roi Astyagès ayant été joint à ses peres, Cyrus de Perse lui succeda »)
+  // partage le créneau 13,64 avec le verset précédent : le canon les tient ensemble.
+  // Ce n’est PAS un surnuméraire — le créneau existe, il est seulement partagé.
+  if (v.ch === 13 && v.v === 65) return 'DAN.13.64'
   if (v.ch === 5 && v.v === 31) return 'DAN.6.1'
   if (v.ch === 6) return `DAN.6.${v.v + 1}`
   return `DAN.${v.ch}.${v.v}`
@@ -608,6 +612,12 @@ const SCISSIONS = {
     { ch: 5, v: 11, coupes: ['j’arracherai d’entre vos mains'], canons: ['MIC.5.10', 'MIC.5.11'] },
   ],
   EZK: [
+    // Sacy 2,1 commence par la FIN du verset 1,28 du canon — « Telle fut cette image de la
+    // gloire du Seigneur… je tombai le visage en terre » — avant d'enchaîner sur le 2,1.
+    // Le référent le confirme : son 1,28 va jusqu'à « j'entendis la voix de quelqu'un qui
+    // parlait », et son 2,1 commence à « Fils de l'homme, tiens-toi sur tes pieds ».
+    // La première part rejoint donc Sacy 1,28 dans le créneau 1,28, qu'ils partagent.
+    { ch: 2, v: 1, coupes: ['& qui me dit'], canons: ['EZK.1.28', 'EZK.2.1'] },
     // Sacy 2,9 réunit la main tendue et le livre déroulé, que le canon compte séparément.
     // Le référent tranche : son 2,9 s'arrête à « elle tenait un livre roulé », son 2,10
     // ouvre sur « Il le déroula devant moi ».
@@ -641,7 +651,7 @@ const SURNUMERAIRES = {
   // Dn 13,65 : « le roi Astyagès ayant été joint à ses peres, Cyrus de Perse lui succeda ».
   // La Vulgate le porte, le canon ne lui donne aucun créneau — son ch. 14 s'ouvre déjà sur
   // « Daniel mangeoit à la table du roi ».
-  DAN: new Set(['13.65']),
+
   // 1 M 1,65-67 (le refus de manger des viandes impures, et la colère qui s'ensuit) et
   // 13,54 (Simon voyant que Jean son fils étoit un homme-de-guerre) : la Vulgate les porte,
   // le grec que suit le canon ne les a pas. Vérifié verset par verset contre le référent.
@@ -814,8 +824,11 @@ for (const [, groupe] of parSlot){
   groupe.sort((a, b) => a.ch_orig - b.ch_orig || a.v_orig - b.v_orig)
   groupe.forEach((l, i) => {
     l.ordre_slot = groupe.length > 1 ? i + 1 : null
+    // Ne PAS écraser une note déjà écrite : une scission ou un avis de l'édition portent
+    // une explication plus précise que la formule générale, et l'écrasement les perdait.
     if (groupe.length > 1)
-      l.notes = `Verset scindé par l’édition de 1730 : partie ${i + 1} sur ${groupe.length} du verset du canon.`
+      l.notes = [l.notes, `L’édition de 1730 découpe autrement : ${groupe.map(x => `${x.ch_orig}, ${x.v_orig}`).join(' et ')} tiennent ensemble le verset ${l.canon_id.split('.').slice(1).join(', ')} du canon — partie ${i + 1} sur ${groupe.length}. La numérotation d’origine est conservée pour chacune.`]
+        .filter(Boolean).join(' ')
     finales.push(l)
   })
 }
