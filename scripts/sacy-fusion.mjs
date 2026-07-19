@@ -16,6 +16,30 @@ if (!CODE || !PREFIXE || !LOTS.length){ console.error('usage : <CODE> <prefixe> 
 // ── collecte ──
 // Les lots peuvent couvrir plusieurs livres : chaque verset porte alors un champ « livre ».
 // On ne retient que ceux du livre demandé. Un lot sans champ « livre » est réputé mono-livre.
+// ── COQUILLES DE NUMÉROTATION DE L'IMPRIMEUR (§23.20) ────────────────────────────────────
+// À ne PAS confondre avec une versification propre à l'édition, qui se mappe et ne se corrige
+// jamais. Une coquille se reconnaît à trois signes réunis : le numéro imprimé rompt la suite,
+// il fait DOUBLON avec un numéro déjà employé dans le chapitre, et le numéro manquant est
+// exactement celui qu'exige la place du verset. Les trois se vérifient sur l'image ; le
+// numéro correct n'est jamais deviné, il est arithmétiquement forcé.
+// Le verset visé est désigné par le DÉBUT DE SON TEXTE, jamais par sa page : le numéro
+// fautif coexiste presque toujours avec le vrai numéro sur la même page — c'est même ce qui
+// révèle la coquille — et une clé de page les rattraperait tous les deux.
+// Clé : « chapitre.numéro imprimé » → { debut, v }.
+const COQUILLES = {
+  SIR: [
+    // Si 1,12 imprimé « 22 » : suit le v. 11 ; le vrai 22 est en colonne de droite.
+    { ch: 1,  imprime: 22, debut: 'La crainte du Seigneur réjouira', v: 12 },
+    // Si 6,10 imprimé « 19 » : suit le v. 9 ; le vrai 19 est à la page suivante.
+    { ch: 6,  imprime: 19, debut: 'Tel est ami qui ne l’est que pour la table', v: 10 },
+    // Si 10,19 imprimé « 9 », le 1 n'ayant pas mordu ; le vrai 9 est en colonne de gauche.
+    { ch: 10, imprime: 9,  debut: 'Le Seigneur a détruit les terres', v: 19 },
+  ],
+}
+const coquilles = COQUILLES[CODE] || []
+const coquillesVues = new Set()
+const sansApos = s => (s || '').replace(/['’]/g, '’')
+
 const frags = new Map(); const absents = []; let ecartes = 0
 for (const L of LOTS){
   // Un livre peut s'étendre sur deux trains, donc sur deux préfixes de lots (Esdras est
@@ -26,6 +50,9 @@ for (const L of LOTS){
   for (const p of JSON.parse(readFileSync(f,'utf8')).pages)
     for (const v of p.versets||[]){
       if (v.livre && v.livre !== CODE){ ecartes++; continue }
+      const cq = coquilles.find(c => c.ch === v.ch && c.imprime === v.v
+        && sansApos(v.texte).replace(/<\/?i>/g, '').trimStart().startsWith(sansApos(c.debut)))
+      if (cq){ coquillesVues.add(`${cq.ch}.${cq.imprime}`); v.v = cq.v }
       const k = v.ch+'.'+v.v
       // Depuis la consigne « tout texte vu doit figurer dans un verset », les transcripteurs
       // marquent « [suite] » le second fragment d'un verset coupé entre deux pages. C'est une
@@ -120,12 +147,17 @@ for (const v of versets)
   v.texte = v.texte.replace(new RegExp(`([a-zà-ÿ])-\\s+(${CLITIQUES})(?![a-zà-ÿ])`, 'gi'),
     (m,a,b) => { traitsUnion++; return `${a}-${b}` })
 
+// Soudures vérifiées à la main, que le lexique ne connaît pas. On ne soude JAMAIS sur la
+// seule vraisemblance : chaque entrée a été lue sur l'image, et le mot obtenu vérifié dans
+// la phrase. La liste reste courte à dessein — elle est l'exception, pas la commodité.
+const SOUDURES = new Set(['universelle'])
+
 let cesures = 0; const cesuresDouteuses = []
 for (const v of versets){
   // Une seule lettre peut précéder le trait (« d’ê- tre ») : c'est le contrôle du lexique,
   // et non la longueur, qui empêche de souder à tort.
   v.texte = v.texte.replace(/([A-Za-zÀ-ÿ]+)-\s+([a-zà-ÿ]{2,})/g, (m,a,b)=>{
-    if (lexFr.has(nfd(a+b))){ cesures++; return a+b }
+    if (lexFr.has(nfd(a+b)) || SOUDURES.has((a+b).toLowerCase())){ cesures++; return a+b }
     cesuresDouteuses.push(`${CODE} ${v.ch},${v.v} : « ${a}- ${b} »`)
     return m
   })
@@ -188,6 +220,14 @@ for (const v of versets)
   }
 
 console.log(`\n${CODE} — FUSION`)
+if (coquilles.length){
+  const orphelines = coquilles.filter(c => !coquillesVues.has(`${c.ch}.${c.imprime}`))
+    .map(c => `${c.ch},${c.imprime}`)
+  console.log(`  coquilles de numérotation rétablies : ${coquillesVues.size} / ${coquilles.length}`)
+  // Une coquille déclarée qui ne rencontre plus rien signale que la transcription a changé
+  // sous elle — le rétablissement s'appliquerait alors peut-être au mauvais verset.
+  if (orphelines.length) console.log(`  ⚠ coquilles déclarées SANS EFFET (à revoir) : ${orphelines.join(' ')}`)
+}
 console.log('  versets : '+versets.length+' / '+canon.length+'  ('+Math.round(100*versets.length/canon.length)+'%)')
 console.log('  chapitres : '+parCh.size+' / '+Object.keys(MAXV).length)
 console.log('  italiques : '+versets.filter(v=>/<i>/.test(v.texte)).length+' versets')
