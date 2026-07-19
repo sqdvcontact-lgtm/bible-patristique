@@ -242,14 +242,22 @@ MAP['2CH'] = v => {
 //   Sacy 4,7-23  → canon 4,1-17
 //   Sacy 9,38    → canon 10,1     (« nous faisons une alliance » = Crampon 10,1)
 //   Sacy 10,v    → canon 10,v+1
-//   Sacy 12,6    → canon 12,6-7   (l'édition réunit deux listes de prêtres)
-//   Sacy 12,v≥7  → canon 12,v+1
+//   Sacy 7,44    → SURNUMÉRAIRE  (l'édition coupe « Cedmihel fils | d'Oduïa » en deux)
+//   Sacy 7,45-47 → canon 7,44-46 (décalage ouvert par cette coupe)
+//   Sacy 7,48    → canon 7,47-48 (SCINDÉ ; c'est ici que le décalage se referme)
+//   Sacy 12,33   → canon 12,33-34 (SCINDÉ)
+//   Sacy 12,v≥34 → canon 12,v+1
+// Le ch. 12 était auparavant décalé de +1 dès le v. 7, sur la foi d'une plage 12,6 → 12,6-7 :
+// c'était une erreur. Sacy 12,7 « Idaïa. C'étoient-là les principaux » répond au 12,7 du
+// référent, et 12,30 comme 12,32 s'y accordent aussi — la correspondance est directe
+// jusqu'au 12,33, seul verset réellement condensé.
 MAP.NEH = v => {
   if (v.ch === 3)  return v.v <= 30 ? `NEH.3.${v.v}` : 'NEH.3.32'
   if (v.ch === 4)  return v.v <= 6 ? `NEH.3.${v.v + 32}` : `NEH.4.${v.v - 6}`
+  if (v.ch === 7)  return v.v >= 45 && v.v <= 47 ? `NEH.7.${v.v - 1}` : `NEH.7.${v.v}`
   if (v.ch === 9)  return v.v === 38 ? 'NEH.10.1' : `NEH.9.${v.v}`
   if (v.ch === 10) return `NEH.10.${v.v + 1}`
-  if (v.ch === 12) return v.v <= 6 ? `NEH.12.${v.v}` : `NEH.12.${v.v + 1}`
+  if (v.ch === 12) return v.v <= 33 ? `NEH.12.${v.v}` : `NEH.12.${v.v + 1}`
   return `NEH.${v.ch}.${v.v}`
 }
 
@@ -304,8 +312,42 @@ const COUVRE_DEUX = {
   // Sacy 1 Par. 20,7 porte à lui seul les v. 7 et 8 du canon : « … Jonathan le tua. Ce
   // sont-là les enfans des geans qui se trouverent à Geth, & qui furent tués par David. »
   '1CH': { '20.7': '1CH.20.8' },
-  NEH: { '3.30': 'NEH.3.31', '12.6': 'NEH.12.7' },
   JOB: { '42.16': 'JOB.42.17' },
+}
+
+// ── SCISSIONS — quand l'édition condense deux versets du canon en un seul ──────────────
+// RÈGLE GÉNÉRALE. Une plage canon_id → canon_id_fin ne suffit pas : le second créneau
+// reste VIDE à l'écran, et toutes les traductions de la colonne se décalent d'un cran
+// jusqu'au point où l'édition se recolle. On COUPE donc le verset de l'édition en autant de
+// parts qu'il couvre de créneaux ; chaque part reçoit son propre canon_id, et TOUTES gardent
+// la numérotation d'origine (v_orig inchangé, distingué par v_orig_suffixe a/b/c).
+// Le lecteur voit ainsi « 30 » deux fois de suite dans la colonne Sacy, ce qui est la vérité
+// de l'édition, et les traductions restent alignées, ce qui est la vérité du canon.
+//
+// Le point de coupe est désigné PAR SON TEXTE, jamais par une position : il reste vérifiable
+// à l'œil nu, et une coupe devenue introuvable est signalée au lieu de glisser en silence.
+// Chaque coupe ci-dessous a été établie en confrontant le verset au référent.
+const SCISSIONS = {
+  NEH: [
+    // Sacy 3,30 tient les v. 30 et 31 du canon ; la césure est à Melchias l'orfèvre.
+    { ch: 3,  v: 30, coupes: ['Melchias fils de l’orfévre'], canons: ['NEH.3.30', 'NEH.3.31'] },
+    // Sacy 7,48 réunit deux versets de la liste des Nathinéens — c'est ce verset qui
+    // rattrape le décalage ouvert par le surnuméraire 7,44 (cf. SURNUMERAIRES).
+    { ch: 7,  v: 48, coupes: ['les enfans de Lebana'],       canons: ['NEH.7.47', 'NEH.7.48'] },
+    // Sacy 12,33 réunit les deux moitiés de la liste des princes de Juda.
+    { ch: 12, v: 33, coupes: ['Judas, Benjamin'],            canons: ['NEH.12.33', 'NEH.12.34'] },
+  ],
+}
+
+// ── SURNUMÉRAIRES déclarés — l'inverse de la scission ──────────────────────────────────
+// L'édition COUPE en deux ce que le canon tient en un seul verset. La première moitié garde
+// le créneau ; la seconde n'en a pas et devient surnuméraire (canon_id nul, affichée en
+// violet). On préserve ainsi la forme propre de l'édition sans décaler ce qui suit.
+const SURNUMERAIRES = {
+  // Sacy coupe la liste des lévites au milieu d'un nom : 7,43 s'arrête à « Cedmihel fils »
+  // et 7,44 reprend « d'Oduïa, au nombre de soixante & quatorze ». Le canon (comme toutes
+  // les traductions d'aujourd'hui) n'en fait qu'un seul verset, le 7,43.
+  NEH: new Set(['7.44']),
 }
 
 let versets = JSON.parse(readFileSync(D + `${PREFIXE}${CODE}_transcrit.json`, 'utf8'))
@@ -334,6 +376,7 @@ const typo = corrigerTypographie
 const canon = new Set((await all(sb.from('versets_canon').select('id').like('id', CODE + '.%').order('id'))).map(r => r.id))
 const versCanon = MAP[CODE] || (v => `${CODE}.${v.ch}.${v.v}`)
 const deux = COUVRE_DEUX[CODE] || {}
+const scissions = new Map((SCISSIONS[CODE] || []).map(s => [`${s.ch}.${s.v}`, s]))
 
 // ── plan d'alignement explicite (livres à recension divergente : Tobie, Judith) ──
 // Quand il existe, il fait autorité sur la table MAP : il porte, verset par verset, soit
@@ -358,10 +401,40 @@ for (const v of versets){
       alignement_verifie: true })
     continue
   }
+  // Surnuméraire déclaré : l'édition coupe là où le canon ne coupe pas. Pas de créneau.
+  if (SURNUMERAIRES[CODE]?.has(`${v.ch}.${v.v}`)){
+    lignes.push({ trad_id:'TR0001', livre:CODE, ch_orig:v.ch, v_orig:v.v, v_orig_suffixe:null,
+      texte: typo(v.texte), canon_id: null, canon_id_fin: null, est_suscription:false,
+      notes: 'Seconde moitié d’un verset que l’édition de 1730 coupe en deux et que le canon garde entier. La forme de l’édition est conservée ; le créneau du canon est porté par la moitié précédente.',
+      alignement_verifie: true })
+    continue
+  }
+  // Scission : un verset de l'édition, plusieurs créneaux du canon. Chaque part garde la
+  // numérotation d'origine et reçoit son propre créneau.
+  const sc = scissions.get(`${v.ch}.${v.v}`)
+  if (sc){
+    const parts = []
+    let reste = typo(v.texte), ok = true
+    for (const coupe of sc.coupes){
+      const i = reste.indexOf(coupe)
+      if (i < 0){ hors.push(`${v.ch},${v.v}→point de coupe introuvable : « ${coupe} »`); ok = false; break }
+      parts.push(reste.slice(0, i).trim()); reste = reste.slice(i)
+    }
+    if (!ok) continue
+    parts.push(reste.trim())
+    if (parts.length !== sc.canons.length){ hors.push(`${v.ch},${v.v}→${parts.length} parts pour ${sc.canons.length} créneaux`); continue }
+    const manquants = sc.canons.filter(c => !canon.has(c))
+    if (manquants.length){ hors.push(`${v.ch},${v.v}→créneau inconnu ${manquants.join(' ')}`); continue }
+    parts.forEach((t, i) => lignes.push({ trad_id:'TR0001', livre:CODE, ch_orig:v.ch, v_orig:v.v,
+      v_orig_suffixe: 'abcdefg'[i], texte: t, canon_id: sc.canons[i], canon_id_fin: null,
+      est_suscription:false, alignement_verifie: true,
+      notes: `L’édition de 1730 réunit en un seul verset, numéroté ${v.ch}, ${v.v}, ce que le canon compte en ${sc.canons.length} : partie ${i + 1} sur ${sc.canons.length}. La numérotation d’origine est conservée pour chaque part.` }))
+    continue
+  }
   const cid = versCanon(v)
   if (!canon.has(cid)){ hors.push(`${v.ch},${v.v}→${cid}`); continue }
   const fin = deux[`${v.ch}.${v.v}`] ?? null
-  lignes.push({ trad_id:'TR0001', livre:CODE, ch_orig:v.ch, v_orig:v.v,
+  lignes.push({ trad_id:'TR0001', livre:CODE, ch_orig:v.ch, v_orig:v.v, v_orig_suffixe:null,
     texte: typo(v.texte), canon_id: cid, canon_id_fin: fin, est_suscription:false,
     notes: v.note ? v.note : (fin ? 'Verset unique dans l’édition de 1730, couvrant plusieurs versets du canon.'
       : (DOUTEUX[CODE]?.has(v.ch) ? 'Correspondance au canon à vérifier : ce chapitre compte un verset de moins que la Vulgate, la fusion n’a pas été localisée.' : null)),
@@ -398,12 +471,15 @@ if (hors.length) console.log(`  ⚠ hors canon, écartés : ${hors.join(' ')}`)
 
 if (!DRY){
   // §23.10 — sauvegarde de l'état antérieur avant écriture
-  const avant = await all(sb.from('versets_v2').select('id,canon_id,texte').eq('trad_id','TR0001').like('canon_id', CODE+'.%'))
+  // Filtrer sur `livre`, et NON sur canon_id : les surnuméraires ont un canon_id nul, qu'un
+  // `like('canon_id', …)` laisserait échapper — ils survivraient à la suppression et
+  // s'ajouteraient aux nouveaux, en double.
+  const avant = await all(sb.from('versets_v2').select('id,canon_id,texte').eq('trad_id','TR0001').eq('livre', CODE))
   const f = D + `avant_${CODE}_${new Date().toISOString().slice(0,10)}.json`
   writeFileSync(f, JSON.stringify(avant, null, 1))
   console.log(`  état antérieur sauvegardé : ${avant.length} lignes → ${f.split('/').pop()}`)
 
-  await sb.from('versets_v2').delete().eq('trad_id','TR0001').like('canon_id', CODE+'.%')
+  await sb.from('versets_v2').delete().eq('trad_id','TR0001').eq('livre', CODE)
   let n = 0
   for (let i=0;i<finales.length;i+=500){
     const { error } = await sb.from('versets_v2').insert(finales.slice(i,i+500))
