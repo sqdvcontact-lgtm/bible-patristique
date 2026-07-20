@@ -1,4 +1,8 @@
-export type LivreBible = { code: string; nom: string; testament: 'AT' | 'NT'; nbVersets: number }
+// « AUTRES » : les écrits que le canon ne reçoit pas mais que la Polyglotte compare — ils
+// figurent désormais dans le MÊME volet de navigation que les deux Testaments, sur la page
+// Bible comme sur la Polyglotte. Les tenir à l'écart obligeait à deux navigations distinctes,
+// alors que le lecteur circule d'un ensemble à l'autre sans changer de geste.
+export type LivreBible = { code: string; nom: string; testament: 'AT' | 'NT' | 'AUTRES'; nbVersets: number }
 
 export const LIVRES: LivreBible[] = [
   { code: 'GEN', nom: 'Genèse',                   testament: 'AT', nbVersets: 1533 },
@@ -67,6 +71,22 @@ export const LIVRES: LivreBible[] = [
   { code: '3JN', nom: '3 Jean',                   testament: 'NT', nbVersets:   14 },
   { code: 'JUD', nom: 'Jude',                     testament: 'NT', nbVersets:   25 },
   { code: 'REV', nom: 'Apocalypse',               testament: 'NT', nbVersets:  404 },
+
+  // Écrits non canoniques. Reçus par aucune des traditions que nous publions, ils sont
+  // néanmoins comparés dans la Polyglotte : leur place est donc dans la navigation, à part
+  // et clairement nommée. Le nombre de versets est laissé à 0 tant qu'aucune édition n'est
+  // chargée — la navigation les grisera d'elle-même, comme tout livre sans texte.
+  { code: '1ES', nom: '1 Esdras (3 Esdras)',      testament: 'AUTRES', nbVersets: 0 },
+  { code: '2ES', nom: '2 Esdras (4 Esdras)',      testament: 'AUTRES', nbVersets: 0 },
+  { code: 'EZA', nom: "Apocalypse d'Esdras",      testament: 'AUTRES', nbVersets: 0 },
+  { code: '3MA', nom: '3 Maccabées',              testament: 'AUTRES', nbVersets: 0 },
+  { code: '4MA', nom: '4 Maccabées',              testament: 'AUTRES', nbVersets: 0 },
+  { code: 'MAN', nom: 'Prière de Manassé',        testament: 'AUTRES', nbVersets: 0 },
+  { code: 'PS2', nom: 'Psaume 151',               testament: 'AUTRES', nbVersets: 0 },
+  { code: 'PSS', nom: 'Psaumes de Salomon',       testament: 'AUTRES', nbVersets: 0 },
+  { code: 'ODA', nom: 'Odes',                     testament: 'AUTRES', nbVersets: 0 },
+  { code: 'ENO', nom: 'Hénoch',                   testament: 'AUTRES', nbVersets: 0 },
+  { code: 'JUB', nom: 'Jubilés',                  testament: 'AUTRES', nbVersets: 0 },
 ]
 
 export const ABREV_FR: Record<string, string> = {

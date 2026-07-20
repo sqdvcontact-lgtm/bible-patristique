@@ -14,6 +14,7 @@
 
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
+import NavLivres from "@/app/components/NavLivres";
 
 type Livre = { code: string; nom_fr: string; ordre: number };
 type Trad = { trad_id: string; nom: string; ordre: number | null };
@@ -132,6 +133,28 @@ export default function PolyglottePage() {
   const [brouillon, setBrouillon] = useState("");
   const [enregistre, setEnregistre] = useState<"idle" | "envoi" | "ok" | "erreur">("idle");
 
+  // LE LIVRE COMMANDE, L'ENSEMBLE SUIT. Les onglets ont disparu : on choisit un livre dans le
+  // sommaire, et l'ensemble à charger (AT / Psaumes / NT / non canoniques) s'en déduit. Le
+  // lecteur n'a plus à savoir dans quel tiroir ranger sa demande.
+  const ensembleDe = useCallback((code: string): Onglet => {
+    const o = livres.find(l => l.code === code)?.ordre ?? 0;
+    if (code === "PSA") return "PSA";
+    if (o > ORDRE_CANON_MAX) return "AUTRES";
+    return o >= ORDRE_NT ? "NT" : "AT";
+  }, [livres]);
+
+  const choisirLivre = useCallback((code: string) => {
+    setOnglet(ensembleDe(code));
+    setLivreChoisi(code);
+    setToutAfficher(false);
+  }, [ensembleDe]);
+
+  // Le volet de navigation attend le vocabulaire de la page Bible.
+  const livresNav = useMemo(() => livres.map(l => ({
+    code: l.code, nom: l.nom_fr,
+    testament: l.ordre > ORDRE_CANON_MAX ? "AUTRES" : l.ordre >= ORDRE_NT ? "NT" : "AT",
+  })), [livres]);
+
   const sens = useMemo(() => construireSensibilite(points), [points]);
   const ordreDe = useMemo(() => new Map(livres.map(l => [l.code, l.ordre])), [livres]);
 
@@ -191,11 +214,12 @@ export default function PolyglottePage() {
     return livres.filter(l => l.ordre < ORDRE_NT && l.code !== "PSA");
   }, [livres, onglet]);
 
-  // Un onglet ouvre son PREMIER livre ; « tout afficher » lève la restriction.
+  // Le livre est choisi dans le sommaire ; on ne lui en substitue un autre que si celui qui
+  // est retenu n'appartient pas à l'ensemble chargé — cas qui ne survient qu'au premier rendu.
   useEffect(() => {
+    if (livreChoisi && livresOnglet.some(l => l.code === livreChoisi)) return;
     setLivreChoisi(livresOnglet[0]?.code ?? null);
-    setToutAfficher(false);
-  }, [onglet, livresOnglet]);
+  }, [livresOnglet, livreChoisi]);
 
   // Livres réellement rendus (et chargés) : un seul, sauf « tout afficher »
   const livresAffiches = useMemo(
@@ -280,8 +304,9 @@ export default function PolyglottePage() {
       .map(c => ({ trad: c.nom, ed: livresEd[c.trad_id]?.[code] }))
       .filter((x): x is { trad: string; ed: { nom: string; abrege: string } } => Boolean(x.ed));
   const tmpl = `58px ${colonnes.map(() => "38px minmax(150px, 1fr)").join(" ")}`;
-  const HAUT_ENTETE = 34;   // hauteur de l'en-tête collant, sous lequel se cale le titre du livre
-  const HAUT_NAV = 8;       // léger décollement de la NavBar quand le tableau atteint le sommet
+  const HAUT_ENTETE = 34;   // hauteur de la ligne des traductions
+  const HAUT_TITRE  = 31;   // hauteur du bandeau portant le nom du livre
+  const HAUT_NAV    = 14;   // blanc entre la NavBar et le haut du tableau
 
   return (
     <div style={{ background: FOND, minHeight: "100vh" }}>
@@ -324,62 +349,63 @@ export default function PolyglottePage() {
         </p>
       </div>
 
-      <div className="poly-outil" style={{ maxWidth: 1500, margin: "0 auto", padding: "12px 18px 60px", fontFamily: "system-ui, sans-serif", color: "#2a2620" }}>
-        {/* Titre et onglets sur une même ligne */}
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 26, borderBottom: "1px solid #e0d9cc", paddingBottom: 2, flexWrap: "wrap" }}>
-          <h1 style={{ fontFamily: "Georgia, serif", fontSize: 27, fontWeight: 400, letterSpacing: "0.02em", color: VERT, margin: 0, lineHeight: 1.1 }}>
-            Polyglotte
-          </h1>
-          <div style={{ display: "flex", gap: 2, marginBottom: -3 }}>
-            {ONGLETS.map(t => {
-              const actif = onglet === t;
-              return (
-                <button key={t} onClick={() => setOnglet(t)}
-                  style={{ padding: "7px 16px", fontSize: 13.5, fontWeight: actif ? 600 : 500, cursor: "pointer", border: "none", background: "none", fontFamily: "Georgia, serif", color: actif ? VERT : "#a8a094", borderBottom: actif ? `2px solid ${VERT}` : "2px solid transparent", transition: "color .15s" }}>
-                  {LIBELLE_ONGLET[t]}
-                </button>
-              );
-            })}
-          </div>
-          {onglet && (
-            <div style={{ display: "flex", gap: 8, marginLeft: "auto", marginBottom: 4, alignItems: "center" }}>
-              {livresOnglet.length > 1 && (
-                <select value={toutAfficher ? "" : (livreChoisi ?? "")} disabled={toutAfficher}
-                  onChange={e => setLivreChoisi(e.target.value)} aria-label="Livre biblique"
-                  style={{ padding: "5px 10px", fontSize: 12.5, fontFamily: "Georgia, serif", color: toutAfficher ? "#b0a89e" : VERT, background: "#fff", border: "1px solid #ddd6c8", borderRadius: 999, cursor: toutAfficher ? "default" : "pointer", outline: "none", maxWidth: 210 }}>
-                  {livresOnglet.map(l => <option key={l.code} value={l.code}>{l.nom_fr}</option>)}
-                </select>
-              )}
-              {livresOnglet.length > 1 && (
-                <button onClick={() => setToutAfficher(v => !v)}
-                  title={toutAfficher ? "Revenir à un seul livre" : "Afficher tous les livres de l’onglet"}
-                  style={{ padding: "5px 13px", fontSize: 12, fontWeight: 500, cursor: "pointer", borderRadius: 999, fontFamily: "inherit",
-                    border: `1px solid ${toutAfficher ? VERT : "#ddd6c8"}`, background: toutAfficher ? VERT : "transparent", color: toutAfficher ? "#fff" : "#8a8378", transition: "all .15s" }}>
-                  Tout afficher
-                </button>
-              )}
-              {([["sensibles", sensiblesOnly, ROUGE, "Lignes problématiques"], ["surnum", surnumOnly, SURNUM, "Surnuméraires"]] as const).map(([cle, actif, teinte, libelle]) => (
-                <button key={cle}
-                  onClick={() => {
-                    if (cle === "sensibles") { setSensiblesOnly(!actif); if (!actif) setSurnumOnly(false); }
-                    else { setSurnumOnly(!actif); if (!actif) setSensiblesOnly(false); }
-                  }}
-                  style={{ padding: "5px 13px", fontSize: 12, fontWeight: 500, cursor: "pointer", borderRadius: 999, fontFamily: "inherit",
-                    border: `1px solid ${actif ? teinte : "#ddd6c8"}`, background: actif ? teinte : "transparent", color: actif ? "#fff" : "#8a8378", transition: "all .15s" }}>
-                  {libelle}
-                </button>
-              ))}
-            </div>
-          )}
+      {/* Le MÊME volet que la page Bible — pas un cousin qui lui ressemble. Un seul composant
+          pour les deux pages, donc une seule navigation à maintenir et à apprendre. */}
+      <div className="poly-outil" style={{ display: "flex", alignItems: "flex-start", minHeight: "100vh" }}>
+        <div style={{ position: "sticky", top: 0, height: "100vh", flexShrink: 0, display: "flex" }}>
+          <NavLivres
+            livres={livresNav}
+            livreActif={livreChoisi ?? ""}
+            chapitreActif={1}
+            traductionIndex={0}
+            setTraductionIndex={() => {}}
+            traductions={[]}
+            onChoisirLivre={choisirLivre}
+            sansChapitres
+            titre="Livres à comparer"
+          />
         </div>
 
-        {/* Aucun ensemble choisi : la page reste vide et l'explique */}
+      <div style={{ flex: 1, minWidth: 0, maxWidth: 1500, margin: "0 auto", padding: "12px 18px 60px", fontFamily: "system-ui, sans-serif", color: "#2a2620" }}>
+        {/* ── Réglages d'atelier, réservés à l'administrateur ────────────────────────────
+            Filtrer sur les lignes problématiques ou les surnuméraires, afficher tout un
+            ensemble : ce sont des gestes de relecture, pas de lecture. Ils encombraient
+            l'en-tête pour tout le monde ; ils tiennent maintenant dans un volet flottant
+            que seul l'administrateur voit. */}
+        {estAdmin && onglet && (
+          <div style={{ position: "fixed", top: 74, right: 18, zIndex: 60, display: "flex", flexDirection: "column", gap: 6,
+            background: "rgba(250,248,244,0.94)", border: "1px solid #ddd6c8", borderRadius: 10, padding: "9px 10px",
+            boxShadow: "0 6px 20px rgba(55,45,35,0.13)", backdropFilter: "blur(6px)" }}>
+            <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "#a8a094" }}>Relecture</span>
+            {livresOnglet.length > 1 && (
+              <button onClick={() => setToutAfficher(v => !v)}
+                title={toutAfficher ? "Revenir à un seul livre" : "Afficher tous les livres de l’ensemble"}
+                style={{ padding: "4px 11px", fontSize: 11.5, fontWeight: 500, cursor: "pointer", borderRadius: 999, fontFamily: "inherit",
+                  border: `1px solid ${toutAfficher ? VERT : "#ddd6c8"}`, background: toutAfficher ? VERT : "transparent", color: toutAfficher ? "#fff" : "#8a8378", transition: "all .15s" }}>
+                Tout afficher
+              </button>
+            )}
+            {([["sensibles", sensiblesOnly, ROUGE, "Lignes problématiques"], ["surnum", surnumOnly, SURNUM, "Surnuméraires"]] as const).map(([cle, actif, teinte, libelle]) => (
+              <button key={cle}
+                onClick={() => {
+                  if (cle === "sensibles") { setSensiblesOnly(!actif); if (!actif) setSurnumOnly(false); }
+                  else { setSurnumOnly(!actif); if (!actif) setSensiblesOnly(false); }
+                }}
+                style={{ padding: "4px 11px", fontSize: 11.5, fontWeight: 500, cursor: "pointer", borderRadius: 999, fontFamily: "inherit",
+                  border: `1px solid ${actif ? teinte : "#ddd6c8"}`, background: actif ? teinte : "transparent", color: actif ? "#fff" : "#8a8378", transition: "all .15s" }}>
+                {libelle}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Aucun livre choisi : la page reste vide et l'explique */}
         {!onglet && (
           <div style={{ margin: "60px auto", maxWidth: 560, textAlign: "center", color: "#8a8378" }}>
-            <p style={{ fontFamily: "Georgia, serif", fontSize: 17, color: VERT, margin: "0 0 10px" }}>Choisissez un ensemble à ouvrir</p>
+            <p style={{ fontFamily: "Georgia, serif", fontSize: 17, color: VERT, margin: "0 0 10px" }}>Choisissez un livre à ouvrir</p>
             <p style={{ fontSize: 13.5, lineHeight: 1.65, margin: 0 }}>
-              Chaque onglet charge l'intégralité de sa portion de Bible en une seule page défilante.
-              Sélectionnez <em>Ancien Testament</em>, <em>Psaumes</em>, <em>Nouveau Testament</em> ou <em>Écrits non canoniques</em> ci-dessus.
+              Prenez-le dans le sommaire, à gauche. Le livre s'affiche en entier, sur une seule
+              page défilante, avec toutes ses traductions côte à côte.
             </p>
           </div>
         )}
@@ -389,24 +415,36 @@ export default function PolyglottePage() {
             {loading && <div style={{ fontSize: 12, color: "#a49b8c", margin: "8px 0 0" }}>chargement de {LIBELLE_ONGLET[onglet]}…</div>}
 
             {/* En-tête collant : la traduction se choisit ici même, sans étiquette parasite */}
-            <div style={{ position: "sticky", top: HAUT_NAV, zIndex: 4, marginTop: 10, display: "grid", gridTemplateColumns: tmpl, background: VERT, color: "#fff", fontSize: 12, borderRadius: "6px 6px 0 0", overflow: "hidden", minHeight: HAUT_ENTETE, boxShadow: "0 1px 6px rgba(0,0,0,0.10)" }}>
-              <div />
-              {colonnes.map((c, k) => {
-                const i = slots.indexOf(c.trad_id);
-                return (
-                  <div key={k} style={{ display: "contents" }}>
-                    <div style={{ borderLeft: "1px solid rgba(255,255,255,0.18)" }} />
-                    <div style={{ padding: "4px 8px", display: "flex", alignItems: "center" }}>
-                      <select value={c.trad_id} aria-label={`Traduction ${k + 1}`}
-                        onChange={e => setSlots(s => { const n = [...s]; n[i] = e.target.value; return n; })}
-                        style={{ width: "100%", background: "transparent", color: "#fff", border: "none", borderBottom: "1px solid rgba(255,255,255,0.30)", padding: "3px 2px", fontSize: 13, fontWeight: 600, fontFamily: "Georgia, serif", cursor: "pointer", appearance: "none", outline: "none" }}>
-                        <option value="" style={{ color: "#2a2620" }}>— aucune —</option>
-                        {trads.map(t => <option key={t.trad_id} value={t.trad_id} style={{ color: "#2a2620" }}>{t.nom}</option>)}
-                      </select>
+            {/* En-tête collant. Le NOM DU LIVRE y monte avec le choix des traductions : en
+                défilant, on perdait de vue ce qu'on lisait, et les titres de section ne
+                revenaient qu'au livre suivant. Les deux informations dont on a besoin en
+                permanence — quel livre, quelles éditions — tiennent donc ensemble et ne
+                quittent jamais l'écran. */}
+            <div style={{ position: "sticky", top: HAUT_NAV, zIndex: 5, marginTop: 10, borderRadius: "8px 8px 0 0", overflow: "hidden", boxShadow: "0 2px 10px rgba(55,45,35,0.14)" }}>
+              <div style={{ background: VERT, color: "#fff", padding: "7px 12px", textAlign: "center", fontFamily: "Georgia, serif", fontSize: 15.5, letterSpacing: "0.01em", borderBottom: "1px solid rgba(255,255,255,0.22)" }}>
+                {toutAfficher
+                  ? LIBELLE_ONGLET[onglet]
+                  : (livres.find(l => l.code === livreChoisi)?.nom_fr ?? LIBELLE_ONGLET[onglet])}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: tmpl, background: VERT, color: "#fff", fontSize: 12, minHeight: HAUT_ENTETE }}>
+                <div />
+                {colonnes.map((c, k) => {
+                  const i = slots.indexOf(c.trad_id);
+                  return (
+                    <div key={k} style={{ display: "contents" }}>
+                      <div style={{ borderLeft: "1px solid rgba(255,255,255,0.18)" }} />
+                      <div style={{ padding: "4px 8px", display: "flex", alignItems: "center" }}>
+                        <select value={c.trad_id} aria-label={`Traduction ${k + 1}`}
+                          onChange={e => setSlots(s => { const n = [...s]; n[i] = e.target.value; return n; })}
+                          style={{ width: "100%", background: "transparent", color: "#fff", border: "none", borderBottom: "1px solid rgba(255,255,255,0.30)", padding: "3px 2px", fontSize: 13, fontWeight: 600, fontFamily: "Georgia, serif", cursor: "pointer", appearance: "none", outline: "none", textAlign: "center", textAlignLast: "center" }}>
+                          <option value="" style={{ color: "#2a2620" }}>— aucune —</option>
+                          {trads.map(t => <option key={t.trad_id} value={t.trad_id} style={{ color: "#2a2620" }}>{t.nom}</option>)}
+                        </select>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
 
             {/* Corps : un bloc par livre, rendu paresseux (content-visibility) */}
@@ -444,7 +482,7 @@ export default function PolyglottePage() {
             if (!srs.length) return null;
             return (
               <section key={l.code} style={{ contentVisibility: "auto", containIntrinsicSize: `0 ${srs.length * 34 + 40}px` } as React.CSSProperties}>
-                <h2 style={{ margin: 0, padding: "8px 12px", fontFamily: "Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: HAUT_NAV + HAUT_ENTETE, zIndex: 3, textAlign: "center" }}>
+                <h2 style={{ margin: 0, padding: "8px 12px", fontFamily: "Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: HAUT_NAV + HAUT_TITRE + HAUT_ENTETE, zIndex: 3, textAlign: "center" }}>
                   {l.nom_fr} <span style={{ fontSize: 12, fontWeight: 400, color: SURNUM }}>· {srs.length} surnuméraire{srs.length > 1 ? "s" : ""}</span>
                 {titresEdition(l.code).map(({ trad, ed }) => (
                   <span key={trad} style={{ display: "block", fontSize: 11.5, fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
@@ -465,7 +503,7 @@ export default function PolyglottePage() {
 
           return (
             <section key={l.code} style={{ contentVisibility: "auto", containIntrinsicSize: `0 ${hauteur}px` } as React.CSSProperties}>
-              <h2 style={{ margin: 0, padding: "8px 12px", fontFamily: "Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: HAUT_NAV + HAUT_ENTETE, zIndex: 3, textAlign: "center" }}>
+              <h2 style={{ margin: 0, padding: "8px 12px", fontFamily: "Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: HAUT_NAV + HAUT_TITRE + HAUT_ENTETE, zIndex: 3, textAlign: "center" }}>
                 {l.nom_fr}
                 {titresEdition(l.code).map(({ trad, ed }) => (
                   <span key={trad} style={{ display: "block", fontSize: 11.5, fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
@@ -582,6 +620,7 @@ export default function PolyglottePage() {
             </p>
           </>
         )}
+      </div>
       </div>
     </div>
   );

@@ -97,6 +97,13 @@ type Props = {
   panelWidth?: number
   onWidthChange?: (w: number) => void
   livresVides?: Set<string>
+  // La Polyglotte affiche un livre ENTIER, sans notion de chapitre courant, et ne navigue pas
+  // par URL. Ces deux réglages lui suffisent pour réutiliser le même volet que la page Bible :
+  // c'est la seule façon d'avoir vraiment la même navigation aux deux endroits, plutôt que
+  // deux composants qui se ressemblent et divergent avec le temps.
+  onChoisirLivre?: (code: string) => void   // si fourni, remplace la navigation par URL
+  sansChapitres?: boolean                   // masque la grille des chapitres
+  titre?: string                            // libellé du volet replié
 }
 
 /**
@@ -128,7 +135,7 @@ export default function NavLivres({
   livres, livreActif, chapitreActif,
   traductionIndex, setTraductionIndex, traductions,
   panelWidth = 192, onWidthChange,
-  livresVides,
+  livresVides, onChoisirLivre, sansChapitres, titre,
 }: Props) {
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
@@ -138,6 +145,9 @@ export default function NavLivres({
   const [livreOuvert, setLivreOuvert] = useState<string | null>(livreActif)
   const [atOuvert, setAtOuvert] = useState(true)
   const [ntOuvert, setNtOuvert] = useState(true)
+  // Les écrits non canoniques restent repliés par défaut : ils sont là pour qui les cherche,
+  // sans allonger la liste de ceux qui ne les consultent pas.
+  const [autresOuvert, setAutresOuvert] = useState(false)
   const [ouvert, setOuvert] = useState(true)
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 880) setOuvert(false)
@@ -160,12 +170,14 @@ export default function NavLivres({
 
   const AT = filtrer(livres.filter(l => l.testament === 'AT'))
   const NT = filtrer(livres.filter(l => l.testament === 'NT'))
+  const AUTRES = filtrer(livres.filter(l => l.testament === 'AUTRES'))
 
   const handleLivre = (code: string) => {
     if (livresVides?.has(code)) return
     const pos = scrollRef.current?.scrollTop || 0
     setLivreActifLocal(code)
-    if (livreOuvert === code) {
+    if (onChoisirLivre) { onChoisirLivre(code); setLivreOuvert(code) }
+    else if (livreOuvert === code) {
       setLivreOuvert(null)
     } else {
       setLivreOuvert(code)
@@ -216,10 +228,10 @@ export default function NavLivres({
           opacity: vide ? 0.55 : 1,
         }}>
           <span>{livre.nom}</span>
-          {!vide && <span style={{ color: '#c0bab0', fontSize: '6.5px', flexShrink: 0, opacity: 0.55 }}>{ouvert ? '▲' : '▼'}</span>}
+          {!vide && !sansChapitres && <span style={{ color: '#c0bab0', fontSize: '6.5px', flexShrink: 0, opacity: 0.55 }}>{ouvert ? '▲' : '▼'}</span>}
         </button>
 
-        {!vide && (ouvert || suggere) && (
+        {!vide && !sansChapitres && (ouvert || suggere) && (
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(20px, 1fr))',
@@ -262,7 +274,7 @@ export default function NavLivres({
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '8px', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>Livres de la Bible</span>
+        <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '8px', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>{titre ?? 'Livres de la Bible'}</span>
       </button>
     )
   }
@@ -359,7 +371,21 @@ export default function NavLivres({
           </>
         )}
 
-        {AT.length === 0 && NT.length === 0 && (
+        {AUTRES.length > 0 && (
+          <>
+            <button onClick={() => setAutresOuvert(!autresOuvert)} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+              padding: '7px 6px 2px', textAlign: 'left',
+            }}>
+              <span style={{ fontSize: '9.5px', fontWeight: 800, letterSpacing: '0.10em', color: '#7a6f5e', textTransform: 'uppercase' }}>Écrits non canoniques</span>
+              <span style={{ fontSize: '7px', color: '#c0bab0' }}>{autresOuvert ? '▲' : '▼'}</span>
+            </button>
+            {autresOuvert && AUTRES.map(renderLivre)}
+          </>
+        )}
+
+        {AT.length === 0 && NT.length === 0 && AUTRES.length === 0 && (
           <p style={{ fontSize: '11px', color: '#9a958d', textAlign: 'center', padding: '16px 0' }}>Aucun résultat</p>
         )}
       </div>

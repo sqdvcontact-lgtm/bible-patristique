@@ -25,7 +25,13 @@ const [CODE, PREFIXE, TABLES] = process.argv.slice(2)
 if (!CODE || !PREFIXE || !TABLES){ console.error('usage : <CODE> <prefixe> <tables.json> [--ecrire]'); process.exit(1) }
 
 const S = JSON.parse(readFileSync(D + `${PREFIXE}${CODE}_transcrit.json`, 'utf8'))
-const videsRef = new Set((await all(sb.from('versets_v2').select('canon_id,texte').eq('trad_id','TR0003').eq('livre', CODE))).filter(r=>r.canon_id&&!r.texte?.trim()).map(r=>r.canon_id))
+// « Vide chez le référent » recouvre DEUX états qu'il ne faut pas confondre : une ligne
+// présente mais sans texte, et l'absence pure de ligne — c'est ce second cas que produit un
+// remappage, qui saute simplement le créneau. Ne compter que le premier faisait échouer les
+// chapitres les mieux corrigés, ce qui est le comble.
+const lignesRef = await all(sb.from('versets_v2').select('canon_id,texte').eq('trad_id','TR0003').eq('livre', CODE))
+const avecLigne = new Set(lignesRef.filter(r => r.canon_id).map(r => r.canon_id))
+const videsRef = new Set(lignesRef.filter(r => r.canon_id && !r.texte?.trim()).map(r => r.canon_id))
 const canon = new Set((await all(sb.from('versets_canon').select('id').like('id', CODE+'.%'))).map(r => r.id))
 const slots = {}
 for (const id of canon){ const [,c,v] = id.split('.'); (slots[+c] ??= []).push(+v) }
@@ -55,7 +61,14 @@ function lireTable(t){
   // pour la table. On choisit donc le fragment qui RESSEMBLE à une table : il commence par un
   // chiffre et porte une flèche.
   t = t.split(/\s+[·;—]\s+/).find(x => /^\s*\d[\d+]*\s*(?:→|->)/.test(x)) ?? t
-  return t.split(',').map(seg0 => {
+  // « … 18→17, [19 vide], 20→18 … » : les lecteurs notent entre crochets les créneaux qu'ils
+  // laissent volontairement vides — parce que le référent ne les a pas, et Sacy non plus. Ce
+  // n'est pas une correspondance mais une remarque, et le contrôle de couverture sait déjà
+  // qu'un créneau vide chez le référent peut rester découvert. On les écarte donc.
+  // On retire les remarques entre crochets AVANT de découper sur les virgules : « [1 ← Sacy
+  // 19,28] » en contient une, et la découper d'abord laissait deux moitiés illisibles.
+  t = t.replace(/\[[^\]]*\]/g, '')
+  return t.split(',').filter(seg => seg.trim()).map(seg0 => {
     // On tolère une annotation entre parenthèses et le point final d'une phrase : les
     // lecteurs écrivent des tables lisibles par un humain, non des chaînes machine.
     const seg = seg0.replace(/\s*\([^)]*\)/g, '').replace(/\.\s*$/, '').trim()
@@ -120,10 +133,14 @@ for (const c of Object.keys(parCh).map(Number).sort((a,b)=>a-b)){
   // ferait échouer vingt chapitres pour une lacune qui n'est pas celle de Sacy.
   const touches = new Set(vusS)
   const manquants = slots[c].filter(n => !touches.has(n))
-  const nonExplique = manquants.filter(n => !videsRef.has(`${CODE}.${c}.${n}`) && !couvertsAilleurs.has(`${CODE}.${c}.${n}`))
+  const nonExplique = manquants.filter(n => !videsRef.has(`${CODE}.${c}.${n}`) && !couvertsAilleurs.has(`${CODE}.${c}.${n}`) && avecLigne.has(`${CODE}.${c}.${n}`))
   const enTrop = [...touches].filter(n => !slots[c].includes(n))
   if (enTrop.length){ ecartes.push(`ch ${c} : créneaux hors canon ${enTrop.join(',')}`); continue }
-  if (nonExplique.length){ ecartes.push(`ch ${c} : créneaux ${nonExplique.join(',')} non couverts et non vides chez le référent`); continue }
+  // UNE ÉDITION PEUT SIMPLEMENT NE PAS AVOIR UN VERSET que le canon et le référent portent —
+  // Si 22,17 en est le cas : Crampon le rend, Sacy non. J'en faisais un motif de rejet, ce qui
+  // revenait à jeter tout un chapitre vérifié pour un verset manquant. On le SIGNALE : le trou
+  // reste visible, mais le travail est conservé et le lecteur humain peut trancher.
+  if (nonExplique.length) signales.push(`ch ${c} — créneaux ${nonExplique.join(',')} portés par le référent mais non par cette édition : à vérifier`)
   if (manquants.length) signales.push(`ch ${c} — ${manquants.length} créneau(x) laissé(s) vide(s), comme chez le référent`)
 
   const dec = new Map((p.scissions || []).map(s => [s.v, s]))
