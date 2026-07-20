@@ -35,14 +35,12 @@ const nu = s => (s||'').replace(/<\/?i>/g,'').replace(/\s+/g,' ').trim()
 // Les créneaux du canon que Crampon N'A PAS — les additions latines qu'il omet.
 // Relevés un par un par la lecture en regard de l'édition en ligne.
 const OMISSIONS = {
-  3:  [19, 25],
-  10: [21],
-  11: [15, 16],
-  13: [14],
-  16: [15, 16],
-  19: [18, 19, 21],
-  22: [9, 10],
-  26: [19, 20, 21, 22, 23, 24, 25, 26, 27],
+  3:  [19, 25],   10: [21],       11: [15, 16],   13: [14],
+  16: [15, 16],   17: [5, 9, 16, 18, 21],         19: [18, 19, 21],
+  20: [3, 32],    22: [9, 10],    23: [28],       24: [18, 24],
+  25: [12],       26: [19, 20, 21, 22, 23, 24, 25, 26, 27],
+  32: [22],       33: [17, 29],   34: [11, 15, 18, 22, 27],
+  36: [16],       39: [0],        48: [25],
 }
 
 // Les versets de Crampon qui en réunissent deux du canon. `apres` = le créneau qui reste
@@ -63,15 +61,15 @@ for (const ch of Object.keys(OMISSIONS).map(Number).sort((a,b)=>a-b)){
   const { data } = await sb.from('versets_v2').select('id,canon_id,v_orig,v_orig_suffixe,texte,notes')
     .eq('trad_id','TR0003').eq('livre','SIR').like('canon_id', `SIR.${ch}.%`)
   const par = new Map(data.map(r => [+r.canon_id.split('.')[2], r]))
-  const total = Math.max(...par.keys())
+  const rangs = [...par.keys()].sort((a,b)=>a-b)   // les créneaux qui EXISTENT vraiment
   const trous = OMISSIONS[ch]
   const avant = matiere(data)
 
   // Les versets réellement présents, dans l'ordre où l'import les a rangés (1..n).
   const presents = []
-  for (let n = 1; n <= total; n++){ const r = par.get(n); if (r?.texte?.trim()) presents.push(r) }
+  for (const n of rangs){ const r = par.get(n); if (r?.texte?.trim()) presents.push(r) }
   const cibles = []
-  for (let n = 1; n <= total; n++) if (!trous.includes(n)) cibles.push(n)
+  for (const n of rangs) if (!trous.includes(n)) cibles.push(n)
   if (presents.length !== cibles.length){
     console.error(`✗ SIR ${ch} : ${presents.length} versets pour ${cibles.length} créneaux attendus — rien fait`)
     continue
