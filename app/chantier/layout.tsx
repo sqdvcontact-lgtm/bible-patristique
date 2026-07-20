@@ -4,9 +4,19 @@ import type { Metadata } from "next";
 // propres métadonnées. Un `document.title` posé dans un effet se fait écraser
 // par celles de la mise en page racine ; ce layout serveur est la voie prévue.
 export const metadata: Metadata = {
-  title: "Corpus Scriptura – site en travaux",
+  // `absolute` court-circuite le gabarit « %s · Corpus Scriptura » de la racine :
+  // le titre porte déjà le nom, inutile de le répéter. Il mène par le projet, non
+  // par « en travaux » — c'est ce que Google affichera, et l'avis de chantier est
+  // déjà dans la description et sur la page.
+  title: { absolute: "Corpus Scriptura — l’Écriture et les Pères de l’Église" },
   description:
-    "L’Écriture et ce que les Pères en ont dit. Le site est en cours de préparation : laissez votre adresse pour être prévenu de son ouverture.",
+    "Bibliothèque biblique et patristique : les traductions françaises en regard, le corpus des Pères relié au texte. Le site ouvre prochainement — laissez votre adresse pour être prévenu.",
+  openGraph: {
+    title: "Corpus Scriptura — l’Écriture et les Pères de l’Église",
+    description:
+      "Bibliothèque biblique et patristique. Le site ouvre prochainement.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function ChantierLayout({ children }: { children: React.ReactNode }) {

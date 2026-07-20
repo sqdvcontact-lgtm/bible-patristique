@@ -17,8 +17,32 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Corpus Scriptura",
-  description: "Lectures bibliques et patristiques.",
+  // Sans base, les URL relatives des images Open Graph ne se résolvent pas :
+  // un lien partagé n'afficherait aucune vignette.
+  metadataBase: new URL("https://corpus-scriptura.fr"),
+  title: {
+    default: "Corpus Scriptura — bibliothèque biblique et patristique",
+    // Les pages internes deviendront « … · Corpus Scriptura ».
+    template: "%s · Corpus Scriptura",
+  },
+  description:
+    "L’Écriture et ce que les Pères de l’Église en ont dit, mis en regard verset par verset. Les traductions françaises côte à côte, le corpus patristique découpé et relié au texte.",
+  applicationName: "Corpus Scriptura",
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    siteName: "Corpus Scriptura",
+    title: "Corpus Scriptura — bibliothèque biblique et patristique",
+    description:
+      "L’Écriture et ce que les Pères de l’Église en ont dit, mis en regard verset par verset.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Corpus Scriptura" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Corpus Scriptura",
+    description: "L’Écriture et ce que les Pères de l’Église en ont dit.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({
