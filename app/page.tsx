@@ -1,13 +1,13 @@
-import { createClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import BibleLayout from './components/BibleLayout'
 import { LIVRES } from '@/app/lib/bible'
+import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// La base est désormais fermée au rôle anonyme : une page serveur doit
+// interroger avec la session du visiteur (client lisant les cookies), sinon elle
+// s'exécute en `anon` et ne reçoit plus rien. Sans cela, la page Bible se rendait
+// vide — texte et traductions introuvables.
 
 const NOMS_LIVRES = Object.fromEntries(LIVRES.map(l => [l.code, l.nom]))
 
@@ -23,6 +23,7 @@ export default async function Home({
   const chapitre = parseInt(params.chapitre || '1')
   const trad = params.trad || 'TR0001'
 
+  const supabase = await creerSupabaseServeur()
   const [{ data: versets }, { data: traductions }] = await Promise.all([
     // `versets_lecture` et non `versets` : la vue sert le texte établi dans `versets_v2`,
     // sur l'ossature canonique. C'est ce travail-là — alignements, scissions recollées,

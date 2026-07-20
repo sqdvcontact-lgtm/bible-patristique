@@ -1,19 +1,20 @@
-import { createClient } from '@supabase/supabase-js'
 import { hydraterLiensHerites } from '@/app/lib/liens'
 import type { Metadata } from 'next'
 import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
 import { ABREV_FR } from '@/app/lib/bible'
 import { parseNotes } from '@/app/lib/notes'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import OeuvreClient from './OeuvreClient'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// Base fermée au rôle anonyme : chaque entrée serveur (métadonnées, page) crée
+// son client lisant la session du visiteur. Sans cela, la page s'exécutait en
+// `anon` et ne recevait plus ni segments ni versets.
+type Client = Awaited<ReturnType<typeof creerSupabaseServeur>>
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
+  const supabase = await creerSupabaseServeur()
   const { data } = await supabase.from('oeuvres').select('titre, auteurs(nom)').eq('id_oeuvre', id).maybeSingle()
   if (!data) return { title: 'Corpus Scriptura' }
   const auteur = (data.auteurs as any)?.nom
@@ -100,13 +101,13 @@ function detailsRefBiblique(ref:string): { label: string; livre: string; chapitr
   return { label, livre: p[0], chapitre: cv[0] || '', verset: cv[1] || '' }
 }
 
-async function chargerCodesTraductions() {
+async function chargerCodesTraductions(supabase: Client) {
   const { data } = await supabase.from('traductions').select('trad_id').order('ordre', { ascending: true })
   const codes = (data ?? []).map((t: any) => t.trad_id).filter((code: string) => /^TR\d{4}$/.test(code))
   return codes.length > 0 ? codes : ['TR0001', 'TR0002', 'TR0003', 'TR0004']
 }
 
-async function enrichirAvecVersets(segments: Segment[], codesTraductions: string[]) {
+async function enrichirAvecVersets(supabase: Client, segments: Segment[], codesTraductions: string[]) {
   const tousIds = new Set<string>()
   segments.forEach(s => extraireVersets(s).forEach(v => tousIds.add(v)))
   const tousIdsArray = Array.from(tousIds)
@@ -141,6 +142,9 @@ export default async function OeuvrePage({
   const {id}=await params
   const sp = searchParams ? await searchParams : {}
   const segmentCibleId = Number(sp.segment ?? '')
+
+  // Client lisant la session : les fonctions imbriquées ci-dessous le capturent.
+  const supabase = await creerSupabaseServeur()
 
   // Admin = connecté avec le compte administrateur (adresse fixe), vérifié
   // côté serveur via la session Supabase Auth — remplace l'ancien cookie
@@ -211,7 +215,7 @@ export default async function OeuvrePage({
       ? supabase.from('segments').select('id,ref_niv1,nature').eq('id_oeuvre', id).eq('id', segmentCibleId).maybeSingle()
       : Promise.resolve({ data: null }),
     chargerTousSegments({ nature: 'apparat_critique' }),
-    chargerCodesTraductions(),
+    chargerCodesTraductions(supabase),
   ])
 
   if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre as any))) return (
@@ -270,7 +274,7 @@ export default async function OeuvrePage({
   const segmentsApparat = segmentsApparatRaw as Segment[]
 
   // 4. Versets pour le premier livre seulement
-  const versetMap = await enrichirAvecVersets(segmentsTexte, codesTraductions)
+  const versetMap = await enrichirAvecVersets(supabase, segmentsTexte, codesTraductions)
 
   const versetParSegment: Record<number, any[]> = {}
   segmentsTexte.forEach(s => {
