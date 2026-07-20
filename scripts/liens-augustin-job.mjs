@@ -161,10 +161,21 @@ if (e1) throw e1
 // Segond. On garde, pour chaque créneau, le meilleur score des trois : c'est
 // gratuit, les trois Bibles étant déjà en base.
 const TRADS_APPARIEMENT = ['TR0001', 'TR0003', 'TR0002']
-const { data: versets, error: e2 } = await sb.from('versets_v2')
-  .select('canon_id, trad_id, texte').in('trad_id', TRADS_APPARIEMENT)
-  .eq('livre', 'JOB').not('canon_id', 'is', null)
-if (e2) throw e2
+// PAGINER, sous peine de ne charger que Sacy. PostgREST plafonne à 1000 lignes ;
+// or les trois Bibles totalisent ~3200 versets sur Job. Sans pagination, la
+// requête ne renvoyait QUE les 1000 premières — toutes de Sacy —, et le « meilleur
+// des trois traductions » vanté plus haut ne s'appliquait jamais : l'alignement
+// se faisait sur Sacy seul, amputé de surcroît de sa fin.
+const versets = []
+for (let de = 0; ; de += 1000) {
+  const { data, error: e2 } = await sb.from('versets_v2')
+    .select('canon_id, trad_id, texte').in('trad_id', TRADS_APPARIEMENT)
+    .eq('livre', 'JOB').not('canon_id', 'is', null)
+    .order('canon_id').order('trad_id').range(de, de + 999)
+  if (e2) throw e2
+  versets.push(...data)
+  if (data.length < 1000) break
+}
 
 const jobParChapitre = new Map()
 {

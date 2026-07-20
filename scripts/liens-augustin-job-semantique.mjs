@@ -69,13 +69,18 @@ const { data: segs } = await sb.from('segments')
   .in('segment_numero', Object.keys(PLACEMENTS).map(Number))
 const parNumero = new Map(segs.map(s => [s.segment_numero, s.id]))
 
-// Ce que la passe précédente a déjà posé sur ces segments : on ne double pas.
+// On ne place QUE les segments que la passe lexicale n'a pas su rattacher. Depuis
+// que celle-ci charge les trois traductions (et non le seul Sacy), elle en couvre
+// davantage : plusieurs de nos placements manuels sont devenus inutiles, et
+// surtout un placement sémantique qui viserait un autre verset que le lexical
+// donnerait au segment deux citations concurrentes. Un segment déjà lié est donc
+// laissé au lexical, meilleur juge dès qu'il trouve.
 const idsSeg = [...parNumero.values()]
-const dejaVise = new Set()
+const dejaLie = new Set()
 for (let i = 0; i < idsSeg.length; i += 300) {
   const { data } = await sb.from('liens_bibliques')
-    .select('segment_id, canon_id, type').in('segment_id', idsSeg.slice(i, i + 300))
-  for (const l of data ?? []) dejaVise.add(`${l.segment_id}|${l.canon_id}|${l.type}`)
+    .select('segment_id').in('segment_id', idsSeg.slice(i, i + 300))
+  for (const l of data ?? []) dejaLie.add(l.segment_id)
 }
 
 const liens = []
@@ -83,23 +88,23 @@ let manquantCanon = 0, manquantSeg = 0, deja = 0
 for (const [num, canon_id] of Object.entries(PLACEMENTS)) {
   const segment_id = parNumero.get(+num)
   if (!segment_id) { console.warn(`✗ segment ${num} introuvable`); manquantSeg++; continue }
+  if (dejaLie.has(segment_id)) { deja++; continue }   // déjà couvert par le lexical
   if (!existe.has(canon_id)) { console.warn(`✗ ${canon_id} absent du texte Sacy (segment ${num})`); manquantCanon++; continue }
   const commun = {
     segment_id, canon_id, fiabilite: 'douteux', provenance: 'ia', arbitrage_requis: true,
     motif: `Placement sémantique (charte §25.8) : lemme rapproché de ${canon_id} par le sens, la graphie de Sacy ne partageant aucun mot. À vérifier.`,
   }
   for (const type of [1, 3]) {
-    if (dejaVise.has(`${segment_id}|${canon_id}|${type}`)) { deja++; continue }
     liens.push({ ...commun, type,
       motif: type === 3 ? `Commentaire du verset cité en tête. ${commun.motif}` : commun.motif })
   }
   if (DRY) console.log(`  seg ${String(num).padStart(4)} → ${canon_id}`)
 }
 
-console.log(`\n${Object.keys(PLACEMENTS).length} placements · ${liens.length} liens à écrire`)
+console.log(`\n${Object.keys(PLACEMENTS).length} placements examinés · ${liens.length} liens à écrire`)
 if (manquantCanon) console.log(`  ${manquantCanon} écartés : cible hors du texte Sacy`)
 if (manquantSeg) console.log(`  ${manquantSeg} écartés : segment introuvable`)
-if (deja) console.log(`  ${deja} déjà présents, ignorés`)
+if (deja) console.log(`  ${deja} déjà couverts par la passe lexicale, ignorés`)
 
 if (DRY) { console.log('\n(--dry : rien écrit)'); process.exit(0) }
 
