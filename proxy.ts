@@ -30,7 +30,12 @@ const AUTORISES = (process.env.ADMIN_EMAIL ?? '')
 //
 // `/compte` n'y figure plus : cette adresse ne sert que l'espace personnel,
 // qui n'a de sens qu'une fois connecté.
-const LIBRES = ['/chantier', '/auth', '/api/auth', '/api/compte', '/api/attente', '/api/chiffres']
+//
+// `/confidentialite` et `/conditions-utilisation` : la page du chantier recueille
+// des adresses. Une politique de confidentialité inaccessible au moment même où
+// l'on collecte la donnée ne vaut rien — ni en droit, ni pour le lecteur.
+const LIBRES = ['/chantier', '/auth', '/api/auth', '/api/compte', '/api/attente', '/api/chiffres',
+                '/confidentialite', '/conditions-utilisation']
 
 function estLibre(chemin: string) {
   return LIBRES.some(p => chemin === p || chemin.startsWith(p + '/'))
