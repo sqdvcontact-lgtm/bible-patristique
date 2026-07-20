@@ -8,6 +8,9 @@ import Image from "next/image";
 
 type Mode = "connexion" | "inscription";
 
+// Même bouton PayPal que la page « Soutenir » : un seul compte de don sur le site.
+const LIEN_PAYPAL = "https://www.paypal.com/donate/?hosted_button_id=9M463NPH2RQXL";
+
 const TRADUCTIONS = [
   { code: "TR0001", label: "Bible de Sacy" },
   { code: "TR0002", label: "Bible Segond" },
@@ -73,6 +76,149 @@ export default function ComptePage() {
   return user ? <MonCompte user={user} router={router} /> : <ConnexionInscription router={router} />;
 }
 
+// ── Pictogrammes ─────────────────────────────────────────────────────────────
+// Tracés au trait, dans la couleur du texte, pour qu'ils vieillissent avec la
+// charte plutôt que contre elle.
+const traits = { stroke: "currentColor", strokeWidth: 1.4, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, fill: "none" };
+
+function IcoColonnes() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="2.5" y="3.5" width="6" height="17" rx="1" {...traits} />
+      <rect x="9.5" y="3.5" width="6" height="17" rx="1" {...traits} />
+      <rect x="16.5" y="3.5" width="5" height="17" rx="1" {...traits} />
+    </svg>
+  );
+}
+function IcoPeres() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z" {...traits} />
+      <path d="M9 8h6M9 11.5h6" {...traits} />
+    </svg>
+  );
+}
+function IcoLien() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M10 14a4 4 0 0 0 5.66 0l3-3A4 4 0 0 0 13 5.34l-1.5 1.5" {...traits} />
+      <path d="M14 10a4 4 0 0 0-5.66 0l-3 3A4 4 0 0 0 11 18.66l1.5-1.5" {...traits} />
+    </svg>
+  );
+}
+function IcoLibre() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" {...traits} />
+      <path d="M8.5 12.5l2.5 2.5 4.5-5" {...traits} />
+    </svg>
+  );
+}
+
+const PRINCIPES: { ico: React.ReactNode; titre: string; texte: string }[] = [
+  { ico: <IcoColonnes />, titre: "Les traductions côte à côte",
+    texte: "Un même verset, lu simultanément dans plusieurs traductions françaises, aligné ligne à ligne sur la numérotation du canon." },
+  { ico: <IcoPeres />, titre: "Les Pères de l’Église",
+    texte: "Le corpus patristique en français, découpé passage par passage plutôt que livré en blocs illisibles." },
+  { ico: <IcoLien />, titre: "Le lien entre les deux",
+    texte: "Chaque passage d’un Père est rattaché au verset qu’il cite ou commente. On part du verset, on trouve ce que la tradition en a dit." },
+  { ico: <IcoLibre />, titre: "Libre d’accès",
+    texte: "Sans publicité, sans abonnement, sans revente de données. Le projet est bénévole et le restera." },
+];
+
+// ── Chiffres du corpus ───────────────────────────────────────────────────────
+function Chiffres() {
+  const [n, setN] = useState<{ oeuvres: number; traductions: number; auteurs: number } | null>(null);
+
+  useEffect(() => {
+    Promise.all([
+      supabase.from("oeuvres").select("*", { count: "exact", head: true }),
+      supabase.from("traductions").select("*", { count: "exact", head: true }),
+      supabase.from("auteurs").select("*", { count: "exact", head: true }),
+    ]).then(([o, t, a]) => setN({ oeuvres: o.count ?? 0, traductions: t.count ?? 0, auteurs: a.count ?? 0 }));
+  }, []);
+
+  // Tant que le compte n'est pas revenu, on n'affiche rien plutôt qu'un zéro :
+  // un chiffre faux est pire qu'un chiffre absent sur une page de présentation.
+  if (!n) return <div style={{ height: "72px" }} />;
+
+  const cases: [number, string][] = [
+    [n.oeuvres, n.oeuvres > 1 ? "œuvres disponibles" : "œuvre disponible"],
+    [n.traductions, n.traductions > 1 ? "traductions bibliques" : "traduction biblique"],
+    [n.auteurs, n.auteurs > 1 ? "auteurs répertoriés" : "auteur répertorié"],
+  ];
+
+  return (
+    <div style={{ display: "flex", justifyContent: "center", gap: "clamp(18px, 6vw, 54px)", flexWrap: "wrap", margin: "4px 0 34px" }}>
+      {cases.map(([valeur, libelle]) => (
+        <div key={libelle} style={{ textAlign: "center" }}>
+          <div style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "30px", color: "#3d6b4f", lineHeight: 1 }}>
+            {valeur}
+          </div>
+          <div style={{ fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#9a958d", marginTop: "6px" }}>
+            {libelle}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Être prévenu de l'ouverture ──────────────────────────────────────────────
+function Prevenir() {
+  const [adresse, setAdresse] = useState("");
+  const [etat, setEtat] = useState<"repos" | "envoi" | "fait">("repos");
+  const [erreur, setErreur] = useState<string | null>(null);
+
+  const envoyer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErreur(null); setEtat("envoi");
+    try {
+      const res = await fetch("/api/attente", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courriel: adresse.trim() }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setErreur(j.error ?? "L’enregistrement a échoué."); setEtat("repos"); return;
+      }
+      setEtat("fait");
+    } catch {
+      setErreur("Connexion impossible. Réessayez plus tard."); setEtat("repos");
+    }
+  };
+
+  if (etat === "fait") {
+    return (
+      <div style={{ background: "rgba(61,107,79,0.07)", border: "1px solid rgba(61,107,79,0.22)", borderRadius: "8px", padding: "16px 18px" }}>
+        <p style={{ fontSize: "13px", color: "#2a6040", margin: 0, lineHeight: 1.6 }}>
+          C’est noté. Vous recevrez un message à l’ouverture du site, et rien d’autre.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={envoyer}>
+      <p style={{ fontSize: "12.5px", color: "#6a6259", margin: "0 0 12px", lineHeight: 1.6 }}>
+        Le site n’est pas encore ouvert. Laissez votre adresse pour être prévenu — elle ne servira qu’à cela.
+      </p>
+      {erreur && (
+        <p style={{ fontSize: "12px", color: "#9a2a2a", margin: "0 0 10px", lineHeight: 1.5 }}>{erreur}</p>
+      )}
+      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+        <input type="email" required value={adresse} onChange={e => setAdresse(e.target.value)}
+          placeholder="vous@exemple.fr" aria-label="Votre adresse e-mail"
+          style={{ ...inputStyle, flex: "1 1 180px", width: "auto" }} />
+        <button type="submit" disabled={etat === "envoi"}
+          style={{ padding: "9px 18px", borderRadius: "6px", border: "none", background: etat === "envoi" ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "13px", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
+          {etat === "envoi" ? "Envoi…" : "Me prévenir"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 // ── Connexion / inscription ──────────────────────────────────────────────────
 function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter> }) {
   const [mode, setMode] = useState<Mode>("connexion");
@@ -116,13 +262,70 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
   };
 
   return (
-    <main style={{ minHeight: "calc(100vh - 48px)", background: "#f3efe3", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
-      <div style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "36px 40px 40px", width: "100%", maxWidth: "380px", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}>
-        <div style={{ textAlign: "center", marginBottom: "28px" }}>
-          <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "#3d6b4f" }}>Corpus Scriptura</span>
-          <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "22px", fontWeight: "normal", color: "#2a3d30", margin: "8px 0 0" }}>
-            {mode === "connexion" ? "Connexion" : "Créer un compte"}
+    <main style={{ minHeight: "calc(100vh - 48px)", background: "#f3efe3", padding: "48px 20px 64px" }}>
+      <div style={{ width: "100%", maxWidth: "780px", margin: "0 auto" }}>
+
+        {/* ── Ce qu'est le site ── */}
+        <header style={{ textAlign: "center", marginBottom: "34px" }}>
+          <span style={{ fontSize: "9.5px", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "#3d6b4f" }}>
+            Corpus Scriptura
+          </span>
+          <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "clamp(24px, 4vw, 33px)", fontWeight: "normal", color: "#1e2e22", margin: "10px 0 12px", lineHeight: 1.25 }}>
+            L’Écriture et ce que les Pères en ont dit
           </h1>
+          <p style={{ fontSize: "14px", color: "#6a6259", lineHeight: 1.7, maxWidth: "530px", margin: "0 auto" }}>
+            Une bibliothèque qui met le texte biblique et le commentaire patristique
+            en regard l’un de l’autre, verset par verset.
+          </p>
+        </header>
+
+        <Chiffres />
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "18px", marginBottom: "38px" }}>
+          {PRINCIPES.map(p => (
+            <div key={p.titre} style={{ display: "flex", gap: "13px", alignItems: "flex-start" }}>
+              <span style={{ color: "#3d6b4f", flexShrink: 0, marginTop: "1px" }}>{p.ico}</span>
+              <span>
+                <span style={{ display: "block", fontFamily: "Georgia, serif", fontSize: "14px", color: "#2a3d30", marginBottom: "4px" }}>{p.titre}</span>
+                <span style={{ display: "block", fontSize: "12.5px", color: "#7a736a", lineHeight: 1.6 }}>{p.texte}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Être prévenu, et soutenir ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px", marginBottom: "16px" }}>
+          <div style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "24px 26px" }}>
+            <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a958d", margin: "0 0 14px" }}>
+              À l’ouverture
+            </p>
+            <Prevenir />
+          </div>
+          <div style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "24px 26px", display: "flex", flexDirection: "column" }}>
+            <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a958d", margin: "0 0 14px" }}>
+              Soutenir le projet
+            </p>
+            <p style={{ fontSize: "12.5px", color: "#6a6259", margin: "0 0 14px", lineHeight: 1.6, flex: 1 }}>
+              Le projet est bénévole. Les dons couvrent l’hébergement, les acquisitions
+              et la numérisation des éditions.
+            </p>
+            <a href={LIEN_PAYPAL} target="_blank" rel="noopener noreferrer"
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "9px 18px", borderRadius: "6px", border: "1px solid #3d6b4f", background: "#fff", color: "#3d6b4f", fontSize: "13px", fontWeight: 500, textDecoration: "none" }}>
+              <svg width="14" height="14" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <path d="M20 34S4 23 4 13a8 8 0 0 1 16-2 8 8 0 0 1 16 2c0 10-16 21-16 21z"
+                  stroke="currentColor" strokeWidth="2.5" fill="rgba(61,107,79,0.08)" strokeLinejoin="round" />
+              </svg>
+              Faire un don
+            </a>
+          </div>
+        </div>
+
+        {/* ── Connexion ── */}
+        <div style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "30px 32px 34px", width: "100%", maxWidth: "380px", margin: "0 auto", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}>
+        <div style={{ textAlign: "center", marginBottom: "24px" }}>
+          <h2 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "20px", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>
+            {mode === "connexion" ? "Connexion" : "Créer un compte"}
+          </h2>
         </div>
         {erreur === "__confirm__" ? (
           <div style={{ background: "rgba(61,107,79,0.07)", border: "1px solid rgba(61,107,79,0.2)", borderRadius: "6px", padding: "14px 16px", marginBottom: "20px" }}>
@@ -177,6 +380,30 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             </p>
           </div>
         )}
+        </div>
+
+        {/* ── Démarchage ── */}
+        <aside style={{ marginTop: "34px", border: "1px solid #ddc9c2", background: "#fdf6f4", borderRadius: "10px", padding: "20px 24px", maxWidth: "660px", marginLeft: "auto", marginRight: "auto" }}>
+          <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a4a3a", margin: "0 0 10px" }}>
+            Aucun démarchage
+          </p>
+          <p style={{ fontSize: "12.5px", color: "#6a5a54", lineHeight: 1.7, margin: 0 }}>
+            Toute sollicitation commerciale relative à ce site — référencement, refonte,
+            audit, publicité, intelligence artificielle, prestation de développement —
+            est <strong style={{ color: "#8a3a2a" }}>refusée par avance</strong>, qu’elle soit
+            envoyée par une personne ou par un automate. Les adresses figurant sur ce site
+            ne valent pas consentement et ne sont pas collectables.
+          </p>
+          <p style={{ fontSize: "12.5px", color: "#6a5a54", lineHeight: 1.7, margin: "10px 0 0" }}>
+            La prospection par voie électronique sans accord préalable est interdite en France
+            (article L. 34-5 du code des postes et des communications électroniques) et
+            constitue un traitement de données sans base légale au sens du RGPD. Tout message
+            de cette nature sera conservé, horodaté et signalé à la CNIL, qui dispose d’un
+            pouvoir de sanction pouvant atteindre 20 millions d’euros ou 4 % du chiffre
+            d’affaires mondial. Nous n’hésiterons pas à nous en servir.
+          </p>
+        </aside>
+
       </div>
     </main>
   );

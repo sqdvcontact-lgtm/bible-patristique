@@ -24,7 +24,9 @@ const AUTORISES = (process.env.ADMIN_EMAIL ?? '')
 // Chemins accessibles sans session, sous peine de boucle de redirection :
 // la page de connexion elle-même, le retour d'authentification, et les
 // ressources dont ces pages ont besoin.
-const LIBRES = ['/compte', '/auth', '/api/auth', '/api/compte']
+// `/api/attente` : la page d'attente y dépose les adresses de ceux qui veulent
+// être prévenus. Elle est donc, par construction, ouverte aux non-connectés.
+const LIBRES = ['/compte', '/auth', '/api/auth', '/api/compte', '/api/attente']
 
 function estLibre(chemin: string) {
   return LIBRES.some(p => chemin === p || chemin.startsWith(p + '/'))
