@@ -25,6 +25,7 @@ const [CODE, PREFIXE, TABLES] = process.argv.slice(2)
 if (!CODE || !PREFIXE || !TABLES){ console.error('usage : <CODE> <prefixe> <tables.json> [--ecrire]'); process.exit(1) }
 
 const S = JSON.parse(readFileSync(D + `${PREFIXE}${CODE}_transcrit.json`, 'utf8'))
+const videsRef = new Set((await all(sb.from('versets_v2').select('canon_id,texte').eq('trad_id','TR0003').eq('livre', CODE))).filter(r=>r.canon_id&&!r.texte?.trim()).map(r=>r.canon_id))
 const canon = new Set((await all(sb.from('versets_canon').select('id').like('id', CODE+'.%'))).map(r => r.id))
 const slots = {}
 for (const id of canon){ const [,c,v] = id.split('.'); (slots[+c] ??= []).push(+v) }
@@ -46,11 +47,28 @@ function ancreReelle(texte, ancre){
 }
 function lireTable(t){
   t = t.replace(/\s*\((?:début|debut|fin|1re|2e)[^)]*\)/g, '').replace(/(\d)[a-c](?=\s*(?:[,+]|→|->|$))/g, '$1')
-  return t.split(',').map(seg => {
-    const sn = seg.trim().match(/^([\d+]+)\s*(?:→|->)\s*(?:surnum|aucun|—|-)/i)
+  // LES LECTEURS COMMENTENT LEUR TABLE EN FIN DE LIGNE — « … 34→29 · créneaux 30 et 31 NON
+  // COUVERTS (vides chez le référent) ». C'est une bonne habitude : la remarque est là où elle
+  // sert. On coupe donc la prose au premier séparateur qui n'appartient pas à la notation.
+  // La remarque tombe tantôt APRÈS la table, tantôt avant — « (SIR.20.1 est occupé par Sacy
+  // 19,28) · 1→2, 2→3, … ». Prendre le premier fragment revenait alors à lire le commentaire
+  // pour la table. On choisit donc le fragment qui RESSEMBLE à une table : il commence par un
+  // chiffre et porte une flèche.
+  t = t.split(/\s+[·;—]\s+/).find(x => /^\s*\d[\d+]*\s*(?:→|->)/.test(x)) ?? t
+  return t.split(',').map(seg0 => {
+    // On tolère une annotation entre parenthèses et le point final d'une phrase : les
+    // lecteurs écrivent des tables lisibles par un humain, non des chaînes machine.
+    const seg = seg0.replace(/\s*\([^)]*\)/g, '').replace(/\.\s*$/, '').trim()
+    const sn = seg.match(/^([\d+]+)\s*(?:→|->)\s*(?:surnum|aucun|—|-)/i)
     if (sn) return { vs: sn[1].split('+').map(Number), sl: [] }
-    const m = seg.trim().match(/^([\d+]+)\s*(?:→|->)\s*([\d+]+)$/)
-    if (!m) throw new Error(`segment illisible : « ${seg.trim()} »`)
+    // DÉBORDEMENT DE CHAPITRE : « 28→SIR.20.1 ». L'édition fait passer dans le chapitre
+    // suivant un verset que le canon y range déjà — Sacy 19,28 EST le SIR 20,1 du référent.
+    // Le plan sait l'exprimer depuis toujours, puisqu'il porte un canon_id entier ; c'était
+    // le lecteur de tables qui ne savait pas le lire.
+    const ext = seg.match(/^([\d+]+)\s*(?:→|->)\s*([A-Z0-9]{3}\.\d+\.\d+)$/)
+    if (ext) return { vs: ext[1].split('+').map(Number), sl: [], hors: ext[2] }
+    const m = seg.match(/^([\d+]+)\s*(?:→|->)\s*([\d+]+)$/)
+    if (!m) throw new Error(`segment illisible : « ${seg0.trim()} »`)
     return { vs: m[1].split('+').map(Number), sl: m[2].split('+').map(Number) }
   })
 }
@@ -58,6 +76,14 @@ function lireTable(t){
 const decrits = new Map()
 for (const p of JSON.parse(readFileSync(D + TABLES, 'utf8')).chapitres ?? JSON.parse(readFileSync(D + TABLES, 'utf8')).psaumes ?? [])
   decrits.set(p.ch, p)
+
+// UN CRÉNEAU PEUT ÊTRE COUVERT PAR LE CHAPITRE VOISIN. L'édition fait parfois passer dans le
+// chapitre suivant un verset que le canon range déjà là — Sacy 19,28 EST le SIR 20,1. Le
+// contrôle de couverture raisonne chapitre par chapitre : sans ce relevé préalable, il
+// déclarerait le créneau 20,1 orphelin alors qu'il est rempli, et écarterait tout le chapitre.
+const couvertsAilleurs = new Set()
+for (const p of JSON.parse(readFileSync(D + TABLES, 'utf8')).chapitres ?? [])
+  for (const m of String(p.table || '').matchAll(/(?:→|->)\s*([A-Z0-9]{3}\.\d+\.\d+)/g)) couvertsAilleurs.add(m[1])
 
 const plan = [], scissions = [], ecartes = [], signales = []
 for (const c of Object.keys(parCh).map(Number).sort((a,b)=>a-b)){
@@ -81,10 +107,24 @@ for (const c of Object.keys(parCh).map(Number).sort((a,b)=>a-b)){
   const attendu = parCh[c].map(v => v.v).sort((a,b)=>a-b)
   if ([...new Set(vusV)].sort((a,b)=>a-b).join(',') !== attendu.join(',')){
     ecartes.push(`ch ${c} : la table couvre ${[...new Set(vusV)].sort((a,b)=>a-b).join(',')} — l'édition porte ${attendu.join(',')}`); continue }
+  // LES CRÉNEAUX NE PROGRESSENT PAS TOUJOURS. J'exigeais une suite croissante — c'était un
+  // garde-fou juste pour les psaumes, mais faux pour le Siracide, où la Vulgate TRANSPOSE
+  // parfois deux versets (Si 7,9-10 · 9,15-16 · 43,17-18). Les lecteurs ont apparié au
+  // contenu et non au rang, ce qui est la bonne lecture. On le signale au lieu d'écarter.
   const vusS = paires.flatMap(x => x.sl)
-  if (vusS.some((n,i) => i && n < vusS[i-1])){ ecartes.push(`ch ${c} : créneaux non croissants`); continue }
-  if ([...new Set(vusS)].sort((a,b)=>a-b).join(',') !== slots[c].join(',')){
-    ecartes.push(`ch ${c} : créneaux touchés ≠ ceux du canon`); continue }
+  const desordre = vusS.filter((n,i) => i && n < vusS[i-1]).length
+  if (desordre) signales.push(`ch ${c} — ${desordre} transposition(s) : les créneaux ne progressent pas, appariement au contenu`)
+
+  // UN CRÉNEAU PEUT RESTER DÉCOUVERT S'IL EST VIDE CHEZ LE RÉFÉRENT. Le Siracide en compte
+  // 55 : le canon y suit une recension plus longue que Crampon. Exiger une couverture totale
+  // ferait échouer vingt chapitres pour une lacune qui n'est pas celle de Sacy.
+  const touches = new Set(vusS)
+  const manquants = slots[c].filter(n => !touches.has(n))
+  const nonExplique = manquants.filter(n => !videsRef.has(`${CODE}.${c}.${n}`) && !couvertsAilleurs.has(`${CODE}.${c}.${n}`))
+  const enTrop = [...touches].filter(n => !slots[c].includes(n))
+  if (enTrop.length){ ecartes.push(`ch ${c} : créneaux hors canon ${enTrop.join(',')}`); continue }
+  if (nonExplique.length){ ecartes.push(`ch ${c} : créneaux ${nonExplique.join(',')} non couverts et non vides chez le référent`); continue }
+  if (manquants.length) signales.push(`ch ${c} — ${manquants.length} créneau(x) laissé(s) vide(s), comme chez le référent`)
 
   const dec = new Map((p.scissions || []).map(s => [s.v, s]))
   const sc = []; let ok = true
@@ -106,8 +146,8 @@ for (const c of Object.keys(parCh).map(Number).sort((a,b)=>a-b)){
     sc.push({ ch: c, v: vs[0], coupes: [r.texte], canons: sl.map(n => `${CODE}.${c}.${n}`) })
   }
   if (!ok) continue
-  for (const { vs, sl } of paires) for (const v of vs)
-    plan.push({ ch: c, v, canon_id: sl.length ? `${CODE}.${c}.${sl[0]}` : null })
+  for (const { vs, sl, hors } of paires) for (const v of vs)
+    plan.push({ ch: c, v, canon_id: hors ?? (sl.length ? `${CODE}.${c}.${sl[0]}` : null) })
   scissions.push(...sc)
 }
 
