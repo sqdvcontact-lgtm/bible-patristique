@@ -106,6 +106,18 @@ function IcoLien() {
     </svg>
   );
 }
+function IcoExigence() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
+      {/* une balance : la rigueur, et le partage du jugement */}
+      <path d="M12 4.5v15M7 19.5h10" {...traits} />
+      <path d="M5 8.5h14" {...traits} />
+      <path d="M5 8.5 2.5 14h5z" {...traits} />
+      <path d="M19 8.5 16.5 14h5z" {...traits} />
+      <circle cx="12" cy="6.6" r="1.6" {...traits} />
+    </svg>
+  );
+}
 function IcoLibre() {
   return (
     <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
@@ -125,21 +137,32 @@ function IcoLibre() {
 // détourage aurait laissé un liseré clair autour de chaque trait.
 const MELANGE: React.CSSProperties = { mixBlendMode: "multiply", display: "block", margin: "0 auto", height: "auto" };
 
-/** Rinceau de vigne à grappe : sépare deux sections. */
-function Vigne({ largeur = 190, opacite = 1 }: { largeur?: number; opacite?: number }) {
+/** Les ornements de séparation. Chacun ne paraît qu'une fois : un motif répété
+ *  cesse d'être un ornement pour devenir un habillage. */
+const ORNEMENTS = {
+  vigne:      { src: "/ornements/vigne-grappe.png", w: 520, h: 247 },
+  clochettes: { src: "/ornements/clochettes.png",   w: 560, h: 110 },
+  lampes:     { src: "/ornements/lampes.png",       w: 520, h: 157 },
+  puits:      { src: "/ornements/puits.png",        w: 340, h: 230 },
+  etoiles:    { src: "/ornements/bois-etoiles.png", w: 380, h: 272 },
+} as const;
+
+function Ornement({ nom, largeur, opacite = 1 }: { nom: keyof typeof ORNEMENTS; largeur: number; opacite?: number }) {
+  const o = ORNEMENTS[nom];
   return (
-    <Image src="/ornements/vigne-grappe.png" alt="" aria-hidden="true"
-      width={520} height={247} sizes={`${largeur}px`}
+    <Image src={o.src} alt="" aria-hidden="true" width={o.w} height={o.h}
+      sizes={`${largeur}px`}
       style={{ ...MELANGE, width: largeur, maxWidth: "100%", opacity: opacite }} />
   );
 }
 
-/** Vase parmi les flots : second ornement de séparation. */
-function VaseFlots({ largeur = 220, opacite = 1 }: { largeur?: number; opacite?: number }) {
+/** Siècle en petites capitales : « XVII<sup>e</sup> » composé en capitales
+ *  pleines fait une tache dans une ligne de bas-de-casse. */
+function Siecle({ n }: { n: string }) {
   return (
-    <Image src="/ornements/vase-flots.png" alt="" aria-hidden="true"
-      width={520} height={156} sizes={`${largeur}px`}
-      style={{ ...MELANGE, width: largeur, maxWidth: "100%", opacity: opacite }} />
+    <span style={{ fontVariant: "small-caps", textTransform: "lowercase" }}>
+      {n}<sup style={{ fontVariant: "normal", fontSize: "0.72em" }}>e</sup>
+    </span>
   );
 }
 
@@ -159,15 +182,28 @@ function CulDeLampe() {
   );
 }
 
-const PRINCIPES: { ico: React.ReactNode; titre: string; texte: string }[] = [
-  { ico: <IcoColonnes />, titre: "Les traductions côte à côte",
-    texte: "Le même verset dans chaque colonne, aligné sur la numérotation du canon. On compare d’un regard, sans feuilleter." },
+const PRINCIPES: { ico: React.ReactNode; titre: string; texte: React.ReactNode }[] = [
+  { ico: <IcoColonnes />, titre: "Les traductions en regard",
+    texte: <>Sur le modèle de la <i>Sainte Bible polyglotte</i> de Fulcran Vigouroux, Corpus Scriptura
+      permettra de consulter en regard les meilleures traductions françaises de la Bible. Nous prévoyons
+      également d’y proposer les textes bibliques en grec, en latin et dans d’autres langues anciennes.</> },
   { ico: <IcoPeres />, titre: "Les Pères de l’Église",
-    texte: "Le corpus patristique en français, découpé passage par passage : des fragments qui se lisent, non un bloc qu’on n’ouvre jamais." },
+    texte: <>Les grands textes patristiques seront proposés en français dans des traductions anciennes,
+      du <Siecle n="xvii" /> au <Siecle n="xx" /> siècle, toutes libres de droit. Nous espérons pouvoir
+      bientôt mettre également à votre disposition les textes dans leur langue originale et, peut-être,
+      des éditions critiques sous licence.</> },
   { ico: <IcoLien />, titre: "Le lien entre les deux",
-    texte: "Chaque passage d’un Père tient au verset qu’il cite ou commente. On part du verset, on remonte à ce que la tradition en a fait." },
+    texte: <>La base de données met en relation la Bible et les œuvres des Pères de l’Église au moyen
+      d’une interface épurée et facile à utiliser. Grâce notamment à un système de recherche avancée,
+      le site s’adresse aussi bien aux curieux qu’aux chercheurs.</> },
+  { ico: <IcoExigence />, titre: "Exigence et collaboration",
+    texte: <>Corpus Scriptura rassemble d’immenses quantités de textes, une matière complexe à traiter
+      et à organiser. Nous nous attachons néanmoins à garantir un haut niveau de rigueur et de fiabilité.
+      Grâce à votre collaboration – notamment par vos signalements –, nous espérons améliorer sans cesse
+      le site.</> },
   { ico: <IcoLibre />, titre: "Libre d’accès",
-    texte: "Sans publicité, sans abonnement, sans revente d’adresses. Le travail est bénévole, et le restera." },
+    texte: <>Corpus Scriptura est sans publicité et sans abonnement. Le travail est bénévole,
+      et le restera.</> },
 ];
 
 // ── Chiffres du corpus ───────────────────────────────────────────────────────
@@ -372,17 +408,11 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
 
       {/* ── Premier écran : un bloc entier, rien de coupé ── */}
       <header className="cs-ecran">
-        <Vigne largeur={200} />
+        <Ornement nom="vigne" largeur={200} />
         <h1 className="cs-enseigne">Corpus Scriptura</h1>
         <p className="cs-titre">L’Écriture, et ce que les Pères en ont dit</p>
 
-        <p className="cs-chapeau">
-          Un verset d’un côté ; de l’autre, ceux qui l’ont commenté pendant quinze siècles.
-          Le site met les deux en regard, ligne à ligne, et rend lisibles des textes qu’on
-          ne trouvait jusqu’ici qu’en bibliothèque.
-        </p>
-
-        <div style={{ display: "flex", gap: "11px", alignItems: "flex-start", textAlign: "left", background: "#faf3e4", border: "1px solid #e0cfa4", borderRadius: "10px", padding: "14px 18px", marginTop: "28px", maxWidth: "480px" }}>
+        <div style={{ display: "flex", gap: "11px", alignItems: "flex-start", textAlign: "left", background: "#faf3e4", border: "1px solid #e0cfa4", borderRadius: "10px", padding: "14px 18px", marginTop: "22px", maxWidth: "480px" }}>
           <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true" style={{ color: "#9a7a38", flexShrink: 0, marginTop: "1px" }}>
             <path d="M12 8.5v4.5M12 16.2v.3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
             <path d="M10.3 3.9 2.5 17.5A2 2 0 0 0 4.2 20.5h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinejoin="round" />
@@ -393,6 +423,10 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             Cette page est une annonce, pas une porte.
           </p>
         </div>
+
+        {/* Les chiffres tiennent dans le premier écran depuis que le chapeau en
+            est parti : l'état du chantier se lit sans avoir à faire défiler. */}
+        <div style={{ marginTop: "26px" }}><Chiffres /></div>
 
         {/* Invite à faire défiler : sans elle, un premier écran qui tient dans la
             fenêtre laisse croire qu'il n'y a rien en dessous. */}
@@ -405,9 +439,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
 
       <div className="cs-ouverture-corps" style={{ paddingBottom: "56px" }}>
 
-        <Chiffres />
-
-        <div className="cs-principes">
+        <div className="cs-principes" style={{ paddingTop: "44px" }}>
           {PRINCIPES.map(p => (
             <div key={p.titre} style={{ display: "flex", gap: "13px", alignItems: "flex-start" }}>
               <span style={{ color: "#3d6b4f", flexShrink: 0, marginTop: "1px" }}>{p.ico}</span>
@@ -419,7 +451,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           ))}
         </div>
 
-        <div style={{ margin: "6px 0 32px" }}><Vigne largeur={150} opacite={0.5} /></div>
+        <div style={{ margin: "6px 0 34px" }}><Ornement nom="clochettes" largeur={210} opacite={0.7} /></div>
 
         {/* ── Textes rares ── */}
         <div style={{ borderTop: "1px solid #e0d9cc", borderBottom: "1px solid #e0d9cc", padding: "26px 0", marginBottom: "34px", textAlign: "center" }}>
@@ -427,7 +459,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             Ce qu’on ne trouve pas ailleurs
           </p>
           <p style={{ fontSize: "13.5px", color: "#4a453e", lineHeight: 1.8, maxWidth: "580px", margin: "0 auto" }}>
-            Beaucoup de ces textes n’existent qu’en volumes du XIX<sup>e</sup> siècle, épuisés,
+            Beaucoup de ces textes n’existent qu’en volumes du <Siecle n="xix" /> siècle, épuisés,
             dispersés dans quelques fonds, et illisibles pour un moteur de recherche. Le site les
             reprend page à page : les fac-similés passent par une <strong style={{ fontWeight: 600, color: "#2a3d30" }}>océrisation</strong>,
             puis par une relecture, jusqu’à ce que le texte redevienne un texte – cherchable,
@@ -437,6 +469,8 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             C’est le cœur du travail, et ce qui prend le plus de temps.
           </p>
         </div>
+
+        <div style={{ margin: "34px 0 30px" }}><Ornement nom="lampes" largeur={220} opacite={0.7} /></div>
 
         {/* ── Être prévenu, et soutenir ── */}
         <div className="cs-cartes">
@@ -464,6 +498,8 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             </a>
           </div>
         </div>
+
+        <div style={{ margin: "34px 0 26px" }}><Ornement nom="puits" largeur={110} opacite={0.65} /></div>
 
         {/* ── Connexion ── */}
         <div className="cs-connexion" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "30px 32px 34px", width: "100%", maxWidth: "380px", margin: "0 auto", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}>
@@ -528,7 +564,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         )}
         </div>
 
-        <div style={{ margin: "38px 0 4px" }}><VaseFlots largeur={230} opacite={0.55} /></div>
+        <div style={{ margin: "40px 0 6px" }}><Ornement nom="etoiles" largeur={130} opacite={0.6} /></div>
 
         {/* ── Démarchage ── */}
         <aside style={{ marginTop: "34px", border: "1px solid #ddc9c2", background: "#fdf6f4", borderRadius: "10px", padding: "20px 24px", maxWidth: "660px", marginLeft: "auto", marginRight: "auto" }}>
