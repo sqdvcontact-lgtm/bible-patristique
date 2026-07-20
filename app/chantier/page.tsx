@@ -341,9 +341,24 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-chapeau { font-size: 14.5px; color: #6a6259; line-height: 1.75;
                       max-width: 520px; margin: 0 auto; }
         .cs-suite { display: block; margin-top: 16px; color: #a89e8e; }
-        .cs-principes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 26px; margin-bottom: 38px; }
+        .cs-principes { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 38px; }
+        /* Encart : pictogramme, titre, texte — empilés et centrés. La pastille
+           pose le pictogramme au calme ; le filet sous le titre le rattache au
+           texte sans le cerner. */
+        .cs-encart { display: flex; flex-direction: column; align-items: center; text-align: center;
+                     padding: 22px 22px 24px; border: 1px solid #e7e0d4; border-radius: 12px;
+                     background: linear-gradient(#fdfbf6, #f8f4ea); }
+        .cs-encart-ico { display: flex; align-items: center; justify-content: center;
+                         width: 46px; height: 46px; border-radius: 50%; margin-bottom: 12px;
+                         color: #3d6b4f; background: #eef3ee; border: 1px solid #dbe6dd; }
+        .cs-encart-titre { font-family: Georgia, 'Times New Roman', serif; font-weight: normal;
+                           font-size: 15px; color: #2a3d30; margin: 0 0 9px; padding-bottom: 9px;
+                           position: relative; }
+        .cs-encart-titre::after { content: ""; position: absolute; left: 50%; bottom: 0;
+                                  width: 26px; height: 1px; background: #cdb98c; transform: translateX(-50%); }
+        .cs-encart-texte { font-size: 12.5px; color: #6a6259; line-height: 1.65; margin: 0; max-width: 34ch; }
         /* Le point surnuméraire enjambe les deux colonnes et se centre. */
-        .cs-principe-seul { grid-column: 1 / -1; max-width: 380px; margin: 4px auto 0; }
+        .cs-principe-seul { grid-column: 1 / -1; max-width: 340px; margin: 0 auto; }
         .cs-cartes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
         .cs-chiffres { display: flex; justify-content: center; gap: 54px; flex-wrap: wrap; margin: 6px 0 34px; }
 
@@ -412,17 +427,14 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
 
         <div className="cs-principes" style={{ paddingTop: "44px" }}>
           {PRINCIPES.map((p, i) => {
-            // Cinq points dans deux colonnes : le dernier resterait seul, calé à
-            // gauche, comme oublié. Il occupe donc toute la largeur et se centre.
+            // Cinq encarts dans deux colonnes : le dernier resterait seul, comme
+            // oublié dans un coin. Il enjambe donc les deux colonnes et se centre.
             const seul = i === PRINCIPES.length - 1 && PRINCIPES.length % 2 === 1;
             return (
-              <div key={p.titre} className={seul ? "cs-principe-seul" : undefined}
-                style={{ display: "flex", gap: "13px", alignItems: "flex-start" }}>
-                <span style={{ color: "#3d6b4f", flexShrink: 0, marginTop: "1px" }}>{p.ico}</span>
-                <span>
-                  <span style={{ display: "block", fontFamily: "Georgia, serif", fontSize: "14px", color: "#2a3d30", marginBottom: "4px" }}>{p.titre}</span>
-                  <span style={{ display: "block", fontSize: "12.5px", color: "#6a6259", lineHeight: 1.6 }}>{p.texte}</span>
-                </span>
+              <div key={p.titre} className={`cs-encart${seul ? " cs-principe-seul" : ""}`}>
+                <span className="cs-encart-ico">{p.ico}</span>
+                <h3 className="cs-encart-titre">{p.titre}</h3>
+                <p className="cs-encart-texte">{p.texte}</p>
               </div>
             );
           })}
