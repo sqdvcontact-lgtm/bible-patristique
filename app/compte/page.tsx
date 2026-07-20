@@ -115,15 +115,99 @@ function IcoLibre() {
   );
 }
 
+// ── Ornements ────────────────────────────────────────────────────────────────
+// Rinceaux de vigne, tracés au trait dans les couleurs du site : le vert du
+// corps de texte, l'or des filets. La vigne plutôt qu'un fleuron abstrait —
+// c'est l'ornement des manuscrits, et elle dit quelque chose du contenu.
+
+/** Rinceau horizontal : deux vrilles symétriques autour d'une feuille. */
+function Vigne({ largeur = 190, opacite = 1 }: { largeur?: number; opacite?: number }) {
+  return (
+    <svg width={largeur} height={largeur * 0.155} viewBox="0 0 200 31" fill="none"
+      aria-hidden="true" style={{ display: "block", margin: "0 auto", opacity: opacite }}>
+      <g stroke="#9a7a38" strokeWidth="1.05" strokeLinecap="round" fill="none">
+        {/* sarments */}
+        <path d="M6 15.5h58" />
+        <path d="M194 15.5h-58" />
+        {/* vrilles enroulées */}
+        <path d="M64 15.5c6 0 9-4.5 6.5-7.5-2-2.4-5.5-.6-4.6 2.3.9 2.9 5.1 4 9.1 1.2" />
+        <path d="M136 15.5c-6 0-9 4.5-6.5 7.5 2 2.4 5.5.6 4.6-2.3-.9-2.9-5.1-4-9.1-1.2" />
+        {/* feuilles */}
+        <path d="M78 12.6c4.5-5.6 11-6.6 14.4-3.4 3.2 3-.4 8.8-6.2 9.4-3.7.4-6.6-2.2-8.2-6z" />
+        <path d="M122 18.4c-4.5 5.6-11 6.6-14.4 3.4-3.2-3 .4-8.8 6.2-9.4 3.7-.4 6.6 2.2 8.2 6z" />
+        {/* grain central */}
+        <circle cx="100" cy="15.5" r="2.6" fill="#9a7a38" stroke="none" />
+        <path d="M93 15.5h-1.5M108.5 15.5H107" />
+      </g>
+    </svg>
+  );
+}
+
+/** Cul-de-lampe.
+ *
+ *  L'ornement voulu est une gravure au trait — des anges et des ouvriers
+ *  bâtissant la cité — qui dit le chantier mieux qu'un fleuron. Déposer le
+ *  fichier en `public/ornements/chantier.png` et il paraît de lui-même ;
+ *  tant qu'il manque, le motif de vigne ci-dessous tient la place.
+ *
+ *  Le repli se fait sur l'erreur de chargement plutôt que sur un test
+ *  d'existence : la page est rendue côté serveur, elle ne peut pas savoir ce
+ *  que contient le disque du client.
+ */
+function CulDeLampe() {
+  const [gravureAbsente, setGravureAbsente] = useState(false);
+
+  if (!gravureAbsente) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src="/ornements/chantier.png"
+        alt="Des anges et des ouvriers bâtissant une cité fortifiée"
+        onError={() => setGravureAbsente(true)}
+        style={{ display: "block", margin: "0 auto", width: "100%", maxWidth: "420px", height: "auto" }}
+      />
+    );
+  }
+
+  return <VigneCulDeLampe />;
+}
+
+/** Ornement de repli : triangle pointe en bas, dans l'esprit de la charte. */
+function VigneCulDeLampe() {
+  return (
+    <svg width="128" height="76" viewBox="0 0 128 76" fill="none" aria-hidden="true"
+      style={{ display: "block", margin: "0 auto" }}>
+      <g stroke="#9a7a38" strokeWidth="1.05" strokeLinecap="round" strokeLinejoin="round" fill="none">
+        {/* traverse supérieure, terminée par deux volutes */}
+        <path d="M28 8h72" />
+        <path d="M28 8c-5 0-7.5 3.5-5.5 6 1.7 2.1 5 .6 4.2-1.9" />
+        <path d="M100 8c5 0 7.5 3.5 5.5 6-1.7 2.1-5 .6-4.2-1.9" />
+        {/* rinceaux descendants, en miroir */}
+        <path d="M64 8v12c0 9-7 12-13 16-5 3.3-7 7-5 10.5" />
+        <path d="M64 8v12c0 9 7 12 13 16 5 3.3 7 7 5 10.5" />
+        {/* feuilles de vigne affrontées */}
+        <path d="M51 30c-6.5-2.5-13 .5-13.5 5.5-.4 4.4 6 7 11 3.8 3.2-2 4-6 2.5-9.3z" />
+        <path d="M77 30c6.5-2.5 13 .5 13.5 5.5.4 4.4-6 7-11 3.8-3.2-2-4-6-2.5-9.3z" />
+        {/* grappe : la pointe du triangle */}
+        <path d="M64 34v14" />
+        <circle cx="58.5" cy="52.5" r="3.6" />
+        <circle cx="69.5" cy="52.5" r="3.6" />
+        <circle cx="64" cy="60.5" r="3.6" />
+        <circle cx="64" cy="69" r="2.6" fill="#9a7a38" stroke="none" />
+      </g>
+    </svg>
+  );
+}
+
 const PRINCIPES: { ico: React.ReactNode; titre: string; texte: string }[] = [
   { ico: <IcoColonnes />, titre: "Les traductions côte à côte",
-    texte: "Sacy, Segond, Crampon : le même verset dans chaque colonne, aligné sur la numérotation du canon. On compare d’un regard au lieu de feuilleter." },
+    texte: "Le même verset dans chaque colonne, aligné sur la numérotation du canon. On compare d’un regard, sans feuilleter." },
   { ico: <IcoPeres />, titre: "Les Pères de l’Église",
-    texte: "Le corpus patristique en français, découpé passage par passage – non pas un bloc qu’on n’ouvre jamais, mais des fragments qui se lisent." },
+    texte: "Le corpus patristique en français, découpé passage par passage : des fragments qui se lisent, non un bloc qu’on n’ouvre jamais." },
   { ico: <IcoLien />, titre: "Le lien entre les deux",
     texte: "Chaque passage d’un Père tient au verset qu’il cite ou commente. On part du verset, on remonte à ce que la tradition en a fait." },
   { ico: <IcoLibre />, titre: "Libre d’accès",
-    texte: "Sans publicité, sans abonnement, sans revente d’adresses. Le travail est bénévole (il le restera)." },
+    texte: "Sans publicité, sans abonnement, sans revente d’adresses. Le travail est bénévole, et le restera." },
 ];
 
 // ── Chiffres du corpus ───────────────────────────────────────────────────────
@@ -275,13 +359,27 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         body:has(.cs-ouverture) [data-cs-bandeau-mobile] { display: none !important; }
         body:has(.cs-ouverture) #cs-corps { padding-top: 0 !important; }
 
-        .cs-ouverture { min-height: 100vh; background: #f3efe3; padding: 40px 20px 56px; }
-        .cs-ouverture-corps { width: 100%; max-width: 780px; margin: 0 auto; }
+        .cs-ouverture { background: #f3efe3; }
+        .cs-ouverture-corps { width: 100%; max-width: 780px; margin: 0 auto; padding: 0 20px; }
+
+        /* ── Premier écran ────────────────────────────────────────────────────
+           Il occupe exactement la hauteur visible et se centre : le visiteur
+           découvre un bloc entier — enseigne, titre, phrase, avis de travaux —
+           sans qu'aucun paragraphe soit tranché par le bas de l'écran. On mesure
+           en dvh et non en vh : sur téléphone, vh ignore la barre d'adresse et
+           déborde toujours d'une cinquantaine de pixels. */
+        .cs-ecran { min-height: 100dvh; display: flex; flex-direction: column;
+                    align-items: center; justify-content: center;
+                    text-align: center; padding: 32px 20px 26px; }
+        .cs-enseigne { font-family: Georgia, 'Times New Roman', serif; font-weight: normal;
+                       color: #3d6b4f; letter-spacing: 0.16em; text-transform: uppercase;
+                       font-size: 30px; line-height: 1.1; margin: 16px 0 4px; }
         .cs-titre { font-family: Georgia, 'Times New Roman', serif; font-weight: normal;
-                    color: #1e2e22; line-height: 1.22; letter-spacing: -0.01em;
-                    font-size: 33px; margin: 12px 0 14px; }
-        .cs-chapeau { font-size: 14.5px; color: #6a6259; line-height: 1.7;
-                      max-width: 540px; margin: 0 auto; }
+                    color: #1e2e22; line-height: 1.3; letter-spacing: -0.005em;
+                    font-size: 20px; font-style: italic; margin: 10px 0 16px; }
+        .cs-chapeau { font-size: 14.5px; color: #6a6259; line-height: 1.75;
+                      max-width: 520px; margin: 0 auto; }
+        .cs-suite { display: block; margin-top: 30px; color: #a89e8e; }
         .cs-principes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 26px; margin-bottom: 38px; }
         .cs-cartes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
         .cs-chiffres { display: flex; justify-content: center; gap: 54px; flex-wrap: wrap; margin: 6px 0 34px; }
@@ -291,9 +389,12 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
            tiennent le doigt : le champ et le bouton passent l'un sous l'autre
            plutôt que de se partager une ligne trop étroite. */
         @media (max-width: 640px) {
-          .cs-ouverture { padding: 26px 16px 44px; }
-          .cs-titre { font-size: 25px; margin: 10px 0 12px; }
-          .cs-chapeau { font-size: 13.5px; line-height: 1.65; }
+          .cs-ouverture-corps { padding: 0 16px; }
+          .cs-ecran { padding: 26px 16px 22px; }
+          .cs-enseigne { font-size: 22px; letter-spacing: 0.13em; }
+          .cs-titre { font-size: 16.5px; margin: 8px 0 14px; }
+          .cs-chapeau { font-size: 13.5px; line-height: 1.7; }
+          .cs-suite { margin-top: 22px; }
           .cs-principes { grid-template-columns: 1fr; gap: 18px; margin-bottom: 30px; }
           .cs-cartes { grid-template-columns: 1fr; }
           .cs-chiffres { gap: 0; justify-content: space-between; margin: 4px 0 28px; }
@@ -309,33 +410,40 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         @media (max-width: 640px) { .cs-ouverture input { font-size: 16px !important; } }
       `}</style>
 
-      <div className="cs-ouverture-corps">
+      {/* ── Premier écran : un bloc entier, rien de coupé ── */}
+      <header className="cs-ecran">
+        <Vigne largeur={200} />
+        <h1 className="cs-enseigne">Corpus Scriptura</h1>
+        <p className="cs-titre">L’Écriture, et ce que les Pères en ont dit</p>
 
-        {/* ── Ce qu'est le site ── */}
-        <header style={{ textAlign: "center", marginBottom: "22px" }}>
-          <span style={{ fontSize: "9.5px", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "#3d6b4f" }}>
-            Corpus Scriptura
-          </span>
-          <h1 className="cs-titre">L’Écriture, et ce que les Pères en ont dit</h1>
-          <p className="cs-chapeau">
-            Un verset d’un côté ; de l’autre, ceux qui l’ont commenté pendant quinze siècles.
-            Le site met les deux en regard, ligne à ligne.
-          </p>
-        </header>
+        <p className="cs-chapeau">
+          Un verset d’un côté ; de l’autre, ceux qui l’ont commenté pendant quinze siècles.
+          Le site met les deux en regard, ligne à ligne, et rend lisibles des textes qu’on
+          ne trouvait jusqu’ici qu’en bibliothèque.
+        </p>
 
-        {/* ── En travaux ── */}
-        <div style={{ display: "flex", gap: "12px", alignItems: "flex-start", background: "#faf3e4", border: "1px solid #e0cfa4", borderRadius: "10px", padding: "16px 20px", marginBottom: "30px" }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" style={{ color: "#9a7a38", flexShrink: 0, marginTop: "1px" }}>
+        <div style={{ display: "flex", gap: "11px", alignItems: "flex-start", textAlign: "left", background: "#faf3e4", border: "1px solid #e0cfa4", borderRadius: "10px", padding: "14px 18px", marginTop: "28px", maxWidth: "480px" }}>
+          <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true" style={{ color: "#9a7a38", flexShrink: 0, marginTop: "1px" }}>
             <path d="M12 8.5v4.5M12 16.2v.3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
             <path d="M10.3 3.9 2.5 17.5A2 2 0 0 0 4.2 20.5h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinejoin="round" />
           </svg>
-          <p style={{ fontSize: "13px", color: "#6a5a38", lineHeight: 1.65, margin: 0 }}>
+          <p style={{ fontSize: "12.5px", color: "#6a5a38", lineHeight: 1.65, margin: 0 }}>
             <strong style={{ color: "#7a5c20" }}>Le site est en travaux.</strong>{" "}
-            Rien n’est ouvert : ni la lecture, ni les comptes, ni la recherche. Ce que vous
-            avez sous les yeux est une annonce, pas une porte. Les chiffres ci-dessous
-            disent où en est le chantier.
+            Rien n’est encore ouvert : ni la lecture, ni la recherche, ni les comptes.
+            Cette page est une annonce, pas une porte.
           </p>
         </div>
+
+        {/* Invite à faire défiler : sans elle, un premier écran qui tient dans la
+            fenêtre laisse croire qu'il n'y a rien en dessous. */}
+        <span className="cs-suite" aria-hidden="true">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5v13M6.5 12.5 12 18l5.5-5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+      </header>
+
+      <div className="cs-ouverture-corps" style={{ paddingBottom: "56px" }}>
 
         <Chiffres />
 
@@ -349,6 +457,25 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
               </span>
             </div>
           ))}
+        </div>
+
+        <div style={{ margin: "6px 0 32px" }}><Vigne largeur={150} opacite={0.5} /></div>
+
+        {/* ── Textes rares ── */}
+        <div style={{ borderTop: "1px solid #e0d9cc", borderBottom: "1px solid #e0d9cc", padding: "26px 0", marginBottom: "34px", textAlign: "center" }}>
+          <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#9a7a38", margin: "0 0 12px" }}>
+            Ce qu’on ne trouve pas ailleurs
+          </p>
+          <p style={{ fontSize: "13.5px", color: "#4a453e", lineHeight: 1.8, maxWidth: "580px", margin: "0 auto" }}>
+            Beaucoup de ces textes n’existent qu’en volumes du XIX<sup>e</sup> siècle, épuisés,
+            dispersés dans quelques fonds, et illisibles pour un moteur de recherche. Le site les
+            reprend page à page : les fac-similés passent par une <strong style={{ fontWeight: 600, color: "#2a3d30" }}>océrisation</strong>,
+            puis par une relecture, jusqu’à ce que le texte redevienne un texte – cherchable,
+            citable, relié au verset qu’il commente.
+          </p>
+          <p style={{ fontSize: "12.5px", color: "#8a8278", lineHeight: 1.7, maxWidth: "540px", margin: "14px auto 0", fontStyle: "italic" }}>
+            C’est le cœur du travail, et ce qui prend le plus de temps.
+          </p>
         </div>
 
         {/* ── Être prévenu, et soutenir ── */}
@@ -457,11 +584,14 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             La prospection par voie électronique sans accord préalable est interdite en France
             (article L. 34-5 du code des postes et des communications électroniques) et
             constitue un traitement de données sans base légale au sens du RGPD. Tout message
-            de cette nature sera conservé, horodaté et signalé à la CNIL, qui dispose d’un
-            pouvoir de sanction pouvant atteindre 20 millions d’euros ou 4 % du chiffre
-            d’affaires mondial. Nous n’hésiterons pas à nous en servir.
+            de cette nature sera conservé, horodaté et signalé à la CNIL.
           </p>
         </aside>
+
+        {/* ── Cul-de-lampe ── */}
+        <div style={{ marginTop: "44px", opacity: 0.85 }}>
+          <CulDeLampe />
+        </div>
 
       </div>
     </main>
