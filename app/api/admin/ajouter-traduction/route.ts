@@ -79,7 +79,7 @@ export async function POST(req: Request) {
       const batch = lignes.slice(i, i + 500)
       const ids = batch.map((l: LigneTraduction) => l.id_verset)
       const { data: versetsExistants, error: existErr } = await supabaseAdmin
-        .from('versets')
+        .from('versets_lecture')
         .select('id_verset')
         .in('id_verset', ids)
       if (existErr) {

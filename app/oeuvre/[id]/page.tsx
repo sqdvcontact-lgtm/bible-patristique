@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { hydraterLiensHerites } from '@/app/lib/liens'
 import type { Metadata } from 'next'
 import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
 import { ABREV_FR } from '@/app/lib/bible'
@@ -29,8 +30,27 @@ type Segment = {
   nature: string|null
 }
 
+// Un même verset peut être visé par plusieurs liens du même segment — chez un
+// commentateur, il est cité PUIS commenté, et l'arbitrage n°17 rend ce cumul
+// obligatoire. Il ne doit pour autant paraître qu'une fois dans le volet : on
+// dédoublonne, et l'on garde la trace des natures rencontrées pour les dire.
+const NATURE_LIEN = ['citation', 'reprise', 'doctrine', 'écho'] as const
+
+function extraireVersetsAvecNature(s: Segment): { id: string; natures: string[] }[] {
+  const ordre: string[] = []
+  const natures = new Map<string, string[]>()
+  ;[s.lien_1, s.lien_2, s.lien_3, s.lien_4].forEach((col, i) => {
+    String(col ?? '').split(';').map(v => v.trim()).filter(Boolean).forEach(vid => {
+      if (!natures.has(vid)) { natures.set(vid, []); ordre.push(vid) }
+      const n = NATURE_LIEN[i]
+      if (!natures.get(vid)!.includes(n)) natures.get(vid)!.push(n)
+    })
+  })
+  return ordre.map(id => ({ id, natures: natures.get(id)! }))
+}
+
 function extraireVersets(s: Segment): string[] {
-  return [s.lien_1,s.lien_2,s.lien_3,s.lien_4].filter(Boolean).join(';').split(';').map(v=>v.trim()).filter(Boolean)
+  return extraireVersetsAvecNature(s).map(v => v.id)
 }
 
 function segmentAffichable(s: Segment) {
@@ -96,7 +116,7 @@ async function enrichirAvecVersets(segments: Segment[], codesTraductions: string
   const batches = Array.from({ length: Math.ceil(tousIdsArray.length / batchSize) }, (_, i) =>
     tousIdsArray.slice(i * batchSize, (i + 1) * batchSize))
   const results = await Promise.all(batches.map(batch =>
-    supabase.from('versets').select(selectVersets).in('id_verset', batch)))
+    supabase.from('versets_lecture').select(selectVersets).in('id_verset', batch)))
   const versetsData = results.flatMap(r => r.data ?? []) as any[]
 
   const versetMap: Record<string,{label:string;textes:Record<string,string>}> = {}
@@ -126,7 +146,7 @@ export default async function OeuvrePage({
   // côté serveur via la session Supabase Auth — remplace l'ancien cookie
   // bp_admin_session, qui n'est plus jamais posé depuis la suppression de la
   // page de connexion par mot de passe.
-  const SELECT_SEG = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature,notes'
+  const SELECT_SEG = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes'
 
   async function chargerTousSegments(filtre: Record<string, string>) {
     const acc: any[] = []
@@ -140,6 +160,9 @@ export default async function OeuvrePage({
       if (batch.length < 1000) break
       from += 1000
     }
+    // Les liens ne sont plus portés par le segment : on les repose au format
+    // attendu, avec le client du serveur — c'est ce rendu que le lecteur voit.
+    await hydraterLiensHerites(acc, supabase)
     return acc
   }
 
@@ -251,8 +274,8 @@ export default async function OeuvrePage({
 
   const versetParSegment: Record<number, any[]> = {}
   segmentsTexte.forEach(s => {
-    versetParSegment[s.id] = extraireVersets(s).map(vid => ({
-      id: vid, ...(versetMap[vid] || { label: vid, textes: {} })
+    versetParSegment[s.id] = extraireVersetsAvecNature(s).map(({ id: vid, natures }) => ({
+      id: vid, natures, ...(versetMap[vid] || { label: vid, textes: {} })
     }))
   })
 

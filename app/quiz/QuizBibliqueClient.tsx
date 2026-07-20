@@ -123,7 +123,7 @@ function formatTemps(s: number) {
 
 /* ── Chargeurs asynchrones ───────────────────────────────────────────────── */
 async function chargerVersetAleatoire(): Promise<VersetQuiz> {
-  const base = () => supabase.from('versets').select('id_verset, ref, livre, chapitre, verset, TR0001', { count: 'exact' }).not('TR0001', 'is', null)
+  const base = () => supabase.from('versets_lecture').select('id_verset, ref, livre, chapitre, verset, TR0001', { count: 'exact' }).not('TR0001', 'is', null)
   let avecExclusion = true
   let countRes = await base().or('quiz_exclu.is.null,quiz_exclu.eq.false').limit(1)
   if (countRes.error) { avecExclusion = false; countRes = await base().limit(1) }
@@ -161,7 +161,7 @@ async function chargerSegmentAleatoire(): Promise<SegmentQuiz> {
 async function verifierVersetContientMot(ref: string, mot: string): Promise<{ ok: boolean; texte?: string; refLisible?: string }> {
   const parsed = parserReference(ref)
   if (!parsed) return { ok: false }
-  const { data } = await supabase.from('versets').select('TR0001, livre, chapitre, verset').eq('livre', parsed.code).eq('chapitre', parsed.chapitre).eq('verset', parsed.verset).maybeSingle()
+  const { data } = await supabase.from('versets_lecture').select('TR0001, livre, chapitre, verset').eq('livre', parsed.code).eq('chapitre', parsed.chapitre).eq('verset', parsed.verset).maybeSingle()
   if (!data || !data.TR0001) return { ok: false }
   const motNorm = normaliser(mot)
   const texteNorm = normaliser(data.TR0001)

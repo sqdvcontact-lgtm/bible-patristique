@@ -394,7 +394,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
       let from = 0
       while (true) {
         const { data, error } = await supabase
-          .from('versets')
+          .from('versets_lecture')
           .select(`id_verset,"${tradId}"`)
           .order('id_verset')
           .range(from, from + BATCH - 1)

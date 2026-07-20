@@ -208,7 +208,7 @@ export default async function AdminPage() {
     { data: profilsPublies },
   ] = await Promise.all([
     segIdsUniques.length > 0 ? supabaseAdmin.from('segments').select('id, segment_texte, segment_numero, id_oeuvre').in('id', segIdsUniques) : Promise.resolve({ data: [] as any[], error: null }),
-    idsVersetsCertif.length > 0 ? supabaseAdmin.from('versets').select('id_verset, ref').in('id_verset', idsVersetsCertif) : Promise.resolve({ data: [] as any[], error: null }),
+    idsVersetsCertif.length > 0 ? supabaseAdmin.from('versets_lecture').select('id_verset, ref').in('id_verset', idsVersetsCertif) : Promise.resolve({ data: [] as any[], error: null }),
     idsAuteursEssais.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursEssais) : Promise.resolve({ data: [] as any[], error: null }),
     idsAuteursModification.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursModification) : Promise.resolve({ data: [] as any[], error: null }),
     idsEssaisListes.length > 0 ? supabaseAdmin.from('essais_appreciations').select('id_essai').in('id_essai', idsEssaisListes) : Promise.resolve({ data: [] as any[], error: null }),

@@ -146,7 +146,7 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
 
   const choisirChapitre = async (c: number) => {
     setChapitre(c); setChargement(true)
-    const { data } = await supabase.from('versets').select('id_verset, verset, TR0002').eq('livre', livre).eq('chapitre', c).order('verset')
+    const { data } = await supabase.from('versets_lecture').select('id_verset, verset, TR0002').eq('livre', livre).eq('chapitre', c).order('verset')
     setVersets((data ?? []).map((v: any) => ({ id_verset: v.id_verset, verset: v.verset, texte: v.TR0002 ?? '' })))
     setChargement(false)
   }
@@ -300,7 +300,7 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
     if (source === 'bible') {
       const livreCode = codeLivre(it.ref_livre, it.ref_livre_abr, it.livre)
       if (!livreCode) return
-      const { data } = await supabase.from('versets').select('id_verset').eq('livre', livreCode).eq('chapitre', it.ref_chapitre).eq('verset', it.ref_verset).maybeSingle()
+      const { data } = await supabase.from('versets_lecture').select('id_verset').eq('livre', livreCode).eq('chapitre', it.ref_chapitre).eq('verset', it.ref_verset).maybeSingle()
       const ref = labelVerset(livreCode, it.ref_chapitre, it.ref_verset)
       const texte = it.texte ?? ''
       if (data) onChoisir({ label: complet ? citationBibliqueComplete(texte, ref) : ref, type: 'verset', id: data.id_verset })

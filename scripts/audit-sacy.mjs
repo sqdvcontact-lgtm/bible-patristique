@@ -1,8 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
+import { readFileSync } from 'node:fs'
+const env = Object.fromEntries(readFileSync('.env.local', 'utf8').split(/\r?\n/)
+  .map(l => l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/)).filter(Boolean)
+  .map(m => [m[1], m[2].replace(/^["']|["']$/g, '')]))
+
 
 const sb = createClient(
-  'https://oucotpxcjalwgetylfbz.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91Y290cHhjamFsd2dldHlsZmJ6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTMyODUyOCwiZXhwIjoyMDk2OTA0NTI4fQ.qAzdbqG1xqL3zkZ9I-pEwlk5Nek8778-Ph0-HkNxPr0'
+  env.NEXT_PUBLIC_SUPABASE_URL,
+  env.SUPABASE_SERVICE_ROLE_KEY
 )
 
 // exec_sql ne retourne pas de SELECT — on interroge directement l'API REST

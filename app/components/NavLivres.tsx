@@ -307,8 +307,9 @@ export default function NavLivres({
           }}
         />
       )}
-      {/* Barre de recherche */}
-      <div style={{ padding: '8px 8px 6px', borderBottom: '1px solid #d6d0c4', display: 'flex', alignItems: 'center', gap: '6px' }}>
+      {/* Barre de recherche. Elle ne défile JAMAIS : elle est hors du conteneur défilant,
+          et `flexShrink: 0` l'empêche d'être comprimée quand la liste des livres est longue. */}
+      <div style={{ flexShrink: 0, padding: '8px 8px 6px', borderBottom: '1px solid #d6d0c4', display: 'flex', alignItems: 'center', gap: '6px' }}>
         <input
           type="text"
           placeholder="Recherche"
@@ -341,8 +342,12 @@ export default function NavLivres({
       )}
 
       {/* Liste des livres — masquée tant qu'une référence est reconnue */}
+      {/* `minHeight: 0` ci-dessous est indispensable, pas décoratif : un élément flex refuse
+          par défaut de devenir plus petit que son contenu, si bien que `overflowY: auto` ne
+          s'enclenchait jamais. Le volet s'allongeait à la hauteur des soixante-treize livres
+          et emportait la barre de recherche hors de l'écran dès qu'on descendait. */}
       {!refParsee && (
-      <div ref={scrollRef} style={{ overflowY: 'auto', flex: 1, padding: '4px 2px' }}>
+      <div ref={scrollRef} style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '4px 2px' }}>
         {AT.length > 0 && (
           <>
             <button onClick={() => setAtOuvert(!atOuvert)} style={{

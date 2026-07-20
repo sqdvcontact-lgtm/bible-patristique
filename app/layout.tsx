@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "./components/Navbar";
 import BandeauMobile from "./components/BandeauMobile";
 import { ProvisionAffichageAdmin } from "./lib/contexteAffichageAdmin";
+import { HAUTEUR_NAVBAR } from "./lib/mesures";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,8 +35,8 @@ export default function RootLayout({
         <ProvisionAffichageAdmin>
           <Navbar />
           <BandeauMobile />
-          {/* Offset navbar fixe 48px */}
-          <div className="pt-[48px] flex flex-col flex-1">{children}</div>
+          {/* Décalage sous la navbar fixe — voir app/lib/mesures.ts */}
+          <div className="flex flex-col flex-1" style={{ paddingTop: HAUTEUR_NAVBAR }}>{children}</div>
         </ProvisionAffichageAdmin>
       </body>
     </html>

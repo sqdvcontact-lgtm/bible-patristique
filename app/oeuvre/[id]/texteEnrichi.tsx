@@ -10,9 +10,16 @@ export function normaliserEspaces(texte: string): string {
 // segment_texte (ou les colonnes ref_nivX / ref_nivX_texte, ou oeuvres.titre).
 // Toute nouvelle zone d'affichage du texte doit passer par rendreTexteEnrichi
 // (lecture) ou texteSansEnrichissement (citation/copie/brut).
+//
+// `<i>…</i>` EST ADMIS EN PLUS. Le texte biblique porte son italique sous cette forme et non
+// en `*…*` : chez Sacy, elle marque les mots ajoutés par le traducteur, absents de la Vulgate.
+// C'est une information éditoriale, pas un ornement. Faute de la reconnaître ici, la page
+// Bible affichait les balises en clair au milieu des versets.
+// La paire vide `<i></i>` existe dans le corpus (reliquat de coupe) : d'où `*?` et non `+?`,
+// afin qu'elle disparaisse au lieu de s'afficher.
 export function rendreTexteEnrichi(texte: string): React.ReactNode {
   const noeuds: React.ReactNode[] = []
-  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)/g
+  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>/g
   let dernierIndex = 0, k = 0, m: RegExpExecArray | null
   while ((m = regex.exec(texte))) {
     if (m.index > dernierIndex) noeuds.push(texte.slice(dernierIndex, m.index))
@@ -27,6 +34,7 @@ export function rendreTexteEnrichi(texte: string): React.ReactNode {
       noeuds.push(<sup key={k++} style={{ fontSize: '0.6em' }}>{m[7]}</sup>)
       noeuds.push(m[8])
     }
+    else if (m[9] !== undefined) { if (m[9]) noeuds.push(<em key={k++}>{m[9]}</em>) }
     dernierIndex = regex.lastIndex
   }
   if (dernierIndex < texte.length) noeuds.push(texte.slice(dernierIndex))
@@ -46,4 +54,7 @@ export function texteSansEnrichissement(texte: string): string {
     .replace(/\^\^(.+?)\^\^/g, '$1')
     .replace(/\*(.+?)\*/g, '$1')
     .replace(/\[(.+?)\]\(.+?\)/g, '$1')
+    // Symétrique de rendreTexteEnrichi : sans cela, copier un verset de Sacy en emportait
+    // les balises.
+    .replace(/<i>([\s\S]*?)<\/i>/g, '$1')
 }

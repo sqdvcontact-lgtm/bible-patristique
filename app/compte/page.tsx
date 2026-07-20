@@ -90,7 +90,14 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
     if (mode === "connexion") {
       const { error } = await supabase.auth.signInWithPassword({ email, password: mdp });
       if (error) setErreur("Identifiants incorrects. Vérifiez votre adresse et votre mot de passe.");
-      else router.push("/prelevements");
+      else {
+        // Le middleware, en refusant l'accès, a mis la page demandée dans `suite` :
+        // on y revient plutôt que de retomber sur un point d'arrivée arbitraire.
+        // Seuls les chemins internes sont acceptés — une URL absolue permettrait
+        // de renvoyer l'utilisateur connecté vers un site tiers.
+        const suite = new URLSearchParams(window.location.search).get("suite");
+        router.push(suite && suite.startsWith("/") && !suite.startsWith("//") ? suite : "/prelevements");
+      }
     } else {
       const { data, error } = await supabase.auth.signUp({ email, password: mdp, options: { emailRedirectTo: urlCompte() } });
       if (error) {
@@ -146,16 +153,30 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             {chargement ? "Chargement…" : mode === "connexion" ? "Se connecter" : "Créer le compte"}
           </button>
         </form>
-        <div style={{ marginTop: "20px", textAlign: "center", borderTop: "1px solid #ede9e2", paddingTop: "18px" }}>
-          <p style={{ fontSize: "12.5px", color: "#9a958d", margin: 0 }}>
-            {mode === "connexion" ? "Pas encore de compte ?" : "Déjà un compte ?"}
-            {" "}
-            <button onClick={() => { setMode(mode === "connexion" ? "inscription" : "connexion"); setErreur(null); setMdp(""); setPseudo(""); }}
-              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "12.5px", color: "#3d6b4f", fontWeight: 500, padding: 0, textDecoration: "underline" }}>
-              {mode === "connexion" ? "Créer un compte" : "Se connecter"}
-            </button>
-          </p>
-        </div>
+        {/* INSCRIPTIONS FERMÉES. Le site est en test : la bascule vers la création
+            de compte disparaît tant que `NEXT_PUBLIC_INSCRIPTIONS_OUVERTES` ne vaut
+            pas « 1 ». Ce n'est qu'un retrait d'affordance — le vrai verrou est le
+            middleware, et l'inscription doit AUSSI être coupée dans Supabase
+            (Authentication → Sign In / Providers → Allow new users to sign up),
+            sans quoi l'API reste ouverte à qui la connaît. */}
+        {process.env.NEXT_PUBLIC_INSCRIPTIONS_OUVERTES === "1" ? (
+          <div style={{ marginTop: "20px", textAlign: "center", borderTop: "1px solid #ede9e2", paddingTop: "18px" }}>
+            <p style={{ fontSize: "12.5px", color: "#9a958d", margin: 0 }}>
+              {mode === "connexion" ? "Pas encore de compte ?" : "Déjà un compte ?"}
+              {" "}
+              <button onClick={() => { setMode(mode === "connexion" ? "inscription" : "connexion"); setErreur(null); setMdp(""); setPseudo(""); }}
+                style={{ background: "none", border: "none", cursor: "pointer", fontSize: "12.5px", color: "#3d6b4f", fontWeight: 500, padding: 0, textDecoration: "underline" }}>
+                {mode === "connexion" ? "Créer un compte" : "Se connecter"}
+              </button>
+            </p>
+          </div>
+        ) : (
+          <div style={{ marginTop: "20px", textAlign: "center", borderTop: "1px solid #ede9e2", paddingTop: "18px" }}>
+            <p style={{ fontSize: "12.5px", color: "#9a958d", margin: 0, lineHeight: 1.5 }}>
+              Le site est en cours de préparation.<br />Les inscriptions ne sont pas encore ouvertes.
+            </p>
+          </div>
+        )}
       </div>
     </main>
   );

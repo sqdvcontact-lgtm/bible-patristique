@@ -734,7 +734,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     const ids = liensActifs.map(l => l.id).filter(id => !versetsLies[id])
     if (ids.length === 0) return
     let annule = false
-    supabase.from('versets')
+    supabase.from('versets_lecture')
       .select('id_verset, ref, livre, chapitre, verset, TR0001')
       .in('id_verset', ids)
       .then(({ data }) => {

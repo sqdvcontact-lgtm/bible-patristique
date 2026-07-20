@@ -1,5 +1,6 @@
 'use client'
 import { ABREV_FR } from '@/app/lib/bible'
+import { hydraterLiensHerites } from '@/app/lib/liens'
 
 import { useState, useEffect, useRef, useMemo, useCallback, Fragment } from 'react'
 import { createPortal } from 'react-dom'
@@ -35,13 +36,26 @@ function detailsRefBiblique(ref: string): { label: string; livre: string; chapit
   return { label, livre: p[0], chapitre: cv[0] || '', verset: cv[1] || '' }
 }
 
+// Un verset cité PUIS commenté est visé par deux liens du même segment (types 1
+// et 3, cumul rendu obligatoire par l'arbitrage n°17). Il ne doit paraître qu'une
+// fois dans le volet, en portant les deux natures.
+const NATURE_LIEN = ['citation', 'reprise', 'doctrine', 'écho'] as const
+
+function extraireVersetsAvecNature(s: any): { id: string; natures: string[] }[] {
+  const ordre: string[] = []
+  const natures = new Map<string, string[]>()
+  ;[s.lien_1, s.lien_2, s.lien_3, s.lien_4].forEach((col: any, i: number) => {
+    String(col ?? '').split(';').map((v: string) => v.trim()).filter(Boolean).forEach((vid: string) => {
+      if (!natures.has(vid)) { natures.set(vid, []); ordre.push(vid) }
+      const n = NATURE_LIEN[i]
+      if (!natures.get(vid)!.includes(n)) natures.get(vid)!.push(n)
+    })
+  })
+  return ordre.map(id => ({ id, natures: natures.get(id)! }))
+}
+
 function extraireVersetsSegment(s: any): string[] {
-  return [s.lien_1, s.lien_2, s.lien_3, s.lien_4]
-    .filter(Boolean)
-    .join(';')
-    .split(';')
-    .map(v => v.trim())
-    .filter(Boolean)
+  return extraireVersetsAvecNature(s).map(v => v.id)
 }
 
 function segmentAffichable(s: any) {
@@ -483,7 +497,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           })
         })
         if (ids.size > 0) {
-          const { data: vs } = await supabase.from('versets')
+          const { data: vs } = await supabase.from('versets_lecture')
             .select('id_verset, ref, chapitre_alternatif, verset_alternatif')
             .in('id_verset', Array.from(ids))
           const map: Record<string, { ref: string; chapAlt: number | null; verAlt: number | null }> = {}
@@ -689,7 +703,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   }
 
   const chargerNiv1Data = async (n1: string): Promise<{ groupes: GroupeData[]; segments: SegData[] }> => {
-    const SELECT = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature,notes'
+    const SELECT = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes'
     const segs: any[] = []
     let from = 0
     while (true) {
@@ -708,6 +722,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       from += 1000
     }
 
+    // Les liens ne sont plus portés par le segment : on les rapporte de
+    // `liens_bibliques` et on les repose au format attendu par l'affichage.
+    await hydraterLiensHerites(segs)
+
     const tousIds = new Set<string>()
     const segsAffichables = segs.filter(segmentAffichable)
 
@@ -720,7 +738,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
     if (idsArr.length > 0) {
       const codesTraductions = await chargerCodesTraductions()
       const selectVersets = ['id_verset', 'ref', ...codesTraductions.map(code => `"${code}"`)].join(', ')
-      const { data: vd } = await supabase.from('versets')
+      const { data: vd } = await supabase.from('versets_lecture')
         .select(selectVersets)
         .in('id_verset', idsArr)
       ;(vd ?? []).forEach((v: any) => {
@@ -733,8 +751,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
     let c = 0
     const newSegs: SegData[] = segsAffichables.map((s: any) => {
       c++
-      const versets = extraireVersetsSegment(s)
-        .map((vid: string) => ({ id: vid, ...(versetMap[vid] || { label: vid, textes: {}, livre: '', chapitre: '', verset: '' }) }))
+      const versets = extraireVersetsAvecNature(s)
+        .map(({ id: vid, natures }) => ({ id: vid, natures, ...(versetMap[vid] || { label: vid, textes: {}, livre: '', chapitre: '', verset: '' }) }))
       return { id: s.id, numero: c, texte: s.segment_texte, versets, notes: parseNotes(s.notes) }
     })
 
@@ -770,7 +788,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const chargerApparatData = async () => {
     const { data } = await supabase
       .from('segments')
-      .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,nature')
+      .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature')
       .eq('id_oeuvre', idOeuvre)
       .eq('nature', 'apparat_critique')
       .order('segment_numero')
@@ -1457,6 +1475,14 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: note ? '2px' : '4px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
                                       <a href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${encodeURIComponent(v.chapitre)}&verset=${encodeURIComponent(v.verset)}&trad=${encodeURIComponent(trad)}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '11px', fontWeight: 600, color: '#3d6b4f', margin: 0, textDecoration: 'none' }}>{v.label}</a>
+                                      {/* La nature du rapport, dite sans peser : le lecteur
+                                          voit la référence d'abord, et peut savoir à quel
+                                          titre elle est là s'il y prend garde. */}
+                                      {(v as any).natures?.length > 0 && (
+                                        <span style={{ fontSize: '9.5px', color: '#a89f92', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+                                          {(v as any).natures.join(' · ')}
+                                        </span>
+                                      )}
                                       {estAdmin && (
                                         <button onClick={() => supprimerLienBiblique(segActifData.id, v.id)} title="Supprimer ce lien biblique"
                                           style={{ fontSize: '9.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>

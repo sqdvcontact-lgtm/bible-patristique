@@ -15,6 +15,8 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import NavLivres from "@/app/components/NavLivres";
+import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
+import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 
 type Livre = { code: string; nom_fr: string; ordre: number };
 type Trad = { trad_id: string; nom: string; ordre: number | null };
@@ -58,6 +60,11 @@ function texteEnrichi(t: string | null) {
 }
 
 const VERT = "#3d6b4f";
+// L'en-tête du tableau ne doit PAS reprendre le vert de la NavBar : collés l'un sous l'autre,
+// deux aplats identiques se lisaient comme un seul bandeau, et on ne voyait plus où commençait
+// le tableau. Un vert nettement plus sombre garde la parenté sans la confusion.
+const VERT_ENTETE = "#2b4536";
+const VERT_ENTETE_BAS = "#35563f";   // la ligne des traductions, un demi-ton plus clair
 const ROUGE = "#b3261e";
 const ROUGE_FOND = "#fbeceb";
 const SURNUM = "#5a4b9c";       // versets propres à la Septante (hors ossature canonique)
@@ -128,7 +135,12 @@ export default function PolyglottePage() {
   const [loading, setLoading] = useState(false);
   // Édition en place (admin). L'affordance dépend du client, mais l'autorisation réelle
   // est revérifiée côté serveur par /api/admin/verset-modifier (charte §17).
-  const [estAdmin, setEstAdmin] = useState(false);
+  // `estAdminReel` = les droits ; `estAdmin` = ce qu'on montre. Un admin qui bascule
+  // en « mode utilisateur standard » doit voir la page comme un lecteur : les réglages
+  // de relecture et les crayons disparaissent, ses droits ne changent pas.
+  const [estAdminReel, setEstAdmin] = useState(false);
+  const { modeUtilisateurStandard } = useAffichageAdmin();
+  const estAdmin = estAdminReel && !modeUtilisateurStandard;
   const [enEdition, setEnEdition] = useState<string | null>(null);   // id du verset édité
   const [brouillon, setBrouillon] = useState("");
   const [enregistre, setEnregistre] = useState<"idle" | "envoi" | "ok" | "erreur">("idle");
@@ -228,18 +240,23 @@ export default function PolyglottePage() {
   );
 
   // Chargement de tout l'onglet (canon + traductions migrées)
+  // On ne charge QUE les traductions réellement affichées. Auparavant la requête
+  // ramenait le texte de toutes les éditions en base pour n'en montrer trois ou
+  // quatre : sur les Psaumes, cela faisait deux fois plus de lignes que nécessaire,
+  // et autant de pages de 1 000 à parcourir. Changer une colonne relance le
+  // chargement, mais sur un volume bien moindre.
   const charger = useCallback(async () => {
-    if (!livresAffiches.length || !trads.length) return;
+    const tradIds = slots.filter(Boolean);
+    if (!livresAffiches.length || !tradIds.length) return;
     setLoading(true);
     const codes = livresAffiches.map(l => l.code);
-    const tradIds = trads.map(t => t.trad_id);
     const [c, vv] = await Promise.all([
       fetchPaged<CanonRow>("versets_canon", "id, livre, ch_canon, v_canon, est_suscription", q => q.in("livre", codes)),
       fetchPaged<V2Row>("versets_v2", "id, canon_id, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes", q => q.in("livre", codes).in("trad_id", tradIds)),
     ]);
     c.sort((a, b) => (ordreDe.get(a.livre)! - ordreDe.get(b.livre)!) || (a.ch_canon - b.ch_canon) || (a.v_canon - b.v_canon));
     setCanon(c); setV2(vv); setLoading(false);
-  }, [livresAffiches, trads, ordreDe]);
+  }, [livresAffiches, slots, ordreDe]);
   useEffect(() => { charger(); }, [charger]);
 
   // Index (canon_id, trad_id) → cellule ; canon groupé par livre
@@ -303,10 +320,20 @@ export default function PolyglottePage() {
     colonnes
       .map(c => ({ trad: c.nom, ed: livresEd[c.trad_id]?.[code] }))
       .filter((x): x is { trad: string; ed: { nom: string; abrege: string } } => Boolean(x.ed));
-  const tmpl = `58px ${colonnes.map(() => "38px minmax(150px, 1fr)").join(" ")}`;
-  const HAUT_ENTETE = 34;   // hauteur de la ligne des traductions
-  const HAUT_TITRE  = 31;   // hauteur du bandeau portant le nom du livre
-  const HAUT_NAV    = 14;   // blanc entre la NavBar et le haut du tableau
+  // `minmax(0, 1fr)` et non `minmax(150px, 1fr)` : c'est la seule forme qui donne
+  // des colonnes STRICTEMENT égales. Avec un minimum autre que zéro, une colonne
+  // dont le contenu ne se laisse pas rétrécir (mot long, numéro d'origine en
+  // `nowrap`) impose sa largeur et vole la place aux autres — les traductions ne
+  // se lisaient plus sur un peigne régulier. Le zéro laisse la répartition `fr`
+  // seule maîtresse, et toutes les colonnes de texte tombent à la même largeur.
+  const tmpl = `58px ${colonnes.map(() => "38px minmax(0, 1fr)").join(" ")}`;
+  const HAUT_ENTETE = 26;   // hauteur de la ligne des traductions
+  const HAUT_TITRE  = 25;   // hauteur du bandeau portant le nom du livre
+  const HAUT_NAV    = 10;   // blanc entre la NavBar et le haut du tableau
+  // Sommet du corps du tableau : sous la navbar, le blanc de séparation, la barre de
+  // titre et la ligne des traductions. C'est là que viennent se poser les bandeaux de
+  // nom de livre quand plusieurs livres se suivent.
+  const SOMMET_CORPS = HAUTEUR_NAVBAR + HAUT_NAV + HAUT_TITRE + HAUT_ENTETE;
 
   return (
     <div style={{ background: FOND, minHeight: "100vh" }}>
@@ -352,7 +379,11 @@ export default function PolyglottePage() {
       {/* Le MÊME volet que la page Bible — pas un cousin qui lui ressemble. Un seul composant
           pour les deux pages, donc une seule navigation à maintenir et à apprendre. */}
       <div className="poly-outil" style={{ display: "flex", alignItems: "flex-start", minHeight: "100vh" }}>
-        <div style={{ position: "sticky", top: 0, height: "100vh", flexShrink: 0, display: "flex" }}>
+        {/* `top: 0` collait le volet au bord du viewport, c'est-à-dire DERRIÈRE la
+            navbar fixe : sa barre de recherche disparaissait sous elle dès qu'on
+            descendait. Le volet se cale donc sous la navbar, et n'occupe que la
+            hauteur restante. */}
+        <div style={{ position: "sticky", top: HAUTEUR_NAVBAR, height: HAUTEUR_SOUS_NAVBAR, flexShrink: 0, display: "flex" }}>
           <NavLivres
             livres={livresNav}
             livreActif={livreChoisi ?? ""}
@@ -367,38 +398,6 @@ export default function PolyglottePage() {
         </div>
 
       <div style={{ flex: 1, minWidth: 0, maxWidth: 1500, margin: "0 auto", padding: "12px 18px 60px", fontFamily: "system-ui, sans-serif", color: "#2a2620" }}>
-        {/* ── Réglages d'atelier, réservés à l'administrateur ────────────────────────────
-            Filtrer sur les lignes problématiques ou les surnuméraires, afficher tout un
-            ensemble : ce sont des gestes de relecture, pas de lecture. Ils encombraient
-            l'en-tête pour tout le monde ; ils tiennent maintenant dans un volet flottant
-            que seul l'administrateur voit. */}
-        {estAdmin && onglet && (
-          <div style={{ position: "fixed", top: 74, right: 18, zIndex: 60, display: "flex", flexDirection: "column", gap: 6,
-            background: "rgba(250,248,244,0.94)", border: "1px solid #ddd6c8", borderRadius: 10, padding: "9px 10px",
-            boxShadow: "0 6px 20px rgba(55,45,35,0.13)", backdropFilter: "blur(6px)" }}>
-            <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "#a8a094" }}>Relecture</span>
-            {livresOnglet.length > 1 && (
-              <button onClick={() => setToutAfficher(v => !v)}
-                title={toutAfficher ? "Revenir à un seul livre" : "Afficher tous les livres de l’ensemble"}
-                style={{ padding: "4px 11px", fontSize: 11.5, fontWeight: 500, cursor: "pointer", borderRadius: 999, fontFamily: "inherit",
-                  border: `1px solid ${toutAfficher ? VERT : "#ddd6c8"}`, background: toutAfficher ? VERT : "transparent", color: toutAfficher ? "#fff" : "#8a8378", transition: "all .15s" }}>
-                Tout afficher
-              </button>
-            )}
-            {([["sensibles", sensiblesOnly, ROUGE, "Lignes problématiques"], ["surnum", surnumOnly, SURNUM, "Surnuméraires"]] as const).map(([cle, actif, teinte, libelle]) => (
-              <button key={cle}
-                onClick={() => {
-                  if (cle === "sensibles") { setSensiblesOnly(!actif); if (!actif) setSurnumOnly(false); }
-                  else { setSurnumOnly(!actif); if (!actif) setSensiblesOnly(false); }
-                }}
-                style={{ padding: "4px 11px", fontSize: 11.5, fontWeight: 500, cursor: "pointer", borderRadius: 999, fontFamily: "inherit",
-                  border: `1px solid ${actif ? teinte : "#ddd6c8"}`, background: actif ? teinte : "transparent", color: actif ? "#fff" : "#8a8378", transition: "all .15s" }}>
-                {libelle}
-              </button>
-            ))}
-          </div>
-        )}
-
         {/* Aucun livre choisi : la page reste vide et l'explique */}
         {!onglet && (
           <div style={{ margin: "60px auto", maxWidth: 560, textAlign: "center", color: "#8a8378" }}>
@@ -420,30 +419,74 @@ export default function PolyglottePage() {
                 revenaient qu'au livre suivant. Les deux informations dont on a besoin en
                 permanence — quel livre, quelles éditions — tiennent donc ensemble et ne
                 quittent jamais l'écran. */}
-            <div style={{ position: "sticky", top: HAUT_NAV, zIndex: 5, marginTop: 10, borderRadius: "8px 8px 0 0", overflow: "hidden", boxShadow: "0 2px 10px rgba(55,45,35,0.14)" }}>
-              <div style={{ background: VERT, color: "#fff", padding: "7px 12px", textAlign: "center", fontFamily: "Georgia, serif", fontSize: 15.5, letterSpacing: "0.01em", borderBottom: "1px solid rgba(255,255,255,0.22)" }}>
-                {toutAfficher
-                  ? LIBELLE_ONGLET[onglet]
-                  : (livres.find(l => l.code === livreChoisi)?.nom_fr ?? LIBELLE_ONGLET[onglet])}
+            {/* L'en-tête entier — nom du livre, réglages de relecture, choix des trois
+                traductions — se colle SOUS la navbar, et non au bord du viewport : avec
+                `top: 0` il se rangeait derrière elle et disparaissait dès qu'on descendait.
+                Le `paddingTop` porte le blanc de séparation dans le bloc collant lui-même,
+                sur un fond opaque : le texte du tableau ne défile donc jamais dans
+                l'interstice entre la navbar et l'en-tête. */}
+            <div style={{ position: "sticky", top: HAUTEUR_NAVBAR, zIndex: 5, background: FOND, paddingTop: HAUT_NAV }}>
+              <div style={{ borderRadius: "8px 8px 0 0", overflow: "hidden", boxShadow: "0 2px 10px rgba(55,45,35,0.14)" }}>
+              {/* Barre de titre, calée sur LA MÊME grille que le tableau. Le nom du livre
+                  s'étend de la deuxième piste à la dernière (`2 / -1`) : il se centre donc
+                  exactement sur les colonnes de traduction, la numérotation canonique restant
+                  hors de son compte. Les réglages de relecture sont posés en `absolute` sur la
+                  barre entière, DEHORS de la grille : ils ne pèsent d'aucun poids dans ce
+                  centrage — le titre reste au même endroit qu'on soit admin ou non. */}
+              <div style={{ position: "relative", background: VERT_ENTETE, color: "#fff", borderBottom: "1px solid rgba(255,255,255,0.18)" }}>
+                <div style={{ display: "grid", gridTemplateColumns: tmpl, alignItems: "center", minHeight: HAUT_TITRE }}>
+                  <div />
+                  <div style={{ gridColumn: "2 / -1", padding: "3px 12px", textAlign: "center", fontFamily: "Georgia, serif", fontSize: 14.5, letterSpacing: "0.01em" }}>
+                    {toutAfficher
+                      ? LIBELLE_ONGLET[onglet]
+                      : (livres.find(l => l.code === livreChoisi)?.nom_fr ?? LIBELLE_ONGLET[onglet])}
+                  </div>
+                </div>
+                  {estAdmin && (
+                    <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", display: "flex", gap: 5 }}>
+                      {([["tout", toutAfficher, "#c8b98a", "Tout afficher", livresOnglet.length > 1],
+                         ["sensibles", sensiblesOnly, "#e0908a", "Lignes problématiques", true],
+                         ["surnum", surnumOnly, "#b3a6e8", "Surnuméraires", true]] as const)
+                        .filter(([, , , , visible]) => visible)
+                        .map(([cle, actif, teinte, libelle]) => (
+                        <button key={cle}
+                          onClick={() => {
+                            if (cle === "tout") setToutAfficher(!actif);
+                            else if (cle === "sensibles") { setSensiblesOnly(!actif); if (!actif) setSurnumOnly(false); }
+                            else { setSurnumOnly(!actif); if (!actif) setSensiblesOnly(false); }
+                          }}
+                          title={libelle}
+                          style={{ padding: "2px 9px", fontSize: 10.5, fontWeight: 500, cursor: "pointer", borderRadius: 999, fontFamily: "system-ui, sans-serif",
+                            border: `1px solid ${actif ? teinte : "rgba(255,255,255,0.30)"}`,
+                            background: actif ? teinte : "transparent",
+                            color: actif ? "#22301f" : "rgba(255,255,255,0.72)", transition: "all .15s", whiteSpace: "nowrap" }}>
+                          {libelle}
+                        </button>
+                      ))}
+                    </span>
+                  )}
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: tmpl, background: VERT, color: "#fff", fontSize: 12, minHeight: HAUT_ENTETE }}>
+              <div style={{ display: "grid", gridTemplateColumns: tmpl, background: VERT_ENTETE_BAS, color: "#fff", fontSize: 12, minHeight: HAUT_ENTETE }}>
                 <div />
+                {/* Le nom de l'édition couvre les DEUX pistes de sa colonne — sa
+                    numérotation d'origine et son texte — au lieu du seul texte : il se
+                    centre ainsi sur la colonne telle qu'on la lit, et non sur une moitié.
+                    Mise en forme allégée : plus de soulignement ni de gras, le nom se
+                    pose sur le bandeau sans le charger. */}
                 {colonnes.map((c, k) => {
                   const i = slots.indexOf(c.trad_id);
                   return (
-                    <div key={k} style={{ display: "contents" }}>
-                      <div style={{ borderLeft: "1px solid rgba(255,255,255,0.18)" }} />
-                      <div style={{ padding: "4px 8px", display: "flex", alignItems: "center" }}>
-                        <select value={c.trad_id} aria-label={`Traduction ${k + 1}`}
-                          onChange={e => setSlots(s => { const n = [...s]; n[i] = e.target.value; return n; })}
-                          style={{ width: "100%", background: "transparent", color: "#fff", border: "none", borderBottom: "1px solid rgba(255,255,255,0.30)", padding: "3px 2px", fontSize: 13, fontWeight: 600, fontFamily: "Georgia, serif", cursor: "pointer", appearance: "none", outline: "none", textAlign: "center", textAlignLast: "center" }}>
-                          <option value="" style={{ color: "#2a2620" }}>— aucune —</option>
-                          {trads.map(t => <option key={t.trad_id} value={t.trad_id} style={{ color: "#2a2620" }}>{t.nom}</option>)}
-                        </select>
-                      </div>
+                    <div key={k} style={{ gridColumn: "span 2", borderLeft: "1px solid rgba(255,255,255,0.14)", padding: "0 6px", display: "flex", alignItems: "center" }}>
+                      <select value={c.trad_id} aria-label={`Traduction ${k + 1}`}
+                        onChange={e => setSlots(s => { const n = [...s]; n[i] = e.target.value; return n; })}
+                        style={{ width: "100%", background: "transparent", color: "rgba(255,255,255,0.92)", border: "none", padding: "2px", fontSize: 12.5, fontWeight: 400, fontFamily: "Georgia, serif", cursor: "pointer", appearance: "none", outline: "none", textAlign: "center", textAlignLast: "center" }}>
+                        <option value="" style={{ color: "#2a2620" }}>— aucune —</option>
+                        {trads.map(t => <option key={t.trad_id} value={t.trad_id} style={{ color: "#2a2620" }}>{t.nom}</option>)}
+                      </select>
                     </div>
                   );
                 })}
+              </div>
               </div>
             </div>
 
@@ -462,7 +505,10 @@ export default function PolyglottePage() {
               : `Verset propre à cette édition — hors ossature canonique (${g.ch}, ${g.v})`;
             return (
               <div key={cle} style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid #e3e0f2", fontSize: 13.5 }}>
-                <div title={titre} style={{ padding: "6px 8px", whiteSpace: "nowrap", fontWeight: 700, fontSize: 12, color: SURNUM, borderRight: `2px solid ${SURNUM}` }}>＋</div>
+                {/* « ✦ » plutôt que « ＋ » : le plus disait « on a ajouté quelque chose », ce qui
+                    est faux et un peu comptable. L'étoile marque un verset qui existe hors de
+                    l'ossature, sans porter de jugement sur sa légitimité. */}
+                <div title={titre} style={{ padding: "6px 8px", whiteSpace: "nowrap", fontWeight: 700, fontSize: 12, color: SURNUM, borderRight: `2px solid ${SURNUM}` }}>✦</div>
                 {colonnes.map((t, i) => {
                   const r = g.par.get(t.trad_id);
                   return (
@@ -482,7 +528,7 @@ export default function PolyglottePage() {
             if (!srs.length) return null;
             return (
               <section key={l.code} style={{ contentVisibility: "auto", containIntrinsicSize: `0 ${srs.length * 34 + 40}px` } as React.CSSProperties}>
-                <h2 style={{ margin: 0, padding: "8px 12px", fontFamily: "Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: HAUT_NAV + HAUT_TITRE + HAUT_ENTETE, zIndex: 3, textAlign: "center" }}>
+                <h2 style={{ margin: 0, padding: "8px 12px", fontFamily: "Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
                   {l.nom_fr} <span style={{ fontSize: 12, fontWeight: 400, color: SURNUM }}>· {srs.length} surnuméraire{srs.length > 1 ? "s" : ""}</span>
                 {titresEdition(l.code).map(({ trad, ed }) => (
                   <span key={trad} style={{ display: "block", fontSize: 11.5, fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
@@ -503,26 +549,44 @@ export default function PolyglottePage() {
 
           return (
             <section key={l.code} style={{ contentVisibility: "auto", containIntrinsicSize: `0 ${hauteur}px` } as React.CSSProperties}>
-              <h2 style={{ margin: 0, padding: "8px 12px", fontFamily: "Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: HAUT_NAV + HAUT_TITRE + HAUT_ENTETE, zIndex: 3, textAlign: "center" }}>
-                {l.nom_fr}
-                {titresEdition(l.code).map(({ trad, ed }) => (
-                  <span key={trad} style={{ display: "block", fontSize: 11.5, fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
-                    {trad} : {ed.nom}
-                  </span>
-                ))}
-              </h2>
+              {/* Le nom du livre ne s'écrit ici QUE si plusieurs livres se suivent : quand un
+                  seul est ouvert, la barre de titre collante le porte déjà, et le répéter juste
+                  en dessous le donnait à lire deux fois. Les désignations propres aux éditions,
+                  elles, restent dans tous les cas — l'en-tête ne les porte pas. */}
+              {(toutAfficher || titresEdition(l.code).length > 0) && (
+                <h2 style={{ margin: 0, padding: "8px 12px", fontFamily: "Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
+                  {toutAfficher && l.nom_fr}
+                  {titresEdition(l.code).map(({ trad, ed }) => (
+                    <span key={trad} style={{ display: "block", fontSize: 11.5, fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
+                      {trad} : {ed.nom}
+                    </span>
+                  ))}
+                </h2>
+              )}
               {debut.map((sr, i) => ligneSurnum(sr, `sd-${l.code}-${i}`))}
               {rows.map((r, idx) => {
                 const sensible = sens.estSensible(l.code, r.ch_canon, r.v_canon);
+                // UN DOUTE DE TRAVAIL N'EST PAS UNE INFORMATION DE LECTURE. Le rouge et le « ⚠ »
+                // disent « ce verset est peut-être mal aligné » : c'est une consigne d'atelier.
+                // Au lecteur, ils donnaient à croire que le texte lui-même est suspect. Ils ne
+                // paraissent donc qu'en mode administrateur. Le violet des surnuméraires reste,
+                // lui, visible de tous : il ne signale pas un doute mais un fait — ce verset
+                // n'appartient pas à l'ossature canonique.
+                const signaler = sensible && estAdmin;
                 const desc = (sens.libelle.get(`${l.code}|${r.ch_canon}`) ?? []).join(" ; ");
+                // Ligne que AUCUNE des traductions affichées ne porte. Elle reste à sa place
+                // — le créneau existe dans l'ossature, et le taire ferait croire à un saut de
+                // numérotation — mais elle se retire du regard : on la grise, pour qu'elle ne
+                // se lise plus comme une ligne de texte qu'on aurait oublié de remplir.
+                const ligneVide = colonnes.every(t => (cellule.get(`${r.id}|${t.trad_id}`) ?? []).length === 0);
                 // zébrage discret une ligne sur deux, sans écraser les fonds signalétiques
-                const fond = sensible ? ROUGE_FOND : r.est_suscription ? "#f7f5f0" : (idx % 2 ? "#faf8f3" : "#fff");
+                const fond = signaler ? ROUGE_FOND : ligneVide ? "#eeece8" : r.est_suscription ? "#f7f5f0" : (idx % 2 ? "#faf8f3" : "#fff");
                 const apres = sensiblesOnly ? [] : (surnumApres.get(r.id) ?? []);
                 return (
                   <Fragment key={r.id}>
                     <div style={{ display: "grid", gridTemplateColumns: tmpl, background: fond, borderTop: "1px solid #f0ece3", fontSize: 13.5 }}>
-                      <div title={sensible ? desc : undefined} style={{ padding: "6px 8px", whiteSpace: "nowrap", fontWeight: 700, fontSize: 12, color: sensible ? ROUGE : VERT, borderRight: sensible ? `2px solid ${ROUGE}` : "1px solid #f0ece3" }}>
-                        {r.ch_canon}, {r.v_canon}{sensible ? " ⚠" : ""}
+                      <div title={signaler ? desc : undefined} style={{ padding: "6px 8px", whiteSpace: "nowrap", fontWeight: 700, fontSize: 12, color: signaler ? ROUGE : ligneVide ? "#b4b0a8" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : "1px solid #f0ece3" }}>
+                        {r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}
                       </div>
                       {colonnes.map((t, i) => {
                         const cs = cellule.get(`${r.id}|${t.trad_id}`) ?? [];
@@ -558,12 +622,12 @@ export default function PolyglottePage() {
                               onClick={estAdmin && cs.length > 0 && !cs.some(c => c.id === enEdition)
                                 ? () => { setEnEdition(cs[0].id); setBrouillon(cs[0].texte ?? ""); setEnregistre("idle"); }
                                 : undefined}
-                              style={{ padding: "6px 10px", lineHeight: 1.4, color: sensible ? "#7a1d16" : "#2a2620" }}>
+                              style={{ padding: "6px 10px", lineHeight: 1.4, color: signaler ? "#7a1d16" : "#2a2620" }}>
                               {cs.length === 0 ? (
                                 deuterocanonique(r.id)
                                   ? <span title={`Ce passage nous est parvenu en grec, non en hébreu. Les Bibles catholique et orthodoxe le reçoivent ; la Bible protestante et la Bible hébraïque ne le comptent pas parmi les livres canoniques. La case est donc vide pour cette traduction, et non par oubli.`}
                                           style={{ color: "#9a8fb5", fontStyle: "italic", fontSize: 12, cursor: "help" }}>
-                                      passage non reçu par cette tradition
+                                      Absent dans cette traduction
                                     </span>
                                   : <span style={{ color: "#d3ccbf" }}>—</span>
                               ) : cs.map((c, k) => (
@@ -616,7 +680,8 @@ export default function PolyglottePage() {
             </div>
 
             <p style={{ marginTop: 10, fontSize: 12, color: "#a49b8c" }}>
-              Colonne <strong>N°</strong> : numérotation propre de chaque édition. Lignes en <span style={{ color: ROUGE, fontWeight: 600 }}>rouge ⚠</span> = points pouvant poser problème. Lignes en <span style={{ color: SURNUM, fontWeight: 600 }}>violet ＋</span> = versets propres à la Septante, hors ossature canonique.
+              Colonne <strong>N°</strong> : numérotation propre de chaque édition. Lignes en <span style={{ color: SURNUM, fontWeight: 600 }}>violet ✦</span> = versets propres à la Septante, hors ossature canonique.
+              {estAdmin && <> Lignes en <span style={{ color: ROUGE, fontWeight: 600 }}>rouge ⚠</span> = points pouvant poser problème <em>(relecture)</em>.</>}
             </p>
           </>
         )}

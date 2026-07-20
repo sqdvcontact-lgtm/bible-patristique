@@ -9,11 +9,17 @@ import { chargerNotificationsUtilisateur, cleArchivesNotifications, cleNotificat
 import { LIVRES } from "@/app/lib/bible";
 import { estOeuvrePubliee } from "@/app/lib/oeuvresPublication";
 
-const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?: boolean }[] = [
+// Bible et Polyglotte sont deux entrées dans le même texte : l'une le donne à lire,
+// l'autre à comparer. Elles vont donc ensemble, accolées en un seul bloc, plutôt
+// que dispersées de part et d'autre de la barre — et la Polyglotte cesse d'être un
+// lien discret, puisqu'elle pèse autant que la lecture suivie.
+const LIENS_LECTURE: { href: string; label: string; exact?: boolean }[] = [
   { href: "/?livre=GEN&chapitre=1", label: "Bible", exact: true },
+  { href: "/polyglotte", label: "Polyglotte" },
+];
+const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?: boolean }[] = [
   { href: "/bibliotheque", label: "Patristique" },
   { href: "/essais", label: "Publications" },
-  { href: "/polyglotte", label: "Polyglotte", discret: true },
   { href: "/traductions", label: "Aller plus loin", discret: true },
 ];
 const LIENS_SECONDAIRES: { href: string; label: string }[] = [];
@@ -314,23 +320,26 @@ export default function Navbar() {
   const styleLien = (href: string, exact: boolean | undefined, primaire: boolean) => {
     const chemin = href.split("?")[0] || "/";
     const actif = exact ? pathname === chemin : pathname.startsWith(chemin);
+    // Le fond ne s'écrit PAS en ligne : un style en ligne l'emporte sur toute règle
+    // de feuille, et `.cs-onglet:hover` n'aurait donc jamais pu s'appliquer. Il passe
+    // par deux variables que la classe lit — l'une pour l'état, l'autre pour le survol.
     return {
-      display: "inline-block", padding: "4px 11px", borderRadius: "5px",
-      fontSize: "13px", letterSpacing: "0.01em", textDecoration: "none",
+      display: "inline-block", padding: "4px 8px", borderRadius: "5px",
+      fontSize: "12.5px", letterSpacing: "0.01em", textDecoration: "none", whiteSpace: "nowrap",
       fontWeight: primaire ? 600 : 400,
       color: actif ? "#fff" : primaire ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.60)",
-      background: actif ? "rgba(255,255,255,0.14)" : "transparent",
-      transition: "color 0.13s, background 0.13s",
-    } as const;
+      "--fond": actif ? "rgba(255,255,255,0.14)" : "transparent",
+      "--fond-survol": actif ? "rgba(255,255,255,0.19)" : "rgba(255,255,255,0.085)",
+    } as React.CSSProperties;
   };
 
   const styleLienDiscret = (href: string) => ({
     ...styleLien(href, undefined, false),
     display: "inline-flex",
     alignItems: "center",
-    gap: "5px",
-    padding: "4px 9px",
-    fontSize: "12.5px",
+    gap: "4px",
+    padding: "4px 7px",
+    fontSize: "12px",
   } as const);
 
   // ── Bloc recherche rapide, réutilisé en version desktop et mobile ────────────
@@ -585,9 +594,38 @@ export default function Navbar() {
     <>
       <header className="fixed top-0 left-0 right-0 border-b"
         style={{ background: "#3d6b4f", borderColor: "rgba(255,255,255,0.10)", zIndex: 3000 }}>
-        <div className="max-w-screen-xl mx-auto w-full px-6 flex items-center gap-6" style={{ height: "48px" }}>
+        <style>{`
+          /* Onglets de la barre. Le fond vient des variables posées en ligne par
+             styleLien : la classe peut ainsi le reprendre au survol, ce qu'un fond
+             écrit en ligne aurait rendu impossible.
+             La montée est un peu plus lente que la descente — l'éclaircissement se
+             pose doucement sous le curseur, mais la barre s'éteint sans traîner
+             quand on la quitte. */
+          .cs-onglet {
+            background: var(--fond, transparent);
+            transition: background 260ms cubic-bezier(.33,.68,.36,1),
+                        color 200ms cubic-bezier(.33,.68,.36,1);
+          }
+          .cs-onglet:hover {
+            background: var(--fond-survol, rgba(255,255,255,0.085));
+            color: #fff;
+            transition-duration: 140ms;
+          }
+          /* Le groupe Bible / Polyglotte s'éclaire légèrement dès qu'on approche de
+             l'un ou l'autre : les deux se lisent alors comme un seul objet. */
+          .cs-groupe-lecture { transition: border-color 260ms ease, background 260ms ease; }
+          .cs-groupe-lecture:hover { border-color: rgba(255,255,255,0.28); background: rgba(255,255,255,0.075); }
+          @media (prefers-reduced-motion: reduce) {
+            .cs-onglet, .cs-groupe-lecture { transition: none; }
+          }
+        `}</style>
+        {/* Plus de `max-w-screen-xl mx-auto` : la barre bridait sa largeur à 1 280 px et
+            se centrait, si bien qu'au-delà elle se serrait — et débordait — alors que
+            l'écran offrait la place de part et d'autre. Elle prend maintenant toute la
+            largeur, ce qui ramène du même coup le titre contre le bord gauche. */}
+        <div className="w-full px-4 flex items-center gap-3" style={{ height: "48px" }}>
 
-          <Link href="/accueil" className="flex items-center gap-2 shrink-0"
+          <Link href="/accueil" className="flex items-center gap-1.5 shrink-0"
             style={{ color: "rgba(255,255,255,0.93)", textDecoration: "none" }}>
             <span style={{ fontSize: "11px", opacity: 0.6 }}>✦</span>
             <span style={{ fontSize: "13px", fontWeight: 500, letterSpacing: "0.02em" }}>Corpus Scriptura</span>
@@ -595,17 +633,27 @@ export default function Navbar() {
           </Link>
 
           {/* ── Navigation desktop ──────────────────────────────────────────── */}
-          <nav className="hidden md:flex flex-1 items-center gap-1">
+          <nav className="hidden md:flex flex-1 items-center gap-0.5 min-w-0">
+            {/* Bloc « lecture » : les deux onglets accolés, séparés d'un simple filet,
+                dans un cadre commun aux extrémités arrondies. */}
+            <div className="cs-groupe-lecture" style={{ display: "flex", alignItems: "center", marginRight: "5px", borderRadius: "6px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.16)", background: "rgba(255,255,255,0.05)" }}>
+              {LIENS_LECTURE.map(({ href, label, exact }, i) => (
+                <Link key={href} href={href} className="cs-onglet"
+                  style={{ ...styleLien(href, exact, true), borderRadius: 0, borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.16)" : undefined }}>
+                  {label}
+                </Link>
+              ))}
+            </div>
             {LIENS_PRIMAIRES.map(({ href, label, exact, discret }) => (
-              <Link key={href} href={href} style={styleLien(href, exact, !discret)}>{label}</Link>
+              <Link key={href} href={href} className="cs-onglet" style={styleLien(href, exact, !discret)}>{label}</Link>
             ))}
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "8px", paddingLeft: "12px", borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: "4px", paddingLeft: "8px", minWidth: 0, borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
               {blocRecherche(false)}
             </div>
           </nav>
 
           {/* ── Compte desktop ──────────────────────────────────────────────── */}
-          <div className="hidden md:flex items-center" style={{ marginLeft: "auto", flexShrink: 0, gap: "3px", paddingLeft: "8px" }}>
+          <div className="hidden md:flex items-center" style={{ marginLeft: "auto", flexShrink: 0, gap: "2px", paddingLeft: "4px" }}>
             {toggleAdmin(false)}
             {(estAdmin || estAdminEmail) && (
               <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 4px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
@@ -663,7 +711,9 @@ export default function Navbar() {
         {mobileOuvert && (
           <div className="md:hidden" style={{ background: "#345c43", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-              {[...LIENS_PRIMAIRES, ...LIENS_SECONDAIRES].map(({ href, label }) => {
+              {/* Au mobile la liste est verticale : le groupement n'y a pas de sens
+                  visuel, mais l'ordre reste le même — Bible et Polyglotte en tête. */}
+              {[...LIENS_LECTURE, ...LIENS_PRIMAIRES, ...LIENS_SECONDAIRES].map(({ href, label }) => {
                 const chemin = href.split("?")[0] || "/";
                 const actif = pathname === chemin || (chemin !== "/" && pathname.startsWith(chemin));
                 return (

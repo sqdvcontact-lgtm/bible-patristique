@@ -1214,7 +1214,7 @@ async function piocherVerset(essais = 0): Promise<VerseSug | null> {
   if (essais > 5) return null
   const offset = Math.floor(Math.random() * TOTAL_VERSETS)
   const { data } = await supabase
-    .from('versets')
+    .from('versets_lecture')
     .select('id_verset, livre, chapitre, verset, TR0001, TR0002')
     .range(offset, offset)
   const row = data?.[0]

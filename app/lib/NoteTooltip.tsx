@@ -18,7 +18,7 @@ function ContenuNote({ el, onNaviguer }: {
     if (el.type === 'note') { setTexte(el.texte); setChargement(false); return }
     setChargement(true); setTexte(null)
     if (el.type === 'verset') {
-      supabase.from('versets').select('TR0002').eq('id_verset', el.id).single()
+      supabase.from('versets_lecture').select('TR0002').eq('id_verset', el.id).single()
         .then(({ data }) => { setTexte(data?.TR0002 ?? '(verset introuvable)'); setChargement(false) })
     } else {
       supabase.from('segments').select('segment_texte').eq('id', el.id).single()

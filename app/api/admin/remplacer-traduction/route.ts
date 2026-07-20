@@ -39,7 +39,7 @@ let majCount = 0
       const ids = batch.map(l => l.id_verset)
 
       const { data: versetsExistants } = await supabaseAdmin
-        .from('versets')
+        .from('versets_lecture')
         .select('id_verset')
         .in('id_verset', ids)
 

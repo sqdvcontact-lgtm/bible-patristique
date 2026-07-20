@@ -334,7 +334,7 @@ export default function PrelevementsPage() {
       const batches: string[][] = [];
       for (let i = 0; i < clauses.length; i += 80) batches.push(clauses.slice(i, i + 80));
       const results = await Promise.all(
-        batches.map(batch => supabase.from("versets").select(`livre, chapitre, verset, "${colonne}"`).or(batch.join(",")))
+        batches.map(batch => supabase.from("versets_lecture").select(`livre, chapitre, verset, "${colonne}"`).or(batch.join(",")))
       );
       const map: Record<string, string> = {};
       results.forEach(({ data }) => {

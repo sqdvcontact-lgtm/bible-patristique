@@ -8,17 +8,8 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-type ColLien = 'lien_1' | 'lien_2' | 'lien_3' | 'lien_4'
+type TypeLien = 1 | 2 | 3 | 4
 type Decision = 'GARDER' | 'REJETER' | 'AMBIGU'
-
-function idsLiensSeg(seg: any): { col: ColLien; idVerset: string }[] {
-  const out: { col: ColLien; idVerset: string }[] = []
-  ;(['lien_1', 'lien_2', 'lien_3', 'lien_4'] as ColLien[]).forEach(col => {
-    String(seg[col] ?? '').split(';').map((v: string) => v.trim()).filter(Boolean)
-      .forEach((idVerset: string) => out.push({ col, idVerset }))
-  })
-  return out
-}
 
 function verifiesSeg(seg: any): string[] {
   const v = seg.verifies
@@ -27,21 +18,11 @@ function verifiesSeg(seg: any): string[] {
   return []
 }
 
-function retirerId(valeur: string | null | undefined, idVerset: string) {
-  return String(valeur ?? '').split(';').map((v: string) => v.trim()).filter(v => v && v !== idVerset).join('; ') || null
-}
-
-function ajouterId(valeur: string | null | undefined, idVerset: string) {
-  const ids = String(valeur ?? '').split(';').map((v: string) => v.trim()).filter(Boolean)
-  if (!ids.includes(idVerset)) ids.push(idVerset)
-  return ids.join('; ')
-}
-
-const LABELS: Record<ColLien, string> = {
-  lien_1: 'Citation directe',
-  lien_2: 'Citation paraphrastique',
-  lien_3: 'Commentaire doctrinal',
-  lien_4: 'Écho thématique',
+const LABELS: Record<TypeLien, string> = {
+  1: 'Citation directe',
+  2: 'Citation paraphrastique',
+  3: 'Commentaire doctrinal',
+  4: 'Écho thématique',
 }
 
 async function classerAvecClaude(
@@ -106,33 +87,32 @@ Réponds uniquement avec le JSON, sans explication. Exemple : ["GARDER","REJETER
 
 async function appliquerDecision(
   seg: any,
+  lienId: number,
   idVerset: string,
-  colOrigine: ColLien,
   decision: Decision
 ) {
-  if (decision === 'AMBIGU') return // ne pas toucher
+  // AMBIGU : la machine ne tranche pas. Le lien reste en l'état et remonte à
+  // l'éditeur — on le marque explicitement plutôt que de le laisser se confondre
+  // avec ceux que personne n'a encore regardés.
+  if (decision === 'AMBIGU') {
+    await supabaseAdmin.from('liens_bibliques')
+      .update({ arbitrage_requis: true }).eq('id', lienId)
+    return
+  }
 
-  const patch: Record<string, any> = {}
-  ;(['lien_1', 'lien_2', 'lien_3', 'lien_4'] as ColLien[]).forEach(c => {
-    patch[c] = retirerId(seg[c], idVerset)
-  })
-  if (decision === 'GARDER') {
-    patch[colOrigine] = ajouterId(patch[colOrigine], idVerset)
+  if (decision === 'REJETER') {
+    await supabaseAdmin.from('liens_bibliques').delete().eq('id', lienId)
+  } else {
+    // GARDER : le type suggéré est confirmé, mais par une machine — « probable »,
+    // et non « vérifié », qui reste réservé au jugement de l'éditeur.
+    await supabaseAdmin.from('liens_bibliques')
+      .update({ fiabilite: 'probable', provenance: 'ia', arbitrage_requis: false })
+      .eq('id', lienId)
   }
 
   const vv = verifiesSeg(seg).filter((v: string) => v !== idVerset)
   vv.push(idVerset)
-  patch.verifies = vv
-
-  const liensApres: string[] = []
-  ;(['lien_1', 'lien_2', 'lien_3', 'lien_4'] as ColLien[]).forEach(c => {
-    String(patch[c] ?? '').split(';').map((v: string) => v.trim()).filter(Boolean).forEach((v: string) => liensApres.push(v))
-  })
-  if (liensApres.every(v => vv.includes(v))) {
-    patch.fiabilite = 'vérifié'
-  }
-
-  await supabaseAdmin.from('segments').update(patch).eq('id', seg.id)
+  await supabaseAdmin.from('segments').update({ verifies: vv }).eq('id', seg.id)
 }
 
 // POST /api/admin/triage-ia
@@ -145,26 +125,31 @@ export async function POST(req: NextRequest) {
   const { offset = 0, batchSize = 20 } = await req.json()
   const taille = Math.max(1, Math.min(50, Number.isInteger(batchSize) ? batchSize : 20))
 
-  // 1. Récupérer les segments probable avec leurs liens
-  const { data: segs, error: segErr } = await supabaseAdmin
-    .from('segments')
-    .select('id, segment_texte, lien_1, lien_2, lien_3, lien_4, verifies')
-    .eq('fiabilite', 'probable')
+  // 1. Les liens à trier : ceux qu'aucun éditeur n'a encore arrêtés.
+  const { data: liens, error: segErr } = await supabaseAdmin
+    .from('liens_bibliques')
+    .select('id, segment_id, canon_id, type')
+    .not('canon_id', 'is', null)
+    .neq('fiabilite', 'vérifié')
+    .eq('arbitrage_requis', false)
     .order('id')
     .range(offset, offset + 500)
 
   if (segErr) return NextResponse.json({ error: segErr.message }, { status: 500 })
 
-  // 2. Construire les paires non-vérifiées
-  const paires: { seg: any; col: ColLien; idVerset: string }[] = []
-  for (const seg of (segs ?? [])) {
-    const vv = verifiesSeg(seg)
-    for (const { col, idVerset } of idsLiensSeg(seg)) {
-      if (!vv.includes(idVerset)) {
-        paires.push({ seg, col, idVerset })
-        if (paires.length >= taille) break
-      }
-    }
+  const { data: segsData } = await supabaseAdmin
+    .from('segments')
+    .select('id, segment_texte, verifies')
+    .in('id', [...new Set((liens ?? []).map(l => l.segment_id))])
+  const segParId = new Map((segsData ?? []).map((s: any) => [s.id, s]))
+
+  // 2. Construire les paires que personne n'a encore passées en revue
+  const paires: { seg: any; lienId: number; type: TypeLien; idVerset: string }[] = []
+  for (const l of (liens ?? [])) {
+    const seg = segParId.get(l.segment_id)
+    if (!seg) continue
+    if (verifiesSeg(seg).includes(l.canon_id)) continue
+    paires.push({ seg, lienId: l.id, type: l.type as TypeLien, idVerset: l.canon_id })
     if (paires.length >= taille) break
   }
 
@@ -175,7 +160,7 @@ export async function POST(req: NextRequest) {
   // 3. Récupérer les textes des versets
   const idsVersets = [...new Set(paires.map(p => p.idVerset))]
   const { data: versets } = await supabaseAdmin
-    .from('versets')
+    .from('versets_lecture')
     .select('id_verset, ref, TR0001')
     .in('id_verset', idsVersets)
   const versetMap = new Map((versets ?? []).map((v: any) => [v.id_verset, { ref: v.ref, texte: v.TR0001 ?? '' }]))
@@ -185,7 +170,7 @@ export async function POST(req: NextRequest) {
     segTexte: p.seg.segment_texte ?? '',
     versetRef: versetMap.get(p.idVerset)?.ref ?? p.idVerset,
     versetTexte: versetMap.get(p.idVerset)?.texte ?? '',
-    typeSuggere: LABELS[p.col],
+    typeSuggere: LABELS[p.type],
   }))
 
   let decisions: Decision[]
@@ -202,7 +187,7 @@ export async function POST(req: NextRequest) {
     if (d === 'GARDER') garde++
     else if (d === 'REJETER') rejete++
     else ambigu++
-    await appliquerDecision(p.seg, p.idVerset, p.col, d)
+    await appliquerDecision(p.seg, p.lienId, p.idVerset, d)
   }))
 
   // 6. Compter les restants

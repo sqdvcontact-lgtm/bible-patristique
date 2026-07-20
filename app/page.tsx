@@ -24,7 +24,10 @@ export default async function Home({
   const trad = params.trad || 'TR0001'
 
   const [{ data: versets }, { data: traductions }] = await Promise.all([
-    supabase.from('versets').select('*').eq('livre', livre).eq('chapitre', chapitre).order('verset'),
+    // `versets_lecture` et non `versets` : la vue sert le texte établi dans `versets_v2`,
+    // sur l'ossature canonique. C'est ce travail-là — alignements, scissions recollées,
+    // coquilles relevées — que la page Bible doit montrer.
+    supabase.from('versets_lecture').select('*').eq('livre', livre).eq('chapitre', chapitre).order('verset'),
     supabase.from('traductions').select('trad_id, nom').order('ordre', { ascending: true }),
   ])
 

@@ -5,24 +5,16 @@ import { supabase, refFrVer } from './adminShared'
 import { verifierLien } from '@/app/actions/verifications'
 
 const PAGE_SIZE = 12
-type ColLien = 'lien_1' | 'lien_2' | 'lien_3' | 'lien_4'
-type Action = ColLien | 'pas_de_lien'
+type Action = 1 | 2 | 3 | 4 | 'pas_de_lien'
 
+// Les quatre types de la charte §9, désormais portés par `liens_bibliques.type`.
 const OPTIONS: { label: string; action: Action; couleur?: string }[] = [
-  { label: 'Citation directe',         action: 'lien_1' },
-  { label: 'Citation paraphrastique',  action: 'lien_2' },
-  { label: 'Commentaire doctrinal',    action: 'lien_3' },
-  { label: 'Écho thématique',          action: 'lien_4' },
+  { label: 'Citation directe',         action: 1 },
+  { label: 'Citation paraphrastique',  action: 2 },
+  { label: 'Commentaire doctrinal',    action: 3 },
+  { label: 'Écho thématique',          action: 4 },
   { label: 'Pas de lien',              action: 'pas_de_lien', couleur: '#c0562a' },
 ]
-
-function idsLiens(seg: any): { col: ColLien; idVerset: string }[] {
-  const out: { col: ColLien; idVerset: string }[] = []
-  ;(['lien_1', 'lien_2', 'lien_3', 'lien_4'] as ColLien[]).forEach(col => {
-    String(seg[col] ?? '').split(';').map(v => v.trim()).filter(Boolean).forEach(idVerset => out.push({ col, idVerset }))
-  })
-  return out
-}
 
 function verifies(seg: any): string[] {
   const v = seg.verifies
@@ -39,30 +31,49 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
   const [versetMap, setVersetMap] = React.useState<Record<string, { ref: string; texte: string }>>({})
   const [page, setPage] = React.useState(0)
   const [statut, setStatut] = React.useState<Record<string, 'loading' | 'ok' | 'err'>>({})
+  const [liensParSegment, setLiensParSegment] = React.useState<Map<number, { canon_id: string; type: number }[]>>(new Map())
 
   React.useEffect(() => {
     const charger = async () => {
       setChargement(true)
-      let segs: any[] = []
-      let from = 0
-      while (true) {
+      // La file de travail se lit maintenant sur les LIENS, non sur les segments :
+      // c'est le lien qu'on arbitre. On prend ceux qui ne sont pas encore fermes.
+      let liens: any[] = []
+      for (let from = 0; ; from += 1000) {
         const { data: batch } = await supabase
-          .from('segments')
-          .select('id, id_oeuvre, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, lien_1, lien_2, lien_3, lien_4, fiabilite, verifies')
-          .eq('fiabilite', 'probable')
-          .order('id_oeuvre')
-          .order('segment_numero')
+          .from('liens_bibliques')
+          .select('id, segment_id, canon_id, type, fiabilite')
+          .not('canon_id', 'is', null)
+          .neq('fiabilite', 'vérifié')
+          .order('segment_id')
           .range(from, from + 999)
         if (!batch || batch.length === 0) break
-        segs = segs.concat(batch)
+        liens = liens.concat(batch)
         if (batch.length < 1000) break
-        from += 1000
       }
 
-      // Ne garder que les segments qui ont encore des versets non vérifiés
+      const parSegment = new Map<number, { canon_id: string; type: number }[]>()
+      for (const l of liens) {
+        if (!parSegment.has(l.segment_id)) parSegment.set(l.segment_id, [])
+        parSegment.get(l.segment_id)!.push({ canon_id: l.canon_id, type: l.type })
+      }
+      setLiensParSegment(parSegment)
+
+      const idsSeg = [...parSegment.keys()]
+      let segs: any[] = []
+      for (let i = 0; i < idsSeg.length; i += 500) {
+        const { data } = await supabase
+          .from('segments')
+          .select('id, id_oeuvre, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, verifies')
+          .in('id', idsSeg.slice(i, i + 500))
+        segs = segs.concat(data ?? [])
+      }
+      segs.sort((a, b) => String(a.id_oeuvre).localeCompare(String(b.id_oeuvre)) || a.segment_numero - b.segment_numero)
+
+      // Ne garder que les segments qui ont encore des versets non passés en revue
       const segsFiltres = segs.filter(s => {
         const vv = verifies(s)
-        return idsLiens(s).some(l => !vv.includes(l.idVerset))
+        return (parSegment.get(s.id) ?? []).some(l => !vv.includes(l.canon_id))
       })
       setSegments(segsFiltres)
 
@@ -74,11 +85,11 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
       setOeuvres(om)
 
       const ids = new Set<string>()
-      segsFiltres.forEach(s => idsLiens(s).forEach(l => ids.add(l.idVerset)))
+      segsFiltres.forEach(s => (parSegment.get(s.id) ?? []).forEach(l => ids.add(l.canon_id)))
       const vm: Record<string, { ref: string; texte: string }> = {}
       const idsArr = Array.from(ids)
       for (let i = 0; i < idsArr.length; i += 500) {
-        const { data: vs } = await supabase.from('versets').select('id_verset, ref, TR0001').in('id_verset', idsArr.slice(i, i + 500))
+        const { data: vs } = await supabase.from('versets_lecture').select('id_verset, ref, TR0001').in('id_verset', idsArr.slice(i, i + 500))
         ;(vs ?? []).forEach((v: any) => { vm[v.id_verset] = { ref: v.ref, texte: v.TR0001 ?? '' } })
       }
       setVersetMap(vm)
@@ -91,14 +102,10 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
     const key = `${seg.id}_${idVerset}`
     setStatut(p => ({ ...p, [key]: 'loading' }))
 
-    let patch: Record<string, any>
+    let verifiesApres: string[]
     try {
-      const result = await verifierLien(
-        { id: seg.id, lien_1: seg.lien_1, lien_2: seg.lien_2, lien_3: seg.lien_3, lien_4: seg.lien_4, verifies: verifies(seg) },
-        idVerset,
-        action
-      )
-      patch = result.patch
+      const result = await verifierLien({ id: seg.id, verifies: verifies(seg) }, idVerset, action)
+      verifiesApres = result.verifies
     } catch (e: any) {
       console.error('[SectionVerifications] update error:', e)
       setStatut(p => ({ ...p, [key]: 'err', [`${key}_msg`]: e?.message || 'inconnue' }))
@@ -110,10 +117,10 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
 
     // Mettre à jour l'état local : retirer ce (seg, verset) de la liste
     setSegments(prev => prev
-      .map(s => s.id === seg.id ? { ...s, ...patch } : s)
+      .map(s => s.id === seg.id ? { ...s, verifies: verifiesApres } : s)
       .filter(s => {
         const vvs = verifies(s)
-        return idsLiens(s).some(l => !vvs.includes(l.idVerset))
+        return (liensParSegment.get(s.id) ?? []).some(l => !vvs.includes(l.canon_id))
       })
     )
   }
@@ -122,8 +129,8 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
   const paires: { seg: any; idVerset: string }[] = []
   segments.forEach(seg => {
     const vv = verifies(seg)
-    idsLiens(seg).forEach(({ idVerset }) => {
-      if (!vv.includes(idVerset)) paires.push({ seg, idVerset })
+    ;(liensParSegment.get(seg.id) ?? []).forEach(({ canon_id }) => {
+      if (!vv.includes(canon_id)) paires.push({ seg, idVerset: canon_id })
     })
   })
 

@@ -35,7 +35,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
     setChargement(true)
     setContenu(null)
     if (elementActif.type === 'verset') {
-      supabase.from('versets').select('TR0002').eq('id_verset', elementActif.id).single()
+      supabase.from('versets_lecture').select('TR0002').eq('id_verset', elementActif.id).single()
         .then(({ data }) => { setContenu(data?.TR0002 ?? '(verset introuvable)'); setChargement(false) })
     } else {
       supabase.from('segments').select('segment_texte').eq('id', elementActif.id).single()

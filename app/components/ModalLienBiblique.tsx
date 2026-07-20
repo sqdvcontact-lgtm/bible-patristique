@@ -106,7 +106,7 @@ export default function ModalLienBiblique({
     if (!ouvert) return
     let annule = false
     supabase
-      .from('versets')
+      .from('versets_lecture')
       .select('id_verset, livre, chapitre, verset, ref, TR0001')
       .eq('livre', livre)
       .order('chapitre', { ascending: true })
@@ -130,7 +130,7 @@ export default function ModalLienBiblique({
     }
     const t = window.setTimeout(() => {
       supabase
-        .from('versets')
+        .from('versets_lecture')
         .select('id_verset, livre, chapitre, verset, ref, TR0001')
         .or(`ref.ilike.%${q}%,TR0001.ilike.%${q}%`)
         .order('livre', { ascending: true })

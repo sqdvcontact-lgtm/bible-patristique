@@ -5,6 +5,7 @@ import NavLivres from './NavLivres'
 import TexteBible from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
 import { supabase } from '@/app/lib/supabase'
+import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 
 type Livre = { code: string; nom: string; testament: string }
 type Verset = {
@@ -24,11 +25,13 @@ type Props = {
   tradInitiale: string
 }
 
+// Les trois éditions du nouveau modèle, et elles seules. La Vulgate figurait ici en repli
+// alors qu'aucun texte n'a été repris pour elle : le menu proposait un choix qui n'affichait
+// rien.
 const TRADUCTIONS_DEFAUT = [
   { code: 'TR0001', label: 'Bible de Sacy' },
   { code: 'TR0002', label: 'Bible Segond' },
   { code: 'TR0003', label: 'Bible Crampon' },
-  { code: 'TR0004', label: 'Vulgate' },
 ]
 
 const NAV_DEFAULT = 192
@@ -72,11 +75,13 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   // dans cette traduction, puis marque tous les autres comme vides.
   useEffect(() => {
     const trad = traduction
+    // On demande la LISTE DES LIVRES, pas tous les versets pour en déduire la liste : l'API
+    // plafonne à 1 000 lignes, si bien que la version précédente ne voyait jamais que les deux
+    // premiers livres de la Bible et grisait tous les autres.
     supabase
-      .from('versets')
+      .from('livres_par_traduction')
       .select('livre')
-      .not(trad, 'is', null)
-      .neq(trad, '')
+      .eq('trad_id', trad)
       .then(({ data }) => {
         if (!data) return
         const avecContenu = new Set(data.map((r: { livre: string }) => r.livre))
@@ -144,7 +149,11 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   }
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ position: 'relative' }}>
+    // `h-screen` valait 100vh, mais ce bloc est déjà décalé de la hauteur de la
+    // navbar par le layout : la page dépassait donc l'écran d'autant et défilait,
+    // emportant hors de vue la barre de recherche du volet de gauche. Elle reste
+    // désormais à l'écran quel que soit l'endroit où l'on est descendu.
+    <div className="flex overflow-hidden" style={{ position: 'relative', height: HAUTEUR_SOUS_NAVBAR }}>
       <NavLivres
         livres={livres}
         livreActif={livreActif}

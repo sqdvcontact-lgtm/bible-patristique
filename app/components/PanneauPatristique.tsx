@@ -8,12 +8,13 @@ import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import EditeurCommentaire from '@/app/components/EditeurCommentaire'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
+import { segmentsLiesAuVerset, type TypeLien } from '@/app/lib/liens'
 
 type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
 type Segment = {
   id: number; id_oeuvre: string; segment_numero: number
   segment_texte: string; ref_niv1: string; ref_niv2: string
-  ref_niv3: string; fiabilite: string
+  ref_niv3: string
 }
 type OeuvreInfo = {
   titre: string; sous_titre?: string; auteur_nom: string; id_auteur?: string
@@ -267,13 +268,15 @@ function ModalSignalement({ titre, titreEntete = 'Signaler une erreur', onClose,
 }
 
 // ── Carte segment ─────────────────────────────────────────────────────────────
-function SegmentCard({ s, info, userId, isAdmin, colonneLien, onSignaler, onSupprimeLien }: {
+function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignaler, onSupprimeLien }: {
   s: Segment; info?: OeuvreInfo; userId: string | null; isAdmin: boolean
   colonneLien: string
+  natures?: string[]
   onSignaler: (s: Segment, titreOeuvre?: string) => void
   onSupprimeLien: (id: number) => void
 }) {
   const niveaux = [s.ref_niv1, s.ref_niv2, s.ref_niv3].filter(Boolean).join(', ')
+  const LIBELLE_NATURE: Record<string, string> = { citation: 'citation', doctrine: 'doctrine', echo: 'écho' }
 
   return (
     <div style={{ paddingTop:'6px', paddingBottom:'4px', borderBottom:'1px solid #ede9e2' }}>
@@ -305,6 +308,14 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, onSignaler, onSupp
             style={{ display:'block', fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:0, lineHeight:1.2, letterSpacing:'0.02em', textDecoration:'none' }}>
             {info?.titre || ''}
           </a>
+          {/* À quel titre ce passage est ici. Discret : la référence et l'auteur
+              priment ; la nature du rapport se lit si l'on y prend garde. Un
+              passage cité PUIS commenté les porte toutes les deux. */}
+          {natures && natures.length > 0 && (
+            <span style={{ display:'block', fontSize:'9.5px', color:'#b0a89e', letterSpacing:'0.03em', marginTop:'2px' }}>
+              {natures.map(n => LIBELLE_NATURE[n] ?? n).join(' · ')}
+            </span>
+          )}
         </div>
         <div style={{ display:'flex', flexDirection:'column', gap:'4px', alignItems:'flex-end', flexShrink:0 }}>
           <div style={{ display:'flex', gap:'1px', alignItems:'center', justifyContent:'flex-end' }}>
@@ -783,27 +794,48 @@ export default function PanneauPatristique({
     if (!verset) { setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); return }
     setLoading(true)
 
-    const SEG_COLS = 'id, id_oeuvre, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, fiabilite'
-    Promise.all([
-      supabase.from('segments').select(SEG_COLS).ilike('lien_1', `%${verset.id_verset}%`),
-      supabase.from('segments').select(SEG_COLS).ilike('lien_2', `%${verset.id_verset}%`),
-      supabase.from('segments').select(SEG_COLS).ilike('lien_3', `%${verset.id_verset}%`),
-      supabase.from('segments').select(SEG_COLS).ilike('lien_4', `%${verset.id_verset}%`),
-    ]).then(([r1, r2, r3, r4]) => {
-      // Fusionner lien_1 + lien_2, sans doublons, en marquant la colonne d'origine
-      const seen = new Set<number>()
+    // La recherche inverse passe désormais par `liens_bibliques` : un index sur
+    // `canon_id` au lieu de quatre `ilike '%…%'` sur 136 770 lignes — qui, de
+    // surcroît, ramenaient GEN.1.10 à GEN.1.19 quand on demandait GEN.1.1.
+    const SEG_COLS = 'id, id_oeuvre, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3'
+    ;(async () => {
+      const liens = await segmentsLiesAuVerset(verset.id_verset)
+      // UN SEGMENT PEUT RELEVER DE PLUSIEURS RUBRIQUES À LA FOIS, et il le doit :
+      // chez un commentateur, le même passage est cité (type 1) PUIS commenté
+      // (type 3) — c'est même le cas ordinaire, et l'arbitrage n°17 rend ce cumul
+      // obligatoire. Ne garder qu'un type par segment vidait la rubrique Doctrine
+      // de tout un commentaire suivi.
+      const typesParSegment = new Map<number, Set<TypeLien>>()
+      for (const l of liens) {
+        if (!typesParSegment.has(l.segment_id)) typesParSegment.set(l.segment_id, new Set())
+        typesParSegment.get(l.segment_id)!.add(l.type)
+      }
+      const ids = [...typesParSegment.keys()]
+      if (!ids.length) {
+        setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); setLoading(false); return
+      }
+      const segs: Segment[] = []
+      for (let i = 0; i < ids.length; i += 500) {
+        const { data } = await supabase.from('segments').select(SEG_COLS).in('id', ids.slice(i, i + 500))
+        segs.push(...((data ?? []) as Segment[]))
+      }
+      // Citations = types 1 et 2 réunis, comme auparavant ; doctrine = 3 ; écho = 4.
+      // Un même segment peut nourrir plusieurs rubriques.
       const citations: { seg: Segment; col: string }[] = []
-      ;(r1.data ?? []).forEach(s => {
-        if (!seen.has(s.id)) { seen.add(s.id); citations.push({ seg: s, col: 'lien_1' }) }
-      })
-      ;(r2.data ?? []).forEach(s => {
-        if (!seen.has(s.id)) { seen.add(s.id); citations.push({ seg: s, col: 'lien_2' }) }
-      })
+      const doctrine: Segment[] = []
+      const echo: Segment[] = []
+      for (const s of segs) {
+        const types = typesParSegment.get(s.id)!
+        if (types.has(1)) citations.push({ seg: s, col: 'lien_1' })
+        else if (types.has(2)) citations.push({ seg: s, col: 'lien_2' })
+        if (types.has(3)) doctrine.push(s)
+        if (types.has(4)) echo.push(s)
+      }
       setSegmentsCitations(citations)
-      setSegmentsDoctrine(r3.data ?? [])
-      setSegmentsEcho(r4.data ?? [])
+      setSegmentsDoctrine(doctrine)
+      setSegmentsEcho(echo)
       setLoading(false)
-    })
+    })()
   }, [verset])
 
   // Recherche auteur en direct
@@ -824,16 +856,35 @@ export default function PanneauPatristique({
   const supprimerDeEcho = (id: number) =>
     setSegmentsEcho(prev => prev.filter(s => s.id !== id))
 
-  type ItemAffiche = { seg: Segment; col: string; onSupprime: (id: number) => void; categorie: 'citation' | 'doctrine' | 'echo' }
-  const itemsCitations: ItemAffiche[] = segmentsCitations.map(({ seg, col }) => ({ seg, col, onSupprime: supprimerDeCitations, categorie: 'citation' as const }))
-  const itemsDoctrine: ItemAffiche[] = segmentsDoctrine.map(seg => ({ seg, col: 'lien_3', onSupprime: supprimerDeDoctrine, categorie: 'doctrine' as const }))
-  const itemsEcho: ItemAffiche[] = segmentsEcho.map(seg => ({ seg, col: 'lien_4', onSupprime: supprimerDeEcho, categorie: 'echo' as const }))
-  const itemsTous: ItemAffiche[] = [...itemsCitations, ...itemsDoctrine, ...itemsEcho].filter(({ seg }) => Boolean(oeuvres[seg.id_oeuvre]))
+  type Categorie = 'citation' | 'doctrine' | 'echo'
+  type ItemAffiche = { seg: Segment; col: string; onSupprime: (id: number) => void; categorie: Categorie; categories: Categorie[] }
+  const brut = [
+    ...segmentsCitations.map(({ seg, col }) => ({ seg, col, onSupprime: supprimerDeCitations, categorie: 'citation' as const })),
+    ...segmentsDoctrine.map(seg => ({ seg, col: 'lien_3', onSupprime: supprimerDeDoctrine, categorie: 'doctrine' as const })),
+    ...segmentsEcho.map(seg => ({ seg, col: 'lien_4', onSupprime: supprimerDeEcho, categorie: 'echo' as const })),
+  ].filter(({ seg }) => Boolean(oeuvres[seg.id_oeuvre]))
 
+  // UN SEGMENT NE PARAÎT QU'UNE FOIS. Le même passage est souvent cité puis
+  // commenté : il relevait alors de deux rubriques et se lisait deux fois de
+  // suite, à l'identique. On le donne une seule fois, en portant toutes les
+  // natures du rapport qu'il entretient avec le verset.
+  const itemsTous: ItemAffiche[] = (() => {
+    const parSegment = new Map<number, ItemAffiche>()
+    for (const it of brut) {
+      const deja = parSegment.get(it.seg.id)
+      if (deja) { if (!deja.categories.includes(it.categorie)) deja.categories.push(it.categorie) }
+      else parSegment.set(it.seg.id, { ...it, categories: [it.categorie] })
+    }
+    return [...parSegment.values()]
+  })()
+
+  // Les sous-onglets restent des filtres : un segment cité ET commenté se trouve
+  // sous « Citations » comme sous « Doctrine » — c'est attendu, ce n'est pas un
+  // doublon puisqu'on ne voit qu'une rubrique à la fois.
   const itemsAffiches: ItemAffiche[] = sousOnglet === 'tous' ? itemsTous
-    : sousOnglet === 'citations' ? itemsTous.filter(i => i.categorie === 'citation')
-    : sousOnglet === 'doctrine' ? itemsTous.filter(i => i.categorie === 'doctrine')
-    : itemsTous.filter(i => i.categorie === 'echo')
+    : sousOnglet === 'citations' ? itemsTous.filter(i => i.categories.includes('citation'))
+    : sousOnglet === 'doctrine' ? itemsTous.filter(i => i.categories.includes('doctrine'))
+    : itemsTous.filter(i => i.categories.includes('echo'))
 
   // Reset page when sous-onglet changes
   useEffect(() => { setPageItems(0) }, [sousOnglet])
@@ -986,9 +1037,9 @@ export default function PanneauPatristique({
               <>
                 {/* Sous-onglets Citations / Doctrine / Échos */}
                 {(() => {
-                  const nbCitations = itemsTous.filter(i => i.categorie === 'citation').length
-                  const nbDoctrine = itemsTous.filter(i => i.categorie === 'doctrine').length
-                  const nbEchos = itemsTous.filter(i => i.categorie === 'echo').length
+                  const nbCitations = itemsTous.filter(i => i.categories.includes('citation')).length
+                  const nbDoctrine = itemsTous.filter(i => i.categories.includes('doctrine')).length
+                  const nbEchos = itemsTous.filter(i => i.categories.includes('echo')).length
                   const subTabs: [SousOnglet, string, number][] = [
                     ['tous', 'Tous', itemsTous.length],
                     ['citations', 'Citations', nbCitations],
@@ -1182,11 +1233,11 @@ export default function PanneauPatristique({
                   <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'12px 0', fontStyle:'italic' }}>Aucun résultat pour ces filtres.</p>
                 )}
                 <div style={{ marginTop: '6px' }}>
-                {itemsPage.map(({ seg, col, onSupprime }) => (
+                {itemsPage.map(({ seg, col, onSupprime, categories }) => (
                   <SegmentCard
-                    key={`${col}-${seg.id}`} s={seg} info={oeuvres[seg.id_oeuvre]}
+                    key={seg.id} s={seg} info={oeuvres[seg.id_oeuvre]}
                     userId={userId} isAdmin={isAdmin}
-                    colonneLien={col}
+                    colonneLien={col} natures={categories}
                     onSignaler={(s, titreOeuvre) => setSegSignale({ seg: s, titreOeuvre })} onSupprimeLien={onSupprime}
                   />
                 ))}

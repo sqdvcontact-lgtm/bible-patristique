@@ -306,13 +306,13 @@ export default function RechercheClient() {
                 .in('tr', trsFiltres).or(orClause).limit(10000).abortSignal(signal)
               const ids = [...new Set((cvData ?? []).map((r: any) => r.id_verset))]
               if (!ids.length) return { data: [] }
-              return supabase.from('versets').select(selVersets).in('id_verset', ids).limit(10000).abortSignal(signal)
+              return supabase.from('versets_lecture').select(selVersets).in('id_verset', ids).limit(10000).abortSignal(signal)
             } else {
-              return supabase.from('versets').select(selVersets)
+              return supabase.from('versets_lecture').select(selVersets)
                 .or(vars.map(v => `${scopeActif}.ilike.%${v}%`).join(',')).limit(10000).abortSignal(signal)
             }
           } else if (chercheTout) {
-            let r = supabase.from('versets').select(selVersets)
+            let r = supabase.from('versets_lecture').select(selVersets)
             if (fragments) {
               for (const t of termes) r = r.or(tradCodes.map(c => `${c}.ilike.%${t}%`).join(','))
             } else {
@@ -320,7 +320,7 @@ export default function RechercheClient() {
             }
             return r.limit(10000).abortSignal(signal)
           } else {
-            let r = supabase.from('versets').select(selVersets)
+            let r = supabase.from('versets_lecture').select(selVersets)
             for (const t of termes) r = r.ilike(scopeActif, `%${t}%`)
             return r.limit(10000).abortSignal(signal)
           }
@@ -341,7 +341,10 @@ export default function RechercheClient() {
       if (avertissements.length) setTronque(avertissements)
 
       // Filtre client versets
-      const versetsRaw = (resV.data ?? []) as VersetResult[]
+      // `as unknown` d'abord : le client Supabase type `data` comme pouvant être
+      // une erreur, et TypeScript refuse la conversion directe faute de
+      // recouvrement entre les deux formes. Le `?? []` couvre déjà le cas nul.
+      const versetsRaw = (resV.data ?? []) as unknown as VersetResult[]
       let versets: VersetResult[]
       if (chercheTout) {
         versets = (fragments || modeActif === 'exact')
