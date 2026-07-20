@@ -20,7 +20,7 @@ export default function BandeauMobile() {
   }
 
   return (
-    <div style={{
+    <div data-cs-bandeau-mobile style={{
       position: 'fixed',
       bottom: 0,
       left: 0,

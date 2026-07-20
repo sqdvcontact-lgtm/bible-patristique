@@ -36,7 +36,7 @@ export default function RootLayout({
           <Navbar />
           <BandeauMobile />
           {/* Décalage sous la navbar fixe — voir app/lib/mesures.ts */}
-          <div className="flex flex-col flex-1" style={{ paddingTop: HAUTEUR_NAVBAR }}>{children}</div>
+          <div id="cs-corps" className="flex flex-col flex-1" style={{ paddingTop: HAUTEUR_NAVBAR }}>{children}</div>
         </ProvisionAffichageAdmin>
       </body>
     </html>

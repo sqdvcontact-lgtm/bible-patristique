@@ -117,13 +117,13 @@ function IcoLibre() {
 
 const PRINCIPES: { ico: React.ReactNode; titre: string; texte: string }[] = [
   { ico: <IcoColonnes />, titre: "Les traductions côte à côte",
-    texte: "Un même verset, lu simultanément dans plusieurs traductions françaises, aligné ligne à ligne sur la numérotation du canon." },
+    texte: "Sacy, Segond, Crampon : le même verset dans chaque colonne, aligné sur la numérotation du canon. On compare d’un regard au lieu de feuilleter." },
   { ico: <IcoPeres />, titre: "Les Pères de l’Église",
-    texte: "Le corpus patristique en français, découpé passage par passage plutôt que livré en blocs illisibles." },
+    texte: "Le corpus patristique en français, découpé passage par passage – non pas un bloc qu’on n’ouvre jamais, mais des fragments qui se lisent." },
   { ico: <IcoLien />, titre: "Le lien entre les deux",
-    texte: "Chaque passage d’un Père est rattaché au verset qu’il cite ou commente. On part du verset, on trouve ce que la tradition en a dit." },
+    texte: "Chaque passage d’un Père tient au verset qu’il cite ou commente. On part du verset, on remonte à ce que la tradition en a fait." },
   { ico: <IcoLibre />, titre: "Libre d’accès",
-    texte: "Sans publicité, sans abonnement, sans revente de données. Le projet est bénévole et le restera." },
+    texte: "Sans publicité, sans abonnement, sans revente d’adresses. Le travail est bénévole (il le restera)." },
 ];
 
 // ── Chiffres du corpus ───────────────────────────────────────────────────────
@@ -149,13 +149,13 @@ function Chiffres() {
   ];
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", gap: "clamp(18px, 6vw, 54px)", flexWrap: "wrap", margin: "4px 0 34px" }}>
+    <div className="cs-chiffres">
       {cases.map(([valeur, libelle]) => (
         <div key={libelle} style={{ textAlign: "center" }}>
-          <div style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "30px", color: "#3d6b4f", lineHeight: 1 }}>
+          <div className="cs-chiffre-valeur" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "30px", color: "#3d6b4f", lineHeight: 1 }}>
             {valeur}
           </div>
-          <div style={{ fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#9a958d", marginTop: "6px" }}>
+          <div className="cs-chiffre-libelle" style={{ fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#9a958d", marginTop: "6px" }}>
             {libelle}
           </div>
         </div>
@@ -192,7 +192,7 @@ function Prevenir() {
     return (
       <div style={{ background: "rgba(61,107,79,0.07)", border: "1px solid rgba(61,107,79,0.22)", borderRadius: "8px", padding: "16px 18px" }}>
         <p style={{ fontSize: "13px", color: "#2a6040", margin: 0, lineHeight: 1.6 }}>
-          C’est noté. Vous recevrez un message à l’ouverture du site, et rien d’autre.
+          C’est noté. Vous recevrez un message le jour de l’ouverture – un seul, et rien d’autre.
         </p>
       </div>
     );
@@ -201,12 +201,13 @@ function Prevenir() {
   return (
     <form onSubmit={envoyer}>
       <p style={{ fontSize: "12.5px", color: "#6a6259", margin: "0 0 12px", lineHeight: 1.6 }}>
-        Le site n’est pas encore ouvert. Laissez votre adresse pour être prévenu — elle ne servira qu’à cela.
+        Les travaux avancent, la date reste incertaine. Laissez votre adresse : elle ne servira
+        qu’à vous prévenir, une fois.
       </p>
       {erreur && (
         <p style={{ fontSize: "12px", color: "#9a2a2a", margin: "0 0 10px", lineHeight: 1.5 }}>{erreur}</p>
       )}
-      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+      <div className="cs-prevenir-champs" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
         <input type="email" required value={adresse} onChange={e => setAdresse(e.target.value)}
           placeholder="vous@exemple.fr" aria-label="Votre adresse e-mail"
           style={{ ...inputStyle, flex: "1 1 180px", width: "auto" }} />
@@ -262,26 +263,82 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
   };
 
   return (
-    <main style={{ minHeight: "calc(100vh - 48px)", background: "#f3efe3", padding: "48px 20px 64px" }}>
-      <div style={{ width: "100%", maxWidth: "780px", margin: "0 auto" }}>
+    <main className="cs-ouverture">
+      {/* La page d'ouverture se passe de barre de navigation : il n'y a rien à
+          naviguer tant que le site est fermé, et la barre promettait des liens
+          qui renvoyaient tous ici. Le masquage se fait en CSS, présent dès le
+          HTML rendu par le serveur — un retrait en JavaScript ferait clignoter
+          la barre le temps du premier rendu. */}
+      <style>{`
+        body:has(.cs-ouverture) [data-cs-navbar],
+        body:has(.cs-ouverture) [data-cs-bandeau-mobile] { display: none !important; }
+        body:has(.cs-ouverture) #cs-corps { padding-top: 0 !important; }
+
+        .cs-ouverture { min-height: 100vh; background: #f3efe3; padding: 40px 20px 56px; }
+        .cs-ouverture-corps { width: 100%; max-width: 780px; margin: 0 auto; }
+        .cs-titre { font-family: Georgia, 'Times New Roman', serif; font-weight: normal;
+                    color: #1e2e22; line-height: 1.22; letter-spacing: -0.01em;
+                    font-size: 33px; margin: 12px 0 14px; }
+        .cs-chapeau { font-size: 14.5px; color: #6a6259; line-height: 1.7;
+                      max-width: 540px; margin: 0 auto; }
+        .cs-principes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 26px; margin-bottom: 38px; }
+        .cs-cartes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
+        .cs-chiffres { display: flex; justify-content: center; gap: 54px; flex-wrap: wrap; margin: 6px 0 34px; }
+
+        /* ── Téléphone ────────────────────────────────────────────────────────
+           Une colonne, marges resserrées, et surtout des cibles tactiles qui
+           tiennent le doigt : le champ et le bouton passent l'un sous l'autre
+           plutôt que de se partager une ligne trop étroite. */
+        @media (max-width: 640px) {
+          .cs-ouverture { padding: 26px 16px 44px; }
+          .cs-titre { font-size: 25px; margin: 10px 0 12px; }
+          .cs-chapeau { font-size: 13.5px; line-height: 1.65; }
+          .cs-principes { grid-template-columns: 1fr; gap: 18px; margin-bottom: 30px; }
+          .cs-cartes { grid-template-columns: 1fr; }
+          .cs-chiffres { gap: 0; justify-content: space-between; margin: 4px 0 28px; }
+          .cs-chiffre-valeur { font-size: 25px !important; }
+          .cs-chiffre-libelle { font-size: 9px !important; letter-spacing: 0.06em !important; }
+          .cs-prevenir-champs { flex-direction: column; }
+          .cs-prevenir-champs > * { width: 100%; }
+          .cs-prevenir-champs button { padding: 12px 18px !important; }
+          .cs-carte { padding: 20px 18px !important; }
+          .cs-connexion { padding: 24px 20px 28px !important; }
+        }
+        /* iOS zoome sur tout champ dont le texte descend sous 16px. */
+        @media (max-width: 640px) { .cs-ouverture input { font-size: 16px !important; } }
+      `}</style>
+
+      <div className="cs-ouverture-corps">
 
         {/* ── Ce qu'est le site ── */}
-        <header style={{ textAlign: "center", marginBottom: "34px" }}>
+        <header style={{ textAlign: "center", marginBottom: "22px" }}>
           <span style={{ fontSize: "9.5px", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "#3d6b4f" }}>
             Corpus Scriptura
           </span>
-          <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "clamp(24px, 4vw, 33px)", fontWeight: "normal", color: "#1e2e22", margin: "10px 0 12px", lineHeight: 1.25 }}>
-            L’Écriture et ce que les Pères en ont dit
-          </h1>
-          <p style={{ fontSize: "14px", color: "#6a6259", lineHeight: 1.7, maxWidth: "530px", margin: "0 auto" }}>
-            Une bibliothèque qui met le texte biblique et le commentaire patristique
-            en regard l’un de l’autre, verset par verset.
+          <h1 className="cs-titre">L’Écriture, et ce que les Pères en ont dit</h1>
+          <p className="cs-chapeau">
+            Un verset d’un côté ; de l’autre, ceux qui l’ont commenté pendant quinze siècles.
+            Le site met les deux en regard, ligne à ligne.
           </p>
         </header>
 
+        {/* ── En travaux ── */}
+        <div style={{ display: "flex", gap: "12px", alignItems: "flex-start", background: "#faf3e4", border: "1px solid #e0cfa4", borderRadius: "10px", padding: "16px 20px", marginBottom: "30px" }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" style={{ color: "#9a7a38", flexShrink: 0, marginTop: "1px" }}>
+            <path d="M12 8.5v4.5M12 16.2v.3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+            <path d="M10.3 3.9 2.5 17.5A2 2 0 0 0 4.2 20.5h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinejoin="round" />
+          </svg>
+          <p style={{ fontSize: "13px", color: "#6a5a38", lineHeight: 1.65, margin: 0 }}>
+            <strong style={{ color: "#7a5c20" }}>Le site est en travaux.</strong>{" "}
+            Rien n’est ouvert : ni la lecture, ni les comptes, ni la recherche. Ce que vous
+            avez sous les yeux est une annonce, pas une porte. Les chiffres ci-dessous
+            disent où en est le chantier.
+          </p>
+        </div>
+
         <Chiffres />
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "18px", marginBottom: "38px" }}>
+        <div className="cs-principes">
           {PRINCIPES.map(p => (
             <div key={p.titre} style={{ display: "flex", gap: "13px", alignItems: "flex-start" }}>
               <span style={{ color: "#3d6b4f", flexShrink: 0, marginTop: "1px" }}>{p.ico}</span>
@@ -294,20 +351,20 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         </div>
 
         {/* ── Être prévenu, et soutenir ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px", marginBottom: "16px" }}>
-          <div style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "24px 26px" }}>
+        <div className="cs-cartes">
+          <div className="cs-carte" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "24px 26px" }}>
             <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a958d", margin: "0 0 14px" }}>
               À l’ouverture
             </p>
             <Prevenir />
           </div>
-          <div style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "24px 26px", display: "flex", flexDirection: "column" }}>
+          <div className="cs-carte" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "24px 26px", display: "flex", flexDirection: "column" }}>
             <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a958d", margin: "0 0 14px" }}>
               Soutenir le projet
             </p>
             <p style={{ fontSize: "12.5px", color: "#6a6259", margin: "0 0 14px", lineHeight: 1.6, flex: 1 }}>
-              Le projet est bénévole. Les dons couvrent l’hébergement, les acquisitions
-              et la numérisation des éditions.
+              Le travail est bénévole, les frais ne le sont pas : hébergement, achat des
+              éditions, numérisation. Un don avance le chantier.
             </p>
             <a href={LIEN_PAYPAL} target="_blank" rel="noopener noreferrer"
               style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "9px 18px", borderRadius: "6px", border: "1px solid #3d6b4f", background: "#fff", color: "#3d6b4f", fontSize: "13px", fontWeight: 500, textDecoration: "none" }}>
@@ -321,7 +378,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         </div>
 
         {/* ── Connexion ── */}
-        <div style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "30px 32px 34px", width: "100%", maxWidth: "380px", margin: "0 auto", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}>
+        <div className="cs-connexion" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "30px 32px 34px", width: "100%", maxWidth: "380px", margin: "0 auto", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}>
         <div style={{ textAlign: "center", marginBottom: "24px" }}>
           <h2 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "20px", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>
             {mode === "connexion" ? "Connexion" : "Créer un compte"}
@@ -375,8 +432,9 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           </div>
         ) : (
           <div style={{ marginTop: "20px", textAlign: "center", borderTop: "1px solid #ede9e2", paddingTop: "18px" }}>
-            <p style={{ fontSize: "12.5px", color: "#9a958d", margin: 0, lineHeight: 1.5 }}>
-              Le site est en cours de préparation.<br />Les inscriptions ne sont pas encore ouvertes.
+            <p style={{ fontSize: "12.5px", color: "#9a958d", margin: 0, lineHeight: 1.55 }}>
+              Les comptes sont réservés aux personnes qui travaillent au chantier.<br />
+              Les inscriptions ouvriront avec le site.
             </p>
           </div>
         )}
@@ -388,8 +446,8 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             Aucun démarchage
           </p>
           <p style={{ fontSize: "12.5px", color: "#6a5a54", lineHeight: 1.7, margin: 0 }}>
-            Toute sollicitation commerciale relative à ce site — référencement, refonte,
-            audit, publicité, intelligence artificielle, prestation de développement —
+            Toute sollicitation commerciale relative à ce site – référencement, refonte,
+            audit, publicité, intelligence artificielle, prestation de développement –
             est <strong style={{ color: "#8a3a2a" }}>refusée par avance</strong>, qu’elle soit
             envoyée par une personne ou par un automate. Les adresses figurant sur ce site
             ne valent pas consentement et ne sont pas collectables.

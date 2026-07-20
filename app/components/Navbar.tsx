@@ -592,7 +592,9 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 border-b"
+      {/* `data-cs-navbar` sert de prise à la page d'ouverture, qui se passe de
+          barre de navigation : rien à naviguer tant que le site est fermé. */}
+      <header data-cs-navbar className="fixed top-0 left-0 right-0 border-b"
         style={{ background: "#3d6b4f", borderColor: "rgba(255,255,255,0.10)", zIndex: 3000 }}>
         <style>{`
           /* Onglets de la barre. Le fond vient des variables posées en ligne par
