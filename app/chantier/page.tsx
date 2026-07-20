@@ -82,31 +82,35 @@ function IcoLibre() {
 }
 
 // ── Ornements ────────────────────────────────────────────────────────────────
-// Gravures au trait tirées du dossier d'ornements, détourées et redimensionnées
-// (3,4 Mo ramenés à 255 Ko).
+// Gravures au trait du dossier d'ornements.
 //
-// `mix-blend-mode: multiply` est ce qui les fait tenir sur le fond crème : les
-// fichiers ont un fond blanc, et le multiplier avec la page le fait disparaître
-// tout en gardant l'anti-crénelage du trait. Rendre le blanc transparent au
-// détourage aurait laissé un liseré clair autour de chaque trait.
-const MELANGE: React.CSSProperties = { mixBlendMode: "multiply", display: "block", margin: "0 auto", height: "auto" };
+// Leur fond est VRAIMENT transparent : la luminance du gris a été convertie en
+// canal alpha, si bien que le trait garde son anti-crénelage et que rien de
+// blanc ne subsiste. La première version s'appuyait sur mix-blend-mode:
+// multiply, qui ne pouvait pas fonctionner — l'opacité posée sur la même image
+// crée un contexte d'empilement, lequel isole l'élément et annule le mélange.
+// Le blanc restait donc visible partout où l'ornement était atténué.
+const POSE: React.CSSProperties = { display: "block", margin: "0 auto", height: "auto" };
 
-/** Les ornements de séparation. Chacun ne paraît qu'une fois : un motif répété
- *  cesse d'être un ornement pour devenir un habillage. */
+/** Trois ornements, pas davantage : au-delà, ils cessent de ponctuer la page
+ *  pour l'encombrer. Chacun ne paraît qu'une fois. */
 const ORNEMENTS = {
-  vigne:      { src: "/ornements/vigne-grappe.png", w: 520, h: 247 },
-  clochettes: { src: "/ornements/clochettes.png",   w: 560, h: 110 },
-  lampes:     { src: "/ornements/lampes.png",       w: 520, h: 157 },
-  puits:      { src: "/ornements/puits.png",        w: 340, h: 230 },
-  etoiles:    { src: "/ornements/bois-etoiles.png", w: 380, h: 272 },
+  batisseurs: { src: "/ornements/chantier.png",     w: 880, h: 471 },
+  vigne:      { src: "/ornements/vigne-grappe.png", w: 460, h: 219 },
+  clochettes: { src: "/ornements/clochettes.png",   w: 520, h: 102 },
 } as const;
 
-function Ornement({ nom, largeur, opacite = 1 }: { nom: keyof typeof ORNEMENTS; largeur: number; opacite?: number }) {
+function Ornement({ nom, largeur, opacite = 1, alt = "" }: { nom: keyof typeof ORNEMENTS; largeur: number; opacite?: number; alt?: string }) {
   const o = ORNEMENTS[nom];
   return (
-    <Image src={o.src} alt="" aria-hidden="true" width={o.w} height={o.h}
-      sizes={`${largeur}px`}
-      style={{ ...MELANGE, width: largeur, maxWidth: "100%", opacity: opacite }} />
+    // `unoptimized` n'est pas une facilité. À certaines largeurs — 640 px, mais
+    // pas 384 ni 828 —, l'optimiseur rend un PNG à trois canaux : la couche
+    // alpha est aplatie sur du blanc, et le fond réapparaît. Le défaut est donc
+    // intermittent, fonction de la largeur d'écran. Ces fichiers sont déjà
+    // détourés, dimensionnés et légers ; les servir tels quels est plus sûr.
+    <Image src={o.src} alt={alt} aria-hidden={alt ? undefined : true} width={o.w} height={o.h}
+      unoptimized
+      style={{ ...POSE, width: largeur, maxWidth: "100%", opacity: opacite }} />
   );
 }
 
@@ -117,22 +121,6 @@ function Siecle({ n }: { n: string }) {
     <span style={{ fontVariant: "small-caps", textTransform: "lowercase" }}>
       {n}<sup style={{ fontVariant: "normal", fontSize: "0.72em" }}>e</sup>
     </span>
-  );
-}
-
-/** Cul-de-lampe : la gravure des bâtisseurs, en bas de page.
- *
- *  Des anges et des ouvriers montant la muraille d'une cité — elle dit le
- *  chantier mieux qu'un fleuron, et c'est le seul ornement de la page à porter
- *  un sujet plutôt qu'un motif. D'où sa place tout en bas : on la regarde
- *  quand on a fini de lire.
- */
-function CulDeLampe() {
-  return (
-    <Image src="/ornements/chantier.png"
-      alt="Des anges et des ouvriers bâtissant la muraille d'une cité"
-      width={880} height={471} sizes="(max-width: 640px) 88vw, 440px"
-      style={{ ...MELANGE, width: '100%', maxWidth: '440px' }} />
   );
 }
 
@@ -362,7 +350,12 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
 
       {/* ── Premier écran : un bloc entier, rien de coupé ── */}
       <header className="cs-ecran">
-        <Ornement nom="vigne" largeur={200} />
+        {/* La gravure des bâtisseurs ouvre la page : c'est le seul ornement à
+            porter un sujet, et il dit le chantier mieux que le bandeau qui
+            l'annonce. Elle était en bas, où l'on ne la voyait qu'après tout
+            avoir lu — donc rarement. */}
+        <Ornement nom="batisseurs" largeur={400}
+          alt="Des anges et des ouvriers bâtissant la muraille d’une cité" />
         <h1 className="cs-enseigne">Corpus Scriptura</h1>
         <p className="cs-titre">L’Écriture, et ce que les Pères en ont dit</p>
 
@@ -423,8 +416,6 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           </p>
         </div>
 
-        <div style={{ margin: "34px 0 30px" }}><Ornement nom="lampes" largeur={220} opacite={0.7} /></div>
-
         {/* ── Être prévenu, et soutenir ── */}
         <div className="cs-cartes">
           <div className="cs-carte" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "24px 26px" }}>
@@ -451,8 +442,6 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             </a>
           </div>
         </div>
-
-        <div style={{ margin: "34px 0 26px" }}><Ornement nom="puits" largeur={110} opacite={0.65} /></div>
 
         {/* ── Connexion ── */}
         <div className="cs-connexion" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "30px 32px 34px", width: "100%", maxWidth: "380px", margin: "0 auto", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}>
@@ -517,8 +506,6 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         )}
         </div>
 
-        <div style={{ margin: "40px 0 6px" }}><Ornement nom="etoiles" largeur={130} opacite={0.6} /></div>
-
         {/* ── Démarchage ── */}
         <aside style={{ marginTop: "34px", border: "1px solid #ddc9c2", background: "#fdf6f4", borderRadius: "10px", padding: "20px 24px", maxWidth: "660px", marginLeft: "auto", marginRight: "auto" }}>
           <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a4a3a", margin: "0 0 10px" }}>
@@ -540,9 +527,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         </aside>
 
         {/* ── Cul-de-lampe ── */}
-        <div style={{ marginTop: "44px", opacity: 0.85 }}>
-          <CulDeLampe />
-        </div>
+        <div style={{ marginTop: "46px" }}><Ornement nom="vigne" largeur={180} opacite={0.75} /></div>
 
       </div>
     </main>
