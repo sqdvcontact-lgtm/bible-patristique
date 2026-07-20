@@ -16,6 +16,9 @@ type Mode = "connexion" | "inscription";
 // Même bouton PayPal que la page « Soutenir » : un seul compte de don sur le site.
 const LIEN_PAYPAL = "https://www.paypal.com/donate/?hosted_button_id=9M463NPH2RQXL";
 
+// Mordoré : le brun doré des reliures, entre l'or des filets et le brun du texte.
+const MORDORE = "#8a6a2f";
+
 const inputStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: "13.5px", border: "1px solid #d6d0c4", borderRadius: "6px", background: "#f9f7f4", color: "#1e1a16", outline: "none", boxSizing: "border-box" };
 const labelStyle: React.CSSProperties = { fontSize: "11px", fontWeight: 600, color: "#6a7b6e", letterSpacing: "0.06em", display: "block", marginBottom: "5px" };
 
@@ -63,12 +66,11 @@ function IcoLien() {
 function IcoExigence() {
   return (
     <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
-      {/* une balance : la rigueur, et le partage du jugement */}
-      <path d="M12 4.5v15M7 19.5h10" {...traits} />
-      <path d="M5 8.5h14" {...traits} />
-      <path d="M5 8.5 2.5 14h5z" {...traits} />
-      <path d="M19 8.5 16.5 14h5z" {...traits} />
-      <circle cx="12" cy="6.6" r="1.6" {...traits} />
+      {/* Une loupe sur des lignes de texte : la relecture, pas le jugement.
+          La balance parlait de tribunal, ce qui n'est pas le propos. */}
+      <path d="M3.5 5.5h11M3.5 9h11M3.5 12.5h6" {...traits} />
+      <circle cx="15.4" cy="15.4" r="4.6" {...traits} />
+      <path d="M18.9 18.9 21.5 21.5" {...traits} strokeWidth={1.7} />
     </svg>
   );
 }
@@ -111,6 +113,27 @@ function Ornement({ nom, largeur, opacite = 1, alt = "" }: { nom: keyof typeof O
     <Image src={o.src} alt={alt} aria-hidden={alt ? undefined : true} width={o.w} height={o.h}
       unoptimized
       style={{ ...POSE, width: largeur, maxWidth: "100%", opacity: opacite }} />
+  );
+}
+
+/** Colophon : pyramide pointe en bas, comme sur la page « Soutenir ».
+ *
+ *  Chaque ligne porte sa largeur maximale, décroissante ; le texte s'y replie
+ *  de lui-même et le bloc s'affine vers le bas. On ne coupe pas aux mots à la
+ *  main : une coupe fixe se briserait au premier changement de corps ou de
+ *  langue, alors qu'une largeur décroissante tient dans tous les cas.
+ */
+function Colophon({ lignes, couleur, taille = "12.5px", interligne = 1.7 }: {
+  lignes: [string, string][]; couleur: string; taille?: string; interligne?: number;
+}) {
+  return (
+    <div style={{ textAlign: "center", fontFamily: "Georgia, 'Times New Roman', serif" }}>
+      {lignes.map(([texte, largeur]) => (
+        <p key={texte} style={{ maxWidth: largeur, margin: "0 auto", color: couleur, fontSize: taille, lineHeight: interligne }}>
+          {texte}
+        </p>
+      ))}
+    </div>
   );
 }
 
@@ -317,8 +340,10 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
                     font-size: 20px; font-style: italic; margin: 10px 0 16px; }
         .cs-chapeau { font-size: 14.5px; color: #6a6259; line-height: 1.75;
                       max-width: 520px; margin: 0 auto; }
-        .cs-suite { display: block; margin-top: 30px; color: #a89e8e; }
+        .cs-suite { display: block; margin-top: 16px; color: #a89e8e; }
         .cs-principes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 26px; margin-bottom: 38px; }
+        /* Le point surnuméraire enjambe les deux colonnes et se centre. */
+        .cs-principe-seul { grid-column: 1 / -1; max-width: 380px; margin: 4px auto 0; }
         .cs-cartes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
         .cs-chiffres { display: flex; justify-content: center; gap: 54px; flex-wrap: wrap; margin: 6px 0 34px; }
 
@@ -332,7 +357,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           .cs-enseigne { font-size: 22px; letter-spacing: 0.13em; }
           .cs-titre { font-size: 16.5px; margin: 8px 0 14px; }
           .cs-chapeau { font-size: 13.5px; line-height: 1.7; }
-          .cs-suite { margin-top: 22px; }
+          .cs-suite { margin-top: 12px; }
           .cs-principes { grid-template-columns: 1fr; gap: 18px; margin-bottom: 30px; }
           .cs-cartes { grid-template-columns: 1fr; }
           .cs-chiffres { gap: 0; justify-content: space-between; margin: 4px 0 28px; }
@@ -359,16 +384,15 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         <h1 className="cs-enseigne">Corpus Scriptura</h1>
         <p className="cs-titre">L’Écriture, et ce que les Pères en ont dit</p>
 
-        <div style={{ display: "flex", gap: "11px", alignItems: "flex-start", textAlign: "left", background: "#faf3e4", border: "1px solid #e0cfa4", borderRadius: "10px", padding: "14px 18px", marginTop: "22px", maxWidth: "480px" }}>
-          <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true" style={{ color: "#9a7a38", flexShrink: 0, marginTop: "1px" }}>
-            <path d="M12 8.5v4.5M12 16.2v.3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-            <path d="M10.3 3.9 2.5 17.5A2 2 0 0 0 4.2 20.5h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinejoin="round" />
-          </svg>
-          <p style={{ fontSize: "12.5px", color: "#6a5a38", lineHeight: 1.65, margin: 0 }}>
-            <strong style={{ color: "#7a5c20" }}>Le site est en travaux.</strong>{" "}
-            Rien n’est encore ouvert : ni la lecture, ni la recherche, ni les comptes.
-            Cette page est une annonce, pas une porte.
-          </p>
+        {/* L'avis de travaux suit le titre, en colophon et sans cadre : encadré,
+            il avait l'air d'une alerte technique posée sur la page ; composé, il
+            appartient à l'ensemble. Le mordoré le distingue sans le détacher. */}
+        <div style={{ marginTop: "16px" }}>
+          <Colophon couleur={MORDORE} taille="13px" lignes={[
+            ["Le site est en travaux. Rien n’est encore ouvert :", "430px"],
+            ["ni la lecture, ni la recherche, ni les comptes.", "350px"],
+            ["Cette page est une annonce, pas une porte.", "290px"],
+          ]} />
         </div>
 
         {/* Les chiffres tiennent dans le premier écran depuis que le chapeau en
@@ -387,15 +411,21 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
       <div className="cs-ouverture-corps" style={{ paddingBottom: "56px" }}>
 
         <div className="cs-principes" style={{ paddingTop: "44px" }}>
-          {PRINCIPES.map(p => (
-            <div key={p.titre} style={{ display: "flex", gap: "13px", alignItems: "flex-start" }}>
-              <span style={{ color: "#3d6b4f", flexShrink: 0, marginTop: "1px" }}>{p.ico}</span>
-              <span>
-                <span style={{ display: "block", fontFamily: "Georgia, serif", fontSize: "14px", color: "#2a3d30", marginBottom: "4px" }}>{p.titre}</span>
-                <span style={{ display: "block", fontSize: "12.5px", color: "#7a736a", lineHeight: 1.6 }}>{p.texte}</span>
-              </span>
-            </div>
-          ))}
+          {PRINCIPES.map((p, i) => {
+            // Cinq points dans deux colonnes : le dernier resterait seul, calé à
+            // gauche, comme oublié. Il occupe donc toute la largeur et se centre.
+            const seul = i === PRINCIPES.length - 1 && PRINCIPES.length % 2 === 1;
+            return (
+              <div key={p.titre} className={seul ? "cs-principe-seul" : undefined}
+                style={{ display: "flex", gap: "13px", alignItems: "flex-start" }}>
+                <span style={{ color: "#3d6b4f", flexShrink: 0, marginTop: "1px" }}>{p.ico}</span>
+                <span>
+                  <span style={{ display: "block", fontFamily: "Georgia, serif", fontSize: "14px", color: "#2a3d30", marginBottom: "4px" }}>{p.titre}</span>
+                  <span style={{ display: "block", fontSize: "12.5px", color: "#7a736a", lineHeight: 1.6 }}>{p.texte}</span>
+                </span>
+              </div>
+            );
+          })}
         </div>
 
         <div style={{ margin: "6px 0 34px" }}><Ornement nom="clochettes" largeur={210} opacite={0.7} /></div>
@@ -405,12 +435,14 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#9a7a38", margin: "0 0 12px" }}>
             Ce qu’on ne trouve pas ailleurs
           </p>
-          <p style={{ fontSize: "13.5px", color: "#4a453e", lineHeight: 1.8, maxWidth: "580px", margin: "0 auto" }}>
-            De nombreux ouvrages excellents ne subsistent plus que dans des éditions anciennes,
-            aujourd’hui introuvables, coûteuses ou difficiles d’accès. Nous nous efforçons de les
-            retrouver en ligne ou d’en faire l’acquisition, afin de les publier avec le plus grand
-            soin et de leur redonner vie sur internet.
-          </p>
+          <Colophon couleur="#4a453e" taille="13.5px" interligne={1.75} lignes={[
+            ["De nombreux ouvrages excellents ne subsistent plus", "560px"],
+            ["que dans des éditions anciennes, aujourd’hui introuvables,", "500px"],
+            ["coûteuses ou difficiles d’accès. Nous nous efforçons de les", "440px"],
+            ["retrouver en ligne ou d’en faire l’acquisition, afin de les", "370px"],
+            ["publier avec le plus grand soin", "290px"],
+            ["et de leur redonner vie sur internet.", "230px"],
+          ]} />
           <p style={{ fontSize: "12.5px", color: "#8a8278", lineHeight: 1.7, maxWidth: "540px", margin: "14px auto 0", fontStyle: "italic" }}>
             C’est le cœur du travail, et ce qui prend le plus de temps.
           </p>
@@ -419,13 +451,13 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         {/* ── Être prévenu, et soutenir ── */}
         <div className="cs-cartes">
           <div className="cs-carte" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "24px 26px" }}>
-            <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a958d", margin: "0 0 14px" }}>
-              À l’ouverture
+            <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a958d", margin: "0 0 14px", textAlign: "center" }}>
+              Recevoir un mail à l’ouverture
             </p>
             <Prevenir />
           </div>
           <div className="cs-carte" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "24px 26px", display: "flex", flexDirection: "column" }}>
-            <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a958d", margin: "0 0 14px" }}>
+            <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a958d", margin: "0 0 14px", textAlign: "center" }}>
               Soutenir le projet
             </p>
             <p style={{ fontSize: "12.5px", color: "#6a6259", margin: "0 0 14px", lineHeight: 1.6, flex: 1 }}>
