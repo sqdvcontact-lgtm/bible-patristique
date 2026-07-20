@@ -116,86 +116,46 @@ function IcoLibre() {
 }
 
 // ── Ornements ────────────────────────────────────────────────────────────────
-// Rinceaux de vigne, tracés au trait dans les couleurs du site : le vert du
-// corps de texte, l'or des filets. La vigne plutôt qu'un fleuron abstrait —
-// c'est l'ornement des manuscrits, et elle dit quelque chose du contenu.
+// Gravures au trait tirées du dossier d'ornements, détourées et redimensionnées
+// (3,4 Mo ramenés à 255 Ko).
+//
+// `mix-blend-mode: multiply` est ce qui les fait tenir sur le fond crème : les
+// fichiers ont un fond blanc, et le multiplier avec la page le fait disparaître
+// tout en gardant l'anti-crénelage du trait. Rendre le blanc transparent au
+// détourage aurait laissé un liseré clair autour de chaque trait.
+const MELANGE: React.CSSProperties = { mixBlendMode: "multiply", display: "block", margin: "0 auto", height: "auto" };
 
-/** Rinceau horizontal : deux vrilles symétriques autour d'une feuille. */
+/** Rinceau de vigne à grappe : sépare deux sections. */
 function Vigne({ largeur = 190, opacite = 1 }: { largeur?: number; opacite?: number }) {
   return (
-    <svg width={largeur} height={largeur * 0.155} viewBox="0 0 200 31" fill="none"
-      aria-hidden="true" style={{ display: "block", margin: "0 auto", opacity: opacite }}>
-      <g stroke="#9a7a38" strokeWidth="1.05" strokeLinecap="round" fill="none">
-        {/* sarments */}
-        <path d="M6 15.5h58" />
-        <path d="M194 15.5h-58" />
-        {/* vrilles enroulées */}
-        <path d="M64 15.5c6 0 9-4.5 6.5-7.5-2-2.4-5.5-.6-4.6 2.3.9 2.9 5.1 4 9.1 1.2" />
-        <path d="M136 15.5c-6 0-9 4.5-6.5 7.5 2 2.4 5.5.6 4.6-2.3-.9-2.9-5.1-4-9.1-1.2" />
-        {/* feuilles */}
-        <path d="M78 12.6c4.5-5.6 11-6.6 14.4-3.4 3.2 3-.4 8.8-6.2 9.4-3.7.4-6.6-2.2-8.2-6z" />
-        <path d="M122 18.4c-4.5 5.6-11 6.6-14.4 3.4-3.2-3 .4-8.8 6.2-9.4 3.7-.4 6.6 2.2 8.2 6z" />
-        {/* grain central */}
-        <circle cx="100" cy="15.5" r="2.6" fill="#9a7a38" stroke="none" />
-        <path d="M93 15.5h-1.5M108.5 15.5H107" />
-      </g>
-    </svg>
+    <Image src="/ornements/vigne-grappe.png" alt="" aria-hidden="true"
+      width={520} height={247} sizes={`${largeur}px`}
+      style={{ ...MELANGE, width: largeur, maxWidth: "100%", opacity: opacite }} />
   );
 }
 
-/** Cul-de-lampe.
- *
- *  L'ornement voulu est une gravure au trait — des anges et des ouvriers
- *  bâtissant la cité — qui dit le chantier mieux qu'un fleuron. Déposer le
- *  fichier en `public/ornements/chantier.png` et il paraît de lui-même ;
- *  tant qu'il manque, le motif de vigne ci-dessous tient la place.
- *
- *  Le repli se fait sur l'erreur de chargement plutôt que sur un test
- *  d'existence : la page est rendue côté serveur, elle ne peut pas savoir ce
- *  que contient le disque du client.
- */
-function CulDeLampe() {
-  const [gravureAbsente, setGravureAbsente] = useState(false);
-
-  if (!gravureAbsente) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src="/ornements/chantier.png"
-        alt="Des anges et des ouvriers bâtissant une cité fortifiée"
-        onError={() => setGravureAbsente(true)}
-        style={{ display: "block", margin: "0 auto", width: "100%", maxWidth: "420px", height: "auto" }}
-      />
-    );
-  }
-
-  return <VigneCulDeLampe />;
+/** Vase parmi les flots : second ornement de séparation. */
+function VaseFlots({ largeur = 220, opacite = 1 }: { largeur?: number; opacite?: number }) {
+  return (
+    <Image src="/ornements/vase-flots.png" alt="" aria-hidden="true"
+      width={520} height={156} sizes={`${largeur}px`}
+      style={{ ...MELANGE, width: largeur, maxWidth: "100%", opacity: opacite }} />
+  );
 }
 
-/** Ornement de repli : triangle pointe en bas, dans l'esprit de la charte. */
-function VigneCulDeLampe() {
+/** Cul-de-lampe : la gravure des bâtisseurs, en bas de page.
+ *
+ *  Des anges et des ouvriers montant la muraille d'une cité — elle dit le
+ *  chantier mieux qu'un fleuron, et c'est le seul ornement de la page à porter
+ *  un sujet plutôt qu'un motif. D'où sa place tout en bas : on la regarde
+ *  quand on a fini de lire.
+ */
+function CulDeLampe() {
   return (
-    <svg width="128" height="76" viewBox="0 0 128 76" fill="none" aria-hidden="true"
-      style={{ display: "block", margin: "0 auto" }}>
-      <g stroke="#9a7a38" strokeWidth="1.05" strokeLinecap="round" strokeLinejoin="round" fill="none">
-        {/* traverse supérieure, terminée par deux volutes */}
-        <path d="M28 8h72" />
-        <path d="M28 8c-5 0-7.5 3.5-5.5 6 1.7 2.1 5 .6 4.2-1.9" />
-        <path d="M100 8c5 0 7.5 3.5 5.5 6-1.7 2.1-5 .6-4.2-1.9" />
-        {/* rinceaux descendants, en miroir */}
-        <path d="M64 8v12c0 9-7 12-13 16-5 3.3-7 7-5 10.5" />
-        <path d="M64 8v12c0 9 7 12 13 16 5 3.3 7 7 5 10.5" />
-        {/* feuilles de vigne affrontées */}
-        <path d="M51 30c-6.5-2.5-13 .5-13.5 5.5-.4 4.4 6 7 11 3.8 3.2-2 4-6 2.5-9.3z" />
-        <path d="M77 30c6.5-2.5 13 .5 13.5 5.5.4 4.4-6 7-11 3.8-3.2-2-4-6-2.5-9.3z" />
-        {/* grappe : la pointe du triangle */}
-        <path d="M64 34v14" />
-        <circle cx="58.5" cy="52.5" r="3.6" />
-        <circle cx="69.5" cy="52.5" r="3.6" />
-        <circle cx="64" cy="60.5" r="3.6" />
-        <circle cx="64" cy="69" r="2.6" fill="#9a7a38" stroke="none" />
-      </g>
-    </svg>
+    <Image src="/ornements/chantier.png"
+      alt="Des anges et des ouvriers bâtissant la muraille d'une cité"
+      width={880} height={471} sizes="(max-width: 640px) 88vw, 440px"
+      style={{ ...MELANGE, width: '100%', maxWidth: '440px' }} />
   );
 }
 
@@ -567,6 +527,8 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           </div>
         )}
         </div>
+
+        <div style={{ margin: "38px 0 4px" }}><VaseFlots largeur={230} opacite={0.55} /></div>
 
         {/* ── Démarchage ── */}
         <aside style={{ marginTop: "34px", border: "1px solid #ddc9c2", background: "#fdf6f4", borderRadius: "10px", padding: "20px 24px", maxWidth: "660px", marginLeft: "auto", marginRight: "auto" }}>
