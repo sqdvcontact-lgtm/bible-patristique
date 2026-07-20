@@ -459,11 +459,10 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             Ce qu’on ne trouve pas ailleurs
           </p>
           <p style={{ fontSize: "13.5px", color: "#4a453e", lineHeight: 1.8, maxWidth: "580px", margin: "0 auto" }}>
-            Beaucoup de ces textes n’existent qu’en volumes du <Siecle n="xix" /> siècle, épuisés,
-            dispersés dans quelques fonds, et illisibles pour un moteur de recherche. Le site les
-            reprend page à page : les fac-similés passent par une <strong style={{ fontWeight: 600, color: "#2a3d30" }}>océrisation</strong>,
-            puis par une relecture, jusqu’à ce que le texte redevienne un texte – cherchable,
-            citable, relié au verset qu’il commente.
+            De nombreux ouvrages excellents ne subsistent plus que dans des éditions anciennes,
+            aujourd’hui introuvables, coûteuses ou difficiles d’accès. Nous nous efforçons de les
+            retrouver en ligne ou d’en faire l’acquisition, afin de les publier avec le plus grand
+            soin et de leur redonner vie sur internet.
           </p>
           <p style={{ fontSize: "12.5px", color: "#8a8278", lineHeight: 1.7, maxWidth: "540px", margin: "14px auto 0", fontStyle: "italic" }}>
             C’est le cœur du travail, et ce qui prend le plus de temps.
