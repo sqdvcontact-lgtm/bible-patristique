@@ -42,7 +42,7 @@ export default function MesEcritsPage() {
       <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ background: '#fff', border: '1px solid #d6d0c4', borderRadius: '10px', padding: '36px 40px', textAlign: 'center' }}>
           <p style={{ fontSize: '13px', color: '#6b6560', marginBottom: '16px' }}>Connectez-vous pour voir vos écrits.</p>
-          <Link href="/compte" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '13px', fontWeight: 500, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
+          <Link href="/chantier" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '13px', fontWeight: 500, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
             Se connecter
           </Link>
         </div>

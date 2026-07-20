@@ -119,7 +119,7 @@ export default async function AdminPage() {
           <p style={{ fontSize: '12.5px', color: '#6b6560', lineHeight: 1.6, marginBottom: '22px' }}>
             Cette page est réservée au compte administrateur. Connectez-vous avec ce compte pour y accéder.
           </p>
-          <a href="/compte" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '13px', fontWeight: 500, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
+          <a href="/chantier" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '13px', fontWeight: 500, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
             Se connecter
           </a>
         </div>

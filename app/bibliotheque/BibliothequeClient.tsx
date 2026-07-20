@@ -691,7 +691,7 @@ function OngletProposer() {
       <p style={{ fontSize: '12.5px', color: '#8a8278', lineHeight: 1.65, marginBottom: '22px' }}>
         Seuls les membres de Corpus Scriptura peuvent proposer un texte.<br/>Connectez-vous pour contribuer à la bibliothèque.
       </p>
-      <a href="/compte" style={{ display: 'inline-block', padding: '9px 22px', background: '#3d6b4f', color: '#fff', borderRadius: '6px', fontSize: '13px', textDecoration: 'none', fontWeight: 500 }}>
+      <a href="/chantier" style={{ display: 'inline-block', padding: '9px 22px', background: '#3d6b4f', color: '#fff', borderRadius: '6px', fontSize: '13px', textDecoration: 'none', fontWeight: 500 }}>
         Se connecter
       </a>
     </div>

@@ -1043,7 +1043,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
     return (
       <div style={{ textAlign: 'center', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '28px 24px', maxWidth: '520px', margin: '0 auto' }}>
         <p style={{ fontSize: '13px', color: '#6b6560', marginBottom: '14px' }}>Connectez-vous pour écrire un essai ou une méditation.</p>
-        <Link href="/compte" style={{ display: 'inline-block', padding: '8px 18px', fontSize: '12.5px', fontWeight: 600, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
+        <Link href="/chantier" style={{ display: 'inline-block', padding: '8px 18px', fontSize: '12.5px', fontWeight: 600, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
           Se connecter
         </Link>
       </div>
@@ -1317,7 +1317,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
 
       {connecte === false && (
         <p style={{ fontSize: '11px', color: '#9a958d', marginTop: '18px', fontStyle: 'italic' }}>
-          <Link href="/compte" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>Connectez-vous</Link> pour enregistrer votre méditation.
+          <Link href="/chantier" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>Connectez-vous</Link> pour enregistrer votre méditation.
         </p>
       )}
     </div>

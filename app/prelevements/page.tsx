@@ -287,7 +287,7 @@ export default function PrelevementsPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session) { router.push("/compte"); return; }
+      if (!data.session) { router.push("/chantier"); return; }
       const uid = data.session.user.id;
       const [{ data: rows }, { data: trads }, { data: profil }] = await Promise.all([
         supabase

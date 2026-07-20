@@ -55,7 +55,7 @@ export default function MessageriePage() {
         {connecte === false ? (
           <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '28px 24px', textAlign: 'center' }}>
             <p style={{ fontSize: '13.5px', color: '#9a958d', fontStyle: 'italic', margin: '0 0 14px' }}>Connectez-vous pour accéder à votre messagerie.</p>
-            <Link href="/compte" style={{ fontSize: '12px', color: '#3d6b4f', fontWeight: 600, textDecoration: 'none' }}>Se connecter</Link>
+            <Link href="/chantier" style={{ fontSize: '12px', color: '#3d6b4f', fontWeight: 600, textDecoration: 'none' }}>Se connecter</Link>
           </div>
         ) : conversations === null ? (
           <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>

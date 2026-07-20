@@ -24,11 +24,13 @@ const AUTORISES = (process.env.ADMIN_EMAIL ?? '')
 // Chemins accessibles sans session, sous peine de boucle de redirection :
 // la page de connexion elle-même, le retour d'authentification, et les
 // ressources dont ces pages ont besoin.
-// `/api/attente` : la page d'attente y dépose les adresses de ceux qui veulent
-// être prévenus. Elle est donc, par construction, ouverte aux non-connectés.
-// `/api/chiffres` : les trois compteurs de la page d'ouverture, qui s'affiche
-// avant toute connexion. Elle ne renvoie que des nombres agrégés.
-const LIBRES = ['/compte', '/auth', '/api/auth', '/api/compte', '/api/attente', '/api/chiffres']
+// `/chantier` : la page d'ouverture, qui porte aussi le formulaire de connexion.
+// `/api/attente` : elle y dépose les adresses de ceux qui veulent être prévenus.
+// `/api/chiffres` : ses trois compteurs, de simples nombres agrégés.
+//
+// `/compte` n'y figure plus : cette adresse ne sert que l'espace personnel,
+// qui n'a de sens qu'une fois connecté.
+const LIBRES = ['/chantier', '/auth', '/api/auth', '/api/compte', '/api/attente', '/api/chiffres']
 
 function estLibre(chemin: string) {
   return LIBRES.some(p => chemin === p || chemin.startsWith(p + '/'))
@@ -77,7 +79,7 @@ export async function proxy(request: NextRequest) {
     const courriel = user?.email?.trim().toLowerCase()
     if (!courriel || !AUTORISES.includes(courriel)) {
       const versConnexion = request.nextUrl.clone()
-      versConnexion.pathname = '/compte'
+      versConnexion.pathname = '/chantier'
       // On garde la destination pour y revenir après connexion.
       versConnexion.search = pathname === '/' ? '' : `?suite=${encodeURIComponent(pathname + search)}`
       return NextResponse.redirect(versConnexion)

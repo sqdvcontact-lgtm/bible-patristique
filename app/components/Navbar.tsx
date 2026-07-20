@@ -583,7 +583,7 @@ export default function Navbar() {
       {!mobile && menuOuvert && <div style={{ position: "fixed", inset: 0, zIndex: 3090 }} onClick={() => setMenuOuvert(false)} />}
     </div>
   ) : (
-    <Link href="/compte" onClick={() => setMobileOuvert(false)} style={mobile
+    <Link href="/chantier" onClick={() => setMobileOuvert(false)} style={mobile
       ? { display: "block", textAlign: "center", padding: "9px 12px", borderRadius: "6px", fontSize: "13px", color: "#fff", textDecoration: "none", border: "1px solid rgba(255,255,255,0.25)" }
       : { display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 11px", borderRadius: "5px", fontSize: "12.5px", color: "rgba(255,255,255,0.75)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.20)" }}>
       Se connecter
