@@ -78,11 +78,19 @@ export default function ConfidentialitePage() {
                 en avant éditoriale. Ces compteurs sont agrégés et ne permettent pas d&rsquo;identifier un
                 utilisateur individuellement.
               </li>
+              <li>
+                <strong>Adresse laissée sur la liste d&rsquo;attente</strong> - si vous demandez à être prévenu
+                de l&rsquo;ouverture du site depuis la page d&rsquo;accueil, votre adresse est conservée à cette
+                seule fin, avec la date de votre demande. Elle n&rsquo;est associée à aucun compte, n&rsquo;est
+                jamais transmise à un tiers, et sera supprimée après l&rsquo;envoi du message d&rsquo;ouverture ou
+                sur simple demande de votre part.
+              </li>
             </ul>
             <p>
-              Le site ne collecte aucune donnée de paiement : les dons, lorsqu&rsquo;ils seront proposés, seront
-              traités directement par un prestataire de paiement tiers, sans transit ni conservation des
-              coordonnées bancaires par le site lui-même.
+              Le site ne collecte aucune donnée de paiement : les dons sont traités directement par un
+              prestataire de paiement tiers (PayPal), sans transit ni conservation des coordonnées bancaires
+              par le site lui-même. Suivre le bouton de don vous conduit sur le site de ce prestataire, qui
+              applique alors sa propre politique de confidentialité.
             </p>
           </Section>
 
