@@ -21,7 +21,7 @@ export async function creerSupabaseServeur() {
             cookiesAEcrire.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
           } catch {
             // Appelé depuis un composant serveur en lecture seule (pas une Server
-            // Action ni un Route Handler) : sans effet ici, le middleware se charge
+            // Action ni un Route Handler) : sans effet ici, le proxy se charge
             // de rafraîchir les cookies sur la requête suivante.
           }
         },

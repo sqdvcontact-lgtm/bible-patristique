@@ -91,7 +91,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
       const { error } = await supabase.auth.signInWithPassword({ email, password: mdp });
       if (error) setErreur("Identifiants incorrects. Vérifiez votre adresse et votre mot de passe.");
       else {
-        // Le middleware, en refusant l'accès, a mis la page demandée dans `suite` :
+        // Le proxy, en refusant l'accès, a mis la page demandée dans `suite` :
         // on y revient plutôt que de retomber sur un point d'arrivée arbitraire.
         // Seuls les chemins internes sont acceptés — une URL absolue permettrait
         // de renvoyer l'utilisateur connecté vers un site tiers.
@@ -156,7 +156,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         {/* INSCRIPTIONS FERMÉES. Le site est en test : la bascule vers la création
             de compte disparaît tant que `NEXT_PUBLIC_INSCRIPTIONS_OUVERTES` ne vaut
             pas « 1 ». Ce n'est qu'un retrait d'affordance — le vrai verrou est le
-            middleware, et l'inscription doit AUSSI être coupée dans Supabase
+            proxy, et l'inscription doit AUSSI être coupée dans Supabase
             (Authentication → Sign In / Providers → Allow new users to sign up),
             sans quoi l'API reste ouverte à qui la connaît. */}
         {process.env.NEXT_PUBLIC_INSCRIPTIONS_OUVERTES === "1" ? (

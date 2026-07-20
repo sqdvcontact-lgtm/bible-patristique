@@ -30,7 +30,7 @@ function estLibre(chemin: string) {
   return LIBRES.some(p => chemin === p || chemin.startsWith(p + '/'))
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
 
   // 1. Domaine canonique, avant toute autre chose — inutile de vérifier une
