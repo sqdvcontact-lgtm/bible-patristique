@@ -26,7 +26,9 @@ const AUTORISES = (process.env.ADMIN_EMAIL ?? '')
 // ressources dont ces pages ont besoin.
 // `/api/attente` : la page d'attente y dépose les adresses de ceux qui veulent
 // être prévenus. Elle est donc, par construction, ouverte aux non-connectés.
-const LIBRES = ['/compte', '/auth', '/api/auth', '/api/compte', '/api/attente']
+// `/api/chiffres` : les trois compteurs de la page d'ouverture, qui s'affiche
+// avant toute connexion. Elle ne renvoie que des nombres agrégés.
+const LIBRES = ['/compte', '/auth', '/api/auth', '/api/compte', '/api/attente', '/api/chiffres']
 
 function estLibre(chemin: string) {
   return LIBRES.some(p => chemin === p || chemin.startsWith(p + '/'))

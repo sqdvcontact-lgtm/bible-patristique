@@ -1,6 +1,6 @@
 export const metadata = {
   title: "Conditions d'utilisation - Corpus Scriptura",
-  description: "Conditions générales d'utilisation du site Corpus Scriptura (corpus-scriptura.com).",
+  description: "Conditions générales d'utilisation du site Corpus Scriptura (corpus-scriptura.fr).",
 };
 
 export default function ConditionsUtilisationPage() {
@@ -30,7 +30,7 @@ export default function ConditionsUtilisationPage() {
 
           <Section titre="1. Présentation du site">
             <p>
-              Le site <strong>Corpus Scriptura</strong> (accessible à l&rsquo;adresse <strong>corpus-scriptura.com</strong>,
+              Le site <strong>Corpus Scriptura</strong> (accessible à l&rsquo;adresse <strong>corpus-scriptura.fr</strong>,
               ci-après « le site ») propose un accès libre et gratuit à plusieurs traductions françaises de
               la Bible, mises en regard de commentaires issus de la tradition patristique chrétienne (Pères
               de l&rsquo;Église, docteurs et auteurs anciens).
@@ -124,7 +124,7 @@ export default function ConditionsUtilisationPage() {
             </p>
             <p>
               Le contenu copié par les utilisateurs via les fonctions de citation du site doit conserver la
-              mention de la source (« disponible sur Corpus Scriptura - corpus-scriptura.com ») lorsqu&rsquo;il est
+              mention de la source (« disponible sur Corpus Scriptura - corpus-scriptura.fr ») lorsqu&rsquo;il est
               réutilisé publiquement.
             </p>
           </Section>

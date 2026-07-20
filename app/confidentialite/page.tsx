@@ -1,6 +1,6 @@
 export const metadata = {
   title: "Politique de confidentialité - Corpus Scriptura",
-  description: "Traitement des données personnelles sur Corpus Scriptura (corpus-scriptura.com).",
+  description: "Traitement des données personnelles sur Corpus Scriptura (corpus-scriptura.fr).",
 };
 
 export default function ConfidentialitePage() {
@@ -31,7 +31,7 @@ export default function ConfidentialitePage() {
           <Section titre="1. Responsable du traitement">
             <p>
               Le responsable du traitement des données personnelles collectées sur{' '}
-              <strong>Corpus Scriptura</strong> (corpus-scriptura.com) est l&rsquo;éditeur du site, personne
+              <strong>Corpus Scriptura</strong> (corpus-scriptura.fr) est l&rsquo;éditeur du site, personne
               physique agissant à titre non professionnel. Conformément à la loi pour la confiance dans
               l&rsquo;économie numérique, ses coordonnées complètes ont été communiquées à l&rsquo;hébergeur et peuvent
               être obtenues, en cas de besoin légitime, auprès de ce dernier ou de l&rsquo;autorité judiciaire
@@ -41,6 +41,13 @@ export default function ConfidentialitePage() {
               Pour toute question relative à vos données, vous pouvez utiliser le formulaire de signalement
               du site, qui constitue le point de contact disponible. Une réponse vous sera apportée dans un
               délai d&rsquo;un mois.
+            </p>
+            <p style={{ background: "#faf3e4", border: "1px solid #e0cfa4", borderRadius: "8px", padding: "12px 16px" }}>
+              <strong>Le site est actuellement fermé</strong> et son formulaire de signalement n&rsquo;est
+              donc pas accessible. Si vous avez laissé votre adresse sur la liste d&rsquo;attente et
+              souhaitez qu&rsquo;elle soit effacée avant l&rsquo;ouverture, il vous suffit de répondre au
+              message d&rsquo;annonce que vous recevrez : votre adresse sera supprimée sans autre formalité.
+              Aucune de ces adresses n&rsquo;est utilisée à une autre fin dans l&rsquo;intervalle.
             </p>
           </Section>
 

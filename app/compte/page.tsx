@@ -130,12 +130,13 @@ const PRINCIPES: { ico: React.ReactNode; titre: string; texte: string }[] = [
 function Chiffres() {
   const [n, setN] = useState<{ oeuvres: number; traductions: number; auteurs: number } | null>(null);
 
+  // Par une route serveur, et non plus par le client public : le rôle `anon`
+  // n'a plus aucun droit de lecture sur la base.
   useEffect(() => {
-    Promise.all([
-      supabase.from("oeuvres").select("*", { count: "exact", head: true }),
-      supabase.from("traductions").select("*", { count: "exact", head: true }),
-      supabase.from("auteurs").select("*", { count: "exact", head: true }),
-    ]).then(([o, t, a]) => setN({ oeuvres: o.count ?? 0, traductions: t.count ?? 0, auteurs: a.count ?? 0 }));
+    fetch("/api/chiffres")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d && d.oeuvres !== null) setN(d); })
+      .catch(() => {});
   }, []);
 
   // Tant que le compte n'est pas revenu, on n'affiche rien plutôt qu'un zéro :
