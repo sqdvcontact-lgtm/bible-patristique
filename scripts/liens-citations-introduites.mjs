@@ -61,9 +61,19 @@ function dice(a, b) {
   return (2 * i) / (a.size + b.size)
 }
 
-// ── Chargement ───────────────────────────────────────────────────────────────
-const { data: segs } = await sb.from('segments')
-  .select('id, segment_numero, segment_texte').eq('id_oeuvre', OEUVRE).eq('nature', 'texte').order('segment_numero')
+// ── Chargement (paginé) ──────────────────────────────────────────────────────
+// PostgREST plafonne à 1000 lignes : sans pagination, sur une grande œuvre (la
+// Cité de Dieu en a 9 486, la Somme 32 367) le script ne voyait que le premier
+// millième de segments — d'où des rendements dérisoires qui étaient un artefact,
+// non une propriété de la méthode.
+const segs = []
+for (let from = 0; ; from += 1000) {
+  const { data, error } = await sb.from('segments')
+    .select('id, segment_numero, segment_texte').eq('id_oeuvre', OEUVRE).eq('nature', 'texte')
+    .order('segment_numero').range(from, from + 999)
+  if (error) throw error
+  segs.push(...data); if (data.length < 1000) break
+}
 
 /** RÉFÉRENCES NON BIBLIQUES — à signaler, jamais à rattacher de force.
  *
@@ -168,11 +178,29 @@ console.log(`  sous le seuil : ${stats.sousSeuil}`)
 if (DRY) { console.log('\n(--dry : rien écrit)'); process.exit(0) }
 
 // On n'écrit que ce qui n'existe pas déjà : la contrainte d'unicité
-// (segment_id, canon_id, type) rejetterait l'insertion entière du lot.
-const { data: existants } = await sb.from('liens_bibliques')
-  .select('segment_id, canon_id, type').in('segment_id', segs.map(s => s.id))
-const deja = new Set((existants ?? []).map(l => `${l.segment_id}|${l.canon_id}|${l.type}`))
-const aEcrire = liens.filter(l => !deja.has(`${l.segment_id}|${l.canon_id}|${l.type}`))
+// (segment_id, canon_id, type) rejetterait l'insertion entière du lot. La
+// lecture des liens présents est paginée par paquets de segments — un `in()` sur
+// les 32 000 segments de la Somme dépasserait la limite d'URL et plafonnerait à
+// 1000, laissant passer des doublons qui feraient échouer tout l'insert.
+const idsSeg = segs.map(s => s.id)
+const deja = new Set()
+for (let i = 0; i < idsSeg.length; i += 300) {
+  const { data } = await sb.from('liens_bibliques')
+    .select('segment_id, canon_id, type').in('segment_id', idsSeg.slice(i, i + 300))
+  for (const l of data ?? []) deja.add(`${l.segment_id}|${l.canon_id}|${l.type}`)
+}
+// Dédoublonner les liens BIBLIQUES à la fois contre l'existant et au sein du lot :
+// un même segment peut introduire deux fois la même citation, ce qui produirait
+// deux (segment_id, canon_id, type) identiques et ferait échouer tout l'insert.
+// Les signalements (canon_id null) ne violent pas la contrainte — en Postgres
+// deux NULL sont distincts —, on les garde tous, chacun visant un auteur propre.
+const aEcrire = []
+for (const l of liens) {
+  const cle = `${l.segment_id}|${l.canon_id}|${l.type}`
+  if (deja.has(cle)) continue
+  deja.add(cle)
+  aEcrire.push(l)
+}
 aEcrire.push(...signalements)
 for (let i = 0; i < aEcrire.length; i += 500) {
   const { error } = await sb.from('liens_bibliques').insert(aEcrire.slice(i, i + 500))
