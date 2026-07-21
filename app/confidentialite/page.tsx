@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Politique de confidentialité - Corpus Scriptura",
+  title: { absolute: "Politique de confidentialité – Corpus Scriptura" },
   description: "Traitement des données personnelles sur Corpus Scriptura (corpus-scriptura.fr).",
 };
 
@@ -38,16 +38,10 @@ export default function ConfidentialitePage() {
               compétente.
             </p>
             <p>
-              Pour toute question relative à vos données, vous pouvez utiliser le formulaire de signalement
-              du site, qui constitue le point de contact disponible. Une réponse vous sera apportée dans un
-              délai d&rsquo;un mois.
-            </p>
-            <p style={{ background: "#faf3e4", border: "1px solid #e0cfa4", borderRadius: "8px", padding: "12px 16px" }}>
-              <strong>Le site est actuellement fermé</strong> et son formulaire de signalement n&rsquo;est
-              donc pas accessible. Si vous avez laissé votre adresse sur la liste d&rsquo;attente et
-              souhaitez qu&rsquo;elle soit effacée avant l&rsquo;ouverture, il vous suffit de répondre au
-              message d&rsquo;annonce que vous recevrez : votre adresse sera supprimée sans autre formalité.
-              Aucune de ces adresses n&rsquo;est utilisée à une autre fin dans l&rsquo;intervalle.
+              Pour toute question relative à vos données, ou pour exercer vos droits, vous pouvez écrire
+              par le{' '}
+              <a href="/contact" style={{ color: "#3d6b4f", textDecoration: "underline" }}>formulaire de contact</a>
+              {' '}du site. Une réponse vous sera apportée dans un délai d&rsquo;un mois.
             </p>
           </Section>
 
@@ -55,38 +49,38 @@ export default function ConfidentialitePage() {
             <p>Le site collecte les données suivantes, selon votre usage :</p>
             <ul style={{ paddingLeft: "20px", margin: "8px 0" }}>
               <li>
-                <strong>Adresse e-mail</strong> - lors de la création d&rsquo;un compte, via le service
+                <strong>Adresse e-mail</strong> – lors de la création d&rsquo;un compte, via le service
                 d&rsquo;authentification Supabase. Elle est utilisée pour l&rsquo;identification et, le cas échéant,
                 la récupération de compte.
               </li>
               <li>
-                <strong>Identifiant de compte</strong> - généré automatiquement, sans valeur identifiante
+                <strong>Identifiant de compte</strong> – généré automatiquement, sans valeur identifiante
                 en lui-même.
               </li>
               <li>
-                <strong>Prélèvements</strong> - versets bibliques ou extraits patristiques que vous
+                <strong>Prélèvements</strong> – versets bibliques ou extraits patristiques que vous
                 choisissez d&rsquo;enregistrer dans votre espace personnel. Ces données sont privées par défaut.
               </li>
               <li>
-                <strong>Commentaires et essais</strong> - textes que vous soumettez volontairement, associés
+                <strong>Commentaires et essais</strong> – textes que vous soumettez volontairement, associés
                 à votre compte. Ils sont stockés en base de données en attente de modération.
               </li>
               <li>
-                <strong>Signalements</strong> - message libre transmis lors du signalement d&rsquo;une erreur,
+                <strong>Signalements</strong> – message libre transmis lors du signalement d&rsquo;une erreur,
                 éventuellement associé à votre compte si vous êtes connecté.
               </li>
               <li>
-                <strong>Données de profil public</strong> - pseudonyme, biographie et bibliothèque
+                <strong>Données de profil public</strong> – pseudonyme, biographie et bibliothèque
                 personnelle que vous choisissez de rendre publics depuis les paramètres de votre compte.
               </li>
               <li>
-                <strong>Compteurs de consultation</strong> - le site enregistre en base de données le nombre
+                <strong>Compteurs de consultation</strong> – le site enregistre en base de données le nombre
                 de vues par verset et par essai (<em>nb_vues</em>, <em>nb_lectures</em>) à des fins de mise
                 en avant éditoriale. Ces compteurs sont agrégés et ne permettent pas d&rsquo;identifier un
                 utilisateur individuellement.
               </li>
               <li>
-                <strong>Adresse laissée sur la liste d&rsquo;attente</strong> - si vous demandez à être prévenu
+                <strong>Adresse laissée sur la liste d&rsquo;attente</strong> – si vous demandez à être prévenu
                 de l&rsquo;ouverture du site depuis la page d&rsquo;accueil, votre adresse est conservée à cette
                 seule fin, avec la date de votre demande. Elle n&rsquo;est associée à aucun compte, n&rsquo;est
                 jamais transmise à un tiers, et sera supprimée après l&rsquo;envoi du message d&rsquo;ouverture ou
@@ -170,7 +164,7 @@ export default function ConfidentialitePage() {
             </ul>
           </Section>
 
-          <Section titre="8. Cookies et mesure d'audience">
+          <Section titre="8. Cookies et mesure d’audience">
             <p>
               Le site utilise uniquement des cookies strictement nécessaires à son fonctionnement (maintien
               de la session de connexion). Ces cookies ne nécessitent pas de consentement préalable au titre
@@ -195,16 +189,17 @@ export default function ConfidentialitePage() {
               Conformément au RGPD et à la loi Informatique et Libertés, vous disposez des droits suivants :
             </p>
             <ul style={{ paddingLeft: "20px", margin: "8px 0" }}>
-              <li><strong>Droit d&rsquo;accès</strong> - obtenir la confirmation que vos données sont traitées et en obtenir une copie ;</li>
-              <li><strong>Droit de rectification</strong> - corriger des données inexactes ou incomplètes ;</li>
-              <li><strong>Droit à l&rsquo;effacement</strong> - demander la suppression de vos données ;</li>
-              <li><strong>Droit à la limitation</strong> - restreindre temporairement le traitement ;</li>
-              <li><strong>Droit d&rsquo;opposition</strong> - vous opposer à un traitement fondé sur l&rsquo;intérêt légitime ;</li>
-              <li><strong>Droit à la portabilité</strong> - recevoir vos données dans un format structuré et lisible par machine.</li>
+              <li><strong>Droit d&rsquo;accès</strong> – obtenir la confirmation que vos données sont traitées et en obtenir une copie ;</li>
+              <li><strong>Droit de rectification</strong> – corriger des données inexactes ou incomplètes ;</li>
+              <li><strong>Droit à l&rsquo;effacement</strong> – demander la suppression de vos données ;</li>
+              <li><strong>Droit à la limitation</strong> – restreindre temporairement le traitement ;</li>
+              <li><strong>Droit d&rsquo;opposition</strong> – vous opposer à un traitement fondé sur l&rsquo;intérêt légitime ;</li>
+              <li><strong>Droit à la portabilité</strong> – recevoir vos données dans un format structuré et lisible par machine.</li>
             </ul>
             <p>
-              Pour exercer ces droits, utilisez le formulaire de signalement du site en précisant votre
-              demande. Une réponse vous sera apportée dans un délai d&rsquo;un mois.
+              Pour exercer ces droits, écrivez par le{' '}
+              <a href="/contact" style={{ color: "#3d6b4f", textDecoration: "underline" }}>formulaire de contact</a>
+              {' '}en précisant votre demande. Une réponse vous sera apportée dans un délai d&rsquo;un mois.
             </p>
             <p>
               Si vous estimez, après nous avoir contactés, que vos droits ne sont pas respectés, vous pouvez

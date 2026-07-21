@@ -560,6 +560,10 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           <a href="/conditions-utilisation" style={{ color: "#6a6259", textDecoration: "underline", textUnderlineOffset: "2px" }}>
             Conditions d’utilisation
           </a>
+          <span style={{ margin: "0 10px" }}>·</span>
+          <a href="/contact" style={{ color: "#6a6259", textDecoration: "underline", textUnderlineOffset: "2px" }}>
+            Contact
+          </a>
         </nav>
 
         {/* ── Démarchage ── */}

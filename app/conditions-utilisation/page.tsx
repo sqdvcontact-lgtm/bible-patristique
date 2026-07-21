@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "Conditions d'utilisation - Corpus Scriptura",
-  description: "Conditions générales d'utilisation du site Corpus Scriptura (corpus-scriptura.fr).",
+  title: { absolute: "Conditions d’utilisation – Corpus Scriptura" },
+  description: "Conditions générales d’utilisation du site Corpus Scriptura (corpus-scriptura.fr).",
 };
 
 export default function ConditionsUtilisationPage() {
@@ -43,9 +43,8 @@ export default function ConditionsUtilisationPage() {
               vis-à-vis du public.
             </p>
             <p>
-              Pour toute question relative au site ou à l&rsquo;exercice de vos droits, vous pouvez utiliser le
-              formulaire de signalement disponible sur le site ou écrire à l&rsquo;adresse de contact qui y est
-              indiquée.
+              Pour toute question relative au site ou à l&rsquo;exercice de vos droits, vous pouvez écrire par le{' '}
+              <a href="/contact" style={{ color: "#3d6b4f", textDecoration: "underline" }}>formulaire de contact</a>.
             </p>
           </Section>
 
@@ -71,7 +70,7 @@ export default function ConditionsUtilisationPage() {
             </p>
           </Section>
 
-          <Section titre="4. Création d'un compte utilisateur">
+          <Section titre="4. Création d’un compte utilisateur">
             <p>
               Certaines fonctionnalités (enregistrement de prélèvements bibliques ou patristiques, dépôt de
               commentaires, soumission d&rsquo;essais) nécessitent la création d&rsquo;un compte à partir d&rsquo;une adresse
@@ -124,7 +123,7 @@ export default function ConditionsUtilisationPage() {
             </p>
             <p>
               Le contenu copié par les utilisateurs via les fonctions de citation du site doit conserver la
-              mention de la source (« disponible sur Corpus Scriptura - corpus-scriptura.fr ») lorsqu&rsquo;il est
+              mention de la source (« disponible sur Corpus Scriptura – corpus-scriptura.fr ») lorsqu&rsquo;il est
               réutilisé publiquement.
             </p>
           </Section>

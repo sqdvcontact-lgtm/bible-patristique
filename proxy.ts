@@ -34,8 +34,10 @@ const AUTORISES = (process.env.ADMIN_EMAIL ?? '')
 // `/confidentialite` et `/conditions-utilisation` : la page du chantier recueille
 // des adresses. Une politique de confidentialité inaccessible au moment même où
 // l'on collecte la donnée ne vaut rien — ni en droit, ni pour le lecteur.
+// `/contact` (+ son API) : point de contact du site, que les mentions légales
+// invoquent pour l'exercice des droits — donc joignable même site fermé.
 const LIBRES = ['/chantier', '/auth', '/api/auth', '/api/compte', '/api/attente', '/api/chiffres',
-                '/confidentialite', '/conditions-utilisation']
+                '/confidentialite', '/conditions-utilisation', '/contact', '/api/contact']
 
 function estLibre(chemin: string) {
   return LIBRES.some(p => chemin === p || chemin.startsWith(p + '/'))
