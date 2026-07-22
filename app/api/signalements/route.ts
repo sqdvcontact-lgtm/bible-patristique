@@ -25,12 +25,19 @@ export async function POST(request: Request) {
     const idVerset = typeof body?.id_verset === 'string' && body.id_verset.trim()
       ? body.id_verset.trim()
       : null
+    // Signalement par référence canonique (page Polyglotte) : son modèle repose sur
+    // versets_v2/versets_canon, sans id_verset au format de l'ancienne table. On accepte
+    // alors une simple référence lisible (« Gn 3, 1 »), consignée en tête du message pour
+    // que le modérateur sache de quel verset il s'agit.
+    const reference = typeof body?.reference === 'string' && body.reference.trim()
+      ? body.reference.trim().slice(0, 120)
+      : null
 
     if (!message) {
       return NextResponse.json({ error: 'message manquant' }, { status: 400 })
     }
-    if (!idSegment && !idVerset) {
-      return NextResponse.json({ error: 'id_segment ou id_verset manquant' }, { status: 400 })
+    if (!idSegment && !idVerset && !reference) {
+      return NextResponse.json({ error: 'id_segment, id_verset ou reference manquant' }, { status: 400 })
     }
 
     const auth = request.headers.get('Authorization')
@@ -67,7 +74,10 @@ export async function POST(request: Request) {
       }
     }
 
-    const insertPayload: Record<string, unknown> = { message, importance, traite: false }
+    // Faute de colonne dédiée, la référence est portée en tête du message : le modérateur
+    // la voit, et rien n'est perdu. (Un signalement par référence n'a ni id_segment ni id_verset.)
+    const messageStocke = reference && !idSegment && !idVerset ? `[Réf. ${reference}] ${message}` : message
+    const insertPayload: Record<string, unknown> = { message: messageStocke, importance, traite: false }
     if (idSegment !== null) insertPayload.id_segment = idSegment
     if (idVerset !== null) insertPayload.id_verset = idVerset
     if (userId !== null) insertPayload.user_id = userId

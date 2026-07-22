@@ -289,7 +289,8 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         // Seuls les chemins internes sont acceptés — une URL absolue permettrait
         // de renvoyer l'utilisateur connecté vers un site tiers.
         const suite = new URLSearchParams(window.location.search).get("suite");
-        router.push(suite && suite.startsWith("/") && !suite.startsWith("//") ? suite : "/prelevements");
+        const cible = suite && suite.startsWith("/") && !suite.startsWith("//") ? suite : "/accueil";
+        router.push(cible);
       }
     } else {
       const { data, error } = await supabase.auth.signUp({ email, password: mdp, options: { emailRedirectTo: urlCompte() } });

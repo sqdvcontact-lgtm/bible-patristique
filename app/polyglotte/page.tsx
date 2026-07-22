@@ -8,18 +8,31 @@
 // sections visibles sont calculées). Jusqu'à 4 traductions en parallèle, choisies
 // directement dans l'en-tête du tableau ; numérotation propre de chaque édition collée
 // au texte, lignes problématiques en rouge, zébrage une ligne sur deux.
-// En mode admin, un clic sur une cellule permet de corriger le verset (route serveur).
+// En mode admin, un crayon paraît au survol d'une cellule et ouvre une petite fenêtre
+// pour corriger le verset (route serveur).
 // Écran large requis : la page est signalée indisponible sous 820 px.
 // ────────────────────────────────────────────────────────────────────────────
 
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import NavLivres from "@/app/components/NavLivres";
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
+import { ABREV_FR } from "@/app/lib/bible";
+import { texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 
 type Livre = { code: string; nom_fr: string; ordre: number };
-type Trad = { trad_id: string; nom: string; ordre: number | null };
+type Trad = { trad_id: string; nom: string; ordre: number | null; label: string };
+
+// Libellé daté d'une traduction : « Bible de Sacy, édition de 1730 ». L'année retenue est
+// celle de l'édition-source (dernier millésime qu'elle cite), à défaut la fin de la période
+// de publication de la traduction.
+function libelleTrad(t: { nom: string; source_edition?: string | null; publication_fin_annee?: number | null }): string {
+  let annee: string | null = null;
+  if (t.source_edition) { const m = t.source_edition.match(/\d{4}/g); if (m?.length) annee = m[m.length - 1]; }
+  if (!annee && t.publication_fin_annee) annee = String(t.publication_fin_annee);
+  return annee ? `${t.nom}, édition de ${annee}` : t.nom;
+}
 type Point = { livre: string | null; reference: string | null; type: string | null; description: string | null; statut: string | null; notes: string | null };
 type CanonRow = { id: string; livre: string; ch_canon: number; v_canon: number; est_suscription: boolean };
 type V2Row = { id: string; canon_id: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null };
@@ -41,20 +54,30 @@ function deuterocanonique(canonId: string): boolean {
   return false;
 }
 
+// Suzanne, Bel et le Cantique des trois enfants sont des additions grecques à Daniel : leur
+// texte est servi À L'INTÉRIEUR de Daniel (Dn 3,24-90 / 13 / 14), et non comme livres séparés.
+// Le canon leur donne un code (SUS/BEL/S3Y) mais ils n'ont aucun verset propre ; les laisser
+// dans le sommaire y créait trois entrées vides, doublant Daniel. On les retire de la seule
+// liste de navigation — Daniel, lui, garde ces passages. (À distinguer des autres livres
+// deutéro/apocryphes encore vides — Esther grec, Hénoch… — qui sont de vraies œuvres à charger.)
+const LIVRES_FONDUS_DANS_DANIEL = new Set(["SUS", "BEL", "S3Y"]);
+
 // Un surnuméraire regroupé : le même verset hors ossature, tel que plusieurs éditions le
 // portent au même numéro d'origine. `par` associe chaque traduction à sa version du verset ;
 // `ancre` est le dernier créneau du canon rencontré, qui fixe la place de la ligne.
 type Surnum = { cle: string; livre: string; ch: number; v: number; ancre: string | null; par: Map<string, V2Row> };
 
-// Certaines éditions portent un enrichissement typographique dans le texte, sous la seule
-// forme <i>…</i> (Sacy 1730 : mots ajoutés par le traducteur, absents de la Vulgate).
-// On le rend en vrais éléments React — jamais via dangerouslySetInnerHTML.
+// Certaines éditions portent un enrichissement typographique dans le texte : l'italique
+// <i>…</i> (Sacy 1730 : mots ajoutés par le traducteur, absents de la Vulgate) et le gras
+// <b>…</b>. On le rend en vrais éléments React — jamais via dangerouslySetInnerHTML.
 function texteEnrichi(t: string | null) {
   if (!t) return null;
-  if (!t.includes("<i>")) return t;
-  return t.split(/(<i>[\s\S]*?<\/i>)/g).filter(Boolean).map((bout, i) =>
+  if (!t.includes("<i>") && !t.includes("<b>")) return t;
+  return t.split(/(<i>[\s\S]*?<\/i>|<b>[\s\S]*?<\/b>)/g).filter(Boolean).map((bout, i) =>
     bout.startsWith("<i>")
       ? <i key={i}>{bout.slice(3, -4)}</i>
+      : bout.startsWith("<b>")
+      ? <b key={i}>{bout.slice(3, -4)}</b>
       : <span key={i}>{bout}</span>
   );
 }
@@ -70,6 +93,7 @@ const ROUGE_FOND = "#fbeceb";
 const SURNUM = "#5a4b9c";       // versets propres à la Septante (hors ossature canonique)
 const SURNUM_FOND = "#f0eef9";
 const NB_SLOTS = 4;
+const CLE_SLOTS = "polyglotte-slots";   // choix des traductions, mémorisé d'une visite à l'autre
 const ORDRE_NT = 52;
 const ORDRE_CANON_MAX = 78;     // au-delà : écrits non canoniques
 const FOND = "#f6f2e8";         // fond commun aux autres pages du site
@@ -118,6 +142,196 @@ const LIBELLE_ONGLET: Record<Onglet, string> = {
   AT: "Ancien Testament", PSA: "Psaumes", NT: "Nouveau Testament", AUTRES: "Écrits non canoniques",
 };
 
+// ── Petite fenêtre d'édition d'un verset (administrateur) ─────────────────────────────
+// Ouverte par le crayon qui paraît au survol d'une cellule. Une barre d'outils insère les
+// marques que le corpus admet dans le texte biblique : l'italique se porte en <i>…</i>
+// (Sacy : mots ajoutés par le traducteur, absents de la Vulgate), plus les espaces
+// insécables et les guillemets. Le droit réel est revérifié côté serveur (charte §17).
+function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer, onFermer }: {
+  reference: string; valeurInitiale: string; statut: "idle" | "envoi" | "ok" | "erreur";
+  onEnregistrer: (valeur: string) => void; onFermer: () => void;
+}) {
+  const [valeur, setValeur] = useState(valeurInitiale);
+  const ta = useRef<HTMLTextAreaElement>(null);
+  const outil: React.CSSProperties = { fontSize: 11, padding: "4px 9px", borderRadius: 4, border: "1px solid #d6d0c4", background: "#fff", color: "#2a2520", cursor: "pointer", fontFamily: "inherit", lineHeight: 1 };
+  const entourer = (avant: string, apres: string = avant) => {
+    const el = ta.current; if (!el) return;
+    const d = el.selectionStart, f = el.selectionEnd, sel = valeur.slice(d, f) || "texte";
+    setValeur(valeur.slice(0, d) + avant + sel + apres + valeur.slice(f));
+    setTimeout(() => { el.focus(); el.setSelectionRange(d + avant.length, d + avant.length + sel.length); }, 0);
+  };
+  const inserer = (t: string) => {
+    const el = ta.current; if (!el) return;
+    const d = el.selectionStart, f = el.selectionEnd;
+    setValeur(valeur.slice(0, d) + t + valeur.slice(f));
+    setTimeout(() => { el.focus(); el.setSelectionRange(d + t.length, d + t.length); }, 0);
+  };
+  return (
+    <div onClick={onFermer} style={{ position: "fixed", inset: 0, background: "rgba(30,25,20,0.4)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 9, padding: "18px 20px", width: 520, maxWidth: "100%", boxShadow: "0 12px 36px rgba(40,30,15,0.24)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
+          <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: VERT }}>Modifier — {reference}</p>
+          <button onClick={onFermer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 15, color: "#b0a89e", lineHeight: 1, padding: 0 }}>✕</button>
+        </div>
+        <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <button onClick={() => entourer("<b>", "</b>")} title="Gras" style={{ ...outil, fontWeight: 700 }}>G</button>
+          <button onClick={() => entourer("<i>", "</i>")} title="Italique — mots ajoutés par le traducteur" style={{ ...outil, fontStyle: "italic" }}>I</button>
+          <span style={{ width: 1, alignSelf: "stretch", background: "#e4dfd8" }} />
+          <button onClick={() => inserer(" ")} title="Espace insécable" style={outil}>Esp. inséc.</button>
+          <button onClick={() => inserer(" ")} title="Espace fine insécable" style={outil}>Esp. fine</button>
+          <button onClick={() => entourer("« ", " »")} title="Guillemets français" style={outil}>« »</button>
+          <button onClick={() => entourer("“", "”")} title="Guillemets anglais (citation imbriquée)" style={outil}>“”</button>
+        </div>
+        <textarea ref={ta} autoFocus value={valeur} onChange={e => setValeur(e.target.value)}
+          onKeyDown={e => { if (e.key === "Escape") onFermer(); if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) onEnregistrer(valeur); }}
+          rows={5}
+          style={{ width: "100%", boxSizing: "border-box", fontSize: 13.5, lineHeight: 1.5, fontFamily: "Georgia, serif", padding: "9px 11px", border: "1px solid #d6d0c4", borderRadius: 5, background: "#faf8f4", color: "#2a2520", outline: "none", resize: "vertical" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
+          <span style={{ fontSize: 10.5, color: "#b0a89e", marginRight: "auto" }}>⌘/Ctrl+↵ enregistre · Échap ferme</span>
+          {statut === "erreur" && <span style={{ fontSize: 11, color: ROUGE }}>échec de l’enregistrement</span>}
+          <button onClick={onFermer} style={{ padding: "5px 12px", fontSize: 11.5, borderRadius: 4, border: "1px solid #d6cfc2", background: "#fff", color: "#8a8378", cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
+          <button onClick={() => onEnregistrer(valeur)} disabled={statut === "envoi"}
+            style={{ padding: "5px 15px", fontSize: 11.5, borderRadius: 4, border: "none", background: VERT, color: "#fff", cursor: statut === "envoi" ? "default" : "pointer", fontFamily: "inherit", fontWeight: 500 }}>
+            {statut === "envoi" ? "Enregistrement…" : "Enregistrer"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Petites actions de la colonne N° (lecteur) : citer, signaler ──────────────────────
+// Mêmes symboles que les pages Bible et Œuvre : le signet ajoute le verset à « mes
+// citations », le fanion ouvre un signalement. Discrets, révélés au survol de la ligne.
+const ACT_BTN: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 0, width: 16, height: 16, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, lineHeight: 1, transition: "color .15s" };
+function IconeSignet({ rempli }: { rempli?: boolean }) {
+  return (
+    <svg width="10" height="11" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display: "block" }}>
+      <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill={rempli ? "currentColor" : "none"} />
+    </svg>
+  );
+}
+
+// Bouton « citer » à bascule : ajoute le verset à « mes citations » s'il n'y est pas,
+// l'en retire s'il y est déjà (signet plein = enregistré). Réservé aux comptes connectés.
+function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, verset, texte, traductionLabel, onSaved, onRemoved }: {
+  userId: string | null; saved: string | null; cle: string; refLivre: string; refAbr: string; chapitre: number; verset: number;
+  texte: string; traductionLabel: string; onSaved: (cle: string, id: string) => void; onRemoved: (cle: string) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [survol, setSurvol] = useState(false);
+  if (!userId) return null;
+  const basculer = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (busy) return;
+    setBusy(true);
+    if (saved) {
+      await supabase.from("prelevements").delete().eq("id", saved);
+      onRemoved(cle);
+    } else {
+      const { data, error } = await supabase.from("prelevements").insert({
+        user_id: userId, type: "biblique",
+        ref_livre: refLivre, ref_livre_abr: refAbr,
+        ref_chapitre: chapitre, ref_verset: verset,
+        texte: texteSansEnrichissement(texte), traduction: traductionLabel,
+      }).select("id").single();
+      if (!error && data) onSaved(cle, data.id);
+    }
+    setBusy(false);
+  };
+  // Enregistré : signet plein (vert) ; au survol, il devient une croix pour signifier
+  // « cliquer = retirer de la liste ».
+  const montrerCroix = !!saved && survol && !busy;
+  return (
+    <button onClick={basculer} title={saved ? "Retirer de mes citations" : "Ajouter à mes citations"} className="poly-act"
+      onMouseEnter={() => setSurvol(true)} onMouseLeave={() => setSurvol(false)}
+      style={{ ...ACT_BTN, color: montrerCroix ? "#b5502f" : saved ? VERT : "#b7ad9a", opacity: saved ? 1 : undefined }}
+      aria-label={saved ? "Retirer de mes citations" : "Ajouter à mes citations"}>
+      {busy ? "…" : montrerCroix ? "✕" : <IconeSignet rempli={!!saved} />}
+    </button>
+  );
+}
+
+const SIGNAL_NIVEAUX = [
+  { val: "mineur", label: "Mineur" },
+  { val: "important", label: "Important" },
+  { val: "bloquant", label: "Bloquant" },
+] as const;
+
+function ModalSignalementVerset({ refLisible, onFermer, onEnvoyer }: {
+  refLisible: string; onFermer: () => void; onEnvoyer: (message: string, importance: string) => Promise<void>;
+}) {
+  const [message, setMessage] = useState("");
+  const [importance, setImportance] = useState<string>("important");
+  const [statut, setStatut] = useState<"idle" | "envoi" | "ok" | "err">("idle");
+  const envoyer = async () => {
+    if (!message.trim()) return;
+    setStatut("envoi");
+    try { await onEnvoyer(message.trim(), importance); setStatut("ok"); setTimeout(onFermer, 1500); }
+    catch { setStatut("err"); }
+  };
+  return (
+    <div onClick={onFermer} style={{ position: "fixed", inset: 0, background: "rgba(30,25,20,0.4)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 9, padding: "18px 20px", width: 360, maxWidth: "100%", boxShadow: "0 12px 36px rgba(40,30,15,0.24)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#c0562a" }}>Signaler — {refLisible}</p>
+          <button onClick={onFermer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 14, color: "#b0a89e", lineHeight: 1, padding: 0 }}>✕</button>
+        </div>
+        {statut === "ok" ? (
+          <p style={{ fontSize: 11.5, color: VERT, fontStyle: "italic", textAlign: "center", padding: "8px 0", margin: 0 }}>Signalement envoyé, merci !</p>
+        ) : (
+          <>
+            <div style={{ display: "flex", gap: 6, marginBottom: 10, alignItems: "center" }}>
+              <span style={{ fontSize: 10.5, color: "#9a958d" }}>Niveau :</span>
+              {SIGNAL_NIVEAUX.map(n => (
+                <button key={n.val} onClick={() => setImportance(n.val)}
+                  style={{ fontSize: 10.5, padding: "3px 10px", borderRadius: 12, border: "none", cursor: "pointer", fontFamily: "inherit",
+                    fontWeight: importance === n.val ? 600 : 400,
+                    background: importance === n.val ? "#c0562a" : "#f3ece6", color: importance === n.val ? "#fff" : "#8a6a52" }}>
+                  {n.label}
+                </button>
+              ))}
+            </div>
+            <textarea value={message} onChange={e => setMessage(e.target.value)} rows={4} autoFocus
+              placeholder="Décrivez l'erreur constatée…"
+              style={{ width: "100%", boxSizing: "border-box", fontSize: 11.5, padding: "7px 9px", border: "1px solid #d6d0c4", borderRadius: 5, background: "#faf8f4", color: "#2a2520", resize: "vertical", outline: "none", lineHeight: 1.5, fontFamily: "inherit" }} />
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 8, alignItems: "center" }}>
+              {statut === "err" && <span style={{ fontSize: 10, color: ROUGE, marginRight: "auto" }}>Erreur d’envoi.</span>}
+              <button onClick={onFermer} style={{ fontSize: 11, padding: "5px 12px", borderRadius: 4, border: "1px solid #d6d0c4", background: "#fff", color: "#6b6560", cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
+              <button onClick={envoyer} disabled={statut === "envoi" || !message.trim()}
+                style={{ fontSize: 11, padding: "5px 14px", borderRadius: 4, border: "none", cursor: message.trim() ? "pointer" : "default", background: message.trim() ? "#c0562a" : "#e4dfd8", color: message.trim() ? "#fff" : "#9a958d", fontWeight: 500, fontFamily: "inherit" }}>
+                {statut === "envoi" ? "Envoi…" : "Envoyer"}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BoutonSignalerVerset({ refLisible }: { refLisible: string }) {
+  const [ouvert, setOuvert] = useState(false);
+  const envoyer = async (message: string, importance: string) => {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const res = await fetch("/api/signalements", {
+      method: "POST", headers,
+      body: JSON.stringify({ reference: refLisible, message, importance, url_source: typeof window !== "undefined" ? window.location.href : null }),
+    });
+    if (!res.ok) throw new Error("échec du signalement");
+  };
+  return (
+    <>
+      <button onClick={e => { e.stopPropagation(); setOuvert(true); }} title="Signaler une erreur" className="poly-act"
+        style={{ ...ACT_BTN, color: "#b7ad9a" }} aria-label="Signaler">⚑</button>
+      {ouvert && <ModalSignalementVerset refLisible={refLisible} onFermer={() => setOuvert(false)} onEnvoyer={envoyer} />}
+    </>
+  );
+}
+
 export default function PolyglottePage() {
   const [livres, setLivres] = useState<Livre[]>([]);
   // trad_id → code du livre → nom qu'il porte dans cette édition. Seuls les écarts au canon.
@@ -126,13 +340,18 @@ export default function PolyglottePage() {
   const [points, setPoints] = useState<Point[]>([]);
   const [onglet, setOnglet] = useState<Onglet | null>(null);   // la page s'ouvre vide : on choisit un ensemble
   const [slots, setSlots] = useState<string[]>([]);
+  // Mémorise le choix des colonnes dès qu'il est renseigné (jamais l'état initial vide).
+  useEffect(() => {
+    if (slots.length === NB_SLOTS && slots.some(Boolean)) {
+      try { window.localStorage.setItem(CLE_SLOTS, JSON.stringify(slots)); } catch { /* stockage indisponible */ }
+    }
+  }, [slots]);
   const [canon, setCanon] = useState<CanonRow[]>([]);
   const [v2, setV2] = useState<V2Row[]>([]);
   const [sensiblesOnly, setSensiblesOnly] = useState(false);
   const [surnumOnly, setSurnumOnly] = useState(false);
   const [livreChoisi, setLivreChoisi] = useState<string | null>(null);  // un seul livre à la fois
   const [toutAfficher, setToutAfficher] = useState(false);              // …sauf demande explicite
-  const [loading, setLoading] = useState(false);
   // Édition en place (admin). L'affordance dépend du client, mais l'autorisation réelle
   // est revérifiée côté serveur par /api/admin/verset-modifier (charte §17).
   // `estAdminReel` = les droits ; `estAdmin` = ce qu'on montre. Un admin qui bascule
@@ -141,8 +360,13 @@ export default function PolyglottePage() {
   const [estAdminReel, setEstAdmin] = useState(false);
   const { modeUtilisateurStandard } = useAffichageAdmin();
   const estAdmin = estAdminReel && !modeUtilisateurStandard;
-  const [enEdition, setEnEdition] = useState<string | null>(null);   // id du verset édité
-  const [brouillon, setBrouillon] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);   // pour « mes citations »
+  // Versets déjà dans « mes citations » : clé « ABR|ch|v » → id du prélèvement (pour retirer).
+  const [prelevs, setPrelevs] = useState<Map<string, string>>(new Map());
+  const marquerCite = useCallback((cle: string, id: string) => setPrelevs(m => new Map(m).set(cle, id)), []);
+  const retirerCite = useCallback((cle: string) => setPrelevs(m => { const n = new Map(m); n.delete(cle); return n; }), []);
+  // Verset en cours d'édition dans la petite fenêtre (ouverte par le crayon de survol).
+  const [cibleEdition, setCibleEdition] = useState<{ id: string; texte: string; reference: string } | null>(null);
   const [enregistre, setEnregistre] = useState<"idle" | "envoi" | "ok" | "erreur">("idle");
 
   // LE LIVRE COMMANDE, L'ENSEMBLE SUIT. Les onglets ont disparu : on choisit un livre dans le
@@ -172,7 +396,7 @@ export default function PolyglottePage() {
 
   // Chargement initial (livres, points, traductions migrées)
   useEffect(() => {
-    supabase.from("livres").select("code, nom_fr, ordre").order("ordre").then(({ data }) => setLivres(data ?? []));
+    supabase.from("livres").select("code, nom_fr, ordre").order("ordre").then(({ data }) => setLivres((data ?? []).filter(l => !LIVRES_FONDUS_DANS_DANIEL.has(l.code))));
     // Désignation des livres propre à chaque édition, quand elle diffère du canon : la
     // Sacy de 1730 compte quatre livres des Rois là où le canon en compte deux de Samuel
     // et deux des Rois. Seuls les écarts sont enregistrés (voir scripts/livres-editions.mjs).
@@ -181,19 +405,32 @@ export default function PolyglottePage() {
     fetch("/api/livres-editions").then(r => r.json()).then(setLivresEd).catch(() => setLivresEd({}));
     supabase.from("points_sensibles").select("livre, reference, type, description, statut, notes").then(({ data }) => setPoints(data ?? []));
     (async () => {
-      const { data: tr } = await supabase.from("traductions").select("trad_id, nom, ordre").order("ordre");
+      const { data: tr } = await supabase.from("traductions").select("trad_id, nom, ordre, source_edition, publication_fin_annee").order("ordre");
       const migres: Trad[] = [];
       for (const t of tr ?? []) {
         const { count } = await supabase.from("versets_v2").select("trad_id", { count: "exact", head: true }).eq("trad_id", t.trad_id);
-        if ((count ?? 0) > 0) migres.push({ trad_id: t.trad_id, nom: t.nom, ordre: t.ordre });
+        if ((count ?? 0) > 0) migres.push({ trad_id: t.trad_id, nom: t.nom, ordre: t.ordre, label: libelleTrad(t) });
       }
       setTrads(migres);
-      setSlots(Array.from({ length: NB_SLOTS }, (_, i) => migres[i]?.trad_id ?? ""));
+      // Choix des colonnes : celui que l'utilisateur a laissé la dernière fois (localStorage),
+      // sinon par défaut les quatre premières traductions distinctes. On ne retient d'un choix
+      // sauvegardé que les traductions encore disponibles.
+      const dispo = new Set(migres.map(m => m.trad_id));
+      let init: string[] | null = null;
+      try {
+        const brut = typeof window !== "undefined" ? window.localStorage.getItem(CLE_SLOTS) : null;
+        const parse = brut ? JSON.parse(brut) : null;
+        if (Array.isArray(parse) && parse.length === NB_SLOTS && parse.some((x: string) => dispo.has(x))) {
+          init = parse.map((x: string) => (dispo.has(x) ? x : ""));
+        }
+      } catch { /* localStorage indisponible ou corrompu : on retombe sur le défaut */ }
+      setSlots(init ?? Array.from({ length: NB_SLOTS }, (_, i) => migres[i]?.trad_id ?? ""));
     })();
     // l'utilisateur connecté est-il admin ? (affichage seulement — le serveur revérifie)
     (async () => {
       const { data: s } = await supabase.auth.getSession();
-      const uid = s.session?.user?.id;
+      const uid = s.session?.user?.id ?? null;
+      setUserId(uid);
       if (!uid) return;
       const { data: p } = await supabase.from("profils").select("est_admin").eq("id", uid).maybeSingle();
       setEstAdmin(p?.est_admin === true);
@@ -212,7 +449,7 @@ export default function PolyglottePage() {
     });
     if (res.ok) {
       setV2(rows => rows.map(r => (r.id === id ? { ...r, texte } : r)));   // mise à jour locale
-      setEnregistre("ok"); setEnEdition(null);
+      setEnregistre("ok"); setCibleEdition(null);
       setTimeout(() => setEnregistre("idle"), 1500);
     } else setEnregistre("erreur");
   }, []);
@@ -248,16 +485,29 @@ export default function PolyglottePage() {
   const charger = useCallback(async () => {
     const tradIds = slots.filter(Boolean);
     if (!livresAffiches.length || !tradIds.length) return;
-    setLoading(true);
     const codes = livresAffiches.map(l => l.code);
     const [c, vv] = await Promise.all([
       fetchPaged<CanonRow>("versets_canon", "id, livre, ch_canon, v_canon, est_suscription", q => q.in("livre", codes)),
       fetchPaged<V2Row>("versets_v2", "id, canon_id, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes", q => q.in("livre", codes).in("trad_id", tradIds)),
     ]);
     c.sort((a, b) => (ordreDe.get(a.livre)! - ordreDe.get(b.livre)!) || (a.ch_canon - b.ch_canon) || (a.v_canon - b.v_canon));
-    setCanon(c); setV2(vv); setLoading(false);
+    setCanon(c); setV2(vv);
   }, [livresAffiches, slots, ordreDe]);
   useEffect(() => { charger(); }, [charger]);
+
+  // Charge les citations déjà enregistrées par l'utilisateur pour le(s) livre(s) affiché(s),
+  // afin que le signet apparaisse plein sur les versets favoris et qu'un clic les retire.
+  useEffect(() => {
+    if (!userId || !livresAffiches.length) { setPrelevs(new Map()); return; }
+    const abrs = livresAffiches.map(l => ABREV_FR[l.code] ?? l.code);
+    supabase.from("prelevements").select("id, ref_livre_abr, ref_chapitre, ref_verset")
+      .eq("user_id", userId).eq("type", "biblique").in("ref_livre_abr", abrs)
+      .then(({ data }) => {
+        const m = new Map<string, string>();
+        for (const p of data ?? []) m.set(`${p.ref_livre_abr}|${p.ref_chapitre}|${p.ref_verset}`, p.id);
+        setPrelevs(m);
+      });
+  }, [userId, livresAffiches]);
 
   // Index (canon_id, trad_id) → cellule ; canon groupé par livre
   const cellule = useMemo(() => {
@@ -310,7 +560,11 @@ export default function PolyglottePage() {
     return { surnumApres: apres, surnumStart: start, surnumCount: count, surnumParLivre: parLiv };
   }, [v2, ordreDe]);
 
-  const colonnes = slots.map(id => trads.find(t => t.trad_id === id)).filter((t): t is Trad => !!t);
+  // Une colonne par SLOT (toujours NB_SLOTS) : un slot vidé (« — aucune — ») garde sa
+  // place, colonne vide, au lieu de disparaître. `colonnes` = seulement les slots pourvus
+  // d'une traduction, pour les calculs qui n'ont de sens que sur du texte réel.
+  const slotCols = slots.map((id, i) => ({ slot: i, trad: trads.find(t => t.trad_id === id) ?? null }));
+  const colonnes = slotCols.map(s => s.trad).filter((t): t is Trad => !!t);
   const nomDe = (code: string) => livres.find(l => l.code === code)?.nom_fr ?? code;
 
   // Sous le titre canonique du livre, la désignation que lui donnent les éditions affichées
@@ -326,7 +580,7 @@ export default function PolyglottePage() {
   // `nowrap`) impose sa largeur et vole la place aux autres — les traductions ne
   // se lisaient plus sur un peigne régulier. Le zéro laisse la répartition `fr`
   // seule maîtresse, et toutes les colonnes de texte tombent à la même largeur.
-  const tmpl = `58px ${colonnes.map(() => "38px minmax(0, 1fr)").join(" ")}`;
+  const tmpl = `58px ${slotCols.map(() => "38px minmax(0, 1fr)").join(" ")}`;
   const HAUT_ENTETE = 26;   // hauteur de la ligne des traductions
   const HAUT_TITRE  = 25;   // hauteur du bandeau portant le nom du livre
   const HAUT_NAV    = 10;   // blanc entre la NavBar et le haut du tableau
@@ -345,26 +599,18 @@ export default function PolyglottePage() {
           .poly-outil { display: none; }
           .poly-mobile { display: block; }
         }
-        /* Cellule modifiable (administrateur) : le survol la détoure d'un encadrement
-           léger et ombré, pour montrer qu'elle est cliquable sans déplacer le texte.
-           La bordure est posée en permanence, transparente, afin que son apparition
-           ne décale rien à l'intérieur de la grille. */
-        .poly-cell {
-          position: relative;
-          cursor: text;
-          border: 1px solid transparent;
-          border-radius: 4px;
-          transition: border-color .12s, box-shadow .12s, background-color .12s;
+        /* Citer / signaler : empilés verticalement sous le numéro canonique, nus (aucun
+           fond) — ils ne se révèlent qu'au survol de la ligne. */
+        .poly-actstack {
+          display: flex; flex-direction: column; align-items: center; gap: 3px;
+          width: -moz-fit-content; width: fit-content; margin: 3px auto 0;
         }
-        .poly-cell:hover {
-          border-color: #d9d2c4;
-          background: rgba(255, 255, 255, .55);
-          box-shadow: 0 1px 4px rgba(60, 50, 30, .13);
-        }
-        /* pendant l'édition, aucun effet de survol : le champ prend le relais */
-        .poly-cell.poly-edition, .poly-cell.poly-edition:hover {
-          cursor: default; border-color: transparent; background: transparent; box-shadow: none;
-        }
+        .poly-act { opacity: 0; transition: opacity .12s, color .15s; }
+        .poly-row:hover .poly-act { opacity: .85; }
+        .poly-act:hover { opacity: 1 !important; color: #8a6a52; }
+        /* Le nom de traduction est un menu : au survol, le trait pointillé se renforce. */
+        .poly-trad-pick:hover select { border-bottom-color: rgba(255,255,255,0.92) !important; }
+        .poly-trad-pick:hover { color: #fff; }
       `}</style>
 
       <div className="poly-mobile" style={{ maxWidth: 520, margin: "0 auto", padding: "48px 22px", fontFamily: "system-ui, sans-serif", textAlign: "center", color: "#5b544c" }}>
@@ -378,40 +624,48 @@ export default function PolyglottePage() {
 
       {/* Le MÊME volet que la page Bible — pas un cousin qui lui ressemble. Un seul composant
           pour les deux pages, donc une seule navigation à maintenir et à apprendre. */}
-      <div className="poly-outil" style={{ display: "flex", alignItems: "flex-start", minHeight: "100vh" }}>
+      <div className="poly-outil">
+        <div style={{ display: "flex", alignItems: "flex-start", minHeight: "100vh" }}>
         {/* `top: 0` collait le volet au bord du viewport, c'est-à-dire DERRIÈRE la
             navbar fixe : sa barre de recherche disparaissait sous elle dès qu'on
             descendait. Le volet se cale donc sous la navbar, et n'occupe que la
             hauteur restante. */}
-        <div style={{ position: "sticky", top: HAUTEUR_NAVBAR, height: HAUTEUR_SOUS_NAVBAR, flexShrink: 0, display: "flex" }}>
-          <NavLivres
-            livres={livresNav}
-            livreActif={livreChoisi ?? ""}
-            chapitreActif={1}
-            traductionIndex={0}
-            setTraductionIndex={() => {}}
-            traductions={[]}
-            onChoisirLivre={choisirLivre}
-            sansChapitres
-            titre="Livres à comparer"
-          />
+        <div style={{ position: "sticky", top: HAUTEUR_NAVBAR, height: HAUTEUR_SOUS_NAVBAR, flexShrink: 0, display: "flex", flexDirection: "column" }}>
+          {/* Titre de la page, en tête du volet de gauche. */}
+          <div style={{ flexShrink: 0, background: "#faf8f4", borderRight: "1px solid #d6d0c4", borderBottom: "1px solid #d6d0c4", padding: "12px 14px 11px" }}>
+            <h1 style={{ margin: 0, fontFamily: "Georgia, serif", fontSize: 16, fontWeight: 600, color: VERT, letterSpacing: "0.01em", lineHeight: 1.2 }}>Bible polyglotte</h1>
+            <p style={{ margin: "3px 0 0", fontSize: 10.5, color: "#a49b8c", fontStyle: "italic", fontFamily: "Georgia, serif", lineHeight: 1.35 }}>Les traductions côte à côte</p>
+          </div>
+          <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
+            <NavLivres
+              livres={livresNav}
+              livreActif={livreChoisi ?? ""}
+              chapitreActif={1}
+              traductionIndex={0}
+              setTraductionIndex={() => {}}
+              traductions={[]}
+              onChoisirLivre={choisirLivre}
+              sansChapitres
+              titre="Livres à comparer"
+            />
+          </div>
         </div>
 
       <div style={{ flex: 1, minWidth: 0, maxWidth: 1500, margin: "0 auto", padding: "12px 18px 60px", fontFamily: "system-ui, sans-serif", color: "#2a2620" }}>
         {/* Aucun livre choisi : la page reste vide et l'explique */}
         {!onglet && (
           <div style={{ margin: "60px auto", maxWidth: 560, textAlign: "center", color: "#8a8378" }}>
-            <p style={{ fontFamily: "Georgia, serif", fontSize: 17, color: VERT, margin: "0 0 10px" }}>Choisissez un livre à ouvrir</p>
+            <p style={{ fontFamily: "Georgia, serif", fontSize: 17, color: VERT, margin: "0 0 10px" }}>Ouvrez un livre</p>
             <p style={{ fontSize: 13.5, lineHeight: 1.65, margin: 0 }}>
-              Prenez-le dans le sommaire, à gauche. Le livre s'affiche en entier, sur une seule
-              page défilante, avec toutes ses traductions côte à côte.
+              Le sommaire se trouve dans le volet de gauche.<br />
+              Le livre sélectionné s’affiche en entier, sur une page.<br />
+              Vous pouvez changer de traduction.
             </p>
           </div>
         )}
 
         {onglet && (
           <>
-            {loading && <div style={{ fontSize: 12, color: "#a49b8c", margin: "8px 0 0" }}>chargement de {LIBELLE_ONGLET[onglet]}…</div>}
 
             {/* En-tête collant : la traduction se choisit ici même, sans étiquette parasite */}
             {/* En-tête collant. Le NOM DU LIVRE y monte avec le choix des traductions : en
@@ -473,16 +727,26 @@ export default function PolyglottePage() {
                     centre ainsi sur la colonne telle qu'on la lit, et non sur une moitié.
                     Mise en forme allégée : plus de soulignement ni de gras, le nom se
                     pose sur le bandeau sans le charger. */}
-                {colonnes.map((c, k) => {
-                  const i = slots.indexOf(c.trad_id);
+                {slotCols.map((sc, k) => {
+                  const i = sc.slot;
                   return (
-                    <div key={k} style={{ gridColumn: "span 2", borderLeft: "1px solid rgba(255,255,255,0.14)", padding: "0 6px", display: "flex", alignItems: "center" }}>
-                      <select value={c.trad_id} aria-label={`Traduction ${k + 1}`}
-                        onChange={e => setSlots(s => { const n = [...s]; n[i] = e.target.value; return n; })}
-                        style={{ width: "100%", background: "transparent", color: "rgba(255,255,255,0.92)", border: "none", padding: "2px", fontSize: 12.5, fontWeight: 400, fontFamily: "Georgia, serif", cursor: "pointer", appearance: "none", outline: "none", textAlign: "center", textAlignLast: "center" }}>
-                        <option value="" style={{ color: "#2a2620" }}>— aucune —</option>
-                        {trads.map(t => <option key={t.trad_id} value={t.trad_id} style={{ color: "#2a2620" }}>{t.nom}</option>)}
-                      </select>
+                    <div key={k} style={{ gridColumn: "span 2", borderLeft: "1px solid rgba(255,255,255,0.14)", padding: "0 6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {/* Le nom est un menu déroulant : soulignement pointillé + chevron pour
+                          qu'on voie qu'il se clique. Les traductions déjà affichées ailleurs
+                          sont grisées et non sélectionnables. Le libellé porte l'année d'édition. */}
+                      <span className="poly-trad-pick" title="Cliquer pour changer de traduction"
+                        style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: 4, maxWidth: "100%" }}>
+                        <select value={slots[i] ?? ""} aria-label={`Traduction ${k + 1}`}
+                          onChange={e => setSlots(s => { const n = [...s]; n[i] = e.target.value; return n; })}
+                          style={{ maxWidth: "100%", background: "transparent", color: "rgba(255,255,255,0.94)", border: "none", borderBottom: "1px dotted rgba(255,255,255,0.5)", padding: "2px 0", fontSize: 12.5, fontWeight: 400, fontFamily: "Georgia, serif", cursor: "pointer", appearance: "none", outline: "none", textAlign: "center", textAlignLast: "center" }}>
+                          <option value="" style={{ color: "#2a2620" }}>— aucune —</option>
+                          {trads.map(t => {
+                            const deja = t.trad_id !== slots[i] && slots.includes(t.trad_id);
+                            return <option key={t.trad_id} value={t.trad_id} disabled={deja} style={{ color: deja ? "#b0aaa0" : "#2a2620" }}>{t.label}{deja ? " (déjà affichée)" : ""}</option>;
+                          })}
+                        </select>
+                        <span aria-hidden style={{ pointerEvents: "none", fontSize: 8, color: "rgba(255,255,255,0.75)" }}>▾</span>
+                      </span>
                     </div>
                   );
                 })}
@@ -493,7 +757,10 @@ export default function PolyglottePage() {
             {/* Corps : un bloc par livre, rendu paresseux (content-visibility) */}
             <div style={{ border: "1px solid #e4ded3", borderTop: "none", borderRadius: "0 0 6px 6px", background: "#fff" }}>
               {colonnes.length === 0 && <div style={{ padding: 20, color: "#a49b8c" }}>Choisir au moins une traduction dans l’en-tête ci-dessus.</div>}
-        {!loading && colonnes.length > 0 && livresAffiches.map(l => {
+        {/* On NE démonte PAS le corps pendant un rechargement : changer de traduction ne
+            fait que remplacer le texte des cellules, la structure (lignes du canon) reste
+            en place — la position de lecture ne bouge donc pas et la transition est fluide. */}
+        {colonnes.length > 0 && livresAffiches.map(l => {
           // Ligne d'un verset surnuméraire — hors ossature canonique, en violet.
           // Plusieurs éditions peuvent porter le même verset au même numéro d'origine : elles
           // partagent alors cette ligne, chacune dans sa colonne. Une édition qui ne l'a pas
@@ -509,12 +776,12 @@ export default function PolyglottePage() {
                     est faux et un peu comptable. L'étoile marque un verset qui existe hors de
                     l'ossature, sans porter de jugement sur sa légitimité. */}
                 <div title={titre} style={{ padding: "6px 8px", whiteSpace: "nowrap", fontWeight: 700, fontSize: 12, color: SURNUM, borderRight: `2px solid ${SURNUM}` }}>✦</div>
-                {colonnes.map((t, i) => {
-                  const r = g.par.get(t.trad_id);
+                {slotCols.map((sc, i) => {
+                  const r = sc.trad ? g.par.get(sc.trad.trad_id) : undefined;
                   return (
                     <div key={i} style={{ display: "contents" }}>
                       <div style={{ padding: "6px 3px", textAlign: "right", whiteSpace: "nowrap", fontSize: 11, color: r ? SURNUM : "#cdc9e0", borderLeft: "1px solid #e3e0f2" }}>{r ? `${r.ch_orig}, ${r.v_orig}` : ""}</div>
-                      <div style={{ padding: "6px 10px", lineHeight: 1.4, color: r ? "#3a3566" : "#cdc9e0" }}>{r ? texteEnrichi(r.texte) : "—"}</div>
+                      <div style={{ padding: "5px 9px", lineHeight: 1.3, wordSpacing: "-0.045em", letterSpacing: "-0.006em", color: r ? "#3a3566" : "#cdc9e0" }}>{!sc.trad ? "" : r ? texteEnrichi(r.texte) : "—"}</div>
                     </div>
                   );
                 })}
@@ -528,7 +795,7 @@ export default function PolyglottePage() {
             if (!srs.length) return null;
             return (
               <section key={l.code} style={{ contentVisibility: "auto", containIntrinsicSize: `0 ${srs.length * 34 + 40}px` } as React.CSSProperties}>
-                <h2 style={{ margin: 0, padding: "8px 12px", fontFamily: "Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
+                <h2 style={{ margin: 0, padding: "8px 12px 8px 70px", fontFamily: "Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
                   {l.nom_fr} <span style={{ fontSize: 12, fontWeight: 400, color: SURNUM }}>· {srs.length} surnuméraire{srs.length > 1 ? "s" : ""}</span>
                 {titresEdition(l.code).map(({ trad, ed }) => (
                   <span key={trad} style={{ display: "block", fontSize: 11.5, fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
@@ -554,7 +821,7 @@ export default function PolyglottePage() {
                   en dessous le donnait à lire deux fois. Les désignations propres aux éditions,
                   elles, restent dans tous les cas — l'en-tête ne les porte pas. */}
               {(toutAfficher || titresEdition(l.code).length > 0) && (
-                <h2 style={{ margin: 0, padding: "8px 12px", fontFamily: "Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
+                <h2 style={{ margin: 0, padding: "8px 12px 8px 70px", fontFamily: "Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
                   {toutAfficher && l.nom_fr}
                   {titresEdition(l.code).map(({ trad, ed }) => (
                     <span key={trad} style={{ display: "block", fontSize: 11.5, fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
@@ -582,13 +849,35 @@ export default function PolyglottePage() {
                 // zébrage discret une ligne sur deux, sans écraser les fonds signalétiques
                 const fond = signaler ? ROUGE_FOND : ligneVide ? "#eeece8" : r.est_suscription ? "#f7f5f0" : (idx % 2 ? "#faf8f3" : "#fff");
                 const apres = sensiblesOnly ? [] : (surnumApres.get(r.id) ?? []);
+                // Pour « mes citations » : le texte de la première traduction affichée qui
+                // porte ce verset (la colonne de gauche fait foi), avec son nom d'édition.
+                const abr = ABREV_FR[l.code] ?? l.code;
+                const refLisible = `${abr} ${r.ch_canon}, ${r.v_canon}`;
+                const cleCite = `${abr}|${r.ch_canon}|${r.v_canon}`;
+                let citeInfo: { texte: string; label: string } | null = null;
+                for (const t of colonnes) { const cc = (cellule.get(`${r.id}|${t.trad_id}`) ?? [])[0]; if (cc?.texte) { citeInfo = { texte: cc.texte, label: t.nom }; break; } }
                 return (
                   <Fragment key={r.id}>
-                    <div style={{ display: "grid", gridTemplateColumns: tmpl, background: fond, borderTop: "1px solid #f0ece3", fontSize: 13.5 }}>
-                      <div title={signaler ? desc : undefined} style={{ padding: "6px 8px", whiteSpace: "nowrap", fontWeight: 700, fontSize: 12, color: signaler ? ROUGE : ligneVide ? "#b4b0a8" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : "1px solid #f0ece3" }}>
-                        {r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}
+                    <div className="poly-row" style={{ display: "grid", gridTemplateColumns: tmpl, background: fond, borderTop: "1px solid #f0ece3", fontSize: 13.5 }}>
+                      <div title={signaler ? desc : undefined} style={{ padding: "6px 6px", textAlign: "center", fontWeight: 700, fontSize: 12, color: signaler ? ROUGE : ligneVide ? "#b4b0a8" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : "1px solid #f0ece3" }}>
+                        <div style={{ whiteSpace: "nowrap" }}>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</div>
+                        {/* Citer / signaler : empilés verticalement sous le numéro, dans un petit
+                            cartouche arrondi qui n'apparaît qu'au survol de la ligne. */}
+                        {!ligneVide && (
+                          <div className="poly-actstack" onClick={e => e.stopPropagation()}>
+                            {citeInfo && <BoutonCiterVerset userId={userId} saved={prelevs.get(cleCite) ?? null} cle={cleCite} refLivre={l.nom_fr} refAbr={abr} chapitre={r.ch_canon} verset={r.v_canon} texte={citeInfo.texte} traductionLabel={citeInfo.label} onSaved={marquerCite} onRemoved={retirerCite} />}
+                            <BoutonSignalerVerset refLisible={refLisible} />
+                          </div>
+                        )}
                       </div>
-                      {colonnes.map((t, i) => {
+                      {slotCols.map((sc, i) => {
+                        if (!sc.trad) return (
+                          <div key={i} style={{ display: "contents" }}>
+                            <div style={{ borderLeft: "1px solid #f0ece3" }} />
+                            <div />
+                          </div>
+                        );
+                        const t = sc.trad;
                         const cs = cellule.get(`${r.id}|${t.trad_id}`) ?? [];
                         return (
                           <div key={i} style={{ display: "contents" }}>
@@ -599,30 +888,33 @@ export default function PolyglottePage() {
                                   regard du texte réuni : la numérotation propre à l'édition
                                   reste lisible sans que la colonne se décale. */}
                               {cs.map((c, k) => (
-                                <div key={k}>
-                                  {c.ch_orig}, {c.v_orig}
-                                  {/* Une intervention d'alignement (scission d'un verset,
-                                      rattachement corrigé) laisse toujours sa trace dans
-                                      `notes`. On la signale ici d'un repère discret : le
-                                      lecteur voit QU'il y a eu intervention, et le survol
-                                      lui dit LAQUELLE. Rien n'est corrigé en silence. */}
-                                  {c.notes ? (
-                                    <span title={c.notes} style={{ marginLeft: 3, color: "#7a6fae", cursor: "help" }}>✎</span>
-                                  ) : null}
+                                <div key={k} style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+                                  <span style={{ whiteSpace: "nowrap" }}>
+                                    {c.ch_orig}, {c.v_orig}
+                                    {/* Une intervention d'alignement (scission d'un verset,
+                                        rattachement corrigé) laisse toujours sa trace dans
+                                        `notes`. On la signale ici d'un repère discret : le
+                                        lecteur voit QU'il y a eu intervention, et le survol
+                                        lui dit LAQUELLE. Rien n'est corrigé en silence. */}
+                                    {c.notes ? (
+                                      <span title={c.notes} style={{ marginLeft: 3, color: "#7a6fae", cursor: "help" }}>✎</span>
+                                    ) : null}
+                                  </span>
+                                  {/* Crayon d'édition (admin) : fixé sous le numéro d'origine, toujours
+                                      au même endroit, il ouvre la fenêtre de modification de CE verset. */}
+                                  {estAdmin && (
+                                    <button title="Modifier ce verset" aria-label="Modifier ce verset"
+                                      onClick={() => { setCibleEdition({ id: c.id, texte: c.texte ?? "", reference: `${l.nom_fr} ${c.ch_orig}, ${c.v_orig}` }); setEnregistre("idle"); }}
+                                      style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "#c4baa6", fontSize: 11, lineHeight: 1, transition: "color .15s" }}
+                                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = VERT; }}
+                                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "#c4baa6"; }}>
+                                      ✎
+                                    </button>
+                                  )}
                                 </div>
                               ))}
                             </div>
-                            <div
-                              className={estAdmin && cs.length > 0 ? `poly-cell${cs.some(c => c.id === enEdition) ? " poly-edition" : ""}` : undefined}
-                              title={estAdmin && cs.length > 0 && !cs.some(c => c.id === enEdition) ? "Cliquer pour modifier ce verset" : undefined}
-                              // Le clic porte sur la cellule entière, y compris ses marges : on ouvre
-                              // le premier verset. Les cellules qui en comptent plusieurs (verset
-                              // scindé par l'édition) restent modifiables un à un, chaque fragment
-                              // interceptant le clic pour son propre compte.
-                              onClick={estAdmin && cs.length > 0 && !cs.some(c => c.id === enEdition)
-                                ? () => { setEnEdition(cs[0].id); setBrouillon(cs[0].texte ?? ""); setEnregistre("idle"); }
-                                : undefined}
-                              style={{ padding: "6px 10px", lineHeight: 1.4, color: signaler ? "#7a1d16" : "#2a2620" }}>
+                            <div style={{ padding: "5px 9px", lineHeight: 1.3, wordSpacing: "-0.045em", letterSpacing: "-0.006em", color: signaler ? "#7a1d16" : "#2a2620" }}>
                               {cs.length === 0 ? (
                                 deuterocanonique(r.id)
                                   ? <span title={`Ce passage nous est parvenu en grec, non en hébreu. Les Bibles catholique et orthodoxe le reçoivent ; la Bible protestante et la Bible hébraïque ne le comptent pas parmi les livres canoniques. La case est donc vide pour cette traduction, et non par oubli.`}
@@ -631,39 +923,7 @@ export default function PolyglottePage() {
                                     </span>
                                   : <span style={{ color: "#d3ccbf" }}>—</span>
                               ) : cs.map((c, k) => (
-                                enEdition === c.id ? (
-                                  <span key={k} style={{ display: "block" }}>
-                                    <textarea autoFocus value={brouillon} onChange={e => setBrouillon(e.target.value)}
-                                      onKeyDown={e => {
-                                        if (e.key === "Escape") { setEnEdition(null); setEnregistre("idle"); }
-                                        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) enregistrerVerset(c.id, brouillon);
-                                      }}
-                                      rows={Math.max(2, Math.ceil(brouillon.length / 60))}
-                                      style={{ width: "100%", boxSizing: "border-box", fontSize: 13, lineHeight: 1.45, fontFamily: "inherit", padding: "5px 7px", border: `1px solid ${VERT}`, borderRadius: 4, background: "#fff", outline: "none", resize: "vertical" }} />
-                                    <span style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 4, fontSize: 11 }}>
-                                      <button onClick={() => enregistrerVerset(c.id, brouillon)} disabled={enregistre === "envoi"}
-                                        style={{ padding: "3px 11px", fontSize: 11.5, borderRadius: 4, border: "none", background: VERT, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>
-                                        {enregistre === "envoi" ? "…" : "Enregistrer"}
-                                      </button>
-                                      <button onClick={() => { setEnEdition(null); setEnregistre("idle"); }}
-                                        style={{ padding: "3px 9px", fontSize: 11.5, borderRadius: 4, border: "1px solid #d6cfc2", background: "transparent", color: "#8a8378", cursor: "pointer", fontFamily: "inherit" }}>
-                                        Annuler
-                                      </button>
-                                      <span style={{ color: "#b0a89e" }}>⌘/Ctrl+↵ pour enregistrer · Échap pour annuler · balise &lt;i&gt; admise</span>
-                                      {enregistre === "erreur" && <span style={{ color: ROUGE }}>échec de l’enregistrement</span>}
-                                    </span>
-                                  </span>
-                                ) : (
-                                  // Cellule à plusieurs fragments : chaque fragment capte le clic
-                                  // pour lui-même, sinon celui de la cellule ouvrirait toujours le
-                                  // premier. Le survol reste géré par la cellule, d'un seul tenant.
-                                  <span key={k}
-                                    onClick={estAdmin && cs.length > 1
-                                      ? e => { e.stopPropagation(); setEnEdition(c.id); setBrouillon(c.texte ?? ""); setEnregistre("idle"); }
-                                      : undefined}>
-                                    {k > 0 ? " " : ""}{texteEnrichi(c.texte)}
-                                  </span>
-                                )
+                                <span key={k}>{k > 0 ? " " : ""}{texteEnrichi(c.texte)}</span>
                               ))}
                             </div>
                           </div>
@@ -679,14 +939,26 @@ export default function PolyglottePage() {
         })}
             </div>
 
-            <p style={{ marginTop: 10, fontSize: 12, color: "#a49b8c" }}>
-              Colonne <strong>N°</strong> : numérotation propre de chaque édition. Lignes en <span style={{ color: SURNUM, fontWeight: 600 }}>violet ✦</span> = versets propres à la Septante, hors ossature canonique.
-              {estAdmin && <> Lignes en <span style={{ color: ROUGE, fontWeight: 600 }}>rouge ⚠</span> = points pouvant poser problème <em>(relecture)</em>.</>}
-            </p>
+            {estAdmin && (
+              <p style={{ marginTop: 10, fontSize: 12, color: "#a49b8c" }}>
+                Lignes en <span style={{ color: ROUGE, fontWeight: 600 }}>rouge ⚠</span> = points pouvant poser problème <em>(relecture)</em>.
+              </p>
+            )}
           </>
         )}
       </div>
+        </div>
       </div>
+
+      {cibleEdition && (
+        <ModaleEditionVerset
+          reference={cibleEdition.reference}
+          valeurInitiale={cibleEdition.texte}
+          statut={enregistre}
+          onEnregistrer={(valeur) => enregistrerVerset(cibleEdition.id, valeur)}
+          onFermer={() => { setCibleEdition(null); setEnregistre("idle"); }}
+        />
+      )}
     </div>
   );
 }

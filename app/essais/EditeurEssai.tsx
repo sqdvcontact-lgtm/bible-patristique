@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { rendreEssai, compterCaracteres, lettreDepuisIndex, type ElementPanneau } from '@/app/lib/texteEnrichiEssai'
+import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { syntaxeVersHtml, htmlVersSyntaxe } from '@/app/lib/serialisationEssai'
 import { diffMots } from '@/app/lib/diffTexte'
 import VoletEssai from '@/app/lib/VoletEssai'
@@ -641,7 +642,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                   {versetEnTete && (
                     <div style={{ borderBottom: '1px solid #ede9e2', padding: '28px 40px 24px', textAlign: 'center', background: '#fdfcf9' }}>
                       <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '14.5px', lineHeight: 1.8, color: '#4a4440', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
-                        {'« '}{versetEnTete.texte}{' »'}
+                        {'« '}{rendreTexteEnrichi(versetEnTete.texte)}{' »'}
                       </p>
                       <p style={{ fontSize: '10.5px', letterSpacing: '0.1em', color: '#a09890', margin: 0, fontFamily: "'Helvetica Neue', Arial, sans-serif", textTransform: 'uppercase' }}>
                         {versetEnTete.ref}

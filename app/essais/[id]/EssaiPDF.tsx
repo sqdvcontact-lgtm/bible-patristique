@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { Document, Page, Text, View, StyleSheet, Link, pdf } from '@react-pdf/renderer'
+import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
@@ -219,7 +220,7 @@ function EssaiDocument({ titre, sousTitre, auteur, date, verset, contenu }: Prop
           <Text style={s.date}>{date}</Text>
           {verset && (
             <View style={{ alignItems: 'center' }}>
-              <Text style={s.versetTexte}>{'« '}{verset.texte}{' »'}</Text>
+              <Text style={s.versetTexte}>{'« '}{texteSansEnrichissement(verset.texte)}{' »'}</Text>
               <Text style={s.versetRef}>{verset.ref}</Text>
             </View>
           )}

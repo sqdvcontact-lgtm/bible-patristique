@@ -95,6 +95,25 @@ export async function segmentsLiesAuVerset(canonId: string): Promise<Lien[]> {
   return [...(parVerset.data ?? []), ...(parChapitre.data ?? [])] as Lien[]
 }
 
+/** Recherche inverse à l'échelle d'un CHAPITRE entier : tous les segments qui
+ *  renvoient à l'un quelconque de ses versets, plus ceux rattachés au chapitre.
+ *  Sert le volet de droite quand un chapitre est ouvert sans verset sélectionné.
+ *
+ *  Deux requêtes, comme pour le verset : les liens par verset ne portent que
+ *  `canon_id` (« GEN.1.7 ») ; les liens de chapitre ne portent que `livre` +
+ *  `chapitre`. Le motif `LIKE 'GEN.1.%'` prend bien GEN.1.1 à GEN.1.31 sans
+ *  déborder sur GEN.12.x (le second point est exigé par le motif).
+ */
+export async function segmentsLiesAuChapitre(livre: string, chapitre: number): Promise<Lien[]> {
+  const [parVerset, parChapitre] = await Promise.all([
+    supabase.from('liens_bibliques').select(COLS).like('canon_id', `${livre}.${chapitre}.%`),
+    supabase.from('liens_bibliques').select(COLS).eq('livre', livre).eq('chapitre', chapitre),
+  ])
+  if (parVerset.error) throw parVerset.error
+  if (parChapitre.error) throw parChapitre.error
+  return [...(parVerset.data ?? []), ...(parChapitre.data ?? [])] as Lien[]
+}
+
 /** Les versets visés par un segment, dans l'ordre des types — pour l'affichage. */
 export function versetsDuLien(liens: Lien[], type: TypeLien): string[] {
   return liens.filter(l => l.type === type && l.canon_id).map(l => l.canon_id!)

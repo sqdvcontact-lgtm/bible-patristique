@@ -2,7 +2,7 @@
 import { ABREV_FR } from '@/app/lib/bible'
 
 import { useState, useEffect, useRef } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from "@/app/lib/supabase"
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin"
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -322,6 +322,7 @@ export default function TexteBible({
   const [sauvegardes, setSauvegardes] = useState<Map<number, string>>(new Map())
   const [tradOuverte, setTradOuverte] = useState(false)
   const searchParams = useSearchParams()
+  const router = useRouter()
   const { modeUtilisateurStandard } = useAffichageAdmin()
 
   useEffect(() => {
@@ -383,8 +384,13 @@ export default function TexteBible({
   const tradCode = traductionActive?.code ?? 'TR0001'
   const traductionLabel = traductionActive?.label ?? tradCode
 
+  // Changement de chapitre en navigation douce : on ne recharge pas toute la page,
+  // le composant reçoit simplement les nouveaux versets et les volets latéraux (état
+  // client : largeurs, verset sélectionné) restent en place.
+  const allerAuChapitre = (n: number) => router.push(`/?livre=${livreActif}&chapitre=${n}&trad=${tradCode}`)
+
   return (
-    <div className="flex-1 flex flex-col h-screen overflow-hidden" style={{ background: '#f7f4ef' }}>
+    <div className="flex-1 flex flex-col h-full overflow-hidden" style={{ background: '#f7f4ef' }}>
 
       {/* En-tête */}
       <div style={{ borderBottom: '1px solid #d6d0c4', background: '#f7f4ef', padding: '14px 32px 10px' }}>
@@ -392,7 +398,7 @@ export default function TexteBible({
         {/* Titre + navigation chapitres */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
           {chapitreActif > 1 ? (
-            <a href={`/?livre=${livreActif}&chapitre=${chapitreActif - 1}&trad=${tradCode}`} className="nav-chap-arrow" style={{ color: '#b0a89e', fontSize: '20px', lineHeight: 1, textDecoration: 'none', transition: 'color 0.15s' }} title="Chapitre précédent">‹</a>
+            <button onClick={() => allerAuChapitre(chapitreActif - 1)} className="nav-chap-arrow" style={{ color: '#b0a89e', fontSize: '20px', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s' }} title="Chapitre précédent">‹</button>
           ) : (
             <span style={{ color: '#d6d0c4', fontSize: '20px', lineHeight: 1 }}>‹</span>
           )}
@@ -403,7 +409,7 @@ export default function TexteBible({
             <span style={{ fontSize: '1.05rem', color: '#5a7260', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>
           </h1>
 
-          <a href={`/?livre=${livreActif}&chapitre=${chapitreActif + 1}&trad=${tradCode}`} className="nav-chap-arrow" style={{ color: '#b0a89e', fontSize: '20px', lineHeight: 1, textDecoration: 'none', transition: 'color 0.15s' }} title="Chapitre suivant">›</a>
+          <button onClick={() => allerAuChapitre(chapitreActif + 1)} className="nav-chap-arrow" style={{ color: '#b0a89e', fontSize: '20px', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s' }} title="Chapitre suivant">›</button>
         </div>
 
         {/* Séparateur fin */}
@@ -464,7 +470,10 @@ export default function TexteBible({
             </div>
           )}
 
-          {versets.some(v => v[traduction]) && versets.map(v => {
+          {/* On n'affiche QUE les versets réellement portés par cette traduction : une
+              édition qui compte moins de versets qu'une autre (Job 25 s'arrête au v. 6
+              chez Sacy) ne doit pas laisser des lignes vides à numéro. */}
+          {versets.filter(v => v[traduction]).map(v => {
             const actif = versetSelectionne?.id_verset === v.id_verset
             return (
             <div key={v.id_verset}

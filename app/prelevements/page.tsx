@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import { formaterDateHistorique } from "@/app/lib/datesHistoriques";
+import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 
 type TypePrelevement = "biblique" | "patristique";
 
@@ -507,7 +508,7 @@ export default function PrelevementsPage() {
                         <div key={i} className={`prel-item${estPref ? " prel-pref" : ""}`}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "13px", fontStyle: "italic", color: "#1e1a14", lineHeight: 1.38, margin: "0 0 3px", wordSpacing: "-0.03em" }}>
-                              «&#8201;{texte}&#8201;»
+                              «&#8201;{rendreTexteEnrichi(texte)}&#8201;»
                             </p>
                             <p style={{ fontSize: "9px", color: "#9a8a72", margin: 0, letterSpacing: "0.06em", fontFamily: "Georgia, serif", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
                               <span style={{ fontWeight: 600, color: estPref ? "#9a7a38" : "#6a7b6e" }}>{ref}</span>
@@ -521,7 +522,7 @@ export default function PrelevementsPage() {
                           </div>
                           <div className="prel-actions">
                             <BoutonCoeur active={estPref} onClick={e => { e.stopPropagation(); marquerPreferee({ id: g.ids[0], texte, type: "biblique", ref }); }} />
-                            <BoutonCopie texte={`« ${texte.replace(/[.!?]$/, '')} » (${ref})`} />
+                            <BoutonCopie texte={`« ${texteSansEnrichissement(texte).replace(/[.!?]$/, '')} » (${ref})`} />
                             <BoutonLien href={`/?livre=${CODE_PAR_ABREV[g.ref_livre_abr] ?? g.ref_livre_abr}&chapitre=${g.ref_chapitre}&verset=${g.verset_debut}&trad=${traductionActive}`} />
                             <BoutonSuppr ids={g.ids} onSuppr={() => supprimerIds(g.ids)} />
                           </div>
@@ -568,7 +569,7 @@ export default function PrelevementsPage() {
                         <div key={p.id} className={`prel-item${estPref ? " prel-pref" : ""}`}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "13px", fontStyle: "italic", color: "#1e1a14", lineHeight: 1.38, margin: "0 0 3px", wordSpacing: "-0.03em" }}>
-                              «&#8201;{p.texte}&#8201;»
+                              «&#8201;{rendreTexteEnrichi(p.texte)}&#8201;»
                             </p>
                             {(p.ref_niv1 || p.ref_niv2) && (
                               <p style={{ fontSize: "9px", color: "#9a8a72", margin: 0, letterSpacing: "0.06em", fontFamily: "Georgia, serif" }}>
@@ -580,7 +581,7 @@ export default function PrelevementsPage() {
                           </div>
                           <div className="prel-actions">
                             <BoutonCoeur active={estPref} onClick={e => { e.stopPropagation(); marquerPreferee({ id: p.id, texte: p.texte, type: "patristique", auteur: p.auteur, titre_oeuvre: p.titre_oeuvre }); }} />
-                            <BoutonCopie texte={construireCitationPatristique(p.texte, auteur, titre, p.id_oeuvre ? oeuvresInfo[p.id_oeuvre] : undefined)} />
+                            <BoutonCopie texte={construireCitationPatristique(texteSansEnrichissement(p.texte), auteur, titre, p.id_oeuvre ? oeuvresInfo[p.id_oeuvre] : undefined)} />
                             {p.id_oeuvre && (
                               <BoutonLien href={`/oeuvre/${p.id_oeuvre}${p.segment_numero ? `#s${p.segment_numero}` : ''}`} />
                             )}

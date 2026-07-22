@@ -4,6 +4,7 @@ import { ABREV_FR } from '@/app/lib/bible'
 import { useState, useEffect, type CSSProperties } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 
 const NOM_FR: Record<string, string> = {
   GEN:'Genèse',EXO:'Exode',LEV:'Lévitique',NUM:'Nombres',DEU:'Deutéronome',JOS:'Josué',JDG:'Juges',RUT:'Ruth',
@@ -74,11 +75,11 @@ function texteSansPointFinal(texte: string): string {
 }
 
 function citationBibliqueComplete(texte: string, ref: string): string {
-  return `« ${texteSansPointFinal(texte)} » (${ref}).`
+  return `« ${texteSansPointFinal(texteSansEnrichissement(texte))} » (${ref}).`
 }
 
 function citationPatristiqueComplete(texte: string): string {
-  return `« ${convertirGuillemetsInternes(String(texte ?? '').trim())} »`
+  return `« ${convertirGuillemetsInternes(texteSansEnrichissement(String(texte ?? '')).trim())} »`
 }
 
 function refsSegment(s: { ref_niv1?: string | null; ref_niv2?: string | null; ref_niv3?: string | null; ref_niv4?: string | null; ref_niv5?: string | null; segment_numero: number }): string {
@@ -181,7 +182,7 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
             <div key={v.id_verset}
               style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'flex-start' }}>
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#3d6b4f', flexShrink: 0 }}>{v.verset}</span>
-              <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{v.texte}</span>
+              <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{rendreTexteEnrichi(v.texte)}</span>
               <BoutonsChoix
                 onAbrege={() => onChoisir({ label: ref, type: 'verset', id: v.id_verset })}
                 onComplet={() => onChoisir({ label: citationBibliqueComplete(v.texte, ref), type: 'verset', id: v.id_verset })}
@@ -265,7 +266,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
               <div key={s.id}
                 style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: '#3d6b4f', flexShrink: 0 }}>§{s.segment_numero}</span>
-                <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{s.segment_texte.slice(0, 200)}{s.segment_texte.length > 200 ? '…' : ''}</span>
+                <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{(() => { const t = texteSansEnrichissement(s.segment_texte); return t.slice(0, 200) + (t.length > 200 ? '…' : '') })()}</span>
                 <BoutonsChoix
                   onAbrege={() => onChoisir({ label: `${auteurNom}, ${oeuvreTitre}, ${refsSegment(s)}`, type: 'segment', id: String(s.id) })}
                   onComplet={() => onChoisir({ label: citationPatristiqueComplete(s.segment_texte), type: 'segment', id: String(s.id) })}

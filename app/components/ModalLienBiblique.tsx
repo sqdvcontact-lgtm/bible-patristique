@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { supabase } from '@/app/lib/supabase'
+import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 export type ChampLienBiblique = 'lien_1' | 'lien_2' | 'lien_3' | 'lien_4'
 
@@ -226,7 +227,7 @@ export default function ModalLienBiblique({
                     <button key={v.id} onClick={() => basculerVerset(v)}
                       style={{ textAlign: 'left', border: `1px solid ${selection[v.id] ? '#7ea185' : '#e4ded4'}`, background: selection[v.id] ? '#f1f7f2' : '#fff', borderRadius: '7px', padding: '8px 10px', cursor: 'pointer' }}>
                       <strong style={{ display: 'block', color: '#2f6046', fontSize: '12px', marginBottom: '3px' }}>{v.label}</strong>
-                      <span style={{ display: 'block', color: '#3a3530', fontSize: '12px', lineHeight: 1.45 }}>{v.texte}</span>
+                      <span style={{ display: 'block', color: '#3a3530', fontSize: '12px', lineHeight: 1.45 }}>{rendreTexteEnrichi(v.texte)}</span>
                     </button>
                   ))}
                 </div>
@@ -249,7 +250,7 @@ export default function ModalLienBiblique({
                       <button key={v.id} onClick={() => basculerVerset(v)}
                         style={{ textAlign: 'left', border: `1px solid ${selection[v.id] ? '#7ea185' : '#e4ded4'}`, background: selection[v.id] ? '#f1f7f2' : '#fff', borderRadius: '7px', padding: '8px 9px', cursor: 'pointer' }}>
                         <strong style={{ color: '#2f6046', fontSize: '11.5px' }}>{v.label}</strong>
-                        <span style={{ display: 'block', marginTop: '3px', color: '#3a3530', fontSize: '11.5px', lineHeight: 1.42 }}>{v.texte}</span>
+                        <span style={{ display: 'block', marginTop: '3px', color: '#3a3530', fontSize: '11.5px', lineHeight: 1.42 }}>{rendreTexteEnrichi(v.texte)}</span>
                       </button>
                     ))}
                   </div>

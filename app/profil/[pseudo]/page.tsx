@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import type { CitationPreferee } from '@/app/prelevements/page'
+import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 
 type ProfilPublic = {
   pseudo: string
@@ -293,7 +294,7 @@ export default function ProfilPublicPage() {
           <div style={{ textAlign: 'center', margin: '0 0 10px', background: 'rgba(154,122,56,0.06)', border: '1px solid rgba(154,122,56,0.28)', borderRadius: '8px', padding: '16px 28px 14px', position: 'relative' }}>
             <Filet couleur='#c8a858' symbole='★' maxWidth='80px' />
             <p style={{ fontFamily: 'Georgia, serif', fontSize: '14px', fontStyle: 'italic', color: '#2a2010', lineHeight: 1.45, margin: '10px 0 8px' }}>
-              «&#8201;{citationPreferee.texte.length > 220 ? citationPreferee.texte.slice(0, 220) + '…' : citationPreferee.texte}&#8201;»
+              «&#8201;{(() => { const t = texteSansEnrichissement(citationPreferee.texte); return t.length > 220 ? t.slice(0, 220) + '…' : t })()}&#8201;»
             </p>
             {(citationPreferee.ref || citationPreferee.auteur) && (
               <p style={{ fontSize: '10px', color: '#9a7a38', margin: 0, letterSpacing: '0.10em', fontFamily: 'Georgia, serif' }}>

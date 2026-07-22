@@ -3,6 +3,7 @@
 import React from 'react'
 import { supabase, refFrVer } from './adminShared'
 import { verifierLien } from '@/app/actions/verifications'
+import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 const PAGE_SIZE = 12
 type Action = 1 | 2 | 3 | 4 | 'pas_de_lien'
@@ -273,7 +274,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
                   <p style={texteBibleStyle}>{verset?.texte || 'Verset introuvable.'}</p>
                 </div>
                 <div style={{ padding: '14px 16px', borderLeft: '1px solid #ede9e2' }}>
-                  <p style={textePatristiqueStyle}>{seg.segment_texte}</p>
+                  <p style={textePatristiqueStyle}>{rendreTexteEnrichi(seg.segment_texte)}</p>
                 </div>
               </div>
 

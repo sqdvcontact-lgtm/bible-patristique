@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from "@/app/lib/supabase"
-import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
+import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import EditeurCommentaire from '@/app/components/EditeurCommentaire'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
-import { segmentsLiesAuVerset, type TypeLien } from '@/app/lib/liens'
+import { segmentsLiesAuVerset, segmentsLiesAuChapitre, type TypeLien } from '@/app/lib/liens'
 
 type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
 type Segment = {
@@ -276,7 +276,10 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
   onSupprimeLien: (id: number) => void
 }) {
   const niveaux = [s.ref_niv1, s.ref_niv2, s.ref_niv3].filter(Boolean).join(', ')
-  const LIBELLE_NATURE: Record<string, string> = { citation: 'citation', doctrine: 'doctrine', echo: 'écho' }
+  const LIBELLE_NATURE: Record<string, string> = {
+    citation_directe: 'Citation directe', paraphrase: 'Paraphrase',
+    commentaire: 'Commentaire', echo: 'Écho thématique',
+  }
 
   return (
     <div style={{ paddingTop:'6px', paddingBottom:'4px', borderBottom:'1px solid #ede9e2' }}>
@@ -321,7 +324,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
           <div style={{ display:'flex', gap:'1px', alignItems:'center', justifyContent:'flex-end' }}>
             <BoutonEnregistrerSegment segment={s} info={info} userId={userId} />
             <BoutonCopieSegment
-              texte={s.segment_texte} auteur={info?.auteur_nom || s.id_oeuvre} titre={info?.titre || ''}
+              texte={texteSansEnrichissement(s.segment_texte)} auteur={info?.auteur_nom || s.id_oeuvre} titre={info?.titre || ''}
               trad_auteur={info?.trad_auteur ?? undefined} editeur={info?.editeur ?? undefined}
               collection={info?.collection} ville={info?.ville ?? undefined} date_publication={info?.date_publication ?? undefined}
             />
@@ -339,7 +342,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
 
       {/* Texte du segment */}
       <p lang="fr" style={{ fontSize:'11.2px', lineHeight:'1.38', color:'#2a2520', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
-        {s.segment_texte}
+        {rendreTexteEnrichi(s.segment_texte)}
       </p>
     </div>
   )
@@ -691,20 +694,21 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
 
 // ── Panneau principal ─────────────────────────────────────────────────────────
 export default function PanneauPatristique({
-  verset, nomLivre, chapitreActif,
+  verset, livreActif, nomLivre, chapitreActif,
   panelWidth = 288, onWidthChange,
 }: {
   verset: Verset | null
+  livreActif: string
   nomLivre: string
   chapitreActif: number
   panelWidth?: number
   onWidthChange?: (w: number) => void
 }) {
   type Onglet = 'patristique' | 'commentaires'
-  type SousOnglet = 'tous' | 'citations' | 'doctrine' | 'echos'
+  type SousOnglet = 'citations' | 'doctrine' | 'echos'
   const ITEMS_PAR_PAGE = 20
   const [onglet, setOnglet] = useState<Onglet>('patristique')
-  const [sousOnglet, setSousOnglet] = useState<SousOnglet>('tous')
+  const [sousOnglet, setSousOnglet] = useState<SousOnglet>('citations')
   const [pageItems, setPageItems] = useState(0)
   const [ouvert, setOuvert] = useState(true)
   useEffect(() => {
@@ -742,12 +746,6 @@ export default function PanneauPatristique({
   const [rechercheAuteur, setRechercheAuteur] = useState('')
   const [resultatsAuteur, setResultatsAuteur] = useState<{ id_auteur: string; nom: string }[]>([])
   const [auteurMeta, setAuteurMeta] = useState<Record<string, { traditions: string[]; siecle: number | null }>>({})
-
-  const nbPatristique = segmentsCitations.length + segmentsDoctrine.length + segmentsEcho.length
-  const ONGLETS: { code: Onglet; label: string; count?: number | null }[] = [
-    { code: 'patristique',  label: 'Pères de l\'Église', count: nbPatristique },
-    { code: 'commentaires', label: 'Commentaires', count: nbCommentairesBible },
-  ]
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) =>
@@ -788,18 +786,23 @@ export default function PanneauPatristique({
       })
   }, [])
 
-  // Charger les segments quand le verset change
+  // Charger les segments : ceux du verset sélectionné, ou — à défaut de sélection —
+  // TOUS ceux du chapitre ouvert (le lecteur voit alors d'emblée l'apparat du chapitre).
   useEffect(() => {
     setPageItems(0)
-    if (!verset) { setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); return }
+    if (!verset && !livreActif) { setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); return }
     setLoading(true)
+    let annule = false
 
     // La recherche inverse passe désormais par `liens_bibliques` : un index sur
     // `canon_id` au lieu de quatre `ilike '%…%'` sur 136 770 lignes — qui, de
     // surcroît, ramenaient GEN.1.10 à GEN.1.19 quand on demandait GEN.1.1.
     const SEG_COLS = 'id, id_oeuvre, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3'
     ;(async () => {
-      const liens = await segmentsLiesAuVerset(verset.id_verset)
+      const liens = verset
+        ? await segmentsLiesAuVerset(verset.id_verset)
+        : await segmentsLiesAuChapitre(livreActif, chapitreActif)
+      if (annule) return
       // UN SEGMENT PEUT RELEVER DE PLUSIEURS RUBRIQUES À LA FOIS, et il le doit :
       // chez un commentateur, le même passage est cité (type 1) PUIS commenté
       // (type 3) — c'est même le cas ordinaire, et l'arbitrage n°17 rend ce cumul
@@ -819,6 +822,7 @@ export default function PanneauPatristique({
         const { data } = await supabase.from('segments').select(SEG_COLS).in('id', ids.slice(i, i + 500))
         segs.push(...((data ?? []) as Segment[]))
       }
+      if (annule) return
       // Citations = types 1 et 2 réunis, comme auparavant ; doctrine = 3 ; écho = 4.
       // Un même segment peut nourrir plusieurs rubriques.
       const citations: { seg: Segment; col: string }[] = []
@@ -836,7 +840,8 @@ export default function PanneauPatristique({
       setSegmentsEcho(echo)
       setLoading(false)
     })()
-  }, [verset])
+    return () => { annule = true }
+  }, [verset, livreActif, chapitreActif])
 
   // Recherche auteur en direct
   useEffect(() => {
@@ -856,13 +861,18 @@ export default function PanneauPatristique({
   const supprimerDeEcho = (id: number) =>
     setSegmentsEcho(prev => prev.filter(s => s.id !== id))
 
-  type Categorie = 'citation' | 'doctrine' | 'echo'
+  // Quatre natures de lien distinctes : citation directe (type 1), paraphrase (type 2),
+  // commentaire (type 3), écho thématique (type 4). La colonne du lien tranche entre les
+  // deux premières (lien_1 vs lien_2).
+  type Categorie = 'citation_directe' | 'paraphrase' | 'commentaire' | 'echo'
   type ItemAffiche = { seg: Segment; col: string; onSupprime: (id: number) => void; categorie: Categorie; categories: Categorie[] }
   const brut = [
-    ...segmentsCitations.map(({ seg, col }) => ({ seg, col, onSupprime: supprimerDeCitations, categorie: 'citation' as const })),
-    ...segmentsDoctrine.map(seg => ({ seg, col: 'lien_3', onSupprime: supprimerDeDoctrine, categorie: 'doctrine' as const })),
+    ...segmentsCitations.map(({ seg, col }) => ({ seg, col, onSupprime: supprimerDeCitations, categorie: (col === 'lien_2' ? 'paraphrase' : 'citation_directe') as Categorie })),
+    ...segmentsDoctrine.map(seg => ({ seg, col: 'lien_3', onSupprime: supprimerDeDoctrine, categorie: 'commentaire' as const })),
     ...segmentsEcho.map(seg => ({ seg, col: 'lien_4', onSupprime: supprimerDeEcho, categorie: 'echo' as const })),
   ].filter(({ seg }) => Boolean(oeuvres[seg.id_oeuvre]))
+  // Regroupements pour les sous-onglets : « Citations » réunit citation directe et paraphrase.
+  const estCitation = (cats: Categorie[]) => cats.includes('citation_directe') || cats.includes('paraphrase')
 
   // UN SEGMENT NE PARAÎT QU'UNE FOIS. Le même passage est souvent cité puis
   // commenté : il relevait alors de deux rubriques et se lisait deux fois de
@@ -881,13 +891,31 @@ export default function PanneauPatristique({
   // Les sous-onglets restent des filtres : un segment cité ET commenté se trouve
   // sous « Citations » comme sous « Doctrine » — c'est attendu, ce n'est pas un
   // doublon puisqu'on ne voit qu'une rubrique à la fois.
-  const itemsAffiches: ItemAffiche[] = sousOnglet === 'tous' ? itemsTous
-    : sousOnglet === 'citations' ? itemsTous.filter(i => i.categories.includes('citation'))
-    : sousOnglet === 'doctrine' ? itemsTous.filter(i => i.categories.includes('doctrine'))
+  const itemsAffiches: ItemAffiche[] =
+    sousOnglet === 'citations' ? itemsTous.filter(i => estCitation(i.categories))
+    : sousOnglet === 'doctrine' ? itemsTous.filter(i => i.categories.includes('commentaire'))
     : itemsTous.filter(i => i.categories.includes('echo'))
+
+  // Compteur de l'onglet « Pères de l'Église » : le nombre de segments RÉELLEMENT
+  // affichables (dédoublonnés, œuvres publiées seulement). L'ancien total, somme brute
+  // des trois listes, comptait un segment cité-puis-commenté deux fois et incluait des
+  // œuvres non publiées — d'où un « 1 » sur des versets sans occurrence visible.
+  const nbPatristique = itemsTous.length
+  // Sans verset sélectionné mais avec un chapitre ouvert : mode chapitre (apparat
+  // patristique de tout le chapitre). Les commentaires, eux, sont attachés à un
+  // verset : leur onglet ne paraît donc qu'avec une sélection.
+  const modeChapitre = !verset && !!livreActif
+  const ONGLETS: { code: Onglet; label: string; count?: number | null }[] = [
+    { code: 'patristique',  label: 'Pères de l\'Église', count: nbPatristique },
+    ...(verset ? [{ code: 'commentaires' as Onglet, label: 'Commentaires', count: nbCommentairesBible }] : []),
+  ]
 
   // Reset page when sous-onglet changes
   useEffect(() => { setPageItems(0) }, [sousOnglet])
+
+  // Sans verset (mode chapitre), l'onglet Commentaires n'existe pas : on revient
+  // sur « Pères de l'Église » pour ne pas laisser un onglet actif fantôme.
+  useEffect(() => { if (!verset) setOnglet('patristique') }, [verset])
 
   const nombreFiltresActifs = filtreAuteursIds.size + filtreTraditions.size + filtreSiecles.size + filtreGenres.size
 
@@ -946,7 +974,8 @@ export default function PanneauPatristique({
   const debutItems = pageCouranteItems * ITEMS_PAR_PAGE
   const finItems = Math.min(debutItems + ITEMS_PAR_PAGE, itemsFiltres.length)
   const itemsPage = itemsFiltres.slice(debutItems, finItems)
-  const refFr = verset ? `${nomLivre} ${chapitreActif}, ${verset.verset}` : null
+  const refFr = verset ? `${nomLivre} ${chapitreActif}, ${verset.verset}`
+    : modeChapitre ? `${nomLivre} ${chapitreActif}` : null
 
   if (!ouvert) {
     return (
@@ -1001,7 +1030,7 @@ export default function PanneauPatristique({
         )}
       </div>
 
-      {verset ? (
+      {verset || modeChapitre ? (
         <div style={{ display:'flex', flexDirection:'column', flex:1, minHeight:0 }}>
 
           {/* Onglets pleine largeur */}
@@ -1031,19 +1060,18 @@ export default function PanneauPatristique({
 
           {/* Contenu scrollable */}
           <div style={{ overflowY:'auto', flex:1, padding:'0 12px' }}>
-            {onglet === 'commentaires' ? (
+            {onglet === 'commentaires' && verset ? (
               <OngletCommentaires verset={verset} userId={userId} isAdmin={isAdmin} />
             ) : (
               <>
                 {/* Sous-onglets Citations / Doctrine / Échos */}
                 {(() => {
-                  const nbCitations = itemsTous.filter(i => i.categories.includes('citation')).length
-                  const nbDoctrine = itemsTous.filter(i => i.categories.includes('doctrine')).length
+                  const nbCitations = itemsTous.filter(i => estCitation(i.categories)).length
+                  const nbDoctrine = itemsTous.filter(i => i.categories.includes('commentaire')).length
                   const nbEchos = itemsTous.filter(i => i.categories.includes('echo')).length
                   const subTabs: [SousOnglet, string, number][] = [
-                    ['tous', 'Tous', itemsTous.length],
                     ['citations', 'Citations', nbCitations],
-                    ['doctrine', 'Doctrine', nbDoctrine],
+                    ['doctrine', 'Commentaires', nbDoctrine],
                     ['echos', 'Échos', nbEchos],
                   ]
                   return (

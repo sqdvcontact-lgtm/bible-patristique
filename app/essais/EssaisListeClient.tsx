@@ -8,6 +8,7 @@ import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { CATEGORIES_ESSAIS } from './EtapeMetadonnees'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
+import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 
 const CATEGORIES = CATEGORIES_ESSAIS
@@ -1270,7 +1271,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
               Verset proposé à la méditation
             </p>
             <p style={{ fontFamily: 'Georgia, serif', fontSize: '16px', lineHeight: 1.8, color: '#1e2e24', fontStyle: 'italic', margin: '0 0 18px' }}>
-              «&#8201;{verset.texte}&#8201;»
+              «&#8201;{rendreTexteEnrichi(verset.texte)}&#8201;»
             </p>
             <p style={{ fontSize: '12px', color: '#8a8278', margin: 0 }}>
               {ABREV_FR[verset.livre] ?? verset.livre} {verset.chapitre},{verset.verset}

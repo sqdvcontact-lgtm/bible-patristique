@@ -471,7 +471,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const [problemes, setProblemes] = useState<{ id: number; segment_numero: number; segment_texte: string; reference_manuelle: string | null; ref_niv1: string | null; fiabilite: string | null; lien_1: string | null; lien_2: string | null; lien_3: string | null; lien_4: string | null }[]>([])
   const [problemesCharges, setProblemesCharges] = useState(false)
   const [filtreProbleme, setFiltreProbleme] = useState<'lien_a_constituer' | 'probable'>('lien_a_constituer')
-  const [versetsAltMap, setVersetsAltMap] = useState<Record<string, { ref: string; chapAlt: number | null; verAlt: number | null }>>({})
+  const [versetsAltMap, setVersetsAltMap] = useState<Record<string, { ref: string; chapAlt: number | null; verAlt: number | null; texte: string | null }>>({})
+  const [apercuVerset, setApercuVerset] = useState<{ label: string; texte: string | null } | null>(null)
   const [nbCommentairesOeuvre, setNbCommentairesOeuvre] = useState<number | null>(null)
   useEffect(() => {
     if (segActif === null) { setNbCommentairesOeuvre(null); return }
@@ -498,10 +499,14 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         })
         if (ids.size > 0) {
           const { data: vs } = await supabase.from('versets_lecture')
-            .select('id_verset, ref, chapitre_alternatif, verset_alternatif')
+            .select('id_verset, ref, chapitre_alternatif, verset_alternatif, TR0001, TR0002, TR0003')
             .in('id_verset', Array.from(ids))
-          const map: Record<string, { ref: string; chapAlt: number | null; verAlt: number | null }> = {}
-          ;(vs ?? []).forEach((v: any) => { map[v.id_verset] = { ref: v.ref ?? v.id_verset, chapAlt: v.chapitre_alternatif ?? null, verAlt: v.verset_alternatif ?? null } })
+          const map: Record<string, { ref: string; chapAlt: number | null; verAlt: number | null; texte: string | null }> = {}
+          ;(vs ?? []).forEach((v: any) => {
+            // Texte de référence : Crampon, à défaut Segond, à défaut Sacy.
+            const texte = v.TR0003 || v.TR0002 || v.TR0001 || null
+            map[v.id_verset] = { ref: v.ref ?? v.id_verset, chapAlt: v.chapitre_alternatif ?? null, verAlt: v.verset_alternatif ?? null, texte }
+          })
           setVersetsAltMap(map)
         }
       })
@@ -533,7 +538,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
     const [oeuvresAuteur, setOeuvresAuteur] = useState<OeuvreResumee[]>([])
   const [auteurOuvert, setAuteurOuvert] = useState(false)
-  const [apparatOuvert, setApparatOuvert] = useState(true)
+  const [apparatOuvert, setApparatOuvert] = useState(false)
   const [sommaireOuvert, setSommaireOuvert] = useState(true)
   const [apparatNiv1Actif, setApparatNiv1Actif] = useState<string | null>(null)
   const [ancreEnAttente, setAncreEnAttente] = useState<string | null>(null)
@@ -1572,15 +1577,19 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                 {liensIds.map(idV => {
                                   const vi = versetsAltMap[idV]
                                   if (!vi) return null
+                                  const label = detailsRefBiblique(vi.ref).label
                                   return (
-                                    <span key={idV} style={{ fontSize: '10.5px', color: '#3d5a4f' }}>
-                                      {vi.ref}
+                                    <button key={idV} type="button"
+                                      onClick={() => setApercuVerset({ label, texte: vi.texte })}
+                                      title="Voir le verset"
+                                      style={{ fontSize: '10.5px', color: '#3d5a4f', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline', textUnderlineOffset: '2px', textDecorationColor: '#c8d2cb' }}>
+                                      {label}
                                       {vi.chapAlt != null && (
                                         <span style={{ color: '#9a958d', fontStyle: 'italic' }}>
-                                          {' '}({vi.chapAlt}{vi.verAlt != null ? `,${vi.verAlt}` : ''})
+                                          {' '}({vi.chapAlt}{vi.verAlt != null ? `, ${vi.verAlt}` : ''})
                                         </span>
                                       )}
-                                    </span>
+                                    </button>
                                   )
                                 })}
                               </div>
@@ -1624,13 +1633,29 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         )}
       </div>
 
+      {apercuVerset && typeof document !== 'undefined' && createPortal(
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}
+          onClick={() => setApercuVerset(null)}>
+          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#faf6ee', borderRadius: '8px', border: '1px solid #c8b89e', padding: '16px 18px', width: '380px', maxWidth: '100%', boxShadow: '0 12px 40px rgba(44,30,10,0.22)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
+              <span style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '13px', fontWeight: 600, color: '#3d6b4f' }}>{apercuVerset.label}</span>
+              <button onClick={() => setApercuVerset(null)} aria-label="Fermer" style={{ fontSize: '15px', color: '#b0a08a', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 12px', lineHeight: 1 }}>×</button>
+            </div>
+            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '13px', lineHeight: 1.6, color: '#2a2218', margin: 0, whiteSpace: 'pre-line' }}>
+              {apercuVerset.texte || <em style={{ color: '#b0a08a' }}>Texte du verset indisponible.</em>}
+            </p>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {infoEditionOuverte && typeof document !== 'undefined' && createPortal(
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+        <div style={{ position: 'fixed', top: 48, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}
           onClick={() => setInfoEditionOuverte(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '22px 26px', width: '480px', maxWidth: '100%', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#fff', borderRadius: '10px', padding: '18px 22px', width: '460px', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
               <div>
-                <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', color: '#b0a89e', margin: '0 0 5px' }}>À PROPOS DE CETTE ÉDITION</p>
+                <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', color: '#b0a89e', margin: '0 0 4px' }}>À PROPOS DE CETTE ÉDITION</p>
                 <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '15px', color: '#2a3d30', lineHeight: 1.3, margin: 0 }}>{rendreTexteEnrichi(titreAffiche)}</p>
                 {oeuvreLocale.sous_titre && (
                   <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12px', color: '#6b6560', fontStyle: 'italic', lineHeight: 1.3, margin: '3px 0 0' }}>{oeuvreLocale.sous_titre}</p>
@@ -1638,11 +1663,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               </div>
               <button onClick={() => setInfoEditionOuverte(false)} style={{ fontSize: '16px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 16px', lineHeight: 1, flexShrink: 0 }}>✕</button>
             </div>
-            <p style={{ fontSize: '12.5px', color: '#3d6b4f', fontWeight: 500, margin: '0 0 16px' }}>{auteur}</p>
+            <p style={{ fontSize: '12.5px', color: '#3d6b4f', fontWeight: 500, margin: '0 0 12px' }}>{auteur}</p>
 
             {/* Bloc texte original */}
             {(oeuvreLocale.titre_original || oeuvreLocale.date_composition || oeuvreLocale.langue) && (
-              <div style={{ marginBottom: '14px', paddingBottom: '14px', borderBottom: '1px solid #f0ece6' }}>
+              <div style={{ marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid #f0ece6' }}>
                 <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', color: '#b0a89e', margin: '0 0 8px', textTransform: 'uppercase' }}>Texte original</p>
                 {oeuvreLocale.titre_original && (
                   <div style={{ marginBottom: '6px' }}>
@@ -1677,7 +1702,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
             {/* Bloc traduction */}
             {(oeuvreLocale.trad_auteur || oeuvreLocale.trad_date || oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication || oeuvreLocale.collection) && (
-              <div style={{ marginBottom: '14px', paddingBottom: '14px', borderBottom: '1px solid #f0ece6' }}>
+              <div style={{ marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid #f0ece6' }}>
                 <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', color: '#b0a89e', margin: '0 0 8px', textTransform: 'uppercase' }}>Édition de référence</p>
                 {oeuvreLocale.trad_auteur && (
                   <div style={{ marginBottom: '6px' }}>
@@ -1700,13 +1725,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               </div>
             )}
 
-            {/* Lien source */}
+            {/* Lien source — l'URL brute n'est pas affichée */}
             {oeuvreLocale.url_source && (
-              <div style={{ marginBottom: '14px' }}>
-                <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', color: '#b0a89e', margin: '0 0 6px', textTransform: 'uppercase' }}>Source en ligne</p>
+              <div style={{ marginBottom: '10px' }}>
                 <a href={oeuvreLocale.url_source} target="_blank" rel="noopener noreferrer"
-                  style={{ fontSize: '11.5px', color: '#3d6b4f', textDecoration: 'underline', textUnderlineOffset: '2px', wordBreak: 'break-all' }}>
-                  {oeuvreLocale.url_source}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', color: '#3d6b4f', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+                  Consulter la source en ligne
+                  <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M3.5 3h5.5v5.5M9 3L3 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </a>
               </div>
             )}
@@ -1730,32 +1755,45 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               <p style={{ fontSize: '12px', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>Niveaux d'affichage</p>
               <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '15px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
             </div>
+            <p style={{ fontSize: '11px', color: '#8a8278', lineHeight: 1.5, margin: '0 0 16px' }}>
+              Réglez la finesse des titres affichés, séparément pour le <strong style={{ color: '#6b6560' }}>sommaire</strong> (colonne de gauche) et le <strong style={{ color: '#6b6560' }}>corps</strong> du texte.
+            </p>
             {(['sommaire', 'corps'] as const).map(type => {
               const key = type === 'sommaire' ? 'sommaire' : 'corps'
               const txtKey = type === 'sommaire' ? 'txtSommaire' : 'txtCorps'
+              const titre = type === 'sommaire' ? 'Sommaire' : 'Corps du texte'
               return (
-                <div key={type} style={{ marginBottom: '14px' }}>
-                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', color: '#b0a89e', margin: '0 0 6px', textTransform: 'uppercase' }}>{type === 'sommaire' ? 'Sommaire' : 'Corps'} — profondeur</p>
-                  <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+                <div key={type} style={{ marginBottom: '14px', padding: '12px 14px', background: '#faf8f4', borderRadius: '7px', border: '1px solid #ece7de' }}>
+                  <p style={{ fontSize: '11px', fontWeight: 700, color: '#3d6b4f', margin: '0 0 10px' }}>{titre}</p>
+
+                  <label style={{ fontSize: '10.5px', color: '#6b6560', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Niveaux de titres affichés</label>
+                  <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
                     {[1,2,3,4,5].map(n => (
                       <button key={n} onClick={() => setConfigNiveaux(prev => ({ ...prev, [key]: n }))}
-                        style={{ width: '32px', height: '28px', borderRadius: '4px', border: `1px solid ${configNiveaux[key] === n ? '#3d6b4f' : '#d6d0c4'}`, background: configNiveaux[key] === n ? '#3d6b4f' : '#fff', color: configNiveaux[key] === n ? '#fff' : '#6b6560', fontSize: '11px', cursor: 'pointer', fontWeight: configNiveaux[key] === n ? 700 : 400 }}>
+                        title={`Afficher jusqu’au niveau ${n}`}
+                        style={{ width: '34px', height: '30px', borderRadius: '5px', border: `1px solid ${configNiveaux[key] === n ? '#3d6b4f' : '#d6d0c4'}`, background: configNiveaux[key] === n ? '#3d6b4f' : '#fff', color: configNiveaux[key] === n ? '#fff' : '#6b6560', fontSize: '12px', cursor: 'pointer', fontWeight: configNiveaux[key] === n ? 700 : 400 }}>
                         {n}
                       </button>
                     ))}
                   </div>
-                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', color: '#b0a89e', margin: '0 0 5px', textTransform: 'uppercase' }}>Afficher le texte des sous-titres</p>
+
+                  <label style={{ fontSize: '10.5px', color: '#6b6560', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Chapeaux descriptifs</label>
                   <div style={{ display: 'flex', gap: '4px' }}>
-                    {[1,2,3,4,5].map((n, i) => (
-                      <button key={n} onClick={() => setConfigNiveaux(prev => {
-                        const arr = [...prev[txtKey]]
-                        arr[i] = !arr[i]
-                        return { ...prev, [txtKey]: arr }
-                      })}
-                        style={{ width: '32px', height: '28px', borderRadius: '4px', border: `1px solid ${configNiveaux[txtKey][i] ? '#3d6b4f' : '#d6d0c4'}`, background: configNiveaux[txtKey][i] ? '#3d6b4f' : '#fff', color: configNiveaux[txtKey][i] ? '#fff' : '#6b6560', fontSize: '10px', cursor: 'pointer' }}>
-                        N{n}
-                      </button>
-                    ))}
+                    {[1,2,3,4,5].map((n, i) => {
+                      const actif = configNiveaux[txtKey][i]
+                      const disponible = n <= configNiveaux[key]
+                      return (
+                        <button key={n} disabled={!disponible} onClick={() => setConfigNiveaux(prev => {
+                          const arr = [...prev[txtKey]]
+                          arr[i] = !arr[i]
+                          return { ...prev, [txtKey]: arr }
+                        })}
+                          title={disponible ? `Chapeau du niveau ${n}` : `Le niveau ${n} n’est pas affiché`}
+                          style={{ width: '34px', height: '30px', borderRadius: '5px', border: `1px solid ${actif ? '#3d6b4f' : '#d6d0c4'}`, background: actif ? '#3d6b4f' : '#fff', color: actif ? '#fff' : '#9a958d', fontSize: '10.5px', cursor: disponible ? 'pointer' : 'default', opacity: disponible ? 1 : 0.4 }}>
+                          N{n}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )

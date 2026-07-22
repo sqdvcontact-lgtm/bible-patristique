@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateActio
 import { supabase } from '@/app/lib/supabase'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
 type Mode = 'biblique' | 'patristique' | 'chasse'
@@ -627,7 +628,7 @@ function JeuChasse() {
               </div>
               {v?.texte && (
                 <p style={{ margin: 0, fontSize: '12px', color: '#4a5e50', fontStyle: 'italic', lineHeight: 1.5 }}>
-                  « {v.texte.length > 140 ? v.texte.slice(0, 140) + '…' : v.texte} »
+                  « {(() => { const t = texteSansEnrichissement(v.texte); return t.length > 140 ? t.slice(0, 140) + '…' : t })()} »
                 </p>
               )}
             </div>
@@ -749,7 +750,7 @@ function JeuPatristique({ segment, etape, resultats, etapesRestantes, saisieAute
   return (
     <>
       <div style={{ position: 'sticky', top: '58px', zIndex: 5, background: 'rgba(248,251,242,0.96)', border: '1px solid rgba(61,107,79,0.20)', borderRadius: '13px', padding: '13px 14px', backdropFilter: 'blur(8px)' }}>
-        <p lang="fr" style={{ margin: 0, fontSize: '15px', lineHeight: 1.65, color: '#203528', textAlign: 'justify', fontWeight: 500, fontStyle: 'italic' }}>« {segment.texte} »</p>
+        <p lang="fr" style={{ margin: 0, fontSize: '15px', lineHeight: 1.65, color: '#203528', textAlign: 'justify', fontWeight: 500, fontStyle: 'italic' }}>« {rendreTexteEnrichi(segment.texte)} »</p>
         <BarreProgression resultats={resultats} etapesRestantes={etapesRestantes} />
       </div>
       <div style={{ marginTop: '14px', display: 'grid', gap: '12px' }}>

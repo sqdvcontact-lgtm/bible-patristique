@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { rendreEssai } from '@/app/lib/texteEnrichiEssai'
+import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import EssaiCommentaires from './EssaiCommentaires'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
@@ -254,7 +255,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           {versetParse && (
             <div style={{ margin: '0 auto 52px', maxWidth: '420px', textAlign: 'center' }}>
               <p style={{ fontFamily: "Georgia, serif", fontSize: '14.5px', lineHeight: 1.8, color: '#4a4440', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
-                {'« '}{versetParse.texte}{' »'}
+                {'« '}{rendreTexteEnrichi(versetParse.texte)}{' »'}
               </p>
               <p style={{ fontSize: '10.5px', letterSpacing: '0.1em', color: '#a09890', margin: 0, fontFamily: 'Helvetica Neue, Arial, sans-serif', textTransform: 'uppercase' }}>
                 {expanderRef(versetParse.ref)}

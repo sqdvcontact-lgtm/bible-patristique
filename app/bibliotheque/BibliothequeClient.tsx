@@ -8,7 +8,7 @@ import { supabase } from '@/app/lib/supabase'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
-import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
+import { formaterDateHistorique, extraireAnneeDateHistorique } from '@/app/lib/datesHistoriques'
 import { libelleTrad } from '@/app/oeuvre/[id]/PageTitre'
 
 type Oeuvre = {
@@ -77,6 +77,48 @@ const CHIFFRES_FR = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'h
   'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf', 'vingt']
 function enLettres(n: number): string { return n >= 1 && n <= 20 ? CHIFFRES_FR[n - 1] : String(n) }
 
+function enChiffresRomains(n: number): string {
+  const table: [number, string][] = [
+    [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'],
+    [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
+  ]
+  let res = ''
+  for (const [v, s] of table) { while (n >= v) { res += s; n -= v } }
+  return res
+}
+
+const ROMAINS_VALEUR: Record<string, number> = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 }
+function romainVersNombre(r: string): number | null {
+  let total = 0, prec = 0
+  for (const c of r.toUpperCase().split('').reverse()) {
+    const v = ROMAINS_VALEUR[c]; if (!v) return null
+    total += v < prec ? -v : v; prec = v
+  }
+  return total || null
+}
+
+// Siècle d'un auteur : champ `siecle` s'il est renseigné, sinon déduit de l'année
+// (mort ou dernière borne datée), sinon lu d'un « IVe s. » écrit dans les dates.
+function siecleDeAuteur(siecle: string | number | null | undefined, dates: string | null | undefined): number | null {
+  const s = typeof siecle === 'number' ? siecle : (siecle && /^\d+$/.test(String(siecle).trim()) ? Number(siecle) : null)
+  if (s && s > 0) return s
+  const annee = extraireAnneeDateHistorique(dates)
+  if (annee && annee > 0) return Math.floor((annee - 1) / 100) + 1
+  const m = (dates || '').match(/\b([IVXLCDM]+)\s*e?\b/i)
+  if (m) return romainVersNombre(m[1])
+  return null
+}
+
+// Rendu « IIᵉ siècle » : chiffre romain en petites capitales, « e » en exposant.
+function RenduSiecle({ n }: { n: number }) {
+  return (
+    <>
+      <span style={{ fontVariant: 'small-caps', textTransform: 'lowercase' }}>{enChiffresRomains(n).toLowerCase()}</span>
+      <sup style={{ fontSize: '0.68em', lineHeight: 1 }}>e</sup>{' '}siècle
+    </>
+  )
+}
+
 // ── Bandeau auteur ────────────────────────────────────────────────────────────
 function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }: {
   auteur: Auteur; recherche: string
@@ -95,6 +137,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
   const nbMot = enLettres(nb)
   const photoPos = parseAuteurPhotoPositions(auteur.photo_position).carte
   const datesAuteur = formaterDateHistorique(auteur.dates)
+  const siecleAuteur = siecleDeAuteur(auteur.siecle, auteur.dates)
 
   return (
     <div
@@ -119,11 +162,23 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
 
         <div style={{ flex: 1, padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div>
-            <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '14.5px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
-              {auteur.nom}
-            </h2>
-            {datesAuteur && (
-              <p style={{ fontSize: '11.5px', color: '#9a8a70', margin: '2px 0 0', fontFamily: 'Georgia, serif', fontStyle: 'italic', letterSpacing: '0.01em' }}>{datesAuteur}</p>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px' }}>
+              <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '14.5px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
+                {auteur.nom}
+              </h2>
+              <Link href={`/auteur/${auteur.id_auteur}`} title="Voir la page de l’auteur"
+                style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '17px', height: '17px', borderRadius: '50%', border: '1px solid #cfe0d5', color: '#3d6b4f', textDecoration: 'none', transition: 'all 0.12s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#3d6b4f'; e.currentTarget.style.color = '#fff' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#3d6b4f' }}>
+                <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M3.5 3h5.5v5.5M9 3L3 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </Link>
+            </div>
+            {(siecleAuteur || datesAuteur) && (
+              <p style={{ fontSize: '11.5px', color: '#9a8a70', margin: '2px 0 0', fontFamily: 'Georgia, serif', fontStyle: 'italic', letterSpacing: '0.01em' }}>
+                {siecleAuteur && <RenduSiecle n={siecleAuteur} />}
+                {siecleAuteur && datesAuteur && <span style={{ margin: '0 0.35em' }}>·</span>}
+                {datesAuteur}
+              </p>
             )}
           </div>
 
@@ -163,7 +218,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
             const estFavori = favorisOeuvres.has(o.id_oeuvre)
             const edition = [o.editeur, o.ville, formaterDateHistorique(o.date_publication)].filter(Boolean).join(', ')
             const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
-            const meta = edition && trad ? `${edition} - ${trad}` : edition || trad
+            const meta = edition && trad ? `${edition} – ${trad}` : edition || trad
             return (
               <div key={o.id_oeuvre}
                 className={`bib-ligne${correspond ? ' bib-correspond' : ''}`}
@@ -243,6 +298,9 @@ type NoticeCompacte = {
   annee_edition: number | null
   siecle_edition: string | null
   domaine_public: string | null
+  langue_originale: string | null
+  verifie: boolean | null
+  verifie_admin: boolean | null
 }
 
 function cleOeuvreCatalogue(n: NoticeCompacte) {
@@ -256,13 +314,14 @@ function titreDeclineCatalogue(n: NoticeCompacte) {
 // ── Panneau auteur catalogue (tons gris/mordorés) ────────────────────────────
 type GroupeCatalogue = { cle: string; titreStable: string; notices: NoticeCompacte[] }
 
-function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter }: {
+function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter, onProposer }: {
   nomAuteur: string
   groupes: GroupeCatalogue[]
   votes: Record<number, number>
   mesVotes: Set<number>
   userId: string | null
   onVoter: (notices: NoticeCompacte[]) => void
+  onProposer: (nomAuteur: string, titre: string) => void
 }) {
   const [ouvert, setOuvert] = useState(false)
   const nb = groupes.length
@@ -305,12 +364,23 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
       {ouvert && (
         <div style={{ borderTop: '1px solid #e4dcd0', padding: '6px 0 10px' }}>
           <style>{`
-            .cat-ligne { display: flex; align-items: flex-start; padding: 8px 16px 8px 20px; transition: background 0.12s; gap: 10px; }
+            .cat-ligne { display: flex; align-items: flex-start; padding: 8px 14px 8px 20px; transition: background 0.12s; gap: 10px; }
             .cat-ligne:hover { background: linear-gradient(to bottom, transparent 0%, rgba(139,107,60,0.045) 22%, rgba(139,107,60,0.045) 78%, transparent 100%); }
           `}</style>
           {groupes.map((groupe, idx) => {
             const aVoté = aVote(groupe.notices)
             const nbVotes = totalVotes(groupe.notices)
+            const langue = groupe.notices.map(n => n.langue_originale).find(Boolean) || null
+            // Trois états : vérifié par l'admin (contrôle humain), pré-contrôle
+            // automatique (IA) — que l'on signale SANS le présenter comme vérifié —,
+            // ou rien du tout.
+            const verifieAdmin = groupe.notices.every(n => n.verifie_admin)
+            const precontroleIA = !verifieAdmin && groupe.notices.every(n => n.verifie)
+            const [icone, libelle, couleur] = verifieAdmin
+              ? ['✓', 'Données vérifiées', '#7a8a6a']
+              : precontroleIA
+              ? ['◆', 'Pré-contrôle automatique (non vérifié)', '#a89878']
+              : ['○', 'Non vérifié', '#c09050']
             return (
               <div key={groupe.cle}
                 className="cat-ligne"
@@ -333,20 +403,70 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                       )
                     })}
                   </div>
+                  {/* Vérification des données */}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px', fontSize: '9px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: couleur }}>
+                    <span style={{ fontSize: '9px' }}>{icone}</span>
+                    {libelle}
+                  </span>
                 </div>
-                {/* Vote */}
-                <button
-                  onClick={() => onVoter(groupe.notices)}
-                  title={userId ? (aVoté ? 'Retirer mon vote' : 'Je veux cette œuvre') : 'Connectez-vous pour voter'}
-                  style={{ display: 'flex', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: userId ? 'pointer' : 'default', padding: '2px 4px', flexShrink: 0, color: aVoté ? '#b87a30' : '#c4b8a4', fontSize: '11px', marginTop: '1px' }}>
-                  <span style={{ fontSize: '13px', lineHeight: 1 }}>{aVoté ? '♥' : '♡'}</span>
-                  {nbVotes > 0 && <span>{nbVotes}</span>}
-                </button>
+                {/* Colonne langue originale */}
+                <span style={{ width: '64px', flexShrink: 0, textAlign: 'right', fontSize: '10.5px', color: '#b0a08c', fontFamily: 'Georgia, serif', fontStyle: 'italic', lineHeight: 1.35, marginTop: '1px' }}>
+                  {langue || ''}
+                </span>
+                {/* Actions : proposer + vote (cœur fixe) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0, marginTop: '0px' }}>
+                  <button
+                    onClick={() => onProposer(nomAuteur, groupe.titreStable)}
+                    title="Proposer cette œuvre à l'équipe éditoriale"
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', background: 'none', border: 'none', cursor: 'pointer', color: '#b8a888', padding: 0 }}
+                    onMouseEnter={e => (e.currentTarget.style.color = '#8a6a30')}
+                    onMouseLeave={e => (e.currentTarget.style.color = '#b8a888')}>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 3.5v9M3.5 8h9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => onVoter(groupe.notices)}
+                    title={userId ? (aVoté ? 'Retirer mon vote' : 'Je veux cette œuvre') : 'Connectez-vous pour voter'}
+                    style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: userId ? 'pointer' : 'default', padding: '2px 2px', color: aVoté ? '#b87a30' : '#c4b8a4', fontSize: '11px' }}>
+                    <span style={{ width: '15px', flexShrink: 0, fontSize: '13px', lineHeight: 1, textAlign: 'center' }}>{aVoté ? '♥' : '♡'}</span>
+                    <span style={{ minWidth: '12px', textAlign: 'left' }}>{nbVotes > 0 ? nbVotes : ''}</span>
+                  </button>
+                </div>
               </div>
             )
           })}
         </div>
       )}
+    </div>
+  )
+}
+
+// ── Modale « proposer cette œuvre » (pré-remplie, avec commentaire) ───────────
+// La proposition depuis une œuvre du catalogue ouvre le MÊME formulaire que l'onglet
+// « Proposer une œuvre », simplement pré-rempli avec l'auteur et le titre de la notice.
+function ModaleProposerOeuvre({ auteur, titre, onClose }: {
+  auteur: string; titre: string; onClose: () => void
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  return (
+    <div onMouseDown={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(30,26,20,0.42)', display: 'flex', padding: '20px', overflowY: 'auto' }}>
+      <div onMouseDown={e => e.stopPropagation()}
+        style={{ margin: 'auto', background: '#f7f4ef', borderRadius: '10px', border: '1px solid #ddd5c4', width: '100%', maxWidth: '660px', boxShadow: '0 12px 40px rgba(0,0,0,0.2)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 22px 12px', borderBottom: '1px solid #e4dcd0' }}>
+          <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '16px', color: '#3a342e', margin: 0 }}>Proposer cette œuvre</h3>
+          <button onClick={onClose} aria-label="Fermer" style={{ fontSize: '16px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+        </div>
+        <div style={{ padding: '0 22px' }}>
+          <OngletProposer valeursInitiales={{ auteur_nom: auteur, titre }} />
+        </div>
+      </div>
     </div>
   )
 }
@@ -358,6 +478,11 @@ function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
   const [votes, setVotes] = useState<Record<number, number>>({})
   const [mesVotes, setMesVotes] = useState<Set<number>>(new Set())
   const [userId, setUserId] = useState<string | null>(null)
+  const [recherche, setRecherche] = useState('')
+  const [page, setPage] = useState(0)
+  const [proposition, setProposition] = useState<{ auteur: string; titre: string } | null>(null)
+
+  const PAR_PAGE = 50
 
   const charger = async () => {
     if (chargé) return
@@ -366,15 +491,24 @@ function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
       const { data: { session } } = await supabase.auth.getSession()
       setUserId(session?.user.id ?? null)
 
-      const { data } = await supabase
-        .from('catalogue_notices')
-        .select('id, auteur, id_oeuvre_stable, titre_stable, titre_original, titre_edition, traducteur, annee_edition, siecle_edition, domaine_public')
-        .eq('presence_sur_le_site', false)
-        .order('auteur')
-        .order('titre_stable')
-        .limit(600)
+      // Chargement complet : PostgREST plafonne à 1000 lignes par requête, on pagine.
+      // (Sans cela, la liste s'arrêtait vers « Augustin ».)
+      const data: NoticeCompacte[] = []
+      for (let de = 0; ; de += 1000) {
+        const { data: page } = await supabase
+          .from('catalogue_notices')
+          .select('id, auteur, id_oeuvre_stable, titre_stable, titre_original, titre_edition, traducteur, annee_edition, siecle_edition, domaine_public, langue_originale, verifie, verifie_admin')
+          .eq('presence_sur_le_site', false)
+          .order('auteur')
+          .order('titre_stable')
+          .order('id')
+          .range(de, de + 999)
+        if (!page?.length) break
+        data.push(...page)
+        if (page.length < 1000) break
+      }
 
-      if (data) {
+      if (data.length) {
         setNotices(data)
         const ids = data.map((n: NoticeCompacte) => n.id)
         if (ids.length > 0) {
@@ -434,11 +568,33 @@ function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
     gs.sort((a, b) => a.titreStable.localeCompare(b.titreStable, 'fr'))
   }
 
-  const auteursTriés = Object.keys(parAuteur).sort((a, b) => a.localeCompare(b, 'fr'))
+  const auteursTriésTous = Object.keys(parAuteur).sort((a, b) => a.localeCompare(b, 'fr'))
+
+  // Recherche (auteur ou titre d'œuvre), identique à la bibliothèque.
+  const q = sansAccents(recherche.trim())
+  const auteursTriés = q
+    ? auteursTriésTous.filter(nom =>
+        sansAccents(nom).includes(q) ||
+        parAuteur[nom].some(g => sansAccents(g.titreStable).includes(q)))
+    : auteursTriésTous
+
+  const nbPages = Math.max(1, Math.ceil(auteursTriés.length / PAR_PAGE))
+  const pageActive = Math.min(page, nbPages - 1)
+  const auteursPage = auteursTriés.slice(pageActive * PAR_PAGE, pageActive * PAR_PAGE + PAR_PAGE)
+
+  // La recherche remet à la première page.
+  useEffect(() => { setPage(0) }, [recherche])
+
+  // Changement de page sans saut : on conserve la position de défilement.
+  const changerPage = (delta: number) => {
+    const y = window.scrollY
+    setPage(p => Math.max(0, Math.min(nbPages - 1, p + delta)))
+    requestAnimationFrame(() => window.scrollTo({ top: y }))
+  }
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <span style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#b0a89e' }}>
           {enLettres(groupes.size).charAt(0).toUpperCase() + enLettres(groupes.size).slice(1)} œuvre{groupes.size > 1 ? 's' : ''} répertoriée{groupes.size > 1 ? 's' : ''}, non disponible{groupes.size > 1 ? 's' : ''}
         </span>
@@ -448,22 +604,76 @@ function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
         </button>
       </div>
 
+      {/* Recherche — identique en placement et en forme à l'onglet Bibliothèque */}
+      <div style={{ position: 'relative', maxWidth: '340px', margin: '0 auto 16px' }}>
+        <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
+          placeholder="Rechercher un auteur ou une œuvre"
+          style={{ width: '100%', fontSize: '13px', padding: '9px 14px 9px 38px', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
+          <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
+          <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
+        </svg>
+      </div>
+
       {chargement ? (
         <p style={{ fontSize: '12px', color: '#b0a89e', fontStyle: 'italic' }}>Chargement…</p>
+      ) : auteursTriés.length === 0 ? (
+        <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>
+          Aucun auteur ne correspond à ces critères.
+        </p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {auteursTriés.map(nomAuteur => (
-            <PanneauCatalogue
-              key={nomAuteur}
-              nomAuteur={nomAuteur}
-              groupes={parAuteur[nomAuteur]}
-              votes={votes}
-              mesVotes={mesVotes}
-              userId={userId}
-              onVoter={voterGroupe}
-            />
-          ))}
-        </div>
+        <>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {auteursPage.map(nomAuteur => (
+              <PanneauCatalogue
+                key={nomAuteur}
+                nomAuteur={nomAuteur}
+                groupes={parAuteur[nomAuteur]}
+                votes={votes}
+                mesVotes={mesVotes}
+                userId={userId}
+                onVoter={voterGroupe}
+                onProposer={(a, t) => setProposition({ auteur: a, titre: t })}
+              />
+            ))}
+          </div>
+
+          {nbPages > 1 && (
+            <>
+              {/* Flèches fixes, toujours visibles à l'écran */}
+              <button onClick={() => changerPage(-1)} disabled={pageActive === 0}
+                aria-label="Page précédente"
+                style={{ position: 'fixed', left: '18px', top: '50%', transform: 'translateY(-50%)', zIndex: 40,
+                  width: '42px', height: '42px', borderRadius: '50%', border: '1px solid #ddd5c4',
+                  background: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,0.08)', cursor: pageActive === 0 ? 'default' : 'pointer',
+                  opacity: pageActive === 0 ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48' }}>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3l-5 5 5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+              <button onClick={() => changerPage(1)} disabled={pageActive >= nbPages - 1}
+                aria-label="Page suivante"
+                style={{ position: 'fixed', right: '18px', top: '50%', transform: 'translateY(-50%)', zIndex: 40,
+                  width: '42px', height: '42px', borderRadius: '50%', border: '1px solid #ddd5c4',
+                  background: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,0.08)', cursor: pageActive >= nbPages - 1 ? 'default' : 'pointer',
+                  opacity: pageActive >= nbPages - 1 ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48' }}>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginTop: '22px' }}>
+                <span style={{ fontSize: '11px', color: '#a09484', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+                  Page {pageActive + 1} sur {nbPages}
+                </span>
+              </div>
+            </>
+          )}
+        </>
+      )}
+
+      {proposition && (
+        <ModaleProposerOeuvre
+          auteur={proposition.auteur}
+          titre={proposition.titre}
+          onClose={() => setProposition(null)}
+        />
       )}
     </div>
   )
@@ -630,7 +840,13 @@ function ComboTitre({ value, onChange, auteurNom }: {
   )
 }
 
-function OngletProposer() {
+type FormProposition = {
+  auteur_nom: string; titre: string; traducteur: string; editeur: string
+  collection: string; ville: string; date_publication: string; siecle: string
+  langue: string; note: string; texte: string
+}
+
+function OngletProposer({ valeursInitiales }: { valeursInitiales?: Partial<FormProposition> } = {}) {
   const [connecte, setConnecte] = useState<boolean | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [statut, setStatut] = useState<'idle' | 'envoi' | 'ok' | 'erreur' | 'limite'>('idle')
@@ -639,9 +855,10 @@ function OngletProposer() {
   const [droitsGarantis, setDroitsGarantis] = useState(false)
   const [quotaRestant, setQuotaRestant] = useState<number | null>(null)
   const [auteurId, setAuteurId] = useState<string | null>(null)
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormProposition>({
     auteur_nom: '', titre: '', traducteur: '', editeur: '',
     collection: '', ville: '', date_publication: '', siecle: '', langue: '', note: '', texte: '',
+    ...valeursInitiales,
   })
 
   React.useEffect(() => {
@@ -991,21 +1208,21 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
             Bibliothèque
           </h1>
           <p style={{ fontFamily: 'Georgia, serif', fontSize: '13.5px', fontStyle: 'italic', color: '#8a8278', margin: 0, lineHeight: 1.6 }}>
-            Écrits des Pères de l'Église du{' '}
+            Écrits des Pères de l’Église du{' '}
             <span style={{ fontVariantCaps: 'all-small-caps' }}>I</span><sup style={{ fontSize: '0.68em', lineHeight: 1 }}>er</sup>
-            {' '}au{' '}
+            {' au '}
             <span style={{ fontVariantCaps: 'all-small-caps' }}>XIII</span><sup style={{ fontSize: '0.68em', lineHeight: 1 }}>e</sup>
-            {' '}siècle
+            {' siècle'}
           </p>
           <p style={{ fontFamily: 'Georgia, serif', fontSize: '11.5px', fontStyle: 'italic', color: '#b0a89e', margin: '4px 0 0', letterSpacing: '0.01em' }}>
-            {enLettres(auteurs.length).charAt(0).toUpperCase() + enLettres(auteurs.length).slice(1)} auteur{auteurs.length > 1 ? 's' : ''}{' '}·{' '}
+            {enLettres(auteurs.length).charAt(0).toUpperCase() + enLettres(auteurs.length).slice(1)} auteur{auteurs.length > 1 ? 's' : ''}{' · '}
             {enLettres(auteurs.reduce((s, a) => s + a.oeuvres.length, 0))} œuvre{auteurs.reduce((s, a) => s + a.oeuvres.length, 0) > 1 ? 's' : ''}
           </p>
         </div>
 
         {/* Tabs */}
         <div style={{ display: 'flex', alignItems: 'stretch', borderBottom: '1px solid #ddd8cf', marginBottom: '16px' }}>
-          {([['bibliotheque', 'Bibliothèque'], ['favoris', 'Favoris'], ['catalogue', 'Traductions indisponibles']] as [Onglet, string][]).map(([key, label], idx) => (
+          {([['bibliotheque', 'Bibliothèque'], ['favoris', 'Favoris'], ['catalogue', 'Catalogue des traductions']] as [Onglet, string][]).map(([key, label], idx) => (
             <React.Fragment key={key}>
               {idx > 0 && (
                 <span style={{ width: '1px', background: '#e0d8ce', alignSelf: 'center', height: '14px', flexShrink: 0 }} />

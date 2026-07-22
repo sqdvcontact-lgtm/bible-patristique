@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { nettoyerFin } from '@/app/lib/ponctuation'
+import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 
 // ── Graphies & normalisation (hérités de la concordance) ─────────────────────
@@ -692,7 +693,7 @@ export default function RechercheClient() {
                         </span>
                       </div>
                       <p style={{ fontFamily:"Georgia, serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
-                        {highlighter(nettoyerFin(s.segment_texte), lastQuery, mode)}
+                        {highlighter(nettoyerFin(texteSansEnrichissement(s.segment_texte)), lastQuery, mode)}
                       </p>
                     </a>
                   ))}
@@ -768,7 +769,7 @@ export default function RechercheClient() {
                             {/* Colonnes */}
                             <div style={{ display:'grid', gridTemplateColumns:`repeat(${colTrads.length},1fr)` }}>
                               {colTrads.map((code, i) => {
-                                const texte = (v as any)[code] ?? ''
+                                const texte = texteSansEnrichissement((v as any)[code] ?? '')
                                 const absent = texte && lastQuery ? !contientTerme(texte, lastQuery, mode) : false
                                 return (
                                   <div key={i} className={`poly-col${i%2===1?' poly-col-even':''}${absent?' poly-col--absent':''}${survolé?' poly-col--survol':''}`}>

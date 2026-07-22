@@ -43,6 +43,15 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
   const [versetSelectionne, setVersetSelectionne] = useState<Verset | null>(null)
 
+  // Changer de livre ou de chapitre efface la sélection héritée du chapitre
+  // précédent : le volet de droite bascule alors sur l'apparat de tout le nouveau
+  // chapitre. On PRÉSERVE en revanche un verset qui appartient déjà au chapitre
+  // courant — cas d'une navigation directe « ?verset=N » (aller à) : sans quoi
+  // l'effet parent effacerait la sélection tout juste posée par TexteBible.
+  useEffect(() => {
+    setVersetSelectionne(prev => (prev && prev.livre === livreActif && prev.chapitre === chapitreActif ? prev : null))
+  }, [livreActif, chapitreActif])
+
   const [navWidth, setNavWidth] = useState(NAV_DEFAULT)
   const [pannWidth, setPannWidth] = useState(PANN_DEFAULT)
   const isDirty = navWidth !== NAV_DEFAULT || pannWidth !== PANN_DEFAULT
@@ -179,6 +188,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
       />
       <PanneauPatristique
         verset={versetSelectionne}
+        livreActif={livreActif}
         nomLivre={nomLivre}
         chapitreActif={chapitreActif}
         panelWidth={pannWidth}

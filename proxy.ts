@@ -18,7 +18,15 @@ const CANONIQUE = process.env.SITE_CANONIQUE?.trim()
 // On lit `ADMIN_EMAIL` (serveur) et non `NEXT_PUBLIC_ADMIN_EMAIL` (exposé au
 // navigateur) : une variable publique n'est pas un secret, mais l'autorisation
 // ne doit dépendre que de ce que le serveur connaît.
-const AUTORISES = (process.env.ADMIN_EMAIL ?? '')
+//
+// `ACCES_INVITES` (facultatif, liste d'e-mails séparés par des virgules) ouvre
+// l'accès à des comptes INVITÉS, en lecture seule. Ils franchissent ce verrou de
+// bêta, MAIS ne reçoivent aucun droit admin : l'admin se joue sur une égalité
+// EXACTE avec `ADMIN_EMAIL` (voir app/lib/verifAdmin.ts) ou sur `profils.est_admin`
+// — un invité listé ici ne satisfait ni l'un ni l'autre. On garde donc les deux
+// variables distinctes plutôt que d'entasser les invités dans `ADMIN_EMAIL`.
+const AUTORISES = [process.env.ADMIN_EMAIL, process.env.ACCES_INVITES]
+  .filter(Boolean).join(',')
   .split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
 
 // Chemins accessibles sans session, sous peine de boucle de redirection :
