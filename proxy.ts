@@ -92,7 +92,23 @@ export async function proxy(request: NextRequest) {
   //    on ne veut pas qu'un déploiement mal configuré se verrouille tout seul.
   if (AUTORISES.length > 0 && !estLibre(pathname)) {
     const courriel = user?.email?.trim().toLowerCase()
-    if (!courriel || !AUTORISES.includes(courriel)) {
+    let autorise = !!courriel && AUTORISES.includes(courriel)
+
+    // Invité en base : `profils.acces_beta = true` ouvre l'accès en LECTURE SEULE
+    // (jamais l'admin — celui-ci reste `est_admin` / égalité exacte avec ADMIN_EMAIL).
+    // Avantage : inviter quelqu'un ne demande qu'un booléen en base, sans toucher aux
+    // variables d'environnement de l'hébergeur ni exposer d'adresse dans le dépôt public.
+    if (!autorise && user) {
+      try {
+        const { data: profil } = await supabase
+          .from('profils').select('acces_beta').eq('id', user.id).maybeSingle()
+        autorise = profil?.acces_beta === true
+      } catch {
+        // En cas d'erreur de lecture, on s'en tient au comportement par défaut (non autorisé).
+      }
+    }
+
+    if (!autorise) {
       const versConnexion = request.nextUrl.clone()
       versConnexion.pathname = '/chantier'
       // On garde la destination pour y revenir après connexion.
