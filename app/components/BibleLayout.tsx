@@ -63,20 +63,22 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
 
   const traduction = listeTraductions[traductionIndex]?.code ?? 'TR0001'
 
+  // Ce que le chapitre affiché nous apprend du LIVRE — et rien de plus.
+  //
+  // Un chapitre qui porte du texte prouve que le livre n'est pas vide : on le retire donc
+  // du cache. Un chapitre vide, lui, ne prouve RIEN : ni que le livre l'est, ni même qu'il
+  // existe (les flèches mènent au-delà du dernier chapitre, et une traduction peut sauter
+  // un chapitre sans sauter le livre). L'ancienne version en concluait le contraire et
+  // grisait le livre qu'on était en train de lire — les Nombres se fermaient sous les
+  // doigts. Seule `livres_par_traduction`, interrogée ci-dessous, fait foi pour l'absence.
   useEffect(() => {
     const trad = traduction
     const livre = livreActif
-    const tousVides = versets.length === 0 || versets.every(v => !v[trad])
+    const aDuTexte = versets.length > 0 && versets.some(v => v[trad])
+    if (!aDuTexte) return
     const cache = livresVidesCache.current
     if (!cache[trad]) cache[trad] = new Set()
-    const estVideEnCache = cache[trad].has(livre)
-    if (tousVides && !estVideEnCache) {
-      cache[trad].add(livre)
-      setLivresVidesVersion(v => v + 1)
-    } else if (!tousVides && estVideEnCache) {
-      cache[trad].delete(livre)
-      setLivresVidesVersion(v => v + 1)
-    }
+    if (cache[trad].delete(livre)) setLivresVidesVersion(v => v + 1)
   }, [versets, traduction, livreActif])
 
   // Pré-remplit le cache dès que la traduction change :
@@ -210,7 +212,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
             boxShadow: '0 6px 20px rgba(55,45,35,0.12)',
             backdropFilter: 'blur(6px)',
             fontSize: '11.5px',
-            fontFamily: 'Georgia, serif',
+            fontFamily: 'var(--font-source-serif), Georgia, serif',
             fontStyle: 'italic',
             cursor: 'pointer',
           }}>

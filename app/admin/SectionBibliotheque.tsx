@@ -24,7 +24,7 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(30,26,22,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ background: '#fff', borderRadius: '10px', width: '100%', maxWidth: '860px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}>
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #e4dfd8', flexShrink: 0 }}>
-          <h2 style={{ fontFamily: "Georgia, serif", fontSize: '17px', fontWeight: 'normal', color: '#2a3d30', margin: '0 0 6px' }}>Validation de l'import</h2>
+          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '17px', fontWeight: 'normal', color: '#2a3d30', margin: '0 0 6px' }}>Validation de l'import</h2>
           <p style={{ fontSize: '12px', color: '#9a958d', margin: 0 }}>
             Fichier : <strong style={{ color: '#2a2520' }}>{nomFichier}</strong>{' — '}
             <span style={{ color: '#3d6b4f', fontWeight: 500 }}>{modifiees.length} ligne{modifiees.length > 1 ? 's' : ''} modifiée{modifiees.length > 1 ? 's' : ''}</span>
@@ -200,7 +200,7 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 2100, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' }}>
       <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '600px', background: '#f7f4ef', borderRadius: '10px', padding: '18px', boxShadow: '0 20px 60px rgba(0,0,0,0.32)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '15px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
+          <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
             Cadrer la photo – <em style={{ color: '#7a7268' }}>{auteur.nom}</em>
           </h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a89e', fontSize: '15px', padding: 0 }}>×</button>
@@ -218,9 +218,9 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
             </div>
             <div style={{ flex: 1, padding: '16px 18px', minWidth: 0 }}>
               <p style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#b0a89e', margin: '0 0 8px' }}>Aperçu — Carte Bibliothèque</p>
-              <h4 style={{ fontFamily: 'Helvetica Neue, Arial, sans-serif', fontSize: '15px', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 4px' }}>{auteur.nom}</h4>
+              <h4 style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '15px', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 4px' }}>{auteur.nom}</h4>
               {auteur.dates && <p style={{ fontSize: '11px', color: '#9a958d', margin: '0 0 10px' }}>{formaterDateHistorique(auteur.dates)}</p>}
-              <p style={{ fontFamily: 'Georgia, serif', fontSize: '12px', color: '#5a5450', lineHeight: 1.55, margin: 0, fontStyle: 'italic' }}>
+              <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12px', color: '#5a5450', lineHeight: 1.55, margin: 0, fontStyle: 'italic' }}>
                 {auteur.note_biographique || auteur.note || 'Aperçu de la carte auteur dans la bibliothèque.'}
               </p>
             </div>
@@ -268,6 +268,8 @@ type NoticeCatalogueAdmin = {
   score_fiabilite: number | null
   presence_sur_le_site: boolean
   verifie: boolean
+  verifie_admin: boolean
+  refuse_admin: boolean
   genre: string | null
   langue_originale: string | null
   date_oeuvre: string | null
@@ -309,40 +311,85 @@ function labelDecisionCatalogue(decision?: string | null) {
   return decision
 }
 
-function ChampCatalogue({ label, valeur, accent = false, transform }: {
+type EditChamp = {
+  champ: string
+  brut: string | number | null
+  onEnregistrer: (champ: string, valeur: string) => Promise<string | null>
+}
+
+function ChampCatalogue({ label, valeur, accent = false, transform, lien = false, edit }: {
   label: string
   valeur: unknown
   accent?: boolean
   transform?: (valeur: unknown) => string
+  lien?: boolean
+  edit?: EditChamp
 }) {
-  const rouge = valeurAVerifier(valeur)
-  const texte = rouge ? 'À compléter' : (transform ? transform(valeur) : String(valeur))
+  const manque = valeurAVerifier(valeur)
+  const texte = manque ? 'À compléter' : (transform ? transform(valeur) : String(valeur))
+  const estUrl = lien && !manque && /^https?:\/\//i.test(texte)
+
+  const [enEdition, setEnEdition] = useState(false)
+  const [saisie, setSaisie] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [erreur, setErreur] = useState<string | null>(null)
+
+  const ouvrir = () => { if (!edit) return; setSaisie(edit.brut == null ? '' : String(edit.brut)); setErreur(null); setEnEdition(true) }
+  const valider = async () => {
+    if (!edit || saving) return
+    setSaving(true)
+    const err = await edit.onEnregistrer(edit.champ, saisie)
+    setSaving(false)
+    if (err) { setErreur(err); return }
+    setEnEdition(false)
+  }
+
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      gap: '2px',
+      gap: '1px',
       minWidth: 0,
-      padding: '4px 8px 5px',
+      padding: '3px 8px 4px',
       borderRadius: '5px',
-      background: rouge ? '#fff5f3' : '#f7f4ef',
-      border: `1px solid ${rouge ? 'rgba(229,155,141,0.45)' : '#e8e3da'}`,
+      // Teintes plus douces : le manque se dit dans un sable rosé, non plus dans un rouge
+      // d'alerte ; le champ renseigné repose sur un blanc cassé chaud.
+      background: manque ? '#fbf3ef' : '#fbfaf7',
+      border: `1px solid ${enEdition ? '#a9c9b6' : (manque ? '#ecd6cc' : '#ece7de')}`,
     }}>
-      <span style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: rouge ? '#c06050' : '#a09080', lineHeight: 1 }}>{label}</span>
-      <span style={{ fontSize: '12px', fontWeight: accent ? 700 : 400, color: rouge ? '#a43d2d' : '#1e2820', lineHeight: 1.3, wordBreak: 'break-word' }}>{texte}</span>
+      <span style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: manque ? '#bd8672' : '#a89a86', lineHeight: 1 }}>{label}</span>
+      {enEdition ? (
+        <>
+          <input autoFocus value={saisie} disabled={saving}
+            onChange={e => setSaisie(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') valider(); if (e.key === 'Escape') { setEnEdition(false); setErreur(null) } }}
+            onBlur={valider}
+            style={{ fontSize: '11.5px', padding: '1px 4px', border: '1px solid #b8ccc0', borderRadius: '3px', background: '#fff', color: '#2a322a', outline: 'none', width: '100%', boxSizing: 'border-box' }} />
+          {erreur && <span style={{ fontSize: '9px', color: '#b3261e', lineHeight: 1.25, marginTop: '1px' }}>{erreur}</span>}
+        </>
+      ) : estUrl ? (
+        <a href={texte} target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: '11.5px', fontWeight: accent ? 700 : 400, color: '#3d6b4f', textDecoration: 'underline', textUnderlineOffset: '2px', lineHeight: 1.3, wordBreak: 'break-all' }}>{texte}</a>
+      ) : (
+        <span onClick={ouvrir}
+          title={edit ? 'Cliquer pour modifier' : undefined}
+          style={{ fontSize: '11.5px', fontWeight: accent ? 700 : 400, color: manque ? '#b06a54' : '#2a322a', lineHeight: 1.3, wordBreak: 'break-word', cursor: edit ? 'text' : 'default' }}>
+          {texte}
+        </span>
+      )}
     </div>
   )
 }
 
 function LigneCatalogue({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '80px minmax(0, 1fr)', borderTop: '1px solid #ede9e2' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '74px minmax(0, 1fr)', borderTop: '1px solid #f0ebe2' }}>
       <div style={{
-        fontSize: '9px', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase',
-        color: '#8a8070', background: '#f4f1eb', borderRight: '1px solid #e8e3da',
-        padding: '8px 10px 8px 14px', display: 'flex', alignItems: 'flex-start', lineHeight: 1.35,
+        fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase',
+        color: '#9a9080', background: '#faf7f1', borderRight: '1px solid #efe9df',
+        padding: '6px 8px 6px 12px', display: 'flex', alignItems: 'flex-start', lineHeight: 1.3,
       }}>{titre}</div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '5px', padding: '6px 12px 7px', minWidth: 0 }}>{children}</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '4px', padding: '4px 10px 5px', minWidth: 0 }}>{children}</div>
     </div>
   )
 }
@@ -365,7 +412,13 @@ function regrouperNoticesCatalogue(notices: NoticeCatalogueAdmin[], titreFallbac
   })).sort((a, b) => a.titre.localeCompare(b.titre, 'fr'))
 }
 
-function BlocCatalogueOeuvre({ oeuvre, notices }: { oeuvre: Oeuvre; notices: NoticeCatalogueAdmin[] }) {
+function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onRefuser, onEditerNotice }: {
+  oeuvre: Oeuvre; notices: NoticeCatalogueAdmin[]
+  datesAuteur: string | null
+  onValiderAdmin: (id: number) => void
+  onRefuser: (id: number) => void
+  onEditerNotice: (id: number, champ: string, valeur: string) => Promise<string | null>
+}) {
   if (notices.length === 0) {
     return (
       <div style={{ margin: '0 18px 8px 34px', padding: '10px 14px', borderRadius: '7px', border: '1px solid #f0c4b8', background: '#fff5f3', color: '#a43d2d', fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -380,7 +433,7 @@ function BlocCatalogueOeuvre({ oeuvre, notices }: { oeuvre: Oeuvre; notices: Not
       {groupes.map((groupe, gi) => (
         <div key={groupe.cle} style={{ borderTop: gi > 0 ? '2px solid #d8cfbc' : 'none' }}>
           <div style={{ padding: '9px 14px', background: '#f2ede4', borderBottom: '1px solid #e0d8ca' }}>
-            <span style={{ fontFamily: 'Georgia, serif', fontSize: '13.8px', fontWeight: 700, color: '#1a2820', lineHeight: 1.3 }}>
+            <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '13.8px', fontWeight: 700, color: '#1a2820', lineHeight: 1.3 }}>
               {groupe.titre}
             </span>
             <span style={{ fontSize: '10px', color: '#9a958d', marginLeft: '8px' }}>
@@ -388,13 +441,17 @@ function BlocCatalogueOeuvre({ oeuvre, notices }: { oeuvre: Oeuvre; notices: Not
             </span>
           </div>
 
-          {groupe.notices.map((n, ni) => (
+          {groupe.notices.map((n, ni) => {
+            // Fabrique d'un champ éditable : clic → saisie → enregistrement de CETTE notice.
+            const ed = (champ: string, brut: string | number | null): EditChamp =>
+              ({ champ, brut, onEnregistrer: (c, v) => onEditerNotice(n.id, c, v) })
+            return (
             <div key={n.id} style={{ borderTop: ni > 0 ? '1px solid #e8e1d4' : 'none' }}>
 
           {/* En-tête de la notice */}
           <div style={{ padding: '10px 14px 9px', background: '#f5f1e8', borderBottom: '1px solid #e4dfd8', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'Georgia, serif', fontSize: '12.6px', fontWeight: 500, color: '#4a4038', marginBottom: '8px', lineHeight: 1.3, fontStyle: n.titre_edition || n.titre_original ? 'italic' : 'normal' }}>
+              <div style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12.6px', fontWeight: 500, color: '#4a4038', marginBottom: '8px', lineHeight: 1.3, fontStyle: n.titre_edition || n.titre_original ? 'italic' : 'normal' }}>
                 {n.titre_edition || n.titre_original || n.titre_stable || oeuvre.titre}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
@@ -418,66 +475,176 @@ function BlocCatalogueOeuvre({ oeuvre, notices }: { oeuvre: Oeuvre; notices: Not
               </div>
             </div>
 
-            {/* Badges score + statut */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'flex-end', flexShrink: 0 }}>
-              <span style={{
-                fontSize: '16px', fontWeight: 700, lineHeight: 1,
-                color: couleurScoreCatalogue(n.score_fiabilite),
-                background: '#fff',
-                border: `2px solid ${couleurScoreCatalogue(n.score_fiabilite)}`,
-                padding: '3px 9px', borderRadius: '5px',
-                minWidth: '42px', textAlign: 'center',
-              }}>
-                {n.score_fiabilite ?? '?'}
-              </span>
-              <span style={{
-                fontSize: '9.5px', fontWeight: 600, padding: '3px 8px', borderRadius: '3px',
-                border: `1px solid ${n.verifie ? '#b8d4c4' : '#e5a99b'}`,
-                background: n.verifie ? '#edf5f0' : '#fff5f3',
-                color: n.verifie ? '#2f6046' : '#a43d2d',
-                whiteSpace: 'nowrap',
-              }}>
-                {n.verifie ? '✓ Validée' : '· À vérifier'}
-              </span>
+            {/* Badges score + statut, puis les deux actions d'administration. */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{
+                  fontSize: '15px', fontWeight: 700, lineHeight: 1,
+                  color: couleurScoreCatalogue(n.score_fiabilite),
+                  background: '#fff',
+                  border: `1.5px solid ${couleurScoreCatalogue(n.score_fiabilite)}`,
+                  padding: '3px 9px', borderRadius: '5px',
+                  minWidth: '40px', textAlign: 'center',
+                }}>
+                  {n.score_fiabilite ?? '?'}
+                </span>
+                <span style={{
+                  fontSize: '9.5px', fontWeight: 600, padding: '3px 8px', borderRadius: '3px',
+                  border: `1px solid ${n.verifie ? '#c1dbcb' : '#ecd6cc'}`,
+                  background: n.verifie ? '#f1f7f3' : '#fbf3ef',
+                  color: n.verifie ? '#3a6b50' : '#b06a54',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {n.verifie ? '✓ Validée' : '· À vérifier'}
+                </span>
+              </div>
+              {/* Validation admin : contrôle humain (verifie_admin). Refus admin : la fiche
+                  est consignée puis retirée de la liste ; elle reste en base pour que l'IA
+                  ne la propose plus. */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button onClick={() => onValiderAdmin(n.id)} disabled={n.verifie_admin}
+                  title={n.verifie_admin ? 'Déjà validée par un administrateur' : 'Valider cette fiche (contrôle humain)'}
+                  style={{
+                    fontSize: '9.5px', fontWeight: 600, padding: '4px 10px', borderRadius: '4px',
+                    border: `1px solid ${n.verifie_admin ? '#a9c9b6' : '#cbe0d4'}`,
+                    background: n.verifie_admin ? '#3d6b4f' : '#f4faf6',
+                    color: n.verifie_admin ? '#fff' : '#2f6046',
+                    cursor: n.verifie_admin ? 'default' : 'pointer', whiteSpace: 'nowrap',
+                  }}>
+                  {n.verifie_admin ? '✓ Validation admin' : 'Validation admin'}
+                </button>
+                <button onClick={() => onRefuser(n.id)}
+                  title="Refuser et consigner cette fiche (elle disparaît de la liste)"
+                  style={{
+                    fontSize: '9.5px', fontWeight: 600, padding: '4px 10px', borderRadius: '4px',
+                    border: '1px solid #e3c3b8', background: '#fdf4f0', color: '#a85a44',
+                    cursor: 'pointer', whiteSpace: 'nowrap',
+                  }}>
+                  Refus admin
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Corps — lignes de catalogue */}
           <div>
             <LigneCatalogue titre="Auteur">
-              <ChampCatalogue label="Auteur" valeur={n.auteur} />
-              <ChampCatalogue label="Authenticité" valeur={n.authenticite} transform={v => String(v).toUpperCase()} />
-              <ChampCatalogue label="Dates" valeur={formaterDateHistorique(n.dates_auteur)} />
+              <ChampCatalogue label="Auteur" valeur={n.auteur} edit={ed('auteur', n.auteur)} />
+              <ChampCatalogue label="Authenticité" valeur={n.authenticite} transform={v => String(v).toLowerCase()} edit={ed('authenticite', n.authenticite)} />
+              {/* Dates : on n'affiche PAS le champ redondant `dates_auteur` de la notice,
+                  mais la donnée de la table auteurs — source unique, non éditable ici. */}
+              <ChampCatalogue label="Dates" valeur={formaterDateHistorique(datesAuteur ?? n.dates_auteur)} />
             </LigneCatalogue>
             <LigneCatalogue titre="Titres">
-              <ChampCatalogue label="Stable" valeur={n.titre_stable} />
-              <ChampCatalogue label="Original" valeur={n.titre_original ?? oeuvre.titre_original} />
-              <ChampCatalogue label="Édition" valeur={n.titre_edition} />
+              <ChampCatalogue label="Stable" valeur={n.titre_stable} edit={ed('titre_stable', n.titre_stable)} />
+              <ChampCatalogue label="Original" valeur={n.titre_original ?? oeuvre.titre_original} edit={ed('titre_original', n.titre_original)} />
+              <ChampCatalogue label="Édition" valeur={n.titre_edition} edit={ed('titre_edition', n.titre_edition)} />
             </LigneCatalogue>
             <LigneCatalogue titre="Édition">
-              <ChampCatalogue label="Éditeur" valeur={n.editeur ?? oeuvre.editeur} />
+              <ChampCatalogue label="Éditeur" valeur={n.editeur ?? oeuvre.editeur} edit={ed('editeur', n.editeur)} />
               <ChampCatalogue label="Ville" valeur={oeuvre.ville} />
-              <ChampCatalogue label="Collection" valeur={n.collection_nom ?? oeuvre.collection} />
-              <ChampCatalogue label="Publication" valeur={dateCatalogue(n) || formaterDateHistorique(oeuvre.date_publication)} />
+              <ChampCatalogue label="Collection" valeur={n.collection_nom ?? oeuvre.collection} edit={ed('collection_nom', n.collection_nom)} />
+              <ChampCatalogue label="Publication" valeur={dateCatalogue(n) || formaterDateHistorique(oeuvre.date_publication)} edit={ed('annee_edition', n.annee_edition)} />
             </LigneCatalogue>
             <LigneCatalogue titre="Classement">
-              <ChampCatalogue label="Genre" valeur={n.genre ?? oeuvre.genres?.[0]} transform={majPremierMotCatalogue} />
-              <ChampCatalogue label="Langue" valeur={n.langue_originale ?? oeuvre.langue} transform={majPremierMotCatalogue} />
-              <ChampCatalogue label="Composition" valeur={formaterDateHistorique(n.date_oeuvre ?? oeuvre.date_composition)} />
+              <ChampCatalogue label="Genre" valeur={n.genre ?? oeuvre.genres?.[0]} transform={majPremierMotCatalogue} edit={ed('genre', n.genre)} />
+              <ChampCatalogue label="Langue" valeur={n.langue_originale ?? oeuvre.langue} transform={majPremierMotCatalogue} edit={ed('langue_originale', n.langue_originale)} />
+              <ChampCatalogue label="Composition" valeur={formaterDateHistorique(n.date_oeuvre ?? oeuvre.date_composition)} edit={ed('date_oeuvre', n.date_oeuvre)} />
             </LigneCatalogue>
             <LigneCatalogue titre="Import">
-              <ChampCatalogue label="Décision" valeur={n.decision_import} accent transform={() => labelDecisionCatalogue(n.decision_import)} />
-              <ChampCatalogue label="Vérif." valeur={n.niveau_verification} />
-              <ChampCatalogue label="URL" valeur={n.url_source ?? oeuvre.url_source} />
+              <ChampCatalogue label="Décision" valeur={n.decision_import} accent transform={() => labelDecisionCatalogue(n.decision_import)} edit={ed('decision_import', n.decision_import)} />
+              <ChampCatalogue label="Vérif." valeur={n.niveau_verification} edit={ed('niveau_verification', n.niveau_verification)} />
+              <ChampCatalogue label="URL" valeur={n.url_source ?? oeuvre.url_source} lien />
               <ChampCatalogue label="Sur site" valeur={n.presence_sur_le_site} transform={v => v ? 'OUI' : 'NON'} />
               <ChampCatalogue label="Notice" valeur={n.verifie} transform={v => v ? 'VALIDÉE' : 'NON VALIDÉE'} />
             </LigneCatalogue>
           </div>
 
             </div>
-          ))}
+            )
+          })}
         </div>
       ))}
+    </div>
+  )
+}
+
+// Boutons Validation / Refus admin d'une fiche, réutilisés hors des œuvres du site.
+function BoutonsAdminNotice({ n, onValiderAdmin, onRefuser }: {
+  n: NoticeCatalogueAdmin; onValiderAdmin: (id: number) => void; onRefuser: (id: number) => void
+}) {
+  return (
+    <>
+      <button onClick={() => onValiderAdmin(n.id)} disabled={n.verifie_admin}
+        title={n.verifie_admin ? 'Déjà validée par un administrateur' : 'Valider cette fiche (contrôle humain)'}
+        style={{ fontSize: '9.5px', fontWeight: 600, padding: '3px 9px', borderRadius: '4px',
+          border: `1px solid ${n.verifie_admin ? '#a9c9b6' : '#cbe0d4'}`,
+          background: n.verifie_admin ? '#3d6b4f' : '#f4faf6', color: n.verifie_admin ? '#fff' : '#2f6046',
+          cursor: n.verifie_admin ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+        {n.verifie_admin ? '✓ Validation admin' : 'Validation admin'}
+      </button>
+      <button onClick={() => onRefuser(n.id)} title="Refuser et consigner cette fiche (elle disparaît de la liste)"
+        style={{ fontSize: '9.5px', fontWeight: 600, padding: '3px 9px', borderRadius: '4px',
+          border: '1px solid #e3c3b8', background: '#fdf4f0', color: '#a85a44', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+        Refus admin
+      </button>
+    </>
+  )
+}
+
+// Un auteur qui n'existe QUE dans le catalogue (aucune fiche `auteurs`) : ses œuvres
+// répertoriées, dépliables, avec les actions d'administration. C'est ce qui manquait pour
+// que « Tout afficher » montre réellement tout le catalogue.
+function BlocCatalogueAuteurSeul({ nom, notices, onValiderAdmin, onRefuser }: {
+  nom: string
+  notices: NoticeCatalogueAdmin[]
+  onValiderAdmin: (id: number) => void
+  onRefuser: (id: number) => void
+}) {
+  const [ouvert, setOuvert] = useState(false)
+  return (
+    <div style={{ border: '1px solid #e7ddc6', borderRadius: '8px', background: '#fdfcf7', overflow: 'hidden' }}>
+      <button onClick={() => setOuvert(o => !o)}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '8px 14px', background: '#faf6ec', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+        <span style={{ display: 'flex', alignItems: 'baseline', gap: '9px', minWidth: 0 }}>
+          <span style={{ fontSize: '8px', color: '#b0a480' }}>{ouvert ? '▲' : '▼'}</span>
+          <span style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '12px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#7a6a48' }}>{nom}</span>
+          <span style={{ fontSize: '10px', color: '#a89a80' }}>{notices.length} œuvre{notices.length > 1 ? 's' : ''} au catalogue</span>
+        </span>
+        <span style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#c0a86a', flexShrink: 0 }}>Catalogue seul</span>
+      </button>
+      {ouvert && (
+        <div>
+          {notices.map((n, i) => (
+            <div key={n.id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', flexWrap: 'wrap', padding: '8px 14px', borderTop: '1px solid #f0ebdd' }}>
+              <div style={{ flex: 1, minWidth: '200px' }}>
+                <div style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12.5px', fontStyle: 'italic', color: '#3a342e', lineHeight: 1.3 }}>
+                  {n.titre_edition || n.titre_stable || n.titre_original || '(sans titre)'}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginTop: '3px', fontSize: '10.5px', color: '#9a8f7e' }}>
+                  {n.annee_edition && <span>{n.annee_edition}</span>}
+                  {n.traducteur && <span style={{ fontStyle: 'italic' }}>trad. {n.traducteur}</span>}
+                  {n.editeur && <span>{n.editeur}</span>}
+                  {n.decision_import && (
+                    <span title={n.decision_import} style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '1px 6px', borderRadius: '3px', ...decorDecision(n.decision_import) }}>
+                      {abregerDecision(n.decision_import)}
+                    </span>
+                  )}
+                  {n.url_source && (
+                    <a href={n.url_source} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline', textUnderlineOffset: '2px' }}>Source ↗</a>
+                  )}
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                <span title="Score" style={{ fontSize: '10px', fontWeight: 700, padding: '3px 7px', borderRadius: '4px', border: `1.5px solid ${couleurScoreCatalogue(n.score_fiabilite)}`, color: couleurScoreCatalogue(n.score_fiabilite), background: '#fff', minWidth: '30px', textAlign: 'center' }}>
+                  {n.score_fiabilite ?? '?'}
+                </span>
+                <BoutonsAdminNotice n={n} onValiderAdmin={onValiderAdmin} onRefuser={onRefuser} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -652,6 +819,27 @@ function ChampsAuteur({ valeurs, onChange, onChangeTags, tousLesTags }: {
   )
 }
 
+// `decision_import` est rédigée en clair, parfois sur deux lignes (« Candidat prioritaire
+// à l'import après contrôle du fac-similé et de l'OCR »). Illisible dans une pastille : on
+// n'en garde que la famille, le texte entier restant en infobulle.
+function abregerDecision(d: string): string {
+  const s = d.toLowerCase()
+  if (s.startsWith('candidat')) return s.includes('prioritaire') ? 'Prioritaire' : 'Candidat'
+  if (s.startsWith('bibliographie')) return 'Biblio seule'
+  if (s.startsWith('écarter') || s.startsWith('ecarter')) return 'À écarter'
+  if (s.startsWith('importé') || s.startsWith('importe')) return 'Importé'
+  if (s.startsWith('repérage') || s.startsWith('reperage')) return 'Repérage'
+  return 'Autre'
+}
+
+function decorDecision(d: string): React.CSSProperties {
+  const s = d.toLowerCase()
+  if (s.startsWith('candidat')) return { background: '#f2f8f4', color: '#2f6046', border: '1px solid #c8d8ce' }
+  if (s.startsWith('bibliographie')) return { background: '#f4f2fa', color: '#5a4b9c', border: '1px solid #cfc8e6' }
+  if (s.startsWith('écarter') || s.startsWith('ecarter')) return { background: '#fdf0ec', color: '#9a4a2a', border: '1px solid #e6c4b4' }
+  return { background: '#f4f2ee', color: '#6b6560', border: '1px solid #ddd6cc' }
+}
+
 // ── Section Bibliothèque (fusionnée avec la gestion des auteurs) ─────────────
 export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs: Auteur[] }) {
   const [auteurs, setAuteurs] = useState<Auteur[]>(auteursInit)
@@ -659,6 +847,13 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   const [afficherTousAuteurs, setAfficherTousAuteurs] = useState(false)
   const [catalogueParOeuvre, setCatalogueParOeuvre] = useState<Record<string, NoticeCatalogueAdmin[]>>({})
   const [catalogueDeploye, setCatalogueDeploye] = useState<Record<string, boolean>>({})
+  // Le catalogue ENTIER, rangé par auteur : 2 502 notices pour 17 œuvres publiées. On ne
+  // le charge qu'au premier « Tout afficher », et une seule fois.
+  const [catalogueParAuteur, setCatalogueParAuteur] = useState<Record<string, NoticeCatalogueAdmin[]> | null>(null)
+  // Auteurs présents UNIQUEMENT au catalogue (aucune fiche dans la table `auteurs`, ou
+  // id_auteur absent) : regroupés par nom, ils n'avaient jusqu'ici aucun bloc où paraître.
+  const [catalogueAutres, setCatalogueAutres] = useState<Record<string, NoticeCatalogueAdmin[]> | null>(null)
+  const [chargementCatalogue, setChargementCatalogue] = useState(false)
   const [auteurOuvert, setAuteurOuvert] = useState<string | null>(null)
   const [exporting, setExporting] = useState<string | null>(null)
   const [preview, setPreview] = useState<{ lignes: LignePreview[]; nomFichier: string; idOeuvre: string } | null>(null)
@@ -723,6 +918,51 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     })()
     return () => { annule = true }
   }, [auteurs])
+
+  // « Tout afficher » ne dévoilait que les auteurs sans œuvre publiée. Il doit montrer
+  // TOUT le catalogue : 2 502 notices contre 17 œuvres sur le site, soit l'essentiel du
+  // travail à venir, jusqu'ici invisible depuis cet écran. Chargement à la demande, une
+  // seule fois — l'API accepte jusqu'à 5 000 lignes par appel.
+  React.useEffect(() => {
+    if (!afficherTousAuteurs || catalogueParAuteur !== null || chargementCatalogue) return
+    let annule = false
+    setChargementCatalogue(true)
+    ;(async () => {
+      try {
+        const headers = await headersAdmin()
+        const idsConnus = new Set(auteurs.map(a => a.id_auteur))
+        const groupes: Record<string, NoticeCatalogueAdmin[]> = {}   // auteurs de la table
+        const autres: Record<string, NoticeCatalogueAdmin[]> = {}    // auteurs seulement au catalogue
+        for (let page = 0; page < 40; page += 1) {
+          const params = new URLSearchParams({ limit: '1000', page: String(page) })
+          const res = await fetch(`/api/admin/catalogue?${params}`, { headers })
+          if (!res.ok) break
+          const json = await res.json()
+          const lot: NoticeCatalogueAdmin[] = json.data ?? []
+          lot.forEach(notice => {
+            if (notice.id_auteur && idsConnus.has(notice.id_auteur)) {
+              (groupes[notice.id_auteur] ??= []).push(notice)
+            } else {
+              // Aucun auteur en base : on range sous le nom porté par la notice.
+              const cle = (notice.auteur || '').trim() || '(Auteur non identifié)'
+              ;(autres[cle] ??= []).push(notice)
+            }
+          })
+          if (lot.length < 1000) break
+        }
+        Object.values(groupes).forEach(liste =>
+          liste.sort((a, b) => (a.titre_stable ?? '').localeCompare(b.titre_stable ?? '', 'fr')))
+        Object.values(autres).forEach(liste =>
+          liste.sort((a, b) => (a.titre_stable ?? '').localeCompare(b.titre_stable ?? '', 'fr')))
+        if (!annule) { setCatalogueParAuteur(groupes); setCatalogueAutres(autres) }
+      } catch {
+        if (!annule) { setCatalogueParAuteur({}); setCatalogueAutres({}) }
+      } finally {
+        if (!annule) setChargementCatalogue(false)
+      }
+    })()
+    return () => { annule = true }
+  }, [afficherTousAuteurs, catalogueParAuteur, chargementCatalogue])
 
   const uploadPhoto = async (idAuteur: string, fichier: File) => {
     const fichierRedim = await redimensionnerImage(fichier, 300, 450)
@@ -870,6 +1110,52 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   }
 
   const handleExport = async (idOeuvre: string, titre: string) => { setExporting(idOeuvre); await exporterOeuvre(idOeuvre, titre); setExporting(null) }
+
+  // ── Validation / refus admin d'une fiche catalogue ──────────────────────────
+  const patchNotice = async (id: number, corps: Record<string, boolean>) => {
+    const res = await fetch('/api/admin/catalogue', {
+      method: 'PATCH',
+      headers: await headersAdmin({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ id, ...corps }),
+    })
+    return res.ok
+  }
+  const majNoticeLocale = (id: number, patch: Partial<NoticeCatalogueAdmin> | null) => {
+    const appliquer = (liste: NoticeCatalogueAdmin[]) =>
+      patch === null ? liste.filter(n => n.id !== id) : liste.map(n => n.id === id ? { ...n, ...patch } : n)
+    setCatalogueParOeuvre(prev => Object.fromEntries(Object.entries(prev).map(([k, l]) => [k, appliquer(l)])))
+    setCatalogueParAuteur(prev => prev ? Object.fromEntries(Object.entries(prev).map(([k, l]) => [k, appliquer(l)])) : prev)
+    setCatalogueAutres(prev => prev ? Object.fromEntries(Object.entries(prev).map(([k, l]) => [k, appliquer(l)])) : prev)
+  }
+  const validerAdminNotice = async (id: number) => {
+    if (!(await patchNotice(id, { verifie_admin: true }))) { alert('Échec de la validation admin.'); return }
+    majNoticeLocale(id, { verifie_admin: true })
+  }
+  const refuserNotice = async (id: number) => {
+    if (!window.confirm('Refuser et consigner cette fiche ? Elle disparaîtra de la liste (mais reste conservée en base).')) return
+    if (!(await patchNotice(id, { refuse_admin: true }))) { alert('Échec du refus.'); return }
+    majNoticeLocale(id, null)
+  }
+  // Édition en ligne d'un champ de notice. Renvoie null si tout va bien, sinon le message
+  // d'erreur (par ex. le refus du déclencheur sur un titre stable déjà validé).
+  const editerNotice = async (id: number, champ: string, valeur: string): Promise<string | null> => {
+    const res = await fetch('/api/admin/catalogue', {
+      method: 'PATCH',
+      headers: await headersAdmin({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ id, champs: { [champ]: valeur } }),
+    })
+    if (!res.ok) { const j = await res.json().catch(() => ({})); return j.error || 'Échec de l’enregistrement.' }
+    const brut = valeur.trim()
+    const coerce = (): string | number | null => {
+      if (champ === 'annee_edition' || champ === 'score_fiabilite') {
+        if (brut === '') return null
+        const nb = Number(brut.replace(/[^\d-]/g, '')); return Number.isFinite(nb) ? nb : null
+      }
+      return brut === '' ? null : brut
+    }
+    majNoticeLocale(id, { [champ]: coerce() } as Partial<NoticeCatalogueAdmin>)
+    return null
+  }
 
   const supprimerOeuvre = async (idOeuvre: string, titre: string) => {
     if (!confirm(`Supprimer définitivement l'œuvre « ${titre } » (${idOeuvre}) ?\n\nCette action supprimera aussi tous ses segments. Elle est irréversible.`)) return
@@ -1029,7 +1315,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
             <div onClick={e => e.stopPropagation()}
               style={{ background: '#fff', borderRadius: '10px', padding: '24px 28px', width: '480px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <p style={{ fontFamily: "Georgia, serif", fontSize: '14px', color: '#2a3d30', margin: 0 }}>{oeuvreNom}</p>
+                <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '14px', color: '#2a3d30', margin: 0 }}>{oeuvreNom}</p>
                 <button onClick={() => setConfigOeuvre(null)} style={{ fontSize: '14px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
               </div>
 
@@ -1118,9 +1404,12 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           style={{ fontSize: '12px', padding: '6px 12px', borderRadius: '5px', border: '1px solid #d6d0c4', background: afficherTousAuteurs ? '#f7f4ef' : '#fff', color: '#6b6560', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
           {afficherTousAuteurs ? 'Auteurs présents' : `Tout afficher${nbAuteursMasques > 0 ? ` (${nbAuteursMasques})` : ''}`}
         </button>
+        {/* En rouge : cette vue REMPLACE le texte d'une œuvre entière. Le libellé
+            « Segments » ne disait pas ce qu'on y fait, ni ce qu'on y risque. */}
         <button onClick={() => setVueBibliotheque(v => v === 'segments' ? 'oeuvres' : 'segments')}
-          style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: '1px solid #3d6b4f', background: vueBibliotheque === 'segments' ? '#3d6b4f' : '#fff', color: vueBibliotheque === 'segments' ? '#fff' : '#3d6b4f', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}>
-          ↺ Segments
+          title="Remplacer intégralement les segments d’une œuvre par un nouveau fichier"
+          style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: '1px solid #c0562a', background: vueBibliotheque === 'segments' ? '#c0562a' : '#fff7f4', color: vueBibliotheque === 'segments' ? '#fff' : '#9a2a2a', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}>
+          ↺ Remplacer la base
         </button>
       </div>
 
@@ -1169,7 +1458,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: (ouvert || editionAuteur === auteur.id_auteur) ? '1px solid #e4dfd8' : 'none' }}>
               <button onClick={() => setAuteurOuvert(auteurOuvert === auteur.id_auteur ? null : auteur.id_auteur)}
                 style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-                <span style={{ fontFamily: "Georgia, serif", fontSize: '15px', fontWeight: 700, color: '#3d6b4f' }}>{auteur.nom}</span>
+                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '15px', fontWeight: 700, color: '#3d6b4f' }}>{auteur.nom}</span>
                 <span style={{ fontSize: '11px', color: '#b0a89e' }}>{auteur.oeuvres.length} œuvre{auteur.oeuvres.length > 1 ? 's' : ''}</span>
               </button>
               <div style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center', marginLeft: '12px' }}>
@@ -1209,7 +1498,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
             {editionAuteur === auteur.id_auteur && (
               <div style={{ padding: '16px 20px 18px', borderBottom: auteurOuvert === auteur.id_auteur ? '1px solid #e4dfd8' : 'none', background: '#fff', borderLeft: '3px solid #3d6b4f' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid #ede9e2' }}>
-                  <span style={{ fontFamily: "Georgia, serif", fontSize: '13.5px', color: '#2a3d30' }}>
+                  <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '13.5px', color: '#2a3d30' }}>
                     Modification — <em>{auteur.nom}</em>
                   </span>
                   <code style={{ fontSize: '9.5px', background: '#f0ece6', padding: '2px 6px', borderRadius: '3px', color: '#6b6560' }}>{auteur.id_auteur}</code>
@@ -1300,7 +1589,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                         ⚙
                       </button>
                       <button onClick={() => editionOeuvre === oeuvre.id_oeuvre ? fermerEditionOeuvre() : ouvrirEditionOeuvre(oeuvre)}
-                        style={editionOeuvre === oeuvre.id_oeuvre ? btnActif : btnSobre}>
+                        style={{ ...(editionOeuvre === oeuvre.id_oeuvre ? btnActif : btnSobre), minWidth: '58px', textAlign: 'center' }}>
                         {editionOeuvre === oeuvre.id_oeuvre ? 'Fermer' : 'Modifier'}
                       </button>
                       <button onClick={() => { setResultat(null); inputRefs.current[oeuvre.id_oeuvre]?.click() }}
@@ -1313,15 +1602,15 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                       </button>
                       <span style={{ width: '1px', height: '16px', background: '#e4dfd8', display: 'inline-block', marginLeft: '2px' }} />
                       <span title="Score de la fiche catalogue"
-                        style={{ fontSize: '10px', padding: '3px 7px', borderRadius: '4px', border: '1px solid #ded8ce', background: '#faf8f4', color: couleurScoreCatalogue(noticeCatalogue?.score_fiabilite), fontWeight: 700, minWidth: '34px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                        style={{ fontSize: '10px', padding: '3px 7px', borderRadius: '4px', border: '1px solid #ded8ce', background: '#faf8f4', color: couleurScoreCatalogue(noticeCatalogue?.score_fiabilite), fontWeight: 700, width: '58px', boxSizing: 'border-box', textAlign: 'center', whiteSpace: 'nowrap' }}>
                         Score {noticeCatalogue?.score_fiabilite ?? '?'}
                       </span>
                       <span title="Etat de validation de la fiche catalogue"
-                        style={{ fontSize: '10px', padding: '3px 7px', borderRadius: '4px', border: `1px solid ${noticeCatalogue?.verifie ? '#c8d8ce' : '#e4d3c8'}`, background: noticeCatalogue?.verifie ? '#f7fbf8' : '#fbf7f2', color: noticeCatalogue?.verifie ? '#2f6046' : '#8a5a32', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                        style={{ fontSize: '10px', padding: '3px 7px', borderRadius: '4px', border: `1px solid ${noticeCatalogue?.verifie ? '#c8d8ce' : '#e4d3c8'}`, background: noticeCatalogue?.verifie ? '#f7fbf8' : '#fbf7f2', color: noticeCatalogue?.verifie ? '#2f6046' : '#8a5a32', fontWeight: 600, width: '104px', boxSizing: 'border-box', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {noticeCatalogue?.verifie ? 'Statut validé' : 'Statut à vérifier'}
                       </span>
                       <button onClick={() => setCatalogueDeploye(prev => ({ ...prev, [oeuvre.id_oeuvre]: !prev[oeuvre.id_oeuvre] }))}
-                        style={catalogueOuvert ? btnActif : btnVert}>
+                        style={{ ...(catalogueOuvert ? btnActif : btnVert), minWidth: '52px', textAlign: 'center' }}>
                         {catalogueOuvert ? 'Replier' : 'Détails'}
                       </button>
                       <a href={`/admin?onglet=controle-oeuvres&id_oeuvre=${oeuvre.id_oeuvre}`}
@@ -1337,7 +1626,10 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                   </div>
 
                   {catalogueOuvert && (
-                    <BlocCatalogueOeuvre oeuvre={oeuvre} notices={noticesCatalogue} />
+                    <BlocCatalogueOeuvre oeuvre={oeuvre} notices={noticesCatalogue}
+                      datesAuteur={auteur.dates ?? null}
+                      onValiderAdmin={validerAdminNotice} onRefuser={refuserNotice}
+                      onEditerNotice={editerNotice} />
                   )}
 
                   {/* Formulaire d'édition de l'œuvre */}
@@ -1345,7 +1637,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     <div style={{ padding: '16px 22px 18px', background: '#fff', borderTop: '1px solid #ede9e2', borderLeft: '3px solid #3d6b4f' }}>
                       {/* En-tête */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid #ede9e2' }}>
-                        <span style={{ fontFamily: "Georgia, serif", fontSize: '13.5px', color: '#2a3d30' }}>
+                        <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '13.5px', color: '#2a3d30' }}>
                           Modification — <em>{oeuvre.titre}</em>
                         </span>
                         <code style={{ fontSize: '9.5px', background: '#f0ece6', padding: '2px 6px', borderRadius: '3px', color: '#6b6560' }}>{oeuvre.id_oeuvre}</code>
@@ -1415,10 +1707,84 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                   </div>
                 )
                 })}
+
+                {/* Le reste du catalogue : les œuvres de cet auteur qui NE SONT PAS sur le
+                    site. Elles ne paraissent qu'en mode « Tout afficher », et se distinguent
+                    d'un liseré ambre — on ne peut ni les exporter ni les segmenter, il n'y a
+                    pas encore de texte derrière. */}
+                {afficherTousAuteurs && (() => {
+                  if (chargementCatalogue) {
+                    return <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', margin: '8px 0 0' }}>Chargement du catalogue…</p>
+                  }
+                  const surLeSite = new Set(auteur.oeuvres.map(o => o.id_oeuvre))
+                  const restantes = (catalogueParAuteur?.[auteur.id_auteur] ?? [])
+                    .filter(n => !n.id_oeuvre_stable || !surLeSite.has(n.id_oeuvre_stable))
+                  if (restantes.length === 0) return null
+                  return (
+                    <div style={{ marginTop: auteur.oeuvres.length ? '14px' : '0' }}>
+                      <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '9px', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: '#9a7a40', margin: '0 0 7px' }}>
+                        Au catalogue, pas encore sur le site — {restantes.length}
+                      </p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        {restantes.map(n => (
+                          <div key={n.id}
+                            style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap', padding: '6px 10px', borderLeft: '2px solid #d8bd82', background: '#fffdf7', borderRadius: '0 4px 4px 0' }}>
+                            <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12.5px', color: '#3a3530' }}>
+                              {n.titre_stable || n.titre_original || '(sans titre)'}
+                            </span>
+                            {n.annee_edition && <span style={{ fontSize: '10.5px', color: '#9a958d' }}>{n.annee_edition}</span>}
+                            {n.traducteur && <span style={{ fontSize: '10.5px', color: '#9a958d', fontStyle: 'italic' }}>trad. {n.traducteur}</span>}
+                            <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                              {n.decision_import && (
+                                <span title={n.decision_import}
+                                  style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: '3px', whiteSpace: 'nowrap', ...decorDecision(n.decision_import) }}>
+                                  {abregerDecision(n.decision_import)}
+                                </span>
+                              )}
+                              {n.url_source && (
+                                <a href={n.url_source} target="_blank" rel="noreferrer"
+                                  style={{ fontSize: '10.5px', color: '#3d6b4f', textDecoration: 'none', whiteSpace: 'nowrap' }}>Source ↗</a>
+                              )}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
             )}
           </div>
         )})}
+
+        {/* Auteurs présents UNIQUEMENT au catalogue (aucune fiche `auteurs`) : sans ce
+            bloc, « Tout afficher » laissait invisible l'essentiel du catalogue. */}
+        {afficherTousAuteurs && chargementCatalogue && catalogueAutres === null && (
+          <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', padding: '8px 2px' }}>Chargement du catalogue…</p>
+        )}
+        {afficherTousAuteurs && catalogueAutres && (() => {
+          const entrees = Object.entries(catalogueAutres)
+            .filter(([nom, ns]) => !rechercheNormalisee
+              || nom.toLowerCase().includes(rechercheNormalisee)
+              || ns.some(n => [n.titre_stable, n.titre_original, n.titre_edition].some(t => (t ?? '').toLowerCase().includes(rechercheNormalisee))))
+            .sort((a, b) => a[0].localeCompare(b[0], 'fr'))
+          if (entrees.length === 0) return null
+          const total = entrees.reduce((s, [, ns]) => s + ns.length, 0)
+          return (
+            <>
+              <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: '#9a7a40', whiteSpace: 'nowrap' }}>
+                  Auteurs seulement au catalogue — {entrees.length} auteur{entrees.length > 1 ? 's' : ''}, {total} œuvre{total > 1 ? 's' : ''}
+                </span>
+                <span style={{ flex: 1, height: '1px', background: '#e6ddc6' }} />
+              </div>
+              {entrees.map(([nom, ns]) => (
+                <BlocCatalogueAuteurSeul key={nom} nom={nom} notices={ns}
+                  onValiderAdmin={validerAdminNotice} onRefuser={refuserNotice} />
+              ))}
+            </>
+          )
+        })()}
       </div>
       </>
       )}

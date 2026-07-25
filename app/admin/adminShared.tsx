@@ -3,6 +3,7 @@
 import React from 'react'
 import { supabase as supabaseNavigateur } from '@/app/lib/supabase'
 import type { SegInfo } from './adminTypes'
+import { Siecle, siecleEnTexte } from '@/app/lib/siecles'
 
 export const supabase = supabaseNavigateur
 
@@ -12,28 +13,16 @@ export async function headersAdmin(init?: HeadersInit): Promise<HeadersInit> {
   return token ? { ...(init ?? {}), Authorization: `Bearer ${token}` } : (init ?? {})
 }
 
+// Les deux fonctions viennent de app/lib/siecles.tsx : elles dupliquaient la
+// table des chiffres romains, et `SiecleDisplay` posait `small-caps` sur un
+// « IV » déjà capital — c'est-à-dire rien du tout.
 export function formatSiecle(n: number | null | undefined): string {
-  if (!n) return ''
-  const abs = Math.abs(n)
-  const chiffres = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
-    'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX',
-    'XXI', 'XXII', 'XXIII', 'XXIV', 'XXV']
-  const romain = chiffres[abs] ?? String(abs)
-  const suf = abs === 1 ? 'er' : 'e'
-  const av = n < 0 ? ' av. J.-C.' : ''
-  return `${romain}${suf} siècle${av}`
+  return n ? siecleEnTexte(n) : ''
 }
 
 export function SiecleDisplay({ n }: { n: number | null | undefined }) {
   if (!n) return null
-  const abs = Math.abs(n)
-  const chiffres = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
-    'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX',
-    'XXI', 'XXII', 'XXIII', 'XXIV', 'XXV']
-  const romain = chiffres[abs] ?? String(abs)
-  const suf = abs === 1 ? 'er' : 'e'
-  const av = n < 0 ? ' av. J.-C.' : ''
-  return <span><span style={{ fontVariant: 'small-caps' }}>{romain}</span><sup style={{ fontSize: '0.65em' }}>{suf}</sup> siècle{av}</span>
+  return <Siecle n={n} />
 }
 
 export function dateFormat(s: string) {

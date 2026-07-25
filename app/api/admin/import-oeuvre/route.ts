@@ -40,7 +40,10 @@ function nulSiVide(v: unknown): string | null {
   return s ? s : null
 }
 
-const FIABILITE_VALIDES = ['probable', 'Lien à constituer']
+// Vocabulaire unique de la fiabilité (charte §24.3). « Lien à constituer » et
+// « à_vérifier » ont disparu le 20 juillet 2026 : les accepter faisait passer des
+// valeurs mortes, les refuser en silence faisait perdre les valeurs vivantes.
+const FIABILITE_VALIDES = ['à constituer', 'douteux', 'probable', 'vérifié']
 const NATURE_VALIDES = ['texte', 'separateur', 'apparat_critique', 'citation', 'texte absent']
 
 function normaliserSegment(s: SegmentCsv, idOeuvre: string, index: number) {

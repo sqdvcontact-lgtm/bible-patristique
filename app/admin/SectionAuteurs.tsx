@@ -163,7 +163,7 @@ export default function SectionAuteurs() {
               <div key={a.id_auteur} style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', overflow: 'hidden' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flex: 1, minWidth: 0 }}>
-                      <span style={{ fontFamily: "Georgia, serif", fontSize: '14px', color: '#2a3d30' }}>{a.nom}</span>
+                      <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '14px', color: '#2a3d30' }}>{a.nom}</span>
                       {a.dates && <span style={{ fontSize: '11px', color: '#9a958d' }}>{formaterDateHistorique(a.dates)}</span>}
                       {a.siecle && <span style={{ fontSize: '10.5px', color: '#9a958d' }}><SiecleDisplay n={parseInt(a.siecle)} /></span>}
                       {a.tradition && <span style={{ fontSize: '10.5px', color: '#9a958d', background: '#eeeae4', padding: '1px 6px', borderRadius: '3px' }}>{a.tradition}</span>}

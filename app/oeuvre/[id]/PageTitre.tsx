@@ -4,8 +4,18 @@ import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 
 const TITRES_RE = /^(M\.|Mme\.?|Mlle\.?|Dr\.?|Pr\.?|Dom |Père |Frère |Sœur |Abbé |Saint |Sainte |Rev\.? ?|Mgr\.?|R\.\s*P\.|l['']abbé|le père)/i
 
+/** « A ; B » → « A et B » ; « A ; B ; C » → « A, B et C ».
+ *  Le point-virgule est la façon dont le catalogue sépare les noms ; il n'a
+ *  rien à faire dans une phrase affichée. */
+export function enumererNoms(noms: string[]): string {
+  if (noms.length <= 1) return noms[0] ?? ''
+  return `${noms.slice(0, -1).join(', ')} et ${noms[noms.length - 1]}`
+}
+
 export function libelleTrad(trad: string | null | undefined): string {
-  const t = (trad ?? '').trim()
+  const noms = (trad ?? '').split(/\s*;\s*/).map(s => s.trim()).filter(Boolean)
+  if (noms.length > 1) return `Traduction par ${enumererNoms(noms)}`
+  const t = noms[0] ?? ''
   if (!t) return ''
   if (t.toLowerCase() === 'anonyme') return 'Traduction anonyme'
   if (TITRES_RE.test(t)) return `Traduction : ${t}`
@@ -39,7 +49,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier 
 
       {/* Titre principal */}
       <div style={{ position: 'relative', maxWidth: '560px' }}>
-        <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.2, marginBottom: oeuvre.sous_titre ? '4px' : oeuvre.titre_original ? '18px' : '32px', whiteSpace: 'pre-line' }}>
+        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.2, marginBottom: oeuvre.sous_titre ? '4px' : oeuvre.titre_original ? '18px' : '32px', whiteSpace: 'pre-line' }}>
           {rendreTexteEnrichi(titre)}
         </h1>
         {estAdmin && (
@@ -51,7 +61,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier 
       {/* Sous-titre */}
       {(oeuvre.sous_titre || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '560px' }}>
-          <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 'clamp(16px, 2vw, 20px)', fontStyle: 'normal', color: '#6f675f', margin: oeuvre.titre_original ? '0 0 22px' : '0 0 40px', lineHeight: 1.32, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
+          <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(16px, 2vw, 20px)', fontStyle: 'normal', color: '#6f675f', margin: oeuvre.titre_original ? '0 0 22px' : '0 0 40px', lineHeight: 1.32, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
             {oeuvre.sous_titre ? rendreTexteEnrichi(oeuvre.sous_titre) : estAdmin ? <span style={{ color: '#d6d0c4', fontStyle: 'italic', fontSize: '13px' }}>Sous-titre…</span> : null}
           </p>
           {estAdmin && (
@@ -64,7 +74,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier 
       {/* Titre original */}
       {(oeuvre.titre_original || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '560px' }}>
-          <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 'clamp(15px, 2vw, 19px)', fontStyle: 'italic', color: '#8a8278', marginBottom: '40px', letterSpacing: 0, whiteSpace: 'pre-line' }}>
+          <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(15px, 2vw, 19px)', fontStyle: 'italic', color: '#8a8278', marginBottom: '40px', letterSpacing: 0, whiteSpace: 'pre-line' }}>
             {oeuvre.titre_original ? oeuvre.titre_original : estAdmin ? <span style={{ color: '#d6d0c4', fontSize: '13px' }}>Titre original…</span> : null}
           </p>
           {estAdmin && (

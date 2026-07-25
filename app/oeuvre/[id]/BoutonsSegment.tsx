@@ -7,6 +7,7 @@ import { texteSansEnrichissement } from './texteEnrichi'
 import ModalSignalement from './ModalSignalement'
 import { insererSignalement } from './signalements'
 import { Bulle } from '@/app/components/Bulle'
+import IconeSignet from '@/app/components/IconeSignet'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 
 // Style partagé par tous les petits boutons d'action (segment ET verset)
@@ -54,8 +55,11 @@ export function BoutonEnregistrerSegment({
       <Bulle texte="Retirer des prélèvements">
         <button onClick={supprimer} disabled={loading}
           className="seg-btn-enreg"
-          style={{ ...BTN_STYLE, color:'#3d6b4f' }}
-          aria-label="Retirer">{loading ? '…' : '✕'}</button>
+          // Visible sans survol : le signet plein constate un état, et un état
+          // qu'il faut survoler pour connaître ne se voit jamais. La classe est
+          // conservée pour le reste de son style ; seule l'opacité est forcée.
+          style={{ ...BTN_STYLE, color:'#3d6b4f', opacity:1 }}
+          aria-label="Retirer des prélèvements">{loading ? '…' : <IconeSignet plein />}</button>
       </Bulle>
     )
   }
@@ -78,11 +82,7 @@ export function BoutonEnregistrerSegment({
         className="seg-btn-enreg"
         style={{ ...BTN_STYLE, color:'#c8c0b4' }}
         aria-label="Enregistrer">
-        {loading ? '…' : (
-          <svg width="12" height="13" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display:'block' }}>
-            <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round"/>
-          </svg>
-        )}
+        {loading ? '…' : <IconeSignet />}
       </button>
     </Bulle>
   )

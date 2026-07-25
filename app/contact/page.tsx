@@ -50,7 +50,7 @@ export default function ContactPage() {
         <p style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "#3d6b4f", marginBottom: "10px" }}>
           Nous écrire
         </p>
-        <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "clamp(26px, 3.5vw, 34px)", fontWeight: "normal", color: "#2a3d30", marginBottom: "12px", lineHeight: 1.25 }}>
+        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "clamp(26px, 3.5vw, 34px)", fontWeight: "normal", color: "#2a3d30", marginBottom: "12px", lineHeight: 1.25 }}>
           Contact
         </h1>
         <p style={{ fontSize: "13.5px", color: "#566150", lineHeight: 1.7, marginBottom: "28px" }}>

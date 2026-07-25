@@ -10,6 +10,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import Image from "next/image";
+import { STYLE_ROMAIN, STYLE_ORDINAL, enChiffresRomains } from "@/app/lib/siecles";
 
 type Mode = "connexion" | "inscription";
 
@@ -82,6 +83,15 @@ function IcoLibre() {
     </svg>
   );
 }
+function IcoPlume() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
+      {/* Une plume : l'écriture des lecteurs, non le simple trait d'une signature. */}
+      <path d="M4 20c6-1 9.5-4 12.5-9C18 8.5 19 5.5 19.5 3c-2.7.5-5.7 1.6-8.2 3.6C7.5 9.5 6 13.5 4 20z" {...traits} />
+      <path d="M4 20l5.5-5.5" {...traits} />
+    </svg>
+  );
+}
 
 // ── Ornements ────────────────────────────────────────────────────────────────
 // Gravures au trait du dossier d'ornements.
@@ -127,7 +137,7 @@ function Colophon({ lignes, couleur, taille = "12.5px", interligne = 1.7 }: {
   lignes: [string, string][]; couleur: string; taille?: string; interligne?: number;
 }) {
   return (
-    <div style={{ textAlign: "center", fontFamily: "Georgia, 'Times New Roman', serif" }}>
+    <div style={{ textAlign: "center", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
       {lignes.map(([texte, largeur]) => (
         <p key={texte} style={{ maxWidth: largeur, margin: "0 auto", color: couleur, fontSize: taille, lineHeight: interligne }}>
           {texte}
@@ -137,39 +147,113 @@ function Colophon({ lignes, couleur, taille = "12.5px", interligne = 1.7 }: {
   );
 }
 
-/** Siècle en petites capitales : « XVII<sup>e</sup> » composé en capitales
- *  pleines fait une tache dans une ligne de bas-de-casse. */
-function Siecle({ n }: { n: string }) {
+/** Siècle : la règle vit dans app/lib/siecles.tsx. Ici le siècle est écrit à la
+ *  main dans le texte des encarts, d'où l'appel par son numéro. */
+function Siecle({ n }: { n: number }) {
   return (
-    <span style={{ fontVariant: "small-caps", textTransform: "lowercase" }}>
-      {n}<sup style={{ fontVariant: "normal", fontSize: "0.72em" }}>e</sup>
+    <span style={STYLE_ROMAIN}>
+      {enChiffresRomains(n)}<sup style={STYLE_ORDINAL}>{n === 1 ? "er" : "e"}</sup>
     </span>
   );
 }
 
+// Les cinq encarts disent, dans l'ordre, ce qu'on trouve sur le site et à quelles
+// conditions. Les titres annoncent le contenu plutôt que de le désigner de loin :
+// « Le lien entre les deux » ne parlait qu'à qui avait déjà lu les deux encarts
+// précédents, et « Exigence et collaboration » ne disait rien de ce qu'on peut y
+// faire. Un titre d'encart doit se comprendre seul.
 const PRINCIPES: { ico: React.ReactNode; titre: string; texte: React.ReactNode }[] = [
-  { ico: <IcoColonnes />, titre: "Les traductions en regard",
-    texte: <>Sur le modèle de la <i>Sainte Bible polyglotte</i> de Fulcran Vigouroux, Corpus Scriptura
-      permettra de consulter en regard les meilleures traductions françaises de la Bible. Nous prévoyons
-      également d’y proposer les textes bibliques en grec, en latin et dans d’autres langues anciennes.</> },
-  { ico: <IcoPeres />, titre: "Les Pères de l’Église",
-    texte: <>Les grands textes patristiques seront proposés en français dans des traductions anciennes,
-      du <Siecle n="xvii" /> au <Siecle n="xx" /> siècle, toutes libres de droit. Nous espérons pouvoir
-      bientôt mettre également à votre disposition les textes dans leur langue originale et, peut-être,
-      des éditions critiques sous licence.</> },
-  { ico: <IcoLien />, titre: "Le lien entre les deux",
-    texte: <>La base de données met en relation la Bible et les œuvres des Pères de l’Église au moyen
-      d’une interface épurée et facile à utiliser. Grâce notamment à un système de recherche avancée,
-      le site s’adresse aussi bien aux curieux qu’aux chercheurs.</> },
-  { ico: <IcoExigence />, titre: "Exigence et collaboration",
-    texte: <>Corpus Scriptura rassemble d’immenses quantités de textes, une matière complexe à traiter
-      et à organiser. Nous nous attachons néanmoins à garantir un haut niveau de rigueur et de fiabilité.
-      Grâce à votre collaboration – notamment par vos signalements –, nous espérons améliorer sans cesse
-      le site.</> },
-  { ico: <IcoLibre />, titre: "Libre d’accès",
-    texte: <>Corpus Scriptura est sans publicité et sans abonnement. Le travail est bénévole,
+  { ico: <IcoColonnes />, titre: "Plusieurs traductions côte à côte",
+    texte: <>Un même passage se lit dans plusieurs traductions françaises affichées en colonnes,
+      sur le modèle de la <i>Sainte Bible polyglotte</i> de Fulcran Vigouroux. Le texte grec et le
+      texte latin viendront s’y ajouter, puis d’autres langues anciennes.</> },
+  { ico: <IcoPeres />, titre: "Les Pères de l’Église en français",
+    texte: <>Les grands textes patristiques sont donnés dans des traductions
+      du <Siecle n={17} /> au <Siecle n={20} /> siècle, toutes libres de droit,
+      souvent introuvables ailleurs. Les langues
+      originales suivront, et peut-être des éditions critiques sous licence.</> },
+  // « Ce qu'on ne trouve pas ailleurs » : autrefois un bloc à part sous les encarts, il
+  // rejoint ici la série — même registre, un seul cadre.
+  { ico: <IcoExigence />, titre: "Ce qu’on ne trouve pas ailleurs",
+    texte: <>De nombreux ouvrages excellents ne subsistent que dans des éditions anciennes,
+      introuvables ou coûteuses. Nous nous efforçons de les retrouver, de les acquérir et de les
+      republier avec le plus grand soin – c’est le cœur du travail, et ce qui prend le plus de temps.</> },
+  // Les deux anciens encarts « Chaque verset… » et « Des rapprochements vérifiés » réunis :
+  // le renvoi aux Pères et sa vérification disaient une même chose en deux temps.
+  { ico: <IcoLien />, titre: "Chaque verset, et ce qu’on en a dit",
+    texte: <>En regard du texte biblique s’affichent les passages des Pères qui le citent ou le
+      commentent : c’est le cœur du site. Chaque rapprochement est établi puis relu ; les passages
+      incertains sont signalés comme tels, et vos signalements servent à corriger le site.</> },
+  { ico: <IcoPlume />, titre: "Les lecteurs publient",
+    texte: <>Les lecteurs inscrits publient leurs propres essais et méditations, à lire et à
+      commenter. Le site n’est pas qu’une bibliothèque : c’est aussi un lieu où l’on écrit.</> },
+  { ico: <IcoLibre />, titre: "Gratuit, sans publicité",
+    texte: <>Ni abonnement, ni publicité, ni revente de données. Le travail est bénévole,
       et le restera.</> },
 ];
+
+// ── Feuille de route ─────────────────────────────────────────────────────────
+// Deux colonnes, le chemin parcouru en regard du chemin restant : « Déjà en
+// place » barré, « Avant l'ouverture » à venir. On ne date pas — une date tenue
+// de loin est une promesse qu'on rompt — et l'on s'en tient aux titres, chacun
+// devant se comprendre seul : le détail, c'est le reste de la page qui le donne.
+const ETAPES: { titre: string; fait: boolean }[] = [
+  // Déjà en place
+  { titre: "Cinq traductions françaises de la Bible", fait: true },
+  { titre: "La lecture de plusieurs traductions en regard", fait: true },
+  { titre: "La lecture des œuvres des Pères", fait: true },
+  { titre: "Les renvois d’un verset aux Pères qui le citent", fait: true },
+  { titre: "L’enregistrement de ses passages favoris", fait: true },
+  { titre: "La publication de textes par les lecteurs", fait: true },
+  { titre: "La création d’un compte de lecteur", fait: true },
+  // Avant l'ouverture
+  { titre: "Trente œuvres des Pères publiées", fait: false },
+  { titre: "Un moteur de recherche opérationnel", fait: false },
+  { titre: "Des traductions bibliques parfaitement alignées", fait: false },
+  { titre: "Le catalogue des traductions complété", fait: false },
+  { titre: "Les textes en langues anciennes : grec, latin, hébreu, syriaque", fait: false },
+  { titre: "Les écrits apocryphes primitifs", fait: false },
+  { titre: "Un site adapté à la lecture sur mobile", fait: false },
+];
+
+function FeuilleDeRoute() {
+  const faits = ETAPES.filter(e => e.fait);
+  const aVenir = ETAPES.filter(e => !e.fait);
+  return (
+    <section className="cs-route">
+      <p className="cs-route-kicker">Feuille de route</p>
+      <p className="cs-route-chapeau">
+        Ce qui est déjà en place, et ce qui reste avant l’ouverture. Nous n’annonçons pas de date.
+      </p>
+      <div className="cs-route-cols">
+        <div className="cs-route-col">
+          <h3 className="cs-route-col-titre">Déjà en place</h3>
+          <ul className="cs-route-liste">
+            {faits.map(e => (
+              // Coche verte, titre barré et grisé : l'acquis recule d'un plan
+              // sans disparaître.
+              <li key={e.titre} className="cs-route-item cs-route-item--fait">
+                <span className="cs-route-puce" aria-hidden="true">✓</span>
+                <span className="cs-route-titre">{e.titre}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="cs-route-col">
+          <h3 className="cs-route-col-titre">Avant l’ouverture</h3>
+          <ul className="cs-route-liste">
+            {aVenir.map(e => (
+              <li key={e.titre} className="cs-route-item">
+                <span className="cs-route-puce cs-route-puce--reste" aria-hidden="true">○</span>
+                <span className="cs-route-titre">{e.titre}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 // ── Chiffres du corpus ───────────────────────────────────────────────────────
 function Chiffres() {
@@ -178,7 +262,7 @@ function Chiffres() {
   // Par une route serveur, et non plus par le client public : le rôle `anon`
   // n'a plus aucun droit de lecture sur la base.
   useEffect(() => {
-    fetch("/api/chiffres")
+    fetch("/api/chiffres", { cache: "no-store" })
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d && d.oeuvres !== null) setN(d); })
       .catch(() => {});
@@ -198,7 +282,7 @@ function Chiffres() {
     <div className="cs-chiffres">
       {cases.map(([valeur, libelle]) => (
         <div key={libelle} style={{ textAlign: "center" }}>
-          <div className="cs-chiffre-valeur" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "30px", color: "#3d6b4f", lineHeight: 1 }}>
+          <div className="cs-chiffre-valeur" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "30px", color: "#3d6b4f", lineHeight: 1 }}>
             {valeur}
           </div>
           <div className="cs-chiffre-libelle" style={{ fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6a6259", marginTop: "6px" }}>
@@ -333,10 +417,10 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-ecran { min-height: 100dvh; display: flex; flex-direction: column;
                     align-items: center; justify-content: center;
                     text-align: center; padding: 32px 20px 26px; }
-        .cs-enseigne { font-family: Georgia, 'Times New Roman', serif; font-weight: normal;
+        .cs-enseigne { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
                        color: #3d6b4f; letter-spacing: 0.16em; text-transform: uppercase;
                        font-size: 30px; line-height: 1.1; margin: 16px 0 4px; }
-        .cs-titre { font-family: Georgia, 'Times New Roman', serif; font-weight: normal;
+        .cs-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
                     color: #1e2e22; line-height: 1.3; letter-spacing: -0.005em;
                     font-size: 20px; font-style: italic; margin: 10px 0 16px; }
         .cs-chapeau { font-size: 14.5px; color: #6a6259; line-height: 1.75;
@@ -352,7 +436,13 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-encart-ico { display: flex; align-items: center; justify-content: center;
                          width: 46px; height: 46px; border-radius: 50%; margin-bottom: 12px;
                          color: #3d6b4f; background: #eef3ee; border: 1px solid #dbe6dd; }
-        .cs-encart-titre { font-family: Georgia, 'Times New Roman', serif; font-weight: normal;
+        /* Vert et mordoré mêlés : une teinte par encart, en alternance. Sur deux colonnes,
+           cela pose le vert d'un côté et le mordoré de l'autre — les deux couleurs de la
+           charte (le vert des reliures, le brun doré des filets) se répondent. */
+        .cs-encart--mordore .cs-encart-ico { color: #7d5f28; background: #f5efe1; border-color: #e6d8ba; }
+        .cs-encart--mordore .cs-encart-titre { color: #4a3d24; }
+        .cs-encart--vert .cs-encart-titre::after { background: #a9c3b1; }
+        .cs-encart-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
                            font-size: 15px; color: #2a3d30; margin: 0 0 9px; padding-bottom: 9px;
                            position: relative; }
         .cs-encart-titre::after { content: ""; position: absolute; left: 50%; bottom: 0;
@@ -361,6 +451,42 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         /* Le point surnuméraire enjambe les deux colonnes et se centre. */
         .cs-principe-seul { grid-column: 1 / -1; max-width: 340px; margin: 0 auto; }
         .cs-cartes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
+
+        /* ── Feuille de route ─────────────────────────────────────────────────
+           Une liste de titres, filets en haut et en bas comme le bloc « textes
+           rares » : c'est le même registre – ce que nous devons au visiteur –
+           et deux cadres différents à deux pas l'un de l'autre feraient bavard.
+           Les acquis, barrés et grisés, ouvrent la liste ; le reste suit. */
+        .cs-route { border-top: 1px solid #e0d9cc; border-bottom: 1px solid #e0d9cc;
+                    padding: 26px 0 28px; margin-bottom: 34px; }
+        .cs-route-kicker { font-size: 9px; font-weight: 700; letter-spacing: 0.18em;
+                           text-transform: uppercase; color: #6f5518; margin: 0 0 12px;
+                           text-align: center; }
+        .cs-route-chapeau { font-size: 13px; color: #6a6259; line-height: 1.7;
+                            max-width: 460px; margin: 0 auto 24px; text-align: center;
+                            font-family: var(--font-source-serif), Georgia, serif; }
+        /* Deux colonnes en regard : l'acquis à gauche, le reste à droite. Un
+           filet sous chaque en-tête tient les deux listes sur une même ligne
+           de base, quand bien même l'une est plus longue que l'autre. */
+        .cs-route-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 30px;
+                         max-width: 640px; margin: 0 auto; }
+        .cs-route-col-titre { font-size: 9px; font-weight: 700; letter-spacing: 0.14em;
+                              text-transform: uppercase; color: #6f5518; margin: 0 0 12px;
+                              padding-bottom: 8px; border-bottom: 1px solid #e5ddce;
+                              text-align: center; }
+        .cs-route-liste { list-style: none; margin: 0; padding: 0;
+                          display: flex; flex-direction: column; gap: 11px; }
+        .cs-route-item { display: flex; align-items: baseline; gap: 10px; }
+        /* La puce tient sa case pour que les titres restent alignés à gauche,
+           et que les lignes qui se replient reviennent sous le titre, non sous
+           la puce. */
+        .cs-route-puce { flex: 0 0 auto; width: 13px; text-align: center;
+                         color: #3d6b4f; font-size: 12px; }
+        .cs-route-puce--reste { color: #bca877; font-size: 10px; }
+        .cs-route-titre { font-family: var(--font-source-serif), Georgia, serif;
+                          font-size: 13.5px; line-height: 1.4; color: #2a3d30; }
+        .cs-route-item--fait .cs-route-titre { color: #a89e8e; text-decoration: line-through;
+                          text-decoration-color: #c3b9a6; }
         .cs-chiffres { display: flex; justify-content: center; gap: 54px; flex-wrap: wrap; margin: 6px 0 34px; }
 
         /* ── Téléphone ────────────────────────────────────────────────────────
@@ -376,6 +502,9 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           .cs-suite { margin-top: 12px; }
           .cs-principes { grid-template-columns: 1fr; gap: 18px; margin-bottom: 30px; }
           .cs-cartes { grid-template-columns: 1fr; }
+          .cs-route { padding: 22px 0 24px; }
+          .cs-route-cols { grid-template-columns: 1fr; gap: 24px; max-width: 340px; }
+          .cs-route-liste { gap: 12px; }
           .cs-chiffres { gap: 0; justify-content: space-between; margin: 4px 0 28px; }
           .cs-chiffre-valeur { font-size: 25px !important; }
           .cs-chiffre-libelle { font-size: 9px !important; letter-spacing: 0.06em !important; }
@@ -431,8 +560,9 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             // Cinq encarts dans deux colonnes : le dernier resterait seul, comme
             // oublié dans un coin. Il enjambe donc les deux colonnes et se centre.
             const seul = i === PRINCIPES.length - 1 && PRINCIPES.length % 2 === 1;
+            const teinte = i % 2 === 0 ? " cs-encart--vert" : " cs-encart--mordore";
             return (
-              <div key={p.titre} className={`cs-encart${seul ? " cs-principe-seul" : ""}`}>
+              <div key={p.titre} className={`cs-encart${teinte}${seul ? " cs-principe-seul" : ""}`}>
                 <span className="cs-encart-ico">{p.ico}</span>
                 <h3 className="cs-encart-titre">{p.titre}</h3>
                 <p className="cs-encart-texte">{p.texte}</p>
@@ -443,23 +573,11 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
 
         <div style={{ margin: "6px 0 34px" }}><Ornement nom="clochettes" largeur={210} opacite={0.7} /></div>
 
-        {/* ── Textes rares ── */}
-        <div style={{ borderTop: "1px solid #e0d9cc", borderBottom: "1px solid #e0d9cc", padding: "26px 0", marginBottom: "34px", textAlign: "center" }}>
-          <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#6f5518", margin: "0 0 12px" }}>
-            Ce qu’on ne trouve pas ailleurs
-          </p>
-          <Colophon couleur="#4a453e" taille="13.5px" interligne={1.75} lignes={[
-            ["De nombreux ouvrages excellents ne subsistent plus", "560px"],
-            ["que dans des éditions anciennes, aujourd’hui introuvables,", "500px"],
-            ["coûteuses ou difficiles d’accès. Nous nous efforçons de les", "440px"],
-            ["retrouver en ligne ou d’en faire l’acquisition, afin de les", "370px"],
-            ["publier avec le plus grand soin", "290px"],
-            ["et de leur redonner vie sur internet.", "230px"],
-          ]} />
-          <p style={{ fontSize: "12.5px", color: "#6f675e", lineHeight: 1.7, maxWidth: "540px", margin: "14px auto 0", fontStyle: "italic" }}>
-            C’est le cœur du travail, et ce qui prend le plus de temps.
-          </p>
-        </div>
+        {/* ── Feuille de route ──
+            Elle suit l'exposé du travail et précède l'invitation à laisser son
+            adresse : on annonce ce qui reste à faire juste avant de proposer
+            d'être prévenu quand ce sera fait. */}
+        <FeuilleDeRoute />
 
         {/* ── Être prévenu, et soutenir ── */}
         <div className="cs-cartes">
@@ -491,7 +609,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         {/* ── Connexion ── */}
         <div className="cs-connexion" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "30px 32px 34px", width: "100%", maxWidth: "380px", margin: "0 auto", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}>
         <div style={{ textAlign: "center", marginBottom: "24px" }}>
-          <h2 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "20px", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>
+          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "20px", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>
             {mode === "connexion" ? "Connexion" : "Créer un compte"}
           </h2>
         </div>

@@ -32,11 +32,11 @@ Corpus Scriptura est une bibliothèque patristique numérique. Les utilisateurs 
 - Les routes API admin vérifient toutes le cookie admin (estAdminServeur)
 - Modèle de données segments : chaque segment est un paragraphe numéroté, groupé par niveaux de titres (ref_niv1, ref_niv2, ref_niv3, ref_niv4 pour le titre principal ; ref_niv1_texte, etc. pour le sous-titre)
 - Hiérarchie des titres : éviter les doublons de type « Livre I » / « Livre premier » entre le titre et le sous-titre. Pour un même niveau, préférer la forme littéraire dans \`ref_niv1\` (\`Livre premier\`, \`Livre deuxième\`, etc.) et laisser vide le champ \`_texte\` s'il ne fait que répéter la même information.
-- Lettrine (drop cap) sur le premier segment de chaque niv1, page 0 seulement, Georgia 3.4em
+- Lettrine (drop cap) sur le premier segment de chaque niv1, page 0 seulement, Source Serif 4 3.4em
 
 ## Règles typographiques
 
-- Colophon « à l'ancienne » : triangle pointe en bas, lignes décroissantes, Georgia italique, filets ornementaux
+- Colophon « à l'ancienne » : triangle pointe en bas, lignes décroissantes, Source Serif 4 italique, filets ornementaux
 - Guillemets français : « texte » avec espace fine insécable (U+202F)
 - Tiret d'incise et séparateurs rédactionnels : utiliser exclusivement le trait d'union simple « - », entouré d'espaces quand il sert d'incise. Ne jamais employer de tiret moyen ni de tiret long dans les textes, les libellés du site, les titres, les commentaires éditoriaux ni les CSV.
 - Dates historiques : pour les auteurs, œuvres, traducteurs, traductions et éditions, conserver des bornes début et fin quand il s'agit d'une période. Utiliser un trait d'union simple entre les bornes, par exemple « 354-430 ». Pour toute approximation, écrire simplement « Vers » au début de la borne concernée.

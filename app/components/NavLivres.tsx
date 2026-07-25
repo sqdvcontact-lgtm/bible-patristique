@@ -159,13 +159,16 @@ export default function NavLivres({
   const refParsee = parseRefBiblique(recherche)
 
   // Si ref parsée : filtrer ne fait rien (on affiche tout pour voir le livre suggéré)
+  // Recherche par D\u00c9BUT DE MOT, non par sous-cha\u00eene : \u00ab Ps \u00bb trouve \u00ab Psaumes \u00bb (un mot
+  // qui commence par Ps), jamais \u00ab Apocalypse \u00bb (ps au milieu). On teste chaque mot du nom,
+  // les mots \u00e9tant coup\u00e9s aux espaces, apostrophes et traits d'union.
   const filtrer = (liste: Livre[]) => {
     if (!recherche.trim() || refParsee) return liste
+    const q = recherche.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
     return liste.filter(l => l.nom.toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .includes(
-        recherche.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      ))
+      .split(/[\s'\u2019-]+/)
+      .some(mot => mot.startsWith(q)))
   }
 
   const AT = filtrer(livres.filter(l => l.testament === 'AT'))

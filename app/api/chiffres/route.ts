@@ -12,9 +12,12 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// Trois nombres qui bougent de quelques unités par mois : les recalculer à
-// chaque visite n'apporte rien. Une heure de cache suffit.
-export const revalidate = 3600
+// Les compteurs doivent refléter l'état RÉEL du corpus à tout moment : on ajoute
+// et retire des œuvres et des auteurs au fil du chantier, et un chiffre figé une
+// heure donnait une page en retard sur la base. La route est donc recalculée à
+// chaque appel (les `count(head)` sont peu coûteux), sans cache.
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function GET() {
   const [o, t, a] = await Promise.all([

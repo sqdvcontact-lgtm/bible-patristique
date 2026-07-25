@@ -5,6 +5,7 @@ import { hydraterLiensHerites } from '@/app/lib/liens'
 import { useState, useEffect, useRef, useMemo, useCallback, Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { parseNotes } from '@/app/lib/notes'
+import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee } from './oeuvreTypes'
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces } from './texteEnrichi'
@@ -302,7 +303,7 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
         boxShadow: '0 6px 24px rgba(44,30,10,0.20)',
         padding: '10px 12px',
         zIndex: 9999,
-        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontFamily: "var(--font-source-serif), Georgia, serif",
         fontSize: 12.5,
         lineHeight: 1.65,
         color: '#2a2218',
@@ -336,7 +337,7 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
           cursor: 'help',
           color: '#8a6a3e',
           fontSize: '0.60em',
-          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontFamily: "var(--font-source-serif), Georgia, serif",
           fontStyle: 'normal',
           userSelect: 'none',
           letterSpacing: 0,
@@ -356,6 +357,18 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
 // Variante de rendreTexteEnrichi qui gère aussi les marqueurs [[A]] de notes.
 function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): React.ReactNode {
   const noeuds: React.ReactNode[] = []
+  // Le marqueur stocké ([[A]], [[B]]…) reste la clé de la note en base : c'est
+  // lui qui donne accès au texte. Seul l'appel AFFICHÉ change — un numéro, selon
+  // l'usage français. La numérotation suit l'ordre d'apparition et se fait par
+  // marqueur distinct : une note rappelée deux fois garde son numéro.
+  const numeros = new Map<string, number>()
+  const numeroDe = (marqueur: string) => {
+    const connu = numeros.get(marqueur)
+    if (connu) return connu
+    const n = numeros.size + 1
+    numeros.set(marqueur, n)
+    return n
+  }
   const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]{1,2})\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)/g
   let dernierIndex = 0, k = 0, m: RegExpExecArray | null
   while ((m = regex.exec(texte))) {
@@ -367,12 +380,12 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
       <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{m[4]}</a>
     )
     else if (m[6] !== undefined) {
-      const lettre = m[6]
-      noeuds.push(<NoteTooltip key={k++} lettre={lettre} contenu={notes[lettre] ?? ''} />)
+      const marqueur = m[6]
+      noeuds.push(<NoteTooltip key={k++} lettre={String(numeroDe(marqueur))} contenu={notes[marqueur] ?? ''} />)
     }
     else if (m[7] !== undefined) {
-      noeuds.push(<span key={k++} style={{ fontVariant: 'all-small-caps' }}>{m[7]}</span>)
-      noeuds.push(<sup key={k++} style={{ fontSize: '0.6em' }}>{m[8]}</sup>)
+      noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)
+      noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[8]}</sup>)
       noeuds.push(m[9])
     }
     dernierIndex = regex.lastIndex
@@ -468,7 +481,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const [configOuverte, setConfigOuverte] = useState(false)
   const [configEnvoi, setConfigEnvoi] = useState(false)
   const resetVolets = () => { setNavWidth(240); setPannWidth(288) }
-  const [problemes, setProblemes] = useState<{ id: number; segment_numero: number; segment_texte: string; reference_manuelle: string | null; ref_niv1: string | null; fiabilite: string | null; lien_1: string | null; lien_2: string | null; lien_3: string | null; lien_4: string | null }[]>([])
+  const [problemes, setProblemes] = useState<{
+    id: number; segment_numero: number; segment_texte: string
+    reference_manuelle: string | null; ref_niv1: string | null
+    liens: { canon_id: string | null; fiabilite: string; motif: string | null }[]
+    aConstituer: boolean
+  }[]>([])
   const [problemesCharges, setProblemesCharges] = useState(false)
   const [filtreProbleme, setFiltreProbleme] = useState<'lien_a_constituer' | 'probable'>('lien_a_constituer')
   const [versetsAltMap, setVersetsAltMap] = useState<Record<string, { ref: string; chapAlt: number | null; verAlt: number | null; texte: string | null }>>({})
@@ -482,34 +500,61 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   }, [segActif])
   const [suggestionSignalee, setSuggestionSignalee] = useState<{ id: number; segment_numero: number; segment_texte: string } | null>(null)
   const tradSelectRef = useRef<HTMLDivElement>(null)
+  // Onglet « Problèmes ». La fiabilité se porte AU LIEN depuis le 20 juillet 2026
+  // (charte §24.3) : `segments.fiabilite` est vidée et les colonnes `lien_1` à
+  // `lien_4` n'existent plus. Cet onglet interrogeait encore les deux, avec des
+  // valeurs abolies (« Lien à constituer ») — il ne pouvait donc rien afficher.
+  // On part désormais de `liens_bibliques`, et l'on remonte aux segments.
   useEffect(() => {
     if (ongletDroit !== 'problemes' || problemesCharges || !idOeuvre) return
-    supabase.from('segments')
-      .select('id, segment_numero, segment_texte, reference_manuelle, ref_niv1, fiabilite, lien_1, lien_2, lien_3, lien_4')
-      .eq('id_oeuvre', idOeuvre).in('fiabilite', ['Lien à constituer', 'probable'])
-      .order('segment_numero')
-      .then(async ({ data }) => {
-        setProblemes(data ?? [])
-        setProblemesCharges(true)
-        const ids = new Set<string>()
-        ;(data ?? []).filter(s => s.fiabilite === 'probable').forEach(s => {
-          ;(['lien_1', 'lien_2', 'lien_3', 'lien_4'] as const).forEach(col => {
-            String((s as any)[col] ?? '').split(';').map((v: string) => v.trim()).filter(Boolean).forEach((id: string) => ids.add(id))
-          })
+    ;(async () => {
+      const { data: segsOeuvre } = await supabase.from('segments')
+        .select('id, segment_numero, segment_texte, reference_manuelle, ref_niv1')
+        .eq('id_oeuvre', idOeuvre).order('segment_numero')
+      const parId = new Map((segsOeuvre ?? []).map(s => [s.id, s]))
+
+      // Deux familles, conformes au vocabulaire du §24.3 :
+      //   · « à constituer » — une source est visée, elle n'est pas résolue (sans cible) ;
+      //   · « à vérifier »  — tout ce qui attend une lecture (`arbitrage_requis`).
+      const liens: { segment_id: number; canon_id: string | null; fiabilite: string; motif: string | null }[] = []
+      const ids = [...parId.keys()]
+      for (let i = 0; i < ids.length; i += 500) {
+        const { data } = await supabase.from('liens_bibliques')
+          .select('segment_id, canon_id, fiabilite, motif, arbitrage_requis')
+          .in('segment_id', ids.slice(i, i + 500))
+          .or('fiabilite.eq.à constituer,arbitrage_requis.is.true')
+        liens.push(...((data ?? []) as any[]))
+      }
+      const parSegment = new Map<number, typeof liens>()
+      for (const l of liens) {
+        if (!parSegment.has(l.segment_id)) parSegment.set(l.segment_id, [])
+        parSegment.get(l.segment_id)!.push(l)
+      }
+      const lignes = [...parSegment.entries()]
+        .map(([sid, ls]) => {
+          const s = parId.get(sid)
+          if (!s) return null
+          return { ...s, liens: ls, aConstituer: ls.some(l => l.fiabilite === 'à constituer') }
         })
-        if (ids.size > 0) {
-          const { data: vs } = await supabase.from('versets_lecture')
-            .select('id_verset, ref, chapitre_alternatif, verset_alternatif, TR0001, TR0002, TR0003')
-            .in('id_verset', Array.from(ids))
-          const map: Record<string, { ref: string; chapAlt: number | null; verAlt: number | null; texte: string | null }> = {}
-          ;(vs ?? []).forEach((v: any) => {
-            // Texte de référence : Crampon, à défaut Segond, à défaut Sacy.
-            const texte = v.TR0003 || v.TR0002 || v.TR0001 || null
-            map[v.id_verset] = { ref: v.ref ?? v.id_verset, chapAlt: v.chapitre_alternatif ?? null, verAlt: v.verset_alternatif ?? null, texte }
-          })
-          setVersetsAltMap(map)
-        }
-      })
+        .filter(Boolean)
+        .sort((a: any, b: any) => a.segment_numero - b.segment_numero)
+      setProblemes(lignes as any)
+      setProblemesCharges(true)
+
+      const idsVersets = Array.from(new Set(liens.map(l => l.canon_id).filter(Boolean) as string[]))
+      if (idsVersets.length > 0) {
+        const { data: vs } = await supabase.from('versets_lecture')
+          .select('id_verset, ref, chapitre_alternatif, verset_alternatif, TR0001, TR0002, TR0003')
+          .in('id_verset', idsVersets)
+        const map: Record<string, { ref: string; chapAlt: number | null; verAlt: number | null; texte: string | null }> = {}
+        ;(vs ?? []).forEach((v: any) => {
+          // Texte de référence : Crampon, à défaut Segond, à défaut Sacy.
+          const texte = v.TR0003 || v.TR0002 || v.TR0001 || null
+          map[v.id_verset] = { ref: v.ref ?? v.id_verset, chapAlt: v.chapitre_alternatif ?? null, verAlt: v.verset_alternatif ?? null, texte }
+        })
+        setVersetsAltMap(map)
+      }
+    })()
   }, [ongletDroit, idOeuvre, problemesCharges])
   useEffect(() => {
     try {
@@ -969,18 +1014,17 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
     setSegments(prev => prev.map(s => s.id === segId ? { ...s, versets: [...s.versets, verset] } : s))
   }
 
+  // Les liens vivent dans `liens_bibliques` depuis le 20 juillet 2026 (§24.1).
+  // Cette fonction réécrivait encore `segments.lien_1` à `lien_4` : ces colonnes
+  // subsistent mais sont vides, si bien que le bouton ne supprimait rien — sans
+  // la moindre erreur. On supprime désormais les lignes de la table, tous types
+  // confondus : le bouton porte sur le verset, pas sur l'un de ses rapports.
   const supprimerLienBiblique = async (segId: number, versetId: string) => {
     if (!estAdmin) return
     if (!confirm('Supprimer ce lien biblique ?')) return
-    const { data, error } = await supabase.from('segments').select('lien_1,lien_2,lien_3,lien_4').eq('id', segId).single()
-    if (error || !data) return
-    const patch: Record<string, string | null> = {}
-    ;(['lien_1', 'lien_2', 'lien_3', 'lien_4'] as const).forEach(champ => {
-      const valeurs = ((data as any)[champ] as string | null ?? '').split(';').map(v => v.trim()).filter(Boolean).filter(v => v !== versetId)
-      patch[champ] = valeurs.length ? valeurs.join('; ') : null
-    })
-    const { error: eUpdate } = await supabase.from('segments').update(patch).eq('id', segId)
-    if (eUpdate) return
+    const { error } = await supabase.from('liens_bibliques')
+      .delete().eq('segment_id', segId).eq('canon_id', versetId)
+    if (error) { alert('Suppression impossible : ' + error.message); return }
     setSegments(prev => prev.map(s => s.id === segId ? { ...s, versets: s.versets.filter(v => v.id !== versetId) } : s))
   }
 
@@ -1055,7 +1099,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 </button>
               </div>
             </div>
-            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '13px', color: '#2a3d30', lineHeight: 1.35, margin: 0, whiteSpace: 'pre-line' }}>
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '13px', color: '#2a3d30', lineHeight: 1.35, margin: 0, whiteSpace: 'pre-line' }}>
               {rendreTexteEnrichi(titreAffiche)}
             </p>
             {(oeuvreLocale.sous_titre || oeuvreLocale.titre_original || oeuvreLocale.trad_auteur || oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication || oeuvreLocale.collection) && (
@@ -1211,7 +1255,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 style={{ justifySelf: 'start', fontSize: '18px', lineHeight: 1, color: niv1Prev ? '#9a958d' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
                 {niv1Prev ? '‹' : ''}
               </button>
-              <span style={{ fontSize: '1.45rem', fontWeight: 500, color: '#2a3d30', fontFamily: "Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'pre-line', overflowWrap: 'break-word', position: 'relative' }}>
+              <span style={{ fontSize: '1.45rem', fontWeight: 500, color: '#2a3d30', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'pre-line', overflowWrap: 'break-word', position: 'relative' }}>
                 {niv1Erreur ? (
                   <span style={{ fontSize: '12px', color: '#c0562a', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     Erreur de chargement.{' '}
@@ -1226,7 +1270,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     {(() => {
                       const txt = groupes[0]?.niv1_texte || niv1TexteMap[niv1Actif] || ''
                       return txt && configNiveaux.txtCorps[0]
-                        ? <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', marginTop: '4px', fontFamily: "Georgia, serif" }}>{rendreLongTexteColophon(txt)}</span>
+                        ? <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{rendreLongTexteColophon(txt)}</span>
                         : null
                     })()}
                     {estAdmin && (() => { const g = groupes[0] ?? { niv1: niv1Actif, niv2: '', niv3: '', niv4: '', anchor: '', itemIds: [] }; return (
@@ -1264,8 +1308,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
                   {showNiv2 && (
                     <div style={{ textAlign: 'center', marginTop: marginTop, marginBottom: '1rem', paddingTop: '0.5rem', paddingRight: estAdmin ? '52px' : '60px', position: 'relative' }}>
-                      <h3 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '1.1rem', fontWeight: 400, color: '#2a3d30', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophon(groupe.niv2)}</h3>
-                      {groupe.niv2_texte && configNiveaux.txtCorps[1] && <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '0.92rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophon(groupe.niv2_texte)}</p>}
+                      <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.1rem', fontWeight: 400, color: '#2a3d30', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophon(groupe.niv2)}</h3>
+                      {groupe.niv2_texte && configNiveaux.txtCorps[1] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.92rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophon(groupe.niv2_texte)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2, schemaTexte: false })}
@@ -1311,9 +1355,9 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     return (
                       <div key={sid} id={`segment-${sid}`} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', scrollMarginTop: '60px' }}>
                         <p id={`s${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
-                          lang="fr" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {configNiveaux.afficherNumeros && sid !== premierSegmentId && <sup style={{ fontSize: '0.50rem', color: '#b0a89e', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                          {sid === premierSegmentId && normaliserEspaces(s.texte).length > 0 ? (() => { const t = nettoyerFin(normaliserEspaces(s.texte)); const chars = [...t]; const li = chars.findIndex(ch => /\p{L}/u.test(ch)); if (li <= 0) { return (<><span style={{ float: 'left', fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }}>{chars[0] ?? t[0]}</span>{rendreTexteAvecNotes(chars.slice(1).join(''), s.notes ?? {})}</>) } const prefix = chars.slice(0, li).join(''); const lettre = chars[li]; const suite = chars.slice(li + 1).join(''); return (<>{prefix}<span style={{ float: 'left', fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }}>{lettre}</span>{rendreTexteAvecNotes(suite, s.notes ?? {})}</>) })() : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
+                          {sid === premierSegmentId && normaliserEspaces(s.texte).length > 0 ? (() => { const t = nettoyerFin(normaliserEspaces(s.texte)); const chars = [...t]; const li = chars.findIndex(ch => /\p{L}/u.test(ch)); if (li <= 0) { return (<><span style={{ float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }}>{chars[0] ?? t[0]}</span>{rendreTexteAvecNotes(chars.slice(1).join(''), s.notes ?? {})}</>) } const prefix = chars.slice(0, li).join(''); const lettre = chars[li]; const suite = chars.slice(li + 1).join(''); return (<>{prefix}<span style={{ float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }}>{lettre}</span>{rendreTexteAvecNotes(suite, s.notes ?? {})}</>) })() : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
                         </p>
                         <div className="seg-actions" style={{ display: 'flex', flexDirection: 'row', gap: '2px', flexShrink: 0, width: '68px', paddingTop: '2px', justifyContent: 'flex-end', marginRight: '-8px' }}>
                           {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
@@ -1358,7 +1402,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
                       {showNiv1 && (
                         <div style={{ position: 'relative', marginTop: marginTop, marginBottom: '0.5rem' }}>
-                          <h2 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '1.45rem', fontWeight: 500, color: '#2a2520', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophon(groupe.niv1_texte || groupe.niv1)}</h2>
+                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: '#2a2520', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophon(groupe.niv1_texte || groupe.niv1)}</h2>
                           {estAdmin && (
                             <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe, texteActuel: groupe.niv1_texte || groupe.niv1, schemaTexte: true })}
                               title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '11px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✎</button>
@@ -1372,7 +1416,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         return (
                           <div key={sid} id={`segment-${sid}`} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', scrollMarginTop: '60px' }}>
                             <p id={`a${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
-                              lang="fr" style={{ fontFamily: 'Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', paddingRight: estAdmin ? '72px' : '4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                              lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', paddingRight: estAdmin ? '72px' : '4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                               {configNiveaux.afficherNumeros && <sup style={{ fontSize: '0.50rem', color: '#b0a89e', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
                               {rendreTexteEnrichi(nettoyerFin(normaliserEspaces(s.texte)))}
                             </p>
@@ -1506,7 +1550,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                       ↳ {note}
                                     </p>
                                   )}
-                                  <p lang="fr" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12px', lineHeight: '1.38', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', marginBottom: '4px' } as React.CSSProperties}>
+                                  <p lang="fr" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '12px', lineHeight: '1.38', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', marginBottom: '4px' } as React.CSSProperties}>
                                     {corps || '—'}
                                   </p>
                                 </>
@@ -1550,21 +1594,22 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>Chargement…</p>
                 ) : (() => {
                   const filtres = problemes.filter(s =>
-                    filtreProbleme === 'lien_a_constituer' ? s.fiabilite === 'Lien à constituer' : s.fiabilite === 'probable'
+                    filtreProbleme === 'lien_a_constituer' ? s.aConstituer : !s.aConstituer
                   )
                   if (filtres.length === 0) return (
                     <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>
-                      {filtreProbleme === 'lien_a_constituer' ? 'Aucun passage « Lien à constituer » pour cette œuvre.' : 'Aucun passage « À vérifier » pour cette œuvre.'}
+                      {filtreProbleme === 'lien_a_constituer' ? 'Aucun passage « à constituer » pour cette œuvre.' : 'Aucun passage « à vérifier » pour cette œuvre.'}
                     </p>
                   )
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {filtres.map(s => {
-                        const liensIds = (['lien_1', 'lien_2', 'lien_3', 'lien_4'] as const)
-                          .flatMap(col => String(s[col] ?? '').split(';').map(v => v.trim()).filter(Boolean))
+                        const liensIds = Array.from(new Set(
+                          s.liens.map(l => l.canon_id).filter(Boolean) as string[]
+                        ))
                         return (
                           <div key={s.id} style={{ paddingBottom: '12px', borderBottom: '1px solid #ede9e2' }}>
-                            <div lang="fr" style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12px', lineHeight: 1.38, color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 7px', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                            <div lang="fr" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '12px', lineHeight: 1.38, color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 7px', whiteSpace: 'pre-line' } as React.CSSProperties}>
                               {rendreTexteEnrichi(nettoyerFin(normaliserEspaces(s.segment_texte)))}
                             </div>
                             {s.reference_manuelle && (
@@ -1638,10 +1683,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           onClick={() => setApercuVerset(null)}>
           <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#faf6ee', borderRadius: '8px', border: '1px solid #c8b89e', padding: '16px 18px', width: '380px', maxWidth: '100%', boxShadow: '0 12px 40px rgba(44,30,10,0.22)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
-              <span style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '13px', fontWeight: 600, color: '#3d6b4f' }}>{apercuVerset.label}</span>
+              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '13px', fontWeight: 600, color: '#3d6b4f' }}>{apercuVerset.label}</span>
               <button onClick={() => setApercuVerset(null)} aria-label="Fermer" style={{ fontSize: '15px', color: '#b0a08a', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 12px', lineHeight: 1 }}>×</button>
             </div>
-            <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '13px', lineHeight: 1.6, color: '#2a2218', margin: 0, whiteSpace: 'pre-line' }}>
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '13px', lineHeight: 1.6, color: '#2a2218', margin: 0, whiteSpace: 'pre-line' }}>
               {apercuVerset.texte || <em style={{ color: '#b0a08a' }}>Texte du verset indisponible.</em>}
             </p>
           </div>
@@ -1656,9 +1701,9 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
               <div>
                 <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', color: '#b0a89e', margin: '0 0 4px' }}>À PROPOS DE CETTE ÉDITION</p>
-                <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '15px', color: '#2a3d30', lineHeight: 1.3, margin: 0 }}>{rendreTexteEnrichi(titreAffiche)}</p>
+                <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '15px', color: '#2a3d30', lineHeight: 1.3, margin: 0 }}>{rendreTexteEnrichi(titreAffiche)}</p>
                 {oeuvreLocale.sous_titre && (
-                  <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '12px', color: '#6b6560', fontStyle: 'italic', lineHeight: 1.3, margin: '3px 0 0' }}>{oeuvreLocale.sous_titre}</p>
+                  <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '12px', color: '#6b6560', fontStyle: 'italic', lineHeight: 1.3, margin: '3px 0 0' }}>{oeuvreLocale.sous_titre}</p>
                 )}
               </div>
               <button onClick={() => setInfoEditionOuverte(false)} style={{ fontSize: '16px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 16px', lineHeight: 1, flexShrink: 0 }}>✕</button>
@@ -1860,7 +1905,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             boxShadow: '0 6px 20px rgba(55,45,35,0.12)',
             backdropFilter: 'blur(6px)',
             fontSize: '11.5px',
-            fontFamily: 'Georgia, serif',
+            fontFamily: 'var(--font-source-serif), Georgia, serif',
             fontStyle: 'italic',
             cursor: 'pointer',
           }}>
@@ -1908,7 +1953,7 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
             style={{ background: 'none', border: 'none', cursor: peutReculer ? 'pointer' : 'default', color: peutReculer ? '#7a7268' : '#d6d0c4', fontSize: '15px', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
             ‹
           </button>
-          <span style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontStyle: 'italic', fontSize: '12px', color: '#9a958d', letterSpacing: '0.02em', userSelect: 'none', minWidth: '80px', textAlign: 'center' }}>
+          <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'italic', fontSize: '12px', color: '#9a958d', letterSpacing: '0.02em', userSelect: 'none', minWidth: '80px', textAlign: 'center' }}>
             {pageActuelle + 1} / {total}
           </span>
           <button

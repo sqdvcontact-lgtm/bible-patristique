@@ -1,14 +1,5 @@
 import Link from "next/link";
-import { IM_Fell_English } from "next/font/google";
 import AccueilCards from "../components/AccueilCards";
-
-const imFellEnglish = IM_Fell_English({
-  subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
-  variable: "--font-im-fell",
-  display: "swap",
-});
 
 export const metadata = {
   title: "Corpus Scriptura",
@@ -17,10 +8,10 @@ export const metadata = {
 
 export default function AccueilPage() {
   return (
-    <div className={imFellEnglish.variable}>
+    <div>
       <style>{`
         html { scroll-behavior: smooth; }
-        .colophon-body { font-family: Georgia, 'Times New Roman', serif; }
+        .colophon-body { font-family: var(--font-source-serif), Georgia, serif; }
         .colophon-ornement { font-size: 18px; color: #7a6a52; letter-spacing: 0.25em; }
         .colophon-regle { display: block; width: 36px; height: 1px; background: #c8b89e; margin: 0 auto; }
         .hero-title-ornament { width: min(265px, 48vw); height: auto; display: block; margin: 0 auto 8px; opacity: .82; }
@@ -61,7 +52,7 @@ export default function AccueilPage() {
 
           {/* Titre principal */}
           <h1 style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontFamily: "var(--font-source-serif), Georgia, serif",
             fontSize: "clamp(26px, 3.4vw, 38px)",
             fontWeight: "normal",
             color: "#1a2818",
@@ -82,7 +73,7 @@ export default function AccueilPage() {
 
           {/* Sous-titre */}
           <p style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontFamily: "var(--font-source-serif), Georgia, serif",
             fontSize: "14px",
             fontStyle: "italic",
             color: "#4a6050",
@@ -119,7 +110,7 @@ export default function AccueilPage() {
           borderRadius: "999px",
           boxShadow: "0 3px 14px rgba(60,45,20,0.08), inset 0 1px 0 rgba(255,255,255,0.82)",
           letterSpacing: "0.06em",
-          fontFamily: "Georgia, serif",
+          fontFamily: "var(--font-source-serif), Georgia, serif",
         }}>
           <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ opacity: 0.60 }}>
             <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z"
@@ -136,7 +127,7 @@ export default function AccueilPage() {
           margin: "0 auto",
           padding: "72px 32px 80px",
           textAlign: "center",
-          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontFamily: "var(--font-source-serif), Georgia, serif",
           color: "#2a2218",
         }}>
 

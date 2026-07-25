@@ -286,8 +286,8 @@ function FormTache({ initiale, onSave, onCancel, categoriesConnues }: {
 
 const CSS = `
 .cs-taches{--ink:#1a1f1c;--mut:#4a5c52;--acc:#3d6b4f;--pap:#dde6e0;--bord:#c4d4ca;
-  color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
-.cs-taches h1{font-family:Georgia,"Times New Roman",serif;font-size:22px;margin:0;font-weight:600;color:#1a2e22;}
+  color:var(--ink);font-family:var(--font-source-sans), Arial, sans-serif;}
+.cs-taches h1{font-family:var(--font-source-serif), Georgia, serif;font-size:22px;margin:0;font-weight:600;color:#1a2e22;}
 .cs-head{display:flex;justify-content:space-between;align-items:center;gap:16px;
   border-bottom:2px solid #3d6b4f;padding-bottom:12px;margin-bottom:16px;flex-wrap:wrap;}
 .cs-stats{display:flex;gap:16px;font-size:13px;color:var(--mut);}
@@ -304,16 +304,16 @@ const CSS = `
 .cs-add{background:#3d6b4f;color:#fff;border:0;border-radius:7px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;}
 .cs-add:hover{background:#2e5440;}
 .cs-groupe{margin-top:20px;}
-.cs-groupe h2{font-family:Georgia,serif;font-size:14px;font-weight:600;color:#2a4a35;
+.cs-groupe h2{font-family:var(--font-source-serif), Georgia, serif;font-size:14px;font-weight:600;color:#2a4a35;
   margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid var(--bord);display:flex;align-items:center;gap:8px;}
-.cs-compte{font-size:11px;font-family:sans-serif;color:var(--mut);background:var(--pap);border:1px solid var(--bord);border-radius:20px;padding:1px 8px;}
+.cs-compte{font-size:11px;font-family:var(--font-source-sans), Arial, sans-serif;color:var(--mut);background:var(--pap);border:1px solid var(--bord);border-radius:20px;padding:1px 8px;}
 .cs-groupe ul{list-style:none;margin:0;padding:0;}
 .cs-ligne{border:1px solid var(--bord);border-radius:9px;background:#fff;margin-bottom:7px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
 .cs-ligne.faite{opacity:.5;}
 .cs-ligne.faite .cs-titre{text-decoration:line-through;}
 .cs-ligne-main{display:flex;align-items:center;gap:10px;padding:9px 11px;}
 .cs-corps{flex:1;min-width:0;cursor:pointer;}
-.cs-titre{font-size:14px;line-height:1.4;color:#1a2e22;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.cs-titre{font-family:var(--font-source-serif), Georgia, serif;font-size:14px;line-height:1.4;color:#1a2e22;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .cs-cat-tag{font-size:10.5px;color:var(--mut);background:var(--pap);border:1px solid var(--bord);border-radius:5px;padding:1px 6px;}
 .cs-desc{margin:6px 0 0;font-size:13px;color:#3a4e42;line-height:1.55;white-space:pre-wrap;}
 .cs-droite{display:flex;align-items:center;gap:6px;flex-shrink:0;}

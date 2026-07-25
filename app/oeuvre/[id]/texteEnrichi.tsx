@@ -1,3 +1,5 @@
+import { STYLE_ROMAIN, STYLE_ORDINAL, sieclesEnHtml } from '@/app/lib/siecles'
+
 export function normaliserEspaces(texte: string): string {
   return texte
     .replace(/\u00A0([?!;:])/g, '\u202F$1')
@@ -30,8 +32,8 @@ export function rendreTexteEnrichi(texte: string): React.ReactNode {
       <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{m[4]}</a>
     )
     else if (m[6] !== undefined) {
-      noeuds.push(<span key={k++} style={{ fontVariant: 'all-small-caps' }}>{m[6]}</span>)
-      noeuds.push(<sup key={k++} style={{ fontSize: '0.6em' }}>{m[7]}</sup>)
+      noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[6]}</span>)
+      noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[7]}</sup>)
       noeuds.push(m[8])
     }
     else if (m[9] !== undefined) { if (m[9]) noeuds.push(<em key={k++}>{m[9]}</em>) }
@@ -41,11 +43,9 @@ export function rendreTexteEnrichi(texte: string): React.ReactNode {
   return noeuds
 }
 
+/** Conservé pour ses appelants ; la règle vit dans app/lib/siecles.tsx. */
 export function formaterSieclesHTML(html: string): string {
-  return html.replace(
-    /\b([IVXLCDM]+)(?:<sup>)?(e|er|ère|ème|ième)(?:<\/sup>)?(\s+siècles?)/g,
-    '<span style="font-variant:all-small-caps">$1</span><sup style="font-size:0.6em !important">$2</sup>$3'
-  )
+  return sieclesEnHtml(html)
 }
 
 export function texteSansEnrichissement(texte: string): string {

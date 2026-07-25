@@ -4,7 +4,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import type { ElementPanneau } from './texteEnrichiEssai'
 
-const DUREE_FIXATION = 2300
+// La bulle devient fixe après 2,3 secondes de survol continu.
+const DUREE_FIXATION = 2_300
 const DELAI_FERMETURE = 200
 
 function ContenuNote({ el, onNaviguer }: {
@@ -54,11 +55,11 @@ function ContenuNote({ el, onNaviguer }: {
   if (el.type !== 'note') {
     return (
       <span style={{ display: 'block' }}>
-        <span style={{ display: 'block', fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '5px', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+        <span style={{ display: 'block', fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '5px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
           {el.type === 'verset' ? 'Référence biblique' : 'Référence patristique'}
         </span>
-        <span style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#3d6b4f', marginBottom: '6px', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>{el.label}</span>
-        <span style={{ display: 'block', fontSize: '12px', lineHeight: 1.52, color: '#3a3020', fontFamily: "'Helvetica Neue', Arial, sans-serif", fontStyle: 'normal' }}>{texte}</span>
+        <span style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#3d6b4f', marginBottom: '6px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{el.label}</span>
+        <span style={{ display: 'block', fontSize: '12px', lineHeight: 1.52, color: '#3a3020', fontFamily: "var(--font-source-sans), Arial, sans-serif", fontStyle: 'normal' }}>{texte}</span>
       </span>
     )
   }
@@ -69,7 +70,7 @@ function ContenuNote({ el, onNaviguer }: {
       fontSize: '12px',
       lineHeight: 1.38,
       color: '#2a2016',
-      fontFamily: "Georgia, 'Times New Roman', serif",
+      fontFamily: "var(--font-source-serif), Georgia, serif",
       fontStyle: 'normal',
       letterSpacing: '0.002em',
       wordSpacing: '-0.01em',
@@ -146,7 +147,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
   ) : (
     <sup style={{ marginLeft: '0.1em' }}>
       <button onMouseEnter={traiterEntrer} onMouseLeave={traiterSortir} onClick={traiterClic}
-        style={{ color: fixe ? '#1e2e24' : '#3d6b4f', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: '0.82em', fontFamily: "Georgia, serif", fontStyle: 'normal', lineHeight: 1 }}>
+        style={{ color: fixe ? '#1e2e24' : '#3d6b4f', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: '0.82em', fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'normal', lineHeight: 1 }}>
         {lettre}
       </button>
     </sup>
@@ -209,7 +210,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
 
             {/* Label « Note X » dans le coin supérieur gauche */}
             {el.type === 'note' && profondeur === el && (
-              <span style={{ display: 'block', fontSize: '8px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a09070', marginBottom: '5px', fontFamily: "'Helvetica Neue', Arial, sans-serif", wordSpacing: 0 }}>
+              <span style={{ display: 'block', fontSize: '8px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a09070', marginBottom: '5px', fontFamily: "var(--font-source-sans), Arial, sans-serif", wordSpacing: 0 }}>
                 Note {lettre}
               </span>
             )}
@@ -217,7 +218,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
             {/* Retour (navigation dans la note) */}
             {profondeur !== el && (
               <button onClick={() => setProfondeur(el)}
-                style={{ fontSize: '10px', color: '#3d6b4f', background: 'none', border: 'none', padding: '0 0 6px', cursor: 'pointer', display: 'block', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+                style={{ fontSize: '10px', color: '#3d6b4f', background: 'none', border: 'none', padding: '0 0 6px', cursor: 'pointer', display: 'block', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                 ← Retour
               </button>
             )}
@@ -227,12 +228,12 @@ export default function NoteTooltip({ lettre, el, isRef }: {
             {/* Bouton fermeture (fixe seulement) */}
             {fixe && (
               <button onClick={fermerComplet}
-                style={{ position: 'absolute', top: '5px', right: '7px', background: 'none', border: 'none', color: '#c0b0a0', cursor: 'pointer', fontSize: '12px', lineHeight: 1, fontFamily: 'sans-serif' }}>
+                style={{ position: 'absolute', top: '5px', right: '7px', background: 'none', border: 'none', color: '#c0b0a0', cursor: 'pointer', fontSize: '12px', lineHeight: 1, fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
                 ×
               </button>
             )}
 
-            {/* Barre de progression 4 s */}
+            {/* Barre de progression de 2,3 s */}
             {!fixe && (
               <span key={cleAnim} style={{
                 position: 'absolute',

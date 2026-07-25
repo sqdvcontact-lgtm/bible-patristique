@@ -106,7 +106,7 @@ export default function VotesClient() {
       <div style={{ textAlign: 'center', marginBottom: '32px' }}>
         <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 28px' }} />
         <h2 style={{
-          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontFamily: "var(--font-source-serif), Georgia, serif",
           fontSize: 'clamp(17px, 2.5vw, 22px)',
           fontWeight: 'normal', color: '#2a3d30', marginBottom: '16px',
         }}>
@@ -158,7 +158,7 @@ export default function VotesClient() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
                     <span style={{
-                      fontFamily: "Georgia, 'Times New Roman', serif",
+                      fontFamily: "var(--font-source-serif), Georgia, serif",
                       fontSize: '14.5px', color: '#1e2e24', fontWeight: 'normal',
                     }}>
                       {p.titre}

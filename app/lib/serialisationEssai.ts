@@ -31,7 +31,7 @@ export function syntaxeVersHtml(texte: string): string {
 
   const flush = () => {
     if (paragraphe.length === 0) return
-    blocs.push(`<p style="margin:0 0 0.62em;word-spacing:0.018em;letter-spacing:0.004em;font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.62;text-align:left;">${paragraphe.map(inlineVersHtml).join('<br>')}</p>`)
+    blocs.push(`<p style="margin:0 0 0.62em;word-spacing:0.018em;letter-spacing:0.004em;font-family:var(--font-source-sans), Arial, sans-serif;line-height:1.62;text-align:left;">${paragraphe.map(inlineVersHtml).join('<br>')}</p>`)
     paragraphe = []
   }
 
@@ -45,17 +45,17 @@ export function syntaxeVersHtml(texte: string): string {
     }
     if (ligne.startsWith('> ')) {
       flush()
-      blocs.push(`<blockquote style="font-style:normal;font-size:0.93em;font-family:'Helvetica Neue',Arial,sans-serif;color:#3a3530;margin:0.48em 0 0.76em 8mm;line-height:1.62;word-spacing:0.018em;letter-spacing:0.004em;text-align:left;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
+      blocs.push(`<blockquote style="font-style:normal;font-size:0.93em;font-family:var(--font-source-sans), Arial, sans-serif;color:#3a3530;margin:0.48em 0 0.76em 8mm;line-height:1.62;word-spacing:0.018em;letter-spacing:0.004em;text-align:left;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
       return
     }
     if (ligne.startsWith('## ')) {
       flush()
-      blocs.push(`<h3 style="font-style:italic;font-weight:400;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1em;color:#2a3d30;margin:1.18em 0 0.52em;padding-left:1.08em;">${inlineVersHtml(ligne.slice(3))}</h3>`)
+      blocs.push(`<h3 style="font-style:italic;font-weight:400;font-family:var(--font-source-serif), Georgia, serif;font-size:1em;color:#2a3d30;margin:1.18em 0 0.52em;padding-left:1.08em;">${inlineVersHtml(ligne.slice(3))}</h3>`)
       return
     }
     if (ligne.startsWith('# ')) {
       flush()
-      blocs.push(`<h2 style="font-weight:700;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.07em;color:#1e2e24;margin:1.65em 0 0.72em;padding-left:0.72em;">${inlineVersHtml(ligne.slice(2))}</h2>`)
+      blocs.push(`<h2 style="font-weight:700;font-family:var(--font-source-serif), Georgia, serif;font-size:1.07em;color:#1e2e24;margin:1.65em 0 0.72em;padding-left:0.72em;">${inlineVersHtml(ligne.slice(2))}</h2>`)
       return
     }
     paragraphe.push(ligne)

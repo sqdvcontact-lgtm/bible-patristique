@@ -46,7 +46,7 @@ export default function MessageriePage() {
       <div style={{ maxWidth: '680px', margin: '0 auto', padding: '34px 24px 80px' }}>
 
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 'normal', color: '#1e2e24', marginBottom: '10px' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 'normal', color: '#1e2e24', marginBottom: '10px' }}>
             Messages
           </h1>
           <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto' }} />
@@ -61,7 +61,7 @@ export default function MessageriePage() {
           <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
         ) : conversations.length === 0 ? (
           <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '32px 24px', textAlign: 'center' }}>
-            <p style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: '#b0a89e', margin: '0 0 8px' }}>Aucun message</p>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#b0a89e', margin: '0 0 8px' }}>Aucun message</p>
             <p style={{ fontSize: '12px', color: '#c8c0b4', margin: 0 }}>
               Rendez-vous sur le{' '}
               <Link href="/" style={{ color: '#3d6b4f', textDecoration: 'none' }}>profil d'un lecteur</Link>
@@ -83,7 +83,7 @@ export default function MessageriePage() {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: '#1e2e24', fontWeight: c.nb_non_lus > 0 ? 600 : 400 }}>
+                      <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#1e2e24', fontWeight: c.nb_non_lus > 0 ? 600 : 400 }}>
                         {c.partenaire_pseudo}
                       </span>
                       {c.nb_non_lus > 0 && (

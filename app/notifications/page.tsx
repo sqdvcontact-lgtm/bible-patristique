@@ -113,7 +113,7 @@ export default function NotificationsPage() {
       `}</style>
       <div style={{ maxWidth: '720px', margin: '0 auto', padding: '34px 24px 80px' }}>
         <div style={{ textAlign: 'center', marginBottom: '22px' }}>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 'normal', color: '#1e2e24', marginBottom: '10px' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 'normal', color: '#1e2e24', marginBottom: '10px' }}>
             Notifications
           </h1>
           <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto' }} />
@@ -161,7 +161,7 @@ export default function NotificationsPage() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '10px', marginBottom: '5px' }}>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 2px' }}>{n.titre}</p>
-                          <p style={{ fontFamily: 'Georgia, serif', fontSize: '14px', color: '#1e2e24', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.objet}</p>
+                          <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '14px', color: '#1e2e24', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.objet}</p>
                         </div>
                         <span style={{ fontSize: '9.5px', color: '#b0a89e', flexShrink: 0 }}>{dateCourte(n.date)}</span>
                       </div>

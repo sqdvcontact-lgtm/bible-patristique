@@ -177,7 +177,7 @@ export default function ModalLienBiblique({
         <div style={{ padding: '16px 20px 13px', borderBottom: '1px solid #e6dfd4', display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'flex-start' }}>
           <div>
             <p style={{ margin: '0 0 4px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '.12em', color: '#8b7a5c', fontWeight: 700 }}>Lien biblique</p>
-            <h2 style={{ margin: 0, fontFamily: 'Georgia, serif', fontSize: '24px', fontWeight: 400, color: '#1e2e24' }}>{titre}</h2>
+            <h2 style={{ margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '24px', fontWeight: 400, color: '#1e2e24' }}>{titre}</h2>
             {erreur && <p style={{ margin: '7px 0 0', color: '#b05638', fontSize: '12px' }}>{erreur}</p>}
           </div>
           <button onClick={onFermer} style={{ border: 0, background: 'transparent', color: '#9a958d', cursor: 'pointer', fontSize: '18px', lineHeight: 1, padding: '2px 4px' }}>×</button>

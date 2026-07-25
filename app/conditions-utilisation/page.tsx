@@ -16,7 +16,7 @@ export default function ConditionsUtilisationPage() {
         </p>
 
         <h1 style={{
-          fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "clamp(26px, 3.5vw, 34px)",
+          fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "clamp(26px, 3.5vw, 34px)",
           fontWeight: "normal", color: "#2a3d30", marginBottom: "8px", lineHeight: 1.25,
         }}>
           Conditions d&rsquo;utilisation
@@ -206,7 +206,7 @@ function Section({ titre, children }: { titre: string; children: React.ReactNode
   return (
     <section style={{ marginBottom: "32px" }}>
       <h2 style={{
-        fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "16px",
+        fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "16px",
         fontWeight: "normal", color: "#2a3d30", marginBottom: "10px",
         borderBottom: "1px solid #d6d0c4", paddingBottom: "6px",
       }}>

@@ -31,7 +31,7 @@ export default function BienvenuePage() {
         <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7aaa8e', margin: '0 0 18px' }}>
           Corpus Scriptura
         </p>
-        <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '26px', fontWeight: 'normal', color: '#2a3d30', margin: '0 0 10px', lineHeight: 1.3 }}>
+        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '26px', fontWeight: 'normal', color: '#2a3d30', margin: '0 0 10px', lineHeight: 1.3 }}>
           Bienvenue.
         </h1>
         <p style={{ fontSize: '13.5px', color: '#7a7068', lineHeight: 1.75, margin: '0 0 52px', maxWidth: '340px', marginLeft: 'auto', marginRight: 'auto' }}>

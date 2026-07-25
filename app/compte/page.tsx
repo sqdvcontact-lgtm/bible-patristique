@@ -133,7 +133,7 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
   return (
     <main style={{ minHeight: "calc(100vh - 48px)", background: "#f3efe3", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
       <div style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "32px 36px", width: "100%", maxWidth: "380px" }}>
-        <h1 style={{ fontFamily: "Georgia, serif", fontSize: "19px", fontWeight: "normal", color: "#2a3d30", marginBottom: "8px" }}>Choisissez votre pseudonyme</h1>
+        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "19px", fontWeight: "normal", color: "#2a3d30", marginBottom: "8px" }}>Choisissez votre pseudonyme</h1>
         <p style={{ fontSize: "12.5px", color: "#9a958d", marginBottom: "20px", lineHeight: 1.5 }}>Il vous identifie sur le site et doit être unique.</p>
         {erreur && <p style={{ fontSize: "12.5px", color: "#9a2a2a", marginBottom: "12px" }}>{erreur}</p>}
         <form onSubmit={valider} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -174,10 +174,10 @@ function SectionRang({ score }: { score: number }) {
   return (
     <>
       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
-        <span style={{ fontSize: "14px", fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: "4px 13px", borderRadius: "6px", letterSpacing: "0.01em", fontFamily: "Georgia, serif" }}>
+        <span style={{ fontSize: "14px", fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: "4px 13px", borderRadius: "6px", letterSpacing: "0.01em", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
           {rang}
         </span>
-        <span style={{ fontSize: "12px", color: "#8a8278", fontFamily: "Georgia, serif" }}>
+        <span style={{ fontSize: "12px", color: "#8a8278", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
           {score} point{score !== 1 ? "s" : ""}
         </span>
       </div>
@@ -229,7 +229,7 @@ function SectionPublications({ userId }: { userId: string }) {
         {essais.map((e, i) => (
           <a key={e.id} href={`/essais/${e.id}`}
             style={{ display: "flex", alignItems: "baseline", gap: "10px", padding: "8px 0", textDecoration: "none", borderBottom: i < essais.length - 1 ? "1px solid #f0ece6" : "none" }}>
-            <span style={{ fontFamily: "Georgia, serif", fontSize: "13.5px", fontStyle: "italic", color: "#2a3d30", flex: 1, lineHeight: 1.4 }}>{e.titre}</span>
+            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "13.5px", fontStyle: "italic", color: "#2a3d30", flex: 1, lineHeight: 1.4 }}>{e.titre}</span>
             <span style={{ fontSize: "10px", color: "#c0b8ae", flexShrink: 0 }}>{new Date(e.cree_le).getFullYear()}</span>
           </a>
         ))}
@@ -266,7 +266,7 @@ function SectionFavoris({ userId }: { userId: string }) {
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderLeftColor = "#3d6b4f"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderLeftColor = "#c8c0b4"; }}>
             {f.auteur_nom && <p style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.06em", color: "#9a958d", textTransform: "uppercase", margin: "0 0 3px" }}>{f.auteur_nom}</p>}
-            <p style={{ fontFamily: "Georgia, serif", fontSize: "12.5px", fontStyle: "italic", color: "#2a3d30", margin: 0, lineHeight: 1.4 }}>{f.titre}</p>
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "12.5px", fontStyle: "italic", color: "#2a3d30", margin: 0, lineHeight: 1.4 }}>{f.titre}</p>
           </a>
         ))}
       </div>
@@ -312,7 +312,7 @@ function ModaleRecadrage({ photo, onSauvegarder, onChanger, onClose }: {
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1300, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
       <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "12px", padding: "28px", width: "340px", maxWidth: "100%", boxShadow: "0 16px 48px rgba(0,0,0,0.22)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-          <h3 style={{ fontFamily: "Georgia, serif", fontSize: "16px", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>Recadrer la photo</h3>
+          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "16px", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>Recadrer la photo</h3>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "16px", color: "#b0a89e", padding: "2px" }}>x</button>
         </div>
         <div
@@ -373,7 +373,7 @@ function ModalePhoto({ onChoisir, onClose }: { onChoisir: (photo: PhotoProfil) =
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
       <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "12px", padding: "28px", width: "600px", maxWidth: "100%", maxHeight: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 16px 48px rgba(0,0,0,0.2)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", flexShrink: 0 }}>
-          <h3 style={{ fontFamily: "Georgia, serif", fontSize: "17px", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>Choisir une illustration</h3>
+          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "17px", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>Choisir une illustration</h3>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "16px", color: "#b0a89e", padding: "2px" }}>✕</button>
         </div>
         <p style={{ fontSize: "11.5px", color: "#9a958d", margin: "0 0 18px", flexShrink: 0, lineHeight: 1.5 }}>
@@ -407,7 +407,7 @@ function AutorPhotoItem({ auteur, base, onChoisir }: { auteur: AuteurPhoto; base
       <div style={{ width: "72px", height: "90px", position: "relative", background: "#ede9e2", borderRadius: "4px", overflow: "hidden" }}>
         <Image src={url} alt={auteur.nom} fill sizes="72px" unoptimized onError={() => setErreur(true)} style={{ objectFit: "cover", objectPosition: "top" }} />
       </div>
-      <span style={{ fontSize: "9.5px", color: "#3a3530", textAlign: "center", lineHeight: 1.3, fontFamily: "Georgia, serif" }}>{auteur.nom}</span>
+      <span style={{ fontSize: "9.5px", color: "#3a3530", textAlign: "center", lineHeight: 1.3, fontFamily: "var(--font-source-serif), Georgia, serif" }}>{auteur.nom}</span>
     </button>
   );
 }
@@ -616,7 +616,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
     <main style={{ minHeight: "calc(100vh - 48px)", background: "#f3efe3", padding: "40px 20px 100px", display: "flex", justifyContent: "center" }}>
       <style>{`
         .cs-section-card { background: #fff; border: 1px solid #e4dfd8; border-radius: 10px; padding: 24px 26px; margin-bottom: 16px; }
-        .cs-section-title { font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #9a958d; margin: 0 0 18px; }
+        .cs-section-title { font-family: var(--font-source-sans), Arial, sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #9a958d; margin: 0 0 18px; }
         .cs-check-item { display: flex; align-items: center; gap: 10px; }
         .cs-check-circle { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; }
       `}</style>
@@ -644,7 +644,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
               </div>
             ) : (
               <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "linear-gradient(135deg,#3d6b4f,#2a3d30)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", border: "2px solid #c8d8cc" }}>
-                <span style={{ fontFamily: "Georgia, serif", fontSize: "28px", color: "#e8f0eb", fontWeight: "normal" }}>
+                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "28px", color: "#e8f0eb", fontWeight: "normal" }}>
                   {profilInit.pseudo.charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -665,7 +665,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
           )}
 
           {/* Pseudo */}
-          <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "26px", fontWeight: "normal", color: "#1e2e22", margin: "0 0 4px", letterSpacing: "-0.01em" }}>
+          <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "26px", fontWeight: "normal", color: "#1e2e22", margin: "0 0 4px", letterSpacing: "-0.01em" }}>
             {profilInit.pseudo}
           </h1>
 
@@ -765,7 +765,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
             <div style={{ marginBottom: "14px" }}>
               <label style={labelStyle}>PRÉSENTATION</label>
               <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} maxLength={500} placeholder="Quelques mots sur vous…"
-                style={{ ...inputStyle, resize: "vertical", fontFamily: "Georgia, serif", fontSize: "13px" }} />
+                style={{ ...inputStyle, resize: "vertical", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "13px" }} />
               <p style={{ fontSize: "10px", color: "#c8c0b8", margin: "3px 0 0", textAlign: "right" }}>{bio.length}/500</p>
             </div>
             <div style={{ marginBottom: "18px" }}>
@@ -856,7 +856,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
         <div onClick={() => !suppressionEnCours && setModaleSuppressionOuverte(false)}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "12px", padding: "32px", width: "480px", maxWidth: "100%", boxShadow: "0 16px 48px rgba(0,0,0,0.2)" }}>
-            <h3 style={{ fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "normal", color: "#1e1a14", margin: "0 0 16px" }}>Suppression du compte</h3>
+            <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "18px", fontWeight: "normal", color: "#1e1a14", margin: "0 0 16px" }}>Suppression du compte</h3>
             <p style={{ fontSize: "12.5px", color: "#5a5450", lineHeight: 1.65, margin: "0 0 14px" }}>
               Cette action est <strong>irrémédiable</strong>. Elle entraînera la suppression immédiate et définitive de :
             </p>

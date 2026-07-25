@@ -1,16 +1,17 @@
-﻿'use client'
-import { ABREV_FR } from '@/app/lib/bible'
+'use client'
+import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import { cesurerGrec, codeLangue } from '@/app/lib/grec'
 
 // ── Graphies & normalisation (hérités de la concordance) ─────────────────────
 function normaliser(s: string): string {
-  return s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[''ʼ]/g, "'")
+  return (s ?? '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[''ʼ]/g, "'")
 }
 function graphiesVariantes(base: string): string[] {
   const v = new Set([base])
@@ -27,35 +28,30 @@ function nombreFr(n: number): string {
   return n <= 20 ? NOMBRES_FR[n] : String(n)
 }
 
+// Abréviation française, avec une espace après le numéro de livre : « 1Co » → « 1 Co »,
+// « 2P » → « 2 P ». On ne touche pas la table ABREV_FR (partagée par tout le site) ;
+// l'espacement est propre à l'affichage des résultats de recherche.
+function abrevFr(code: string): string {
+  return (ABREV_FR[code] || code).replace(/^([1-3])(\p{L})/u, '$1 $2')
+}
 function refFr(ref: string): string {
   const p = ref.trim().split(' ')
   if (p.length < 2) return ref
   const cv = p[1].split(':')
-  return cv[1] ? `${ABREV_FR[p[0]] || p[0]} ${cv[0]}, ${cv[1]}` : `${ABREV_FR[p[0]] || p[0]} ${cv[0]}`
+  return cv[1] ? `${abrevFr(p[0])} ${cv[0]}, ${cv[1]}` : `${abrevFr(p[0])} ${cv[0]}`
 }
 
-const NOMS_LIVRES: Record<string, string> = {
-  GEN:'Genèse',EXO:'Exode',LEV:'Lévitique',NUM:'Nombres',DEU:'Deutéronome',
-  JOS:'Josué',JDG:'Juges',RUT:'Ruth','1SA':'1 Samuel','2SA':'2 Samuel',
-  '1KI':'1 Rois','2KI':'2 Rois','1CH':'1 Chroniques','2CH':'2 Chroniques',
-  EZR:'Esdras',NEH:'Néhémie',EST:'Esther',JOB:'Job',PSA:'Psaumes',
-  PRO:'Proverbes',ECC:'Ecclésiaste',SNG:'Cantique',ISA:'Isaïe',JER:'Jérémie',
-  LAM:'Lamentations',EZK:'Ézéchiel',DAN:'Daniel',HOS:'Osée',JOL:'Joël',
-  AMO:'Amos',OBA:'Abdias',JON:'Jonas',MIC:'Michée',NAM:'Nahum',HAB:'Habacuc',
-  ZEP:'Sophonie',HAG:'Aggée',ZEC:'Zacharie',MAL:'Malachie',
-  MAT:'Matthieu',MRK:'Marc',LUK:'Luc',JHN:'Jean',ACT:'Actes',ROM:'Romains',
-  '1CO':'1 Corinthiens','2CO':'2 Corinthiens',GAL:'Galates',EPH:'Éphésiens',
-  PHP:'Philippiens',COL:'Colossiens','1TH':'1 Thessaloniciens','2TH':'2 Thessaloniciens',
-  '1TI':'1 Timothée','2TI':'2 Timothée',TIT:'Tite',PHM:'Philémon',HEB:'Hébreux',
-  JAS:'Jacques','1PE':'1 Pierre','2PE':'2 Pierre','1JN':'1 Jean','2JN':'2 Jean',
-  '3JN':'3 Jean',JUD:'Jude',REV:'Apocalypse',
-}
+// Noms des livres DÉRIVÉS de `LIVRES` (app/lib/bible.ts), comme le fait déjà `app/page.tsx`.
+// Une table écrite à la main ici a dérivé : il y manquait les deutérocanoniques, et
+// l'en-tête de la Polyglotte affichait le code brut (« SIR » au lieu de « Siracide »).
+// Une seule source, donc : tout livre ajouté à LIVRES est nommé partout du même coup.
+const NOMS_LIVRES: Record<string, string> = Object.fromEntries(LIVRES.map(l => [l.code, l.nom]))
 
 const TRADUCTIONS_FALLBACK = [
-  { code: 'TR0001', label: 'Bible de Sacy' },
-  { code: 'TR0002', label: 'Bible Segond' },
-  { code: 'TR0003', label: 'Bible Crampon' },
-  { code: 'TR0004', label: 'Vulgate' },
+  { code: 'TR0001', label: 'Bible de Sacy', lang: 'fr' },
+  { code: 'TR0002', label: 'Bible Segond', lang: 'fr' },
+  { code: 'TR0003', label: 'Bible Crampon', lang: 'fr' },
+  { code: 'TR0004', label: 'Vulgate', lang: 'la' },
 ]
 
 type VersetResult = {
@@ -74,6 +70,21 @@ type Mode = 'prefixe' | 'exact'
 type Onglet = 'bible' | 'patristique' | 'essais' | 'polyglotte'
 
 const PAGE = 20
+
+// ── Recherche enregistrée ────────────────────────────────────────────────────
+// Une seule recherche mémorisée à la fois (localStorage, donc valable aussi pour un
+// visiteur non connecté). On y consigne tout ce qu'il faut pour retrouver l'écran à
+// l'identique : le(s) mot(s), le mode, les traductions, l'onglet, la page et la position
+// de défilement. Enregistrée à la demande, puis rafraîchie automatiquement de temps à autre.
+const CLE_RECHERCHE_SAUVEE = 'cs-recherche-sauvee'
+type RechercheSauvee = {
+  query: string; mode: Mode
+  tradScope: string; tradAffichage: string; colTrads: string[]
+  onglet: Onglet
+  pageV: number; pageS: number; pageE: number
+  scrollTop: number
+  ts: number
+}
 
 function termesRecherche(terme: string): string[] {
   return terme.trim().split(/\s+/).filter(Boolean)
@@ -95,12 +106,18 @@ function contientTerme(texte: string, terme: string, mode: Mode): boolean {
   }
   catch { return false }
 }
-function highlighter(texte: string, terme: string, mode: Mode): React.ReactNode {
+// `rouge` : surligne l'occurrence en rouge au lieu du vert. Sert dans l'onglet Bible
+// quand le mot cherché est ABSENT de la traduction affichée mais présent ailleurs : on
+// montre alors le verset d'une traduction qui le porte, l'occurrence en rouge.
+function highlighter(texte: string, terme: string, mode: Mode, rouge = false): React.ReactNode {
   if (!texte || !terme) return texte
   const termes = termesRecherche(terme)
   if (!termes.length) return texte
   const sep = '(^|[\\s\\u202f\\u00a0«»,;:!?—.(\\[])'
   const fin = mode === 'exact' ? '(?=[\\s\\u202f\\u00a0«»,;:!?—.)\\]]|$)' : ''
+  const style = rouge
+    ? { background: '#f6cfca', color: '#8a1710', fontWeight: 700, borderRadius: '2px', padding: '0 2px' }
+    : { background: '#b2ddc2', color: '#12401f', fontWeight: 700, borderRadius: '2px', padding: '0 2px' }
   // On construit le regex sur le texte normalisé pour trouver les positions,
   // puis on surligne les caractères originaux aux mêmes positions.
   try {
@@ -113,12 +130,27 @@ function highlighter(texte: string, terme: string, mode: Mode): React.ReactNode 
       const s = m.index + m[1].length
       const e = s + m[2].length
       if (s > last) parts.push(texte.slice(last, s))
-      parts.push(<mark key={s} style={{ background: '#c9e8d4', color: '#1a2e20', borderRadius: '2px', padding: '0 2px' }}>{texte.slice(s, e)}</mark>)
+      parts.push(<mark key={s} style={style}>{texte.slice(s, e)}</mark>)
       last = e
     }
     if (last < texte.length) parts.push(texte.slice(last))
     return parts.length > 1 ? parts : texte
   } catch { return texte }
+}
+
+// PostgREST plafonne CHAQUE réponse à 1000 lignes (réglage max-rows), quel que soit le
+// `.limit()` demandé : c'est ce plafond qui bornait la recherche à mille résultats. Pour
+// le dépasser, on pagine par `.range()` jusqu'à un plafond de sécurité.
+async function pagine<T = any>(make: (de: number, a: number) => any, signal: AbortSignal, cap = 6000): Promise<T[]> {
+  const out: T[] = []
+  for (let de = 0; de < cap; de += 1000) {
+    const { data, error } = await make(de, de + 999).abortSignal(signal)
+    if (error || signal.aborted) break
+    const lot = (data ?? []) as T[]
+    out.push(...lot)
+    if (lot.length < 1000) break
+  }
+  return out
 }
 
 function snippetEssai(texte: string, terme: string, max = 220): string {
@@ -139,11 +171,18 @@ export default function RechercheClient() {
   const [query, setQuery] = useState(searchParams.get('q') ?? '')
   const [mode, setMode] = useState<Mode>(searchParams.get('mode') === 'exact' ? 'exact' : 'prefixe')
 
-  const [tradScope, setTradScope] = useState<string>('TR0001')
+  // Par défaut : on cherche dans TOUTES les bibles (scope ALL) et l'on affiche dans la
+  // traduction préférée (ou Sacy à défaut). La préférence ne pilote donc que l'affichage,
+  // jamais le périmètre de recherche.
+  const [tradScope, setTradScope] = useState<string>('ALL')
   const [tradAffichage, setTradAffichage] = useState<string>('TR0001')
-  const tradBible = tradScope === 'ALL' ? tradAffichage : tradScope
+  // L'affichage suit TOUJOURS « Afficher en » (tradAffichage), indépendamment du périmètre
+  // de recherche : le sélecteur « Afficher en » reste ainsi présent et actif en permanence,
+  // même quand on restreint la recherche à une seule bible.
+  const tradBible = tradAffichage
 
-  const [colTrads, setColTrads] = useState<string[]>(['TR0001','TR0002','TR0003','TR0004'])
+  // Polyglotte de recherche : TROIS colonnes au maximum (au modèle de la page Polyglotte).
+  const [colTrads, setColTrads] = useState<string[]>(['TR0001','TR0002','TR0003'])
   const [traductions, setTraductions] = useState(TRADUCTIONS_FALLBACK)
   const [versetsRes, setVersetsRes] = useState<VersetResult[]>([])
   const [segmentsRes, setSegmentsRes] = useState<SegmentResult[]>([])
@@ -157,17 +196,30 @@ export default function RechercheClient() {
   const [pageS, setPageS] = useState(0)
   const [pageE, setPageE] = useState(0)
   const [hoveredVerset, setHoveredVerset] = useState<string | null>(null)
-  const dejaLanceRef = useRef('')
+  // Signature du dernier `searchParams` traité (q|mode). L'effet ci-dessous ne réagit
+  // QU'À un vrai changement d'URL : sans ce garde, un simple re-rendu (survol, chargement
+  // des traductions, suggestions…) rejouait l'effet, et sa branche « pas de q » effaçait
+  // les résultats d'une recherche lancée au clavier — laquelle ne met rien dans l'URL.
+  const paramsSigRef = useRef<string | null>(null)
   const [sugg, setSugg]         = useState<{ mot: string; freq: number }[]>([])
   const [showSugg, setShowSugg] = useState(false)
   const [tronque, setTronque]   = useState<string[]>([])
   const inputRef   = useRef<HTMLInputElement>(null)
   const suggTimer  = useRef<ReturnType<typeof setTimeout>>(undefined)
   const suggRef    = useRef<HTMLUListElement>(null)
+  // Recherche enregistrée : présence d'une sauvegarde (pour révéler « Reprendre »), zone
+  // de défilement des résultats (pour restituer la position), et petit accusé « enregistré ».
+  const [rechercheSauvee, setRechercheSauvee] = useState<RechercheSauvee | null>(null)
+  const [vientDEnregistrer, setVientDEnregistrer] = useState(false)
+  const zoneResultatsRef = useRef<HTMLDivElement>(null)
+  // Miroir de l'état courant, lu par l'enregistrement automatique (dont l'intervalle,
+  // fermé sur un vieux rendu, ne verrait sinon que des valeurs périmées).
+  const etatRef = useRef<Omit<RechercheSauvee, 'scrollTop' | 'ts'> | null>(null)
 
   useEffect(() => {
+    // La préférence règle l'AFFICHAGE seulement ; le périmètre reste « toutes les bibles ».
     const appliquer = (code?: string | null) => {
-      if (code && /^TR\d{4}$/.test(code)) { setTradScope(code); setTradAffichage(code) }
+      if (code && /^TR\d{4}$/.test(code)) setTradAffichage(code)
     }
     appliquer(localStorage.getItem('traduction_defaut'))
     supabase.auth.getSession().then(async ({ data }) => {
@@ -176,11 +228,11 @@ export default function RechercheClient() {
       const { data: profil } = await supabase.from('profils').select('traduction_defaut').eq('id', uid).maybeSingle()
       if (profil?.traduction_defaut) { localStorage.setItem('traduction_defaut', profil.traduction_defaut); appliquer(profil.traduction_defaut) }
     })
-    supabase.from('traductions').select('trad_id, nom').order('ordre', { ascending: true }).then(({ data }) => {
+    supabase.from('traductions').select('trad_id, nom, langue').order('ordre', { ascending: true }).then(({ data }) => {
       if (data?.length) {
-        const trads = data.map((t: any) => ({ code: t.trad_id, label: t.nom }))
+        const trads = data.map((t: any) => ({ code: t.trad_id, label: t.nom, lang: codeLangue(t.langue) }))
         setTraductions(trads)
-        setColTrads(trads.slice(0, 4).map((t: { code: string }) => t.code))
+        setColTrads(trads.slice(0, 3).map((t: { code: string }) => t.code))
       }
     })
   }, [])
@@ -206,10 +258,16 @@ export default function RechercheClient() {
       suggAbortRef.current = new AbortController()
       const signal = suggAbortRef.current.signal
       try {
+        // Auteurs et œuvres : PRÉFIXE DE MOT, non sous-chaîne. « am » doit ramener
+        // « Ambroise », jamais « Ratramme de Corbie » (am au milieu). Un mot commence en
+        // tête de champ, après une espace ou une apostrophe. (Les mots de la Bible passent
+        // déjà par une RPC préfixe.)
+        const valOr = val.replace(/,/g, ' ').trim()
+        const prefixeOr = (col: string) => [`${col}.ilike.${valOr}%`, `${col}.ilike.% ${valOr}%`, `${col}.ilike.%'${valOr}%`, `${col}.ilike.%’${valOr}%`].join(',')
         const [{ data: dataBible }, { data: dataAuteurs }, { data: dataOeuvres }] = await Promise.all([
           supabase.rpc('suggestions_concordance_fr', { p_prefixe: val, p_limit: 8 }).abortSignal(signal),
-          supabase.from('auteurs').select('nom').ilike('nom', `%${val}%`).limit(3).abortSignal(signal),
-          supabase.from('oeuvres').select('titre').ilike('titre', `%${val}%`).limit(3).abortSignal(signal),
+          supabase.from('auteurs').select('nom').or(prefixeOr('nom')).limit(3).abortSignal(signal),
+          supabase.from('oeuvres').select('titre').or(prefixeOr('titre')).limit(3).abortSignal(signal),
         ])
         if (signal.aborted) return
         const suggsBible: { mot: string; freq: number }[] = dataBible ?? []
@@ -251,8 +309,9 @@ export default function RechercheClient() {
       const vars = (!fragments && termeNorm.length >= 2) ? graphiesVariantes(termeNorm) : null
 
       const tradCodes = traductions.map(t => t.code)
-      const selVersets = `id_verset, ref, livre, chapitre, verset, ${tradCodes.join(', ')}`
-      const TRADS_CONC = new Set(['TR0001', 'TR0002', 'TR0003'])
+      // On récupère aussi les num_TRxxxx : les références d'ORIGINE de chaque édition,
+      // affichées en lettrine dans l'onglet Polyglotte, comme sur la page Polyglotte.
+      const selVersets = `id_verset, ref, livre, chapitre, verset, ${tradCodes.join(', ')}, ${tradCodes.map(c => 'num_' + c).join(', ')}`
 
       // Essais — construit sans await, part immédiatement en parallèle
       const reqE = (() => {
@@ -266,65 +325,49 @@ export default function RechercheClient() {
         return r.abortSignal(signal)
       })()
 
-      // Versets, segments et essais lancés en parallèle
-      const [segsFromRpc, resV, resE] = await Promise.all([
+      // Versets, segments et essais lancés en parallèle. Versets et segments sont
+      // PAGINÉS (voir `pagine`) pour dépasser le plafond de 1000 de PostgREST.
+      const [segsFromRpc, versetsArr, resE] = await Promise.all([
 
         // ── Segments ──────────────────────────────────────────────────────────
         (async (): Promise<any[]> => {
           if (fragments) {
-            let reqFrag = supabase.from('segments').select('id, segment_texte, id_oeuvre, ref_niv1, ref_niv3') as any
-            for (const t of termes) reqFrag = reqFrag.ilike('segment_texte', `%${t}%`)
-            const { data } = await reqFrag.limit(10000).abortSignal(signal)
-            return data ?? []
+            return pagine((de, a) => {
+              let r = supabase.from('segments').select('id, segment_texte, id_oeuvre, ref_niv1, ref_niv3') as any
+              for (const t of termes) r = r.ilike('segment_texte', `%${t}%`)
+              return r.range(de, a)
+            }, signal)
           } else if (vars && vars.length > 1) {
             const seenSeg = new Set<number>()
-            const resultats = await Promise.all(
-              vars.map(v => supabase.rpc('recherche_segments', { p_terme: v, p_exact: modeActif === 'exact' }).limit(10000).abortSignal(signal))
-            )
             const merged: any[] = []
-            for (const { data } of resultats) {
-              for (const row of (data ?? [])) {
-                if (!seenSeg.has(row.id)) { seenSeg.add(row.id); merged.push(row) }
-              }
+            for (const v of vars) {
+              const rows = await pagine((de, a) => supabase.rpc('recherche_segments', { p_terme: v, p_exact: modeActif === 'exact' }).range(de, a), signal)
+              for (const row of rows) if (!seenSeg.has(row.id)) { seenSeg.add(row.id); merged.push(row) }
             }
             return merged
           } else {
-            const { data } = await supabase.rpc('recherche_segments', { p_terme: q, p_exact: modeActif === 'exact' }).limit(10000).abortSignal(signal)
-            return data ?? []
+            return pagine((de, a) => supabase.rpc('recherche_segments', { p_terme: q, p_exact: modeActif === 'exact' }).range(de, a), signal)
           }
         })(),
 
         // ── Versets ───────────────────────────────────────────────────────────
-        (async () => {
-          if (!fragments && vars) {
-            const trsFiltres = chercheTout
-              ? [...TRADS_CONC]
-              : TRADS_CONC.has(scopeActif) ? [scopeActif] : null
-            if (trsFiltres) {
-              const orClause = vars.map(v => `texte_norm.ilike.%${v}%`).join(',')
-              const { data: cvData } = await supabase
-                .from('concordance_versets').select('id_verset')
-                .in('tr', trsFiltres).or(orClause).limit(10000).abortSignal(signal)
-              const ids = [...new Set((cvData ?? []).map((r: any) => r.id_verset))]
-              if (!ids.length) return { data: [] }
-              return supabase.from('versets_lecture').select(selVersets).in('id_verset', ids).limit(10000).abortSignal(signal)
-            } else {
-              return supabase.from('versets_lecture').select(selVersets)
-                .or(vars.map(v => `${scopeActif}.ilike.%${v}%`).join(',')).limit(10000).abortSignal(signal)
-            }
-          } else if (chercheTout) {
-            let r = supabase.from('versets_lecture').select(selVersets)
-            if (fragments) {
-              for (const t of termes) r = r.or(tradCodes.map(c => `${c}.ilike.%${t}%`).join(','))
-            } else {
-              r = r.or(tradCodes.map(c => `${c}.ilike.%${q}%`).join(','))
-            }
-            return r.limit(10000).abortSignal(signal)
-          } else {
-            let r = supabase.from('versets_lecture').select(selVersets)
-            for (const t of termes) r = r.ilike(scopeActif, `%${t}%`)
-            return r.limit(10000).abortSignal(signal)
+        // L'ancien chemin passait par `concordance_versets` — relique du modèle d'avant
+        // la bascule du 20/07 (30 lignes, identifiants périmés `B001714`) : elle renvoyait
+        // 0, d'où « aucun mot n'était trouvé ». Un mot seul passe désormais par la fonction
+        // `recherche_versets`, qui compare via `unaccent` — on trouve donc « vérité » même
+        // en tapant « verite ». Le filtre client affine ensuite en mot entier / début de mot.
+        (async (): Promise<any[]> => {
+          if (!fragments) {
+            return pagine((de, a) => supabase.rpc('recherche_versets', { p_terme: q, p_scope: chercheTout ? 'ALL' : scopeActif }).range(de, a), signal)
           }
+          // Fragments (plusieurs mots, mode début de mot) : requête directe, chaque mot
+          // requis. Accent-sensible ici — cas plus rare, la recherche d'un mot prime.
+          const cols = chercheTout ? tradCodes : [scopeActif]
+          return pagine((de, a) => {
+            let r = supabase.from('versets_lecture').select(selVersets)
+            for (const t of termes) r = r.or(cols.map(c => `${c}.ilike.%${t}%`).join(','))
+            return r.range(de, a)
+          }, signal)
         })(),
 
         // ── Essais ────────────────────────────────────────────────────────────
@@ -333,39 +376,34 @@ export default function RechercheClient() {
 
       if (signal.aborted) return
 
-      // Détection troncature — seuils alignés sur les limites réelles
+      // Détection troncature — seuils alignés sur le plafond de pagination (6000)
       const limiteE = fragments ? 500 : 200
       const avertissements: string[] = []
-      if ((resV.data?.length ?? 0) >= 10000) avertissements.push('Bible')
-      if (segsFromRpc.length >= 10000) avertissements.push('Patristique')
+      if (versetsArr.length >= 6000) avertissements.push('Bible')
+      if (segsFromRpc.length >= 6000) avertissements.push('Pères de l’Église')
       if ((resE.data?.length ?? 0) >= limiteE) avertissements.push('Publications')
       if (avertissements.length) setTronque(avertissements)
 
-      // Filtre client versets
-      // `as unknown` d'abord : le client Supabase type `data` comme pouvant être
-      // une erreur, et TypeScript refuse la conversion directe faute de
-      // recouvrement entre les deux formes. Le `?? []` couvre déjà le cas nul.
-      const versetsRaw = (resV.data ?? []) as unknown as VersetResult[]
-      let versets: VersetResult[]
-      if (chercheTout) {
-        versets = (fragments || modeActif === 'exact')
-          ? versetsRaw.filter(v => tradCodes.some(c => contientTerme(v[c] ?? '', q, modeActif)))
-          : versetsRaw
-      } else if (fragments) {
-        versets = versetsRaw.filter(v => contientTerme(String(v[scopeActif] ?? ''), q, modeActif))
-      } else if (modeActif === 'exact') {
-        versets = versetsRaw.filter(v => contientTerme(String(v[scopeActif] ?? ''), q, 'exact'))
-      } else {
-        versets = versetsRaw
-      }
+      // Filtre client versets : mot entier ou début de mot, INSENSIBLE AUX ACCENTS
+      // (contientTerme normalise les deux côtés). Colonnes : toutes les bibles si ALL,
+      // sinon la seule choisie. Ce filtre resserre le résultat de recherche_versets
+      // (qui, lui, fait une simple sous-chaîne) sur la frontière de mot voulue.
+      const versetsRaw = versetsArr as unknown as VersetResult[]
+      const colsFiltre = chercheTout ? tradCodes : [scopeActif]
+      const versets = versetsRaw.filter(v => colsFiltre.some(c => contientTerme(String(v[c] ?? ''), q, modeActif)))
       setVersetsRes(versets)
 
       // Essais
       const essais = (resE.data ?? []) as EssaiResult[]
       setEssaisRes(fragments ? essais.filter(e => contientTerme([e.titre, e.sous_titre, e.resume, e.contenu].filter(Boolean).join(' '), q, modeActif)) : essais)
 
-      // Segments + oeuvres
-      const segs = (segsFromRpc as any[]).filter((s: any) => !fragments || contientTerme(s.segment_texte, q, modeActif))
+      // Segments + oeuvres. On resserre TOUJOURS sur la frontière de mot (comme les
+      // versets) : la RPC fait une simple sous-chaîne, donc « am » remonterait « Ratramme ».
+      // En début-de-mot/exact single-word, on teste chaque graphie variante (i/j, u/v) pour
+      // ne pas perdre les appariements orthographiques anciens.
+      const candidatsSeg = fragments ? [q] : (vars && vars.length ? vars : [q])
+      const segs = (segsFromRpc as any[]).filter((s: any) =>
+        candidatsSeg.some(mv => contientTerme(s.segment_texte ?? '', mv, modeActif)))
       const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
       let oeuvreMap: Record<string, { titre: string; auteur: string }> = {}
       if (oeuvreIds.length) {
@@ -398,17 +436,94 @@ export default function RechercheClient() {
 
   useEffect(() => {
     const q = searchParams.get('q')?.trim()
-    if (!q) return
     const modeParam: Mode = searchParams.get('mode') === 'exact' ? 'exact' : 'prefixe'
+    // On n'agit que si l'URL a RÉELLEMENT changé depuis la dernière fois. Un re-rendu qui
+    // rejoue l'effet sans changement d'URL ne touche donc à rien : c'est ce qui protège
+    // une recherche lancée au clavier (sans `q` dans l'URL) contre l'effacement.
+    const sig = `${q ?? ''}|${modeParam}`
+    if (paramsSigRef.current === sig) return
+    paramsSigRef.current = sig
+    // Arrivée sur « /recherche » SANS terme (« Nouvelle recherche ») : page vierge, on
+    // repart de zéro plutôt que de garder les résultats précédents à l'écran.
+    if (!q) {
+      lancerAbortRef.current?.abort()
+      setQuery(''); setDone(false); setLoading(false); setTronque([])
+      setVersetsRes([]); setSegmentsRes([]); setEssaisRes([])
+      setPageV(0); setPageS(0); setPageE(0)
+      return
+    }
     setQuery(q); setMode(modeParam)
-    const cle = `${q}|${modeParam}`
-    if (dejaLanceRef.current === cle) return
-    dejaLanceRef.current = cle
     void lancer(q, modeParam)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
+  // ── Recherche enregistrée ───────────────────────────────────────────────────
+  // Miroir de l'état courant (mis à jour à chaque rendu, pas dans un effet).
+  etatRef.current = { query: lastQuery, mode, tradScope, tradAffichage, colTrads, onglet, pageV, pageS, pageE }
+
+  // Au montage : présence d'une recherche enregistrée → le bouton « Reprendre » paraît.
+  useEffect(() => {
+    try {
+      const brut = localStorage.getItem(CLE_RECHERCHE_SAUVEE)
+      if (brut) { const s = JSON.parse(brut) as RechercheSauvee; if (s?.query) setRechercheSauvee(s) }
+    } catch { /* stockage indisponible */ }
+  }, [])
+
+  const enregistrerRecherche = () => {
+    if (!lastQuery) return
+    const snap: RechercheSauvee = {
+      query: lastQuery, mode, tradScope, tradAffichage, colTrads: [...colTrads],
+      onglet, pageV, pageS, pageE,
+      scrollTop: zoneResultatsRef.current?.scrollTop ?? 0, ts: Date.now(),
+    }
+    try { localStorage.setItem(CLE_RECHERCHE_SAUVEE, JSON.stringify(snap)) } catch { /* ignore */ }
+    setRechercheSauvee(snap)
+    setVientDEnregistrer(true)
+    setTimeout(() => setVientDEnregistrer(false), 2000)
+  }
+
+  // Enregistrement automatique : tant qu'une recherche est mémorisée ET que celle affichée
+  // est la même, on rafraîchit page + position sans rien écraser d'autre.
+  useEffect(() => {
+    if (!rechercheSauvee) return
+    const id = window.setInterval(() => {
+      const e = etatRef.current
+      if (!e?.query || e.query !== rechercheSauvee.query) return
+      const snap: RechercheSauvee = { ...e, colTrads: [...e.colTrads], scrollTop: zoneResultatsRef.current?.scrollTop ?? 0, ts: Date.now() }
+      try { localStorage.setItem(CLE_RECHERCHE_SAUVEE, JSON.stringify(snap)) } catch { /* ignore */ }
+    }, 6000)
+    return () => window.clearInterval(id)
+  }, [rechercheSauvee])
+
+  const reprendreRecherche = async () => {
+    let snap: RechercheSauvee | null = rechercheSauvee
+    try { const brut = localStorage.getItem(CLE_RECHERCHE_SAUVEE); if (brut) snap = JSON.parse(brut) } catch { /* ignore */ }
+    if (!snap?.query) return
+    setMode(snap.mode)
+    setTradScope(snap.tradScope)
+    setTradAffichage(snap.tradAffichage)
+    if (snap.colTrads?.length) setColTrads(snap.colTrads)
+    setQuery(snap.query)
+    await lancer(snap.query, snap.mode, snap.tradScope)
+    // `lancer` a remis les pages à zéro et choisi un onglet au jugé : on rétablit l'état
+    // exact qui avait été enregistré, puis la position de défilement une fois le DOM peint.
+    setOnglet(snap.onglet)
+    setPageV(snap.pageV); setPageS(snap.pageS); setPageE(snap.pageE)
+    const cible = snap.scrollTop
+    setTimeout(() => { if (zoneResultatsRef.current) zoneResultatsRef.current.scrollTop = cible }, 120)
+  }
+
+  // Onglet Bible : les versets où le mot MANQUE de la traduction affichée (montrés en
+  // rouge, « présent en … ») descendent tout en bas de la liste ; ceux qui le portent
+  // vraiment restent en tête. Tri stable → l'ordre d'origine tient dans chaque groupe.
+  const versetsBible = useMemo(() => {
+    if (!lastQuery) return versetsRes
+    const porte = (v: VersetResult) => contientTerme(String((v as any)[tradBible] ?? ''), lastQuery, mode)
+    return [...versetsRes].sort((a, b) => (porte(a) ? 0 : 1) - (porte(b) ? 0 : 1))
+  }, [versetsRes, tradBible, mode, lastQuery])
+
   const versetsPage  = versetsRes.slice(pageV * PAGE, (pageV + 1) * PAGE)
+  const versetsPageBible = versetsBible.slice(pageV * PAGE, (pageV + 1) * PAGE)
   const segmentsPage = segmentsRes.slice(pageS * PAGE, (pageS + 1) * PAGE)
   const essaisPage   = essaisRes.slice(pageE * PAGE, (pageE + 1) * PAGE)
 
@@ -419,6 +534,24 @@ export default function RechercheClient() {
   const pagesTotal   = Math.ceil(totalActive / PAGE)
   const debut = pageActive * PAGE + 1
   const fin   = Math.min((pageActive + 1) * PAGE, totalActive)
+
+  // Maintien enfoncé sur « Précédent »/« Suivant » : les pages défilent vite. Un premier
+  // pas immédiat, puis, après une courte retenue, une répétition rapide jusqu'au relâché.
+  const repeatRef = useRef<{ tempo?: ReturnType<typeof setTimeout>; boucle?: ReturnType<typeof setInterval> }>({})
+  const arreterDefilement = () => {
+    if (repeatRef.current.tempo) clearTimeout(repeatRef.current.tempo)
+    if (repeatRef.current.boucle) clearInterval(repeatRef.current.boucle)
+    repeatRef.current = {}
+  }
+  const demarrerDefilement = (dir: 1 | -1) => {
+    arreterDefilement()
+    const pas = () => setPageActive(p => Math.max(0, Math.min(pagesTotal - 1, p + dir)))
+    pas() // premier pas immédiat (= un simple clic)
+    repeatRef.current.tempo = setTimeout(() => {
+      repeatRef.current.boucle = setInterval(pas, 70)
+    }, 300)
+  }
+  useEffect(() => arreterDefilement, [])
 
   return (
     <>
@@ -439,53 +572,56 @@ export default function RechercheClient() {
         .mode-btn--actif { background:#3d6b4f; color:#fff; font-weight:500; }
         .mode-btn--inactif { background:#fff; color:#6b6560; }
         .mode-btn--inactif:hover { background:#f0ece6; }
-        /* ── Polyglotte ── */
-        /* outer sans overflow:hidden → sticky fonctionne */
-        .poly-outer { border-radius:0 0 8px 8px; border:1px solid #b0a89c; border-top:none; box-shadow:0 4px 14px rgba(0,0,0,0.13); overflow:hidden; }
-        .poly-hd { background:#2c3830; display:grid; gap:0; overflow:hidden; border:1px solid #b0a89c; border-bottom:none; border-radius:8px 8px 0 0; }
-        .poly-hd-col { display:flex; align-items:center; gap:6px; padding:0 12px; height:38px; border-right:1px solid #3a4e42; }
+        /* ── Polyglotte : palette de la page « Polyglotte » (vert), 3 colonnes ── */
+        .poly-outer { border-radius:0 0 8px 8px; border:1px solid #cdd8cf; border-top:none; box-shadow:0 4px 14px rgba(30,46,38,0.10); overflow:hidden; }
+        .poly-hd { background:#2b4536; display:grid; gap:0; overflow:hidden; border-radius:8px 8px 0 0; }
+        .poly-hd-col { display:flex; align-items:center; gap:6px; padding:0 12px; height:38px; border-right:1px solid rgba(255,255,255,0.14); }
         .poly-hd-col:last-child { border-right:none; }
-        .poly-hd-sel { font-size:10px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:#d4cec6; background:transparent; border:none; outline:none; cursor:pointer; appearance:none; -webkit-appearance:none; padding:2px 18px 2px 0; flex:1; transition:color 0.12s; }
+        .poly-hd-sel { font-size:10px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; text-align:center; text-align-last:center; color:rgba(255,255,255,0.9); background:transparent; border:none; outline:none; cursor:pointer; appearance:none; -webkit-appearance:none; padding:2px 16px; flex:1; transition:color 0.12s; }
         .poly-hd-sel:hover { color:#a8ccb8; }
-        .poly-hd-sel option { background:#2c3830; color:#d4cec6; font-weight:400; text-transform:none; font-size:12px; }
-        .poly-hd-sel option:disabled { color:#4e6058; }
-        .poly-hd-chevron { color:#5a7a66; pointer-events:none; flex-shrink:0; transition:color 0.12s; }
-        .poly-hd-col:hover .poly-hd-chevron { color:#8ab89e; }
-        /* Corps : overflow:hidden pour border-radius bas */
-        .poly-wrap { }
-        /* En-tête livre : séparateur fort entre groupes */
-        .poly-livre-hd { padding:5px 14px 5px; background:#bfb8ae; border-bottom:1px solid #b0a89c; display:flex; align-items:center; gap:8px; }
-        .poly-livre-sep { height:3px; background:#9a9088; }
-        /* Verset */
-        .poly-card { background:transparent; border-bottom:1px solid #c8c0b4; }
-        .poly-card:last-child { border-bottom:none; }
-        .poly-ref { padding:5px 14px; background:#d8d0c4; border-bottom:1px solid #c8c0b4; display:flex; align-items:center; gap:8px; transition:background 0.15s; }
-        /* Colonnes : parchemin alternant */
-        .poly-col { padding:11px 14px; border-right:1px solid #c8c0b4; background:#eae4da; transition:background 0.15s; }
-        .poly-col:last-child { border-right:none; }
-        .poly-col-even { background:#e0d9ce; }
-        .poly-col--absent { background:#e4cac4; }
-        /* Survol : vert pâle partout, rose renforcé sur absents */
-        .poly-card--survol .poly-ref { background:#bcd4c8; }
-        .poly-col--survol { background:#cce0d2 !important; }
-        .poly-col--absent.poly-col--survol { background:#caa09a !important; }
+        .poly-hd-sel option { background:#2b4536; color:#e4ede7; font-weight:400; text-transform:none; font-size:12px; }
+        .poly-hd-sel option:disabled { color:#6a8474; }
+        .poly-hd-chevron { color:#6a8c76; pointer-events:none; flex-shrink:0; transition:color 0.12s; }
+        .poly-hd-col:hover .poly-hd-chevron { color:#a8ccb8; }
+        /* ── Corps de la Polyglotte : classes REPRISES TELLES QUELLES de la page de
+           lecture (app/polyglotte/page.tsx) — grille, lettrine, césure, espacement. ── */
+        .poly-livre-hd { margin:0; padding:2px 12px; font-family:var(--font-source-serif), Georgia, serif; font-size:12.5px; line-height:1.35; color:#1f3b2b; background:#b7d3bf; border-top:1px solid #9fc2ac; border-bottom:1px solid #9fc2ac; text-align:center; }
+        .poly-row { display:grid; border-top:1px solid #dfe8e0; font-size:13px; text-decoration:none; }
+        .poly-num { padding:5px 4px; text-align:center; font-weight:700; font-size:11.5px; line-height:1.15; color:#3d6b4f; border-right:1px solid #dfe8e0; white-space:nowrap; }
+        .poly-texte-cell { min-width:0; padding:5px 10px 6px; border-left:1px solid #dfe8e0; text-align:justify; text-align-last:left; hyphens:auto; -webkit-hyphens:auto; hyphenate-limit-chars:5 2 2; word-spacing:-0.06em; letter-spacing:-0.01em; line-height:1.26; font-family:var(--font-source-serif), Georgia, serif; font-size:12px; color:#2a302b; }
+        .poly-texte-cell::after { content:""; display:block; clear:both; }
+        .poly-texte-cell--absent { background:#fbeceb; color:#7a1d16; }
+        .poly-lettrine { float:left; display:flex; flex-direction:column; align-items:flex-end; margin:0 8px 0 0; padding:0 7px 0 0; border-right:1px solid rgba(61,107,79,0.22); font-family:var(--font-source-sans), Arial, sans-serif; font-weight:400; letter-spacing:0.03em; font-variant-numeric:tabular-nums; color:#6f8f7b; text-align:right; }
+        .poly-lettrine-item { position:relative; display:flex; align-items:center; justify-content:flex-end; height:1.26em; }
+        .poly-lettrine-ref { display:block; white-space:nowrap; font-size:8.5px; line-height:1; }
+        .poly-lettrine-ch { font-weight:400; color:#a9bcb0; }
         .ctrl-sel { font-size:11px; padding:4px 8px; border:1px solid #d6d0c4; border-radius:4px; background:#fff; color:#2a3d30; outline:none; cursor:pointer; }
         .ctrl-sel:focus { border-color:#3d6b4f; }
+        /* Info-bulle « Explicitations » : au survol du « ? », les deux modes expliqués. */
+        .expl-wrap { position:relative; display:inline-flex; }
+        .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #cbb8d0; color:#8a6ea8; background:#faf7fc; font-size:8.5px; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
+        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:#fff; border:1px solid #d6d0c4; border-radius:7px; box-shadow:0 10px 28px rgba(30,46,38,0.14); padding:9px 11px; font-size:10.5px; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
+        .expl-wrap:hover .expl-tip { opacity:1; visibility:visible; transform:translateY(0); }
         ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#d6d0c4;border-radius:3px}
       `}</style>
 
-      <div style={{ background:'#f7f4ef', height:'100vh', display:'flex', flexDirection:'column', overflow:'hidden', paddingTop:'48px' }}>
+      {/* Le layout global (`app/layout.tsx`) décale DÉJÀ le contenu de HAUTEUR_NAVBAR sous
+          la navbar. On ne rajoute donc PAS de paddingTop ici (sinon double décalage, gros
+          blanc en haut) : on prend simplement toute la hauteur restante sous la navbar. */}
+      <div style={{ background:'#f7f4ef', height:'calc(100dvh - 48px)', display:'flex', overflow:'hidden' }}>
 
-        {/* ── En-tête ── */}
-        <div style={{ padding:'22px 40px 16px', borderBottom:'1px solid #d6d0c4', background:'#f7f4ef', flexShrink:0 }}>
-          <div style={{ maxWidth:'640px', margin:'0 auto', display:'flex', flexDirection:'column', alignItems:'center', gap:'14px' }}>
+        {/* ── VOLET GAUCHE : intitulé · recherche · options · onglets. Collé sous la
+            navbar, pleine hauteur. Le bloc du haut est fixe ; les onglets, en dessous,
+            prennent le reste et défilent si besoin. */}
+        <aside style={{ width:'340px', flexShrink:0, borderRight:'1px solid #d6d0c4', background:'#fbf9f4', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+          <div style={{ flexShrink:0, padding:'9px 20px 12px', display:'flex', flexDirection:'column', alignItems:'stretch', gap:'9px' }}>
 
             {/* Titre */}
-            <span style={{ fontFamily:"Georgia, serif", fontSize:'13px', letterSpacing:'0.12em', textTransform:'uppercase', color:'#9a958d', fontWeight:400 }}>Recherche</span>
+            <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'12px', letterSpacing:'0.12em', textTransform:'uppercase', color:'#9a958d', fontWeight:400 }}>Recherche</span>
 
             {/* Champ principal */}
             <div style={{ position:'relative', width:'100%' }}>
-              <input ref={inputRef} type="text" value={query}
+              <input ref={inputRef} value={query}
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => {
                   if (e.key === 'Enter') { setShowSugg(false); lancer() }
@@ -494,7 +630,14 @@ export default function RechercheClient() {
                 onFocus={() => sugg.length > 0 && setShowSugg(true)}
                 placeholder="Chercher un mot, une expression…"
                 autoFocus
-                style={{ width:'100%', fontSize:'16px', padding:'11px 44px 11px 18px', border:'1px solid #c8c0b4', borderRadius:'8px', background:'#fff', color:'#2a2520', outline:'none', fontFamily:"Georgia, serif", boxSizing:'border-box', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }} />
+                /* Sans cela le navigateur pré-remplissait le champ avec une saisie passée
+                   (« Am imp »…). `type=search` + autoComplete off + name neutre le coupent. */
+                type="search"
+                name="cs-recherche"
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
+                style={{ width:'100%', fontSize:'13.5px', padding:'8px 38px 8px 14px', border:'1px solid #c8c0b4', borderRadius:'7px', background:'#fff', color:'#2a2520', outline:'none', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }} />
               {query ? (
                 <button onClick={() => { setQuery(''); setSugg([]); setDone(false); setVersetsRes([]); setSegmentsRes([]); setEssaisRes([]); setShowSugg(false) }}
                   style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#c0b8ae', fontSize:'16px', lineHeight:1, padding:0 }} title="Effacer">×</button>
@@ -505,93 +648,144 @@ export default function RechercheClient() {
                 </svg>
               )}
               {showSugg && sugg.length > 0 && (
-                <ul ref={suggRef} style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, background:'#fff', border:'1px solid #c8c0b4', borderRadius:'8px', boxShadow:'0 6px 20px rgba(0,0,0,0.09)', margin:0, padding:'5px 0', listStyle:'none', zIndex:100, maxHeight:'240px', overflowY:'auto' }}>
+                <ul ref={suggRef} style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, background:'#fff', border:'1px solid #c8c0b4', borderRadius:'8px', boxShadow:'0 6px 20px rgba(0,0,0,0.09)', margin:0, padding:'5px 0 0', listStyle:'none', zIndex:100, maxHeight:'300px', overflowY:'auto' }}>
                   {sugg.map(s => (
                     <li key={s.mot}
                       onMouseDown={e => { e.preventDefault(); setQuery(s.mot); setShowSugg(false); lancer(s.mot) }}
-                      style={{ padding:'7px 18px', fontSize:'14px', color:'#2a2520', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:"Georgia, serif" }}
+                      style={{ padding:'7px 18px', fontSize:'14px', color:'#2a2520', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:"var(--font-source-serif), Georgia, serif" }}
                       onMouseEnter={e => (e.currentTarget.style.background='#f4f0ea')}
                       onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
                       <span>{s.mot}</span>
                       {s.freq > 0 && <span style={{ fontSize:'10px', color:'#c0b8ae' }}>{s.freq}</span>}
                     </li>
                   ))}
+                  {/* Tout rechercher : lance la recherche par DÉBUT DE MOT sur ce qui est
+                      tapé, ce qui couvre d'un coup tous les mots proposés dans la liste
+                      (ils commencent tous par le préfixe). Légèrement mis en évidence. */}
+                  <li
+                    onMouseDown={e => { e.preventDefault(); setShowSugg(false); setMode('prefixe'); lancer(query, 'prefixe') }}
+                    style={{ marginTop:'4px', borderTop:'1px solid #ede9e2', padding:'9px 18px', fontSize:'12.5px', fontWeight:600, color:'#2f6046', background:'#f2f8f4', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', letterSpacing:'0.01em' }}
+                    onMouseEnter={e => (e.currentTarget.style.background='#e7f2ea')}
+                    onMouseLeave={e => (e.currentTarget.style.background='#f2f8f4')}>
+                    <span>Tout rechercher</span>
+                    <span style={{ fontSize:'13px' }}>↵</span>
+                  </li>
                 </ul>
               )}
             </div>
 
-            {/* Contrôles secondaires */}
-            <div style={{ display:'flex', alignItems:'center', gap:'16px', flexWrap:'wrap', justifyContent:'center' }}>
-              {/* Mode */}
-              <div style={{ display:'inline-flex', border:'1px solid #d6d0c4', borderRadius:'5px', overflow:'hidden' }}>
-                <button className={`mode-btn ${mode==='prefixe'?'mode-btn--actif':'mode-btn--inactif'}`} onClick={()=>setMode('prefixe')}>Préfixe</button>
-                <button className={`mode-btn ${mode==='exact'?'mode-btn--actif':'mode-btn--inactif'}`} onClick={()=>setMode('exact')} style={{borderLeft:'1px solid #d6d0c4'}}>Mot exact</button>
+            {/* Contrôles, en colonne dans le volet */}
+            <div style={{ display:'flex', flexDirection:'column', gap:'11px' }}>
+              {/* Mode + « Explicitations » en INFO-BULLE au survol du « ? » : les deux
+                  explications ensemble, ce qui évite l'encart qui alourdissait le volet. */}
+              <div>
+                <p style={{ fontSize:'9px', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'#9a958d', margin:'0 0 5px', display:'flex', alignItems:'center', gap:'6px' }}>
+                  Mode
+                  <span className="expl-wrap">
+                    <span className="expl-badge">?</span>
+                    <span className="expl-tip">
+                      <span style={{ display:'block', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', fontSize:'8.5px', color:'#9a958d', marginBottom:'4px' }}>Explicitations</span>
+                      <span style={{ display:'block', marginBottom:'5px' }}><strong style={{ color:'#2f6046' }}>Début de mot</strong> — trouve les mots qui <em>commencent</em> par ce que vous tapez : « glo » ramène <em>gloire</em>, <em>glorieux</em>, <em>glorifier</em>.</span>
+                      <span style={{ display:'block' }}><strong style={{ color:'#2f6046' }}>Mot exact</strong> — ne trouve que le mot <em>entier</em> : « gloire » ne ramène ni <em>glorieux</em> ni <em>gloires</em>.</span>
+                    </span>
+                  </span>
+                </p>
+                <div style={{ display:'flex', border:'1px solid #d6d0c4', borderRadius:'5px', overflow:'hidden' }}>
+                  <button className={`mode-btn ${mode==='prefixe'?'mode-btn--actif':'mode-btn--inactif'}`} style={{ flex:1 }} onClick={()=>setMode('prefixe')}>Début de mot</button>
+                  <button className={`mode-btn ${mode==='exact'?'mode-btn--actif':'mode-btn--inactif'}`} style={{ flex:1, borderLeft:'1px solid #d6d0c4' }} onClick={()=>setMode('exact')}>Mot exact</button>
+                </div>
               </div>
-
-              {/* Séparateur */}
-              <div style={{ width:'1px', height:'18px', background:'#d6d0c4' }} />
-
-              {/* Traduction */}
-              <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-                <span style={{ fontSize:'11px', color:'#b0a89e' }}>dans</span>
-                <select className="ctrl-sel" value={tradScope}
-                  onChange={e => { const v=e.target.value; setTradScope(v); if(v!=='ALL') setTradAffichage(v) }}>
-                  {traductions.map(t=><option key={t.code} value={t.code}>{t.label}</option>)}
-                  <option value="ALL">Toutes les traductions</option>
-                </select>
-              </div>
-
-              {tradScope==='ALL' && (<>
-                <div style={{ width:'1px', height:'18px', background:'#d6d0c4' }} />
-                <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-                  <span style={{ fontSize:'11px', color:'#b0a89e' }}>afficher en</span>
-                  <select className="ctrl-sel" value={tradAffichage} onChange={e=>setTradAffichage(e.target.value)}>
+              {/* « Chercher dans » (périmètre) et « Afficher en » (traduction montrée),
+                  côte à côte pour tenir sur une seule ligne. « Afficher en » ne disparaît
+                  jamais : il commande l'affichage quel que soit le périmètre. */}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
+                <div>
+                  <p style={{ fontSize:'9px', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'#9a958d', margin:'0 0 4px' }}>Chercher dans</p>
+                  <select className="ctrl-sel" style={{ width:'100%' }} value={tradScope}
+                    onChange={e => { const v=e.target.value; setTradScope(v); if(v!=='ALL') setTradAffichage(v) }}>
+                    <option value="ALL">Toutes les bibles</option>
                     {traductions.map(t=><option key={t.code} value={t.code}>{t.label}</option>)}
                   </select>
                 </div>
-              </>)}
-
-              {/* Compteur */}
+                <div>
+                  <p style={{ fontSize:'9px', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'#9a958d', margin:'0 0 4px' }}>Afficher en</p>
+                  <select className="ctrl-sel" style={{ width:'100%' }} value={tradAffichage} onChange={e=>setTradAffichage(e.target.value)}>
+                    {traductions.map(t=><option key={t.code} value={t.code}>{t.label}</option>)}
+                  </select>
+                </div>
+              </div>
               {done && (
-                <span style={{ fontSize:'10.5px', color:'#b8b0a6', fontStyle:'italic' }}>
+                <span style={{ fontSize:'10.5px', color:'#b8b0a6', fontStyle:'italic', marginTop:'2px' }}>
                   {versetsRes.length + segmentsRes.length + essaisRes.length} résultat{versetsRes.length + segmentsRes.length + essaisRes.length > 1 ? 's' : ''}
                 </span>
               )}
+              {/* Reprendre ma recherche : présent dès qu'une recherche a été enregistrée.
+                  Ramène mot(s), page et position de défilement à l'identique. */}
+              {rechercheSauvee && (
+                <button onClick={reprendreRecherche} title={`Reprendre « ${rechercheSauvee.query} » là où vous en étiez`}
+                  style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'11.5px', color:'#3d6b4f', background:'rgba(61,107,79,0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'8px 11px', cursor:'pointer', marginTop:'2px', transition:'background 0.12s' }}
+                  onMouseEnter={e => (e.currentTarget.style.background='rgba(61,107,79,0.12)')}
+                  onMouseLeave={e => (e.currentTarget.style.background='rgba(61,107,79,0.06)')}>
+                  <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
+                    <path d="M2.5 7a4.5 4.5 0 1 1 1.3 3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
+                    <path d="M2.2 4.2v2.6h2.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                  </svg>
+                  <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    Reprendre ma recherche
+                    <span style={{ color:'#9a958d', fontStyle:'italic' }}> · {rechercheSauvee.query}</span>
+                  </span>
+                </button>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* ── Corps ── */}
-        <div style={{ flex:1, overflow:'hidden', display:'flex', flexDirection:'column', maxWidth:'1100px', width:'100%', margin:'0 auto', padding:'0 40px' }}>
-
-          {/* Onglets */}
+          {/* Onglets VERTICAUX : prennent tout l'espace restant (flex:1, minHeight:0) et
+              défilent si l'écran est court. Les libellés longs passent à la ligne au lieu
+              d'être coupés. */}
           {done && (
-            <div style={{ display:'flex', borderBottom:'2px solid #c8c0b4', flexShrink:0, alignItems:'flex-end', gap:0 }}>
-              {/* Groupe Bible */}
-              <button className={`ong-btn${onglet==='bible'?' ong-btn--actif':''}`} onClick={()=>setOnglet('bible')}>
-                Bible<span className="ong-count">({versetsRes.length})</span>
-              </button>
-              <button className={`ong-btn${onglet==='polyglotte'?' ong-btn--actif':''}`} onClick={()=>setOnglet('polyglotte')}>
-                Polyglotte<span className="ong-count">({versetsRes.length})</span>
-              </button>
-              {/* Séparateur */}
-              <div style={{ width:'1px', height:'28px', background:'#c8c0b4', margin:'0 6px 4px' }} />
-              {/* Tradition patristique */}
-              <button className={`ong-btn${onglet==='patristique'?' ong-btn--actif':''}`} onClick={()=>setOnglet('patristique')}>
-                Tradition patristique<span className="ong-count">({segmentsRes.length})</span>
-              </button>
-              {/* Séparateur */}
-              <div style={{ width:'1px', height:'28px', background:'#c8c0b4', margin:'0 6px 4px' }} />
-              {/* Publications */}
-              <button className={`ong-btn${onglet==='essais'?' ong-btn--actif':''}`} onClick={()=>setOnglet('essais')}>
-                Publications de la communauté<span className="ong-count">({essaisRes.length})</span>
+            <nav style={{ flex:1, minHeight:0, overflowY:'auto', borderTop:'1px solid #e4dfd8', padding:'6px 0 10px' }}>
+              {([
+                { k:'bible', label:'Bible', n:versetsRes.length },
+                { k:'polyglotte', label:'Polyglotte', n:versetsRes.length },
+                { k:'patristique', label:'Pères de l’Église', n:segmentsRes.length },
+                { k:'essais', label:'Publications de la communauté', n:essaisRes.length },
+              ] as { k:Onglet; label:string; n:number }[]).map(o => {
+                const actif = onglet===o.k
+                return (
+                  <button key={o.k} onClick={()=>setOnglet(o.k)}
+                    style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', padding:'9px 20px', border:'none', borderLeft:`3px solid ${actif?'#3d6b4f':'transparent'}`, background:actif?'rgba(61,107,79,0.07)':'transparent', color:actif?'#2a3d30':'#6b6560', fontWeight:actif?600:400, fontSize:'12.5px', cursor:'pointer', textAlign:'left', fontFamily:"var(--font-source-serif), Georgia, serif", transition:'background 0.12s, color 0.12s' }}>
+                    <span style={{ whiteSpace:'normal', lineHeight:1.25 }}>{o.label}</span>
+                    <span style={{ flexShrink:0, fontSize:'10px', color:actif?'#6a9a7a':'#c0b8ae', fontWeight:400 }}>{o.n}</span>
+                  </button>
+                )
+              })}
+            </nav>
+          )}
+        </aside>
+
+        {/* ── TABLEAU DE RÉSULTATS : tout l'espace libre ── */}
+        <main style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
+
+          {/* Enregistrer ma recherche : proposé dès qu'il y a des résultats. Un clic mémorise
+              mot(s), page et position ; « Reprendre ma recherche » (volet de gauche) y ramène. */}
+          {done && (versetsRes.length + segmentsRes.length + essaisRes.length) > 0 && (
+            <div style={{ flexShrink:0, display:'flex', justifyContent:'flex-end', alignItems:'center', gap:'10px', padding:'8px 24px 0' }}>
+              {vientDEnregistrer && <span style={{ fontSize:'10.5px', color:'#6a9a7a', fontStyle:'italic' }}>Recherche enregistrée</span>}
+              <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
+                style={{ display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'11px', color:'#3d6b4f', background:'#fff', border:'1px solid #cdd8cf', borderRadius:'20px', padding:'5px 13px', cursor:'pointer', transition:'background 0.12s, color 0.12s, border-color 0.12s' }}
+                onMouseEnter={e => { e.currentTarget.style.background='#3d6b4f'; e.currentTarget.style.color='#fff'; e.currentTarget.style.borderColor='#3d6b4f' }}
+                onMouseLeave={e => { e.currentTarget.style.background='#fff'; e.currentTarget.style.color='#3d6b4f'; e.currentTarget.style.borderColor='#cdd8cf' }}>
+                <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true">
+                  <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none"/>
+                </svg>
+                Enregistrer ma recherche
               </button>
             </div>
           )}
 
           {/* Bannière troncature */}
           {done && tronque.length > 0 && (
-            <div style={{ flexShrink:0, background:'#fef8ec', border:'1px solid #e8c96a', borderRadius:'6px', padding:'7px 14px', margin:'10px 0 0', display:'flex', alignItems:'center', gap:'8px' }}>
+            <div style={{ flexShrink:0, background:'#fef8ec', border:'1px solid #e8c96a', borderRadius:'6px', padding:'7px 14px', margin:'12px 24px 0', display:'flex', alignItems:'center', gap:'8px' }}>
               <span style={{ fontSize:'13px' }}>⚠️</span>
               <span style={{ fontSize:'11.5px', color:'#7a5a10' }}>
                 Résultats trop nombreux dans {tronque.join(', ')} — seuls les premiers affichés. Affinez votre recherche ou utilisez le mode <strong>Mot exact</strong>.
@@ -599,12 +793,14 @@ export default function RechercheClient() {
             </div>
           )}
 
-          {/* En-tête polyglotte — hors du scroll pour délimiter proprement */}
+          {/* En-tête polyglotte — hors du scroll (badge « recherche » retiré) */}
           {done && onglet==='polyglotte' && versetsRes.length > 0 && (
-            <div className="poly-hd" style={{ gridTemplateColumns:`repeat(${colTrads.length},1fr)`, flexShrink:0, marginTop:'12px' }}>
+            <div className="poly-hd" style={{ gridTemplateColumns:`46px repeat(${colTrads.length},minmax(0,1fr))`, flexShrink:0, margin:'12px 22px 0' }}>
+              {/* Cellule vide au-dessus de la colonne canonique (46px), pour aligner l'en-tête
+                  sur la grille du corps. */}
+              <div style={{ borderRight:'1px solid rgba(255,255,255,0.14)' }} />
               {colTrads.map((code, i) => {
                 const autresChoisies = new Set(colTrads.filter((_, j) => j !== i))
-                const estRecherche = code === tradBible && lastScope !== 'ALL'
                 return (
                   <div key={i} className="poly-hd-col">
                     <div style={{ position:'relative', flex:1, display:'flex', alignItems:'center' }}>
@@ -620,9 +816,6 @@ export default function RechercheClient() {
                         <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </div>
-                    {estRecherche && (
-                      <span style={{ fontSize:'8px', color:'#a8d4b8', background:'rgba(168,212,184,0.18)', border:'1px solid rgba(168,212,184,0.35)', borderRadius:'3px', padding:'1px 5px', fontWeight:600, flexShrink:0, letterSpacing:'0.04em', textTransform:'uppercase' }}>recherche</span>
-                    )}
                   </div>
                 )
               })}
@@ -630,11 +823,15 @@ export default function RechercheClient() {
           )}
 
           {/* Résultats */}
-          <div style={{ flex:1, overflowY:'auto', scrollbarGutter:'stable', paddingTop: (done && onglet==='polyglotte' && versetsRes.length > 0) ? '0' : '12px', paddingBottom:'4px' }}>
+          <div ref={zoneResultatsRef} style={{ flex:1, overflowY:'auto', scrollbarGutter:'stable', padding: (done && onglet==='polyglotte' && versetsRes.length > 0) ? '0 22px 4px' : '6px 22px 4px' }}>
 
             {!done && !loading && (
-              <div style={{ textAlign:'center', marginTop:'80px' }}>
-                <p style={{ fontSize:'13px', color:'#c0b8ae', fontStyle:'italic' }}>Saisissez un terme et appuyez sur Entrée</p>
+              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', marginTop:'70px' }}>
+                {/* Cul-de-lampe (cristaux enflammés) au-dessus de l'invite. `multiply` fond
+                    le fond blanc du dessin dans le papier de la page. */}
+                <img src="/ornements/cul-de-lampe-cristaux.png" alt="" aria-hidden="true"
+                  style={{ width:'min(300px, 56%)', height:'auto', opacity:0.5, mixBlendMode:'multiply', marginBottom:'22px' }} />
+                <p style={{ fontSize:'13px', color:'#c0b8ae', fontStyle:'italic', letterSpacing:'0.02em' }}>Lancez une recherche</p>
               </div>
             )}
             {loading && (
@@ -648,28 +845,38 @@ export default function RechercheClient() {
               versetsRes.length===0
                 ? <Vide texte="Aucun verset trouvé." />
                 : <>
-                  {lastScope==='ALL' && (
-                    <p style={{ fontSize:'10.5px', color:'#9a958d', fontStyle:'italic', marginBottom:'10px' }}>
-                      Toutes traductions — affiché en {traductions.find(t=>t.code===tradBible)?.label??tradBible}
-                    </p>
-                  )}
                   <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
-                    {versetsPage.map(v => {
+                    {versetsPageBible.map(v => {
                       const texte = String((v as any)[tradBible]??'')
-                      const absent = lastQuery && !contientTerme(texte, lastQuery, mode)
+                      const labelDisplay = traductions.find(t=>t.code===tradBible)?.label ?? tradBible
+                      const displayLeMot = !!(lastQuery && contientTerme(texte, lastQuery, mode))
+                      // Le verset a fait mouche dans UNE des bibles, mais peut-être pas dans
+                      // celle qu'on affiche : on AFFICHE tout de même le texte de la traduction
+                      // CHOISIE, et l'on signale simplement dans quelles autres le mot se trouve.
+                      const presentDans = (lastQuery && !displayLeMot)
+                        ? traductions.filter(t => t.code!==tradBible && contientTerme(String((v as any)[t.code]??''), lastQuery, mode))
+                        : []
                       return (
                         <a key={v.id_verset}
-                          href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}#verset-${v.verset}`}
+                          // Lien vers la page Bible : livre, chapitre, verset ET la traduction
+                          // choisie, avec l'ancre du verset pour l'y amener et l'y sélectionner.
+                          href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
                           target="_blank" rel="noopener noreferrer"
-                          className={`res-card${absent?' res-card--absent':''}`}>
-                          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:'3px' }}>
+                          className={`res-card${!displayLeMot && presentDans.length ? ' res-card--absent' : ''}`}>
+                          {/* Référence ET nom de la traduction sur la même ligne, côte à côte */}
+                          <div style={{ display:'flex', alignItems:'baseline', gap:'8px', flexWrap:'wrap', marginBottom:'3px' }}>
                             <span style={{ fontSize:'10.5px', fontWeight:600, color:'#3d6b4f', letterSpacing:'0.01em' }}>{refFr(v.ref)}</span>
-                            <span style={{ fontSize:'9.5px', color:absent?'#c0562a':'#c0b8ae' }}>
-                              {absent ? `absent en ${traductions.find(t=>t.code===tradBible)?.label??tradBible}` : (traductions.find(t=>t.code===tradBible)?.label??tradBible)}
-                            </span>
+                            <span style={{ fontSize:'9.5px', color:'#c0b8ae' }}>{labelDisplay}</span>
+                            {!displayLeMot && presentDans.length > 0 && (
+                              <span style={{ fontSize:'9.5px', color:'#b3261e', fontWeight:600 }}>· présent en {presentDans.map(t=>t.label).join(', ')}</span>
+                            )}
                           </div>
-                          <p style={{ fontFamily:"Georgia, serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
-                            {absent ? texte : highlighter(texte, lastQuery, mode)}
+                          {/* Toujours le texte de la traduction CHOISIE. Surligné si le mot y est ;
+                              sinon montré tel quel (le bandeau rouge dit où le mot se trouve). */}
+                          <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
+                            {texte
+                              ? (displayLeMot ? highlighter(texte, lastQuery, mode) : texte)
+                              : <span style={{ color:'#b0a89e', fontStyle:'italic' }}>Ce verset n’existe pas dans {labelDisplay}.</span>}
                           </p>
                         </a>
                       )
@@ -686,13 +893,15 @@ export default function RechercheClient() {
                   {segmentsPage.map(s=>(
                     <a key={s.id} href={`/oeuvre/${encodeURIComponent(s.id_oeuvre)}?segment=${s.id}#segment-${s.id}`}
                       target="_blank" rel="noopener noreferrer" className="res-card">
-                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:'3px' }}>
+                      {/* Auteur, titre de l'œuvre PUIS niveau 1, tout sur une même ligne,
+                          le titre juste à droite du nom de l'auteur. Le niveau 1 ne paraît
+                          que s'il existe. */}
+                      <div style={{ display:'flex', alignItems:'baseline', gap:'7px', flexWrap:'wrap', marginBottom:'3px' }}>
                         <span style={{ fontSize:'10.5px', fontWeight:600, color:'#3d6b4f' }}>{s.auteur_nom}</span>
-                        <span style={{ fontSize:'9.5px', color:'#c0b8ae', fontStyle:'italic' }}>
-                          {s.oeuvre_titre}{s.ref_niv1?` — ${s.ref_niv1}`:''}{s.ref_niv3?`, ${s.ref_niv3}`:''}
-                        </span>
+                        {s.oeuvre_titre && <span style={{ fontSize:'9.5px', color:'#9a958d', fontStyle:'italic' }}>{s.oeuvre_titre}</span>}
+                        {s.ref_niv1 && <span style={{ fontSize:'9.5px', color:'#c0b8ae' }}>· {s.ref_niv1}</span>}
                       </div>
-                      <p style={{ fontFamily:"Georgia, serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
+                      <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
                         {highlighter(nettoyerFin(texteSansEnrichissement(s.segment_texte)), lastQuery, mode)}
                       </p>
                     </a>
@@ -715,7 +924,7 @@ export default function RechercheClient() {
                           {e.categories?.[0] && <span style={{ fontSize:'9.5px', color:'#c0b8ae', fontStyle:'italic' }}>{e.categories[0]}</span>}
                         </div>
                         {e.sous_titre && <p style={{ fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:'0 0 3px' }}>{e.sous_titre}</p>}
-                        <p style={{ fontFamily:"Georgia, serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
+                        <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
                           {highlighter(texteAffiche, lastQuery, mode)}
                         </p>
                       </a>
@@ -724,87 +933,94 @@ export default function RechercheClient() {
                 </div>
             )}
 
-            {/* ── Polyglotte ── */}
+            {/* ── Polyglotte — structure REPRISE de la page de lecture : grille avec colonne
+                de numéro canonique (46px) + une colonne par traduction, lettrine de référence
+                d'origine, texte justifié et césuré, zébrage vert, en-tête de livre = NOM SEUL. */}
             {done && onglet==='polyglotte' && (
               versetsRes.length===0
                 ? <Vide texte="Aucun verset trouvé." />
-                : <div className="poly-outer">
-                  <div className="poly-wrap">
-                  {(() => {
-                    const livreCompte = new Map<string, number>()
-                    for (const v of versetsPage) livreCompte.set(v.livre, (livreCompte.get(v.livre) ?? 0) + 1)
+                : (() => {
+                    const polyTmpl = `46px ${colTrads.map(() => 'minmax(0, 1fr)').join(' ')}`
                     const livresVus = new Set<string>()
-                    return versetsPage.map(v => {
-                      const estNouveauLivre = !livresVus.has(v.livre)
-                      if (estNouveauLivre) livresVus.add(v.livre)
-                      const survolé = hoveredVerset === v.id_verset
-                      const nbLivre = livreCompte.get(v.livre) ?? 0
-                      return (
-                        <div key={v.id_verset}>
-                          {estNouveauLivre && (<>
-                            {livresVus.size > 1 && <div className="poly-livre-sep" />}
-                            <div className="poly-livre-hd">
-                              <span style={{ fontSize:'10px', fontWeight:700, letterSpacing:'0.05em', color:'#3a3530', textTransform:'uppercase', fontFamily:"Georgia, serif" }}>
-                                {NOMS_LIVRES[v.livre] ?? v.livre}
-                              </span>
-                              <span style={{ fontSize:'9px', color:'#6a6460' }}>
-                                — {nombreFr(nbLivre)} verset{nbLivre > 1 ? 's' : ''}
-                              </span>
-                            </div>
-                          </>)}
-                          <a
-                            href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}#verset-${v.verset}`}
-                            target="_blank" rel="noopener noreferrer"
-                            className={`poly-card${survolé ? ' poly-card--survol' : ''}`}
-                            style={{ display:'block', textDecoration:'none' }}
-                            onMouseEnter={() => setHoveredVerset(v.id_verset)}
-                            onMouseLeave={() => setHoveredVerset(null)}>
-                            {/* Référence */}
-                            <div className="poly-ref">
-                              <span style={{ fontSize:'10.5px', fontWeight:700, color:'#3d6b4f', letterSpacing:'0.04em', fontFamily:"Georgia, serif" }}>{refFr(v.ref)}</span>
-                              <svg width="9" height="9" viewBox="0 0 12 12" fill="none" style={{ color:'#a0988e' }}>
-                                <path d="M2 10L10 2M10 2H5M10 2v5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                              </svg>
-                            </div>
-                            {/* Colonnes */}
-                            <div style={{ display:'grid', gridTemplateColumns:`repeat(${colTrads.length},1fr)` }}>
-                              {colTrads.map((code, i) => {
-                                const texte = texteSansEnrichissement((v as any)[code] ?? '')
-                                const absent = texte && lastQuery ? !contientTerme(texte, lastQuery, mode) : false
-                                return (
-                                  <div key={i} className={`poly-col${i%2===1?' poly-col-even':''}${absent?' poly-col--absent':''}${survolé?' poly-col--survol':''}`}>
-                                    {!texte ? (
-                                      <span style={{ fontSize:'10px', color:'#b87060', fontStyle:'italic' }}>—</span>
-                                    ) : absent ? (
-                                      <p style={{ fontFamily:"Georgia, serif", fontSize:'12px', lineHeight:1.6, color:'#2a2520', margin:0 }}>{texte}</p>
-                                    ) : (
-                                      <p style={{ fontFamily:"Georgia, serif", fontSize:'12px', lineHeight:1.6, color:'#1e1a16', margin:0 }}>
-                                        {highlighter(texte, lastQuery, mode)}
-                                      </p>
-                                    )}
-                                  </div>
-                                )
-                              })}
-                            </div>
-                          </a>
-                        </div>
-                      )
-                    })
-                  })()}
-                  </div>
-                </div>
+                    return (
+                      <div className="poly-outer">
+                        {versetsPage.map((v, idx) => {
+                          const estNouveauLivre = !livresVus.has(v.livre)
+                          if (estNouveauLivre) livresVus.add(v.livre)
+                          // Pas d'alternance : un fond uniforme, très clair. Le zébrage
+                          // n'apporte rien ici et brouillait la lecture des colonnes.
+                          const fond = '#fbfdfb'
+                          return (
+                            <Fragment key={v.id_verset}>
+                              {/* En-tête de livre : NOM SEUL, centré sur les colonnes de
+                                  TRADUCTION uniquement (la colonne canonique de 46 px est
+                                  exclue du centrage), comme sur la page Polyglotte. */}
+                              {estNouveauLivre && (
+                                <div className="poly-livre-hd" style={{ display:'grid', gridTemplateColumns:polyTmpl, padding:0 }}>
+                                  <div />
+                                  <div style={{ gridColumn:'2 / -1', textAlign:'center', padding:'2px 12px' }}>{NOMS_LIVRES[v.livre] ?? v.livre}</div>
+                                </div>
+                              )}
+                              <a className="poly-row" style={{ gridTemplateColumns:polyTmpl, background:fond }}
+                                href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
+                                target="_blank" rel="noopener noreferrer">
+                                {/* Colonne canonique */}
+                                <div className="poly-num">{v.chapitre}, {v.verset}</div>
+                                {/* Une colonne par traduction */}
+                                {colTrads.map((code, i) => {
+                                  const lang = traductions.find(t => t.code === code)?.lang ?? 'fr'
+                                  const brut = texteSansEnrichissement((v as any)[code] ?? '')
+                                  const texte = lang === 'grc' ? cesurerGrec(brut) : brut
+                                  const numOrig = String((v as any)['num_' + code] ?? '').trim()
+                                  const absent = brut && lastQuery ? !contientTerme(brut, lastQuery, mode) : false
+                                  return (
+                                    <div key={i} lang={lang} className={`poly-texte-cell${absent ? ' poly-texte-cell--absent' : ''}`}>
+                                      {/* Lettrine : référence(s) d'origine de l'édition (num_TRxxxx),
+                                          « ch, v » séparées par « · » si plusieurs versets réunis. */}
+                                      {brut && numOrig && (
+                                        <span className="poly-lettrine">
+                                          {numOrig.split('·').map(s => s.trim()).filter(Boolean).map((nn, k) => {
+                                            const m = nn.match(/^(\d+)\s*,\s*(.+)$/)
+                                            return (
+                                              <span key={k} className="poly-lettrine-item">
+                                                <span className="poly-lettrine-ref">
+                                                  {m ? <><span className="poly-lettrine-ch">{m[1]},</span> {m[2]}</> : nn}
+                                                </span>
+                                              </span>
+                                            )
+                                          })}
+                                        </span>
+                                      )}
+                                      {!brut ? <span style={{ color:'#9a8fb5', fontStyle:'italic', fontSize:'11px' }}>Absent dans cette traduction</span>
+                                        : absent ? texte
+                                        : highlighter(texte, lastQuery, mode)}
+                                    </div>
+                                  )
+                                })}
+                              </a>
+                            </Fragment>
+                          )
+                        })}
+                      </div>
+                    )
+                  })()
             )}
           </div>
 
           {/* ── Pagination ── */}
           {done && totalActive>PAGE && (
-            <div style={{ flexShrink:0, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0 14px', borderTop:'1px solid #e4dfd8' }}>
-              <button className="pag-btn" disabled={pageActive===0} onClick={()=>setPageActive(pageActive-1)}>← Précédent</button>
+            <div style={{ flexShrink:0, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 24px 14px', borderTop:'1px solid #e4dfd8' }}>
+              {/* Maintien enfoncé = défilement rapide (souris ET tactile). */}
+              <button className="pag-btn" disabled={pageActive===0}
+                onMouseDown={()=>demarrerDefilement(-1)} onMouseUp={arreterDefilement} onMouseLeave={arreterDefilement}
+                onTouchStart={e=>{e.preventDefault();demarrerDefilement(-1)}} onTouchEnd={arreterDefilement}>← Précédent</button>
               <span style={{ fontSize:'11px', color:'#b0a89e' }}>{debut}–{fin} <span style={{ color:'#d6d0c4' }}>sur</span> {totalActive}</span>
-              <button className="pag-btn" disabled={pageActive>=pagesTotal-1} onClick={()=>setPageActive(pageActive+1)}>Suivant →</button>
+              <button className="pag-btn" disabled={pageActive>=pagesTotal-1}
+                onMouseDown={()=>demarrerDefilement(1)} onMouseUp={arreterDefilement} onMouseLeave={arreterDefilement}
+                onTouchStart={e=>{e.preventDefault();demarrerDefilement(1)}} onTouchEnd={arreterDefilement}>Suivant →</button>
             </div>
           )}
-        </div>
+        </main>
       </div>
     </>
   )

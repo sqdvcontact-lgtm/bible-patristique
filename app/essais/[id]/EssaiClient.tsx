@@ -158,7 +158,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         }
         .essai-lecture-corps blockquote {
           font-style: normal !important;
-          font-family: 'Helvetica Neue', Arial, sans-serif !important;
+          font-family: var(--font-source-sans), Arial, sans-serif !important;
           color: #4a4440 !important;
           line-height: 1.44 !important;
           word-spacing: -0.02em !important;
@@ -172,6 +172,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           padding-left: 0 !important;
         }
         .essai-lecture-corps h2 {
+          font-family: var(--font-source-serif), Georgia, serif !important;
           text-align: left !important;
           padding-left: 0 !important;
           margin-top: 6mm !important;
@@ -180,6 +181,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           text-indent: 0 !important;
         }
         .essai-lecture-corps h3 {
+          font-family: var(--font-source-serif), Georgia, serif !important;
           text-align: left !important;
           padding-left: 3mm !important;
           margin-top: 4mm !important;
@@ -216,15 +218,15 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             marginBottom: '48px', textAlign: 'center',
           }}>
             {essai.auteur_pseudo && (
-              <p style={{ fontSize: '11.5px', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '28px', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+              <p style={{ fontSize: '11.5px', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '28px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                 {essai.auteur_pseudo}
               </p>
             )}
-            <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.2, margin: '0 0 14px', maxWidth: '560px' }}>
+            <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.2, margin: '0 0 14px', maxWidth: '560px' }}>
               {essai.titre}
             </h1>
             {essai.sous_titre && (
-              <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 'clamp(15px, 2vw, 18px)', fontStyle: 'italic', color: '#8a8278', margin: '0 0 24px', letterSpacing: '0.01em' }}>
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(15px, 2vw, 18px)', fontStyle: 'italic', color: '#8a8278', margin: '0 0 24px', letterSpacing: '0.01em' }}>
                 {essai.sous_titre}
               </p>
             )}
@@ -233,11 +235,11 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
               {dateFormatee}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
-              <p style={{ fontSize: '10.5px', color: '#c0b8b0', letterSpacing: '0.04em', margin: 0, fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+              <p style={{ fontSize: '10.5px', color: '#c0b8b0', letterSpacing: '0.04em', margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                 Cette publication a été lue {nbVues} fois
               </p>
               <button onClick={toggleApprecier} disabled={!userId}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10.5px', color: aApprecie ? '#3d6b4f' : '#c0b8b0', background: 'none', border: 'none', padding: 0, cursor: userId ? 'pointer' : 'default', fontFamily: "'Helvetica Neue', Arial, sans-serif", letterSpacing: '0.03em' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10.5px', color: aApprecie ? '#3d6b4f' : '#c0b8b0', background: 'none', border: 'none', padding: 0, cursor: userId ? 'pointer' : 'default', fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: '0.03em' }}>
                 <svg width="11" height="11" viewBox="0 0 12 12" fill={aApprecie ? 'currentColor' : 'none'} aria-hidden="true">
                   <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z" stroke="currentColor" strokeWidth="1"/>
                 </svg>
@@ -254,16 +256,16 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
           {versetParse && (
             <div style={{ margin: '0 auto 52px', maxWidth: '420px', textAlign: 'center' }}>
-              <p style={{ fontFamily: "Georgia, serif", fontSize: '14.5px', lineHeight: 1.8, color: '#4a4440', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '14.5px', lineHeight: 1.8, color: '#4a4440', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
                 {'« '}{rendreTexteEnrichi(versetParse.texte)}{' »'}
               </p>
-              <p style={{ fontSize: '10.5px', letterSpacing: '0.1em', color: '#a09890', margin: 0, fontFamily: 'Helvetica Neue, Arial, sans-serif', textTransform: 'uppercase' }}>
+              <p style={{ fontSize: '10.5px', letterSpacing: '0.1em', color: '#a09890', margin: 0, fontFamily: 'var(--font-source-sans), Arial, sans-serif', textTransform: 'uppercase' }}>
                 {expanderRef(versetParse.ref)}
               </p>
             </div>
           )}
 
-          <div className="essai-lecture-corps" style={{ fontSize: '13.5px', color: '#1e1a16', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+          <div className="essai-lecture-corps" style={{ fontSize: '13.5px', color: '#1e1a16', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
             {rendreEssai(essai.contenu)}
           </div>
 
@@ -275,15 +277,15 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         <div style={{ width: '300px', flexShrink: 0, background: '#faf8f4', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', height: '100%' }}>
 
           {/* Barre supérieure : fermer | titre | partager */}
-          <div style={{ padding: '6px 8px 6px 6px', borderBottom: '1px solid #ede9e2', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
+          <div style={{ minHeight: '41px', padding: '6px 8px 6px 6px', borderBottom: '1px solid #ede9e2', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
             <button onClick={() => setVoletOuvert(false)} title="Réduire le volet"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#b0a89e', display: 'flex', alignItems: 'center', flexShrink: 0, position: 'relative', zIndex: 1 }}>
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#b0a89e', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <span style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#9a958d', pointerEvents: 'none' }}>Commentaires</span>
-            <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginLeft: 'auto', position: 'relative', zIndex: 1 }}>
+            <span style={{ flex: 1, minWidth: 0, alignSelf: 'center', textAlign: 'center', fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#9a958d', whiteSpace: 'nowrap' }}>Commentaire</span>
+            <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
               <BoutonPartage label="Copier le lien" onClick={copierLien}>
                 <svg width="11" height="11" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
                   <path d="M5 7.5a2.5 2.5 0 0 0 3.5.5l2-2A2.5 2.5 0 0 0 7 2.5L5.8 3.8"/>

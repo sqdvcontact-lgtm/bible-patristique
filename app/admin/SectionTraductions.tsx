@@ -124,7 +124,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
 
         {/* En-tête */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <h3 style={{ fontFamily: "Georgia, serif", fontSize: '14px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
+          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '14px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
             Positionner l'image · <em style={{ color: '#7a7268' }}>{t.nom}</em>
           </h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '15px', color: '#b0a89e', padding: 0, lineHeight: 1 }}>✕</button>
@@ -162,11 +162,11 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
               background: 'linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 100%)',
             }} />
             <div style={{ position: 'relative', zIndex: 1, flex: 1, minWidth: 0, padding: '18px 14px 18px 20px' }}>
-              <h2 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '17px', fontWeight: 'normal', color: '#f2efe8', margin: 0, lineHeight: 1.25, textShadow: ombre }}>
+              <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '17px', fontWeight: 'normal', color: '#f2efe8', margin: 0, lineHeight: 1.25, textShadow: ombre }}>
                 {t.nom}
               </h2>
               {meta && (
-                <span style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '11px', fontStyle: 'italic', color: 'rgba(242,239,232,0.72)', display: 'block', marginTop: '4px', textShadow: ombre }}>
+                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '11px', fontStyle: 'italic', color: 'rgba(242,239,232,0.72)', display: 'block', marginTop: '4px', textShadow: ombre }}>
                   {meta}
                 </span>
               )}
@@ -347,7 +347,7 @@ function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: s
         onInput={e => onChange(e.currentTarget.innerHTML)}
         style={{
           width: '100%', minHeight: '150px', padding: '12px 14px', fontSize: '13px',
-          fontFamily: 'Georgia, serif', lineHeight: 1.7, color: '#2a2520', outline: 'none',
+          fontFamily: 'var(--font-source-serif), Georgia, serif', lineHeight: 1.7, color: '#2a2520', outline: 'none',
           border: 'none', background: '#fff', boxSizing: 'border-box',
         }}
       />
@@ -655,7 +655,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
           {/* En-tête */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: "Georgia, serif", fontSize: '14px', color: '#2a3d30' }}>{t.nom}</span>
+              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '14px', color: '#2a3d30' }}>{t.nom}</span>
               {t.dates && <span style={{ fontSize: '11px', color: '#9a958d' }}>{formaterDateHistorique(t.dates)}</span>}
               {t.import_maj_le && (
                 <span style={{ fontSize: '10px', color: '#b0a89e', fontStyle: 'italic' }}>
@@ -785,7 +785,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
           <div onClick={() => { if (replaceStatut !== 'loading') setReplaceModal(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
             <div onClick={e => e.stopPropagation()} style={{ background: '#f7f4ef', borderRadius: '10px', padding: '22px 24px', maxWidth: '440px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '14px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
+                <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '14px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
                   Remplacer · <em style={{ color: '#7a7268' }}>{t.nom}</em>
                   <code style={{ fontSize: '10px', background: '#f0ece6', padding: '1px 5px', borderRadius: '3px', marginLeft: '8px', color: '#6b6560' }}>{t.trad_id}</code>
                 </h3>

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -459,9 +459,11 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         .editeur-essai h2,
         .editeur-essai h3,
         .editeur-essai p,
-        .editeur-essai blockquote { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; }
-        .editeur-essai h2 { font-weight: 700; font-size: 1.07em; color: #1e2e24; }
-        .editeur-essai h3 { font-style: italic; font-weight: 400; font-size: 1em; color: #2a3d30; }
+        .editeur-essai blockquote { margin: 0; }
+        .editeur-essai p,
+        .editeur-essai blockquote { font-family: var(--font-source-sans), Arial, sans-serif; }
+        .editeur-essai h2 { font-family: var(--font-source-serif), Georgia, serif; font-weight: 700; font-size: 1.07em; color: #1e2e24; }
+        .editeur-essai h3 { font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-weight: 400; font-size: 1em; color: #2a3d30; }
         .editeur-essai blockquote { font-style: normal; font-size: 0.93em; color: #3a3530; margin-left: 8mm; }
         .editeur-essai p,
         .editeur-essai blockquote { line-height: 1.5; word-spacing: -0.09em; letter-spacing: -0.006em; }
@@ -549,7 +551,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                       onChange={e => setMeta(prev => ({ ...prev, titre: e.target.value }))}
                       autoComplete="off"
                       placeholder="Titre"
-                      style={{ width: '100%', fontSize: '16px', fontFamily: 'Georgia, serif', padding: '7px 0 5px', border: 'none', borderBottom: '1px solid #d6d0c4', outline: 'none', color: '#1e2e24', background: 'transparent', boxSizing: 'border-box' }}
+                      style={{ width: '100%', fontSize: '16px', fontFamily: 'var(--font-source-serif), Georgia, serif', padding: '7px 0 5px', border: 'none', borderBottom: '1px solid #d6d0c4', outline: 'none', color: '#1e2e24', background: 'transparent', boxSizing: 'border-box' }}
                     />
                   </div>
                   <div>
@@ -626,14 +628,14 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 <div style={{ border: '1px solid #e4dfd8', borderRadius: '6px', background: '#fff', overflow: 'hidden' }}>
                   {/* En-tête non modifiable — auteur, titre, sous-titre, catégories */}
                   <div style={{ textAlign: 'center', padding: '26px 24px 20px', borderBottom: '1px solid #ede9e2' }}>
-                    <p style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 12px', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+                    <p style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 12px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                       {nomAffiche}
                     </p>
-                    <h1 style={{ fontFamily: "Georgia, serif", fontSize: '24px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 6px' }}>{meta.titre}</h1>
-                    {meta.sousTitre && <p style={{ fontSize: '14px', color: '#8a8278', fontStyle: 'italic', margin: '0 0 12px', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>{meta.sousTitre}</p>}
+                    <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '24px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 6px' }}>{meta.titre}</h1>
+                    {meta.sousTitre && <p style={{ fontSize: '14px', color: '#8a8278', fontStyle: 'italic', margin: '0 0 12px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{meta.sousTitre}</p>}
                     <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '8px' }}>
                       {meta.categories.map(c => (
-                        <span key={c} style={{ fontSize: '9.5px', color: '#3d6b4f', background: 'rgba(61,107,79,0.08)', padding: '1px 8px', borderRadius: '9px', fontWeight: 600, fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>{c}</span>
+                        <span key={c} style={{ fontSize: '9.5px', color: '#3d6b4f', background: 'rgba(61,107,79,0.08)', padding: '1px 8px', borderRadius: '9px', fontWeight: 600, fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{c}</span>
                       ))}
                     </div>
                   </div>
@@ -641,10 +643,10 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                   {/* Verset en tête — non modifiable */}
                   {versetEnTete && (
                     <div style={{ borderBottom: '1px solid #ede9e2', padding: '28px 40px 24px', textAlign: 'center', background: '#fdfcf9' }}>
-                      <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '14.5px', lineHeight: 1.8, color: '#4a4440', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
+                      <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '14.5px', lineHeight: 1.8, color: '#4a4440', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
                         {'« '}{rendreTexteEnrichi(versetEnTete.texte)}{' »'}
                       </p>
-                      <p style={{ fontSize: '10.5px', letterSpacing: '0.1em', color: '#a09890', margin: 0, fontFamily: "'Helvetica Neue', Arial, sans-serif", textTransform: 'uppercase' }}>
+                      <p style={{ fontSize: '10.5px', letterSpacing: '0.1em', color: '#a09890', margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif", textTransform: 'uppercase' }}>
                         {versetEnTete.ref}
                       </p>
                     </div>
@@ -712,7 +714,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       {confirmPublier && (
         <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.32)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '24px 26px 22px', maxWidth: '520px', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
-            <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 12px' }}>
+            <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 12px' }}>
               Soumettre cette publication ?
             </h3>
             <p style={{ fontSize: '13px', color: '#5a5450', lineHeight: 1.65, margin: '0 0 8px' }}>

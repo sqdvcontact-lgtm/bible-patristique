@@ -8,8 +8,9 @@ import { supabase } from '@/app/lib/supabase'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
-import { formaterDateHistorique, extraireAnneeDateHistorique } from '@/app/lib/datesHistoriques'
+import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { libelleTrad } from '@/app/oeuvre/[id]/PageTitre'
+import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
 
 type Oeuvre = {
   id_oeuvre: string; titre: string; sous_titre: string | null
@@ -77,48 +78,6 @@ const CHIFFRES_FR = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'h
   'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf', 'vingt']
 function enLettres(n: number): string { return n >= 1 && n <= 20 ? CHIFFRES_FR[n - 1] : String(n) }
 
-function enChiffresRomains(n: number): string {
-  const table: [number, string][] = [
-    [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'],
-    [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
-  ]
-  let res = ''
-  for (const [v, s] of table) { while (n >= v) { res += s; n -= v } }
-  return res
-}
-
-const ROMAINS_VALEUR: Record<string, number> = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 }
-function romainVersNombre(r: string): number | null {
-  let total = 0, prec = 0
-  for (const c of r.toUpperCase().split('').reverse()) {
-    const v = ROMAINS_VALEUR[c]; if (!v) return null
-    total += v < prec ? -v : v; prec = v
-  }
-  return total || null
-}
-
-// Siècle d'un auteur : champ `siecle` s'il est renseigné, sinon déduit de l'année
-// (mort ou dernière borne datée), sinon lu d'un « IVe s. » écrit dans les dates.
-function siecleDeAuteur(siecle: string | number | null | undefined, dates: string | null | undefined): number | null {
-  const s = typeof siecle === 'number' ? siecle : (siecle && /^\d+$/.test(String(siecle).trim()) ? Number(siecle) : null)
-  if (s && s > 0) return s
-  const annee = extraireAnneeDateHistorique(dates)
-  if (annee && annee > 0) return Math.floor((annee - 1) / 100) + 1
-  const m = (dates || '').match(/\b([IVXLCDM]+)\s*e?\b/i)
-  if (m) return romainVersNombre(m[1])
-  return null
-}
-
-// Rendu « IIᵉ siècle » : chiffre romain en petites capitales, « e » en exposant.
-function RenduSiecle({ n }: { n: number }) {
-  return (
-    <>
-      <span style={{ fontVariant: 'small-caps', textTransform: 'lowercase' }}>{enChiffresRomains(n).toLowerCase()}</span>
-      <sup style={{ fontSize: '0.68em', lineHeight: 1 }}>e</sup>{' '}siècle
-    </>
-  )
-}
-
 // ── Bandeau auteur ────────────────────────────────────────────────────────────
 function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }: {
   auteur: Auteur; recherche: string
@@ -137,7 +96,6 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
   const nbMot = enLettres(nb)
   const photoPos = parseAuteurPhotoPositions(auteur.photo_position).carte
   const datesAuteur = formaterDateHistorique(auteur.dates)
-  const siecleAuteur = siecleDeAuteur(auteur.siecle, auteur.dates)
 
   return (
     <div
@@ -163,7 +121,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
         <div style={{ flex: 1, padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px' }}>
-              <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '14.5px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
+              <h2 style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '14px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0 }}>
                 {auteur.nom}
               </h2>
               <Link href={`/auteur/${auteur.id_auteur}`} title="Voir la page de l’auteur"
@@ -173,24 +131,22 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
                 <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M3.5 3h5.5v5.5M9 3L3 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </Link>
             </div>
-            {(siecleAuteur || datesAuteur) && (
-              <p style={{ fontSize: '11.5px', color: '#9a8a70', margin: '2px 0 0', fontFamily: 'Georgia, serif', fontStyle: 'italic', letterSpacing: '0.01em' }}>
-                {siecleAuteur && <RenduSiecle n={siecleAuteur} />}
-                {siecleAuteur && datesAuteur && <span style={{ margin: '0 0.35em' }}>·</span>}
-                {datesAuteur}
+            {datesAuteur && (
+              <p style={{ fontSize: '11.5px', color: '#9a8a70', margin: '1px 0 0', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', letterSpacing: '0.01em' }}>
+                {rendreSiecles(datesAuteur)}
               </p>
             )}
           </div>
 
           {(auteur.note_biographique || auteur.note) && (
-            <p style={{ fontSize: '11.5px', color: '#5a5450', lineHeight: 1.6, margin: 0, fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>
-              {auteur.note_biographique || auteur.note}
+            <p style={{ fontSize: '11.5px', color: '#5a5450', lineHeight: 1.6, margin: 0, fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+              {rendreSiecles(auteur.note_biographique || auteur.note)}
             </p>
           )}
 
           {auteur.note_theologique && (
-            <p style={{ fontSize: '11.5px', color: '#5a5450', lineHeight: 1.6, margin: 0, fontFamily: 'Georgia, serif' }}>
-              {auteur.note_theologique}
+            <p style={{ fontSize: '11.5px', color: '#5a5450', lineHeight: 1.6, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+              {rendreSiecles(auteur.note_theologique)}
             </p>
           )}
 
@@ -212,6 +168,13 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
               background: linear-gradient(to bottom, transparent 0%, rgba(61,107,79,0.05) 22%, rgba(61,107,79,0.05) 78%, transparent 100%);
             }
             .bib-correspond { background: rgba(61,107,79,0.07); }
+            .bib-lire {
+              display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
+              font-size: 10px; font-style: italic; letter-spacing: 0.02em; color: #3d6b4f;
+              font-family: var(--font-source-serif), Georgia, serif;
+              opacity: 0; transition: opacity 0.18s; white-space: nowrap; pointer-events: none;
+            }
+            .bib-ligne:hover .bib-lire, .bib-correspond .bib-lire { opacity: 0.7; }
           `}</style>
           {oeuvresTriees.map((o, idx) => {
             const correspond = oeuvreCorrespondante?.id_oeuvre === o.id_oeuvre
@@ -224,11 +187,17 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
                 className={`bib-ligne${correspond ? ' bib-correspond' : ''}`}
                 style={{ borderTop: idx > 0 ? '1px solid #f3efe9' : 'none' }}>
                 <Link href={`/oeuvre/${o.id_oeuvre}`}
-                  style={{ flex: 1, display: 'block', padding: '9px 16px 9px 20px', textDecoration: 'none', borderLeft: correspond ? '3px solid #3d6b4f' : '3px solid transparent' }}>
-                  <span style={{ display: 'block', fontSize: '13px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: correspond ? '#2a4d35' : '#2a3d30', fontWeight: correspond ? 600 : 400, lineHeight: 1.35 }}>{o.titre}</span>
-                  {meta && (
-                    <span style={{ display: 'block', fontSize: '10.5px', color: '#a59c90', marginTop: '2px', lineHeight: 1.4 }}>{meta}</span>
-                  )}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', padding: '9px 12px 9px 20px', textDecoration: 'none', borderLeft: correspond ? '3px solid #3d6b4f' : '3px solid transparent' }}>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: '13px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? '#2a4d35' : '#2a3d30', fontWeight: correspond ? 600 : 400, lineHeight: 1.35 }}>{o.titre}</span>
+                    {meta && (
+                      <span style={{ display: 'block', fontSize: '10.5px', color: '#a59c90', marginTop: '2px', lineHeight: 1.4 }}>{rendreSiecles(meta)}</span>
+                    )}
+                  </span>
+                  <span className="bib-lire">
+                    Lire cette œuvre
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.5 6h6.5M6 3l3 3-3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </span>
                 </Link>
                 <div style={{ display: 'flex', alignItems: 'center', paddingRight: '14px' }}>
                   <EtoileFavori actif={estFavori} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} />
@@ -245,11 +214,11 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
 // ── Filtres ───────────────────────────────────────────────────────────────────
 type Periode = { jsx: React.ReactNode; min: number; max: number }
 const PERIODES: Periode[] = [
-  { jsx: <><span style={{ fontVariant: 'small-caps' }}>i</span><sup>er</sup>–<span style={{ fontVariant: 'small-caps' }}>ii</span><sup>e</sup> siècle</>, min: 1, max: 2 },
-  { jsx: <><span style={{ fontVariant: 'small-caps' }}>iii</span><sup>e</sup>–<span style={{ fontVariant: 'small-caps' }}>iv</span><sup>e</sup> siècle</>, min: 3, max: 4 },
-  { jsx: <><span style={{ fontVariant: 'small-caps' }}>v</span><sup>e</sup>–<span style={{ fontVariant: 'small-caps' }}>vi</span><sup>e</sup> siècle</>, min: 5, max: 6 },
-  { jsx: <><span style={{ fontVariant: 'small-caps' }}>vii</span><sup>e</sup>–<span style={{ fontVariant: 'small-caps' }}>ix</span><sup>e</sup> siècle</>, min: 7, max: 9 },
-  { jsx: <><span style={{ fontVariant: 'small-caps' }}>x</span><sup>e</sup>–<span style={{ fontVariant: 'small-caps' }}>xiii</span><sup>e</sup> siècle</>, min: 10, max: 13 },
+  { jsx: <EmpanSiecles de={1} a={2} />, min: 1, max: 2 },
+  { jsx: <EmpanSiecles de={3} a={4} />, min: 3, max: 4 },
+  { jsx: <EmpanSiecles de={5} a={6} />, min: 5, max: 6 },
+  { jsx: <EmpanSiecles de={7} a={9} />, min: 7, max: 9 },
+  { jsx: <EmpanSiecles de={10} a={13} />, min: 10, max: 13 },
 ]
 const LANGUES = ['Grec', 'Latin', 'Syriaque', 'Copte', 'Arménien']
 const GENRES = ['Apologétique', 'Catéchèse', 'Théologie', 'Traité', 'Homélie', 'Commentaire', 'Lettre']
@@ -269,7 +238,7 @@ function Chip({ actif, onClick, children, theme = 'genre' }: { actif: boolean; o
       border: `1px solid ${actif ? t.borderActif : t.border}`,
       background: actif ? t.bgActif : t.bg,
       color: actif ? '#fff' : t.color,
-      cursor: 'pointer', fontFamily: 'Georgia, serif', fontStyle: 'italic',
+      cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic',
       transition: 'all 0.12s', whiteSpace: 'nowrap', lineHeight: 1.4,
     }}>
       {children}
@@ -295,6 +264,7 @@ type NoticeCompacte = {
   titre_original: string | null
   titre_edition: string | null
   traducteur: string | null
+  editeur: string | null
   annee_edition: number | null
   siecle_edition: string | null
   domaine_public: string | null
@@ -309,6 +279,14 @@ function cleOeuvreCatalogue(n: NoticeCompacte) {
 
 function titreDeclineCatalogue(n: NoticeCompacte) {
   return n.titre_edition || n.titre_original || n.titre_stable
+}
+
+/** Gabarit commun aux pictogrammes d'action d'une ligne du catalogue : même
+ *  case, même centrage, même taille de tracé. */
+const BOUTON_ICONE: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  width: '22px', height: '22px', padding: 0,
+  background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1,
 }
 
 // ── Panneau auteur catalogue (tons gris/mordorés) ────────────────────────────
@@ -342,18 +320,18 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
       {/* En-tête auteur */}
       <div style={{ display: 'flex' }}>
         {/* Zone initiales */}
-        <div style={{ width: '80px', flexShrink: 0, background: '#e8e2d6', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '88px' }}>
-          <span style={{ fontFamily: 'Georgia, serif', fontSize: '20px', fontStyle: 'italic', color: '#a89a80', letterSpacing: '0.04em', userSelect: 'none' }}>{initiale}</span>
+        <div style={{ width: '64px', flexShrink: 0, background: '#e8e2d6', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '58px' }}>
+          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '17px', fontStyle: 'italic', color: '#a89a80', letterSpacing: '0.04em', userSelect: 'none' }}>{initiale}</span>
         </div>
 
         {/* Infos auteur + bouton */}
-        <div style={{ flex: 1, padding: '14px 16px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <h2 style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '13.5px', fontWeight: 600, color: '#4a4030', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
+        <div style={{ flex: 1, padding: '9px 16px 8px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '5px' }}>
+          <h2 style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '13px', fontWeight: 600, color: '#4a4030', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
             {nomAuteur}
           </h2>
 
           <button onClick={() => setOuvert(!ouvert)}
-            style={{ marginTop: '10px', fontSize: '10.5px', color: '#8a7a5a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}>
+            style={{ fontSize: '10.5px', color: '#8a7a5a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}>
             <span style={{ fontSize: '8px' }}>{ouvert ? '▲' : '▼'}</span>
             {nbMot.charAt(0).toUpperCase() + nbMot.slice(1)} œuvre{nb > 1 ? 's' : ''} répertoriée{nb > 1 ? 's' : ''}
           </button>
@@ -370,7 +348,9 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
           {groupes.map((groupe, idx) => {
             const aVoté = aVote(groupe.notices)
             const nbVotes = totalVotes(groupe.notices)
-            const langue = groupe.notices.map(n => n.langue_originale).find(Boolean) || null
+            // La langue originale ne s'affiche plus : sur un catalogue de
+            // traductions françaises, elle ne renseigne pas le lecteur et
+            // ouvrait une colonne vide une ligne sur deux.
             // Trois états : vérifié par l'admin (contrôle humain), pré-contrôle
             // automatique (IA) — que l'on signale SANS le présenter comme vérifié —,
             // ou rien du tout.
@@ -379,7 +359,10 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
             const [icone, libelle, couleur] = verifieAdmin
               ? ['✓', 'Données vérifiées', '#7a8a6a']
               : precontroleIA
-              ? ['◆', 'Pré-contrôle automatique (non vérifié)', '#a89878']
+              // Ocre franc : la référence n'est pas fautive, mais elle n'est pas
+              // encore garantie. Le gris-taupe précédent se lisait comme une
+              // mention passive ; l'ocre retient l'œil sans crier à l'erreur.
+              ? ['◆', 'Référence en cours de vérification', '#b07d1e']
               : ['○', 'Non vérifié', '#c09050']
             return (
               <div key={groupe.cle}
@@ -387,18 +370,22 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                 style={{ borderTop: idx > 0 ? '1px solid #eee8de' : 'none' }}>
                 {/* Titre + éditions */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: '13px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#3a342e', lineHeight: 1.35 }}>{groupe.titreStable}</span>
+                  <span style={{ display: 'block', fontSize: '13px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: '#3a342e', lineHeight: 1.35 }}>{groupe.titreStable}</span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', marginTop: '3px' }}>
                     {groupe.notices.map(n => {
+                      // Une phrase, pas une suite d'abréviations : même modèle
+                      // que la page de titre de l'œuvre — « Traduction par A et
+                      // B, éditeur, année ». Les virgules suffisent à séparer.
                       const meta = [
-                        n.traducteur ? `Trad. ${n.traducteur}` : null,
+                        libelleTrad(n.traducteur),
+                        n.editeur,
                         formaterDateHistorique(n.annee_edition ?? n.siecle_edition),
-                      ].filter(Boolean).join(' · ')
+                      ].filter(Boolean).join(', ')
                       const dp = n.domaine_public?.includes('oui')
                       return (
                         <span key={n.id} style={{ fontSize: '10.5px', color: '#a09080', lineHeight: 1.4 }}>
                           {meta || titreDeclineCatalogue(n)}
-                          {dp && <span style={{ marginLeft: '5px', fontSize: '9px', color: '#7a8a6a', fontWeight: 700, letterSpacing: '0.04em' }}>DP</span>}
+                          {dp && <span title="Domaine public — œuvre libre de droits" style={{ marginLeft: '5px', fontSize: '9px', color: '#7a8a6a', fontWeight: 700, letterSpacing: '0.04em', cursor: 'help' }}>DP</span>}
                         </span>
                       )
                     })}
@@ -409,28 +396,33 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                     {libelle}
                   </span>
                 </div>
-                {/* Colonne langue originale */}
-                <span style={{ width: '64px', flexShrink: 0, textAlign: 'right', fontSize: '10.5px', color: '#b0a08c', fontFamily: 'Georgia, serif', fontStyle: 'italic', lineHeight: 1.35, marginTop: '1px' }}>
-                  {langue || ''}
-                </span>
-                {/* Actions : proposer + vote (cœur fixe) */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0, marginTop: '0px' }}>
+                {/* Actions : proposer + vote.
+                    Les deux pictogrammes occupent la même case de 22 px et sont
+                    tracés au même gabarit (viewBox 16, trait 1.4) : le « + » en
+                    SVG et le cœur en caractère typographique ne s'alignaient pas
+                    — le glyphe porte ses propres chasse et hauteur d'œil, si
+                    bien qu'il pendait sous le « + » et paraissait plus gros. */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
                   <button
                     onClick={() => onProposer(nomAuteur, groupe.titreStable)}
                     title="Proposer cette œuvre à l'équipe éditoriale"
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', background: 'none', border: 'none', cursor: 'pointer', color: '#b8a888', padding: 0 }}
+                    style={{ ...BOUTON_ICONE, color: '#b8a888' }}
                     onMouseEnter={e => (e.currentTarget.style.color = '#8a6a30')}
                     onMouseLeave={e => (e.currentTarget.style.color = '#b8a888')}>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                      <path d="M8 3.5v9M3.5 8h9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <path d="M8 3.5v9M3.5 8h9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
                     </svg>
                   </button>
                   <button
                     onClick={() => onVoter(groupe.notices)}
                     title={userId ? (aVoté ? 'Retirer mon vote' : 'Je veux cette œuvre') : 'Connectez-vous pour voter'}
-                    style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: userId ? 'pointer' : 'default', padding: '2px 2px', color: aVoté ? '#b87a30' : '#c4b8a4', fontSize: '11px' }}>
-                    <span style={{ width: '15px', flexShrink: 0, fontSize: '13px', lineHeight: 1, textAlign: 'center' }}>{aVoté ? '♥' : '♡'}</span>
-                    <span style={{ minWidth: '12px', textAlign: 'left' }}>{nbVotes > 0 ? nbVotes : ''}</span>
+                    style={{ ...BOUTON_ICONE, width: 'auto', gap: '2px', cursor: userId ? 'pointer' : 'default', color: aVoté ? '#b87a30' : '#c4b8a4' }}>
+                    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"
+                      fill={aVoté ? 'currentColor' : 'none'}>
+                      <path d="M8 13.5S2.5 9.8 2.5 6.3A2.9 2.9 0 0 1 8 5a2.9 2.9 0 0 1 5.5 1.3c0 3.5-5.5 7.2-5.5 7.2z"
+                        stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+                    </svg>
+                    <span style={{ minWidth: '10px', textAlign: 'left', fontSize: '11px' }}>{nbVotes > 0 ? nbVotes : ''}</span>
                   </button>
                 </div>
               </div>
@@ -460,7 +452,7 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
       <div onMouseDown={e => e.stopPropagation()}
         style={{ margin: 'auto', background: '#f7f4ef', borderRadius: '10px', border: '1px solid #ddd5c4', width: '100%', maxWidth: '660px', boxShadow: '0 12px 40px rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 22px 12px', borderBottom: '1px solid #e4dcd0' }}>
-          <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '16px', color: '#3a342e', margin: 0 }}>Proposer cette œuvre</h3>
+          <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '16px', color: '#3a342e', margin: 0 }}>{(auteur || titre) ? 'Proposer cette œuvre' : 'Proposer une œuvre'}</h3>
           <button onClick={onClose} aria-label="Fermer" style={{ fontSize: '16px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
         <div style={{ padding: '0 22px' }}>
@@ -471,7 +463,7 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
   )
 }
 
-function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
+function SectionCatalogueManquant() {
   const [notices, setNotices] = useState<NoticeCompacte[]>([])
   const [chargement, setChargement] = useState(false)
   const [chargé, setChargé] = useState(false)
@@ -497,8 +489,9 @@ function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
       for (let de = 0; ; de += 1000) {
         const { data: page } = await supabase
           .from('catalogue_notices')
-          .select('id, auteur, id_oeuvre_stable, titre_stable, titre_original, titre_edition, traducteur, annee_edition, siecle_edition, domaine_public, langue_originale, verifie, verifie_admin')
+          .select('id, auteur, id_oeuvre_stable, titre_stable, titre_original, titre_edition, traducteur, editeur, annee_edition, siecle_edition, domaine_public, langue_originale, verifie, verifie_admin')
           .eq('presence_sur_le_site', false)
+          .eq('refuse_admin', false)
           .order('auteur')
           .order('titre_stable')
           .order('id')
@@ -594,31 +587,29 @@ function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-        <span style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#b0a89e' }}>
-          {enLettres(groupes.size).charAt(0).toUpperCase() + enLettres(groupes.size).slice(1)} œuvre{groupes.size > 1 ? 's' : ''} répertoriée{groupes.size > 1 ? 's' : ''}, non disponible{groupes.size > 1 ? 's' : ''}
-        </span>
-        <button onClick={onProposer}
-          style={{ fontSize: '11px', color: '#7a6a48', background: 'rgba(139,107,60,0.08)', border: '1px solid rgba(139,107,60,0.22)', borderRadius: '5px', cursor: 'pointer', padding: '6px 10px' }}>
+      {/* « Proposer une œuvre » à gauche, face à la barre de recherche (centrée), et
+          ouvrant une fenêtre plutôt que de basculer d'onglet. */}
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', minHeight: '40px' }}>
+        <button onClick={() => setProposition({ auteur: '', titre: '' })}
+          style={{ position: 'absolute', left: 0, fontSize: '11px', color: '#7a6a48', background: 'rgba(139,107,60,0.08)', border: '1px solid rgba(139,107,60,0.22)', borderRadius: '5px', cursor: 'pointer', padding: '7px 12px' }}>
           Proposer une œuvre
         </button>
-      </div>
-
-      {/* Recherche — identique en placement et en forme à l'onglet Bibliothèque */}
-      <div style={{ position: 'relative', maxWidth: '340px', margin: '0 auto 16px' }}>
-        <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
-          placeholder="Rechercher un auteur ou une œuvre"
-          style={{ width: '100%', fontSize: '13px', padding: '9px 14px 9px 38px', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
-          <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
-          <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
-        </svg>
+        {/* Recherche — identique en placement et en forme à l'onglet Bibliothèque */}
+        <div style={{ position: 'relative', width: '100%', maxWidth: '340px' }}>
+          <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
+            placeholder="Rechercher un auteur ou une œuvre"
+            style={{ width: '100%', fontSize: '13px', padding: '9px 14px 9px 38px', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
+            <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
+            <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
+          </svg>
+        </div>
       </div>
 
       {chargement ? (
         <p style={{ fontSize: '12px', color: '#b0a89e', fontStyle: 'italic' }}>Chargement…</p>
       ) : auteursTriés.length === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>
+        <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
           Aucun auteur ne correspond à ces critères.
         </p>
       ) : (
@@ -659,7 +650,7 @@ function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
               </button>
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginTop: '22px' }}>
-                <span style={{ fontSize: '11px', color: '#a09484', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+                <span style={{ fontSize: '11px', color: '#a09484', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic' }}>
                   Page {pageActive + 1} sur {nbPages}
                 </span>
               </div>
@@ -683,7 +674,7 @@ function SectionCatalogueManquant({ onProposer }: { onProposer: () => void }) {
 const CHAMP_STYLE: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', fontSize: '13px', padding: '8px 11px',
   border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4',
-  color: '#2a2520', outline: 'none', fontFamily: 'Georgia, serif',
+  color: '#2a2520', outline: 'none', fontFamily: 'var(--font-source-serif), Georgia, serif',
 }
 
 /* ── Autocomplétion auteur ──────────────────────────────────────────────── */
@@ -744,7 +735,7 @@ function ComboAuteur({ value, onChange, onAuteurId }: {
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: '#fff', border: '1px solid #d6d0c4', borderRadius: '5px', boxShadow: '0 4px 12px rgba(0,0,0,.1)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
           {suggestions.map(s => (
             <div key={s.id_auteur} onMouseDown={() => choisir(s.nom, s.id_auteur)}
-              style={{ padding: '8px 12px', fontSize: '13px', color: '#2a2520', cursor: 'pointer', fontFamily: 'Georgia, serif' }}
+              style={{ padding: '8px 12px', fontSize: '13px', color: '#2a2520', cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif' }}
               onMouseEnter={e => (e.currentTarget.style.background = '#f5f2ec')}
               onMouseLeave={e => (e.currentTarget.style.background = '')}>
               {s.nom}
@@ -822,7 +813,7 @@ function ComboTitre({ value, onChange, auteurNom }: {
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: '#fff', border: '1px solid #d6d0c4', borderRadius: '5px', boxShadow: '0 4px 12px rgba(0,0,0,.1)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
           {suggestions.map((titre, i) => (
             <div key={i} onMouseDown={() => choisir(titre)}
-              style={{ padding: '8px 12px', fontSize: '13px', color: '#2a2520', cursor: 'pointer', fontFamily: 'Georgia, serif' }}
+              style={{ padding: '8px 12px', fontSize: '13px', color: '#2a2520', cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif' }}
               onMouseEnter={e => (e.currentTarget.style.background = '#f5f2ec')}
               onMouseLeave={e => (e.currentTarget.style.background = '')}>
               {titre}
@@ -904,7 +895,7 @@ function OngletProposer({ valeursInitiales }: { valeursInitiales?: Partial<FormP
         <circle cx="20" cy="14" r="7" stroke="#2a3d30" strokeWidth="1.4" fill="none"/>
         <path d="M4 38 Q6 24 20 20 Q34 24 36 38" stroke="#2a3d30" strokeWidth="1.4" fill="none" strokeLinecap="round"/>
       </svg>
-      <p style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: '#3d4a40', marginBottom: '6px' }}>Connexion requise</p>
+      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#3d4a40', marginBottom: '6px' }}>Connexion requise</p>
       <p style={{ fontSize: '12.5px', color: '#8a8278', lineHeight: 1.65, marginBottom: '22px' }}>
         Seuls les membres de Corpus Scriptura peuvent proposer un texte.<br/>Connectez-vous pour contribuer à la bibliothèque.
       </p>
@@ -916,7 +907,7 @@ function OngletProposer({ valeursInitiales }: { valeursInitiales?: Partial<FormP
 
   if (statut === 'limite') return (
     <div style={{ maxWidth: '520px', margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
-      <p style={{ fontFamily: 'Georgia, serif', fontSize: '16px', color: '#9a5a2a', marginBottom: '8px' }}>Limite journalière atteinte</p>
+      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '16px', color: '#9a5a2a', marginBottom: '8px' }}>Limite journalière atteinte</p>
       <p style={{ fontSize: '12.5px', color: '#8a8278', lineHeight: 1.65, marginBottom: '24px' }}>
         {messageErreur ?? 'Vous avez atteint le nombre maximum de propositions pour aujourd\'hui. Revenez demain.'}
       </p>
@@ -928,7 +919,7 @@ function OngletProposer({ valeursInitiales }: { valeursInitiales?: Partial<FormP
       <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(61,107,79,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l5 5 7-8" stroke="#3d6b4f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </div>
-      <p style={{ fontFamily: 'Georgia, serif', fontSize: '16px', color: '#2a3d30', marginBottom: '8px' }}>Proposition envoyée</p>
+      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '16px', color: '#2a3d30', marginBottom: '8px' }}>Proposition envoyée</p>
       <p style={{ fontSize: '12.5px', color: '#8a8278', lineHeight: 1.65, marginBottom: '24px' }}>
         Merci pour votre contribution. L'équipe éditoriale examinera votre proposition.
       </p>
@@ -1111,7 +1102,7 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
   if (oeuvresFavorites.length === 0) {
     return (
       <div style={{ maxWidth: '520px', margin: '0 auto', textAlign: 'center', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '22px 24px' }}>
-        <p style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: '#2a3d30', margin: '0 0 6px' }}>Aucune œuvre favorite</p>
+        <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#2a3d30', margin: '0 0 6px' }}>Aucune œuvre favorite</p>
         <p style={{ fontSize: '12px', color: '#9a958d', lineHeight: 1.6, margin: 0 }}>
           Ajoutez une œuvre à vos favoris depuis sa ligne dans la bibliothèque ou depuis sa page de lecture.
         </p>
@@ -1136,7 +1127,7 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
               <div style={{ flex: 1, minWidth: 0 }}>
                 <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ textDecoration: 'none' }}>
                   <span style={{ fontSize: '13px', fontWeight: 500, color: '#2a3d30', display: 'block' }}>{o.titre}</span>
-                  <span style={{ fontSize: '11px', color: '#9a8a6e', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>{a.nom}</span>
+                  <span style={{ fontSize: '11px', color: '#9a8a6e', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic' }}>{a.nom}</span>
                   {metas.length > 0 && (
                     <span style={{ display: 'block', fontSize: '10.5px', color: '#a59c90', marginTop: '2px' }}>{metas.join(' · ')}</span>
                   )}
@@ -1204,20 +1195,9 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
 
         {/* En-tête */}
         <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(20px, 3.5vw, 28px)', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 4px' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(20px, 3.5vw, 28px)', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 4px' }}>
             Bibliothèque
           </h1>
-          <p style={{ fontFamily: 'Georgia, serif', fontSize: '13.5px', fontStyle: 'italic', color: '#8a8278', margin: 0, lineHeight: 1.6 }}>
-            Écrits des Pères de l’Église du{' '}
-            <span style={{ fontVariantCaps: 'all-small-caps' }}>I</span><sup style={{ fontSize: '0.68em', lineHeight: 1 }}>er</sup>
-            {' au '}
-            <span style={{ fontVariantCaps: 'all-small-caps' }}>XIII</span><sup style={{ fontSize: '0.68em', lineHeight: 1 }}>e</sup>
-            {' siècle'}
-          </p>
-          <p style={{ fontFamily: 'Georgia, serif', fontSize: '11.5px', fontStyle: 'italic', color: '#b0a89e', margin: '4px 0 0', letterSpacing: '0.01em' }}>
-            {enLettres(auteurs.length).charAt(0).toUpperCase() + enLettres(auteurs.length).slice(1)} auteur{auteurs.length > 1 ? 's' : ''}{' · '}
-            {enLettres(auteurs.reduce((s, a) => s + a.oeuvres.length, 0))} œuvre{auteurs.reduce((s, a) => s + a.oeuvres.length, 0) > 1 ? 's' : ''}
-          </p>
         </div>
 
         {/* Tabs */}
@@ -1228,7 +1208,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
                 <span style={{ width: '1px', background: '#e0d8ce', alignSelf: 'center', height: '14px', flexShrink: 0 }} />
               )}
               <button onClick={() => setOnglet(key)} style={{
-                flex: 1, padding: '8px 8px', fontSize: '12.5px', fontFamily: 'Georgia, serif',
+                flex: 1, padding: '8px 8px', fontSize: '12.5px', fontFamily: 'var(--font-source-serif), Georgia, serif',
                 textAlign: 'center',
                 background: 'none', border: 'none', borderBottom: onglet === key ? '2px solid #3d6b4f' : '2px solid transparent',
                 color: onglet === key ? '#3d6b4f' : '#8a8278', cursor: 'pointer',
@@ -1256,7 +1236,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
             </div>
 
             {auteursFiltres.length === 0 ? (
-              <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>
+              <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                 Aucun auteur ne correspond à ces critères.
               </p>
             ) : (
@@ -1280,7 +1260,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
         )}
 
         {/* Contenu onglet Traductions indisponibles */}
-        {onglet === 'catalogue' && <SectionCatalogueManquant onProposer={() => setOnglet('proposer')} />}
+        {onglet === 'catalogue' && <SectionCatalogueManquant />}
 
         {/* Contenu onglet Proposer */}
         {onglet === 'proposer' && <OngletProposer />}

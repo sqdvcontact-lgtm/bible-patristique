@@ -45,7 +45,7 @@ function surlignerMatch(texte: string, query: string): React.ReactNode {
   return (
     <>
       {texte.slice(0, idx)}
-      <strong style={{ color: '#3d6b4f', fontWeight: 700 }}>{texte.slice(idx, idx + query.length)}</strong>
+      <strong style={{ color: '#1f5c33', fontWeight: 700, background: 'rgba(61,107,79,0.14)', borderRadius: '2px', padding: '0 1px' }}>{texte.slice(idx, idx + query.length)}</strong>
       {texte.slice(idx + query.length)}
     </>
   )
@@ -65,7 +65,7 @@ function extraireEtSurligner(texte: string, q: string, longueur = 110): React.Re
   if (mIdx < 0) return <>{prefix ? '\u2026' : ''}{extrait}{suffix ? '\u2026' : ''}</>
   return (
     <>
-      {prefix ? '\u2026' : ''}{extrait.slice(0, mIdx)}<strong style={{ color: '#3d6b4f', fontWeight: 700 }}>{extrait.slice(mIdx, mIdx + q.length)}</strong>{extrait.slice(mIdx + q.length)}{suffix ? '\u2026' : ''}
+      {prefix ? '\u2026' : ''}{extrait.slice(0, mIdx)}<strong style={{ color: '#1f5c33', fontWeight: 700, background: 'rgba(61,107,79,0.14)', borderRadius: '2px', padding: '0 1px' }}>{extrait.slice(mIdx, mIdx + q.length)}</strong>{extrait.slice(mIdx + q.length)}{suffix ? '\u2026' : ''}
     </>
   )
 }
@@ -139,12 +139,14 @@ export default function Navbar() {
   const [rechercheRapideLoading, setRechercheRapideLoading] = useState(false);
   const [nbResultatsProgressif, setNbResultatsProgressif] = useState(0);
   const [rechercheTerminee, setRechercheTerminee] = useState(false);
+  const [nbTotalReel, setNbTotalReel] = useState(0);
 
   useEffect(() => {
     const q = requeteRapide.trim();
-    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); setOeuvresTrouvees([]); setSegmentsTrouves([]); setRechercheRapideLoading(false); setNbResultatsProgressif(0); setRechercheTerminee(false); return; }
+    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); setOeuvresTrouvees([]); setSegmentsTrouves([]); setRechercheRapideLoading(false); setNbResultatsProgressif(0); setNbTotalReel(0); setRechercheTerminee(false); return; }
     setRechercheRapideLoading(true);
     setNbResultatsProgressif(0);
+    setNbTotalReel(0);
     setRechercheTerminee(false);
     const timer = setTimeout(() => {
       abortRef.current?.abort();
@@ -157,19 +159,39 @@ export default function Navbar() {
           setRechercheTerminee(true);
         }
       };
+      // Recherche par PRÉFIXE de MOT, non par sous-chaîne : « Am » trouve « amour » ou
+      // « Ambroise » (mot commençant par am), jamais « Samuel » ni « Abraham » (am au
+      // milieu). Un mot commence en tête de champ, après une espace, une apostrophe ou un
+      // guillemet ouvrant. Les virgules casseraient le parseur `.or()` : on les ôte.
+      const qOr = q.replace(/,/g, ' ').trim();
+      const prefixeOr = (col: string) =>
+        [`${col}.ilike.${qOr}%`, `${col}.ilike.% ${qOr}%`, `${col}.ilike.%'${qOr}%`, `${col}.ilike.%’${qOr}%`, `${col}.ilike.%«${qOr}%`].join(',');
 
-      supabase.from('auteurs').select('id_auteur, nom').ilike('nom', `%${q}%`).limit(4).abortSignal(signal)
+      // Compte RÉEL par source (non plafonné) : c'est la somme affichée. Les aperçus
+      // ci-dessous restent bornés, mais le total dit combien il y a vraiment.
+      Promise.all([
+        supabase.from('auteurs').select('*', { count: 'exact', head: true }).or(prefixeOr('nom')).abortSignal(signal),
+        supabase.from('essais').select('*', { count: 'exact', head: true }).eq('statut', 'publie').or([...prefixeOr('titre').split(','), ...prefixeOr('resume').split(',')].join(',')).abortSignal(signal),
+        supabase.from('oeuvres').select('*', { count: 'exact', head: true }).or(prefixeOr('titre')).abortSignal(signal),
+        supabase.from('segments').select('*', { count: 'exact', head: true }).eq('nature', 'texte').or(prefixeOr('segment_texte')).abortSignal(signal),
+      ]).then(res => {
+        if (signal.aborted) return;
+        const total = res.reduce((s, r) => s + (r.count ?? 0), 0);
+        setNbTotalReel(total);
+      }).catch(() => {});
+
+      supabase.from('auteurs').select('id_auteur, nom').or(prefixeOr('nom')).limit(4).abortSignal(signal)
         .then(({ data }) => {
           if (!signal.aborted) { setAuteursTrouves(data ?? []); setNbResultatsProgressif(p => p + (data?.length ?? 0)); }
           done();
         });
       supabase.from('essais').select('id, titre').eq('statut', 'publie')
-        .or(`titre.ilike.%${q}%,resume.ilike.%${q}%`).limit(4).abortSignal(signal)
+        .or([...prefixeOr('titre').split(','), ...prefixeOr('resume').split(',')].join(',')).limit(4).abortSignal(signal)
         .then(({ data }) => {
           if (!signal.aborted) { setEssaisTrouves(data ?? []); setNbResultatsProgressif(p => p + (data?.length ?? 0)); }
           done();
         });
-      supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs(nom)').ilike('titre', `%${q}%`).limit(8).abortSignal(signal)
+      supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs(nom)').or(prefixeOr('titre')).limit(8).abortSignal(signal)
         .then(({ data }) => {
           if (signal.aborted) { done(); return; }
           const filtered = (data ?? []).filter(estOeuvrePubliee).map((o: any) => ({ ...o, auteurs: Array.isArray(o.auteurs) ? (o.auteurs[0] ?? null) : o.auteurs }));
@@ -178,7 +200,7 @@ export default function Navbar() {
           done();
         });
       supabase.from('segments').select('id, segment_texte, id_oeuvre')
-        .ilike('segment_texte', `%${q}%`).eq('nature', 'texte').limit(5).abortSignal(signal)
+        .or(prefixeOr('segment_texte')).eq('nature', 'texte').limit(5).abortSignal(signal)
         .then(async ({ data }) => {
           if (signal.aborted) { done(); return; }
           const segs = data ?? []
@@ -203,8 +225,11 @@ export default function Navbar() {
   }, [requeteRapide]);
 
   const qNorm = sansAccents(requeteRapide.trim());
-  const livresTrouves = qNorm ? LIVRES_RECHERCHE.filter(l => sansAccents(l.nom).includes(qNorm)).slice(0, 5) : [];
-  const traductionsTrouvees = qNorm ? TRADUCTIONS_RECHERCHE.filter(t => sansAccents(t.nom).includes(qNorm)) : [];
+  // Préfixe de MOT (comme le reste de la recherche rapide) : « am » trouve « Amos »,
+  // jamais « Samuel » (am au milieu). On teste le début de chaque mot du nom.
+  const motCommencePar = (nom: string) => sansAccents(nom).split(/[\s'’-]+/).some(w => w.startsWith(qNorm));
+  const livresTrouves = qNorm ? LIVRES_RECHERCHE.filter(l => motCommencePar(l.nom)).slice(0, 5) : [];
+  const traductionsTrouvees = qNorm ? TRADUCTIONS_RECHERCHE.filter(t => motCommencePar(t.nom)) : [];
   const aucunResultat = !rechercheRapideLoading && qNorm.length > 0 && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0;
 
   const fermerRechercheRapide = () => { setRechercheOuverte(false); setRequeteRapide(""); setMobileOuvert(false); };
@@ -344,7 +369,10 @@ export default function Navbar() {
 
   // ── Bloc recherche rapide, réutilisé en version desktop et mobile ────────────
   const nbLocalStatique = livresTrouves.length + traductionsTrouvees.length;
-  const nbTotalResultats = nbResultatsProgressif + nbLocalStatique;
+  // Le total AFFICHÉ est le compte réel des sources en base (non plafonné) + les
+  // résultats locaux. Tant que le compte réel n'est pas revenu, on retombe sur la somme
+  // des aperçus, pour ne jamais afficher un nombre INFÉRIEUR à ce qu'on montre déjà.
+  const nbTotalResultats = Math.max(nbTotalReel, nbResultatsProgressif) + nbLocalStatique;
 
   const blocRecherche = (mobile: boolean) => (
     <div style={{ position: "relative", width: mobile ? "100%" : undefined }}>
@@ -363,16 +391,24 @@ export default function Navbar() {
           onKeyDown={e => { if (e.key === 'Enter') validerRechercheRapide() }}
           placeholder="Rechercher…"
           className="recherche-rapide-input"
-          style={{ width: mobile ? "100%" : "150px", fontSize: "12px", padding: "6px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "#fff", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
+          style={{ width: mobile ? "100%" : "128px", fontSize: "12px", padding: "6px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "#fff", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
         />
-        <Link href="/recherche" onClick={fermerRechercheRapide} title="Ouvrir la page de recherche"
-          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "28px", height: "28px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.75)", textDecoration: "none", flexShrink: 0, transition: "background 0.13s" }}
+        {/* Bouton « Nouvelle recherche » : conduit à la page de recherche VIERGE (pas de
+            ?q), pour repartir de zéro. Si l'on y est DÉJÀ (l'URL peut être « /recherche »
+            sans ?q, la navigation client ne rejouerait alors rien), on force un rechargement
+            propre pour vider les résultats précédents. Libellé court pour tenir dans la barre. */}
+        <Link href="/recherche" title="Ouvrir une recherche vierge"
+          onClick={e => {
+            fermerRechercheRapide();
+            if (pathname.startsWith("/recherche")) { e.preventDefault(); window.location.assign("/recherche"); }
+          }}
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px", height: "29px", padding: "0 9px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap", fontSize: "11px", fontWeight: 500, letterSpacing: "0.01em", transition: "background 0.13s, color 0.13s" }}
           onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.20)"; e.currentTarget.style.color = "#fff"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.10)"; e.currentTarget.style.color = "rgba(255,255,255,0.75)"; }}>
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <circle cx="6" cy="6" r="4.2" stroke="currentColor" strokeWidth="1.4" fill="none"/>
-            <line x1="9.2" y1="9.2" x2="12.5" y2="12.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+          onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.10)"; e.currentTarget.style.color = "rgba(255,255,255,0.82)"; }}>
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+            <path d="M6 2v8M2 6h8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
           </svg>
+          Recherche
         </Link>
       </div>
 
@@ -394,7 +430,16 @@ export default function Navbar() {
                 <path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="#3d6b4f" strokeWidth="1.6" strokeLinecap="round" fill="none"/>
               </svg>
             ) : rechercheTerminee ? (
-              <span style={{ fontSize: "14px", lineHeight: 1 }} role="img" aria-label="Recherche terminée">😊</span>
+              /* Smiley au trait, épuré comme les autres symboles du site. Son cercle
+                 extérieur reprend EXACTEMENT celui du spinner (r 5.5, centre 7,7, même
+                 trait) : quand le chargement s'achève, l'anneau devient visage sans que
+                 le contour bouge. */
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" role="img" aria-label="Recherche terminée">
+                <circle cx="7" cy="7" r="5.5" stroke="#3d6b4f" strokeWidth="1.6" fill="none"/>
+                <circle cx="5" cy="5.8" r="0.65" fill="#3d6b4f"/>
+                <circle cx="9" cy="5.8" r="0.65" fill="#3d6b4f"/>
+                <path d="M4.6 8.6a2.6 2.6 0 0 0 4.8 0" stroke="#3d6b4f" strokeWidth="1.3" strokeLinecap="round" fill="none"/>
+              </svg>
             ) : null}
           </div>
 
@@ -439,7 +484,9 @@ export default function Navbar() {
                       style={{ display: "block", padding: "5px 14px", fontSize: "12px", color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                      <span style={{ fontStyle: "italic", display: "block", lineHeight: 1.3, color: "#3a3530" }}>{extraireEtSurligner(s.segment_texte, requeteRapide.trim())}</span>
+                      {/* Justifié et borné à TROIS lignes, texte condensé pour épouser la
+                          largeur du menu sans creuser de blancs ni déborder. */}
+                      <span style={{ fontStyle: "italic", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: 1.32, color: "#3a3530", textAlign: "justify", wordSpacing: "-0.05em", letterSpacing: "-0.012em", hyphens: "auto" }}>{extraireEtSurligner(s.segment_texte, requeteRapide.trim())}</span>
                       <span style={{ fontSize: "10.5px", color: "#9a958d", marginTop: "2px", display: "block" }}>{s.auteur_nom}{s.auteur_nom && s.oeuvre_titre ? ' · ' : ''}{s.oeuvre_titre}</span>
                     </Link>
                   ))}
@@ -613,12 +660,23 @@ export default function Navbar() {
             color: #fff;
             transition-duration: 140ms;
           }
-          /* Le groupe Bible / Polyglotte s'éclaire légèrement dès qu'on approche de
-             l'un ou l'autre : les deux se lisent alors comme un seul objet. */
-          .cs-groupe-lecture { transition: border-color 260ms ease, background 260ms ease; }
-          .cs-groupe-lecture:hover { border-color: rgba(255,255,255,0.28); background: rgba(255,255,255,0.075); }
+          /* Onglet « Bible » : au repos, un onglet plat comme les autres liens de la barre
+             — ni cadre ni fond qui le détachent, et sa largeur épouse son texte, sans
+             boîte fixe qui creuse un écart. C'est la face, en flux normal, qui dimensionne
+             le bloc ; au survol elle s'efface et laisse paraître SUR PLACE, à la même
+             largeur, « Classique » et « Polyglotte » — la barre ne bouge pas. */
+          .cs-bible { position: relative; display: inline-flex; border-radius: 5px; transition: background 200ms ease; }
+          .cs-bible:hover, .cs-bible:focus-within { background: rgba(255,255,255,0.085); }
+          .cs-bible-face { display: inline-flex; align-items: center; padding: 4px 8px; color: rgba(255,255,255,0.85); font-weight: 600; font-size: 12.5px; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; transition: opacity 160ms ease; }
+          .cs-bible:hover .cs-bible-face, .cs-bible:focus-within .cs-bible-face { opacity: 0; pointer-events: none; }
+          .cs-bible-split { position: absolute; inset: 0; display: flex; opacity: 0; pointer-events: none; transition: opacity 160ms ease; }
+          .cs-bible:hover .cs-bible-split, .cs-bible:focus-within .cs-bible-split { opacity: 1; pointer-events: auto; }
+          .cs-bible-seg { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 6px; color: rgba(255,255,255,0.82); font-size: 12px; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background 140ms ease, color 140ms ease; }
+          .cs-bible-seg:hover { background: rgba(255,255,255,0.13); color: #fff; }
+          .cs-bible-seg + .cs-bible-seg { border-left: 1px solid rgba(255,255,255,0.16); }
+          .cs-bible-seg--actif { color: #fff; background: rgba(255,255,255,0.10); }
           @media (prefers-reduced-motion: reduce) {
-            .cs-onglet, .cs-groupe-lecture { transition: none; }
+            .cs-onglet, .cs-bible, .cs-bible-face, .cs-bible-split { transition: none; }
           }
         `}</style>
         {/* Plus de `max-w-screen-xl mx-auto` : la barre bridait sa largeur à 1 280 px et
@@ -630,21 +688,26 @@ export default function Navbar() {
           <Link href="/accueil" className="flex items-center gap-1.5 shrink-0"
             style={{ color: "rgba(255,255,255,0.93)", textDecoration: "none" }}>
             <span style={{ fontSize: "11px", opacity: 0.6 }}>✦</span>
-            <span style={{ fontSize: "13px", fontWeight: 500, letterSpacing: "0.02em" }}>Corpus Scriptura</span>
-            <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.06em", color: "rgba(255,255,255,0.55)", border: "1px solid rgba(255,255,255,0.30)", borderRadius: "3px", padding: "1px 5px", textTransform: "uppercase" }}>bêta</span>
+            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "15px", fontWeight: 600, letterSpacing: "0.01em" }}>Corpus Scriptura</span>
+            {/* « bêta » sobre : un petit mot en italique, posé contre le nom, sans cercle
+                ni capitales — un simple murmure de version. */}
+            <span title="Version bêta" aria-label="Version bêta"
+              style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "10.5px", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.5)" }}>bêta</span>
           </Link>
 
           {/* ── Navigation desktop ──────────────────────────────────────────── */}
           <nav className="hidden md:flex flex-1 items-center gap-0.5 min-w-0">
-            {/* Bloc « lecture » : les deux onglets accolés, séparés d'un simple filet,
-                dans un cadre commun aux extrémités arrondies. */}
-            <div className="cs-groupe-lecture" style={{ display: "flex", alignItems: "center", marginRight: "5px", borderRadius: "6px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.16)", background: "rgba(255,255,255,0.05)" }}>
-              {LIENS_LECTURE.map(({ href, label, exact }, i) => (
-                <Link key={href} href={href} className="cs-onglet"
-                  style={{ ...styleLien(href, exact, true), borderRadius: 0, borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.16)" : undefined }}>
-                  {label}
-                </Link>
-              ))}
+            {/* Bouton « Bible » unique : au survol il se décompose en « Classique »
+                (lecture suivie) et « Polyglotte » (comparaison). Un clic direct sur la face
+                mène à la lecture classique — utile au tactile, où il n'y a pas de survol. */}
+            <div className="cs-bible">
+              <Link href="/?livre=GEN&chapitre=1" className="cs-bible-face">
+                Les Saintes Écritures
+              </Link>
+              <div className="cs-bible-split">
+                <Link href="/?livre=GEN&chapitre=1" className={`cs-bible-seg${pathname === "/" ? " cs-bible-seg--actif" : ""}`}>Classique</Link>
+                <Link href="/polyglotte" className={`cs-bible-seg${pathname.startsWith("/polyglotte") ? " cs-bible-seg--actif" : ""}`}>Polyglotte</Link>
+              </div>
             </div>
             {LIENS_PRIMAIRES.map(({ href, label, exact, discret }) => (
               <Link key={href} href={href} className="cs-onglet" style={styleLien(href, exact, !discret)}>{label}</Link>
@@ -739,7 +802,7 @@ export default function Navbar() {
           <Link href="/notifications" onClick={() => setToastNotification(null)}
             style={{ position: "fixed", top: "62px", right: "18px", width: "280px", background: "#fff", border: "1px solid #d6d0c4", borderLeft: "3px solid #3d6b4f", borderRadius: "8px", boxShadow: "0 12px 34px rgba(0,0,0,0.16)", padding: "11px 13px", zIndex: 4000, textDecoration: "none" }}>
             <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#3d6b4f", margin: "0 0 4px" }}>Nouvelle notification</p>
-            <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "#1e2e24", margin: "0 0 4px" }}>{toastNotification.titre}</p>
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "14px", color: "#1e2e24", margin: "0 0 4px" }}>{toastNotification.titre}</p>
             <p style={{ fontSize: "11.5px", color: "#6b6560", lineHeight: 1.35, margin: 0 }}>{toastNotification.message}</p>
           </Link>
         )}

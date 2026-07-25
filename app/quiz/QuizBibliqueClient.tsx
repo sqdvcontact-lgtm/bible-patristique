@@ -385,7 +385,7 @@ export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boo
   if (!estAdminReel || modeUtilisateurStandard) {
     return (
       <main style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', padding: '2rem' }}>
-        <div style={{ maxWidth: 480, textAlign: 'center', padding: '2.5rem 2rem', border: '1px solid #d4b896', borderRadius: 8, background: '#fdf8f2', fontFamily: 'Georgia, serif' }}>
+        <div style={{ maxWidth: 480, textAlign: 'center', padding: '2.5rem 2rem', border: '1px solid #d4b896', borderRadius: 8, background: '#fdf8f2', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
           <p style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🚧</p>
           <h1 style={{ fontSize: '1.25rem', fontWeight: 'normal', marginBottom: '1rem', color: '#5a3e28' }}>Jeu en cours de construction</h1>
           <p style={{ color: '#7a6250', lineHeight: 1.7, margin: 0 }}>Le quiz biblique est actuellement en cours de développement.<br />Il sera bientôt disponible.</p>
@@ -395,7 +395,7 @@ export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boo
   }
 
   return (
-    <section style={{ maxWidth: '1040px', margin: '0 auto', padding: '24px 20px 82px', fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, sans-serif' }}>
+    <section style={{ maxWidth: '1040px', margin: '0 auto', padding: '24px 20px 82px', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
       <style>{`
         @keyframes bibleGamesGlow { 0%{box-shadow:0 0 0 rgba(206,236,170,0);transform:scale(1)} 35%{box-shadow:0 0 34px rgba(210,241,153,0.75);transform:scale(1.035)} 100%{box-shadow:0 0 0 rgba(206,236,170,0);transform:scale(1)} }
         @keyframes bibleGamesSpark { 0%{opacity:0;transform:scale(0.6) translateY(8px)} 35%{opacity:1} 100%{opacity:0;transform:scale(1.35) translateY(-20px)} }
@@ -538,7 +538,7 @@ function JeuChasse() {
         </p>
         <p style={{
           margin: '0 0 10px',
-          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontFamily: "var(--font-source-serif), Georgia, serif",
           fontSize: 'clamp(32px, 5vw, 48px)',
           fontWeight: 'normal', color: '#193824', letterSpacing: '0.04em',
           fontStyle: 'italic',
@@ -912,7 +912,7 @@ function EchelleJacob({ score, flash }: { score: number; flash: boolean }) {
         </g>
         <g style={{ transform: `translateY(${yJacob - 248}px)`, transition: 'transform 0.8s cubic-bezier(.2,.8,.2,1)' }}>
           <rect x="104" y="228" width="38" height="16" rx="5" fill="rgba(0,0,0,0.45)" />
-          <text x="123" y="240" textAnchor="middle" fontSize="10" fontWeight="800" fill="#f5e098" fontFamily="Inter, system-ui, sans-serif">{score} pts</text>
+          <text x="123" y="240" textAnchor="middle" fontSize="10" fontWeight="800" fill="#f5e098" fontFamily="var(--font-source-sans), Arial, sans-serif">{score} pts</text>
         </g>
       </svg>
     </aside>

@@ -1,6 +1,7 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
@@ -110,24 +111,15 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
   }), [essaisAvecPhoto, filtreCategorie, q])
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '16px' }}>
-      <div style={{ maxWidth: '920px', margin: '0 auto', padding: '16px 28px 80px' }}>
+    <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '8px' }}>
+      <div style={{ maxWidth: '920px', margin: '0 auto', padding: '8px 28px 80px' }}>
 
         {/* En-tête */}
-        <div style={{ position: 'relative', textAlign: 'center', marginBottom: '18px' }}>
+        <div style={{ position: 'relative', textAlign: 'center', marginBottom: '6px' }}>
 
-          {/* Pyramide */}
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 10px', letterSpacing: '0.03em' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '22px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 6px', letterSpacing: '0.03em' }}>
             Publications
           </h1>
-          <p style={{ fontFamily: 'Georgia, serif', fontSize: '12px', fontStyle: 'italic', color: '#9a9088', margin: '0 0 10px', letterSpacing: '0.01em' }}>
-            Communications savantes, spirituelles et poétiques
-          </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', maxWidth: '260px', margin: '0 auto 14px' }}>
-            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, transparent, #d6ceb8)' }} />
-            <span style={{ fontSize: '9px', color: '#c8c0ac', letterSpacing: '0.1em' }}>✦</span>
-            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to left, transparent, #d6ceb8)' }} />
-          </div>
 
           {/* Onglets navigation */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', borderBottom: '1px solid #ddd8cf' }}>
@@ -198,8 +190,8 @@ function OngletCommunaute({
   return (
     <>
       {/* Barre de recherche + filtres */}
-      <div style={{ marginBottom: '10px' }}>
-        <div style={{ position: 'relative', maxWidth: '400px', margin: '0 auto 8px' }}>
+      <div style={{ marginBottom: '8px' }}>
+        <div style={{ position: 'relative', maxWidth: '400px', margin: '0 auto 6px' }}>
           <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
             placeholder="Auteur, titre, résumé…"
             style={{ width: '100%', fontSize: '11.5px', padding: '6px 12px 6px 30px', border: '1px solid #d6d0c4', borderRadius: '16px', background: 'rgba(255,255,255,0.72)', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
@@ -215,80 +207,169 @@ function OngletCommunaute({
       </div>
 
       <style>{`
+        /* Hauteur mesurée au montage (voir EnTetePublicationsPopulaires) : le panneau
+           doit tenir entier dans le premier écran, quoi qu'il y ait au-dessus. */
         .publications-populaires-tete {
           position: relative;
-          margin: 0 auto 24px;
-          padding: 13px 18px 11px;
-          background: linear-gradient(160deg, #f8f1df 0%, #ede3c2 100%);
-          border: 1px solid #c8ad72;
-          border-radius: 3px;
-          box-shadow: 0 2px 8px rgba(140,110,45,0.09);
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          box-sizing: border-box;
+          overflow: hidden;
+          margin: 0 auto 16px;
+          padding: 0 24px 6px;
+          background: linear-gradient(180deg, rgba(249,245,232,0.72) 0%, rgba(246,241,225,0.46) 100%);
+          border-top: 1px solid rgba(176,143,72,0.62);
+          border-bottom: 1px solid rgba(176,143,72,0.46);
         }
+        /* Capitales espacées : en sans, comme tous les libellés du site — la règle
+           globale h1…h6 les passerait en serif, ce qui alourdit le dessin. */
         .publications-populaires-titre {
-          margin: 0 0 11px;
+          margin: 0;
           text-align: center;
+          font-family: var(--font-source-sans), Arial, sans-serif;
           font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.24em;
           text-transform: uppercase;
           color: #7a6030;
         }
+        .publications-populaires-entete {
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          align-items: center;
+          gap: 16px;
+          min-height: 50px;
+          border-bottom: 1px solid rgba(190,155,75,0.22);
+        }
+        .publications-populaires-palme-symetrique {
+          width: 46px;
+          height: 46px;
+          object-fit: contain;
+          mix-blend-mode: multiply;
+          opacity: 0.58;
+        }
+        .publications-populaires-palme-symetrique.gauche {
+          justify-self: end;
+          transform: rotate(-90deg);
+        }
+        .publications-populaires-palme-symetrique.droite {
+          justify-self: start;
+          transform: rotate(90deg);
+        }
+        /* min-height:0 doit être posé à CHAQUE niveau entre la hauteur fixe et le
+           contenu écrêtable : la grille est un élément flex du panneau, et sans cela
+           elle garde sa hauteur naturelle et déborde, emportant la ligne de pied
+           (vues et étoile) hors du cadre. */
+        /* Cinq rangs — rang · auteur · titre · résumé · pied — partagés par les trois
+           colonnes via subgrid : chaque rang prend la hauteur du plus grand des
+           trois, si bien que titres et lignes de pied s'alignent sans hauteur figée.
+           Seul le rang du résumé est extensible (1fr). */
         .publications-populaires-grille {
           display: grid;
-          grid-template-columns: 1.25fr 0.9fr 0.9fr;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-rows: auto auto auto 1fr auto;
+          align-items: stretch;
+          flex: 1;
+          min-height: 0;
           gap: 0;
         }
         .publication-populaire-item {
-          display: block;
-          padding: 0 18px 0 0;
+          display: grid;
+          grid-template-rows: subgrid;
+          grid-row: span 5;
+          min-height: 0;
+          padding: 16px 26px 16px;
           color: #332c23;
           text-decoration: none;
           transition: opacity 0.15s;
+          box-sizing: border-box;
         }
         .publication-populaire-item:hover {
           opacity: 0.78;
         }
         .publication-populaire-item + .publication-populaire-item {
-          padding: 0 12px;
-          border-left: 1px solid rgba(190,155,75,0.38);
-        }
-        .publication-populaire-item:last-child {
-          padding-right: 0;
+          border-left: 1px solid rgba(190,155,75,0.28);
         }
         .publication-populaire-auteur {
           display: block;
-          margin-bottom: 2px;
+          margin: 0 0 7px;
+          text-align: center;
           font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.13em;
           text-transform: uppercase;
           color: #9a7a40;
         }
+        /* Plus de hauteur figée : le rang de grille prend la taille du titre le plus
+           long, et les trois se centrent dedans. L'écrêtage à trois lignes n'est qu'un
+           garde-fou contre un titre démesuré. */
         .publication-populaire-titre {
-          display: block;
-          font-family: Georgia, serif;
-          font-size: 13.5px;
-          line-height: 1.22;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 16px;
+          line-height: 1.2;
           color: #1e2e24;
         }
-        .publication-populaire-item:first-child .publication-populaire-titre {
-          font-size: 15.5px;
-          line-height: 1.18;
+        .publication-populaire-titre > span {
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 3;
+          line-clamp: 3;
+          overflow: hidden;
         }
+        .publication-populaire-rang {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          margin-bottom: 10px;
+          color: rgba(154,122,64,0.72);
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 9px;
+          letter-spacing: 0.16em;
+        }
+        .publication-populaire-rang::before,
+        .publication-populaire-rang::after {
+          content: '';
+          width: 22px;
+          height: 1px;
+          background: rgba(190,155,75,0.35);
+        }
+        /* L'en-tête est le seul élément flex du panneau à côté de la grille : il ne
+           doit pas se comprimer. Les cinq rangs, eux, sont désormais des rangs de
+           grille — c'est grid-template-rows qui décide lequel cède. */
+        .publications-populaires-entete {
+          flex: none;
+        }
+        /* Le résumé occupe le rang extensible et s'affiche EN ENTIER : les résumés du
+           corpus tiennent en 110 à 122 caractères. min-height:0 et overflow ne servent
+           que si le panneau doit être plafonné faute de place à l'écran. */
         .publication-populaire-resume {
           display: block;
-          margin-top: 5px;
-          font-family: Georgia, serif;
-          font-size: 11px;
-          line-height: 1.38;
+          min-height: 0;
+          overflow: hidden;
+          max-width: 270px;
+          margin: 12px auto 0;
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 11.5px;
+          line-height: 1.48;
           color: #71685d;
+          text-align: left;
+          padding-bottom: 12px;
         }
         .publication-populaire-meta-ligne {
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 5px;
-          margin-top: 6px;
+          margin-top: auto;
+          margin-bottom: 0;
+          padding-top: 13px;
+          border-top: 1px solid rgba(190,155,75,0.18);
         }
         .publication-populaire-meta {
           font-size: 9.5px;
@@ -410,7 +491,7 @@ function OngletCommunaute({
           max-width: 100%;
         }
         .essai-hover-titre {
-          font-family: Georgia, serif;
+          font-family: var(--font-source-serif), Georgia, serif;
           font-size: 13.5px;
           color: #1e2e24;
           margin: 0;
@@ -425,14 +506,14 @@ function OngletCommunaute({
           margin: 0;
         }
         .essai-hover-date {
-          font-family: Georgia, serif;
+          font-family: var(--font-source-serif), Georgia, serif;
           font-size: 10px;
           color: #a09880;
           font-style: italic;
           margin: 0;
         }
         .essai-hover-resume {
-          font-family: Georgia, serif;
+          font-family: var(--font-source-serif), Georgia, serif;
           font-size: 11px;
           color: #5a524a;
           line-height: 1.42;
@@ -472,8 +553,8 @@ function OngletCommunaute({
           overflow: hidden;
         }
         .article-journal-lignes {
-          font-family: Georgia, serif;
-          font-size: 11.05px;
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 10.05px;
           line-height: 15px;
           letter-spacing: -0.002em;
           word-spacing: -0.06em;
@@ -569,7 +650,7 @@ function OngletCommunaute({
         }
         .article-journal-cartouche-titre {
           margin: 0;
-          font-family: Georgia, serif;
+          font-family: var(--font-source-serif), Georgia, serif;
           font-size: 15px;
           line-height: 1.1;
           font-weight: normal;
@@ -597,7 +678,7 @@ function OngletCommunaute({
           text-transform: uppercase;
         }
         .ecrire-bandeau-container {
-          margin: 10px auto 14px;
+          margin: 8px auto 10px;
           max-width: 380px;
         }
         .ecrire-bandeau {
@@ -635,7 +716,7 @@ function OngletCommunaute({
           border: none;
           cursor: pointer;
           font-size: 10px;
-          font-family: Georgia, serif;
+          font-family: var(--font-source-serif), Georgia, serif;
           font-style: italic;
           color: #3d6b4f;
           opacity: 0;
@@ -646,6 +727,21 @@ function OngletCommunaute({
         .ecrire-option + .ecrire-option { border-left: 1px solid rgba(61,107,79,0.16); }
         .ecrire-bandeau:hover .ecrire-option { opacity: 1; }
         @media (max-width: 780px) {
+          .publications-populaires-tete { width: 100%; height: auto; max-height: none; min-height: 0; padding: 0 14px 8px; }
+          .publications-populaires-entete { grid-template-columns: 1fr auto 1fr; gap: 6px; }
+          .publications-populaires-palme-symetrique { width: 34px; height: 34px; }
+          /* En colonne unique, on abandonne le subgrid : sans cela les trois blocs
+             se superposeraient dans les cinq mêmes rangs. */
+          .publications-populaires-grille { grid-template-columns: 1fr; grid-template-rows: none; }
+          .publication-populaire-item { display: flex; flex-direction: column; grid-row: auto; }
+          .publication-populaire-item,
+          .publication-populaire-item + .publication-populaire-item {
+            padding: 9px 0;
+            border-left: none;
+            border-top: 1px solid rgba(190,155,75,0.28);
+          }
+          .publication-populaire-item:first-child { padding-top: 0; border-top: none; }
+          .publication-populaire-resume { flex: none; }
           .publications-litteraires { padding: 18px 10px 28px; }
           .essais-journal { grid-template-columns: 1fr; }
           .essais-journal .essai-carte { border-right: none; }
@@ -671,68 +767,85 @@ function OngletCommunaute({
   )
 }
 
+// Le panneau doit se voir ENTIER à l'ouverture de la page. Deviner la hauteur de ce
+// qui le précède ne marche pas : les filtres de catégorie passent à la ligne selon la
+// largeur, et les polices, chargées en `swap`, décalent tout en arrivant. On mesure.
+//
+// La mesure sert de PLAFOND, non de hauteur imposée : le panneau prend sa hauteur
+// naturelle — résumés entiers, pas d'étirement à vide — et ne se borne que lorsque le
+// contenu excède ce que l'écran peut montrer.
+const HAUTEUR_MIN_TETE = 250   // en deçà, mieux vaut déborder que rendre illisible
+const MARGE_BAS_TETE = 18      // respiration sous le panneau
+const SEUIL_MOBILE = 780       // largeur sous laquelle la grille passe en colonne unique
+// Le résumé s'affiche EN ENTIER : le corpus tient entre 108 et 122 caractères (mesuré
+// le 24/07/2026 sur les 10 essais publiés). Cette borne n'est qu'un garde-fou contre un
+// résumé démesuré qui ferait éclater le panneau ; elle ne se déclenche pas aujourd'hui.
+const LIMITE_RESUME = 400
+
+function tronquerAuMot(texte: string, maximum: number) {
+  if (texte.length <= maximum) return texte
+  const coupe = texte.slice(0, maximum)
+  const dernierEspace = coupe.lastIndexOf(' ')
+  const garde = dernierEspace > maximum * 0.6 ? coupe.slice(0, dernierEspace) : coupe
+  return garde.replace(/[\s,;:.]+$/, '') + '…'
+}
+
 function EnTetePublicationsPopulaires({ essais, favorisEssais, toggleFavoriEssai }: {
   essais: EssaiResume[]
   favorisEssais: Set<string>
   toggleFavoriEssai: (id: string) => void
 }) {
+  const refTete = useRef<HTMLElement | null>(null)
+  const [hauteur, setHauteur] = useState<number | null>(null)
+
+  useEffect(() => {
+    const mesurer = () => {
+      const el = refTete.current
+      if (!el) return
+      // En colonne unique, le panneau reprend sa hauteur naturelle (voir la media query).
+      if (window.matchMedia(`(max-width: ${SEUIL_MOBILE}px)`).matches) { setHauteur(null); return }
+      const hautDuPanneau = el.getBoundingClientRect().top + window.scrollY
+      setHauteur(Math.max(HAUTEUR_MIN_TETE, window.innerHeight - hautDuPanneau - MARGE_BAS_TETE))
+    }
+    mesurer()
+    window.addEventListener('resize', mesurer)
+    document.fonts?.ready.then(mesurer).catch(() => {})
+    return () => window.removeEventListener('resize', mesurer)
+  }, [])
+
   if (essais.length === 0) return null
-  const [premier, ...autres] = essais
+  const rangs = ['I', 'II', 'III']
   return (
-    <section style={{ maxWidth: '680px', margin: '0 auto 26px', border: '1px solid #c8ad72', borderRadius: '3px', overflow: 'hidden', boxShadow: '0 2px 10px rgba(140,110,45,0.09)' }} aria-label="Publications populaires">
-      {/* Bandeau titre */}
-      <div style={{ background: 'linear-gradient(to right, #c8a84a, #e0c470, #c8a84a)', padding: '6px 12px', textAlign: 'center', borderBottom: '1px solid #c8ad72' }}>
-        <span style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.26em', textTransform: 'uppercase', color: '#3a2a08' }}>
-          &#10022; Oeuvres les plus lues &#10022;
-        </span>
+    <section
+      ref={refTete}
+      className="publications-populaires-tete"
+      style={hauteur ? { maxHeight: `${hauteur}px` } : undefined}
+      aria-label="Œuvres les plus lues">
+      <div className="publications-populaires-entete">
+        <Image className="publications-populaires-palme-symetrique gauche" src="/ornements/palme-nouee.png" alt="" width={1254} height={1254} aria-hidden="true" />
+        <h2 className="publications-populaires-titre">Œuvres les plus lues</h2>
+        <Image className="publications-populaires-palme-symetrique droite" src="/ornements/palme-nouee.png" alt="" width={1254} height={1254} aria-hidden="true" />
       </div>
-
-      {/* Bandeau superieur - #1 */}
-      <Link href={`/essais/${premier.id}`} className="podium-lien" style={{ display: 'block', padding: '16px 22px', background: 'linear-gradient(160deg, #faf3e2 0%, #f0e6c6 100%)', textDecoration: 'none', borderBottom: autres.length > 0 ? '1px solid rgba(200,180,114,0.45)' : 'none' }}>
-        <span className="podium-overlay-lire"><span className="podium-overlay-lire-texte">Lire &rarr;</span></span>
-        <span style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#9a7a28', display: 'block', marginBottom: '5px' }}>
-          {premier.auteur}
-        </span>
-        <span style={{ fontFamily: 'Georgia, serif', fontSize: '19px', lineHeight: 1.2, color: '#1e2e24', display: 'block', marginBottom: '7px' }}>
-          {premier.titre}
-        </span>
-        {premier.resume && (
-          <span style={{ fontFamily: 'Georgia, serif', fontSize: '12px', color: '#6a6050', lineHeight: 1.55, display: 'block', fontStyle: 'italic', marginBottom: '10px' }}>
-            {premier.resume.length > 155 ? premier.resume.slice(0, 155) + ' ...' : premier.resume}
-          </span>
-        )}
-        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '9px', color: '#a09068' }}>
-            {premier.nb_likes > 0 ? `${premier.nb_likes} likes` : `${premier.nb_vues} vue${premier.nb_vues !== 1 ? 's' : ''}`}
-          </span>
-          <EtoileFavori actif={favorisEssais.has(String(premier.id))} onToggle={() => toggleFavoriEssai(String(premier.id))} size={12} style={{ color: favorisEssais.has(String(premier.id)) ? '#c8933a' : '#c0b48a' }} />
-        </span>
-      </Link>
-
-      {/* Bandeau inferieur - #2 et #3 cote a cote */}
-      {autres.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-          {autres.map((e, i) => (
-            <Link key={e.id} href={`/essais/${e.id}`} className="podium-lien" style={{ display: 'block', padding: '12px 16px', background: i === 0 ? 'linear-gradient(160deg, #f5eedc 0%, #ece3c2 100%)' : 'linear-gradient(160deg, #ece3c2 0%, #f5eedc 100%)', textDecoration: 'none', borderLeft: i > 0 ? '1px solid rgba(200,180,114,0.42)' : 'none' }}>
-              <span className="podium-overlay-lire"><span className="podium-overlay-lire-texte">Lire &rarr;</span></span>
-              <span style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#9a7a28', display: 'block', marginBottom: '3px' }}>
-                {e.auteur}
-              </span>
-              <span style={{ fontFamily: 'Georgia, serif', fontSize: '14px', lineHeight: 1.25, color: '#2a3d30', display: 'block', marginBottom: '5px' }}>
-                {e.titre}
-              </span>
-              {e.resume && (
-                <span style={{ fontFamily: 'Georgia, serif', fontSize: '11px', color: '#7a7060', lineHeight: 1.44, display: 'block', fontStyle: 'italic', marginBottom: '7px' }}>
-                  {e.resume.length > 80 ? e.resume.slice(0, 80) + ' ...' : e.resume}
-                </span>
-              )}
-              <span style={{ fontSize: '9px', color: '#a09068' }}>
+      <div className="publications-populaires-grille">
+        {essais.map((e, index) => (
+          <Link key={e.id} href={`/essais/${e.id}`} className="publication-populaire-item">
+            <span className="publication-populaire-rang" aria-hidden="true">{rangs[index] ?? index + 1}</span>
+            <span className="publication-populaire-auteur">{e.auteur}</span>
+            <span className="publication-populaire-titre"><span>{e.titre}</span></span>
+            {/* Toujours rendu, même vide : chaque colonne doit posséder les cinq rangs
+                du subgrid, faute de quoi sa ligne de pied remonte d'un rang. */}
+            <span className="publication-populaire-resume">
+              {e.resume ? tronquerAuMot(e.resume, LIMITE_RESUME) : ''}
+            </span>
+            <span className="publication-populaire-meta-ligne">
+              <span className="publication-populaire-meta">
                 {e.nb_likes > 0 ? `${e.nb_likes} likes` : `${e.nb_vues} vue${e.nb_vues !== 1 ? 's' : ''}`}
               </span>
-            </Link>
-          ))}
-        </div>
-      )}
+              <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={12} />
+            </span>
+          </Link>
+        ))}
+      </div>
     </section>
   )
 }
@@ -940,7 +1053,7 @@ function EssaiCarte({ essai: e, miseEnAvant = false, favorisEssais, toggleFavori
                     {lignesTitreAffichees.map((ligne, i) => <span key={i} className="article-journal-cartouche-titre-ligne">{ligne}</span>)}
                   </p>
                   {dateFormatee && (
-                    <p style={{ margin: '7px 0 0', fontSize: '8.5px', fontStyle: 'italic', color: '#9a8a6a', fontFamily: 'Georgia, serif' }}>
+                    <p style={{ margin: '7px 0 0', fontSize: '8.5px', fontStyle: 'italic', color: '#9a8a6a', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                       {dateFormatee}
                     </p>
                   )}
@@ -978,7 +1091,7 @@ function EssaiCarte({ essai: e, miseEnAvant = false, favorisEssais, toggleFavori
         <div className="essai-contenu">
           {/* Ligne supérieure : auteur + rang + date */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: miseEnAvant ? '16px' : '10px', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'Georgia, serif', fontSize: '12px', fontStyle: 'italic', color: '#3d6b4f', flexShrink: 0 }}>
+            <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12px', fontStyle: 'italic', color: '#3d6b4f', flexShrink: 0 }}>
               {e.auteur}
             </span>
             <span style={{ fontSize: '7.5px', fontWeight: 700, color: couleurs.texte, background: couleurs.fond, padding: '1.5px 6px', borderRadius: '3px', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>
@@ -991,27 +1104,27 @@ function EssaiCarte({ essai: e, miseEnAvant = false, favorisEssais, toggleFavori
               </span>
             )}
             {dateFormatee && (
-              <span style={{ fontFamily: 'Georgia, serif', fontSize: '11px', color: '#a09488', fontStyle: 'italic', flexShrink: 0 }}>
+              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '11px', color: '#a09488', fontStyle: 'italic', flexShrink: 0 }}>
                 {dateFormatee}
               </span>
             )}
           </div>
 
           {/* Titre */}
-          <p style={{ fontFamily: 'Georgia, serif', fontSize: miseEnAvant ? '25px' : '16px', fontWeight: 'normal', color: '#1a2820', margin: '0 0 4px', lineHeight: miseEnAvant ? 1.14 : 1.25, letterSpacing: '0.01em' }}>
+          <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: miseEnAvant ? '25px' : '16px', fontWeight: 'normal', color: '#1a2820', margin: '0 0 4px', lineHeight: miseEnAvant ? 1.14 : 1.25, letterSpacing: '0.01em' }}>
             {e.titre}
           </p>
 
           {/* Sous-titre */}
           {e.sous_titre && (
-            <p style={{ fontFamily: 'Georgia, serif', fontSize: miseEnAvant ? '15px' : '12.5px', fontStyle: 'italic', color: '#7a7268', margin: '0 0 10px', lineHeight: 1.4 }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: miseEnAvant ? '15px' : '12.5px', fontStyle: 'italic', color: '#7a7268', margin: '0 0 10px', lineHeight: 1.4 }}>
               {e.sous_titre}
             </p>
           )}
 
           {/* Résumé */}
           {e.resume && (
-            <p style={{ fontFamily: 'Georgia, serif', fontSize: miseEnAvant ? '13.5px' : '12px', color: '#6a6258', lineHeight: miseEnAvant ? 1.72 : 1.55, margin: `${e.sous_titre ? '0' : '8px'} 0 12px`, fontStyle: 'italic', textAlign: miseEnAvant ? 'justify' : 'left' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: miseEnAvant ? '13.5px' : '12px', color: '#6a6258', lineHeight: miseEnAvant ? 1.72 : 1.55, margin: `${e.sous_titre ? '0' : '8px'} 0 12px`, fontStyle: 'italic', textAlign: miseEnAvant ? 'justify' : 'left' }}>
               {e.resume.length > (miseEnAvant ? 340 : 150) ? e.resume.slice(0, miseEnAvant ? 340 : 150) + ' …' : e.resume}
             </p>
           )}
@@ -1056,7 +1169,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
       <p style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 8px' }}>
         Espace de rédaction
       </p>
-      <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 10px' }}>
+      <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '22px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 10px' }}>
         Écrire une publication
       </h2>
       <p style={{ fontSize: '12.5px', color: '#6b6560', lineHeight: 1.65, margin: '0 auto 20px', maxWidth: '440px' }}>
@@ -1162,7 +1275,7 @@ function OngletMesEcrits({
               <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'center', background: statutStyle.fond, border: `1px solid ${statutStyle.bordure}`, borderLeft: `4px solid ${statutStyle.accent}`, borderRadius: '8px', padding: '10px 13px 10px 12px' }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                    <p style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: '#1e2e24', margin: 0 }}>{e.titre}</p>
+                    <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#1e2e24', margin: 0 }}>{e.titre}</p>
                     {e.sous_titre && <p style={{ fontSize: '12px', color: '#8a8278', fontStyle: 'italic', margin: 0 }}>{e.sous_titre}</p>}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', fontSize: '10px', color: '#b0a89e', marginTop: '3px' }}>
@@ -1270,7 +1383,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
             <p style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 20px' }}>
               Verset proposé à la méditation
             </p>
-            <p style={{ fontFamily: 'Georgia, serif', fontSize: '16px', lineHeight: 1.8, color: '#1e2e24', fontStyle: 'italic', margin: '0 0 18px' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '16px', lineHeight: 1.8, color: '#1e2e24', fontStyle: 'italic', margin: '0 0 18px' }}>
               «&#8201;{rendreTexteEnrichi(verset.texte)}&#8201;»
             </p>
             <p style={{ fontSize: '12px', color: '#8a8278', margin: 0 }}>

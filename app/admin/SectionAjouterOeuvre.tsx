@@ -595,7 +595,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
       {(etape === 'csv' || etape === 'preview') && (
         <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '20px 24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '16px' }}>
-            <h2 style={{ fontFamily: "Georgia, serif", fontSize: '15px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>Import des segments</h2>
+            <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '15px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>Import des segments</h2>
             <button onClick={() => telechargerCSVModele(meta.titre.slice(0, 20).replace(/\s/g, '_'))}
               style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>
               ↓ CSV modèle
@@ -681,7 +681,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
       {etape === 'done' && resultat?.ok && (
         <div style={{ background: '#fff', border: '2px solid #3d6b4f', borderRadius: '8px', padding: '28px 24px', textAlign: 'center' }}>
           <p style={{ fontSize: '22px', marginBottom: '10px' }}>✓</p>
-          <p style={{ fontFamily: "Georgia, serif", fontSize: '16px', color: '#2a3d30', marginBottom: '8px' }}>{meta.titre}</p>
+          <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '16px', color: '#2a3d30', marginBottom: '8px' }}>{meta.titre}</p>
           <p style={{ fontSize: '12.5px', color: '#5a6b5e', marginBottom: '20px' }}>{resultat.msg}</p>
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
             {resultat.idOeuvre && (

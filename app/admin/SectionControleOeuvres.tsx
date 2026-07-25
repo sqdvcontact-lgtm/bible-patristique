@@ -3,7 +3,9 @@
 import React from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { ABREV_FR } from '@/app/lib/bible'
+import { hydraterLiensHerites } from '@/app/lib/liens'
 import ModalLienBiblique, { type ChampLienBiblique, type VersetLienBiblique } from '@/app/components/ModalLienBiblique'
+import { analyserCorpus, analyserPerso, RANGS, type Rang, type Verdict } from './controleQualite'
 import type { Auteur } from './adminTypes'
 
 type SegmentControle = {
@@ -30,10 +32,22 @@ type SegmentControle = {
   nature: string | null
   statut_controle?: NiveauControle | null
   notes?: string[] | null
+  // Colonnes lues par la refonte du 24/07/2026 — les trois premières existaient déjà
+  // en base et n'étaient affichées nulle part (2 046 `notes`, 14 `commentaire_ia`,
+  // 623 `note_style`). Les deux dernières ont été créées pour cette refonte.
+  commentaire_ia?: string | null
+  note_style?: number | null
+  controle_rang_manuel?: Rang | null
+  controle_verifie?: boolean | null
 }
 
-type NiveauControle = 'bon' | 'revoir' | 'critique'
-type Diagnostic = { niveau: NiveauControle; commentaires: string[] }
+type NiveauControle = Rang
+// `statut_controle` (perso) portait « revoir » ; le rang s'appelle « moyen » depuis la
+// refonte du 24/07/2026. On traduit à la lecture et à l'écriture plutôt que de migrer
+// 623 lignes, l'ancien vocabulaire pouvant subsister dans d'autres outils.
+const versRang = (v: string | null | undefined): Rang | null =>
+  v === 'revoir' ? 'moyen' : v === 'bon' || v === 'moyen' || v === 'critique' ? v : null
+const versStatutPerso = (r: Rang): string => (r === 'moyen' ? 'revoir' : r)
 type SegmentAfficheControle = { segment: SegmentControle; contexte?: boolean }
 type ChampLien = ChampLienBiblique
 type LienBibliqueControle = { champ: ChampLien; id: string }
@@ -53,8 +67,11 @@ type LigneOeuvrePerso = {
   ref_niv3: string | null
   ref_niv4: string | null
   nature: string | null
-  statut_controle: NiveauControle | null
+  statut_controle: string | null
   notes: string[] | null
+  note_style: number | null
+  controle_rang_manuel: Rang | null
+  controle_verifie: boolean | null
 }
 type VersetSupabaseControle = {
   id_verset: string
@@ -69,11 +86,7 @@ const CARACTERES_PAR_PAGE_CONTROLE = 9000
 const SEUIL_TITRE_COLOPHON_CONTROLE = 86
 const NBSP_TITRE_COLOPHON_CONTROLE = '\u00A0'
 
-const COULEURS: Record<NiveauControle, { fond: string; bord: string; texte: string; label: string }> = {
-  bon:      { fond: '#f2f8f4', bord: '#3d6b4f', texte: '#2f6046', label: 'Bon' },
-  revoir:  { fond: '#fff8ec', bord: '#c7832f', texte: '#8a541d', label: 'À revoir' },
-  critique:{ fond: '#fff0ed', bord: '#c0562a', texte: '#9a2a2a', label: 'Critique' },
-}
+const COULEURS = RANGS
 
 function refsSegment(s: SegmentControle) {
   return [s.ref_niv1, s.ref_niv2, s.ref_niv3, s.ref_niv4].filter(Boolean).join(', ')
@@ -196,43 +209,10 @@ function valeurLiensSegment(s: SegmentControle, champ: ChampLien) {
     .filter(Boolean)
 }
 
-function diagnostiquerSegment(s: SegmentControle): Diagnostic {
-  const texte = (s.segment_texte ?? '').trim()
-  const commentaires: string[] = []
-  let niveau: NiveauControle = 'bon'
-  const marquer = (n: NiveauControle, message: string) => {
-    commentaires.push(message)
-    if (n === 'critique') niveau = 'critique'
-    else if (n === 'revoir' && niveau === 'bon') niveau = 'revoir'
-  }
-
-  if (!texte) marquer('critique', 'Segment vide : il faut le supprimer, le fusionner, ou confirmer qu’un blanc est voulu.')
-  if (texte.length > 2600) marquer('critique', 'Segment très long : découpage probablement insuffisant.')
-  else if (texte.length > 1500) marquer('revoir', 'Segment long : vérifier que le paragraphe ne regroupe pas plusieurs unités.')
-  if (texte.length > 0 && texte.length < 18 && s.nature !== 'separateur') marquer('revoir', 'Segment très court : vérifier s’il ne s’agit pas d’un titre ou d’un résidu.')
-  if (/[\uFFFD]|Ã.|Â.|â€/.test(texte)) marquer('critique', 'Caractères suspects : vérifier un problème d’encodage.')
-  if (/\s{3,}/.test(texte)) marquer('revoir', 'Espacements multiples détectés dans le texte.')
-  if (texte.includes('\n\n\n')) marquer('revoir', 'Sauts de ligne excessifs.')
-  if (texte.length > 80 && !/[.,;:!?…»”\])]/.test(texte)) {
-    marquer('critique', 'Segment sans ponctuation : vérifier qu’il ne s’agit pas d’un fragment importé.')
-  }
-  if (texte && /[-‐‑‒–—'’]$/.test(texte)) {
-    marquer('critique', 'Mot probablement coupé en fin de segment.')
-  }
-  if (texte && /(?:,\s*|;\s*|:\s*|\b(?:de|du|des|le|la|les|un|une|et|ou|que|qui|dont|dans|avec|pour|par|en|à|au|aux|ne|se|ce|ces|son|sa|ses))$/i.test(texte)) {
-    marquer('critique', 'Phrase probablement coupée en fin de segment.')
-  }
-  if (!s.ref_niv1) marquer('critique', 'Référence de niveau 1 absente.')
-  if (s.ref_niv1 && s.ref_niv1_texte && s.ref_niv1.trim().toLowerCase() === s.ref_niv1_texte.trim().toLowerCase()) {
-    marquer('revoir', 'Titre et sous-titre de niveau 1 sont identiques.')
-  }
-  if (s.fiabilite === 'probable') marquer('revoir', 'Lien biblique probable : vérification humaine attendue.')
-  if (s.fiabilite === 'Lien à constituer') marquer('revoir', 'Lien à constituer : référence biblique à reprendre.')
-  if (liensSegment(s).length > 4) marquer('revoir', 'Beaucoup de liens bibliques sur ce segment : vérifier le classement.')
-
-  if (commentaires.length === 0) commentaires.push('Aucun problème évident détecté par le contrôle automatique.')
-  return { niveau, commentaires }
-}
+// Le diagnostic vit désormais dans `controleQualite.ts`. Celui qu'il remplace, le
+// 24/07/2026, était une douzaine d'expressions régulières concluant toujours par
+// « Aucun problème évident détecté » — une boîte jamais vide, donc sans valeur — et
+// son niveau ne dérivait d'aucun score.
 
 function titreCourt(auteurs: Auteur[], idOeuvre: string) {
   for (const auteur of auteurs) {
@@ -279,13 +259,13 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
   const [erreur, setErreur] = React.useState<string | null>(null)
   const [segmentActif, setSegmentActif] = React.useState<number | null>(null)
   const [filtre, setFiltre] = React.useState<NiveauControle | 'tous'>('tous')
-  const [niveauxManuels, setNiveauxManuels] = React.useState<Record<number, NiveauControle>>({})
   const [rechercheOeuvre, setRechercheOeuvre] = React.useState('')
   const [editionTexte, setEditionTexte] = React.useState('')
-  const [editionActive, setEditionActive] = React.useState(false)
+  // L'édition se fait DANS le bloc de texte, au crayon (le volet de droite n'a plus de
+  // bouton « Modifier »). On retient donc quel segment est ouvert à l'édition.
+  const [editionSegmentId, setEditionSegmentId] = React.useState<number | null>(null)
   const [statutAction, setStatutAction] = React.useState<'idle' | 'envoi' | 'erreur'>('idle')
   const [versetsLies, setVersetsLies] = React.useState<Record<string, VersetLieControle>>({})
-  const [notesManuelles, setNotesManuelles] = React.useState<Record<number, string[]>>({})
   const [modaleLienOuverte, setModaleLienOuverte] = React.useState(false)
 
   const oeuvresRecherche = React.useMemo<OeuvreControle[]>(() => (
@@ -350,44 +330,29 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     window.history.replaceState(null, '', `/admin?${params.toString()}`)
   }, [idOeuvre, modeControle])
 
-  React.useEffect(() => {
-    if (!idOeuvre) return
-    try {
-      const brut = window.localStorage.getItem(`cs_controle_oeuvre_${idOeuvre}`)
-      setNiveauxManuels(brut ? JSON.parse(brut) : {})
-    } catch {
-      setNiveauxManuels({})
-    }
-  }, [idOeuvre])
+  // Le rang forcé et le drapeau « vérifié » vont EN BASE. Ils vivaient jusqu'au
+  // 24/07/2026 dans `localStorage`, donc perdus d'un navigateur à l'autre et invisibles
+  // à tout autre outil. Forcer un rang vaut vérification humaine : les deux vont
+  // ensemble, en une seule écriture.
+  const table = modeControle === 'perso' ? 'oeuvres_personnelles_segments' : 'segments'
 
-  React.useEffect(() => {
-    if (!idOeuvre) return
-    try {
-      const brut = window.localStorage.getItem(`cs_controle_notes_${idOeuvre}`)
-      setNotesManuelles(brut ? JSON.parse(brut) : {})
-    } catch {
-      setNotesManuelles({})
+  const changerRangManuel = async (idSegment: number, rang: Rang | 'auto') => {
+    const forcé = rang === 'auto' ? null : rang
+    const maintenant = forcé ? new Date().toISOString() : null
+    setSegments(prev => prev.map(s => s.id === idSegment
+      ? { ...s, controle_rang_manuel: forcé, controle_verifie: !!forcé, statut_controle: forcé ?? s.statut_controle }
+      : s))
+    setStatutAction('envoi')
+    const charge: Record<string, unknown> = {
+      controle_rang_manuel: forcé,
+      controle_verifie: !!forcé,
+      controle_verifie_le: maintenant,
     }
-  }, [idOeuvre])
-
-  const changerNiveauManuel = (idSegment: number, niveau: NiveauControle | 'auto') => {
-    if (modeControle === 'perso') {
-      const statut: NiveauControle = niveau === 'auto' ? 'bon' : niveau
-      setSegments(prev => prev.map(s => s.id === idSegment ? { ...s, statut_controle: statut } : s))
-      supabase.from('oeuvres_personnelles_segments').update({ statut_controle: statut }).eq('id', idSegment).then(({ error }) => {
-        if (error) setStatutAction('erreur')
-      })
-      return
-    }
-    setNiveauxManuels(prev => {
-      const suivant = { ...prev }
-      if (niveau === 'auto') delete suivant[idSegment]
-      else suivant[idSegment] = niveau
-      try {
-        window.localStorage.setItem(`cs_controle_oeuvre_${idOeuvre}`, JSON.stringify(suivant))
-      } catch {}
-      return suivant
-    })
+    // En mode perso, `statut_controle` reste la colonne historique : on la tient à jour
+    // dans son ancien vocabulaire pour ne pas casser ce qui la lit ailleurs.
+    if (modeControle === 'perso' && forcé) charge.statut_controle = versStatutPerso(forcé)
+    const { error } = await supabase.from(table).update(charge).eq('id', idSegment)
+    setStatutAction(error ? 'erreur' : 'idle')
   }
 
   const enregistrerSegment = async () => {
@@ -400,7 +365,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         return
       }
       setSegments(prev => prev.map(s => s.id === actif.id ? { ...s, segment_texte: editionTexte } : s))
-      setEditionActive(false)
+      setEditionSegmentId(null)
       setStatutAction('idle')
       return
     }
@@ -414,7 +379,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
       return
     }
     setSegments(prev => prev.map(s => s.id === actif.id ? { ...s, segment_texte: editionTexte } : s))
-    setEditionActive(false)
+    setEditionSegmentId(null)
     setStatutAction('idle')
   }
 
@@ -437,7 +402,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .filter(s => s.id !== actif.id)
         .map(s => s.segment_numero > numeroSupprime ? { ...s, segment_numero: s.segment_numero - 1 } : s))
       setSegmentActif(prochain?.id ?? null)
-      setEditionActive(false)
+      setEditionSegmentId(null)
       setStatutAction('idle')
       return
     }
@@ -454,7 +419,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
       .filter(s => s.id !== actif.id)
       .map(s => s.segment_numero > numeroSupprime ? { ...s, segment_numero: s.segment_numero - 1 } : s))
     setSegmentActif(prochain?.id ?? null)
-    setEditionActive(false)
+    setEditionSegmentId(null)
     setStatutAction('idle')
   }
 
@@ -500,34 +465,29 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     await mettreAJourLiens(actif.id, lien.champ, valeurLiensSegment(actif, lien.champ).filter(id => id !== lien.id))
   }
 
-  const sauverNotesManuelles = (notes: Record<number, string[]>) => {
-    if (modeControle === 'perso' && actif) {
-      const notesActuelles = notes[actif.id] ?? []
-      setNotesManuelles(notes)
-      setSegments(prev => prev.map(s => s.id === actif.id ? { ...s, notes: notesActuelles } : s))
-      supabase.from('oeuvres_personnelles_segments').update({ notes: notesActuelles }).eq('id', actif.id).then(({ error }) => {
-        if (error) setStatutAction('erreur')
-      })
-      return
-    }
-    setNotesManuelles(notes)
-    try {
-      window.localStorage.setItem(`cs_controle_notes_${idOeuvre}`, JSON.stringify(notes))
-    } catch {}
+  // Les notes vont dans la colonne `notes` des deux tables. Le corpus les écrivait dans
+  // `localStorage` alors que 2 046 lignes de `segments.notes` existaient déjà en base et
+  // n'étaient jamais lues — c'était le cœur du « ça ne fonctionne pas ».
+  const sauverNotes = async (notes: string[]) => {
+    if (!actif) return
+    setSegments(prev => prev.map(s => s.id === actif.id ? { ...s, notes } : s))
+    setStatutAction('envoi')
+    const { error } = await supabase.from(table).update({ notes }).eq('id', actif.id)
+    setStatutAction(error ? 'erreur' : 'idle')
   }
 
   const ajouterNote = () => {
     if (!actif) return
     const note = window.prompt('Nouvelle note de contrôle :')
     if (!note?.trim()) return
-    sauverNotesManuelles({ ...notesManuelles, [actif.id]: [...(notesManuelles[actif.id] ?? []), note.trim()] })
+    sauverNotes([...(actif.notes ?? []), note.trim()])
   }
 
   const supprimerNote = (index: number) => {
     if (!actif) return
-    const notes = [...(notesManuelles[actif.id] ?? [])]
+    const notes = [...(actif.notes ?? [])]
     notes.splice(index, 1)
-    sauverNotesManuelles({ ...notesManuelles, [actif.id]: notes })
+    sauverNotes(notes)
   }
 
   const ajouterTextePersonnel = async () => {
@@ -578,7 +538,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
       if (modeControle === 'perso') {
         const { data, error } = await supabase
           .from('oeuvres_personnelles_segments')
-          .select('id,id_oeuvre,user_id,auteur,titre,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,nature,statut_controle,notes')
+          .select('id,id_oeuvre,user_id,auteur,titre,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,nature,statut_controle,notes,note_style,controle_rang_manuel,controle_verifie')
           .eq('id_oeuvre', idOeuvre)
           .order('segment_numero')
         if (error) {
@@ -610,8 +570,11 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
           lien_4: null,
           fiabilite: null,
           nature: s.nature ?? 'texte',
-          statut_controle: s.statut_controle,
+          statut_controle: versRang(s.statut_controle),
           notes: s.notes ?? [],
+          note_style: s.note_style,
+          controle_rang_manuel: s.controle_rang_manuel,
+          controle_verifie: s.controle_verifie ?? false,
         })) as SegmentControle[]
         if (!annule) {
           setSegments(lignes)
@@ -625,7 +588,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
       while (true) {
         const { data, error } = await supabase
           .from('segments')
-          .select('id,id_oeuvre,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,fiabilite,nature')
+          .select('id,id_oeuvre,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,fiabilite,nature,notes,commentaire_ia,controle_rang_manuel,controle_verifie')
           .eq('id_oeuvre', idOeuvre)
           .order('segment_numero')
           .range(from, from + 999)
@@ -638,6 +601,12 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         if (batch.length < 1000) break
         from += 1000
       }
+      // Les liens vivent dans `liens_bibliques` depuis le 20 juillet 2026 (§24.1) :
+      // `segments.lien_1` à `lien_4` subsistent mais sont VIDES, si bien que cette
+      // section n'affichait plus aucun lien — sans la moindre erreur. Le §24.5 prévoit
+      // exactement ce cas : `hydraterLiensHerites` reconstitue ces colonnes en mémoire
+      // pour les écrans anciens. Un seul appel les remet en service.
+      try { await hydraterLiensHerites(lignes as unknown as { id: number }[]) } catch { /* liens indisponibles : l'écran reste utilisable sans eux */ }
       if (!annule) {
         setSegments(lignes)
         setSegmentActif(lignes[0]?.id ?? null)
@@ -648,39 +617,34 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     return () => { annule = true }
   }, [idOeuvre, modeControle])
 
-  const diagnostics = React.useMemo(() => {
-    const map = new Map<number, Diagnostic>()
+  const verdicts = React.useMemo(() => {
+    const map = new Map<number, Verdict>()
     segments.forEach(s => {
-      const auto = diagnostiquerSegment(s)
-      if (modeControle === 'perso') {
-        map.set(s.id, { ...auto, niveau: s.statut_controle ?? auto.niveau })
-        return
-      }
-      const manuel = niveauxManuels[s.id]
-      map.set(s.id, manuel ? {
-        niveau: manuel,
-        commentaires: auto.commentaires,
-      } : auto)
+      const auto = modeControle === 'perso' ? analyserPerso(s) : analyserCorpus(s)
+      // Le rang forcé à la main prime, mais le SCORE reste celui de l'analyse : on
+      // corrige le jugement, pas la mesure — et l'écart entre les deux se voit.
+      const force = s.controle_rang_manuel ?? null
+      map.set(s.id, force ? { ...auto, rang: force } : auto)
     })
     return map
-  }, [segments, niveauxManuels, modeControle])
+  }, [segments, modeControle])
   const stats = React.useMemo(() => {
-    const out = { bon: 0, revoir: 0, critique: 0 }
-    diagnostics.forEach(d => { out[d.niveau] += 1 })
+    const out: Record<Rang, number> = { bon: 0, moyen: 0, critique: 0 }
+    verdicts.forEach(v => { out[v.rang] += 1 })
     return out
-  }, [diagnostics])
+  }, [verdicts])
 
   const segmentsAffiches = React.useMemo<SegmentAfficheControle[]>(() => {
-    if (filtre !== 'revoir' && filtre !== 'critique') {
+    if (filtre !== 'moyen' && filtre !== 'critique') {
       return segments
-        .filter(s => filtre === 'tous' || diagnostics.get(s.id)?.niveau === filtre)
+        .filter(s => filtre === 'tous' || verdicts.get(s.id)?.rang === filtre)
         .map(segment => ({ segment }))
     }
 
     const vus = new Set<number>()
     const avecContexte: SegmentAfficheControle[] = []
     segments.forEach((segment, index) => {
-      if (diagnostics.get(segment.id)?.niveau !== filtre) return
+      if (verdicts.get(segment.id)?.rang !== filtre) return
       ;[segments[index - 1], segment, segments[index + 1]].forEach(voisin => {
         if (!voisin || vus.has(voisin.id)) return
         vus.add(voisin.id)
@@ -688,7 +652,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
       })
     })
     return avecContexte.sort((a, b) => a.segment.segment_numero - b.segment.segment_numero)
-  }, [segments, diagnostics, filtre])
+  }, [segments, verdicts, filtre])
 
   const pagesControle = React.useMemo(() => {
     const pages: SegmentAfficheControle[][] = []
@@ -712,7 +676,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
 
   React.useEffect(() => {
     setPageActuelle(0)
-  }, [idOeuvre, filtre, niveauxManuels])
+  }, [idOeuvre, filtre])
 
   React.useEffect(() => {
     if (pageActuelle >= pagesControle.length) setPageActuelle(Math.max(0, pagesControle.length - 1))
@@ -720,15 +684,17 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
 
   const pageSegments = pagesControle[pageActuelle] ?? []
   const actif = segments.find(s => s.id === segmentActif) ?? segmentsAffiches[0]?.segment ?? null
-  const diagActif = actif ? diagnostics.get(actif.id) : null
+  const verdictActif = actif ? verdicts.get(actif.id) : null
   const liensActifs = React.useMemo(() => actif ? liensSegmentDetails(actif) : [], [actif])
-  const notesActives = actif ? (modeControle === 'perso' ? (actif.notes ?? []) : (notesManuelles[actif.id] ?? [])) : []
+  const notesActives = actif?.notes ?? []
 
   React.useEffect(() => {
+    // Le crayon change le segment actif ET ouvre l'édition dans le même geste : sans
+    // cette garde, l'effet refermait aussitôt ce que le clic venait d'ouvrir.
+    if (editionSegmentId !== null) return
     setEditionTexte(actif?.segment_texte ?? '')
-    setEditionActive(false)
     setStatutAction('idle')
-  }, [actif?.id, actif?.segment_texte])
+  }, [actif?.id, actif?.segment_texte, editionSegmentId])
 
   React.useEffect(() => {
     const ids = liensActifs.map(l => l.id).filter(id => !versetsLies[id])
@@ -754,23 +720,47 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
   return (
     <div className="controle-oeuvres">
       <style>{`
-        .controle-oeuvres h1{font-family:Georgia,"Times New Roman",serif;font-size:18px;font-weight:normal;color:#1e2e24;margin:0;letter-spacing:.02em;}
+        .controle-oeuvres h1{font-family:var(--font-source-serif), Georgia, serif;font-size:18px;font-weight:normal;color:#1e2e24;margin:0;letter-spacing:.02em;}
         .controle-oeuvres .toolbar{background:#fff;border:1px solid #d9e1dc;border-radius:8px;padding:8px 14px 9px;margin-bottom:12px;box-shadow:0 5px 16px rgba(30,46,38,.045);text-align:center;}
         .controle-oeuvres .toolbar-regle{width:34px;height:1px;background:#c8b89e;margin:5px auto 7px;}
         .controle-oeuvres .oeuvre-search{font-size:11px;border:1px solid #d6d0c4;border-radius:999px;background:#faf8f4;color:#2a2520;padding:5px 12px;width:min(440px,100%);text-align:center;outline:none;transition:border-color .14s,box-shadow .14s,background .14s;}
         .controle-oeuvres .oeuvre-search:focus{background:#fff;border-color:#8aa185;box-shadow:0 0 0 3px rgba(61,107,79,.09);}
         .controle-oeuvres .toolbar > div:last-child{justify-content:center;margin-top:7px;}
-        .controle-layout{display:grid;grid-template-columns:minmax(0,780px) 310px;gap:22px;align-items:start;justify-content:center;}
-        .segments-panel{background:#fff;border:1px solid #e3ddd3;border-radius:2px;padding:34px 54px 42px;box-shadow:0 10px 28px rgba(30,46,38,.05);}
+        /* Le texte occupe tout ce qui reste ; le volet d'analyse a une largeur fixe et
+           généreuse. Plus de centrage : la colonne de lecture part de la gauche. */
+        .controle-layout{display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:18px;align-items:start;}
+        .segments-panel{background:#fff;border:1px solid #e3ddd3;border-radius:2px;padding:30px 46px 38px;box-shadow:0 10px 28px rgba(30,46,38,.05);}
         .controle-pagination{display:flex;align-items:center;justify-content:center;gap:13px;margin:0 0 23px;color:#8a8278;font-size:12px;}
         .controle-pagination.bas{margin:24px 0 0;}
-        .controle-pagination button{border:0;background:transparent;color:#3d6b4f;font-family:Georgia,"Times New Roman",serif;font-size:24px;line-height:1;cursor:pointer;padding:0 6px;}
+        .controle-pagination button{border:0;background:transparent;color:#3d6b4f;font-family:var(--font-source-serif), Georgia, serif;font-size:24px;line-height:1;cursor:pointer;padding:0 6px;}
         .controle-pagination button:disabled{opacity:.25;cursor:default;}
         .segment-controle{position:relative;border:0;border-radius:3px;padding:3px 6px 4px;margin-bottom:.38rem;cursor:pointer;transition:background .14s,box-shadow .14s,opacity .14s;}
         .segment-controle:hover{box-shadow:inset 0 0 0 1px rgba(61,107,79,.12);}
         .segment-controle.is-active{box-shadow:inset 0 0 0 1px rgba(61,107,79,.28);}
-        .segment-texte{font-family:Arial,sans-serif;font-size:.82rem;line-height:1.52;text-align:justify;text-justify:inter-word;hyphens:auto;color:#1e1a16;margin:0;word-spacing:-.025em;letter-spacing:0;white-space:pre-line;}
-        .controle-groupe{font-family:Georgia,"Times New Roman",serif;font-size:1.12rem;font-weight:400;color:#2a3d30;text-align:center;line-height:1.35;margin:30px auto 17px;max-width:620px;}
+        /* Le crayon vit DANS le bloc de texte : on corrige là où l'on lit. */
+        .segment-crayon{position:absolute;top:1px;right:1px;opacity:0;border:1px solid #d9e1dc;background:rgba(255,255,255,.94);border-radius:4px;padding:1px 6px 2px;font-size:12px;line-height:1.3;cursor:pointer;color:#3d6b4f;transition:opacity .13s;z-index:2;}
+        .segment-controle:hover .segment-crayon,.segment-controle.is-active .segment-crayon{opacity:1;}
+        .segment-crayon:hover{background:#f2f8f4;border-color:#8aa185;}
+        .segment-edition{width:100%;box-sizing:border-box;min-height:130px;border:1px solid #8aa185;border-radius:4px;background:#fffdf9;color:#2a2520;font-family:var(--font-source-sans), Arial, sans-serif;font-size:.82rem;line-height:1.52;padding:8px 10px;resize:vertical;outline:none;}
+        .segment-edition-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px;}
+        /* Volet de droite : score, puis encarts rouge et vert. */
+        .score-bloc{display:flex;align-items:center;gap:15px;padding:0 0 13px;border-bottom:1px solid #ede9e2;margin-bottom:13px;}
+        .score-chiffre{font-family:var(--font-source-serif), Georgia, serif;font-size:36px;line-height:.95;color:#1e2e24;}
+        .score-sur{font-size:11px;color:#9a958d;margin-left:2px;}
+        .score-legende{font-size:10px;color:#9a958d;line-height:1.45;margin:3px 0 0;}
+        .encart{border-radius:6px;padding:9px 11px 10px;margin-bottom:9px;}
+        .encart h4{margin:0 0 6px;font-family:var(--font-source-sans), Arial, sans-serif;font-size:9px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;}
+        .encart ul{margin:0;padding-left:15px;display:flex;flex-direction:column;gap:6px;}
+        .encart li{font-size:11.5px;line-height:1.5;}
+        .encart-rouge{background:#fff4f1;border:1px solid #e6bfb2;}
+        .encart-rouge h4{color:#9a2a2a;}
+        .encart-rouge li{color:#6f2a19;}
+        .encart-vert{background:#f2f8f4;border:1px solid #b9d4c3;}
+        .encart-vert h4{color:#2f6046;}
+        .encart-vert li{color:#24503a;}
+        .badge-manuel{display:inline-block;background:#efe7f6;border:1px solid #c3aed6;color:#5b3a7a;border-radius:999px;padding:2px 8px;font-size:8.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;}
+        .segment-texte{font-family:var(--font-source-sans), Arial, sans-serif;font-size:.82rem;line-height:1.52;text-align:justify;text-justify:inter-word;hyphens:auto;color:#1e1a16;margin:0;word-spacing:-.025em;letter-spacing:0;white-space:pre-line;}
+        .controle-groupe{font-family:var(--font-source-serif), Georgia, serif;font-size:1.12rem;font-weight:400;color:#2a3d30;text-align:center;line-height:1.35;margin:30px auto 17px;max-width:620px;}
         .controle-groupe::after{content:"";display:block;width:38px;height:1px;background:#c8b89e;margin:11px auto 0;}
         .controle-droit{position:sticky;top:142px;max-height:calc(100vh - 160px);overflow-y:auto;background:#fff;border:1px solid #d9e1dc;border-radius:8px;padding:15px 16px;box-shadow:0 10px 28px rgba(30,46,38,.07);}
         .pill{display:inline-flex;align-items:center;border-radius:999px;padding:2px 8px;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
@@ -781,7 +771,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .niveau-btn{border:1px solid #d6d0c4;background:#fff;border-radius:999px;padding:4px 8px;font-size:10px;cursor:pointer;color:#5a5450;transition:background .12s,border-color .12s,color .12s;}
         .niveau-btn.active{font-weight:700;}
         .controle-section{margin-top:14px;padding-top:12px;border-top:1px solid #ede9e2;}
-        .controle-section-title{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9a958d;margin:0 0 7px;}
+        .controle-section-title{font-family:var(--font-source-serif), Georgia, serif;font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9a958d;margin:0 0 7px;}
         .controle-liste-simple{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px;color:#3a3530;}
         .controle-liste-simple li{font-size:11.5px;line-height:1.45;}
         .controle-lien-card{border:1px solid #ede9e2;border-radius:7px;background:#fffdf9;padding:8px 9px;margin-bottom:8px;}
@@ -824,7 +814,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
           placeholder={modeControle === 'perso' ? 'Rechercher un texte personnel ou un auteur...' : 'Rechercher une œuvre ou un auteur...'}
         />
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-          {(['tous', 'bon', 'revoir', 'critique'] as const).map(f => (
+          {(['tous', 'bon', 'moyen', 'critique'] as const).map(f => (
             <button key={f} className={`stat-btn${filtre === f ? ' active' : ''}`} onClick={() => setFiltre(f)}>
               {f === 'tous' ? `Tous ${segments.length}` : `${COULEURS[f].label} ${stats[f]}`}
             </button>
@@ -839,7 +829,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         <div className="controle-layout">
           <div className="segments-panel">
             <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-              <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.55rem', color: '#1e2e24', margin: 0, lineHeight: 1.28 }}>{titreCourtControle(auteurs, idOeuvre, modeControle, oeuvresPerso)}</p>
+              <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.55rem', color: '#1e2e24', margin: 0, lineHeight: 1.28 }}>{titreCourtControle(auteurs, idOeuvre, modeControle, oeuvresPerso)}</p>
               <div style={{ width: '42px', height: '1px', background: '#c8b89e', margin: '14px auto 8px' }} />
               <p style={{ fontSize: '10.5px', color: '#9a958d', margin: '3px 0 0' }}>{segmentsAffiches.length} segment(s) affiché(s)</p>
             </div>
@@ -853,8 +843,8 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
             )}
 
             {pageSegments.map(({ segment, contexte }) => {
-              const diag = diagnostics.get(segment.id) ?? { niveau: 'bon' as const, commentaires: [] }
-              const couleurs = COULEURS[diag.niveau]
+              const verdict = verdicts.get(segment.id)
+              const couleurs = COULEURS[verdict?.rang ?? 'bon']
               const groupe = [segment.ref_niv1, segment.ref_niv2].filter(Boolean).join(' — ')
               const afficherGroupe = groupe && groupe !== dernierGroupe
               if (afficherGroupe) dernierGroupe = groupe
@@ -873,7 +863,33 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                       opacity: contexte ? 0.78 : 1,
                     }}
                   >
-                    <p className="segment-texte">{segment.segment_texte || 'Segment vide.'}</p>
+                    {editionSegmentId === segment.id ? (
+                      <>
+                        <textarea
+                          className="segment-edition"
+                          value={editionTexte}
+                          autoFocus
+                          onClick={e => e.stopPropagation()}
+                          onChange={e => setEditionTexte(e.target.value)}
+                        />
+                        <div className="segment-edition-actions" onClick={e => e.stopPropagation()}>
+                          <button className="controle-action-btn" disabled={statutAction === 'envoi'} onClick={enregistrerSegment}>Enregistrer</button>
+                          <button className="controle-action-btn" disabled={statutAction === 'envoi'} onClick={() => { setEditionTexte(segment.segment_texte ?? ''); setEditionSegmentId(null); setStatutAction('idle') }}>Annuler</button>
+                          <button className="controle-action-btn danger" disabled={statutAction === 'envoi'} onClick={supprimerSegment}>Supprimer le segment</button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className="segment-crayon"
+                          title="Modifier ce segment"
+                          aria-label={`Modifier le segment ${segment.segment_numero}`}
+                          onClick={e => { e.stopPropagation(); setSegmentActif(segment.id); setEditionTexte(segment.segment_texte ?? ''); setEditionSegmentId(segment.id) }}
+                        >✎</button>
+                        <p className="segment-texte">{segment.segment_texte || 'Segment vide.'}</p>
+                      </>
+                    )}
                   </article>
                 </React.Fragment>
               )
@@ -889,67 +905,115 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
           </div>
 
           <aside className="controle-droit">
-            <p style={{ display: 'none' }}>
-              Contrôle du segment
-            </p>
-            {actif && diagActif ? (
+            {actif && verdictActif ? (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
-                  <div>
+                {/* ── En-tête : quel segment, et a-t-il été vérifié à la main ── */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '11px' }}>
+                  <div style={{ minWidth: 0 }}>
                     <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#9a958d', margin: '0 0 3px' }}>Segment {actif.segment_numero}</p>
                     {refsSegment(actif) && <p style={{ fontSize: '11px', color: '#5f6f60', margin: 0, lineHeight: 1.35 }}>{refsSegment(actif)}</p>}
                   </div>
-                  <span className="pill" style={{ background: COULEURS[diagActif.niveau].fond, color: COULEURS[diagActif.niveau].texte, border: `1px solid ${COULEURS[diagActif.niveau].bord}` }}>
-                    {COULEURS[diagActif.niveau].label}
-                  </span>
+                  {actif.controle_verifie && <span className="badge-manuel">Vérifié</span>}
                 </div>
-                <div style={{ margin: '0 0 13px', padding: '9px 0 11px', borderTop: '1px solid #ede9e2', borderBottom: '1px solid #ede9e2' }}>
-                  <p style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#9a958d', margin: '0 0 7px' }}>
-                    Classement manuel
+
+                {/* ── Compartiment haut : le score, et le rang qui en découle ── */}
+                <div className="score-bloc">
+                  <div>
+                    <span className="score-chiffre">{verdictActif.score}</span>
+                    <span className="score-sur">/ 20</span>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span className="pill" style={{ background: COULEURS[verdictActif.rang].fond, color: COULEURS[verdictActif.rang].texte, border: `1px solid ${COULEURS[verdictActif.rang].bord}` }}>
+                      {COULEURS[verdictActif.rang].label}
+                    </span>
+                    <p className="score-legende">
+                      {modeControle === 'perso'
+                        ? (actif.note_style != null
+                            ? 'Note de style issue d’une lecture. Les notes ci-dessous, elles, sont comptées.'
+                            : 'Style et propos : rythme, richesse, redites, chevilles.')
+                        : 'Typographie et texte : encodage, ponctuation, découpage, apparat.'}
+                      <br />Bon ≥ 15 · Moyen ≥ 10 · Critique &lt; 10
+                    </p>
+                  </div>
+                </div>
+
+                <div className="controle-section" style={{ marginTop: 0, paddingTop: 0, borderTop: 0 }}>
+                  <p className="controle-section-title">
+                    Rang {actif.controle_rang_manuel ? '— corrigé à la main' : '— attribué par le score'}
                   </p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {(['auto', 'bon', 'revoir', 'critique'] as const).map(niveau => {
-                      const actifManuel = niveau === 'auto' ? !niveauxManuels[actif.id] : niveauxManuels[actif.id] === niveau
-                      const couleurs = niveau === 'auto' ? null : COULEURS[niveau]
+                    {(['auto', 'bon', 'moyen', 'critique'] as const).map(choix => {
+                      const estActif = choix === 'auto' ? !actif.controle_rang_manuel : actif.controle_rang_manuel === choix
+                      const couleursChoix = choix === 'auto' ? null : COULEURS[choix]
                       return (
                         <button
-                          key={niveau}
-                          className={`niveau-btn${actifManuel ? ' active' : ''}`}
-                          onClick={() => changerNiveauManuel(actif.id, niveau)}
-                          style={actifManuel && couleurs ? {
-                            background: couleurs.fond,
-                            borderColor: couleurs.bord,
-                            color: couleurs.texte,
-                          } : actifManuel ? {
+                          key={choix}
+                          className={`niveau-btn${estActif ? ' active' : ''}`}
+                          disabled={statutAction === 'envoi'}
+                          onClick={() => changerRangManuel(actif.id, choix)}
+                          style={estActif && couleursChoix ? {
+                            background: couleursChoix.fond,
+                            borderColor: couleursChoix.bord,
+                            color: couleursChoix.texte,
+                          } : estActif ? {
                             background: '#f0ece6',
                             borderColor: '#c8c0b4',
                             color: '#5a5450',
                           } : undefined}
                         >
-                          {niveau === 'auto' ? 'Auto' : COULEURS[niveau].label}
+                          {choix === 'auto' ? 'Auto' : COULEURS[choix].label}
                         </button>
                       )
                     })}
                   </div>
+                  {actif.controle_rang_manuel && (
+                    <p style={{ fontSize: '10.5px', color: '#5b3a7a', margin: '8px 0 0', lineHeight: 1.45 }}>
+                      Rang imposé à la main — le score reste celui de l’analyse ({verdictActif.score}/20), et le segment est passé en « vérifié ».
+                    </p>
+                  )}
+                  {statutAction === 'erreur' && <p style={{ fontSize: '11px', color: '#9a2a2a', margin: '8px 0 0' }}>Erreur lors de l’enregistrement.</p>}
                 </div>
+
+                {/* ── Notes : ce qui justifie le score, sans complaisance ── */}
                 <div className="controle-section">
-                  <p className="controle-section-title">Texte</p>
-                  {editionActive ? (
-                    <>
-                      <textarea className="controle-edition" value={editionTexte} onChange={e => setEditionTexte(e.target.value)} />
-                      <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap', marginTop: '8px' }}>
-                        <button className="controle-action-btn" disabled={statutAction === 'envoi'} onClick={enregistrerSegment}>Enregistrer</button>
-                        <button className="controle-action-btn" disabled={statutAction === 'envoi'} onClick={() => { setEditionTexte(actif.segment_texte ?? ''); setEditionActive(false); setStatutAction('idle') }}>Fermer</button>
-                      </div>
-                    </>
-                  ) : (
-                    <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
-                      <button className="controle-action-btn" onClick={() => setEditionActive(true)}>Modifier</button>
-                      <button className="controle-action-btn danger" disabled={statutAction === 'envoi'} onClick={supprimerSegment}>Supprimer</button>
+                  <p className="controle-section-title">Notes d’analyse</p>
+                  {verdictActif.rouge.length > 0 && (
+                    <div className="encart encart-rouge">
+                      <h4>À reprendre</h4>
+                      <ul>{verdictActif.rouge.map((n, i) => <li key={`r-${i}`}>{n}</li>)}</ul>
                     </div>
                   )}
-                  {statutAction === 'erreur' && <p style={{ fontSize: '11px', color: '#9a2a2a', margin: '8px 0 0' }}>Erreur lors de l'action.</p>}
+                  {verdictActif.vert.length > 0 && (
+                    <div className="encart encart-vert">
+                      <h4>Ce qui tient</h4>
+                      <ul>{verdictActif.vert.map((n, i) => <li key={`v-${i}`}>{n}</li>)}</ul>
+                    </div>
+                  )}
+                  {verdictActif.rouge.length === 0 && verdictActif.vert.length === 0 && (
+                    <p style={{ fontSize: '11.5px', color: '#9a958d', margin: 0, fontStyle: 'italic' }}>
+                      Aucun défaut relevé. Pas de note : une boîte vide est une information.
+                    </p>
+                  )}
                 </div>
+
+                {/* ── Notes écrites à la main, ou héritées de la base ── */}
+                <div className="controle-section">
+                  <p className="controle-section-title">Notes de lecture</p>
+                  {notesActives.length > 0 ? (
+                    <ul className="controle-liste-simple">
+                      {notesActives.map((note, i) => (
+                        <li key={`note-${i}`}>
+                          {note}
+                          <button className="controle-mini-btn" style={{ display: 'block' }} onClick={() => supprimerNote(i)}>Supprimer cette note</button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p style={{ fontSize: '11.5px', color: '#9a958d', margin: 0 }}>Aucune note.</p>
+                  )}
+                  <button className="controle-action-btn" style={{ marginTop: '7px' }} disabled={statutAction === 'envoi'} onClick={ajouterNote}>Ajouter une note</button>
+                </div>
+
                 {modeControle === 'corpus' && <div className="controle-section">
                   <p className="controle-section-title">Liens bibliques</p>
                   {liensActifs.length > 0 ? (
@@ -960,7 +1024,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                           <div key={`${lien.champ}-${lien.id}-${i}`} className="controle-lien-card">
                             <p className="controle-lien-ref">{verset?.ref ?? refBibliqueFr(lien.id)} <span style={{ color: '#9a958d', fontWeight: 400 }}>({lien.champ})</span></p>
                             <p className="controle-lien-texte">{verset?.texte || 'Texte du verset non chargé.'}</p>
-                             <button className="controle-mini-btn" disabled={statutAction === 'envoi'} onClick={() => supprimerLienBiblique(lien)}>Supprimer ce lien</button>
+                            <button className="controle-mini-btn" disabled={statutAction === 'envoi'} onClick={() => supprimerLienBiblique(lien)}>Supprimer ce lien</button>
                           </div>
                         )
                       })}
@@ -970,31 +1034,14 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                   )}
                   <button className="controle-action-btn" style={{ marginTop: '7px' }} disabled={statutAction === 'envoi'} onClick={ajouterLienBiblique}>Ajouter un lien biblique</button>
                 </div>}
+
                 <div className="controle-section">
-                  <p className="controle-section-title">Notes</p>
-                  <ul className="controle-liste-simple">
-                    {diagActif.commentaires.map((c, i) => <li key={i}>{c}</li>)}
-                    {notesActives.map((note, i) => (
-                      <li key={`note-${i}`}>
-                        {note}
-                        <button className="controle-mini-btn" style={{ display: 'block' }} onClick={() => supprimerNote(i)}>Supprimer cette note</button>
-                      </li>
-                    ))}
-                  </ul>
-                  <button className="controle-action-btn" style={{ marginTop: '7px' }} onClick={ajouterNote}>Ajouter une note</button>
-                </div>
-                <ul className="controle-ancien-commentaires" style={{ margin: 0, paddingLeft: '17px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {diagActif.commentaires.map((c, i) => (
-                    <li key={i} style={{ fontSize: '12px', lineHeight: 1.45, color: '#3a3530' }}>{c}</li>
-                  ))}
-                </ul>
-                <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #ede9e2' }}>
-                  <p style={{ fontSize: '10.5px', color: '#9a958d', margin: '0 0 6px' }}>Données utiles</p>
-                  <p style={{ fontSize: '11px', color: '#5a5450', margin: 0, lineHeight: 1.55 }}>
+                  <p className="controle-section-title">Données</p>
+                  <p style={{ fontSize: '11px', color: '#5a5450', margin: 0, lineHeight: 1.6 }}>
                     Longueur : {(actif.segment_texte ?? '').trim().length} signes<br />
                     Liens : {liensSegment(actif).length || 'aucun'}<br />
-                    Fiabilité : {actif.fiabilite || 'non indiquée'}<br />
                     Nature : {actif.nature || 'texte'}
+                    {modeControle === 'perso' && actif.note_style != null && <><br />Note de style en base : {actif.note_style}/20</>}
                   </p>
                 </div>
               </>

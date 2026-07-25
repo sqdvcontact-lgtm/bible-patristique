@@ -41,7 +41,7 @@ export default function AllerPlusLoinClient() {
       <div style={{ maxWidth: '720px', margin: '0 auto', padding: '40px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '22px' }}>
           <h1 style={{
-            fontFamily: "Georgia, serif",
+            fontFamily: "var(--font-source-serif), Georgia, serif",
             fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 'normal',
             color: '#1e2e24', lineHeight: 1.2, marginBottom: '14px',
           }}>
@@ -185,7 +185,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
         padding: t.photo ? '18px 14px 18px 20px' : '14px 18px',
       }}>
         <h2 style={{
-          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontFamily: "var(--font-source-serif), Georgia, serif",
           fontSize: '17px', fontWeight: 'normal',
           color: couleurTexte, margin: 0, lineHeight: 1.25,
           textShadow: ombreTexte,
@@ -195,7 +195,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
         </h2>
         {meta && (
           <span style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontFamily: "var(--font-source-serif), Georgia, serif",
             fontSize: '11px', fontStyle: 'italic',
             color: couleurMeta, letterSpacing: '0.02em',
             display: 'block', marginTop: '4px',
@@ -380,7 +380,7 @@ function OngletAcheter() {
           opacity: 0;
           pointer-events: none;
           transition: opacity 0.18s ease;
-          font-family: Georgia, 'Times New Roman', serif;
+          font-family: var(--font-source-serif), Georgia, serif;
           font-size: 15.5px;
           letter-spacing: 0.01em;
         }
@@ -399,7 +399,7 @@ function OngletAcheter() {
           margin: 0 22px;
         }
         .lib-nom {
-          font-family: Georgia, 'Times New Roman', serif;
+          font-family: var(--font-source-serif), Georgia, serif;
           font-size: 18px;
           font-weight: normal;
           margin: 0 0 5px;

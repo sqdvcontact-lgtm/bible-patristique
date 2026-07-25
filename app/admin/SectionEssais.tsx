@@ -50,7 +50,7 @@ export default function SectionEssais({
               ))}
             </div>
             <Link href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer"
-              style={{ fontFamily: "Georgia, serif", fontSize: '15px', color: '#1e2e24', textDecoration: 'none', display: 'block', marginBottom: '2px' }}>
+              style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '15px', color: '#1e2e24', textDecoration: 'none', display: 'block', marginBottom: '2px' }}>
               {e.titre} ↗
             </Link>
             {e.sous_titre && <p style={{ fontSize: '12px', color: '#8a8278', fontStyle: 'italic', margin: '0 0 6px' }}>{e.sous_titre}</p>}

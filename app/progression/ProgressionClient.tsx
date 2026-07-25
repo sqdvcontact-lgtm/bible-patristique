@@ -76,7 +76,7 @@ function BarreProgression({ label, pourcentage, couleur }: { label: string; pour
 function StatutLecture({ label, valeur }: { label: string; valeur: string }) {
   return (
     <div style={{ padding: '9px 12px', borderRadius: '8px', background: 'rgba(61,107,79,0.055)', border: '1px solid rgba(61,107,79,0.10)' }}>
-      <p style={{ fontSize: '18px', color: '#2a3d30', fontFamily: "Georgia, 'Times New Roman', serif", margin: '0 0 2px' }}>{valeur}</p>
+      <p style={{ fontSize: '18px', color: '#2a3d30', fontFamily: "var(--font-source-serif), Georgia, serif", margin: '0 0 2px' }}>{valeur}</p>
       <p style={{ fontSize: '10.5px', color: '#7a867b', margin: 0 }}>{label}</p>
     </div>
   )
@@ -142,7 +142,7 @@ function CarteLivre({ livre, lu, onToggle }: { livre: LivreBible; lu: boolean; o
       </span>
       <span style={{
         fontSize: '13px', color: lu ? '#2a3d30' : '#3a3530',
-        fontWeight: lu ? 600 : 400, fontFamily: "Georgia, 'Times New Roman', serif",
+        fontWeight: lu ? 600 : 400, fontFamily: "var(--font-source-serif), Georgia, serif",
       }}>
         {livre.nom}
       </span>
@@ -262,7 +262,7 @@ export default function ProgressionClient() {
     <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 48px)', padding: '24px 24px 64px' }}>
       <div style={{ maxWidth: '680px', margin: '0 auto' }}>
         <h1 style={{
-          fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '22px',
+          fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '22px',
           fontWeight: 'normal', color: '#2a3d30', marginBottom: '4px', textAlign: 'center',
         }}>
           Ma progression de lecture
@@ -283,7 +283,7 @@ export default function ProgressionClient() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto',
             }}>
               <div style={{ width: '106px', height: '106px', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                <span style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: '30px', color: '#2a3d30', lineHeight: 1 }}>{Math.round(pourcentTotalAnime)}%</span>
+                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '30px', color: '#2a3d30', lineHeight: 1 }}>{Math.round(pourcentTotalAnime)}%</span>
                 <span style={{ fontSize: '10px', color: '#9a958d', marginTop: '3px' }}>parcouru</span>
               </div>
             </div>

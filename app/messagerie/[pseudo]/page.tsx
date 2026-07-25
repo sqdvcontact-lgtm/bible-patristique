@@ -105,7 +105,7 @@ export default function ConversationPage() {
         </button>
         <div>
           <Link href={`/profil/${encodeURIComponent(pseudo)}`}
-            style={{ fontFamily: 'Georgia, serif', fontSize: '16px', color: '#1e2e24', textDecoration: 'none', fontWeight: 400 }}>
+            style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '16px', color: '#1e2e24', textDecoration: 'none', fontWeight: 400 }}>
             {pseudo}
           </Link>
           <p style={{ fontSize: '10px', color: '#b0a89e', margin: '1px 0 0', letterSpacing: '0.04em' }}>

@@ -78,7 +78,7 @@ export default function AdminClient({
 
       {/* Bandeau d'en-tête fixe */}
       <div style={{ position: 'sticky', top: '48px', zIndex: 50, background: '#1e2e26', borderBottom: '1px solid #2e4438', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 28px', height: '42px' }}>
-        <span style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7aaa8e' }}>
+        <span style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7aaa8e' }}>
           Administration
         </span>
         <form action={actionDeconnexion}>
@@ -103,7 +103,11 @@ export default function AdminClient({
       </div>
 
       {/* Contenu */}
-      <div style={{ maxWidth: onglet === 'controle-oeuvres' ? '1320px' : '960px', margin: '0 auto', padding: '28px 24px 64px' }}>
+      <div style={onglet === 'controle-oeuvres'
+        // Le contrôle des œuvres prend toute la largeur : on y lit du texte suivi en
+        // regard d'un volet d'analyse, et l'un comme l'autre étouffaient à 1320 px.
+        ? { maxWidth: 'none', margin: 0, padding: '20px 14px 48px' }
+        : { maxWidth: '960px', margin: '0 auto', padding: '28px 24px 64px' }}>
         {onglet === 'taches'               && <SectionTaches />}
         {onglet === 'charte'               && <SectionCharte />}
         {onglet === 'charte-accentuation'  && <SectionCharteAccentuation />}

@@ -12,8 +12,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-source-sans);
+  --font-serif: var(--font-source-serif);
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,7 +27,17 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+}
+
+/* Toute hiérarchie de titre appartient à la voix éditoriale du site. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-source-serif), Georgia, serif;
 }
 
 /* ── Page Traductions ── */
@@ -44,7 +55,7 @@ body {
   font-size: 0.6em !important;
 }
 .trad-article h1 {
-  font-family: Georgia, 'Times New Roman', serif !important;
+  font-family: var(--font-source-serif), Georgia, serif !important;
   font-size: 17px !important;
   font-weight: normal !important;
   color: #1e2e24 !important;
@@ -52,7 +63,7 @@ body {
   text-decoration: none !important;
 }
 .trad-article h2 {
-  font-family: Georgia, 'Times New Roman', serif !important;
+  font-family: var(--font-source-serif), Georgia, serif !important;
   font-size: 14px !important;
   font-weight: 600 !important;
   color: #2a3d30 !important;

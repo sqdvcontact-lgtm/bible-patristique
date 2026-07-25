@@ -242,7 +242,7 @@ export default function AccueilCards() {
           background: linear-gradient(160deg, #283820 0%, #1e2c18 100%);
         }
         .ac-title {
-          font-family: Georgia, 'Times New Roman', serif;
+          font-family: var(--font-source-serif), Georgia, serif;
           font-size: 20px;
           font-weight: normal;
           color: rgba(255,255,255,0.90);
@@ -321,7 +321,7 @@ export default function AccueilCards() {
           max-width: 100%;
           padding: 0 10px;
           box-sizing: border-box;
-          font-family: Georgia, 'Times New Roman', serif;
+          font-family: var(--font-source-serif), Georgia, serif;
           font-size: 12px;
           font-style: italic;
           line-height: 1.25;

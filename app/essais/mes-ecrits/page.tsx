@@ -54,7 +54,7 @@ export default function MesEcritsPage() {
     <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 48px)', paddingTop: '48px' }}>
       <div style={{ maxWidth: '700px', margin: '0 auto', padding: '40px 32px 80px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '24px' }}>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(22px, 4vw, 28px)', color: '#1e2e24', margin: 0 }}>Mes écrits</h1>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(22px, 4vw, 28px)', color: '#1e2e24', margin: 0 }}>Mes écrits</h1>
           <Link href="/essais/nouveau" style={{ fontSize: '12.5px', padding: '7px 16px', borderRadius: '5px', background: '#3d6b4f', color: '#fff', textDecoration: 'none', fontWeight: 500 }}>
             + Écrire
           </Link>
@@ -83,7 +83,7 @@ export default function MesEcritsPage() {
                   <Link
                     href={e.statut === 'publie' ? `/essais/${e.id}` : `/essais/${e.id}/modifier`}
                     style={{ flex: 1, minWidth: 0, textDecoration: 'none' }}>
-                    <p style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: '#1e2e24', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.titre}</p>
+                    <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#1e2e24', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.titre}</p>
                     {e.sous_titre && <p style={{ fontSize: '12px', color: '#8a8278', fontStyle: 'italic', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.sous_titre}</p>}
                   </Link>
 
@@ -118,7 +118,7 @@ export default function MesEcritsPage() {
       {supprConfirm !== null && (
         <div onClick={() => setSupprConfirm(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.32)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '28px 28px 24px', maxWidth: '360px', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
-            <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 12px' }}>
+            <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 12px' }}>
               Supprimer ce brouillon ?
             </h3>
             <p style={{ fontSize: '13px', color: '#5a5450', lineHeight: 1.65, margin: '0 0 22px' }}>

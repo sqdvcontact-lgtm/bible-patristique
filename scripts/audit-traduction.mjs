@@ -220,3 +220,90 @@ else console.log('  ✓ tous les livres entamés sont achevés')
 console.log(`  livres non commencés : ${reste.length} (${reste.reduce((a,[,n]) => a+n, 0)} créneaux)`)
 console.log(`  prochains : ${reste.slice(0, 6).map(([k,n]) => `${k} (${n})`).join(' · ')}`)
 console.log(`\n  avancement : ${(100*tcouv/totalBible).toFixed(1)} %  (${tcouv} / ${totalBible} créneaux du canon)\n`)
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODE CORPUS — `node scripts/audit-traduction.mjs --corpus`
+//
+// Ce qui précède examine UNE traduction. Or les fautes les plus coûteuses sont
+// des divergences ENTRE traductions : le 24/07/2026, 487 versets de la Vulgate
+// pointaient un autre créneau que Sacy — qui traduit pourtant la même Vulgate —
+// et rien ne le signalait. On ajoute donc quatre contrôles transverses.
+// ═══════════════════════════════════════════════════════════════════════════
+if (process.argv.includes('--corpus')) {
+  const paged = async (tr) => {
+    const o = []
+    for (let de = 0; ; de += 1000) {
+      const { data } = await sb.from('versets_v2')
+        .select('id, livre, ch_orig, v_orig, canon_id, ordre_slot, texte, notes')
+        .eq('trad_id', tr).order('id').range(de, de + 999)
+      if (!data?.length) break; o.push(...data); if (data.length < 1000) break
+    }
+    return o
+  }
+  const canonTous = []
+  for (let de = 0; ; de += 1000) {
+    const { data } = await sb.from('versets_canon').select('id').order('id').range(de, de + 999)
+    if (!data?.length) break; canonTous.push(...data); if (data.length < 1000) break
+  }
+  const { data: trads } = await sb.from('traductions').select('trad_id, nom').order('ordre')
+  const par = {}
+  for (const t of trads) par[t.trad_id] = await paged(t.trad_id)
+
+  console.log(`\n╔═ AUDIT DE CORPUS — ${new Date().toISOString().slice(0, 10)}\n`)
+
+  // 1. créneaux de l'ossature que PERSONNE ne remplit
+  const remplis = new Set()
+  for (const t of trads) for (const r of par[t.trad_id]) if (r.canon_id && r.texte?.trim()) remplis.add(r.canon_id)
+  const orphelins = canonTous.map(r => r.id).filter(id => !remplis.has(id))
+  console.log(`── CRÉNEAUX VIDES CHEZ TOUS LES TÉMOINS : ${orphelins.length}`)
+  if (orphelins.length) {
+    console.log('   L’ossature ouvre un créneau qu’aucune édition ne remplit — question d’ossature, non de traduction.')
+    console.log('   ' + orphelins.slice(0, 20).join(' · ') + (orphelins.length > 20 ? ' …' : ''))
+  }
+
+  // 2. plusieurs versets d'une même traduction sur un créneau
+  console.log(`\n── CRÉNEAUX À PLUSIEURS VERSETS (légitime si l’édition soude ce que l’ossature sépare)`)
+  for (const t of trads) {
+    const c = new Map()
+    for (const r of par[t.trad_id]) if (r.canon_id) c.set(r.canon_id, (c.get(r.canon_id) || 0) + 1)
+    const multi = [...c.values()].filter(n => n > 1).length
+    const sansRang = par[t.trad_id].filter(r => r.canon_id && (c.get(r.canon_id) || 0) > 1 && !r.ordre_slot).length
+    console.log(`   ${t.trad_id}  ${String(multi).padStart(4)} créneaux` + (sansRang ? `   ⚠ ${sansRang} versets sans ordre_slot` : ''))
+  }
+
+  // 3. versets sans créneau — les surnuméraires
+  console.log(`\n── SURNUMÉRAIRES (versets que l’ossature n’a pas ; se laissent SANS créneau)`)
+  for (const t of trads) {
+    const n = par[t.trad_id].filter(r => !r.canon_id).length
+    console.log(`   ${t.trad_id}  ${String(n).padStart(4)}`)
+  }
+
+  // 4. LE contrôle décisif : deux éditions d'une même famille se placent-elles pareil ?
+  //    Sacy traduit la Vulgate : leurs versets de même (livre, ch, v) doivent viser
+  //    le même créneau. LES PSAUMES SONT EXCLUS — Sacy y numérote la suscription 0,
+  //    la Vulgate 1, ce qui décale artificiellement tout le psautier. Vérifié :
+  //    PSA.30.1 porte bien la suscription latine, le psautier est juste.
+  const PAIRES = [['TR0001', 'TR0004', 'Sacy traduit la Vulgate']]
+  console.log(`\n── DIVERGENCES DE PLACEMENT ENTRE ÉDITIONS D’UNE MÊME FAMILLE`)
+  for (const [a, b, pourquoi] of PAIRES) {
+    if (!par[a] || !par[b]) continue
+    const cle = new Map()
+    for (const r of par[a]) {
+      const k = `${r.livre}|${r.ch_orig}|${r.v_orig}`
+      let l = cle.get(k); if (!l) cle.set(k, l = []); l.push(r.canon_id)
+    }
+    const div = []
+    for (const r of par[b]) {
+      if (r.livre === 'PSA' || !r.canon_id) continue
+      const l = cle.get(`${r.livre}|${r.ch_orig}|${r.v_orig}`)
+      if (l && !l.includes(r.canon_id)) div.push(r)
+    }
+    const pl = {}
+    for (const r of div) pl[`${r.livre} ${r.ch_orig}`] = (pl[`${r.livre} ${r.ch_orig}`] || 0) + 1
+    console.log(`   ${a} / ${b} — ${pourquoi}`)
+    console.log(`   ${div.length} versets divergents, hors psaumes` + (div.length ? ' :' : ' ✓'))
+    if (div.length) console.log('      ' + Object.entries(pl).sort((x, y) => y[1] - x[1]).map(([k, n]) => `${k} (${n})`).join(' · '))
+    console.log('   (psaumes exclus à dessein : la suscription y est numérotée 0 chez Sacy, 1 dans la Vulgate)')
+  }
+  console.log()
+}

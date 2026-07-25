@@ -121,6 +121,44 @@ for (const s of segs) {
     if (f) cibles.push({ seg: s, texte: m[1].trim(), formule: f })
   }
 }
+
+// ── ŒUVRES SANS GUILLEMETS (option --sans-guillemets) ───────────────────────
+// Certaines éditions ne délimitent RIEN : ni guillemets, ni référence (Basile,
+// « Hexaéméron » ; Origène, « Contre Celse » ; Chrysostome, « Homélies »). La
+// boucle ci-dessus n'y trouve donc jamais rien, et l'œuvre reste sans liens.
+//
+// Faute de borne typographique, on prend pour citation présumée la FENÊTRE de
+// texte qui SUIT la formule (« il est écrit : … »). La borne est fausse — elle
+// déborde sur le commentaire —, mais l'appariement se fait par recouvrement :
+// un débordement dilue le score, il ne le fausse pas. C'est pourquoi le résultat
+// part en `douteux` + arbitrage, jamais en `probable` : la citation n'est pas
+// délimitée par la source mais devinée par nous, et cela doit se voir.
+//
+// Option explicite, pour ne rien changer aux œuvres déjà traitées avec l'autre voie.
+const SANS_GUILL = process.argv.includes('--sans-guillemets')
+const FENETRE = 220   // caractères pris après la formule
+if (SANS_GUILL) {
+  const dejaVus = new Set(cibles.map(c => `${c.seg.id}|${c.texte.slice(0, 30)}`))
+  for (const s of segs) {
+    const txt = String(s.segment_texte || '').replace(/<[^>]+>/g, ' ')
+    for (const f of FORMULES) {
+      // `motif` est conçu pour tester le texte qui PRÉCÈDE la citation : il se
+      // termine par « [^.]{0,25}$ ». Rejoué tel quel en global, l'ancre de fin
+      // ne peut jamais tomber — il faut la retirer, et la fenêtre commence alors
+      // juste après le mot d'annonce (« il est écrit : … »).
+      const g = new RegExp(f.motif.source.replace(/\[\^\\?\.\]\{0,\d+\}\$$/, ''), 'gi')
+      for (const m of txt.matchAll(g)) {
+        const apres = txt.slice(m.index + m[0].length, m.index + m[0].length + FENETRE)
+          .replace(/^[\s:,;—–-]+/, '').replace(/\s+/g, ' ').trim()
+        if (apres.length < 40) continue
+        const cle = `${s.id}|${apres.slice(0, 30)}`
+        if (dejaVus.has(cle)) continue
+        dejaVus.add(cle)
+        cibles.push({ seg: s, texte: apres, formule: f, devine: true })
+      }
+    }
+  }
+}
 console.log(`${segs.length} segments · ${cibles.length} citation(s) introduite(s) par une formule`)
 console.log(`  références non bibliques repérées : ${signalements.length}`)
 if (DRY) for (const s of signalements.slice(0, 8)) console.log(`    · ${s.motif.slice(0, 100)}`)
@@ -167,8 +205,10 @@ for (const c of (rienAApparier ? [] : cibles)) {
   if (DRY) console.log(`  ${c.formule.nom.padEnd(12)} seg ${String(c.seg.segment_numero).padStart(4)} → ${meilleur.padEnd(12)} ${best.toFixed(2)}  « ${c.texte.slice(0, 58)} »`)
   liens.push({
     segment_id: c.seg.id, canon_id: meilleur, type: 1,
-    fiabilite: 'probable', provenance: 'ia', arbitrage_requis: true,
-    motif: `Citation annoncée par une formule (« ${c.formule.nom} ») : « ${c.texte.slice(0, 60)} ». Recherche ${perimetre ? 'restreinte à ' + perimetre.length + ' livre(s)' : 'sur tout le canon'}, score ${best.toFixed(2)}.`,
+    // Citation délimitée par l'édition → probable ; citation devinée par fenêtre
+    // (œuvre sans guillemets) → douteux : la borne vient de nous, pas de la source.
+    fiabilite: c.devine ? 'douteux' : 'probable', provenance: 'ia', arbitrage_requis: true,
+    motif: `Citation annoncée par une formule (« ${c.formule.nom} »)${c.devine ? ', bornes devinées (édition sans guillemets)' : ''} : « ${c.texte.slice(0, 60)} ». Recherche ${perimetre ? 'restreinte à ' + perimetre.length + ' livre(s)' : 'sur tout le canon'}, score ${best.toFixed(2)}.`,
   })
 }
 

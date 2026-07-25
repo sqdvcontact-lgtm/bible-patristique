@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
+import { rendreSiecles, siecleEnTexte } from '@/app/lib/siecles'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
@@ -67,15 +68,7 @@ const lbl: React.CSSProperties = {
   textTransform: 'uppercase', color: '#9a958d', display: 'block', marginBottom: '10px',
 }
 
-function enChiffresRomains(n: number): string {
-  const table: [number, string][] = [
-    [1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],
-    [50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I'],
-  ]
-  let res = ''
-  for (const [v, s] of table) { while (n >= v) { res += s; n -= v } }
-  return res
-}
+// (la table des chiffres romains vivait ici en double : voir app/lib/siecles.tsx)
 
 export default function PageAuteur() {
   const params = useParams()
@@ -105,7 +98,7 @@ export default function PageAuteur() {
   if (erreur) return (
     <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
-        <p style={{ fontFamily: 'Georgia, serif', fontSize: '18px', color: '#b0a89e', marginBottom: '8px' }}>Auteur introuvable</p>
+        <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '18px', color: '#b0a89e', marginBottom: '8px' }}>Auteur introuvable</p>
         <Link href="/bibliotheque" style={{ fontSize: '12px', color: '#3d6b4f', textDecoration: 'none' }}>← Bibliothèque</Link>
       </div>
     </main>
@@ -119,7 +112,9 @@ export default function PageAuteur() {
 
   const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${id}.jpg${photoVersion ? `?v=${photoVersion}` : ''}`
   const photoPos = parseAuteurPhotoPositions(auteur.photo_position).fiche
-  const siecleLabel = auteur.siecle ? `${enChiffresRomains(auteur.siecle)}e siècle` : null
+  // Composé à l'affichage par `rendreSiecles`, comme le reste de la ligne :
+  // « Ier » et « av. J.-C. » viennent de siecleEnTexte, qui les connaît.
+  const siecleLabel = auteur.siecle ? siecleEnTexte(auteur.siecle) : null
   const datesAuteur = formaterDateHistorique(auteur.dates)
 
   return (
@@ -139,14 +134,14 @@ export default function PageAuteur() {
             </div>
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: 'normal', color: '#2a3d30', margin: '0 0 4px' }}>
+            <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '22px', fontWeight: 'normal', color: '#2a3d30', margin: '0 0 4px' }}>
               {auteur.titre ? `${auteur.titre} ` : ''}{auteur.nom}
             </h1>
             {auteur.nom_original && (
               <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic', margin: '0 0 6px' }}>{auteur.nom_original}</p>
             )}
             <p style={{ fontSize: '11.5px', color: '#b0a89e', margin: 0 }}>
-              {[datesAuteur, siecleLabel, auteur.langue_principale].filter(Boolean).join(' · ')}
+              {rendreSiecles([datesAuteur, siecleLabel, auteur.langue_principale].filter(Boolean).join(' · '))}
             </p>
             {auteur.traditions && auteur.traditions.length > 0 && (
               <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginTop: '8px' }}>
@@ -164,8 +159,8 @@ export default function PageAuteur() {
         {auteur.note_biographique && (
           <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '22px 24px' }}>
             <span style={lbl}>Biographie</span>
-            <p style={{ fontFamily: 'Georgia, serif', fontSize: '13px', color: '#3a3530', lineHeight: 1.72, margin: 0 }}>
-              {auteur.note_biographique}
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '13px', color: '#3a3530', lineHeight: 1.72, margin: 0 }}>
+              {rendreSiecles(auteur.note_biographique)}
             </p>
           </div>
         )}
@@ -174,8 +169,8 @@ export default function PageAuteur() {
         {auteur.note_theologique && (
           <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '22px 24px' }}>
             <span style={lbl}>Pensée théologique</span>
-            <p style={{ fontFamily: 'Georgia, serif', fontSize: '13px', color: '#3a3530', lineHeight: 1.72, margin: 0 }}>
-              {auteur.note_theologique}
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '13px', color: '#3a3530', lineHeight: 1.72, margin: 0 }}>
+              {rendreSiecles(auteur.note_theologique)}
             </p>
           </div>
         )}
@@ -190,13 +185,13 @@ export default function PageAuteur() {
                   style={{ display: 'block', padding: '10px 14px', border: '1px solid #ede9e2', borderRadius: '7px', textDecoration: 'none', transition: 'border-color 0.12s' }}
                   onMouseEnter={e => (e.currentTarget.style.borderColor = '#3d6b4f')}
                   onMouseLeave={e => (e.currentTarget.style.borderColor = '#ede9e2')}>
-                  <p style={{ fontFamily: 'Georgia, serif', fontSize: '13.5px', color: '#2a3d30', margin: o.sous_titre ? '0 0 2px' : 0 }}>{o.titre}</p>
+                  <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '13.5px', color: '#2a3d30', margin: o.sous_titre ? '0 0 2px' : 0 }}>{o.titre}</p>
                   {o.sous_titre && (
                     <p style={{ fontSize: '11.5px', color: '#6b6560', fontStyle: 'italic', margin: '0 0 4px' }}>{o.sous_titre}</p>
                   )}
                   {(o.trad_auteur || o.editeur || o.date_publication) && (
                     <p style={{ fontSize: '10.5px', color: '#b0a89e', margin: 0 }}>
-                      {[o.trad_auteur ? `trad. ${o.trad_auteur}` : null, o.editeur, formaterDateHistorique(o.date_publication)].filter(Boolean).join(' · ')}
+                      {rendreSiecles([o.trad_auteur ? `trad. ${o.trad_auteur}` : null, o.editeur, formaterDateHistorique(o.date_publication)].filter(Boolean).join(' · '))}
                     </p>
                   )}
                 </Link>

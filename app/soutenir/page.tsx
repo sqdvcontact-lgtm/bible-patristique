@@ -38,7 +38,7 @@ export default function SoutenirPage() {
 
       {/* Titre */}
       <h1 style={{
-        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontFamily: "var(--font-source-serif), Georgia, serif",
         fontSize: "clamp(20px, 2.8vw, 27px)",
         fontWeight: "normal",
         color: "#1e2e24",
@@ -57,7 +57,7 @@ export default function SoutenirPage() {
 
       {/* Colophon pyramide */}
       <div style={{
-        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontFamily: "var(--font-source-serif), Georgia, serif",
         fontSize: "14px",
         fontStyle: "italic",
         color: "#4a5e50",
@@ -75,7 +75,7 @@ export default function SoutenirPage() {
         style={{
           display: "inline-flex", alignItems: "center", gap: "10px",
           background: "#3d6b4f", color: "#fff", textDecoration: "none",
-          fontFamily: "Georgia, serif",
+          fontFamily: "var(--font-source-serif), Georgia, serif",
           fontSize: "13.5px", fontWeight: 500, padding: "11px 28px",
           borderRadius: "6px",
           boxShadow: "0 3px 12px rgba(61,107,79,0.22)",

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from "@/app/lib/supabase"
@@ -9,6 +9,7 @@ import EditeurCommentaire from '@/app/components/EditeurCommentaire'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { segmentsLiesAuVerset, segmentsLiesAuChapitre, type TypeLien } from '@/app/lib/liens'
+import IconeSignet from '@/app/components/IconeSignet'
 
 type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
 type Segment = {
@@ -24,13 +25,6 @@ type OeuvreInfo = {
 }
 type Commentaire = { id: number; texte: string; auteur_nom: string; created_at: string }
 
-function IconeSignet() {
-  return (
-    <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display:'block' }}>
-      <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round"/>
-    </svg>
-  )
-}
 
 const ACTION_BTN: React.CSSProperties = {
   background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
@@ -151,7 +145,7 @@ function BoutonEnregistrerSegment({ segment, info, userId }: {
     return (
       <button onClick={supprimer} disabled={loading} title="Retirer des prélèvements"
         style={{ ...ACTION_BTN, color:'#3d6b4f' }}>
-        {loading ? '…' : '✕'}
+        {loading ? '…' : <IconeSignet plein />}
       </button>
     )
   }
@@ -896,11 +890,13 @@ export default function PanneauPatristique({
     : sousOnglet === 'doctrine' ? itemsTous.filter(i => i.categories.includes('commentaire'))
     : itemsTous.filter(i => i.categories.includes('echo'))
 
-  // Compteur de l'onglet « Pères de l'Église » : le nombre de segments RÉELLEMENT
-  // affichables (dédoublonnés, œuvres publiées seulement). L'ancien total, somme brute
-  // des trois listes, comptait un segment cité-puis-commenté deux fois et incluait des
-  // œuvres non publiées — d'où un « 1 » sur des versets sans occurrence visible.
-  const nbPatristique = itemsTous.length
+  // Compteur de l'onglet « Pères de l'Église » : les segments RÉELLEMENT affichables
+  // (dédoublonnés, œuvres publiées seulement) qui sont cités OU commentés. Les échos —
+  // simples allusions au thème, la plus faible des quatre natures de lien — restent hors
+  // du total : ils y pesaient autant qu'une citation formelle et gonflaient le chiffre
+  // sans rien annoncer. Leur sous-onglet garde évidemment son propre décompte.
+  // Un segment à la fois cité et commenté ne compte toujours qu'une fois.
+  const nbPatristique = itemsTous.filter(i => estCitation(i.categories) || i.categories.includes('commentaire')).length
   // Sans verset sélectionné mais avec un chapitre ouvert : mode chapitre (apparat
   // patristique de tout le chapitre). Les commentaires, eux, sont attachés à un
   // verset : leur onglet ne paraît donc qu'avec une sélection.
@@ -1024,7 +1020,7 @@ export default function PanneauPatristique({
           </svg>
         </button>
         {refFr && (
-          <h2 style={{ fontFamily:"Georgia, 'Times New Roman', serif", fontSize:'13px', fontWeight:500, color:'#2a3d30', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', textAlign:'center' }}>
+          <h2 style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'13px', fontWeight:500, color:'#2a3d30', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', textAlign:'center' }}>
             {refFr}
           </h2>
         )}
@@ -1043,7 +1039,7 @@ export default function PanneauPatristique({
                   cursor:'pointer',
                   background: onglet === t.code ? 'rgba(61,107,79,0.04)' : 'transparent',
                   color: onglet === t.code ? '#2a3d30' : '#8a8278',
-                  fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
+                  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
                   transition:'color 0.12s, background 0.12s',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
                 }}>
@@ -1322,9 +1318,9 @@ export default function PanneauPatristique({
             <div style={{ flex:1, height:'1px', background:'linear-gradient(to left, transparent, #d6d0c4)' }} />
           </div>
           <div style={{ textAlign:'center', marginBottom:'14px' }}>
-            <span style={{ fontFamily:"Georgia, 'Times New Roman', serif", fontSize:'22px', color:'#c8c0b4', lineHeight:1 }}>❧</span>
+            <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'22px', color:'#c8c0b4', lineHeight:1 }}>❧</span>
           </div>
-          <div style={{ fontFamily:"Georgia, 'Times New Roman', serif", fontSize:'12px', fontStyle:'italic', color:'#9a958d', lineHeight:1.85, textAlign:'center' }}>
+          <div style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'12px', fontStyle:'italic', color:'#9a958d', lineHeight:1.85, textAlign:'center' }}>
             {[
               ['Cliquez sur un verset pour voir', '220px'],
               ['les textes des Pères', '155px'],

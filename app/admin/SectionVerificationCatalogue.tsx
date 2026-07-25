@@ -307,7 +307,7 @@ export default function SectionVerificationCatalogue() {
           {regrouperNotices(notices).map(groupe => (
             <div key={groupe.cle} style={{ border: '1px solid #e4dfd8', borderRadius: '8px', overflow: 'hidden', background: '#fff' }}>
               <div style={{ padding: '9px 14px', background: '#f5f1e8', borderBottom: '1px solid #e4dfd8', display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '12.8px', fontWeight: 700, color: '#2a3d30', fontFamily: 'Georgia, serif' }}>{groupe.titre}</span>
+                <span style={{ fontSize: '12.8px', fontWeight: 700, color: '#2a3d30', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>{groupe.titre}</span>
                 <span style={{ fontSize: '11px', color: '#6b6560', fontStyle: 'italic' }}>{groupe.auteur}</span>
                 <span style={{ fontSize: '10px', color: '#b0a89e' }}>{groupe.notices.length} titre{groupe.notices.length > 1 ? 's' : ''}</span>
               </div>
