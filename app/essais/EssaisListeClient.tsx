@@ -375,6 +375,18 @@ function OngletCommunaute({
           font-size: 9.5px;
           color: #a49b90;
         }
+        /* Cœur « j'aime » : bouton nu imbriqué dans le lien de la carte (même
+           procédé que l'étoile favori), au ton rosé quand la publication est aimée. */
+        .publication-populaire-like {
+          display: inline-flex; align-items: center; gap: 3px;
+          font-size: 9.5px; color: #a49b90; line-height: 1;
+          background: none; border: none; padding: 0; margin: 0;
+          font-family: inherit; cursor: pointer;
+          transition: color 0.15s, transform 0.12s;
+        }
+        .publication-populaire-like .coeur { font-size: 10.5px; line-height: 1; }
+        .publication-populaire-like[data-aime="true"] { color: #c25b4e; }
+        button.publication-populaire-like:hover { color: #c25b4e; transform: scale(1.08); }
         @keyframes podium-shimmer {
           0%   { transform: translateX(-200%); }
           100% { transform: translateX(300%); }
@@ -798,6 +810,35 @@ function EnTetePublicationsPopulaires({ essais, favorisEssais, toggleFavoriEssai
   const refTete = useRef<HTMLElement | null>(null)
   const [hauteur, setHauteur] = useState<number | null>(null)
 
+  // « J'aime » : mêmes données que la page de l'essai (table essais_appreciations).
+  // On récupère en une requête les publications déjà aimées par le lecteur, et l'on
+  // tient un compteur local pour la mise à jour optimiste du chiffre affiché.
+  const [userId, setUserId] = useState<string | null>(null)
+  const [mesLikes, setMesLikes] = useState<Set<number>>(new Set())
+  const [compteurs, setCompteurs] = useState<Record<number, number>>({})
+
+  useEffect(() => {
+    setCompteurs(Object.fromEntries(essais.map(e => [e.id, e.nb_likes])))
+    const ids = essais.map(e => e.id)
+    supabase.auth.getSession().then(({ data }) => {
+      const uid = data.session?.user.id ?? null
+      setUserId(uid)
+      if (uid && ids.length) {
+        supabase.from('essais_appreciations').select('id_essai').eq('user_id', uid).in('id_essai', ids)
+          .then(({ data }) => setMesLikes(new Set((data ?? []).map((r: { id_essai: number }) => r.id_essai))))
+      }
+    })
+  }, [essais])
+
+  const toggleLike = async (id: number) => {
+    if (!userId) return
+    const aime = mesLikes.has(id)
+    setMesLikes(prev => { const s = new Set(prev); if (aime) s.delete(id); else s.add(id); return s })
+    setCompteurs(prev => ({ ...prev, [id]: Math.max(0, (prev[id] ?? 0) + (aime ? -1 : 1)) }))
+    if (aime) await supabase.from('essais_appreciations').delete().eq('id_essai', id).eq('user_id', userId)
+    else await supabase.from('essais_appreciations').insert({ id_essai: id, user_id: userId })
+  }
+
   useEffect(() => {
     const mesurer = () => {
       const el = refTete.current
@@ -838,9 +879,22 @@ function EnTetePublicationsPopulaires({ essais, favorisEssais, toggleFavoriEssai
               {e.resume ? tronquerAuMot(e.resume, LIMITE_RESUME) : ''}
             </span>
             <span className="publication-populaire-meta-ligne">
-              <span className="publication-populaire-meta">
-                {e.nb_likes > 0 ? `${e.nb_likes} likes` : `${e.nb_vues} vue${e.nb_vues !== 1 ? 's' : ''}`}
-              </span>
+              <span className="publication-populaire-meta">{e.nb_vues} vue{e.nb_vues !== 1 ? 's' : ''}</span>
+              {/* Le cœur remplace l'ancien « N likes ». Pour un lecteur connecté c'est un
+                  bouton qui aime / retire l'appréciation ; sinon un simple libellé qui
+                  suit le lien de la carte vers la publication. */}
+              {userId ? (
+                <button type="button" className="publication-populaire-like" data-aime={mesLikes.has(e.id)}
+                  onClick={ev => { ev.preventDefault(); ev.stopPropagation(); void toggleLike(e.id) }}
+                  title={mesLikes.has(e.id) ? 'Retirer mon appréciation' : 'J’aime cette publication'}
+                  aria-label={mesLikes.has(e.id) ? 'Retirer mon appréciation' : 'J’aime cette publication'}>
+                  <span className="coeur" aria-hidden="true">♥</span>{compteurs[e.id] ?? e.nb_likes}
+                </button>
+              ) : (
+                <span className="publication-populaire-like" data-aime="false">
+                  <span className="coeur" aria-hidden="true">♥</span>{compteurs[e.id] ?? e.nb_likes}
+                </span>
+              )}
               <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={12} />
             </span>
           </Link>
@@ -1284,6 +1338,18 @@ function OngletMesEcrits({
                     <span>♥ {e.nb_likes ?? 0}</span>
                     <span style={{ color: st.couleur, fontWeight: 700 }}>{st.label}</span>
                   </div>
+                  {/* Mention explicite tant que l'administration examine le texte : le
+                      petit mot « En attente » ne dit pas de quoi. Ici on précise que la
+                      révision / validation est en cours de leur côté. */}
+                  {e.statut === 'en_attente' && (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '7px', padding: '3px 10px', borderRadius: '999px', background: 'rgba(154,90,42,0.10)', border: '1px solid rgba(154,90,42,0.28)' }}>
+                      <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <circle cx="8" cy="8" r="6.2" stroke="#9a5a2a" strokeWidth="1.3"/>
+                        <path d="M8 4.6V8l2.4 1.6" stroke="#9a5a2a" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span style={{ fontSize: '10px', fontWeight: 600, color: '#9a5a2a' }}>En cours de révision par l’administration</span>
+                    </div>
+                  )}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                   <button onClick={() => basculerPublication(e)} disabled={!peutBasculer || verrouille}

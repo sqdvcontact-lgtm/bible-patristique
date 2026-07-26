@@ -358,7 +358,12 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           <>
             {cibleReponse && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(61,107,79,0.07)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '5px', padding: '6px 10px', marginBottom: '6px' }}>
-                <span style={{ fontSize: '11px', color: '#3d6b4f' }}>↳ Réponse à <strong>{cibleReponse.pseudo ?? 'Anonyme'}</strong></span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#3d6b4f' }}>
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+                    <path d="M7 4 3.5 7.5 7 11M3.5 7.5H10a2.5 2.5 0 0 1 2.5 2.5V12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Réponse à <strong>{cibleReponse.pseudo ?? 'Anonyme'}</strong>
+                </span>
                 <button onClick={() => setCibleReponse(null)} style={{ marginLeft: 'auto', fontSize: '12px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
               </div>
             )}

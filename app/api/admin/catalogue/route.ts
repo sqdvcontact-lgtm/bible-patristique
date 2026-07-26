@@ -13,6 +13,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url)
   const verifie   = url.searchParams.get('verifie')
   const presence  = url.searchParams.get('presence')
+  const avecUrl   = url.searchParams.get('avec_url')
   const decision  = url.searchParams.get('decision')
   const auteur    = url.searchParams.get('auteur')
   const page      = parseInt(url.searchParams.get('page') ?? '0')
@@ -41,6 +42,8 @@ export async function GET(req: Request) {
   if (verifie === 'true')  q = q.eq('verifie', true)
   if (verifie === 'false') q = q.eq('verifie', false)
   if (presence === 'true') q = q.eq('presence_sur_le_site', true)
+  // « Avec lien » : notices dont l'URL vers le livre d'origine est renseignée.
+  if (avecUrl === 'true')  q = q.not('url_source', 'is', null)
   if (idsOeuvres.length) q = q.in('id_oeuvre_stable', idsOeuvres)
   if (auteur) q = q.ilike('auteur', `%${auteur}%`)
 

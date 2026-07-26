@@ -21,6 +21,7 @@ import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { ABREV_FR } from "@/app/lib/bible";
 import { texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
+import ModalSignalement from "@/app/oeuvre/[id]/ModalSignalement";
 
 type Livre = { code: string; nom_fr: string; ordre: number };
 type Trad = { trad_id: string; nom: string; ordre: number | null; label: string; edition: string | null; lang: string };
@@ -305,67 +306,9 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
   );
 }
 
-const SIGNAL_NIVEAUX = [
-  { val: "mineur", label: "Mineur" },
-  { val: "important", label: "Important" },
-  { val: "bloquant", label: "Bloquant" },
-] as const;
-
-function ModalSignalementVerset({ refLisible, onFermer, onEnvoyer }: {
-  refLisible: string; onFermer: () => void; onEnvoyer: (message: string, importance: string) => Promise<void>;
-}) {
-  const [message, setMessage] = useState("");
-  const [importance, setImportance] = useState<string>("important");
-  const [statut, setStatut] = useState<"idle" | "envoi" | "ok" | "err">("idle");
-  const envoyer = async () => {
-    if (!message.trim()) return;
-    setStatut("envoi");
-    try { await onEnvoyer(message.trim(), importance); setStatut("ok"); setTimeout(onFermer, 1500); }
-    catch { setStatut("err"); }
-  };
-  return (
-    <div onClick={onFermer} style={{ position: "fixed", inset: 0, background: "rgba(30,25,20,0.4)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 9, padding: "18px 20px", width: 360, maxWidth: "100%", boxShadow: "0 12px 36px rgba(40,30,15,0.24)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#c0562a" }}>Signaler — {refLisible}</p>
-          <button onClick={onFermer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 14, color: "#b0a89e", lineHeight: 1, padding: 0 }}>✕</button>
-        </div>
-        {statut === "ok" ? (
-          <p style={{ fontSize: 11.5, color: VERT, fontStyle: "italic", textAlign: "center", padding: "8px 0", margin: 0 }}>Signalement envoyé, merci !</p>
-        ) : (
-          <>
-            <div style={{ display: "flex", gap: 6, marginBottom: 10, alignItems: "center" }}>
-              <span style={{ fontSize: 10.5, color: "#9a958d" }}>Niveau :</span>
-              {SIGNAL_NIVEAUX.map(n => (
-                <button key={n.val} onClick={() => setImportance(n.val)}
-                  style={{ fontSize: 10.5, padding: "3px 10px", borderRadius: 12, border: "none", cursor: "pointer", fontFamily: "inherit",
-                    fontWeight: importance === n.val ? 600 : 400,
-                    background: importance === n.val ? "#c0562a" : "#f3ece6", color: importance === n.val ? "#fff" : "#8a6a52" }}>
-                  {n.label}
-                </button>
-              ))}
-            </div>
-            <textarea value={message} onChange={e => setMessage(e.target.value)} rows={4} autoFocus
-              placeholder="Décrivez l'erreur constatée…"
-              style={{ width: "100%", boxSizing: "border-box", fontSize: 11.5, padding: "7px 9px", border: "1px solid #d6d0c4", borderRadius: 5, background: "#faf8f4", color: "#2a2520", resize: "vertical", outline: "none", lineHeight: 1.5, fontFamily: "inherit" }} />
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 8, alignItems: "center" }}>
-              {statut === "err" && <span style={{ fontSize: 10, color: ROUGE, marginRight: "auto" }}>Erreur d’envoi.</span>}
-              <button onClick={onFermer} style={{ fontSize: 11, padding: "5px 12px", borderRadius: 4, border: "1px solid #d6d0c4", background: "#fff", color: "#6b6560", cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
-              <button onClick={envoyer} disabled={statut === "envoi" || !message.trim()}
-                style={{ fontSize: 11, padding: "5px 14px", borderRadius: 4, border: "none", cursor: message.trim() ? "pointer" : "default", background: message.trim() ? "#c0562a" : "#e4dfd8", color: message.trim() ? "#fff" : "#9a958d", fontWeight: 500, fontFamily: "inherit" }}>
-                {statut === "envoi" ? "Envoi…" : "Envoyer"}
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function BoutonSignalerVerset({ refLisible }: { refLisible: string }) {
   const [ouvert, setOuvert] = useState(false);
-  const envoyer = async (message: string, importance: string) => {
+  const envoyer = async (message: string, importance?: string) => {
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
     const headers: HeadersInit = { "Content-Type": "application/json" };
@@ -380,7 +323,7 @@ function BoutonSignalerVerset({ refLisible }: { refLisible: string }) {
     <>
       <button onClick={e => { e.stopPropagation(); setOuvert(true); }} title="Signaler une erreur" className="poly-act"
         style={{ ...ACT_BTN, color: "#b7ad9a" }} aria-label="Signaler">⚑</button>
-      {ouvert && <ModalSignalementVerset refLisible={refLisible} onFermer={() => setOuvert(false)} onEnvoyer={envoyer} />}
+      {ouvert && <ModalSignalement titre={refLisible} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   );
 }
@@ -657,10 +600,10 @@ export default function PolyglottePage() {
         }
         /* Citer / signaler : empilés verticalement sous le numéro canonique, nus (aucun
            fond) — ils ne se révèlent qu'au survol de la ligne. */
-        /* Resserrés ENTRE EUX (line-height nul, aucun écart), mais décollés du numéro
-           canonique : c'est la marge haute qui les en sépare, pas leur interligne. */
+        /* Légèrement desserrés ENTRE EUX (petit écart vertical), et décollés du numéro
+           canonique : c'est la marge haute qui les en sépare. */
         .poly-actstack {
-          display: flex; flex-direction: column; align-items: center; gap: 0;
+          display: flex; flex-direction: column; align-items: center; gap: 4px;
           width: -moz-fit-content; width: fit-content; margin: 6px auto 0;
           line-height: 0;
         }
@@ -852,10 +795,11 @@ export default function PolyglottePage() {
                           <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 12.5, color: "rgba(255,255,255,0.96)" }}>
                             {sc.trad?.nom ?? "Aucune traduction"}
                           </span>
-                          {/* Le millésime seul, en petites capitales espacées : deux lignes,
-                              aucune ponctuation, et un filet qui les tient ensemble. */}
+                          {/* Le millésime seul, en petites capitales espacées, sous le nom.
+                              Sans filet de séparation : le simple retrait vertical suffit à
+                              distinguer les deux lignes. */}
                           {sc.trad?.edition && (
-                            <span style={{ display: "block", marginTop: 3, paddingTop: 3, borderTop: "1px solid rgba(255,255,255,0.16)", fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: 8.5, fontWeight: 600, letterSpacing: "0.18em", textIndent: "0.18em", color: "rgba(255,255,255,0.62)" }}>
+                            <span style={{ display: "block", marginTop: 3, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: 8.5, fontWeight: 600, letterSpacing: "0.18em", textIndent: "0.18em", color: "rgba(255,255,255,0.62)" }}>
                               {sc.trad.edition}
                             </span>
                           )}

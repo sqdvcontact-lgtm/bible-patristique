@@ -1362,7 +1362,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         <div className="seg-actions" style={{ display: 'flex', flexDirection: 'row', gap: '2px', flexShrink: 0, width: '68px', paddingTop: '2px', justifyContent: 'flex-end', marginRight: '-8px' }}>
                           {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
                           <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} className="seg-btn-action" />
-                          <BoutonSignalerSegment segId={sid} apercu={texteSansEnrichissement(s.texte).slice(0, 90)} titreOeuvre={oeuvre.titre} className="seg-btn-action" />
+                          <BoutonSignalerSegment segId={sid} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} className="seg-btn-action" />
                           {estAdmin && (
                             <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" aria-label="Modifier ce segment"
                               className="seg-btn-action"
@@ -1489,17 +1489,20 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               <>
                 {/* Sélecteur traduction */}
                 <div ref={tradSelectRef} style={{ padding: '10px 0 8px', borderBottom: '1px solid #ede9e2', marginBottom: '10px', position: 'relative' }}>
+                  {/* Sélecteur de traduction remis dans le style général du site : libellé en
+                      capitales espacées grises + contrôle sobre à bord neutre (au lieu de la
+                      pilule verte). Le vert ne sert plus qu'à l'option active et au focus. */}
+                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', margin: '0 0 4px' }}>Traduction</p>
                   <button onClick={() => setTradOuverte(!tradOuverte)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '4px 8px 4px 10px', borderRadius: '20px', border: '1px solid #c8e0d2', background: tradOuverte ? 'rgba(61,107,79,0.06)' : '#f4f9f6', fontSize: '10.5px', color: '#3a3530', cursor: 'pointer' }}>
-                    <span style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', color: '#3d6b4f', flexShrink: 0 }}>TRADUCTION</span>
+                    style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '5px', border: `1px solid ${tradOuverte ? '#3d6b4f' : '#d6d0c4'}`, background: '#fff', fontSize: '10.5px', color: '#2a3d30', cursor: 'pointer', transition: 'border-color 0.12s' }}>
                     <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{traductionsBible[tradIndex]?.label ?? trad}</span>
-                    <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: '#3d6b4f', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: '#9a958d', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </button>
                   {tradOuverte && (
-                    <div style={{ position: 'absolute', top: 'calc(100% - 4px)', left: 0, right: 0, background: '#fff', border: '1px solid #c8e0d2', borderRadius: '8px', zIndex: 50, boxShadow: '0 4px 20px rgba(0,0,0,0.10)', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', top: 'calc(100% - 2px)', left: 0, right: 0, background: '#fff', border: '1px solid #d6d0c4', borderRadius: '6px', zIndex: 50, boxShadow: '0 4px 20px rgba(0,0,0,0.10)', overflow: 'hidden' }}>
                       {traductionsBible.map((t, i) => (
                         <button key={t.code} onClick={() => { setTradIndex(i); setTradOuverte(false) }} className="trad-option"
-                          style={{ width: '100%', textAlign: 'left', padding: '6px 10px', fontSize: '10.5px', border: 'none', borderBottom: i < traductionsBible.length - 1 ? '1px solid #eef5f1' : 'none', background: tradIndex === i ? '#eef5f1' : '#fff', color: tradIndex === i ? '#3d6b4f' : '#3a3530', fontWeight: tradIndex === i ? 600 : 400, cursor: 'pointer' }}>
+                          style={{ width: '100%', textAlign: 'left', padding: '6px 10px', fontSize: '10.5px', border: 'none', borderBottom: i < traductionsBible.length - 1 ? '1px solid #f0ece6' : 'none', background: tradIndex === i ? '#eef5f1' : '#fff', color: tradIndex === i ? '#3d6b4f' : '#3a3530', fontWeight: tradIndex === i ? 600 : 400, cursor: 'pointer' }}>
                           {t.label}
                         </button>
                       ))}
@@ -1550,8 +1553,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                       ↳ {note}
                                     </p>
                                   )}
-                                  <p lang="fr" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '12px', lineHeight: '1.38', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', marginBottom: '4px' } as React.CSSProperties}>
-                                    {corps || '—'}
+                                  {/* Texte du verset : SANS SÉRIF, avec la même mise en forme que les
+                                      citations patristiques du panneau Bible (cf. PanneauPatristique) —
+                                      justifié, wordSpacing serré, césure. Enrichissement (« <i> » de Sacy) rendu. */}
+                                  <p lang="fr" style={{ fontSize: '11.2px', lineHeight: '1.38', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.08em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 4px' } as React.CSSProperties}>
+                                    {corps ? rendreTexteEnrichi(corps) : '—'}
                                   </p>
                                 </>
                               )
@@ -1566,7 +1572,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     }
                   </>
                 ) : (
-                  <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>Cliquez sur un paragraphe pour afficher ses liens bibliques.</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '40px' }}>
+                    <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d', textAlign: 'center', margin: 0 }}>Cliquez sur un paragraphe.</p>
+                    {/* Cul-de-lampe (buisson ardent). `multiply` fond le fond blanc du dessin dans le papier. */}
+                    <img src="/ornements/cul-de-lampe-buisson-ardent.png" alt="" aria-hidden="true"
+                      style={{ width: '82%', maxWidth: '190px', height: 'auto', opacity: 0.42, mixBlendMode: 'multiply', marginTop: '20px' }} />
+                  </div>
                 )}
               </>
             ) : ongletDroit === 'commentaires' ? (

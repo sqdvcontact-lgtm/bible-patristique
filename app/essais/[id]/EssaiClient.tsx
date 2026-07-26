@@ -284,7 +284,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
                 <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <span style={{ flex: 1, minWidth: 0, alignSelf: 'center', textAlign: 'center', fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#9a958d', whiteSpace: 'nowrap' }}>Commentaire</span>
+            <span style={{ flex: 1, minWidth: 0, alignSelf: 'center', textAlign: 'center', fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#9a958d', whiteSpace: 'nowrap' }}>Commentaires</span>
             <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
               <BoutonPartage label="Copier le lien" onClick={copierLien}>
                 <svg width="11" height="11" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">

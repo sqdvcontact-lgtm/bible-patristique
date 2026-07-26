@@ -238,6 +238,14 @@ function normaliserRecherche(valeur: string) {
     .trim()
 }
 
+type StatLiens = { nb_liens: number; derniere_maj: string | null }
+
+function formaterDateLiens(iso: string | null) {
+  if (!iso) return null
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
 function refBibliqueFr(ref: string, fallback = ref) {
   const brut = (ref || fallback || '').trim()
   const match = brut.match(/^([1-3]?[A-Z]{2,3})[\s._-]+(\d+)(?::|[._-])?(\d+)?$/i)
@@ -253,6 +261,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
   const toutesOeuvres = React.useMemo(() => auteurs.flatMap(a => a.oeuvres.map(o => ({ ...o, auteur: a.nom }))).sort((a, b) => `${a.auteur} ${a.titre}`.localeCompare(`${b.auteur} ${b.titre}`, 'fr')), [auteurs])
   const [modeControle, setModeControle] = React.useState<ModeControle>('corpus')
   const [oeuvresPerso, setOeuvresPerso] = React.useState<OeuvreControle[]>([])
+  const [statsLiens, setStatsLiens] = React.useState<Map<string, StatLiens>>(new Map())
   const [idOeuvre, setIdOeuvre] = React.useState('')
   const [segments, setSegments] = React.useState<SegmentControle[]>([])
   const [chargement, setChargement] = React.useState(false)
@@ -267,6 +276,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
   const [statutAction, setStatutAction] = React.useState<'idle' | 'envoi' | 'erreur'>('idle')
   const [versetsLies, setVersetsLies] = React.useState<Record<string, VersetLieControle>>({})
   const [modaleLienOuverte, setModaleLienOuverte] = React.useState(false)
+  const [statutIA, setStatutIA] = React.useState<'idle' | 'encours' | 'erreur'>('idle')
 
   const oeuvresRecherche = React.useMemo<OeuvreControle[]>(() => (
     modeControle === 'perso'
@@ -293,12 +303,30 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     }
   }, [libelleOeuvre, oeuvresRecherche])
 
+  // Agrégats de liens par œuvre (vue `oeuvres_liens_stats`) : combien, et quand
+  // modifiés pour la dernière fois. Une seule requête pour toute la liste d'accueil.
+  React.useEffect(() => {
+    if (modeControle !== 'corpus') return
+    let annule = false
+    supabase
+      .from('oeuvres_liens_stats')
+      .select('id_oeuvre,nb_liens,derniere_maj')
+      .then(({ data }) => {
+        if (annule) return
+        const map = new Map<string, StatLiens>()
+        ;((data ?? []) as { id_oeuvre: string; nb_liens: number; derniere_maj: string | null }[])
+          .forEach(r => map.set(r.id_oeuvre, { nb_liens: r.nb_liens, derniere_maj: r.derniere_maj }))
+        setStatsLiens(map)
+      })
+    return () => { annule = true }
+  }, [modeControle])
+
   React.useEffect(() => {
     if (modeControle !== 'corpus') return
     const params = new URLSearchParams(window.location.search)
     const depuisUrl = params.get('id_oeuvre')
-    const initial = depuisUrl || toutesOeuvres[0]?.id_oeuvre || ''
-    setIdOeuvre(initial)
+    // On s'ouvre sur la LISTE des œuvres (idOeuvre vide), sauf si l'URL en désigne une.
+    setIdOeuvre(depuisUrl || '')
   }, [modeControle, toutesOeuvres])
 
   React.useEffect(() => {
@@ -316,7 +344,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         })
         const liste = [...map.values()]
         setOeuvresPerso(liste)
-        setIdOeuvre(liste[0]?.id_oeuvre ?? '')
+        setIdOeuvre('')
       })
     return () => { annule = true }
   }, [modeControle])
@@ -352,6 +380,13 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     // dans son ancien vocabulaire pour ne pas casser ce qui la lit ailleurs.
     if (modeControle === 'perso' && forcé) charge.statut_controle = versStatutPerso(forcé)
     const { error } = await supabase.from(table).update(charge).eq('id', idSegment)
+    setStatutAction(error ? 'erreur' : 'idle')
+  }
+
+  const changerNature = async (idSegment: number, valeur: string) => {
+    setSegments(prev => prev.map(s => s.id === idSegment ? { ...s, nature: valeur } : s))
+    setStatutAction('envoi')
+    const { error } = await supabase.from(table).update({ nature: valeur }).eq('id', idSegment)
     setStatutAction(error ? 'erreur' : 'idle')
   }
 
@@ -488,6 +523,33 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     const notes = [...(actif.notes ?? [])]
     notes.splice(index, 1)
     sauverNotes(notes)
+  }
+
+  // Relecture IA : la machine juge si le segment est « à reprendre » (défauts matériels
+  // de transcription seulement). Si oui, on force le rang critique — SANS marquer
+  // « vérifié », qui reste réservé au jugement humain — et l'on consigne la raison en note.
+  const relireIA = async () => {
+    if (!actif) return
+    setStatutIA('encours')
+    try {
+      const res = await fetch('/api/admin/relire-segment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texte: actif.segment_texte ?? '' }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Erreur IA')
+      if (json.reprendre) {
+        setSegments(prev => prev.map(s => s.id === actif.id ? { ...s, controle_rang_manuel: 'critique', statut_controle: 'critique' } : s))
+        await supabase.from(table).update({ controle_rang_manuel: 'critique' }).eq('id', actif.id)
+        await sauverNotes([...(actif.notes ?? []), `IA — à reprendre : ${json.raison || 'défaut de transcription'}`])
+      } else {
+        await sauverNotes([...(actif.notes ?? []), 'IA — relecture : rien à signaler.'])
+      }
+      setStatutIA('idle')
+    } catch {
+      setStatutIA('erreur')
+    }
   }
 
   const ajouterTextePersonnel = async () => {
@@ -633,6 +695,13 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     verdicts.forEach(v => { out[v.rang] += 1 })
     return out
   }, [verdicts])
+  // Natures déjà présentes dans l'œuvre : alimentent le menu déroulant « Nature ».
+  const naturesDisponibles = React.useMemo(() => {
+    const set = new Set<string>()
+    segments.forEach(s => { if (s.nature) set.add(s.nature) })
+    if (set.size === 0) set.add('texte')
+    return [...set].sort((a, b) => a.localeCompare(b, 'fr'))
+  }, [segments])
 
   const segmentsAffiches = React.useMemo<SegmentAfficheControle[]>(() => {
     if (filtre !== 'moyen' && filtre !== 'critique') {
@@ -749,7 +818,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .score-sur{font-size:11px;color:#9a958d;margin-left:2px;}
         .score-legende{font-size:10px;color:#9a958d;line-height:1.45;margin:3px 0 0;}
         .encart{border-radius:6px;padding:9px 11px 10px;margin-bottom:9px;}
-        .encart h4{margin:0 0 6px;font-family:var(--font-source-sans), Arial, sans-serif;font-size:9px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;}
+        .encart h4{margin:0 0 6px;font-family:var(--font-source-serif), Georgia, serif;font-size:12px;font-weight:600;font-style:italic;letter-spacing:0;text-transform:none;}
         .encart ul{margin:0;padding-left:15px;display:flex;flex-direction:column;gap:6px;}
         .encart li{font-size:11.5px;line-height:1.5;}
         .encart-rouge{background:#fff4f1;border:1px solid #e6bfb2;}
@@ -770,8 +839,8 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .mode-btn.active{background:#f2f8f4;border-color:#3d6b4f;color:#2f6046;font-weight:700;}
         .niveau-btn{border:1px solid #d6d0c4;background:#fff;border-radius:999px;padding:4px 8px;font-size:10px;cursor:pointer;color:#5a5450;transition:background .12s,border-color .12s,color .12s;}
         .niveau-btn.active{font-weight:700;}
-        .controle-section{margin-top:14px;padding-top:12px;border-top:1px solid #ede9e2;}
-        .controle-section-title{font-family:var(--font-source-serif), Georgia, serif;font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9a958d;margin:0 0 7px;}
+        .controle-section{margin-top:16px;padding-top:14px;border-top:1px solid #d8cfbf;}
+        .controle-section-title{font-family:var(--font-source-serif), Georgia, serif;font-style:italic;font-size:12.5px;font-weight:normal;letter-spacing:0;text-transform:none;color:#3d6b4f;margin:0 0 8px;}
         .controle-liste-simple{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px;color:#3a3530;}
         .controle-liste-simple li{font-size:11.5px;line-height:1.45;}
         .controle-lien-card{border:1px solid #ede9e2;border-radius:7px;background:#fffdf9;padding:8px 9px;margin-bottom:8px;}
@@ -782,6 +851,23 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .controle-action-btn{border:1px solid #d6d0c4;background:#fff;border-radius:999px;padding:5px 10px;font-size:10.5px;cursor:pointer;color:#3d6b4f;}
         .controle-action-btn.danger{color:#9a2a2a;border-color:#e2b9aa;background:#fff7f4;}
         .controle-action-btn:disabled{opacity:.55;cursor:default;}
+        /* En-tête du volet : segment + référence sur une ligne, score/rang alignés à droite. */
+        .controle-entete{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:11px;border-bottom:1px solid #d8cfbf;margin-bottom:12px;}
+        .controle-entete-ref{min-width:0;font-size:12px;color:#5f6f60;line-height:1.4;}
+        .controle-seg-num{font-family:var(--font-source-serif), Georgia, serif;font-size:15px;color:#1e2e24;}
+        .controle-seg-ref{color:#8a8278;}
+        .controle-entete-score{display:flex;align-items:center;gap:9px;flex-shrink:0;}
+        .controle-score-inline{font-family:var(--font-source-serif), Georgia, serif;font-size:21px;color:#1e2e24;line-height:1;}
+        .controle-seuils{font-size:10px;color:#b0a89e;margin:0 0 2px;}
+        .controle-nature-select{font-size:11px;border:1px solid #d6d0c4;border-radius:5px;background:#fff;color:#2a2520;padding:2px 6px;cursor:pointer;}
+        /* Page d'accueil : liste sobre des œuvres. */
+        .controle-accueil{background:#fff;border:1px solid #e3ddd3;border-radius:8px;padding:10px 8px;box-shadow:0 6px 18px rgba(30,46,38,.05);max-width:720px;margin:0 auto;}
+        .controle-accueil ul{list-style:none;margin:0;padding:0;}
+        .controle-accueil li + li{border-top:1px solid #f0ece6;}
+        .controle-accueil button{display:block;width:100%;text-align:left;background:transparent;border:0;cursor:pointer;padding:9px 12px;font-family:var(--font-source-serif), Georgia, serif;font-size:13.5px;color:#2a3d30;border-radius:5px;transition:background .12s;}
+        .controle-accueil button:hover{background:rgba(61,107,79,.06);}
+        .controle-accueil .accueil-titre{display:block;}
+        .controle-accueil .accueil-liens{display:block;font-family:var(--font-source-sans), Arial, sans-serif;font-size:10px;color:#a8a094;margin-top:2px;letter-spacing:.02em;}
         .controle-ancien-commentaires,.controle-ancien-commentaires + div{display:none!important;}
         @media(max-width:980px){
           .titre-colophon{max-width:100%!important;line-height:1.32!important;word-spacing:normal!important;letter-spacing:0!important;}
@@ -823,12 +909,39 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
       </div>
 
       {erreur && <p style={{ color: '#9a2a2a', fontSize: '12px' }}>Erreur de chargement : {erreur}</p>}
-      {chargement ? (
+      {!idOeuvre ? (
+        <div className="controle-accueil">
+          {oeuvresRecherche.length === 0 ? (
+            <p style={{ color: '#9a958d', fontStyle: 'italic', fontSize: '13px', padding: '10px 12px', margin: 0 }}>Aucune œuvre à contrôler.</p>
+          ) : (
+            <ul>
+              {oeuvresRecherche.map(o => {
+                const st = modeControle === 'corpus' ? statsLiens.get(o.id_oeuvre) : undefined
+                return (
+                  <li key={o.id_oeuvre}>
+                    <button type="button" onClick={() => setIdOeuvre(o.id_oeuvre)}>
+                      <span className="accueil-titre">{libelleOeuvre(o)}</span>
+                      {modeControle === 'corpus' && (
+                        <span className="accueil-liens">
+                          {st && st.nb_liens > 0
+                            ? `Liens mis à jour le ${formaterDateLiens(st.derniere_maj)} · ${st.nb_liens} lien${st.nb_liens > 1 ? 's' : ''}`
+                            : 'Aucun lien'}
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
+      ) : chargement ? (
         <div className="segments-panel"><p style={{ color: '#9a958d', fontStyle: 'italic', fontSize: '13px' }}>Chargement de l’œuvre…</p></div>
       ) : (
         <div className="controle-layout">
           <div className="segments-panel">
             <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+              <button type="button" onClick={() => setIdOeuvre('')} style={{ display: 'block', margin: '0 auto 12px', background: 'transparent', border: 0, color: '#3d6b4f', fontSize: '11px', cursor: 'pointer' }}>← Toutes les œuvres</button>
               <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.55rem', color: '#1e2e24', margin: 0, lineHeight: 1.28 }}>{titreCourtControle(auteurs, idOeuvre, modeControle, oeuvresPerso)}</p>
               <div style={{ width: '42px', height: '1px', background: '#c8b89e', margin: '14px auto 8px' }} />
               <p style={{ fontSize: '10.5px', color: '#9a958d', margin: '3px 0 0' }}>{segmentsAffiches.length} segment(s) affiché(s)</p>
@@ -907,37 +1020,23 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
           <aside className="controle-droit">
             {actif && verdictActif ? (
               <>
-                {/* ── En-tête : quel segment, et a-t-il été vérifié à la main ── */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '11px' }}>
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#9a958d', margin: '0 0 3px' }}>Segment {actif.segment_numero}</p>
-                    {refsSegment(actif) && <p style={{ fontSize: '11px', color: '#5f6f60', margin: 0, lineHeight: 1.35 }}>{refsSegment(actif)}</p>}
+                {/* En-tête : segment + référence sur UNE ligne ; note et rang alignés à droite. */}
+                <div className="controle-entete">
+                  <div className="controle-entete-ref">
+                    <span className="controle-seg-num">Segment {actif.segment_numero}</span>
+                    {refsSegment(actif) && <span className="controle-seg-ref"> · {refsSegment(actif)}</span>}
+                    {actif.controle_verifie && <span className="badge-manuel" style={{ marginLeft: '8px' }}>Vérifié</span>}
                   </div>
-                  {actif.controle_verifie && <span className="badge-manuel">Vérifié</span>}
-                </div>
-
-                {/* ── Compartiment haut : le score, et le rang qui en découle ── */}
-                <div className="score-bloc">
-                  <div>
-                    <span className="score-chiffre">{verdictActif.score}</span>
-                    <span className="score-sur">/ 20</span>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="controle-entete-score">
                     <span className="pill" style={{ background: COULEURS[verdictActif.rang].fond, color: COULEURS[verdictActif.rang].texte, border: `1px solid ${COULEURS[verdictActif.rang].bord}` }}>
                       {COULEURS[verdictActif.rang].label}
                     </span>
-                    <p className="score-legende">
-                      {modeControle === 'perso'
-                        ? (actif.note_style != null
-                            ? 'Note de style issue d’une lecture. Les notes ci-dessous, elles, sont comptées.'
-                            : 'Style et propos : rythme, richesse, redites, chevilles.')
-                        : 'Typographie et texte : encodage, ponctuation, découpage, apparat.'}
-                      <br />Bon ≥ 15 · Moyen ≥ 10 · Critique &lt; 10
-                    </p>
+                    <span className="controle-score-inline">{verdictActif.score}<span className="score-sur">/20</span></span>
                   </div>
                 </div>
+                <p className="controle-seuils">Bon ≥ 15 · Moyen ≥ 10 · Critique &lt; 10</p>
 
-                <div className="controle-section" style={{ marginTop: 0, paddingTop: 0, borderTop: 0 }}>
+                <div className="controle-section" style={{ marginTop: '12px', paddingTop: 0, borderTop: 0 }}>
                   <p className="controle-section-title">
                     Rang {actif.controle_rang_manuel ? '— corrigé à la main' : '— attribué par le score'}
                   </p>
@@ -966,9 +1065,17 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                       )
                     })}
                   </div>
+                  {/* Relecture IA : qualifie le rang « à reprendre » d'après les défauts de transcription. */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '9px', flexWrap: 'wrap' }}>
+                    <button className="controle-action-btn" disabled={statutIA === 'encours'} onClick={relireIA}>
+                      {statutIA === 'encours' ? 'Relecture IA…' : 'Relire par l’IA'}
+                    </button>
+                    {statutIA === 'erreur' && <span style={{ fontSize: '10.5px', color: '#9a2a2a' }}>Échec de la relecture IA.</span>}
+                    <span style={{ fontSize: '10px', color: '#b0a89e' }}>signale les défauts matériels à reprendre</span>
+                  </div>
                   {actif.controle_rang_manuel && (
                     <p style={{ fontSize: '10.5px', color: '#5b3a7a', margin: '8px 0 0', lineHeight: 1.45 }}>
-                      Rang imposé à la main — le score reste celui de l’analyse ({verdictActif.score}/20), et le segment est passé en « vérifié ».
+                      Rang imposé — le score reste celui de l’analyse ({verdictActif.score}/20).
                     </p>
                   )}
                   {statutAction === 'erreur' && <p style={{ fontSize: '11px', color: '#9a2a2a', margin: '8px 0 0' }}>Erreur lors de l’enregistrement.</p>}
@@ -1037,12 +1144,22 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
 
                 <div className="controle-section">
                   <p className="controle-section-title">Données</p>
-                  <p style={{ fontSize: '11px', color: '#5a5450', margin: 0, lineHeight: 1.6 }}>
-                    Longueur : {(actif.segment_texte ?? '').trim().length} signes<br />
-                    Liens : {liensSegment(actif).length || 'aucun'}<br />
-                    Nature : {actif.nature || 'texte'}
-                    {modeControle === 'perso' && actif.note_style != null && <><br />Note de style en base : {actif.note_style}/20</>}
-                  </p>
+                  <div style={{ fontSize: '11px', color: '#5a5450', lineHeight: 1.9 }}>
+                    <div>Longueur : {(actif.segment_texte ?? '').trim().length} signes</div>
+                    <div>Liens : {liensSegment(actif).length || 'aucun'}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>Nature :</span>
+                      <select
+                        className="controle-nature-select"
+                        value={actif.nature ?? 'texte'}
+                        disabled={statutAction === 'envoi'}
+                        onChange={e => changerNature(actif.id, e.target.value)}
+                      >
+                        {naturesDisponibles.map(n => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                    </div>
+                    {modeControle === 'perso' && actif.note_style != null && <div>Note de style en base : {actif.note_style}/20</div>}
+                  </div>
                 </div>
               </>
             ) : (

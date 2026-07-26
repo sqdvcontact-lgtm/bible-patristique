@@ -13,6 +13,9 @@ import { CATEGORIES_ESSAIS, CONDITIONS, RESUME_MAX, RESUME_MIN, type Metadonnees
 
 const MAX_CARACTERES = 8000
 const MIN_CARACTERES_PUBLICATION = 2000
+// Rouge sourd, terreux : signale un compte hors limite (insuffisant ou excédant)
+// sans crier — plus discret et élégant que le rouge-rouille vif des messages d'erreur.
+const ROUGE_COMPTE = '#a8564d'
 const BTN: React.CSSProperties = { fontSize: '10.5px', padding: '8px 6px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer', width: '100%', textAlign: 'center' }
 
 type Props = {
@@ -395,6 +398,11 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   const nbCar = compterCaracteres(contenuTexte)
   const resumeLen = meta.resume.trim().length
   const resumeOk = resumeLen >= RESUME_MIN && resumeLen <= RESUME_MAX
+  // Compte du texte « hors limite » : trop court (une fois la saisie commencée, sauf
+  // pour un admin qui édite un essai déjà publié où le minimum ne s'applique pas) ou
+  // trop long. Sert à teinter le compteur en rouge sourd.
+  const carSousMin = nbCar > 0 && nbCar < MIN_CARACTERES_PUBLICATION && !(modeAdmin && essaiExistant?.statut === 'publie')
+  const carHorsLimite = carSousMin || nbCar > MAX_CARACTERES
   const toggleCategorie = (categorie: string) => {
     setMeta(prev => ({
       ...prev,
@@ -527,7 +535,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                     </p>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <p style={{ fontSize: '11px', color: nbCar > MAX_CARACTERES ? '#c0562a' : '#6b6560', fontWeight: nbCar > MAX_CARACTERES ? 700 : 600, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
+                    <p style={{ fontSize: '11px', color: carHorsLimite ? ROUGE_COMPTE : '#6b6560', fontWeight: carHorsLimite ? 700 : 600, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
                       {nbCar.toLocaleString('fr')} / {MAX_CARACTERES.toLocaleString('fr')} caractères
                     </p>
                     {nbCar < MIN_CARACTERES_PUBLICATION && !(modeAdmin && essaiExistant?.statut === 'publie') && (
@@ -536,7 +544,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                       </p>
                     )}
                     {nbCar > MAX_CARACTERES && (
-                      <p style={{ fontSize: '10.5px', color: '#c0562a', margin: '3px 0 0' }}>
+                      <p style={{ fontSize: '10.5px', color: ROUGE_COMPTE, margin: '3px 0 0' }}>
                         Limite dépassée
                       </p>
                     )}
@@ -569,7 +577,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 <div style={{ marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', marginBottom: '5px' }}>
                     <label style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.08em', color: '#9a958d', textTransform: 'uppercase' }}>Résumé *</label>
-                    <span style={{ fontSize: '10.5px', color: meta.resume.length > 0 && !resumeOk ? '#c0562a' : '#9a958d', fontVariantNumeric: 'tabular-nums' }}>
+                    <span style={{ fontSize: '10.5px', color: meta.resume.length > 0 && !resumeOk ? ROUGE_COMPTE : '#9a958d', fontVariantNumeric: 'tabular-nums' }}>
                       {resumeLen.toLocaleString('fr')} / {RESUME_MAX.toLocaleString('fr')} caractères
                     </span>
                   </div>
@@ -685,7 +693,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '10px 24px', gap: '12px',
         }}>
-          <span style={{ fontSize: '11px', color: statutEnr === 'erreur' ? '#c0562a' : nbCar > MAX_CARACTERES ? '#c0562a' : '#9a958d', flexShrink: 0 }}>
+          <span style={{ fontSize: '11px', color: statutEnr === 'erreur' ? '#c0562a' : nbCar > MAX_CARACTERES ? ROUGE_COMPTE : '#9a958d', flexShrink: 0 }}>
             {statutEnr === 'enregistrement' ? 'Enregistrement…'
               : statutEnr === 'enregistre' ? 'Enregistré ✓'
               : statutEnr === 'erreur' ? 'Erreur d’enregistrement'

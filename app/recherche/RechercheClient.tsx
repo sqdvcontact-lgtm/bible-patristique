@@ -5,7 +5,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { nettoyerFin } from '@/app/lib/ponctuation'
-import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
+import { texteSansEnrichissement, rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { cesurerGrec, codeLangue } from '@/app/lib/grec'
 
@@ -46,6 +46,14 @@ function refFr(ref: string): string {
 // l'en-tête de la Polyglotte affichait le code brut (« SIR » au lieu de « Siracide »).
 // Une seule source, donc : tout livre ajouté à LIVRES est nommé partout du même coup.
 const NOMS_LIVRES: Record<string, string> = Object.fromEntries(LIVRES.map(l => [l.code, l.nom]))
+
+// Ordre canonique (Genèse → Apocalypse, puis apocryphes) DÉRIVÉ de `LIVRES` : l'index dans
+// le tableau est le rang du livre. Sert à trier les résultats de recherche biblique.
+const ORDRE_LIVRE: Record<string, number> = Object.fromEntries(LIVRES.map((l, i) => [l.code, i]))
+function comparerVersets(a: VersetResult, b: VersetResult): number {
+  return (ORDRE_LIVRE[a.livre] ?? 9999) - (ORDRE_LIVRE[b.livre] ?? 9999)
+    || a.chapitre - b.chapitre || a.verset - b.verset
+}
 
 const TRADUCTIONS_FALLBACK = [
   { code: 'TR0001', label: 'Bible de Sacy', lang: 'fr' },
@@ -109,17 +117,18 @@ function contientTerme(texte: string, terme: string, mode: Mode): boolean {
 // `rouge` : surligne l'occurrence en rouge au lieu du vert. Sert dans l'onglet Bible
 // quand le mot cherché est ABSENT de la traduction affichée mais présent ailleurs : on
 // montre alors le verset d'une traduction qui le porte, l'occurrence en rouge.
-function highlighter(texte: string, terme: string, mode: Mode, rouge = false): React.ReactNode {
-  if (!texte || !terme) return texte
+// Surligne les occurrences du terme dans UN run de texte plat. Renvoie toujours des nœuds
+// CLÉS (préfixe `kb`) — pour pouvoir être imbriqué dans l'enrichissement sans collision de clé.
+// On construit le regex sur le texte normalisé pour trouver les positions, puis on surligne
+// les caractères originaux aux mêmes positions.
+function surligneParts(texte: string, terme: string, mode: Mode, rouge: boolean, kb: string): React.ReactNode[] {
   const termes = termesRecherche(terme)
-  if (!termes.length) return texte
+  if (!texte || !termes.length) return [texte]
   const sep = '(^|[\\s\\u202f\\u00a0«»,;:!?—.(\\[])'
   const fin = mode === 'exact' ? '(?=[\\s\\u202f\\u00a0«»,;:!?—.)\\]]|$)' : ''
   const style = rouge
     ? { background: '#f6cfca', color: '#8a1710', fontWeight: 700, borderRadius: '2px', padding: '0 2px' }
     : { background: '#b2ddc2', color: '#12401f', fontWeight: 700, borderRadius: '2px', padding: '0 2px' }
-  // On construit le regex sur le texte normalisé pour trouver les positions,
-  // puis on surligne les caractères originaux aux mêmes positions.
   try {
     const termesN = termes.map(normaliser).sort((a, b) => b.length - a.length)
     const alt = termesN.map(echapperRegex).join('|')
@@ -129,13 +138,27 @@ function highlighter(texte: string, terme: string, mode: Mode, rouge = false): R
     while ((m = re.exec(texteN)) !== null) {
       const s = m.index + m[1].length
       const e = s + m[2].length
-      if (s > last) parts.push(texte.slice(last, s))
-      parts.push(<mark key={s} style={style}>{texte.slice(s, e)}</mark>)
+      if (s > last) parts.push(<Fragment key={`${kb}t${last}`}>{texte.slice(last, s)}</Fragment>)
+      parts.push(<mark key={`${kb}m${s}`} style={style}>{texte.slice(s, e)}</mark>)
       last = e
     }
-    if (last < texte.length) parts.push(texte.slice(last))
-    return parts.length > 1 ? parts : texte
-  } catch { return texte }
+    if (last < texte.length) parts.push(<Fragment key={`${kb}t${last}`}>{texte.slice(last)}</Fragment>)
+    return parts.length ? parts : [texte]
+  } catch { return [texte] }
+}
+
+function highlighter(texte: string, terme: string, mode: Mode, rouge = false): React.ReactNode {
+  if (!texte || !terme) return texte
+  const parts = surligneParts(texte, terme, mode, rouge, 'h')
+  return parts.length > 1 ? <>{parts}</> : texte
+}
+
+// Enrichissement (gras, italique, `<i>` de Sacy…) ET surlignage du mot cherché, ensemble :
+// on passe le surligneur en `transform` de rendreTexteEnrichi. Sans cela, la recherche
+// affichait soit les balises en clair (onglet Bible), soit un texte appauvri (Polyglotte).
+function rendreEtSurligner(texte: string, terme: string, mode: Mode, rouge = false): React.ReactNode {
+  if (!texte) return texte
+  return rendreTexteEnrichi(texte, (s, key) => surligneParts(s, terme, mode, rouge, key))
 }
 
 // PostgREST plafonne CHAQUE réponse à 1000 lignes (réglage max-rows), quel que soit le
@@ -513,17 +536,13 @@ export default function RechercheClient() {
     setTimeout(() => { if (zoneResultatsRef.current) zoneResultatsRef.current.scrollTop = cible }, 120)
   }
 
-  // Onglet Bible : les versets où le mot MANQUE de la traduction affichée (montrés en
-  // rouge, « présent en … ») descendent tout en bas de la liste ; ceux qui le portent
-  // vraiment restent en tête. Tri stable → l'ordre d'origine tient dans chaque groupe.
-  const versetsBible = useMemo(() => {
-    if (!lastQuery) return versetsRes
-    const porte = (v: VersetResult) => contientTerme(String((v as any)[tradBible] ?? ''), lastQuery, mode)
-    return [...versetsRes].sort((a, b) => (porte(a) ? 0 : 1) - (porte(b) ? 0 : 1))
-  }, [versetsRes, tradBible, mode, lastQuery])
+  // Résultats bibliques TRIÉS dans l'ordre canonique (Genèse → Apocalypse, puis chapitre,
+  // puis verset), pour l'onglet Bible ET l'onglet Polyglotte. L'ancien tri « mot absent de
+  // la traduction affichée → en bas » est abandonné au profit de l'ordre biblique demandé.
+  const versetsTries = useMemo(() => [...versetsRes].sort(comparerVersets), [versetsRes])
 
-  const versetsPage  = versetsRes.slice(pageV * PAGE, (pageV + 1) * PAGE)
-  const versetsPageBible = versetsBible.slice(pageV * PAGE, (pageV + 1) * PAGE)
+  const versetsPage      = versetsTries.slice(pageV * PAGE, (pageV + 1) * PAGE)
+  const versetsPageBible = versetsTries.slice(pageV * PAGE, (pageV + 1) * PAGE)
   const segmentsPage = segmentsRes.slice(pageS * PAGE, (pageS + 1) * PAGE)
   const essaisPage   = essaisRes.slice(pageE * PAGE, (pageE + 1) * PAGE)
 
@@ -719,6 +738,22 @@ export default function RechercheClient() {
                   {versetsRes.length + segmentsRes.length + essaisRes.length} résultat{versetsRes.length + segmentsRes.length + essaisRes.length > 1 ? 's' : ''}
                 </span>
               )}
+              {/* Enregistrer ma recherche : dans le volet, dès qu'il y a des résultats. Un clic
+                  mémorise mot(s), page et position ; « Reprendre » (juste dessous) y ramène.
+                  Le libellé passe brièvement à « Recherche enregistrée » en accusé de réception. */}
+              {done && (versetsRes.length + segmentsRes.length + essaisRes.length) > 0 && (
+                <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
+                  style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'11.5px', color:'#3d6b4f', background:'rgba(61,107,79,0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'8px 11px', cursor:'pointer', marginTop:'2px', transition:'background 0.12s' }}
+                  onMouseEnter={e => (e.currentTarget.style.background='rgba(61,107,79,0.12)')}
+                  onMouseLeave={e => (e.currentTarget.style.background='rgba(61,107,79,0.06)')}>
+                  <svg width="12" height="13" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
+                    <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none"/>
+                  </svg>
+                  <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    {vientDEnregistrer ? 'Recherche enregistrée' : 'Enregistrer ma recherche'}
+                  </span>
+                </button>
+              )}
               {/* Reprendre ma recherche : présent dès qu'une recherche a été enregistrée.
                   Ramène mot(s), page et position de défilement à l'identique. */}
               {rechercheSauvee && (
@@ -765,23 +800,6 @@ export default function RechercheClient() {
 
         {/* ── TABLEAU DE RÉSULTATS : tout l'espace libre ── */}
         <main style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
-
-          {/* Enregistrer ma recherche : proposé dès qu'il y a des résultats. Un clic mémorise
-              mot(s), page et position ; « Reprendre ma recherche » (volet de gauche) y ramène. */}
-          {done && (versetsRes.length + segmentsRes.length + essaisRes.length) > 0 && (
-            <div style={{ flexShrink:0, display:'flex', justifyContent:'flex-end', alignItems:'center', gap:'10px', padding:'8px 24px 0' }}>
-              {vientDEnregistrer && <span style={{ fontSize:'10.5px', color:'#6a9a7a', fontStyle:'italic' }}>Recherche enregistrée</span>}
-              <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
-                style={{ display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'11px', color:'#3d6b4f', background:'#fff', border:'1px solid #cdd8cf', borderRadius:'20px', padding:'5px 13px', cursor:'pointer', transition:'background 0.12s, color 0.12s, border-color 0.12s' }}
-                onMouseEnter={e => { e.currentTarget.style.background='#3d6b4f'; e.currentTarget.style.color='#fff'; e.currentTarget.style.borderColor='#3d6b4f' }}
-                onMouseLeave={e => { e.currentTarget.style.background='#fff'; e.currentTarget.style.color='#3d6b4f'; e.currentTarget.style.borderColor='#cdd8cf' }}>
-                <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true">
-                  <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none"/>
-                </svg>
-                Enregistrer ma recherche
-              </button>
-            </div>
-          )}
 
           {/* Bannière troncature */}
           {done && tronque.length > 0 && (
@@ -875,7 +893,7 @@ export default function RechercheClient() {
                               sinon montré tel quel (le bandeau rouge dit où le mot se trouve). */}
                           <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
                             {texte
-                              ? (displayLeMot ? highlighter(texte, lastQuery, mode) : texte)
+                              ? rendreEtSurligner(texte, lastQuery, mode)
                               : <span style={{ color:'#b0a89e', fontStyle:'italic' }}>Ce verset n’existe pas dans {labelDisplay}.</span>}
                           </p>
                         </a>
@@ -902,7 +920,7 @@ export default function RechercheClient() {
                         {s.ref_niv1 && <span style={{ fontSize:'9.5px', color:'#c0b8ae' }}>· {s.ref_niv1}</span>}
                       </div>
                       <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
-                        {highlighter(nettoyerFin(texteSansEnrichissement(s.segment_texte)), lastQuery, mode)}
+                        {rendreEtSurligner(nettoyerFin(s.segment_texte), lastQuery, mode)}
                       </p>
                     </a>
                   ))}
@@ -969,8 +987,10 @@ export default function RechercheClient() {
                                 {/* Une colonne par traduction */}
                                 {colTrads.map((code, i) => {
                                   const lang = traductions.find(t => t.code === code)?.lang ?? 'fr'
-                                  const brut = texteSansEnrichissement((v as any)[code] ?? '')
-                                  const texte = lang === 'grc' ? cesurerGrec(brut) : brut
+                                  // `original` garde l'enrichissement (`<i>` de Sacy, etc.) pour l'affichage ;
+                                  // `brut` (dépouillé) sert à détecter l'absence du mot et à césurer le grec.
+                                  const original = String((v as any)[code] ?? '')
+                                  const brut = texteSansEnrichissement(original)
                                   const numOrig = String((v as any)['num_' + code] ?? '').trim()
                                   const absent = brut && lastQuery ? !contientTerme(brut, lastQuery, mode) : false
                                   return (
@@ -991,9 +1011,9 @@ export default function RechercheClient() {
                                           })}
                                         </span>
                                       )}
-                                      {!brut ? <span style={{ color:'#9a8fb5', fontStyle:'italic', fontSize:'11px' }}>Absent dans cette traduction</span>
-                                        : absent ? texte
-                                        : highlighter(texte, lastQuery, mode)}
+                                      {!brut ? <span style={{ display:'block', textAlign:'center', textAlignLast:'center', color:'#8aa593', fontStyle:'italic', fontSize:'11px' }}>Absent dans cette traduction</span>
+                                        : lang === 'grc' ? (absent ? cesurerGrec(brut) : highlighter(cesurerGrec(brut), lastQuery, mode))
+                                        : rendreEtSurligner(original, lastQuery, mode)}
                                     </div>
                                   )
                                 })}

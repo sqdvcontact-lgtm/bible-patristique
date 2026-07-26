@@ -11,6 +11,9 @@
 //   node scripts/liens-references-editoriales.mjs A0013O0002
 import { readFileSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
+import { normaliser, versEntier, RENVOIS_INTERNES, RE_PARENTHESE, RE_REF, RE_PAREN_NUM,
+  citationAdjacente, versetsDe, VULGATE_A_CONVERTIR, NUMEROTATION_HEBRAIQUE,
+  chargerAbrev, chargerOssature, creerResolveur, verifierLienMecanique } from './_liens-commun.mjs'
 
 const env = Object.fromEntries(readFileSync('.env.local', 'utf8').split(/\r?\n/)
   .map(l => l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/)).filter(Boolean)
@@ -19,214 +22,201 @@ const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_
 
 const OEUVRE = process.argv.find(a => /^A\d{4}O\d{4}$/.test(a))
 const DRY = process.argv.includes('--dry')
-if (!OEUVRE) { console.error('usage : node scripts/liens-references-editoriales.mjs <id_oeuvre> [--dry]'); process.exit(1) }
+// Restreindre à une partie (ref_niv1), p. ex. --partie="Prima Pars".
+const PARTIE = (process.argv.find(a => a.startsWith('--partie=')) || '').split('=').slice(1).join('=') || null
+if (!OEUVRE) { console.error('usage : node scripts/liens-references-editoriales.mjs <id_oeuvre> [--dry] [--partie="Prima Pars"]'); process.exit(1) }
 
-const normaliser = s => String(s)
-  .normalize('NFD').replace(/[̀-ͯ]/g, '')
-  .toLowerCase().replace(/[\s.]/g, '')
-
-/** Les chiffres romains sont fréquents dans les éditions anciennes, aussi bien
- *  pour le rang du livre (« I Co ») que pour le chapitre (« Joh. VI, 89 »). */
-const ROMAINS = { i:1, ii:2, iii:3, iv:4, v:5, vi:6, vii:7, viii:8, ix:9, x:10 }
-function versEntier(s) {
-  const t = String(s).trim().toLowerCase()
-  if (/^\d+$/.test(t)) return +t
-  if (!/^[ivxlcdm]+$/.test(t)) return null
-  const V = { i:1, v:5, x:10, l:50, c:100, d:500, m:1000 }
-  let n = 0
-  for (let k = 0; k < t.length; k++) {
-    const a = V[t[k]], b = V[t[k + 1]]
-    n += b && a < b ? -a : a
-  }
-  return n || null
-}
-
-/** RENVOIS INTERNES — ce ne sont PAS des livres bibliques. « Ibid. 13, 14 »
- *  renvoie au passage précédent, « Question 22. 48 » à un article de la Somme.
- *  Sans cette liste, ils seraient cherchés dans la Bible et finiraient par y
- *  trouver quelque chose : c'est ainsi qu'on fabrique des faux. */
-const RENVOIS_INTERNES = new Set([
-  'ibid', 'ibidem', 'idem', 'id', 'op', 'opcit', 'loccit', 'cit',
-  'question', 'q', 'art', 'article', 'chap', 'chapitre', 'livre',
-  'supra', 'infra', 'cidessus', 'cidessous', 'sect', 'section', 'part', 'partie',
-  'marche', 'homelie', 'sermon', 'discours', 'lettre', 'epitre', 'traite',
-  // Relevés par le rapport des non-résolues sur Cyrille et Contre Celse :
-  // abréviations d'apparat, non de livres bibliques.
-  'voy', 'voyez', 'vid', 'vide', 'foy', 'serm', 'hom', 'liv', 'livr', 'lett',
-  'vers', 'verset', 'ib', 'note', 'not', 'missel', 'preface', 'prol', 'prologue',
-  'canon', 'const', 'concile', 'symb', 'symbole', 'cat', 'catech',
-])
-
-// ── Table d'équivalence des abréviations ────────────────────────────────────
-// Elle vit en base (`abreviations_bibliques`), non plus dans ce fichier : une
-// forme inconnue est une référence perdue en silence, et chaque script portait
-// jusqu'ici son propre dictionnaire, donc ses propres lacunes.
-// Enrichir avec scripts/abreviations-inconnues.mjs → abreviations-peupler.mjs.
-const ABREV = new Map()
-for (let from = 0; ; from += 1000) {
-  const { data, error } = await sb.from('abreviations_bibliques')
-    .select('forme, livre').order('forme').range(from, from + 999)
-  if (error) throw error
-  if (!data?.length) break
-  for (const r of data) ABREV.set(r.forme, r.livre)
-  if (data.length < 1000) break
-}
+// Dictionnaire d'abréviations + ossature + résolveur : socle commun (§ _liens-commun).
+const ABREV = await chargerAbrev(sb)
 console.log(`abréviations : ${ABREV.size} formes connues`)
-
-/** Résout un nom de livre, avec son éventuel rang (« 1 Cor », « I Co », « Cor »). */
-function codeLivre(rangBrut, nomBrut) {
-  const nom = normaliser(nomBrut)
-  if (!nom || RENVOIS_INTERNES.has(nom)) return null
-  const rang = rangBrut ? versEntier(rangBrut) : null
-
-  // D'abord la forme complète : « 1Jn » est dans la table et vaut 1JN, alors que
-  // décomposer donnerait « Jn » → JHN, l'Évangile au lieu de l'épître.
-  if (rang) {
-    const entier = ABREV.get(`${rang}${nom}`)
-    if (entier) return entier
-  }
-  const base = ABREV.get(nom)
-  if (!base) return null
-  if (!rang) return base
-  // « 2 Cor » à partir de « Cor » → 1CO : on décale le rang.
-  const m = base.match(/^([1-4])(.+)$/)
-  if (m) return `${rang}${m[2]}`
-  // Le livre n'a pas de jumeau numéroté : le chiffre n'est pas un rang de livre.
-  return null
-}
-
-// ── Ossature ────────────────────────────────────────────────────────────────
-//
-// LES PSAUMES EXIGENT UNE CONVERSION (charte §18). Notre ossature suit la
-// numérotation grecque : `PSA.34` y est le Ps 35 hébreu. Les éditions françaises
-// modernes citent en hébraïque. Sans conversion, « Ps 34, 16 » — « Les yeux du
-// Seigneur sont fixés sur les justes » — atterrit sur PSA.34.16, qui dit « ils
-// grincent des dents ». Faux parfaitement silencieux : le créneau existe, la clé
-// étrangère est satisfaite, rien ne proteste.
-const canon = new Set()
-const chapitres = new Set()      // « LIVRE.ch » réellement présents
-const parHebreu = new Map()
-for (let from = 0; ; from += 1000) {
-  const { data } = await sb.from('versets_canon').select('id, livre, ch_canon, ch_heb, v_heb').order('id').range(from, from + 999)
-  if (!data?.length) break
-  for (const r of data) {
-    canon.add(r.id)
-    chapitres.add(`${r.livre}.${r.ch_canon}`)
-    if (r.ch_heb != null && r.v_heb != null) parHebreu.set(`${r.livre}.${r.ch_heb}.${r.v_heb}`, r.id)
-  }
-  if (data.length < 1000) break
-}
-const NUMEROTATION_HEBRAIQUE = new Set(['PSA'])
-console.log(`ossature : ${canon.size} créneaux`)
+const { canon, chapitres, parHebreu, unChapitre } = await chargerOssature(sb)
+const { codeLivre, livreEnAmont } = creerResolveur({ ABREV, canon, chapitres, parHebreu, unChapitre })
+console.log(`ossature : ${canon.size} créneaux · ${unChapitre.size} livres à un chapitre`)
 
 const segs = []
 for (let from = 0; ; from += 1000) {
-  const { data } = await sb.from('segments').select('id, segment_numero, segment_texte')
-    .eq('id_oeuvre', OEUVRE).eq('nature', 'texte').order('id').range(from, from + 999)
+  let q = sb.from('segments').select('id, segment_numero, segment_texte, texte_original')
+    .eq('id_oeuvre', OEUVRE).eq('nature', 'texte')
+  if (PARTIE) q = q.eq('ref_niv1', PARTIE)
+  const { data } = await q.order('id').range(from, from + 999)
   if (!data?.length) break
   segs.push(...data); if (data.length < 1000) break
 }
+// Lire le texte D'ORIGINE si le corps a été nettoyé (Passe 6) : les références y
+// sont intactes, donc l'extraction reste idempotente même après nettoyage.
+for (const s of segs) s.src = s.texte_original ?? s.segment_texte
+console.log(`${segs.length} segments${PARTIE ? ` (partie « ${PARTIE} »)` : ''}`)
 
-// Une parenthèse peut porter plusieurs références (« cf. Jn 13, 35 et Luc 10, 20 »),
-// un préfixe « cf. », des chiffres romains, ou n'indiquer qu'un chapitre.
-const RE_PARENTHESE = /\(([^)]{3,90})\)/g
-// Le nom du livre porte une MAJUSCULE initiale — c'est vrai de toute abréviation
-// biblique, et cela suffit à écarter le bruit : sans cette exigence, « et 3, 5 »
-// ou « de 12, 4 » étaient lus comme des références et encombraient le rapport
-// des formes non résolues, masquant les vraies lacunes du dictionnaire.
-const RE_REF = /(?:^|[\s;,]|\bcf\.?\s*|\bet\s+|\bvoir\s+)(?:([1-4]|[IV]{1,3})\s+)?([A-ZÉÈÀÎÔÜÇ][A-Za-zÉÈÀÎÔÜÇéèêàïôûç]{1,15})\.?\s+([0-9]{1,3}|[IVXLCDM]{1,7})\s*(?:[,.]\s*([0-9]{1,3})(?:\s*[-–]\s*([0-9]{1,3}))?)?/g
+// ── Deux formes de référence ────────────────────────────────────────────────
+// (a) livre DANS la parenthèse : « (1 Co 3, 10) », « (cf. Jn 13, 35 et Lc 10, 20) ».
+// (b) livre HORS la parenthèse, qui ne porte alors que « ch, v » : « aux
+//     Proverbes (9, 3) », « dit Isaïe (64, 3) », « l'Ecclésiastique (3, 23) ».
+//     Sans (b), plus de la moitié des références d'une édition comme la Somme —
+//     où le nom du livre est intégré à la phrase — passaient à la trappe.
+// Regex, résolveur (codeLivre/livreEnAmont), citationAdjacente et VULGATE_A_CONVERTIR
+// viennent du socle commun (_liens-commun.mjs) — source unique, partagée avec le
+// nettoyage et le re-typage pour qu'une correction vaille partout.
 
 const liens = []
-const stats = { refs: 0, resolues: 0, chapitres: 0, plages: 0, horsOssature: 0, renvoisInternes: 0 }
+const aConvertir = new Map()   // cibles Vulgate mises de côté
+const stats = { refs: 0, type1: 0, aConstituer: 0, chapitres: 0, plages: 0, horsOssature: 0, renvoisInternes: 0, vulgate: 0 }
 const inconnus = new Map()
 const vus = new Set()
 
+// Un lien à partir d'une référence résolue : citation adjacente → type 1 ; sinon
+// cible attestée mais rapport à établir → « à constituer » + arbitrage.
+function poser(s, cible, brut, start, end, estVg) {
+  const cle = `${s.id}|${cible}`
+  if (vus.has(cle)) return
+  vus.add(cle)
+  const cite = citationAdjacente(s.src, start, end)
+  if (cite) stats.type1++; else stats.aConstituer++
+  liens.push({
+    segment_id: s.id, canon_id: cible,
+    type: cite ? 1 : 4,
+    fiabilite: cite ? 'probable' : 'à constituer',
+    provenance: 'editeur',
+    arbitrage_requis: !cite || estVg,
+    motif: (cite
+      ? `Citation directe, référence de l'édition : ${brut}`
+      : `Référence de l'édition (cible attestée, type à établir en lecture) : ${brut}`)
+      + (estVg ? ' — numérotation Vulgate, cible à vérifier' : '')
+  })
+}
+
 for (const s of segs) {
-  for (const par of String(s.segment_texte || '').matchAll(RE_PARENTHESE)) {
+  const texte = String(s.src || '')
+
+  // ── (a) références DANS une parenthèse ──
+  for (const par of texte.matchAll(RE_PARENTHESE)) {
+    const start = par.index, end = par.index + par[0].length
+    const brut = `(${par[1].trim()})`
     for (const m of par[1].matchAll(RE_REF)) {
-      const [, rang, nom, chBrut, v, vFin] = m
-      const brut = `(${par[1].trim()})`
+      const [, rang, nom, chBrut, v, vFin, enumTail] = m
       if (RENVOIS_INTERNES.has(normaliser(nom))) { stats.renvoisInternes++; continue }
       stats.refs++
       const livre = codeLivre(rang, nom)
-      if (!livre) {
-        const cle = (rang ? rang + ' ' : '') + nom
-        inconnus.set(cle, (inconnus.get(cle) ?? 0) + 1)
-        continue
-      }
-      const ch = versEntier(chBrut)
-      if (!ch) continue
-
-      // Chapitre seul : la table sait viser un chapitre entier, ce qui vaut mieux
-      // que de choisir arbitrairement son premier verset.
-      if (v === undefined) {
-        // Le chapitre doit exister : « Lam 13 » n'a aucun sens, Lamentations en
-        // compte cinq. Un trigger de la base le refuse — mieux vaut ne pas le lui
-        // soumettre, sinon c'est tout le lot d'insertion qui échoue.
-        if (!chapitres.has(`${livre}.${ch}`)) {
-          stats.horsOssature++
-          inconnus.set(`${livre} ch.${ch} (chapitre inexistant)`, (inconnus.get(`${livre} ch.${ch} (chapitre inexistant)`) ?? 0) + 1)
-          continue
-        }
-        const cle = `${s.id}|${livre}.ch${ch}`
-        if (vus.has(cle)) continue
-        vus.add(cle); stats.resolues++; stats.chapitres++
-        liens.push({ segment_id: s.id, livre, chapitre: ch, type: 1,
-          fiabilite: 'probable', provenance: 'editeur', arbitrage_requis: false,
-          motif: `Référence donnée par l'édition, au chapitre entier : ${brut}` })
-        continue
-      }
-
-      const cible = NUMEROTATION_HEBRAIQUE.has(livre)
-        ? parHebreu.get(`${livre}.${ch}.${+v}`)
-        : `${livre}.${ch}.${+v}`
-      // Conversion impossible : ne jamais se rabattre sur le créneau direct, qui
-      // existe souvent et serait faux.
-      if (!cible || !canon.has(cible)) {
-        stats.horsOssature++
-        inconnus.set(`${livre} ${ch},${v} (hors ossature)`, (inconnus.get(`${livre} ${ch},${v} (hors ossature)`) ?? 0) + 1)
-        continue
-      }
-      const cle = `${s.id}|${cible}`
-      if (vus.has(cle)) continue
-      vus.add(cle); stats.resolues++
-      if (vFin) stats.plages++
-      liens.push({ segment_id: s.id, canon_id: cible, type: 1,
-        fiabilite: 'probable', provenance: 'editeur', arbitrage_requis: false,
-        motif: `Référence donnée par l'édition : ${brut}` + (vFin ? ` (plage jusqu'au v. ${vFin})` : '') })
+      if (!livre) { const c = (rang ? rang + ' ' : '') + nom; inconnus.set(c, (inconnus.get(c) ?? 0) + 1); continue }
+      poserVersets(s, livre, chBrut, v, vFin, enumTail, brut, start, end, /Vg\b/i.test(par[1]))
     }
+  }
+
+  // ── (b) parenthèse numérique + livre en amont ──
+  for (const m of texte.matchAll(RE_PAREN_NUM)) {
+    const [full, chBrut, v, vFin, enumTail] = m
+    const start = m.index, end = m.index + full.length
+    const livre = livreEnAmont(texte, start)
+    if (!livre) continue          // pas de livre repérable : ce n'est pas une réf biblique
+    stats.refs++
+    const amont = texte.slice(Math.max(0, start - 30), end).replace(/\s+/g, ' ').trim()
+    poserVersets(s, livre, chBrut, v, vFin, enumTail, amont, start, end, /Vg\b/i.test(full))
   }
 }
 
-console.log(`\n${segs.length} segments · ${stats.refs} références lues`)
-console.log(`  résolues              : ${stats.resolues}${stats.chapitres ? ` · ${stats.chapitres} au chapitre` : ''}${stats.plages ? ` · ${stats.plages} plages` : ''}`)
-console.log(`  renvois internes écartés : ${stats.renvoisInternes}`)
-console.log(`  hors ossature            : ${stats.horsOssature}`)
+// Une référence peut viser PLUSIEURS versets (plage « v-vFin », énumération
+// « . 28 »). Charte : un lien par verset. Le chapitre seul (v absent) passe tel quel.
+function poserVersets(s, livre, chBrut, v, vFin, enumTail, brut, start, end, estVg) {
+  const versets = versetsDe(v, vFin, enumTail)
+  if (!versets.length) { traiter(s, livre, chBrut, undefined, brut, start, end, estVg); return }
+  if (versets.length > 1) stats.plages++
+  for (const vv of versets) traiter(s, livre, chBrut, String(vv), brut, start, end, estVg)
+}
+
+function traiter(s, livre, chBrut, v, brut, start, end, estVg) {
+  const ch = versEntier(chBrut)
+  if (!ch) return
+
+  // Livre à numérotation Vulgate : mis de côté, jamais inséré sur une cible fausse.
+  if (VULGATE_A_CONVERTIR.has(livre)) {
+    stats.vulgate++
+    const cle = `${livre} ${ch}${v !== undefined ? ',' + v : ''}`
+    aConvertir.set(cle, (aConvertir.get(cle) ?? 0) + 1)
+    return
+  }
+
+  // Chapitre seul : viser le chapitre entier plutôt qu'un premier verset arbitraire.
+  if (v === undefined) {
+    // Livre à un seul chapitre : « 2 Jn 4 » = verset 4 du chapitre unique.
+    if (unChapitre.has(livre) && !chapitres.has(`${livre}.${ch}`) && canon.has(`${livre}.1.${ch}`)) {
+      poser(s, `${livre}.1.${ch}`, brut, start, end, estVg)
+      return
+    }
+    if (!chapitres.has(`${livre}.${ch}`)) {
+      stats.horsOssature++
+      inconnus.set(`${livre} ch.${ch} (inexistant)`, (inconnus.get(`${livre} ch.${ch} (inexistant)`) ?? 0) + 1)
+      return
+    }
+    const cle = `${s.id}|${livre}.ch${ch}`
+    if (vus.has(cle)) return
+    vus.add(cle); stats.chapitres++
+    const cite = citationAdjacente(s.src, start, end)
+    if (cite) stats.type1++; else stats.aConstituer++
+    liens.push({ segment_id: s.id, livre, chapitre: ch,
+      type: cite ? 1 : 4, fiabilite: cite ? 'probable' : 'à constituer',
+      provenance: 'editeur', arbitrage_requis: !cite,
+      motif: `Référence de l'édition, au chapitre entier : ${brut}` })
+    return
+  }
+
+  const cible = NUMEROTATION_HEBRAIQUE.has(livre)
+    ? parHebreu.get(`${livre}.${ch}.${+v}`)
+    : `${livre}.${ch}.${+v}`
+  if (!cible || !canon.has(cible)) {
+    stats.horsOssature++
+    inconnus.set(`${livre} ${ch},${v} (hors ossature)`, (inconnus.get(`${livre} ${ch},${v} (hors ossature)`) ?? 0) + 1)
+    return
+  }
+  poser(s, cible, brut, start, end, estVg)
+}
+
+console.log(`\n${stats.refs} références résolues`)
+console.log(`  type 1 (citation directe) : ${stats.type1}`)
+console.log(`  à constituer (type en lecture) : ${stats.aConstituer}${stats.chapitres ? ` · dont ${stats.chapitres} au chapitre` : ''}${stats.plages ? ` · ${stats.plages} plages` : ''}`)
+console.log(`  renvois internes écartés  : ${stats.renvoisInternes}`)
+console.log(`  hors ossature             : ${stats.horsOssature}`)
+console.log(`  Vulgate mis de côté       : ${stats.vulgate}`)
+if (aConvertir.size) {
+  const top = [...aConvertir.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12)
+  console.log(`    → ${top.map(([k, n]) => `${k}×${n}`).join(', ')}`)
+}
 if (inconnus.size) {
-  const top = [...inconnus.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10)
+  const top = [...inconnus.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12)
   console.log(`  non résolues : ${top.map(([k, n]) => `${k}×${n}`).join(', ')}`)
 }
 
 if (DRY) {
-  console.log('\n── échantillon')
+  console.log('\n── échantillon (12 premiers)')
   for (const l of liens.slice(0, 12)) {
-    const c = l.canon_id ?? `${l.livre} ch.${l.chapitre} (entier)`
-    console.log(`  ${c.padEnd(26)} ${l.motif.slice(0, 66)}`)
+    const c = l.canon_id ?? `${l.livre} ch.${l.chapitre}`
+    console.log(`  t${l.type} ${String(l.fiabilite).padEnd(12)} ${c.padEnd(14)} ${l.motif.slice(0, 60)}`)
   }
   console.log('\n(--dry : rien écrit)')
   process.exit(0)
 }
 
 // On n'écrit que ce qui manque : la contrainte d'unicité rejetterait tout le lot.
-const deja = new Set()
+// Une cible « à constituer » n'est pas ré-insérée si le segment porte DÉJÀ un
+// lien vers ce verset (déjà typé à la main ou en lecture) : on ne recouvre pas.
+const dejaType = new Set()   // segment|cible|type
+const dejaCible = new Set()  // segment|cible (tous types)
 for (let i = 0; i < segs.length; i += 500) {
   const { data } = await sb.from('liens_bibliques').select('segment_id, canon_id, livre, chapitre, type')
     .in('segment_id', segs.slice(i, i + 500).map(s => s.id))
-  for (const l of data ?? []) deja.add(`${l.segment_id}|${l.canon_id ?? l.livre + '.ch' + l.chapitre}|${l.type}`)
+  for (const l of data ?? []) {
+    const cible = l.canon_id ?? l.livre + '.ch' + l.chapitre
+    dejaType.add(`${l.segment_id}|${cible}|${l.type}`)
+    dejaCible.add(`${l.segment_id}|${cible}`)
+  }
 }
-const aEcrire = liens.filter(l => !deja.has(`${l.segment_id}|${l.canon_id ?? l.livre + '.ch' + l.chapitre}|${l.type}`))
+const aEcrire = liens.filter(l => {
+  const cible = l.canon_id ?? l.livre + '.ch' + l.chapitre
+  if (dejaType.has(`${l.segment_id}|${cible}|${l.type}`)) return false
+  if (l.fiabilite === 'à constituer' && dejaCible.has(`${l.segment_id}|${cible}`)) return false
+  return true
+})
+aEcrire.forEach(verifierLienMecanique)   // garde-fou : aucun type 3/4 affirmé en mécanique
 for (let i = 0; i < aEcrire.length; i += 500) {
   const { error } = await sb.from('liens_bibliques').insert(aEcrire.slice(i, i + 500))
   if (error) throw error
 }
-console.log(`\n✓ ${aEcrire.length} liens écrits (provenance = editeur) · ${liens.length - aEcrire.length} déjà présents`)
+console.log(`\n✓ ${aEcrire.length} liens écrits (provenance = editeur) · ${liens.length - aEcrire.length} déjà présents/recouverts`)

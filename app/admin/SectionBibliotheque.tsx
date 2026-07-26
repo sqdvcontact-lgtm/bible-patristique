@@ -345,7 +345,12 @@ function ChampCatalogue({ label, valeur, accent = false, transform, lien = false
   }
 
   return (
-    <div style={{
+    <div
+      // Petit effet au survol : le bloc se soulève d'un cheveu et prend une ombre douce,
+      // pour signaler qu'il réagit (et qu'il est éditable). Neutralisé pendant l'édition.
+      onMouseEnter={e => { if (!enEdition) { e.currentTarget.style.boxShadow = '0 2px 7px rgba(70,58,34,0.10)'; e.currentTarget.style.transform = 'translateY(-1px)' } }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none' }}
+      style={{
       display: 'flex',
       flexDirection: 'column',
       gap: '1px',
@@ -356,6 +361,8 @@ function ChampCatalogue({ label, valeur, accent = false, transform, lien = false
       // d'alerte ; le champ renseigné repose sur un blanc cassé chaud.
       background: manque ? '#fbf3ef' : '#fbfaf7',
       border: `1px solid ${enEdition ? '#a9c9b6' : (manque ? '#ecd6cc' : '#ece7de')}`,
+      boxShadow: 'none',
+      transition: 'box-shadow 0.15s ease, transform 0.15s ease',
     }}>
       <span style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: manque ? '#bd8672' : '#a89a86', lineHeight: 1 }}>{label}</span>
       {enEdition ? (
@@ -721,6 +728,7 @@ type ValeursAuteur = {
   traditions: string[];
   langue_principale: string;
   note_biographique: string; note_theologique: string;
+  chronologie: string; anecdotes: string; influence: string;
 }
 
 const VIDE_AUTEUR: ValeursAuteur = {
@@ -729,6 +737,7 @@ const VIDE_AUTEUR: ValeursAuteur = {
   traditions: [],
   langue_principale: '',
   note_biographique: '', note_theologique: '',
+  chronologie: '', anecdotes: '', influence: '',
 }
 
 function TagsInput({ tags, onChange, tousLesTags }: { tags: string[]; onChange: (t: string[]) => void; tousLesTags: string[] }) {
@@ -813,6 +822,23 @@ function ChampsAuteur({ valeurs, onChange, onChangeTags, tousLesTags }: {
         <div>
           <label style={lbl}>Note théologique</label>
           <textarea value={valeurs.note_theologique} onChange={e => onChange('note_theologique', e.target.value)} rows={2} style={{ ...inputStyleAuteur, resize: 'vertical' }} />
+        </div>
+      </div>
+      <hr style={sep} />
+      <div>
+        <label style={lbl}>Chronologie <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>— une ligne par événement : « année | événement »</span></label>
+        <textarea value={valeurs.chronologie} onChange={e => onChange('chronologie', e.target.value)} rows={4}
+          placeholder={'354 | Naissance à Thagaste\n386 | Conversion à Milan\n430 | Mort à Hippone'}
+          style={{ ...inputStyleAuteur, resize: 'vertical', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }} />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        <div>
+          <label style={lbl}>Postérité / Influence</label>
+          <textarea value={valeurs.influence} onChange={e => onChange('influence', e.target.value)} rows={3} style={{ ...inputStyleAuteur, resize: 'vertical' }} />
+        </div>
+        <div>
+          <label style={lbl}>Anecdotes</label>
+          <textarea value={valeurs.anecdotes} onChange={e => onChange('anecdotes', e.target.value)} rows={3} style={{ ...inputStyleAuteur, resize: 'vertical' }} />
         </div>
       </div>
     </div>
@@ -924,7 +950,11 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   // travail à venir, jusqu'ici invisible depuis cet écran. Chargement à la demande, une
   // seule fois — l'API accepte jusqu'à 5 000 lignes par appel.
   React.useEffect(() => {
-    if (!afficherTousAuteurs || catalogueParAuteur !== null || chargementCatalogue) return
+    // NB : `chargementCatalogue` ne doit PAS figurer ici (ni dans les dépendances).
+    // Le mettre à `true` déclenchait une reprise de l'effet, dont le nettoyage posait
+    // `annule = true` sur la requête en cours ; à l'arrivée des données, `if (!annule)`
+    // était faux et l'on ne quittait jamais l'état de chargement → spinner infini.
+    if (!afficherTousAuteurs || catalogueParAuteur !== null) return
     let annule = false
     setChargementCatalogue(true)
     ;(async () => {
@@ -962,7 +992,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       }
     })()
     return () => { annule = true }
-  }, [afficherTousAuteurs, catalogueParAuteur, chargementCatalogue])
+  }, [afficherTousAuteurs, catalogueParAuteur])
 
   const uploadPhoto = async (idAuteur: string, fichier: File) => {
     const fichierRedim = await redimensionnerImage(fichier, 300, 450)
@@ -1009,6 +1039,9 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       langue_principale: a.langue_principale ?? '',
       note_biographique: a.note_biographique ?? '',
       note_theologique: a.note_theologique ?? '',
+      chronologie: a.chronologie ?? '',
+      anecdotes: a.anecdotes ?? '',
+      influence: a.influence ?? '',
     })
     setStatutAuteur(null)
   }

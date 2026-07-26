@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
-import { rendreSiecles, siecleEnTexte } from '@/app/lib/siecles'
+import { rendreSiecles } from '@/app/lib/siecles'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
@@ -24,6 +24,7 @@ type Auteur = {
   titre: string | null; dates: string | null; siecle: number | null
   traditions: string[] | null; note_biographique: string | null
   note_theologique: string | null; langue_principale: string | null
+  chronologie: string | null; anecdotes: string | null; influence: string | null
   photo_position?: AuteurPhotoPositions | null
   oeuvres: OeuvreResumee[]
 }
@@ -63,9 +64,32 @@ function stylePhotoAuteur(pos: AuteurPhotoPos): CSSProperties {
   }
 }
 
-const lbl: React.CSSProperties = {
-  fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em',
-  textTransform: 'uppercase', color: '#9a958d', display: 'block', marginBottom: '10px',
+// Ornement de séparation, répété systématiquement entre les sections.
+function Fleuron() {
+  return <div aria-hidden style={{ textAlign: 'center', color: '#b7a06a', fontSize: '16px', letterSpacing: '0.35em', margin: '22px 0 18px' }}>❧</div>
+}
+// Titre de section : sérif, italique, discret — le corps du texte, lui, sera en sans.
+function TitreSection({ children }: { children: ReactNode }) {
+  return <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontWeight: 'normal', fontSize: '15px', color: '#3d6b4f', margin: '0 0 9px' }}>{children}</h2>
+}
+
+// Chronologie : une ligne par événement, « année | événement » (ou « année — événement »).
+function Chronologie({ texte }: { texte: string }) {
+  const evenements = texte.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
+    const m = l.match(/^(.*?)\s*(?:\||—|–|\t|:)\s*(.+)$/)
+    return m ? { annee: m[1].trim(), evenement: m[2].trim() } : { annee: '', evenement: l }
+  })
+  if (evenements.length === 0) return null
+  return (
+    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '7px' }}>
+      {evenements.map((e, i) => (
+        <li key={i} style={{ display: 'grid', gridTemplateColumns: '56px 1fr', gap: '12px', alignItems: 'baseline' }}>
+          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12.5px', color: '#b7a06a', textAlign: 'right', whiteSpace: 'nowrap' }}>{e.annee}</span>
+          <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '12px', color: '#3a3530', lineHeight: 1.5 }}>{e.evenement}</span>
+        </li>
+      ))}
+    </ul>
+  )
 }
 
 // (la table des chiffres romains vivait ici en double : voir app/lib/siecles.tsx)
@@ -85,7 +109,7 @@ export default function PageAuteur() {
     supabase
       .from('auteurs')
       .select(`id_auteur, nom, nom_original, titre, dates, siecle, traditions, photo_position,
-        note_biographique, note_theologique, langue_principale,
+        note_biographique, note_theologique, langue_principale, chronologie, anecdotes, influence,
         oeuvres ( id_oeuvre, titre, sous_titre, trad_auteur, editeur, ville, date_publication, langue, note )`)
       .eq('id_auteur', id)
       .maybeSingle()
@@ -112,99 +136,120 @@ export default function PageAuteur() {
 
   const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${id}.jpg${photoVersion ? `?v=${photoVersion}` : ''}`
   const photoPos = parseAuteurPhotoPositions(auteur.photo_position).fiche
-  // Composé à l'affichage par `rendreSiecles`, comme le reste de la ligne :
-  // « Ier » et « av. J.-C. » viennent de siecleEnTexte, qui les connaît.
-  const siecleLabel = auteur.siecle ? siecleEnTexte(auteur.siecle) : null
   const datesAuteur = formaterDateHistorique(auteur.dates)
 
-  return (
-    <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', padding: '48px 20px 80px', display: 'flex', justifyContent: 'center' }}>
-      <div style={{ width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+  const initiales = auteur.nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('')
+  // Ligne de contexte : dates · langue · traditions (sans « siècle » générique).
+  const meta = rendreSiecles([datesAuteur, auteur.langue_principale, ...(auteur.traditions ?? [])].filter(Boolean).join(' · '))
 
-        {/* En-tête */}
-        <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '28px', display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-          {photoOk && (
-            <div style={{ width: '72px', height: '72px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '1px solid #e4dfd8', background: '#ede9e2' }}>
-              <img
-                src={photoUrl}
-                alt={auteur.nom}
-                onError={() => setPhotoOk(false)}
-                style={{ width: '100%', height: '100%', display: 'block', ...stylePhotoAuteur(photoPos) }}
-              />
+  return (
+    <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', padding: '44px 20px 64px', display: 'flex', justifyContent: 'center' }}>
+      <article style={{ width: '100%', maxWidth: '540px' }}>
+
+        {/* En-tête : l'illustration prend le devant */}
+        <header style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+          <div style={{ width: '160px', height: '200px', padding: '6px', background: '#fff', border: '1px solid #ddd5c4', boxShadow: '0 3px 16px rgba(60,50,30,0.12)', marginBottom: '18px' }}>
+            <div style={{ width: '100%', height: '100%', overflow: 'hidden', background: '#ede9e2', border: '1px solid #e7e1d6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {photoOk ? (
+                <img src={photoUrl} alt={auteur.nom} onError={() => setPhotoOk(false)}
+                  style={{ width: '100%', height: '100%', display: 'block', ...stylePhotoAuteur(photoPos) }} />
+              ) : (
+                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '46px', color: '#c3b48c', fontStyle: 'italic', userSelect: 'none' }}>{initiales}</span>
+              )}
             </div>
-          )}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '22px', fontWeight: 'normal', color: '#2a3d30', margin: '0 0 4px' }}>
-              {auteur.titre ? `${auteur.titre} ` : ''}{auteur.nom}
-            </h1>
-            {auteur.nom_original && (
-              <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic', margin: '0 0 6px' }}>{auteur.nom_original}</p>
-            )}
-            <p style={{ fontSize: '11.5px', color: '#b0a89e', margin: 0 }}>
-              {rendreSiecles([datesAuteur, siecleLabel, auteur.langue_principale].filter(Boolean).join(' · '))}
-            </p>
-            {auteur.traditions && auteur.traditions.length > 0 && (
-              <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginTop: '8px' }}>
-                {auteur.traditions.map(t => (
-                  <span key={t} style={{ fontSize: '9.5px', color: '#6b6560', background: '#f0ece6', borderRadius: '3px', padding: '2px 7px', fontWeight: 500, textTransform: 'capitalize' }}>
-                    {t}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
+          {/* Nom générique, sans le titre (« saint », « abbé »…). */}
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '27px', fontWeight: 'normal', color: '#1e2e24', margin: 0, lineHeight: 1.15 }}>
+            {auteur.nom}
+          </h1>
+          {auteur.nom_original && (
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '13px', color: '#9a8a6e', fontStyle: 'italic', margin: '3px 0 0' }}>{auteur.nom_original}</p>
+          )}
+          {meta && (
+            <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#a8a094', margin: '10px 0 0' }}>{meta}</p>
+          )}
+        </header>
+
+        {/* Un seul fleuron d'ouverture (les sections suivantes se séparent par l'espace). */}
+        <Fleuron />
+
+        {auteur.note_biographique && (
+          <section>
+            <TitreSection>Vie</TitreSection>
+            <p className="auteur-prose">{rendreSiecles(auteur.note_biographique)}</p>
+          </section>
+        )}
+
+        {auteur.chronologie && auteur.chronologie.trim() && (
+          <section style={{ marginTop: '24px' }}>
+            <TitreSection>Chronologie</TitreSection>
+            <Chronologie texte={auteur.chronologie} />
+          </section>
+        )}
+
+        {auteur.anecdotes && auteur.anecdotes.trim() && (
+          <section style={{ marginTop: '20px' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '12.5px', color: '#6b6560', lineHeight: 1.7, margin: 0, paddingLeft: '14px', borderLeft: '2px solid #ddd0b0' }}>
+              {rendreSiecles(auteur.anecdotes)}
+            </p>
+          </section>
+        )}
+
+        {auteur.note_theologique && (
+          <section style={{ marginTop: '24px' }}>
+            <TitreSection>Pensée</TitreSection>
+            <p className="auteur-prose">{rendreSiecles(auteur.note_theologique)}</p>
+          </section>
+        )}
+
+        {auteur.influence && auteur.influence.trim() && (
+          <section style={{ marginTop: '24px' }}>
+            <TitreSection>Postérité</TitreSection>
+            <p className="auteur-prose">{rendreSiecles(auteur.influence)}</p>
+          </section>
+        )}
+
+        {auteur.oeuvres.length > 0 && (
+          <>
+            {/* Fleuron conservé ici : il détache nettement la liste d'œuvres du reste. */}
+            <Fleuron />
+            <section>
+              <TitreSection>Œuvres</TitreSection>
+              <ul style={{ listStyle: 'none', margin: '12px 0 0', padding: 0, display: 'flex', flexDirection: 'column' }}>
+                {auteur.oeuvres.map((o, i) => (
+                  <li key={o.id_oeuvre} style={{ borderTop: i > 0 ? '1px solid #ece7de' : 'none' }}>
+                    <Link href={`/oeuvre/${o.id_oeuvre}`} className="auteur-oeuvre">
+                      <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '14px', color: '#2a3d30' }}>{o.titre}</span>
+                      {o.sous_titre && <span style={{ fontSize: '11.5px', color: '#9a8a6e', fontStyle: 'italic' }}> — {o.sous_titre}</span>}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </>
+        )}
+
+        {/* Cul-de-lampe floral de clôture, centré. `mix-blend-mode: multiply` fait
+            disparaître le fond blanc de l'image dans le parchemin (plus de rectangle). */}
+        <div style={{ textAlign: 'center', marginTop: '30px' }}>
+          <img src="/ornements/cul-de-lampe-fleurs.png" alt="" aria-hidden width={210}
+            style={{ display: 'inline-block', maxWidth: '80%', height: 'auto', opacity: 0.82, mixBlendMode: 'multiply' }} />
         </div>
 
-        {/* Biographie */}
-        {auteur.note_biographique && (
-          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '22px 24px' }}>
-            <span style={lbl}>Biographie</span>
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '13px', color: '#3a3530', lineHeight: 1.72, margin: 0 }}>
-              {rendreSiecles(auteur.note_biographique)}
-            </p>
-          </div>
-        )}
+        <div style={{ textAlign: 'center', marginTop: '10px' }}>
+          <Link href="/bibliotheque" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '11px', color: '#9a958d', textDecoration: 'none' }}>← Bibliothèque patristique</Link>
+        </div>
 
-        {/* Théologie */}
-        {auteur.note_theologique && (
-          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '22px 24px' }}>
-            <span style={lbl}>Pensée théologique</span>
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '13px', color: '#3a3530', lineHeight: 1.72, margin: 0 }}>
-              {rendreSiecles(auteur.note_theologique)}
-            </p>
-          </div>
-        )}
-
-        {/* Œuvres */}
-        {auteur.oeuvres.length > 0 && (
-          <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '22px 24px' }}>
-            <span style={lbl}>Œuvres disponibles ({auteur.oeuvres.length})</span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-              {auteur.oeuvres.map(o => (
-                <Link key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
-                  style={{ display: 'block', padding: '10px 14px', border: '1px solid #ede9e2', borderRadius: '7px', textDecoration: 'none', transition: 'border-color 0.12s' }}
-                  onMouseEnter={e => (e.currentTarget.style.borderColor = '#3d6b4f')}
-                  onMouseLeave={e => (e.currentTarget.style.borderColor = '#ede9e2')}>
-                  <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '13.5px', color: '#2a3d30', margin: o.sous_titre ? '0 0 2px' : 0 }}>{o.titre}</p>
-                  {o.sous_titre && (
-                    <p style={{ fontSize: '11.5px', color: '#6b6560', fontStyle: 'italic', margin: '0 0 4px' }}>{o.sous_titre}</p>
-                  )}
-                  {(o.trad_auteur || o.editeur || o.date_publication) && (
-                    <p style={{ fontSize: '10.5px', color: '#b0a89e', margin: 0 }}>
-                      {rendreSiecles([o.trad_auteur ? `trad. ${o.trad_auteur}` : null, o.editeur, formaterDateHistorique(o.date_publication)].filter(Boolean).join(' · '))}
-                    </p>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <Link href="/bibliotheque" style={{ fontSize: '12px', color: '#9a958d', textDecoration: 'none', textAlign: 'center', paddingTop: '4px' }}>
-          ← Bibliothèque patristique
-        </Link>
-
-      </div>
+        <style>{`
+          .auteur-prose {
+            font-family: var(--font-source-sans), Arial, sans-serif;
+            font-size: 12.5px; line-height: 1.68; color: #3a3530;
+            text-align: justify; hyphens: auto; margin: 0;
+          }
+          .auteur-oeuvre { display: block; padding: 8px 10px; margin: 0 -10px; border-radius: 5px; text-decoration: none; transition: background 0.12s; }
+          .auteur-oeuvre:hover { background: rgba(61,107,79,0.06); }
+        `}</style>
+      </article>
     </main>
   )
 }

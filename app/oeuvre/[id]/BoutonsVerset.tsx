@@ -83,16 +83,14 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
 
 export function BoutonSignalerVerset({ versetId, label, texte, segmentId }: { versetId: string; label: string; texte?: string; segmentId: number }) {
   const [ouvert, setOuvert] = useState(false)
-  const titreModal = texte
-    ? `${label} — ${texte.slice(0, 90)}${texte.length > 90 ? '…' : ''}`
-    : label
   return (
     <>
       <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
         title="Signaler une erreur" style={{ ...BTN_STYLE, color:'#c8c0b4' }}>⚑</button>
       {ouvert && (
         <ModalSignalement
-          titre={titreModal}
+          titre={label}
+          texteObjet={texte}
           avecNiveauImportance
           onClose={() => setOuvert(false)}
           onEnvoyer={async (msg, importance) => {

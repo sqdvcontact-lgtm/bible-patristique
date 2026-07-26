@@ -12,7 +12,7 @@ type Onglet = 'traductions' | 'acheter' | 'populaires' | 'quiz'
 const ONGLETS: { code: Onglet; label: string }[] = [
   { code: 'traductions', label: 'Les traductions' },
   { code: 'acheter', label: 'Acheter des livres' },
-  { code: 'populaires', label: 'Versets populaires' },
+  { code: 'populaires', label: 'Statistiques' },
   { code: 'quiz', label: 'Quiz biblique' },
 ]
 
@@ -66,7 +66,7 @@ export default function AllerPlusLoinClient() {
 
       {onglet === 'traductions' && <OngletTraductions hashTraduction={hashTraduction} />}
       {onglet === 'acheter' && <OngletAcheter />}
-      {onglet === 'populaires' && <OngletPopulaires />}
+      {onglet === 'populaires' && <OngletStatistiques />}
       {onglet === 'quiz' && <OngletQuiz />}
     </main>
   )
@@ -347,12 +347,12 @@ function OngletAcheter() {
     },
   ]
   return (
-    <div style={{ maxWidth: '660px', margin: '0 auto', padding: '8px 24px 80px' }}>
+    <div style={{ maxWidth: '660px', margin: '0 auto', padding: '4px 24px 20px' }}>
       <style>{`
         .lib-row {
           display: flex;
           align-items: center;
-          padding: 24px 0;
+          padding: 16px 0;
           text-decoration: none;
           border-bottom: 1px solid rgba(214,208,196,0.55);
           position: relative;
@@ -442,7 +442,7 @@ function OngletAcheter() {
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   Onglet « Versets populaires »
+   Onglet « Statistiques »
    ════════════════════════════════════════════════════════════════════════ */
 
 const NOM_LIVRE: Record<string, string> = {
@@ -458,17 +458,54 @@ const NOM_LIVRE: Record<string, string> = {
 };
 
 type VersetPopulaire = { id_verset: string; livre: string; chapitre: number; verset: number; TR0002: string; nb_lectures: number };
+type VersetCite = {
+  canon_id: string; livre: string; chapitre: number; verset: number;
+  score: number; nb_citations: number; nb_commentaires: number; nb_allusions: number; nb_segments: number;
+  TR0002: string | null;
+};
 
-function OngletPopulaires() {
-  const [versets, setVersets] = useState<VersetPopulaire[] | null>(null);
+const statLigne: React.CSSProperties = {
+  display: 'flex', alignItems: 'baseline', gap: '12px', padding: '10px 14px',
+  background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', textDecoration: 'none',
+};
+const statRang: React.CSSProperties = { fontSize: '11px', color: '#b0a89e', fontWeight: 600, width: '20px', flexShrink: 0 };
+const statRef: React.CSSProperties = { fontSize: '11.5px', fontWeight: 600, color: '#2a3d30', margin: '0 0 2px' };
+const statTexte: React.CSSProperties = { fontSize: '12px', color: '#5a5450', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
 
+// En-tête d'une rubrique statistique : titre en serif + courte glose.
+function EnteteStat({ titre, intro, style }: { titre: string; intro: string; style?: React.CSSProperties }) {
+  return (
+    <div style={{ marginBottom: '12px', ...style }}>
+      <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 4px' }}>{titre}</h2>
+      <p style={{ fontSize: '11.5px', color: '#9a958d', lineHeight: 1.55, margin: 0 }}>{intro}</p>
+    </div>
+  );
+}
+
+function OngletStatistiques() {
+  const [cites, setCites] = useState<VersetCite[] | null>(null);
+  const [lus, setLus] = useState<VersetPopulaire[] | null>(null);
+
+  // Versets les plus cités et commentés par les Pères : le score est calculé en base
+  // (vue versets_plus_cites) à partir des liens patristiques.
+  useEffect(() => {
+    supabase.from('versets_plus_cites')
+      .select('canon_id, livre, chapitre, verset, score, nb_citations, nb_commentaires, nb_allusions, nb_segments, TR0002')
+      .order('score', { ascending: false })
+      .order('nb_commentaires', { ascending: false })
+      .limit(30)
+      .then(({ data }) => setCites((data as VersetCite[]) ?? []));
+  }, []);
+
+  // Versets les plus lus : ne s'affiche que si la donnée existe (le classement de lecture
+  // n'est pas toujours alimenté).
   useEffect(() => {
     const charger = () => {
       supabase.from('versets_plus_lus')
         .select('id_verset, livre, chapitre, verset, TR0002, nb_lectures')
         .order('nb_lectures', { ascending: false })
-        .limit(50)
-        .then(({ data }) => setVersets((data as VersetPopulaire[]) ?? []));
+        .limit(30)
+        .then(({ data }) => setLus((data as VersetPopulaire[]) ?? []));
     };
     charger();
     const onVisible = () => { if (!document.hidden) charger(); };
@@ -476,35 +513,58 @@ function OngletPopulaires() {
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
+  const detailCite = (v: VersetCite) => {
+    const parts: string[] = [];
+    if (v.nb_commentaires > 0) parts.push(`${v.nb_commentaires} commentaire${v.nb_commentaires > 1 ? 's' : ''}`);
+    if (v.nb_citations > 0) parts.push(`${v.nb_citations} citation${v.nb_citations > 1 ? 's' : ''}`);
+    if (v.nb_allusions > 0) parts.push(`${v.nb_allusions} allusion${v.nb_allusions > 1 ? 's' : ''}`);
+    return parts.join(' · ');
+  };
+
   return (
-    <div style={{ maxWidth: "640px", margin: "0 auto", padding: "24px 24px 80px" }}>
-      {versets === null ? (
+    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '16px 24px 80px' }}>
+      <EnteteStat
+        titre="Les plus cités et commentés par les Pères"
+        intro="Classement établi à partir des liens patristiques : un commentaire pèse davantage qu'une citation, une citation davantage qu'une simple allusion. Le score grandira à mesure que les liens sont constitués." />
+      {cites === null ? (
         <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
-      ) : versets.length === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>
-          Aucune donnée pour l'instant.
-        </p>
+      ) : cites.length === 0 ? (
+        <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Aucun lien pour l'instant.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          {versets.map((v, i) => (
-            <Link key={v.id_verset} href={`/?livre=${v.livre}&chapitre=${v.chapitre}&trad=TR0002&verset=${v.verset}`}
-              style={{
-                display: 'flex', alignItems: 'baseline', gap: '12px', padding: '10px 14px',
-                background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', textDecoration: 'none',
-              }}>
-              <span style={{ fontSize: '11px', color: '#b0a89e', fontWeight: 600, width: '20px', flexShrink: 0 }}>{i + 1}</span>
+          {cites.map((v, i) => (
+            <Link key={v.canon_id} href={`/?livre=${v.livre}&chapitre=${v.chapitre}&trad=TR0002&verset=${v.verset}`} style={statLigne}>
+              <span style={statRang}>{i + 1}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: '11.5px', fontWeight: 600, color: '#2a3d30', margin: '0 0 2px' }}>
-                  {NOM_LIVRE[v.livre] ?? v.livre} {v.chapitre}, {v.verset}
-                </p>
-                <p style={{ fontSize: '12px', color: '#5a5450', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {v.TR0002}
-                </p>
+                <p style={statRef}>{NOM_LIVRE[v.livre] ?? v.livre} {v.chapitre}, {v.verset}</p>
+                {v.TR0002 && <p style={statTexte}>{v.TR0002}</p>}
+                <p style={{ fontSize: '10.5px', color: '#9a8a6e', margin: '3px 0 0' }}>{detailCite(v)}</p>
               </div>
-              <span style={{ fontSize: '11px', color: '#9a958d', flexShrink: 0 }}>{v.nb_lectures} lecture{v.nb_lectures > 1 ? 's' : ''}</span>
+              <span title="Score patristique"
+                style={{ fontSize: '13px', fontWeight: 700, color: '#3d6b4f', background: 'rgba(61,107,79,0.09)', border: '1px solid rgba(61,107,79,0.22)', borderRadius: '6px', padding: '2px 9px', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+                {v.score}
+              </span>
             </Link>
           ))}
         </div>
+      )}
+
+      {lus && lus.length > 0 && (
+        <>
+          <EnteteStat titre="Les plus lus" intro="D'après les consultations des versets sur le site." style={{ marginTop: '30px' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {lus.map((v, i) => (
+              <Link key={v.id_verset} href={`/?livre=${v.livre}&chapitre=${v.chapitre}&trad=TR0002&verset=${v.verset}`} style={statLigne}>
+                <span style={statRang}>{i + 1}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={statRef}>{NOM_LIVRE[v.livre] ?? v.livre} {v.chapitre}, {v.verset}</p>
+                  <p style={statTexte}>{v.TR0002}</p>
+                </div>
+                <span style={{ fontSize: '11px', color: '#9a958d', flexShrink: 0 }}>{v.nb_lectures} lecture{v.nb_lectures > 1 ? 's' : ''}</span>
+              </Link>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

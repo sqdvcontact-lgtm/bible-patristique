@@ -33,7 +33,7 @@ type Notice = {
   created_at: string
 }
 
-type FiltreStatut = 'a_verifier' | 'toutes' | 'verifiees' | 'sur_site'
+type FiltreStatut = 'a_verifier' | 'toutes' | 'verifiees' | 'sur_site' | 'avec_lien'
 
 async function getHeaders(): Promise<Record<string, string>> {
   const { data } = await supabase.auth.getSession()
@@ -207,9 +207,17 @@ export default function SectionVerificationCatalogue() {
   const [erreur, setErreur] = useState<string | null>(null)
   const [filtre, setFiltre] = useState<FiltreStatut>('a_verifier')
   const [recherche, setRecherche] = useState('')
+  const [rechercheAppliquee, setRechercheAppliquee] = useState('')
   const [page, setPage] = useState(0)
   const [total, setTotal] = useState(0)
   const [ouverte, setOuverte] = useState<number | null>(null)
+
+  // La recherche par auteur interroge le serveur : sans anti-rebond, chaque frappe
+  // déclenchait une requête (et un « Chargement... »), d'où la lenteur ressentie.
+  useEffect(() => {
+    const t = setTimeout(() => { setRechercheAppliquee(recherche.trim()); setPage(0) }, 350)
+    return () => clearTimeout(t)
+  }, [recherche])
 
   const charger = useCallback(async () => {
     setChargement(true)
@@ -220,7 +228,8 @@ export default function SectionVerificationCatalogue() {
       if (filtre === 'a_verifier') params.set('verifie', 'false')
       if (filtre === 'verifiees') params.set('verifie', 'true')
       if (filtre === 'sur_site') params.set('presence', 'true')
-      if (recherche.trim()) params.set('auteur', recherche.trim())
+      if (filtre === 'avec_lien') params.set('avec_url', 'true')
+      if (rechercheAppliquee) params.set('auteur', rechercheAppliquee)
       const res = await fetch(`/api/admin/catalogue?${params}`, { headers })
       if (!res.ok) throw new Error(`Erreur ${res.status}`)
       const json = await res.json()
@@ -231,7 +240,7 @@ export default function SectionVerificationCatalogue() {
     } finally {
       setChargement(false)
     }
-  }, [filtre, recherche, page])
+  }, [filtre, rechercheAppliquee, page])
 
   useEffect(() => { charger() }, [charger])
 
@@ -265,6 +274,7 @@ export default function SectionVerificationCatalogue() {
     ['toutes', 'Toutes'],
     ['verifiees', 'Verifiees'],
     ['sur_site', 'Sur le site'],
+    ['avec_lien', 'Avec lien'],
   ]
 
   return (
@@ -275,7 +285,7 @@ export default function SectionVerificationCatalogue() {
         </h2>
         <input
           value={recherche}
-          onChange={e => { setRecherche(e.target.value); setPage(0) }}
+          onChange={e => setRecherche(e.target.value)}
           placeholder="Filtrer par auteur..."
           style={{ fontSize: '11.5px', padding: '5px 10px', border: '1px solid #344d3e', borderRadius: '4px', background: '#1e2e26', color: '#c8d8cc', outline: 'none', width: '200px' }}
         />
@@ -347,6 +357,18 @@ export default function SectionVerificationCatalogue() {
                       <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '4px', background: '#d8ede2', color: '#3d6b4f', fontWeight: 600 }}>Validee</span>
                     ) : (
                       <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '4px', background: '#fff1ee', color: '#a43d2d' }}>A verifier</span>
+                    )}
+                    {n.url_source && (
+                      <a
+                        href={n.url_source}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        title={n.url_source}
+                        style={{ fontSize: '9.5px', padding: '3px 8px', borderRadius: '4px', border: '1px solid #b8cddd', background: '#eef4f8', color: '#2f5d7a', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap', textDecoration: 'none' }}
+                      >
+                        Source&nbsp;↗
+                      </a>
                     )}
                     <button
                       onClick={e => { e.stopPropagation(); setOuverte(ouv ? null : n.id) }}

@@ -32,12 +32,15 @@ export async function POST(request: Request) {
     const reference = typeof body?.reference === 'string' && body.reference.trim()
       ? body.reference.trim().slice(0, 120)
       : null
+    const profilPseudo = typeof body?.profil_pseudo === 'string' && body.profil_pseudo.trim()
+      ? body.profil_pseudo.trim().slice(0, 80)
+      : null
 
     if (!message) {
       return NextResponse.json({ error: 'message manquant' }, { status: 400 })
     }
-    if (!idSegment && !idVerset && !reference) {
-      return NextResponse.json({ error: 'id_segment, id_verset ou reference manquant' }, { status: 400 })
+    if (!idSegment && !idVerset && !reference && !profilPseudo) {
+      return NextResponse.json({ error: 'Objet du signalement manquant.' }, { status: 400 })
     }
 
     const auth = request.headers.get('Authorization')
@@ -54,9 +57,27 @@ export async function POST(request: Request) {
       userId = data.user?.id ?? null
     }
 
+    let referenceStockee = reference
+    if (profilPseudo) {
+      if (!userId) return NextResponse.json({ error: 'Connexion requise.' }, { status: 401 })
+      const { data: profilCible } = await supabaseAdmin
+        .from('profils')
+        .select('id, pseudo')
+        .eq('pseudo', profilPseudo)
+        .maybeSingle()
+      if (!profilCible) return NextResponse.json({ error: 'Profil introuvable.' }, { status: 404 })
+      if (profilCible.id === userId) {
+        return NextResponse.json({ error: 'Vous ne pouvez pas signaler votre propre profil.' }, { status: 400 })
+      }
+      referenceStockee = `Profil @${profilCible.pseudo}`
+    }
+
     if (!idSegment && idVerset) {
-      // Validation du format id_verset avant usage dans ILIKE (prévient l'injection de wildcards)
-      if (!/^[A-Z][0-9]{1,8}$/.test(idVerset)) {
+      // Validation du format id_verset avant usage dans ILIKE (prévient l'injection de
+      // wildcards `%`/`_`). On accepte l'ancien format (« B000139 ») ET le format canon
+      // issu de la bascule versets_v2 (« PSA.54.5 », « 1CO.7.38 ») : lettres, chiffres et
+      // points seulement — ni `%` ni `_`, donc sûr pour le ILIKE ci-dessous.
+      if (!/^[A-Z0-9.]{2,20}$/.test(idVerset)) {
         return NextResponse.json({ error: 'Format id_verset invalide.' }, { status: 400 })
       }
       const colonnes = ['lien_1', 'lien_2', 'lien_3', 'lien_4'] as const
@@ -74,9 +95,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // Faute de colonne dédiée, la référence est portée en tête du message : le modérateur
-    // la voit, et rien n'est perdu. (Un signalement par référence n'a ni id_segment ni id_verset.)
-    const messageStocke = reference && !idSegment && !idVerset ? `[Réf. ${reference}] ${message}` : message
+    // Faute de colonne dédiée, la référence de page ou de profil est portée en tête du
+    // message : le modérateur la voit, et rien n'est perdu.
+    const messageStocke = referenceStockee && !idSegment && !idVerset ? `[Réf. ${referenceStockee}] ${message}` : message
     const insertPayload: Record<string, unknown> = { message: messageStocke, importance, traite: false }
     if (idSegment !== null) insertPayload.id_segment = idSegment
     if (idVerset !== null) insertPayload.id_verset = idVerset

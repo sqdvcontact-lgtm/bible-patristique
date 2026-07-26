@@ -355,6 +355,106 @@ function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: s
   )
 }
 
+// ── Édition source précise + apparats critiques ───────────────────────────────
+type EditionSource = {
+  id: number; trad_id: string; titre_edition: string | null; traducteur: string | null
+  editeur: string | null; annee_edition: string | null; lieu_edition: string | null; langue: string | null
+  confession: string | null; source_type: string | null; source_nom: string | null; source_url: string | null
+  source_fichier: string | null; licence: string | null; graphie: string | null; date_extraction: string | null
+  particularites: string | null; integrite_verifiee: boolean | null; notes: string | null
+}
+type ApparatPiece = { id: number; trad_id: string; livre: string | null; piece: string | null; ordre: number | null; texte: string; source: string | null }
+
+// Un paragraphe qui parle de CETTE édition précise (et non de la traduction en général).
+function phraseEdition(e: EditionSource): string {
+  const lieuAnnee = [e.lieu_edition, e.annee_edition].filter(Boolean).join(', ')
+  const parts: string[] = []
+  if (e.titre_edition) parts.push(`« ${e.titre_edition} »`)
+  if (e.editeur) parts.push(e.editeur)
+  if (lieuAnnee) parts.push(lieuAnnee)
+  let s = parts.join(', ')
+  if (s) s += '.'
+  if (e.source_nom) s += ` Texte établi d’après ${e.source_nom}${e.source_type ? ` (${e.source_type})` : ''}.`
+  if (e.graphie) s += ` Graphie : ${e.graphie}.`
+  return s || 'Édition non détaillée.'
+}
+
+function PanneauEditionApparat({ edition, pieces }: { edition?: EditionSource; pieces: ApparatPiece[] }) {
+  const sousTitre: React.CSSProperties = { fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 8px' }
+  const vide: React.CSSProperties = { fontSize: '12px', color: '#9a958d', fontStyle: 'italic', margin: 0 }
+  const champs: [string, string | null][] = edition ? [
+    ['Traducteur', edition.traducteur],
+    ['Éditeur', edition.editeur],
+    ['Lieu', edition.lieu_edition],
+    ['Année', edition.annee_edition],
+    ['Langue', edition.langue],
+    ['Confession', edition.confession],
+    ['Source', [edition.source_nom, edition.source_type].filter(Boolean).join(' · ') || null],
+    ['Extraction', edition.date_extraction],
+  ] : []
+
+  return (
+    <div style={{ padding: '16px 18px 18px', borderTop: '1px solid #f0ece6', background: '#fbfaf7' }}>
+      {/* Cette édition précise */}
+      <p style={sousTitre}>Cette édition précise</p>
+      {edition ? (
+        <>
+          <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '13px', color: '#2a2520', lineHeight: 1.6, margin: '0 0 10px' }}>
+            {phraseEdition(edition)}
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '6px 14px', marginBottom: '10px' }}>
+            {champs.filter(([, v]) => v).map(([label, v]) => (
+              <div key={label} style={{ minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#b0a89e' }}>{label}</span>
+                <span style={{ fontSize: '12px', color: '#3a3530', wordBreak: 'break-word' }}>{v}</span>
+              </div>
+            ))}
+          </div>
+          {edition.licence && (
+            <p style={{ fontSize: '11.5px', color: '#7a5a2a', background: 'rgba(154,90,42,0.08)', border: '1px solid rgba(154,90,42,0.20)', borderRadius: '5px', padding: '7px 10px', margin: '0 0 8px', lineHeight: 1.5 }}>
+              <strong style={{ letterSpacing: '0.04em' }}>Licence :</strong> {edition.licence}
+            </p>
+          )}
+          {edition.particularites && (
+            <p style={{ fontSize: '12px', color: '#5a5450', lineHeight: 1.55, margin: '0 0 6px' }}><em>Particularités —</em> {edition.particularites}</p>
+          )}
+          {edition.notes && (
+            <p style={{ fontSize: '12px', color: '#5a5450', lineHeight: 1.55, margin: '0 0 6px' }}>{edition.notes}</p>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', fontSize: '11px', color: '#9a958d' }}>
+            <span>Intégrité vérifiée : <strong style={{ color: edition.integrite_verifiee ? '#3d6b4f' : '#c0562a' }}>{edition.integrite_verifiee ? 'oui' : 'non'}</strong></span>
+            {edition.source_url && (
+              <a href={edition.source_url} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline', textUnderlineOffset: '2px' }}>Source en ligne ↗</a>
+            )}
+          </div>
+        </>
+      ) : (
+        <p style={vide}>Aucune fiche d’édition source (<code style={{ fontSize: '11px' }}>editions_sources</code>) n’est enregistrée pour cette traduction.</p>
+      )}
+
+      {/* Apparats critiques */}
+      <p style={{ ...sousTitre, marginTop: '18px' }}>Apparats critiques sauvegardés — {pieces.length}</p>
+      {pieces.length === 0 ? (
+        <p style={vide}>Aucun apparat critique enregistré pour cette traduction.</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {pieces.map(p => (
+            <div key={p.id} style={{ border: '1px solid #e4dfd8', borderRadius: '6px', background: '#fff', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap', padding: '7px 11px', background: '#f5f1e8', borderBottom: '1px solid #ede9e2' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#2a3d30' }}>{[p.livre, p.piece].filter(Boolean).join(' · ') || 'Apparat'}</span>
+                {p.source && <span style={{ fontSize: '10.5px', color: '#9a8a6e', fontStyle: 'italic' }}>{p.source}</span>}
+              </div>
+              <div style={{ padding: '8px 11px', fontSize: '12px', color: '#3a3530', lineHeight: 1.6, maxHeight: '180px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+                {p.texte}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // Section Traductions
 export default function SectionTraductions({ traductions: init }: { traductions: Traduction[] }) {
   const [lignes, setLignes] = useState<Traduction[]>(init)
@@ -378,6 +478,24 @@ export default function SectionTraductions({ traductions: init }: { traductions:
   const [replaceNom, setReplaceNom] = useState('')
   const [replaceStatut, setReplaceStatut] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle')
   const [replaceMsg, setReplaceMsg] = useState('')
+  // Fiche « édition précise » (editions_sources) et apparats critiques (traduction_apparat)
+  // par traduction, chargés une fois ; le panneau « Édition & apparat » les affiche.
+  const [editionsSrc, setEditionsSrc] = useState<Record<string, EditionSource>>({})
+  const [apparats, setApparats] = useState<Record<string, ApparatPiece[]>>({})
+  const [panneauInfos, setPanneauInfos] = useState<string | null>(null)
+
+  React.useEffect(() => {
+    supabase.from('editions_sources').select('*').then(({ data }) => {
+      const map: Record<string, EditionSource> = {}
+      ;(data ?? []).forEach((e: EditionSource) => { map[e.trad_id] = e })
+      setEditionsSrc(map)
+    })
+    supabase.from('traduction_apparat').select('*').order('ordre', { ascending: true }).then(({ data }) => {
+      const map: Record<string, ApparatPiece[]> = {}
+      ;(data ?? []).forEach((a: ApparatPiece) => { (map[a.trad_id] ??= []).push(a) })
+      setApparats(map)
+    })
+  }, [])
 
   const escapeCsv = (val: string) => {
     if (val.includes(',') || val.includes('"') || val.includes('\n')) {
@@ -723,6 +841,11 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#9a7e3d', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 ↑ Remplacer
               </button>
+              <button onClick={() => setPanneauInfos(panneauInfos === t.trad_id ? null : t.trad_id)}
+                title="Voir l'édition source précise et les apparats critiques"
+                style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: `1px solid ${panneauInfos === t.trad_id ? '#3d6b4f' : '#d6d0c4'}`, background: panneauInfos === t.trad_id ? 'rgba(61,107,79,0.08)' : '#fff', color: '#3d6b4f', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                Édition &amp; apparat{apparats[t.trad_id]?.length ? ` (${apparats[t.trad_id].length})` : ''}
+              </button>
               <button onClick={() => edition === t.trad_id ?fermer() : ouvrir(t)}
                 style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer' }}>
                 {edition === t.trad_id ?'Fermer' : 'Modifier'}
@@ -733,6 +856,11 @@ export default function SectionTraductions({ traductions: init }: { traductions:
               </button>
             </div>
           </div>
+
+          {/* Panneau « Édition & apparat » : cette édition précise + apparats critiques */}
+          {panneauInfos === t.trad_id && (
+            <PanneauEditionApparat edition={editionsSrc[t.trad_id]} pieces={apparats[t.trad_id] ?? []} />
+          )}
 
           {/* Formulaire édition */}
           {edition === t.trad_id && (

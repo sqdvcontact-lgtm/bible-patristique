@@ -12,11 +12,39 @@ export function enumererNoms(noms: string[]): string {
   return `${noms.slice(0, -1).join(', ')} et ${noms[noms.length - 1]}`
 }
 
+// Titres à passer en minuscule à l'affichage (ils suivent « Traduction … », donc pas
+// en début de phrase). On ne touche PAS à « Saint(e) », partie du nom propre.
+const TITRE_MINUSCULE_RE = /^(Abbé|Dom|Père|Frère|Sœur|Chanoine|Cardinal|Monseigneur|Mgr|Mère)\b/
+
+/** « / » pour les co-éditeurs, jamais le « ; » brut du catalogue. */
+export function formaterEditeur(editeur: string | null | undefined): string {
+  return (editeur ?? '').replace(/\s*;\s*/g, ' / ').trim()
+}
+
+/** Nettoyage d'AFFICHAGE d'un nom de traducteur (les données restent intactes) :
+ *  masque « — prénom non établi » (gardé en base pour les passes de recherche),
+ *  retire un « signalé(e) » superflu en fin, met le titre en minuscule. */
+function nettoyerNomTrad(nom: string): string {
+  return nom
+    .replace(/\s*[—–-]\s*prénom non établi/gi, '')
+    .replace(/\s+signalée?\.?\s*$/i, '')
+    .replace(TITRE_MINUSCULE_RE, m => m.toLowerCase())
+    .trim()
+}
+
 export function libelleTrad(trad: string | null | undefined): string {
-  const noms = (trad ?? '').split(/\s*;\s*/).map(s => s.trim()).filter(Boolean)
-  if (noms.length > 1) return `Traduction par ${enumererNoms(noms)}`
-  const t = noms[0] ?? ''
-  if (!t) return ''
+  const brut = (trad ?? '').split(/\s*;\s*/).map(s => s.trim()).filter(Boolean)
+  // « Non établi » n'est pas un nom : traducteur inconnu.
+  const noms = brut.map(nettoyerNomTrad).filter(n => n && !/^non établi/i.test(n))
+  if (noms.length === 0) {
+    return brut.some(b => /^non établi/i.test(b)) ? 'Traducteur non identifié' : ''
+  }
+  if (noms.length > 1) {
+    // Uniformité : préfixe « : » dès qu'un titre (abbé, dom…) est en tête.
+    const prefixe = TITRES_RE.test(noms[0]) ? 'Traduction : ' : 'Traduction par '
+    return `${prefixe}${enumererNoms(noms)}`
+  }
+  const t = noms[0]
   if (t.toLowerCase() === 'anonyme') return 'Traduction anonyme'
   if (TITRES_RE.test(t)) return `Traduction : ${t}`
   if (t.includes(' ')) return `Traduction par ${t}`

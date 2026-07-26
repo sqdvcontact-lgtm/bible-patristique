@@ -10,6 +10,7 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 
 import IconeSignet from '@/app/components/IconeSignet'
+import ModalSignalement from '@/app/components/ModalSignalement'
 
 const VERSET_ACTION_BTN: React.CSSProperties = {
   background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
@@ -74,77 +75,11 @@ function BoutonCopie({ texte }: { texte: string }) {
 }
 
 // ── Modale signalement ────────────────────────────────────────────────────────
-const TB_NIVEAUX = [
-  { val: 'mineur',    label: 'Mineur',    bg: '#fef4f4', bgOn: '#f0a0a0', color: '#a06060', colorOn: '#5a1010' },
-  { val: 'important', label: 'Important', bg: '#fbd8d8', bgOn: '#c53030', color: '#8a3030', colorOn: '#fff' },
-  { val: 'bloquant',  label: 'Bloquant',  bg: '#f5b8b8', bgOn: '#7b0000', color: '#6b1010', colorOn: '#fff' },
-] as const
-type TBNiveau = 'mineur' | 'important' | 'bloquant'
-
-function ModalSignalement({ titre, onClose, onEnvoyer }: {
-  titre: string; onClose: () => void; onEnvoyer: (msg: string, importance: string) => Promise<void>
-}) {
-  const [message, setMessage] = useState('')
-  const [statut, setStatut] = useState<'idle'|'sending'|'ok'|'err'>('idle')
-  const [importance, setImportance] = useState<TBNiveau>('important')
-
-  const envoyer = async () => {
-    if (!message.trim()) return
-    setStatut('sending')
-    try { await onEnvoyer(message.trim(), importance); setStatut('ok'); setTimeout(onClose, 1800) }
-    catch { setStatut('err') }
-  }
-
-  return (
-    <div onClick={onClose}
-      style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.35)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <div onClick={e => e.stopPropagation()}
-        style={{ background:'#fff', borderRadius:'8px', padding:'20px 22px', width:'340px', boxShadow:'0 8px 32px rgba(0,0,0,0.18)' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px' }}>
-          <p style={{ fontSize:'12px', fontWeight:600, color:'#c0562a', margin:0 }}>Signaler une erreur</p>
-          <button onClick={onClose} style={{ fontSize:'14px', color:'#b0a89e', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
-        </div>
-        {titre && <p style={{ fontSize:'10.5px', color:'#9a958d', fontStyle:'italic', marginBottom:'10px', lineHeight:1.4 }}>{titre}</p>}
-        {statut === 'ok' ? (
-          <p style={{ fontSize:'11.5px', color:'#3d6b4f', fontStyle:'italic', textAlign:'center', padding:'8px 0' }}>Signalement envoyé, merci !</p>
-        ) : (
-          <>
-            <div style={{ display:'flex', gap:'6px', marginBottom:'10px' }}>
-              <span style={{ fontSize:'10.5px', color:'#9a958d', alignSelf:'center', flexShrink:0 }}>Niveau :</span>
-              {TB_NIVEAUX.map(n => {
-                const actif = importance === n.val
-                return (
-                  <button key={n.val} onClick={() => setImportance(n.val)}
-                    style={{ fontSize:'10.5px', padding:'3px 10px', borderRadius:'12px', border:'none', cursor:'pointer', fontWeight: actif ? 600 : 400,
-                      background: actif ? n.bgOn : n.bg,
-                      color: actif ? n.colorOn : n.color,
-                      transition:'background 0.15s' }}>
-                    {n.label}
-                  </button>
-                )
-              })}
-            </div>
-            <textarea value={message} onChange={e => setMessage(e.target.value)}
-              placeholder="Décrivez l'erreur constatée…" rows={4} autoFocus
-              style={{ width:'100%', fontSize:'11px', padding:'7px 9px', border:'1px solid #d6d0c4', borderRadius:'5px', background:'#faf8f4', color:'#2a2520', resize:'vertical', outline:'none', lineHeight:1.5, boxSizing:'border-box' }} />
-            <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'8px', gap:'8px' }}>
-              {statut === 'err' && <span style={{ fontSize:'10px', color:'#c0562a', alignSelf:'center' }}>Erreur d'envoi.</span>}
-              <button onClick={onClose} style={{ fontSize:'11px', padding:'5px 12px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#6b6560', cursor:'pointer' }}>Annuler</button>
-              <button onClick={envoyer} disabled={statut === 'sending' || !message.trim()}
-                style={{ fontSize:'11px', padding:'5px 14px', borderRadius:'4px', border:'none', cursor: message.trim() ? 'pointer' : 'default', background: message.trim() ? '#c0562a' : '#e4dfd8', color: message.trim() ? '#fff' : '#9a958d', fontWeight:500 }}>
-                {statut === 'sending' ? 'Envoi…' : 'Envoyer'}
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
+// Composant partagé unique (voir app/components/ModalSignalement), importé en tête.
 
 function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; versetRef?: string; texte?: string }) {
   const [ouvert, setOuvert] = useState(false)
-  const envoyer = async (msg: string, importance: string) => {
+  const envoyer = async (msg: string, importance?: string) => {
     const { data } = await supabase.auth.getSession()
     const headers: HeadersInit = { 'Content-Type': 'application/json' }
     const token = data.session?.access_token
@@ -160,7 +95,6 @@ function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; vers
     }
   }
   const ref = versetRef || versetId
-  const titreModal = texte ? `${ref} — ${texte.slice(0, 90)}${texte.length > 90 ? '…' : ''}` : ref
   return (
     <>
       <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
@@ -169,7 +103,7 @@ function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; vers
         style={{ ...VERSET_ACTION_BTN, opacity:0, color:'#c8c0b4' }}>
         ⚑
       </button>
-      {ouvert && <ModalSignalement titre={titreModal} onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
+      {ouvert && <ModalSignalement titre={ref} texteObjet={texte} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   )
 }
@@ -199,7 +133,12 @@ function FiletSignet({ signal }: { signal: string }) {
       // Le bord droit du filet est ancré au signet (right:100%) : sa position ne dépend
       // pas de la largeur, on peut donc la lire pour caler la longueur.
       const ancreDroite = el.getBoundingClientRect().right
-      el.style.width = `${Math.max(0, ancreDroite - finLigne)}px`
+      const distance = Math.max(0, ancreDroite - finLigne)
+      // Pas de filet quand le texte arrive déjà près du signet : en deçà de ce seuil,
+      // le trait ne guiderait rien et n'ajouterait qu'un parasite. Il n'apparaît que
+      // lorsque le verset est court et que le signet reste seul, loin dans la marge.
+      const SEUIL = 34
+      el.style.width = distance < SEUIL ? '0px' : `${distance}px`
     }
     mesurer()
     const ro = new ResizeObserver(mesurer)
@@ -210,8 +149,11 @@ function FiletSignet({ signal }: { signal: string }) {
   return (
     <span ref={ref} aria-hidden style={{
       position: 'absolute', right: '100%', top: '50%', transform: 'translateY(-50%)',
-      width: '0px', height: '1px', marginRight: '3px',
-      background: 'linear-gradient(to left, rgba(61,107,79,0.32), rgba(61,107,79,0))',
+      width: '0px', height: '1px', marginRight: '5px',
+      // Filet volontairement ténu : palissant vers le texte, il ne fait qu'effleurer
+      // l'œil. Plus discret qu'auparavant (0.32 → 0.16), et adouci près du signet même,
+      // pour rester élégant plutôt que d'afficher une barre franche.
+      background: 'linear-gradient(to left, rgba(61,107,79,0.16), rgba(61,107,79,0.10) 55%, rgba(61,107,79,0))',
       pointerEvents: 'none',
     }} />
   )
@@ -466,9 +408,12 @@ export default function TexteBible({
           <div />
         </div>
 
-        {/* Séparateur fin + choix de traduction : petits filets de part et d'autre, centrés
-            comme avant sur la pleine largeur (le titre, lui, reste calé sur le bloc de texte). */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '8px auto 0', maxWidth: '260px' }}>
+        {/* Séparateur fin + choix de traduction : petits filets de part et d'autre.
+            Calé sur LE MÊME gabarit que le titre « Genèse ❧ Chapitre 1 » (bloc texte
+            de 500 px + colonne d'actions de 38 px exclue du centrage), pour que le menu
+            se centre sur le même axe que le titre, et non sur la pleine largeur. */}
+        <div style={{ width: 'min(538px, 100%)', margin: '8px auto 0', display: 'grid', gridTemplateColumns: 'minmax(0, 500px) 38px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', maxWidth: '260px', margin: '0 auto' }}>
           <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, transparent, #d6d0c4)' }} />
           <div style={{ position: 'relative' }}>
             <button onClick={() => setTradOuverte(!tradOuverte)} style={{
@@ -503,6 +448,8 @@ export default function TexteBible({
             )}
           </div>
           <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to left, transparent, #d6d0c4)' }} />
+        </div>
+          <div />
         </div>
 
       </div>

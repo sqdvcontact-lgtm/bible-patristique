@@ -54,6 +54,9 @@ export async function POST(request: Request) {
     note_biographique: champs.note_biographique || null,
     note_theologique: champs.note_theologique || null,
     langue_principale: champs.langue_principale || null,
+    chronologie: champs.chronologie || null,
+    anecdotes: champs.anecdotes || null,
+    influence: champs.influence || null,
   }).eq('id_auteur', id_auteur)
 
   if (error) return erreur500(error)

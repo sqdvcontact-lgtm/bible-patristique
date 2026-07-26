@@ -9,7 +9,7 @@ import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
-import { libelleTrad } from '@/app/oeuvre/[id]/PageTitre'
+import { libelleTrad, formaterEditeur } from '@/app/oeuvre/[id]/PageTitre'
 import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
 
 type Oeuvre = {
@@ -99,9 +99,9 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
 
   return (
     <div
-      style={{ background: '#fff', borderRadius: '8px', border: '1px solid #e4dfd8', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'box-shadow 0.15s' }}
-      onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)')}
-      onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}>
+      style={{ background: '#fff', borderRadius: '8px', border: '1px solid #e4dfd8', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = '#a9c9b6'; e.currentTarget.style.backgroundColor = '#f8fbf9'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = '#e4dfd8'; e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.transform = 'none' }}>
 
       <div style={{ display: 'flex' }}>
         <div style={{ width: '120px', flexShrink: 0, background: '#ede9e2', position: 'relative', minHeight: '170px', overflow: 'hidden' }}>
@@ -163,18 +163,19 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
       {listeOuverte && (
         <div style={{ borderTop: '1px solid #ede9e2', padding: '8px 0 12px' }}>
           <style>{`
-            .bib-ligne { display: flex; align-items: stretch; transition: background 0.12s; }
-            .bib-ligne:hover:not(.bib-correspond) {
-              background: linear-gradient(to bottom, transparent 0%, rgba(61,107,79,0.05) 22%, rgba(61,107,79,0.05) 78%, transparent 100%);
-            }
+            .bib-ligne { display: flex; align-items: stretch; transition: background-color 0.18s ease; }
+            .bib-ligne:hover:not(.bib-correspond) { background-color: rgba(61,107,79,0.055); }
             .bib-correspond { background: rgba(61,107,79,0.07); }
             .bib-lire {
-              display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
-              font-size: 10px; font-style: italic; letter-spacing: 0.02em; color: #3d6b4f;
+              display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0;
+              font-size: 10px; font-style: italic; letter-spacing: 0.03em; color: #3d6b4f;
               font-family: var(--font-source-serif), Georgia, serif;
-              opacity: 0; transition: opacity 0.18s; white-space: nowrap; pointer-events: none;
+              opacity: 0; transform: translateX(4px); transition: opacity 0.22s ease, transform 0.22s ease;
+              white-space: nowrap; pointer-events: none;
             }
-            .bib-ligne:hover .bib-lire, .bib-correspond .bib-lire { opacity: 0.7; }
+            .bib-ligne:hover .bib-lire, .bib-correspond .bib-lire { opacity: 0.72; transform: translateX(0); }
+            .bib-fleche { transition: transform 0.22s ease; }
+            .bib-ligne:hover .bib-fleche, .bib-correspond .bib-fleche { transform: translateX(3px); }
           `}</style>
           {oeuvresTriees.map((o, idx) => {
             const correspond = oeuvreCorrespondante?.id_oeuvre === o.id_oeuvre
@@ -190,13 +191,15 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
                   style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', padding: '9px 12px 9px 20px', textDecoration: 'none', borderLeft: correspond ? '3px solid #3d6b4f' : '3px solid transparent' }}>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: '13px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? '#2a4d35' : '#2a3d30', fontWeight: correspond ? 600 : 400, lineHeight: 1.35 }}>{o.titre}</span>
-                    {meta && (
+                    {meta ? (
                       <span style={{ display: 'block', fontSize: '10.5px', color: '#a59c90', marginTop: '2px', lineHeight: 1.4 }}>{rendreSiecles(meta)}</span>
+                    ) : (
+                      <span style={{ display: 'block', fontSize: '10.5px', color: '#c4bcb0', marginTop: '2px', lineHeight: 1.4, fontStyle: 'italic' }}>Certaines données manquent.</span>
                     )}
                   </span>
                   <span className="bib-lire">
                     Lire cette œuvre
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.5 6h6.5M6 3l3 3-3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <svg className="bib-fleche" width="17" height="9" viewBox="0 0 18 9" fill="none" aria-hidden="true"><path d="M0.5 4.5h15.5M12 1l4 3.5-4 3.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </span>
                 </Link>
                 <div style={{ display: 'flex', alignItems: 'center', paddingRight: '14px' }}>
@@ -313,9 +316,9 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
 
   return (
     <div
-      style={{ background: '#faf8f4', borderRadius: '8px', border: '1px solid #ddd5c4', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'box-shadow 0.15s' }}
-      onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.07)')}
-      onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}>
+      style={{ background: '#faf8f4', borderRadius: '8px', border: '1px solid #ddd5c4', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = '#d6bd84'; e.currentTarget.style.backgroundColor = '#fdfaf2'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = '#ddd5c4'; e.currentTarget.style.backgroundColor = '#faf8f4'; e.currentTarget.style.transform = 'none' }}>
 
       {/* En-tête auteur */}
       <div style={{ display: 'flex' }}>
@@ -342,8 +345,8 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
       {ouvert && (
         <div style={{ borderTop: '1px solid #e4dcd0', padding: '6px 0 10px' }}>
           <style>{`
-            .cat-ligne { display: flex; align-items: flex-start; padding: 8px 14px 8px 20px; transition: background 0.12s; gap: 10px; }
-            .cat-ligne:hover { background: linear-gradient(to bottom, transparent 0%, rgba(139,107,60,0.045) 22%, rgba(139,107,60,0.045) 78%, transparent 100%); }
+            .cat-ligne { display: flex; align-items: flex-start; padding: 8px 14px 8px 20px; transition: background-color 0.18s ease; gap: 10px; }
+            .cat-ligne:hover { background-color: rgba(139,107,60,0.05); }
           `}</style>
           {groupes.map((groupe, idx) => {
             const aVoté = aVote(groupe.notices)
@@ -378,7 +381,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                       // B, éditeur, année ». Les virgules suffisent à séparer.
                       const meta = [
                         libelleTrad(n.traducteur),
-                        n.editeur,
+                        formaterEditeur(n.editeur),
                         formaterDateHistorique(n.annee_edition ?? n.siecle_edition),
                       ].filter(Boolean).join(', ')
                       const dp = n.domaine_public?.includes('oui')
@@ -440,25 +443,68 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
 function ModaleProposerOeuvre({ auteur, titre, onClose }: {
   auteur: string; titre: string; onClose: () => void
 }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
+  // Une saisie en cours ne doit pas se perdre sur un clic hors de la fenêtre (ou un Échap).
+  // On détecte toute frappe via un `onInput` posé sur le contenu : c'est fiable même pour
+  // les champs Auteur/Titre à autocomplétion, qui ne mettent `form` à jour qu'une fois une
+  // suggestion choisie (une simple comparaison de `form` laissait passer la frappe).
+  const toucheRef = useRef(false)
+  const modifieRef = useRef(false)
+  const [demandeFermeture, setDemandeFermeture] = useState(false)
+
+  const tenterFermer = useCallback(() => {
+    if (toucheRef.current || modifieRef.current) { setDemandeFermeture(true); return }
+    onClose()
   }, [onClose])
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      // Échap referme d'abord la demande de confirmation si elle est ouverte
+      // (on reste alors dans le formulaire) ; sinon il tente de fermer la fenêtre.
+      setDemandeFermeture(ouvert => { if (ouvert) return false; tenterFermer(); return ouvert })
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [tenterFermer])
+
   return (
-    <div onMouseDown={onClose}
+    <div onMouseDown={tenterFermer}
       style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(30,26,20,0.42)', display: 'flex', padding: '20px', overflowY: 'auto' }}>
-      <div onMouseDown={e => e.stopPropagation()}
+      <div onMouseDown={e => e.stopPropagation()} onInput={() => { toucheRef.current = true }}
         style={{ margin: 'auto', background: '#f7f4ef', borderRadius: '10px', border: '1px solid #ddd5c4', width: '100%', maxWidth: '660px', boxShadow: '0 12px 40px rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 22px 12px', borderBottom: '1px solid #e4dcd0' }}>
           <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '16px', color: '#3a342e', margin: 0 }}>{(auteur || titre) ? 'Proposer cette œuvre' : 'Proposer une œuvre'}</h3>
-          <button onClick={onClose} aria-label="Fermer" style={{ fontSize: '16px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+          <button onClick={tenterFermer} aria-label="Fermer" style={{ fontSize: '16px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
         <div style={{ padding: '0 22px' }}>
-          <OngletProposer valeursInitiales={{ auteur_nom: auteur, titre }} />
+          <OngletProposer valeursInitiales={{ auteur_nom: auteur, titre }} onDirtyChange={d => { modifieRef.current = d }} />
         </div>
       </div>
+
+      {/* Panneau de validation avant fermeture — s'affiche par-dessus la fenêtre dès
+          qu'une saisie est en cours, pour éviter une perte accidentelle. */}
+      {demandeFermeture && (
+        <div onMouseDown={e => { e.stopPropagation(); setDemandeFermeture(false) }}
+          style={{ position: 'fixed', inset: 0, zIndex: 110, background: 'rgba(30,26,20,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div onMouseDown={e => e.stopPropagation()}
+            style={{ background: '#fff', borderRadius: '10px', border: '1px solid #e4dcd0', width: '100%', maxWidth: '380px', padding: '20px 22px', boxShadow: '0 12px 40px rgba(0,0,0,0.24)' }}>
+            <h4 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#3a342e', margin: '0 0 8px' }}>Fermer sans enregistrer ?</h4>
+            <p style={{ fontSize: '12.5px', color: '#6b6560', lineHeight: 1.55, margin: '0 0 18px' }}>
+              Les informations que vous avez saisies seront perdues.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '9px' }}>
+              <button onClick={() => setDemandeFermeture(false)}
+                style={{ fontSize: '12px', padding: '7px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a342e', cursor: 'pointer' }}>
+                Continuer l’édition
+              </button>
+              <button onClick={onClose}
+                style={{ fontSize: '12px', padding: '7px 14px', borderRadius: '5px', border: 'none', background: '#c0562a', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>
+                Fermer sans enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -837,7 +883,10 @@ type FormProposition = {
   langue: string; note: string; texte: string
 }
 
-function OngletProposer({ valeursInitiales }: { valeursInitiales?: Partial<FormProposition> } = {}) {
+function OngletProposer({ valeursInitiales, onDirtyChange }: {
+  valeursInitiales?: Partial<FormProposition>
+  onDirtyChange?: (dirty: boolean) => void
+} = {}) {
   const [connecte, setConnecte] = useState<boolean | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [statut, setStatut] = useState<'idle' | 'envoi' | 'ok' | 'erreur' | 'limite'>('idle')
@@ -846,11 +895,23 @@ function OngletProposer({ valeursInitiales }: { valeursInitiales?: Partial<FormP
   const [droitsGarantis, setDroitsGarantis] = useState(false)
   const [quotaRestant, setQuotaRestant] = useState<number | null>(null)
   const [auteurId, setAuteurId] = useState<string | null>(null)
-  const [form, setForm] = useState<FormProposition>({
+  const valeursDepart = useRef<FormProposition>({
     auteur_nom: '', titre: '', traducteur: '', editeur: '',
     collection: '', ville: '', date_publication: '', siecle: '', langue: '', note: '', texte: '',
     ...valeursInitiales,
   })
+  const [form, setForm] = useState<FormProposition>(valeursDepart.current)
+
+  // Le parent (fenêtre modale) est prévenu dès que la saisie diffère de son point de
+  // départ : il pourra demander confirmation avant de fermer et éviter une perte
+  // accidentelle. Une proposition envoyée (statut « ok ») n'est plus « en cours ».
+  useEffect(() => {
+    if (!onDirtyChange) return
+    const modifie = statut !== 'ok' && (
+      JSON.stringify(form) !== JSON.stringify(valeursDepart.current) || droitsGarantis || afficherNom
+    )
+    onDirtyChange(modifie)
+  }, [form, droitsGarantis, afficherNom, statut, onDirtyChange])
 
   React.useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -1119,21 +1180,53 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
         <span style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#9a8a6e' }}>Œuvres favorites</span>
         <div style={{ flex: 1, height: '1px', background: '#e4dfd8' }} />
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
-        {oeuvresFavorites.map(({ oeuvre: o, auteur: a }) => {
-          const metas = [o.editeur, o.ville, formaterDateHistorique(o.date_publication), o.trad_auteur ? `Trad. ${o.trad_auteur}` : null].filter(Boolean)
+      {/* La liste reprend exactement la présentation des œuvres de la
+          Bibliothèque (titre en serif italique, ligne meta avec repli
+          « Certaines données manquent. », survol « Lire cette œuvre » + flèche),
+          transposée dans une palette dorée sobre : l'or est rappelé par le
+          filet de gauche, l'accent des textes et le survol, sans clinquant. */}
+      <div style={{ background: '#fffdf8', borderRadius: '8px', border: '1px solid #eadfc9', overflow: 'hidden', padding: '8px 0 12px' }}>
+        <style>{`
+          .fav-ligne { display: flex; align-items: stretch; transition: background-color 0.18s ease; }
+          .fav-ligne:hover { background-color: rgba(184,138,69,0.07); }
+          .fav-lire {
+            display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0;
+            font-size: 10px; font-style: italic; letter-spacing: 0.03em; color: #9a7636;
+            font-family: var(--font-source-serif), Georgia, serif;
+            opacity: 0; transform: translateX(4px); transition: opacity 0.22s ease, transform 0.22s ease;
+            white-space: nowrap; pointer-events: none;
+          }
+          .fav-ligne:hover .fav-lire { opacity: 0.78; transform: translateX(0); }
+          .fav-fleche { transition: transform 0.22s ease; }
+          .fav-ligne:hover .fav-fleche { transform: translateX(3px); }
+        `}</style>
+        {oeuvresFavorites.map(({ oeuvre: o, auteur: a }, idx) => {
+          const edition = [o.editeur, o.ville, formaterDateHistorique(o.date_publication)].filter(Boolean).join(', ')
+          const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
+          const meta = edition && trad ? `${edition} – ${trad}` : edition || trad
           return (
-            <div key={o.id_oeuvre} style={{ display: 'flex', alignItems: 'center', gap: '9px', background: '#fff', border: '1px solid #ede9e2', borderLeft: '3px solid #b88a45', borderRadius: '0 6px 6px 0', padding: '10px 14px' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ textDecoration: 'none' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 500, color: '#2a3d30', display: 'block' }}>{o.titre}</span>
-                  <span style={{ fontSize: '11px', color: '#9a8a6e', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic' }}>{a.nom}</span>
-                  {metas.length > 0 && (
-                    <span style={{ display: 'block', fontSize: '10.5px', color: '#a59c90', marginTop: '2px' }}>{metas.join(' · ')}</span>
+            <div key={o.id_oeuvre}
+              className="fav-ligne"
+              style={{ borderTop: idx > 0 ? '1px solid #f2e9d8' : 'none' }}>
+              <Link href={`/oeuvre/${o.id_oeuvre}`}
+                style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', padding: '9px 12px 9px 20px', textDecoration: 'none', borderLeft: '3px solid #cfa657' }}>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: '13px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: '#3a3122', lineHeight: 1.35 }}>{o.titre}</span>
+                  <span style={{ display: 'block', fontSize: '11px', color: '#a08a5e', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', marginTop: '1px' }}>{a.nom}</span>
+                  {meta ? (
+                    <span style={{ display: 'block', fontSize: '10.5px', color: '#b3a488', marginTop: '2px', lineHeight: 1.4 }}>{rendreSiecles(meta)}</span>
+                  ) : (
+                    <span style={{ display: 'block', fontSize: '10.5px', color: '#cbbfa2', marginTop: '2px', lineHeight: 1.4, fontStyle: 'italic' }}>Certaines données manquent.</span>
                   )}
-                </Link>
+                </span>
+                <span className="fav-lire">
+                  Lire cette œuvre
+                  <svg className="fav-fleche" width="17" height="9" viewBox="0 0 18 9" fill="none" aria-hidden="true"><path d="M0.5 4.5h15.5M12 1l4 3.5-4 3.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </span>
+              </Link>
+              <div style={{ display: 'flex', alignItems: 'center', paddingRight: '14px' }}>
+                <EtoileFavori actif={true} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} />
               </div>
-              <EtoileFavori actif={true} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} />
             </div>
           )
         })}
@@ -1191,24 +1284,24 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '48px' }}>
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '10px 32px 40px' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '8px 32px 40px' }}>
 
-        {/* En-tête */}
-        <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(20px, 3.5vw, 28px)', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 4px' }}>
+        {/* En-tête condensé : titre, onglets et recherche resserrés pour former un seul bloc. */}
+        <div style={{ textAlign: 'center', marginBottom: '6px' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(19px, 3vw, 24px)', fontWeight: 'normal', color: '#1e2e24', margin: 0 }}>
             Bibliothèque
           </h1>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', alignItems: 'stretch', borderBottom: '1px solid #ddd8cf', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'stretch', borderBottom: '1px solid #ddd8cf', marginBottom: '10px' }}>
           {([['bibliotheque', 'Bibliothèque'], ['favoris', 'Favoris'], ['catalogue', 'Catalogue des traductions']] as [Onglet, string][]).map(([key, label], idx) => (
             <React.Fragment key={key}>
               {idx > 0 && (
-                <span style={{ width: '1px', background: '#e0d8ce', alignSelf: 'center', height: '14px', flexShrink: 0 }} />
+                <span style={{ width: '1px', background: '#e0d8ce', alignSelf: 'center', height: '13px', flexShrink: 0 }} />
               )}
               <button onClick={() => setOnglet(key)} style={{
-                flex: 1, padding: '8px 8px', fontSize: '12.5px', fontFamily: 'var(--font-source-serif), Georgia, serif',
+                flex: 1, padding: '6px 8px', fontSize: '12px', fontFamily: 'var(--font-source-serif), Georgia, serif',
                 textAlign: 'center',
                 background: 'none', border: 'none', borderBottom: onglet === key ? '2px solid #3d6b4f' : '2px solid transparent',
                 color: onglet === key ? '#3d6b4f' : '#8a8278', cursor: 'pointer',
@@ -1225,10 +1318,10 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
         {onglet === 'bibliotheque' && (
           <>
             {/* Recherche */}
-            <div style={{ position: 'relative', maxWidth: '340px', margin: '0 auto 14px' }}>
+            <div style={{ position: 'relative', maxWidth: '340px', margin: '0 auto 10px' }}>
               <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
                 placeholder="Rechercher un auteur ou une œuvre"
-                style={{ width: '100%', fontSize: '13px', padding: '9px 14px 9px 38px', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
+                style={{ width: '100%', fontSize: '12.5px', padding: '7px 14px 7px 36px', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
                 <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
                 <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>

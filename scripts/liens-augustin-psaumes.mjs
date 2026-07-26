@@ -19,6 +19,7 @@
 //   node scripts/liens-augustin-psaumes.mjs              (écrit)
 import { readFileSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
+import { verifierLienMecanique } from './_liens-commun.mjs'
 
 const env = Object.fromEntries(readFileSync('.env.local', 'utf8').split(/\r?\n/)
   .map(l => l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/)).filter(Boolean)
@@ -187,15 +188,20 @@ for (const [ps, lemmes] of [...segsParPsaume.entries()].sort((a, b) => a[0] - b[
   for (const l of lemmes) if (!apparies.has(l.s.id)) stats.rejete++
 
   for (const p of paires) {
+    // Score haut (champ restreint = un psaume) → probable, sans arbitrage.
+    // En dessous → douteux + arbitrage. JAMAIS probable ET arbitrage à la fois.
     const sur = p.sc >= SEUIL_SUR
-    const fiabilite = p.sc >= SEUIL_BAS ? 'probable' : 'douteux'
+    const fiabilite = sur ? 'probable' : 'douteux'
     sur ? stats.sur++ : stats.douteux++
     const commun = {
       segment_id: p.lemme.s.id, canon_id: p.verset.canon_id, fiabilite, provenance: 'ia', arbitrage_requis: !sur,
       motif: `Lemme « ${p.lemme.texte.slice(0, 80)} » apparié au verset du psaume, score ${p.sc.toFixed(2)}.`,
     }
+    // Le lemme est une CITATION (type 1). PAS de type 3 automatique : le lien 3
+    // (commentaire) exige que l'auteur EXPLIQUE le verset (§9.3), ce qu'un lemme
+    // cité ne fait pas — l'explication est dans les segments SUIVANTS, et cela ne
+    // s'établit qu'en lecture. Générer un t3 par duplication de citation est faux.
     liens.push({ ...commun, type: 1 })
-    liens.push({ ...commun, type: 3, motif: `Commentaire du verset dont le lemme est cité en tête. ${commun.motif}` })
   }
 }
 
@@ -217,7 +223,7 @@ for (const s of segs) {
     if (dejaVise.has(cle)) continue
     dejaVise.add(cle); statsSec.retenues++
     liens.push({
-      segment_id: s.id, canon_id: meilleur.canon_id, type: 1, fiabilite: 'probable', provenance: 'ia', arbitrage_requis: true,
+      segment_id: s.id, canon_id: meilleur.canon_id, type: 1, fiabilite: 'douteux', provenance: 'ia', arbitrage_requis: true,
       motif: `Citation dans le commentaire (hors lemme) : « ${c.slice(0, 70)} » — score ${meilleurScore.toFixed(2)}, cherchée dans le psaume et ses voisins.`,
     })
   }
@@ -243,6 +249,7 @@ for (let i = 0; i < idsSegments.length; i += 300) {
   supprimes += data?.length ?? 0
 }
 console.log(`\n${supprimes} liens ia retirés`)
+liens.forEach(verifierLienMecanique)   // garde-fou : aucun type 3/4 affirmé
 for (let i = 0; i < liens.length; i += 500) {
   const { error } = await sb.from('liens_bibliques').insert(liens.slice(i, i + 500))
   if (error) throw error

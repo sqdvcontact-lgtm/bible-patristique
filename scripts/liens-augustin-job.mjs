@@ -16,6 +16,7 @@
 //   node scripts/liens-augustin-job.mjs             (écrit)
 import { readFileSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
+import { verifierLienMecanique } from './_liens-commun.mjs'
 
 const env = Object.fromEntries(readFileSync('.env.local', 'utf8').split(/\r?\n/)
   .map(l => l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/)).filter(Boolean)
@@ -306,8 +307,10 @@ for (const [ch, lemmes] of [...segsParChapitre.entries()].sort((a, b) => a[0] - 
   }
 
   for (const p of paires2) {
+    // Score haut (champ restreint) → probable sans arbitrage ; sinon douteux +
+    // arbitrage. JAMAIS probable ET arbitrage ensemble.
     const sur = !p.interpole && p.sc >= SEUIL_SUR
-    const fiabilite = (!p.interpole && p.sc >= SEUIL_BAS) ? 'probable' : 'douteux'
+    const fiabilite = sur ? 'probable' : 'douteux'
     sur ? stats.sur++ : stats.douteux++
     apercu.push({ s: p.lemme.s, l: p.lemme.texte, ch, sc: p.sc, cible: p.verset.canon_id,
                   verdict: p.interpole ? 'interpolé' : sur ? 'sûr' : fiabilite === 'probable' ? 'à arbitrer' : 'douteux' })
@@ -320,8 +323,10 @@ for (const [ch, lemmes] of [...segsParChapitre.entries()].sort((a, b) => a[0] - 
         ? `Aucun mot commun avec le verset : rattachement déduit de la position, seul créneau libre entre les deux voisins alignés. À relire.`
         : `Lemme « ${p.lemme.texte.slice(0, 80)} » aligné sur le texte de Job, score ${p.sc.toFixed(2)}.`,
     }
+    // Le lemme est une CITATION (type 1). PAS de type 3 automatique : le lien 3
+    // exige que l'auteur EXPLIQUE le verset (§9.3) — l'explication est dans les
+    // segments suivants et ne s'établit qu'en lecture, pas en dupliquant la citation.
     liens.push({ ...commun, type: 1 })
-    liens.push({ ...commun, type: 3, motif: `Commentaire du verset dont le lemme est cité en tête. ${commun.motif}` })
   }
 }
 
@@ -371,7 +376,7 @@ for (const s of segs) {
     if (DRY) console.log(`  sec. seg ${String(s.segment_numero).padStart(4)} (ch.${ch}) → ${meilleur.canon_id.padEnd(11)} ${meilleurScore.toFixed(2)}  « ${c.slice(0, 62)} »`)
     liens.push({
       segment_id: s.id, canon_id: meilleur.canon_id, type: 1,
-      fiabilite: 'probable', provenance: 'ia', arbitrage_requis: true,
+      fiabilite: 'douteux', provenance: 'ia', arbitrage_requis: true,
       motif: `Citation dans le commentaire (hors lemme) : « ${c.slice(0, 70)} » — score ${meilleurScore.toFixed(2)}, cherchée dans tout le livre de Job.`,
     })
   }
@@ -422,6 +427,7 @@ const { count: gardes } = await sb.from('liens_bibliques')
   .eq('provenance', 'editeur').in('segment_id', idsSegments.slice(0, 500))
 console.log(`  ${supprimes} liens de la passe précédente retirés · ${gardes ?? 0} arbitrage(s) d'éditeur conservé(s)`)
 
+liens.forEach(verifierLienMecanique)   // garde-fou : aucun type 3/4 affirmé
 for (let i = 0; i < liens.length; i += 500) {
   const { error } = await sb.from('liens_bibliques').insert(liens.slice(i, i + 500))
   if (error) throw error

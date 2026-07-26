@@ -16,6 +16,7 @@
 //   node scripts/liens-citations-introduites.mjs A0010O0100
 import { readFileSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
+import { stemmes, construireIdf, profilVerset, profilCitation, scoreProfil, verifierLienMecanique } from './_liens-commun.mjs'
 
 const env = Object.fromEntries(readFileSync('.env.local', 'utf8').split(/\r?\n/)
   .map(l => l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/)).filter(Boolean)
@@ -24,7 +25,9 @@ const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_
 
 const OEUVRE = process.argv.find(a => /^A\d{4}O\d{4}$/.test(a))
 const DRY = process.argv.includes('--dry')
-if (!OEUVRE) { console.error('usage : node scripts/liens-citations-introduites.mjs <id_oeuvre> [--dry]'); process.exit(1) }
+// Restreindre à une partie (ref_niv1), p. ex. --partie="Supplément".
+const PARTIE = (process.argv.find(a => a.startsWith('--partie=')) || '').split('=').slice(1).join('=') || null
+if (!OEUVRE) { console.error('usage : node scripts/liens-citations-introduites.mjs <id_oeuvre> [--dry] [--partie="Supplément"]'); process.exit(1) }
 
 const PAULINIENNES = ['ROM','1CO','2CO','GAL','EPH','PHP','COL','1TH','2TH','1TI','2TI','TIT','PHM','HEB']
 const EVANGILES    = ['MAT','MRK','LUK','JHN']
@@ -44,9 +47,13 @@ const FORMULES = [
   { motif: /(il\s+est\s+[ée]crit|l.[ée]criture\s+(dit|porte)|comme\s+(il\s+est\s+dit|dit|le\s+dit))[^.]{0,25}$/i, livres: null, nom: 'écrit' },
 ]
 
-// Sans indice de livre, la rencontre fortuite devient probable : on exige bien plus.
-const SEUIL_CIBLE  = 0.50
-const SEUIL_PARTOUT = 0.68
+// Seuils du score amélioré (IDF + bigrammes, échelle différente du Dice brut).
+// Sans indice de livre (formule vague), la rencontre fortuite devient probable :
+// on exige davantage. MARGE : le meilleur doit devancer nettement le 2ᵉ candidat,
+// sinon l'appariement est ambigu et rejeté.
+const SEUIL_CIBLE  = 0.28
+const SEUIL_PARTOUT = 0.42
+const MARGE = 0.06
 
 const ancienneGraphie = m => m.replace(/oi/g, 'ai').replace(/([bcdfgjklmnpqrstvxz])ans$/, '$1ants')
 const mots = s => (s || '').replace(/<[^>]+>/g, ' ')
@@ -68,9 +75,10 @@ function dice(a, b) {
 // non une propriété de la méthode.
 const segs = []
 for (let from = 0; ; from += 1000) {
-  const { data, error } = await sb.from('segments')
+  let q = sb.from('segments')
     .select('id, segment_numero, segment_texte').eq('id_oeuvre', OEUVRE).eq('nature', 'texte')
-    .order('segment_numero').range(from, from + 999)
+  if (PARTIE) q = q.eq('ref_niv1', PARTIE)
+  const { data, error } = await q.order('segment_numero').range(from, from + 999)
   if (error) throw error
   segs.push(...data); if (data.length < 1000) break
 }
@@ -86,8 +94,8 @@ for (let from = 0; ; from += 1000) {
  *  la file d'arbitrage au lieu de se perdre.
  */
 const NON_BIBLIQUES = [
-  { motif: /\b(Platon|Aristote|Cic[ée]ron|S[ée]n[eè]que|Virgile|Hom[eè]re|Plotin|Porphyre|Varron|Salluste|T[ée]rence)\b/g, genre: 'auteur profane' },
-  { motif: /\b(Cyprien|Ambroise|Tertullien|Origène|J[ée]r[ôo]me|Ir[ée]n[ée]e|Chrysostome|Basile|Grégoire)\b/g,             genre: 'Père de l’Église' },
+  { motif: /\b(Platon|Aristote|Cic[ée]ron|S[ée]n[eè]que|Virgile|Hom[eè]re|Plotin|Porphyre|Varron|Salluste|T[ée]rence|Bo[èe]ce|Macrobe|Ptol[ée]m[ée]e|Avicenne|Averro[èe]s|Ma[iï]monide)\b/g, genre: 'auteur profane' },
+  { motif: /\b(Augustin|Cyprien|Ambroise|Tertullien|Origène|J[ée]r[ôo]me|Ir[ée]n[ée]e|Chrysostome|Basile|Gr[ée]goire|Isidore|B[èe]de|Denys|Anselme|Bernard|Hilaire|L[ée]on|Damasc[èe]ne|Athanase|Cyrille|[ÉE]piphane|Cassien|Cassiodore|Hugues|Jean\s+Damasc[èe]ne)\b/g, genre: 'Père de l’Église' },
   { motif: /\b(H[ée]noch|Esdras\s+(III|IV|3|4)|Odes\s+de\s+Salomon|Pasteur\s+d.Hermas|Didach[èe])\b/g,                     genre: 'écrit hors canon' },
 ]
 
@@ -180,40 +188,51 @@ for (let from = 0; !rienAApparier; from += 1000) {
   if (!data?.length) break
   versets.push(...data); if (data.length < 1000) break
 }
-const parCanon = new Map()
+const parStems = new Map()   // canon_id → [stems de chaque traduction]
 for (const v of versets) {
-  if (!parCanon.has(v.canon_id)) parCanon.set(v.canon_id, [])
-  parCanon.get(v.canon_id).push(sac(v.texte))
+  if (!parStems.has(v.canon_id)) parStems.set(v.canon_id, [])
+  parStems.get(v.canon_id).push(stemmes(v.texte))
 }
+// IDF sur tout le corpus chargé : un mot partagé rare pèse, un mot banal presque rien.
+const idf = construireIdf([...parStems.values()].flat())
+// Profils précalculés (sac + masse IDF + bigrammes) : le score par paire est alors
+// en O(taille de la citation), non plus recomposé à chaque comparaison.
+const parCanon = new Map()
+for (const [canon_id, liste] of parStems) parCanon.set(canon_id, liste.map(st => profilVerset(st, idf)))
 console.log(`  ${parCanon.size} créneaux chargés\n`)
 
 // ── Appariement, restreint au périmètre annoncé par la formule ───────────────
 const liens = []
-const stats = { retenues: 0, sousSeuil: 0, parFormule: {} }
+const stats = { retenues: 0, sousSeuil: 0, ambigus: 0, parFormule: {} }
 for (const c of (rienAApparier ? [] : cibles)) {
-  const sacC = sac(c.texte)
+  const pQ = profilCitation(stemmes(c.texte))
   const perimetre = c.formule.livres
-  let meilleur = null, best = 0
-  for (const [canon_id, sacs] of parCanon) {
+  let meilleur = null, best = 0, second = 0
+  for (const [canon_id, profils] of parCanon) {
     if (perimetre && !perimetre.includes(canon_id.split('.')[0])) continue
-    for (const s of sacs) { const d = dice(sacC, s); if (d > best) { best = d; meilleur = canon_id } }
+    let sc = 0
+    for (const pv of profils) { const d = scoreProfil(pQ, pv, idf); if (d > sc) sc = d }
+    if (sc > best) { second = best; best = sc; meilleur = canon_id }
+    else if (sc > second) { second = sc }
   }
   const seuil = perimetre ? SEUIL_CIBLE : SEUIL_PARTOUT
   if (!meilleur || best < seuil) { stats.sousSeuil++; continue }
+  // Garde d'ambiguïté : deux versets quasi ex æquo → appariement non fiable, rejeté.
+  if (best - second < MARGE) { stats.ambigus++; continue }
   stats.retenues++
   stats.parFormule[c.formule.nom] = (stats.parFormule[c.formule.nom] ?? 0) + 1
-  if (DRY) console.log(`  ${c.formule.nom.padEnd(12)} seg ${String(c.seg.segment_numero).padStart(4)} → ${meilleur.padEnd(12)} ${best.toFixed(2)}  « ${c.texte.slice(0, 58)} »`)
+  if (DRY) console.log(`  ${c.formule.nom.padEnd(12)} seg ${String(c.seg.segment_numero).padStart(4)} → ${meilleur.padEnd(12)} ${best.toFixed(2)} (2e ${second.toFixed(2)})  « ${c.texte.slice(0, 50)} »`)
   liens.push({
     segment_id: c.seg.id, canon_id: meilleur, type: 1,
-    // Citation délimitée par l'édition → probable ; citation devinée par fenêtre
-    // (œuvre sans guillemets) → douteux : la borne vient de nous, pas de la source.
-    fiabilite: c.devine ? 'douteux' : 'probable', provenance: 'ia', arbitrage_requis: true,
-    motif: `Citation annoncée par une formule (« ${c.formule.nom} »)${c.devine ? ', bornes devinées (édition sans guillemets)' : ''} : « ${c.texte.slice(0, 60)} ». Recherche ${perimetre ? 'restreinte à ' + perimetre.length + ' livre(s)' : 'sur tout le canon'}, score ${best.toFixed(2)}.`,
+    // Appariement sémantique sans référence → toujours « douteux » (l'audit le
+    // confirme) ; il reste soumis à validation.
+    fiabilite: 'douteux', provenance: 'ia', arbitrage_requis: true,
+    motif: `Citation annoncée par une formule (« ${c.formule.nom} »)${c.devine ? ', bornes devinées (édition sans guillemets)' : ''} : « ${c.texte.slice(0, 60)} ». Recherche ${perimetre ? 'restreinte à ' + perimetre.length + ' livre(s)' : 'sur tout le canon'}, score ${best.toFixed(2)} (2ᵉ ${second.toFixed(2)}).`,
   })
 }
 
 console.log(`\n  retenues : ${stats.retenues}  ${JSON.stringify(stats.parFormule)}`)
-console.log(`  sous le seuil : ${stats.sousSeuil}`)
+console.log(`  sous le seuil : ${stats.sousSeuil} · ambigus rejetés : ${stats.ambigus}`)
 
 if (DRY) { console.log('\n(--dry : rien écrit)'); process.exit(0) }
 
@@ -241,7 +260,11 @@ for (const l of liens) {
   deja.add(cle)
   aEcrire.push(l)
 }
-aEcrire.push(...signalements)
+// Les marqueurs « référence non biblique » (sans cible) remontent en arbitrage.
+// --sans-flags les écarte quand on ne veut que les liens bibliques appariés.
+if (!process.argv.includes('--sans-flags')) aEcrire.push(...signalements)
+else console.log(`  (${signalements.length} flags non bibliques écartés : --sans-flags)`)
+aEcrire.filter(l => l.canon_id).forEach(verifierLienMecanique)   // garde-fou (les flags sans cible exclus)
 for (let i = 0; i < aEcrire.length; i += 500) {
   const { error } = await sb.from('liens_bibliques').insert(aEcrire.slice(i, i + 500))
   if (error) throw error

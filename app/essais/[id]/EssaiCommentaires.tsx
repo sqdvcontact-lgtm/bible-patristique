@@ -258,8 +258,11 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
       {userId ? (
         <div style={{ marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid #ede9e2', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {cibleReponse && (
-            <p style={{ fontSize: '10.5px', color: '#6b6560', background: '#faf8f4', padding: '4px 8px', borderRadius: '4px', margin: 0 }}>
-              ↳ En réponse à <strong>{cibleReponse.auteur_nom}</strong>{' '}
+            <p style={{ fontSize: '10.5px', color: '#6b6560', background: '#faf8f4', padding: '4px 8px', borderRadius: '4px', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+                <path d="M7 4 3.5 7.5 7 11M3.5 7.5H10a2.5 2.5 0 0 1 2.5 2.5V12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              En réponse à <strong>{cibleReponse.auteur_nom}</strong>{' '}
               <button onClick={() => setCibleReponse(null)} style={{ color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', fontSize: '10.5px', padding: 0 }}>✕</button>
             </p>
           )}

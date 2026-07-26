@@ -126,12 +126,20 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
     )
   }
 
-  // Construire la liste des paires (segment, verset) à afficher
+  // Construire la liste des paires (segment, verset) à afficher.
+  // La vérification se fait par (segment, verset) — `verifies(seg)` ne stocke que des canon_id —,
+  // or un lemme porte deux liens vers le même verset (type 1 « citation » + type 3 « commentaire »).
+  // On dédoublonne donc par canon_id pour ne montrer et ne compter chaque paire qu'une fois
+  // (sans quoi la clé React `${seg.id}_${idVerset}` n'est pas unique et le badge compte double).
   const paires: { seg: any; idVerset: string }[] = []
   segments.forEach(seg => {
     const vv = verifies(seg)
+    const vus = new Set<string>()
     ;(liensParSegment.get(seg.id) ?? []).forEach(({ canon_id }) => {
-      if (!vv.includes(canon_id)) paires.push({ seg, idVerset: canon_id })
+      if (!vv.includes(canon_id) && !vus.has(canon_id)) {
+        vus.add(canon_id)
+        paires.push({ seg, idVerset: canon_id })
+      }
     })
   })
 

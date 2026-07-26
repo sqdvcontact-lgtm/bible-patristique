@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import type { CitationPreferee } from '@/app/prelevements/page'
 import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
+import ModalSignalement from '@/app/components/ModalSignalement'
 
 type ProfilPublic = {
   pseudo: string
@@ -52,7 +53,7 @@ export default function ProfilPublicPage() {
   const [citationPreferee, setCitationPreferee] = useState<CitationPreferee | null>(null)
   const [photoProfil, setPhotoProfil] = useState<PhotoProfil | null>(null)
   const [emailVisible, setEmailVisible] = useState(false)
-  const [fond, setFond] = useState<'vide' | 'nuit' | 'vignes'>('vide')
+  const [signalementOuvert, setSignalementOuvert] = useState(false)
 
   useEffect(() => {
     if (!pseudo) return
@@ -79,8 +80,6 @@ export default function ProfilPublicPage() {
               if (savedCitation) setCitationPreferee(JSON.parse(savedCitation))
               const savedPhoto = localStorage.getItem('cs_photo_profil')
               if (savedPhoto) setPhotoProfil(JSON.parse(savedPhoto))
-              const savedFond = localStorage.getItem('cs_fond_profil') as 'vide' | 'nuit' | 'vignes' | null
-              if (savedFond) setFond(savedFond)
             } catch {}
           }
         }
@@ -104,38 +103,6 @@ export default function ProfilPublicPage() {
     </main>
   )
 
-  const FONDS: Record<'vide' | 'nuit' | 'vignes', React.CSSProperties> = {
-    vide: { background: '#faf8f2' },
-    nuit: {
-      background: '#0b0e1a',
-      backgroundImage: [
-        'radial-gradient(ellipse 1px 1px at 15% 22%, rgba(255,255,255,0.90) 0%, transparent 100%)',
-        'radial-gradient(ellipse 1px 1px at 72% 8%, rgba(255,255,255,0.75) 0%, transparent 100%)',
-        'radial-gradient(ellipse 1.5px 1.5px at 38% 55%, rgba(255,255,255,0.60) 0%, transparent 100%)',
-        'radial-gradient(ellipse 1px 1px at 55% 32%, rgba(255,255,255,0.85) 0%, transparent 100%)',
-        'radial-gradient(ellipse 1px 1px at 88% 44%, rgba(255,255,255,0.70) 0%, transparent 100%)',
-        'radial-gradient(ellipse 1px 1px at 6% 68%, rgba(255,255,255,0.55) 0%, transparent 100%)',
-        'radial-gradient(ellipse 1.5px 1.5px at 92% 78%, rgba(255,255,255,0.80) 0%, transparent 100%)',
-        'radial-gradient(ellipse 1px 1px at 28% 85%, rgba(255,255,255,0.60) 0%, transparent 100%)',
-        'radial-gradient(ellipse 1px 1px at 48% 15%, rgba(200,210,255,0.80) 0%, transparent 100%)',
-        'radial-gradient(ellipse 1px 1px at 63% 72%, rgba(255,255,255,0.50) 0%, transparent 100%)',
-        'radial-gradient(ellipse 2px 2px at 80% 20%, rgba(200,220,255,0.60) 0%, transparent 100%)',
-        'radial-gradient(ellipse 1px 1px at 20% 40%, rgba(255,255,255,0.45) 0%, transparent 100%)',
-      ].join(', '),
-    },
-    vignes: {
-      background: '#1a2e14',
-      backgroundImage: [
-        'radial-gradient(ellipse 60% 40% at 20% 30%, rgba(34,68,24,0.9) 0%, transparent 70%)',
-        'radial-gradient(ellipse 50% 60% at 80% 70%, rgba(28,58,20,0.8) 0%, transparent 70%)',
-        'radial-gradient(ellipse 70% 30% at 50% 80%, rgba(44,80,30,0.7) 0%, transparent 70%)',
-        'linear-gradient(160deg, #0e1f0a 0%, #1e3a14 40%, #142a0e 100%)',
-      ].join(', '),
-    },
-  }
-  const couleurTexteNuit = fond === 'nuit' ? '#e8eaf0' : undefined
-  const couleurSousTexteNuit = fond === 'nuit' ? '#a0a8c0' : undefined
-
   const rang = profil.classement ? calculerRang(profil.classement.score) : null
   const couleurs = rang ? couleurRang(rang.rang) : null
   const annee = new Date(profil.membre_depuis).getFullYear()
@@ -143,6 +110,26 @@ export default function ProfilPublicPage() {
   const aBibliotheque = profil.bibliotheque && profil.bibliotheque.length > 0
   const aEssais = profil.essais && profil.essais.length > 0
   const rienDePublic = !profil.classement && !aEssais && !aVersets && !profil.bio && !profil.contact_email && !aBibliotheque
+
+  const envoyerSignalementProfil = async (message: string) => {
+    const { supabase } = await import('@/app/lib/supabase')
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) throw new Error('Connexion requise.')
+    const response = await fetch('/api/signalements', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        profil_pseudo: profil.pseudo,
+        message,
+        importance: 'important',
+        url_source: window.location.href,
+      }),
+    })
+    if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error ?? 'Erreur d’envoi.')
+  }
 
   return (
     <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f3efe2', padding: '48px 20px 96px' }}>
@@ -170,12 +157,39 @@ export default function ProfilPublicPage() {
         }
         .profil-essai-link:last-child { border-bottom: none; }
         .profil-essai-link:hover { opacity: 0.75; }
+        .profil-action {
+          display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+          min-height: 34px; border-radius: 999px; padding: 7px 16px;
+          font-family: var(--font-source-serif), Georgia, serif; font-size: 11.5px;
+          letter-spacing: .025em; text-decoration: none; cursor: pointer;
+          transition: background .14s, border-color .14s, color .14s;
+        }
+        .profil-action-message { background: #d8bd78; border: 1px solid #e2ca91; color: #203a2c; }
+        .profil-action-message:hover { background: #e4cc91; }
+        .profil-action-report { background: rgba(255,255,255,.035); border: 1px solid rgba(235,218,175,.46); color: #e4d7b6; }
+        .profil-action-report:hover { background: rgba(255,255,255,.085); border-color: rgba(235,218,175,.7); }
       `}</style>
 
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
 
         {/* ── EN-TÊTE CENTRÉ ────────────────────────────────────────────────── */}
-        <div style={{ textAlign: 'center', marginBottom: '10px', ...FONDS[fond], border: fond === 'vide' ? '1px solid #d8cdb0' : 'none', borderRadius: '10px', padding: '28px 28px 22px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{
+          textAlign: 'center', marginBottom: '10px', border: '1px solid rgba(198,169,100,.42)',
+          borderRadius: '10px', padding: '30px 28px 24px', position: 'relative', overflow: 'hidden',
+          backgroundColor: '#294c39',
+          backgroundImage: [
+            'radial-gradient(circle at 8% 18%, rgba(222,190,111,.34) 0 1px, transparent 1.7px)',
+            'radial-gradient(circle at 18% 74%, rgba(222,190,111,.18) 0 1px, transparent 1.6px)',
+            'radial-gradient(circle at 31% 28%, rgba(233,204,136,.24) 0 1.2px, transparent 1.8px)',
+            'radial-gradient(circle at 43% 84%, rgba(222,190,111,.18) 0 1px, transparent 1.7px)',
+            'radial-gradient(circle at 57% 16%, rgba(233,204,136,.28) 0 1px, transparent 1.8px)',
+            'radial-gradient(circle at 68% 68%, rgba(222,190,111,.20) 0 1.1px, transparent 1.8px)',
+            'radial-gradient(circle at 82% 30%, rgba(233,204,136,.30) 0 1px, transparent 1.7px)',
+            'radial-gradient(circle at 92% 79%, rgba(222,190,111,.18) 0 1px, transparent 1.6px)',
+            'linear-gradient(145deg, #315b44 0%, #294c39 48%, #203e30 100%)',
+          ].join(', '),
+          boxShadow: '0 8px 24px rgba(35,58,44,.12)',
+        }}>
 
           {/* Photo ou monogramme */}
           <div style={{ marginBottom: '12px' }}>
@@ -203,29 +217,29 @@ export default function ProfilPublicPage() {
           </div>
 
           {/* Pseudo */}
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '24px', fontWeight: 'normal', color: couleurTexteNuit ?? '#1a2818', margin: '0 0 4px', letterSpacing: '0.01em' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '24px', fontWeight: 'normal', color: '#f3eddd', margin: '0 0 4px', letterSpacing: '0.01em' }}>
             {profil.pseudo}
           </h1>
 
           {profil.nom_reel && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12px', color: couleurSousTexteNuit ?? '#6a6050', margin: '0 0 6px', fontStyle: 'italic' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12px', color: '#d7ccb1', margin: '0 0 6px', fontStyle: 'italic' }}>
               {profil.nom_reel}
             </p>
           )}
 
           {/* Date + email */}
-          <p style={{ fontSize: '10px', color: couleurSousTexteNuit ?? '#9a8e82', margin: '0 0 12px', letterSpacing: '0.05em' }}>
+          <p style={{ fontSize: '10px', color: '#c8bea7', margin: '0 0 12px', letterSpacing: '0.05em' }}>
             Lecteur depuis {annee}
             {profil.contact_email && (
               <>
                 {' · '}
                 {emailVisible ? (
-                  <a href={`mailto:${profil.contact_email}`} style={{ color: couleurTexteNuit ?? '#3a5030', textDecoration: 'none' }}>
+                  <a href={`mailto:${profil.contact_email}`} style={{ color: '#ead9a9', textDecoration: 'none' }}>
                     {profil.contact_email}
                   </a>
                 ) : (
                   <button onClick={() => setEmailVisible(true)}
-                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: couleurTexteNuit ?? '#3a5030', fontSize: '10px', letterSpacing: '0.05em', fontFamily: 'inherit', textDecoration: 'underline', textDecorationStyle: 'dotted' }}>
+                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#ead9a9', fontSize: '10px', letterSpacing: '0.05em', fontFamily: 'inherit', textDecoration: 'underline', textDecorationStyle: 'dotted' }}>
                     Afficher l&apos;adresse mail
                   </button>
                 )}
@@ -235,16 +249,16 @@ export default function ProfilPublicPage() {
 
           {/* Filet */}
           <div style={{ marginBottom: rang || profil.bio ? '14px' : '0' }}>
-            <Filet couleur={fond === 'nuit' ? '#4a5878' : fond === 'vignes' ? '#4a7840' : '#c8b89e'} symbole='❧' maxWidth='120px' />
+            <Filet couleur='#aa986b' symbole='❧' maxWidth='120px' />
           </div>
 
           {/* Rang */}
           {rang && couleurs && (
             <div style={{ marginBottom: profil.bio ? '14px' : '0' }}>
-              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '11px', fontStyle: 'normal', color: couleurs.texte }}>
+              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '11px', fontStyle: 'normal', color: '#e2c98d' }}>
                 {rang.rang}
               </span>
-              <span style={{ fontSize: '10px', color: couleurSousTexteNuit ?? '#b0a898', marginLeft: '8px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+              <span style={{ fontSize: '10px', color: '#c8bea7', marginLeft: '8px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                 · {profil.classement!.score} pt{profil.classement!.score !== 1 ? 's' : ''}
               </span>
             </div>
@@ -252,39 +266,24 @@ export default function ProfilPublicPage() {
 
           {/* Bio */}
           {profil.bio && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '14px', color: couleurTexteNuit ?? '#3a3020', lineHeight: 1.65, margin: rang ? '18px 0 0' : '0', fontStyle: 'italic', maxWidth: '440px', marginLeft: 'auto', marginRight: 'auto' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '14px', color: '#eee7d6', lineHeight: 1.65, margin: rang ? '18px 0 0' : '0', fontStyle: 'italic', maxWidth: '440px', marginLeft: 'auto', marginRight: 'auto' }}>
               {profil.bio}
             </p>
           )}
 
-          {/* Sélecteur de fond — propriétaire uniquement */}
-          {monPseudo === profil.pseudo && (
-            <div style={{ marginTop: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-              {(['vide', 'nuit', 'vignes'] as const).map(f => (
-                <button key={f} onClick={() => { setFond(f); localStorage.setItem('cs_fond_profil', f) }}
-                  title={f === 'vide' ? 'Fond clair' : f === 'nuit' ? 'Nuit étoilée' : 'Vignes'}
-                  style={{
-                    width: '22px', height: '22px', borderRadius: '50%', border: fond === f ? '2px solid #3d6b4f' : '2px solid transparent',
-                    cursor: 'pointer', padding: 0, outline: 'none',
-                    background: f === 'vide' ? '#faf8f2' : f === 'nuit' ? '#0b0e1a' : '#1a2e14',
-                    boxShadow: fond === f ? '0 0 0 1px #3d6b4f' : '0 0 0 1px rgba(0,0,0,0.18)',
-                  }} />
-              ))}
-            </div>
-          )}
-
-          {/* Bouton messagerie */}
+          {/* Actions publiques — jamais affichées sur son propre profil */}
           {monPseudo && monPseudo !== profil.pseudo && (
-            <div style={{ marginTop: '22px' }}>
+            <div style={{ marginTop: '22px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <Link href={`/messagerie/${encodeURIComponent(profil.pseudo)}`}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'transparent', border: '1px solid #3a5030', color: '#3a5030', borderRadius: '20px', padding: '7px 18px', fontSize: '11.5px', fontWeight: 500, textDecoration: 'none', letterSpacing: '0.04em', fontFamily: 'var(--font-source-serif), Georgia, serif', transition: 'background 0.14s' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(58,80,48,0.06)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent' }}>
+                className="profil-action profil-action-message">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                Écrire
+                Envoyer un message
               </Link>
+              <button type="button" onClick={() => setSignalementOuvert(true)} className="profil-action profil-action-report">
+                Signaler ce profil
+              </button>
             </div>
           )}
         </div>
@@ -350,7 +349,7 @@ export default function ProfilPublicPage() {
           <div className="profil-section">
             <Etiquette>Publications</Etiquette>
             <div>
-              {profil.essais!.map((e, i) => (
+              {profil.essais!.map(e => (
                 <Link key={e.id} href={`/essais/${e.id}`} className="profil-essai-link">
                   <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '13.5px', fontStyle: 'italic', color: '#1a2818', flex: 1, lineHeight: 1.4 }}>
                     {e.titre}
@@ -374,6 +373,15 @@ export default function ProfilPublicPage() {
         )}
 
       </div>
+      {signalementOuvert && monPseudo && monPseudo !== profil.pseudo && (
+        <ModalSignalement
+          titreFenetre="Signaler ce profil"
+          titre={`Profil @${profil.pseudo}`}
+          placeholder="Indiquez précisément la raison du signalement…"
+          onClose={() => setSignalementOuvert(false)}
+          onEnvoyer={envoyerSignalementProfil}
+        />
+      )}
     </main>
   )
 }

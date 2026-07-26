@@ -146,9 +146,8 @@ export function BoutonCopieSegment({ texte, auteur, titre, sousTitre, tradAuteur
   )
 }
 
-export function BoutonSignalerSegment({ segId, apercu, titreOeuvre, className = '' }: { segId: number; apercu: string; titreOeuvre?: string; className?: string }) {
+export function BoutonSignalerSegment({ segId, texteObjet, titreOeuvre, className = '' }: { segId: number; texteObjet: string; titreOeuvre?: string; className?: string }) {
   const [ouvert, setOuvert] = useState(false)
-  const titreModal = titreOeuvre ? `${titreOeuvre} — ${apercu}` : apercu
   return (
     <>
       <Bulle texte="Signaler une erreur">
@@ -161,7 +160,8 @@ export function BoutonSignalerSegment({ segId, apercu, titreOeuvre, className = 
       </Bulle>
       {ouvert && (
         <ModalSignalement
-          titre={titreModal}
+          titre={titreOeuvre}
+          texteObjet={texteObjet}
           avecNiveauImportance
           onClose={() => setOuvert(false)}
           onEnvoyer={async (msg, importance) => {

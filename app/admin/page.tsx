@@ -29,6 +29,16 @@ async function actionSupprimerCommentaire(id: number) {
   if (!(await estAdmin())) return
   await supabaseAdmin.from('commentaires').delete().eq('id', id)
 }
+async function actionValiderCommentaireEssai(id: number) {
+  'use server'
+  if (!(await estAdmin())) return
+  await supabaseAdmin.from('essais_commentaires').update({ valide: true }).eq('id', id)
+}
+async function actionSupprimerCommentaireEssai(id: number) {
+  'use server'
+  if (!(await estAdmin())) return
+  await supabaseAdmin.from('essais_commentaires').delete().eq('id', id)
+}
 async function actionMarquerTraite(id: number | string) {
   'use server'
   if (!(await estAdmin())) return
@@ -41,6 +51,16 @@ async function actionMarquerTraite(id: number | string) {
     message_admin: 'Merci pour votre signalement. Il a ete transmis a la moderation et marque comme traite.',
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
+}
+async function actionMarquerTraiteSilencieux(id: number | string) {
+  'use server'
+  if (!(await estAdmin())) return
+  if (String(id).startsWith('quiz_')) {
+    await supabaseAdmin.from('quiz_signalements').update({ traite: true }).eq('id', String(id).replace(/^quiz_/, ''))
+    return
+  }
+  // « Traité » sans remercier : on ne pose pas de message_admin destiné à l'utilisateur.
+  await supabaseAdmin.from('signalements').update({ traite: true }).eq('id', id)
 }
 async function actionSupprimerSignalement(id: number | string) {
   'use server'
@@ -141,6 +161,7 @@ export default async function AdminPage() {
     { data: auteursData },
     { data: traductions },
     { data: nbVerifRaw },
+    { data: commentairesPublicationsRaw },
   ] = await Promise.all([
     supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id').eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false').order('created_at', { ascending: false }),
     supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, id_verset, user_id, importance, url_source').eq('traite', false).order('created_at', { ascending: false }),
@@ -151,9 +172,10 @@ export default async function AdminPage() {
     supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, statut, nb_vues').eq('statut', 'publie').order('publie_at', { ascending: false, nullsFirst: false }),
     supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, statut, nb_vues').eq('statut', 'brouillon').order('updated_at', { ascending: false, nullsFirst: false }),
     supabaseAdmin.from('signalements').select('message'),
-    supabaseAdmin.from('auteurs').select('id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, traditions, note_biographique, note_theologique, langue_principale, photo_position, oeuvres(id_oeuvre, titre, sous_titre, titre_original, trad_auteur, editeur, collection, ville, date_publication, date_composition, url_source, genre, genres, langue, profondeur_sommaire, nb_signes, niveaux_sommaire, niveaux_corps, texte_sommaire, texte_corps, afficher_numeros)').order('siecle', { ascending: true, nullsFirst: false }),
+    supabaseAdmin.from('auteurs').select('id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, traditions, note_biographique, note_theologique, langue_principale, chronologie, anecdotes, influence, photo_position, oeuvres(id_oeuvre, titre, sous_titre, titre_original, trad_auteur, editeur, collection, ville, date_publication, date_composition, url_source, genre, genres, langue, profondeur_sommaire, nb_signes, niveaux_sommaire, niveaux_corps, texte_sommaire, texte_corps, afficher_numeros)').order('siecle', { ascending: true, nullsFirst: false }),
     supabaseAdmin.from('traductions').select('*').order('ordre', { ascending: true }),
     supabaseAdmin.rpc('count_verifications_pending'),
+    supabaseAdmin.from('essais_commentaires').select('id, id_essai, texte, auteur_nom, created_at, user_id').eq('valide', false).eq('supprime', false).order('created_at', { ascending: false }),
   ])
   const nbVerifications = (nbVerifRaw as number | null) ?? 0
 
@@ -196,6 +218,8 @@ export default async function AdminPage() {
   const idsAuteursModification = [...new Set(essaisModificationRaw.map(e => e.user_id))]
   const idsEssaisListes = essaisListesRaw.map(e => e.id)
   const idsAuteursPublies = [...new Set(essaisListesRaw.map(e => e.user_id))]
+  const idsAuteursSignalements = [...new Set(tousSignalements.map(s => s.user_id).filter(Boolean) as string[])]
+  const idsEssaisCommentes = [...new Set((commentairesPublicationsRaw ?? []).map(c => c.id_essai).filter(Boolean) as number[])]
 
   // ── Vague 2 : 7 requêtes dépendantes en parallèle ────────────────────────
   const [
@@ -206,14 +230,18 @@ export default async function AdminPage() {
     { data: appreciationsEssais },
     { data: commentairesEssais },
     { data: profilsPublies },
+    { data: profilsSignalements },
+    { data: titresEssaisCommentes },
   ] = await Promise.all([
     segIdsUniques.length > 0 ? supabaseAdmin.from('segments').select('id, segment_texte, segment_numero, id_oeuvre').in('id', segIdsUniques) : Promise.resolve({ data: [] as any[], error: null }),
-    idsVersetsCertif.length > 0 ? supabaseAdmin.from('versets_lecture').select('id_verset, ref').in('id_verset', idsVersetsCertif) : Promise.resolve({ data: [] as any[], error: null }),
+    idsVersetsCertif.length > 0 ? supabaseAdmin.from('versets_lecture').select('id_verset, ref, TR0001').in('id_verset', idsVersetsCertif) : Promise.resolve({ data: [] as any[], error: null }),
     idsAuteursEssais.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursEssais) : Promise.resolve({ data: [] as any[], error: null }),
     idsAuteursModification.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursModification) : Promise.resolve({ data: [] as any[], error: null }),
     idsEssaisListes.length > 0 ? supabaseAdmin.from('essais_appreciations').select('id_essai').in('id_essai', idsEssaisListes) : Promise.resolve({ data: [] as any[], error: null }),
     idsEssaisListes.length > 0 ? supabaseAdmin.from('essais_commentaires').select('id_essai').in('id_essai', idsEssaisListes) : Promise.resolve({ data: [] as any[], error: null }),
     idsAuteursPublies.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo, nom, prenom').in('id', idsAuteursPublies) : Promise.resolve({ data: [] as any[], error: null }),
+    idsAuteursSignalements.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursSignalements) : Promise.resolve({ data: [] as any[], error: null }),
+    idsEssaisCommentes.length > 0 ? supabaseAdmin.from('essais').select('id, titre').in('id', idsEssaisCommentes) : Promise.resolve({ data: [] as any[], error: null }),
   ])
 
   // ── Traitement ─────────────────────────────────────────────────────────────
@@ -221,7 +249,23 @@ export default async function AdminPage() {
   segmentsCtx?.forEach(s => { segMap[s.id] = { texte: s.segment_texte, numero: s.segment_numero, id_oeuvre: s.id_oeuvre } })
 
   const versetMap: Record<string, string> = {}
-  versetsCtx?.forEach(v => { versetMap[v.id_verset] = v.ref })
+  const versetTexteMap: Record<string, string> = {}
+  versetsCtx?.forEach(v => { versetMap[v.id_verset] = v.ref; if ((v as any).TR0001) versetTexteMap[v.id_verset] = (v as any).TR0001 })
+
+  // Nom de l'œuvre pour un segment (« Auteur — Titre »), et pseudo de l'auteur d'un signalement.
+  const oeuvreTitreMap: Record<string, string> = {}
+  ;(auteursData ?? []).forEach((a: any) => (a.oeuvres ?? []).forEach((o: any) => { oeuvreTitreMap[o.id_oeuvre] = `${a.nom} — ${o.titre}` }))
+  const signalementAuteurMap: Record<string, string> = {}
+  ;(profilsSignalements ?? []).forEach((p: any) => { if (p.pseudo) signalementAuteurMap[p.id] = p.pseudo })
+
+  // Commentaires de publications (essais) en attente de modération.
+  const titreEssaiMap: Record<number, string> = {}
+  ;(titresEssaisCommentes ?? []).forEach((e: any) => { titreEssaiMap[e.id] = e.titre })
+  const commentairesPublications = (commentairesPublicationsRaw ?? []).map((c: any) => ({
+    id: c.id, id_essai: c.id_essai, texte: c.texte, auteur_nom: c.auteur_nom ?? 'Anonyme',
+    created_at: c.created_at, user_id: c.user_id ?? null,
+    titre_essai: titreEssaiMap[c.id_essai] ?? `Publication ${c.id_essai}`,
+  }))
 
   const pseudoMap: Record<string, string> = {}
   profilsEssais?.forEach(p => { pseudoMap[p.id] = p.pseudo })
@@ -257,6 +301,7 @@ export default async function AdminPage() {
   return (
     <AdminClient
       commentaires={commentaires ?? []}
+      commentairesPublications={commentairesPublications}
       signalements={tousSignalements}
       demandesCertification={demandesCertification ?? []}
       essaisEnAttente={essaisEnAttente}
@@ -264,14 +309,20 @@ export default async function AdminPage() {
       essaisPublies={essaisPublies}
       essaisBrouillons={essaisBrouillons}
       versetMap={versetMap}
+      versetTexteMap={versetTexteMap}
       segMap={segMap}
+      oeuvreTitreMap={oeuvreTitreMap}
+      signalementAuteurMap={signalementAuteurMap}
       auteurs={auteurs}
       traductions={traductions ?? []}
       nbVerifications={nbVerifications ?? 0}
       actionDeconnexion={actionDeconnexion}
       actionValider={actionValiderCommentaire}
       actionSupprimerCommentaire={actionSupprimerCommentaire}
+      actionValiderCommentaireEssai={actionValiderCommentaireEssai}
+      actionSupprimerCommentaireEssai={actionSupprimerCommentaireEssai}
       actionMarquerTraite={actionMarquerTraite}
+      actionMarquerTraiteSilencieux={actionMarquerTraiteSilencieux}
       actionSupprimerSignalement={actionSupprimerSignalement}
       actionCertifier={actionCertifierCommentaire}
       actionRetirerDemandeCertification={actionRetirerDemandeCertification}

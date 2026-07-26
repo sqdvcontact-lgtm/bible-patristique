@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { STYLE_ROMAIN, STYLE_ORDINAL, sieclesEnHtml } from '@/app/lib/siecles'
 
 export function normaliserEspaces(texte: string): string {
@@ -19,27 +20,35 @@ export function normaliserEspaces(texte: string): string {
 // Bible affichait les balises en clair au milieu des versets.
 // La paire vide `<i></i>` existe dans le corpus (reliquat de coupe) : d'où `*?` et non `+?`,
 // afin qu'elle disparaisse au lieu de s'afficher.
-export function rendreTexteEnrichi(texte: string): React.ReactNode {
+// `transform` (optionnel) est appliqué à CHAQUE portion de texte naturel — les runs hors
+// balise ET le contenu de **gras** / *ital* / `<i>` / lien. Il sert à la page Recherche pour
+// y injecter le surlignage du mot cherché sans perdre l'enrichissement. Par défaut (lecture),
+// c'est l'identité : le texte est rendu tel quel, comportement inchangé.
+export function rendreTexteEnrichi(
+  texte: string,
+  transform?: (s: string, key: string) => React.ReactNode,
+): React.ReactNode {
+  const tf = transform ?? ((s: string) => s)
   const noeuds: React.ReactNode[] = []
   const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>/g
   let dernierIndex = 0, k = 0, m: RegExpExecArray | null
   while ((m = regex.exec(texte))) {
-    if (m.index > dernierIndex) noeuds.push(texte.slice(dernierIndex, m.index))
-    if (m[1] !== undefined) noeuds.push(<strong key={k++}>{m[1]}</strong>)
+    if (m.index > dernierIndex) noeuds.push(<Fragment key={k}>{tf(texte.slice(dernierIndex, m.index), `t${k++}`)}</Fragment>)
+    if (m[1] !== undefined) noeuds.push(<strong key={k}>{tf(m[1], `b${k++}`)}</strong>)
     else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{m[2]}</sup>)
-    else if (m[3] !== undefined) noeuds.push(<em key={k++}>{m[3]}</em>)
+    else if (m[3] !== undefined) noeuds.push(<em key={k}>{tf(m[3], `e${k++}`)}</em>)
     else if (m[4] !== undefined) noeuds.push(
-      <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{m[4]}</a>
+      <a key={k} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{tf(m[4], `a${k++}`)}</a>
     )
     else if (m[6] !== undefined) {
       noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[6]}</span>)
       noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[7]}</sup>)
-      noeuds.push(m[8])
+      noeuds.push(<Fragment key={k++}>{m[8]}</Fragment>)
     }
-    else if (m[9] !== undefined) { if (m[9]) noeuds.push(<em key={k++}>{m[9]}</em>) }
+    else if (m[9] !== undefined) { if (m[9]) noeuds.push(<em key={k}>{tf(m[9], `e${k++}`)}</em>) }
     dernierIndex = regex.lastIndex
   }
-  if (dernierIndex < texte.length) noeuds.push(texte.slice(dernierIndex))
+  if (dernierIndex < texte.length) noeuds.push(<Fragment key={k}>{tf(texte.slice(dernierIndex), `t${k++}`)}</Fragment>)
   return noeuds
 }
 

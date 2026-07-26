@@ -15,16 +15,16 @@ import SectionControleOeuvres from './SectionControleOeuvres'
 import type { AdminProps as Props, Onglet } from './adminTypes'
 
 export default function AdminClient({
-  commentaires, signalements, demandesCertification, essaisEnAttente, essaisModification, essaisPublies, essaisBrouillons, segMap, versetMap, auteurs, traductions,
+  commentaires, commentairesPublications, signalements, demandesCertification, essaisEnAttente, essaisModification, essaisPublies, essaisBrouillons, segMap, versetMap, versetTexteMap, oeuvreTitreMap, signalementAuteurMap, auteurs, traductions,
   nbVerifications,
-  actionDeconnexion, actionValider, actionSupprimerCommentaire,
-  actionMarquerTraite, actionSupprimerSignalement,
+  actionDeconnexion, actionValider, actionSupprimerCommentaire, actionValiderCommentaireEssai, actionSupprimerCommentaireEssai,
+  actionMarquerTraite, actionMarquerTraiteSilencieux, actionSupprimerSignalement,
   actionCertifier, actionRetirerDemandeCertification,
   actionPublierEssai, actionRenvoyerBrouillonEssai,
 }: Props) {
   const [onglet, setOnglet] = useState<Onglet>('bibliotheque')
   const [nbVerif, setNbVerif] = useState(nbVerifications)
-  const [nbMod, setNbMod] = useState(commentaires.length + signalements.length + demandesCertification.length)
+  const [nbMod, setNbMod] = useState(commentaires.length + commentairesPublications.length + signalements.length + demandesCertification.length)
   const [nbEssais, setNbEssais] = useState(essaisEnAttente.length + essaisModification.length)
 
   useEffect(() => {
@@ -34,13 +34,14 @@ export default function AdminClient({
 
   useEffect(() => {
     const charger = async () => {
-      const [mod1, mod2, mod3, ess] = await Promise.all([
+      const [mod1, mod2, mod3, mod4, ess] = await Promise.all([
         supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false'),
         supabase.from('signalements').select('id', { count: 'exact', head: true }).eq('traite', false),
         supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('demande_validation', true),
+        supabase.from('essais_commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).eq('supprime', false),
         supabase.from('essais').select('id', { count: 'exact', head: true }).in('statut', ['en_attente', 'a_reviser']),
       ])
-      setNbMod((mod1.count ?? 0) + (mod2.count ?? 0) + (mod3.count ?? 0))
+      setNbMod((mod1.count ?? 0) + (mod2.count ?? 0) + (mod3.count ?? 0) + (mod4.count ?? 0))
       setNbEssais(ess.count ?? 0)
     }
     charger()
@@ -120,13 +121,20 @@ export default function AdminClient({
         {onglet === 'moderation' && (
           <SectionModeration
             commentaires={commentaires}
+            commentairesPublications={commentairesPublications}
             signalements={signalements}
             demandesCertification={demandesCertification}
             segMap={segMap}
             versetMap={versetMap}
+            versetTexteMap={versetTexteMap}
+            oeuvreTitreMap={oeuvreTitreMap}
+            signalementAuteurMap={signalementAuteurMap}
             actionValider={id => decrMod(() => actionValider(id))}
             actionSupprimerCommentaire={id => decrMod(() => actionSupprimerCommentaire(id))}
+            actionValiderCommentaireEssai={id => decrMod(() => actionValiderCommentaireEssai(id))}
+            actionSupprimerCommentaireEssai={id => decrMod(() => actionSupprimerCommentaireEssai(id))}
             actionMarquerTraite={id => decrMod(() => actionMarquerTraite(id))}
+            actionMarquerTraiteSilencieux={id => decrMod(() => actionMarquerTraiteSilencieux(id))}
             actionSupprimerSignalement={id => decrMod(() => actionSupprimerSignalement(id))}
             actionCertifier={id => decrMod(() => actionCertifier(id))}
             actionRetirerDemandeCertification={id => decrMod(() => actionRetirerDemandeCertification(id))}

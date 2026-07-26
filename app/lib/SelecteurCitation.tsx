@@ -36,8 +36,17 @@ const NB_CHAPITRES: Record<string, number> = {
   '3JN':1,JUD:1,REV:22,
 }
 
-type Choix = { label: string; type: 'verset' | 'segment'; id: string }
+type Choix = { label: string; type: 'verset' | 'segment'; id: string; href?: string }
 type Props = { onChoisir: (c: Choix) => void; onFermer: () => void }
+
+// Liens internes « redirection vers le site » pour un renvoi cliquable.
+function hrefVerset(livre: string, chapitre: number | string, verset: number | string): string {
+  const code = codeLivre(livre) ?? livre
+  return `/?livre=${code}&chapitre=${chapitre}&trad=TR0002&verset=${verset}`
+}
+function hrefSegment(idOeuvre: string, idSegment: string | number): string {
+  return `/oeuvre/${idOeuvre}?segment=${idSegment}`
+}
 
 function sansAccents(s: string): string {
   return String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’']/g, '').trim()
@@ -184,8 +193,8 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#3d6b4f', flexShrink: 0 }}>{v.verset}</span>
               <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{rendreTexteEnrichi(v.texte)}</span>
               <BoutonsChoix
-                onAbrege={() => onChoisir({ label: ref, type: 'verset', id: v.id_verset })}
-                onComplet={() => onChoisir({ label: citationBibliqueComplete(v.texte, ref), type: 'verset', id: v.id_verset })}
+                onAbrege={() => onChoisir({ label: ref, type: 'verset', id: v.id_verset, href: hrefVerset(livre, chapitre, v.verset) })}
+                onComplet={() => onChoisir({ label: citationBibliqueComplete(v.texte, ref), type: 'verset', id: v.id_verset, href: hrefVerset(livre, chapitre, v.verset) })}
               />
             </div>
           )})}
@@ -268,8 +277,8 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
                 <span style={{ fontSize: '11px', fontWeight: 700, color: '#3d6b4f', flexShrink: 0 }}>§{s.segment_numero}</span>
                 <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{(() => { const t = texteSansEnrichissement(s.segment_texte); return t.slice(0, 200) + (t.length > 200 ? '…' : '') })()}</span>
                 <BoutonsChoix
-                  onAbrege={() => onChoisir({ label: `${auteurNom}, ${oeuvreTitre}, ${refsSegment(s)}`, type: 'segment', id: String(s.id) })}
-                  onComplet={() => onChoisir({ label: citationPatristiqueComplete(s.segment_texte), type: 'segment', id: String(s.id) })}
+                  onAbrege={() => onChoisir({ label: `${auteurNom}, ${oeuvreTitre}, ${refsSegment(s)}`, type: 'segment', id: String(s.id), href: hrefSegment(oeuvre, s.id) })}
+                  onComplet={() => onChoisir({ label: citationPatristiqueComplete(s.segment_texte), type: 'segment', id: String(s.id), href: hrefSegment(oeuvre, s.id) })}
                 />
               </div>
             )
@@ -304,14 +313,14 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
       const { data } = await supabase.from('versets_lecture').select('id_verset').eq('livre', livreCode).eq('chapitre', it.ref_chapitre).eq('verset', it.ref_verset).maybeSingle()
       const ref = labelVerset(livreCode, it.ref_chapitre, it.ref_verset)
       const texte = it.texte ?? ''
-      if (data) onChoisir({ label: complet ? citationBibliqueComplete(texte, ref) : ref, type: 'verset', id: data.id_verset })
+      if (data) onChoisir({ label: complet ? citationBibliqueComplete(texte, ref) : ref, type: 'verset', id: data.id_verset, href: hrefVerset(livreCode, it.ref_chapitre, it.ref_verset) })
     } else {
       const { data } = await supabase.from('segments').select('id, segment_numero, ref_niv1, ref_niv2, ref_niv3, ref_niv4, ref_niv5').eq('id_oeuvre', it.id_oeuvre).eq('segment_numero', it.segment_numero).single()
       if (data) {
         const auteur = it.auteur ?? it.auteur_nom ?? ''
         const titre = it.titre_oeuvre ?? ''
         const ref = `${auteur}, ${titre}, ${refsSegment(data)}`
-        onChoisir({ label: complet ? citationPatristiqueComplete(it.texte ?? '') : ref, type: 'segment', id: String(data.id) })
+        onChoisir({ label: complet ? citationPatristiqueComplete(it.texte ?? '') : ref, type: 'segment', id: String(data.id), href: hrefSegment(it.id_oeuvre, data.id) })
       }
     }
   }
