@@ -17,7 +17,7 @@ import type { AdminProps as Props, Onglet } from './adminTypes'
 export default function AdminClient({
   commentaires, commentairesPublications, signalements, demandesCertification, essaisEnAttente, essaisModification, essaisPublies, essaisBrouillons, segMap, versetMap, versetTexteMap, oeuvreTitreMap, signalementAuteurMap, auteurs, traductions,
   nbVerifications,
-  actionDeconnexion, actionValider, actionSupprimerCommentaire, actionValiderCommentaireEssai, actionSupprimerCommentaireEssai,
+  actionValider, actionSupprimerCommentaire, actionValiderCommentaireEssai, actionSupprimerCommentaireEssai,
   actionMarquerTraite, actionMarquerTraiteSilencieux, actionSupprimerSignalement,
   actionCertifier, actionRetirerDemandeCertification,
   actionPublierEssai, actionRenvoyerBrouillonEssai,
@@ -73,34 +73,34 @@ export default function AdminClient({
         .btn-vert:hover { background: #2e5440 !important; }
         .btn-rouge { background: #fff !important; color: #c0562a !important; border: 1px solid #e4c4b8 !important; }
         .btn-rouge:hover { background: #fdf2ee !important; }
-        .btn-gris { background: transparent !important; color: #9ab0a4 !important; border: 1px solid #4a6459 !important; }
-        .btn-gris:hover { background: rgba(255,255,255,0.08) !important; }
+        /* Bouton secondaire neutre — réaccordé à la mise en page claire (l'ancienne
+           version, pensée pour l'en-tête sombre, jurait sur fond clair). */
+        .btn-gris { background: #fff !important; color: #6b6560 !important; border: 1px solid #d6d0c4 !important; }
+        .btn-gris:hover { background: #f4f2ee !important; border-color: #c8c0b4 !important; }
+        .btn-gris:disabled { opacity: 0.5 !important; cursor: default !important; }
+        .adm-onglet:hover { color: #2f6046 !important; background: rgba(61,107,79,0.05) !important; }
       `}</style>
 
-      {/* Bandeau d'en-tête fixe */}
-      <div style={{ position: 'sticky', top: '48px', zIndex: 50, background: '#1e2e26', borderBottom: '1px solid #2e4438', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 28px', height: '42px' }}>
-        <span style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7aaa8e' }}>
-          Administration
-        </span>
-        <form action={actionDeconnexion}>
-          <button type="submit" className="btn-gris" style={{ fontSize: '10.5px', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer' }}>Déconnexion</button>
-        </form>
-      </div>
-
-      {/* Onglets — aussi sticky, juste en dessous */}
-      <div style={{ position: 'sticky', top: '90px', zIndex: 40, background: '#28382e', borderBottom: '1px solid #344d3e', display: 'flex', alignItems: 'flex-end', padding: '0 20px' }}>
-        {ONGLETS.map((o) => (
-          <React.Fragment key={o.key}>
-            {o.separateur && (
-              <span style={{ padding: '0 4px 8px', color: '#4a6459', fontSize: '16px', fontWeight: 100, lineHeight: 1, display: 'inline-block', transform: 'rotate(15deg)', userSelect: 'none' }}>/</span>
-            )}
-            <button onClick={() => setOnglet(o.key)}
-              style={{ padding: '9px 13px', fontSize: '11.5px', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#a8d4b8' : '#6a9080', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #7aaa8e' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
-              {o.label}
-              {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '9.5px', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 5px', fontWeight: 600 }}>{o.badge}</span>}
-            </button>
-          </React.Fragment>
-        ))}
+      {/* Barre d'onglets, seule et sticky sous la navbar (l'ancien bandeau « Administration »
+          + Déconnexion est retiré). Surface BLANCHE distincte du fond de la zone admin, pour
+          se lire comme une vraie barre d'outils ; onglets clairs, grands, lisibles ; actif
+          souligné de vert. */}
+      <div style={{ position: 'sticky', top: '48px', zIndex: 40, background: '#fff', borderBottom: '1px solid #dfe4e1', display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', padding: '2px 20px 0', boxShadow: '0 2px 8px rgba(30,46,38,0.08)' }}>
+        {ONGLETS.map((o) => {
+          const actif = onglet === o.key
+          return (
+            <React.Fragment key={o.key}>
+              {o.separateur && (
+                <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '18px', margin: '0 8px 10px', background: '#e2e6e3' }} />
+              )}
+              <button onClick={() => setOnglet(o.key)} className="adm-onglet"
+                style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: actif ? 600 : 500, color: actif ? '#2f6046' : '#6a8074', background: actif ? 'rgba(61,107,79,0.06)' : 'transparent', border: 'none', borderBottom: actif ? '3px solid #3d6b4f' : '3px solid transparent', borderRadius: '5px 5px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', whiteSpace: 'nowrap', transition: 'color 0.12s, background 0.12s' }}>
+                {o.label}
+                {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '10px', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
+              </button>
+            </React.Fragment>
+          )
+        })}
       </div>
 
       {/* Contenu */}

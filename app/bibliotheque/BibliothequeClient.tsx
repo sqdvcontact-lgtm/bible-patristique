@@ -11,6 +11,7 @@ import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { libelleTrad, formaterEditeur } from '@/app/oeuvre/[id]/PageTitre'
 import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
+import ModaleAuteur from '@/app/components/ModaleAuteur'
 
 type Oeuvre = {
   id_oeuvre: string; titre: string; sous_titre: string | null
@@ -79,9 +80,10 @@ const CHIFFRES_FR = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'h
 function enLettres(n: number): string { return n >= 1 && n <= 20 ? CHIFFRES_FR[n - 1] : String(n) }
 
 // ── Bandeau auteur ────────────────────────────────────────────────────────────
-function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }: {
+function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, onOuvrirAuteur }: {
   auteur: Auteur; recherche: string
   favorisOeuvres: Set<string>; toggleFavoriOeuvre: (id: string) => void
+  onOuvrirAuteur: (id: string) => void
 }) {
   const q = sansAccents(recherche.trim())
   const oeuvresTriees = useMemo(
@@ -124,12 +126,12 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre }
               <h2 style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '14px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0 }}>
                 {auteur.nom}
               </h2>
-              <Link href={`/auteur/${auteur.id_auteur}`} title="Voir la page de l’auteur"
-                style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '17px', height: '17px', borderRadius: '50%', border: '1px solid #cfe0d5', color: '#3d6b4f', textDecoration: 'none', transition: 'all 0.12s' }}
+              <button onClick={() => onOuvrirAuteur(auteur.id_auteur)} title="Voir la fiche de l’auteur"
+                style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '17px', height: '17px', borderRadius: '50%', border: '1px solid #cfe0d5', background: 'transparent', color: '#3d6b4f', cursor: 'pointer', padding: 0, transition: 'all 0.12s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = '#3d6b4f'; e.currentTarget.style.color = '#fff' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#3d6b4f' }}>
                 <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M3.5 3h5.5v5.5M9 3L3 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </Link>
+              </button>
             </div>
             {datesAuteur && (
               <p style={{ fontSize: '11.5px', color: '#9a8a70', margin: '1px 0 0', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', letterSpacing: '0.01em' }}>
@@ -1274,6 +1276,8 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
     return () => { supabase.removeChannel(channel) }
   }, [refetch])
   const [recherche, setRecherche] = useState(searchParams.get('q') ?? '')
+  // Fiche auteur ouverte en fenêtre (plutôt qu'une navigation vers une page dédiée).
+  const [auteurModal, setAuteurModal] = useState<string | null>(null)
 
   const qNorm = sansAccents(recherche.trim())
 
@@ -1284,24 +1288,25 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '48px' }}>
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '8px 32px 40px' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '22px 32px 40px' }}>
 
-        {/* En-tête condensé : titre, onglets et recherche resserrés pour former un seul bloc. */}
-        <div style={{ textAlign: 'center', marginBottom: '6px' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(19px, 3vw, 24px)', fontWeight: 'normal', color: '#1e2e24', margin: 0 }}>
+        {/* En-tête : titre, onglets et recherche, avec une même respiration verticale (≈14 px)
+            entre chaque strate pour former un bloc au rythme régulier. */}
+        <div style={{ textAlign: 'center', marginBottom: '14px' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(20px, 3vw, 25px)', fontWeight: 'normal', color: '#1e2e24', letterSpacing: '0.01em', margin: 0, lineHeight: 1.1 }}>
             Bibliothèque
           </h1>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', alignItems: 'stretch', borderBottom: '1px solid #ddd8cf', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'stretch', borderBottom: '1px solid #ddd8cf', marginBottom: '14px' }}>
           {([['bibliotheque', 'Bibliothèque'], ['favoris', 'Favoris'], ['catalogue', 'Catalogue des traductions']] as [Onglet, string][]).map(([key, label], idx) => (
             <React.Fragment key={key}>
               {idx > 0 && (
-                <span style={{ width: '1px', background: '#e0d8ce', alignSelf: 'center', height: '13px', flexShrink: 0 }} />
+                <span style={{ width: '1px', background: '#e0d8ce', alignSelf: 'center', height: '14px', flexShrink: 0 }} />
               )}
               <button onClick={() => setOnglet(key)} style={{
-                flex: 1, padding: '6px 8px', fontSize: '12px', fontFamily: 'var(--font-source-serif), Georgia, serif',
+                flex: 1, padding: '8px 8px', fontSize: '12px', fontFamily: 'var(--font-source-serif), Georgia, serif',
                 textAlign: 'center',
                 background: 'none', border: 'none', borderBottom: onglet === key ? '2px solid #3d6b4f' : '2px solid transparent',
                 color: onglet === key ? '#3d6b4f' : '#8a8278', cursor: 'pointer',
@@ -1318,7 +1323,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
         {onglet === 'bibliotheque' && (
           <>
             {/* Recherche */}
-            <div style={{ position: 'relative', maxWidth: '340px', margin: '0 auto 10px' }}>
+            <div style={{ position: 'relative', maxWidth: '340px', margin: '0 auto 18px' }}>
               <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
                 placeholder="Rechercher un auteur ou une œuvre"
                 style={{ width: '100%', fontSize: '12.5px', padding: '7px 14px 7px 36px', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
@@ -1335,7 +1340,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {auteursFiltres.map(auteur => (
-                  <PanneauAuteur key={auteur.id_auteur} auteur={auteur} recherche={recherche} favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} />
+                  <PanneauAuteur key={auteur.id_auteur} auteur={auteur} recherche={recherche} favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={setAuteurModal} />
                 ))}
               </div>
             )}
@@ -1358,6 +1363,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
         {/* Contenu onglet Proposer */}
         {onglet === 'proposer' && <OngletProposer />}
       </div>
+      <ModaleAuteur id={auteurModal} onClose={() => setAuteurModal(null)} />
     </main>
   )
 }

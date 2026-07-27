@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { rendreEssai, compterCaracteres, lettreDepuisIndex, type ElementPanneau } from '@/app/lib/texteEnrichiEssai'
@@ -283,8 +284,17 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     setEditionNote({ mode: 'modification' })
   }
 
-  const inserrerCitation = (c: { label: string; type: 'verset' | 'segment'; id: string }) => {
-    insererHTML(`<span contenteditable="false" data-chip="${c.type}" data-id="${c.id}" data-label="${c.label}" style="display:inline-block;color:#3d6b4f;text-decoration:underline;background:rgba(61,107,79,0.07);padding:1px 5px;border-radius:3px;cursor:pointer;">${c.label}</span>&nbsp;`)
+  const inserrerCitation = (c: { label: string; type: 'verset' | 'segment'; id: string; complet?: boolean; texte?: string; ref?: string }) => {
+    // Citation « complète » : le texte cité forme un bloc Citation (blockquote, non
+    // surligné, couleur du texte) et la référence complète devient une NOTE — jamais le
+    // texte dans la note. La forme abrégée reste un simple renvoi en ligne vers la source.
+    if (c.complet && c.texte) {
+      const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      const note = `<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(c.ref ?? c.label)}" style="display:inline-block;color:#3d6b4f;font-weight:600;font-size:0.78em;vertical-align:super;cursor:pointer;background:transparent;padding:0;border:0;border-radius:0;">note</span>`
+      insererHTML(`<blockquote>${esc(c.texte)}${note}</blockquote><p><br></p>`)
+    } else {
+      insererHTML(`<span contenteditable="false" data-chip="${c.type}" data-id="${c.id}" data-label="${c.label}" style="display:inline-block;color:#3d6b4f;text-decoration:underline;background:rgba(61,107,79,0.07);padding:1px 5px;border-radius:3px;cursor:pointer;">${c.label}</span>&nbsp;`)
+    }
     setSelecteurOuvert(false)
   }
 
@@ -718,23 +728,23 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         </div>
       )}
 
-      {/* ── Modale de confirmation avant soumission ──────────────────────────── */}
-      {confirmPublier && (
-        <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.32)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '24px 26px 22px', maxWidth: '520px', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
-            <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 12px' }}>
+      {/* ── Modale de confirmation avant soumission ──────────────────────────────
+          Rendue via un portail sur <body> : sans cela, un ancêtre transformé (l'éditeur
+          en a) piège le `position: fixed` et la fenêtre n'est plus centrée sur la page.
+          Resserrée et épurée. */}
+      {confirmPublier && typeof document !== 'undefined' && createPortal(
+        <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '20px 22px', maxWidth: '440px', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.20)' }}>
+            <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '16px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 8px' }}>
               Soumettre cette publication ?
             </h3>
-            <p style={{ fontSize: '13px', color: '#5a5450', lineHeight: 1.65, margin: '0 0 8px' }}>
-              Votre texte sera transmis à la modération pour relecture. Vous ne pourrez plus le modifier tant qu&apos;il sera en attente.
+            <p style={{ fontSize: '12px', color: '#5a5450', lineHeight: 1.5, margin: '0 0 4px' }}>
+              Votre texte «&nbsp;<em style={{ color: '#3a3530', fontStyle: 'italic' }}>{meta.titre}</em>&nbsp;» part en modération ; il reste figé tant qu&apos;il est en attente.
             </p>
-            <p style={{ fontSize: '12px', color: '#9a958d', lineHeight: 1.6, margin: '0 0 14px', fontStyle: 'italic' }}>
-              {meta.titre}
-            </p>
-            <div style={{ maxHeight: '240px', overflowY: 'auto', fontSize: '11.5px', color: '#5a5450', lineHeight: 1.58, whiteSpace: 'pre-line', background: '#faf8f4', border: '1px solid #ede9e2', borderRadius: '5px', padding: '11px 13px', marginBottom: '12px' }}>
+            <div style={{ maxHeight: '170px', overflowY: 'auto', fontSize: '11px', color: '#6b6560', lineHeight: 1.5, whiteSpace: 'pre-line', background: '#faf8f4', border: '1px solid #ede9e2', borderRadius: '5px', padding: '9px 11px', margin: '10px 0' }}>
               {CONDITIONS}
             </div>
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '11.5px', color: '#3a3530', margin: '0 0 8px', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '11.5px', color: '#3a3530', margin: '0 0 6px', cursor: 'pointer' }}>
               <input
                 type="checkbox"
                 checked={accepteConditions}
@@ -743,11 +753,11 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
               />
               Je certifie respecter ces conditions de publication.
             </label>
-            {erreurConditions && <p style={{ fontSize: '11px', color: '#c0562a', margin: '0 0 10px' }}>{erreurConditions}</p>}
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            {erreurConditions && <p style={{ fontSize: '11px', color: '#c0562a', margin: '0 0 8px' }}>{erreurConditions}</p>}
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '12px' }}>
               <button
                 onClick={() => { setConfirmPublier(false); setErreurConditions(null) }}
-                style={{ fontSize: '12.5px', padding: '8px 18px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a3530', cursor: 'pointer' }}>
+                style={{ fontSize: '12px', padding: '7px 16px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a3530', cursor: 'pointer' }}>
                 Annuler
               </button>
               <button
@@ -759,12 +769,13 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                   setConfirmPublier(false)
                   await publier()
                 }}
-                style={{ fontSize: '12.5px', padding: '8px 20px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
-                Confirmer la soumission
+                style={{ fontSize: '12px', padding: '7px 18px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                Confirmer
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {selecteurOuvert && <SelecteurCitation onChoisir={inserrerCitation} onFermer={() => setSelecteurOuvert(false)} />}

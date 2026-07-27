@@ -229,8 +229,8 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
                 {info?.auteur_nom || s.id_oeuvre}
               </span>
             )}
-            <a href={`/oeuvre/${s.id_oeuvre}#s${s.segment_numero}`} target="_blank" rel="noopener noreferrer"
-              title="Accéder au passage dans l'œuvre"
+            <a href={`/oeuvre/${s.id_oeuvre}?segment=${s.id}#segment-${s.id}`} target="_blank" rel="noopener noreferrer"
+              title="Accéder au passage exact dans l'œuvre"
               style={{ color:'#b0a89e', textDecoration:'none', flexShrink:0, display:'flex', alignItems:'center' }}>
               <svg width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden="true">
                 <path d="M4 1.5H8.5V6M8.5 1.5L2 8" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
@@ -879,6 +879,39 @@ export default function PanneauPatristique({
     })
   }, [itemsAffiches, filtreAuteursIds, filtreTraditions, filtreSiecles, filtreGenres, oeuvres, auteurMeta, nombreFiltresActifs])
 
+  // ── Grisage des tags indisponibles ─────────────────────────────────────────
+  // Pour chaque facette (traditions / siècles / genres), on calcule ce qui resterait
+  // sélectionnable compte tenu des AUTRES facettes actives — une facette ne se grise
+  // jamais d'après sa propre sélection (OR interne : on doit pouvoir en cocher plusieurs).
+  const passeSauf = (seg: { id_oeuvre: string }, sauf: 'traditions' | 'siecles' | 'genres') => {
+    const info = oeuvres[seg.id_oeuvre]
+    const auteurId = info?.id_auteur
+    const meta = auteurId ? auteurMeta[auteurId] : null
+    if (filtreAuteursIds.size > 0 && (!auteurId || !filtreAuteursIds.has(auteurId))) return false
+    if (sauf !== 'traditions' && filtreTraditions.size > 0 && !meta?.traditions?.some(t => filtreTraditions.has(t))) return false
+    if (sauf !== 'siecles' && filtreSiecles.size > 0 && (!meta?.siecle || !filtreSiecles.has(meta.siecle))) return false
+    if (sauf !== 'genres' && filtreGenres.size > 0 && (!info?.genre || !filtreGenres.has(info.genre))) return false
+    return true
+  }
+  const traditionsActives = useMemo(() => {
+    const t = new Set<string>()
+    itemsAffiches.forEach(({ seg }) => { if (!passeSauf(seg, 'traditions')) return; const id = oeuvres[seg.id_oeuvre]?.id_auteur; if (id) auteurMeta[id]?.traditions?.forEach(tr => t.add(tr)) })
+    return t
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemsAffiches, filtreAuteursIds, filtreSiecles, filtreGenres, oeuvres, auteurMeta])
+  const sieclesActifs = useMemo(() => {
+    const s = new Set<number>()
+    itemsAffiches.forEach(({ seg }) => { if (!passeSauf(seg, 'siecles')) return; const id = oeuvres[seg.id_oeuvre]?.id_auteur; const si = id ? auteurMeta[id]?.siecle : null; if (si) s.add(si) })
+    return s
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemsAffiches, filtreAuteursIds, filtreTraditions, filtreGenres, oeuvres, auteurMeta])
+  const genresActifs = useMemo(() => {
+    const g = new Set<string>()
+    itemsAffiches.forEach(({ seg }) => { if (!passeSauf(seg, 'genres')) return; const genre = oeuvres[seg.id_oeuvre]?.genre; if (genre) g.add(genre) })
+    return g
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemsAffiches, filtreAuteursIds, filtreTraditions, filtreSiecles, oeuvres])
+
   const traditionsDisponibles = useMemo(() => {
     const t = new Set<string>()
     itemsAffiches.forEach(({ seg }) => {
@@ -1107,23 +1140,23 @@ export default function PanneauPatristique({
                     {(traditionsDisponibles.some(t => !filtreTraditions.has(t)) || filtreTraditions.size > 0) && (
                       <div style={{ marginTop: '8px' }}>
                         <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Tradition</p>
-                        {filtreTraditions.size > 0 && (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginBottom: '4px' }}>
-                            {[...filtreTraditions].map(t => (
-                              <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '9px', padding: '1px 5px 1px 7px', background: 'rgba(61,107,79,0.12)', color: '#2a5a38', borderRadius: '9px', fontWeight: 500 }}>
-                                {t}
-                                <button onClick={() => { setFiltreTraditions(prev => { const n = new Set(prev); n.delete(t); return n }); setPageItems(0) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#3d6b4f', fontSize: '11px', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        {/* Liste stable : chaque tag bascule sur place (aucune croix, aucun
+                            réagencement). Sélectionné = vert ; indisponible sous le tri = grisé. */}
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                          {traditionsDisponibles.filter(t => !filtreTraditions.has(t)).map(t => (
-                            <button key={t} onClick={() => { setFiltreTraditions(prev => new Set([...prev, t])); setPageItems(0) }} style={{
-                              fontSize: '9px', padding: '2px 7px', borderRadius: '9px', cursor: 'pointer',
-                              border: '1px solid #cfc4ae', background: 'rgba(255,255,255,0.6)', color: '#6b5f4a', fontWeight: 400,
-                            }}>{t}</button>
-                          ))}
+                          {traditionsDisponibles.map(t => {
+                            const sel = filtreTraditions.has(t)
+                            const dispo = sel || traditionsActives.has(t)
+                            return (
+                              <button key={t} disabled={!dispo}
+                                onClick={() => { setFiltreTraditions(prev => { const n = new Set(prev); if (n.has(t)) n.delete(t); else n.add(t); return n }); setPageItems(0) }}
+                                style={{
+                                  fontSize: '9px', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
+                                  border: `1px solid ${sel ? '#3d6b4f' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
+                                  background: sel ? 'rgba(61,107,79,0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                  color: sel ? '#2a5a38' : dispo ? '#6b5f4a' : '#c4bcae', fontWeight: sel ? 600 : 400,
+                                }}>{t}</button>
+                            )
+                          })}
                         </div>
                       </div>
                     )}
@@ -1132,23 +1165,21 @@ export default function PanneauPatristique({
                     {(genresDisponibles.some(g => !filtreGenres.has(g)) || filtreGenres.size > 0) && (
                       <div style={{ marginTop: '8px' }}>
                         <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Genre</p>
-                        {filtreGenres.size > 0 && (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginBottom: '4px' }}>
-                            {[...filtreGenres].map(g => (
-                              <span key={g} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '9px', padding: '1px 5px 1px 7px', background: 'rgba(61,107,79,0.12)', color: '#2a5a38', borderRadius: '9px', fontWeight: 500 }}>
-                                {g}
-                                <button onClick={() => { setFiltreGenres(prev => { const n = new Set(prev); n.delete(g); return n }); setPageItems(0) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#3d6b4f', fontSize: '11px', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
-                              </span>
-                            ))}
-                          </div>
-                        )}
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                          {genresDisponibles.filter(g => !filtreGenres.has(g)).map(g => (
-                            <button key={g} onClick={() => { setFiltreGenres(prev => new Set([...prev, g])); setPageItems(0) }} style={{
-                              fontSize: '9px', padding: '2px 7px', borderRadius: '9px', cursor: 'pointer',
-                              border: '1px solid #cfc4ae', background: 'rgba(255,255,255,0.6)', color: '#6b5f4a', fontWeight: 400,
-                            }}>{g}</button>
-                          ))}
+                          {genresDisponibles.map(g => {
+                            const sel = filtreGenres.has(g)
+                            const dispo = sel || genresActifs.has(g)
+                            return (
+                              <button key={g} disabled={!dispo}
+                                onClick={() => { setFiltreGenres(prev => { const n = new Set(prev); if (n.has(g)) n.delete(g); else n.add(g); return n }); setPageItems(0) }}
+                                style={{
+                                  fontSize: '9px', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
+                                  border: `1px solid ${sel ? '#3d6b4f' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
+                                  background: sel ? 'rgba(61,107,79,0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                  color: sel ? '#2a5a38' : dispo ? '#6b5f4a' : '#c4bcae', fontWeight: sel ? 600 : 400,
+                                }}>{g}</button>
+                            )
+                          })}
                         </div>
                       </div>
                     )}
@@ -1157,23 +1188,21 @@ export default function PanneauPatristique({
                     {(sieclesDisponibles.some(s => !filtreSiecles.has(s)) || filtreSiecles.size > 0) && (
                       <div style={{ marginTop: '8px' }}>
                         <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Période</p>
-                        {filtreSiecles.size > 0 && (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginBottom: '4px' }}>
-                            {[...filtreSiecles].map(s => (
-                              <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '9px', padding: '1px 5px 1px 7px', background: 'rgba(154,126,61,0.12)', color: '#7a5e1a', borderRadius: '9px', fontWeight: 500 }}>
-                                {siecleEnRomain(s)}
-                                <button onClick={() => { setFiltreSiecles(prev => { const n = new Set(prev); n.delete(s); return n }); setPageItems(0) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#9a7e3d', fontSize: '11px', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
-                              </span>
-                            ))}
-                          </div>
-                        )}
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                          {sieclesDisponibles.filter(s => !filtreSiecles.has(s)).map(s => (
-                            <button key={s} onClick={() => { setFiltreSiecles(prev => new Set([...prev, s])); setPageItems(0) }} style={{
-                              fontSize: '9px', padding: '2px 7px', borderRadius: '9px', cursor: 'pointer',
-                              border: '1px solid #cfc4ae', background: 'rgba(255,255,255,0.6)', color: '#6b5f4a', fontWeight: 400,
-                            }}>{siecleEnRomain(s)}</button>
-                          ))}
+                          {sieclesDisponibles.map(s => {
+                            const sel = filtreSiecles.has(s)
+                            const dispo = sel || sieclesActifs.has(s)
+                            return (
+                              <button key={s} disabled={!dispo}
+                                onClick={() => { setFiltreSiecles(prev => { const n = new Set(prev); if (n.has(s)) n.delete(s); else n.add(s); return n }); setPageItems(0) }}
+                                style={{
+                                  fontSize: '9px', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
+                                  border: `1px solid ${sel ? '#9a7e3d' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
+                                  background: sel ? 'rgba(154,126,61,0.16)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                  color: sel ? '#7a5e1a' : dispo ? '#6b5f4a' : '#c4bcae', fontWeight: sel ? 600 : 400,
+                                }}>{siecleEnRomain(s)}</button>
+                            )
+                          })}
                         </div>
                       </div>
                     )}

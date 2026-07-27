@@ -30,22 +30,26 @@ export function rendreTexteEnrichi(
 ): React.ReactNode {
   const tf = transform ?? ((s: string) => s)
   const noeuds: React.ReactNode[] = []
-  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>/g
+  // `++petites capitales++` : même convention que les commentaires et les essais
+  // (EditeurCommentaire, texteEnrichiEssai). Ajouté ici pour que le texte biblique en
+  // porte aussi, l'éditeur de verset produisant désormais ce balisage.
+  const regex = /\*\*(.+?)\*\*|\+\+(.+?)\+\+|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>/g
   let dernierIndex = 0, k = 0, m: RegExpExecArray | null
   while ((m = regex.exec(texte))) {
     if (m.index > dernierIndex) noeuds.push(<Fragment key={k}>{tf(texte.slice(dernierIndex, m.index), `t${k++}`)}</Fragment>)
     if (m[1] !== undefined) noeuds.push(<strong key={k}>{tf(m[1], `b${k++}`)}</strong>)
-    else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{m[2]}</sup>)
-    else if (m[3] !== undefined) noeuds.push(<em key={k}>{tf(m[3], `e${k++}`)}</em>)
-    else if (m[4] !== undefined) noeuds.push(
-      <a key={k} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{tf(m[4], `a${k++}`)}</a>
+    else if (m[2] !== undefined) noeuds.push(<span key={k} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{tf(m[2], `s${k++}`)}</span>)
+    else if (m[3] !== undefined) noeuds.push(<sup key={k++}>{m[3]}</sup>)
+    else if (m[4] !== undefined) noeuds.push(<em key={k}>{tf(m[4], `e${k++}`)}</em>)
+    else if (m[5] !== undefined) noeuds.push(
+      <a key={k} href={m[6]} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{tf(m[5], `a${k++}`)}</a>
     )
-    else if (m[6] !== undefined) {
-      noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[6]}</span>)
-      noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[7]}</sup>)
-      noeuds.push(<Fragment key={k++}>{m[8]}</Fragment>)
+    else if (m[7] !== undefined) {
+      noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)
+      noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[8]}</sup>)
+      noeuds.push(<Fragment key={k++}>{m[9]}</Fragment>)
     }
-    else if (m[9] !== undefined) { if (m[9]) noeuds.push(<em key={k}>{tf(m[9], `e${k++}`)}</em>) }
+    else if (m[10] !== undefined) { if (m[10]) noeuds.push(<em key={k}>{tf(m[10], `e${k++}`)}</em>) }
     dernierIndex = regex.lastIndex
   }
   if (dernierIndex < texte.length) noeuds.push(<Fragment key={k}>{tf(texte.slice(dernierIndex), `t${k++}`)}</Fragment>)
@@ -60,6 +64,7 @@ export function formaterSieclesHTML(html: string): string {
 export function texteSansEnrichissement(texte: string): string {
   return texte
     .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\+\+(.+?)\+\+/g, '$1')
     .replace(/\^\^(.+?)\^\^/g, '$1')
     .replace(/\*(.+?)\*/g, '$1')
     .replace(/\[(.+?)\]\(.+?\)/g, '$1')

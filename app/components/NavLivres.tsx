@@ -104,6 +104,13 @@ type Props = {
   onChoisirLivre?: (code: string) => void   // si fourni, remplace la navigation par URL
   sansChapitres?: boolean                   // masque la grille des chapitres
   titre?: string                            // libellé du volet replié
+  // Polyglotte : navigation par chapitre/verset SANS quitter la page (pas de router.push).
+  // `onChoisirChapitre` remplace le saut d'URL au clic d'un chapitre ; `onChoisirLivreEntier`
+  // charge le livre complet ; `onChoisirVerset` cible un verset (barre de recherche « Gn 1 1 »).
+  onChoisirChapitre?: (code: string, chapitre: number) => void
+  onChoisirLivreEntier?: (code: string) => void
+  onChoisirVerset?: (code: string, chapitre: number, verset: number) => void
+  entierActif?: boolean                     // le livre actif est-il montré EN ENTIER (bouton allumé)
 }
 
 /**
@@ -136,6 +143,7 @@ export default function NavLivres({
   traductionIndex, setTraductionIndex, traductions,
   panelWidth = 192, onWidthChange,
   livresVides, onChoisirLivre, sansChapitres, titre,
+  onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, entierActif,
 }: Props) {
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
@@ -143,6 +151,7 @@ export default function NavLivres({
   useEffect(() => { setLivreActifLocal(livreActif) }, [livreActif])
   useEffect(() => { setChapitreActifLocal(chapitreActif) }, [chapitreActif])
   const [livreOuvert, setLivreOuvert] = useState<string | null>(livreActif)
+  const polyMode = !!onChoisirChapitre
   const [atOuvert, setAtOuvert] = useState(true)
   const [ntOuvert, setNtOuvert] = useState(true)
   // Les écrits non canoniques restent repliés par défaut : ils sont là pour qui les cherche,
@@ -194,6 +203,8 @@ export default function NavLivres({
   const handleChapitre = (code: string, ch: number) => {
     setLivreActifLocal(code)
     setChapitreActifLocal(ch)
+    // Polyglotte : on reste sur place et l'on demande le chapitre au parent.
+    if (onChoisirChapitre) { onChoisirChapitre(code, ch); return }
     router.push(`/?livre=${code}&chapitre=${ch}&trad=${tradCode}`)
   }
 
@@ -207,6 +218,8 @@ export default function NavLivres({
     setLivreActifLocal(refParsee.code)
     setChapitreActifLocal(refParsee.chapitre)
     setRecherche('')
+    // Polyglotte : cibler le verset sur place, sans changer de page.
+    if (onChoisirVerset) { onChoisirVerset(refParsee.code, refParsee.chapitre, refParsee.verset); return }
     router.push(`/?livre=${refParsee.code}&chapitre=${refParsee.chapitre}&trad=${tradCode}&verset=${refParsee.verset}`)
   }
 
@@ -216,6 +229,13 @@ export default function NavLivres({
     const suggere = refParsee?.code === livre.code
     const vide = livresVides?.has(livre.code) ?? false
     const nb = NB_CHAPITRES[livre.code] || 1
+
+    // Les options (chapitres + « Livre entier ») ne se déplient qu'au CLIC sur le nom du
+    // livre — jamais au simple survol.
+    const montrerOptions = !vide && !sansChapitres && (ouvert || suggere)
+    // « Livre entier » allumé : le livre actif est montré en entier (mêmes couleurs que la
+    // case de chapitre sélectionnée).
+    const entierSel = polyMode && actif && !!entierActif
 
     return (
       <div key={livre.code}>
@@ -234,7 +254,23 @@ export default function NavLivres({
           {!vide && !sansChapitres && <span style={{ color: '#c0bab0', fontSize: '6.5px', flexShrink: 0, opacity: 0.55 }}>{ouvert ? '▲' : '▼'}</span>}
         </button>
 
-        {!vide && !sansChapitres && (ouvert || suggere) && (
+        {montrerOptions && polyMode && onChoisirLivreEntier && (
+          <div style={{ padding: '3px 6px 0' }}>
+            {/* Mêmes couleurs que les cases de chapitre : allumé = vert plein, éteint = beige. */}
+            <button onClick={() => { setLivreActifLocal(livre.code); onChoisirLivreEntier(livre.code) }}
+              style={{
+                width: '100%', fontSize: '9.5px', height: '20px', padding: '0 6px', borderRadius: '3px',
+                border: 'none', cursor: 'pointer', textAlign: 'center', letterSpacing: '0.02em',
+                background: entierSel ? '#3d6b4f' : '#e8e4dc',
+                color: entierSel ? '#fff' : '#6b6560',
+                fontWeight: entierSel ? 600 : 400, lineHeight: 1,
+              }}>
+              Livre entier
+            </button>
+          </div>
+        )}
+
+        {montrerOptions && (
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(20px, 1fr))',

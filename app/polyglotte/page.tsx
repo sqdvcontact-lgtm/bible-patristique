@@ -21,7 +21,7 @@ import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { ABREV_FR } from "@/app/lib/bible";
 import { texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
-import ModalSignalement from "@/app/oeuvre/[id]/ModalSignalement";
+import ModalSignalement from "@/app/components/ModalSignalement";
 
 type Livre = { code: string; nom_fr: string; ordre: number };
 type Trad = { trad_id: string; nom: string; ordre: number | null; label: string; edition: string | null; lang: string };
@@ -306,7 +306,7 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
   );
 }
 
-function BoutonSignalerVerset({ refLisible }: { refLisible: string }) {
+function BoutonSignalerVerset({ refLisible, texte }: { refLisible: string; texte?: string }) {
   const [ouvert, setOuvert] = useState(false);
   const envoyer = async (message: string, importance?: string) => {
     const { data } = await supabase.auth.getSession();
@@ -323,7 +323,7 @@ function BoutonSignalerVerset({ refLisible }: { refLisible: string }) {
     <>
       <button onClick={e => { e.stopPropagation(); setOuvert(true); }} title="Signaler une erreur" className="poly-act"
         style={{ ...ACT_BTN, color: "#b7ad9a" }} aria-label="Signaler">⚑</button>
-      {ouvert && <ModalSignalement titre={refLisible} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
+      {ouvert && <ModalSignalement titre={refLisible} texteObjet={texte ? texteSansEnrichissement(texte) : undefined} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   );
 }
@@ -347,6 +347,12 @@ export default function PolyglottePage() {
   const [sensiblesOnly, setSensiblesOnly] = useState(false);
   const [surnumOnly, setSurnumOnly] = useState(false);
   const [livreChoisi, setLivreChoisi] = useState<string | null>(null);  // un seul livre à la fois
+  // Par défaut on n'affiche QU'UN chapitre (l'affichage du livre entier est trop lourd) :
+  // `chapitreChoisi` = le chapitre montré ; `null` = livre entier (option explicite au survol).
+  const [chapitreChoisi, setChapitreChoisi] = useState<number | null>(1);
+  // Verset ciblé par la barre de recherche du volet (« Gn 1 1 ») : on y défile et on le
+  // surligne brièvement, à la manière de la page Bible.
+  const [versetCible, setVersetCible] = useState<{ ch: number; v: number } | null>(null);
   const [toutAfficher, setToutAfficher] = useState(false);              // …sauf demande explicite
   // Édition en place (admin). L'affordance dépend du client, mais l'autorisation réelle
   // est revérifiée côté serveur par /api/admin/verset-modifier (charte §17).
@@ -379,6 +385,7 @@ export default function PolyglottePage() {
     setOnglet(ensembleDe(code));
     setLivreChoisi(code);
     setToutAfficher(false);
+    setChapitreChoisi(1);   // on ouvre sur le premier chapitre, pas le livre entier
   }, [ensembleDe]);
 
   // Le volet de navigation attend le vocabulaire de la page Bible.
@@ -482,13 +489,23 @@ export default function PolyglottePage() {
     const tradIds = slots.filter(Boolean);
     if (!livresAffiches.length || !tradIds.length) return;
     const codes = livresAffiches.map(l => l.code);
+    // AFFICHAGE PLUS RAPIDE : dans la vue par défaut (un seul chapitre d'un seul livre), on ne
+    // charge QUE ce chapitre — quelques dizaines de lignes au lieu du livre entier. Les
+    // identifiants du canon ont la forme « LIVRE.chapitre.verset », d'où le filtre `like` sur
+    // `canon_id`. Les modes qui ont besoin de tout le livre (livre entier, tout afficher,
+    // lignes problématiques, surnuméraires) désactivent ce filtre. Les surnuméraires (sans
+    // créneau du canon) ne paraissent donc qu'en vue « Livre entier » — ce sont des cas rares.
+    const monoLivre = livresAffiches.length === 1;
+    const chScope = (!toutAfficher && !sensiblesOnly && !surnumOnly && monoLivre && chapitreChoisi != null) ? chapitreChoisi : null;
     const [c, vv] = await Promise.all([
-      fetchPaged<CanonRow>("versets_canon", "id, livre, ch_canon, v_canon, est_suscription", q => q.in("livre", codes)),
-      fetchPaged<V2Row>("versets_v2", "id, canon_id, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes", q => q.in("livre", codes).in("trad_id", tradIds)),
+      fetchPaged<CanonRow>("versets_canon", "id, livre, ch_canon, v_canon, est_suscription",
+        q => { const x = q.in("livre", codes); return chScope != null ? x.eq("ch_canon", chScope) : x; }),
+      fetchPaged<V2Row>("versets_v2", "id, canon_id, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes",
+        q => { const x = q.in("livre", codes).in("trad_id", tradIds); return chScope != null ? x.like("canon_id", `${codes[0]}.${chScope}.%`) : x; }),
     ]);
     c.sort((a, b) => (ordreDe.get(a.livre)! - ordreDe.get(b.livre)!) || (a.ch_canon - b.ch_canon) || (a.v_canon - b.v_canon));
     setCanon(c); setV2(vv);
-  }, [livresAffiches, slots, ordreDe]);
+  }, [livresAffiches, slots, ordreDe, chapitreChoisi, toutAfficher, sensiblesOnly, surnumOnly]);
   useEffect(() => { charger(); }, [charger]);
 
   // Charge les citations déjà enregistrées par l'utilisateur pour le(s) livre(s) affiché(s),
@@ -504,6 +521,18 @@ export default function PolyglottePage() {
         setPrelevs(m);
       });
   }, [userId, livresAffiches]);
+
+  // Verset ciblé (barre de recherche du volet) : une fois le chapitre chargé, on y défile
+  // et l'on efface le surlignage après un instant. Dépend de `canon` pour attendre le rendu.
+  useEffect(() => {
+    if (!versetCible || !livreChoisi) return;
+    const id = `poly-${livreChoisi}-${versetCible.ch}-${versetCible.v}`;
+    const t = setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
+    const t2 = setTimeout(() => setVersetCible(null), 2600);
+    return () => { clearTimeout(t); clearTimeout(t2); };
+  }, [versetCible, livreChoisi, canon]);
 
   // Index (canon_id, trad_id) → cellule ; canon groupé par livre
   const cellule = useMemo(() => {
@@ -654,14 +683,14 @@ export default function PolyglottePage() {
            parcourt la colonne accroche le numéro qui change. */
         .poly-lettrine-ch { font-weight: 400; color: #a9bcb0; }
         .poly-lettrine-item { position: relative; display: flex; align-items: center; justify-content: flex-end; height: 1.26em; }
-        /* Le crayon est SORTI DU FLUX : il ne réserve donc aucune place quand il ne paraît
-           pas — c'est ce blanc sous la référence qu'on voulait supprimer. Au survol il se
-           pose à droite de SA référence, sur un fond opaque pour rester lisible. */
+        /* Le crayon SE POSE SUR le numéro de référence d'origine : au survol de la cellule,
+           il recouvre le numéro (fond opaque = celui de la ligne, passé en style inline, donc
+           accordé au zébrage alterné) et le remplace. Hors survol, il ne réserve aucune place. */
         .poly-edit {
-          position: absolute; left: 100%; top: 50%;
-          transform: translate(3px, -50%);
+          position: absolute; inset: 0;
+          display: flex; align-items: center; justify-content: flex-end;
           opacity: 0; pointer-events: none;
-          background: rgba(255,255,255,0.88); border-radius: 3px; padding: 0 1px;
+          border-radius: 2px; padding: 0 1px;
         }
         .poly-texte-cell:hover .poly-edit,
         .poly-edit:focus-visible { opacity: 1; pointer-events: auto; }
@@ -693,12 +722,15 @@ export default function PolyglottePage() {
             <NavLivres
               livres={livresNav}
               livreActif={livreChoisi ?? ""}
-              chapitreActif={1}
+              chapitreActif={chapitreChoisi ?? 0}
               traductionIndex={0}
               setTraductionIndex={() => {}}
               traductions={[]}
               onChoisirLivre={choisirLivre}
-              sansChapitres
+              onChoisirChapitre={(code, ch) => { if (code !== livreChoisi) choisirLivre(code); setChapitreChoisi(ch); setToutAfficher(false); setVersetCible(null); }}
+              onChoisirLivreEntier={(code) => { if (code !== livreChoisi) choisirLivre(code); setChapitreChoisi(null); setToutAfficher(false); setVersetCible(null); }}
+              onChoisirVerset={(code, ch, v) => { if (code !== livreChoisi) choisirLivre(code); setChapitreChoisi(ch); setToutAfficher(false); setVersetCible({ ch, v }); }}
+              entierActif={chapitreChoisi === null && !toutAfficher}
               titre="Livres à comparer"
             />
           </div>
@@ -707,13 +739,10 @@ export default function PolyglottePage() {
       <div style={{ flex: 1, minWidth: 0, maxWidth: 1500, margin: "0 auto", padding: "12px 18px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "#2a2620" }}>
         {/* Aucun livre choisi : la page reste vide et l'explique */}
         {!onglet && (
-          <div style={{ margin: "60px auto", maxWidth: 560, textAlign: "center", color: "#8a8378" }}>
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 17, color: VERT, margin: "0 0 10px" }}>Ouvrez un livre</p>
-            <p style={{ fontSize: 13.5, lineHeight: 1.65, margin: 0 }}>
-              Le sommaire se trouve dans le volet de gauche.<br />
-              Le livre sélectionné s’affiche en entier, sur une page.<br />
-              Vous pouvez changer de traduction.
-            </p>
+          <div style={{ margin: "60px auto", maxWidth: 560, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+            <img src="/ornements/livre_pol.png" alt="" aria-hidden="true"
+              style={{ width: "min(230px, 55%)", height: "auto", opacity: 0.9, mixBlendMode: "multiply", marginBottom: 2 }} />
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 15, fontStyle: "italic", color: "#9a958d", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
           </div>
         )}
 
@@ -746,7 +775,7 @@ export default function PolyglottePage() {
                   <div style={{ gridColumn: "2 / -1", padding: "3px 12px", textAlign: "center", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 14.5, letterSpacing: "0.01em" }}>
                     {toutAfficher
                       ? LIBELLE_ONGLET[onglet]
-                      : (livres.find(l => l.code === livreChoisi)?.nom_fr ?? LIBELLE_ONGLET[onglet])}
+                      : `${livres.find(l => l.code === livreChoisi)?.nom_fr ?? LIBELLE_ONGLET[onglet]}${chapitreChoisi != null ? ` · Chapitre ${chapitreChoisi}` : ""}`}
                   </div>
                 </div>
                   {estAdmin && (
@@ -758,9 +787,11 @@ export default function PolyglottePage() {
                         .map(([cle, actif, teinte, libelle]) => (
                         <button key={cle}
                           onClick={() => {
-                            if (cle === "tout") setToutAfficher(!actif);
-                            else if (cle === "sensibles") { setSensiblesOnly(!actif); if (!actif) setSurnumOnly(false); }
-                            else { setSurnumOnly(!actif); if (!actif) setSensiblesOnly(false); }
+                            // Les trois réglages s'excluent : activer l'un désactive les deux
+                            // autres (plus de cumul « tout afficher » + « surnuméraires »…).
+                            if (cle === "tout") { setToutAfficher(!actif); if (!actif) { setSensiblesOnly(false); setSurnumOnly(false); } }
+                            else if (cle === "sensibles") { setSensiblesOnly(!actif); if (!actif) { setSurnumOnly(false); setToutAfficher(false); } }
+                            else { setSurnumOnly(!actif); if (!actif) { setSensiblesOnly(false); setToutAfficher(false); } }
                           }}
                           title={libelle}
                           style={{ padding: "2px 9px", fontSize: 10.5, fontWeight: 500, cursor: "pointer", borderRadius: 999, fontFamily: "var(--font-source-sans), Arial, sans-serif",
@@ -799,7 +830,7 @@ export default function PolyglottePage() {
                               Sans filet de séparation : le simple retrait vertical suffit à
                               distinguer les deux lignes. */}
                           {sc.trad?.edition && (
-                            <span style={{ display: "block", marginTop: 3, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: 8.5, fontWeight: 600, letterSpacing: "0.18em", textIndent: "0.18em", color: "rgba(255,255,255,0.62)" }}>
+                            <span style={{ display: "block", marginTop: 6, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: 8.5, fontWeight: 600, letterSpacing: "0.18em", textIndent: "0.18em", color: "rgba(255,255,255,0.62)" }}>
                               {sc.trad.edition}
                             </span>
                           )}
@@ -892,8 +923,13 @@ export default function PolyglottePage() {
           }
 
           const rows0 = parLivre.get(l.code) ?? [];
-          const rows = sensiblesOnly ? rows0.filter(r => sens.estSensible(l.code, r.ch_canon, r.v_canon)) : rows0;
-          const debut = sensiblesOnly ? [] : (surnumStart.get(l.code) ?? []);
+          // Filtre chapitre : par défaut on ne montre qu'un chapitre (le livre entier est trop
+          // lourd). `chapitreChoisi === null` OU « tout afficher » lèvent le filtre.
+          const chFiltre = (!toutAfficher && !sensiblesOnly && chapitreChoisi != null) ? chapitreChoisi : null;
+          const rowsCh = chFiltre != null ? rows0.filter(r => r.ch_canon === chFiltre) : rows0;
+          const rows = sensiblesOnly ? rowsCh.filter(r => sens.estSensible(l.code, r.ch_canon, r.v_canon)) : rowsCh;
+          // Les surnuméraires de tête de livre ne s'affichent qu'au chapitre 1 (ou en livre entier).
+          const debut = (sensiblesOnly || (chFiltre != null && chFiltre !== 1)) ? [] : (surnumStart.get(l.code) ?? []);
           if (!rows.length && !debut.length) return null;
           const hauteur = (rows.length + (sensiblesOnly ? 0 : surnumCount.get(l.code) ?? 0)) * 34 + 40;
 
@@ -944,7 +980,8 @@ export default function PolyglottePage() {
                 for (const t of colonnes) { const cc = (cellule.get(`${r.id}|${t.trad_id}`) ?? [])[0]; if (cc?.texte) { citeInfo = { texte: cc.texte, label: t.nom }; break; } }
                 return (
                   <Fragment key={r.id}>
-                    <div className="poly-row" style={{ display: "grid", gridTemplateColumns: tmpl, background: fond, borderTop: "1px solid #dfe8e0", fontSize: 13 }}>
+                    <div className="poly-row" id={`poly-${l.code}-${r.ch_canon}-${r.v_canon}`}
+                      style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? "#fff3c4" : fond, borderTop: "1px solid #dfe8e0", fontSize: 13, scrollMarginTop: SOMMET_CORPS + 8, transition: "background .4s" }}>
                       <div title={signaler ? desc : undefined} style={{ padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: 11.5, lineHeight: 1.15, color: signaler ? ROUGE : ligneVide ? "#aeb4ae" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : "1px solid #dfe8e0" }}>
                         <div style={{ whiteSpace: "nowrap" }}>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</div>
                         {/* Citer / signaler : empilés verticalement sous le numéro, dans un petit
@@ -952,7 +989,7 @@ export default function PolyglottePage() {
                         {!ligneVide && (
                           <div className="poly-actstack" onClick={e => e.stopPropagation()}>
                             {citeInfo && <BoutonCiterVerset userId={userId} saved={prelevs.get(cleCite) ?? null} cle={cleCite} refLivre={l.nom_fr} refAbr={abr} chapitre={r.ch_canon} verset={r.v_canon} texte={citeInfo.texte} traductionLabel={citeInfo.label} onSaved={marquerCite} onRemoved={retirerCite} />}
-                            <BoutonSignalerVerset refLisible={refLisible} />
+                            <BoutonSignalerVerset refLisible={refLisible} texte={citeInfo?.texte} />
                           </div>
                         )}
                       </div>
@@ -984,9 +1021,9 @@ export default function PolyglottePage() {
                                     {estAdmin && (
                                       <button title="Modifier ce verset" aria-label="Modifier ce verset" className="poly-edit"
                                         onClick={() => { setCibleEdition({ id: c.id, texte: c.texte ?? "", reference: `${l.nom_fr} ${c.ch_orig}, ${c.v_orig}` }); setEnregistre("idle"); }}
-                                        style={{ border: "none", cursor: "pointer", color: "#9aaa9e", fontSize: 9.5, lineHeight: 1, transition: "opacity .12s, color .15s" }}
+                                        style={{ border: "none", cursor: "pointer", color: "#7a8f80", fontSize: 10.5, lineHeight: 1, background: fond, transition: "color .15s" }}
                                         onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = VERT; }}
-                                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "#9aaa9e"; }}>
+                                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "#7a8f80"; }}>
                                         ✎
                                       </button>
                                     )}

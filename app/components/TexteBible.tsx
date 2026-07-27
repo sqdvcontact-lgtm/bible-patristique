@@ -140,20 +140,26 @@ function FiletSignet({ signal }: { signal: string }) {
       const SEUIL = 34
       el.style.width = distance < SEUIL ? '0px' : `${distance}px`
     }
+    // Au changement de traduction, le texte est remplacé : on remesure APRÈS le reflux
+    // (rAF), sans quoi l'ancienne longueur subsiste et le filet chevauche le nouveau texte,
+    // souvent plus long. Double rAF pour laisser la mise en page se stabiliser.
+    let raf1 = 0, raf2 = 0
+    const remesurer = () => { raf1 = requestAnimationFrame(() => { raf2 = requestAnimationFrame(mesurer) }) }
     mesurer()
+    remesurer()
     const ro = new ResizeObserver(mesurer)
     ro.observe(p)
     window.addEventListener('resize', mesurer)
-    return () => { ro.disconnect(); window.removeEventListener('resize', mesurer) }
+    return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); ro.disconnect(); window.removeEventListener('resize', mesurer) }
   }, [signal])
   return (
     <span ref={ref} aria-hidden style={{
       position: 'absolute', right: '100%', top: '50%', transform: 'translateY(-50%)',
       width: '0px', height: '1px', marginRight: '5px',
       // Filet volontairement ténu : palissant vers le texte, il ne fait qu'effleurer
-      // l'œil. Plus discret qu'auparavant (0.32 → 0.16), et adouci près du signet même,
+      // l'œil. Encore aminci de 30 % (0.16 → 0.112, 0.10 → 0.07), adouci près du signet,
       // pour rester élégant plutôt que d'afficher une barre franche.
-      background: 'linear-gradient(to left, rgba(61,107,79,0.16), rgba(61,107,79,0.10) 55%, rgba(61,107,79,0))',
+      background: 'linear-gradient(to left, rgba(61,107,79,0.112), rgba(61,107,79,0.07) 55%, rgba(61,107,79,0))',
       pointerEvents: 'none',
     }} />
   )
@@ -226,32 +232,81 @@ function BoutonEnregistrer({
   )
 }
 
+// Conversions markup ↔ HTML pour la zone éditable WYSIWYG du verset. Le markup est
+// EXACTEMENT celui que lit `rendreTexteEnrichi` : **gras**, *ital*, ^^exp^^, ++petites
+// capitales++, [texte](url). L'italique `<i>` de Sacy est chargé comme italique éditable
+// et ré-émis en `*…*` (rendu identique), pour que les balises produites correspondent
+// toujours au système d'affichage.
+function versetMarkupVersHtml(s: string): string {
+  const esc = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return esc
+    .replace(/&lt;i&gt;([\s\S]*?)&lt;\/i&gt;/g, '<em>$1</em>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\+\+(.+?)\+\+/g, '<span style="font-variant:small-caps;letter-spacing:0.04em">$1</span>')
+    .replace(/\^\^(.+?)\^\^/g, '<sup>$1</sup>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>')
+}
+
+function versetHtmlVersMarkup(html: string): string {
+  const div = document.createElement('div')
+  div.innerHTML = html
+  const rendre = (n: Node): string => {
+    if (n.nodeType === Node.TEXT_NODE) return n.textContent ?? ''
+    const el = n as HTMLElement
+    const tag = el.tagName?.toLowerCase()
+    if (tag === 'br') return '\n'
+    const enfants = Array.from(el.childNodes).map(rendre).join('')
+    if (tag === 'strong' || tag === 'b') return `**${enfants}**`
+    if (tag === 'sup') return `^^${enfants}^^`
+    if (tag === 'span' && el.style.fontVariant === 'small-caps') return `++${enfants}++`
+    if (tag === 'em' || tag === 'i') return `*${enfants}*`
+    if (tag === 'a') return `[${enfants}](${el.getAttribute('href') ?? ''})`
+    return enfants
+  }
+  return Array.from(div.childNodes).map(rendre).join('').replace(/\n{2,}/g, '\n').trim()
+}
+
 // ── Composant principal ───────────────────────────────────────────────────────
 // ── Modale d'édition d'un verset (admin réel, vérifié côté serveur) ──────────
-function ModaleEditionVerset({ verset, traduction, traductionLabel, valeurActuelle, onClose, onEnregistre }: {
-  verset: Verset; traduction: string; traductionLabel: string; valeurActuelle: string
+function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, valeurActuelle, onClose, onEnregistre }: {
+  verset: Verset; traduction: string; traductionLabel: string; refCourt: string; valeurActuelle: string
   onClose: () => void; onEnregistre: (nouvelleValeur: string) => void
 }) {
   const [valeur, setValeur] = useState(valeurActuelle)
   const [statut, setStatut] = useState<'idle' | 'envoi' | 'erreur'>('idle')
-  const taRef = useRef<HTMLTextAreaElement>(null)
+  const edRef = useRef<HTMLDivElement>(null)
 
+  // La zone éditable est peuplée UNE fois avec le texte rendu : les enrichissements y
+  // sont directement visibles (WYSIWYG), dans la même et unique zone de saisie.
+  useEffect(() => {
+    if (edRef.current) edRef.current.innerHTML = versetMarkupVersHtml(valeurActuelle)
+    setTimeout(() => edRef.current?.focus(), 0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // À chaque frappe : on relit le HTML de la zone et on le reconvertit dans le markup
+  // stocké (celui que lit l'affichage), pour que les balises correspondent toujours.
+  const sync = () => { if (edRef.current) setValeur(versetHtmlVersMarkup(edRef.current.innerHTML)) }
+
+  const commande = (cmd: string) => { edRef.current?.focus(); document.execCommand(cmd); sync() }
+  const inserer = (t: string) => { edRef.current?.focus(); document.execCommand('insertText', false, t); sync() }
   const entourer = (avant: string, apres: string = avant) => {
-    const ta = taRef.current
-    if (!ta) return
-    const d = ta.selectionStart, f = ta.selectionEnd
-    const selection = valeur.slice(d, f) || 'texte'
-    setValeur(valeur.slice(0, d) + avant + selection + apres + valeur.slice(f))
-    setTimeout(() => { ta.focus(); ta.setSelectionRange(d + avant.length, d + avant.length + selection.length) }, 0)
+    edRef.current?.focus()
+    const texte = window.getSelection()?.toString() || 'texte'
+    document.execCommand('insertText', false, `${avant}${texte}${apres}`)
+    sync()
   }
-
-  const inserer = (texte: string) => {
-    const ta = taRef.current
-    if (!ta) return
-    const d = ta.selectionStart, f = ta.selectionEnd
-    const nouveau = valeur.slice(0, d) + texte + valeur.slice(f)
-    setValeur(nouveau)
-    setTimeout(() => { ta.focus(); ta.setSelectionRange(d + texte.length, d + texte.length) }, 0)
+  // Petites capitales : span dédié inséré autour de la sélection (pas de commande native).
+  const petitesCaps = () => {
+    const el = edRef.current; if (!el) return; el.focus()
+    const sel = window.getSelection(); if (!sel || sel.rangeCount === 0) return
+    const range = sel.getRangeAt(0)
+    const texte = sel.toString() || 'texte'
+    range.deleteContents()
+    const span = document.createElement('span')
+    span.style.fontVariant = 'small-caps'; span.style.letterSpacing = '0.04em'; span.textContent = texte
+    range.insertNode(span); sel.collapseToEnd(); sync()
   }
 
   const enregistrer = async () => {
@@ -267,27 +322,32 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, valeurActuel
     onEnregistre(valeur)
   }
 
+  const btnEd: React.CSSProperties = { fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }
+  const gardeSel = (e: React.MouseEvent) => e.preventDefault()
+
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background:'#fff', borderRadius:'8px', padding:'20px 22px', width:'480px', maxWidth:'100%', boxShadow:'0 8px 32px rgba(0,0,0,0.18)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px' }}>
           <p style={{ fontSize:'12px', fontWeight:600, color:'#9a5a2a', margin:0 }}>
-            Modifier {traductionLabel} — verset {verset.verset}
+            Modifier {refCourt} de la {traductionLabel}
           </p>
           <button onClick={onClose} style={{ fontSize:'14px', color:'#b0a89e', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
         </div>
         <div style={{ display:'flex', gap:'6px', marginBottom:'8px', flexWrap:'wrap' }}>
-          <button onClick={() => entourer('**')} style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', fontWeight:700, cursor:'pointer' }}>G</button>
-          <button onClick={() => entourer('*')} style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', fontStyle:'italic', cursor:'pointer' }}>I</button>
-          <button onClick={() => entourer('^^')} title="Exposant" style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>x²</button>
+          <button onMouseDown={gardeSel} onClick={() => commande('bold')} style={{ ...btnEd, fontWeight:700 }}>G</button>
+          <button onMouseDown={gardeSel} onClick={() => commande('italic')} style={{ ...btnEd, fontStyle:'italic' }}>I</button>
+          <button onMouseDown={gardeSel} onClick={petitesCaps} title="Petites capitales" style={{ ...btnEd, fontSize:'10px', fontVariant:'small-caps', letterSpacing:'0.04em' }}>Petites capitales</button>
+          <button onMouseDown={gardeSel} onClick={() => commande('superscript')} title="Exposant" style={btnEd}>x²</button>
           <span style={{ width:'1px', background:'#e4dfd8' }} />
           <button onClick={() => inserer('\u00A0')} title="Espace insécable" style={{ fontSize:'10px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>Esp. insécable</button>
           <button onClick={() => inserer('\u202F')} title="Espace fine insécable" style={{ fontSize:'10px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>Esp. fine</button>
           <button onClick={() => entourer('«\u202F', '\u202F»')} title="Guillemets français" style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>« »</button>
           <button onClick={() => entourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)" style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>“ ”</button>
         </div>
-        <textarea ref={taRef} value={valeur} onChange={e => setValeur(e.target.value)} rows={5} autoFocus
-          style={{ width:'100%', fontSize:'13px', padding:'8px 10px', border:'1px solid #d6d0c4', borderRadius:'5px', background:'#faf8f4', color:'#2a2520', resize:'vertical', outline:'none', lineHeight:1.55, boxSizing:'border-box' }} />
+        {/* Zone d'édition UNIQUE : les enrichissements s'y voient directement (WYSIWYG). */}
+        <div ref={edRef} contentEditable suppressContentEditableWarning onInput={sync}
+          style={{ width:'100%', minHeight:'96px', maxHeight:'300px', overflowY:'auto', fontSize:'13px', padding:'8px 10px', border:'1px solid #d6d0c4', borderRadius:'5px', background:'#faf8f4', color:'#1e1a16', outline:'none', lineHeight:1.55, boxSizing:'border-box', textAlign:'justify', whiteSpace:'pre-wrap' }} />
         <div style={{ display:'flex', justifyContent:'flex-end', gap:'8px', marginTop:'12px' }}>
           {statut === 'erreur' && <span style={{ fontSize:'11px', color:'#c0562a', alignSelf:'center' }}>Erreur d'enregistrement.</span>}
           <button onClick={onClose} style={{ fontSize:'11px', padding:'5px 14px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#6b6560', cursor:'pointer' }}>Annuler</button>
@@ -414,7 +474,11 @@ export default function TexteBible({
             se centre sur le même axe que le titre, et non sur la pleine largeur. */}
         <div style={{ width: 'min(538px, 100%)', margin: '8px auto 0', display: 'grid', gridTemplateColumns: 'minmax(0, 500px) 38px', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', maxWidth: '260px', margin: '0 auto' }}>
-          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, transparent, #d6d0c4)' }} />
+          {/* Double filet à gauche : deux traits fins superposés, bien visibles, comme autrefois. */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, #cbc4b6)' }} />
+            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, #cbc4b6)' }} />
+          </div>
           <div style={{ position: 'relative' }}>
             <button onClick={() => setTradOuverte(!tradOuverte)} style={{
               display: 'flex', alignItems: 'center', gap: '5px',
@@ -447,7 +511,11 @@ export default function TexteBible({
               </div>
             )}
           </div>
-          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to left, transparent, #d6d0c4)' }} />
+          {/* Double filet à droite, symétrique. */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ height: '1px', background: 'linear-gradient(to left, transparent, #cbc4b6)' }} />
+            <div style={{ height: '1px', background: 'linear-gradient(to left, transparent, #cbc4b6)' }} />
+          </div>
         </div>
           <div />
         </div>
@@ -561,6 +629,7 @@ export default function TexteBible({
           verset={editionCible}
           traduction={traduction}
           traductionLabel={traductionLabel}
+          refCourt={`${ABREV_FR[livreActif] || livreActif} ${chapitreActif}, ${editionCible.verset}`}
           valeurActuelle={String(overrides[editionCible.id_verset]?.[traduction] ?? editionCible[traduction] ?? '')}
           onClose={() => setEditionCible(null)}
           onEnregistre={(nouvelleValeur) => {

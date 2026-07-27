@@ -176,6 +176,32 @@ async function pagine<T = any>(make: (de: number, a: number) => any, signal: Abo
   return out
 }
 
+// Nombre d'occurrences du terme (mot entier / début de mot) dans un texte — sert au
+// décompte par livre/œuvre/publication affiché dans le volet gauche.
+function compterOccurrences(texte: string, terme: string, mode: Mode): number {
+  const termes = termesRecherche(terme)
+  if (!texte || !termes.length) return 0
+  const sep = '(^|[\\s\\u202f\\u00a0«»,;:!?—.(\\[])'
+  const fin = mode === 'exact' ? '(?=[\\s\\u202f\\u00a0«»,;:!?—.)\\]]|$)' : ''
+  try {
+    const termesN = termes.map(normaliser).sort((a, b) => b.length - a.length)
+    const alt = termesN.map(echapperRegex).join('|')
+    const re = new RegExp(`${sep}(${alt})${fin}`, 'gi')
+    const texteN = normaliser(texte)
+    let c = 0; while (re.exec(texteN) !== null) c++
+    return c
+  } catch { return 0 }
+}
+
+// Date courte d'un enregistrement, compacte pour tenir à droite du bouton (« 27 juil. 14:32 »).
+function formatDateCourt(ts: number): string {
+  try {
+    const d = new Date(ts)
+    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) +
+      ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+  } catch { return '' }
+}
+
 function snippetEssai(texte: string, terme: string, max = 220): string {
   const termes = termesRecherche(terme)
   let idx = -1
@@ -234,15 +260,22 @@ export default function RechercheClient() {
   // de défilement des résultats (pour restituer la position), et petit accusé « enregistré ».
   const [rechercheSauvee, setRechercheSauvee] = useState<RechercheSauvee | null>(null)
   const [vientDEnregistrer, setVientDEnregistrer] = useState(false)
+  // Confirmation d'écrasement : ouverte quand on clique « Enregistrer » alors qu'une autre
+  // recherche est déjà mémorisée (mot différent). L'enregistrement n'a lieu qu'après un « oui ».
+  const [confirmEcrasement, setConfirmEcrasement] = useState(false)
+  // Filtres du volet gauche : restreindre les résultats à un livre / une œuvre / une
+  // publication. `null` = pas de filtre. Un second clic sur la même ligne l'annule.
+  const [filtres, setFiltres] = useState<{ livre: string | null; oeuvre: string | null; essai: number | null }>({ livre: null, oeuvre: null, essai: null })
   const zoneResultatsRef = useRef<HTMLDivElement>(null)
   // Miroir de l'état courant, lu par l'enregistrement automatique (dont l'intervalle,
   // fermé sur un vieux rendu, ne verrait sinon que des valeurs périmées).
   const etatRef = useRef<Omit<RechercheSauvee, 'scrollTop' | 'ts'> | null>(null)
 
   useEffect(() => {
-    // La préférence règle l'AFFICHAGE seulement ; le périmètre reste « toutes les bibles ».
+    // La préférence de l'utilisateur règle À LA FOIS l'affichage ET le périmètre par défaut :
+    // « Chercher dans » vaut par défaut la bible favorite (et non plus « toutes les bibles »).
     const appliquer = (code?: string | null) => {
-      if (code && /^TR\d{4}$/.test(code)) setTradAffichage(code)
+      if (code && /^TR\d{4}$/.test(code)) { setTradAffichage(code); setTradScope(code) }
     }
     appliquer(localStorage.getItem('traduction_defaut'))
     supabase.auth.getSession().then(async ({ data }) => {
@@ -323,6 +356,7 @@ export default function RechercheClient() {
     setLoading(true); setDone(false); setTronque([])
     setVersetsRes([]); setSegmentsRes([]); setEssaisRes([])
     setPageV(0); setPageS(0); setPageE(0)
+    setFiltres({ livre: null, oeuvre: null, essai: null })
 
     try {
       const termes = termesRecherche(q)
@@ -492,7 +526,8 @@ export default function RechercheClient() {
     } catch { /* stockage indisponible */ }
   }, [])
 
-  const enregistrerRecherche = () => {
+  // Écrit réellement la sauvegarde (écrase la précédente s'il y en avait une).
+  const ecrireRecherche = () => {
     if (!lastQuery) return
     const snap: RechercheSauvee = {
       query: lastQuery, mode, tradScope, tradAffichage, colTrads: [...colTrads],
@@ -503,6 +538,14 @@ export default function RechercheClient() {
     setRechercheSauvee(snap)
     setVientDEnregistrer(true)
     setTimeout(() => setVientDEnregistrer(false), 2000)
+  }
+
+  // Clic sur « Enregistrer » : si une AUTRE recherche est déjà mémorisée (mot différent),
+  // on demande confirmation dans une fenêtre avant d'écraser ; sinon on enregistre direct.
+  const enregistrerRecherche = () => {
+    if (!lastQuery) return
+    if (rechercheSauvee && rechercheSauvee.query !== lastQuery) { setConfirmEcrasement(true); return }
+    ecrireRecherche()
   }
 
   // Enregistrement automatique : tant qu'une recherche est mémorisée ET que celle affichée
@@ -541,13 +584,50 @@ export default function RechercheClient() {
   // la traduction affichée → en bas » est abandonné au profit de l'ordre biblique demandé.
   const versetsTries = useMemo(() => [...versetsRes].sort(comparerVersets), [versetsRes])
 
-  const versetsPage      = versetsTries.slice(pageV * PAGE, (pageV + 1) * PAGE)
-  const versetsPageBible = versetsTries.slice(pageV * PAGE, (pageV + 1) * PAGE)
-  const segmentsPage = segmentsRes.slice(pageS * PAGE, (pageS + 1) * PAGE)
-  const essaisPage   = essaisRes.slice(pageE * PAGE, (pageE + 1) * PAGE)
+  // Résultats patristiques TRIÉS par nom d'auteur (alphabétique), puis œuvre, puis segment.
+  const segmentsTries = useMemo(() => [...segmentsRes].sort((a, b) =>
+    a.auteur_nom.localeCompare(b.auteur_nom, 'fr') ||
+    a.oeuvre_titre.localeCompare(b.oeuvre_titre, 'fr') ||
+    a.id - b.id), [segmentsRes])
 
-  const totalActive  = onglet === 'bible' || onglet === 'polyglotte' ? versetsRes.length
-    : onglet === 'patristique' ? segmentsRes.length : essaisRes.length
+  // ── Répartitions pour le volet gauche (nombre d'occurrences par regroupement) ──
+  // Bible / Polyglotte : par livre, dans l'ordre canonique.
+  const repartitionLivres = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const v of versetsRes) m.set(v.livre, (m.get(v.livre) ?? 0) + 1)
+    return [...m.entries()].sort((a, b) => (ORDRE_LIVRE[a[0]] ?? 9999) - (ORDRE_LIVRE[b[0]] ?? 9999))
+  }, [versetsRes])
+  // Pères de l'Église : par œuvre (auteur + titre), triée par auteur.
+  const repartitionOeuvres = useMemo(() => {
+    const m = new Map<string, { auteur: string; titre: string; n: number }>()
+    for (const s of segmentsRes) {
+      const k = s.auteur_nom + '¦' + s.oeuvre_titre
+      const e = m.get(k) ?? { auteur: s.auteur_nom, titre: s.oeuvre_titre, n: 0 }
+      e.n++; m.set(k, e)
+    }
+    return [...m.values()].sort((a, b) =>
+      a.auteur.localeCompare(b.auteur, 'fr') || a.titre.localeCompare(b.titre, 'fr'))
+  }, [segmentsRes])
+  // Publications de la communauté : par publication, occurrences décroissantes.
+  const repartitionEssais = useMemo(() =>
+    essaisRes.map(e => ({
+      id: e.id, titre: e.titre,
+      n: compterOccurrences([e.titre, e.sous_titre, e.resume, e.contenu].filter(Boolean).join(' '), lastQuery, mode) || 1,
+    })).sort((a, b) => b.n - a.n), [essaisRes, lastQuery, mode])
+
+  // Listes FILTRÉES par le volet gauche (livre / œuvre / publication). Sans filtre,
+  // ce sont les listes triées complètes.
+  const versetsFiltres = useMemo(() => filtres.livre ? versetsTries.filter(v => v.livre === filtres.livre) : versetsTries, [versetsTries, filtres.livre])
+  const segmentsFiltres = useMemo(() => filtres.oeuvre ? segmentsTries.filter(s => (s.auteur_nom + '¦' + s.oeuvre_titre) === filtres.oeuvre) : segmentsTries, [segmentsTries, filtres.oeuvre])
+  const essaisFiltres = useMemo(() => filtres.essai != null ? essaisRes.filter(e => e.id === filtres.essai) : essaisRes, [essaisRes, filtres.essai])
+
+  const versetsPage      = versetsFiltres.slice(pageV * PAGE, (pageV + 1) * PAGE)
+  const versetsPageBible = versetsFiltres.slice(pageV * PAGE, (pageV + 1) * PAGE)
+  const segmentsPage = segmentsFiltres.slice(pageS * PAGE, (pageS + 1) * PAGE)
+  const essaisPage   = essaisFiltres.slice(pageE * PAGE, (pageE + 1) * PAGE)
+
+  const totalActive  = onglet === 'bible' || onglet === 'polyglotte' ? versetsFiltres.length
+    : onglet === 'patristique' ? segmentsFiltres.length : essaisFiltres.length
   const pageActive   = onglet === 'patristique' ? pageS : onglet === 'essais' ? pageE : pageV
   const setPageActive = onglet === 'patristique' ? setPageS : onglet === 'essais' ? setPageE : setPageV
   const pagesTotal   = Math.ceil(totalActive / PAGE)
@@ -575,10 +655,17 @@ export default function RechercheClient() {
   return (
     <>
       <style>{`
-        .res-card { display:block; text-decoration:none; padding:10px 14px; background:#fff; border-radius:7px; border:1px solid #e4dfd8; transition:border-color 0.12s, box-shadow 0.12s; }
+        .res-card { display:block; text-decoration:none; padding:6px 12px; background:#fff; border-radius:7px; border:1px solid #e4dfd8; transition:border-color 0.12s, box-shadow 0.12s; }
         .res-card:hover { border-color:#3d6b4f; box-shadow:0 1px 6px rgba(61,107,79,0.10); }
         .res-card--absent { background:#fff9f7; border-color:#f0c4b8; }
         .res-card--absent:hover { border-color:#c0562a; }
+        /* Lignes de répartition cliquables (filtre par livre / œuvre / publication). */
+        .brk-row { display:flex; align-items:baseline; justify-content:space-between; gap:8px; width:100%; text-align:left; border:none; background:transparent; cursor:pointer; padding:2px 6px; border-radius:4px; font-size:11px; color:#6b6560; line-height:1.4; font-family:inherit; transition:background 0.1s; }
+        .brk-row:hover { background:rgba(61,107,79,0.08); }
+        .brk-row--actif { background:rgba(61,107,79,0.15); color:#2a3d30; font-weight:600; }
+        .brk-row--actif:hover { background:rgba(61,107,79,0.2); }
+        .brk-count { flex-shrink:0; font-size:9.5px; color:#b0a89e; }
+        .brk-row--actif .brk-count { color:#6a9a7a; }
         .ong-btn { padding:8px 16px; font-size:11.5px; border:none; border-bottom:3px solid transparent; cursor:pointer; background:transparent; color:#8a8278; font-weight:400; transition:color 0.12s, border-color 0.12s; white-space:nowrap; margin-bottom:-2px; }
         .ong-btn--actif { color:#2a3d30; font-weight:600; border-bottom-color:#3d6b4f; }
         .ong-btn:not(.ong-btn--actif):hover { color:#3d6b4f; border-bottom-color:#c0d8c8; }
@@ -618,7 +705,7 @@ export default function RechercheClient() {
         .ctrl-sel:focus { border-color:#3d6b4f; }
         /* Info-bulle « Explicitations » : au survol du « ? », les deux modes expliqués. */
         .expl-wrap { position:relative; display:inline-flex; }
-        .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #cbb8d0; color:#8a6ea8; background:#faf7fc; font-size:8.5px; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
+        .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #b6ccbd; color:#3d6b4f; background:#f2f8f4; font-size:8.5px; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
         .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:#fff; border:1px solid #d6d0c4; border-radius:7px; box-shadow:0 10px 28px rgba(30,46,38,0.14); padding:9px 11px; font-size:10.5px; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
         .expl-wrap:hover .expl-tip { opacity:1; visibility:visible; transform:translateY(0); }
         ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#d6d0c4;border-radius:3px}
@@ -635,8 +722,14 @@ export default function RechercheClient() {
         <aside style={{ width:'340px', flexShrink:0, borderRight:'1px solid #d6d0c4', background:'#fbf9f4', display:'flex', flexDirection:'column', overflow:'hidden' }}>
           <div style={{ flexShrink:0, padding:'9px 20px 12px', display:'flex', flexDirection:'column', alignItems:'stretch', gap:'9px' }}>
 
-            {/* Titre */}
-            <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'12px', letterSpacing:'0.12em', textTransform:'uppercase', color:'#9a958d', fontWeight:400 }}>Recherche</span>
+            {/* Titre + nombre total de résultats, sur la même ligne, en tête du volet. */}
+            <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'8px' }}>
+              <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'12px', letterSpacing:'0.12em', textTransform:'uppercase', color:'#9a958d', fontWeight:400 }}>Recherche</span>
+              {done && (() => {
+                const total = versetsRes.length + segmentsRes.length + essaisRes.length
+                return <span style={{ fontSize:'10.5px', color:'#b8b0a6', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
+              })()}
+            </div>
 
             {/* Champ principal */}
             <div style={{ position:'relative', width:'100%' }}>
@@ -698,14 +791,14 @@ export default function RechercheClient() {
               {/* Mode + « Explicitations » en INFO-BULLE au survol du « ? » : les deux
                   explications ensemble, ce qui évite l'encart qui alourdissait le volet. */}
               <div>
-                <p style={{ fontSize:'9px', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'#9a958d', margin:'0 0 5px', display:'flex', alignItems:'center', gap:'6px' }}>
+                <p style={{ fontSize:'9px', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'#9a958d', margin:'0 0 5px', display:'flex', alignItems:'center', gap:'3px' }}>
                   Mode
                   <span className="expl-wrap">
                     <span className="expl-badge">?</span>
                     <span className="expl-tip">
                       <span style={{ display:'block', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', fontSize:'8.5px', color:'#9a958d', marginBottom:'4px' }}>Explicitations</span>
-                      <span style={{ display:'block', marginBottom:'5px' }}><strong style={{ color:'#2f6046' }}>Début de mot</strong> — trouve les mots qui <em>commencent</em> par ce que vous tapez : « glo » ramène <em>gloire</em>, <em>glorieux</em>, <em>glorifier</em>.</span>
-                      <span style={{ display:'block' }}><strong style={{ color:'#2f6046' }}>Mot exact</strong> — ne trouve que le mot <em>entier</em> : « gloire » ne ramène ni <em>glorieux</em> ni <em>gloires</em>.</span>
+                      <span style={{ display:'block', marginBottom:'6px' }}><strong style={{ color:'#2f6046' }}>Début de mot</strong> — trouve les mots qui <em>commencent</em> par ce que vous tapez : « glo » ramène <em>gloire</em>, <em>glorieux</em>, <em>glorifier</em>. Vous pouvez en chercher <strong>plusieurs à la fois</strong> : « glo mis » ramène les passages où figurent ensemble un mot en <em>glo-</em> et un mot en <em>mis-</em>.</span>
+                      <span style={{ display:'block' }}><strong style={{ color:'#2f6046' }}>Mot exact</strong> — ne trouve que le mot <em>entier</em> : « gloire » ne ramène ni <em>glorieux</em> ni <em>gloires</em>. Vous pouvez chercher <strong>plusieurs mots entiers</strong> qui ne se suivent pas : « gloire Dieu » ramène les passages contenant l'un et l'autre.</span>
                     </span>
                   </span>
                 </p>
@@ -733,43 +826,45 @@ export default function RechercheClient() {
                   </select>
                 </div>
               </div>
-              {done && (
-                <span style={{ fontSize:'10.5px', color:'#b8b0a6', fontStyle:'italic', marginTop:'2px' }}>
-                  {versetsRes.length + segmentsRes.length + essaisRes.length} résultat{versetsRes.length + segmentsRes.length + essaisRes.length > 1 ? 's' : ''}
-                </span>
-              )}
-              {/* Enregistrer ma recherche : dans le volet, dès qu'il y a des résultats. Un clic
-                  mémorise mot(s), page et position ; « Reprendre » (juste dessous) y ramène.
-                  Le libellé passe brièvement à « Recherche enregistrée » en accusé de réception. */}
-              {done && (versetsRes.length + segmentsRes.length + essaisRes.length) > 0 && (
-                <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
-                  style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'11.5px', color:'#3d6b4f', background:'rgba(61,107,79,0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'8px 11px', cursor:'pointer', marginTop:'2px', transition:'background 0.12s' }}
-                  onMouseEnter={e => (e.currentTarget.style.background='rgba(61,107,79,0.12)')}
-                  onMouseLeave={e => (e.currentTarget.style.background='rgba(61,107,79,0.06)')}>
-                  <svg width="12" height="13" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
-                    <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none"/>
-                  </svg>
-                  <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                    {vientDEnregistrer ? 'Recherche enregistrée' : 'Enregistrer ma recherche'}
-                  </span>
-                </button>
-              )}
-              {/* Reprendre ma recherche : présent dès qu'une recherche a été enregistrée.
-                  Ramène mot(s), page et position de défilement à l'identique. */}
-              {rechercheSauvee && (
-                <button onClick={reprendreRecherche} title={`Reprendre « ${rechercheSauvee.query} » là où vous en étiez`}
-                  style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'11.5px', color:'#3d6b4f', background:'rgba(61,107,79,0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'8px 11px', cursor:'pointer', marginTop:'2px', transition:'background 0.12s' }}
-                  onMouseEnter={e => (e.currentTarget.style.background='rgba(61,107,79,0.12)')}
-                  onMouseLeave={e => (e.currentTarget.style.background='rgba(61,107,79,0.06)')}>
-                  <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
-                    <path d="M2.5 7a4.5 4.5 0 1 1 1.3 3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
-                    <path d="M2.2 4.2v2.6h2.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                  </svg>
-                  <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                    Reprendre ma recherche
-                    <span style={{ color:'#9a958d', fontStyle:'italic' }}> · {rechercheSauvee.query}</span>
-                  </span>
-                </button>
+              {/* Enregistrer ma recherche : dès qu'il y a des résultats. Un clic mémorise
+                  mot(s), page et position ; « Reprendre » (juste dessous) y ramène. Le libellé
+                  passe brièvement à « Recherche enregistrée » en accusé de réception. */}
+              {/* Enregistrer / Reprendre : deux boutons de même hauteur, resserrés. Un clic
+                  « Enregistrer » mémorise mot(s), page et position ; si une AUTRE recherche est
+                  déjà mémorisée, une fenêtre demande d'abord confirmation d'écrasement. */}
+              {((done && (versetsRes.length + segmentsRes.length + essaisRes.length) > 0) || rechercheSauvee) && (
+                <div style={{ display:'flex', flexDirection:'column', gap:'3px', marginTop:'2px' }}>
+                  {done && (versetsRes.length + segmentsRes.length + essaisRes.length) > 0 && (
+                    <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
+                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'11px', color:'#3d6b4f', background:'rgba(61,107,79,0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
+                      onMouseEnter={e => (e.currentTarget.style.background='rgba(61,107,79,0.12)')}
+                      onMouseLeave={e => (e.currentTarget.style.background='rgba(61,107,79,0.06)')}>
+                      <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
+                        <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none"/>
+                      </svg>
+                      <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                        {vientDEnregistrer ? 'Recherche enregistrée' : 'Enregistrer ma recherche'}
+                      </span>
+                    </button>
+                  )}
+                  {/* Reprendre : même hauteur que « Enregistrer », date d'enregistrement à droite. */}
+                  {rechercheSauvee && (
+                    <button onClick={reprendreRecherche} title={`Reprendre « ${rechercheSauvee.query} » là où vous en étiez`}
+                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'11px', color:'#3d6b4f', background:'rgba(61,107,79,0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
+                      onMouseEnter={e => (e.currentTarget.style.background='rgba(61,107,79,0.12)')}
+                      onMouseLeave={e => (e.currentTarget.style.background='rgba(61,107,79,0.06)')}>
+                      <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
+                        <path d="M2.5 7a4.5 4.5 0 1 1 1.3 3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
+                        <path d="M2.2 4.2v2.6h2.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                      </svg>
+                      <span style={{ flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                        Reprendre ma recherche
+                        <span style={{ color:'#9a958d', fontStyle:'italic' }}> {rechercheSauvee.query}</span>
+                      </span>
+                      {rechercheSauvee.ts ? <span style={{ flexShrink:0, color:'#b8b0a6', fontStyle:'italic', fontSize:'9.5px' }}>{formatDateCourt(rechercheSauvee.ts)}</span> : null}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -787,11 +882,58 @@ export default function RechercheClient() {
               ] as { k:Onglet; label:string; n:number }[]).map(o => {
                 const actif = onglet===o.k
                 return (
-                  <button key={o.k} onClick={()=>setOnglet(o.k)}
-                    style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', padding:'9px 20px', border:'none', borderLeft:`3px solid ${actif?'#3d6b4f':'transparent'}`, background:actif?'rgba(61,107,79,0.07)':'transparent', color:actif?'#2a3d30':'#6b6560', fontWeight:actif?600:400, fontSize:'12.5px', cursor:'pointer', textAlign:'left', fontFamily:"var(--font-source-serif), Georgia, serif", transition:'background 0.12s, color 0.12s' }}>
-                    <span style={{ whiteSpace:'normal', lineHeight:1.25 }}>{o.label}</span>
-                    <span style={{ flexShrink:0, fontSize:'10px', color:actif?'#6a9a7a':'#c0b8ae', fontWeight:400 }}>{o.n}</span>
-                  </button>
+                  <Fragment key={o.k}>
+                    <button onClick={()=>setOnglet(o.k)}
+                      style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', padding:'9px 20px', border:'none', borderLeft:`3px solid ${actif?'#3d6b4f':'transparent'}`, background:actif?'rgba(61,107,79,0.07)':'transparent', color:actif?'#2a3d30':'#6b6560', fontWeight:actif?600:400, fontSize:'12.5px', cursor:'pointer', textAlign:'left', fontFamily:"var(--font-source-serif), Georgia, serif", transition:'background 0.12s, color 0.12s' }}>
+                      <span style={{ whiteSpace:'normal', lineHeight:1.25 }}>{o.label}</span>
+                      <span style={{ flexShrink:0, fontSize:'10px', color:actif?'#6a9a7a':'#c0b8ae', fontWeight:400 }}>{o.n}</span>
+                    </button>
+                    {/* Répartition détaillée sous l'onglet actif : livres (Bible/Polyglotte),
+                        œuvres (Pères), publications (communauté), avec le nombre d'occurrences.
+                        Chaque ligne est CLIQUABLE : elle restreint les résultats à ce
+                        regroupement ; un second clic sur la même ligne annule le filtre. */}
+                    {actif && o.n > 0 && (
+                      <div style={{ padding:'2px 14px 8px 26px', display:'flex', flexDirection:'column', gap:'1px' }}>
+                        {(o.k==='bible' || o.k==='polyglotte') && repartitionLivres.map(([code, n]) => {
+                          const sel = filtres.livre === code
+                          return (
+                            <button key={code} className={`brk-row${sel ? ' brk-row--actif' : ''}`}
+                              onClick={() => { setFiltres(f => ({ ...f, livre: f.livre === code ? null : code })); setPageV(0) }}
+                              title={sel ? 'Retirer le filtre' : `N'afficher que ${NOMS_LIVRES[code] ?? code}`}>
+                              <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{NOMS_LIVRES[code] ?? code}</span>
+                              <span className="brk-count">{n}</span>
+                            </button>
+                          )
+                        })}
+                        {o.k==='patristique' && repartitionOeuvres.map((r, i) => {
+                          const cle = r.auteur + '¦' + r.titre
+                          const sel = filtres.oeuvre === cle
+                          return (
+                            <button key={i} className={`brk-row${sel ? ' brk-row--actif' : ''}`}
+                              onClick={() => { setFiltres(f => ({ ...f, oeuvre: f.oeuvre === cle ? null : cle })); setPageS(0) }}
+                              title={sel ? 'Retirer le filtre' : `N'afficher que ${r.auteur}${r.titre ? ' — ' + r.titre : ''}`}>
+                              <span style={{ minWidth:0 }}>
+                                <span style={{ color: sel ? 'inherit' : '#4a453f' }}>{r.auteur}</span>
+                                {r.titre && <span style={{ color: sel ? 'inherit' : '#9a958d', fontStyle:'italic' }}> — {r.titre}</span>}
+                              </span>
+                              <span className="brk-count">{r.n}</span>
+                            </button>
+                          )
+                        })}
+                        {o.k==='essais' && repartitionEssais.map(r => {
+                          const sel = filtres.essai === r.id
+                          return (
+                            <button key={r.id} className={`brk-row${sel ? ' brk-row--actif' : ''}`}
+                              onClick={() => { setFiltres(f => ({ ...f, essai: f.essai === r.id ? null : r.id })); setPageE(0) }}
+                              title={sel ? 'Retirer le filtre' : `N'afficher que « ${r.titre} »`}>
+                              <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.titre}</span>
+                              <span className="brk-count">{r.n}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </Fragment>
                 )
               })}
             </nav>
@@ -860,19 +1002,19 @@ export default function RechercheClient() {
 
             {/* ── Bible ── */}
             {done && onglet==='bible' && (
-              versetsRes.length===0
+              versetsFiltres.length===0
                 ? <Vide texte="Aucun verset trouvé." />
                 : <>
-                  <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+                  <div style={{ display:'flex', flexDirection:'column', gap:'3px' }}>
                     {versetsPageBible.map(v => {
                       const texte = String((v as any)[tradBible]??'')
                       const labelDisplay = traductions.find(t=>t.code===tradBible)?.label ?? tradBible
                       const displayLeMot = !!(lastQuery && contientTerme(texte, lastQuery, mode))
-                      // Le verset a fait mouche dans UNE des bibles, mais peut-être pas dans
-                      // celle qu'on affiche : on AFFICHE tout de même le texte de la traduction
-                      // CHOISIE, et l'on signale simplement dans quelles autres le mot se trouve.
-                      const presentDans = (lastQuery && !displayLeMot)
-                        ? traductions.filter(t => t.code!==tradBible && contientTerme(String((v as any)[t.code]??''), lastQuery, mode))
+                      // TOUTES les traductions qui contiennent le mot, listées sur la ligne du
+                      // haut. La traduction affichée est barrée si le mot n'y figure pas ; les
+                      // traductions qui le portent s'affichent alors en rouge discret.
+                      const contientDans = lastQuery
+                        ? traductions.filter(t => contientTerme(String((v as any)[t.code]??''), lastQuery, mode))
                         : []
                       return (
                         <a key={v.id_verset}
@@ -880,18 +1022,21 @@ export default function RechercheClient() {
                           // choisie, avec l'ancre du verset pour l'y amener et l'y sélectionner.
                           href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
                           target="_blank" rel="noopener noreferrer"
-                          className={`res-card${!displayLeMot && presentDans.length ? ' res-card--absent' : ''}`}>
-                          {/* Référence ET nom de la traduction sur la même ligne, côte à côte */}
-                          <div style={{ display:'flex', alignItems:'baseline', gap:'8px', flexWrap:'wrap', marginBottom:'3px' }}>
-                            <span style={{ fontSize:'10.5px', fontWeight:600, color:'#3d6b4f', letterSpacing:'0.01em' }}>{refFr(v.ref)}</span>
-                            <span style={{ fontSize:'9.5px', color:'#c0b8ae' }}>{labelDisplay}</span>
-                            {!displayLeMot && presentDans.length > 0 && (
-                              <span style={{ fontSize:'9.5px', color:'#b3261e', fontWeight:600 }}>· présent en {presentDans.map(t=>t.label).join(', ')}</span>
+                          className={`res-card${!displayLeMot && contientDans.length ? ' res-card--absent' : ''}`}>
+                          {/* Référence (couleur neutre, pas verte), traduction affichée (barrée si
+                              le mot y est absent) puis TOUTES les traductions qui contiennent le mot. */}
+                          <div style={{ display:'flex', alignItems:'baseline', gap:'8px', flexWrap:'wrap', marginBottom:'2px' }}>
+                            <span style={{ fontSize:'10.5px', fontWeight:600, color:'#5a5248', letterSpacing:'0.01em' }}>{refFr(v.ref)}</span>
+                            <span style={{ fontSize:'9.5px', color:'#c0b8ae', textDecoration: displayLeMot ? 'none' : 'line-through' }}>{labelDisplay}</span>
+                            {contientDans.length > 0 && (
+                              <span style={{ fontSize:'9.5px', color: displayLeMot ? '#9a958d' : '#bd6a60', fontWeight: displayLeMot ? 400 : 600 }}>
+                                {contientDans.map(t=>t.label).join(', ')}
+                              </span>
                             )}
                           </div>
-                          {/* Toujours le texte de la traduction CHOISIE. Surligné si le mot y est ;
-                              sinon montré tel quel (le bandeau rouge dit où le mot se trouve). */}
-                          <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
+                          {/* Toujours le texte de la traduction CHOISIE, SANS SÉRIF. Surligné si le
+                              mot y est ; sinon montré tel quel (la ligne du haut dit où il se trouve). */}
+                          <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'12.5px', lineHeight:1.4, color:'#2a2520', margin:0 }}>
                             {texte
                               ? rendreEtSurligner(texte, lastQuery, mode)
                               : <span style={{ color:'#b0a89e', fontStyle:'italic' }}>Ce verset n’existe pas dans {labelDisplay}.</span>}
@@ -905,21 +1050,21 @@ export default function RechercheClient() {
 
             {/* ── Patristique ── */}
             {done && onglet==='patristique' && (
-              segmentsRes.length===0
+              segmentsFiltres.length===0
                 ? <Vide texte="Aucun passage trouvé." />
-                : <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+                : <div style={{ display:'flex', flexDirection:'column', gap:'3px' }}>
                   {segmentsPage.map(s=>(
                     <a key={s.id} href={`/oeuvre/${encodeURIComponent(s.id_oeuvre)}?segment=${s.id}#segment-${s.id}`}
                       target="_blank" rel="noopener noreferrer" className="res-card">
-                      {/* Auteur, titre de l'œuvre PUIS niveau 1, tout sur une même ligne,
-                          le titre juste à droite du nom de l'auteur. Le niveau 1 ne paraît
-                          que s'il existe. */}
-                      <div style={{ display:'flex', alignItems:'baseline', gap:'7px', flexWrap:'wrap', marginBottom:'3px' }}>
+                      {/* Auteur, titre de l'œuvre PUIS niveau 1, tout sur une même ligne, séparés
+                          par une espace claire (plus de point médian). Le niveau 1 ne paraît que
+                          s'il existe. Résultats triés par nom d'auteur (alphabétique). */}
+                      <div style={{ display:'flex', alignItems:'baseline', gap:'8px', flexWrap:'wrap', marginBottom:'2px' }}>
                         <span style={{ fontSize:'10.5px', fontWeight:600, color:'#3d6b4f' }}>{s.auteur_nom}</span>
                         {s.oeuvre_titre && <span style={{ fontSize:'9.5px', color:'#9a958d', fontStyle:'italic' }}>{s.oeuvre_titre}</span>}
-                        {s.ref_niv1 && <span style={{ fontSize:'9.5px', color:'#c0b8ae' }}>· {s.ref_niv1}</span>}
+                        {s.ref_niv1 && <span style={{ fontSize:'9.5px', color:'#c0b8ae' }}>{s.ref_niv1}</span>}
                       </div>
-                      <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
+                      <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'12.5px', lineHeight:1.4, color:'#2a2520', margin:0 }}>
                         {rendreEtSurligner(nettoyerFin(s.segment_texte), lastQuery, mode)}
                       </p>
                     </a>
@@ -929,7 +1074,7 @@ export default function RechercheClient() {
 
             {/* ── Essais ── */}
             {done && onglet==='essais' && (
-              essaisRes.length===0
+              essaisFiltres.length===0
                 ? <Vide texte="Aucun essai trouvé." />
                 : <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
                   {essaisPage.map(e=>{
@@ -942,7 +1087,7 @@ export default function RechercheClient() {
                           {e.categories?.[0] && <span style={{ fontSize:'9.5px', color:'#c0b8ae', fontStyle:'italic' }}>{e.categories[0]}</span>}
                         </div>
                         {e.sous_titre && <p style={{ fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:'0 0 3px' }}>{e.sous_titre}</p>}
-                        <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
+                        <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
                           {highlighter(texteAffiche, lastQuery, mode)}
                         </p>
                       </a>
@@ -955,7 +1100,7 @@ export default function RechercheClient() {
                 de numéro canonique (46px) + une colonne par traduction, lettrine de référence
                 d'origine, texte justifié et césuré, zébrage vert, en-tête de livre = NOM SEUL. */}
             {done && onglet==='polyglotte' && (
-              versetsRes.length===0
+              versetsFiltres.length===0
                 ? <Vide texte="Aucun verset trouvé." />
                 : (() => {
                     const polyTmpl = `46px ${colTrads.map(() => 'minmax(0, 1fr)').join(' ')}`
@@ -1042,6 +1187,28 @@ export default function RechercheClient() {
           )}
         </main>
       </div>
+
+      {/* Fenêtre de confirmation d'écrasement : s'ouvre APRÈS un clic sur « Enregistrer »
+          quand une autre recherche est déjà mémorisée. « Écraser » remplace la précédente. */}
+      {confirmEcrasement && rechercheSauvee && (
+        <div onClick={() => setConfirmEcrasement(false)}
+          style={{ position:'fixed', inset:0, background:'rgba(30,28,24,0.38)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:'20px' }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background:'#fbf9f4', border:'1px solid #d6d0c4', borderRadius:'10px', boxShadow:'0 14px 40px rgba(30,46,38,0.25)', padding:'20px 22px', maxWidth:'340px', width:'100%' }}>
+            <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'14px', fontWeight:600, color:'#2a3d30', margin:'0 0 8px' }}>Écraser la recherche précédente ?</p>
+            <p style={{ fontSize:'12px', color:'#6b6560', lineHeight:1.5, margin:'0 0 16px' }}>
+              Une recherche est déjà enregistrée (« {rechercheSauvee.query} », {formatDateCourt(rechercheSauvee.ts)}).
+              L'enregistrer maintenant remplacera cette sauvegarde par « {lastQuery} ».
+            </p>
+            <div style={{ display:'flex', gap:'8px', justifyContent:'flex-end' }}>
+              <button onClick={() => setConfirmEcrasement(false)}
+                style={{ fontSize:'11.5px', padding:'6px 14px', border:'1px solid #d6d0c4', borderRadius:'6px', background:'#fff', color:'#6b6560', cursor:'pointer' }}>Annuler</button>
+              <button onClick={() => { ecrireRecherche(); setConfirmEcrasement(false) }}
+                style={{ fontSize:'11.5px', padding:'6px 14px', border:'none', borderRadius:'6px', background:'#3d6b4f', color:'#fff', fontWeight:600, cursor:'pointer' }}>Écraser</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

@@ -63,8 +63,10 @@ export function analyserCorpus(s: EntreeCorpus): Verdict {
 
   if (/[-‐‑‒–—''']$/.test(texte)) fauter(6, 'Le segment se termine sur un tiret ou une apostrophe : mot coupé, la fin manque.')
 
+  // Fin sur virgule ou mot outil : ne s'AFFICHE plus (souvent un simple découpage voulu),
+  // mais pèse LÉGÈREMENT au score sans empêcher un segment d'être « bon ».
   if (/(?:,|;|:)\s*$/.test(texte) || /\b(?:de|du|des|le|la|les|un|une|et|ou|que|qui|dont|dans|avec|pour|par|en|à|au|aux|ne|se|ce|ces|son|sa|ses)\s*$/i.test(texte)) {
-    fauter(6, 'Le segment se termine sur une virgule ou un mot outil : la phrase est tronquée.')
+    malus += 1
   }
 
   if (texte.length > 80 && !/[.,;:!?…»”\])]/.test(texte)) {

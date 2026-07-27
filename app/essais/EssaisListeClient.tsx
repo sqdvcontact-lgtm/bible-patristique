@@ -39,8 +39,9 @@ const STATUTS: Record<string, { label: string; couleur: string }> = {
 function sansAccents(s: string): string { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase() }
 
 export default function EssaisListeClient({ essais }: { essais: EssaiResume[] }) {
-  const router = useRouter()
   const [onglet, setOnglet] = useState<Onglet>('communaute')
+  // Sous-onglet de « Écrire » : rédiger un texte, ou commenter un verset aléatoire.
+  const [sousEcrire, setSousEcrire] = useState<'rediger' | 'suggestion'>('rediger')
   const [recherche, setRecherche] = useState('')
   const [filtreCategorie, setFiltreCategorie] = useState<string | null>(null)
   const [mesEcrits, setMesEcrits] = useState<EssaiPerso[] | null>(null)
@@ -121,11 +122,13 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
             Publications
           </h1>
 
-          {/* Onglets navigation */}
+          {/* Onglets navigation — trois entrées : les écrits de la communauté, les siens,
+              et « Écrire » (qui se subdivise en deux sous-onglets). */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', borderBottom: '1px solid #ddd8cf' }}>
             {([
-              { key: 'communaute' as const, label: 'Communauté' },
+              { key: 'communaute' as const, label: 'Écrits de la communauté' },
               { key: 'mes-ecrits' as const, label: 'Mes écrits' },
+              { key: 'ecrire' as const, label: 'Écrire' },
             ]).map(o => (
               <button key={o.key} onClick={() => setOnglet(o.key)}
                 style={{ padding: '6px 16px', fontSize: '11.5px', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: '0.01em' }}>
@@ -134,21 +137,6 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
             ))}
           </div>
         </div>
-
-          {(onglet === 'communaute' || onglet === 'mes-ecrits') && (
-          <div className="ecrire-bandeau-container">
-            <div className="ecrire-bandeau">
-              <span className="ecrire-bandeau-label">✒ Écrire</span>
-              <button className="ecrire-option"
-                onClick={() => connecte ? router.push('/essais/nouveau?depuis=publications') : setOnglet('ecrire')}>
-                Rédiger un texte
-              </button>
-              <button className="ecrire-option" onClick={() => setOnglet('suggestion')}>
-                Commenter un verset aléatoire
-              </button>
-            </div>
-          </div>
-        )}
 
         {onglet === 'communaute' ? (
           <OngletCommunaute
@@ -160,10 +148,22 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
           />
         ) : onglet === 'mes-ecrits' ? (
           <OngletMesEcrits connecte={connecte} essais={mesEcrits} changerStatut={changerStatut} supprimer={supprimer} />
-        ) : onglet === 'ecrire' ? (
-          <OngletEcrire connecte={connecte} />
         ) : (
-          <OngletSuggestion connecte={connecte} />
+          <>
+            {/* Deux sous-onglets sous « Écrire ». */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', margin: '14px 0 18px' }}>
+              {([
+                { key: 'rediger' as const, label: 'Rédiger un texte' },
+                { key: 'suggestion' as const, label: 'Commenter un verset' },
+              ]).map(s => (
+                <button key={s.key} onClick={() => setSousEcrire(s.key)}
+                  style={{ fontSize: '11px', padding: '5px 14px', borderRadius: '999px', border: `1px solid ${sousEcrire === s.key ? '#3d6b4f' : '#d6d0c4'}`, background: sousEcrire === s.key ? 'rgba(61,107,79,0.09)' : 'rgba(255,255,255,0.6)', color: sousEcrire === s.key ? '#3d6b4f' : '#8a8278', fontWeight: sousEcrire === s.key ? 600 : 400, cursor: 'pointer' }}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            {sousEcrire === 'rediger' ? <OngletEcrire connecte={connecte} /> : <OngletSuggestion connecte={connecte} />}
+          </>
         )}
       </div>
     </main>
@@ -189,18 +189,19 @@ function OngletCommunaute({
 
   return (
     <>
-      {/* Barre de recherche + filtres */}
-      <div style={{ marginBottom: '8px' }}>
-        <div style={{ position: 'relative', maxWidth: '400px', margin: '0 auto 6px' }}>
+      {/* Barre de recherche ET tags sur la même ligne, centrés ; les tags, resserrés et
+          discrets, passent à la ligne si la place manque. */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
+        <div style={{ position: 'relative', width: '220px', flexShrink: 0 }}>
           <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
             placeholder="Auteur, titre, résumé…"
-            style={{ width: '100%', fontSize: '11.5px', padding: '6px 12px 6px 30px', border: '1px solid #d6d0c4', borderRadius: '16px', background: 'rgba(255,255,255,0.72)', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
-          <svg width="11" height="11" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', opacity: 0.32 }}>
+            style={{ width: '100%', fontSize: '11px', padding: '5px 12px 5px 28px', border: '1px solid #d6d0c4', borderRadius: '999px', background: 'rgba(255,255,255,0.72)', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
+          <svg width="11" height="11" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.32 }}>
             <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
             <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
           </svg>
         </div>
-        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', justifyContent: 'center' }}>
           <button onClick={() => setFiltreCategorie(null)} style={tagFiltre(!filtreCategorie)}>Tout</button>
           {CATEGORIES.map(c => <button key={c} onClick={() => setFiltreCategorie(c)} style={tagFiltre(filtreCategorie === c)}>{c}</button>)}
         </div>
@@ -238,24 +239,21 @@ function OngletCommunaute({
           display: grid;
           grid-template-columns: 1fr auto 1fr;
           align-items: center;
-          gap: 16px;
-          min-height: 50px;
-          border-bottom: 1px solid rgba(190,155,75,0.22);
+          gap: 14px;
+          min-height: 34px;
+          border-bottom: 1px solid rgba(190,155,75,0.20);
         }
-        .publications-populaires-palme-symetrique {
-          width: 46px;
-          height: 46px;
-          object-fit: contain;
-          mix-blend-mode: multiply;
-          opacity: 0.58;
+        .publications-populaires-filet {
+          height: 1px;
+          align-self: center;
         }
-        .publications-populaires-palme-symetrique.gauche {
-          justify-self: end;
-          transform: rotate(-90deg);
+        .publications-populaires-filet.gauche {
+          justify-self: stretch;
+          background: linear-gradient(to right, transparent, rgba(176,143,72,0.42));
         }
-        .publications-populaires-palme-symetrique.droite {
-          justify-self: start;
-          transform: rotate(90deg);
+        .publications-populaires-filet.droite {
+          justify-self: stretch;
+          background: linear-gradient(to left, transparent, rgba(176,143,72,0.42));
         }
         /* min-height:0 doit être posé à CHAQUE niveau entre la hauteur fixe et le
            contenu écrêtable : la grille est un élément flex du panneau, et sans cela
@@ -275,18 +273,36 @@ function OngletCommunaute({
           gap: 0;
         }
         .publication-populaire-item {
+          position: relative;
+          overflow: hidden;
           display: grid;
           grid-template-rows: subgrid;
           grid-row: span 5;
           min-height: 0;
-          padding: 16px 26px 16px;
+          padding: 12px 20px;
           color: #332c23;
           text-decoration: none;
-          transition: opacity 0.15s;
+          transition: background 0.18s;
           box-sizing: border-box;
         }
         .publication-populaire-item:hover {
-          opacity: 0.78;
+          background: rgba(200,168,74,0.07);
+        }
+        /* Scintillement au survol : un reflet clair qui balaie la carte, en boucle tant
+           que la souris reste dessus (persiste et se déplace). */
+        .publication-populaire-item::after {
+          content: '';
+          position: absolute;
+          top: 0; bottom: 0; left: 0;
+          width: 45%;
+          background: linear-gradient(90deg, transparent 0%, rgba(255,252,238,0.55) 50%, transparent 100%);
+          transform: translateX(-220%);
+          opacity: 0;
+          pointer-events: none;
+        }
+        .publication-populaire-item:hover::after {
+          opacity: 1;
+          animation: podium-shimmer 1.5s linear infinite;
         }
         .publication-populaire-item + .publication-populaire-item {
           border-left: 1px solid rgba(190,155,75,0.28);
@@ -325,19 +341,11 @@ function OngletCommunaute({
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          margin-bottom: 10px;
-          color: rgba(154,122,64,0.72);
+          margin-bottom: 8px;
+          color: rgba(154,122,64,0.78);
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 9px;
-          letter-spacing: 0.16em;
-        }
-        .publication-populaire-rang::before,
-        .publication-populaire-rang::after {
-          content: '';
-          width: 22px;
-          height: 1px;
-          background: rgba(190,155,75,0.35);
+          font-size: 10px;
+          letter-spacing: 0.18em;
         }
         /* L'en-tête est le seul élément flex du panneau à côté de la grille : il ne
            doit pas se comprimer. Les cinq rangs, eux, sont désormais des rangs de
@@ -863,9 +871,11 @@ function EnTetePublicationsPopulaires({ essais, favorisEssais, toggleFavoriEssai
       style={hauteur ? { maxHeight: `${hauteur}px` } : undefined}
       aria-label="Œuvres les plus lues">
       <div className="publications-populaires-entete">
-        <Image className="publications-populaires-palme-symetrique gauche" src="/ornements/palme-nouee.png" alt="" width={1254} height={1254} aria-hidden="true" />
+        {/* Filets sobres de part et d'autre du titre (les palmes, trop compactes, sont
+            provisoirement retirées). */}
+        <span className="publications-populaires-filet gauche" aria-hidden="true" />
         <h2 className="publications-populaires-titre">Œuvres les plus lues</h2>
-        <Image className="publications-populaires-palme-symetrique droite" src="/ornements/palme-nouee.png" alt="" width={1254} height={1254} aria-hidden="true" />
+        <span className="publications-populaires-filet droite" aria-hidden="true" />
       </div>
       <div className="publications-populaires-grille">
         {essais.map((e, index) => (
@@ -1505,7 +1515,16 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
 }
 
 function tagFiltre(actif: boolean): React.CSSProperties {
-  return { fontSize: '10.5px', padding: '3px 10px', borderRadius: '10px', border: `1px solid ${actif ? '#3d6b4f' : '#d6d0c4'}`, background: actif ? 'rgba(61,107,79,0.09)' : 'rgba(255,255,255,0.60)', color: actif ? '#3d6b4f' : '#8a8278', cursor: 'pointer', fontWeight: actif ? 600 : 400, letterSpacing: '0.01em' }
+  // Tags resserrés et plus légers : pastilles fines, sans bordure au repos ; l'actif se
+  // marque d'un aplat vert discret. Plus élégant que les anciens contours gris.
+  return {
+    fontSize: '10px', padding: '3px 10px', borderRadius: '999px',
+    border: '1px solid ' + (actif ? '#3d6b4f' : 'transparent'),
+    background: actif ? 'rgba(61,107,79,0.10)' : 'rgba(120,110,96,0.06)',
+    color: actif ? '#3d6b4f' : '#8a8278', cursor: 'pointer',
+    fontWeight: actif ? 600 : 400, letterSpacing: '0.02em', lineHeight: 1.3,
+    transition: 'background 0.12s, color 0.12s',
+  }
 }
 function formatTimer(ms: number): string {
   const total = Math.ceil(ms / 1000)

@@ -21,6 +21,42 @@ export function formaterEditeur(editeur: string | null | undefined): string {
   return (editeur ?? '').replace(/\s*;\s*/g, ' / ').trim()
 }
 
+// Quelques maisons dont le nom court appelle l'article contracté « du » (« les Éditions
+// du Cerf » → « du Cerf »). On reste conservateur : hors de cette liste, un nom propre
+// d'éditeur ne prend pas d'article (« de Gallimard », « de Desclée de Brouwer »).
+const EDITEUR_AVEC_DU = new Set(['cerf', 'seuil', 'centurion']);
+
+/** Formule de provenance élégante et grammaticale, sans redondance de « édition » :
+ *  - « Cerf, Paris, 1984 »            → « D'après l'édition du Cerf, Paris, 1984 »
+ *  - « Éditions du CNRS, Paris »      → « D'après la publication des Éditions du CNRS, Paris »
+ *  - « Presses universitaires… »     → « D'après la publication des Presses universitaires… »
+ *  - « Imprimerie nationale »        → « D'après la publication de l'Imprimerie nationale »
+ *  - « Gallimard, Paris, 1990 »      → « D'après l'édition de Gallimard, Paris, 1990 » */
+export function formulerProvenance(
+  editeur: string | null | undefined,
+  ville: string | null | undefined,
+  dateFormatee: string,
+): string {
+  const ed = formaterEditeur(editeur);
+  const lieuDate = [ville, dateFormatee].filter(Boolean).join(', ');
+  const suffixe = lieuDate ? `, ${lieuDate}` : '';
+  if (!ed) return lieuDate ? `D’après l’édition de ${lieuDate}` : '';
+
+  const bas = ed.toLowerCase();
+  // Le nom porte déjà un mot de publication → on parle de « publication », pas d'« édition ».
+  if (/^(é|e)ditions?\b/.test(bas)) return `D’après la publication des ${ed}${suffixe}`;
+  if (/^presses\b/.test(bas))       return `D’après la publication des ${ed}${suffixe}`;
+  if (/^publications?\b/.test(bas)) return `D’après la publication des ${ed}${suffixe}`;
+  if (/^(imprimerie|librairie|maison|fondation|société|societe|association)\b/.test(bas)) {
+    const elision = /^[aeiouyàâäéèêëîïôöûüh]/i.test(ed);
+    return `D’après la publication de ${elision ? 'l’' : 'la '}${ed}${suffixe}`;
+  }
+
+  // Nom court appelant « du », sinon nom propre sans article.
+  if (EDITEUR_AVEC_DU.has(bas)) return `D’après l’édition du ${ed}${suffixe}`;
+  return `D’après l’édition de ${ed}${suffixe}`;
+}
+
 /** Nettoyage d'AFFICHAGE d'un nom de traducteur (les données restent intactes) :
  *  masque « — prénom non établi » (gardé en base pour les passes de recherche),
  *  retire un « signalé(e) » superflu en fin, met le titre en minuscule. */
@@ -132,7 +168,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier 
       </p>
       {(oeuvre.editeur || oeuvre.ville || oeuvre.date_publication) && (
         <p style={{ fontSize: '11px', color: '#c0b8b0' }}>
-          D&rsquo;après l&rsquo;édition de {[oeuvre.editeur, oeuvre.ville, formaterDateHistorique(oeuvre.date_publication)].filter(Boolean).join(', ')}
+          {formulerProvenance(oeuvre.editeur, oeuvre.ville, formaterDateHistorique(oeuvre.date_publication))}
         </p>
       )}
     </div>

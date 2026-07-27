@@ -11,7 +11,8 @@ import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee } from './
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces } from './texteEnrichi'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
-import PageTitre, { libelleTrad } from './PageTitre'
+import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
+import ModaleAuteur from '@/app/components/ModaleAuteur'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { useFavoris } from '@/app/lib/useFavoris'
 import OngletCommentaires from './OngletCommentaires'
@@ -25,6 +26,19 @@ import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 
 const CHARS_PAR_PAGE = 15000
+
+// Nature d'un signalement ouvert depuis l'onglet Problèmes. Le préfixe est lu par la
+// modération pour trier : référence à identifier, absence de référence, ou qualification
+// du lien (citation / paraphrase / commentaire doctrinal / écho).
+const NATURES_PROBLEME: Record<string, { titre: string; prefixe: string }> = {
+  suggestion:       { titre: 'Suggérer une référence', prefixe: 'Référence proposée' },
+  pas_de_reference: { titre: 'Pas de référence', prefixe: 'Aucune référence biblique' },
+  citation:         { titre: 'Citation', prefixe: 'Nature : citation' },
+  paraphrase:       { titre: 'Paraphrase', prefixe: 'Nature : paraphrase' },
+  commentaire:      { titre: 'Commentaire doctrinal', prefixe: 'Nature : commentaire doctrinal' },
+  echo:             { titre: 'Écho', prefixe: 'Nature : écho' },
+}
+function natureProbleme(nat?: string) { return NATURES_PROBLEME[nat ?? 'suggestion'] ?? NATURES_PROBLEME.suggestion }
 
 // Même table que celle utilisée côté serveur (page.tsx) pour l'affichage
 // des références bibliques en français — doit rester identique aux deux endroits.
@@ -469,6 +483,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const [navOuverte, setNavOuverte] = useState(true)
   const [panneauOuvert, setPanneauOuvert] = useState(true)
   const [infoEditionOuverte, setInfoEditionOuverte] = useState(false)
+  const [auteurModalOuvert, setAuteurModalOuvert] = useState(false)
   const [navWidth, setNavWidth] = useState(240)
   const [pannWidth, setPannWidth] = useState(288)
   const voletsDirty = navWidth !== 240 || pannWidth !== 288
@@ -498,7 +513,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       .eq('id_segment', segActif)
       .then(({ count }) => setNbCommentairesOeuvre(count ?? 0))
   }, [segActif])
-  const [suggestionSignalee, setSuggestionSignalee] = useState<{ id: number; segment_numero: number; segment_texte: string } | null>(null)
+  const [suggestionSignalee, setSuggestionSignalee] = useState<{ id: number; segment_numero: number; segment_texte: string; nature?: string } | null>(null)
   const tradSelectRef = useRef<HTMLDivElement>(null)
   // Onglet « Problèmes ». La fiabilité se porte AU LIEN depuis le 20 juillet 2026
   // (charte §24.3) : `segments.fiabilite` est vidée et les colonnes `lien_1` à
@@ -1321,7 +1336,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     </div>
                   )}
                   {showNiv3 && (
-                    <div style={{ marginTop: isFirstGroupe ? '0' : '1rem', marginBottom: '0.4rem', paddingLeft: '2px', borderLeft: '2px solid #d6d0c4', position: 'relative', paddingRight: estAdmin ? '44px' : 0 }}>
+                    <div style={{ marginTop: isFirstGroupe ? '0' : '1rem', marginBottom: '0.4rem', paddingLeft: '11px', borderLeft: '1px solid #ddd6cb', position: 'relative', paddingRight: estAdmin ? '44px' : 0 }}>
                       <p style={{ fontSize: '0.78rem', fontWeight: 600, color: '#5a5450', lineHeight: 1.3, margin: 0, letterSpacing: '0.02em', whiteSpace: 'pre-line', textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophon(groupe.niv3)}</p>
                       {groupe.niv3_texte && configNiveaux.txtCorps[2] && <p style={{ fontSize: '0.75rem', fontStyle: 'italic', color: '#9a958d', lineHeight: 1.3, margin: '2px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophon(groupe.niv3_texte)}</p>}
                       {estAdmin && (
@@ -1573,10 +1588,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   </>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '40px' }}>
-                    <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d', textAlign: 'center', margin: 0 }}>Cliquez sur un paragraphe.</p>
-                    {/* Cul-de-lampe (buisson ardent). `multiply` fond le fond blanc du dessin dans le papier. */}
+                    {/* Cul-de-lampe (buisson ardent), puis l'invite dessous. `multiply` fond le
+                        fond blanc du dessin dans le papier. Le PNG porte un blanc interne en bas :
+                        on remonte le texte (marge négative) pour qu'il se pose sous le DESSIN, non
+                        sous le rectangle de l'image — l'ensemble reste ainsi équilibré. */}
                     <img src="/ornements/cul-de-lampe-buisson-ardent.png" alt="" aria-hidden="true"
-                      style={{ width: '82%', maxWidth: '190px', height: 'auto', opacity: 0.42, mixBlendMode: 'multiply', marginTop: '20px' }} />
+                      style={{ width: '82%', maxWidth: '190px', height: 'auto', opacity: 0.42, mixBlendMode: 'multiply' }} />
+                    <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d', textAlign: 'center', margin: '-16px 0 0' }}>Cliquez sur un paragraphe.</p>
                   </div>
                 )}
               </>
@@ -1586,11 +1604,9 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               </div>
             ) : (
               <div style={{ paddingTop: '14px' }}>
-                <div style={{ fontSize: '10.5px', color: '#8a8278', margin: '0 0 10px', lineHeight: 1.55, padding: '8px 10px', background: '#f7f4ef', borderRadius: '5px', border: '1px solid #e8e2d8' }}>
-                  <p style={{ margin: '0 0 4px', fontWeight: 600, color: '#5a5450', fontSize: '10px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>À propos de cet onglet</p>
-                  <p style={{ margin: 0, fontStyle: 'italic' }}>
-                    Cet onglet regroupe les passages signalés pour correction, vérification ou identification d'un lien biblique. Lecteurs et administrateurs peuvent proposer des corrections ou confirmer les références suggérées.
-                  </p>
+                <div style={{ fontSize: '9.5px', color: '#8a8278', margin: '0 0 10px', lineHeight: 1.4, padding: '6px 9px', background: '#f7f4ef', borderRadius: '5px', borderLeft: '2px solid #cbb98e' }}>
+                  <span style={{ fontWeight: 600, color: '#7a6f4e', letterSpacing: '0.05em', textTransform: 'uppercase' }}>À propos · </span>
+                  Aidez-nous à relier ces passages à l'Écriture. Merci de votre concours.
                 </div>
                 {/* Sous-onglets par type de problème */}
                 <div style={{ display: 'flex', gap: '2px', margin: '0 0 12px', background: '#ede9e2', borderRadius: '5px', padding: '2px' }}>
@@ -1601,6 +1617,14 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     </button>
                   ))}
                 </div>
+                {/* Aide propre au sous-onglet « À constituer » : ces passages appellent
+                    vraisemblablement un lien à l'Écriture, mais il n'est pas évident — c'est à
+                    vous de l'identifier. */}
+                {filtreProbleme === 'lien_a_constituer' && (
+                  <p style={{ fontSize: '9.5px', fontStyle: 'italic', color: '#9a958d', lineHeight: 1.45, margin: '0 0 12px' }}>
+                    Ces passages semblent renvoyer à l'Écriture, mais le lien n'est pas manifeste : à vous de repérer le verset visé.
+                  </p>
+                )}
                 {!problemesCharges ? (
                   <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>Chargement…</p>
                 ) : (() => {
@@ -1650,7 +1674,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                 })}
                               </div>
                             )}
-                            <div style={{ display:'flex', alignItems:'center', gap:'10px', justifyContent:'space-between' }}>
+                            {/* Actions. « À constituer » : proposer une référence ou déclarer
+                                qu'il n'y en a pas. « À vérifier » : qualifier la nature du lien
+                                (citation, paraphrase, commentaire, écho). Chaque bouton (hors
+                                « Aller au passage ») ouvre un signalement transmis à la modération. */}
+                            <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap' }}>
                               <button onClick={() => {
                                 setSegActif(s.id)
                                 const ancreLocale = groupes.find(g => g.itemIds.includes(s.id))?.anchor
@@ -1661,13 +1689,22 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                   changerNiv1(s.ref_niv1, { conserverPosition: true })
                                 }
                               }} className="ref-lien"
-                                style={{ fontSize: '10.5px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                                style={{ fontSize: '10.5px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginRight: 'auto' }}>
                                 Aller au passage
                               </button>
-                              <button onClick={() => setSuggestionSignalee(s)} title="Suggérer une correction"
-                                style={{ fontSize:'10.5px', color:'#9a5a2a', background:'none', border:'none', cursor:'pointer', padding:0 }}>
-                                Suggérer une correction
-                              </button>
+                              {filtreProbleme === 'lien_a_constituer' ? (
+                                <>
+                                  <button onClick={() => setSuggestionSignalee({ ...s, nature: 'suggestion' })} title="Proposer une référence biblique pour ce passage"
+                                    style={{ fontSize:'10px', color:'#9a5a2a', background:'none', border:'1px solid #e3cdb0', borderRadius:'999px', padding:'2px 9px', cursor:'pointer' }}>Suggérer une référence</button>
+                                  <button onClick={() => setSuggestionSignalee({ ...s, nature: 'pas_de_reference' })} title="Signaler que ce passage ne renvoie à aucun verset"
+                                    style={{ fontSize:'10px', color:'#8a8278', background:'none', border:'1px solid #ddd6cb', borderRadius:'999px', padding:'2px 9px', cursor:'pointer' }}>Pas de référence</button>
+                                </>
+                              ) : (
+                                ([['Citation','citation'],['Paraphrase','paraphrase'],['Commentaire doctrinal','commentaire'],['Écho','echo']] as const).map(([label, nat]) => (
+                                  <button key={nat} onClick={() => setSuggestionSignalee({ ...s, nature: nat })} title={`Signaler ce lien comme « ${label} »`}
+                                    style={{ fontSize:'10px', color:'#3d5a4f', background:'none', border:'1px solid #cbd8cf', borderRadius:'999px', padding:'2px 9px', cursor:'pointer' }}>{label}</button>
+                                ))
+                              )}
                             </div>
                           </div>
                         )
@@ -1708,78 +1745,65 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       {infoEditionOuverte && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', top: 48, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}
           onClick={() => setInfoEditionOuverte(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#fff', borderRadius: '10px', padding: '18px 22px', width: '460px', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-              <div>
-                <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', color: '#b0a89e', margin: '0 0 4px' }}>À PROPOS DE CETTE ÉDITION</p>
-                <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '15px', color: '#2a3d30', lineHeight: 1.3, margin: 0 }}>{rendreTexteEnrichi(titreAffiche)}</p>
+          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#fff', borderRadius: '10px', padding: '18px 22px', width: '540px', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.12em', color: '#b7ad9a', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette édition</p>
+                {/* Auteur ET titre sur la même ligne ; l'auteur ouvre sa fiche. */}
+                <p style={{ margin: 0, lineHeight: 1.28 }}>
+                  {auteurId ? (
+                    <button onClick={() => setAuteurModalOuvert(true)} title="Voir la fiche de l’auteur"
+                      style={{ fontSize: '12px', fontWeight: 600, color: '#3d6b4f', background: 'none', border: 'none', padding: 0, cursor: 'pointer', letterSpacing: '0.02em' }}>{auteur}</button>
+                  ) : (
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.02em' }}>{auteur}</span>
+                  )}
+                  <span style={{ color: '#cbc3b6', margin: '0 7px' }}>·</span>
+                  <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '14px', color: '#2a3d30' }}>{rendreTexteEnrichi(titreAffiche)}</span>
+                </p>
                 {oeuvreLocale.sous_titre && (
-                  <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '12px', color: '#6b6560', fontStyle: 'italic', lineHeight: 1.3, margin: '3px 0 0' }}>{oeuvreLocale.sous_titre}</p>
+                  <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '11.5px', color: '#8a8278', fontStyle: 'italic', lineHeight: 1.3, margin: '3px 0 0' }}>{oeuvreLocale.sous_titre}</p>
                 )}
               </div>
-              <button onClick={() => setInfoEditionOuverte(false)} style={{ fontSize: '16px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 16px', lineHeight: 1, flexShrink: 0 }}>✕</button>
+              <button onClick={() => setInfoEditionOuverte(false)} style={{ fontSize: '16px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0 }}>✕</button>
             </div>
-            <p style={{ fontSize: '12.5px', color: '#3d6b4f', fontWeight: 500, margin: '0 0 12px' }}>{auteur}</p>
 
-            {/* Bloc texte original */}
-            {(oeuvreLocale.titre_original || oeuvreLocale.date_composition || oeuvreLocale.langue) && (
-              <div style={{ marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid #f0ece6' }}>
-                <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', color: '#b0a89e', margin: '0 0 8px', textTransform: 'uppercase' }}>Texte original</p>
-                {oeuvreLocale.titre_original && (
-                  <div style={{ marginBottom: '6px' }}>
-                    <span style={{ fontSize: '9px', color: '#b0a89e', display: 'block', marginBottom: '1px' }}>Titre</span>
-                    <span style={{ fontSize: '12px', color: '#3a3530', fontStyle: 'italic' }}>{oeuvreLocale.titre_original}</span>
-                  </div>
-                )}
-                {oeuvreLocale.date_composition && (
-                  <div style={{ marginBottom: '6px' }}>
-                    <span style={{ fontSize: '9px', color: '#b0a89e', display: 'block', marginBottom: '1px' }}>Date de composition</span>
-                    <span style={{ fontSize: '12px', color: '#3a3530' }}>{formaterDateHistorique(oeuvreLocale.date_composition)}</span>
-                  </div>
-                )}
-                {oeuvreLocale.langue && (
-                  <div style={{ marginBottom: '6px' }}>
-                    <span style={{ fontSize: '9px', color: '#b0a89e', display: 'block', marginBottom: '1px' }}>Langue originale</span>
-                    <span style={{ fontSize: '12px', color: '#3a3530' }}>{oeuvreLocale.langue}</span>
-                  </div>
-                )}
-                {oeuvreLocale.genres && oeuvreLocale.genres.length > 0 && (
-                  <div>
-                    <span style={{ fontSize: '9px', color: '#b0a89e', display: 'block', marginBottom: '4px' }}>Genre{oeuvreLocale.genres.length > 1 ? 's' : ''}</span>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                      {oeuvreLocale.genres.map(g => (
-                        <span key={g} style={{ fontSize: '10px', background: '#f0ece6', color: '#6b6560', borderRadius: '3px', padding: '2px 6px' }}>{g}</span>
-                      ))}
+            {/* Deux colonnes distinctes : texte original / édition de référence. */}
+            {(() => {
+              const aOriginal = !!(oeuvreLocale.titre_original || oeuvreLocale.date_composition || oeuvreLocale.langue || (oeuvreLocale.genres && oeuvreLocale.genres.length))
+              const aEdition = !!(oeuvreLocale.trad_auteur || oeuvreLocale.trad_date || oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication || oeuvreLocale.collection)
+              if (!aOriginal && !aEdition) return null
+              const carte: React.CSSProperties = { background: '#faf8f4', border: '1px solid #efe9df', borderRadius: '8px', padding: '11px 13px' }
+              const legende: React.CSSProperties = { fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', color: '#b7ad9a', margin: '0 0 8px', textTransform: 'uppercase' }
+              const cle: React.CSSProperties = { fontSize: '8.5px', color: '#b7ad9a', display: 'block', marginBottom: '1px' }
+              const val: React.CSSProperties = { fontSize: '11.5px', color: '#3a3530', lineHeight: 1.35 }
+              return (
+                <div style={{ display: 'grid', gridTemplateColumns: (aOriginal && aEdition) ? 'minmax(0,1fr) minmax(0,1fr)' : '1fr', gap: '10px', marginBottom: '12px' }}>
+                  {aOriginal && (
+                    <div style={carte}>
+                      <p style={legende}>Texte original</p>
+                      {oeuvreLocale.titre_original && <div style={{ marginBottom: '6px' }}><span style={cle}>Titre</span><span style={{ ...val, fontStyle: 'italic' }}>{oeuvreLocale.titre_original}</span></div>}
+                      {oeuvreLocale.date_composition && <div style={{ marginBottom: '6px' }}><span style={cle}>Date de composition</span><span style={val}>{formaterDateHistorique(oeuvreLocale.date_composition)}</span></div>}
+                      {oeuvreLocale.langue && <div style={{ marginBottom: '6px' }}><span style={cle}>Langue originale</span><span style={val}>{oeuvreLocale.langue}</span></div>}
+                      {oeuvreLocale.genres && oeuvreLocale.genres.length > 0 && (
+                        <div><span style={cle}>Genre{oeuvreLocale.genres.length > 1 ? 's' : ''}</span>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                            {oeuvreLocale.genres.map(g => <span key={g} style={{ fontSize: '9.5px', background: '#ece7de', color: '#6b6560', borderRadius: '3px', padding: '2px 6px' }}>{g}</span>)}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Bloc traduction */}
-            {(oeuvreLocale.trad_auteur || oeuvreLocale.trad_date || oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication || oeuvreLocale.collection) && (
-              <div style={{ marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid #f0ece6' }}>
-                <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', color: '#b0a89e', margin: '0 0 8px', textTransform: 'uppercase' }}>Édition de référence</p>
-                {oeuvreLocale.trad_auteur && (
-                  <div style={{ marginBottom: '6px' }}>
-                    <span style={{ fontSize: '9px', color: '#b0a89e', display: 'block', marginBottom: '1px' }}>Traduction</span>
-                    <span style={{ fontSize: '12px', color: '#3a3530' }}>{libelleTrad(oeuvreLocale.trad_auteur)}{oeuvreLocale.trad_date ? ` (${formaterDateHistorique(oeuvreLocale.trad_date)})` : ''}</span>
-                  </div>
-                )}
-                {(oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication) && (
-                  <div style={{ marginBottom: '6px' }}>
-                    <span style={{ fontSize: '9px', color: '#b0a89e', display: 'block', marginBottom: '1px' }}>Publication</span>
-                    <span style={{ fontSize: '12px', color: '#3a3530' }}>{[oeuvreLocale.editeur, oeuvreLocale.ville, formaterDateHistorique(oeuvreLocale.date_publication)].filter(Boolean).join(', ')}</span>
-                  </div>
-                )}
-                {oeuvreLocale.collection && (
-                  <div>
-                    <span style={{ fontSize: '9px', color: '#b0a89e', display: 'block', marginBottom: '1px' }}>Collection</span>
-                    <span style={{ fontSize: '12px', color: '#3a3530' }}>{oeuvreLocale.collection}</span>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                  {aEdition && (
+                    <div style={carte}>
+                      <p style={legende}>Édition de référence</p>
+                      {oeuvreLocale.trad_auteur && <div style={{ marginBottom: '6px' }}><span style={cle}>Traducteur</span><span style={val}>{libelleTrad(oeuvreLocale.trad_auteur)}{oeuvreLocale.trad_date ? ` (${formaterDateHistorique(oeuvreLocale.trad_date)})` : ''}</span></div>}
+                      {(oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication) && <div style={{ marginBottom: '6px' }}><span style={cle}>Publication</span><span style={val}>{[formaterEditeur(oeuvreLocale.editeur), oeuvreLocale.ville, formaterDateHistorique(oeuvreLocale.date_publication)].filter(Boolean).join(', ')}</span></div>}
+                      {oeuvreLocale.collection && <div><span style={cle}>Collection</span><span style={val}>{oeuvreLocale.collection}</span></div>}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
 
             {/* Lien source — l'URL brute n'est pas affichée */}
             {oeuvreLocale.url_source && (
@@ -1802,6 +1826,9 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         </div>,
         document.body
       )}
+
+      {/* Fiche auteur en fenêtre, ouverte depuis « À propos de cette édition ». */}
+      <ModaleAuteur id={auteurModalOuvert ? (auteurId ?? null) : null} onClose={() => setAuteurModalOuvert(false)} />
 
       {estAdmin && configOuverte && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
@@ -1925,13 +1952,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       )}
       {suggestionSignalee && (
         <ModalSignalement
-          titre={`Proposer une correction — passage n° ${suggestionSignalee.segment_numero}`}
+          titre={`${natureProbleme(suggestionSignalee.nature).titre} — passage n° ${suggestionSignalee.segment_numero}`}
           avecNiveauImportance
           onClose={() => setSuggestionSignalee(null)}
           onEnvoyer={async (msg, importance) => {
             await insererSignalement({
               id_segment: suggestionSignalee.id,
-              message: `Référence à identifier : ${msg || suggestionSignalee.segment_texte.slice(0, 160)}`,
+              message: `${natureProbleme(suggestionSignalee.nature).prefixe} : ${msg || suggestionSignalee.segment_texte.slice(0, 160)}`,
               importance,
               url_source: window.location.href,
             })

@@ -8,6 +8,7 @@ import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { chargerNotificationsUtilisateur, cleArchivesNotifications, cleNotificationsConnues, lireSetLocalStorage } from "@/app/lib/notificationsClient";
 import { LIVRES } from "@/app/lib/bible";
 import { estOeuvrePubliee } from "@/app/lib/oeuvresPublication";
+import ModaleMessagerie from "@/app/components/ModaleMessagerie";
 
 // Bible et Polyglotte sont deux entrées dans le même texte : l'une le donne à lire,
 // l'autre à comparer. Elles vont donc ensemble, accolées en un seul bloc, plutôt
@@ -121,6 +122,7 @@ export default function Navbar() {
   const [mobileOuvert, setMobileOuvert] = useState(false);
   const [nbNotifications, setNbNotifications] = useState(0);
   const [nbMessages, setNbMessages] = useState(0);
+  const [messagerieOuverte, setMessagerieOuverte] = useState(false);
   const [nbActionsAdmin, setNbActionsAdmin] = useState(0);
   const [nbVerifAdmin, setNbVerifAdmin] = useState(0);
   const [toastNotification, setToastNotification] = useState<{ titre: string; message: string } | null>(null);
@@ -665,15 +667,18 @@ export default function Navbar() {
              boîte fixe qui creuse un écart. C'est la face, en flux normal, qui dimensionne
              le bloc ; au survol elle s'efface et laisse paraître SUR PLACE, à la même
              largeur, « Classique » et « Polyglotte » — la barre ne bouge pas. */
-          .cs-bible { position: relative; display: inline-flex; border-radius: 5px; transition: background 200ms ease; }
+          /* overflow:hidden — les surbrillances internes (survol des segments, segment
+             actif) sont rognées par le rayon du conteneur : plus de coins carrés qui débordent
+             sur les angles arrondis. */
+          .cs-bible { position: relative; display: inline-flex; border-radius: 5px; overflow: hidden; transition: background 220ms ease-in-out; }
           .cs-bible:hover, .cs-bible:focus-within { background: rgba(255,255,255,0.085); }
-          .cs-bible-face { display: inline-flex; align-items: center; padding: 4px 8px; color: rgba(255,255,255,0.85); font-weight: 600; font-size: 12.5px; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; transition: opacity 160ms ease; }
+          .cs-bible-face { display: inline-flex; align-items: center; padding: 4px 8px; color: rgba(255,255,255,0.85); font-weight: 600; font-size: 12.5px; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; transition: opacity 220ms ease-in-out; }
           .cs-bible:hover .cs-bible-face, .cs-bible:focus-within .cs-bible-face { opacity: 0; pointer-events: none; }
-          .cs-bible-split { position: absolute; inset: 0; display: flex; opacity: 0; pointer-events: none; transition: opacity 160ms ease; }
+          .cs-bible-split { position: absolute; inset: 0; display: flex; opacity: 0; pointer-events: none; transition: opacity 220ms ease-in-out; }
           .cs-bible:hover .cs-bible-split, .cs-bible:focus-within .cs-bible-split { opacity: 1; pointer-events: auto; }
-          .cs-bible-seg { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 6px; color: rgba(255,255,255,0.82); font-size: 12px; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background 140ms ease, color 140ms ease; }
+          .cs-bible-seg { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 6px; color: rgba(255,255,255,0.82); font-size: 12px; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background 160ms ease, color 160ms ease; }
           .cs-bible-seg:hover { background: rgba(255,255,255,0.13); color: #fff; }
-          .cs-bible-seg + .cs-bible-seg { border-left: 1px solid rgba(255,255,255,0.16); }
+          .cs-bible-seg + .cs-bible-seg { box-shadow: inset 1px 0 0 rgba(255,255,255,0.16); }
           .cs-bible-seg--actif { color: #fff; background: rgba(255,255,255,0.10); }
           @media (prefers-reduced-motion: reduce) {
             .cs-onglet, .cs-bible, .cs-bible-face, .cs-bible-split { transition: none; }
@@ -692,7 +697,7 @@ export default function Navbar() {
             {/* « bêta » sobre : un petit mot en italique, posé contre le nom, sans cercle
                 ni capitales — un simple murmure de version. */}
             <span title="Version bêta" aria-label="Version bêta"
-              style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "10.5px", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.5)" }}>bêta</span>
+              style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "10.5px", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.5)", position: "relative", top: "1.5px" }}>bêta</span>
           </Link>
 
           {/* ── Navigation desktop ──────────────────────────────────────────── */}
@@ -730,7 +735,7 @@ export default function Navbar() {
               <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 2px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
             )}
             {user && (
-              <Link href="/messagerie" aria-label="Messages" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', color: nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', textDecoration: 'none', background: nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
+              <button onClick={() => setMessagerieOuverte(true)} aria-label="Messages" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', border: 'none', cursor: 'pointer', padding: 0, color: nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', background: nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.95)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
                 <IconParchemin />
@@ -739,7 +744,7 @@ export default function Navbar() {
                     {nbMessages > 99 ? '99+' : nbMessages}
                   </span>
                 )}
-              </Link>
+              </button>
             )}
             {user && (
               <Link href="/notifications" aria-label="Notifications" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', color: nbNotifications > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', textDecoration: 'none', background: nbNotifications > 0 ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
@@ -807,6 +812,8 @@ export default function Navbar() {
           </Link>
         )}
       </header>
+      {/* Messagerie EN FENÊTRE (plus une page) : ouverte depuis l'icône parchemin. */}
+      <ModaleMessagerie ouvert={messagerieOuverte} onClose={() => { setMessagerieOuverte(false); }} />
     </>
   );
 }

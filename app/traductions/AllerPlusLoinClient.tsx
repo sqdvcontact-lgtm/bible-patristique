@@ -38,22 +38,22 @@ export default function AllerPlusLoinClient() {
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '48px' }}>
-      <div style={{ maxWidth: '720px', margin: '0 auto', padding: '40px 24px 0' }}>
-        <div style={{ textAlign: 'center', marginBottom: '22px' }}>
+      <div style={{ maxWidth: '720px', margin: '0 auto', padding: '22px 24px 0' }}>
+        <div style={{ textAlign: 'center', marginBottom: '12px' }}>
           <h1 style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
-            fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 'normal',
-            color: '#1e2e24', lineHeight: 1.2, marginBottom: '14px',
+            fontSize: 'clamp(21px, 3.6vw, 29px)', fontWeight: 'normal',
+            color: '#1e2e24', lineHeight: 1.15, marginBottom: '8px',
           }}>
             Aller plus loin
           </h1>
-          <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 18px' }} />
+          <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 12px' }} />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', borderBottom: '1px solid #ddd8cf', marginBottom: '14px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', borderBottom: '1px solid #ddd8cf', marginBottom: '12px', flexWrap: 'wrap' }}>
           {ONGLETS.map(o => (
             <button key={o.code} onClick={() => setOnglet(o.code)} style={{
-              padding: '10px 14px', fontSize: '12.5px', fontWeight: onglet === o.code ? 600 : 400,
+              padding: '8px 14px', fontSize: '12.5px', fontWeight: onglet === o.code ? 600 : 400,
               color: onglet === o.code ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none',
               borderBottom: onglet === o.code ? '2px solid #3d6b4f' : '2px solid transparent',
               cursor: 'pointer', whiteSpace: 'nowrap',
@@ -347,12 +347,12 @@ function OngletAcheter() {
     },
   ]
   return (
-    <div style={{ maxWidth: '660px', margin: '0 auto', padding: '4px 24px 20px' }}>
+    <div style={{ maxWidth: '660px', margin: '0 auto', padding: '2px 24px 10px' }}>
       <style>{`
         .lib-row {
           display: flex;
           align-items: center;
-          padding: 16px 0;
+          padding: 12px 0;
           text-decoration: none;
           border-bottom: 1px solid rgba(214,208,196,0.55);
           position: relative;
@@ -394,22 +394,22 @@ function OngletAcheter() {
         }
         .lib-sep {
           width: 1px;
-          height: 52px;
+          height: 44px;
           flex-shrink: 0;
-          margin: 0 22px;
+          margin: 0 20px;
         }
         .lib-nom {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 18px;
+          font-size: 17px;
           font-weight: normal;
-          margin: 0 0 5px;
-          line-height: 1.2;
+          margin: 0 0 4px;
+          line-height: 1.15;
         }
         .lib-desc {
-          font-size: 12.5px;
+          font-size: 12px;
           color: #6a6258;
           margin: 0;
-          line-height: 1.5;
+          line-height: 1.45;
         }
         .lib-fleche {
           margin-left: auto;
@@ -423,7 +423,7 @@ function OngletAcheter() {
         <a key={lib.nom} href={lib.url} target="_blank" rel="noopener noreferrer" className="lib-row">
           <div className="lib-contenu">
             <div className="lib-logo-zone">
-              <img src={lib.logo} alt="" aria-hidden style={{ width: '58px', height: 'auto', objectFit: 'contain' }} />
+              <img src={lib.logo} alt="" aria-hidden style={{ width: '52px', height: 'auto', objectFit: 'contain' }} />
             </div>
             <div className="lib-sep" style={{ background: lib.sep }} />
             <div style={{ flex: 1, minWidth: 0 }}>

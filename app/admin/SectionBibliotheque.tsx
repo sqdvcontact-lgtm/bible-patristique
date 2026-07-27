@@ -866,11 +866,35 @@ function decorDecision(d: string): React.CSSProperties {
   return { background: '#f4f2ee', color: '#6b6560', border: '1px solid #ddd6cc' }
 }
 
+// ── Filtre d'affichage des auteurs (menu déroulant) ─────────────────────────
+type FiltreAuteurs = 'tout' | 'publiees' | 'non-publiees' | 'candidates' | 'non-candidates' | 'critiques'
+const FILTRES_AUTEURS: { code: FiltreAuteurs; label: string }[] = [
+  { code: 'tout', label: 'Tout afficher' },
+  { code: 'publiees', label: 'Œuvres publiées' },
+  { code: 'non-publiees', label: 'Œuvres non publiées' },
+  { code: 'candidates', label: 'Œuvres candidates' },
+  { code: 'non-candidates', label: 'Œuvres non candidates' },
+  { code: 'critiques', label: 'Œuvres critiques' },
+]
+// Une notice « candidate » : sa décision d'import commence par « candidat ».
+function noticeCandidate(n: NoticeCatalogueAdmin): boolean {
+  return (n.decision_import ?? '').toLowerCase().startsWith('candidat')
+}
+// Une notice « critique » : score faible (< 70) OU pas d'URL de source (fiche à reprendre).
+function noticeCritique(n: NoticeCatalogueAdmin): boolean {
+  return (n.score_fiabilite != null && n.score_fiabilite < 70) || !n.url_source
+}
+
 // ── Section Bibliothèque (fusionnée avec la gestion des auteurs) ─────────────
 export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs: Auteur[] }) {
   const [auteurs, setAuteurs] = useState<Auteur[]>(auteursInit)
   const [vueBibliotheque, setVueBibliotheque] = useState<'oeuvres' | 'segments'>('oeuvres')
-  const [afficherTousAuteurs, setAfficherTousAuteurs] = useState(false)
+  // Filtre d'affichage des auteurs, en menu déroulant. « publiees » (défaut) n'a besoin
+  // que des œuvres du site ; les autres modes exigent le catalogue complet (chargé à la
+  // demande). « candidat » / « critique » s'évaluent sur les notices du catalogue.
+  const [filtreAuteurs, setFiltreAuteurs] = useState<FiltreAuteurs>('publiees')
+  const besoinCatalogue = filtreAuteurs !== 'publiees'
+  const [menuFiltreOuvert, setMenuFiltreOuvert] = useState(false)
   const [catalogueParOeuvre, setCatalogueParOeuvre] = useState<Record<string, NoticeCatalogueAdmin[]>>({})
   const [catalogueDeploye, setCatalogueDeploye] = useState<Record<string, boolean>>({})
   // Le catalogue ENTIER, rangé par auteur : 2 502 notices pour 17 œuvres publiées. On ne
@@ -954,7 +978,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     // Le mettre à `true` déclenchait une reprise de l'effet, dont le nettoyage posait
     // `annule = true` sur la requête en cours ; à l'arrivée des données, `if (!annule)`
     // était faux et l'on ne quittait jamais l'état de chargement → spinner infini.
-    if (!afficherTousAuteurs || catalogueParAuteur !== null) return
+    if (!besoinCatalogue || catalogueParAuteur !== null) return
     let annule = false
     setChargementCatalogue(true)
     ;(async () => {
@@ -992,7 +1016,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       }
     })()
     return () => { annule = true }
-  }, [afficherTousAuteurs, catalogueParAuteur])
+  }, [besoinCatalogue, catalogueParAuteur])
 
   const uploadPhoto = async (idAuteur: string, fichier: File) => {
     const fichierRedim = await redimensionnerImage(fichier, 300, 450)
@@ -1301,8 +1325,23 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   }, [auteurs])
 
   const rechercheNormalisee = recherche.trim().toLowerCase()
-  const auteursAvecPresence = afficherTousAuteurs ? auteurs : auteurs.filter(a => a.oeuvres.length > 0)
-  const nbAuteursMasques = auteurs.length - auteursAvecPresence.length
+  // Notices « restantes » (au catalogue, pas sur le site) d'un auteur.
+  const restantesDe = (a: Auteur): NoticeCatalogueAdmin[] => {
+    const surSite = new Set(a.oeuvres.map(o => o.id_oeuvre))
+    return (catalogueParAuteur?.[a.id_auteur] ?? []).filter(n => !n.id_oeuvre_stable || !surSite.has(n.id_oeuvre_stable))
+  }
+  const noticesDe = (a: Auteur): NoticeCatalogueAdmin[] => catalogueParAuteur?.[a.id_auteur] ?? []
+  const auteursAvecPresence = (() => {
+    switch (filtreAuteurs) {
+      case 'tout':           return auteurs
+      case 'non-publiees':   return auteurs.filter(a => restantesDe(a).length > 0)
+      case 'candidates':     return auteurs.filter(a => noticesDe(a).some(noticeCandidate))
+      case 'non-candidates': return auteurs.filter(a => noticesDe(a).some(n => !noticeCandidate(n)))
+      case 'critiques':      return auteurs.filter(a => noticesDe(a).some(noticeCritique))
+      case 'publiees':
+      default:               return auteurs.filter(a => a.oeuvres.length > 0)
+    }
+  })()
   const auteursFiltres = rechercheNormalisee
     ? auteursAvecPresence.filter(a =>
         a.nom.toLowerCase().includes(rechercheNormalisee) ||
@@ -1432,11 +1471,28 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           style={{ width: '128px', textAlign: 'center', fontSize: '12px', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutOeuvre ? '#2e5440' : '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
           {ajoutOeuvre ? 'Fermer' : '+ Nouvelle œuvre'}
         </button>
-        <button onClick={() => setAfficherTousAuteurs(v => !v)}
-          title={afficherTousAuteurs ? 'Masquer les auteurs sans œuvre publiée' : 'Afficher aussi les auteurs sans œuvre publiée'}
-          style={{ fontSize: '12px', padding: '6px 12px', borderRadius: '5px', border: '1px solid #d6d0c4', background: afficherTousAuteurs ? '#f7f4ef' : '#fff', color: '#6b6560', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
-          {afficherTousAuteurs ? 'Auteurs présents' : `Tout afficher${nbAuteursMasques > 0 ? ` (${nbAuteursMasques})` : ''}`}
-        </button>
+        {/* Menu déroulant de filtrage des auteurs (remplace l'ancien bouton bascule). */}
+        <div style={{ position: 'relative' }}>
+          <button onClick={() => setMenuFiltreOuvert(v => !v)}
+            title="Filtrer les auteurs affichés"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '6px 12px', borderRadius: '5px', border: '1px solid #d6d0c4', background: filtreAuteurs === 'publiees' ? '#fff' : '#f7f4ef', color: '#6b6560', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+            {FILTRES_AUTEURS.find(f => f.code === filtreAuteurs)?.label ?? 'Filtrer'}
+            <span style={{ fontSize: '8px', color: '#b0a89e' }}>▼</span>
+          </button>
+          {menuFiltreOuvert && (
+            <>
+              <div onClick={() => setMenuFiltreOuvert(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
+              <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 41, background: '#fff', border: '1px solid #d6d0c4', borderRadius: '6px', boxShadow: '0 6px 20px rgba(0,0,0,0.12)', overflow: 'hidden', minWidth: '190px' }}>
+                {FILTRES_AUTEURS.map(f => (
+                  <button key={f.code} onClick={() => { setFiltreAuteurs(f.code); setMenuFiltreOuvert(false) }}
+                    style={{ display: 'block', width: '100%', textAlign: 'left', fontSize: '12px', padding: '7px 12px', border: 'none', borderBottom: '1px solid #f0ece6', background: filtreAuteurs === f.code ? 'rgba(61,107,79,0.08)' : '#fff', color: filtreAuteurs === f.code ? '#2f6046' : '#5a5450', fontWeight: filtreAuteurs === f.code ? 600 : 400, cursor: 'pointer' }}>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
         {/* En rouge : cette vue REMPLACE le texte d'une œuvre entière. Le libellé
             « Segments » ne disait pas ce qu'on y fait, ni ce qu'on y risque. */}
         <button onClick={() => setVueBibliotheque(v => v === 'segments' ? 'oeuvres' : 'segments')}
@@ -1492,7 +1548,18 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
               <button onClick={() => setAuteurOuvert(auteurOuvert === auteur.id_auteur ? null : auteur.id_auteur)}
                 style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
                 <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '15px', fontWeight: 700, color: '#3d6b4f' }}>{auteur.nom}</span>
-                <span style={{ fontSize: '11px', color: '#b0a89e' }}>{auteur.oeuvres.length} œuvre{auteur.oeuvres.length > 1 ? 's' : ''}</span>
+                {(() => {
+                  const nbPub = auteur.oeuvres.length
+                  const surLeSite = new Set(auteur.oeuvres.map(o => o.id_oeuvre))
+                  const nbNonPub = (catalogueParAuteur?.[auteur.id_auteur] ?? [])
+                    .filter(n => !n.id_oeuvre_stable || !surLeSite.has(n.id_oeuvre_stable)).length
+                  return (
+                    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: '12px', fontSize: '11px' }}>
+                      <span style={{ color: '#2f6046' }}>{nbPub} œuvre{nbPub > 1 ? 's' : ''} publiée{nbPub > 1 ? 's' : ''}</span>
+                      {nbNonPub > 0 && <span style={{ color: '#a2542f' }}>{nbNonPub} non publiée{nbNonPub > 1 ? 's' : ''}</span>}
+                    </span>
+                  )
+                })()}
               </button>
               <div style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center', marginLeft: '12px' }}>
                 <code style={{ fontSize: '10px', background: '#f0ece6', padding: '2px 6px', borderRadius: '3px', color: '#6b6560' }}>{auteur.id_auteur}</code>
@@ -1573,7 +1640,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                   const catalogueOuvert = !!catalogueDeploye[oeuvre.id_oeuvre]
                   const btnSobre = {
                     fontSize: '10.5px',
-                    padding: '3px 8px',
+                    padding: '3px 6px',
                     borderRadius: '4px',
                     border: '1px solid #d8d1c6',
                     background: '#fffdf9',
@@ -1596,7 +1663,9 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     color: '#fff',
                   }
                   return (
-                  <div key={oeuvre.id_oeuvre} style={{ borderBottom: '1px solid #f0ece6', background: titreMatch ? 'rgba(61,107,79,0.03)' : undefined }}>
+                  /* Œuvre PUBLIÉE : léger liseré vert discret (par opposition à l'ocre-rouge
+                     des œuvres seulement au catalogue). */
+                  <div key={oeuvre.id_oeuvre} style={{ borderBottom: '1px solid #f0ece6', borderLeft: '2px solid #cfe0d5', background: titreMatch ? 'rgba(61,107,79,0.03)' : undefined }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 18px 5px 14px', gap: '12px', flexWrap: 'nowrap', minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, overflow: 'hidden', flex: 1 }}>
                       <a href={`/oeuvre/${oeuvre.id_oeuvre}`} target="_blank" rel="noopener noreferrer" title="Ouvrir l'œuvre"
@@ -1614,7 +1683,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                       )}
                       {resultat?.idOeuvre === oeuvre.id_oeuvre && <span style={{ fontSize: '10.5px', color: resultat.ok ? '#3d6b4f' : '#c0562a', flexShrink: 0 }}>{resultat.ok ? '✓' : '✗'} {resultat.msg}</span>}
                     </div>
-                    <div style={{ display: 'flex', gap: '5px', flexShrink: 0, alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0, alignItems: 'center' }}>
                       <span style={{ width: '1px', height: '16px', background: '#e4dfd8', display: 'inline-block' }} />
                       <button onClick={() => setConfigOeuvre(configOeuvre === oeuvre.id_oeuvre ? null : oeuvre.id_oeuvre)}
                         title="Configurer les niveaux d'affichage"
@@ -1638,9 +1707,9 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                         style={{ fontSize: '10px', padding: '3px 7px', borderRadius: '4px', border: '1px solid #ded8ce', background: '#faf8f4', color: couleurScoreCatalogue(noticeCatalogue?.score_fiabilite), fontWeight: 700, width: '58px', boxSizing: 'border-box', textAlign: 'center', whiteSpace: 'nowrap' }}>
                         Score {noticeCatalogue?.score_fiabilite ?? '?'}
                       </span>
-                      <span title="Etat de validation de la fiche catalogue"
-                        style={{ fontSize: '10px', padding: '3px 7px', borderRadius: '4px', border: `1px solid ${noticeCatalogue?.verifie ? '#c8d8ce' : '#e4d3c8'}`, background: noticeCatalogue?.verifie ? '#f7fbf8' : '#fbf7f2', color: noticeCatalogue?.verifie ? '#2f6046' : '#8a5a32', fontWeight: 600, width: '104px', boxSizing: 'border-box', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {noticeCatalogue?.verifie ? 'Statut validé' : 'Statut à vérifier'}
+                      <span title="Validation ADMIN de la fiche catalogue (distincte du score IA)"
+                        style={{ fontSize: '10px', padding: '3px 7px', borderRadius: '4px', border: `1px solid ${noticeCatalogue?.verifie ? '#c8d8ce' : '#e4d3c8'}`, background: noticeCatalogue?.verifie ? '#f7fbf8' : '#fbf7f2', color: noticeCatalogue?.verifie ? '#2f6046' : '#8a5a32', fontWeight: 600, width: '78px', boxSizing: 'border-box', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {noticeCatalogue?.verifie ? 'Validé' : 'À vérifier'}
                       </span>
                       <button onClick={() => setCatalogueDeploye(prev => ({ ...prev, [oeuvre.id_oeuvre]: !prev[oeuvre.id_oeuvre] }))}
                         style={{ ...(catalogueOuvert ? btnActif : btnVert), minWidth: '52px', textAlign: 'center' }}>
@@ -1745,7 +1814,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     site. Elles ne paraissent qu'en mode « Tout afficher », et se distinguent
                     d'un liseré ambre — on ne peut ni les exporter ni les segmenter, il n'y a
                     pas encore de texte derrière. */}
-                {afficherTousAuteurs && (() => {
+                {besoinCatalogue && (() => {
                   if (chargementCatalogue) {
                     return <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', margin: '8px 0 0' }}>Chargement du catalogue…</p>
                   }
@@ -1754,14 +1823,13 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     .filter(n => !n.id_oeuvre_stable || !surLeSite.has(n.id_oeuvre_stable))
                   if (restantes.length === 0) return null
                   return (
-                    <div style={{ marginTop: auteur.oeuvres.length ? '14px' : '0' }}>
-                      <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '9px', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: '#9a7a40', margin: '0 0 7px' }}>
-                        Au catalogue, pas encore sur le site — {restantes.length}
-                      </p>
+                    <div style={{ marginTop: auteur.oeuvres.length ? '6px' : '0' }}>
+                      {/* Plus d'intitulé « Au catalogue… » : la couleur suffit à distinguer
+                          (ocre-rouge = présent au catalogue mais non publié, vert = publié). */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                         {restantes.map(n => (
                           <div key={n.id}
-                            style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap', padding: '6px 10px', borderLeft: '2px solid #d8bd82', background: '#fffdf7', borderRadius: '0 4px 4px 0' }}>
+                            style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap', padding: '6px 10px', borderLeft: '2px solid #c07a4a', background: '#fbf3ee', borderRadius: '0 4px 4px 0' }}>
                             <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12.5px', color: '#3a3530' }}>
                               {n.titre_stable || n.titre_original || '(sans titre)'}
                             </span>
@@ -1792,11 +1860,18 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
         {/* Auteurs présents UNIQUEMENT au catalogue (aucune fiche `auteurs`) : sans ce
             bloc, « Tout afficher » laissait invisible l'essentiel du catalogue. */}
-        {afficherTousAuteurs && chargementCatalogue && catalogueAutres === null && (
+        {besoinCatalogue && chargementCatalogue && catalogueAutres === null && (
           <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', padding: '8px 2px' }}>Chargement du catalogue…</p>
         )}
-        {afficherTousAuteurs && catalogueAutres && (() => {
+        {besoinCatalogue && catalogueAutres && (() => {
+          // Le filtre s'applique aussi aux auteurs présents seulement au catalogue.
+          const passeFiltre = (ns: NoticeCatalogueAdmin[]) =>
+            filtreAuteurs === 'candidates' ? ns.some(noticeCandidate)
+            : filtreAuteurs === 'non-candidates' ? ns.some(n => !noticeCandidate(n))
+            : filtreAuteurs === 'critiques' ? ns.some(noticeCritique)
+            : true
           const entrees = Object.entries(catalogueAutres)
+            .filter(([, ns]) => passeFiltre(ns))
             .filter(([nom, ns]) => !rechercheNormalisee
               || nom.toLowerCase().includes(rechercheNormalisee)
               || ns.some(n => [n.titre_stable, n.titre_original, n.titre_edition].some(t => (t ?? '').toLowerCase().includes(rechercheNormalisee))))

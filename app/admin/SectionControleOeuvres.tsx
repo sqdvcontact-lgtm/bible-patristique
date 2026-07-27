@@ -48,6 +48,16 @@ type NiveauControle = Rang
 const versRang = (v: string | null | undefined): Rang | null =>
   v === 'revoir' ? 'moyen' : v === 'bon' || v === 'moyen' || v === 'critique' ? v : null
 const versStatutPerso = (r: Rang): string => (r === 'moyen' ? 'revoir' : r)
+
+// UNE SEULE nature d'apparat dans tout le code : `apparat_critique` (celle que lit la vue
+// Apparat de la page œuvre et que valide l'import). L'ancien `apparat` y est ramené à
+// l'affichage ; les rares lignes encore en `apparat` en base seront basculées à la
+// prochaine modification (une migration Supabase reste souhaitable pour les uniformiser).
+const canonNature = (n: string | null | undefined): string => (n === 'apparat' ? 'apparat_critique' : (n ?? 'texte'))
+const LIBELLE_NATURE: Record<string, string> = {
+  texte: 'Texte', titre: 'Titre', introduction: 'Introduction',
+  apparat_critique: 'Apparat critique', separateur: 'Séparateur', citation: 'Citation', note: 'Note',
+}
 type SegmentAfficheControle = { segment: SegmentControle; contexte?: boolean }
 type ChampLien = ChampLienBiblique
 type LienBibliqueControle = { champ: ChampLien; id: string }
@@ -262,6 +272,11 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
   const [modeControle, setModeControle] = React.useState<ModeControle>('corpus')
   const [oeuvresPerso, setOeuvresPerso] = React.useState<OeuvreControle[]>([])
   const [statsLiens, setStatsLiens] = React.useState<Map<string, StatLiens>>(new Map())
+  // Rangs agrégés par œuvre (corpus), pour colorer la liste d'accueil : rouge si ≥1
+  // critique, jaune si ≥1 moyen sans critique, vert sinon. Calculé côté client (le rang
+  // vient de `analyserCorpus`, non stocké en base) — voir la note plus bas.
+  const [rangsParOeuvre, setRangsParOeuvre] = React.useState<Map<string, { critique: number; moyen: number }>>(new Map())
+  const [chargementRangs, setChargementRangs] = React.useState(false)
   const [idOeuvre, setIdOeuvre] = React.useState('')
   const [segments, setSegments] = React.useState<SegmentControle[]>([])
   const [chargement, setChargement] = React.useState(false)
@@ -276,7 +291,6 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
   const [statutAction, setStatutAction] = React.useState<'idle' | 'envoi' | 'erreur'>('idle')
   const [versetsLies, setVersetsLies] = React.useState<Record<string, VersetLieControle>>({})
   const [modaleLienOuverte, setModaleLienOuverte] = React.useState(false)
-  const [statutIA, setStatutIA] = React.useState<'idle' | 'encours' | 'erreur'>('idle')
 
   const oeuvresRecherche = React.useMemo<OeuvreControle[]>(() => (
     modeControle === 'perso'
@@ -318,6 +332,38 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
           .forEach(r => map.set(r.id_oeuvre, { nb_liens: r.nb_liens, derniere_maj: r.derniere_maj }))
         setStatsLiens(map)
       })
+    return () => { annule = true }
+  }, [modeControle])
+
+  // Rangs par œuvre (corpus) pour la coloration de l'accueil. Le rang venant d'une analyse
+  // CLIENTE (analyserCorpus), non stockée, on parcourt une fois les segments du corpus
+  // (paginé, plafonné) et l'on compte critiques/moyens par œuvre. Coûteux : à remplacer, dès
+  // que l'accès Supabase le permet, par un agrégat stocké (colonne `controle_rang_auto` +
+  // vue `oeuvres_controle_stats`), sur le modèle d'`oeuvres_liens_stats`.
+  React.useEffect(() => {
+    if (modeControle !== 'corpus') return
+    let annule = false
+    setChargementRangs(true)
+    ;(async () => {
+      const compte = new Map<string, { critique: number; moyen: number }>()
+      const PAGE = 1000, CAP = 120
+      for (let p = 0; p < CAP; p++) {
+        const { data, error } = await supabase.from('segments')
+          .select('id_oeuvre, segment_texte, ref_niv1, ref_niv1_texte, nature, commentaire_ia, controle_rang_manuel')
+          .order('id').range(p * PAGE, p * PAGE + PAGE - 1)
+        if (error || annule) break
+        const lot = (data ?? []) as any[]
+        for (const s of lot) {
+          const rang = s.controle_rang_manuel ?? analyserCorpus(s).rang
+          if (rang !== 'critique' && rang !== 'moyen') continue
+          const e = compte.get(s.id_oeuvre) ?? { critique: 0, moyen: 0 }
+          if (rang === 'critique') e.critique++; else e.moyen++
+          compte.set(s.id_oeuvre, e)
+        }
+        if (lot.length < PAGE) break
+      }
+      if (!annule) { setRangsParOeuvre(compte); setChargementRangs(false) }
+    })()
     return () => { annule = true }
   }, [modeControle])
 
@@ -525,32 +571,6 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     sauverNotes(notes)
   }
 
-  // Relecture IA : la machine juge si le segment est « à reprendre » (défauts matériels
-  // de transcription seulement). Si oui, on force le rang critique — SANS marquer
-  // « vérifié », qui reste réservé au jugement humain — et l'on consigne la raison en note.
-  const relireIA = async () => {
-    if (!actif) return
-    setStatutIA('encours')
-    try {
-      const res = await fetch('/api/admin/relire-segment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texte: actif.segment_texte ?? '' }),
-      })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error ?? 'Erreur IA')
-      if (json.reprendre) {
-        setSegments(prev => prev.map(s => s.id === actif.id ? { ...s, controle_rang_manuel: 'critique', statut_controle: 'critique' } : s))
-        await supabase.from(table).update({ controle_rang_manuel: 'critique' }).eq('id', actif.id)
-        await sauverNotes([...(actif.notes ?? []), `IA — à reprendre : ${json.raison || 'défaut de transcription'}`])
-      } else {
-        await sauverNotes([...(actif.notes ?? []), 'IA — relecture : rien à signaler.'])
-      }
-      setStatutIA('idle')
-    } catch {
-      setStatutIA('erreur')
-    }
-  }
 
   const ajouterTextePersonnel = async () => {
     const titre = window.prompt('Titre du texte personnel :')
@@ -696,11 +716,16 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     return out
   }, [verdicts])
   // Natures déjà présentes dans l'œuvre : alimentent le menu déroulant « Nature ».
+  // On peut reclasser un segment dans N'IMPORTE lequel des niveaux existants (pas seulement
+  // ceux déjà présents dans l'œuvre) : on part d'une liste canonique, complétée des natures
+  // effectivement rencontrées. UNE SEULE nature d'apparat : `apparat_critique` (celle que
+  // lit la vue Apparat de la page œuvre) ; l'ancien `apparat` y est ramené.
+  const NATURES_CANONIQUES = ['texte', 'titre', 'introduction', 'apparat_critique', 'separateur', 'citation', 'note']
   const naturesDisponibles = React.useMemo(() => {
-    const set = new Set<string>()
-    segments.forEach(s => { if (s.nature) set.add(s.nature) })
-    if (set.size === 0) set.add('texte')
+    const set = new Set<string>(NATURES_CANONIQUES)
+    segments.forEach(s => { if (s.nature) set.add(canonNature(s.nature)) })
     return [...set].sort((a, b) => a.localeCompare(b, 'fr'))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segments])
 
   const segmentsAffiches = React.useMemo<SegmentAfficheControle[]>(() => {
@@ -911,14 +936,24 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
       {erreur && <p style={{ color: '#9a2a2a', fontSize: '12px' }}>Erreur de chargement : {erreur}</p>}
       {!idOeuvre ? (
         <div className="controle-accueil">
+          {modeControle === 'corpus' && chargementRangs && (
+            <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', margin: '0 0 8px', padding: '0 12px' }}>Analyse des rangs en cours… (la coloration des lignes apparaîtra ensuite)</p>
+          )}
           {oeuvresRecherche.length === 0 ? (
             <p style={{ color: '#9a958d', fontStyle: 'italic', fontSize: '13px', padding: '10px 12px', margin: 0 }}>Aucune œuvre à contrôler.</p>
           ) : (
             <ul>
               {oeuvresRecherche.map(o => {
                 const st = modeControle === 'corpus' ? statsLiens.get(o.id_oeuvre) : undefined
+                // Couleur de la ligne : rouge si ≥1 critique, jaune si ≥1 moyen (sans
+                // critique), vert si ni l'un ni l'autre. Neutre tant que l'analyse tourne.
+                const rg = modeControle === 'corpus' ? rangsParOeuvre.get(o.id_oeuvre) : undefined
+                const coul = !rangsParOeuvre.size ? null
+                  : (rg?.critique ?? 0) > 0 ? { bord: '#c0562a', fond: '#fff0ed' }
+                  : (rg?.moyen ?? 0) > 0 ? { bord: '#c7832f', fond: '#fff8ec' }
+                  : { bord: '#3d6b4f', fond: '#f2f8f4' }
                 return (
-                  <li key={o.id_oeuvre}>
+                  <li key={o.id_oeuvre} style={coul ? { borderLeft: `3px solid ${coul.bord}`, background: coul.fond, borderRadius: '4px' } : undefined}>
                     <button type="button" onClick={() => setIdOeuvre(o.id_oeuvre)}>
                       <span className="accueil-titre">{libelleOeuvre(o)}</span>
                       {modeControle === 'corpus' && (
@@ -1034,11 +1069,10 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                     <span className="controle-score-inline">{verdictActif.score}<span className="score-sur">/20</span></span>
                   </div>
                 </div>
-                <p className="controle-seuils">Bon ≥ 15 · Moyen ≥ 10 · Critique &lt; 10</p>
 
                 <div className="controle-section" style={{ marginTop: '12px', paddingTop: 0, borderTop: 0 }}>
                   <p className="controle-section-title">
-                    Rang {actif.controle_rang_manuel ? '— corrigé à la main' : '— attribué par le score'}
+                    Rang {actif.controle_rang_manuel ? '— corrigé à la main' : ''}
                   </p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {(['auto', 'bon', 'moyen', 'critique'] as const).map(choix => {
@@ -1064,14 +1098,6 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                         </button>
                       )
                     })}
-                  </div>
-                  {/* Relecture IA : qualifie le rang « à reprendre » d'après les défauts de transcription. */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '9px', flexWrap: 'wrap' }}>
-                    <button className="controle-action-btn" disabled={statutIA === 'encours'} onClick={relireIA}>
-                      {statutIA === 'encours' ? 'Relecture IA…' : 'Relire par l’IA'}
-                    </button>
-                    {statutIA === 'erreur' && <span style={{ fontSize: '10.5px', color: '#9a2a2a' }}>Échec de la relecture IA.</span>}
-                    <span style={{ fontSize: '10px', color: '#b0a89e' }}>signale les défauts matériels à reprendre</span>
                   </div>
                   {actif.controle_rang_manuel && (
                     <p style={{ fontSize: '10.5px', color: '#5b3a7a', margin: '8px 0 0', lineHeight: 1.45 }}>
@@ -1151,11 +1177,11 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                       <span>Nature :</span>
                       <select
                         className="controle-nature-select"
-                        value={actif.nature ?? 'texte'}
+                        value={canonNature(actif.nature)}
                         disabled={statutAction === 'envoi'}
                         onChange={e => changerNature(actif.id, e.target.value)}
                       >
-                        {naturesDisponibles.map(n => <option key={n} value={n}>{n}</option>)}
+                        {naturesDisponibles.map(n => <option key={n} value={n}>{LIBELLE_NATURE[n] ?? n}</option>)}
                       </select>
                     </div>
                     {modeControle === 'perso' && actif.note_style != null && <div>Note de style en base : {actif.note_style}/20</div>}
