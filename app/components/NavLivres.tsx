@@ -241,7 +241,7 @@ export default function NavLivres({
       <div key={livre.code}>
         <button onClick={() => handleLivre(livre.code)} style={{
           width: '100%', textAlign: 'left',
-          padding: '2px 6px', borderRadius: '4px', fontSize: '11px',
+          padding: '2px 6px', borderRadius: '4px', fontSize: '0.6875rem',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           background: suggere ? 'rgba(61,107,79,0.12)' : actif ? 'rgba(61,107,79,0.10)' : 'transparent',
           color: vide ? '#c0b8ae' : actif || suggere ? '#2a3d30' : '#4a4540',

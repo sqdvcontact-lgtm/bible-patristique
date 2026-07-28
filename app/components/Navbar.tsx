@@ -352,7 +352,7 @@ export default function Navbar() {
     // par deux variables que la classe lit — l'une pour l'état, l'autre pour le survol.
     return {
       display: "inline-block", padding: "4px 8px", borderRadius: "5px",
-      fontSize: "12.5px", letterSpacing: "0.01em", textDecoration: "none", whiteSpace: "nowrap",
+      fontSize: "0.78125rem", letterSpacing: "0.01em", textDecoration: "none", whiteSpace: "nowrap",
       fontWeight: primaire ? 600 : 400,
       color: actif ? "#fff" : primaire ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.60)",
       "--fond": actif ? "rgba(255,255,255,0.14)" : "transparent",
@@ -393,7 +393,7 @@ export default function Navbar() {
           onKeyDown={e => { if (e.key === 'Enter') validerRechercheRapide() }}
           placeholder="Rechercher…"
           className="recherche-rapide-input"
-          style={{ width: mobile ? "100%" : "128px", fontSize: "12px", padding: "6px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "#fff", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
+          style={{ width: mobile ? "100%" : "128px", fontSize: "0.75rem", padding: "6px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "#fff", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
         />
         {/* Bouton « Nouvelle recherche » : conduit à la page de recherche VIERGE (pas de
             ?q), pour repartir de zéro. Si l'on y est DÉJÀ (l'URL peut être « /recherche »
@@ -404,7 +404,7 @@ export default function Navbar() {
             fermerRechercheRapide();
             if (pathname.startsWith("/recherche")) { e.preventDefault(); window.location.assign("/recherche"); }
           }}
-          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px", height: "29px", padding: "0 9px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap", fontSize: "11px", fontWeight: 500, letterSpacing: "0.01em", transition: "background 0.13s, color 0.13s" }}
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px", height: "29px", padding: "0 9px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap", fontSize: "0.6875rem", fontWeight: 500, letterSpacing: "0.01em", transition: "background 0.13s, color 0.13s" }}
           onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.20)"; e.currentTarget.style.color = "#fff"; }}
           onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.10)"; e.currentTarget.style.color = "rgba(255,255,255,0.82)"; }}>
           <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
@@ -556,7 +556,7 @@ export default function Navbar() {
   const toggleAdmin = (mobile: boolean) => (estAdmin || estAdminEmail) && (
     <div style={mobile
       ? { display: "flex", alignItems: "center", gap: "8px", padding: "9px 12px", fontSize: "13px", color: "rgba(255,255,255,0.85)" }
-      : { display: "inline-flex", alignItems: "center", gap: "5px", height: "28px", padding: "0 6px 0 2px", fontSize: "11px", color: "rgba(255,255,255,0.74)", letterSpacing: "0.01em" }}>
+      : { display: "inline-flex", alignItems: "center", gap: "5px", height: "28px", padding: "0 6px 0 2px", fontSize: "0.6875rem", color: "rgba(255,255,255,0.74)", letterSpacing: "0.01em" }}>
       <button type="button" role="switch" aria-checked={modeUtilisateurStandard}
         onClick={() => setModeUtilisateurStandard(!modeUtilisateurStandard)}
         title="Affichage seulement — vos droits réels ne changent pas"
@@ -576,7 +576,7 @@ export default function Navbar() {
   const blocCompte = (mobile: boolean) => user ? (
     <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", alignItems: mobile ? "stretch" : "center", gap: mobile ? "2px" : "6px", width: mobile ? "100%" : undefined }}>
       {!mobile && (
-        <button onClick={() => setMenuOuvert(!menuOuvert)} style={{ display: "flex", alignItems: "center", gap: "5px", height: "30px", background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.17)", borderRadius: "6px", padding: "0 8px 0 7px", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "12px", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
+        <button onClick={() => setMenuOuvert(!menuOuvert)} style={{ display: "flex", alignItems: "center", gap: "5px", height: "30px", background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.17)", borderRadius: "6px", padding: "0 8px 0 7px", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "0.75rem", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="5" r="2.8" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M1.5 13c0-3 2.5-4.5 5.5-4.5S12.5 10 12.5 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>
           <span style={{ maxWidth: "96px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email.split("@")[0]}</span>
           <span style={{ fontSize: "9px", opacity: 0.6 }}>▼</span>
@@ -634,7 +634,7 @@ export default function Navbar() {
   ) : (
     <Link href="/chantier" onClick={() => setMobileOuvert(false)} style={mobile
       ? { display: "block", textAlign: "center", padding: "9px 12px", borderRadius: "6px", fontSize: "13px", color: "#fff", textDecoration: "none", border: "1px solid rgba(255,255,255,0.25)" }
-      : { display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 11px", borderRadius: "5px", fontSize: "12.5px", color: "rgba(255,255,255,0.75)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.20)" }}>
+      : { display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 11px", borderRadius: "5px", fontSize: "0.78125rem", color: "rgba(255,255,255,0.75)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.20)" }}>
       Se connecter
     </Link>
   );
@@ -672,11 +672,11 @@ export default function Navbar() {
              sur les angles arrondis. */
           .cs-bible { position: relative; display: inline-flex; border-radius: 5px; overflow: hidden; transition: background 220ms ease-in-out; }
           .cs-bible:hover, .cs-bible:focus-within { background: rgba(255,255,255,0.085); }
-          .cs-bible-face { display: inline-flex; align-items: center; padding: 4px 8px; color: rgba(255,255,255,0.85); font-weight: 600; font-size: 12.5px; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; transition: opacity 220ms ease-in-out; }
+          .cs-bible-face { display: inline-flex; align-items: center; padding: 4px 8px; color: rgba(255,255,255,0.85); font-weight: 600; font-size: 0.78125rem; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; transition: opacity 220ms ease-in-out; }
           .cs-bible:hover .cs-bible-face, .cs-bible:focus-within .cs-bible-face { opacity: 0; pointer-events: none; }
           .cs-bible-split { position: absolute; inset: 0; display: flex; opacity: 0; pointer-events: none; transition: opacity 220ms ease-in-out; }
           .cs-bible:hover .cs-bible-split, .cs-bible:focus-within .cs-bible-split { opacity: 1; pointer-events: auto; }
-          .cs-bible-seg { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 6px; color: rgba(255,255,255,0.82); font-size: 12px; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background 160ms ease, color 160ms ease; }
+          .cs-bible-seg { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 6px; color: rgba(255,255,255,0.82); font-size: 0.75rem; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background 160ms ease, color 160ms ease; }
           .cs-bible-seg:hover { background: rgba(255,255,255,0.13); color: #fff; }
           .cs-bible-seg + .cs-bible-seg { box-shadow: inset 1px 0 0 rgba(255,255,255,0.16); }
           .cs-bible-seg--actif { color: #fff; background: rgba(255,255,255,0.10); }
@@ -692,12 +692,12 @@ export default function Navbar() {
 
           <Link href="/accueil" className="flex items-center gap-1.5 shrink-0"
             style={{ color: "rgba(255,255,255,0.93)", textDecoration: "none" }}>
-            <span style={{ fontSize: "11px", opacity: 0.6 }}>✦</span>
-            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "15px", fontWeight: 600, letterSpacing: "0.01em" }}>Corpus Scriptura</span>
+            <span style={{ fontSize: "0.6875rem", opacity: 0.6 }}>✦</span>
+            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.9375rem", fontWeight: 600, letterSpacing: "0.01em" }}>Corpus Scriptura</span>
             {/* « bêta » sobre : un petit mot en italique, posé contre le nom, sans cercle
                 ni capitales — un simple murmure de version. */}
             <span title="Version bêta" aria-label="Version bêta"
-              style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "10.5px", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.5)", position: "relative", top: "1.5px" }}>bêta</span>
+              style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.65625rem", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.5)", position: "relative", top: "1.5px" }}>bêta</span>
           </Link>
 
           {/* ── Navigation desktop ──────────────────────────────────────────── */}
