@@ -2,7 +2,19 @@
 
 import React, { useState } from 'react'
 import { dateFormat, refFrVer } from './adminShared'
-import type { Commentaire, CommentairePublication, Signalement, SegInfo } from './adminTypes'
+import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
+import type { Commentaire, CommentairePublication, Signalement, SegInfo, CommentaireParent } from './adminTypes'
+
+// La page Bible se cale sur livre + chapitre + verset (pas sur un `?verset=` seul, qui
+// n'ouvrait pas le bon chapitre). On reconstruit le lien depuis la référence « GEN 2:7 »
+// (ou l'id canonique « GEN.2.7 »).
+function hrefVerset(idVerset: string, versetMap: Record<string, string>): string {
+  const ref = versetMap[idVerset] ?? idVerset
+  const m = ref.match(/^([0-9A-Za-z]+)[ .](\d+)[:.](\d+)/)
+  if (!m) return `/?verset=${encodeURIComponent(idVerset)}`
+  const [, livre, ch, v] = m
+  return `/?livre=${livre}&chapitre=${ch}&verset=${v}#verset-${v}`
+}
 
 type SousOnglet = 'commentaires' | 'signalements'
 
@@ -16,6 +28,7 @@ type Props = {
   versetTexteMap: Record<string, string>
   oeuvreTitreMap: Record<string, string>
   signalementAuteurMap: Record<string, string>
+  commentaireParentMap: Record<number, CommentaireParent>
   actionValider: (id: number) => Promise<void>
   actionSupprimerCommentaire: (id: number) => Promise<void>
   actionValiderCommentaireEssai: (id: number) => Promise<void>
@@ -36,15 +49,15 @@ const COULEUR_LIEU: Record<Lieu, { fond: string; texte: string }> = {
   Profil:       { fond: '#edf2e8', texte: '#45633b' },
 }
 
-function localiserCommentaire(c: Commentaire, segMap: Record<number, SegInfo>, versetMap: Record<string, string>, oeuvreTitreMap: Record<string, string>) {
+function localiserCommentaire(c: Commentaire, segMap: Record<number, SegInfo>, versetMap: Record<string, string>, versetTexteMap: Record<string, string>, oeuvreTitreMap: Record<string, string>) {
   if (c.id_verset) {
-    return { lieu: 'Bible' as Lieu, ref: refFrVer(versetMap[c.id_verset] ?? c.id_verset), href: `/?verset=${encodeURIComponent(c.id_verset)}` as string | null }
+    return { lieu: 'Bible' as Lieu, ref: refFrVer(versetMap[c.id_verset] ?? c.id_verset), href: hrefVerset(c.id_verset, versetMap) as string | null, cible: versetTexteMap[c.id_verset] ?? '' }
   }
   if (c.id_segment != null && segMap[c.id_segment]) {
     const s = segMap[c.id_segment]
-    return { lieu: 'Patristique' as Lieu, ref: `${oeuvreTitreMap[s.id_oeuvre] ?? s.id_oeuvre} · §${s.numero}`, href: `/oeuvre/${s.id_oeuvre}#s${s.numero}` as string | null }
+    return { lieu: 'Patristique' as Lieu, ref: `${oeuvreTitreMap[s.id_oeuvre] ?? s.id_oeuvre} · §${s.numero}`, href: `/oeuvre/${s.id_oeuvre}#s${s.numero}` as string | null, cible: s.texte }
   }
-  return { lieu: 'Patristique' as Lieu, ref: c.id_segment ? `Segment ${c.id_segment}` : '—', href: null as string | null }
+  return { lieu: 'Patristique' as Lieu, ref: c.id_segment ? `Segment ${c.id_segment}` : '—', href: null as string | null, cible: '' }
 }
 
 // Certaines routes glissent la référence en tête du message : « [Réf. Gn 1, 1] … ».
@@ -63,7 +76,7 @@ function localiserSignalement(
     return { lieu: 'Patristique' as Lieu, titre: `${oeuvreTitreMap[seg.id_oeuvre] ?? seg.id_oeuvre} · §${seg.numero}`, href: `/oeuvre/${seg.id_oeuvre}#s${seg.numero}` as string | null, cible: seg.texte }
   }
   if (s.id_verset) {
-    return { lieu: 'Bible' as Lieu, titre: refFrVer(versetMap[s.id_verset] ?? s.id_verset), href: `/?verset=${encodeURIComponent(s.id_verset)}` as string | null, cible: versetTexteMap[s.id_verset] ?? '' }
+    return { lieu: 'Bible' as Lieu, titre: refFrVer(versetMap[s.id_verset] ?? s.id_verset), href: hrefVerset(s.id_verset, versetMap) as string | null, cible: versetTexteMap[s.id_verset] ?? '' }
   }
   const refMsg = separerReference(s.message).ref
   const profilSignale = refMsg?.match(/^Profil\s+@(.+)$/i)
@@ -99,7 +112,7 @@ type ItemComment =
 export default function SectionModeration(props: Props) {
   const {
     commentaires, commentairesPublications, signalements, demandesCertification,
-    segMap, versetMap, versetTexteMap, oeuvreTitreMap, signalementAuteurMap,
+    segMap, versetMap, versetTexteMap, oeuvreTitreMap, signalementAuteurMap, commentaireParentMap,
     actionValider, actionSupprimerCommentaire, actionValiderCommentaireEssai, actionSupprimerCommentaireEssai,
     actionMarquerTraite, actionMarquerTraiteSilencieux, actionSupprimerSignalement, actionCertifier, actionRetirerDemandeCertification,
   } = props
@@ -149,6 +162,10 @@ export default function SectionModeration(props: Props) {
         .mod-date{margin-left:auto;font-size:10.5px;color:#b0a89e;white-space:nowrap;}
         .mod-texte{font-size:13px;color:#2a2520;line-height:1.6;margin:0 0 10px;white-space:pre-line;}
         .mod-cible{font-size:11.5px;color:#6b6560;line-height:1.55;font-style:italic;border-left:2px solid #ddd0b0;padding-left:10px;margin:0 0 9px;max-height:110px;overflow:auto;}
+        /* Message auquel un commentaire répond : encart discret, gris-vert, au-dessus du texte. */
+        .mod-reponse{font-size:11px;color:#6b6560;line-height:1.5;background:#f4f6f2;border-left:2px solid #b8ccbd;border-radius:0 5px 5px 0;padding:6px 10px;margin:0 0 8px;}
+        .mod-reponse .qui{display:block;font-size:9.5px;font-weight:700;letter-spacing:.03em;color:#3d6b4f;margin-bottom:2px;}
+        .mod-reponse .quoi{display:block;font-style:italic;color:#7a746c;max-height:70px;overflow:auto;}
         .mod-auteur{font-size:11px;color:#6b6560;font-weight:500;margin:0 0 10px;}
         .mod-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;}
         .mod-btn{font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;border:1px solid #d6d0c4;background:#fff;color:#5a5450;transition:background .12s,border-color .12s;}
@@ -180,9 +197,11 @@ export default function SectionModeration(props: Props) {
             const estCertif = item.kind === 'certif'
             const estPub = item.kind === 'publication'
             const loc = estPub
-              ? { lieu: 'Publications' as Lieu, ref: item.c.titre_essai, href: `/essais/${item.c.id_essai}` as string | null }
-              : localiserCommentaire(item.c, segMap, versetMap, oeuvreTitreMap)
+              ? { lieu: 'Publications' as Lieu, ref: item.c.titre_essai, href: `/essais/${item.c.id_essai}` as string | null, cible: '' }
+              : localiserCommentaire(item.c, segMap, versetMap, versetTexteMap, oeuvreTitreMap)
             const mail = item.kind === 'comment' ? item.c.auteur_mail : null
+            // Message parent (si ce commentaire est une réponse) : affiché en contexte.
+            const parent = (!estPub && item.c.reponse_a) ? commentaireParentMap[item.c.reponse_a] : null
             return (
               <div key={item.key} className="mod-card" style={estCertif ? { background: '#f7f3fb', borderColor: '#d8c9ec' } : undefined}>
                 <div className="mod-entete">
@@ -191,7 +210,16 @@ export default function SectionModeration(props: Props) {
                   {loc.href ? <a className="mod-ref" href={loc.href} target="_blank" rel="noopener noreferrer">{loc.ref}</a> : <span className="mod-ref">{loc.ref}</span>}
                   <span className="mod-date">{dateFormat(item.c.created_at)}</span>
                 </div>
-                <p className="mod-texte">{item.c.texte}</p>
+                {/* Même présentation que les signalements : la cible (verset ou passage) citée
+                    au-dessus, enrichissements conservés. */}
+                {loc.cible && <p className="mod-cible">« {rendreTexteEnrichi(loc.cible.length > 320 ? loc.cible.slice(0, 320) + '…' : loc.cible)} »</p>}
+                {parent && (
+                  <div className="mod-reponse">
+                    <span className="qui">En réponse à {parent.auteur_nom}</span>
+                    <span className="quoi">{rendreTexteEnrichi(parent.texte.length > 240 ? parent.texte.slice(0, 240) + '…' : parent.texte)}</span>
+                  </div>
+                )}
+                <p className="mod-texte">{rendreTexteEnrichi(item.c.texte)}</p>
                 <p className="mod-auteur">{item.c.auteur_nom}{mail ? <span style={{ color: '#b0a89e', fontWeight: 400 }}> · {mail}</span> : null}</p>
                 <div className="mod-actions">
                   {estCertif ? (
@@ -236,8 +264,8 @@ export default function SectionModeration(props: Props) {
                   {loc.href ? <a className="mod-ref" href={loc.href} target="_blank" rel="noopener noreferrer">{loc.titre}</a> : <span className="mod-ref">{loc.titre}</span>}
                   <span className="mod-date">{dateFormat(s.created_at)}</span>
                 </div>
-                {loc.cible && <p className="mod-cible">« {loc.cible.length > 320 ? loc.cible.slice(0, 320) + '…' : loc.cible} »</p>}
-                <p className="mod-texte">{corps}</p>
+                {loc.cible && <p className="mod-cible">« {rendreTexteEnrichi(loc.cible.length > 320 ? loc.cible.slice(0, 320) + '…' : loc.cible)} »</p>}
+                <p className="mod-texte">{rendreTexteEnrichi(corps)}</p>
                 <p className="mod-auteur">Signalé par {auteur}</p>
                 <div className="mod-actions">
                   <button className="mod-btn rouge" disabled={busy} onClick={() => lancer(key, () => actionSupprimerSignalement(s.id))}>Supprimer le signalement</button>

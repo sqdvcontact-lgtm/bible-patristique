@@ -395,7 +395,7 @@ export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boo
   }
 
   return (
-    <section style={{ maxWidth: '1040px', margin: '0 auto', padding: '24px 20px 82px', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
+    <section style={{ maxWidth: '65rem', margin: '0 auto', padding: '24px 20px 82px', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
       <style>{`
         @keyframes bibleGamesGlow { 0%{box-shadow:0 0 0 rgba(206,236,170,0);transform:scale(1)} 35%{box-shadow:0 0 34px rgba(210,241,153,0.75);transform:scale(1.035)} 100%{box-shadow:0 0 0 rgba(206,236,170,0);transform:scale(1)} }
         @keyframes bibleGamesSpark { 0%{opacity:0;transform:scale(0.6) translateY(8px)} 35%{opacity:1} 100%{opacity:0;transform:scale(1.35) translateY(-20px)} }
@@ -415,21 +415,21 @@ export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boo
               borderBottom: mode === o.id ? '2.5px solid #3d6b4f' : '2.5px solid transparent',
               transition: 'border-color 0.15s',
             }}>
-              <p style={{ margin: 0, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.12em', color: mode === o.id ? '#3d6b4f' : '#9aab9a', fontWeight: 800 }}>{o.sousTitre}</p>
-              <p style={{ margin: '2px 0 0', fontSize: '13px', color: mode === o.id ? '#193824' : '#6b8a70', fontWeight: mode === o.id ? 800 : 600 }}>{o.label}</p>
+              <p style={{ margin: 0, fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: mode === o.id ? '#3d6b4f' : '#9aab9a', fontWeight: 800 }}>{o.sousTitre}</p>
+              <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: mode === o.id ? '#193824' : '#6b8a70', fontWeight: mode === o.id ? 800 : 600 }}>{o.label}</p>
             </button>
           ))}
         </div>
 
-        <div className="bg-layout" style={{ display: 'grid', gridTemplateColumns: avecEchelle ? '150px minmax(0,1fr) 190px' : 'minmax(0,1fr)', gap: '16px', padding: '18px', alignItems: 'stretch' }}>
+        <div className="bg-layout" style={{ display: 'grid', gridTemplateColumns: avecEchelle ? '9.375rem minmax(0,1fr) 11.875rem' : 'minmax(0,1fr)', gap: '1rem', padding: '1.125rem', alignItems: 'stretch' }}>
 
           {/* ── Panneau score (biblique + patristique) ──────────────────── */}
           {avecEchelle && (
             <aside className="bg-score" style={{ background: 'rgba(255,255,255,0.72)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '12px', padding: '14px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '420px' }}>
               <div>
-                <p style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#6b8a70', fontWeight: 800, margin: '0 0 8px' }}>Score</p>
-                <div style={{ fontSize: '42px', lineHeight: 1, fontWeight: 900, color: '#2f6a48', animation: flashScore ? 'bibleGamesGlow 0.9s ease-out' : 'none', borderRadius: '12px', padding: '4px 0' }}>{score}</div>
-                <p style={{ fontSize: '11px', lineHeight: 1.35, color: '#5f725f', margin: '8px 0 0' }}>{messageScore(score)}</p>
+                <p style={{ fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#6b8a70', fontWeight: 800, margin: '0 0 8px' }}>Score</p>
+                <div style={{ fontSize: '2.625rem', lineHeight: 1, fontWeight: 900, color: '#2f6a48', animation: flashScore ? 'bibleGamesGlow 0.9s ease-out' : 'none', borderRadius: '12px', padding: '4px 0' }}>{score}</div>
+                <p style={{ fontSize: '0.6875rem', lineHeight: 1.35, color: '#5f725f', margin: '8px 0 0' }}>{messageScore(score)}</p>
               </div>
               <button onClick={mode === 'biblique' ? nouveauVerset : nouveauSegment} style={btnSecondaire}>
                 {mode === 'biblique' ? 'Nouveau verset' : 'Nouvel extrait'}
@@ -676,7 +676,7 @@ function JeuBiblique({ verset, livreCorrect, etape, resultats, etapesRestantes, 
   return (
     <>
       <div style={{ position: 'sticky', top: '58px', zIndex: 5, background: 'rgba(248,251,242,0.96)', border: '1px solid rgba(61,107,79,0.20)', borderRadius: '13px', padding: '13px 14px', backdropFilter: 'blur(8px)' }}>
-        <p lang="fr" style={{ margin: 0, fontSize: '16px', lineHeight: 1.58, color: '#203528', textAlign: 'justify', fontWeight: 560 }}>« {verset.TR0001} »</p>
+        <p lang="fr" style={{ margin: 0, fontSize: '1rem', lineHeight: 1.58, color: '#203528', textAlign: 'justify', fontWeight: 560 }}>« {verset.TR0001} »</p>
         <BarreProgression resultats={resultats} etapesRestantes={etapesRestantes} />
       </div>
       <div style={{ marginTop: '14px', display: 'grid', gap: '12px' }}>
@@ -750,7 +750,7 @@ function JeuPatristique({ segment, etape, resultats, etapesRestantes, saisieAute
   return (
     <>
       <div style={{ position: 'sticky', top: '58px', zIndex: 5, background: 'rgba(248,251,242,0.96)', border: '1px solid rgba(61,107,79,0.20)', borderRadius: '13px', padding: '13px 14px', backdropFilter: 'blur(8px)' }}>
-        <p lang="fr" style={{ margin: 0, fontSize: '15px', lineHeight: 1.65, color: '#203528', textAlign: 'justify', fontWeight: 500, fontStyle: 'italic' }}>« {rendreTexteEnrichi(segment.texte)} »</p>
+        <p lang="fr" style={{ margin: 0, fontSize: '0.9375rem', lineHeight: 1.65, color: '#203528', textAlign: 'justify', fontWeight: 500, fontStyle: 'italic' }}>« {rendreTexteEnrichi(segment.texte)} »</p>
         <BarreProgression resultats={resultats} etapesRestantes={etapesRestantes} />
       </div>
       <div style={{ marginTop: '14px', display: 'grid', gap: '12px' }}>

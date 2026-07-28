@@ -694,7 +694,7 @@ export default function RechercheClient() {
         .poly-livre-hd { margin:0; padding:2px 12px; font-family:var(--font-source-serif), Georgia, serif; font-size:12.5px; line-height:1.35; color:#1f3b2b; background:#b7d3bf; border-top:1px solid #9fc2ac; border-bottom:1px solid #9fc2ac; text-align:center; }
         .poly-row { display:grid; border-top:1px solid #dfe8e0; font-size:13px; text-decoration:none; }
         .poly-num { padding:5px 4px; text-align:center; font-weight:700; font-size:11.5px; line-height:1.15; color:#3d6b4f; border-right:1px solid #dfe8e0; white-space:nowrap; }
-        .poly-texte-cell { min-width:0; padding:5px 10px 6px; border-left:1px solid #dfe8e0; text-align:justify; text-align-last:left; hyphens:auto; -webkit-hyphens:auto; hyphenate-limit-chars:5 2 2; word-spacing:-0.06em; letter-spacing:-0.01em; line-height:1.26; font-family:var(--font-source-serif), Georgia, serif; font-size:12px; color:#2a302b; }
+        .poly-texte-cell { min-width:0; padding:5px 10px 6px; border-left:1px solid #dfe8e0; text-align:justify; text-align-last:left; hyphens:auto; -webkit-hyphens:auto; hyphenate-limit-chars:5 2 2; word-spacing:-0.06em; letter-spacing:-0.01em; line-height:1.26; font-family:var(--font-source-sans), Arial, sans-serif; font-size:12px; color:#2a302b; }
         .poly-texte-cell::after { content:""; display:block; clear:both; }
         .poly-texte-cell--absent { background:#fbeceb; color:#7a1d16; }
         .poly-lettrine { float:left; display:flex; flex-direction:column; align-items:flex-end; margin:0 8px 0 0; padding:0 7px 0 0; border-right:1px solid rgba(61,107,79,0.22); font-family:var(--font-source-sans), Arial, sans-serif; font-weight:400; letter-spacing:0.03em; font-variant-numeric:tabular-nums; color:#6f8f7b; text-align:right; }
@@ -796,9 +796,19 @@ export default function RechercheClient() {
                   <span className="expl-wrap">
                     <span className="expl-badge">?</span>
                     <span className="expl-tip">
-                      <span style={{ display:'block', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', fontSize:'8.5px', color:'#9a958d', marginBottom:'4px' }}>Explicitations</span>
-                      <span style={{ display:'block', marginBottom:'6px' }}><strong style={{ color:'#2f6046' }}>Début de mot</strong> — trouve les mots qui <em>commencent</em> par ce que vous tapez : « glo » ramène <em>gloire</em>, <em>glorieux</em>, <em>glorifier</em>. Vous pouvez en chercher <strong>plusieurs à la fois</strong> : « glo mis » ramène les passages où figurent ensemble un mot en <em>glo-</em> et un mot en <em>mis-</em>.</span>
-                      <span style={{ display:'block' }}><strong style={{ color:'#2f6046' }}>Mot exact</strong> — ne trouve que le mot <em>entier</em> : « gloire » ne ramène ni <em>glorieux</em> ni <em>gloires</em>. Vous pouvez chercher <strong>plusieurs mots entiers</strong> qui ne se suivent pas : « gloire Dieu » ramène les passages contenant l'un et l'autre.</span>
+                      <span style={{ display:'block', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', fontSize:'8.5px', color:'#9a958d', marginBottom:'7px' }}>Les deux modes</span>
+
+                      <span style={{ display:'block', marginBottom:'8px' }}>
+                        <span style={{ display:'block', fontWeight:700, color:'#2f6046', marginBottom:'1px' }}>Début de mot</span>
+                        <span style={{ display:'block' }}>Trouve les mots qui commencent par ce que vous tapez ; plusieurs termes à la fois sont admis.</span>
+                        <span style={{ display:'block', fontStyle:'italic', color:'#8a8278', marginTop:'2px' }}>« glo » ramène gloire, glorieux, glorifier ; « glo mis » ramène les passages où figurent ensemble un mot en glo- et un mot en mis-.</span>
+                      </span>
+
+                      <span style={{ display:'block' }}>
+                        <span style={{ display:'block', fontWeight:700, color:'#2f6046', marginBottom:'1px' }}>Mot exact</span>
+                        <span style={{ display:'block' }}>Ne trouve que le mot entier ; plusieurs mots entiers, non consécutifs, sont admis.</span>
+                        <span style={{ display:'block', fontStyle:'italic', color:'#8a8278', marginTop:'2px' }}>« gloire » ne ramène ni glorieux ni gloires ; « gloire Dieu » ramène les passages contenant l'un et l'autre.</span>
+                      </span>
                     </span>
                   </span>
                 </p>
@@ -1027,12 +1037,13 @@ export default function RechercheClient() {
                               le mot y est absent) puis TOUTES les traductions qui contiennent le mot. */}
                           <div style={{ display:'flex', alignItems:'baseline', gap:'8px', flexWrap:'wrap', marginBottom:'2px' }}>
                             <span style={{ fontSize:'10.5px', fontWeight:600, color:'#5a5248', letterSpacing:'0.01em' }}>{refFr(v.ref)}</span>
-                            <span style={{ fontSize:'9.5px', color:'#c0b8ae', textDecoration: displayLeMot ? 'none' : 'line-through' }}>{labelDisplay}</span>
-                            {contientDans.length > 0 && (
-                              <span style={{ fontSize:'9.5px', color: displayLeMot ? '#9a958d' : '#bd6a60', fontWeight: displayLeMot ? 400 : 600 }}>
-                                {contientDans.map(t=>t.label).join(', ')}
-                              </span>
-                            )}
+                            {/* Tous les noms de bibles : même couleur, même espacement (le gap
+                                du conteneur), chacun dans son propre span. La traduction affichée
+                                est barrée quand le mot n'y figure pas — seule distinction retenue. */}
+                            <span style={{ fontSize:'9.5px', color:'#9a958d', textDecoration: displayLeMot ? 'none' : 'line-through' }}>{labelDisplay}</span>
+                            {contientDans.filter(t => t.code !== tradBible).map(t => (
+                              <span key={t.code} style={{ fontSize:'9.5px', color:'#9a958d' }}>{t.label}</span>
+                            ))}
                           </div>
                           {/* Toujours le texte de la traduction CHOISIE, SANS SÉRIF. Surligné si le
                               mot y est ; sinon montré tel quel (la ligne du haut dit où il se trouve). */}

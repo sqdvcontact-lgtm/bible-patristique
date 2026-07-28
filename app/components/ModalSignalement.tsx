@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 // Modale de signalement UNIQUE, partagée par toutes les pages (Bible, Œuvre,
 // Polyglotte, Panneau patristique…). Même mise en forme partout.
@@ -42,12 +43,15 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
     <div onClick={onClose}
       style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div onClick={e => e.stopPropagation()}
-        style={{ background: '#fff', borderRadius: '10px', border: '1px solid #e4dcd0', width: '100%', maxWidth: '420px', boxShadow: '0 12px 40px rgba(0,0,0,0.22)', display: 'flex', flexDirection: 'column', maxHeight: 'calc(100vh - 40px)' }}>
+        style={{ background: '#fffdfb', borderRadius: '10px', border: '1px solid #e6cdbb', width: '100%', maxWidth: '420px', boxShadow: '0 12px 40px rgba(90,40,20,0.22)', display: 'flex', flexDirection: 'column', maxHeight: 'calc(100vh - 40px)', overflow: 'hidden' }}>
 
-        {/* En-tête — identique partout */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 12px', borderBottom: '1px solid #f0ece6', flexShrink: 0 }}>
-          <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#3a342e', margin: 0 }}>{titreFenetre}</p>
-          <button onClick={onClose} aria-label="Fermer" style={{ fontSize: '15px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+        {/* En-tête — teinte chaude (ocre/rouge), liseré d'accent à gauche du titre. */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px 13px', borderBottom: '1px solid #f0dccb', background: 'linear-gradient(180deg, #fbeee4 0%, #fdf6f0 100%)', flexShrink: 0 }}>
+          <p style={{ display: 'flex', alignItems: 'center', gap: '9px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#7a2f18', margin: 0 }}>
+            <span aria-hidden="true" style={{ display: 'inline-block', width: '3px', height: '17px', borderRadius: '2px', background: '#c0562a' }} />
+            {titreFenetre}
+          </p>
+          <button onClick={onClose} aria-label="Fermer" style={{ fontSize: '15px', color: '#c09a86', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
 
         {statut === 'ok' ? (
@@ -57,11 +61,11 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
             {/* Objet du signalement : le texte cité EN ENTIER */}
             {(titre || texteObjet) && (
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ display: 'block', fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b0a89e', marginBottom: '5px' }}>Objet du signalement</span>
-                {titre && <p style={{ fontSize: '11px', color: '#9a8a6e', fontStyle: 'italic', margin: '0 0 5px', lineHeight: 1.45 }}>{titre}</p>}
+                <span style={{ display: 'block', fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b5764a', marginBottom: '5px' }}>Objet du signalement</span>
+                {titre && <p style={{ fontSize: '11px', color: '#a85c3a', fontStyle: 'italic', margin: '0 0 5px', lineHeight: 1.45 }}>{titre}</p>}
                 {texteObjet && (
-                  <blockquote style={{ margin: 0, padding: '9px 12px', background: '#faf8f4', border: '1px solid #ece7de', borderLeft: '3px solid #cbb98e', borderRadius: '0 5px 5px 0', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12.5px', color: '#3a342e', lineHeight: 1.6, maxHeight: '150px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
-                    {texteObjet}
+                  <blockquote style={{ margin: 0, padding: '9px 12px', background: '#fdf4ec', border: '1px solid #efd8c6', borderLeft: '3px solid #c0562a', borderRadius: '0 5px 5px 0', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12.5px', color: '#42352c', lineHeight: 1.6, maxHeight: '150px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+                    {rendreTexteEnrichi(texteObjet)}
                   </blockquote>
                 )}
               </div>
@@ -84,7 +88,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
 
             <textarea value={message} onChange={e => setMessage(e.target.value)}
               placeholder={placeholder} rows={4} autoFocus
-              style={{ width: '100%', fontSize: '12px', padding: '8px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#2a2520', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
+              style={{ width: '100%', fontSize: '12px', padding: '8px 10px', border: '1px solid #e6cdbb', borderRadius: '5px', background: '#fdf9f5', color: '#2a2520', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', gap: '8px', alignItems: 'center' }}>
               {statut === 'err' && <span style={{ fontSize: '10px', color: '#c0562a', marginRight: 'auto' }}>Erreur d’envoi.</span>}

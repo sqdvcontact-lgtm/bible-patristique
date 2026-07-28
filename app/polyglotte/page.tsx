@@ -323,7 +323,7 @@ function BoutonSignalerVerset({ refLisible, texte }: { refLisible: string; texte
     <>
       <button onClick={e => { e.stopPropagation(); setOuvert(true); }} title="Signaler une erreur" className="poly-act"
         style={{ ...ACT_BTN, color: "#b7ad9a" }} aria-label="Signaler">⚑</button>
-      {ouvert && <ModalSignalement titre={refLisible} texteObjet={texte ? texteSansEnrichissement(texte) : undefined} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
+      {ouvert && <ModalSignalement titre={refLisible} texteObjet={texte || undefined} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   );
 }
@@ -740,9 +740,11 @@ export default function PolyglottePage() {
         {/* Aucun livre choisi : la page reste vide et l'explique */}
         {!onglet && (
           <div style={{ margin: "60px auto", maxWidth: 560, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+            {/* L'image porte un large blanc (dégradé) sous le dessin : on remonte l'invite en
+                marge négative pour qu'elle se pose sous LE LIVRE, non sous le cadre de l'image. */}
             <img src="/ornements/livre_pol.png" alt="" aria-hidden="true"
-              style={{ width: "min(230px, 55%)", height: "auto", opacity: 0.9, mixBlendMode: "multiply", marginBottom: 2 }} />
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 15, fontStyle: "italic", color: "#9a958d", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
+              style={{ width: "min(230px, 55%)", height: "auto", opacity: 0.9, mixBlendMode: "multiply", marginBottom: 0 }} />
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 15, fontStyle: "italic", color: "#9a958d", letterSpacing: "0.02em", margin: "-42px 0 0" }}>Ouvrez un livre</p>
           </div>
         )}
 

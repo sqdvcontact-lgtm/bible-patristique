@@ -308,7 +308,7 @@ function EssaiDocument({ titre, sousTitre, auteur, date, verset, contenu }: Prop
           <View style={s.notes}>
             <Text style={s.noteTitre}>Notes</Text>
             {notes.map((n, i) => (
-              <Text key={i} style={s.noteItem}>{`[${i + 1}] `}{avecSiecles(n, `n${i}`)}</Text>
+              <Text key={i} style={s.noteItem}>{`[${i + 1}] `}{renderNodes(parseInline(n, []))}</Text>
             ))}
           </View>
         )}

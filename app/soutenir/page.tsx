@@ -5,65 +5,70 @@ export const metadata = {
 
 const LIEN_PAYPAL = "https://www.paypal.com/donate/?hosted_button_id=9M463NPH2RQXL";
 
-// Chaque entrée : [texte, largeur max] — triangle pointe en bas
+// Colophon en pyramide (pointe en bas) : chaque entrée [texte, largeur max].
 const COLOPHON: [string, string][] = [
-  ["Ce site est un projet bénévole, sans publicité,",        "400px"],
-  ["ouvert à tous, sans abonnement ni registre.",            "360px"],
-  ["Si vous souhaitez contribuer à son développement",       "330px"],
-  ["— enrichissement de la bibliothèque,",                   "280px"],
-  ["maintenance, hébergement —,",                            "220px"],
-  ["vous pouvez nous soutenir.",                             "185px"],
-  ["Chaque geste compte.",                                   "148px"],
-]
+  ["Ce site est un projet bénévole, sans publicité,",        "410px"],
+  ["ouvert à tous, sans abonnement ni registre.",            "365px"],
+  ["Si vous souhaitez contribuer à son développement",       "335px"],
+  ["— enrichissement de la bibliothèque,",                   "285px"],
+  ["maintenance, hébergement —,",                            "225px"],
+  ["vous pouvez nous soutenir.",                             "190px"],
+  ["Chaque geste compte.",                                   "150px"],
+];
 
 export default function SoutenirPage() {
   return (
+    // Hauteur fixée à l'écran (moins la navbar) + overflow caché : TOUT tient sur une page,
+    // aucun défilement. Les tailles clés dépendent de la hauteur de la fenêtre (vh) pour
+    // rester dans le cadre même sur un écran court.
     <section style={{
-      minHeight: "calc(100vh - 48px)",
+      height: "calc(100dvh - 48px)",
+      overflow: "hidden",
       background: "#f7f3eb",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      padding: "40px 24px 72px",
+      padding: "16px 24px",
       textAlign: "center",
     }}>
 
-      {/* Cœur */}
-      <svg width="32" height="32" viewBox="0 0 40 40" fill="none"
-        style={{ marginBottom: "18px" }} aria-hidden="true">
-        <path d="M20 34S4 23 4 13a8 8 0 0 1 16-2 8 8 0 0 1 16 2c0 10-16 21-16 21z"
-          stroke="#3d6b4f" strokeWidth="1.5" fill="rgba(61,107,79,0.07)" strokeLinejoin="round" />
-      </svg>
+      {/* Le semeur : une main qui confie un grain au sillon — l'image du don qui germe.
+          `multiply` fond le blanc du dessin dans le papier ; l'invite se pose au ras du
+          sillon (marge négative). Taille bornée par la hauteur de fenêtre. */}
+      <img src="/ornements/semeur.png" alt="" aria-hidden="true"
+        style={{ width: "clamp(150px, 26vh, 240px)", height: "auto", opacity: 0.92, mixBlendMode: "multiply", marginBottom: "-10px", flexShrink: 0 }} />
 
       {/* Titre */}
       <h1 style={{
         fontFamily: "var(--font-source-serif), Georgia, serif",
-        fontSize: "clamp(20px, 2.8vw, 27px)",
+        fontSize: "clamp(19px, 2.6vw, 26px)",
         fontWeight: "normal",
         color: "#1e2e24",
-        marginBottom: "8px",
+        margin: "0 0 8px",
         letterSpacing: "0.02em",
+        flexShrink: 0,
       }}>
         Soutenir le projet
       </h1>
 
       {/* Filet ornemental */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", maxWidth: "140px", margin: "0 auto 22px" }}>
-        <div style={{ flex: 1, height: "1px", background: "#d6cfc4" }} />
-        <span style={{ fontSize: "8px", color: "#b0a088", letterSpacing: "0.2em" }}>· · ·</span>
-        <div style={{ flex: 1, height: "1px", background: "#d6cfc4" }} />
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "150px", margin: "0 auto 16px", flexShrink: 0 }}>
+        <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #cfc6b6)" }} />
+        <span style={{ fontSize: "8px", color: "#b0a088", letterSpacing: "0.22em" }}>· · ·</span>
+        <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #cfc6b6)" }} />
       </div>
 
       {/* Colophon pyramide */}
       <div style={{
         fontFamily: "var(--font-source-serif), Georgia, serif",
-        fontSize: "14px",
+        fontSize: "clamp(12px, 1.5vh, 14px)",
         fontStyle: "italic",
         color: "#4a5e50",
-        lineHeight: 1.55,
+        lineHeight: 1.5,
         textAlign: "center",
-        marginBottom: "28px",
+        marginBottom: "22px",
+        flexShrink: 0,
       }}>
         {COLOPHON.map(([line, width], i) => (
           <p key={i} style={{ maxWidth: width, margin: "0 auto" }}>{line}</p>
@@ -76,10 +81,11 @@ export default function SoutenirPage() {
           display: "inline-flex", alignItems: "center", gap: "10px",
           background: "#3d6b4f", color: "#fff", textDecoration: "none",
           fontFamily: "var(--font-source-serif), Georgia, serif",
-          fontSize: "13.5px", fontWeight: 500, padding: "11px 28px",
+          fontSize: "13.5px", fontWeight: 500, padding: "10px 26px",
           borderRadius: "6px",
           boxShadow: "0 3px 12px rgba(61,107,79,0.22)",
           letterSpacing: "0.01em",
+          flexShrink: 0,
         }}>
         <PaypalIcon />
         Faire un don via PayPal
@@ -90,12 +96,13 @@ export default function SoutenirPage() {
         color: "#a09488",
         marginTop: "10px",
         fontStyle: "italic",
+        flexShrink: 0,
       }}>
         Vous serez redirigé vers le site sécurisé de PayPal.
       </p>
 
     </section>
-  )
+  );
 }
 
 function PaypalIcon({ size = 16 }: { size?: number }) {
@@ -104,5 +111,5 @@ function PaypalIcon({ size = 16 }: { size?: number }) {
       <path d="M4 13.5L5.3 3.8h4.6c2.1 0 3.4 1.1 3.1 3.1-.3 2.3-1.9 3.5-4 3.5H6.7l-.6 3.1H4z"
         fill="#fff" opacity="0.9" />
     </svg>
-  )
+  );
 }

@@ -163,16 +163,16 @@ export default async function AdminPage() {
     { data: nbVerifRaw },
     { data: commentairesPublicationsRaw },
   ] = await Promise.all([
-    supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id').eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false').order('created_at', { ascending: false }),
+    supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, reponse_a').eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false').order('created_at', { ascending: false }),
     supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, id_verset, user_id, importance, url_source').eq('traite', false).order('created_at', { ascending: false }),
     supabaseAdmin.from('quiz_signalements').select('id, raison, commentaire, created_at, id_verset, user_id').eq('traite', false).order('created_at', { ascending: false }).limit(200),
-    supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, demande_validation, certifie').eq('demande_validation', true).order('created_at', { ascending: false }),
+    supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, demande_validation, certifie, reponse_a').eq('demande_validation', true).order('created_at', { ascending: false }),
     supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, updated_at, publie_at, user_id').eq('statut', 'en_attente').order('created_at', { ascending: false }),
     supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, updated_at, publie_at, user_id').eq('statut', 'a_reviser').order('created_at', { ascending: false }),
     supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, statut, nb_vues').eq('statut', 'publie').order('publie_at', { ascending: false, nullsFirst: false }),
     supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, statut, nb_vues').eq('statut', 'brouillon').order('updated_at', { ascending: false, nullsFirst: false }),
     supabaseAdmin.from('signalements').select('message'),
-    supabaseAdmin.from('auteurs').select('id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, traditions, note_biographique, note_theologique, langue_principale, chronologie, anecdotes, influence, photo_position, oeuvres(id_oeuvre, titre, sous_titre, titre_original, trad_auteur, editeur, collection, ville, date_publication, date_composition, url_source, genre, genres, langue, profondeur_sommaire, nb_signes, niveaux_sommaire, niveaux_corps, texte_sommaire, texte_corps, afficher_numeros)').order('siecle', { ascending: true, nullsFirst: false }),
+    supabaseAdmin.from('auteurs').select('id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, traditions, note_biographique, note_theologique, langue_principale, chronologie, anecdotes, influence, photo_position, oeuvres(id_oeuvre, titre, sous_titre, titre_original, trad_auteur, editeur, collection, ville, date_publication, date_composition, url_source, genre, genres, langue, profondeur_sommaire, nb_signes, niveaux_sommaire, niveaux_corps, texte_sommaire, texte_corps, afficher_numeros, note)').order('siecle', { ascending: true, nullsFirst: false }),
     supabaseAdmin.from('traductions').select('*').order('ordre', { ascending: true }),
     supabaseAdmin.rpc('count_verifications_pending'),
     supabaseAdmin.from('essais_commentaires').select('id, id_essai, texte, auteur_nom, created_at, user_id').eq('valide', false).eq('supprime', false).order('created_at', { ascending: false }),
@@ -211,8 +211,14 @@ export default async function AdminPage() {
   ]
   const segIdsUniques = [...new Set(segIds)]
   const idsVersetsCertif = [...new Set([
+    ...((commentaires?.map(c => c.id_verset).filter(Boolean) ?? []) as string[]),
     ...((demandesCertification?.map(c => c.id_verset).filter(Boolean) ?? []) as string[]),
     ...((signalements?.map(s => s.id_verset).filter(Boolean) ?? []) as string[]),
+  ])]
+  // Messages parents des commentaires qui sont des réponses (pour les afficher en contexte).
+  const idsParents = [...new Set([
+    ...((commentaires?.map(c => (c as any).reponse_a).filter(Boolean) ?? []) as number[]),
+    ...((demandesCertification?.map(c => (c as any).reponse_a).filter(Boolean) ?? []) as number[]),
   ])]
   const idsAuteursEssais = [...new Set(essaisValidationRaw.map(e => e.user_id))]
   const idsAuteursModification = [...new Set(essaisModificationRaw.map(e => e.user_id))]
@@ -232,6 +238,7 @@ export default async function AdminPage() {
     { data: profilsPublies },
     { data: profilsSignalements },
     { data: titresEssaisCommentes },
+    { data: commentairesParents },
   ] = await Promise.all([
     segIdsUniques.length > 0 ? supabaseAdmin.from('segments').select('id, segment_texte, segment_numero, id_oeuvre').in('id', segIdsUniques) : Promise.resolve({ data: [] as any[], error: null }),
     idsVersetsCertif.length > 0 ? supabaseAdmin.from('versets_lecture').select('id_verset, ref, TR0001').in('id_verset', idsVersetsCertif) : Promise.resolve({ data: [] as any[], error: null }),
@@ -242,6 +249,7 @@ export default async function AdminPage() {
     idsAuteursPublies.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo, nom, prenom').in('id', idsAuteursPublies) : Promise.resolve({ data: [] as any[], error: null }),
     idsAuteursSignalements.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursSignalements) : Promise.resolve({ data: [] as any[], error: null }),
     idsEssaisCommentes.length > 0 ? supabaseAdmin.from('essais').select('id, titre').in('id', idsEssaisCommentes) : Promise.resolve({ data: [] as any[], error: null }),
+    idsParents.length > 0 ? supabaseAdmin.from('commentaires').select('id, auteur_nom, texte').in('id', idsParents) : Promise.resolve({ data: [] as any[], error: null }),
   ])
 
   // ── Traitement ─────────────────────────────────────────────────────────────
@@ -257,6 +265,8 @@ export default async function AdminPage() {
   ;(auteursData ?? []).forEach((a: any) => (a.oeuvres ?? []).forEach((o: any) => { oeuvreTitreMap[o.id_oeuvre] = `${a.nom} — ${o.titre}` }))
   const signalementAuteurMap: Record<string, string> = {}
   ;(profilsSignalements ?? []).forEach((p: any) => { if (p.pseudo) signalementAuteurMap[p.id] = p.pseudo })
+  const commentaireParentMap: Record<number, { auteur_nom: string; texte: string }> = {}
+  ;(commentairesParents ?? []).forEach((c: any) => { commentaireParentMap[c.id] = { auteur_nom: c.auteur_nom ?? 'Anonyme', texte: c.texte ?? '' } })
 
   // Commentaires de publications (essais) en attente de modération.
   const titreEssaiMap: Record<number, string> = {}
@@ -313,6 +323,7 @@ export default async function AdminPage() {
       segMap={segMap}
       oeuvreTitreMap={oeuvreTitreMap}
       signalementAuteurMap={signalementAuteurMap}
+      commentaireParentMap={commentaireParentMap}
       auteurs={auteurs}
       traductions={traductions ?? []}
       nbVerifications={nbVerifications ?? 0}

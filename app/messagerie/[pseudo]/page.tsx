@@ -105,7 +105,7 @@ export default function ConversationPage() {
         </button>
         <div>
           <Link href={`/profil/${encodeURIComponent(pseudo)}`}
-            style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '16px', color: '#1e2e24', textDecoration: 'none', fontWeight: 400 }}>
+            style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: '#1e2e24', textDecoration: 'none', fontWeight: 400 }}>
             {pseudo}
           </Link>
           <p style={{ fontSize: '10px', color: '#b0a89e', margin: '1px 0 0', letterSpacing: '0.04em' }}>
@@ -115,7 +115,7 @@ export default function ConversationPage() {
       </div>
 
       {/* Zone messages */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 8px', maxWidth: '720px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 8px', maxWidth: '45rem', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
         {erreur ? (
           <p style={{ textAlign: 'center', fontSize: '13px', color: '#c87070', fontStyle: 'italic' }}>{erreur}</p>
         ) : messages === null ? (
@@ -166,7 +166,7 @@ export default function ConversationPage() {
 
       {/* Zone saisie */}
       {connecte && !erreur && (
-        <div style={{ background: '#faf8f4', borderTop: '1px solid #e4dfd8', padding: '12px 20px', maxWidth: '720px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
+        <div style={{ background: '#faf8f4', borderTop: '1px solid #e4dfd8', padding: '12px 20px', maxWidth: '45rem', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
             <textarea
               className="msg-input"

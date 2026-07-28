@@ -12,7 +12,7 @@ export default function AccueilPage() {
       <style>{`
         html { scroll-behavior: smooth; }
         .colophon-body { font-family: var(--font-source-serif), Georgia, serif; }
-        .colophon-ornement { font-size: 18px; color: #7a6a52; letter-spacing: 0.25em; }
+        .colophon-ornement { font-size: 1.125rem; color: #7a6a52; letter-spacing: 0.25em; }
         .colophon-regle { display: block; width: 36px; height: 1px; background: #c8b89e; margin: 0 auto; }
         .hero-title-ornament { width: min(265px, 48vw); height: auto; display: block; margin: 0 auto 8px; opacity: .82; }
         .hero-title-ornament + div { display: none; }
@@ -33,9 +33,9 @@ export default function AccueilPage() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "flex-start",
           width: "100%",
-          padding: "42px 0 0",
+          padding: "clamp(48px, 8vh, 110px) 0 0",
         }}>
         <header style={{ textAlign: "center", marginBottom: "34px" }}>
           <img
@@ -46,14 +46,14 @@ export default function AccueilPage() {
           />
 
           {/* Marque typographique supérieure */}
-          <div style={{ fontSize: "15px", color: "#8a7440", marginBottom: "22px", letterSpacing: "0.38em" }}>
+          <div style={{ fontSize: "0.9375rem", color: "#8a7440", marginBottom: "22px", letterSpacing: "0.38em" }}>
             ❧ · ❧
           </div>
 
           {/* Titre principal */}
           <h1 style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
-            fontSize: "clamp(26px, 3.4vw, 38px)",
+            fontSize: "clamp(30px, 4.4vw, 54px)",
             fontWeight: "normal",
             color: "#1a2818",
             lineHeight: 1.2,
@@ -67,14 +67,14 @@ export default function AccueilPage() {
           {/* Filet */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", margin: "0 auto 14px", maxWidth: "240px" }}>
             <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #b8a070)" }} />
-            <span style={{ fontSize: "10px", color: "#9a8248", letterSpacing: "0.2em" }}>✦</span>
+            <span style={{ fontSize: "0.625rem", color: "#9a8248", letterSpacing: "0.2em" }}>✦</span>
             <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #b8a070)" }} />
           </div>
 
           {/* Sous-titre */}
           <p style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
-            fontSize: "14px",
+            fontSize: "0.875rem",
             fontStyle: "italic",
             color: "#4a6050",
             letterSpacing: "0.02em",
@@ -83,7 +83,7 @@ export default function AccueilPage() {
             Lectures bibliques et patristiques
           </p>
           <p style={{
-            fontSize: "10px",
+            fontSize: "0.625rem",
             fontWeight: 600,
             letterSpacing: "0.20em",
             textTransform: "uppercase",
@@ -94,6 +94,27 @@ export default function AccueilPage() {
         </header>
 
         <AccueilCards />
+
+        {/* Logo du site — deux anges encadrant le livre, en emblème sous les cartes.
+            Le PNG est en crème ; on le rend via un masque CSS pour le teinter et le
+            poser comme un fer typographique sur le parchemin. Il occupe (flex:1)
+            l'espace libre entre les cartes et le bouton « Soutenir », centré. */}
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minHeight: "clamp(120px, 20vh, 240px)", padding: "28px 0 8px" }}>
+          <div aria-hidden="true" style={{
+            width: "clamp(150px, 19vw, 275px)",
+            aspectRatio: "1079 / 757",
+            WebkitMaskImage: "url(/icons/corpus-scriptura-mark.png)",
+            maskImage: "url(/icons/corpus-scriptura-mark.png)",
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+            WebkitMaskSize: "contain",
+            maskSize: "contain",
+            WebkitMaskPosition: "center",
+            maskPosition: "center",
+            background: "#9a8248",
+            opacity: 0.9,
+          }} />
+        </div>
         </div>
 
         {/* Soutenir — ancré en bas du viewport initial */}
@@ -101,7 +122,7 @@ export default function AccueilPage() {
           display: "inline-flex",
           alignItems: "center",
           gap: "7px",
-          fontSize: "12px",
+          fontSize: "0.75rem",
           color: "#3a5030",
           background: "rgba(255,253,245,0.97)",
           textDecoration: "none",
@@ -123,17 +144,17 @@ export default function AccueilPage() {
       {/* ── À propos — style colophon ─────────────────────────────────────── */}
       <div id="apropos" style={{ background: "#f3efe2", scrollMarginTop: "48px", borderTop: "1px solid #d8cdb0" }}>
         <div style={{
-          maxWidth: "560px",
+          maxWidth: "35rem",
           margin: "0 auto",
           padding: "72px 32px 80px",
           textAlign: "center",
           fontFamily: "var(--font-source-serif), Georgia, serif",
-          color: "#2a2218",
+          color: "#2a2c20",
         }}>
 
           {/* En-tête colophon */}
           <div style={{ marginBottom: "52px" }}>
-            <div style={{ fontSize: "20px", color: "#9a8248", marginBottom: "18px", letterSpacing: "0.18em" }}>
+            <div style={{ fontSize: "1.25rem", color: "#9a8248", marginBottom: "18px", letterSpacing: "0.18em" }}>
               ❧
             </div>
             <h2 style={{
@@ -178,22 +199,22 @@ export default function AccueilPage() {
           {/* ── Colophon final — pyramide ─────────────────────────────────── */}
           <div style={{ marginTop: "56px" }}>
             <OrnementsTriple />
-            <div style={{ marginTop: "32px", fontSize: "13px", lineHeight: "2.1", color: "#4a3e2e", letterSpacing: "0.01em" }}>
-              <p style={{ maxWidth: "460px", margin: "0 auto" }}>Imprimé sur le réseau des réseaux par les soins</p>
-              <p style={{ maxWidth: "380px", margin: "0 auto" }}>de <em>Corpus Scriptura</em>, somme ouverte dédiée</p>
-              <p style={{ maxWidth: "300px", margin: "0 auto" }}>à la lecture des Saintes Écritures</p>
-              <p style={{ maxWidth: "230px", margin: "0 auto" }}>et des Pères de l&rsquo;Église,</p>
-              <p style={{ maxWidth: "170px", margin: "0 auto" }}>en l&rsquo;An de grâce</p>
-              <p style={{ maxWidth: "110px", margin: "0 auto" }}>MMXXVI.</p>
+            <div style={{ marginTop: "32px", fontSize: "0.8125rem", lineHeight: "2.1", color: "#4a4a30", letterSpacing: "0.01em" }}>
+              <p style={{ maxWidth: "28.75rem", margin: "0 auto" }}>Imprimé sur le réseau des réseaux par les soins</p>
+              <p style={{ maxWidth: "23.75rem", margin: "0 auto" }}>de <em>Corpus Scriptura</em>, somme ouverte dédiée</p>
+              <p style={{ maxWidth: "18.75rem", margin: "0 auto" }}>à la lecture des Saintes Écritures</p>
+              <p style={{ maxWidth: "14.375rem", margin: "0 auto" }}>et des Pères de l&rsquo;Église,</p>
+              <p style={{ maxWidth: "10.625rem", margin: "0 auto" }}>en l&rsquo;An de grâce</p>
+              <p style={{ maxWidth: "6.875rem", margin: "0 auto" }}>MMXXVI.</p>
             </div>
 
             {/* Marque finale */}
-            <div style={{ marginTop: "28px", fontSize: "20px", color: "#9a8a6e", letterSpacing: "0.3em" }}>
+            <div style={{ marginTop: "28px", fontSize: "1.25rem", color: "#9a8a6e", letterSpacing: "0.3em" }}>
               ✦
             </div>
 
             {/* Liens légaux */}
-            <div style={{ marginTop: "28px", fontSize: "10.5px", color: "#b0a088", letterSpacing: "0.06em" }}>
+            <div style={{ marginTop: "28px", fontSize: "0.65625rem", color: "#b0a088", letterSpacing: "0.06em" }}>
               <Link href="/conditions-utilisation" style={{ color: "#9a8a6e", textDecoration: "none", borderBottom: "1px dotted #c8b89e" }}>
                 Conditions d&rsquo;utilisation
               </Link>
@@ -216,7 +237,7 @@ function OrnementsTriple() {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", margin: "0 auto", maxWidth: "300px" }}>
       <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #b8a060)" }} />
-      <span style={{ fontSize: "16px", color: "#9a8248", letterSpacing: "0.15em" }}>⁂</span>
+      <span style={{ fontSize: "1rem", color: "#9a8248", letterSpacing: "0.15em" }}>⁂</span>
       <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #b8a060)" }} />
     </div>
   )
@@ -226,7 +247,7 @@ function ColophonSection({ titre, children }: { titre: string; children: React.R
   return (
     <section style={{ marginBottom: "44px" }}>
       <h3 style={{
-        fontSize: "10px",
+        fontSize: "0.625rem",
         fontWeight: 600,
         letterSpacing: "0.22em",
         textTransform: "uppercase",
@@ -246,8 +267,8 @@ function ColophonSection({ titre, children }: { titre: string; children: React.R
 }
 
 const paraStyle: React.CSSProperties = {
-  fontSize: "14px",
+  fontSize: "0.875rem",
   lineHeight: "1.75",
-  color: "#2e2618",
+  color: "#2a2c20",
   margin: 0,
 }

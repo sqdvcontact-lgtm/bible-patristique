@@ -10,8 +10,10 @@ import EtoileFavori from '@/app/components/EtoileFavori'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { libelleTrad, formaterEditeur } from '@/app/oeuvre/[id]/PageTitre'
+import { useEditeursCharges } from '@/app/lib/editeurs'
 import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
+import ModalSignalement from '@/app/components/ModalSignalement'
 
 type Oeuvre = {
   id_oeuvre: string; titre: string; sous_titre: string | null
@@ -123,7 +125,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
         <div style={{ flex: 1, padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px' }}>
-              <h2 style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '14px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0 }}>
+              <h2 style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.875rem', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0 }}>
                 {auteur.nom}
               </h2>
               <button onClick={() => onOuvrirAuteur(auteur.id_auteur)} title="Voir la fiche de l’auteur"
@@ -134,28 +136,28 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
               </button>
             </div>
             {datesAuteur && (
-              <p style={{ fontSize: '11.5px', color: '#9a8a70', margin: '1px 0 0', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', letterSpacing: '0.01em' }}>
+              <p style={{ fontSize: '0.71875rem', color: '#9a8a70', margin: '1px 0 0', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', letterSpacing: '0.01em' }}>
                 {rendreSiecles(datesAuteur)}
               </p>
             )}
           </div>
 
           {(auteur.note_biographique || auteur.note) && (
-            <p style={{ fontSize: '11.5px', color: '#5a5450', lineHeight: 1.6, margin: 0, fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+            <p style={{ fontSize: '0.71875rem', color: '#5a5450', lineHeight: 1.6, margin: 0, fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
               {rendreSiecles(auteur.note_biographique || auteur.note)}
             </p>
           )}
 
           {auteur.note_theologique && (
-            <p style={{ fontSize: '11.5px', color: '#5a5450', lineHeight: 1.6, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+            <p style={{ fontSize: '0.71875rem', color: '#5a5450', lineHeight: 1.6, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
               {rendreSiecles(auteur.note_theologique)}
             </p>
           )}
 
           <div style={{ marginTop: 'auto', paddingTop: '6px' }}>
             <button onClick={() => setOuvert(!ouvert)}
-              style={{ fontSize: '10.5px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ fontSize: '8px' }}>{listeOuverte ? '▲' : '▼'}</span>
+              style={{ fontSize: '0.65625rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ fontSize: '0.5rem' }}>{listeOuverte ? '▲' : '▼'}</span>
               {nbMot.charAt(0).toUpperCase() + nbMot.slice(1)} œuvre{nb > 1 ? 's' : ''} disponible{nb > 1 ? 's' : ''}
             </button>
           </div>
@@ -179,37 +181,51 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
             .bib-fleche { transition: transform 0.22s ease; }
             .bib-ligne:hover .bib-fleche, .bib-correspond .bib-fleche { transform: translateX(3px); }
           `}</style>
-          {oeuvresTriees.map((o, idx) => {
-            const correspond = oeuvreCorrespondante?.id_oeuvre === o.id_oeuvre
-            const estFavori = favorisOeuvres.has(o.id_oeuvre)
-            const edition = [o.editeur, o.ville, formaterDateHistorique(o.date_publication)].filter(Boolean).join(', ')
-            const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
-            const meta = edition && trad ? `${edition} – ${trad}` : edition || trad
-            return (
-              <div key={o.id_oeuvre}
-                className={`bib-ligne${correspond ? ' bib-correspond' : ''}`}
-                style={{ borderTop: idx > 0 ? '1px solid #f3efe9' : 'none' }}>
-                <Link href={`/oeuvre/${o.id_oeuvre}`}
-                  style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', padding: '9px 12px 9px 20px', textDecoration: 'none', borderLeft: correspond ? '3px solid #3d6b4f' : '3px solid transparent' }}>
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: '13px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? '#2a4d35' : '#2a3d30', fontWeight: correspond ? 600 : 400, lineHeight: 1.35 }}>{o.titre}</span>
-                    {meta ? (
-                      <span style={{ display: 'block', fontSize: '10.5px', color: '#a59c90', marginTop: '2px', lineHeight: 1.4 }}>{rendreSiecles(meta)}</span>
-                    ) : (
-                      <span style={{ display: 'block', fontSize: '10.5px', color: '#c4bcb0', marginTop: '2px', lineHeight: 1.4, fontStyle: 'italic' }}>Certaines données manquent.</span>
-                    )}
-                  </span>
-                  <span className="bib-lire">
-                    Lire cette œuvre
-                    <svg className="bib-fleche" width="17" height="9" viewBox="0 0 18 9" fill="none" aria-hidden="true"><path d="M0.5 4.5h15.5M12 1l4 3.5-4 3.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </span>
-                </Link>
-                <div style={{ display: 'flex', alignItems: 'center', paddingRight: '14px' }}>
-                  <EtoileFavori actif={estFavori} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} />
+          {/* UNE ligne par œuvre (titre), UNE sous-ligne cliquable par traduction : chaque
+              traduction mène à sa propre édition. Aujourd'hui une œuvre = une traduction ;
+              la structure accueille les éditions multiples à venir. */}
+          {(() => {
+            const oeuvresParTitre: { titre: string; versions: Oeuvre[] }[] = []
+            for (const o of oeuvresTriees) {
+              const dernier = oeuvresParTitre[oeuvresParTitre.length - 1]
+              if (dernier && sansAccents(dernier.titre) === sansAccents(o.titre)) dernier.versions.push(o)
+              else oeuvresParTitre.push({ titre: o.titre, versions: [o] })
+            }
+            return oeuvresParTitre.map((grp, idx) => {
+              const correspond = !!oeuvreCorrespondante && grp.versions.some(v => v.id_oeuvre === oeuvreCorrespondante.id_oeuvre)
+              return (
+                <div key={grp.versions[0].id_oeuvre}
+                  className={`bib-oeuvre${correspond ? ' bib-correspond' : ''}`}
+                  style={{ borderTop: idx > 0 ? '1px solid #f3efe9' : 'none', borderLeft: correspond ? '3px solid #3d6b4f' : '3px solid transparent', padding: '7px 0 8px' }}>
+                  <span style={{ display: 'block', fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? '#2a4d35' : '#2a3d30', fontWeight: correspond ? 600 : 400, lineHeight: 1.35, padding: '0 18px 0 20px' }}>{grp.titre}</span>
+                  {grp.versions.map(o => {
+                    const edition = [o.editeur, o.ville, formaterDateHistorique(o.date_publication)].filter(Boolean).join(', ')
+                    const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
+                    const libelle = trad || edition || 'Édition'
+                    return (
+                      <div key={o.id_oeuvre} className="bib-ligne" style={{ marginTop: '3px' }}>
+                        <Link href={`/oeuvre/${o.id_oeuvre}`}
+                          style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 12px 4px 32px', textDecoration: 'none' }}>
+                          <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '11.5px', color: '#3d6b4f', fontWeight: 500 }}>{trad ? `Traduction ${libelle}` : libelle}</span>
+                            {trad && edition && <span style={{ fontSize: '10px', color: '#a59c90' }}>{rendreSiecles(edition)}</span>}
+                            {!trad && !edition && <span style={{ fontSize: '10px', color: '#c4bcb0', fontStyle: 'italic' }}>Certaines données manquent.</span>}
+                          </span>
+                          <span className="bib-lire">
+                            Lire
+                            <svg className="bib-fleche" width="17" height="9" viewBox="0 0 18 9" fill="none" aria-hidden="true"><path d="M0.5 4.5h15.5M12 1l4 3.5-4 3.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          </span>
+                        </Link>
+                        <div style={{ display: 'flex', alignItems: 'center', paddingRight: '14px' }}>
+                          <EtoileFavori actif={favorisOeuvres.has(o.id_oeuvre)} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} />
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
-              </div>
-            )
-          })}
+              )
+            })
+          })()}
         </div>
       )}
     </div>
@@ -279,6 +295,13 @@ type NoticeCompacte = {
 }
 
 function cleOeuvreCatalogue(n: NoticeCompacte) {
+  // Regroupement d'AFFICHAGE, données brutes intactes (charte : résolution à l'affichage).
+  // Les notices « Notice générique — doublon de V20-NNNNN » (stubs d'import à titres variants :
+  // « De la foi en la Trinité » / « … en la sainte Trinité ») désignent la MÊME édition source :
+  // on les fond sous le code V20 commun au lieu de leurs id_oeuvre_stable distincts, sans jamais
+  // toucher aux données validées.
+  const code = n.titre_edition?.match(/V20-(\d+)/)?.[1]
+  if (code) return `${n.auteur}__V20-${code}`
   return `${n.auteur}__${n.id_oeuvre_stable || n.titre_stable}`
 }
 
@@ -296,6 +319,31 @@ const BOUTON_ICONE: React.CSSProperties = {
 
 // ── Panneau auteur catalogue (tons gris/mordorés) ────────────────────────────
 type GroupeCatalogue = { cle: string; titreStable: string; notices: NoticeCompacte[] }
+
+// Signalement d'une traduction du catalogue : même fenêtre partagée que partout ailleurs,
+// message libre, atterrit dans l'onglet Modération (via /api/signalements + `reference`).
+function BoutonSignalerNotice({ reference, texte }: { reference: string; texte?: string }) {
+  const [ouvert, setOuvert] = useState(false)
+  const envoyer = async (message: string, importance?: string) => {
+    const { data } = await supabase.auth.getSession()
+    const token = data.session?.access_token
+    const headers: HeadersInit = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+    const res = await fetch('/api/signalements', {
+      method: 'POST', headers,
+      body: JSON.stringify({ reference, message, importance, url_source: typeof window !== 'undefined' ? window.location.href : null }),
+    })
+    if (!res.ok) throw new Error('échec du signalement')
+  }
+  return (
+    <>
+      <button onClick={e => { e.stopPropagation(); setOuvert(true) }} title="Signaler une erreur sur cette traduction"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: '7px', color: '#c4b8a4', fontSize: '10.5px', lineHeight: 1 }}
+        onMouseEnter={e => (e.currentTarget.style.color = '#b0442a')}
+        onMouseLeave={e => (e.currentTarget.style.color = '#c4b8a4')}>⚑</button>
+      {ouvert && <ModalSignalement titre={reference} texteObjet={texte} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
+    </>
+  )
+}
 
 function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter, onProposer }: {
   nomAuteur: string
@@ -391,6 +439,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                         <span key={n.id} style={{ fontSize: '10.5px', color: '#a09080', lineHeight: 1.4 }}>
                           {meta || titreDeclineCatalogue(n)}
                           {dp && <span title="Domaine public — œuvre libre de droits" style={{ marginLeft: '5px', fontSize: '9px', color: '#7a8a6a', fontWeight: 700, letterSpacing: '0.04em', cursor: 'help' }}>DP</span>}
+                          <BoutonSignalerNotice reference={`${nomAuteur} — ${groupe.titreStable}`} texte={meta || titreDeclineCatalogue(n)} />
                         </span>
                       )
                     })}
@@ -511,7 +560,20 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
   )
 }
 
-function SectionCatalogueManquant() {
+function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
+  // Croisement des formes de nom : la recherche sur un auteur du catalogue doit répondre
+  // aussi bien à sa forme moderne qu'ancienne/originale. On indexe, pour chaque forme
+  // rencontrée dans `auteurs` (nom + nom_original), l'ensemble des formes de cet auteur.
+  // C'est une simple Map bâtie une fois — négligeable pour le moteur de recherche.
+  const nomFormes = useMemo(() => {
+    const m = new Map<string, string>()
+    for (const a of auteurs) {
+      const formes = [a.nom, a.nom_original].filter(Boolean) as string[]
+      const combine = formes.map(f => sansAccents(f)).join(' ')
+      for (const f of formes) m.set(sansAccents(f), combine)
+    }
+    return m
+  }, [auteurs])
   const [notices, setNotices] = useState<NoticeCompacte[]>([])
   const [chargement, setChargement] = useState(false)
   const [chargé, setChargé] = useState(false)
@@ -613,10 +675,13 @@ function SectionCatalogueManquant() {
 
   // Recherche (auteur ou titre d'œuvre), identique à la bibliothèque.
   const q = sansAccents(recherche.trim())
+  // Recherche restreinte AUX SEULS noms d'auteur (toutes formes, via le croisement) et aux
+  // titres d'œuvres — rien d'autre (ni traducteur, ni éditeur…).
   const auteursTriés = q
-    ? auteursTriésTous.filter(nom =>
-        sansAccents(nom).includes(q) ||
-        parAuteur[nom].some(g => sansAccents(g.titreStable).includes(q)))
+    ? auteursTriésTous.filter(nom => {
+        const formes = `${sansAccents(nom)} ${nomFormes.get(sansAccents(nom)) ?? ''}`
+        return formes.includes(q) || parAuteur[nom].some(g => sansAccents(g.titreStable).includes(q))
+      })
     : auteursTriésTous
 
   const nbPages = Math.max(1, Math.ceil(auteursTriés.length / PAR_PAGE))
@@ -1202,36 +1267,52 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
           .fav-fleche { transition: transform 0.22s ease; }
           .fav-ligne:hover .fav-fleche { transform: translateX(3px); }
         `}</style>
-        {oeuvresFavorites.map(({ oeuvre: o, auteur: a }, idx) => {
-          const edition = [o.editeur, o.ville, formaterDateHistorique(o.date_publication)].filter(Boolean).join(', ')
-          const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
-          const meta = edition && trad ? `${edition} – ${trad}` : edition || trad
-          return (
-            <div key={o.id_oeuvre}
-              className="fav-ligne"
-              style={{ borderTop: idx > 0 ? '1px solid #f2e9d8' : 'none' }}>
-              <Link href={`/oeuvre/${o.id_oeuvre}`}
-                style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', padding: '9px 12px 9px 20px', textDecoration: 'none', borderLeft: '3px solid #cfa657' }}>
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: '13px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: '#3a3122', lineHeight: 1.35 }}>{o.titre}</span>
-                  <span style={{ display: 'block', fontSize: '11px', color: '#a08a5e', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', marginTop: '1px' }}>{a.nom}</span>
-                  {meta ? (
-                    <span style={{ display: 'block', fontSize: '10.5px', color: '#b3a488', marginTop: '2px', lineHeight: 1.4 }}>{rendreSiecles(meta)}</span>
-                  ) : (
-                    <span style={{ display: 'block', fontSize: '10.5px', color: '#cbbfa2', marginTop: '2px', lineHeight: 1.4, fontStyle: 'italic' }}>Certaines données manquent.</span>
-                  )}
-                </span>
-                <span className="fav-lire">
-                  Lire cette œuvre
-                  <svg className="fav-fleche" width="17" height="9" viewBox="0 0 18 9" fill="none" aria-hidden="true"><path d="M0.5 4.5h15.5M12 1l4 3.5-4 3.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </span>
-              </Link>
-              <div style={{ display: 'flex', alignItems: 'center', paddingRight: '14px' }}>
-                <EtoileFavori actif={true} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} />
-              </div>
+        {/* Regroupées par auteur : un intitulé d'auteur par bloc, puis ses œuvres — le nom
+            de l'auteur n'est plus répété sous chaque titre. */}
+        {(() => {
+          const blocs: { auteur: Auteur; oeuvres: Oeuvre[] }[] = []
+          for (const { oeuvre, auteur } of oeuvresFavorites) {
+            const dernier = blocs[blocs.length - 1]
+            if (dernier && dernier.auteur.id_auteur === auteur.id_auteur) dernier.oeuvres.push(oeuvre)
+            else blocs.push({ auteur, oeuvres: [oeuvre] })
+          }
+          return blocs.map((bloc, bi) => (
+            <div key={bloc.auteur.id_auteur} style={{ borderTop: bi > 0 ? '1px solid #eadfc9' : 'none' }}>
+              <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a7636', margin: 0, padding: '9px 20px 3px' }}>
+                {bloc.auteur.nom}
+              </p>
+              {bloc.oeuvres.map((o, idx) => {
+                const edition = [o.editeur, o.ville, formaterDateHistorique(o.date_publication)].filter(Boolean).join(', ')
+                const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
+                const meta = edition && trad ? `${edition} – ${trad}` : edition || trad
+                return (
+                  <div key={o.id_oeuvre}
+                    className="fav-ligne"
+                    style={{ borderTop: idx > 0 ? '1px solid #f2e9d8' : 'none' }}>
+                    <Link href={`/oeuvre/${o.id_oeuvre}`}
+                      style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', padding: '7px 12px 7px 20px', textDecoration: 'none', borderLeft: '3px solid #cfa657' }}>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: '13px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: '#3a3122', lineHeight: 1.35 }}>{o.titre}</span>
+                        {meta ? (
+                          <span style={{ display: 'block', fontSize: '10.5px', color: '#b3a488', marginTop: '2px', lineHeight: 1.4 }}>{rendreSiecles(meta)}</span>
+                        ) : (
+                          <span style={{ display: 'block', fontSize: '10.5px', color: '#cbbfa2', marginTop: '2px', lineHeight: 1.4, fontStyle: 'italic' }}>Certaines données manquent.</span>
+                        )}
+                      </span>
+                      <span className="fav-lire">
+                        Lire cette œuvre
+                        <svg className="fav-fleche" width="17" height="9" viewBox="0 0 18 9" fill="none" aria-hidden="true"><path d="M0.5 4.5h15.5M12 1l4 3.5-4 3.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </span>
+                    </Link>
+                    <div style={{ display: 'flex', alignItems: 'center', paddingRight: '14px' }}>
+                      <EtoileFavori actif={true} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} />
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-          )
-        })}
+          ))
+        })()}
       </div>
     </div>
   )
@@ -1253,6 +1334,7 @@ function normaliserAuteurs(data: any[]): Auteur[] {
 }
 
 export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteurs: Auteur[] }) {
+  useEditeursCharges()
   const searchParams = useSearchParams()
   const [auteurs, setAuteurs] = useState<Auteur[]>(auteursInitiaux)
   const [onglet, setOnglet] = useState<Onglet>('bibliotheque')
@@ -1288,7 +1370,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '48px' }}>
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '22px 32px 40px' }}>
+      <div style={{ maxWidth: '56.25rem', margin: '0 auto', padding: '22px 32px 40px' }}>
 
         {/* En-tête : titre, onglets et recherche, avec une même respiration verticale (≈14 px)
             entre chaque strate pour former un bloc au rythme régulier. */}
@@ -1306,7 +1388,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
                 <span style={{ width: '1px', background: '#e0d8ce', alignSelf: 'center', height: '14px', flexShrink: 0 }} />
               )}
               <button onClick={() => setOnglet(key)} style={{
-                flex: 1, padding: '8px 8px', fontSize: '12px', fontFamily: 'var(--font-source-serif), Georgia, serif',
+                flex: 1, padding: '8px 8px', fontSize: '0.75rem', fontFamily: 'var(--font-source-serif), Georgia, serif',
                 textAlign: 'center',
                 background: 'none', border: 'none', borderBottom: onglet === key ? '2px solid #3d6b4f' : '2px solid transparent',
                 color: onglet === key ? '#3d6b4f' : '#8a8278', cursor: 'pointer',
@@ -1358,7 +1440,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
         )}
 
         {/* Contenu onglet Traductions indisponibles */}
-        {onglet === 'catalogue' && <SectionCatalogueManquant />}
+        {onglet === 'catalogue' && <SectionCatalogueManquant auteurs={auteurs} />}
 
         {/* Contenu onglet Proposer */}
         {onglet === 'proposer' && <OngletProposer />}

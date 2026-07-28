@@ -382,6 +382,9 @@ function OngletCommunaute({
         .publication-populaire-meta {
           font-size: 9.5px;
           color: #a49b90;
+          display: inline-flex;
+          align-items: center;
+          line-height: 1;
         }
         /* Cœur « j'aime » : bouton nu imbriqué dans le lien de la carte (même
            procédé que l'étoile favori), au ton rosé quand la publication est aimée. */
@@ -1308,23 +1311,24 @@ function OngletMesEcrits({
   }
 
   return (
-    <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', flexWrap: 'wrap', marginBottom: '16px' }}>
+    <div style={{ maxWidth: '680px', margin: '0 auto' }}>
+      {/* Filtres — puces discrètes ; le compteur ne s'affiche que s'il y a des écrits. */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', flexWrap: 'wrap', marginBottom: '14px' }}>
         {groupes.map(g => {
           const actif = filtre === g.key
           const nb = essais.filter(g.test).length
           return (
             <button key={g.key} onClick={() => setFiltre(g.key)}
-              style={{ fontSize: '10.5px', padding: '4px 10px', borderRadius: '12px', border: `1px solid ${actif ? '#3d6b4f' : '#d6d0c4'}`, background: actif ? 'rgba(61,107,79,0.10)' : '#fff', color: actif ? '#3d6b4f' : '#8a8278', cursor: 'pointer', fontWeight: actif ? 700 : 500 }}>
-              {g.label} <span style={{ opacity: 0.65 }}>{nb}</span>
+              style={{ fontSize: '10px', padding: '3px 10px', borderRadius: '999px', border: `1px solid ${actif ? '#3d6b4f' : '#e0dacf'}`, background: actif ? 'rgba(61,107,79,0.09)' : 'transparent', color: actif ? '#3d6b4f' : '#9a958d', cursor: 'pointer', fontWeight: actif ? 700 : 500, letterSpacing: '0.01em' }}>
+              {g.label}{nb > 0 ? <span style={{ opacity: 0.55, marginLeft: '4px' }}>{nb}</span> : null}
             </button>
           )
         })}
       </div>
       {essaisFiltres.length === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: '12.5px', color: '#9a958d', fontStyle: 'italic' }}>Aucun écrit dans cet onglet.</p>
+        <p style={{ textAlign: 'center', fontSize: '12px', color: '#9a958d', fontStyle: 'italic' }}>Aucun écrit dans cet onglet.</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {essaisFiltres.map(e => {
             const st = STATUTS[e.statut] ?? { label: e.statut, couleur: '#9a958d' }
             const date = e.publie_at ?? e.updated_at
@@ -1336,39 +1340,37 @@ function OngletMesEcrits({
             const peutBasculer = dejaValide && (e.statut === 'publie' || e.statut === 'brouillon')
             const timer = verrouille ? formatTimer(restant) : ''
             return (
-              <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'center', background: statutStyle.fond, border: `1px solid ${statutStyle.bordure}`, borderLeft: `4px solid ${statutStyle.accent}`, borderRadius: '8px', padding: '10px 13px 10px 12px' }}>
+              <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', background: statutStyle.fond, border: `1px solid ${statutStyle.bordure}`, borderLeft: `3px solid ${statutStyle.accent}`, borderRadius: '7px', padding: '8px 12px' }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                    <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#1e2e24', margin: 0 }}>{e.titre}</p>
-                    {e.sous_titre && <p style={{ fontSize: '12px', color: '#8a8278', fontStyle: 'italic', margin: 0 }}>{e.sous_titre}</p>}
+                    <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '14px', color: '#1e2e24', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.titre}</span>
+                    {e.sous_titre && <span style={{ fontSize: '11.5px', color: '#8a8278', fontStyle: 'italic' }}>{e.sous_titre}</span>}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', fontSize: '10px', color: '#b0a89e', marginTop: '3px' }}>
-                    <span>{date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Sans date'}</span>
+                  {/* Méta sur UNE seule ligne : statut · date · vues · cœurs. La révision en
+                      cours est signalée là, sans encart séparé. */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', fontSize: '9.5px', color: '#b0a89e', marginTop: '2px' }}>
+                    <span style={{ color: st.couleur, fontWeight: 700 }}>{st.label}</span>
+                    <span>{date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Sans date'}</span>
                     <span>{e.nb_vues ?? 0} vue{(e.nb_vues ?? 0) > 1 ? 's' : ''}</span>
                     <span>♥ {e.nb_likes ?? 0}</span>
-                    <span style={{ color: st.couleur, fontWeight: 700 }}>{st.label}</span>
+                    {e.statut === 'en_attente' && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#9a5a2a', fontWeight: 600 }}>
+                        <svg width="9" height="9" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                          <circle cx="8" cy="8" r="6.2" stroke="#9a5a2a" strokeWidth="1.4"/>
+                          <path d="M8 4.6V8l2.4 1.6" stroke="#9a5a2a" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        révision en cours
+                      </span>
+                    )}
                   </div>
-                  {/* Mention explicite tant que l'administration examine le texte : le
-                      petit mot « En attente » ne dit pas de quoi. Ici on précise que la
-                      révision / validation est en cours de leur côté. */}
-                  {e.statut === 'en_attente' && (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '7px', padding: '3px 10px', borderRadius: '999px', background: 'rgba(154,90,42,0.10)', border: '1px solid rgba(154,90,42,0.28)' }}>
-                      <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                        <circle cx="8" cy="8" r="6.2" stroke="#9a5a2a" strokeWidth="1.3"/>
-                        <path d="M8 4.6V8l2.4 1.6" stroke="#9a5a2a" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      <span style={{ fontSize: '10px', fontWeight: 600, color: '#9a5a2a' }}>En cours de révision par l’administration</span>
-                    </div>
-                  )}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
                   <button onClick={() => basculerPublication(e)} disabled={!peutBasculer || verrouille}
                     title={!dejaValide ? "Publication possible après validation par l'administration." : verrouille ? 'Interrupteur disponible une heure après le dernier changement.' : e.statut === 'publie' ? 'Dépublier' : 'Publier'}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '10.5px', color: e.statut === 'publie' ? '#3d6b4f' : '#8a8278', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.45 : 1, fontWeight: 700 }}>
-                    <span>Publié</span>
-                    {timer && <span style={{ fontSize: '9.5px', color: '#9a958d', fontWeight: 600 }}>{timer}</span>}
-                    <span style={{ width: '28px', height: '15px', borderRadius: '999px', background: e.statut === 'publie' ? '#3d6b4f' : '#d6d0c4', position: 'relative', display: 'inline-block', transition: 'background 0.15s' }}>
-                      <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '15px' : '2px', width: '11px', height: '11px', borderRadius: '50%', background: '#fff', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: e.statut === 'publie' ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.4 : 1, fontWeight: 600 }}>
+                    {timer && <span style={{ fontSize: '9px', color: '#9a958d', fontWeight: 600 }}>{timer}</span>}
+                    <span style={{ width: '26px', height: '14px', borderRadius: '999px', background: e.statut === 'publie' ? '#3d6b4f' : '#d6d0c4', position: 'relative', display: 'inline-block', transition: 'background 0.15s' }}>
+                      <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '14px' : '2px', width: '10px', height: '10px', borderRadius: '50%', background: '#fff', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
                     </span>
                   </button>
                   <Link href={`/essais/${e.id}/modifier`} style={{ fontSize: '10.5px', color: '#3d6b4f', textDecoration: 'none', fontWeight: 600 }}>Modifier</Link>

@@ -141,7 +141,7 @@ function CarteLivre({ livre, lu, onToggle }: { livre: LivreBible; lu: boolean; o
         )}
       </span>
       <span style={{
-        fontSize: '13px', color: lu ? '#2a3d30' : '#3a3530',
+        fontSize: '0.8125rem', color: lu ? '#2a3d30' : '#3a3530',
         fontWeight: lu ? 600 : 400, fontFamily: "var(--font-source-serif), Georgia, serif",
       }}>
         {livre.nom}
@@ -260,9 +260,9 @@ export default function ProgressionClient() {
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 48px)', padding: '24px 24px 64px' }}>
-      <div style={{ maxWidth: '680px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '42.5rem', margin: '0 auto' }}>
         <h1 style={{
-          fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '22px',
+          fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.375rem',
           fontWeight: 'normal', color: '#2a3d30', marginBottom: '4px', textAlign: 'center',
         }}>
           Ma progression de lecture
@@ -283,7 +283,7 @@ export default function ProgressionClient() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto',
             }}>
               <div style={{ width: '106px', height: '106px', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '30px', color: '#2a3d30', lineHeight: 1 }}>{Math.round(pourcentTotalAnime)}%</span>
+                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.875rem', color: '#2a3d30', lineHeight: 1 }}>{Math.round(pourcentTotalAnime)}%</span>
                 <span style={{ fontSize: '10px', color: '#9a958d', marginTop: '3px' }}>parcouru</span>
               </div>
             </div>

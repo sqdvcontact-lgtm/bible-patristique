@@ -407,6 +407,11 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
       if (!nom.trim())   { setErreur('Le nom est requis.'); return }
       if (!mailValide(mail)) { setErreur('Adresse e-mail invalide.'); return }
     }
+    // Alerte UNIQUEMENT lorsque l'auteur demande à paraître sous son vrai nom (certification) :
+    // on l'avertit au moment d'envoyer, et non par un bandeau permanent.
+    if (userId && demandeValidation && !window.confirm('Ce commentaire sera soumis pour être publié sous votre vrai nom (commentaire certifié). Continuer ?')) {
+      return
+    }
     setEnvoi(true)
     const payload: any = { id_verset: verset.id_verset, texte: texte.trim(), valide: false, reponse_a: cibleReponse?.id ?? null, demande_validation: demandeValidation }
     if (userId) { payload.user_id = userId; payload.auteur_nom = pseudoMoi ?? 'Utilisateur' }
@@ -469,20 +474,21 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
         <div style={{ fontSize:'10.8px', lineHeight:'1.42', color: couleurTexte, margin:0, whiteSpace:'pre-line', background: fondTexte, borderRadius:'4px', padding:'5px 6px' }}>{rendreTexteEnrichi(c.texte)}</div>
         {/* Ligne 3 : date + votes (négatif puis positif) + actions */}
         <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'5px', flexWrap:'nowrap', whiteSpace:'nowrap', minWidth:0 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:'3px', flexShrink:0 }}>
-            <button onClick={() => basculerVote(c, -1)} title="Je n'aime pas"
-              style={{ display:'flex', alignItems:'center', gap:'3px', color: c.monVote === -1 ? '#9a4a2a' : '#b0a89e', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
-              <svg width="10" height="10" viewBox="0 0 20 20" fill="none" style={{ transform:'rotate(180deg)' }} aria-hidden="true">
-                <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              </svg>
-              <span style={{ minWidth:'10px', textAlign:'left', fontWeight:600, fontSize:'9px' }}>{c.nbDislikes}</span>
-            </button>
+          {/* J'aime EN PREMIER, puis Je n'aime pas ; les deux boutons resserrés. */}
+          <div style={{ display:'flex', alignItems:'center', gap:'1px', flexShrink:0 }}>
             <button onClick={() => basculerVote(c, 1)} title="J'aime"
-              style={{ display:'flex', alignItems:'center', gap:'3px', color: c.monVote === 1 ? '#3d6b4f' : '#b0a89e', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
+              style={{ display:'flex', alignItems:'center', gap:'2px', color: c.monVote === 1 ? '#3d6b4f' : '#b0a89e', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
               <svg width="10" height="10" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
               <span style={{ minWidth:'10px', textAlign:'left', fontWeight:600, fontSize:'9px' }}>{c.nbLikes}</span>
+            </button>
+            <button onClick={() => basculerVote(c, -1)} title="Je n'aime pas"
+              style={{ display:'flex', alignItems:'center', gap:'2px', color: c.monVote === -1 ? '#9a4a2a' : '#b0a89e', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
+              <svg width="10" height="10" viewBox="0 0 20 20" fill="none" style={{ transform:'rotate(180deg)' }} aria-hidden="true">
+                <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              </svg>
+              <span style={{ minWidth:'10px', textAlign:'left', fontWeight:600, fontSize:'9px' }}>{c.nbDislikes}</span>
             </button>
           </div>
           {!estReponse && (
@@ -567,9 +573,6 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
       ))}
       {commentaires.length > 0 && <div style={{ borderTop:'1px solid #ede9e2', marginTop:'4px', paddingTop:'10px' }} />}
       <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
-        {userId && pseudoMoi && (
-          <p style={{ fontSize:'9.5px', color:'#9a958d', margin:0 }}>Vous commentez en tant que <strong style={{ color:'#3d6b4f' }}>{pseudoMoi}</strong>.</p>
-        )}
         {cibleReponse && (
           <div style={{ display:'flex', alignItems:'center', gap:'6px', background:'rgba(61,107,79,0.07)', border:'1px solid rgba(61,107,79,0.18)', borderRadius:'5px', padding:'5px 8px' }}>
             <span style={{ display:'inline-flex', alignItems:'center', gap:'5px', fontSize:'10px', color:'#3d6b4f' }}>
@@ -940,11 +943,25 @@ export default function PanneauPatristique({
     return [...g].sort()
   }, [itemsAffiches, oeuvres])
 
-  const nbPagesItems = Math.ceil(itemsFiltres.length / ITEMS_PAR_PAGE)
+  // REGROUPEMENTS (affichage seul, la base n'est pas modifiée) : des segments consécutifs de
+  // la MÊME œuvre (numéros qui s'enchaînent sans trou) sont réunis en UNE occurrence — un seul
+  // paragraphe, à la suite. On regroupe les entrées adjacentes de la liste.
+  const itemsGroupes = useMemo(() => {
+    const groupes: ItemAffiche[][] = []
+    for (const it of itemsFiltres) {
+      const g = groupes[groupes.length - 1]
+      const prec = g?.[g.length - 1]
+      if (prec && prec.seg.id_oeuvre === it.seg.id_oeuvre && it.seg.segment_numero === prec.seg.segment_numero + 1) g.push(it)
+      else groupes.push([it])
+    }
+    return groupes
+  }, [itemsFiltres])
+
+  const nbPagesItems = Math.ceil(itemsGroupes.length / ITEMS_PAR_PAGE)
   const pageCouranteItems = Math.min(pageItems, Math.max(nbPagesItems - 1, 0))
   const debutItems = pageCouranteItems * ITEMS_PAR_PAGE
-  const finItems = Math.min(debutItems + ITEMS_PAR_PAGE, itemsFiltres.length)
-  const itemsPage = itemsFiltres.slice(debutItems, finItems)
+  const finItems = Math.min(debutItems + ITEMS_PAR_PAGE, itemsGroupes.length)
+  const itemsPage = itemsGroupes.slice(debutItems, finItems)
   const refFr = verset ? `${nomLivre} ${chapitreActif}, ${verset.verset}`
     : modeChapitre ? `${nomLivre} ${chapitreActif}` : null
 
@@ -1228,14 +1245,23 @@ export default function PanneauPatristique({
                   <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'12px 0', fontStyle:'italic' }}>Aucun résultat pour ces filtres.</p>
                 )}
                 <div style={{ marginTop: '6px' }}>
-                {itemsPage.map(({ seg, col, onSupprime, categories }) => (
-                  <SegmentCard
-                    key={seg.id} s={seg} info={oeuvres[seg.id_oeuvre]}
-                    userId={userId} isAdmin={isAdmin}
-                    colonneLien={col} natures={categories}
-                    onSignaler={(s, titreOeuvre) => setSegSignale({ seg: s, titreOeuvre })} onSupprimeLien={onSupprime}
-                  />
-                ))}
+                {itemsPage.map(groupe => {
+                  const premier = groupe[0]
+                  // Occurrence réunie : les textes des segments consécutifs mis à la suite en un
+                  // seul paragraphe ; natures cumulées. Métadonnées et liens = premier segment.
+                  const segFusionne = groupe.length === 1
+                    ? premier.seg
+                    : { ...premier.seg, segment_texte: groupe.map(g => g.seg.segment_texte).join(' ') }
+                  const naturesUnion = Array.from(new Set(groupe.flatMap(g => g.categories)))
+                  return (
+                    <SegmentCard
+                      key={groupe.map(g => g.seg.id).join('_')} s={segFusionne} info={oeuvres[premier.seg.id_oeuvre]}
+                      userId={userId} isAdmin={isAdmin}
+                      colonneLien={premier.col} natures={naturesUnion}
+                      onSignaler={(s, titreOeuvre) => setSegSignale({ seg: s, titreOeuvre })} onSupprimeLien={premier.onSupprime}
+                    />
+                  )
+                })}
                 </div>
               </>
             )}
@@ -1250,7 +1276,7 @@ export default function PanneauPatristique({
                 ‹
               </button>
               <span style={{ fontSize:'9.5px', color:'#9a958d', whiteSpace:'nowrap', padding:'0 2px' }}>
-                {debutItems + 1}–{finItems} / {itemsFiltres.length}{nombreFiltresActifs > 0 ? ` (${itemsAffiches.length})` : ''}
+                {debutItems + 1}–{finItems} / {itemsGroupes.length}{nombreFiltresActifs > 0 ? ` (${itemsAffiches.length})` : ''}
               </span>
               <button onClick={() => setPageItems(Math.min(pageCouranteItems + 1, nbPagesItems - 1))} disabled={pageCouranteItems >= nbPagesItems - 1}
                 title="Page suivante"

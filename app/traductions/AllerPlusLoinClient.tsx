@@ -38,7 +38,7 @@ export default function AllerPlusLoinClient() {
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '48px' }}>
-      <div style={{ maxWidth: '720px', margin: '0 auto', padding: '22px 24px 0' }}>
+      <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '12px' }}>
           <h1 style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
@@ -53,7 +53,7 @@ export default function AllerPlusLoinClient() {
         <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', borderBottom: '1px solid #ddd8cf', marginBottom: '12px', flexWrap: 'wrap' }}>
           {ONGLETS.map(o => (
             <button key={o.code} onClick={() => setOnglet(o.code)} style={{
-              padding: '8px 14px', fontSize: '12.5px', fontWeight: onglet === o.code ? 600 : 400,
+              padding: '8px 14px', fontSize: '0.78125rem', fontWeight: onglet === o.code ? 600 : 400,
               color: onglet === o.code ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none',
               borderBottom: onglet === o.code ? '2px solid #3d6b4f' : '2px solid transparent',
               cursor: 'pointer', whiteSpace: 'nowrap',
@@ -263,7 +263,7 @@ function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }
   }, [hashTraduction, traductions]);
 
   return (
-    <div style={{ maxWidth: "680px", margin: "0 auto", padding: "24px 24px 80px" }}>
+    <div style={{ maxWidth: "42.5rem", margin: "0 auto", padding: "24px 24px 80px" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
         {traductions.map((t) => {
           const estOuvert = ouvert === t.trad_id;
@@ -290,7 +290,7 @@ function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }
                   <div style={{ flex: 1, minWidth: 0, padding: "18px 20px 22px" }}>
                     {t.bio_courte && (
                       <p style={{
-                        fontSize: "12.5px", color: "#5a6b5e", lineHeight: 1.65,
+                        fontSize: "0.78125rem", color: "#5a6b5e", lineHeight: 1.65,
                         margin: "0 0 12px", fontStyle: "italic",
                         textAlign: "justify", hyphens: "auto",
                       }}>
@@ -300,7 +300,7 @@ function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }
                     {t.commentaire_editorial && (
                       <div
                         className="trad-article"
-                        style={{ color: "#2a2520", fontSize: "13.5px", lineHeight: 1.65, textAlign: "justify", hyphens: "auto" }}
+                        style={{ color: "#2a2520", fontSize: "0.84375rem", lineHeight: 1.65, textAlign: "justify", hyphens: "auto" }}
                         dangerouslySetInnerHTML={{ __html: normaliserContenu(t.commentaire_editorial) }}
                       />
                     )}
@@ -347,12 +347,16 @@ function OngletAcheter() {
     },
   ]
   return (
-    <div style={{ maxWidth: '660px', margin: '0 auto', padding: '2px 24px 10px' }}>
+    <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: '2px 24px 10px' }}>
       <style>{`
         .lib-row {
           display: flex;
           align-items: center;
-          padding: 12px 0;
+          /* Hauteur STRICTEMENT identique pour les trois bandeaux, quelle que soit la
+             longueur de la description (1 ou 2 lignes) ou la hauteur du logo. */
+          height: 80px;
+          box-sizing: border-box;
+          padding: 0;
           text-decoration: none;
           border-bottom: 1px solid rgba(214,208,196,0.55);
           position: relative;
@@ -423,7 +427,7 @@ function OngletAcheter() {
         <a key={lib.nom} href={lib.url} target="_blank" rel="noopener noreferrer" className="lib-row">
           <div className="lib-contenu">
             <div className="lib-logo-zone">
-              <img src={lib.logo} alt="" aria-hidden style={{ width: '52px', height: 'auto', objectFit: 'contain' }} />
+              <img src={lib.logo} alt="" aria-hidden style={{ width: '52px', height: 'auto', maxHeight: '48px', objectFit: 'contain' }} />
             </div>
             <div className="lib-sep" style={{ background: lib.sep }} />
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -476,8 +480,8 @@ const statTexte: React.CSSProperties = { fontSize: '12px', color: '#5a5450', mar
 function EnteteStat({ titre, intro, style }: { titre: string; intro: string; style?: React.CSSProperties }) {
   return (
     <div style={{ marginBottom: '12px', ...style }}>
-      <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '17px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 4px' }}>{titre}</h2>
-      <p style={{ fontSize: '11.5px', color: '#9a958d', lineHeight: 1.55, margin: 0 }}>{intro}</p>
+      <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 4px' }}>{titre}</h2>
+      <p style={{ fontSize: '0.71875rem', color: '#9a958d', lineHeight: 1.55, margin: 0 }}>{intro}</p>
     </div>
   );
 }
@@ -522,7 +526,7 @@ function OngletStatistiques() {
   };
 
   return (
-    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '16px 24px 80px' }}>
+    <div style={{ maxWidth: '40rem', margin: '0 auto', padding: '16px 24px 80px' }}>
       <EnteteStat
         titre="Les plus cités et commentés par les Pères"
         intro="Classement établi à partir des liens patristiques : un commentaire pèse davantage qu'une citation, une citation davantage qu'une simple allusion. Le score grandira à mesure que les liens sont constitués." />

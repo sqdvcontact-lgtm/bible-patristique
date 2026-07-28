@@ -7,6 +7,29 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* ── Mesure de lecture (responsive) ──
+     Famille couplée exprimée en rem pour qu'elle grandisse au même rythme que
+     la police racine fluide (voir la règle `html` plus bas) : la colonne de
+     texte conserve ainsi ses proportions (même nombre de caractères par ligne)
+     quand tout grossit sur un grand écran. Valeurs = px d'origine / 16. */
+  --mesure-texte: 30rem;     /* 480px  piste de texte            */
+  --mesure-bloc:  31.25rem;  /* 500px  bloc de sélection         */
+  --mesure-ligne: 33.625rem; /* 538px  largeur de ligne          */
+  --mesure-page:  38.75rem;  /* 620px  conteneur de lecture      */
+}
+
+/* ── Agrandissement fluide sur grands écrans ──
+   Le site est dessiné en unités px/rem calibrées pour un portable. Cette police
+   racine fluide reste à 16px jusqu'à 1440px de large (aucun changement visuel
+   sur les écrans habituels), puis grandit linéairement jusqu'à 22px à 2400px
+   (×1,375 — plafond, pensé pour le confort des yeux sur grand moniteur). Points
+   de repère : 1920px → 19px, 2400px et au-delà → 22px. Tout ce qui est exprimé
+   en rem (texte de lecture, mesures ci-dessus) grossit proportionnellement. On
+   ne touche QUE la taille de police : les unités `vh` restent intactes, donc les
+   mises en page `calc(100vh - 48px)` ne débordent jamais. */
+html {
+  font-size: clamp(16px, calc(7px + 0.625vw), 22px);
 }
 
 @theme inline {
@@ -43,7 +66,7 @@ h6 {
 /* ── Page Traductions ── */
 .trad-article p,
 .trad-article p :not(sup) {
-  font-size: 13.5px !important;
+  font-size: 0.84375rem !important;
   color: #2a2520 !important;
   line-height: 1.65 !important;
   margin: 0 0 10px !important;
@@ -56,7 +79,7 @@ h6 {
 }
 .trad-article h1 {
   font-family: var(--font-source-serif), Georgia, serif !important;
-  font-size: 17px !important;
+  font-size: 1.0625rem !important;
   font-weight: normal !important;
   color: #1e2e24 !important;
   margin: 20px 0 8px !important;
@@ -64,7 +87,7 @@ h6 {
 }
 .trad-article h2 {
   font-family: var(--font-source-serif), Georgia, serif !important;
-  font-size: 14px !important;
+  font-size: 0.875rem !important;
   font-weight: 600 !important;
   color: #2a3d30 !important;
   margin: 18px 0 6px !important;

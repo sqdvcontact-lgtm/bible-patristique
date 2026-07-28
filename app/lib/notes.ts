@@ -9,7 +9,7 @@ export function parseNotes(raw: string | null | undefined): Record<string, strin
   const result: Record<string, string> = {}
   // Groupe 1 : format (X) avec optional "pag. N. —"
   // Groupe 2 : format [[X]]
-  const re = /(?:^|\n)(?:\(([A-Z0-9]{1,2})\)\s*(?:pag\.\s*[\d\s,]+\.\s*[—–-]\s*)?|\[\[([A-Z0-9]{1,2})\]\]\s*)/g
+  const re = /(?:^|\n)(?:\(([A-Z0-9]+)\)\s*(?:pag\.\s*[\d\s,]+\.\s*[—–-]\s*)?|\[\[([A-Z0-9]+)\]\]\s*)/g
   let lastKey: string | null = null
   let lastEnd = 0
   let m: RegExpExecArray | null

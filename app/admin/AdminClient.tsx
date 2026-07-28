@@ -5,6 +5,7 @@ import { supabase } from '@/app/lib/supabase'
 import SectionBibliotheque from './SectionBibliotheque'
 import SectionVerifications from './SectionVerifications'
 import SectionTraductions from './SectionTraductions'
+import SectionEditeurs from './SectionEditeurs'
 import SectionModeration from './SectionModeration'
 import SectionEssaisAdmin from './SectionEssaisAdmin'
 import SectionCharte from './SectionCharte'
@@ -15,7 +16,7 @@ import SectionControleOeuvres from './SectionControleOeuvres'
 import type { AdminProps as Props, Onglet } from './adminTypes'
 
 export default function AdminClient({
-  commentaires, commentairesPublications, signalements, demandesCertification, essaisEnAttente, essaisModification, essaisPublies, essaisBrouillons, segMap, versetMap, versetTexteMap, oeuvreTitreMap, signalementAuteurMap, auteurs, traductions,
+  commentaires, commentairesPublications, signalements, demandesCertification, essaisEnAttente, essaisModification, essaisPublies, essaisBrouillons, segMap, versetMap, versetTexteMap, oeuvreTitreMap, signalementAuteurMap, commentaireParentMap, auteurs, traductions,
   nbVerifications,
   actionValider, actionSupprimerCommentaire, actionValiderCommentaireEssai, actionSupprimerCommentaireEssai,
   actionMarquerTraite, actionMarquerTraiteSilencieux, actionSupprimerSignalement,
@@ -57,6 +58,7 @@ export default function AdminClient({
     { key: 'bibliotheque',        label: 'Bibliothèque' },
     { key: 'controle-oeuvres',    label: 'Contrôle œuvres' },
     { key: 'traductions',         label: 'Traductions' },
+    { key: 'editeurs',            label: 'Éditeurs' },
     { key: 'essais',              label: 'Essais', badge: nbEssais },
     { key: 'verifications',       label: 'Vérifications', badge: nbVerif, separateur: true },
     { key: 'moderation',          label: 'Modération', badge: nbMod },
@@ -117,6 +119,7 @@ export default function AdminClient({
         {onglet === 'controle-oeuvres' && <SectionControleOeuvres auteurs={auteurs} />}
         {onglet === 'verifications'  && <SectionVerifications onCountChange={setNbVerif} />}
         {onglet === 'traductions'    && <SectionTraductions traductions={traductions} />}
+        {onglet === 'editeurs'       && <SectionEditeurs />}
 
         {onglet === 'moderation' && (
           <SectionModeration
@@ -129,6 +132,7 @@ export default function AdminClient({
             versetTexteMap={versetTexteMap}
             oeuvreTitreMap={oeuvreTitreMap}
             signalementAuteurMap={signalementAuteurMap}
+            commentaireParentMap={commentaireParentMap}
             actionValider={id => decrMod(() => actionValider(id))}
             actionSupprimerCommentaire={id => decrMod(() => actionSupprimerCommentaire(id))}
             actionValiderCommentaireEssai={id => decrMod(() => actionValiderCommentaireEssai(id))}

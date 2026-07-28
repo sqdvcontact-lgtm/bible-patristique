@@ -170,7 +170,7 @@ export default function ProfilPublicPage() {
         .profil-action-report:hover { background: rgba(255,255,255,.085); border-color: rgba(235,218,175,.7); }
       `}</style>
 
-      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '37.5rem', margin: '0 auto' }}>
 
         {/* ── EN-TÊTE CENTRÉ ────────────────────────────────────────────────── */}
         <div style={{
@@ -217,7 +217,7 @@ export default function ProfilPublicPage() {
           </div>
 
           {/* Pseudo */}
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '24px', fontWeight: 'normal', color: '#f3eddd', margin: '0 0 4px', letterSpacing: '0.01em' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', fontWeight: 'normal', color: '#f3eddd', margin: '0 0 4px', letterSpacing: '0.01em' }}>
             {profil.pseudo}
           </h1>
 
@@ -266,7 +266,7 @@ export default function ProfilPublicPage() {
 
           {/* Bio */}
           {profil.bio && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '14px', color: '#eee7d6', lineHeight: 1.65, margin: rang ? '18px 0 0' : '0', fontStyle: 'italic', maxWidth: '440px', marginLeft: 'auto', marginRight: 'auto' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: '#eee7d6', lineHeight: 1.65, margin: rang ? '18px 0 0' : '0', fontStyle: 'italic', maxWidth: '27.5rem', marginLeft: 'auto', marginRight: 'auto' }}>
               {profil.bio}
             </p>
           )}
@@ -312,7 +312,7 @@ export default function ProfilPublicPage() {
             <div>
               {profil.bibliotheque!.map((o) => (
                 <Link key={o.id} href={`/oeuvre/${o.id}`} className="profil-livre-link">
-                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '13.5px', color: '#1a2818', flex: 1, lineHeight: 1.4 }}>
+                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', color: '#1a2818', flex: 1, lineHeight: 1.4 }}>
                     {o.titre}
                   </span>
                   <span style={{ fontSize: '10.5px', color: '#8a7e72', flexShrink: 0, marginLeft: '12px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
@@ -331,7 +331,7 @@ export default function ProfilPublicPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {profil.versets_favoris!.map((v, i) => (
                 <div key={i} style={{ paddingLeft: '10px', borderLeft: '2px solid #c8d8b8' }}>
-                  <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '13px', color: '#2a2818', lineHeight: 1.6, margin: '0 0 4px', fontStyle: 'italic' }}>
+                  <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: '#2a2818', lineHeight: 1.6, margin: '0 0 4px', fontStyle: 'italic' }}>
                     «&#8201;{v.texte.length > 160 ? v.texte.slice(0, 160) + '…' : v.texte}&#8201;»
                   </p>
                   <p style={{ fontSize: '9.5px', color: '#8a7e72', margin: 0, letterSpacing: '0.04em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>

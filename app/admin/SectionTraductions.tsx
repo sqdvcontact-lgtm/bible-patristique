@@ -801,14 +801,15 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: `1px solid ${t.photo ? '#3d6b4f' : '#d6d0c4'}`, background: t.photo ? 'rgba(61,107,79,0.08)' : '#fff', color: t.photo ? '#3d6b4f' : '#9a958d', cursor: photoStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
                 {t.photo ? '✓ Photo' : '+ Photo'}
               </button>
-              {t.photo && (
-                <button
-                  onClick={() => setPositionModal(t.trad_id)}
-                  title="Cadrer et zoomer l'image"
-                  style={{ fontSize: '13px', padding: '3px 8px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer', lineHeight: 1 }}>
-                  ⊹
-                </button>
-              )}
+              {/* Toujours présent — grisé et désactivé quand il n'y a pas de photo, pour que
+                  les lignes restent strictement alignées. */}
+              <button
+                onClick={() => t.photo && setPositionModal(t.trad_id)}
+                disabled={!t.photo}
+                title={t.photo ? "Cadrer et zoomer l'image" : 'Aucune photo à cadrer'}
+                style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: t.photo ? '#6b6560' : '#c8c0b4', cursor: t.photo ? 'pointer' : 'default', lineHeight: 1, whiteSpace: 'nowrap' }}>
+                ⊹ Cadrer
+              </button>
               <input ref={el => { photoRefs.current[t.trad_id] = el }} type="file" accept="image/*" style={{ display: 'none' }}
                 onChange={async e => {
                   const f = e.target.files?.[0]

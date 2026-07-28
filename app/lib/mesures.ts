@@ -10,6 +10,11 @@
  *  avaient déjà divergé, ce qui masquait la barre de recherche des volets de
  *  gauche dès qu'on descendait dans un livre. Une seule déclaration, désormais.
  */
+// NOTE responsive (Phase 1) : cette hauteur reste en PX tant que la typographie
+// de la Navbar reste en px. Le jour où l'on convertit les polices de la Navbar en
+// rem (agrandissement fluide sur grand écran — voir `html { font-size: clamp(...) }`
+// dans globals.css), cette valeur devra passer en `3rem` DANS LE MÊME changement,
+// sinon la barre grandirait sans que le décalage du contenu suive (ou l'inverse).
 export const HAUTEUR_NAVBAR = 48
 
 /** Le reste de l'écran, sous la barre de navigation. */

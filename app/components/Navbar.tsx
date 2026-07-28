@@ -701,7 +701,7 @@ export default function Navbar() {
           </Link>
 
           {/* ── Navigation desktop ──────────────────────────────────────────── */}
-          <nav className="hidden md:flex flex-1 items-center gap-0.5 min-w-0">
+          <nav className="hidden lg:flex flex-1 items-center gap-0.5 min-w-0">
             {/* Bouton « Bible » unique : au survol il se décompose en « Classique »
                 (lecture suivie) et « Polyglotte » (comparaison). Un clic direct sur la face
                 mène à la lecture classique — utile au tactile, où il n'y a pas de survol. */}
@@ -723,7 +723,7 @@ export default function Navbar() {
           </nav>
 
           {/* ── Compte desktop ──────────────────────────────────────────────── */}
-          <div className="hidden md:flex items-center" style={{ marginLeft: "auto", flexShrink: 0, gap: "2px", paddingLeft: "4px" }}>
+          <div className="hidden lg:flex items-center" style={{ marginLeft: "auto", flexShrink: 0, gap: "2px", paddingLeft: "4px" }}>
             {toggleAdmin(false)}
             {(estAdmin || estAdminEmail) && (
               <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 4px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
@@ -764,7 +764,7 @@ export default function Navbar() {
           </div>
 
           {/* ── Bouton hamburger mobile ─────────────────────────────────────── */}
-          <button onClick={() => setMobileOuvert(!mobileOuvert)} className="md:hidden"
+          <button onClick={() => setMobileOuvert(!mobileOuvert)} className="lg:hidden"
             style={{ marginLeft: "auto", background: "none", border: "none", color: "#fff", padding: "6px", cursor: "pointer" }}
             aria-label="Menu">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -779,7 +779,7 @@ export default function Navbar() {
 
         {/* ── Panneau mobile déplié ───────────────────────────────────────────── */}
         {mobileOuvert && (
-          <div className="md:hidden" style={{ background: "#345c43", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div className="lg:hidden" style={{ background: "#345c43", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
               {/* Au mobile la liste est verticale : le groupement n'y a pas de sens
                   visuel, mais l'ordre reste le même — Bible et Polyglotte en tête. */}

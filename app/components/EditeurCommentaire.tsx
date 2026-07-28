@@ -63,7 +63,12 @@ function htmlVersSyntaxe(html: string) {
     if (tag === 'sup') return `^^${enfants}^^`
     if (tag === 'span' && el.style.fontVariant === 'small-caps') return `++${enfants}++`
     if (tag === 'a') return `[${enfants}](${el.getAttribute('href') ?? ''})`
-    if (tag === 'div' || tag === 'p') return `${enfants}\n`
+    // Saut de ligne EN TÊTE du bloc, pas en queue : la 1re ligne d'un contentEditable est un
+    // nœud texte nu (sans <div>), les suivantes sont des <div>. Mettre le « \n » en queue
+    // perdait la coupure entre la 1re et la 2e ligne (« le premier retour ligne ne
+    // fonctionne pas »). En tête, chaque bloc s'ouvre par sa propre coupure ; le `.trim()`
+    // final absorbe l'éventuel saut de tête.
+    if (tag === 'div' || tag === 'p') return `\n${enfants}`
     return enfants
   }
 
@@ -209,11 +214,12 @@ export default function EditeurCommentaire({ value, onChange, placeholder = 'Vot
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => commande('superscript')} title="Exposant" style={styleBouton(actifs.exposant)}>x²</button>
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => entourerTexte('« ', ' »')} title="Guillemets français" style={boutonOutil}>« »</button>
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => entourerTexte('“', '”')} title="Guillemets anglais" style={boutonOutil}>“ ”</button>
-        <button type="button" onMouseDown={e => e.preventDefault()} onClick={ouvrirSelecteur} title="Insérer un renvoi vers un verset ou un segment" style={{ ...boutonOutil, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+        {/* Le libellé « Référence » est retiré : seul le symbole de lien subsiste, pour que
+            toute la barre d'enrichissement tienne sur une seule ligne. */}
+        <button type="button" onMouseDown={e => e.preventDefault()} onClick={ouvrirSelecteur} title="Insérer un renvoi vers un verset ou un segment" style={{ ...boutonOutil, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
             <path d="M6.5 9.5 9.5 6.5M6.8 4.4 8 3.2a2.6 2.6 0 0 1 3.7 3.7l-1.2 1.2M9.2 11.6 8 12.8a2.6 2.6 0 0 1-3.7-3.7l1.2-1.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          Référence
         </button>
       </div>
       {selecteurOuvert && <SelecteurCitation onChoisir={insererReference} onFermer={() => setSelecteurOuvert(false)} />}

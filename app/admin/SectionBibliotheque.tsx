@@ -6,6 +6,7 @@ import SectionRemplacerSegments from './SectionRemplacerSegments'
 import SectionAjouterOeuvre from './SectionAjouterOeuvre'
 import type { Auteur, AuteurPhotoPos, AuteurPhotoPositions, Oeuvre, LignePreview } from './adminTypes'
 import { revaliderBibliotheque } from '@/app/actions/revalider'
+import { estOeuvrePubliee, MARQUEUR_OEUVRE_DEPUBLIEE } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 
 async function exporterOeuvre(idOeuvre: string, titreOeuvre: string) {
@@ -555,7 +556,7 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
             </LigneCatalogue>
             <LigneCatalogue titre="Classement">
               <ChampCatalogue label="Genre" valeur={n.genre ?? oeuvre.genres?.[0]} transform={majPremierMotCatalogue} edit={ed('genre', n.genre)} />
-              <ChampCatalogue label="Langue" valeur={n.langue_originale ?? oeuvre.langue} transform={majPremierMotCatalogue} edit={ed('langue_originale', n.langue_originale)} />
+              <ChampCatalogue label="Langue" valeur={n.langue_originale} transform={majPremierMotCatalogue} edit={ed('langue_originale', n.langue_originale)} />
               <ChampCatalogue label="Composition" valeur={formaterDateHistorique(n.date_oeuvre ?? oeuvre.date_composition)} edit={ed('date_oeuvre', n.date_oeuvre)} />
             </LigneCatalogue>
             <LigneCatalogue titre="Import">
@@ -880,9 +881,22 @@ const FILTRES_AUTEURS: { code: FiltreAuteurs; label: string }[] = [
 function noticeCandidate(n: NoticeCatalogueAdmin): boolean {
   return (n.decision_import ?? '').toLowerCase().startsWith('candidat')
 }
-// Une notice « critique » : score faible (< 70) OU pas d'URL de source (fiche à reprendre).
+// Une notice « critique » appartient à la tranche rouge du score de fiabilité.
+// Une URL absente signale une fiche incomplète, pas une œuvre au score critique.
 function noticeCritique(n: NoticeCatalogueAdmin): boolean {
-  return (n.score_fiabilite != null && n.score_fiabilite < 70) || !n.url_source
+  return n.score_fiabilite != null && n.score_fiabilite < 70
+}
+
+function filtrerNoticesSelonVue(notices: NoticeCatalogueAdmin[], filtre: FiltreAuteurs): NoticeCatalogueAdmin[] {
+  switch (filtre) {
+    case 'candidates':     return notices.filter(noticeCandidate)
+    case 'non-candidates': return notices.filter(n => !noticeCandidate(n))
+    case 'critiques':      return notices.filter(noticeCritique)
+    case 'publiees':
+    case 'tout':
+    case 'non-publiees':
+    default:               return notices
+  }
 }
 
 // ── Section Bibliothèque (fusionnée avec la gestion des auteurs) ─────────────
@@ -1128,7 +1142,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       trad_auteur: o.trad_auteur ?? '', editeur: o.editeur ?? '', collection: o.collection ?? '',
       ville: o.ville ?? '', date_publication: o.date_publication ?? '',
       date_composition: o.date_composition ?? '', url_source: o.url_source ?? '',
-      langue: o.langue ?? '',
+      langue_originale: o.langue_originale ?? '',
     })
     setFormOeuvreGenres(Array.isArray(o.genres) ? o.genres : [])
     setStatutOeuvre(null)
@@ -1146,7 +1160,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
         })),
         fetch('/api/admin/update-oeuvre', {
           method: 'POST', headers,
-          body: JSON.stringify({ id_oeuvre: idOeuvre, champ: 'langue', valeur: formOeuvre.langue || null }),
+          body: JSON.stringify({ id_oeuvre: idOeuvre, champ: 'langue_originale', valeur: formOeuvre.langue_originale || null }),
         }),
         fetch('/api/admin/update-oeuvre', {
           method: 'POST', headers,
@@ -1212,6 +1226,33 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     }
     majNoticeLocale(id, { [champ]: coerce() } as Partial<NoticeCatalogueAdmin>)
     return null
+  }
+
+  // Publier / dépublier une œuvre : le drapeau est le marqueur dans `note`
+  // (cf. oeuvresPublication.ts). Dépublier écrit le marqueur, publier efface la note.
+  const [bascule, setBascule] = useState<string | null>(null)
+  const basculerPublication = async (o: Oeuvre) => {
+    const publiee = estOeuvrePubliee(o)
+    if (publiee && !confirm(`Dépublier « ${o.titre} » ?\n\nElle restera au catalogue mais disparaîtra de la lecture (bibliothèque, recherche, navigation).`)) return
+    const nouvelleNote = publiee ? MARQUEUR_OEUVRE_DEPUBLIEE : null
+    setBascule(o.id_oeuvre)
+    try {
+      const res = await fetch('/api/admin/update-oeuvre', {
+        method: 'POST',
+        headers: await headersAdmin({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ id_oeuvre: o.id_oeuvre, champ: 'note', valeur: nouvelleNote }),
+      })
+      if (!res.ok) { alert('Échec de la mise à jour.'); return }
+      setAuteurs(prev => prev.map(a => ({
+        ...a,
+        oeuvres: a.oeuvres.map(x => x.id_oeuvre === o.id_oeuvre ? { ...x, note: nouvelleNote } : x),
+      })))
+      await revaliderBibliotheque()
+    } catch {
+      alert('Erreur réseau.')
+    } finally {
+      setBascule(null)
+    }
   }
 
   const supprimerOeuvre = async (idOeuvre: string, titre: string) => {
@@ -1330,14 +1371,21 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     const surSite = new Set(a.oeuvres.map(o => o.id_oeuvre))
     return (catalogueParAuteur?.[a.id_auteur] ?? []).filter(n => !n.id_oeuvre_stable || !surSite.has(n.id_oeuvre_stable))
   }
-  const noticesDe = (a: Auteur): NoticeCatalogueAdmin[] => catalogueParAuteur?.[a.id_auteur] ?? []
+  const restantesAfficheesDe = (a: Auteur): NoticeCatalogueAdmin[] =>
+    filtrerNoticesSelonVue(restantesDe(a), filtreAuteurs)
+  const oeuvresAfficheesDe = (a: Auteur): Oeuvre[] => {
+    if (filtreAuteurs === 'non-publiees') return []
+    if (filtreAuteurs === 'tout' || filtreAuteurs === 'publiees') return a.oeuvres
+    return a.oeuvres.filter(o =>
+      filtrerNoticesSelonVue(catalogueParOeuvre[o.id_oeuvre] ?? [], filtreAuteurs).length > 0)
+  }
   const auteursAvecPresence = (() => {
     switch (filtreAuteurs) {
       case 'tout':           return auteurs
-      case 'non-publiees':   return auteurs.filter(a => restantesDe(a).length > 0)
-      case 'candidates':     return auteurs.filter(a => noticesDe(a).some(noticeCandidate))
-      case 'non-candidates': return auteurs.filter(a => noticesDe(a).some(n => !noticeCandidate(n)))
-      case 'critiques':      return auteurs.filter(a => noticesDe(a).some(noticeCritique))
+      case 'non-publiees':   return auteurs.filter(a => restantesAfficheesDe(a).length > 0)
+      case 'candidates':
+      case 'non-candidates':
+      case 'critiques':      return auteurs.filter(a => oeuvresAfficheesDe(a).length > 0 || restantesAfficheesDe(a).length > 0)
       case 'publiees':
       default:               return auteurs.filter(a => a.oeuvres.length > 0)
     }
@@ -1624,10 +1672,10 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
             {/* Liste des œuvres */}
             {ouvert && (
               <div style={{ padding: '6px 0' }}>
-                {auteur.oeuvres.length === 0 && (
+                {oeuvresAfficheesDe(auteur).length === 0 && !besoinCatalogue && (
                   <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic', padding: '8px 18px' }}>Aucune œuvre pour cet auteur — utilisez « + Ajouter une œuvre ».</p>
                 )}
-                {[...auteur.oeuvres].sort((a, b) => a.titre.localeCompare(b.titre, 'fr')).map(oeuvre => {
+                {[...oeuvresAfficheesDe(auteur)].sort((a, b) => a.titre.localeCompare(b.titre, 'fr')).map(oeuvre => {
                   const titreMatch = rechercheNormalisee && oeuvre.titre.toLowerCase().includes(rechercheNormalisee)
                   const surbrillance = (texte: string) => {
                     if (!rechercheNormalisee) return <>{texte}</>
@@ -1635,9 +1683,11 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     if (idx === -1) return <>{texte}</>
                     return <>{texte.slice(0, idx)}<mark style={{ background: 'rgba(61,107,79,0.18)', color: 'inherit', borderRadius: '2px', padding: '0 1px' }}>{texte.slice(idx, idx + rechercheNormalisee.length)}</mark>{texte.slice(idx + rechercheNormalisee.length)}</>
                   }
-                  const noticesCatalogue = catalogueParOeuvre[oeuvre.id_oeuvre] ?? []
+                  const noticesCatalogue = filtrerNoticesSelonVue(
+                    catalogueParOeuvre[oeuvre.id_oeuvre] ?? [], filtreAuteurs)
                   const noticeCatalogue = noticesCatalogue[0]
                   const catalogueOuvert = !!catalogueDeploye[oeuvre.id_oeuvre]
+                  const publiee = estOeuvrePubliee(oeuvre)
                   const btnSobre = {
                     fontSize: '10.5px',
                     padding: '3px 6px',
@@ -1665,7 +1715,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                   return (
                   /* Œuvre PUBLIÉE : léger liseré vert discret (par opposition à l'ocre-rouge
                      des œuvres seulement au catalogue). */
-                  <div key={oeuvre.id_oeuvre} style={{ borderBottom: '1px solid #f0ece6', borderLeft: '2px solid #cfe0d5', background: titreMatch ? 'rgba(61,107,79,0.03)' : undefined }}>
+                  <div key={oeuvre.id_oeuvre} style={{ borderBottom: '1px solid #f0ece6', borderLeft: `2px solid ${publiee ? '#cfe0d5' : '#e0cdbe'}`, background: titreMatch ? 'rgba(61,107,79,0.03)' : (publiee ? undefined : 'rgba(150,110,70,0.035)') }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 18px 5px 14px', gap: '12px', flexWrap: 'nowrap', minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, overflow: 'hidden', flex: 1 }}>
                       <a href={`/oeuvre/${oeuvre.id_oeuvre}`} target="_blank" rel="noopener noreferrer" title="Ouvrir l'œuvre"
@@ -1679,6 +1729,12 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                       {oeuvre.trad_auteur && (
                         <span style={{ fontSize: '10.5px', color: '#9a958d', fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px', flexShrink: 0 }}>
                           Trad. {oeuvre.trad_auteur}
+                        </span>
+                      )}
+                      {!publiee && (
+                        <span title="Œuvre conservée au catalogue mais retirée de la lecture"
+                          style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9a6a3e', background: '#f6ece1', border: '1px solid #e0cdbe', borderRadius: '3px', padding: '1px 6px', flexShrink: 0 }}>
+                          Dépubliée
                         </span>
                       )}
                       {resultat?.idOeuvre === oeuvre.id_oeuvre && <span style={{ fontSize: '10.5px', color: resultat.ok ? '#3d6b4f' : '#c0562a', flexShrink: 0 }}>{resultat.ok ? '✓' : '✗'} {resultat.msg}</span>}
@@ -1720,6 +1776,11 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                         Contrôle
                       </a>
                       <span style={{ width: '1px', height: '16px', background: '#e4dfd8', display: 'inline-block', marginLeft: '4px' }} />
+                      <button onClick={() => basculerPublication(oeuvre)} disabled={bascule === oeuvre.id_oeuvre}
+                        title={publiee ? 'Retirer de la lecture (reste au catalogue)' : 'Remettre en lecture'}
+                        style={{ ...(publiee ? btnSobre : { ...btnSobre, border: '1px solid #d8b48f', background: '#fbf3ea', color: '#9a6a3e' }), minWidth: '72px', textAlign: 'center', opacity: bascule === oeuvre.id_oeuvre ? 0.6 : 1 }}>
+                        {bascule === oeuvre.id_oeuvre ? '…' : (publiee ? 'Dépublier' : 'Publier')}
+                      </button>
                       <button onClick={() => supprimerOeuvre(oeuvre.id_oeuvre, oeuvre.titre)}
                         style={{ ...btnSobre, border: '1px solid #e6c8be', background: '#fffaf8', color: '#b44a34', marginLeft: '4px' }}>
                         Supprimer
@@ -1771,7 +1832,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                         <div><label style={lbl}>Date de composition originale</label><input type="text" value={formOeuvre.date_composition ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, date_composition: e.target.value }))} style={inputStyleAuteur} /></div>
                         <div>
                           <label style={lbl}>Langue originale</label>
-                          <select value={formOeuvre.langue ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, langue: e.target.value }))} style={inputStyleAuteur}>
+                          <select value={formOeuvre.langue_originale ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, langue_originale: e.target.value }))} style={inputStyleAuteur}>
                             <option value="">—</option>
                             <option value="Latin">Latin</option>
                             <option value="Grec">Grec</option>
@@ -1818,9 +1879,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                   if (chargementCatalogue) {
                     return <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', margin: '8px 0 0' }}>Chargement du catalogue…</p>
                   }
-                  const surLeSite = new Set(auteur.oeuvres.map(o => o.id_oeuvre))
-                  const restantes = (catalogueParAuteur?.[auteur.id_auteur] ?? [])
-                    .filter(n => !n.id_oeuvre_stable || !surLeSite.has(n.id_oeuvre_stable))
+                  const restantes = restantesAfficheesDe(auteur)
                   if (restantes.length === 0) return null
                   return (
                     <div style={{ marginTop: auteur.oeuvres.length ? '6px' : '0' }}>
@@ -1864,14 +1923,9 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', padding: '8px 2px' }}>Chargement du catalogue…</p>
         )}
         {besoinCatalogue && catalogueAutres && (() => {
-          // Le filtre s'applique aussi aux auteurs présents seulement au catalogue.
-          const passeFiltre = (ns: NoticeCatalogueAdmin[]) =>
-            filtreAuteurs === 'candidates' ? ns.some(noticeCandidate)
-            : filtreAuteurs === 'non-candidates' ? ns.some(n => !noticeCandidate(n))
-            : filtreAuteurs === 'critiques' ? ns.some(noticeCritique)
-            : true
           const entrees = Object.entries(catalogueAutres)
-            .filter(([, ns]) => passeFiltre(ns))
+            .map(([nom, ns]) => [nom, filtrerNoticesSelonVue(ns, filtreAuteurs)] as const)
+            .filter(([, ns]) => ns.length > 0)
             .filter(([nom, ns]) => !rechercheNormalisee
               || nom.toLowerCase().includes(rechercheNormalisee)
               || ns.some(n => [n.titre_stable, n.titre_original, n.titre_edition].some(t => (t ?? '').toLowerCase().includes(rechercheNormalisee))))

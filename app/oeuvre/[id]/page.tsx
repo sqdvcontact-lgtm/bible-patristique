@@ -340,7 +340,7 @@ export default async function OeuvrePage({
       txtSommaire={(oeuvre.texte_sommaire ?? '0,0,0,0,0').split(',').map((v: string) => v === '1')}
       txtCorps={(oeuvre.texte_corps ?? '0,0,0,0,0').split(',').map((v: string) => v === '1')}
       afficherNumeros={oeuvre.afficher_numeros !== false}
-      oeuvre={{titre:oeuvre.titre,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,id_oeuvre:oeuvre.id_oeuvre,date_composition:oeuvre.date_composition,langue:oeuvre.langue,genres:oeuvre.genres,url_source:oeuvre.url_source}}
+      oeuvre={{titre:oeuvre.titre,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,id_oeuvre:oeuvre.id_oeuvre,date_composition:oeuvre.date_composition,langue_originale:oeuvre.langue_originale,genres:oeuvre.genres,url_source:oeuvre.url_source}}
       groupes={groupesData} segments={segmentsData}
       tocApparat={tocApparat} groupesApparat={groupesApparatData} segmentsApparat={segmentsApparatData}
       segmentCibleId={Number.isFinite(segmentCibleId) && segmentCibleId > 0 ? segmentCibleId : null}

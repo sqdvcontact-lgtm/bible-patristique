@@ -119,5 +119,6 @@ function Info({ label, valeur, alerte = false }: { label: string; valeur: number
 }
 
 function petitBouton(couleur: string, bordure: string): React.CSSProperties {
-  return { fontSize: '10.5px', padding: '4px 8px', borderRadius: '4px', border: `1px solid ${bordure}`, background: '#fff', color: couleur, cursor: 'pointer', textDecoration: 'none', fontWeight: 600 }
+  // Largeur commune à tous les boutons d'action pour un alignement strict de la colonne.
+  return { display: 'inline-block', boxSizing: 'border-box', minWidth: '82px', textAlign: 'center', fontSize: '10.5px', padding: '4px 8px', borderRadius: '4px', border: `1px solid ${bordure}`, background: '#fff', color: couleur, cursor: 'pointer', textDecoration: 'none', fontWeight: 600 }
 }

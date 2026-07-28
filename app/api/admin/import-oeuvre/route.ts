@@ -134,7 +134,7 @@ export async function POST(request: Request) {
     ...colonnesPeriodeHistorique('publication', datePublication),
     ...colonnesPeriodeHistorique('composition', dateComposition),
     genres: Array.isArray(meta.genres) ? meta.genres : [],
-    langue: nulSiVide(meta.langue),
+    langue_originale: nulSiVide(meta.langue),
   }
 
   const { error: errOeuvre } = await supabaseAdmin.from('oeuvres').insert(oeuvrePayload)

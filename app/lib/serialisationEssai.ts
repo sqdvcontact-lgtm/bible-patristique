@@ -11,15 +11,18 @@ const styleNote = 'display:inline-block;margin-left:0.08em;color:#3d6b4f;font-we
 
 function inlineVersHtml(s: string): string {
   let r = echapper(s)
+  // Les jetons atomiques (notes, renvois) d'ABORD : leur contenu — qui peut porter des
+  // *italiques* (titre d'œuvre) — ne doit pas être réinterprété comme du gras/italique. On
+  // encode aussi l'astérisque dans data-note pour la même raison.
+  r = r.replace(/\[\^(.+?)\]/g, (_m, p1) =>
+    `<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(p1).replace(/\*/g, '%2A')}" style="${styleNote}">note</span>&nbsp;`)
+  r = r.replace(/\[(.+?)\]\((verset|segment):(.+?)\)/g, (_m, label, type, id) =>
+    `<span contenteditable="false" data-chip="${type}" data-id="${id}" data-label="${label}" style="display:inline-block;color:#3d6b4f;text-decoration:underline;background:rgba(61,107,79,0.07);padding:1px 5px;border-radius:3px;cursor:pointer;">${label}</span>&nbsp;`)
+  r = r.replace(/\[(.+?)\]\(((?:https?:)[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
   r = r.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
   r = r.replace(/\+\+(.+?)\+\+/g, '<span style="font-variant:small-caps;letter-spacing:0.02em">$1</span>')
   r = r.replace(/\^\^(.+?)\^\^/g, '<sup>$1</sup>')
   r = r.replace(/\*(.+?)\*/g, '<em>$1</em>')
-  r = r.replace(/\[\^(.+?)\]/g, (_m, p1) =>
-    `<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(p1)}" style="${styleNote}">note</span>&nbsp;`)
-  r = r.replace(/\[(.+?)\]\((verset|segment):(.+?)\)/g, (_m, label, type, id) =>
-    `<span contenteditable="false" data-chip="${type}" data-id="${id}" data-label="${label}" style="display:inline-block;color:#3d6b4f;text-decoration:underline;background:rgba(61,107,79,0.07);padding:1px 5px;border-radius:3px;cursor:pointer;">${label}</span>&nbsp;`)
-  r = r.replace(/\[(.+?)\]\(((?:https?:)[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
   return r
 }
 
@@ -45,7 +48,7 @@ export function syntaxeVersHtml(texte: string): string {
     }
     if (ligne.startsWith('> ')) {
       flush()
-      blocs.push(`<blockquote style="font-style:normal;font-size:0.93em;font-family:var(--font-source-sans), Arial, sans-serif;color:#3a3530;margin:0.48em 0 0.76em 8mm;line-height:1.62;word-spacing:0.018em;letter-spacing:0.004em;text-align:left;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
+      blocs.push(`<blockquote style="font-style:normal;font-size:0.93em;font-family:var(--font-source-sans), Arial, sans-serif;color:#3a3530;margin:0.48em 0 0.76em 8mm;line-height:1.62;word-spacing:0.018em;letter-spacing:0.004em;text-align:justify;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
       return
     }
     if (ligne.startsWith('## ')) {

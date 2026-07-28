@@ -12,6 +12,7 @@ import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces } from '
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
+import { useEditeursCharges } from '@/app/lib/editeurs'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { useFavoris } from '@/app/lib/useFavoris'
@@ -49,6 +50,27 @@ function detailsRefBiblique(ref: string): { label: string; livre: string; chapit
   const cv = p[1].split(':')
   const label = cv[1] ? `${ABREV_FR[p[0]] ?? p[0]} ${cv[0]}, ${cv[1]}` : `${ABREV_FR[p[0]] ?? p[0]} ${cv[0]}`
   return { label, livre: p[0], chapitre: cv[0] || '', verset: cv[1] || '' }
+}
+
+// REGROUPEMENTS (affichage seul, la base n'est pas modifiée) : quand un segment cite
+// plusieurs versets qui se suivent dans le même chapitre (verset n, n+1, n+2…), on les réunit
+// en UNE occurrence — un seul paragraphe, à la suite. On regroupe les entrées adjacentes de la
+// liste dont le numéro de verset s'enchaîne sans trou.
+function regrouperVersetsConsecutifs<T extends { livre: string; chapitre: string; verset: string }>(versets: T[]): T[][] {
+  const groupes: T[][] = []
+  for (const v of versets) {
+    const dernierGroupe = groupes[groupes.length - 1]
+    const prec = dernierGroupe?.[dernierGroupe.length - 1]
+    const nPrec = prec ? Number(prec.verset) : NaN
+    const nCur = Number(v.verset)
+    if (prec && prec.livre === v.livre && prec.chapitre === v.chapitre
+        && Number.isFinite(nPrec) && Number.isFinite(nCur) && nCur === nPrec + 1) {
+      dernierGroupe.push(v)
+    } else {
+      groupes.push([v])
+    }
+  }
+  return groupes
 }
 
 // Un verset cité PUIS commenté est visé par deux liens du même segment (types 1
@@ -383,7 +405,7 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
     numeros.set(marqueur, n)
     return n
   }
-  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]{1,2})\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)/g
+  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]+)\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)/g
   let dernierIndex = 0, k = 0, m: RegExpExecArray | null
   while ((m = regex.exec(texte))) {
     if (m.index > dernierIndex) noeuds.push(texte.slice(dernierIndex, m.index))
@@ -468,6 +490,8 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte' }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
+  // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
+  useEditeursCharges()
   const { favoris: favorisOeuvres, pret: favorisPret, toggle: toggleFavoriOeuvre } = useFavoris('oeuvre')
   const [segActif, setSegActif] = useState<number | null>(segmentCibleId)
   const [tradIndex, setTradIndex] = useState(0)
@@ -726,6 +750,31 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
     const ids = new Set(groupesFiltres.flatMap(g => g.itemIds))
     return segments.filter(s => ids.has(s.id))
   }, [groupesFiltres, segments])
+
+  // Scroll-spy du sommaire : au défilement, le niveau 2 (question, section…)
+  // effectivement à l'écran devient l'actif dans le sommaire — et non celui sur
+  // lequel on avait cliqué en dernier. On retient le dernier groupe dont le haut
+  // est passé sous la barre fixe (sticky 48px + barre de navigation niv1).
+  useEffect(() => {
+    if (vue !== 'texte') return
+    const onScroll = () => {
+      const seuil = 140
+      let n2Courant: string | null = null
+      let trouve = false
+      for (const g of groupesFiltres) {
+        const el = document.getElementById(g.anchor)
+        if (!el) continue
+        if (el.getBoundingClientRect().top - seuil <= 0) {
+          n2Courant = g.niv2 || null
+          trouve = true
+        } else break
+      }
+      if (trouve) setNiv2Actif(prev => (prev === n2Courant ? prev : n2Courant))
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [groupesFiltres, vue])
 
   // Navigue vers une ancre en changeant de page si nécessaire
   const naviguerVersAncre = useCallback((ancre: string) => {
@@ -1532,53 +1581,68 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>Aucun lien biblique pour ce passage.</p>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                        {segActifData.versets.map(v => (
-                          <div key={v.id}>
-                            {(() => {
-                              const texteSource = v.textes[trad] || v.textes['TR0001'] || ''
-                              const { note, corps } = extraireNoteVerset(texteSource)
-                              return (
-                                <>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: note ? '2px' : '4px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
-                                      <a href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${encodeURIComponent(v.chapitre)}&verset=${encodeURIComponent(v.verset)}&trad=${encodeURIComponent(trad)}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '11px', fontWeight: 600, color: '#3d6b4f', margin: 0, textDecoration: 'none' }}>{v.label}</a>
-                                      {/* La nature du rapport, dite sans peser : le lecteur
-                                          voit la référence d'abord, et peut savoir à quel
-                                          titre elle est là s'il y prend garde. */}
-                                      {(v as any).natures?.length > 0 && (
-                                        <span style={{ fontSize: '9.5px', color: '#a89f92', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
-                                          {(v as any).natures.join(' · ')}
-                                        </span>
-                                      )}
-                                      {estAdmin && (
-                                        <button onClick={() => supprimerLienBiblique(segActifData.id, v.id)} title="Supprimer ce lien biblique"
-                                          style={{ fontSize: '9.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>
-                                          Supprimer le lien
-                                        </button>
-                                      )}
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '1px', alignItems: 'center' }}>
-                                      <BoutonEnregistrerVerset verset={v} trad={trad} userId={userId} />
-                                      <BoutonCopieVerset texte={corps} label={v.label} />
-                                      <BoutonSignalerVerset versetId={v.id} label={v.label} texte={corps} segmentId={segActifData.id} />
-                                    </div>
-                                  </div>
-                                  {note && (
-                                    <p style={{ fontSize: '10px', fontStyle: 'italic', color: '#9a8a6a', margin: '0 0 3px', lineHeight: 1.3 }}>
-                                      ↳ {note}
-                                    </p>
+                        {regrouperVersetsConsecutifs(segActifData.versets).map(groupe => {
+                          const premier = groupe[0]
+                          const dernier = groupe[groupe.length - 1]
+                          const multiple = groupe.length > 1
+                          // Versets réunis : label en fourchette (« Gn 1, 1-3 ») et corps mis à la suite.
+                          const labelGroupe = multiple
+                            ? `${premier.label.replace(/\d+\s*$/, '')}${premier.verset}-${dernier.verset}`
+                            : premier.label
+                          const corps = groupe
+                            .map(v => extraireNoteVerset(v.textes[trad] || v.textes['TR0001'] || '').corps)
+                            .filter(Boolean)
+                            .join(' ')
+                          // La note éditoriale n'est portée que par un verset seul (sinon on fond
+                          // simplement les corps).
+                          const note = multiple ? null : extraireNoteVerset(premier.textes[trad] || premier.textes['TR0001'] || '').note
+                          const natures = Array.from(new Set(groupe.flatMap(v => (v as any).natures ?? []))) as string[]
+                          // Objet synthétique pour les actions (copie/enregistrement) sur le groupe :
+                          // textes fondus par traduction, label en fourchette.
+                          const versetAction: any = multiple
+                            ? { ...premier, label: labelGroupe, textes: Object.fromEntries(Object.keys(premier.textes).map(code => [code, groupe.map(v => (v.textes as any)[code] || '').filter(Boolean).join(' ')])) }
+                            : premier
+                          const key = groupe.map(v => v.id).join('_')
+                          return (
+                            <div key={key}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: note ? '2px' : '4px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
+                                  <a href={`/?livre=${encodeURIComponent(premier.livre)}&chapitre=${encodeURIComponent(premier.chapitre)}&verset=${encodeURIComponent(premier.verset)}&trad=${encodeURIComponent(trad)}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '11px', fontWeight: 600, color: '#3d6b4f', margin: 0, textDecoration: 'none' }}>{labelGroupe}</a>
+                                  {/* La nature du rapport, dite sans peser : le lecteur
+                                      voit la référence d'abord, et peut savoir à quel
+                                      titre elle est là s'il y prend garde. */}
+                                  {natures.length > 0 && (
+                                    <span style={{ fontSize: '9.5px', color: '#a89f92', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+                                      {natures.join(' · ')}
+                                    </span>
                                   )}
-                                  {/* Texte du verset : SANS SÉRIF, avec la même mise en forme que les
-                                      citations patristiques du panneau Bible (cf. PanneauPatristique) —
-                                      justifié, wordSpacing serré, césure. Enrichissement (« <i> » de Sacy) rendu. */}
-                                  <p lang="fr" style={{ fontSize: '11.2px', lineHeight: '1.38', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.08em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 4px' } as React.CSSProperties}>
-                                    {corps ? rendreTexteEnrichi(corps) : '—'}
-                                  </p>
-                                </>
-                              )
-                            })()}
-                          </div>
-                        ))}
+                                  {estAdmin && (
+                                    <button onClick={() => groupe.forEach(v => supprimerLienBiblique(segActifData.id, v.id))} title="Supprimer ce lien biblique"
+                                      style={{ fontSize: '9.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                      {multiple ? 'Supprimer les liens' : 'Supprimer le lien'}
+                                    </button>
+                                  )}
+                                </div>
+                                <div style={{ display: 'flex', gap: '1px', alignItems: 'center' }}>
+                                  <BoutonEnregistrerVerset verset={versetAction} trad={trad} userId={userId} />
+                                  <BoutonCopieVerset texte={corps} label={labelGroupe} />
+                                  <BoutonSignalerVerset versetId={premier.id} label={labelGroupe} texte={corps} segmentId={segActifData.id} />
+                                </div>
+                              </div>
+                              {note && (
+                                <p style={{ fontSize: '10px', fontStyle: 'italic', color: '#9a8a6a', margin: '0 0 3px', lineHeight: 1.3 }}>
+                                  ↳ {note}
+                                </p>
+                              )}
+                              {/* Texte du/des verset(s) réuni(s) : SANS SÉRIF, même mise en forme que les
+                                  citations patristiques du panneau Bible — justifié, wordSpacing serré,
+                                  césure. Enrichissement (« <i> » de Sacy) rendu. */}
+                              <p lang="fr" style={{ fontSize: '11.2px', lineHeight: '1.38', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.08em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 4px' } as React.CSSProperties}>
+                                {corps ? rendreTexteEnrichi(corps) : '—'}
+                              </p>
+                            </div>
+                          )
+                        })}
                       </div>
                     )}
                     {estAdmin
@@ -1594,7 +1658,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         sous le rectangle de l'image — l'ensemble reste ainsi équilibré. */}
                     <img src="/ornements/cul-de-lampe-buisson-ardent.png" alt="" aria-hidden="true"
                       style={{ width: '82%', maxWidth: '190px', height: 'auto', opacity: 0.42, mixBlendMode: 'multiply' }} />
-                    <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d', textAlign: 'center', margin: '-16px 0 0' }}>Cliquez sur un paragraphe.</p>
+                    <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d', textAlign: 'center', margin: '-30px 0 0' }}>Cliquez sur un paragraphe.</p>
                   </div>
                 )}
               </>
@@ -1678,8 +1742,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                 qu'il n'y en a pas. « À vérifier » : qualifier la nature du lien
                                 (citation, paraphrase, commentaire, écho). Chaque bouton (hors
                                 « Aller au passage ») ouvre un signalement transmis à la modération. */}
-                            <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap' }}>
-                              <button onClick={() => {
+                            <button onClick={() => {
                                 setSegActif(s.id)
                                 const ancreLocale = groupes.find(g => g.itemIds.includes(s.id))?.anchor
                                 if (ancreLocale) {
@@ -1689,20 +1752,23 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                   changerNiv1(s.ref_niv1, { conserverPosition: true })
                                 }
                               }} className="ref-lien"
-                                style={{ fontSize: '10.5px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginRight: 'auto' }}>
-                                Aller au passage
-                              </button>
+                              style={{ display: 'block', fontSize: '10.5px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, margin: '0 0 6px' }}>
+                              Aller au passage
+                            </button>
+                            {/* Les qualificatifs tiennent sur UNE seule ligne (pas de retour à la
+                                ligne) : row compacte, libellés courts. */}
+                            <div style={{ display:'flex', alignItems:'center', gap:'5px', flexWrap:'nowrap' }}>
                               {filtreProbleme === 'lien_a_constituer' ? (
                                 <>
                                   <button onClick={() => setSuggestionSignalee({ ...s, nature: 'suggestion' })} title="Proposer une référence biblique pour ce passage"
-                                    style={{ fontSize:'10px', color:'#9a5a2a', background:'none', border:'1px solid #e3cdb0', borderRadius:'999px', padding:'2px 9px', cursor:'pointer' }}>Suggérer une référence</button>
+                                    style={{ flexShrink: 0, whiteSpace: 'nowrap', fontSize:'9.5px', color:'#9a5a2a', background:'none', border:'1px solid #e3cdb0', borderRadius:'999px', padding:'2px 8px', cursor:'pointer' }}>Suggérer une référence</button>
                                   <button onClick={() => setSuggestionSignalee({ ...s, nature: 'pas_de_reference' })} title="Signaler que ce passage ne renvoie à aucun verset"
-                                    style={{ fontSize:'10px', color:'#8a8278', background:'none', border:'1px solid #ddd6cb', borderRadius:'999px', padding:'2px 9px', cursor:'pointer' }}>Pas de référence</button>
+                                    style={{ flexShrink: 0, whiteSpace: 'nowrap', fontSize:'9.5px', color:'#8a8278', background:'none', border:'1px solid #ddd6cb', borderRadius:'999px', padding:'2px 8px', cursor:'pointer' }}>Pas de référence</button>
                                 </>
                               ) : (
-                                ([['Citation','citation'],['Paraphrase','paraphrase'],['Commentaire doctrinal','commentaire'],['Écho','echo']] as const).map(([label, nat]) => (
+                                ([['Citation','citation'],['Paraphrase','paraphrase'],['Commentaire','commentaire'],['Écho','echo']] as const).map(([label, nat]) => (
                                   <button key={nat} onClick={() => setSuggestionSignalee({ ...s, nature: nat })} title={`Signaler ce lien comme « ${label} »`}
-                                    style={{ fontSize:'10px', color:'#3d5a4f', background:'none', border:'1px solid #cbd8cf', borderRadius:'999px', padding:'2px 9px', cursor:'pointer' }}>{label}</button>
+                                    style={{ flexShrink: 0, whiteSpace: 'nowrap', fontSize:'9.5px', color:'#3d5a4f', background:'none', border:'1px solid #cbd8cf', borderRadius:'999px', padding:'2px 8px', cursor:'pointer' }}>{label}</button>
                                 ))
                               )}
                             </div>
@@ -1748,7 +1814,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#fff', borderRadius: '10px', padding: '18px 22px', width: '540px', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
               <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.12em', color: '#b7ad9a', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette édition</p>
+                <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.12em', color: '#6f9268', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette édition</p>
                 {/* Auteur ET titre sur la même ligne ; l'auteur ouvre sa fiche. */}
                 <p style={{ margin: 0, lineHeight: 1.28 }}>
                   {auteurId ? (
@@ -1757,7 +1823,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   ) : (
                     <span style={{ fontSize: '12px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.02em' }}>{auteur}</span>
                   )}
-                  <span style={{ color: '#cbc3b6', margin: '0 7px' }}>·</span>
+                  <span style={{ color: '#cbc3b6', margin: '0 7px' }}>–</span>
                   <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '14px', color: '#2a3d30' }}>{rendreTexteEnrichi(titreAffiche)}</span>
                 </p>
                 {oeuvreLocale.sous_titre && (
@@ -1769,12 +1835,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
             {/* Deux colonnes distinctes : texte original / édition de référence. */}
             {(() => {
-              const aOriginal = !!(oeuvreLocale.titre_original || oeuvreLocale.date_composition || oeuvreLocale.langue || (oeuvreLocale.genres && oeuvreLocale.genres.length))
+              const aOriginal = !!(oeuvreLocale.titre_original || oeuvreLocale.date_composition || oeuvreLocale.langue_originale || (oeuvreLocale.genres && oeuvreLocale.genres.length))
               const aEdition = !!(oeuvreLocale.trad_auteur || oeuvreLocale.trad_date || oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication || oeuvreLocale.collection)
               if (!aOriginal && !aEdition) return null
-              const carte: React.CSSProperties = { background: '#faf8f4', border: '1px solid #efe9df', borderRadius: '8px', padding: '11px 13px' }
-              const legende: React.CSSProperties = { fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', color: '#b7ad9a', margin: '0 0 8px', textTransform: 'uppercase' }
-              const cle: React.CSSProperties = { fontSize: '8.5px', color: '#b7ad9a', display: 'block', marginBottom: '1px' }
+              const carte: React.CSSProperties = { background: '#f6f8f3', border: '1px solid #e2ebdc', borderLeft: '2.5px solid #a7c4a0', borderRadius: '8px', padding: '11px 13px' }
+              const legende: React.CSSProperties = { fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', color: '#6f9268', margin: '0 0 8px', textTransform: 'uppercase' }
+              const cle: React.CSSProperties = { fontSize: '8.5px', color: '#a9b0a2', display: 'block', marginBottom: 0, lineHeight: 1.1 }
               const val: React.CSSProperties = { fontSize: '11.5px', color: '#3a3530', lineHeight: 1.35 }
               return (
                 <div style={{ display: 'grid', gridTemplateColumns: (aOriginal && aEdition) ? 'minmax(0,1fr) minmax(0,1fr)' : '1fr', gap: '10px', marginBottom: '12px' }}>
@@ -1783,7 +1849,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       <p style={legende}>Texte original</p>
                       {oeuvreLocale.titre_original && <div style={{ marginBottom: '6px' }}><span style={cle}>Titre</span><span style={{ ...val, fontStyle: 'italic' }}>{oeuvreLocale.titre_original}</span></div>}
                       {oeuvreLocale.date_composition && <div style={{ marginBottom: '6px' }}><span style={cle}>Date de composition</span><span style={val}>{formaterDateHistorique(oeuvreLocale.date_composition)}</span></div>}
-                      {oeuvreLocale.langue && <div style={{ marginBottom: '6px' }}><span style={cle}>Langue originale</span><span style={val}>{oeuvreLocale.langue}</span></div>}
+                      {oeuvreLocale.langue_originale && <div style={{ marginBottom: '6px' }}><span style={cle}>Langue originale</span><span style={val}>{oeuvreLocale.langue_originale}</span></div>}
                       {oeuvreLocale.genres && oeuvreLocale.genres.length > 0 && (
                         <div><span style={cle}>Genre{oeuvreLocale.genres.length > 1 ? 's' : ''}</span>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>

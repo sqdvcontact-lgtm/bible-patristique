@@ -27,12 +27,26 @@ function ContenuNote({ el, onNaviguer }: {
     }
   }, [el.type, el.type !== 'note' ? (el as { id: string }).id : ''])
 
+  // Texte simple d'une note : les *italiques* (titre d'œuvre) sont rendus.
+  const rendreTexteSimple = (t: string, base: number): React.ReactNode[] => {
+    const out: React.ReactNode[] = []
+    const re = /\*(.+?)\*/g
+    let d = 0, i = 0, mm: RegExpExecArray | null
+    while ((mm = re.exec(t))) {
+      if (mm.index > d) out.push(t.slice(d, mm.index))
+      out.push(<em key={`i-${base}-${i++}`}>{mm[1]}</em>)
+      d = re.lastIndex
+    }
+    if (d < t.length) out.push(t.slice(d))
+    return out
+  }
+
   const rendreTexteAvecLiens = (s: string) => {
     const morceaux: React.ReactNode[] = []
     const regex = /\[(.+?)\]\((verset|segment):(.+?)\)/g
     let dernier = 0, k = 0, m: RegExpExecArray | null
     while ((m = regex.exec(s))) {
-      if (m.index > dernier) morceaux.push(s.slice(dernier, m.index))
+      if (m.index > dernier) morceaux.push(...rendreTexteSimple(s.slice(dernier, m.index), k))
       const [, label, type, id] = m
       morceaux.push(
         <button key={k++} onClick={() => onNaviguer({ type: type as 'verset' | 'segment', id, label })}
@@ -42,7 +56,7 @@ function ContenuNote({ el, onNaviguer }: {
       )
       dernier = regex.lastIndex
     }
-    if (dernier < s.length) morceaux.push(s.slice(dernier))
+    if (dernier < s.length) morceaux.push(...rendreTexteSimple(s.slice(dernier), k))
     return morceaux
   }
 

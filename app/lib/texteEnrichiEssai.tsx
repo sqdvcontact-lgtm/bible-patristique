@@ -90,7 +90,7 @@ export function rendreEssai(texte: string, options: RenduOptions = {}): React.Re
     if (espace) { flush(); blocs.push(<div key={blocs.length} style={{ height: `${espace[1]}mm` }} />); return }
     if (ligne.startsWith('> ')) {
       flush()
-      blocs.push(<blockquote key={blocs.length} style={{ fontStyle: 'normal', fontSize: '0.94em', fontFamily: "var(--font-source-sans), Arial, sans-serif", color: '#4a4440', marginLeft: '8mm', marginRight: '8mm', marginTop: '2mm', marginBottom: '2mm', lineHeight: 1.42, textAlign: 'left', wordSpacing: 0, letterSpacing: '0.002em', textIndent: 0 }}>{rendreInline(ligne.slice(2), cleNote, options)}</blockquote>)
+      blocs.push(<blockquote key={blocs.length} style={{ fontStyle: 'normal', fontSize: '0.94em', fontFamily: "var(--font-source-sans), Arial, sans-serif", color: '#4a4440', marginLeft: '8mm', marginRight: '8mm', marginTop: '2mm', marginBottom: '2mm', lineHeight: 1.42, textAlign: 'justify', wordSpacing: 0, letterSpacing: '0.002em', textIndent: 0 }}>{rendreInline(ligne.slice(2), cleNote, options)}</blockquote>)
       return
     }
     if (ligne.startsWith('## ')) {

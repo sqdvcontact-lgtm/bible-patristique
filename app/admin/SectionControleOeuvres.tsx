@@ -335,34 +335,23 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     return () => { annule = true }
   }, [modeControle])
 
-  // Rangs par œuvre (corpus) pour la coloration de l'accueil. Le rang venant d'une analyse
-  // CLIENTE (analyserCorpus), non stockée, on parcourt une fois les segments du corpus
-  // (paginé, plafonné) et l'on compte critiques/moyens par œuvre. Coûteux : à remplacer, dès
-  // que l'accès Supabase le permet, par un agrégat stocké (colonne `controle_rang_auto` +
-  // vue `oeuvres_controle_stats`), sur le modèle d'`oeuvres_liens_stats`.
+  // Rangs par œuvre (corpus) pour la coloration de l'accueil. Le calcul est fait EN BASE par
+  // la vue `oeuvres_controle_stats` (elle porte les signaux les plus lourds d'analyserCorpus
+  // et respecte le rang manuel) : UNE requête, au lieu de parcourir ~120 000 segments côté
+  // client. Le détail fin par segment reste calculé en JS pour l'œuvre ouverte.
   React.useEffect(() => {
     if (modeControle !== 'corpus') return
     let annule = false
     setChargementRangs(true)
     ;(async () => {
+      const { data } = await supabase.from('oeuvres_controle_stats').select('id_oeuvre, critique, moyen')
+      if (annule) return
       const compte = new Map<string, { critique: number; moyen: number }>()
-      const PAGE = 1000, CAP = 120
-      for (let p = 0; p < CAP; p++) {
-        const { data, error } = await supabase.from('segments')
-          .select('id_oeuvre, segment_texte, ref_niv1, ref_niv1_texte, nature, commentaire_ia, controle_rang_manuel')
-          .order('id').range(p * PAGE, p * PAGE + PAGE - 1)
-        if (error || annule) break
-        const lot = (data ?? []) as any[]
-        for (const s of lot) {
-          const rang = s.controle_rang_manuel ?? analyserCorpus(s).rang
-          if (rang !== 'critique' && rang !== 'moyen') continue
-          const e = compte.get(s.id_oeuvre) ?? { critique: 0, moyen: 0 }
-          if (rang === 'critique') e.critique++; else e.moyen++
-          compte.set(s.id_oeuvre, e)
-        }
-        if (lot.length < PAGE) break
-      }
-      if (!annule) { setRangsParOeuvre(compte); setChargementRangs(false) }
+      ;((data ?? []) as any[]).forEach(r => {
+        if (r.critique || r.moyen) compte.set(r.id_oeuvre, { critique: r.critique ?? 0, moyen: r.moyen ?? 0 })
+      })
+      setRangsParOeuvre(compte)
+      setChargementRangs(false)
     })()
     return () => { annule = true }
   }, [modeControle])
@@ -937,7 +926,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
       {!idOeuvre ? (
         <div className="controle-accueil">
           {modeControle === 'corpus' && chargementRangs && (
-            <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', margin: '0 0 8px', padding: '0 12px' }}>Analyse des rangs en cours… (la coloration des lignes apparaîtra ensuite)</p>
+            <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', margin: '0 0 8px', padding: '0 12px' }}>Chargement de la qualité…</p>
           )}
           {oeuvresRecherche.length === 0 ? (
             <p style={{ color: '#9a958d', fontStyle: 'italic', fontSize: '13px', padding: '10px 12px', margin: 0 }}>Aucune œuvre à contrôler.</p>

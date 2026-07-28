@@ -85,8 +85,16 @@ function Contenu({ auteur, onClose }: { auteur: Auteur; onClose: () => void }) {
   const initiales = auteur.nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('')
   const meta = rendreSiecles([datesAuteur, auteur.langue_principale, ...(auteur.traditions ?? [])].filter(Boolean).join(' · '))
 
-  const oeuvresPresentes = auteur.oeuvres.filter(estOeuvrePubliee).sort((a, b) => a.titre.localeCompare(b.titre, 'fr'))
-  const oeuvresAbsentes = auteur.oeuvres.filter(o => !estOeuvrePubliee(o)).sort((a, b) => a.titre.localeCompare(b.titre, 'fr'))
+  // Tri par date de publication (croissante). Les œuvres sans date closent la liste,
+  // départagées par le titre.
+  const anneeTri = (o: OeuvreResumee) => {
+    const m = (o.date_publication || '').match(/\d{3,4}/)
+    return m ? parseInt(m[0], 10) : Infinity
+  }
+  const parDate = (a: OeuvreResumee, b: OeuvreResumee) =>
+    anneeTri(a) - anneeTri(b) || a.titre.localeCompare(b.titre, 'fr')
+  const oeuvresPresentes = auteur.oeuvres.filter(estOeuvrePubliee).sort(parDate)
+  const oeuvresAbsentes = auteur.oeuvres.filter(o => !estOeuvrePubliee(o)).sort(parDate)
   const aColonnes = !!(auteur.note_biographique || auteur.note_theologique || auteur.influence || auteur.anecdotes) && !!(auteur.chronologie && auteur.chronologie.trim())
 
   return (
@@ -133,17 +141,23 @@ function Contenu({ auteur, onClose }: { auteur: Auteur; onClose: () => void }) {
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {oeuvresPresentes.map(o => (
               <li key={o.id_oeuvre}>
-                <Link href={`/oeuvre/${o.id_oeuvre}`} onClick={onClose} className="auteur-oeuvre">
+                {/* Date de publication à gauche, sur le modèle de la chronologie ; titre seul,
+                    sans sous-titre. */}
+                <Link href={`/oeuvre/${o.id_oeuvre}`} onClick={onClose} className="auteur-oeuvre"
+                  style={{ display: 'grid', gridTemplateColumns: '46px 1fr', gap: '9px', alignItems: 'baseline' }}>
+                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '11.5px', color: '#b7a06a', textAlign: 'right', whiteSpace: 'nowrap' }}>{formaterDateHistorique(o.date_publication)}</span>
                   <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12.5px', color: '#2a3d30' }}>{o.titre}</span>
-                  {o.sous_titre && <span style={{ fontSize: '10.5px', color: '#9a8a6e', fontStyle: 'italic' }}> — {o.sous_titre}</span>}
                 </Link>
               </li>
             ))}
             {oeuvresAbsentes.map(o => (
-              <li key={o.id_oeuvre} className="auteur-oeuvre auteur-oeuvre--absente" title="Œuvre répertoriée, pas encore disponible">
-                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12.5px', color: '#a8a29a' }}>{o.titre}</span>
-                {o.sous_titre && <span style={{ fontSize: '10.5px', color: '#c0b8ae', fontStyle: 'italic' }}> — {o.sous_titre}</span>}
-                <span style={{ marginLeft: '7px', fontSize: '8.5px', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#b7ad9a' }}>répertoriée</span>
+              <li key={o.id_oeuvre} className="auteur-oeuvre auteur-oeuvre--absente" title="Œuvre répertoriée, pas encore disponible"
+                style={{ display: 'grid', gridTemplateColumns: '46px 1fr', gap: '9px', alignItems: 'baseline' }}>
+                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '11.5px', color: '#cdbe93', textAlign: 'right', whiteSpace: 'nowrap' }}>{formaterDateHistorique(o.date_publication)}</span>
+                <span>
+                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12.5px', color: '#a8a29a' }}>{o.titre}</span>
+                  <span style={{ marginLeft: '7px', fontSize: '8.5px', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#b7ad9a' }}>répertoriée</span>
+                </span>
               </li>
             ))}
           </ul>
@@ -201,7 +215,7 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
 
         <style>{`
           .auteur-prose { font-family: var(--font-source-sans), Arial, sans-serif; font-size: 12px; line-height: 1.5; color: #3a3530; text-align: justify; hyphens: auto; margin: 0; }
-          .auteur-oeuvre { display: block; padding: 4px 8px; margin: 0 -8px; border-radius: 4px; text-decoration: none; transition: background 0.12s; }
+          .auteur-oeuvre { display: block; padding: 1px 8px; margin: 0 -8px; border-radius: 4px; text-decoration: none; transition: background 0.12s; }
           a.auteur-oeuvre:hover { background: rgba(61,107,79,0.06); }
           .auteur-oeuvre--absente { cursor: default; }
         `}</style>

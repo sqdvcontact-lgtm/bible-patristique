@@ -32,8 +32,8 @@ type Profil = {
 type PhotoProfil = { id_auteur: string; nom: string; imageUrl: string; posX?: number; posY?: number; zoom?: number };
 type CitationPreferee = { id: string; texte: string; type: "biblique" | "patristique"; ref?: string; auteur?: string; titre_oeuvre?: string };
 
-const inputStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: "13.5px", border: "1px solid #d6d0c4", borderRadius: "6px", background: "#f9f7f4", color: "#1e1a16", outline: "none", boxSizing: "border-box" };
-const labelStyle: React.CSSProperties = { fontSize: "11px", fontWeight: 600, color: "#6a7b6e", letterSpacing: "0.06em", display: "block", marginBottom: "5px" };
+const inputStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: "0.84375rem", border: "1px solid #d6d0c4", borderRadius: "6px", background: "#f9f7f4", color: "#1e1a16", outline: "none", boxSizing: "border-box" };
+const labelStyle: React.CSSProperties = { fontSize: "0.6875rem", fontWeight: 600, color: "#6a7b6e", letterSpacing: "0.06em", display: "block", marginBottom: "5px" };
 
 function urlCompte(): string {
   if (typeof window !== "undefined") return `${window.location.origin}/compte`;
@@ -133,8 +133,8 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
   return (
     <main style={{ minHeight: "calc(100vh - 48px)", background: "#f3efe3", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
       <div style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "32px 36px", width: "100%", maxWidth: "380px" }}>
-        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "19px", fontWeight: "normal", color: "#2a3d30", marginBottom: "8px" }}>Choisissez votre pseudonyme</h1>
-        <p style={{ fontSize: "12.5px", color: "#9a958d", marginBottom: "20px", lineHeight: 1.5 }}>Il vous identifie sur le site et doit être unique.</p>
+        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "#2a3d30", marginBottom: "8px" }}>Choisissez votre pseudonyme</h1>
+        <p style={{ fontSize: "0.78125rem", color: "#9a958d", marginBottom: "20px", lineHeight: 1.5 }}>Il vous identifie sur le site et doit être unique.</p>
         {erreur && <p style={{ fontSize: "12.5px", color: "#9a2a2a", marginBottom: "12px" }}>{erreur}</p>}
         <form onSubmit={valider} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           <input type="text" value={pseudo} onChange={e => setPseudo(e.target.value)} maxLength={32} autoFocus placeholder="Pseudonyme" style={inputStyle} />
@@ -174,7 +174,7 @@ function SectionRang({ score }: { score: number }) {
   return (
     <>
       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
-        <span style={{ fontSize: "14px", fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: "4px 13px", borderRadius: "6px", letterSpacing: "0.01em", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
+        <span style={{ fontSize: "0.875rem", fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: "4px 13px", borderRadius: "6px", letterSpacing: "0.01em", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
           {rang}
         </span>
         <span style={{ fontSize: "12px", color: "#8a8278", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
@@ -229,7 +229,7 @@ function SectionPublications({ userId }: { userId: string }) {
         {essais.map((e, i) => (
           <a key={e.id} href={`/essais/${e.id}`}
             style={{ display: "flex", alignItems: "baseline", gap: "10px", padding: "8px 0", textDecoration: "none", borderBottom: i < essais.length - 1 ? "1px solid #f0ece6" : "none" }}>
-            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "13.5px", fontStyle: "italic", color: "#2a3d30", flex: 1, lineHeight: 1.4 }}>{e.titre}</span>
+            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.84375rem", fontStyle: "italic", color: "#2a3d30", flex: 1, lineHeight: 1.4 }}>{e.titre}</span>
             <span style={{ fontSize: "10px", color: "#c0b8ae", flexShrink: 0 }}>{new Date(e.cree_le).getFullYear()}</span>
           </a>
         ))}
@@ -266,7 +266,7 @@ function SectionFavoris({ userId }: { userId: string }) {
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderLeftColor = "#3d6b4f"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderLeftColor = "#c8c0b4"; }}>
             {f.auteur_nom && <p style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.06em", color: "#9a958d", textTransform: "uppercase", margin: "0 0 3px" }}>{f.auteur_nom}</p>}
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "12.5px", fontStyle: "italic", color: "#2a3d30", margin: 0, lineHeight: 1.4 }}>{f.titre}</p>
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.78125rem", fontStyle: "italic", color: "#2a3d30", margin: 0, lineHeight: 1.4 }}>{f.titre}</p>
           </a>
         ))}
       </div>

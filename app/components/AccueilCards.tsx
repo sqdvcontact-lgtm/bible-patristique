@@ -162,19 +162,19 @@ export default function AccueilCards() {
         .ac-grid {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 16px;
+          gap: 1rem;
           width: 100%;
-          max-width: 680px;
+          max-width: 42.5rem;
         }
         .ac-card {
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 13px;
+          gap: 0.8125rem;
           border-radius: 10px;
           text-decoration: none;
-          min-height: 142px;
+          min-height: 8.875rem;
           padding: 0;
           border: 1px solid rgba(255,255,255,0.10);
           box-shadow: 0 6px 24px rgba(10,18,8,0.30), inset 0 1px 0 rgba(255,255,255,0.08);
@@ -205,23 +205,23 @@ export default function AccueilCards() {
         .ac-card-main > img,
         .ac-card-main > span { position: relative; z-index: 1; }
         .ac-icon-img {
-          width: 76px;
-          height: 76px;
+          width: 4.75rem;
+          height: 4.75rem;
           object-fit: contain;
           opacity: 0.86;
           mix-blend-mode: screen;
         }
         .ac-icon-bible {
-          width: 86px;
-          height: 70px;
+          width: 5.375rem;
+          height: 4.375rem;
         }
         .ac-icon-pere {
-          width: 74px;
-          height: 74px;
+          width: 4.625rem;
+          height: 4.625rem;
         }
         .ac-icon-publications {
-          width: 92px;
-          height: 74px;
+          width: 5.75rem;
+          height: 4.625rem;
         }
         .ac-card:hover {
           transform: translateY(-2px);
@@ -236,14 +236,14 @@ export default function AccueilCards() {
           background: linear-gradient(160deg, #1e3828 0%, #162a1e 100%);
         }
         .ac-patristique {
-          background: linear-gradient(160deg, #3a2c10 0%, #2c2008 100%);
+          background: linear-gradient(160deg, #6b571c 0%, #473a10 100%);
         }
         .ac-publications {
           background: linear-gradient(160deg, #283820 0%, #1e2c18 100%);
         }
         .ac-title {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 20px;
+          font-size: 1.25rem;
           font-weight: normal;
           color: rgba(255,255,255,0.90);
           letter-spacing: 0.01em;
@@ -304,7 +304,7 @@ export default function AccueilCards() {
           pointer-events: none;
         }
         .ac-hover-kicker {
-          font-size: 9px;
+          font-size: 0.5625rem;
           font-weight: 700;
           letter-spacing: 0.10em;
           text-transform: uppercase;
@@ -322,7 +322,7 @@ export default function AccueilCards() {
           padding: 0 10px;
           box-sizing: border-box;
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 12px;
+          font-size: 0.75rem;
           font-style: italic;
           line-height: 1.25;
           overflow: hidden;

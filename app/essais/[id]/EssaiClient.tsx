@@ -158,6 +158,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         }
         .essai-lecture-corps blockquote {
           font-style: normal !important;
+          text-align: justify !important;
           font-family: var(--font-source-sans), Arial, sans-serif !important;
           color: #4a4440 !important;
           line-height: 1.44 !important;

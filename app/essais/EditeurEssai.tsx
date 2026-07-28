@@ -284,14 +284,17 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     setEditionNote({ mode: 'modification' })
   }
 
-  const inserrerCitation = (c: { label: string; type: 'verset' | 'segment'; id: string; complet?: boolean; texte?: string; ref?: string }) => {
-    // Citation « complète » : le texte cité forme un bloc Citation (blockquote, non
-    // surligné, couleur du texte) et la référence complète devient une NOTE — jamais le
-    // texte dans la note. La forme abrégée reste un simple renvoi en ligne vers la source.
+  const inserrerCitation = (c: { label: string; type: 'verset' | 'segment'; id: string; complet?: boolean; texte?: string; fin?: string; ref?: string }) => {
+    // Citation « complète » : le texte cité forme un bloc Citation (blockquote, SANS
+    // guillemets français), la référence devient une NOTE. L'appel de note se place AVANT
+    // la ponctuation finale (`fin` : point, sauf « ? » / « ! »).
     if (c.complet && c.texte) {
       const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      const note = `<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(c.ref ?? c.label)}" style="display:inline-block;color:#3d6b4f;font-weight:600;font-size:0.78em;vertical-align:super;cursor:pointer;background:transparent;padding:0;border:0;border-radius:0;">note</span>`
-      insererHTML(`<blockquote>${esc(c.texte)}${note}</blockquote><p><br></p>`)
+      // Le contenu de la note peut porter des *italiques* (titre d'œuvre) : on encode aussi
+      // l'astérisque pour qu'il ne soit pas réinterprété par la syntaxe légère au rechargement.
+      const noteEnc = encodeURIComponent(c.ref ?? c.label).replace(/\*/g, '%2A')
+      const note = `<span contenteditable="false" data-chip="note" data-note="${noteEnc}" style="display:inline-block;color:#3d6b4f;font-weight:600;font-size:0.78em;vertical-align:super;cursor:pointer;background:transparent;padding:0;border:0;border-radius:0;">note</span>`
+      insererHTML(`<blockquote>${esc(c.texte)}${note}${esc(c.fin ?? '.')}</blockquote><p><br></p>`)
     } else {
       insererHTML(`<span contenteditable="false" data-chip="${c.type}" data-id="${c.id}" data-label="${c.label}" style="display:inline-block;color:#3d6b4f;text-decoration:underline;background:rgba(61,107,79,0.07);padding:1px 5px;border-radius:3px;cursor:pointer;">${c.label}</span>&nbsp;`)
     }
@@ -482,7 +485,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         .editeur-essai blockquote { font-family: var(--font-source-sans), Arial, sans-serif; }
         .editeur-essai h2 { font-family: var(--font-source-serif), Georgia, serif; font-weight: 700; font-size: 1.07em; color: #1e2e24; }
         .editeur-essai h3 { font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-weight: 400; font-size: 1em; color: #2a3d30; }
-        .editeur-essai blockquote { font-style: normal; font-size: 0.93em; color: #3a3530; margin-left: 8mm; }
+        .editeur-essai blockquote { font-style: normal; font-size: 0.93em; color: #3a3530; margin-left: 8mm; text-align: justify; }
         .editeur-essai p,
         .editeur-essai blockquote { line-height: 1.5; word-spacing: -0.09em; letter-spacing: -0.006em; }
         .editeur-essai h2 + h3,

@@ -1,4 +1,6 @@
-export type Commentaire = { id: number; texte: string; auteur_nom: string; auteur_mail: string; valide: boolean; created_at: string; id_segment: number | null; id_verset: string | null; user_id?: string | null; demande_validation?: boolean; certifie?: boolean }
+export type Commentaire = { id: number; texte: string; auteur_nom: string; auteur_mail: string; valide: boolean; created_at: string; id_segment: number | null; id_verset: string | null; user_id?: string | null; demande_validation?: boolean; certifie?: boolean; reponse_a?: number | null }
+// Message auquel un commentaire répond — pour l'afficher en contexte dans la modération.
+export type CommentaireParent = { auteur_nom: string; texte: string }
 export type Signalement  = { id: number | string; message: string; traite: boolean; created_at: string; id_segment: number | null; id_verset?: string | null; user_id?: string | null; source?: 'signalements' | 'quiz_signalements'; importance?: string | null; url_source?: string | null }
 export type SegInfo      = { texte: string; numero: number; id_oeuvre: string }
 export type Oeuvre = {
@@ -14,18 +16,19 @@ export type Oeuvre = {
   date_publication?: string | null
   date_composition?: string | null
   url_source?: string | null
-  langue?: string | null
+  langue_originale?: string | null
   genres?: string[] | null
   niveaux_sommaire?: number | null
   niveaux_corps?: number | null
   texte_sommaire?: string | null
   texte_corps?: string | null
   afficher_numeros?: boolean | null
+  note?: string | null
 }
 export type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 export type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }
 
-export type Auteur       = { id_auteur: string; nom: string; nom_original?: string | null; titre?: string | null; dates: string | null; date_naissance?: string | null; date_mort?: string | null; siecle?: string | null; tradition?: string | null; traditions?: string[] | null; note?: string | null; note_biographique?: string | null; note_theologique?: string | null; langue_principale?: string | null; chronologie?: string | null; anecdotes?: string | null; influence?: string | null; photo_position?: AuteurPhotoPositions | null; oeuvres: Oeuvre[] }
+export type Auteur       = { id_auteur: string; nom: string; nom_original?: string | null; titre?: string | null; dates: string | null; date_naissance?: string | null; date_mort?: string | null; siecle?: string | null; traditions?: string[] | null; note?: string | null; note_biographique?: string | null; note_theologique?: string | null; langue_principale?: string | null; chronologie?: string | null; anecdotes?: string | null; influence?: string | null; photo_position?: AuteurPhotoPositions | null; oeuvres: Oeuvre[] }
 
 export type Traduction = {
   trad_id: string
@@ -86,6 +89,7 @@ export type AdminProps = {
   segMap: Record<number, SegInfo>
   oeuvreTitreMap: Record<string, string>
   signalementAuteurMap: Record<string, string>
+  commentaireParentMap: Record<number, CommentaireParent>
   auteurs: Auteur[]
   traductions: Traduction[]
   nbVerifications: number
@@ -103,4 +107,4 @@ export type AdminProps = {
   actionRenvoyerBrouillonEssai: (id: number, note: string, refus?: boolean) => Promise<void>
 }
 
-export type Onglet = 'bibliotheque' | 'controle-oeuvres' | 'traductions' | 'verifications' | 'moderation' | 'essais' | 'charte' | 'charte-accentuation' | 'propositions' | 'taches'
+export type Onglet = 'bibliotheque' | 'controle-oeuvres' | 'traductions' | 'editeurs' | 'verifications' | 'moderation' | 'essais' | 'charte' | 'charte-accentuation' | 'propositions' | 'taches'

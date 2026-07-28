@@ -43,7 +43,7 @@ export default function MessageriePage() {
 
   return (
     <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '48px' }}>
-      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '34px 24px 80px' }}>
+      <div style={{ maxWidth: '42.5rem', margin: '0 auto', padding: '34px 24px 80px' }}>
 
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 'normal', color: '#1e2e24', marginBottom: '10px' }}>
@@ -83,7 +83,7 @@ export default function MessageriePage() {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#1e2e24', fontWeight: c.nb_non_lus > 0 ? 600 : 400 }}>
+                      <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: '#1e2e24', fontWeight: c.nb_non_lus > 0 ? 600 : 400 }}>
                         {c.partenaire_pseudo}
                       </span>
                       {c.nb_non_lus > 0 && (
@@ -96,7 +96,7 @@ export default function MessageriePage() {
                       {dateRelative(c.dernier_at)}
                     </span>
                   </div>
-                  <p style={{ fontSize: '12.5px', color: c.nb_non_lus > 0 ? '#3a3530' : '#8a8278', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+                  <p style={{ fontSize: '0.78125rem', color: c.nb_non_lus > 0 ? '#3a3530' : '#8a8278', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
                     {c.dernier_message}
                   </p>
                 </article>

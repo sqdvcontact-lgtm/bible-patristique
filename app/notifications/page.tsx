@@ -111,7 +111,7 @@ export default function NotificationsPage() {
           transform: translate(-50%, -50%) translateX(0);
         }
       `}</style>
-      <div style={{ maxWidth: '720px', margin: '0 auto', padding: '34px 24px 80px' }}>
+      <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '34px 24px 80px' }}>
         <div style={{ textAlign: 'center', marginBottom: '22px' }}>
           <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 'normal', color: '#1e2e24', marginBottom: '10px' }}>
             Notifications
@@ -131,7 +131,7 @@ export default function NotificationsPage() {
                 { key: 'archivees' as Onglet, label: 'Archivées', count: archivees.length },
               ]).map(o => (
                 <button key={o.key} onClick={() => setOnglet(o.key)}
-                  style={{ padding: '8px 14px', fontSize: '12px', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#3d6b4f' : '#8a8278', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer' }}>
+                  style={{ padding: '8px 14px', fontSize: '0.75rem', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#3d6b4f' : '#8a8278', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer' }}>
                   {o.label}
                   <span style={{ marginLeft: '5px', fontSize: '10px', color: '#b0a89e' }}>({o.count})</span>
                 </button>
@@ -161,7 +161,7 @@ export default function NotificationsPage() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '10px', marginBottom: '5px' }}>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 2px' }}>{n.titre}</p>
-                          <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '14px', color: '#1e2e24', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.objet}</p>
+                          <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: '#1e2e24', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.objet}</p>
                         </div>
                         <span style={{ fontSize: '9.5px', color: '#b0a89e', flexShrink: 0 }}>{dateCourte(n.date)}</span>
                       </div>
@@ -173,7 +173,7 @@ export default function NotificationsPage() {
                       <p style={{ fontSize: '10.5px', color: '#9a958d', margin: '0 0 4px' }}>
                         Message de <strong style={{ color: '#5a5450' }}>{n.auteur}</strong>
                       </p>
-                      <p style={{ fontSize: '12px', color: '#2a2520', lineHeight: 1.45, whiteSpace: 'pre-wrap', margin: 0 }}>{n.message}</p>
+                      <p style={{ fontSize: '0.75rem', color: '#2a2520', lineHeight: 1.45, whiteSpace: 'pre-wrap', margin: 0 }}>{n.message}</p>
                       {n.href && (
                         <Link href={n.href} onClick={e => { e.stopPropagation(); archiver(n) }}
                           style={{ display: 'inline-block', marginTop: '7px', fontSize: '11px', color: '#3d6b4f', fontWeight: 600, textDecoration: 'none' }}>

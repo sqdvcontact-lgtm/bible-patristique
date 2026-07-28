@@ -77,6 +77,16 @@ function BoutonCopie({ texte }: { texte: string }) {
 // ── Modale signalement ────────────────────────────────────────────────────────
 // Composant partagé unique (voir app/components/ModalSignalement), importé en tête.
 
+// « GEN 1:1 » (référence canonique interne) → « Gn 1, 1 » (forme française attendue partout
+// sur le site : abréviation française, virgule entre chapitre et verset).
+function refFrBible(ref: string): string {
+  const p = ref.trim().split(' ')
+  if (p.length < 2) return ref
+  const cv = p[1].split(':')
+  const abr = ABREV_FR[p[0]] ?? p[0]
+  return cv[1] ? `${abr} ${cv[0]}, ${cv[1]}` : `${abr} ${cv[0]}`
+}
+
 function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; versetRef?: string; texte?: string }) {
   const [ouvert, setOuvert] = useState(false)
   const envoyer = async (msg: string, importance?: string) => {
@@ -94,7 +104,7 @@ function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; vers
       throw new Error(details?.error ?? "Erreur d'envoi du signalement")
     }
   }
-  const ref = versetRef || versetId
+  const ref = versetRef ? refFrBible(versetRef) : versetId
   return (
     <>
       <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
@@ -313,7 +323,7 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
     setStatut('envoi')
     const { data: session } = await supabase.auth.getSession()
     const token = session.session?.access_token
-    const res = await fetch('/api/admin/verset-modifier', {
+    const res = await fetch('/api/admin/verset-modifier-canon', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ id_verset: verset.id_verset, traduction, valeur }),
@@ -449,12 +459,12 @@ export default function TexteBible({
             (bloc de texte de 500 px + colonne d'actions de 38 px) : le titre est centré
             sur la seule première colonne — donc sur le bloc vert de sélection —, la colonne
             des boutons (signaler, prélever…) étant exclue du centrage. */}
-        <div style={{ width: 'min(538px, 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0, 500px) 38px', alignItems: 'center' }}>
+        <div style={{ width: 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
           {chapitreActif > 1 ? (
-            <button onClick={() => allerAuChapitre(chapitreActif - 1)} className="nav-chap-arrow" style={{ color: '#b0a89e', fontSize: '20px', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s' }} title="Chapitre précédent">‹</button>
+            <button onClick={() => allerAuChapitre(chapitreActif - 1)} className="nav-chap-arrow" style={{ color: '#b0a89e', fontSize: '1.25rem', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s' }} title="Chapitre précédent">‹</button>
           ) : (
-            <span style={{ color: '#d6d0c4', fontSize: '20px', lineHeight: 1 }}>‹</span>
+            <span style={{ color: '#d6d0c4', fontSize: '1.25rem', lineHeight: 1 }}>‹</span>
           )}
 
           <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px' }}>
@@ -463,7 +473,7 @@ export default function TexteBible({
             <span style={{ fontSize: '1.05rem', color: '#5a7260', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>
           </h1>
 
-          <button onClick={() => allerAuChapitre(chapitreActif + 1)} className="nav-chap-arrow" style={{ color: '#b0a89e', fontSize: '20px', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s' }} title="Chapitre suivant">›</button>
+          <button onClick={() => allerAuChapitre(chapitreActif + 1)} className="nav-chap-arrow" style={{ color: '#b0a89e', fontSize: '1.25rem', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s' }} title="Chapitre suivant">›</button>
         </div>
           <div />
         </div>
@@ -472,18 +482,20 @@ export default function TexteBible({
             Calé sur LE MÊME gabarit que le titre « Genèse ❧ Chapitre 1 » (bloc texte
             de 500 px + colonne d'actions de 38 px exclue du centrage), pour que le menu
             se centre sur le même axe que le titre, et non sur la pleine largeur. */}
-        <div style={{ width: 'min(538px, 100%)', margin: '8px auto 0', display: 'grid', gridTemplateColumns: 'minmax(0, 500px) 38px', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', maxWidth: '260px', margin: '0 auto' }}>
-          {/* Double filet à gauche : deux traits fins superposés, bien visibles, comme autrefois. */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, #cbc4b6)' }} />
-            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, #cbc4b6)' }} />
+        <div style={{ width: 'min(var(--mesure-ligne), 100%)', margin: '0.5rem auto 0', display: 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', maxWidth: '360px', margin: '0 auto' }}>
+          {/* Double filet à gauche : deux traits fins superposés, bien visibles, comme autrefois.
+              Le trait est coloré dès le tiers extérieur (et non seulement au ras du menu) pour
+              rester perceptible même sur une faible largeur. */}
+          <div style={{ flex: 1, minWidth: '46px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent 0%, #c3b7a0 38%, #a4977f 100%)' }} />
+            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent 0%, #c3b7a0 38%, #a4977f 100%)' }} />
           </div>
           <div style={{ position: 'relative' }}>
             <button onClick={() => setTradOuverte(!tradOuverte)} style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '0', border: 'none', background: 'transparent',
-              fontSize: '11.5px', color: '#6b8270', cursor: 'pointer',
+              fontSize: '0.71875rem', color: '#6b8270', cursor: 'pointer',
               fontFamily: "var(--font-source-serif), Georgia, serif",
               fontStyle: 'italic', letterSpacing: '0.01em',
               transition: 'color 0.15s',
@@ -495,7 +507,7 @@ export default function TexteBible({
               <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', background: '#fff', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '7px', zIndex: 50, boxShadow: '0 10px 26px rgba(47,63,53,0.12)', minWidth: '230px', overflow: 'hidden' }}>
                 {traductions.map((t, i) => (
                   <button key={t.code} onClick={() => { setTraductionIndex(i); setTradOuverte(false) }} style={{
-                    width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '13px',
+                    width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '0.8125rem',
                     border: 'none', borderBottom: i < traductions.length - 1 ? '1px solid #ede9e2' : 'none',
                     background: traductionIndex === i ? 'rgba(61,107,79,0.08)' : '#fff',
                     color: traductionIndex === i ? '#3d6b4f' : '#2a2520',
@@ -512,9 +524,9 @@ export default function TexteBible({
             )}
           </div>
           {/* Double filet à droite, symétrique. */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ height: '1px', background: 'linear-gradient(to left, transparent, #cbc4b6)' }} />
-            <div style={{ height: '1px', background: 'linear-gradient(to left, transparent, #cbc4b6)' }} />
+          <div style={{ flex: 1, minWidth: '46px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ height: '1px', background: 'linear-gradient(to left, transparent 0%, #c3b7a0 38%, #a4977f 100%)' }} />
+            <div style={{ height: '1px', background: 'linear-gradient(to left, transparent 0%, #c3b7a0 38%, #a4977f 100%)' }} />
           </div>
         </div>
           <div />
@@ -523,7 +535,7 @@ export default function TexteBible({
       </div>
 
       <div className="overflow-y-auto flex-1" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
-        <div style={{ maxWidth: '620px', margin: '0 auto', paddingLeft: '24px', paddingRight: '24px' }}>
+        <div style={{ maxWidth: 'var(--mesure-page)', margin: '0 auto', paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
           <style>{`
             .verset-row:hover { background: rgba(61,107,79,0.05); }
             .verset-row:hover .bouton-action-verset { opacity: 1 !important; }
@@ -569,12 +581,12 @@ export default function TexteBible({
                 setVersetSelectionne(actif ? null : v)
               }}
               className={`verset-row${actif ? ' verset-row--actif' : ''}`}
-              style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '3px 6px', borderRadius: '4px', cursor: 'pointer', marginBottom: '4px', background: 'transparent' }}>
+              style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '0.1875rem 0.375rem', borderRadius: '4px', cursor: 'pointer', marginBottom: '0.25rem', background: 'transparent' }}>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 500px) 38px', width: 'min(538px, 100%)', alignItems: 'flex-start' }}>
-                <div style={{ display:'grid', gridTemplateColumns:'auto minmax(0, 480px)', columnGap:'3px', borderRadius:'5px', padding:'2px 4px 2px 0', background: actif ? 'rgba(61,107,79,0.11)' : 'transparent' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', width: 'min(var(--mesure-ligne), 100%)', alignItems: 'flex-start' }}>
+                <div style={{ display:'grid', gridTemplateColumns:'auto minmax(0, var(--mesure-texte))', columnGap:'0.1875rem', borderRadius:'5px', padding:'0.125rem 0.25rem 0.125rem 0', background: actif ? 'rgba(61,107,79,0.11)' : 'transparent' }}>
                   {/* Numéro — inclus dans le bloc sélectionné */}
-                  <span style={{ minWidth: '17px', textAlign: 'right', paddingRight: '5px', fontSize: '10px', fontWeight: 600, color: '#b0a89e', lineHeight: 1.40, paddingTop: '1px', whiteSpace: 'nowrap' }}>
+                  <span style={{ minWidth: '1.0625rem', textAlign: 'right', paddingRight: '0.3125rem', fontSize: '0.625rem', fontWeight: 600, color: '#b0a89e', lineHeight: 1.40, paddingTop: '1px', whiteSpace: 'nowrap' }}>
                     {v.verset}
                     {v.chapitre_alternatif != null && (
                       <span style={{ fontWeight: 400, fontStyle: 'italic', color: '#c0bab0' }}>
@@ -592,7 +604,7 @@ export default function TexteBible({
                 </div>
 
                 {/* Boutons d'action — hors du bloc sélectionné */}
-                <div className="verset-actions" style={{ width: '38px', paddingLeft: '8px', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '2px', overflow: 'visible' }}>
+                <div className="verset-actions" style={{ width: '2.375rem', paddingLeft: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.125rem', overflow: 'visible' }}>
                   {userId && (
                     <BoutonEnregistrer
                       verset={v} nomLivre={nomLivre} livreActif={livreActif}

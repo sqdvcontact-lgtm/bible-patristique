@@ -10,7 +10,7 @@ export default function SectionAuteurs() {
   const [edition, setEdition] = React.useState<string | null>(null)
   const [form, setForm] = React.useState<Record<string, string>>({})
   const [ajout, setAjout] = React.useState(false)
-  const [nouvel, setNouvel] = React.useState({ nom: '', dates: '', siecle: '', tradition: '', note: '', aire_geographique: '', langue_principale: '' })
+  const [nouvel, setNouvel] = React.useState({ nom: '', dates: '', siecle: '', note: '', langue_principale: '' })
   const [statut, setStatut] = React.useState<{ id: string; ok: boolean; msg: string } | null>(null)
   const [msgAjout, setMsgAjout] = React.useState<string | null>(null)
   const [recherche, setRecherche] = React.useState('')
@@ -75,15 +75,13 @@ export default function SectionAuteurs() {
       dates: datesNormalisees,
       ...colonnesPeriodeHistorique('date', datesNormalisees),
       siecle: nouvel.siecle || null,
-      tradition: nouvel.tradition || null,
       note: nouvel.note || null,
-      aire_geographique: nouvel.aire_geographique || null,
       langue_principale: nouvel.langue_principale || null,
     }).select().single()
     if (error) { setMsgAjout('Erreur : ' + error.message); return }
     setAuteurs(prev => [...prev, data])
     setAjout(false)
-    setNouvel({ nom: '', dates: '', siecle: '', tradition: '', note: '', aire_geographique: '', langue_principale: '' })
+    setNouvel({ nom: '', dates: '', siecle: '', note: '', langue_principale: '' })
     setMsgAjout(null)
   }
 
@@ -94,8 +92,6 @@ export default function SectionAuteurs() {
     { key: 'nom', label: 'Nom *' },
     { key: 'dates', label: 'Dates (ex. 354-430)' },
     { key: 'siecle', label: 'Siècle', type: 'number' },
-    { key: 'tradition', label: 'Tradition', type: 'select' },
-    { key: 'aire_geographique', label: 'Aire géographique' },
     { key: 'langue_principale', label: 'Langue principale' },
     { key: 'note', label: 'Note' },
   ]
@@ -131,11 +127,6 @@ export default function SectionAuteurs() {
                 <label style={labelStyle}>{c.key === 'note' ? 'NOTE' : c.label.toUpperCase()}</label>
                 {c.key === 'note'
                   ? <textarea value={(nouvel as any)[c.key]} onChange={e => setNouvel(p => ({ ...p, [c.key]: e.target.value }))} rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
-                  : c.type === 'select'
-                  ? <select value={(nouvel as any)[c.key]} onChange={e => setNouvel(p => ({ ...p, [c.key]: e.target.value }))} style={inputStyle}>
-                      <option value="">— Choisir —</option>
-                      {['apostolique','apologétique','alexandrine','antiochienne','cappadocienne','latine','africaine','syriaque','monastique','liturgique','conciliaire','pastorale'].map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
                   : <input type={c.type === 'number' ? 'number' : 'text'} value={(nouvel as any)[c.key]} onChange={e => setNouvel(p => ({ ...p, [c.key]: e.target.value }))} style={inputStyle} placeholder={c.key === 'nom' ? "Augustin d'Hippone" : c.key === 'siecle' ? '5 (négatif = av. J.-C.)' : ''} />
                 }
               </div>
@@ -166,7 +157,6 @@ export default function SectionAuteurs() {
                       <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '14px', color: '#2a3d30' }}>{a.nom}</span>
                       {a.dates && <span style={{ fontSize: '11px', color: '#9a958d' }}>{formaterDateHistorique(a.dates)}</span>}
                       {a.siecle && <span style={{ fontSize: '10.5px', color: '#9a958d' }}><SiecleDisplay n={parseInt(a.siecle)} /></span>}
-                      {a.tradition && <span style={{ fontSize: '10.5px', color: '#9a958d', background: '#eeeae4', padding: '1px 6px', borderRadius: '3px' }}>{a.tradition}</span>}
                     </div>
                     <div style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center' }}>
                       <code style={{ fontSize: '10px', background: '#f0ece6', padding: '2px 6px', borderRadius: '3px', color: '#6b6560' }}>{a.id_auteur}</code>
@@ -197,11 +187,6 @@ export default function SectionAuteurs() {
                             <label style={labelStyle}>{c.label.toUpperCase()}</label>
                             {c.key === 'note'
                               ? <textarea value={form[c.key] ?? ''} onChange={e => setForm(p => ({ ...p, [c.key]: e.target.value }))} rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
-                              : c.type === 'select'
-                              ? <select value={form[c.key] ?? ''} onChange={e => setForm(p => ({ ...p, [c.key]: e.target.value }))} style={inputStyle}>
-                                  <option value="">— Choisir —</option>
-                                  {['apostolique','apologétique','alexandrine','antiochienne','cappadocienne','latine','africaine','syriaque','monastique','liturgique','conciliaire','pastorale'].map(t => <option key={t} value={t}>{t}</option>)}
-                                </select>
                               : <input type={c.type === 'number' ? 'number' : 'text'} value={form[c.key] ?? ''} onChange={e => setForm(p => ({ ...p, [c.key]: e.target.value }))} style={inputStyle} />
                             }
                           </div>

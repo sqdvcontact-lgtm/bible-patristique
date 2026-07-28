@@ -208,20 +208,20 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   if (segActif === null) return <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d', padding: '8px 0' }}>Cliquez sur un paragraphe pour voir ou ajouter des commentaires.</p>
 
   const VoteBoutons = ({ c }: { c: CommentaireAvecAuteur }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
-      <button onClick={() => basculerVote(c, -1)} title="Je n'aime pas"
-        style={{ display: 'flex', alignItems: 'center', gap: '3px', color: c.monVote === -1 ? '#9a4a2a' : '#b0a89e', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
-        <svg width="10" height="10" viewBox="0 0 20 20" fill="none" style={{ transform: 'rotate(180deg)' }} aria-hidden="true">
-          <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-        </svg>
-        <span style={{ minWidth: '10px', textAlign: 'left', fontWeight: 600, fontSize: '9px' }}>{c.nbDislikes}</span>
-      </button>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '1px', flexShrink: 0 }}>
       <button onClick={() => basculerVote(c, 1)} title="J'aime"
-        style={{ display: 'flex', alignItems: 'center', gap: '3px', color: c.monVote === 1 ? '#3d6b4f' : '#b0a89e', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+        style={{ display: 'flex', alignItems: 'center', gap: '2px', color: c.monVote === 1 ? '#3d6b4f' : '#b0a89e', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
         <svg width="10" height="10" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
         </svg>
         <span style={{ minWidth: '10px', textAlign: 'left', fontWeight: 600, fontSize: '9px' }}>{c.nbLikes}</span>
+      </button>
+      <button onClick={() => basculerVote(c, -1)} title="Je n'aime pas"
+        style={{ display: 'flex', alignItems: 'center', gap: '2px', color: c.monVote === -1 ? '#9a4a2a' : '#b0a89e', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+        <svg width="10" height="10" viewBox="0 0 20 20" fill="none" style={{ transform: 'rotate(180deg)' }} aria-hidden="true">
+          <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+        </svg>
+        <span style={{ minWidth: '10px', textAlign: 'left', fontWeight: 600, fontSize: '9px' }}>{c.nbDislikes}</span>
       </button>
     </div>
   )

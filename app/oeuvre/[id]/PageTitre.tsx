@@ -1,6 +1,7 @@
 import type { Props, ChampOeuvre } from './oeuvreTypes'
 import { rendreTexteEnrichi } from './texteEnrichi'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
+import { resoudreEditeur } from '@/app/lib/editeurs'
 
 const TITRES_RE = /^(M\.|Mme\.?|Mlle\.?|Dr\.?|Pr\.?|Dom |Père |Frère |Sœur |Abbé |Saint |Sainte |Rev\.? ?|Mgr\.?|R\.\s*P\.|l['']abbé|le père)/i
 
@@ -16,9 +17,16 @@ export function enumererNoms(noms: string[]): string {
 // en début de phrase). On ne touche PAS à « Saint(e) », partie du nom propre.
 const TITRE_MINUSCULE_RE = /^(Abbé|Dom|Père|Frère|Sœur|Chanoine|Cardinal|Monseigneur|Mgr|Mère)\b/
 
-/** « / » pour les co-éditeurs, jamais le « ; » brut du catalogue. */
+/** Affichage d'un éditeur : « / » pour les co-éditeurs (jamais le « ; » brut du catalogue),
+ *  et surtout, quand la maison est répertoriée dans la table `editeurs`, on affiche son NOM
+ *  COMPLET à la place de la forme rencontrée (« L. Guérin » → « Louis Guérin »). La donnée
+ *  brute reste intacte ; tant qu'un éditeur n'est pas répertorié, on garde sa forme nettoyée. */
 export function formaterEditeur(editeur: string | null | undefined): string {
-  return (editeur ?? '').replace(/\s*;\s*/g, ' / ').trim()
+  const brut = (editeur ?? '').trim()
+  if (!brut) return ''
+  return brut.split(/\s*[;/]\s*/).filter(Boolean)
+    .map(part => resoudreEditeur(part) ?? part)
+    .join(' / ')
 }
 
 // Quelques maisons dont le nom court appelle l'article contracté « du » (« les Éditions
