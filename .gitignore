@@ -45,3 +45,9 @@ triage-temp.ts
 scripts/*.json
 scripts/*.docx
 scripts/giguet-revue.md
+
+# dossier de travail temporaire (OCR, PDF volumineux, artefacts)
+/tmp/
+
+# réglages Claude Code locaux (spécifiques à la machine)
+.claude/settings.local.json
