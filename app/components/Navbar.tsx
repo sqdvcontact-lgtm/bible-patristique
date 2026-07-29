@@ -611,23 +611,8 @@ export default function Navbar() {
             style={mobile
               ? { display: "flex", alignItems: "center", gap: "7px", padding: "10px 12px", fontSize: "0.91rem", color: "rgba(255,255,255,0.85)", textDecoration: "none" }
               : { display: "flex", alignItems: "center", gap: "7px", padding: "10px 14px", fontSize: "0.875rem", color: "#2a3d30", textDecoration: "none", borderBottom: "1px solid #ede9e2" }}>
-            {item.icone === "epee" && (
-              <svg width="11" height="14" viewBox="0 0 12 15" aria-hidden="true" style={{ flexShrink: 0, opacity: 0.72 }}>
-                {/* Flamme */}
-                <path d="M6 1.2C5 2.8 3.4 4.3 3.4 6.5C3.4 8.6 4.5 9.8 6 9.8C7.5 9.8 8.6 8.6 8.6 6.5C8.6 4.3 7 2.8 6 1.2Z" fill="currentColor" opacity="0.28"/>
-                {/* Lame — pointe en haut */}
-                <path d="M6 0.5L4.6 6.2H7.4Z" fill="currentColor"/>
-                {/* Corps de la lame */}
-                <rect x="5.3" y="6.2" width="1.4" height="3.2" fill="currentColor"/>
-                {/* Garde */}
-                <rect x="2.2" y="9.2" width="7.6" height="1.2" rx="0.5" fill="currentColor"/>
-                {/* Poignée */}
-                <rect x="5.3" y="10.4" width="1.4" height="2.4" fill="currentColor"/>
-                {/* Pommeau */}
-                <circle cx="6" cy="13.7" r="1" fill="currentColor"/>
-              </svg>
-            )}
-            <span>{item.label}</span>
+            {/* Administration : plus d'icône ; libellé simplement mis en vert (menu desktop). */}
+            <span style={item.icone === "epee" && !mobile ? { color: "#3d6b4f", fontWeight: 600 } : undefined}>{item.label}</span>
             {item.badge > 0 && (
               <span style={{ marginLeft: '4px', fontSize: '0.7rem', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
             )}
