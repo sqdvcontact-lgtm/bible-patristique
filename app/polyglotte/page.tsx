@@ -128,7 +128,7 @@ const VERT_ZEBRE_CLAIR = "#f7fbf7";
 const SURNUM = "#5a4b9c";       // versets propres à la Septante (hors ossature canonique)
 const SURNUM_FOND = "#f0eef9";
 const NB_SLOTS = 4;   // valeur de repli au premier rendu (avant mesure de l'écran)
-const CLE_SLOTS = "polyglotte-slots";   // choix des traductions, mémorisé d'une visite à l'autre
+const CLE_SLOTS = "polyglotte-slots2";  // choix des traductions, mémorisé (v2 : colonnes adaptatives)
 // Nombre de colonnes de traduction ADAPTATIF : calculé d'après la largeur réelle
 // du tableau (une colonne lisible ≈ MIN_COL_PX), plafonné à MAX_SLOTS sur grand
 // écran, plancher MIN_SLOTS. Voir l'effet ResizeObserver plus bas.
@@ -369,10 +369,18 @@ export default function PolyglottePage() {
   // Ajuste le nombre de slots à la largeur : préserve les traductions déjà choisies,
   // complète par des slots vides, ou retire les colonnes qui ne tiennent plus.
   useEffect(() => {
-    if (slots.length !== maxSlots) {
-      setSlots(prev => Array.from({ length: maxSlots }, (_, i) => prev[i] ?? ""));
-    }
-  }, [maxSlots, slots.length]);
+    if (slots.length === maxSlots) return;
+    setSlots(prev => {
+      if (prev.length > maxSlots) return prev.slice(0, maxSlots);   // écran plus étroit : on retire les colonnes en trop
+      // Écran plus large : on complète les nouveaux slots avec des traductions
+      // pas encore affichées (plutôt que des colonnes vides), pour que le grand
+      // écran montre directement plus de traductions.
+      const used = new Set(prev.filter(Boolean));
+      const libres = trads.map(t => t.trad_id).filter(id => !used.has(id));
+      let k = 0;
+      return Array.from({ length: maxSlots }, (_, i) => prev[i] ?? (libres[k++] ?? ""));
+    });
+  }, [maxSlots, slots.length, trads]);
   const [canon, setCanon] = useState<CanonRow[]>([]);
   const [v2, setV2] = useState<V2Row[]>([]);
   const [sensiblesOnly, setSensiblesOnly] = useState(false);
