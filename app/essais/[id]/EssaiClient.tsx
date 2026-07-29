@@ -203,7 +203,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
       {/* Zone de lecture — scroll indépendant */}
       <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
-        <div style={{ maxWidth: '660px', margin: '0 auto', padding: '0 56px 80px' }}>
+        <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: '0 56px 80px' }}>
 
           {essai.statut === 'en_attente' && (
             <p style={{ fontSize: '11.5px', color: '#9a5a2a', background: '#fff8f0', border: '1px solid #e4c4a0', borderRadius: '6px', padding: '8px 12px', margin: '24px 0 0' }}>
@@ -257,7 +257,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
           {versetParse && (
             <div style={{ margin: '0 auto 52px', maxWidth: '420px', textAlign: 'center' }}>
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '14.5px', lineHeight: 1.8, color: '#4a4440', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.90625rem', lineHeight: 1.8, color: '#4a4440', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
                 {'« '}{rendreTexteEnrichi(versetParse.texte)}{' »'}
               </p>
               <p style={{ fontSize: '10.5px', letterSpacing: '0.1em', color: '#a09890', margin: 0, fontFamily: 'var(--font-source-sans), Arial, sans-serif', textTransform: 'uppercase' }}>
@@ -266,7 +266,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             </div>
           )}
 
-          <div className="essai-lecture-corps" style={{ fontSize: '13.5px', color: '#1e1a16', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+          <div className="essai-lecture-corps" style={{ fontSize: '0.84375rem', color: '#1e1a16', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
             {rendreEssai(essai.contenu)}
           </div>
 

@@ -113,12 +113,12 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '8px' }}>
-      <div style={{ maxWidth: '920px', margin: '0 auto', padding: '8px 28px 80px' }}>
+      <div style={{ maxWidth: '57.5rem', margin: '0 auto', padding: '8px 28px 80px' }}>
 
         {/* En-tête */}
         <div style={{ position: 'relative', textAlign: 'center', marginBottom: '6px' }}>
 
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '22px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 6px', letterSpacing: '0.03em' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 6px', letterSpacing: '0.03em' }}>
             Publications
           </h1>
 
@@ -131,7 +131,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
               { key: 'ecrire' as const, label: 'Écrire' },
             ]).map(o => (
               <button key={o.key} onClick={() => setOnglet(o.key)}
-                style={{ padding: '6px 16px', fontSize: '11.5px', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: '0.01em' }}>
+                style={{ padding: '6px 16px', fontSize: '0.71875rem', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: '0.01em' }}>
                 {o.label}
               </button>
             ))}
@@ -157,7 +157,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
                 { key: 'suggestion' as const, label: 'Commenter un verset' },
               ]).map(s => (
                 <button key={s.key} onClick={() => setSousEcrire(s.key)}
-                  style={{ fontSize: '11px', padding: '5px 14px', borderRadius: '999px', border: `1px solid ${sousEcrire === s.key ? '#3d6b4f' : '#d6d0c4'}`, background: sousEcrire === s.key ? 'rgba(61,107,79,0.09)' : 'rgba(255,255,255,0.6)', color: sousEcrire === s.key ? '#3d6b4f' : '#8a8278', fontWeight: sousEcrire === s.key ? 600 : 400, cursor: 'pointer' }}>
+                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '999px', border: `1px solid ${sousEcrire === s.key ? '#3d6b4f' : '#d6d0c4'}`, background: sousEcrire === s.key ? 'rgba(61,107,79,0.09)' : 'rgba(255,255,255,0.6)', color: sousEcrire === s.key ? '#3d6b4f' : '#8a8278', fontWeight: sousEcrire === s.key ? 600 : 400, cursor: 'pointer' }}>
                   {s.label}
                 </button>
               ))}
@@ -195,7 +195,7 @@ function OngletCommunaute({
         <div style={{ position: 'relative', width: '220px', flexShrink: 0 }}>
           <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
             placeholder="Auteur, titre, résumé…"
-            style={{ width: '100%', fontSize: '11px', padding: '5px 12px 5px 28px', border: '1px solid #d6d0c4', borderRadius: '999px', background: 'rgba(255,255,255,0.72)', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
+            style={{ width: '100%', fontSize: '0.6875rem', padding: '5px 12px 5px 28px', border: '1px solid #d6d0c4', borderRadius: '999px', background: 'rgba(255,255,255,0.72)', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
           <svg width="11" height="11" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.32 }}>
             <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
             <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
