@@ -127,8 +127,14 @@ const VERT_ZEBRE = "#e4efe6";
 const VERT_ZEBRE_CLAIR = "#f7fbf7";
 const SURNUM = "#5a4b9c";       // versets propres à la Septante (hors ossature canonique)
 const SURNUM_FOND = "#f0eef9";
-const NB_SLOTS = 4;
+const NB_SLOTS = 4;   // valeur de repli au premier rendu (avant mesure de l'écran)
 const CLE_SLOTS = "polyglotte-slots";   // choix des traductions, mémorisé d'une visite à l'autre
+// Nombre de colonnes de traduction ADAPTATIF : calculé d'après la largeur réelle
+// du tableau (une colonne lisible ≈ MIN_COL_PX), plafonné à MAX_SLOTS sur grand
+// écran, plancher MIN_SLOTS. Voir l'effet ResizeObserver plus bas.
+const MIN_COL_PX = 250;
+const MAX_SLOTS = 5;
+const MIN_SLOTS = 2;
 const ORDRE_NT = 52;
 const ORDRE_CANON_MAX = 78;     // au-delà : écrits non canoniques
 const FOND = "#f6f2e8";         // fond commun aux autres pages du site
@@ -336,12 +342,37 @@ export default function PolyglottePage() {
   const [points, setPoints] = useState<Point[]>([]);
   const [onglet, setOnglet] = useState<Onglet | null>(null);   // la page s'ouvre vide : on choisit un ensemble
   const [slots, setSlots] = useState<string[]>([]);
+  // Nombre de colonnes tenant à l'écran (mesuré), et conteneur du tableau observé.
+  const [maxSlots, setMaxSlots] = useState(NB_SLOTS);
+  const refTable = useRef<HTMLDivElement>(null);
   // Mémorise le choix des colonnes dès qu'il est renseigné (jamais l'état initial vide).
   useEffect(() => {
-    if (slots.length === NB_SLOTS && slots.some(Boolean)) {
+    if (slots.length >= MIN_SLOTS && slots.some(Boolean)) {
       try { window.localStorage.setItem(CLE_SLOTS, JSON.stringify(slots)); } catch { /* stockage indisponible */ }
     }
   }, [slots]);
+  // Largeur adaptative : combien de colonnes de traduction tiennent, d'après la
+  // largeur RÉELLE du tableau (recalculé au redimensionnement de la fenêtre).
+  useEffect(() => {
+    const el = refTable.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const calc = () => {
+      const dispo = el.clientWidth - 36 - 46;   // paddings latéraux + colonne de référence (46px)
+      const n = Math.max(MIN_SLOTS, Math.min(MAX_SLOTS, Math.floor(dispo / MIN_COL_PX)));
+      setMaxSlots(n);
+    };
+    calc();
+    const ro = new ResizeObserver(calc);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  // Ajuste le nombre de slots à la largeur : préserve les traductions déjà choisies,
+  // complète par des slots vides, ou retire les colonnes qui ne tiennent plus.
+  useEffect(() => {
+    if (slots.length !== maxSlots) {
+      setSlots(prev => Array.from({ length: maxSlots }, (_, i) => prev[i] ?? ""));
+    }
+  }, [maxSlots, slots.length]);
   const [canon, setCanon] = useState<CanonRow[]>([]);
   const [v2, setV2] = useState<V2Row[]>([]);
   const [sensiblesOnly, setSensiblesOnly] = useState(false);
@@ -423,7 +454,7 @@ export default function PolyglottePage() {
       try {
         const brut = typeof window !== "undefined" ? window.localStorage.getItem(CLE_SLOTS) : null;
         const parse = brut ? JSON.parse(brut) : null;
-        if (Array.isArray(parse) && parse.length === NB_SLOTS && parse.some((x: string) => dispo.has(x))) {
+        if (Array.isArray(parse) && parse.some((x: string) => dispo.has(x))) {
           init = parse.map((x: string) => (dispo.has(x) ? x : ""));
         }
       } catch { /* localStorage indisponible ou corrompu : on retombe sur le défaut */ }
@@ -738,7 +769,7 @@ export default function PolyglottePage() {
           </div>
         </div>
 
-      <div style={{ flex: 1, minWidth: 0, padding: "12px 18px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "#2a2620" }}>
+      <div ref={refTable} style={{ flex: 1, minWidth: 0, padding: "12px 18px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "#2a2620" }}>
         {/* Aucun livre choisi : la page reste vide et l'explique */}
         {!onglet && (
           <div style={{ margin: "60px auto", maxWidth: '35rem', display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
