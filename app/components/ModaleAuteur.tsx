@@ -177,7 +177,7 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
     supabase.from('auteurs')
       .select(`id_auteur, nom, nom_original, titre, dates, siecle, traditions, photo_position,
         note_biographique, note_theologique, langue_principale, chronologie, anecdotes, influence,
-        oeuvres ( id_oeuvre, titre, sous_titre, trad_auteur, editeur, ville, date_publication, langue, note )`)
+        oeuvres ( id_oeuvre, titre, sous_titre, trad_auteur, editeur, ville, date_publication, note )`)
       .eq('id_auteur', id).maybeSingle()
       .then(({ data, error }) => {
         if (error || !data) { setErreur(true); return }
