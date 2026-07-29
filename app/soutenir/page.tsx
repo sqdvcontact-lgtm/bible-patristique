@@ -10,8 +10,8 @@ const COLOPHON: [string, string][] = [
   ["Ce site est un projet bénévole, sans publicité,",        "410px"],
   ["ouvert à tous, sans abonnement ni registre.",            "365px"],
   ["Si vous souhaitez contribuer à son développement",       "335px"],
-  ["— enrichissement de la bibliothèque,",                   "285px"],
-  ["maintenance, hébergement —,",                            "225px"],
+  ["(enrichissement de la bibliothèque,",                    "285px"],
+  ["maintenance, hébergement),",                             "225px"],
   ["vous pouvez nous soutenir.",                             "190px"],
   ["Chaque geste compte.",                                   "150px"],
 ];
