@@ -127,7 +127,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
 
   return (
     <div style={{
-      position: 'fixed', top: '48px', right: 0, width: '20rem', height: 'calc(100vh - 48px)',
+      position: 'fixed', top: '3.5rem', right: 0, width: '20rem', height: 'calc(100vh - 3.5rem)',
       background: '#faf8f4', borderLeft: '1px solid #d6d0c4', padding: '20px', overflowY: 'auto',
       zIndex: 50, boxShadow: '-4px 0 16px rgba(0,0,0,0.06)',
     }}>

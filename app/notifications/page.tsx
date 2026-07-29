@@ -52,7 +52,7 @@ export default function NotificationsPage() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '48px' }}>
+    <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '3.5rem' }}>
       <style>{`
         .notification-archivable {
           position: relative;

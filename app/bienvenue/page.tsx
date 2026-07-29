@@ -18,13 +18,13 @@ export default function BienvenuePage() {
   }, [router])
 
   if (!pret) return (
-    <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <p style={{ fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
     </main>
   )
 
   return (
-    <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
       <div style={{ width: '100%', maxWidth: '30rem', textAlign: 'center' }}>
 
         {/* En-tête */}

@@ -88,7 +88,7 @@ export default function ProfilPublicPage() {
   }, [pseudo])
 
   if (erreur) return (
-    <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f3efe2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#f3efe2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', color: '#b0a89e', marginBottom: '8px' }}>Profil introuvable</p>
         <p style={{ fontSize: '0.78125rem', color: '#c8c0b8' }}>@{pseudo}</p>
@@ -98,7 +98,7 @@ export default function ProfilPublicPage() {
   )
 
   if (!profil) return (
-    <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f3efe2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#f3efe2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <p style={{ fontSize: '0.8125rem', color: '#9a8a72', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>Chargement…</p>
     </main>
   )
@@ -132,7 +132,7 @@ export default function ProfilPublicPage() {
   }
 
   return (
-    <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f3efe2', padding: '48px 20px 96px' }}>
+    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#f3efe2', padding: '48px 20px 96px' }}>
       <style>{`
         .profil-section {
           background: #faf8f2;

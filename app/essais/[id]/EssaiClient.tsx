@@ -145,7 +145,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   const versetParse = (() => { try { return essai.verset_en_tete ? JSON.parse(essai.verset_en_tete) as { ref: string; texte: string } : null } catch { return null } })()
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 48px)', background: '#f7f4ef' }}>
+    <div style={{ display: 'flex', height: 'calc(100vh - 3.5rem)', background: '#f7f4ef' }}>
       <style>{`
         .essai-lecture-corps p {
           text-align: justify !important;

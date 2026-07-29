@@ -383,7 +383,7 @@ export default function PrelevementsPage() {
   }, [onglet, prelevements]);
 
   if (chargement) return (
-    <main style={{ minHeight: "calc(100vh - 48px)", background: "#f0ebe0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "#f0ebe0", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <p style={{ fontSize: "0.8125rem", color: "#9a8a72", fontStyle: "italic", fontFamily: "var(--font-source-serif), Georgia, serif" }}>Chargement…</p>
     </main>
   );
@@ -391,7 +391,7 @@ export default function PrelevementsPage() {
   const listeActive = onglet === "biblique" ? bibliques : patristiques;
 
   return (
-    <main style={{ background: "#f0ebe0", minHeight: "calc(100vh - 48px)" }}>
+    <main style={{ background: "#f0ebe0", minHeight: "calc(100vh - 3.5rem)" }}>
       <style>{`
         .prel-item {
           display: flex; align-items: flex-start; gap: 0;

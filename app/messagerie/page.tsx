@@ -42,7 +42,7 @@ export default function MessageriePage() {
   }, [])
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '48px' }}>
+    <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '3.5rem' }}>
       <div style={{ maxWidth: '42.5rem', margin: '0 auto', padding: '34px 24px 80px' }}>
 
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>

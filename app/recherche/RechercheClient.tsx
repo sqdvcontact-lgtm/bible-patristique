@@ -714,7 +714,7 @@ export default function RechercheClient() {
       {/* Le layout global (`app/layout.tsx`) décale DÉJÀ le contenu de HAUTEUR_NAVBAR sous
           la navbar. On ne rajoute donc PAS de paddingTop ici (sinon double décalage, gros
           blanc en haut) : on prend simplement toute la hauteur restante sous la navbar. */}
-      <div style={{ background:'#f7f4ef', height:'calc(100dvh - 48px)', display:'flex', overflow:'hidden' }}>
+      <div style={{ background:'#f7f4ef', height:'calc(100dvh - 3.5rem)', display:'flex', overflow:'hidden' }}>
 
         {/* ── VOLET GAUCHE : intitulé · recherche · options · onglets. Collé sous la
             navbar, pleine hauteur. Le bloc du haut est fixe ; les onglets, en dessous,

@@ -15,7 +15,11 @@
 // rem (agrandissement fluide sur grand écran — voir `html { font-size: clamp(...) }`
 // dans globals.css), cette valeur devra passer en `3rem` DANS LE MÊME changement,
 // sinon la barre grandirait sans que le décalage du contenu suive (ou l'inverse).
-export const HAUTEUR_NAVBAR = 48
+// Hauteur en rem : la barre grandit avec la police racine fluide (comme le reste
+// du site). NB : c'est désormais une CHAÎNE CSS — ne plus faire d'arithmétique
+// numérique dessus ; composer en `calc(${HAUTEUR_NAVBAR} + Npx)` si besoin
+// (voir SOMMET_CORPS dans polyglotte).
+export const HAUTEUR_NAVBAR = '3.5rem'
 
 /** Le reste de l'écran, sous la barre de navigation. */
-export const HAUTEUR_SOUS_NAVBAR = `calc(100vh - ${HAUTEUR_NAVBAR}px)`
+export const HAUTEUR_SOUS_NAVBAR = `calc(100vh - ${HAUTEUR_NAVBAR})`

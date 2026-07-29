@@ -475,7 +475,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   const diff = comparaisonOuverte ? diffMots(contenuOriginalRef.current, contenuTexte) : null
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 48px)', paddingRight: '320px' }}>
+    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 3.5rem)', paddingRight: '320px' }}>
       <style>{`
         .editeur-essai h2,
         .editeur-essai h3,
@@ -625,7 +625,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             {/* Barre d'outils et zone de rédaction */}
             <div style={{ display: 'flex', gap: '20px', paddingLeft: '128px' }}>
               <div style={{
-                position: 'fixed', top: '48px', left: 0, width: '8rem', height: 'calc(100vh - 48px)',
+                position: 'fixed', top: '3.5rem', left: 0, width: '8rem', height: 'calc(100vh - 3.5rem)',
                 background: '#faf8f4', borderRight: '1px solid #d6d0c4', padding: '20px 14px', overflowY: 'auto',
                 zIndex: 50, display: 'flex', flexDirection: 'column', gap: '5px',
               }}>

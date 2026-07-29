@@ -22,7 +22,7 @@ export default function SoutenirPage() {
     // aucun défilement. Les tailles clés dépendent de la hauteur de la fenêtre (vh) pour
     // rester dans le cadre même sur un écran court.
     <section style={{
-      height: "calc(100dvh - 48px)",
+      height: "calc(100dvh - 3.5rem)",
       overflow: "hidden",
       background: "#f7f3eb",
       display: "flex",

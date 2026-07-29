@@ -45,7 +45,7 @@ export default function ContactPage() {
   };
 
   return (
-    <main style={{ background: "#f7f4ef", minHeight: "calc(100vh - 48px)", padding: "56px 24px 80px" }}>
+    <main style={{ background: "#f7f4ef", minHeight: "calc(100vh - 3.5rem)", padding: "56px 24px 80px" }}>
       <div style={{ maxWidth: "35rem", margin: "0 auto" }}>
         <p style={{ fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "#3d6b4f", marginBottom: "10px" }}>
           Nous écrire

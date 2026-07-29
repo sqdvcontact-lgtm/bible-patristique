@@ -1369,7 +1369,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
   [auteurs, qNorm])
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '48px' }}>
+    <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '3.5rem' }}>
       <div style={{ maxWidth: '56.25rem', margin: '0 auto', padding: '22px 32px 40px' }}>
 
         {/* En-tête : titre, onglets et recherche, avec une même respiration verticale (≈14 px)

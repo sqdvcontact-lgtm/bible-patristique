@@ -259,7 +259,7 @@ export default function ProgressionClient() {
   const versetsLusAnimes = useValeurAnimee(versetsLusTotal, 1150)
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 48px)', padding: '24px 24px 64px' }}>
+    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 3.5rem)', padding: '24px 24px 64px' }}>
       <div style={{ maxWidth: '42.5rem', margin: '0 auto' }}>
         <h1 style={{
           fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.375rem',

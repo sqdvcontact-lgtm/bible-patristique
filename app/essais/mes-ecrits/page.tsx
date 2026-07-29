@@ -39,7 +39,7 @@ export default function MesEcritsPage() {
 
   if (connecte === false) {
     return (
-      <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ background: '#fff', border: '1px solid #d6d0c4', borderRadius: '10px', padding: '36px 40px', textAlign: 'center' }}>
           <p style={{ fontSize: '0.8125rem', color: '#6b6560', marginBottom: '16px' }}>Connectez-vous pour voir vos écrits.</p>
           <Link href="/chantier" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '0.8125rem', fontWeight: 500, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
@@ -51,7 +51,7 @@ export default function MesEcritsPage() {
   }
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 48px)', paddingTop: '48px' }}>
+    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 3.5rem)', paddingTop: '3.5rem' }}>
       <div style={{ maxWidth: '43.75rem', margin: '0 auto', padding: '40px 32px 80px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '24px' }}>
           <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(22px, 4vw, 28px)', color: '#1e2e24', margin: 0 }}>Mes écrits</h1>

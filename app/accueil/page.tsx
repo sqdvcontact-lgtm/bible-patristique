@@ -20,7 +20,7 @@ export default function AccueilPage() {
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <main style={{
-        minHeight: "calc(100vh - 48px)",
+        minHeight: "calc(100vh - 3.5rem)",
         background: "#f6f2e8",
         display: "flex",
         flexDirection: "column",
@@ -142,7 +142,7 @@ export default function AccueilPage() {
       </main>
 
       {/* ── À propos — style colophon ─────────────────────────────────────── */}
-      <div id="apropos" style={{ background: "#f3efe2", scrollMarginTop: "48px", borderTop: "1px solid #d8cdb0" }}>
+      <div id="apropos" style={{ background: "#f3efe2", scrollMarginTop: "3.5rem", borderTop: "1px solid #d8cdb0" }}>
         <div style={{
           maxWidth: "35rem",
           margin: "0 auto",

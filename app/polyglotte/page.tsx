@@ -615,7 +615,9 @@ export default function PolyglottePage() {
   // Sommet du corps du tableau : sous la navbar, le blanc de séparation, la barre de
   // titre et la ligne des traductions. C'est là que viennent se poser les bandeaux de
   // nom de livre quand plusieurs livres se suivent.
-  const SOMMET_CORPS = HAUTEUR_NAVBAR + HAUT_NAV + HAUT_TITRE + HAUT_ENTETE;
+  // HAUTEUR_NAVBAR est une chaîne rem ; on compose en calc() CSS (pas d'addition
+  // numérique). Les hauteurs de sous-bandeaux restent en px.
+  const SOMMET_CORPS = `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_TITRE + HAUT_ENTETE}px)`;
 
   return (
     <div style={{ background: FOND, minHeight: "100vh" }}>
@@ -983,7 +985,7 @@ export default function PolyglottePage() {
                 return (
                   <Fragment key={r.id}>
                     <div className="poly-row" id={`poly-${l.code}-${r.ch_canon}-${r.v_canon}`}
-                      style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? "#fff3c4" : fond, borderTop: "1px solid #dfe8e0", fontSize: '0.8125rem', scrollMarginTop: SOMMET_CORPS + 8, transition: "background .4s" }}>
+                      style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? "#fff3c4" : fond, borderTop: "1px solid #dfe8e0", fontSize: '0.8125rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_TITRE + HAUT_ENTETE + 8}px)`, transition: "background .4s" }}>
                       <div title={signaler ? desc : undefined} style={{ padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: '0.71875rem', lineHeight: 1.15, color: signaler ? ROUGE : ligneVide ? "#aeb4ae" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : "1px solid #dfe8e0" }}>
                         <div style={{ whiteSpace: "nowrap" }}>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</div>
                         {/* Citer / signaler : empilés verticalement sous le numéro, dans un petit

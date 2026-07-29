@@ -37,7 +37,7 @@ export default function AllerPlusLoinClient() {
   }, [searchParams])
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '48px' }}>
+    <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '3.5rem' }}>
       <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '12px' }}>
           <h1 style={{

@@ -81,13 +81,13 @@ export default function ConversationPage() {
   }
 
   if (connecte === false) return (
-    <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '3.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <p style={{ fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Connectez-vous pour accéder à votre messagerie.</p>
     </main>
   )
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '48px', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '3.5rem', display: 'flex', flexDirection: 'column' }}>
       <style>{`
         .msg-bubble { transition: opacity 0.1s; }
         .msg-input:focus { outline: none; border-color: #3d6b4f !important; }
@@ -96,7 +96,7 @@ export default function ConversationPage() {
       `}</style>
 
       {/* En-tête */}
-      <div style={{ background: '#faf8f4', borderBottom: '1px solid #e4dfd8', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: '14px', position: 'sticky', top: '48px', zIndex: 10 }}>
+      <div style={{ background: '#faf8f4', borderBottom: '1px solid #e4dfd8', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: '14px', position: 'sticky', top: '3.5rem', zIndex: 10 }}>
         <button onClick={() => router.push('/messagerie')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8a8278', padding: '4px', lineHeight: 0 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">

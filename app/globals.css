@@ -27,7 +27,7 @@
    de repère : 1920px → 19px, 2400px et au-delà → 22px. Tout ce qui est exprimé
    en rem (texte de lecture, mesures ci-dessus) grossit proportionnellement. On
    ne touche QUE la taille de police : les unités `vh` restent intactes, donc les
-   mises en page `calc(100vh - 48px)` ne débordent jamais. */
+   mises en page `calc(100vh - 3.5rem)` ne débordent jamais. */
 html {
   font-size: clamp(16px, calc(7px + 0.625vw), 22px);
 }

@@ -5,7 +5,7 @@ export const metadata = {
 
 export default function ConfidentialitePage() {
   return (
-    <main style={{ background: "#f7f4ef", minHeight: "calc(100vh - 48px)", padding: "56px 24px 80px" }}>
+    <main style={{ background: "#f7f4ef", minHeight: "calc(100vh - 3.5rem)", padding: "56px 24px 80px" }}>
       <div style={{ maxWidth: "42.5rem", margin: "0 auto" }}>
 
         <p style={{

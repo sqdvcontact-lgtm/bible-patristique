@@ -69,7 +69,7 @@ export default function AdminClient({
   ]
 
   return (
-    <main style={{ minHeight: 'calc(100vh - 48px)', background: '#e8eceb' }}>
+    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#e8eceb' }}>
       <style>{`
         .btn-vert { background: #3d6b4f !important; color: #fff !important; border: none !important; }
         .btn-vert:hover { background: #2e5440 !important; }
@@ -87,7 +87,7 @@ export default function AdminClient({
           + Déconnexion est retiré). Surface BLANCHE distincte du fond de la zone admin, pour
           se lire comme une vraie barre d'outils ; onglets clairs, grands, lisibles ; actif
           souligné de vert. */}
-      <div style={{ position: 'sticky', top: '48px', zIndex: 40, background: '#fff', borderBottom: '1px solid #dfe4e1', display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', padding: '2px 20px 0', boxShadow: '0 2px 8px rgba(30,46,38,0.08)' }}>
+      <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: '#fff', borderBottom: '1px solid #dfe4e1', display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', padding: '2px 20px 0', boxShadow: '0 2px 8px rgba(30,46,38,0.08)' }}>
         {ONGLETS.map((o) => {
           const actif = onglet === o.key
           return (

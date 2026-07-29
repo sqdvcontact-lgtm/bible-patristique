@@ -69,7 +69,7 @@ export default function ComptePage() {
 
   if (verification || !user) {
     return (
-      <main style={{ minHeight: "calc(100vh - 48px)", background: "#f3efe3", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "#f3efe3", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <p style={{ fontSize: "0.8125rem", color: "#9a958d", fontStyle: "italic" }}>Chargement…</p>
       </main>
     );
@@ -104,7 +104,7 @@ function MonCompte({ user, router }: { user: { id: string; email: string; email_
 
   if (chargement) {
     return (
-      <main style={{ minHeight: "calc(100vh - 48px)", background: "#f3efe3", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "#f3efe3", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <p style={{ fontSize: "0.8125rem", color: "#9a958d", fontStyle: "italic" }}>Chargement…</p>
       </main>
     );
@@ -131,7 +131,7 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
   };
 
   return (
-    <main style={{ minHeight: "calc(100vh - 48px)", background: "#f3efe3", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+    <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "#f3efe3", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
       <div style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "32px 36px", width: "100%", maxWidth: "23.75rem" }}>
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "#2a3d30", marginBottom: "8px" }}>Choisissez votre pseudonyme</h1>
         <p style={{ fontSize: "0.78125rem", color: "#9a958d", marginBottom: "20px", lineHeight: 1.5 }}>Il vous identifie sur le site et doit être unique.</p>
@@ -613,7 +613,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
   const anneeInscription = profilInit.membre_depuis ? new Date(profilInit.membre_depuis).getFullYear() : null;
 
   return (
-    <main style={{ minHeight: "calc(100vh - 48px)", background: "#f3efe3", padding: "40px 20px 100px", display: "flex", justifyContent: "center" }}>
+    <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "#f3efe3", padding: "40px 20px 100px", display: "flex", justifyContent: "center" }}>
       <style>{`
         .cs-section-card { background: #fff; border: 1px solid #e4dfd8; border-radius: 10px; padding: 24px 26px; margin-bottom: 16px; }
         .cs-section-title { font-family: var(--font-source-sans), Arial, sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #9a958d; margin: 0 0 18px; }
