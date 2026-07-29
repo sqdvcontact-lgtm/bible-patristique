@@ -39,44 +39,44 @@ export default function SectionEssais({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       {liste.length === 0 ? (
-        <Carte><p style={{ fontSize: '13px', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>Aucun essai en attente de validation.</p></Carte>
+        <Carte><p style={{ fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>Aucun essai en attente de validation.</p></Carte>
       ) : liste.map(e => {
         const statut = action[e.id]
         return (
           <Carte key={e.id}>
             <div style={{ display: 'flex', gap: '5px', marginBottom: '6px' }}>
               {e.categories.map(c => (
-                <span key={c} style={{ fontSize: '9.5px', color: '#3d6b4f', background: 'rgba(61,107,79,0.08)', padding: '1px 8px', borderRadius: '9px', fontWeight: 600 }}>{c}</span>
+                <span key={c} style={{ fontSize: '0.59375rem', color: '#3d6b4f', background: 'rgba(61,107,79,0.08)', padding: '1px 8px', borderRadius: '9px', fontWeight: 600 }}>{c}</span>
               ))}
             </div>
             <Link href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer"
-              style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '15px', color: '#1e2e24', textDecoration: 'none', display: 'block', marginBottom: '2px' }}>
+              style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', color: '#1e2e24', textDecoration: 'none', display: 'block', marginBottom: '2px' }}>
               {e.titre} ↗
             </Link>
-            {e.sous_titre && <p style={{ fontSize: '12px', color: '#8a8278', fontStyle: 'italic', margin: '0 0 6px' }}>{e.sous_titre}</p>}
-            {e.resume && <p style={{ fontSize: '12.5px', color: '#5a5450', lineHeight: 1.55, margin: '0 0 8px' }}>{e.resume}</p>}
+            {e.sous_titre && <p style={{ fontSize: '0.75rem', color: '#8a8278', fontStyle: 'italic', margin: '0 0 6px' }}>{e.sous_titre}</p>}
+            {e.resume && <p style={{ fontSize: '0.78125rem', color: '#5a5450', lineHeight: 1.55, margin: '0 0 8px' }}>{e.resume}</p>}
 
             <div style={{ display: 'flex', gap: '14px', marginBottom: '10px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '11px', color: '#6b6560', fontWeight: 500 }}>{e.auteur_pseudo ?? 'Auteur inconnu'}</span>
-              <span style={{ fontSize: '11px', color: '#b0a89e', marginLeft: 'auto' }}>{dateFormat(e.created_at)}</span>
+              <span style={{ fontSize: '0.6875rem', color: '#6b6560', fontWeight: 500 }}>{e.auteur_pseudo ?? 'Auteur inconnu'}</span>
+              <span style={{ fontSize: '0.6875rem', color: '#b0a89e', marginLeft: 'auto' }}>{dateFormat(e.created_at)}</span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
               {statut === 'loading' ? (
-                <span style={{ fontSize: '11.5px', color: '#9a958d' }}>…</span>
+                <span style={{ fontSize: '0.71875rem', color: '#9a958d' }}>…</span>
               ) : statut === 'publie' ? (
-                <span style={{ fontSize: '11.5px', color: '#3d6b4f', fontWeight: 600 }}>✓ Publié</span>
+                <span style={{ fontSize: '0.71875rem', color: '#3d6b4f', fontWeight: 600 }}>✓ Publié</span>
               ) : statut === 'renvoye' ? (
-                <span style={{ fontSize: '11.5px', color: '#c0562a' }}>Renvoyé en brouillon</span>
+                <span style={{ fontSize: '0.71875rem', color: '#c0562a' }}>Renvoyé en brouillon</span>
               ) : (
                 <>
-                  <button onClick={() => renvoyer(e.id)} className="btn-gris" style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', cursor: 'pointer' }}>
+                  <button onClick={() => renvoyer(e.id)} className="btn-gris" style={{ fontSize: '0.71875rem', padding: '5px 14px', borderRadius: '5px', cursor: 'pointer' }}>
                     Renvoyer en brouillon
                   </button>
-                  <button onClick={() => renvoyer(e.id, true)} className="btn-rouge" style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', cursor: 'pointer' }}>
+                  <button onClick={() => renvoyer(e.id, true)} className="btn-rouge" style={{ fontSize: '0.71875rem', padding: '5px 14px', borderRadius: '5px', cursor: 'pointer' }}>
                     Refus
                   </button>
-                  <button onClick={() => publier(e.id)} className="btn-vert" style={{ fontSize: '11.5px', padding: '5px 14px', borderRadius: '5px', cursor: 'pointer' }}>
+                  <button onClick={() => publier(e.id)} className="btn-vert" style={{ fontSize: '0.71875rem', padding: '5px 14px', borderRadius: '5px', cursor: 'pointer' }}>
                     Publier ✓
                   </button>
                 </>

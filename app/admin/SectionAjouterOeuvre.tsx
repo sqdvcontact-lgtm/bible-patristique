@@ -5,8 +5,8 @@ import { supabase, parseCSV, telechargerCSVModele, headersAdmin } from './adminS
 import type { Auteur } from './adminTypes'
 import { formaterDateHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
 
-const lbl: React.CSSProperties = { fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9a958d', display: 'block', marginBottom: '3px' }
-const inp: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '12px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#fff', color: '#1e1a16', outline: 'none', boxSizing: 'border-box' }
+const lbl: React.CSSProperties = { fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9a958d', display: 'block', marginBottom: '3px' }
+const inp: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '0.75rem', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#fff', color: '#1e1a16', outline: 'none', boxSizing: 'border-box' }
 const sep: React.CSSProperties = { borderTop: '1px solid #ede9e2', gridColumn: '1 / -1', margin: '2px 0' }
 
 // ── Genres ────────────────────────────────────────────────────────────────────
@@ -30,13 +30,13 @@ function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '8px' }}>
         {GENRES_PAR_CATEGORIE.map(({ cat, genres }) => (
           <div key={cat} style={{ display: 'flex', gap: '6px', alignItems: 'baseline', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '9px', color: '#b0a89e', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', flexShrink: 0, minWidth: '130px' }}>{cat}</span>
+            <span style={{ fontSize: '0.5625rem', color: '#b0a89e', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', flexShrink: 0, minWidth: '130px' }}>{cat}</span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
               {genres.map(g => {
                 const actif = tags.includes(g)
                 return (
                   <button key={g} onClick={() => actif ? supprimer(g) : ajouter(g)}
-                    style={{ fontSize: '10.5px', borderRadius: '3px', padding: '2px 8px', cursor: 'pointer', border: actif ? '1px solid rgba(61,107,79,0.35)' : '1px solid #d6d0c4', background: actif ? 'rgba(61,107,79,0.10)' : '#f7f4ef', color: actif ? '#2e5440' : '#6b6560', fontWeight: actif ? 600 : 400 }}>
+                    style={{ fontSize: '0.65625rem', borderRadius: '3px', padding: '2px 8px', cursor: 'pointer', border: actif ? '1px solid rgba(61,107,79,0.35)' : '1px solid #d6d0c4', background: actif ? 'rgba(61,107,79,0.10)' : '#f7f4ef', color: actif ? '#2e5440' : '#6b6560', fontWeight: actif ? 600 : 400 }}>
                     {g}
                   </button>
                 )
@@ -50,12 +50,12 @@ function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]
           <>
             <input value={saisie} onChange={e => setSaisie(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') ajouterCustom(); if (e.key === 'Escape') { setNouveau(false); setSaisie('') } }}
-              autoFocus style={{ ...inp, width: '180px', fontSize: '11px', padding: '4px 8px' }} />
-            <button onClick={ajouterCustom} style={{ fontSize: '10.5px', padding: '3px 10px', borderRadius: '3px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer' }}>Ajouter</button>
-            <button onClick={() => { setNouveau(false); setSaisie('') }} style={{ fontSize: '10.5px', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#9a958d', cursor: 'pointer' }}>Annuler</button>
+              autoFocus style={{ ...inp, width: '180px', fontSize: '0.6875rem', padding: '4px 8px' }} />
+            <button onClick={ajouterCustom} style={{ fontSize: '0.65625rem', padding: '3px 10px', borderRadius: '3px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer' }}>Ajouter</button>
+            <button onClick={() => { setNouveau(false); setSaisie('') }} style={{ fontSize: '0.65625rem', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#9a958d', cursor: 'pointer' }}>Annuler</button>
           </>
         ) : (
-          <button onClick={() => setNouveau(true)} style={{ fontSize: '10.5px', color: '#6b6560', border: '1px dashed #d6d0c4', background: 'transparent', borderRadius: '3px', padding: '2px 10px', cursor: 'pointer' }}>
+          <button onClick={() => setNouveau(true)} style={{ fontSize: '0.65625rem', color: '#6b6560', border: '1px dashed #d6d0c4', background: 'transparent', borderRadius: '3px', padding: '2px 10px', cursor: 'pointer' }}>
             + Nouveau genre
           </button>
         )}
@@ -63,9 +63,9 @@ function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]
       {tags.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', paddingTop: '6px', borderTop: '1px solid #ede9e2' }}>
           {tags.map(t => (
-            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', background: 'rgba(61,107,79,0.10)', color: '#2e5440', border: '1px solid rgba(61,107,79,0.25)', borderRadius: '3px', padding: '1px 8px' }}>
+            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.6875rem', background: 'rgba(61,107,79,0.10)', color: '#2e5440', border: '1px solid rgba(61,107,79,0.25)', borderRadius: '3px', padding: '1px 8px' }}>
               {t}
-              <button onClick={() => supprimer(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9a958d', fontSize: '10px', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+              <button onClick={() => supprimer(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9a958d', fontSize: '0.625rem', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
             </span>
           ))}
         </div>
@@ -101,18 +101,18 @@ function ComboboxAuteur({ auteurs, value, onChange }: { auteurs: AuteurOpt[]; va
         />
         {value && (
           <button onClick={() => { onChange(''); setSaisie(''); setOuvert(false) }}
-            style={{ padding: '0 8px', background: 'none', border: 'none', color: '#b0a89e', cursor: 'pointer', fontSize: '12px' }}>✕</button>
+            style={{ padding: '0 8px', background: 'none', border: 'none', color: '#b0a89e', cursor: 'pointer', fontSize: '0.75rem' }}>✕</button>
         )}
       </div>
       {ouvert && filtres.length > 0 && (
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: '#fff', border: '1px solid #d6d0c4', borderTop: 'none', borderRadius: '0 0 4px 4px', maxHeight: '220px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
           {filtres.map(a => (
             <div key={a.id_auteur} onMouseDown={() => selectionner(a)}
-              style={{ padding: '6px 10px', fontSize: '12px', cursor: 'pointer', background: String(a.id_auteur) === value ? 'rgba(61,107,79,0.08)' : '#fff', color: '#1e1a16', display: 'flex', gap: '8px', alignItems: 'baseline' }}
+              style={{ padding: '6px 10px', fontSize: '0.75rem', cursor: 'pointer', background: String(a.id_auteur) === value ? 'rgba(61,107,79,0.08)' : '#fff', color: '#1e1a16', display: 'flex', gap: '8px', alignItems: 'baseline' }}
               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(61,107,79,0.05)')}
               onMouseLeave={e => (e.currentTarget.style.background = String(a.id_auteur) === value ? 'rgba(61,107,79,0.08)' : '#fff')}>
               <span>{a.nom}</span>
-              {a.dates && <span style={{ fontSize: '10.5px', color: '#9a958d' }}>{a.dates}</span>}
+              {a.dates && <span style={{ fontSize: '0.65625rem', color: '#9a958d' }}>{a.dates}</span>}
             </div>
           ))}
         </div>
@@ -138,8 +138,8 @@ function TagsTraditions({ tags, onChange, tousLesTags }: { tags: string[]; onCha
       {tags.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '5px' }}>
           {tags.map(t => (
-            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', background: 'rgba(61,107,79,0.10)', color: '#2e5440', border: '1px solid rgba(61,107,79,0.25)', borderRadius: '3px', padding: '1px 7px' }}>
-              {t}<button onClick={() => supprimer(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9a958d', fontSize: '10px', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.6875rem', background: 'rgba(61,107,79,0.10)', color: '#2e5440', border: '1px solid rgba(61,107,79,0.25)', borderRadius: '3px', padding: '1px 7px' }}>
+              {t}<button onClick={() => supprimer(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9a958d', fontSize: '0.625rem', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
             </span>
           ))}
         </div>
@@ -148,7 +148,7 @@ function TagsTraditions({ tags, onChange, tousLesTags }: { tags: string[]; onCha
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
           {suggestions.map(t => (
             <button key={t} onClick={() => ajouter(t)}
-              style={{ fontSize: '10.5px', background: '#f7f4ef', color: '#6b6560', border: '1px solid #d6d0c4', borderRadius: '3px', padding: '1px 7px', cursor: 'pointer' }}>
+              style={{ fontSize: '0.65625rem', background: '#f7f4ef', color: '#6b6560', border: '1px solid #d6d0c4', borderRadius: '3px', padding: '1px 7px', cursor: 'pointer' }}>
               {t}
             </button>
           ))}
@@ -251,7 +251,7 @@ function RechercheCatalogue({ onSelect }: { onSelect: (n: NoticesCatalogue) => v
           style={{ ...inp, paddingRight: chargement ? '30px' : '9px' }}
         />
         {chargement && (
-          <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '11px', color: '#b0a89e' }}>…</span>
+          <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '0.6875rem', color: '#b0a89e' }}>…</span>
         )}
       </div>
       {afficher && resultats.length > 0 && (
@@ -262,10 +262,10 @@ function RechercheCatalogue({ onSelect }: { onSelect: (n: NoticesCatalogue) => v
               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(61,107,79,0.04)')}
               onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px' }}>
-                <span style={{ fontSize: '12px', color: '#1e1a16', fontWeight: 500 }}>{n.titre_stable}</span>
-                <span style={{ fontSize: '10px', color: '#b0a89e', flexShrink: 0, fontFamily: 'monospace' }}>{n.id_oeuvre_stable}</span>
+                <span style={{ fontSize: '0.75rem', color: '#1e1a16', fontWeight: 500 }}>{n.titre_stable}</span>
+                <span style={{ fontSize: '0.625rem', color: '#b0a89e', flexShrink: 0, fontFamily: 'monospace' }}>{n.id_oeuvre_stable}</span>
               </div>
-              <div style={{ fontSize: '11px', color: '#9a958d', marginTop: '2px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <div style={{ fontSize: '0.6875rem', color: '#9a958d', marginTop: '2px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <span>{n.auteur}</span>
                 {n.titre_original && <span style={{ fontStyle: 'italic' }}>{n.titre_original}</span>}
                 {n.date_oeuvre && <span>{formaterDateHistorique(n.date_oeuvre)}</span>}
@@ -278,7 +278,7 @@ function RechercheCatalogue({ onSelect }: { onSelect: (n: NoticesCatalogue) => v
         </div>
       )}
       {afficher && resultats.length === 0 && saisie.length >= 2 && !chargement && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200, background: '#fff', border: '1px solid #d6d0c4', borderTop: 'none', borderRadius: '0 0 6px 6px', padding: '12px', fontSize: '12px', color: '#9a958d', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200, background: '#fff', border: '1px solid #d6d0c4', borderTop: 'none', borderRadius: '0 0 6px 6px', padding: '12px', fontSize: '0.75rem', color: '#9a958d', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
           Aucune œuvre trouvée dans le catalogue.
         </div>
       )}
@@ -439,7 +439,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
         <div style={{ display: 'flex', gap: '0', marginBottom: '4px' }}>
           {ETAPES_LABEL.map(([k, l], i) => (
             <div key={k} style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ fontSize: '11.5px', fontWeight: etape === k ? 600 : 400, color: etape === k ? '#3d6b4f' : i < indexEtape ? '#9a958d' : '#c8c3bc' }}>
+              <span style={{ fontSize: '0.71875rem', fontWeight: etape === k ? 600 : 400, color: etape === k ? '#3d6b4f' : i < indexEtape ? '#9a958d' : '#c8c3bc' }}>
                 {i + 1}. {l}
               </span>
               {i < ETAPES_LABEL.length - 1 && <span style={{ margin: '0 10px', color: '#d6d0c4' }}>→</span>}
@@ -451,14 +451,14 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
       {/* ── ÉTAPE 0 : SÉLECTION ── */}
       {etape === 'selection' && (
         <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '22px 24px' }}>
-          <p style={{ fontSize: '12px', color: '#6b6560', marginBottom: '14px', marginTop: 0 }}>
+          <p style={{ fontSize: '0.75rem', color: '#6b6560', marginBottom: '14px', marginTop: 0 }}>
             Recherchez l'œuvre dans le catalogue pour pré-remplir les métadonnées automatiquement.
           </p>
           <label style={lbl}>Titre, auteur ou titre original</label>
           <RechercheCatalogue onSelect={selectionnerDepuisCatalogue} />
           <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #ede9e2', display: 'flex', justifyContent: 'flex-end' }}>
             <button onClick={creerSansCatalogue}
-              style={{ fontSize: '12px', padding: '7px 16px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>
+              style={{ fontSize: '0.75rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>
               Créer sans catalogue →
             </button>
           </div>
@@ -473,12 +473,12 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
           {noticeSelectionnee && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(61,107,79,0.07)', border: '1px solid rgba(61,107,79,0.20)', borderRadius: '5px', padding: '8px 12px', marginBottom: '14px' }}>
               <div>
-                <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#3d6b4f', marginRight: '8px' }}>Catalogue</span>
-                <span style={{ fontSize: '12px', color: '#2a3d30', fontWeight: 500 }}>{noticeSelectionnee.titre_stable}</span>
-                <span style={{ fontSize: '11px', color: '#9a958d', marginLeft: '8px', fontFamily: 'monospace' }}>{noticeSelectionnee.id_oeuvre_stable}</span>
+                <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#3d6b4f', marginRight: '8px' }}>Catalogue</span>
+                <span style={{ fontSize: '0.75rem', color: '#2a3d30', fontWeight: 500 }}>{noticeSelectionnee.titre_stable}</span>
+                <span style={{ fontSize: '0.6875rem', color: '#9a958d', marginLeft: '8px', fontFamily: 'monospace' }}>{noticeSelectionnee.id_oeuvre_stable}</span>
               </div>
               <button onClick={() => setEtape('selection')}
-                style={{ fontSize: '10.5px', padding: '3px 9px', borderRadius: '3px', border: '1px solid rgba(61,107,79,0.25)', background: 'transparent', color: '#3d6b4f', cursor: 'pointer' }}>
+                style={{ fontSize: '0.65625rem', padding: '3px 9px', borderRadius: '3px', border: '1px solid rgba(61,107,79,0.25)', background: 'transparent', color: '#3d6b4f', cursor: 'pointer' }}>
                 Changer
               </button>
             </div>
@@ -492,7 +492,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <ComboboxAuteur auteurs={auteursCourants} value={meta.id_auteur} onChange={id => setMeta(m => ({ ...m, id_auteur: id }))} />
                 <button onClick={() => setAjoutAuteur(!ajoutAuteur)}
-                  style={{ fontSize: '11px', padding: '6px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: ajoutAuteur ? '#3d6b4f' : '#fff', color: ajoutAuteur ? '#fff' : '#3d6b4f', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  style={{ fontSize: '0.6875rem', padding: '6px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: ajoutAuteur ? '#3d6b4f' : '#fff', color: ajoutAuteur ? '#fff' : '#3d6b4f', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   + Nouvel auteur
                 </button>
               </div>
@@ -511,10 +511,10 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
                   <label style={lbl}>Tradition / École</label>
                   <TagsTraditions tags={nouvelAuteur.traditions} onChange={t => setNouvelAuteur(p => ({ ...p, traditions: t }))} tousLesTags={tousLesTags} />
                 </div>
-                {auteurMsg && <p style={{ fontSize: '11px', color: '#c0562a', margin: '0 0 6px' }}>{auteurMsg}</p>}
+                {auteurMsg && <p style={{ fontSize: '0.6875rem', color: '#c0562a', margin: '0 0 6px' }}>{auteurMsg}</p>}
                 <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                  <button onClick={() => { setAjoutAuteur(false); setAuteurMsg(null) }} style={{ fontSize: '11px', padding: '5px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
-                  <button onClick={creerAuteur} style={{ fontSize: '11px', padding: '5px 10px', borderRadius: '4px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Créer</button>
+                  <button onClick={() => { setAjoutAuteur(false); setAuteurMsg(null) }} style={{ fontSize: '0.6875rem', padding: '5px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
+                  <button onClick={creerAuteur} style={{ fontSize: '0.6875rem', padding: '5px 10px', borderRadius: '4px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Créer</button>
                 </div>
               </div>
             )}
@@ -545,7 +545,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
               <label style={lbl}>
                 Date de composition
                 {dateCompositionAuto && !meta.date_composition && (
-                  <span style={{ fontWeight: 400, color: '#b0a89e', marginLeft: '6px', textTransform: 'none', letterSpacing: 0, fontSize: '9px' }}>
+                  <span style={{ fontWeight: 400, color: '#b0a89e', marginLeft: '6px', textTransform: 'none', letterSpacing: 0, fontSize: '0.5625rem' }}>
                     — si vide : <em>{dateCompositionAuto}</em>
                   </span>
                 )}
@@ -580,11 +580,11 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px' }}>
             <button onClick={() => setEtape('selection')}
-              style={{ fontSize: '12px', padding: '7px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>
+              style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>
               ← Sélection
             </button>
             <button onClick={() => { if (!meta.id_auteur || !meta.titre.trim()) { alert('Titre et auteur sont requis.'); return } setEtape('csv') }}
-              style={{ fontSize: '12px', padding: '7px 18px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>
+              style={{ fontSize: '0.75rem', padding: '7px 18px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>
               Suivant : import CSV →
             </button>
           </div>
@@ -595,15 +595,15 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
       {(etape === 'csv' || etape === 'preview') && (
         <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '20px 24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '16px' }}>
-            <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '15px', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>Import des segments</h2>
+            <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>Import des segments</h2>
             <button onClick={() => telechargerCSVModele(meta.titre.slice(0, 20).replace(/\s/g, '_'))}
-              style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>
+              style={{ fontSize: '0.6875rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>
               ↓ CSV modèle
             </button>
           </div>
           <div style={{ background: '#f7f4ef', borderRadius: '5px', padding: '10px 14px', marginBottom: '14px' }}>
-            <p style={{ fontSize: '10.5px', fontWeight: 600, color: '#6b6560', marginBottom: '4px' }}>COLONNES ATTENDUES</p>
-            <p style={{ fontSize: '11px', color: '#9a958d', fontFamily: 'monospace', lineHeight: 1.7, margin: 0 }}>
+            <p style={{ fontSize: '0.65625rem', fontWeight: 600, color: '#6b6560', marginBottom: '4px' }}>COLONNES ATTENDUES</p>
+            <p style={{ fontSize: '0.6875rem', color: '#9a958d', fontFamily: 'monospace', lineHeight: 1.7, margin: 0 }}>
               segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4, ref_niv5,<br />
               lien_1, lien_2, lien_3, lien_4, fiabilite
             </p>
@@ -613,18 +613,18 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
             onDragOver={e => { e.preventDefault(); (e.currentTarget as HTMLElement).style.borderColor = '#3d6b4f' }}
             onDragLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#d6d0c4' }}
             onDrop={e => { e.preventDefault(); (e.currentTarget as HTMLElement).style.borderColor = '#d6d0c4'; const f = e.dataTransfer.files[0]; if (f) lireFichier(f) }}>
-            <p style={{ fontSize: '13px', color: '#9a958d', margin: '0 0 4px' }}>
+            <p style={{ fontSize: '0.8125rem', color: '#9a958d', margin: '0 0 4px' }}>
               {nomFichier ? `✓ ${nomFichier} — ${segments.length} segments` : 'Glissez un fichier CSV ou cliquez pour sélectionner'}
             </p>
-            <p style={{ fontSize: '11px', color: '#b0a89e', margin: 0 }}>Format .csv, encodage UTF-8</p>
+            <p style={{ fontSize: '0.6875rem', color: '#b0a89e', margin: 0 }}>Format .csv, encodage UTF-8</p>
           </div>
           <input ref={inputCsvRef} type="file" accept=".csv" style={{ display: 'none' }}
             onChange={e => { const f = e.target.files?.[0]; if (f) lireFichier(f) }} />
-          {csvErreur && <p style={{ fontSize: '12px', color: '#c0562a', marginTop: '10px' }}>⚠ {csvErreur}</p>}
+          {csvErreur && <p style={{ fontSize: '0.75rem', color: '#c0562a', marginTop: '10px' }}>⚠ {csvErreur}</p>}
           {segments.length > 0 && etape === 'csv' && (
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', gap: '8px' }}>
-              <button onClick={() => setEtape('meta')} style={{ fontSize: '12px', padding: '7px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>← Retour</button>
-              <button onClick={() => setEtape('preview')} style={{ fontSize: '12px', padding: '7px 18px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Prévisualiser →</button>
+              <button onClick={() => setEtape('meta')} style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>← Retour</button>
+              <button onClick={() => setEtape('preview')} style={{ fontSize: '0.75rem', padding: '7px 18px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Prévisualiser →</button>
             </div>
           )}
         </div>
@@ -634,16 +634,16 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
       {etape === 'preview' && segments.length > 0 && (
         <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', overflow: 'hidden' }}>
           <div style={{ padding: '14px 20px', borderBottom: '1px solid #e4dfd8', background: '#f7f4ef' }}>
-            <p style={{ fontSize: '12px', color: '#2a3d30', fontWeight: 500, margin: '0 0 2px' }}>
+            <p style={{ fontSize: '0.75rem', color: '#2a3d30', fontWeight: 500, margin: '0 0 2px' }}>
               {auteursCourants.find(a => String(a.id_auteur) === meta.id_auteur)?.nom} — {meta.titre}
-              {meta.id_oeuvre && <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#9a958d', marginLeft: '10px' }}>{meta.id_oeuvre}</span>}
+              {meta.id_oeuvre && <span style={{ fontSize: '0.6875rem', fontFamily: 'monospace', color: '#9a958d', marginLeft: '10px' }}>{meta.id_oeuvre}</span>}
             </p>
-            <p style={{ fontSize: '11px', color: '#9a958d', margin: 0 }}>
+            <p style={{ fontSize: '0.6875rem', color: '#9a958d', margin: 0 }}>
               {segments.length} segments{meta.trad_auteur ? ` · trad. ${meta.trad_auteur}` : ''}{meta.genres.length > 0 ? ` · ${meta.genres.join(', ')}` : ''}
             </p>
           </div>
           <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.71875rem' }}>
               <thead><tr style={{ background: '#f7f4ef', position: 'sticky', top: 0 }}>
                 <th style={{ padding: '7px 12px', textAlign: 'left', color: '#6b6560', fontWeight: 500, borderBottom: '1px solid #e4dfd8', width: '50px' }}>§</th>
                 <th style={{ padding: '7px 12px', textAlign: 'left', color: '#6b6560', fontWeight: 500, borderBottom: '1px solid #e4dfd8', width: '110px' }}>Réf.</th>
@@ -659,12 +659,12 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
                 ))}
               </tbody>
             </table>
-            {segments.length > 10 && <p style={{ padding: '8px 12px', fontSize: '11px', color: '#9a958d', fontStyle: 'italic' }}>… et {segments.length - 10} autres</p>}
+            {segments.length > 10 && <p style={{ padding: '8px 12px', fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic' }}>… et {segments.length - 10} autres</p>}
           </div>
           <div style={{ padding: '14px 20px', borderTop: '1px solid #e4dfd8', display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-            <button onClick={() => setEtape('csv')} disabled={importing} style={{ fontSize: '12px', padding: '7px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>← Retour</button>
+            <button onClick={() => setEtape('csv')} disabled={importing} style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>← Retour</button>
             <button onClick={confirmerImport} disabled={importing}
-              style={{ fontSize: '12px', padding: '7px 20px', borderRadius: '5px', border: 'none', background: importing ? '#8aaa96' : '#3d6b4f', color: '#fff', cursor: importing ? 'default' : 'pointer', fontWeight: 500 }}>
+              style={{ fontSize: '0.75rem', padding: '7px 20px', borderRadius: '5px', border: 'none', background: importing ? '#8aaa96' : '#3d6b4f', color: '#fff', cursor: importing ? 'default' : 'pointer', fontWeight: 500 }}>
               {importing ? 'Import en cours…' : `Confirmer (${segments.length} segments)`}
             </button>
           </div>
@@ -673,24 +673,24 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
 
       {resultat && !resultat.ok && (
         <div style={{ background: '#fdf2ee', border: '1px solid #e4c4b8', borderRadius: '6px', padding: '12px 16px' }}>
-          <p style={{ fontSize: '12.5px', color: '#c0562a', margin: 0 }}>✗ {resultat.msg}</p>
+          <p style={{ fontSize: '0.78125rem', color: '#c0562a', margin: 0 }}>✗ {resultat.msg}</p>
         </div>
       )}
 
       {/* ── ÉTAPE 4 : SUCCÈS ── */}
       {etape === 'done' && resultat?.ok && (
         <div style={{ background: '#fff', border: '2px solid #3d6b4f', borderRadius: '8px', padding: '28px 24px', textAlign: 'center' }}>
-          <p style={{ fontSize: '22px', marginBottom: '10px' }}>✓</p>
-          <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '16px', color: '#2a3d30', marginBottom: '8px' }}>{meta.titre}</p>
-          <p style={{ fontSize: '12.5px', color: '#5a6b5e', marginBottom: '20px' }}>{resultat.msg}</p>
+          <p style={{ fontSize: '1.375rem', marginBottom: '10px' }}>✓</p>
+          <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: '#2a3d30', marginBottom: '8px' }}>{meta.titre}</p>
+          <p style={{ fontSize: '0.78125rem', color: '#5a6b5e', marginBottom: '20px' }}>{resultat.msg}</p>
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
             {resultat.idOeuvre && (
               <a href={`/oeuvre/${resultat.idOeuvre}`} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize: '12.5px', padding: '7px 16px', borderRadius: '5px', border: '1px solid #d6d0c4', color: '#2a3d30', textDecoration: 'none' }}>
+                style={{ fontSize: '0.78125rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid #d6d0c4', color: '#2a3d30', textDecoration: 'none' }}>
                 Lire l'œuvre ↗
               </a>
             )}
-            <button onClick={reset} style={{ fontSize: '12.5px', padding: '7px 16px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>
+            <button onClick={reset} style={{ fontSize: '0.78125rem', padding: '7px 16px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>
               Ajouter une autre œuvre
             </button>
           </div>

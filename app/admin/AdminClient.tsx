@@ -96,9 +96,9 @@ export default function AdminClient({
                 <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '18px', margin: '0 8px 10px', background: '#e2e6e3' }} />
               )}
               <button onClick={() => setOnglet(o.key)} className="adm-onglet"
-                style={{ padding: '12px 16px', fontSize: '13.5px', fontWeight: actif ? 600 : 500, color: actif ? '#2f6046' : '#6a8074', background: actif ? 'rgba(61,107,79,0.06)' : 'transparent', border: 'none', borderBottom: actif ? '3px solid #3d6b4f' : '3px solid transparent', borderRadius: '5px 5px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', whiteSpace: 'nowrap', transition: 'color 0.12s, background 0.12s' }}>
+                style={{ padding: '12px 16px', fontSize: '0.84375rem', fontWeight: actif ? 600 : 500, color: actif ? '#2f6046' : '#6a8074', background: actif ? 'rgba(61,107,79,0.06)' : 'transparent', border: 'none', borderBottom: actif ? '3px solid #3d6b4f' : '3px solid transparent', borderRadius: '5px 5px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', whiteSpace: 'nowrap', transition: 'color 0.12s, background 0.12s' }}>
                 {o.label}
-                {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '10px', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
+                {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.625rem', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
               </button>
             </React.Fragment>
           )
@@ -110,7 +110,7 @@ export default function AdminClient({
         // Le contrôle des œuvres prend toute la largeur : on y lit du texte suivi en
         // regard d'un volet d'analyse, et l'un comme l'autre étouffaient à 1320 px.
         ? { maxWidth: 'none', margin: 0, padding: '20px 14px 48px' }
-        : { maxWidth: '960px', margin: '0 auto', padding: '28px 24px 64px' }}>
+        : { maxWidth: '60rem', margin: '0 auto', padding: '28px 24px 64px' }}>
         {onglet === 'taches'               && <SectionTaches />}
         {onglet === 'charte'               && <SectionCharte />}
         {onglet === 'charte-accentuation'  && <SectionCharteAccentuation />}

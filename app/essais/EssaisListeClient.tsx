@@ -775,7 +775,7 @@ function OngletCommunaute({
         }
       `}</style>
       {tries.length === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Aucun essai trouvé.</p>
+        <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Aucun essai trouvé.</p>
       ) : (
         <>
           <EnTetePublicationsPopulaires essais={populaires} favorisEssais={favorisEssais} toggleFavoriEssai={toggleFavoriEssai} />
@@ -1120,7 +1120,7 @@ function EssaiCarte({ essai: e, miseEnAvant = false, favorisEssais, toggleFavori
                     {lignesTitreAffichees.map((ligne, i) => <span key={i} className="article-journal-cartouche-titre-ligne">{ligne}</span>)}
                   </p>
                   {dateFormatee && (
-                    <p style={{ margin: '7px 0 0', fontSize: '8.5px', fontStyle: 'italic', color: '#9a8a6a', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                    <p style={{ margin: '7px 0 0', fontSize: '0.53125rem', fontStyle: 'italic', color: '#9a8a6a', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                       {dateFormatee}
                     </p>
                   )}
@@ -1158,20 +1158,20 @@ function EssaiCarte({ essai: e, miseEnAvant = false, favorisEssais, toggleFavori
         <div className="essai-contenu">
           {/* Ligne supérieure : auteur + rang + date */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: miseEnAvant ? '16px' : '10px', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12px', fontStyle: 'italic', color: '#3d6b4f', flexShrink: 0 }}>
+            <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.75rem', fontStyle: 'italic', color: '#3d6b4f', flexShrink: 0 }}>
               {e.auteur}
             </span>
-            <span style={{ fontSize: '7.5px', fontWeight: 700, color: couleurs.texte, background: couleurs.fond, padding: '1.5px 6px', borderRadius: '3px', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>
+            <span style={{ fontSize: '0.46875rem', fontWeight: 700, color: couleurs.texte, background: couleurs.fond, padding: '1.5px 6px', borderRadius: '3px', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>
               {rang.rang}
             </span>
             <div style={{ flex: 1, height: '1px', background: '#eae5de', minWidth: '12px' }} />
             {estNouveau && (
-              <span style={{ fontSize: '7.5px', color: '#9a5a2a', background: 'rgba(192,86,42,0.10)', padding: '2px 7px', borderRadius: '3px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', flexShrink: 0 }}>
+              <span style={{ fontSize: '0.46875rem', color: '#9a5a2a', background: 'rgba(192,86,42,0.10)', padding: '2px 7px', borderRadius: '3px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', flexShrink: 0 }}>
                 Nouveau
               </span>
             )}
             {dateFormatee && (
-              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '11px', color: '#a09488', fontStyle: 'italic', flexShrink: 0 }}>
+              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.6875rem', color: '#a09488', fontStyle: 'italic', flexShrink: 0 }}>
                 {dateFormatee}
               </span>
             )}
@@ -1199,17 +1199,17 @@ function EssaiCarte({ essai: e, miseEnAvant = false, favorisEssais, toggleFavori
           {/* Pied : catégories + vues + likes */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: e.resume || e.sous_titre ? '0' : '10px', flexWrap: 'wrap' }}>
             {e.categories.slice(0, 3).map(c => (
-              <span key={c} style={{ fontSize: '9px', color: '#5a7060', background: 'rgba(61,107,79,0.08)', padding: '2px 8px', borderRadius: '3px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              <span key={c} style={{ fontSize: '0.5625rem', color: '#5a7060', background: 'rgba(61,107,79,0.08)', padding: '2px 8px', borderRadius: '3px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                 {c}
               </span>
             ))}
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
               {e.nb_likes > 0 && (
-                <span style={{ fontSize: '10.5px', color: '#b8b0a4', fontVariantNumeric: 'tabular-nums' }}>
+                <span style={{ fontSize: '0.65625rem', color: '#b8b0a4', fontVariantNumeric: 'tabular-nums' }}>
                   ♥ {e.nb_likes}
                 </span>
               )}
-              <span style={{ fontSize: '10.5px', color: '#b8b0a4', fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ fontSize: '0.65625rem', color: '#b8b0a4', fontVariantNumeric: 'tabular-nums' }}>
                 {e.nb_vues} vue{e.nb_vues > 1 ? 's' : ''}
               </span>
             </div>
@@ -1223,26 +1223,26 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
   if (connecte === false) {
     return (
       <div style={{ textAlign: 'center', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '28px 24px', maxWidth: '520px', margin: '0 auto' }}>
-        <p style={{ fontSize: '13px', color: '#6b6560', marginBottom: '14px' }}>Connectez-vous pour écrire un essai ou une méditation.</p>
-        <Link href="/chantier" style={{ display: 'inline-block', padding: '8px 18px', fontSize: '12.5px', fontWeight: 600, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
+        <p style={{ fontSize: '0.8125rem', color: '#6b6560', marginBottom: '14px' }}>Connectez-vous pour écrire un essai ou une méditation.</p>
+        <Link href="/chantier" style={{ display: 'inline-block', padding: '8px 18px', fontSize: '0.78125rem', fontWeight: 600, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
           Se connecter
         </Link>
       </div>
     )
   }
-  if (connecte === null) return <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+  if (connecte === null) return <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
   return (
     <div style={{ maxWidth: '620px', margin: '0 auto', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '30px 34px', textAlign: 'center' }}>
-      <p style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 8px' }}>
+      <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 8px' }}>
         Espace de rédaction
       </p>
-      <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '22px', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 10px' }}>
+      <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 10px' }}>
         Écrire une publication
       </h2>
-      <p style={{ fontSize: '12.5px', color: '#6b6560', lineHeight: 1.65, margin: '0 auto 20px', maxWidth: '440px' }}>
+      <p style={{ fontSize: '0.78125rem', color: '#6b6560', lineHeight: 1.65, margin: '0 auto 20px', maxWidth: '440px' }}>
         Le titre, le résumé, les catégories et le texte se renseignent désormais dans la même page.
       </p>
-      <Link href="/essais/nouveau?depuis=publications" style={{ display: 'inline-block', padding: '9px 22px', fontSize: '12.5px', fontWeight: 600, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
+      <Link href="/essais/nouveau?depuis=publications" style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
         Ouvrir la rédaction
       </Link>
     </div>
@@ -1273,10 +1273,10 @@ function OngletMesEcrits({
   }, [essais, toggles])
 
   if (connecte === false) {
-    return <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a4a2a', fontStyle: 'italic' }}>Connectez-vous pour voir vos écrits.</p>
+    return <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a4a2a', fontStyle: 'italic' }}>Connectez-vous pour voir vos écrits.</p>
   }
-  if (essais === null) return <p style={{ fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
-  if (essais.length === 0) return <p style={{ fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Aucun écrit pour l&apos;instant.</p>
+  if (essais === null) return <p style={{ fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+  if (essais.length === 0) return <p style={{ fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Aucun écrit pour l&apos;instant.</p>
 
   const groupes = [
     { key: 'tous' as const, label: 'Tous', test: (_: EssaiPerso) => true },
@@ -1319,14 +1319,14 @@ function OngletMesEcrits({
           const nb = essais.filter(g.test).length
           return (
             <button key={g.key} onClick={() => setFiltre(g.key)}
-              style={{ fontSize: '10px', padding: '3px 10px', borderRadius: '999px', border: `1px solid ${actif ? '#3d6b4f' : '#e0dacf'}`, background: actif ? 'rgba(61,107,79,0.09)' : 'transparent', color: actif ? '#3d6b4f' : '#9a958d', cursor: 'pointer', fontWeight: actif ? 700 : 500, letterSpacing: '0.01em' }}>
+              style={{ fontSize: '0.625rem', padding: '3px 10px', borderRadius: '999px', border: `1px solid ${actif ? '#3d6b4f' : '#e0dacf'}`, background: actif ? 'rgba(61,107,79,0.09)' : 'transparent', color: actif ? '#3d6b4f' : '#9a958d', cursor: 'pointer', fontWeight: actif ? 700 : 500, letterSpacing: '0.01em' }}>
               {g.label}{nb > 0 ? <span style={{ opacity: 0.55, marginLeft: '4px' }}>{nb}</span> : null}
             </button>
           )
         })}
       </div>
       {essaisFiltres.length === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: '12px', color: '#9a958d', fontStyle: 'italic' }}>Aucun écrit dans cet onglet.</p>
+        <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Aucun écrit dans cet onglet.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {essaisFiltres.map(e => {
@@ -1343,12 +1343,12 @@ function OngletMesEcrits({
               <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', background: statutStyle.fond, border: `1px solid ${statutStyle.bordure}`, borderLeft: `3px solid ${statutStyle.accent}`, borderRadius: '7px', padding: '8px 12px' }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                    <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '14px', color: '#1e2e24', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.titre}</span>
-                    {e.sous_titre && <span style={{ fontSize: '11.5px', color: '#8a8278', fontStyle: 'italic' }}>{e.sous_titre}</span>}
+                    <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: '#1e2e24', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.titre}</span>
+                    {e.sous_titre && <span style={{ fontSize: '0.71875rem', color: '#8a8278', fontStyle: 'italic' }}>{e.sous_titre}</span>}
                   </div>
                   {/* Méta sur UNE seule ligne : statut · date · vues · cœurs. La révision en
                       cours est signalée là, sans encart séparé. */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', fontSize: '9.5px', color: '#b0a89e', marginTop: '2px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', fontSize: '0.59375rem', color: '#b0a89e', marginTop: '2px' }}>
                     <span style={{ color: st.couleur, fontWeight: 700 }}>{st.label}</span>
                     <span>{date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Sans date'}</span>
                     <span>{e.nb_vues ?? 0} vue{(e.nb_vues ?? 0) > 1 ? 's' : ''}</span>
@@ -1367,14 +1367,14 @@ function OngletMesEcrits({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
                   <button onClick={() => basculerPublication(e)} disabled={!peutBasculer || verrouille}
                     title={!dejaValide ? "Publication possible après validation par l'administration." : verrouille ? 'Interrupteur disponible une heure après le dernier changement.' : e.statut === 'publie' ? 'Dépublier' : 'Publier'}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: e.statut === 'publie' ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.4 : 1, fontWeight: 600 }}>
-                    {timer && <span style={{ fontSize: '9px', color: '#9a958d', fontWeight: 600 }}>{timer}</span>}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.625rem', color: e.statut === 'publie' ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.4 : 1, fontWeight: 600 }}>
+                    {timer && <span style={{ fontSize: '0.5625rem', color: '#9a958d', fontWeight: 600 }}>{timer}</span>}
                     <span style={{ width: '26px', height: '14px', borderRadius: '999px', background: e.statut === 'publie' ? '#3d6b4f' : '#d6d0c4', position: 'relative', display: 'inline-block', transition: 'background 0.15s' }}>
                       <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '14px' : '2px', width: '10px', height: '10px', borderRadius: '50%', background: '#fff', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
                     </span>
                   </button>
-                  <Link href={`/essais/${e.id}/modifier`} style={{ fontSize: '10.5px', color: '#3d6b4f', textDecoration: 'none', fontWeight: 600 }}>Modifier</Link>
-                  <button onClick={() => supprimer(e.id)} style={{ fontSize: '10.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Supprimer</button>
+                  <Link href={`/essais/${e.id}/modifier`} style={{ fontSize: '0.65625rem', color: '#3d6b4f', textDecoration: 'none', fontWeight: 600 }}>Modifier</Link>
+                  <button onClick={() => supprimer(e.id)} style={{ fontSize: '0.65625rem', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Supprimer</button>
                 </div>
               </div>
             )
@@ -1452,19 +1452,19 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
   return (
     <div style={{ maxWidth: '560px', margin: '0 auto', textAlign: 'center', paddingTop: '8px' }}>
       {!verset ? (
-        <p style={{ fontSize: '13px', color: '#9a958d', fontStyle: 'italic', marginTop: '20px' }}>
+        <p style={{ fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic', marginTop: '20px' }}>
           {chargement ? 'Chargement…' : 'Impossible de charger une suggestion.'}
         </p>
       ) : (
         <>
           <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '34px 36px 28px', marginBottom: '18px' }}>
-            <p style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 20px' }}>
+            <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 20px' }}>
               Verset proposé à la méditation
             </p>
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '16px', lineHeight: 1.8, color: '#1e2e24', fontStyle: 'italic', margin: '0 0 18px' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', lineHeight: 1.8, color: '#1e2e24', fontStyle: 'italic', margin: '0 0 18px' }}>
               «&#8201;{rendreTexteEnrichi(verset.texte)}&#8201;»
             </p>
-            <p style={{ fontSize: '12px', color: '#8a8278', margin: 0 }}>
+            <p style={{ fontSize: '0.75rem', color: '#8a8278', margin: 0 }}>
               {ABREV_FR[verset.livre] ?? verset.livre} {verset.chapitre},{verset.verset}
             </p>
           </div>
@@ -1476,12 +1476,12 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
                 const ref = `${LIVRES.find(l => l.code === verset.livre)?.nom ?? verset.livre} ${verset.chapitre},${verset.verset}`
                 sessionStorage.setItem('suggestion-verset-en-tete', JSON.stringify({ ref, texte: verset.texte }))
               }}
-              style={{ display: 'inline-block', padding: '9px 22px', fontSize: '12.5px', fontWeight: 600, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
+              style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
               Écrire sur ce verset
             </Link>
             <Link
               href={`/?livre=${verset.livre}&chapitre=${verset.chapitre}&verset=${verset.verset}`}
-              style={{ display: 'inline-block', padding: '9px 16px', fontSize: '12.5px', color: '#3d6b4f', borderRadius: '6px', textDecoration: 'none', border: '1px solid #c8d8cc' }}>
+              style={{ display: 'inline-block', padding: '9px 16px', fontSize: '0.78125rem', color: '#3d6b4f', borderRadius: '6px', textDecoration: 'none', border: '1px solid #c8d8cc' }}>
               Lire dans la Bible
             </Link>
           </div>
@@ -1490,10 +1490,10 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
             <button
               onClick={() => charger(versets)}
               disabled={!peutRelancer || chargement}
-              style={{ fontSize: '11.5px', color: peutRelancer ? '#3d6b4f' : '#b0a89e', background: 'none', border: 'none', cursor: peutRelancer ? 'pointer' : 'default', padding: 0, textDecoration: peutRelancer && !chargement ? 'underline' : 'none', fontStyle: 'italic' }}>
+              style={{ fontSize: '0.71875rem', color: peutRelancer ? '#3d6b4f' : '#b0a89e', background: 'none', border: 'none', cursor: peutRelancer ? 'pointer' : 'default', padding: 0, textDecoration: peutRelancer && !chargement ? 'underline' : 'none', fontStyle: 'italic' }}>
               {chargement ? 'Chargement…' : peutRelancer ? 'Autre suggestion' : 'Limite atteinte pour aujourd\'hui'}
             </button>
-            <span style={{ fontSize: '10px', color: '#c8c0b4' }}>({versets.length}/{MAX_SUGGESTIONS_JOUR})</span>
+            <span style={{ fontSize: '0.625rem', color: '#c8c0b4' }}>({versets.length}/{MAX_SUGGESTIONS_JOUR})</span>
           </div>
 
           {versets.length > 1 && (
@@ -1508,7 +1508,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
       )}
 
       {connecte === false && (
-        <p style={{ fontSize: '11px', color: '#9a958d', marginTop: '18px', fontStyle: 'italic' }}>
+        <p style={{ fontSize: '0.6875rem', color: '#9a958d', marginTop: '18px', fontStyle: 'italic' }}>
           <Link href="/chantier" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>Connectez-vous</Link> pour enregistrer votre méditation.
         </p>
       )}
@@ -1520,7 +1520,7 @@ function tagFiltre(actif: boolean): React.CSSProperties {
   // Tags resserrés et plus légers : pastilles fines, sans bordure au repos ; l'actif se
   // marque d'un aplat vert discret. Plus élégant que les anciens contours gris.
   return {
-    fontSize: '10px', padding: '3px 10px', borderRadius: '999px',
+    fontSize: '0.625rem', padding: '3px 10px', borderRadius: '999px',
     border: '1px solid ' + (actif ? '#3d6b4f' : 'transparent'),
     background: actif ? 'rgba(61,107,79,0.10)' : 'rgba(120,110,96,0.06)',
     color: actif ? '#3d6b4f' : '#8a8278', cursor: 'pointer',

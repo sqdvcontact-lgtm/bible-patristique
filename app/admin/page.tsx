@@ -134,12 +134,12 @@ export default async function AdminPage() {
     return (
       <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ background: '#fff', border: '1px solid #d6d0c4', borderRadius: '10px', padding: '36px 40px', width: '340px', textAlign: 'center' }}>
-          <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '20px', fontWeight: 'normal', color: '#2a3d30', marginBottom: '6px' }}>Administration</h1>
-          <p style={{ fontSize: '12px', color: '#9a958d', marginBottom: '20px' }}>Corpus Scriptura</p>
-          <p style={{ fontSize: '12.5px', color: '#6b6560', lineHeight: 1.6, marginBottom: '22px' }}>
+          <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.25rem', fontWeight: 'normal', color: '#2a3d30', marginBottom: '6px' }}>Administration</h1>
+          <p style={{ fontSize: '0.75rem', color: '#9a958d', marginBottom: '20px' }}>Corpus Scriptura</p>
+          <p style={{ fontSize: '0.78125rem', color: '#6b6560', lineHeight: 1.6, marginBottom: '22px' }}>
             Cette page est réservée au compte administrateur. Connectez-vous avec ce compte pour y accéder.
           </p>
-          <a href="/chantier" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '13px', fontWeight: 500, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
+          <a href="/chantier" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '0.8125rem', fontWeight: 500, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
             Se connecter
           </a>
         </div>
