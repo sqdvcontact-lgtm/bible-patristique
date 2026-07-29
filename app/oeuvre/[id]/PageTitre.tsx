@@ -115,7 +115,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier 
     <div style={{
       minHeight: '60vh', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
-      padding: '80px 118px 40px 48px',
+      padding: '80px 48px 40px 48px',
       marginBottom: '8px', textAlign: 'center',
     }}>
       {/* Nom d'auteur : légèrement agrandi, interlettrage un peu plus ouvert pour
@@ -164,7 +164,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier 
       )}
 
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
-        <MarqueImprimeur size={150} />
+        <MarqueImprimeur size={172} />
       </div>
 
       {/* Traducteur */}

@@ -10,7 +10,7 @@
 //     entre la page de titre et le niveau 1.
 // Purement décoratifs : aria-hidden, aucune sémantique.
 
-const FEUILLE = '#8aa06e'
+const FEUILLE = '#1e1a16' // noir, comme le texte du corps
 
 export function MarqueImprimeur({ size = 150 }: { size?: number }) {
   return (
