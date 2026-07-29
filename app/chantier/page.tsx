@@ -20,8 +20,8 @@ const LIEN_PAYPAL = "https://www.paypal.com/donate/?hosted_button_id=9M463NPH2RQ
 // Mordoré : le brun doré des reliures, entre l'or des filets et le brun du texte.
 const MORDORE = "#7d5f28";
 
-const inputStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: "0.84375rem", border: "1px solid #d6d0c4", borderRadius: "6px", background: "#f9f7f4", color: "#1e1a16", outline: "none", boxSizing: "border-box" };
-const labelStyle: React.CSSProperties = { fontSize: "0.6875rem", fontWeight: 600, color: "#566150", letterSpacing: "0.06em", display: "block", marginBottom: "5px" };
+const inputStyle: React.CSSProperties = { width: "100%", padding: "0.5625rem 0.75rem", fontSize: "0.84375rem", border: "1px solid #d6d0c4", borderRadius: "0.375rem", background: "#f9f7f4", color: "#1e1a16", outline: "none", boxSizing: "border-box" };
+const labelStyle: React.CSSProperties = { fontSize: "0.6875rem", fontWeight: 600, color: "#566150", letterSpacing: "0.06em", display: "block", marginBottom: "0.3125rem" };
 
 /** Où revenir après avoir confirmé son adresse par courriel. */
 function urlCompte(): string {
@@ -112,7 +112,7 @@ const ORNEMENTS = {
   clochettes: { src: "/ornements/clochettes.png",   w: 520, h: 102 },
 } as const;
 
-function Ornement({ nom, largeur, opacite = 1, alt = "" }: { nom: keyof typeof ORNEMENTS; largeur: number; opacite?: number; alt?: string }) {
+function Ornement({ nom, largeur, opacite = 1, alt = "" }: { nom: keyof typeof ORNEMENTS; largeur: number | string; opacite?: number; alt?: string }) {
   const o = ORNEMENTS[nom];
   return (
     // `unoptimized` n'est pas une facilité. À certaines largeurs — 640 px, mais
@@ -133,7 +133,7 @@ function Ornement({ nom, largeur, opacite = 1, alt = "" }: { nom: keyof typeof O
  *  main : une coupe fixe se briserait au premier changement de corps ou de
  *  langue, alors qu'une largeur décroissante tient dans tous les cas.
  */
-function Colophon({ lignes, couleur, taille = "12.5px", interligne = 1.7 }: {
+function Colophon({ lignes, couleur, taille = "0.78125rem", interligne = 1.7 }: {
   lignes: [string, string][]; couleur: string; taille?: string; interligne?: number;
 }) {
   return (
@@ -270,7 +270,7 @@ function Chiffres() {
 
   // Tant que le compte n'est pas revenu, on n'affiche rien plutôt qu'un zéro :
   // un chiffre faux est pire qu'un chiffre absent sur une page de présentation.
-  if (!n) return <div style={{ height: "72px" }} />;
+  if (!n) return <div style={{ height: "4.5rem" }} />;
 
   const cases: [number, string][] = [
     [n.oeuvres, n.oeuvres > 1 ? "œuvres disponibles" : "œuvre disponible"],
@@ -285,7 +285,7 @@ function Chiffres() {
           <div className="cs-chiffre-valeur" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.875rem", color: "#3d6b4f", lineHeight: 1 }}>
             {valeur}
           </div>
-          <div className="cs-chiffre-libelle" style={{ fontSize: "0.625rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6a6259", marginTop: "6px" }}>
+          <div className="cs-chiffre-libelle" style={{ fontSize: "0.625rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6a6259", marginTop: "0.375rem" }}>
             {libelle}
           </div>
         </div>
@@ -320,7 +320,7 @@ function Prevenir() {
 
   if (etat === "fait") {
     return (
-      <div style={{ background: "rgba(61,107,79,0.07)", border: "1px solid rgba(61,107,79,0.22)", borderRadius: "8px", padding: "16px 18px" }}>
+      <div style={{ background: "rgba(61,107,79,0.07)", border: "1px solid rgba(61,107,79,0.22)", borderRadius: "0.5rem", padding: "1rem 1.125rem" }}>
         <p style={{ fontSize: "0.8125rem", color: "#2a6040", margin: 0, lineHeight: 1.6 }}>
           C’est noté. Vous recevrez un message le jour de l’ouverture – un seul, et rien d’autre.
         </p>
@@ -330,19 +330,19 @@ function Prevenir() {
 
   return (
     <form onSubmit={envoyer}>
-      <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: "0 0 12px", lineHeight: 1.6 }}>
+      <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: "0 0 0.75rem", lineHeight: 1.6 }}>
         Les travaux avancent, la date reste incertaine. Laissez votre adresse : elle ne servira
         qu’à vous prévenir, une fois.
       </p>
       {erreur && (
-        <p style={{ fontSize: "0.75rem", color: "#9a2a2a", margin: "0 0 10px", lineHeight: 1.5 }}>{erreur}</p>
+        <p style={{ fontSize: "0.75rem", color: "#9a2a2a", margin: "0 0 0.625rem", lineHeight: 1.5 }}>{erreur}</p>
       )}
-      <div className="cs-prevenir-champs" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+      <div className="cs-prevenir-champs" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
         <input type="email" required autoComplete="email" value={adresse} onChange={e => setAdresse(e.target.value)}
           placeholder="vous@exemple.fr" aria-label="Votre adresse e-mail"
-          style={{ ...inputStyle, flex: "1 1 180px", width: "auto" }} />
+          style={{ ...inputStyle, flex: "1 1 11.25rem", width: "auto" }} />
         <button type="submit" disabled={etat === "envoi"}
-          style={{ padding: "9px 18px", borderRadius: "6px", border: "none", background: etat === "envoi" ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
+          style={{ padding: "0.5625rem 1.125rem", borderRadius: "0.375rem", border: "none", background: etat === "envoi" ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
           {etat === "envoi" ? "Envoi…" : "Me prévenir"}
         </button>
       </div>
@@ -406,7 +406,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         body:has(.cs-ouverture) #cs-corps { padding-top: 0 !important; }
 
         .cs-ouverture { background: #f3efe3; }
-        .cs-ouverture-corps { width: 100%; max-width: 780px; margin: 0 auto; padding: 0 20px; }
+        .cs-ouverture-corps { width: 100%; max-width: 48.75rem; margin: 0 auto; padding: 0 1.25rem; }
 
         /* ── Premier écran ────────────────────────────────────────────────────
            Il occupe exactement la hauteur visible et se centre : le visiteur
@@ -416,25 +416,25 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
            déborde toujours d'une cinquantaine de pixels. */
         .cs-ecran { min-height: 100dvh; display: flex; flex-direction: column;
                     align-items: center; justify-content: center;
-                    text-align: center; padding: 32px 20px 26px; }
+                    text-align: center; padding: 2rem 1.25rem 1.625rem; }
         .cs-enseigne { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
                        color: #3d6b4f; letter-spacing: 0.16em; text-transform: uppercase;
-                       font-size: 30px; line-height: 1.1; margin: 16px 0 4px; }
+                       font-size: 1.875rem; line-height: 1.1; margin: 1rem 0 0.25rem; }
         .cs-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
                     color: #1e2e22; line-height: 1.3; letter-spacing: -0.005em;
-                    font-size: 20px; font-style: italic; margin: 10px 0 16px; }
-        .cs-chapeau { font-size: 14.5px; color: #6a6259; line-height: 1.75;
-                      max-width: 520px; margin: 0 auto; }
-        .cs-suite { display: block; margin-top: 16px; color: #a89e8e; }
-        .cs-principes { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 38px; }
+                    font-size: 1.25rem; font-style: italic; margin: 0.625rem 0 1rem; }
+        .cs-chapeau { font-size: 0.90625rem; color: #6a6259; line-height: 1.75;
+                      max-width: 32.5rem; margin: 0 auto; }
+        .cs-suite { display: block; margin-top: 1rem; color: #a89e8e; }
+        .cs-principes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; margin-bottom: 2.375rem; }
         /* Encart : pictogramme, titre, texte — empilés et centrés. La pastille
            pose le pictogramme au calme ; le filet sous le titre le rattache au
            texte sans le cerner. */
         .cs-encart { display: flex; flex-direction: column; align-items: center; text-align: center;
-                     padding: 22px 22px 24px; border: 1px solid #e7e0d4; border-radius: 12px;
+                     padding: 1.375rem 1.375rem 1.5rem; border: 1px solid #e7e0d4; border-radius: 0.75rem;
                      background: linear-gradient(#fdfbf6, #f8f4ea); }
         .cs-encart-ico { display: flex; align-items: center; justify-content: center;
-                         width: 46px; height: 46px; border-radius: 50%; margin-bottom: 12px;
+                         width: 2.875rem; height: 2.875rem; border-radius: 50%; margin-bottom: 0.75rem;
                          color: #3d6b4f; background: #eef3ee; border: 1px solid #dbe6dd; }
         /* Vert et mordoré mêlés : une teinte par encart, en alternance. Sur deux colonnes,
            cela pose le vert d'un côté et le mordoré de l'autre — les deux couleurs de la
@@ -443,14 +443,14 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-encart--mordore .cs-encart-titre { color: #4a3d24; }
         .cs-encart--vert .cs-encart-titre::after { background: #a9c3b1; }
         .cs-encart-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
-                           font-size: 15px; color: #2a3d30; margin: 0 0 9px; padding-bottom: 9px;
+                           font-size: 0.9375rem; color: #2a3d30; margin: 0 0 0.5625rem; padding-bottom: 0.5625rem;
                            position: relative; }
         .cs-encart-titre::after { content: ""; position: absolute; left: 50%; bottom: 0;
-                                  width: 26px; height: 1px; background: #cdb98c; transform: translateX(-50%); }
-        .cs-encart-texte { font-size: 12.5px; color: #6a6259; line-height: 1.65; margin: 0; max-width: 34ch; }
+                                  width: 1.625rem; height: 1px; background: #cdb98c; transform: translateX(-50%); }
+        .cs-encart-texte { font-size: 0.78125rem; color: #6a6259; line-height: 1.65; margin: 0; max-width: 34ch; }
         /* Le point surnuméraire enjambe les deux colonnes et se centre. */
-        .cs-principe-seul { grid-column: 1 / -1; max-width: 340px; margin: 0 auto; }
-        .cs-cartes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
+        .cs-principe-seul { grid-column: 1 / -1; max-width: 21.25rem; margin: 0 auto; }
+        .cs-cartes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.125rem; }
 
         /* ── Feuille de route ─────────────────────────────────────────────────
            Une liste de titres, filets en haut et en bas comme le bloc « textes
@@ -458,63 +458,63 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
            et deux cadres différents à deux pas l'un de l'autre feraient bavard.
            Les acquis, barrés et grisés, ouvrent la liste ; le reste suit. */
         .cs-route { border-top: 1px solid #e0d9cc; border-bottom: 1px solid #e0d9cc;
-                    padding: 26px 0 28px; margin-bottom: 34px; }
-        .cs-route-kicker { font-size: 9px; font-weight: 700; letter-spacing: 0.18em;
-                           text-transform: uppercase; color: #6f5518; margin: 0 0 12px;
+                    padding: 1.625rem 0 1.75rem; margin-bottom: 2.125rem; }
+        .cs-route-kicker { font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.18em;
+                           text-transform: uppercase; color: #6f5518; margin: 0 0 0.75rem;
                            text-align: center; }
-        .cs-route-chapeau { font-size: 13px; color: #6a6259; line-height: 1.7;
-                            max-width: 460px; margin: 0 auto 24px; text-align: center;
+        .cs-route-chapeau { font-size: 0.8125rem; color: #6a6259; line-height: 1.7;
+                            max-width: 28.75rem; margin: 0 auto 1.5rem; text-align: center;
                             font-family: var(--font-source-serif), Georgia, serif; }
         /* Deux colonnes en regard : l'acquis à gauche, le reste à droite. Un
            filet sous chaque en-tête tient les deux listes sur une même ligne
            de base, quand bien même l'une est plus longue que l'autre. */
-        .cs-route-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 30px;
-                         max-width: 640px; margin: 0 auto; }
-        .cs-route-col-titre { font-size: 9px; font-weight: 700; letter-spacing: 0.14em;
-                              text-transform: uppercase; color: #6f5518; margin: 0 0 12px;
-                              padding-bottom: 8px; border-bottom: 1px solid #e5ddce;
+        .cs-route-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.875rem;
+                         max-width: 40rem; margin: 0 auto; }
+        .cs-route-col-titre { font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.14em;
+                              text-transform: uppercase; color: #6f5518; margin: 0 0 0.75rem;
+                              padding-bottom: 0.5rem; border-bottom: 1px solid #e5ddce;
                               text-align: center; }
         .cs-route-liste { list-style: none; margin: 0; padding: 0;
-                          display: flex; flex-direction: column; gap: 11px; }
-        .cs-route-item { display: flex; align-items: baseline; gap: 10px; }
+                          display: flex; flex-direction: column; gap: 0.6875rem; }
+        .cs-route-item { display: flex; align-items: baseline; gap: 0.625rem; }
         /* La puce tient sa case pour que les titres restent alignés à gauche,
            et que les lignes qui se replient reviennent sous le titre, non sous
            la puce. */
-        .cs-route-puce { flex: 0 0 auto; width: 13px; text-align: center;
-                         color: #3d6b4f; font-size: 12px; }
-        .cs-route-puce--reste { color: #bca877; font-size: 10px; }
+        .cs-route-puce { flex: 0 0 auto; width: 0.8125rem; text-align: center;
+                         color: #3d6b4f; font-size: 0.75rem; }
+        .cs-route-puce--reste { color: #bca877; font-size: 0.625rem; }
         .cs-route-titre { font-family: var(--font-source-serif), Georgia, serif;
-                          font-size: 13.5px; line-height: 1.4; color: #2a3d30; }
+                          font-size: 0.84375rem; line-height: 1.4; color: #2a3d30; }
         .cs-route-item--fait .cs-route-titre { color: #a89e8e; text-decoration: line-through;
                           text-decoration-color: #c3b9a6; }
-        .cs-chiffres { display: flex; justify-content: center; gap: 54px; flex-wrap: wrap; margin: 6px 0 34px; }
+        .cs-chiffres { display: flex; justify-content: center; gap: 3.375rem; flex-wrap: wrap; margin: 0.375rem 0 2.125rem; }
 
         /* ── Téléphone ────────────────────────────────────────────────────────
            Une colonne, marges resserrées, et surtout des cibles tactiles qui
            tiennent le doigt : le champ et le bouton passent l'un sous l'autre
            plutôt que de se partager une ligne trop étroite. */
         @media (max-width: 640px) {
-          .cs-ouverture-corps { padding: 0 16px; }
-          .cs-ecran { padding: 26px 16px 22px; }
-          .cs-enseigne { font-size: 22px; letter-spacing: 0.13em; }
-          .cs-titre { font-size: 16.5px; margin: 8px 0 14px; }
-          .cs-chapeau { font-size: 13.5px; line-height: 1.7; }
-          .cs-suite { margin-top: 12px; }
-          .cs-principes { grid-template-columns: 1fr; gap: 18px; margin-bottom: 30px; }
+          .cs-ouverture-corps { padding: 0 1rem; }
+          .cs-ecran { padding: 1.625rem 1rem 1.375rem; }
+          .cs-enseigne { font-size: 1.375rem; letter-spacing: 0.13em; }
+          .cs-titre { font-size: 1.03125rem; margin: 0.5rem 0 0.875rem; }
+          .cs-chapeau { font-size: 0.84375rem; line-height: 1.7; }
+          .cs-suite { margin-top: 0.75rem; }
+          .cs-principes { grid-template-columns: 1fr; gap: 1.125rem; margin-bottom: 1.875rem; }
           .cs-cartes { grid-template-columns: 1fr; }
-          .cs-route { padding: 22px 0 24px; }
-          .cs-route-cols { grid-template-columns: 1fr; gap: 24px; max-width: 340px; }
-          .cs-route-liste { gap: 12px; }
-          .cs-chiffres { gap: 0; justify-content: space-between; margin: 4px 0 28px; }
-          .cs-chiffre-valeur { font-size: 25px !important; }
-          .cs-chiffre-libelle { font-size: 9px !important; letter-spacing: 0.06em !important; }
+          .cs-route { padding: 1.375rem 0 1.5rem; }
+          .cs-route-cols { grid-template-columns: 1fr; gap: 1.5rem; max-width: 21.25rem; }
+          .cs-route-liste { gap: 0.75rem; }
+          .cs-chiffres { gap: 0; justify-content: space-between; margin: 0.25rem 0 1.75rem; }
+          .cs-chiffre-valeur { font-size: 1.5625rem !important; }
+          .cs-chiffre-libelle { font-size: 0.5625rem !important; letter-spacing: 0.06em !important; }
           .cs-prevenir-champs { flex-direction: column; }
           .cs-prevenir-champs > * { width: 100%; }
-          .cs-prevenir-champs button { padding: 12px 18px !important; }
-          .cs-carte { padding: 20px 18px !important; }
-          .cs-connexion { padding: 24px 20px 28px !important; }
+          .cs-prevenir-champs button { padding: 0.75rem 1.125rem !important; }
+          .cs-carte { padding: 1.25rem 1.125rem !important; }
+          .cs-connexion { padding: 1.5rem 1.25rem 1.75rem !important; }
         }
-        /* iOS zoome sur tout champ dont le texte descend sous 16px. */
+        /* iOS zoome sur tout champ dont le texte descend sous 1rem. */
         @media (max-width: 640px) { .cs-ouverture input { font-size: 16px !important; } }
       `}</style>
 
@@ -524,7 +524,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             porter un sujet, et il dit le chantier mieux que le bandeau qui
             l'annonce. Elle était en bas, où l'on ne la voyait qu'après tout
             avoir lu — donc rarement. */}
-        <Ornement nom="batisseurs" largeur={400}
+        <Ornement nom="batisseurs" largeur="25rem"
           alt="Des anges et des ouvriers bâtissant la muraille d’une cité" />
         <h1 className="cs-enseigne">Corpus Scriptura</h1>
         <p className="cs-titre">L’Écriture, et ce que les Pères en ont dit</p>
@@ -532,17 +532,17 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         {/* L'avis de travaux suit le titre, en colophon et sans cadre : encadré,
             il avait l'air d'une alerte technique posée sur la page ; composé, il
             appartient à l'ensemble. Le mordoré le distingue sans le détacher. */}
-        <div style={{ marginTop: "16px" }}>
-          <Colophon couleur={MORDORE} taille="13px" lignes={[
-            ["Le site est en travaux. Rien n’est encore ouvert :", "430px"],
-            ["ni la lecture, ni la recherche, ni les comptes.", "350px"],
-            ["Cette page est une annonce, pas une porte.", "290px"],
+        <div style={{ marginTop: "1rem" }}>
+          <Colophon couleur={MORDORE} taille="0.8125rem" lignes={[
+            ["Le site est en travaux. Rien n’est encore ouvert :", "26.875rem"],
+            ["ni la lecture, ni la recherche, ni les comptes.", "21.875rem"],
+            ["Cette page est une annonce, pas une porte.", "18.125rem"],
           ]} />
         </div>
 
         {/* Les chiffres tiennent dans le premier écran depuis que le chapeau en
             est parti : l'état du chantier se lit sans avoir à faire défiler. */}
-        <div style={{ marginTop: "26px" }}><Chiffres /></div>
+        <div style={{ marginTop: "1.625rem" }}><Chiffres /></div>
 
         {/* Invite à faire défiler : sans elle, un premier écran qui tient dans la
             fenêtre laisse croire qu'il n'y a rien en dessous. */}
@@ -553,9 +553,9 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         </span>
       </header>
 
-      <div className="cs-ouverture-corps" style={{ paddingBottom: "56px" }}>
+      <div className="cs-ouverture-corps" style={{ paddingBottom: "3.5rem" }}>
 
-        <div className="cs-principes" style={{ paddingTop: "44px" }}>
+        <div className="cs-principes" style={{ paddingTop: "2.75rem" }}>
           {PRINCIPES.map((p, i) => {
             // Cinq encarts dans deux colonnes : le dernier resterait seul, comme
             // oublié dans un coin. Il enjambe donc les deux colonnes et se centre.
@@ -571,7 +571,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           })}
         </div>
 
-        <div style={{ margin: "6px 0 34px" }}><Ornement nom="clochettes" largeur={210} opacite={0.7} /></div>
+        <div style={{ margin: "0.375rem 0 2.125rem" }}><Ornement nom="clochettes" largeur="13.125rem" opacite={0.7} /></div>
 
         {/* ── Feuille de route ──
             Elle suit l'exposé du travail et précède l'invitation à laisser son
@@ -581,22 +581,22 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
 
         {/* ── Être prévenu, et soutenir ── */}
         <div className="cs-cartes">
-          <div className="cs-carte" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "24px 26px" }}>
-            <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#6a6259", margin: "0 0 14px", textAlign: "center" }}>
+          <div className="cs-carte" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "0.75rem", padding: "1.5rem 1.625rem" }}>
+            <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#6a6259", margin: "0 0 0.875rem", textAlign: "center" }}>
               Recevoir un mail à l’ouverture
             </p>
             <Prevenir />
           </div>
-          <div className="cs-carte" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "24px 26px", display: "flex", flexDirection: "column" }}>
-            <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#6a6259", margin: "0 0 14px", textAlign: "center" }}>
+          <div className="cs-carte" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "0.75rem", padding: "1.5rem 1.625rem", display: "flex", flexDirection: "column" }}>
+            <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#6a6259", margin: "0 0 0.875rem", textAlign: "center" }}>
               Soutenir le projet
             </p>
-            <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: "0 0 14px", lineHeight: 1.6, flex: 1 }}>
+            <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: "0 0 0.875rem", lineHeight: 1.6, flex: 1 }}>
               Le travail est bénévole, les frais ne le sont pas : hébergement, achat des
               éditions, numérisation. Un don avance le chantier.
             </p>
             <a href={LIEN_PAYPAL} target="_blank" rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "9px 18px", borderRadius: "6px", border: "1px solid #3d6b4f", background: "#fff", color: "#3d6b4f", fontSize: "0.8125rem", fontWeight: 500, textDecoration: "none" }}>
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.5625rem 1.125rem", borderRadius: "0.375rem", border: "1px solid #3d6b4f", background: "#fff", color: "#3d6b4f", fontSize: "0.8125rem", fontWeight: 500, textDecoration: "none" }}>
               <svg width="14" height="14" viewBox="0 0 40 40" fill="none" aria-hidden="true">
                 <path d="M20 34S4 23 4 13a8 8 0 0 1 16-2 8 8 0 0 1 16 2c0 10-16 21-16 21z"
                   stroke="currentColor" strokeWidth="2.5" fill="rgba(61,107,79,0.08)" strokeLinejoin="round" />
@@ -607,22 +607,22 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         </div>
 
         {/* ── Connexion ── */}
-        <div className="cs-connexion" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "30px 32px 34px", width: "100%", maxWidth: "23.75rem", margin: "0 auto", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}>
-        <div style={{ textAlign: "center", marginBottom: "24px" }}>
+        <div className="cs-connexion" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "0.75rem", padding: "1.875rem 2rem 2.125rem", width: "100%", maxWidth: "23.75rem", margin: "0 auto", boxShadow: "0 0.25rem 1.5rem rgba(0,0,0,0.05)" }}>
+        <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
           <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.25rem", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>
             {mode === "connexion" ? "Connexion" : "Créer un compte"}
           </h2>
         </div>
         {erreur === "__confirm__" ? (
-          <div style={{ background: "rgba(61,107,79,0.07)", border: "1px solid rgba(61,107,79,0.2)", borderRadius: "6px", padding: "14px 16px", marginBottom: "20px" }}>
+          <div style={{ background: "rgba(61,107,79,0.07)", border: "1px solid rgba(61,107,79,0.2)", borderRadius: "0.375rem", padding: "0.875rem 1rem", marginBottom: "1.25rem" }}>
             <p style={{ fontSize: "0.8125rem", color: "#2a6040", lineHeight: 1.65, margin: 0 }}>Compte créé. Vérifiez votre boîte mail pour confirmer votre adresse, puis connectez-vous.</p>
           </div>
         ) : erreur ? (
-          <div style={{ background: "rgba(180,50,40,0.06)", border: "1px solid rgba(180,50,40,0.18)", borderRadius: "6px", padding: "10px 14px", marginBottom: "18px" }}>
+          <div style={{ background: "rgba(180,50,40,0.06)", border: "1px solid rgba(180,50,40,0.18)", borderRadius: "0.375rem", padding: "0.625rem 0.875rem", marginBottom: "1.125rem" }}>
             <p style={{ fontSize: "0.78125rem", color: "#9a2a2a", margin: 0, lineHeight: 1.55 }}>{erreur}</p>
           </div>
         ) : null}
-        <form onSubmit={soumettre} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+        <form onSubmit={soumettre} style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
           {mode === "inscription" && (
             <div>
               <label htmlFor="cs-pseudo" style={labelStyle}>PSEUDONYME *</label>
@@ -638,7 +638,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             <input id="cs-mdp" autoComplete={mode === "connexion" ? "current-password" : "new-password"} type="password" value={mdp} onChange={e => setMdp(e.target.value)} required minLength={6} placeholder="··········" style={inputStyle} />
           </div>
           <button type="submit" disabled={chargement}
-            style={{ marginTop: "6px", padding: "10px", borderRadius: "6px", border: "none", background: chargement ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
+            style={{ marginTop: "0.375rem", padding: "0.625rem", borderRadius: "0.375rem", border: "none", background: chargement ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
             {chargement ? "Chargement…" : mode === "connexion" ? "Se connecter" : "Créer le compte"}
           </button>
         </form>
@@ -649,7 +649,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             (Authentication → Sign In / Providers → Allow new users to sign up),
             sans quoi l'API reste ouverte à qui la connaît. */}
         {process.env.NEXT_PUBLIC_INSCRIPTIONS_OUVERTES === "1" ? (
-          <div style={{ marginTop: "20px", textAlign: "center", borderTop: "1px solid #ede9e2", paddingTop: "18px" }}>
+          <div style={{ marginTop: "1.25rem", textAlign: "center", borderTop: "1px solid #ede9e2", paddingTop: "1.125rem" }}>
             <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: 0 }}>
               {mode === "connexion" ? "Pas encore de compte ?" : "Déjà un compte ?"}
               {" "}
@@ -660,7 +660,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             </p>
           </div>
         ) : (
-          <div style={{ marginTop: "20px", textAlign: "center", borderTop: "1px solid #ede9e2", paddingTop: "18px" }}>
+          <div style={{ marginTop: "1.25rem", textAlign: "center", borderTop: "1px solid #ede9e2", paddingTop: "1.125rem" }}>
             <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: 0, lineHeight: 1.55 }}>
               Les comptes sont réservés aux personnes qui travaillent au chantier.<br />
               Les inscriptions ouvriront avec le site.
@@ -671,23 +671,23 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
 
         {/* Les mentions légales doivent être atteignables d'ici : c'est sur
             cette page qu'on recueille des adresses. */}
-        <nav style={{ marginTop: "30px", textAlign: "center", fontSize: "0.71875rem", color: "#6a6259" }}>
+        <nav style={{ marginTop: "1.875rem", textAlign: "center", fontSize: "0.71875rem", color: "#6a6259" }}>
           <a href="/confidentialite" style={{ color: "#6a6259", textDecoration: "underline", textUnderlineOffset: "2px" }}>
             Politique de confidentialité
           </a>
-          <span style={{ margin: "0 10px" }}>·</span>
+          <span style={{ margin: "0 0.625rem" }}>·</span>
           <a href="/conditions-utilisation" style={{ color: "#6a6259", textDecoration: "underline", textUnderlineOffset: "2px" }}>
             Conditions d’utilisation
           </a>
-          <span style={{ margin: "0 10px" }}>·</span>
+          <span style={{ margin: "0 0.625rem" }}>·</span>
           <a href="/contact" style={{ color: "#6a6259", textDecoration: "underline", textUnderlineOffset: "2px" }}>
             Contact
           </a>
         </nav>
 
         {/* ── Démarchage ── */}
-        <aside style={{ marginTop: "34px", border: "1px solid #ddc9c2", background: "#fdf6f4", borderRadius: "10px", padding: "20px 24px", maxWidth: "41.25rem", marginLeft: "auto", marginRight: "auto" }}>
-          <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a4a3a", margin: "0 0 10px" }}>
+        <aside style={{ marginTop: "2.125rem", border: "1px solid #ddc9c2", background: "#fdf6f4", borderRadius: "0.625rem", padding: "1.25rem 1.5rem", maxWidth: "41.25rem", marginLeft: "auto", marginRight: "auto" }}>
+          <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a4a3a", margin: "0 0 0.625rem" }}>
             Aucun démarchage
           </p>
           <p style={{ fontSize: "0.78125rem", color: "#6a5a54", lineHeight: 1.7, margin: 0 }}>
@@ -697,7 +697,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             envoyée par une personne ou par un automate. Les adresses figurant sur ce site
             ne valent pas consentement et ne sont pas collectables.
           </p>
-          <p style={{ fontSize: "0.78125rem", color: "#6a5a54", lineHeight: 1.7, margin: "10px 0 0" }}>
+          <p style={{ fontSize: "0.78125rem", color: "#6a5a54", lineHeight: 1.7, margin: "0.625rem 0 0" }}>
             La prospection par voie électronique sans accord préalable est interdite en France
             (article L. 34-5 du code des postes et des communications électroniques) et
             constitue un traitement de données sans base légale au sens du RGPD. Tout message
@@ -706,7 +706,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         </aside>
 
         {/* ── Cul-de-lampe ── */}
-        <div style={{ marginTop: "46px" }}><Ornement nom="vigne" largeur={180} opacite={0.75} /></div>
+        <div style={{ marginTop: "2.875rem" }}><Ornement nom="vigne" largeur="11.25rem" opacite={0.75} /></div>
 
       </div>
     </main>
