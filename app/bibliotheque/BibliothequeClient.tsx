@@ -107,8 +107,8 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
       onMouseEnter={e => { e.currentTarget.style.borderColor = '#a9c9b6'; e.currentTarget.style.backgroundColor = '#f8fbf9'; e.currentTarget.style.transform = 'translateY(-2px)' }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = '#e4dfd8'; e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.transform = 'none' }}>
 
-      <div style={{ display: 'flex' }}>
-        <div style={{ width: '7.5rem', flexShrink: 0, background: '#ede9e2', position: 'relative', minHeight: '170px', overflow: 'hidden' }}>
+      <div className="bib-carte-haut" style={{ display: 'flex' }}>
+        <div className="bib-photo" style={{ width: '7.5rem', flexShrink: 0, background: '#ede9e2', position: 'relative', minHeight: '170px', overflow: 'hidden' }}>
           {!imgErreur && (
             <Image src={auteur.imageUrl} alt={auteur.nom} fill sizes="240px" unoptimized
               onError={() => setImgErreur(true)}

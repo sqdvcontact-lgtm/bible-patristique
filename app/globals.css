@@ -111,3 +111,20 @@ h6 {
 .num-romain {
   font-variant: all-small-caps;
 }
+
+/* ── Bibliothèque : photo d'auteur sur petit écran ──
+   En pleine largeur, la photo prenait une haute bande verticale à gauche de la
+   carte, disproportionnée. Sur mobile/petit écran, on la ramène à un petit carré
+   proportionné, calé en tête de carte, et le texte reprend toute la largeur.
+   `!important` car la taille est posée en style inline. */
+@media (max-width: 700px) {
+  .bib-carte-haut { align-items: flex-start; }
+  .bib-photo {
+    width: 3.5rem !important;
+    height: 3.5rem !important;
+    min-height: 0 !important;
+    border-radius: 8px;
+    margin: 0.875rem 0 0 0.875rem;
+    align-self: flex-start;
+  }
+}
