@@ -386,6 +386,13 @@ export default function TexteBible({
   const router = useRouter()
   const { modeUtilisateurStandard } = useAffichageAdmin()
 
+  // Mobile : les boutons d'action encombreraient la marge droite d'un écran
+  // étroit. On les masque, et un appui long sur le verset fait surgir un pavé
+  // flottant. `actionsMobileId` = verset dont les actions sont visibles.
+  const [actionsMobileId, setActionsMobileId] = useState<string | null>(null)
+  const appuiLongRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const appuiLongDeclenche = useRef(false)
+
   useEffect(() => {
     const versetCible = searchParams.get('verset')
     if (!versetCible) return
@@ -542,6 +549,8 @@ export default function TexteBible({
             .verset-row:hover .bouton-action-verset { opacity: 1 !important; }
             .verset-row--actif .bouton-action-verset { opacity: 0.5; }
             .nav-chap-arrow:hover { color: #3d6b4f !important; }
+            /* Mobile : dans le pavé flottant (appui long), les boutons sont pleins. */
+            @media (max-width: 900px) { .verset-actions .bouton-action-verset { opacity: 1 !important; } }
           `}</style>
 
           {(versets.length === 0 || versets.every(v => !v[traduction])) && (
@@ -571,6 +580,10 @@ export default function TexteBible({
             <div key={v.id_verset}
               id={`verset-${v.verset}`}
               onClick={() => {
+                // Un appui long vient d'ouvrir le pavé d'actions : on ne traite
+                // pas le clic qui suit (il fermerait aussitôt la sélection).
+                if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return }
+                if (mobile) setActionsMobileId(null)
                 if (!actif) {
                   // Comptage en arriere-plan, sans ralentir le clic.
                   fetch('/api/versets/incrementer-lecture', {
@@ -581,10 +594,16 @@ export default function TexteBible({
                 }
                 setVersetSelectionne(actif ? null : v)
               }}
+              onTouchStart={mobile ? () => {
+                appuiLongDeclenche.current = false
+                appuiLongRef.current = setTimeout(() => { appuiLongDeclenche.current = true; setActionsMobileId(v.id_verset) }, 450)
+              } : undefined}
+              onTouchEnd={mobile ? () => { if (appuiLongRef.current) clearTimeout(appuiLongRef.current) } : undefined}
+              onTouchMove={mobile ? () => { if (appuiLongRef.current) clearTimeout(appuiLongRef.current) } : undefined}
               className={`verset-row${actif ? ' verset-row--actif' : ''}`}
-              style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '0.1875rem 0.375rem', borderRadius: '4px', cursor: 'pointer', marginBottom: '0.25rem', background: 'transparent' }}>
+              style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '0.1875rem 0.375rem', borderRadius: '4px', cursor: 'pointer', marginBottom: '0.25rem', background: 'transparent' }}>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', width: 'min(var(--mesure-ligne), 100%)', alignItems: 'flex-start' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: mobile ? 'minmax(0, 1fr)' : 'minmax(0, var(--mesure-bloc)) 2.375rem', width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', alignItems: 'flex-start' }}>
                 <div style={{ display:'grid', gridTemplateColumns:'auto minmax(0, var(--mesure-texte))', columnGap:'0.1875rem', borderRadius:'5px', padding:'0.125rem 0.25rem 0.125rem 0', background: actif ? 'rgba(61,107,79,0.11)' : 'transparent' }}>
                   {/* Numéro — inclus dans le bloc sélectionné */}
                   <span style={{ minWidth: '1.0625rem', textAlign: 'right', paddingRight: '0.3125rem', fontSize: '0.625rem', fontWeight: 600, color: '#b0a89e', lineHeight: 1.40, paddingTop: '1px', whiteSpace: 'nowrap' }}>
@@ -604,8 +623,14 @@ export default function TexteBible({
                   </p>
                 </div>
 
-                {/* Boutons d'action — hors du bloc sélectionné */}
-                <div className="verset-actions" style={{ width: '2.375rem', paddingLeft: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.125rem', overflow: 'visible' }}>
+                {/* Boutons d'action — hors du bloc sélectionné. Sur mobile, ils
+                    sortent de la grille : pavé flottant en haut à droite du
+                    verset, montré seulement après un appui long. */}
+                <div className="verset-actions" style={mobile ? {
+                  position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6,
+                  display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
+                  background: '#fff', border: '1px solid #d6d0c4', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
+                } : { width: '2.375rem', paddingLeft: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.125rem', overflow: 'visible' }}>
                   {userId && (
                     <BoutonEnregistrer
                       verset={v} nomLivre={nomLivre} livreActif={livreActif}
