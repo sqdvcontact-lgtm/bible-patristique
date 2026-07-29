@@ -82,11 +82,12 @@ const CHIFFRES_FR = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'h
 function enLettres(n: number): string { return n >= 1 && n <= 20 ? CHIFFRES_FR[n - 1] : String(n) }
 
 // ── Bandeau auteur ────────────────────────────────────────────────────────────
-function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, onOuvrirAuteur, ouvertParDefaut = false }: {
+function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, onOuvrirAuteur, ouvertParDefaut = false, compact = false }: {
   auteur: Auteur; recherche: string
   favorisOeuvres: Set<string>; toggleFavoriOeuvre: (id: string) => void
   onOuvrirAuteur: (id: string) => void
   ouvertParDefaut?: boolean
+  compact?: boolean
 }) {
   const q = sansAccents(recherche.trim())
   const oeuvresTriees = useMemo(
@@ -109,21 +110,23 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
       onMouseLeave={e => { e.currentTarget.style.borderColor = '#e4dfd8'; e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.transform = 'none' }}>
 
       <div className="bib-carte-haut" style={{ display: 'flex' }}>
-        <div className="bib-photo" style={{ width: '7.5rem', flexShrink: 0, background: '#ede9e2', position: 'relative', minHeight: '170px', overflow: 'hidden' }}>
-          {!imgErreur && (
-            <Image src={auteur.imageUrl} alt={auteur.nom} fill sizes="240px" unoptimized
-              onError={() => setImgErreur(true)}
-              style={{ ...stylePhotoAuteur(photoPos), imageRendering: 'auto' }} />
-          )}
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
-            <svg width="36" height="44" viewBox="0 0 40 48" fill="none" opacity={imgErreur ? 0.2 : 0}>
-              <circle cx="20" cy="14" r="9" stroke="#2a3d30" strokeWidth="1.5" fill="none"/>
-              <path d="M2 46 Q4 28 20 24 Q36 28 38 46" stroke="#2a3d30" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-            </svg>
+        {!compact && (
+          <div className="bib-photo" style={{ width: '7.5rem', flexShrink: 0, background: '#ede9e2', position: 'relative', minHeight: '170px', overflow: 'hidden' }}>
+            {!imgErreur && (
+              <Image src={auteur.imageUrl} alt={auteur.nom} fill sizes="240px" unoptimized
+                onError={() => setImgErreur(true)}
+                style={{ ...stylePhotoAuteur(photoPos), imageRendering: 'auto' }} />
+            )}
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
+              <svg width="36" height="44" viewBox="0 0 40 48" fill="none" opacity={imgErreur ? 0.2 : 0}>
+                <circle cx="20" cy="14" r="9" stroke="#2a3d30" strokeWidth="1.5" fill="none"/>
+                <path d="M2 46 Q4 28 20 24 Q36 28 38 46" stroke="#2a3d30" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+              </svg>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div style={{ flex: 1, padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ flex: 1, padding: compact ? '9px 14px' : '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: compact ? '4px' : '8px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px' }}>
               <h2 style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.875rem', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0 }}>
@@ -143,13 +146,13 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
             )}
           </div>
 
-          {(auteur.note_biographique || auteur.note) && (
+          {!compact && (auteur.note_biographique || auteur.note) && (
             <p style={{ fontSize: '0.71875rem', color: '#5a5450', lineHeight: 1.6, margin: 0, fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
               {rendreSiecles(auteur.note_biographique || auteur.note)}
             </p>
           )}
 
-          {auteur.note_theologique && (
+          {!compact && auteur.note_theologique && (
             <p style={{ fontSize: '0.71875rem', color: '#5a5450', lineHeight: 1.6, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
               {rendreSiecles(auteur.note_theologique)}
             </p>
@@ -1261,11 +1264,11 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
         <span style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#9a8a6e' }}>Œuvres favorites</span>
         <div style={{ flex: 1, height: '1px', background: '#e4dfd8' }} />
       </div>
-      {/* Présentation reprise de l'onglet Bibliothèque : une carte d'auteur par bloc
-          (photo, dates, notice), ouverte par défaut, ne listant que les œuvres favorites. */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      {/* Présentation reprise de l'onglet Bibliothèque, en version compacte : cartes
+          sans photo ni notice, ouvertes par défaut, ne listant que les œuvres favorites. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {auteursFavoris.map(a => (
-          <PanneauAuteur key={a.id_auteur} auteur={a} recherche="" favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={onOuvrirAuteur} ouvertParDefaut />
+          <PanneauAuteur key={a.id_auteur} auteur={a} recherche="" favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={onOuvrirAuteur} ouvertParDefaut compact />
         ))}
       </div>
     </div>
