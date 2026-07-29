@@ -210,20 +210,39 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
           Glissez l'image dans l'aperçu pour la repositionner. Utilisez le zoom pour recadrer.
         </p>
 
+        <p style={{ fontSize: '0.64687rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#b0a89e', margin: '0 0 6px' }}>Aperçu — Carte Bibliothèque</p>
+        {/* Reproduction EXACTE de la carte auteur (app/bibliotheque/BibliothequeClient.tsx) :
+            mêmes dimensions de photo (7.5rem, minHeight 170px, cover + position + zoom via
+            stylePhotoAuteur) et mêmes styles de contenu, pour que le cadrage vu ici soit
+            rigoureusement celui de la bibliothèque. */}
         <div onMouseMove={onMove} onMouseUp={endDrag} onMouseLeave={endDrag}
           style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', overflow: 'hidden', userSelect: 'none' }}>
-          <div style={{ display: 'flex', minHeight: '176px' }}>
-            <div ref={carteRef} style={{ width: '8.25rem', flexShrink: 0, position: 'relative', overflow: 'hidden', background: '#ede9e2' }}>
-              <img src={photoUrl} alt="" draggable={false} style={{ width: '100%', height: '100%', display: 'block', ...stylePhotoAuteur(pos) }} />
+          <div style={{ display: 'flex' }}>
+            <div ref={carteRef} style={{ width: '7.5rem', flexShrink: 0, position: 'relative', overflow: 'hidden', background: '#ede9e2', minHeight: '170px' }}>
+              <img src={photoUrl} alt="" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', ...stylePhotoAuteur(pos) }} />
               <div onMouseDown={startDrag} style={{ position: 'absolute', inset: 0, cursor: dragRef.current ? 'grabbing' : 'grab' }} />
             </div>
-            <div style={{ flex: 1, padding: '16px 18px', minWidth: 0 }}>
-              <p style={{ fontSize: '0.64687rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#b0a89e', margin: '0 0 8px' }}>Aperçu — Carte Bibliothèque</p>
-              <h4 style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1.07813rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 4px' }}>{auteur.nom}</h4>
-              {auteur.dates && <p style={{ fontSize: '0.79062rem', color: '#9a958d', margin: '0 0 10px' }}>{formaterDateHistorique(auteur.dates)}</p>}
-              <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8625rem', color: '#5a5450', lineHeight: 1.55, margin: 0, fontStyle: 'italic' }}>
-                {auteur.note_biographique || auteur.note || 'Aperçu de la carte auteur dans la bibliothèque.'}
-              </p>
+            <div style={{ flex: 1, padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 0 }}>
+              <div>
+                <h4 style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.875rem', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0 }}>{auteur.nom}</h4>
+                {auteur.dates && <p style={{ fontSize: '0.71875rem', color: '#9a8a70', margin: '1px 0 0', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', letterSpacing: '0.01em' }}>{formaterDateHistorique(auteur.dates)}</p>}
+              </div>
+              {(auteur.note_biographique || auteur.note) && (
+                <p style={{ fontSize: '0.71875rem', color: '#5a5450', lineHeight: 1.6, margin: 0, fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                  {auteur.note_biographique || auteur.note}
+                </p>
+              )}
+              {auteur.note_theologique && (
+                <p style={{ fontSize: '0.71875rem', color: '#5a5450', lineHeight: 1.6, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                  {auteur.note_theologique}
+                </p>
+              )}
+              <div style={{ marginTop: 'auto', paddingTop: '6px' }}>
+                <span style={{ fontSize: '0.65625rem', color: '#3d6b4f', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '0.5rem' }}>▼</span>
+                  {(auteur.oeuvres?.length ?? 0)} œuvre{(auteur.oeuvres?.length ?? 0) > 1 ? 's' : ''} disponible{(auteur.oeuvres?.length ?? 0) > 1 ? 's' : ''}
+                </span>
+              </div>
             </div>
           </div>
         </div>
