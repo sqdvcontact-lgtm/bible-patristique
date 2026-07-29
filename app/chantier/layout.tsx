@@ -10,11 +10,11 @@ export const metadata: Metadata = {
   // déjà dans la description et sur la page.
   title: { absolute: "Corpus Scriptura — l’Écriture et les Pères de l’Église" },
   description:
-    "Bibliothèque biblique et patristique : les traductions françaises en regard, le corpus des Pères relié au texte. Le site ouvre prochainement — laissez votre adresse pour être prévenu.",
+    "Corpus Scriptura est un site d’étude consacré aux liens entre la Bible et les textes des Pères de l’Église. Le site ouvre prochainement — laissez votre adresse pour être prévenu.",
   openGraph: {
     title: "Corpus Scriptura — l’Écriture et les Pères de l’Église",
     description:
-      "Bibliothèque biblique et patristique. Le site ouvre prochainement.",
+      "Un site d’étude consacré aux liens entre la Bible et les textes des Pères de l’Église. Le site ouvre prochainement.",
     images: ["/og-image.png"],
   },
 };

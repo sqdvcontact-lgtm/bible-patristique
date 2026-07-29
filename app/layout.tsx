@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     template: "%s · Corpus Scriptura",
   },
   description:
-    "L’Écriture et ce que les Pères de l’Église en ont dit, mis en regard verset par verset. Les traductions françaises côte à côte, le corpus patristique découpé et relié au texte.",
+    "Corpus Scriptura est un site d’étude consacré aux liens entre la Bible et les textes des Pères de l’Église.",
   applicationName: "Corpus Scriptura",
   // Vérification de propriété Google Search Console (méthode balise HTML).
   verification: { google: "4oCD0P3ntD7JHUPlyTNDO0QxjFm2Koc6q2nj1xCR1ng" },
@@ -44,13 +44,13 @@ export const metadata: Metadata = {
     siteName: "Corpus Scriptura",
     title: "Corpus Scriptura — bibliothèque biblique et patristique",
     description:
-      "L’Écriture et ce que les Pères de l’Église en ont dit, mis en regard verset par verset.",
+      "Corpus Scriptura est un site d’étude consacré aux liens entre la Bible et les textes des Pères de l’Église.",
     images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Corpus Scriptura" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Corpus Scriptura",
-    description: "L’Écriture et ce que les Pères de l’Église en ont dit.",
+    description: "Un site d’étude consacré aux liens entre la Bible et les textes des Pères de l’Église.",
     images: ["/og-image.png"],
   },
 };
