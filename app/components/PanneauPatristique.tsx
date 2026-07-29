@@ -1335,7 +1335,12 @@ export default function PanneauPatristique({
 
                 {loading && <p style={{ fontSize:'0.77687rem', color:'#9a958d', textAlign:'center', padding:'16px 0' }}>Chargement…</p>}
                 {!loading && itemsFiltres.length === 0 && itemsAffiches.length === 0 && (
-                  <p style={{ fontSize:'0.77687rem', color:'#9a958d', textAlign:'center', padding:'16px 0', fontStyle:'italic' }}>Aucune occurrence.</p>
+                  <div style={{ display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', marginTop:'26px', marginBottom:'14px' }}>
+                    {/* Même cul-de-lampe d'état vide que l'onglet Commentaires (carapace). */}
+                    <img src="/ornements/carapace-vide.png" alt="" aria-hidden="true"
+                      style={{ width:'min(168px, 58%)', height:'auto', opacity:0.46, mixBlendMode:'multiply', marginBottom:'14px' }} />
+                    <p style={{ fontSize:'0.77687rem', color:'#9a958d', fontStyle:'italic', margin:0 }}>Aucune occurrence.</p>
+                  </div>
                 )}
                 {!loading && itemsFiltres.length === 0 && itemsAffiches.length > 0 && (
                   <p style={{ fontSize:'0.77687rem', color:'#9a958d', textAlign:'center', padding:'12px 0', fontStyle:'italic' }}>Aucun résultat pour ces filtres.</p>
