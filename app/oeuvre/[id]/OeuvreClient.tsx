@@ -1255,7 +1255,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         .seg-inline { border-radius: 2px; padding: 0 0.5px; cursor: pointer; transition: background 0.12s; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
         .seg-inline:hover { background: rgba(61,107,79,0.09); }
         .seg-inline--actif { background: #ddeee2; }
-        .para-bilingue { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; border-bottom: 1px solid rgba(214,208,196,0.55); margin-bottom: 0.85rem; }
+        .para-bilingue { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr); gap: 1.6rem; align-items: start; border-bottom: 1px solid rgba(214,208,196,0.55); margin-bottom: 0.85rem; }
         .para-bilingue > p { margin-bottom: 0.85rem !important; }
         .texte-original { color: #575048; font-family: var(--font-source-serif), Georgia, serif; }
         @media(max-width: 980px){
