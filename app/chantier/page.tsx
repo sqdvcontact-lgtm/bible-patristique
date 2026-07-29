@@ -56,6 +56,15 @@ function IcoPeres() {
     </svg>
   );
 }
+function IcoBible() {
+  // Un livre ouvert : l'Écriture. Distinct du codex des Pères (rectangle à dos).
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 6.6C10.4 5.3 8.1 4.8 5.2 5v13c2.9-.2 5.2.3 6.8 1.6 1.6-1.3 3.9-1.8 6.8-1.6V5c-2.9-.2-5.2.3-6.8 1.6z" {...traits} />
+      <path d="M12 6.6v13" {...traits} />
+    </svg>
+  );
+}
 function IcoLien() {
   return (
     <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
@@ -152,7 +161,12 @@ function Siecle({ n }: { n: number }) {
 // précédents, et « Exigence et collaboration » ne disait rien de ce qu'on peut y
 // faire. Un titre d'encart doit se comprendre seul.
 const PRINCIPES: { ico: React.ReactNode; titre: string; texte: React.ReactNode }[] = [
-  { ico: <IcoColonnes />, titre: "La Bible dans ses meilleures traductions",
+  // L'ordre du tableau dessine les colonnes : la grille se remplit ligne par
+  // ligne, donc les rangs impairs tombent à gauche et les pairs à droite.
+  // Colonne de gauche (lecture de l'Écriture) : la Bible, puis la polyglotte,
+  // puis la contribution des lecteurs. Colonne de droite (les Pères et le reste) :
+  // les Pères retrouvés, puis les renvois verset↔Pères, puis la gratuité.
+  { ico: <IcoBible />, titre: "La Bible dans ses meilleures traductions",
     texte: <>Un même passage se lit dans plusieurs traductions françaises de référence, choisies
       avec soin et souvent libres de droit. Le grec, le latin, l’hébreu et d’autres langues
       bibliques viendront peu à peu enrichir la lecture.</> },
@@ -164,6 +178,12 @@ const PRINCIPES: { ico: React.ReactNode; titre: string; texte: React.ReactNode }
       introuvables ou coûteuses. Nous les retrouvons et les rééditons avec soin, dans leurs
       traductions françaises du <Siecle n={17} /> au <Siecle n={20} /> siècle, libres de droit.
       Les langues originales suivront.</> },
+  // Le dispositif de lecture en colonnes a son propre encart (et bientôt son
+  // onglet) : plusieurs traductions d'un même passage affichées en regard.
+  { ico: <IcoColonnes />, titre: "Le mode polyglotte",
+    texte: <>Un même passage s’affiche en colonnes, plusieurs traductions en regard, sur le modèle
+      de la <i>Sainte Bible polyglotte</i> de Fulcran Vigouroux. Le grec et le latin viendront s’y
+      ranger, puis d’autres langues anciennes.</> },
   // Les deux anciens encarts « Chaque verset… » et « Des rapprochements vérifiés » réunis :
   // le renvoi aux Pères et sa vérification disaient une même chose en deux temps.
   { ico: <IcoLien />, titre: "Chaque verset et ses commentaires",
@@ -171,8 +191,9 @@ const PRINCIPES: { ico: React.ReactNode; titre: string; texte: React.ReactNode }
       commentent : c’est le cœur du site. Chaque rapprochement est établi puis relu ; les passages
       incertains sont signalés comme tels, et vos signalements servent à corriger le site.</> },
   { ico: <IcoPlume />, titre: "Les lecteurs contribuent",
-    texte: <>Les lecteurs inscrits publient leurs propres essais et méditations, à lire et à
-      commenter. Le site n’est pas qu’une bibliothèque : c’est aussi un lieu où l’on écrit.</> },
+    texte: <>Les lecteurs inscrits publient leurs propres essais et méditations, que chacun peut lire,
+      commenter et discuter. Le site n’est pas qu’une bibliothèque : c’est aussi un atelier, où la
+      lecture des Pères se prolonge en écriture et en conversation.</> },
   { ico: <IcoLibre />, titre: "Gratuit, sans publicité",
     texte: <>Ni abonnement, ni publicité, ni revente de données. Le travail est bénévole,
       et le restera.</> },
