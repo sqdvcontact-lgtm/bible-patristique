@@ -272,7 +272,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
       </div>
 
       {/* Texte du segment */}
-      <p lang="fr" style={{ fontSize:'0.7rem', lineHeight:'1.38', color:'#2a2520', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
+      <p lang="fr" style={{ fontSize:'11.2px', lineHeight:'1.38', color:'#2a2520', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
         {rendreTexteEnrichi(s.segment_texte)}
       </p>
     </div>
