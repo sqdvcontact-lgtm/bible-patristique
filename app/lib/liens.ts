@@ -46,10 +46,14 @@ const COLS = 'id, segment_id, canon_id, verset_v2_id, livre, chapitre, type, fia
 export async function liensDeSegments(segmentIds: number[]): Promise<Map<number, Lien[]>> {
   const parSegment = new Map<number, Lien[]>()
   if (!segmentIds.length) return parSegment
-  // Par paquets : une clause `in` trop longue dépasse la limite d'URL.
-  for (let i = 0; i < segmentIds.length; i += 500) {
-    const { data, error } = await supabase.from('liens_bibliques')
-      .select(COLS).in('segment_id', segmentIds.slice(i, i + 500))
+  // Par paquets (une clause `in` trop longue dépasse la limite d'URL), mais tirés
+  // EN PARALLÈLE : les grosses œuvres (milliers de segments) enchaînaient sinon
+  // une dizaine d'allers-retours séquentiels rien que pour les liens.
+  const lots: number[][] = []
+  for (let i = 0; i < segmentIds.length; i += 500) lots.push(segmentIds.slice(i, i + 500))
+  const resultats = await Promise.all(lots.map(lot =>
+    supabase.from('liens_bibliques').select(COLS).in('segment_id', lot)))
+  for (const { data, error } of resultats) {
     if (error) throw error
     for (const l of (data ?? []) as Lien[]) {
       if (!parSegment.has(l.segment_id)) parSegment.set(l.segment_id, [])
@@ -64,9 +68,11 @@ export async function liensDeSegments(segmentIds: number[]): Promise<Map<number,
 async function liensParClient(client: { from: (t: string) => any }, segmentIds: number[]): Promise<Map<number, Lien[]>> {
   const parSegment = new Map<number, Lien[]>()
   if (!segmentIds.length) return parSegment
-  for (let i = 0; i < segmentIds.length; i += 500) {
-    const { data, error } = await client.from('liens_bibliques')
-      .select(COLS).in('segment_id', segmentIds.slice(i, i + 500))
+  const lots: number[][] = []
+  for (let i = 0; i < segmentIds.length; i += 500) lots.push(segmentIds.slice(i, i + 500))
+  const resultats = await Promise.all(lots.map(lot =>
+    client.from('liens_bibliques').select(COLS).in('segment_id', lot)))
+  for (const { data, error } of resultats) {
     if (error) throw error
     for (const l of (data ?? []) as Lien[]) {
       if (!parSegment.has(l.segment_id)) parSegment.set(l.segment_id, [])
