@@ -64,17 +64,6 @@ function IcoLien() {
     </svg>
   );
 }
-function IcoExigence() {
-  return (
-    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
-      {/* Une loupe sur des lignes de texte : la relecture, pas le jugement.
-          La balance parlait de tribunal, ce qui n'est pas le propos. */}
-      <path d="M3.5 5.5h11M3.5 9h11M3.5 12.5h6" {...traits} />
-      <circle cx="15.4" cy="15.4" r="4.6" {...traits} />
-      <path d="M18.9 18.9 21.5 21.5" {...traits} />
-    </svg>
-  );
-}
 function IcoLibre() {
   return (
     <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
@@ -163,21 +152,18 @@ function Siecle({ n }: { n: number }) {
 // précédents, et « Exigence et collaboration » ne disait rien de ce qu'on peut y
 // faire. Un titre d'encart doit se comprendre seul.
 const PRINCIPES: { ico: React.ReactNode; titre: string; texte: React.ReactNode }[] = [
-  { ico: <IcoColonnes />, titre: "Plusieurs traductions côte à côte",
-    texte: <>Un même passage se lit dans plusieurs traductions françaises affichées en colonnes,
-      sur le modèle de la <i>Sainte Bible polyglotte</i> de Fulcran Vigouroux. Le texte grec et le
-      texte latin viendront s’y ajouter, puis d’autres langues anciennes.</> },
-  { ico: <IcoPeres />, titre: "Les Pères de l’Église en français",
-    texte: <>Les grands textes patristiques sont donnés dans des traductions
-      du <Siecle n={17} /> au <Siecle n={20} /> siècle, toutes libres de droit,
-      souvent introuvables ailleurs. Les langues
-      originales suivront, et peut-être des éditions critiques sous licence.</> },
-  // « Ce qu'on ne trouve pas ailleurs » : autrefois un bloc à part sous les encarts, il
-  // rejoint ici la série — même registre, un seul cadre.
-  { ico: <IcoExigence />, titre: "Des textes qu’on ne trouve pas ailleurs",
-    texte: <>De nombreux ouvrages excellents ne subsistent que dans des éditions anciennes,
-      introuvables ou coûteuses. Nous nous efforçons de les retrouver, de les acquérir et de les
-      republier avec le plus grand soin – c’est le cœur du travail, et ce qui prend le plus de temps.</> },
+  { ico: <IcoColonnes />, titre: "La Bible dans ses meilleures traductions",
+    texte: <>Un même passage se lit dans plusieurs traductions françaises de référence, choisies
+      avec soin et souvent libres de droit. Le grec, le latin, l’hébreu et d’autres langues
+      bibliques viendront peu à peu enrichir la lecture.</> },
+  // Les Pères en français et les textes rares réunis : c'est un même travail —
+  // retrouver des ouvrages qui ne subsistent que dans de vieilles éditions,
+  // introuvables ou coûteuses, et les rééditer avec soin.
+  { ico: <IcoPeres />, titre: "Les Pères retrouvés",
+    texte: <>Les grands textes des Pères ne subsistent souvent que dans des éditions anciennes,
+      introuvables ou coûteuses. Nous les retrouvons et les rééditons avec soin, dans leurs
+      traductions françaises du <Siecle n={17} /> au <Siecle n={20} /> siècle, libres de droit.
+      Les langues originales suivront.</> },
   // Les deux anciens encarts « Chaque verset… » et « Des rapprochements vérifiés » réunis :
   // le renvoi aux Pères et sa vérification disaient une même chose en deux temps.
   { ico: <IcoLien />, titre: "Chaque verset et ses commentaires",
