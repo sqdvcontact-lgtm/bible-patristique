@@ -31,9 +31,9 @@ const LIENS_SECONDAIRES: { href: string; label: string }[] = [];
 // d'un même domaine partagent la couleur et se distinguent plus légèrement (libellé
 // + fins séparateurs).
 const DOMAINE = {
-  bible:        { base: "#3a5a8c", fond: "rgba(58,90,140,0.05)",  survol: "rgba(58,90,140,0.11)" },
-  patristique:  { base: "#3d6b4f", fond: "rgba(61,107,79,0.05)",  survol: "rgba(61,107,79,0.10)" },
-  publications: { base: "#9a6a2e", fond: "rgba(154,106,46,0.06)", survol: "rgba(154,106,46,0.12)" },
+  bible:        { base: "#3a5a8c", fond: "rgba(58,90,140,0.12)",  survol: "rgba(58,90,140,0.22)" },
+  patristique:  { base: "#3d6b4f", fond: "rgba(61,107,79,0.12)",  survol: "rgba(61,107,79,0.20)" },
+  publications: { base: "#9a6a2e", fond: "rgba(154,106,46,0.13)", survol: "rgba(154,106,46,0.22)" },
 } as const;
 
 // ── Données statiques pour la recherche rapide ───────────────────────────────
@@ -426,7 +426,7 @@ export default function Navbar() {
       </div>
 
       {rechercheOuverte && qNorm && (
-        <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: "calc(100% + 8px)", left: 0, width: mobile ? "100%" : "300px", background: "#fff", border: "1px solid #d6d0c4", borderRadius: "9px", boxShadow: mobile ? "none" : "0 12px 36px rgba(0,0,0,0.16)", zIndex: 100, overflow: "hidden", maxHeight: "440px", overflowY: "auto" }}>
+        <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: "calc(100% + 8px)", left: 0, width: mobile ? "100%" : "300px", background: "#fff", border: "1px solid #d6d0c4", borderRadius: "9px", boxShadow: mobile ? "none" : "0 12px 36px rgba(0,0,0,0.16)", zIndex: 100, overflow: "hidden", maxHeight: mobile ? "70vh" : "min(72vh, 640px)", overflowY: "auto" }}>
 
           {/* Barre de statut : nb résultats + spinner/smiley */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 14px 5px", borderBottom: "1px solid #ede9e2", background: "#faf8f5" }}>
