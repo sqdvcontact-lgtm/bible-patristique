@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from "@/app/lib/supabase"
 import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
@@ -30,7 +30,7 @@ type Commentaire = { id: number; texte: string; auteur_nom: string; created_at: 
 const ACTION_BTN: React.CSSProperties = {
   background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
   borderRadius:'3px', width:'16px', height:'16px', display:'inline-flex',
-  alignItems:'center', justifyContent:'center', fontSize:'12px',
+  alignItems:'center', justifyContent:'center', fontSize:'0.8475rem',
   lineHeight:1, flexShrink:0, transition:'color 0.15s',
 }
 
@@ -170,7 +170,7 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
     return (
       <button onClick={e => { e.stopPropagation(); setConfirme(true) }}
         title={`Supprimer ${colonneLien}`}
-        style={{ ...ACTION_BTN, fontSize:'16px', color:'#c8c0b4' }}>
+        style={{ ...ACTION_BTN, fontSize:'1.13rem', color:'#c8c0b4' }}>
         ×
       </button>
     )
@@ -184,11 +184,11 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
         setLoading(false)
         onSupprime()
       }} disabled={loading}
-        style={{ fontSize:'9px', padding:'1px 5px', borderRadius:'3px', border:'none', background:'#c0392b', color:'#fff', cursor:'pointer' }}>
+        style={{ fontSize:'0.63562rem', padding:'1px 5px', borderRadius:'3px', border:'none', background:'#c0392b', color:'#fff', cursor:'pointer' }}>
         {loading ? '…' : 'Oui'}
       </button>
       <button onClick={e => { e.stopPropagation(); setConfirme(false) }}
-        style={{ fontSize:'9px', padding:'1px 5px', borderRadius:'3px', border:'1px solid #d6d0c4', background:'#fff', color:'#6b6560', cursor:'pointer' }}>
+        style={{ fontSize:'0.63562rem', padding:'1px 5px', borderRadius:'3px', border:'1px solid #d6d0c4', background:'#fff', color:'#6b6560', cursor:'pointer' }}>
         Non
       </button>
     </span>
@@ -221,11 +221,11 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
           <div style={{ display:'flex', alignItems:'center', gap:'4px', marginBottom:'1px' }}>
             {info?.id_auteur ? (
               <a href={`/auteur/${info.id_auteur}`} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize:'11px', fontWeight:600, color:'#3d6b4f', lineHeight:1.2, letterSpacing:'0.026em', textDecoration:'none' }}>
+                style={{ fontSize:'0.77687rem', fontWeight:600, color:'#3d6b4f', lineHeight:1.2, letterSpacing:'0.026em', textDecoration:'none' }}>
                 {info.auteur_nom || s.id_oeuvre}
               </a>
             ) : (
-              <span style={{ fontSize:'11px', fontWeight:600, color:'#3d6b4f', lineHeight:1.2, letterSpacing:'0.026em' }}>
+              <span style={{ fontSize:'0.77687rem', fontWeight:600, color:'#3d6b4f', lineHeight:1.2, letterSpacing:'0.026em' }}>
                 {info?.auteur_nom || s.id_oeuvre}
               </span>
             )}
@@ -239,14 +239,14 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
           </div>
           <a href={`/oeuvre/${s.id_oeuvre}`} target="_blank" rel="noopener noreferrer"
             title={niveaux || undefined}
-            style={{ display:'block', fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:0, lineHeight:1.2, letterSpacing:'0.02em', textDecoration:'none' }}>
+            style={{ display:'block', fontSize:'0.77687rem', color:'#8a8278', fontStyle:'italic', margin:0, lineHeight:1.2, letterSpacing:'0.02em', textDecoration:'none' }}>
             {info?.titre || ''}
           </a>
           {/* À quel titre ce passage est ici. Discret : la référence et l'auteur
               priment ; la nature du rapport se lit si l'on y prend garde. Un
               passage cité PUIS commenté les porte toutes les deux. */}
           {natures && natures.length > 0 && (
-            <span style={{ display:'block', fontSize:'9.5px', color:'#b0a89e', letterSpacing:'0.03em', marginTop:'2px' }}>
+            <span style={{ display:'block', fontSize:'0.67094rem', color:'#b0a89e', letterSpacing:'0.03em', marginTop:'2px' }}>
               {natures.map(n => LIBELLE_NATURE[n] ?? n).join(' · ')}
             </span>
           )}
@@ -272,7 +272,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
       </div>
 
       {/* Texte du segment */}
-      <p lang="fr" style={{ fontSize:'11.2px', lineHeight:'1.38', color:'#2a2520', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
+      <p lang="fr" style={{ fontSize:'0.791rem', lineHeight:'1.38', color:'#2a2520', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
         {rendreTexteEnrichi(s.segment_texte)}
       </p>
     </div>
@@ -432,7 +432,7 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
         <div key={c.id} style={{ marginLeft: estReponse ? '16px' : 0, marginBottom:'8px' }}>
           <button className="commentaire-retracte" onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
             style={{ width:'100%', display:'block', position:'relative', overflow:'hidden', background:'rgba(176,58,42,0.06)', border:'1px solid rgba(176,58,42,0.20)', borderRadius:'6px', cursor:'pointer', padding:'7px 10px', textAlign:'left' }}>
-            <span className="commentaire-retracte-contenu" style={{ display:'block', fontSize:'10px', color:'#b0392b', fontWeight:600 }}>
+            <span className="commentaire-retracte-contenu" style={{ display:'block', fontSize:'0.70625rem', color:'#b0392b', fontWeight:600 }}>
               Commentaire en attente de contrôle.
             </span>
           </button>
@@ -451,7 +451,7 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
     return (
       <div className="commentaire-carte" key={c.id} style={{ marginLeft: estReponse ? '14px' : 0, marginBottom:'7px', padding:'7px 9px', background: fondCarte, border:'1px solid ' + bordureCarte, borderLeft:'4px solid ' + accentCarte, borderRadius:'6px', viewTransitionName: `commentaire-bible-${c.id}` }}>
         {c.supprime ? (
-          <p style={{ fontSize:'10.5px', color:'#9a958d', fontStyle:'italic', margin:0 }}>
+          <p style={{ fontSize:'0.74156rem', color:'#9a958d', fontStyle:'italic', margin:0 }}>
             {c.pseudo ?? c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
           </p>
         ) : (
@@ -459,19 +459,19 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
         {/* Ligne 1 : pseudo + rang */}
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'8px', marginBottom:'4px' }}>
           <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', minWidth:0 }}>
-            <span style={{ fontSize:'10px', fontWeight:600, color:'#2a3d30' }}>{c.pseudo ?? c.auteur_nom}</span>
+            <span style={{ fontSize:'0.70625rem', fontWeight:600, color:'#2a3d30' }}>{c.pseudo ?? c.auteur_nom}</span>
             {couleurs && rangInfo && (
-              <span style={{ fontSize:'8px', fontWeight:600, color:couleurs.texte, background:couleurs.fond, padding:'0px 5px', borderRadius:'3px', letterSpacing:'0.02em' }}>
+              <span style={{ fontSize:'0.565rem', fontWeight:600, color:couleurs.texte, background:couleurs.fond, padding:'0px 5px', borderRadius:'3px', letterSpacing:'0.02em' }}>
                 {rangInfo.rang}
               </span>
             )}
-            {estCertifie && <span style={{ fontSize:'8px', fontWeight:700, color:'#2f6a48', background:'rgba(61,107,79,0.14)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>CERTIFIÉ</span>}
-            {estRevision && <span style={{ fontSize:'8px', fontWeight:700, color:'#b0392b', background:'rgba(176,58,42,0.10)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>EN RÉVISION</span>}
+            {estCertifie && <span style={{ fontSize:'0.565rem', fontWeight:700, color:'#2f6a48', background:'rgba(61,107,79,0.14)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>CERTIFIÉ</span>}
+            {estRevision && <span style={{ fontSize:'0.565rem', fontWeight:700, color:'#b0392b', background:'rgba(176,58,42,0.10)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>EN RÉVISION</span>}
           </div>
-          <span style={{ marginLeft:'auto', textAlign:'right', fontSize:'8.7px', color:'#b0a89e', flexShrink:0 }}>{dateHeureCommentaire(c.created_at)}</span>
+          <span style={{ marginLeft:'auto', textAlign:'right', fontSize:'0.61444rem', color:'#b0a89e', flexShrink:0 }}>{dateHeureCommentaire(c.created_at)}</span>
         </div>
         {/* Ligne 2 : texte (gras/italique/liens interprétés, sauts de ligne respectés) */}
-        <div style={{ fontSize:'10.8px', lineHeight:'1.42', color: couleurTexte, margin:0, whiteSpace:'pre-line', background: fondTexte, borderRadius:'4px', padding:'5px 6px' }}>{rendreTexteEnrichi(c.texte)}</div>
+        <div style={{ fontSize:'0.76275rem', lineHeight:'1.42', color: couleurTexte, margin:0, whiteSpace:'pre-line', background: fondTexte, borderRadius:'4px', padding:'5px 6px' }}>{rendreTexteEnrichi(c.texte)}</div>
         {/* Ligne 3 : date + votes (négatif puis positif) + actions */}
         <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'5px', flexWrap:'nowrap', whiteSpace:'nowrap', minWidth:0 }}>
           {/* J'aime EN PREMIER, puis Je n'aime pas ; les deux boutons resserrés. */}
@@ -481,36 +481,36 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
               <svg width="10" height="10" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
-              <span style={{ minWidth:'10px', textAlign:'left', fontWeight:600, fontSize:'9px' }}>{c.nbLikes}</span>
+              <span style={{ minWidth:'10px', textAlign:'left', fontWeight:600, fontSize:'0.63562rem' }}>{c.nbLikes}</span>
             </button>
             <button onClick={() => basculerVote(c, -1)} title="Je n'aime pas"
               style={{ display:'flex', alignItems:'center', gap:'2px', color: c.monVote === -1 ? '#9a4a2a' : '#b0a89e', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
               <svg width="10" height="10" viewBox="0 0 20 20" fill="none" style={{ transform:'rotate(180deg)' }} aria-hidden="true">
                 <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
-              <span style={{ minWidth:'10px', textAlign:'left', fontWeight:600, fontSize:'9px' }}>{c.nbDislikes}</span>
+              <span style={{ minWidth:'10px', textAlign:'left', fontWeight:600, fontSize:'0.63562rem' }}>{c.nbDislikes}</span>
             </button>
           </div>
           {!estReponse && (
             <button onClick={() => setCibleReponse(c)}
-              style={{ fontSize:'9.5px', color:'#9a958d', background:'none', border:'none', cursor:'pointer', padding:0, flexShrink:0 }}>
+              style={{ fontSize:'0.67094rem', color:'#9a958d', background:'none', border:'none', cursor:'pointer', padding:0, flexShrink:0 }}>
               Répondre
             </button>
           )}
           {userId === c.user_id && (
             <button onClick={() => supprimerMonCommentaire(c)} title="Supprimer mon commentaire"
-              style={{ fontSize:'10px', color:'#9a958d', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft:'auto', flexShrink:0 }}>
+              style={{ fontSize:'0.70625rem', color:'#9a958d', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft:'auto', flexShrink:0 }}>
               Supprimer
             </button>
           )}
           {isAdmin && userId !== c.user_id && (
             <button onClick={() => supprimerCommentaire(c)} title="Supprimer ce commentaire"
-              style={{ fontSize:'10px', color:'#c0392b', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft:'auto', flexShrink:0 }}>
+              style={{ fontSize:'0.70625rem', color:'#c0392b', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft:'auto', flexShrink:0 }}>
               Supprimer (admin)
             </button>
           )}
           <button onClick={() => setCommentaireSignale(c)} title="Signaler ce commentaire"
-            style={{ fontSize:'10.5px', color:'#c8c0b4', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft: userId === c.user_id || (isAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink:0 }}>
+            style={{ fontSize:'0.74156rem', color:'#c8c0b4', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft: userId === c.user_id || (isAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink:0 }}>
             ⚑
           </button>
         </div>
@@ -561,9 +561,9 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
           transform: translateX(0);
         }
       `}</style>
-      {loading && <p style={{ fontSize:'10.5px', color:'#9a958d', fontStyle:'italic' }}>Chargement…</p>}
+      {loading && <p style={{ fontSize:'0.74156rem', color:'#9a958d', fontStyle:'italic' }}>Chargement…</p>}
       {!loading && commentaires.length === 0 && (
-        <p style={{ fontSize:'10.5px', color:'#b0a89e', fontStyle:'italic', marginBottom:'12px' }}>Aucun commentaire pour ce verset.</p>
+        <p style={{ fontSize:'0.74156rem', color:'#b0a89e', fontStyle:'italic', marginBottom:'12px' }}>Aucun commentaire pour ce verset.</p>
       )}
       {principaux.map(c => (
         <div key={c.id}>
@@ -575,33 +575,33 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
       <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
         {cibleReponse && (
           <div style={{ display:'flex', alignItems:'center', gap:'6px', background:'rgba(61,107,79,0.07)', border:'1px solid rgba(61,107,79,0.18)', borderRadius:'5px', padding:'5px 8px' }}>
-            <span style={{ display:'inline-flex', alignItems:'center', gap:'5px', fontSize:'10px', color:'#3d6b4f' }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:'5px', fontSize:'0.70625rem', color:'#3d6b4f' }}>
               <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
                 <path d="M7 4 3.5 7.5 7 11M3.5 7.5H10a2.5 2.5 0 0 1 2.5 2.5V12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               Réponse à <strong>{cibleReponse.pseudo ?? cibleReponse.auteur_nom}</strong>
             </span>
-            <button onClick={() => setCibleReponse(null)} style={{ marginLeft:'auto', fontSize:'11px', color:'#9a958d', background:'none', border:'none', cursor:'pointer', padding:0 }}>✕</button>
+            <button onClick={() => setCibleReponse(null)} style={{ marginLeft:'auto', fontSize:'0.77687rem', color:'#9a958d', background:'none', border:'none', cursor:'pointer', padding:0 }}>✕</button>
           </div>
         )}
         <EditeurCommentaire value={texte} onChange={setTexte} placeholder={cibleReponse ? 'Votre réponse…' : 'Votre commentaire…'} minHeight={62} />
         {!userId && (
           <>
             <input type="text" value={nom} onChange={e => setNom(e.target.value)} placeholder="Nom *"
-              style={{ width:'100%', fontSize:'10px', padding:'4px 7px', borderRadius:'4px', border:`1px solid ${erreur && !nom.trim() ? '#c0392b' : '#d6d0c4'}`, background:'#fff', color:'#2a2520', outline:'none', boxSizing:'border-box' }} />
+              style={{ width:'100%', fontSize:'0.70625rem', padding:'4px 7px', borderRadius:'4px', border:`1px solid ${erreur && !nom.trim() ? '#c0392b' : '#d6d0c4'}`, background:'#fff', color:'#2a2520', outline:'none', boxSizing:'border-box' }} />
             <input type="email" value={mail} onChange={e => setMail(e.target.value)} placeholder="Adresse e-mail *"
-              style={{ width:'100%', fontSize:'10px', padding:'4px 7px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', outline:'none', boxSizing:'border-box' }} />
-            <p style={{ fontSize:'9px', color:'#b0a89e', margin:0 }}>* L'adresse e-mail ne sera pas publiée.</p>
+              style={{ width:'100%', fontSize:'0.70625rem', padding:'4px 7px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', outline:'none', boxSizing:'border-box' }} />
+            <p style={{ fontSize:'0.63562rem', color:'#b0a89e', margin:0 }}>* L'adresse e-mail ne sera pas publiée.</p>
           </>
         )}
-        {erreur && <p style={{ fontSize:'9.5px', color:'#c0392b', margin:0 }}>{erreur}</p>}
-        <label style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'9.5px', color:'#6b6560', cursor:'pointer', lineHeight:1, height:'16px' }}>
+        {erreur && <p style={{ fontSize:'0.67094rem', color:'#c0392b', margin:0 }}>{erreur}</p>}
+        <label style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'0.67094rem', color:'#6b6560', cursor:'pointer', lineHeight:1, height:'16px' }}>
           <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
             style={{ width:'12px', height:'12px', flexShrink:0, accentColor:'#3d6b4f', cursor:'pointer', margin:0 }} />
           <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demander la certification</span>
         </label>
         <button onClick={envoyer} disabled={envoi}
-          style={{ alignSelf:'flex-end', fontSize:'10px', padding:'4px 12px', borderRadius:'4px', border:'none', background:'#3d6b4f', color:'#fff', cursor:'pointer', fontWeight:500 }}>
+          style={{ alignSelf:'flex-end', fontSize:'0.70625rem', padding:'4px 12px', borderRadius:'4px', border:'none', background:'#3d6b4f', color:'#fff', cursor:'pointer', fontWeight:500 }}>
           {envoi ? '…' : 'Envoyer'}
         </button>
       </div>
@@ -634,13 +634,13 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
 // ── Panneau principal ─────────────────────────────────────────────────────────
 export default function PanneauPatristique({
   verset, livreActif, nomLivre, chapitreActif,
-  panelWidth = 288, onWidthChange,
+  panelWidth = null, onWidthChange,
 }: {
   verset: Verset | null
   livreActif: string
   nomLivre: string
   chapitreActif: number
-  panelWidth?: number
+  panelWidth?: number | null
   onWidthChange?: (w: number) => void
 }) {
   type Onglet = 'patristique' | 'commentaires'
@@ -650,6 +650,7 @@ export default function PanneauPatristique({
   const [sousOnglet, setSousOnglet] = useState<SousOnglet>('citations')
   const [pageItems, setPageItems] = useState(0)
   const [ouvert, setOuvert] = useState(true)
+  const refPanel = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 880) setOuvert(false)
   }, [])
@@ -972,14 +973,15 @@ export default function PanneauPatristique({
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="M10 4l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        <span style={{ writingMode: 'vertical-rl' as any, fontSize: '8px', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>Commentaires</span>
+        <span style={{ writingMode: 'vertical-rl' as any, fontSize: '0.565rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>Commentaires</span>
       </button>
     )
   }
 
   const handleDrag = onWidthChange ? (e: React.MouseEvent) => {
     e.preventDefault()
-    const startX = e.clientX, startW = panelWidth
+    const startW = panelWidth ?? refPanel.current?.getBoundingClientRect().width ?? 320
+    const startX = e.clientX
     const onMove = (ev: MouseEvent) => onWidthChange(Math.max(200, Math.min(560, startW - (ev.clientX - startX))))
     const onUp = () => document.removeEventListener('mousemove', onMove)
     document.addEventListener('mousemove', onMove)
@@ -987,7 +989,7 @@ export default function PanneauPatristique({
   } : undefined
 
   return (
-    <div style={{ width: panelWidth + 'px', flexShrink:0, background:'#fff', borderLeft:'1px solid #d6d0c4', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
+    <div ref={refPanel} style={{ width: panelWidth == null ? 'clamp(260px, 20vw, 460px)' : panelWidth + 'px', flexShrink:0, background:'#fff', borderLeft:'1px solid #d6d0c4', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
       {handleDrag && (
         <div onMouseDown={handleDrag} title="Glisser pour redimensionner"
           style={{ position:'absolute', left:'-4px', top:0, bottom:0, width:'9px', cursor:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex:10,
@@ -1012,7 +1014,7 @@ export default function PanneauPatristique({
           </svg>
         </button>
         {refFr && (
-          <h2 style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'13px', fontWeight:500, color:'#2a3d30', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', textAlign:'center' }}>
+          <h2 style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.91812rem', fontWeight:500, color:'#2a3d30', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', textAlign:'center' }}>
             {refFr}
           </h2>
         )}
@@ -1035,12 +1037,12 @@ export default function PanneauPatristique({
                   transition:'color 0.12s, background 0.12s',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
                 }}>
-                <span style={{ fontSize:'9.5px', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: onglet === t.code ? 600 : 400 }}>{t.label}</span>
+                <span style={{ fontSize:'0.67094rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: onglet === t.code ? 600 : 400 }}>{t.label}</span>
                 {t.count != null && t.count > 0 && (
-                  <span style={{ fontSize: '9px', color: onglet === t.code ? '#3d6b4f' : '#b0a89e', fontWeight: 500, lineHeight: 1 }}>{t.count}</span>
+                  <span style={{ fontSize: '0.63562rem', color: onglet === t.code ? '#3d6b4f' : '#b0a89e', fontWeight: 500, lineHeight: 1 }}>{t.count}</span>
                 )}
                 {t.count != null && t.count === 0 && !loading && (
-                  <span style={{ fontSize: '8.5px', color: '#c0b8b0', fontStyle: 'italic', lineHeight: 1 }}>Aucune occurrence</span>
+                  <span style={{ fontSize: '0.60031rem', color: '#c0b8b0', fontStyle: 'italic', lineHeight: 1 }}>Aucune occurrence</span>
                 )}
               </button>
             ))}
@@ -1071,12 +1073,12 @@ export default function PanneauPatristique({
                             borderBottom: sousOnglet === key ? '2px solid #3d6b4f' : '2px solid transparent',
                             padding: '5px 2px 4px', cursor: 'pointer',
                             color: sousOnglet === key ? '#3d6b4f' : '#9a958d',
-                            fontSize: '9px', fontWeight: sousOnglet === key ? 600 : 400,
+                            fontSize: '0.63562rem', fontWeight: sousOnglet === key ? 600 : 400,
                             letterSpacing: '0.04em', lineHeight: 1.2,
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px',
                           }}>
                           <span>{label}</span>
-                          {nb > 0 && <span style={{ fontSize: '8px', color: sousOnglet === key ? '#3d6b4f' : '#c0b8ae' }}>{nb}</span>}
+                          {nb > 0 && <span style={{ fontSize: '0.565rem', color: sousOnglet === key ? '#3d6b4f' : '#c0b8ae' }}>{nb}</span>}
                         </button>
                       ))}
                     </div>
@@ -1087,7 +1089,7 @@ export default function PanneauPatristique({
                 <div style={{ display: 'flex', alignItems: 'center', padding: '8px 0 0' }}>
                   <button onClick={() => setFiltreVoletOuvert(o => !o)} style={{
                     display: 'inline-flex', alignItems: 'center', gap: '4px',
-                    fontSize: '9.5px', padding: '3px 9px', borderRadius: '12px', cursor: 'pointer',
+                    fontSize: '0.67094rem', padding: '3px 9px', borderRadius: '12px', cursor: 'pointer',
                     border: `1px solid ${filtreVoletOuvert || nombreFiltresActifs > 0 ? '#3d6b4f' : '#d6d0c4'}`,
                     background: filtreVoletOuvert || nombreFiltresActifs > 0 ? 'rgba(61,107,79,0.10)' : '#fff',
                     color: filtreVoletOuvert || nombreFiltresActifs > 0 ? '#3d6b4f' : '#8a8278',
@@ -1098,7 +1100,7 @@ export default function PanneauPatristique({
                     </svg>
                     Filtres
                     {nombreFiltresActifs > 0 && (
-                      <span style={{ background: '#3d6b4f', color: '#fff', borderRadius: '8px', fontSize: '8px', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
+                      <span style={{ background: '#3d6b4f', color: '#fff', borderRadius: '8px', fontSize: '0.565rem', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
                         {nombreFiltresActifs}
                       </span>
                     )}
@@ -1110,14 +1112,14 @@ export default function PanneauPatristique({
                   <div style={{ margin: '6px 0 2px', padding: '8px 10px', background: '#f0ebe1', border: '1px solid #d3c9b4', borderRadius: '7px' }}>
 
                     {/* Recherche auteur */}
-                    <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 5px' }}>Auteurs</p>
+                    <p style={{ fontSize: '0.60031rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 5px' }}>Auteurs</p>
                     <div style={{ position: 'relative', marginBottom: resultatsAuteur.length ? '0' : '4px' }}>
                       <input
                         type="text"
                         value={rechercheAuteur}
                         onChange={e => setRechercheAuteur(e.target.value)}
                         placeholder="Chercher un auteur…"
-                        style={{ width: '100%', fontSize: '10.5px', padding: '4px 7px', borderRadius: '4px', border: '1px solid #cfc4ae', background: '#fdf9f4', color: '#2a3d30', boxSizing: 'border-box', outline: 'none' }}
+                        style={{ width: '100%', fontSize: '0.74156rem', padding: '4px 7px', borderRadius: '4px', border: '1px solid #cfc4ae', background: '#fdf9f4', color: '#2a3d30', boxSizing: 'border-box', outline: 'none' }}
                       />
                       {resultatsAuteur.length > 0 && (
                         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fdf9f4', border: '1px solid #cfc4ae', borderTop: 'none', borderRadius: '0 0 4px 4px', zIndex: 20, boxShadow: '0 4px 10px rgba(176,160,136,0.18)' }}>
@@ -1128,11 +1130,11 @@ export default function PanneauPatristique({
                               setRechercheAuteur('')
                               setResultatsAuteur([])
                               setPageItems(0)
-                            }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '5px 8px', fontSize: '10.5px', color: '#2a3d30', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                            }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '5px 8px', fontSize: '0.74156rem', color: '#2a3d30', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
                               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(61,107,79,0.07)')}
                               onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
                               {a.nom}
-                              <span style={{ fontSize: '12px', color: '#3d6b4f', lineHeight: 1 }}>+</span>
+                              <span style={{ fontSize: '0.8475rem', color: '#3d6b4f', lineHeight: 1 }}>+</span>
                             </button>
                           ))}
                         </div>
@@ -1141,13 +1143,13 @@ export default function PanneauPatristique({
                     {filtreAuteursBlancs.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '5px' }}>
                         {filtreAuteursBlancs.map(a => (
-                          <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '9px', padding: '1px 5px 1px 7px', background: 'rgba(61,107,79,0.12)', color: '#2a5a38', borderRadius: '9px', fontWeight: 500 }}>
+                          <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '0.63562rem', padding: '1px 5px 1px 7px', background: 'rgba(61,107,79,0.12)', color: '#2a5a38', borderRadius: '9px', fontWeight: 500 }}>
                             {a.nom}
                             <button onClick={() => {
                               setFiltreAuteursIds(prev => { const n = new Set(prev); n.delete(a.id_auteur); return n })
                               setFiltreAuteursBlancs(prev => prev.filter(x => x.id_auteur !== a.id_auteur))
                               setPageItems(0)
-                            }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#3d6b4f', fontSize: '11px', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
+                            }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#3d6b4f', fontSize: '0.77687rem', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
                           </span>
                         ))}
                       </div>
@@ -1156,7 +1158,7 @@ export default function PanneauPatristique({
                     {/* Traditions */}
                     {(traditionsDisponibles.some(t => !filtreTraditions.has(t)) || filtreTraditions.size > 0) && (
                       <div style={{ marginTop: '8px' }}>
-                        <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Tradition</p>
+                        <p style={{ fontSize: '0.60031rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Tradition</p>
                         {/* Liste stable : chaque tag bascule sur place (aucune croix, aucun
                             réagencement). Sélectionné = vert ; indisponible sous le tri = grisé. */}
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
@@ -1167,7 +1169,7 @@ export default function PanneauPatristique({
                               <button key={t} disabled={!dispo}
                                 onClick={() => { setFiltreTraditions(prev => { const n = new Set(prev); if (n.has(t)) n.delete(t); else n.add(t); return n }); setPageItems(0) }}
                                 style={{
-                                  fontSize: '9px', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
+                                  fontSize: '0.63562rem', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
                                   border: `1px solid ${sel ? '#3d6b4f' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
                                   background: sel ? 'rgba(61,107,79,0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
                                   color: sel ? '#2a5a38' : dispo ? '#6b5f4a' : '#c4bcae', fontWeight: sel ? 600 : 400,
@@ -1181,7 +1183,7 @@ export default function PanneauPatristique({
                     {/* Genre */}
                     {(genresDisponibles.some(g => !filtreGenres.has(g)) || filtreGenres.size > 0) && (
                       <div style={{ marginTop: '8px' }}>
-                        <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Genre</p>
+                        <p style={{ fontSize: '0.60031rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Genre</p>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
                           {genresDisponibles.map(g => {
                             const sel = filtreGenres.has(g)
@@ -1190,7 +1192,7 @@ export default function PanneauPatristique({
                               <button key={g} disabled={!dispo}
                                 onClick={() => { setFiltreGenres(prev => { const n = new Set(prev); if (n.has(g)) n.delete(g); else n.add(g); return n }); setPageItems(0) }}
                                 style={{
-                                  fontSize: '9px', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
+                                  fontSize: '0.63562rem', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
                                   border: `1px solid ${sel ? '#3d6b4f' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
                                   background: sel ? 'rgba(61,107,79,0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
                                   color: sel ? '#2a5a38' : dispo ? '#6b5f4a' : '#c4bcae', fontWeight: sel ? 600 : 400,
@@ -1204,7 +1206,7 @@ export default function PanneauPatristique({
                     {/* Siècles */}
                     {(sieclesDisponibles.some(s => !filtreSiecles.has(s)) || filtreSiecles.size > 0) && (
                       <div style={{ marginTop: '8px' }}>
-                        <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Période</p>
+                        <p style={{ fontSize: '0.60031rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Période</p>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
                           {sieclesDisponibles.map(s => {
                             const sel = filtreSiecles.has(s)
@@ -1213,7 +1215,7 @@ export default function PanneauPatristique({
                               <button key={s} disabled={!dispo}
                                 onClick={() => { setFiltreSiecles(prev => { const n = new Set(prev); if (n.has(s)) n.delete(s); else n.add(s); return n }); setPageItems(0) }}
                                 style={{
-                                  fontSize: '9px', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
+                                  fontSize: '0.63562rem', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
                                   border: `1px solid ${sel ? '#9a7e3d' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
                                   background: sel ? 'rgba(154,126,61,0.16)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
                                   color: sel ? '#7a5e1a' : dispo ? '#6b5f4a' : '#c4bcae', fontWeight: sel ? 600 : 400,
@@ -1230,19 +1232,19 @@ export default function PanneauPatristique({
                         setFiltreAuteursIds(new Set()); setFiltreAuteursBlancs([])
                         setFiltreTraditions(new Set()); setFiltreSiecles(new Set()); setFiltreGenres(new Set())
                         setPageItems(0)
-                      }} style={{ marginTop: '8px', fontSize: '9px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                      }} style={{ marginTop: '8px', fontSize: '0.63562rem', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
                         Tout effacer
                       </button>
                     )}
                   </div>
                 )}
 
-                {loading && <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'16px 0' }}>Chargement…</p>}
+                {loading && <p style={{ fontSize:'0.77687rem', color:'#9a958d', textAlign:'center', padding:'16px 0' }}>Chargement…</p>}
                 {!loading && itemsFiltres.length === 0 && itemsAffiches.length === 0 && (
-                  <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'16px 0', fontStyle:'italic' }}>Aucune occurrence.</p>
+                  <p style={{ fontSize:'0.77687rem', color:'#9a958d', textAlign:'center', padding:'16px 0', fontStyle:'italic' }}>Aucune occurrence.</p>
                 )}
                 {!loading && itemsFiltres.length === 0 && itemsAffiches.length > 0 && (
-                  <p style={{ fontSize:'11px', color:'#9a958d', textAlign:'center', padding:'12px 0', fontStyle:'italic' }}>Aucun résultat pour ces filtres.</p>
+                  <p style={{ fontSize:'0.77687rem', color:'#9a958d', textAlign:'center', padding:'12px 0', fontStyle:'italic' }}>Aucun résultat pour ces filtres.</p>
                 )}
                 <div style={{ marginTop: '6px' }}>
                 {itemsPage.map(groupe => {
@@ -1272,15 +1274,15 @@ export default function PanneauPatristique({
             <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', padding:'8px 0 10px', borderTop:'1px solid #e4dfd8', background:'#fff', flexShrink:0 }}>
               <button onClick={() => setPageItems(Math.max(pageCouranteItems - 1, 0))} disabled={pageCouranteItems === 0}
                 title="Page précédente"
-                style={{ fontSize:'18px', lineHeight:1, padding:'0 6px', border:'none', background:'none', color: pageCouranteItems === 0 ? '#c8c0b4' : '#6b6560', cursor: pageCouranteItems === 0 ? 'default' : 'pointer' }}>
+                style={{ fontSize:'1.27125rem', lineHeight:1, padding:'0 6px', border:'none', background:'none', color: pageCouranteItems === 0 ? '#c8c0b4' : '#6b6560', cursor: pageCouranteItems === 0 ? 'default' : 'pointer' }}>
                 ‹
               </button>
-              <span style={{ fontSize:'9.5px', color:'#9a958d', whiteSpace:'nowrap', padding:'0 2px' }}>
+              <span style={{ fontSize:'0.67094rem', color:'#9a958d', whiteSpace:'nowrap', padding:'0 2px' }}>
                 {debutItems + 1}–{finItems} / {itemsGroupes.length}{nombreFiltresActifs > 0 ? ` (${itemsAffiches.length})` : ''}
               </span>
               <button onClick={() => setPageItems(Math.min(pageCouranteItems + 1, nbPagesItems - 1))} disabled={pageCouranteItems >= nbPagesItems - 1}
                 title="Page suivante"
-                style={{ fontSize:'18px', lineHeight:1, padding:'0 6px', border:'none', background:'none', color: pageCouranteItems >= nbPagesItems - 1 ? '#c8c0b4' : '#6b6560', cursor: pageCouranteItems >= nbPagesItems - 1 ? 'default' : 'pointer' }}>
+                style={{ fontSize:'1.27125rem', lineHeight:1, padding:'0 6px', border:'none', background:'none', color: pageCouranteItems >= nbPagesItems - 1 ? '#c8c0b4' : '#6b6560', cursor: pageCouranteItems >= nbPagesItems - 1 ? 'default' : 'pointer' }}>
                 ›
               </button>
             </div>
@@ -1310,13 +1312,13 @@ export default function PanneauPatristique({
         <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-start', padding:'48px 24px 0' }}>
           <div style={{ display:'flex', alignItems:'center', gap:'8px', width:'100%', marginBottom:'22px' }}>
             <div style={{ flex:1, height:'1px', background:'linear-gradient(to right, transparent, #d6d0c4)' }} />
-            <span style={{ fontSize:'9px', color:'#c8c0b4', letterSpacing:'0.2em', flexShrink:0 }}>· · ·</span>
+            <span style={{ fontSize:'0.63562rem', color:'#c8c0b4', letterSpacing:'0.2em', flexShrink:0 }}>· · ·</span>
             <div style={{ flex:1, height:'1px', background:'linear-gradient(to left, transparent, #d6d0c4)' }} />
           </div>
           <div style={{ textAlign:'center', marginBottom:'14px' }}>
-            <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'22px', color:'#c8c0b4', lineHeight:1 }}>❧</span>
+            <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'1.55375rem', color:'#c8c0b4', lineHeight:1 }}>❧</span>
           </div>
-          <div style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'12px', fontStyle:'italic', color:'#9a958d', lineHeight:1.85, textAlign:'center' }}>
+          <div style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.8475rem', fontStyle:'italic', color:'#9a958d', lineHeight:1.85, textAlign:'center' }}>
             {[
               ['Cliquez sur un verset pour voir', '220px'],
               ['les textes des Pères', '155px'],
@@ -1328,7 +1330,7 @@ export default function PanneauPatristique({
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:'8px', width:'100%', marginTop:'22px' }}>
             <div style={{ flex:1, height:'1px', background:'linear-gradient(to right, transparent, #d6d0c4)' }} />
-            <span style={{ fontSize:'9px', color:'#c8c0b4', letterSpacing:'0.2em', flexShrink:0 }}>· · ·</span>
+            <span style={{ fontSize:'0.63562rem', color:'#c8c0b4', letterSpacing:'0.2em', flexShrink:0 }}>· · ·</span>
             <div style={{ flex:1, height:'1px', background:'linear-gradient(to left, transparent, #d6d0c4)' }} />
           </div>
         </div>

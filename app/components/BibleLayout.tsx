@@ -34,8 +34,6 @@ const TRADUCTIONS_DEFAUT = [
   { code: 'TR0003', label: 'Bible Crampon' },
 ]
 
-const NAV_DEFAULT = 192
-const PANN_DEFAULT = 288
 
 export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale }: Props) {
   const listeTraductions = traductions.length > 0 ? traductions : TRADUCTIONS_DEFAUT
@@ -52,10 +50,13 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
     setVersetSelectionne(prev => (prev && prev.livre === livreActif && prev.chapitre === chapitreActif ? prev : null))
   }, [livreActif, chapitreActif])
 
-  const [navWidth, setNavWidth] = useState(NAV_DEFAULT)
-  const [pannWidth, setPannWidth] = useState(PANN_DEFAULT)
-  const isDirty = navWidth !== NAV_DEFAULT || pannWidth !== PANN_DEFAULT
-  const reset = () => { setNavWidth(NAV_DEFAULT); setPannWidth(PANN_DEFAULT) }
+  // `null` = largeur AUTO : le volet s'adapte à l'écran (clamp responsive défini
+  // dans le volet lui-même), avec un plancher de lisibilité. Un nombre = largeur
+  // fixée à la main par l'utilisateur (glisser-redimensionner), en px.
+  const [navWidth, setNavWidth] = useState<number | null>(null)
+  const [pannWidth, setPannWidth] = useState<number | null>(null)
+  const isDirty = navWidth !== null || pannWidth !== null
+  const reset = () => { setNavWidth(null); setPannWidth(null); try { localStorage.removeItem('cs_volets_bible2') } catch {} }
 
   // Cache des livres vides par traduction : { TR0001: Set<'GEN'|'SIR'|...>, ... }
   const livresVidesCache = useRef<Record<string, Set<string>>>({})
@@ -114,13 +115,13 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   // Persist widths
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('cs_volets_bible') ?? 'null')
+      const saved = JSON.parse(localStorage.getItem('cs_volets_bible2') ?? 'null')
       if (saved?.nav) setNavWidth(saved.nav)
       if (saved?.pann) setPannWidth(saved.pann)
     } catch {}
   }, [])
   useEffect(() => {
-    localStorage.setItem('cs_volets_bible', JSON.stringify({ nav: navWidth, pann: pannWidth }))
+    localStorage.setItem('cs_volets_bible2', JSON.stringify({ nav: navWidth, pann: pannWidth }))
   }, [navWidth, pannWidth])
 
   useEffect(() => {
