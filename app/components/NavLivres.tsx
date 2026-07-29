@@ -116,6 +116,7 @@ type Props = {
   // Mobile : accordéon des trois volets piloté par le parent (un seul ouvert à la fois).
   voletMobile?: 'livres' | 'commentaires' | null
   setVoletMobile?: (v: 'livres' | 'commentaires' | null) => void
+  barreMobile?: boolean                     // afficher la barre fixe mobile (false : ouverture par swipe)
 }
 
 /**
@@ -149,7 +150,7 @@ export default function NavLivres({
   panelWidth = null, onWidthChange,
   livresVides, onChoisirLivre, sansChapitres, titre,
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, entierActif,
-  mobile = false, voletMobile = null, setVoletMobile,
+  mobile = false, voletMobile = null, setVoletMobile, barreMobile = true,
 }: Props) {
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
@@ -324,6 +325,9 @@ export default function NavLivres({
     // Empilé (mobile) : une barre horizontale pleine largeur, et non le rail
     // vertical du desktop — on est en haut de la pile, pas sur un côté.
     if (mobile) {
+      // En mode swipe (barreMobile=false), pas de barre fixe : le tiroir s'ouvre
+      // par glissement (géré dans BibleLayout) ou via l'indice en haut de l'écran.
+      if (!barreMobile) return null
       // Barre TOUJOURS visible, fixée juste sous la navbar. Fermée par défaut ;
       // au tap, elle ouvre le tiroir des livres (branche dépliée ci-dessous).
       return (

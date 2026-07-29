@@ -38,6 +38,7 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
   const noeuds: React.ReactNode[] = []
   const numeros = new Map<string, number>()
   const numeroDe = (marqueur: string) => {
+    if (/^\d+$/.test(marqueur)) return Number(marqueur)
     const connu = numeros.get(marqueur)
     if (connu) return connu
     const n = numeros.size + 1
@@ -684,7 +685,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
 export default function PanneauPatristique({
   verset, livreActif, nomLivre, chapitreActif,
   panelWidth = null, onWidthChange, mobile = false,
-  voletMobile = null, setVoletMobile,
+  voletMobile = null, setVoletMobile, barreMobile = true,
 }: {
   verset: Verset | null
   livreActif: string
@@ -695,6 +696,7 @@ export default function PanneauPatristique({
   mobile?: boolean
   voletMobile?: 'livres' | 'commentaires' | null
   setVoletMobile?: (v: 'livres' | 'commentaires' | null) => void
+  barreMobile?: boolean
 }) {
   type Onglet = 'patristique' | 'commentaires'
   type SousOnglet = 'citations' | 'doctrine' | 'echos'
@@ -1025,6 +1027,9 @@ export default function PanneauPatristique({
   if (!ouvert) {
     // Empilé (mobile) : barre horizontale pleine largeur en bas de la pile.
     if (mobile) {
+      // En mode swipe (barreMobile=false), pas de barre fixe : le tiroir monte
+      // par glissement (géré dans BibleLayout) ou via l'indice en haut de l'écran.
+      if (!barreMobile) return null
       // Barre TOUJOURS visible, fixée en bas de l'écran. Fermée par défaut ;
       // au tap, le tiroir des Pères monte depuis le bas.
       return (

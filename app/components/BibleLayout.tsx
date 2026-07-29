@@ -7,7 +7,7 @@ import TexteBible from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
 import { supabase } from '@/app/lib/supabase'
 import { ABREV_FR } from '@/app/lib/bible'
-import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
+import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE, HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 
 type Livre = { code: string; nom: string; testament: string }
@@ -52,6 +52,26 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   // Sur téléphone/tablette portrait, les trois volets s'empilent verticalement
   // (voir AGENTS.md § Responsive mobile) : le côte-à-côte écraserait le texte.
   const mobile = useEstMobile(900)
+
+  // Ouverture des volets par SWIPE horizontal (mobile) plutôt que par des barres
+  // fixes : glisser vers la DROITE ouvre les Commentaires, vers la GAUCHE le
+  // sommaire des livres. On ignore les gestes trop verticaux (défilement du texte)
+  // et ceux lancés alors qu'un volet est déjà ouvert (le fond assombri le referme).
+  const swipeRef = useRef<{ x: number; y: number } | null>(null)
+  const onSwipeStart = (e: React.TouchEvent) => {
+    if (!mobile || voletMobile) return
+    const t = e.touches[0]
+    swipeRef.current = { x: t.clientX, y: t.clientY }
+  }
+  const onSwipeEnd = (e: React.TouchEvent) => {
+    if (!mobile || !swipeRef.current) return
+    const t = e.changedTouches[0]
+    const dx = t.clientX - swipeRef.current.x
+    const dy = t.clientY - swipeRef.current.y
+    swipeRef.current = null
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.4) return
+    setVoletMobile(dx > 0 ? 'commentaires' : 'livres')
+  }
 
   // Changer de livre ou de chapitre efface la sélection héritée du chapitre
   // précédent : le volet de droite bascule alors sur l'apparat de tout le nouveau
@@ -178,10 +198,32 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
     // emportant hors de vue la barre de recherche du volet de gauche. Elle reste
     // désormais à l'écran quel que soit l'endroit où l'on est descendu.
     <div
+      onTouchStart={onSwipeStart}
+      onTouchEnd={onSwipeEnd}
       className={mobile ? '' : 'flex overflow-hidden'}
       style={mobile
         ? { position: 'relative', display: 'flex', flexDirection: 'column' }
         : { position: 'relative', display: 'flex', height: HAUTEUR_SOUS_NAVBAR, overflow: 'hidden' }}>
+      {/* Indice de swipe (mobile) : un petit menu en haut expliquant le geste, aussi
+          tapable en repli. Glisser vers la gauche → Sommaire ; vers la droite → Commentaires. */}
+      {mobile && (
+        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1200, height: '2.875rem', display: 'flex', alignItems: 'stretch', background: '#faf8f4', borderBottom: '1px solid #d6d0c4', boxShadow: '0 1px 4px rgba(45,35,25,0.06)' }}>
+          <button onClick={() => setVoletMobile('livres')} title="Sommaire des livres (ou glissez vers la gauche)"
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', color: '#6b6560' }}>
+            <span aria-hidden style={{ fontSize: '1.1rem', lineHeight: 1, color: '#b0a89e' }}>‹</span>
+            <span style={{ fontSize: '0.6875rem', letterSpacing: '0.09em', textTransform: 'uppercase', fontWeight: 600 }}>Sommaire</span>
+          </button>
+          <div aria-hidden style={{ alignSelf: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#b0a088', lineHeight: 1, padding: '0 6px', borderLeft: '1px solid #e6e0d6', borderRight: '1px solid #e6e0d6' }}>
+            <span style={{ fontSize: '0.85rem' }}>↔</span>
+            <span style={{ fontSize: '0.5rem', letterSpacing: '0.05em', textTransform: 'uppercase', marginTop: '1px' }}>glisser</span>
+          </div>
+          <button onClick={() => setVoletMobile('commentaires')} title="Commentaires (ou glissez vers la droite)"
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', color: '#6b6560' }}>
+            <span style={{ fontSize: '0.6875rem', letterSpacing: '0.09em', textTransform: 'uppercase', fontWeight: 600 }}>Commentaires</span>
+            <span aria-hidden style={{ fontSize: '1.1rem', lineHeight: 1, color: '#b0a89e' }}>›</span>
+          </button>
+        </div>
+      )}
       <NavLivres
         livres={livres}
         livreActif={livreActif}
@@ -195,6 +237,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         mobile={mobile}
         voletMobile={voletMobile}
         setVoletMobile={setVoletMobile}
+        barreMobile={false}
       />
       <TexteBible
         versets={versets}
@@ -219,6 +262,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         mobile={mobile}
         voletMobile={voletMobile}
         setVoletMobile={setVoletMobile}
+        barreMobile={false}
       />
 
       {/* Bandeau de navigation mobile — tout en bas, sous la barre « Commentaires ».

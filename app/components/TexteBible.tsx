@@ -457,7 +457,7 @@ export default function TexteBible({
   const allerAuChapitre = (n: number) => router.push(`/?livre=${livreActif}&chapitre=${n}&trad=${tradCode}`)
 
   return (
-    <div className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'} style={{ background: '#f7f4ef', ...(mobile ? { width: '100%', paddingTop: '2.875rem', paddingBottom: `calc(3.25rem + ${BANDEAU_NAV_MOBILE})` } : {}) }}>
+    <div className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'} style={{ background: '#f7f4ef', ...(mobile ? { width: '100%', paddingTop: '2.875rem', paddingBottom: `calc(0.75rem + ${BANDEAU_NAV_MOBILE})` } : {}) }}>
 
       {/* En-tête */}
       <div style={{ borderBottom: '1px solid #d6d0c4', background: '#f7f4ef', padding: '14px 32px 10px' }}>
