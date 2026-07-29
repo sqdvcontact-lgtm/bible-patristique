@@ -55,7 +55,7 @@ export default function SoutenirPage() {
       {/* Filet ornemental */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "150px", margin: "0 auto 16px", flexShrink: 0 }}>
         <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #cfc6b6)" }} />
-        <span style={{ fontSize: "8px", color: "#b0a088", letterSpacing: "0.22em" }}>· · ·</span>
+        <span style={{ fontSize: "0.5rem", color: "#b0a088", letterSpacing: "0.22em" }}>· · ·</span>
         <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #cfc6b6)" }} />
       </div>
 
@@ -81,7 +81,7 @@ export default function SoutenirPage() {
           display: "inline-flex", alignItems: "center", gap: "10px",
           background: "#3d6b4f", color: "#fff", textDecoration: "none",
           fontFamily: "var(--font-source-serif), Georgia, serif",
-          fontSize: "13.5px", fontWeight: 500, padding: "10px 26px",
+          fontSize: "0.84375rem", fontWeight: 500, padding: "10px 26px",
           borderRadius: "6px",
           boxShadow: "0 3px 12px rgba(61,107,79,0.22)",
           letterSpacing: "0.01em",
@@ -92,7 +92,7 @@ export default function SoutenirPage() {
       </a>
 
       <p style={{
-        fontSize: "10.5px",
+        fontSize: "0.65625rem",
         color: "#a09488",
         marginTop: "10px",
         fontStyle: "italic",

@@ -6,10 +6,10 @@ export const metadata = {
 export default function ConditionsUtilisationPage() {
   return (
     <main style={{ background: "#f7f4ef", minHeight: "calc(100vh - 48px)", padding: "56px 24px 80px" }}>
-      <div style={{ maxWidth: "680px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "42.5rem", margin: "0 auto" }}>
 
         <p style={{
-          fontSize: "10px", fontWeight: 600, letterSpacing: "0.16em",
+          fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.16em",
           textTransform: "uppercase", color: "#3d6b4f", marginBottom: "10px",
         }}>
           Informations légales
@@ -22,11 +22,11 @@ export default function ConditionsUtilisationPage() {
           Conditions d&rsquo;utilisation
         </h1>
 
-        <p style={{ fontSize: "12px", color: "#9a958d", marginBottom: "40px", fontStyle: "italic" }}>
+        <p style={{ fontSize: "0.75rem", color: "#9a958d", marginBottom: "40px", fontStyle: "italic" }}>
           Dernière mise à jour : juillet 2026
         </p>
 
-        <div style={{ fontSize: "13.5px", lineHeight: 1.75, color: "#3a3530" }}>
+        <div style={{ fontSize: "0.84375rem", lineHeight: 1.75, color: "#3a3530" }}>
 
           <Section titre="1. Présentation du site">
             <p>
@@ -206,7 +206,7 @@ function Section({ titre, children }: { titre: string; children: React.ReactNode
   return (
     <section style={{ marginBottom: "32px" }}>
       <h2 style={{
-        fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "16px",
+        fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem",
         fontWeight: "normal", color: "#2a3d30", marginBottom: "10px",
         borderBottom: "1px solid #d6d0c4", paddingBottom: "6px",
       }}>

@@ -7,12 +7,12 @@ import React, { useEffect, useState } from "react";
 // quand le reste du site est fermé.
 
 const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "9px 12px", fontSize: "13.5px", border: "1px solid #d6d0c4",
+  width: "100%", padding: "9px 12px", fontSize: "0.84375rem", border: "1px solid #d6d0c4",
   borderRadius: "6px", background: "#f9f7f4", color: "#1e1a16", outline: "none",
   boxSizing: "border-box", fontFamily: "inherit",
 };
 const labelStyle: React.CSSProperties = {
-  fontSize: "11px", fontWeight: 600, color: "#566150", letterSpacing: "0.06em",
+  fontSize: "0.6875rem", fontWeight: 600, color: "#566150", letterSpacing: "0.06em",
   display: "block", marginBottom: "5px",
 };
 
@@ -46,28 +46,28 @@ export default function ContactPage() {
 
   return (
     <main style={{ background: "#f7f4ef", minHeight: "calc(100vh - 48px)", padding: "56px 24px 80px" }}>
-      <div style={{ maxWidth: "560px", margin: "0 auto" }}>
-        <p style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "#3d6b4f", marginBottom: "10px" }}>
+      <div style={{ maxWidth: "35rem", margin: "0 auto" }}>
+        <p style={{ fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "#3d6b4f", marginBottom: "10px" }}>
           Nous écrire
         </p>
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "clamp(26px, 3.5vw, 34px)", fontWeight: "normal", color: "#2a3d30", marginBottom: "12px", lineHeight: 1.25 }}>
           Contact
         </h1>
-        <p style={{ fontSize: "13.5px", color: "#566150", lineHeight: 1.7, marginBottom: "28px" }}>
+        <p style={{ fontSize: "0.84375rem", color: "#566150", lineHeight: 1.7, marginBottom: "28px" }}>
           Une question, un signalement d’erreur, l’exercice de vos droits sur vos données&#8239;: écrivez-nous
           par ce formulaire. Laissez votre adresse si vous souhaitez une réponse.
         </p>
 
         {etat === "fait" ? (
           <div style={{ background: "rgba(61,107,79,0.07)", border: "1px solid rgba(61,107,79,0.22)", borderRadius: "8px", padding: "18px 20px" }}>
-            <p style={{ fontSize: "13.5px", color: "#2a6040", margin: 0, lineHeight: 1.65 }}>
+            <p style={{ fontSize: "0.84375rem", color: "#2a6040", margin: 0, lineHeight: 1.65 }}>
               Votre message est parti. Merci&#8239;! Nous vous répondrons si vous avez laissé une adresse.
             </p>
           </div>
         ) : (
           <form onSubmit={envoyer} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             {erreur && (
-              <p style={{ fontSize: "12.5px", color: "#9a2a2a", margin: 0, lineHeight: 1.5 }}>{erreur}</p>
+              <p style={{ fontSize: "0.78125rem", color: "#9a2a2a", margin: 0, lineHeight: 1.5 }}>{erreur}</p>
             )}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
               <div>
@@ -94,7 +94,7 @@ export default function ContactPage() {
             </div>
             <button type="submit" disabled={etat === "envoi"}
               style={{ alignSelf: "flex-start", padding: "10px 22px", borderRadius: "6px", border: "none",
-                background: etat === "envoi" ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "13.5px",
+                background: etat === "envoi" ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "0.84375rem",
                 fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer" }}>
               {etat === "envoi" ? "Envoi…" : "Envoyer"}
             </button>
