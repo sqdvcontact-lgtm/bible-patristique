@@ -803,11 +803,11 @@ export default function PolyglottePage() {
         {/* Aucun livre choisi : la page reste vide et l'explique */}
         {!onglet && (
           <div style={{ margin: "60px auto", maxWidth: '35rem', display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-            {/* L'image porte un large blanc (dégradé) sous le dessin : on remonte l'invite en
-                marge négative pour qu'elle se pose sous LE LIVRE, non sous le cadre de l'image. */}
-            <img src="/ornements/livre_pol.png" alt="" aria-hidden="true"
-              style={{ width: "min(230px, 55%)", height: "auto", opacity: 0.9, mixBlendMode: "multiply", marginBottom: 0 }} />
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "#9a958d", letterSpacing: "0.02em", margin: "-42px 0 0" }}>Ouvrez un livre</p>
+            {/* Le livre relié et son reflet dans le miroir : image de la polyglotte
+                (un même texte, plusieurs reflets). Fond fondu par mix-blend-mode multiply. */}
+            <img src="/ornements/livre-miroir.png" alt="" aria-hidden="true"
+              style={{ width: "min(320px, 68%)", height: "auto", opacity: 0.9, mixBlendMode: "multiply", marginBottom: "16px" }} />
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "#9a958d", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
           </div>
         )}
 
