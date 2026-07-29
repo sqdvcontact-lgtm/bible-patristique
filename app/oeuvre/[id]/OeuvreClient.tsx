@@ -18,6 +18,8 @@ import EtoileFavori from '@/app/components/EtoileFavori'
 import { useFavoris } from '@/app/lib/useFavoris'
 import OngletCommentaires from './OngletCommentaires'
 import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
+import { useEstMobile } from '@/app/lib/useEstMobile'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
 import AssocierVerset from './AssocierVerset'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
@@ -506,6 +508,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const [oeuvreLocale, setOeuvreLocale] = useState<Props['oeuvre']>(oeuvre)
   const [navOuverte, setNavOuverte] = useState(true)
   const [panneauOuvert, setPanneauOuvert] = useState(true)
+  // ≤ 900px : nav et apparat en barres fixes + tiroirs (voir AGENTS § mobile).
+  const mobile = useEstMobile(900)
+  // Mobile : actions de segment masquées, révélées à l'appui long (comme les
+  // versets de la page Bible).
+  const [actionsSegMobileId, setActionsSegMobileId] = useState<number | null>(null)
+  const appuiLongRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const appuiLongDeclenche = useRef(false)
   const [infoEditionOuverte, setInfoEditionOuverte] = useState(false)
   const [auteurModalOuvert, setAuteurModalOuvert] = useState(false)
   // null = largeur AUTO (responsive, s'adapte à l'écran, plancher de lisibilité) ;
@@ -605,7 +614,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       if (s?.nav) setNavWidth(s.nav)
       if (s?.pann) setPannWidth(s.pann)
     } catch {}
-    if (typeof window !== 'undefined' && window.innerWidth < 880) {
+    if (typeof window !== 'undefined' && window.innerWidth < 900) {
       setNavOuverte(false)
       setPanneauOuvert(false)
     }
@@ -1129,7 +1138,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
         {/* ── NAV GAUCHE ── */}
         {navOuverte ? (
-        <nav ref={refNav} style={{ width: navWidth == null ? 'clamp(240px, 16vw, 380px)' : navWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100vh - 3.5rem)', overflowY: 'auto', borderRight: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <>
+        {/* Mobile : tiroir par-dessus le texte, sous la navbar. */}
+        {mobile && <div onClick={() => setNavOuverte(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
+        <nav ref={refNav} style={mobile ? {
+          position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, overflowY: 'auto', background: '#faf8f4', borderBottom: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', boxShadow: '0 10px 28px rgba(45,35,25,0.22)',
+        } : { width: navWidth == null ? 'clamp(240px, 16vw, 380px)' : navWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100vh - 3.5rem)', overflowY: 'auto', borderRight: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <div onMouseDown={e => {
             e.preventDefault()
             const startW = navWidth ?? refNav.current?.getBoundingClientRect().width ?? 240
@@ -1304,6 +1318,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             </div>
           </div>
         </nav>
+        </>
+        ) : mobile ? (
+          <button onClick={() => setNavOuverte(true)} title="Ouvrir le sommaire"
+            style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#faf8f4', border: 'none', borderBottom: '1px solid #d6d0c4', boxShadow: '0 1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: 'rotate(90deg)', color: '#9a958d' }}><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: '#6b6560' }}>Sommaire</span>
+          </button>
         ) : (
           <button onClick={() => setNavOuverte(true)} title="Ouvrir le sommaire"
             style={{ position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', flexShrink: 0, height: 'calc(100vh - 3.5rem)', width: '22px', background: '#faf8f4', border: 'none', borderRight: '1px solid #d6d0c4', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: 0 }}>
@@ -1313,7 +1334,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         )}
 
         {/* ── TEXTE CENTRAL ── */}
-        <main lang="fr" style={{ flex: 1, minWidth: 0, padding: '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: '35rem', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
+        <main lang="fr" style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: '35rem', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
           <PageTitre auteur={auteur} oeuvre={oeuvreLocale} titre={titreAffiche} estAdmin={estAdmin}
             onModifier={(champ, va) => setEditionCible({ type: 'titre_oeuvre', champ, texteActuel: va })} />
 
@@ -1422,13 +1443,19 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     if (!s) return null
                     const actif = segActif === sid
                     return (
-                      <div key={sid} id={`segment-${sid}`} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', scrollMarginTop: '60px' }}>
-                        <p id={`s${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
+                      <div key={sid} id={`segment-${sid}`} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`}
+                        onTouchStart={mobile ? () => { appuiLongDeclenche.current = false; appuiLongRef.current = setTimeout(() => { appuiLongDeclenche.current = true; setActionsSegMobileId(sid) }, 450) } : undefined}
+                        onTouchEnd={mobile ? () => { if (appuiLongRef.current) clearTimeout(appuiLongRef.current) } : undefined}
+                        onTouchMove={mobile ? () => { if (appuiLongRef.current) clearTimeout(appuiLongRef.current) } : undefined}
+                        style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', scrollMarginTop: '60px' }}>
+                        <p id={`s${s.numero}`} onClick={() => { if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return } if (mobile) setActionsSegMobileId(null); setSegActif(actif ? null : sid) }} className="seg-p"
                           lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {configNiveaux.afficherNumeros && sid !== premierSegmentId && <sup style={{ fontSize: '0.50rem', color: '#b0a89e', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
                           {sid === premierSegmentId && normaliserEspaces(s.texte).length > 0 ? (() => { const t = nettoyerFin(normaliserEspaces(s.texte)); const chars = [...t]; const li = chars.findIndex(ch => /\p{L}/u.test(ch)); if (li <= 0) { return (<><span style={{ float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }}>{chars[0] ?? t[0]}</span>{rendreTexteAvecNotes(chars.slice(1).join(''), s.notes ?? {})}</>) } const prefix = chars.slice(0, li).join(''); const lettre = chars[li]; const suite = chars.slice(li + 1).join(''); return (<>{prefix}<span style={{ float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }}>{lettre}</span>{rendreTexteAvecNotes(suite, s.notes ?? {})}</>) })() : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
                         </p>
-                        <div className="seg-actions" style={{ display: 'flex', flexDirection: 'row', gap: '2px', flexShrink: 0, width: '68px', paddingTop: '2px', justifyContent: 'flex-end', marginRight: '-8px' }}>
+                        <div className="seg-actions" style={mobile ? {
+                          position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6, opacity: 1, display: actionsSegMobileId === sid ? 'flex' : 'none', flexDirection: 'row', gap: '0.25rem', alignItems: 'center', background: '#fff', border: '1px solid #d6d0c4', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
+                        } : { display: 'flex', flexDirection: 'row', gap: '2px', flexShrink: 0, width: '68px', paddingTop: '2px', justifyContent: 'flex-end', marginRight: '-8px' }}>
                           {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
                           <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} className="seg-btn-action" />
                           <BoutonSignalerSegment segId={sid} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} className="seg-btn-action" />
@@ -1510,7 +1537,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
         {/* ── PANNEAU DROIT ── */}
         {panneauOuvert ? (
-        <aside ref={refAside} style={{ width: pannWidth == null ? 'clamp(280px, 21vw, 480px)' : pannWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100vh - 3.5rem)', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+        <>
+        {/* Mobile : tiroir montant du bas, par-dessus le texte. */}
+        {mobile && <div onClick={() => setPanneauOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
+        <aside ref={refAside} style={mobile ? {
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, borderTop: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', background: '#fff', boxShadow: '0 -10px 28px rgba(45,35,25,0.22)',
+        } : { width: pannWidth == null ? 'clamp(280px, 21vw, 480px)' : pannWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100vh - 3.5rem)', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', background: '#fff' }}>
           <div onMouseDown={e => {
             e.preventDefault()
             const startW = pannWidth ?? refAside.current?.getBoundingClientRect().width ?? 320
@@ -1789,6 +1821,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           </div>
 
         </aside>
+        </>
+        ) : mobile ? (
+          <button onClick={() => setPanneauOuvert(true)} title="Ouvrir le panneau de références"
+            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#fff', border: 'none', borderTop: '1px solid #d6d0c4', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: 'rotate(-90deg)', color: '#9a958d' }}><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: '#6b6560' }}>Références &amp; commentaires</span>
+          </button>
         ) : (
           <button onClick={() => setPanneauOuvert(true)} title="Ouvrir le panneau de références"
             style={{ position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', flexShrink: 0, height: 'calc(100vh - 3.5rem)', width: '22px', background: '#fff', border: 'none', borderLeft: '1px solid #d6d0c4', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: 0 }}>
