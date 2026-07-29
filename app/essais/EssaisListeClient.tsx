@@ -113,7 +113,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '8px' }}>
-      <div style={{ maxWidth: '57.5rem', margin: '0 auto', padding: '8px 28px 80px' }}>
+      <div style={{ maxWidth: '72rem', margin: '0 auto', padding: '8px 28px 80px' }}>
 
         {/* En-tête */}
         <div style={{ position: 'relative', textAlign: 'center', marginBottom: '6px' }}>
