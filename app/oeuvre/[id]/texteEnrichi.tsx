@@ -2,8 +2,11 @@ import { Fragment } from 'react'
 import { STYLE_ROMAIN, STYLE_ORDINAL, sieclesEnHtml } from '@/app/lib/siecles'
 
 export function normaliserEspaces(texte: string): string {
+  // Charte §951-952 : fine insécable (U+202F) avant ; ! ? et dans les guillemets,
+  // mais pleine insécable (U+00A0) avant les deux-points — le « : » n'est donc pas
+  // converti en fine, il conserve son U+00A0.
   return texte
-    .replace(/\u00A0([?!;:])/g, '\u202F$1')
+    .replace(/\u00A0([?!;])/g, '\u202F$1')
     .replace(/«\u00A0/g, '«\u202F')
     .replace(/\u00A0»/g, '\u202F»')
 }

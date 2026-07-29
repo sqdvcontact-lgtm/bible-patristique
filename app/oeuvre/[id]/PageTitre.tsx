@@ -2,6 +2,7 @@ import type { Props, ChampOeuvre } from './oeuvreTypes'
 import { rendreTexteEnrichi } from './texteEnrichi'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { resoudreEditeur } from '@/app/lib/editeurs'
+import { MarqueImprimeur } from './Ornements'
 
 const TITRES_RE = /^(M\.|Mme\.?|Mlle\.?|Dr\.?|Pr\.?|Dom |Père |Frère |Sœur |Abbé |Saint |Sainte |Rev\.? ?|Mgr\.?|R\.\s*P\.|l['']abbé|le père)/i
 
@@ -112,17 +113,21 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier 
     <div style={{
       minHeight: '60vh', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
-      padding: '80px 118px 60px 48px', borderBottom: '1px solid #d6d0c4',
-      marginBottom: '56px', textAlign: 'center',
+      padding: '80px 118px 40px 48px',
+      marginBottom: '8px', textAlign: 'center',
     }}>
-      <p style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '32px' }}>
+      {/* Nom d'auteur : légèrement agrandi, interlettrage un peu plus ouvert pour
+          garder l'élégance de la capitale à cette taille. */}
+      <p style={{ fontSize: '0.9375rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '34px', paddingLeft: '0.2em' }}>
         {auteur}
       </p>
 
       {/* Titre principal */}
       <div style={{ position: 'relative', maxWidth: '35rem' }}>
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.2, marginBottom: oeuvre.sous_titre ? '4px' : oeuvre.titre_original ? '18px' : '32px', whiteSpace: 'pre-line' }}>
-          {rendreTexteEnrichi(titre)}
+          {/* Affichage = titre_affichage (avec sauts de ligne éditoriaux) si présent,
+              sinon le titre canonique. L'édition admin ci-dessous vise le titre canonique. */}
+          {rendreTexteEnrichi(oeuvre.titre_affichage || titre)}
         </h1>
         {estAdmin && (
           <button onClick={() => onModifier('titre', titre)} title="Modifier le titre de l'œuvre"
@@ -156,7 +161,9 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier 
         </div>
       )}
 
-      <div style={{ width: '40px', height: '1px', background: '#c8c0b4', marginBottom: '32px' }} />
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
+        <MarqueImprimeur size={58} />
+      </div>
 
       {/* Traducteur */}
       {(oeuvre.trad_auteur || estAdmin) && (

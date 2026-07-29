@@ -23,3 +23,8 @@ export const HAUTEUR_NAVBAR = '3.5rem'
 
 /** Le reste de l'écran, sous la barre de navigation. */
 export const HAUTEUR_SOUS_NAVBAR = `calc(100vh - ${HAUTEUR_NAVBAR})`
+
+/** Hauteur du bandeau de navigation mobile (bas de page, page Bible) : forme
+ *  abrégée « Gn ❧ 1 » + flèches de chapitre. Sert aussi à décaler la barre
+ *  « Commentaires » au-dessus de lui et à réserver le padding bas du texte. */
+export const BANDEAU_NAV_MOBILE = '2.5rem'

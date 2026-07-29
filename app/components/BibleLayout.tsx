@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import NavLivres from './NavLivres'
 import TexteBible from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
 import { supabase } from '@/app/lib/supabase'
-import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
+import { ABREV_FR } from '@/app/lib/bible'
+import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 
 type Livre = { code: string; nom: string; testament: string }
@@ -41,6 +43,11 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
   const [versetSelectionne, setVersetSelectionne] = useState<Verset | null>(null)
+  const router = useRouter()
+
+  // Mobile : un seul des trois volets ouvert à la fois (accordéon). Les barres
+  // restent visibles ; ouvrir l'un referme l'autre.
+  const [voletMobile, setVoletMobile] = useState<'livres' | 'commentaires' | null>(null)
 
   // Sur téléphone/tablette portrait, les trois volets s'empilent verticalement
   // (voir AGENTS.md § Responsive mobile) : le côte-à-côte écraserait le texte.
@@ -186,6 +193,8 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         onWidthChange={setNavWidth}
         livresVides={livresVides}
         mobile={mobile}
+        voletMobile={voletMobile}
+        setVoletMobile={setVoletMobile}
       />
       <TexteBible
         versets={versets}
@@ -208,7 +217,25 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         panelWidth={pannWidth}
         onWidthChange={setPannWidth}
         mobile={mobile}
+        voletMobile={voletMobile}
+        setVoletMobile={setVoletMobile}
       />
+
+      {/* Bandeau de navigation mobile — tout en bas, sous la barre « Commentaires ».
+          Forme abrégée « Gn ❧ 1 » et flèches pour changer de chapitre. */}
+      {mobile && (
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1250, height: BANDEAU_NAV_MOBILE, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', background: '#f2ede3', borderTop: '1px solid #d6d0c4', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)' }}>
+          <button onClick={() => chapitreActif > 1 && router.push(`/?livre=${livreActif}&chapitre=${chapitreActif - 1}&trad=${traduction}`)}
+            aria-label="Chapitre précédent" style={{ background: 'none', border: 'none', cursor: chapitreActif > 1 ? 'pointer' : 'default', fontSize: '1.375rem', lineHeight: 1, color: chapitreActif > 1 ? '#8a8278' : '#d6d0c4', padding: '0 8px' }}>‹</button>
+          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', display: 'inline-flex', alignItems: 'baseline', gap: '8px', fontSize: '0.875rem' }}>
+            <span style={{ fontWeight: 500, color: '#2a3d30' }}>{ABREV_FR[livreActif] ?? livreActif}</span>
+            <span style={{ color: '#b0a088' }}>❧</span>
+            <span style={{ fontStyle: 'italic', color: '#5a7260' }}>{chapitreActif}</span>
+          </span>
+          <button onClick={() => router.push(`/?livre=${livreActif}&chapitre=${chapitreActif + 1}&trad=${traduction}`)}
+            aria-label="Chapitre suivant" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.375rem', lineHeight: 1, color: '#8a8278', padding: '0 8px' }}>›</button>
+        </div>
+      )}
       {!mobile && isDirty && (
         <button
           onClick={reset}

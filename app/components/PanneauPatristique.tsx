@@ -3,6 +3,9 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from "@/app/lib/supabase"
 import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
+import { parseNotes } from '@/app/lib/notes'
+import NoteTooltip from '@/app/lib/NoteTooltip'
+import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import EditeurCommentaire from '@/app/components/EditeurCommentaire'
@@ -10,14 +13,14 @@ import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { segmentsLiesAuVerset, segmentsLiesAuChapitre, type TypeLien } from '@/app/lib/liens'
 import IconeSignet from '@/app/components/IconeSignet'
-import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { HAUTEUR_NAVBAR, BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import ModalSignalement from '@/app/components/ModalSignalement'
 
 type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
 type Segment = {
   id: number; id_oeuvre: string; segment_numero: number
   segment_texte: string; ref_niv1: string; ref_niv2: string
-  ref_niv3: string
+  ref_niv3: string; notes?: string | null
 }
 type OeuvreInfo = {
   titre: string; sous_titre?: string; auteur_nom: string; id_auteur?: string
@@ -26,6 +29,45 @@ type OeuvreInfo = {
   genre?: string | null
 }
 type Commentaire = { id: number; texte: string; auteur_nom: string; created_at: string }
+
+// Rendu du texte d'un segment avec ses appels de note [[N]] : l'appel devient un
+// exposant vert discret ; la note s'ouvre en info-bulle élégante (NoteTooltip) —
+// même infrastructure que la page Œuvre. Les autres balises (**gras**, *ital*,
+// ^^exp^^, liens, siècles) sont rendues comme dans rendreTexteEnrichi.
+function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): React.ReactNode {
+  const noeuds: React.ReactNode[] = []
+  const numeros = new Map<string, number>()
+  const numeroDe = (marqueur: string) => {
+    const connu = numeros.get(marqueur)
+    if (connu) return connu
+    const n = numeros.size + 1
+    numeros.set(marqueur, n)
+    return n
+  }
+  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]+)\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)/g
+  let dernierIndex = 0, k = 0, m: RegExpExecArray | null
+  while ((m = regex.exec(texte))) {
+    if (m.index > dernierIndex) noeuds.push(texte.slice(dernierIndex, m.index))
+    if (m[1] !== undefined) noeuds.push(<strong key={k++}>{m[1]}</strong>)
+    else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{m[2]}</sup>)
+    else if (m[3] !== undefined) noeuds.push(<em key={k++}>{m[3]}</em>)
+    else if (m[4] !== undefined) noeuds.push(
+      <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{m[4]}</a>
+    )
+    else if (m[6] !== undefined) {
+      const marqueur = m[6]
+      noeuds.push(<NoteTooltip key={k++} lettre={String(numeroDe(marqueur))} el={{ type: 'note', texte: notes[marqueur] ?? '' }} />)
+    }
+    else if (m[7] !== undefined) {
+      noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)
+      noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[8]}</sup>)
+      noeuds.push(m[9])
+    }
+    dernierIndex = regex.lastIndex
+  }
+  if (dernierIndex < texte.length) noeuds.push(texte.slice(dernierIndex))
+  return noeuds
+}
 
 
 const ACTION_BTN: React.CSSProperties = {
@@ -274,7 +316,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
 
       {/* Texte du segment */}
       <p lang="fr" style={{ fontSize:'0.791rem', lineHeight:'1.38', color:'#2a2520', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
-        {rendreTexteEnrichi(s.segment_texte)}
+        {rendreTexteAvecNotes(s.segment_texte, parseNotes(s.notes))}
       </p>
     </div>
   )
@@ -636,6 +678,7 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
 export default function PanneauPatristique({
   verset, livreActif, nomLivre, chapitreActif,
   panelWidth = null, onWidthChange, mobile = false,
+  voletMobile = null, setVoletMobile,
 }: {
   verset: Verset | null
   livreActif: string
@@ -644,6 +687,8 @@ export default function PanneauPatristique({
   panelWidth?: number | null
   onWidthChange?: (w: number) => void
   mobile?: boolean
+  voletMobile?: 'livres' | 'commentaires' | null
+  setVoletMobile?: (v: 'livres' | 'commentaires' | null) => void
 }) {
   type Onglet = 'patristique' | 'commentaires'
   type SousOnglet = 'citations' | 'doctrine' | 'echos'
@@ -651,11 +696,14 @@ export default function PanneauPatristique({
   const [onglet, setOnglet] = useState<Onglet>('patristique')
   const [sousOnglet, setSousOnglet] = useState<SousOnglet>('citations')
   const [pageItems, setPageItems] = useState(0)
-  const [ouvert, setOuvert] = useState(true)
+  const [ouvertLocal, setOuvertLocal] = useState(true)
   const refPanel = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 900) setOuvert(false)
+    if (typeof window !== 'undefined' && window.innerWidth < 900) setOuvertLocal(false)
   }, [])
+  // Mobile : accordéon piloté par le parent (un seul volet ouvert). Desktop : local.
+  const ouvert = mobile ? voletMobile === 'commentaires' : ouvertLocal
+  const setOuvert = (v: boolean) => { if (mobile) setVoletMobile?.(v ? 'commentaires' : null); else setOuvertLocal(v) }
 
   // Citations = lien_1 (exactes) + lien_2 (libres) fusionnés ; Doctrine = lien_3.
   const [segmentsCitations, setSegmentsCitations] = useState<{ seg: Segment; col: string }[]>([])
@@ -739,7 +787,7 @@ export default function PanneauPatristique({
     // La recherche inverse passe désormais par `liens_bibliques` : un index sur
     // `canon_id` au lieu de quatre `ilike '%…%'` sur 136 770 lignes — qui, de
     // surcroît, ramenaient GEN.1.10 à GEN.1.19 quand on demandait GEN.1.1.
-    const SEG_COLS = 'id, id_oeuvre, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3'
+    const SEG_COLS = 'id, id_oeuvre, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, notes'
     ;(async () => {
       const liens = verset
         ? await segmentsLiesAuVerset(verset.id_verset)
@@ -975,7 +1023,7 @@ export default function PanneauPatristique({
       // au tap, le tiroir des Pères monte depuis le bas.
       return (
         <button onClick={() => setOuvert(true)} title="Ouvrir les textes patristiques"
-          style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#faf8f4', border: 'none', borderTop: '1px solid #d6d0c4', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+          style={{ position: 'fixed', bottom: BANDEAU_NAV_MOBILE, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#faf8f4', border: 'none', borderTop: '1px solid #d6d0c4', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(-90deg)', color: '#9a958d' }}>
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -1011,7 +1059,7 @@ export default function PanneauPatristique({
         reste toujours visible (voir la branche repliée). */}
     {mobile && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
     <div ref={refPanel} style={mobile
-      ? { position:'fixed', bottom:0, left:0, right:0, zIndex:2401, background:'#fff', borderTop:'1px solid #d6d0c4', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, minHeight:0, boxShadow:'0 -10px 28px rgba(45,35,25,0.22)' }
+      ? { position:'fixed', bottom:BANDEAU_NAV_MOBILE, left:0, right:0, zIndex:2401, background:'#fff', borderTop:'1px solid #d6d0c4', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem - ${BANDEAU_NAV_MOBILE})`, minHeight:0, boxShadow:'0 -10px 28px rgba(45,35,25,0.22)' }
       : { width: panelWidth == null ? 'clamp(260px, 20vw, 460px)' : panelWidth + 'px', flexShrink:0, background:'#fff', borderLeft:'1px solid #d6d0c4', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
       {!mobile && handleDrag && (
         <div onMouseDown={handleDrag} title="Glisser pour redimensionner"
@@ -1276,7 +1324,7 @@ export default function PanneauPatristique({
                   // seul paragraphe ; natures cumulées. Métadonnées et liens = premier segment.
                   const segFusionne = groupe.length === 1
                     ? premier.seg
-                    : { ...premier.seg, segment_texte: groupe.map(g => g.seg.segment_texte).join(' ') }
+                    : { ...premier.seg, segment_texte: groupe.map(g => g.seg.segment_texte).join(' '), notes: groupe.map(g => g.seg.notes).filter(Boolean).join('\n') || null }
                   const naturesUnion = Array.from(new Set(groupe.flatMap(g => g.categories)))
                   return (
                     <SegmentCard

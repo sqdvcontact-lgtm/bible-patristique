@@ -29,6 +29,7 @@ type Segment = {
   ref_niv3_texte: string|null; ref_niv4_texte: string|null
   lien_1: string|null; lien_2: string|null; lien_3: string|null; lien_4: string|null
   nature: string|null
+  paragraphe: number|null; rang: number|null; texte_original: string|null
 }
 
 // Un même verset peut être visé par plusieurs liens du même segment — chez un
@@ -68,6 +69,9 @@ function grouper(segments: Segment[]) {
   for(const s of segments){
     // Ignorer les séparateurs et les rubriques réellement vides.
     if(!segmentAffichable(s)) continue
+    // Les introductions sont rendues à part (en tête d'homélie), hors des groupes
+    // et de la pagination.
+    if(s.nature==='introduction') continue
     const n1=s.ref_niv1||'',n2=s.ref_niv2||'',n3=s.ref_niv3||'',n4=s.ref_niv4||''
     if(n1!==cur.niv1||n2!==cur.niv2||n3!==cur.niv3||n4!==cur.niv4){
       if(cur.items.length>0)gs.push({...cur})
@@ -87,6 +91,7 @@ function numerotationLocale(segments: Segment[]): Map<number,number> {
   let c=0,n1c=''
   for(const s of segments){
     if(!segmentAffichable(s)) continue
+    if(s.nature==='introduction') continue
     const n1=s.ref_niv1||'';if(n1!==n1c){c=0;n1c=n1};map.set(s.id,++c)
   }
   return map
@@ -150,14 +155,19 @@ export default async function OeuvrePage({
   // côté serveur via la session Supabase Auth — remplace l'ancien cookie
   // bp_admin_session, qui n'est plus jamais posé depuis la suppression de la
   // page de connexion par mot de passe.
-  const SELECT_SEG = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes'
+  const SELECT_SEG = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original'
 
   async function chargerTousSegments(filtre: Record<string, string>) {
     const acc: any[] = []
     let from = 0
     while (true) {
       let q = supabase.from('segments').select(SELECT_SEG).eq('id_oeuvre', id).order('id', { ascending: true }).range(from, from + 999)
-      for (const [k, v] of Object.entries(filtre)) q = q.eq(k, v)
+      // Le corps de lecture charge le texte ET les introductions d'homélie
+      // (nature « introduction »), rendues en tête de leur division.
+      for (const [k, v] of Object.entries(filtre)) {
+        if (k === 'nature' && v === 'texte') q = q.in('nature', ['texte', 'introduction'])
+        else q = q.eq(k, v)
+      }
       const { data: batch } = await q
       if (!batch || batch.length === 0) break
       acc.push(...batch)
@@ -286,6 +296,12 @@ export default async function OeuvrePage({
   const auteur = (oeuvre.auteurs as any)?.nom || ''
   const auteurId = (oeuvre.auteurs as any)?.id_auteur?.toString() ?? ''
 
+  // Éligibilité au mode Paragraphes : l'œuvre doit porter la colonne `paragraphe`
+  // (charte §6.1). On l'estime sur le premier niv1 chargé, représentatif — la
+  // colonne est peuplée uniformément par œuvre. Les œuvres sans `paragraphe` ne
+  // proposent pas le mode (bouton grisé côté client).
+  const eligibleParagraphes = segmentsTexte.some(s => s.paragraphe != null)
+
   const groupes = grouper(segmentsTexte)
   const groupesApparat = grouper(segmentsApparat)
   const numLocaux = numerotationLocale(segmentsTexte)
@@ -304,6 +320,8 @@ export default async function OeuvrePage({
       id: s.id, numero: numLocaux.get(s.id) || s.segment_numero,
       texte: s.segment_texte, versets: versetParSegment[s.id] || [],
       notes: parseNotes((s as any).notes),
+      paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
+      nature: s.nature,
     }))
 
   const groupesData = groupes.map((g, gi) => ({
@@ -318,6 +336,7 @@ export default async function OeuvrePage({
     .map(s => ({
       id: s.id, numero: numLocauxApparat.get(s.id) || s.segment_numero,
       texte: s.segment_texte, versets: [],
+      notes: parseNotes((s as any).notes),
     }))
 
   const groupesApparatData = groupesApparat.map((g, gi) => ({
@@ -340,12 +359,13 @@ export default async function OeuvrePage({
       txtSommaire={(oeuvre.texte_sommaire ?? '0,0,0,0,0').split(',').map((v: string) => v === '1')}
       txtCorps={(oeuvre.texte_corps ?? '0,0,0,0,0').split(',').map((v: string) => v === '1')}
       afficherNumeros={oeuvre.afficher_numeros !== false}
-      oeuvre={{titre:oeuvre.titre,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,id_oeuvre:oeuvre.id_oeuvre,date_composition:oeuvre.date_composition,langue_originale:oeuvre.langue_originale,genres:oeuvre.genres,url_source:oeuvre.url_source}}
+      oeuvre={{titre:oeuvre.titre,titre_affichage:oeuvre.titre_affichage,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,id_oeuvre:oeuvre.id_oeuvre,date_composition:oeuvre.date_composition,langue_originale:oeuvre.langue_originale,genres:oeuvre.genres,url_source:oeuvre.url_source}}
       groupes={groupesData} segments={segmentsData}
       tocApparat={tocApparat} groupesApparat={groupesApparatData} segmentsApparat={segmentsApparatData}
       segmentCibleId={Number.isFinite(segmentCibleId) && segmentCibleId > 0 ? segmentCibleId : null}
       niv1Initial={premierNiv1 ?? niv1List[0] ?? null}
       vueInitiale={vueInitiale}
+      eligibleParagraphes={eligibleParagraphes}
     />
   )
 }

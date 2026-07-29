@@ -1,5 +1,5 @@
 export type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
-export type SegData = { id: number; numero: number; texte: string; versets: VRef[]; notes?: Record<string, string> }
+export type SegData = { id: number; numero: number; texte: string; versets: VRef[]; notes?: Record<string, string>; paragraphe?: number | null; rang?: number | null; texteOriginal?: string | null; nature?: string | null }
 export type GroupeData = {
   niv1: string; niv2: string; niv3: string; niv4: string
   niv1_texte?: string; niv2_texte?: string; niv3_texte?: string; niv4_texte?: string
@@ -21,7 +21,7 @@ export type Props = {
   txtSommaire?: boolean[]
   txtCorps?: boolean[]
   afficherNumeros?: boolean
-  oeuvre: { titre: string; sous_titre?: string; titre_original?: string; trad_auteur?: string; trad_date?: string; editeur?: string; collection?: string; ville?: string; date_publication?: string; id_oeuvre?: string; date_composition?: string | null; langue_originale?: string | null; genres?: string[] | null; url_source?: string | null }
+  oeuvre: { titre: string; titre_affichage?: string | null; sous_titre?: string; titre_original?: string; trad_auteur?: string; trad_date?: string; editeur?: string; collection?: string; ville?: string; date_publication?: string; id_oeuvre?: string; date_composition?: string | null; langue_originale?: string | null; genres?: string[] | null; url_source?: string | null }
   groupes: GroupeData[]
   segments: SegData[]
   tocApparat: TocEntry[]
@@ -30,6 +30,7 @@ export type Props = {
   segmentCibleId?: number | null
   niv1Initial?: string | null
   vueInitiale?: 'texte' | 'apparat'
+  eligibleParagraphes?: boolean
 }
 
 export type ChampOeuvre = 'titre' | 'sous_titre' | 'titre_original' | 'trad_auteur'

@@ -113,6 +113,9 @@ type Props = {
   onChoisirVerset?: (code: string, chapitre: number, verset: number) => void
   entierActif?: boolean                     // le livre actif est-il montré EN ENTIER (bouton allumé)
   mobile?: boolean                          // empilé pleine largeur (téléphone/tablette)
+  // Mobile : accordéon des trois volets piloté par le parent (un seul ouvert à la fois).
+  voletMobile?: 'livres' | 'commentaires' | null
+  setVoletMobile?: (v: 'livres' | 'commentaires' | null) => void
 }
 
 /**
@@ -146,7 +149,7 @@ export default function NavLivres({
   panelWidth = null, onWidthChange,
   livresVides, onChoisirLivre, sansChapitres, titre,
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, entierActif,
-  mobile = false,
+  mobile = false, voletMobile = null, setVoletMobile,
 }: Props) {
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
@@ -160,10 +163,14 @@ export default function NavLivres({
   // Les écrits non canoniques restent repliés par défaut : ils sont là pour qui les cherche,
   // sans allonger la liste de ceux qui ne les consultent pas.
   const [autresOuvert, setAutresOuvert] = useState(false)
-  const [ouvert, setOuvert] = useState(true)
+  const [ouvertLocal, setOuvertLocal] = useState(true)
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 900) setOuvert(false)
+    if (typeof window !== 'undefined' && window.innerWidth < 900) setOuvertLocal(false)
   }, [])
+  // Sur mobile, l'ouverture est pilotée par le parent (accordéon : un seul volet
+  // ouvert à la fois). Sur desktop, état local du volet.
+  const ouvert = mobile ? voletMobile === 'livres' : ouvertLocal
+  const setOuvert = (v: boolean) => { if (mobile) setVoletMobile?.(v ? 'livres' : null); else setOuvertLocal(v) }
   const scrollRef = useRef<HTMLDivElement>(null)
   const refPanel = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -321,7 +328,7 @@ export default function NavLivres({
       // au tap, elle ouvre le tiroir des livres (branche dépliée ci-dessous).
       return (
         <button onClick={() => setOuvert(true)} title="Ouvrir le sommaire des livres"
-          style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#faf8f4', border: 'none', borderBottom: '1px solid #d6d0c4', boxShadow: '0 1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+          style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#faf8f4', border: 'none', borderBottom: '1px solid #d6d0c4', boxShadow: '0 1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(90deg)', color: '#9a958d' }}>
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>

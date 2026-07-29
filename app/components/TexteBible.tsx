@@ -11,6 +11,7 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 import IconeSignet from '@/app/components/IconeSignet'
 import ModalSignalement from '@/app/components/ModalSignalement'
+import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 
 const VERSET_ACTION_BTN: React.CSSProperties = {
   background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
@@ -387,11 +388,9 @@ export default function TexteBible({
   const { modeUtilisateurStandard } = useAffichageAdmin()
 
   // Mobile : les boutons d'action encombreraient la marge droite d'un écran
-  // étroit. On les masque, et un appui long sur le verset fait surgir un pavé
+  // étroit. On les masque, et un simple tap sur le verset fait surgir un pavé
   // flottant. `actionsMobileId` = verset dont les actions sont visibles.
   const [actionsMobileId, setActionsMobileId] = useState<string | null>(null)
-  const appuiLongRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const appuiLongDeclenche = useRef(false)
 
   useEffect(() => {
     const versetCible = searchParams.get('verset')
@@ -458,7 +457,7 @@ export default function TexteBible({
   const allerAuChapitre = (n: number) => router.push(`/?livre=${livreActif}&chapitre=${n}&trad=${tradCode}`)
 
   return (
-    <div className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'} style={{ background: '#f7f4ef', ...(mobile ? { width: '100%', paddingTop: '2.875rem', paddingBottom: '3.25rem' } : {}) }}>
+    <div className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'} style={{ background: '#f7f4ef', ...(mobile ? { width: '100%', paddingTop: '2.875rem', paddingBottom: `calc(3.25rem + ${BANDEAU_NAV_MOBILE})` } : {}) }}>
 
       {/* En-tête */}
       <div style={{ borderBottom: '1px solid #d6d0c4', background: '#f7f4ef', padding: '14px 32px 10px' }}>
@@ -467,7 +466,7 @@ export default function TexteBible({
             (bloc de texte de 500 px + colonne d'actions de 38 px) : le titre est centré
             sur la seule première colonne — donc sur le bloc vert de sélection —, la colonne
             des boutons (signaler, prélever…) étant exclue du centrage. */}
-        <div style={{ width: 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
+        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
           {chapitreActif > 1 ? (
             <button onClick={() => allerAuChapitre(chapitreActif - 1)} className="nav-chap-arrow" style={{ color: '#b0a89e', fontSize: '1.25rem', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s' }} title="Chapitre précédent">‹</button>
@@ -490,15 +489,12 @@ export default function TexteBible({
             Calé sur LE MÊME gabarit que le titre « Genèse ❧ Chapitre 1 » (bloc texte
             de 500 px + colonne d'actions de 38 px exclue du centrage), pour que le menu
             se centre sur le même axe que le titre, et non sur la pleine largeur. */}
-        <div style={{ width: 'min(var(--mesure-ligne), 100%)', margin: '0.5rem auto 0', display: 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
+        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0.5rem auto 0', display: mobile ? 'block' : 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', maxWidth: '22.5rem', margin: '0 auto' }}>
           {/* Double filet à gauche : deux traits fins superposés, bien visibles, comme autrefois.
               Le trait est coloré dès le tiers extérieur (et non seulement au ras du menu) pour
               rester perceptible même sur une faible largeur. */}
-          <div style={{ flex: 1, minWidth: '46px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent 0%, #c3b7a0 38%, #a4977f 100%)' }} />
-            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent 0%, #c3b7a0 38%, #a4977f 100%)' }} />
-          </div>
+          <div style={{ flex: 1, minWidth: '46px', height: '1px', background: 'linear-gradient(to right, transparent 0%, #c3b7a0 38%, #a4977f 100%)' }} />
           <div style={{ position: 'relative' }}>
             <button onClick={() => setTradOuverte(!tradOuverte)} style={{
               display: 'flex', alignItems: 'center', gap: '5px',
@@ -532,10 +528,7 @@ export default function TexteBible({
             )}
           </div>
           {/* Double filet à droite, symétrique. */}
-          <div style={{ flex: 1, minWidth: '46px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ height: '1px', background: 'linear-gradient(to left, transparent 0%, #c3b7a0 38%, #a4977f 100%)' }} />
-            <div style={{ height: '1px', background: 'linear-gradient(to left, transparent 0%, #c3b7a0 38%, #a4977f 100%)' }} />
-          </div>
+          <div style={{ flex: 1, minWidth: '46px', height: '1px', background: 'linear-gradient(to left, transparent 0%, #c3b7a0 38%, #a4977f 100%)' }} />
         </div>
           <div />
         </div>
@@ -580,28 +573,22 @@ export default function TexteBible({
             <div key={v.id_verset}
               id={`verset-${v.verset}`}
               onClick={() => {
-                // Un appui long vient d'ouvrir le pavé d'actions : on ne traite
-                // pas le clic qui suit (il fermerait aussitôt la sélection).
-                if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return }
-                if (mobile) setActionsMobileId(null)
-                if (!actif) {
-                  // Comptage en arriere-plan, sans ralentir le clic.
-                  fetch('/api/versets/incrementer-lecture', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_verset: v.id_verset }),
-                  }).catch(() => {})
+                const incrementer = () => fetch('/api/versets/incrementer-lecture', {
+                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ id_verset: v.id_verset }),
+                }).catch(() => {})
+                if (mobile) {
+                  // Sur mobile, un tap sélectionne le verset ET fait apparaître
+                  // immédiatement le pavé d'actions ; un second tap referme.
+                  if (actif) { setVersetSelectionne(null); setActionsMobileId(null) }
+                  else { incrementer(); setVersetSelectionne(v); setActionsMobileId(v.id_verset) }
+                  return
                 }
+                if (!actif) incrementer()
                 setVersetSelectionne(actif ? null : v)
               }}
-              onTouchStart={mobile ? () => {
-                appuiLongDeclenche.current = false
-                appuiLongRef.current = setTimeout(() => { appuiLongDeclenche.current = true; setActionsMobileId(v.id_verset) }, 450)
-              } : undefined}
-              onTouchEnd={mobile ? () => { if (appuiLongRef.current) clearTimeout(appuiLongRef.current) } : undefined}
-              onTouchMove={mobile ? () => { if (appuiLongRef.current) clearTimeout(appuiLongRef.current) } : undefined}
               className={`verset-row${actif ? ' verset-row--actif' : ''}`}
-              style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '0.1875rem 0.375rem', borderRadius: '4px', cursor: 'pointer', marginBottom: '0.25rem', background: 'transparent' }}>
+              style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: mobile ? '0.03125rem 0.375rem' : '0.1875rem 0.375rem', borderRadius: '4px', cursor: 'pointer', marginBottom: mobile ? '0.05rem' : '0.25rem', background: 'transparent' }}>
 
               <div style={{ display: 'grid', gridTemplateColumns: mobile ? 'minmax(0, 1fr)' : 'minmax(0, var(--mesure-bloc)) 2.375rem', width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', alignItems: 'flex-start' }}>
                 <div style={{ display:'grid', gridTemplateColumns:'auto minmax(0, var(--mesure-texte))', columnGap:'0.1875rem', borderRadius:'5px', padding:'0.125rem 0.25rem 0.125rem 0', background: actif ? 'rgba(61,107,79,0.11)' : 'transparent' }}>
@@ -616,7 +603,7 @@ export default function TexteBible({
                   </span>
 
                   {/* Texte — colonne fixe et stable, alignée quel que soit l'état des boutons */}
-                  <p data-verse-text style={{ fontSize: '0.84rem', lineHeight: 1.42, color: '#1e1a16', margin: 0, textAlign: 'justify', wordSpacing: '-0.09em', letterSpacing: '-0.003em' }}>
+                  <p data-verse-text style={{ fontSize: '0.84rem', lineHeight: mobile ? 1.3 : 1.42, color: '#1e1a16', margin: 0, textAlign: 'justify', wordSpacing: '-0.02em', letterSpacing: '-0.003em' }}>
                     {(overrides[v.id_verset]?.[traduction] ?? v[traduction])
                       ? rendreTexteEnrichi(String(overrides[v.id_verset]?.[traduction] ?? v[traduction]))
                       : <span style={{ color:'#d6d0c4', fontStyle:'italic' }}>—</span>}
@@ -627,7 +614,8 @@ export default function TexteBible({
                     sortent de la grille : pavé flottant en haut à droite du
                     verset, montré seulement après un appui long. */}
                 <div className="verset-actions" style={mobile ? {
-                  position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6,
+                  // Au-dessus du verset (et non sur lui) : le texte reste lisible.
+                  position: 'absolute', bottom: '100%', right: '0.25rem', marginBottom: '3px', zIndex: 6,
                   display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
                   background: '#fff', border: '1px solid #d6d0c4', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
                 } : { width: '2.375rem', paddingLeft: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.125rem', overflow: 'visible' }}>

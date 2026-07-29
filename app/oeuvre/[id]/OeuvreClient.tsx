@@ -14,6 +14,8 @@ import ModaleEditionAdmin from './ModaleEditionAdmin'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
 import { useEditeursCharges } from '@/app/lib/editeurs'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
+import ApercuAuteur from '@/app/components/ApercuAuteur'
+import { FeuilleVigne } from './Ornements'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { useFavoris } from '@/app/lib/useFavoris'
 import OngletCommentaires from './OngletCommentaires'
@@ -489,7 +491,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 }
 
 // ── Composant principal ───────────────────────────────────────────────────────
-export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte' }: Props) {
+export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -517,6 +519,27 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const appuiLongDeclenche = useRef(false)
   const [infoEditionOuverte, setInfoEditionOuverte] = useState(false)
   const [auteurModalOuvert, setAuteurModalOuvert] = useState(false)
+  // Mode de lecture. « paragraphes » (nouveau, par défaut) : les segments d'un
+  // même paragraphe coulent en un seul bloc, leur délimitation n'apparaissant
+  // qu'au survol. « segments » (l'ancien) : un segment = un bloc, conservé à
+  // l'identique. La préférence est mémorisée ; elle n'a d'effet que si l'œuvre
+  // porte la colonne `paragraphe` (sinon le mode paragraphes est indisponible).
+  const [modeLecturePref, setModeLecturePref] = useState<'paragraphes' | 'segments'>('paragraphes')
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem('cs_mode_lecture_oeuvre')
+      if (v === 'segments' || v === 'paragraphes') setModeLecturePref(v)
+    } catch {}
+  }, [])
+  const modeLecture: 'paragraphes' | 'segments' = eligibleParagraphes ? modeLecturePref : 'segments'
+  const basculerMode = (m: 'paragraphes' | 'segments') => {
+    setModeLecturePref(m)
+    try { localStorage.setItem('cs_mode_lecture_oeuvre', m) } catch {}
+  }
+  // Survol d'un segment en mode paragraphes : cellule d'actions flottante ancrée
+  // sur le segment (via portail, pour n'être pas clippée par le corps).
+  const [segSurvol, setSegSurvol] = useState<{ id: number; top: number; left: number } | null>(null)
+  const timerSurvolRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // null = largeur AUTO (responsive, s'adapte à l'écran, plancher de lisibilité) ;
   // number = largeur fixée à la main (drag), en px.
   const [navWidth, setNavWidth] = useState<number | null>(null)
@@ -830,7 +853,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   }
 
   const chargerNiv1Data = async (n1: string): Promise<{ groupes: GroupeData[]; segments: SegData[] }> => {
-    const SELECT = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes'
+    const SELECT = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original'
     const segs: any[] = []
     let from = 0
     while (true) {
@@ -838,7 +861,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         .from('segments')
         .select(SELECT)
         .eq('id_oeuvre', idOeuvre)
-        .eq('nature', 'texte')
+        .in('nature', ['texte', 'introduction'])
         .order('segment_numero')
         .range(from, from + 999)
       if (!texteSansNiveaux || n1) requete = requete.eq('ref_niv1', n1)
@@ -877,16 +900,18 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
     let c = 0
     const newSegs: SegData[] = segsAffichables.map((s: any) => {
-      c++
+      const estIntro = s.nature === 'introduction'
+      if (!estIntro) c++
       const versets = extraireVersetsAvecNature(s)
         .map(({ id: vid, natures }) => ({ id: vid, natures, ...(versetMap[vid] || { label: vid, textes: {}, livre: '', chapitre: '', verset: '' }) }))
-      return { id: s.id, numero: c, texte: s.segment_texte, versets, notes: parseNotes(s.notes) }
+      return { id: s.id, numero: estIntro ? s.segment_numero : c, texte: s.segment_texte, versets, notes: parseNotes(s.notes), paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original, nature: s.nature }
     })
 
     const newGroupes: GroupeData[] = []
     let cur: any = { niv1:'', niv2:'', niv3:'', niv4:'', itemIds:[] as number[] }
     let gi = 0
     segsAffichables.forEach((s: any) => {
+      if (s.nature === 'introduction') return
       const n1v = s.ref_niv1||'', n2v = s.ref_niv2||'', n3v = s.ref_niv3||'', n4v = s.ref_niv4||''
       if (n1v !== cur.niv1 || n2v !== cur.niv2 || n3v !== cur.niv3 || n4v !== cur.niv4) {
         if (cur.itemIds.length > 0) newGroupes.push({ ...cur, anchor: `g${gi++}` })
@@ -915,7 +940,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const chargerApparatData = async () => {
     const { data } = await supabase
       .from('segments')
-      .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature')
+      .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes')
       .eq('id_oeuvre', idOeuvre)
       .eq('nature', 'apparat_critique')
       .order('segment_numero')
@@ -926,7 +951,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       const n1v = s.ref_niv1 || ''
       if (n1v !== n1c) { c = 0; n1c = n1v }
       c++
-      return { id: s.id, numero: c, texte: s.segment_texte, versets: [] }
+      return { id: s.id, numero: c, texte: s.segment_texte, versets: [], notes: parseNotes(s.notes) }
     })
 
     const newGroupes: GroupeData[] = []
@@ -1105,6 +1130,40 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
     setSegments(prev => prev.map(s => s.id === segId ? { ...s, versets: s.versets.filter(v => v.id !== versetId) } : s))
   }
 
+  // Lettrine (drop cap) du tout premier segment, réutilisée par les deux modes.
+  const DROPCAP: React.CSSProperties = { float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }
+
+  // Mode paragraphes : découpe les segments d'un groupe en paragraphes (colonne
+  // `paragraphe`, charte §6.1), ordonnés en interne par `rang`. Segments
+  // consécutifs de même paragraphe → un bloc coulant. Un `paragraphe` nul isole
+  // le segment (garde-fou).
+  const paragraphesDe = (itemIds: number[]): { ids: number[] }[] => {
+    const chunks: { par: number | null | undefined; ids: number[] }[] = []
+    for (const sid of itemIds) {
+      const par = segMap.get(sid)?.paragraphe
+      const dernier = chunks[chunks.length - 1]
+      if (dernier && par != null && dernier.par === par) dernier.ids.push(sid)
+      else chunks.push({ par, ids: [sid] })
+    }
+    for (const c of chunks) c.ids.sort((a, b) => {
+      const ra = segMap.get(a)?.rang, rb = segMap.get(b)?.rang
+      return (ra != null && rb != null) ? ra - rb : 0
+    })
+    return chunks.map(c => ({ ids: c.ids }))
+  }
+
+  // Cellule d'actions flottante d'un segment (mode paragraphes), ancrée sur le
+  // segment survolé ou sélectionné.
+  const positionnerToolbar = (el: HTMLElement, sid: number) => {
+    if (timerSurvolRef.current) clearTimeout(timerSurvolRef.current)
+    const r = el.getBoundingClientRect()
+    const largeurEcran = typeof window !== 'undefined' ? window.innerWidth : 1200
+    setSegSurvol({ id: sid, top: Math.max(r.top - 4, 56), left: Math.min(r.right + 6, largeurEcran - 132) })
+  }
+  const masquerToolbar = (sid: number) => {
+    timerSurvolRef.current = setTimeout(() => setSegSurvol(prev => (prev && prev.id === sid ? null : prev)), 200)
+  }
+
   return (
     <div style={{ background: '#f7f4ef', minHeight: '100vh' }}>
       <style>{`
@@ -1121,6 +1180,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         .seg-wrapper:hover .seg-btn-action { opacity: 1 !important; }
         .seg-wrapper .seg-btn-action { opacity: 0; }
         .seg-wrapper--actif .seg-btn-action { opacity: 0.5; }
+        /* Mode paragraphes : segments coulant dans un même bloc, délimités au survol. */
+        .seg-inline { border-radius: 2px; padding: 0 0.5px; cursor: pointer; transition: background 0.12s; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+        .seg-inline:hover { background: rgba(61,107,79,0.09); }
+        .seg-inline--actif { background: #ddeee2; }
         @media(max-width: 980px){
           .titre-colophon{max-width:100%!important;line-height:1.32!important;word-spacing:normal!important;letter-spacing:0!important;}
           .titre-colophon > span{display:inline!important;width:auto!important;max-width:100%!important;}
@@ -1164,7 +1227,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           />
           <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid #d6d0c4', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <p style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>{auteur}</p>
+              <ApercuAuteur auteurId={auteurId ?? null} onOuvrirFiche={() => { if (auteurId) setAuteurModalOuvert(true) }}>{auteur}</ApercuAuteur>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                 {estAdmin && (
                   <button onClick={() => setConfigOuverte(true)} title="Configurer les niveaux d'affichage"
@@ -1183,7 +1246,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               </div>
             </div>
             <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', color: '#2a3d30', lineHeight: 1.35, margin: 0, whiteSpace: 'pre-line' }}>
-              {rendreTexteEnrichi(titreAffiche)}
+              {rendreTexteEnrichi(oeuvreLocale.titre_affichage || titreAffiche)}
             </p>
             {(oeuvreLocale.sous_titre || oeuvreLocale.titre_original || oeuvreLocale.trad_auteur || oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication || oeuvreLocale.collection) && (
               <button onClick={() => setInfoEditionOuverte(true)}
@@ -1191,6 +1254,23 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 En savoir plus sur cette édition
               </button>
             )}
+            {/* Bascule de mode de lecture — discrète. Grisée si l'œuvre n'est pas
+                segmentée en paragraphes (colonne `paragraphe` absente). */}
+            <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#b0a89e', flexShrink: 0 }}>Lecture</span>
+              <div title={eligibleParagraphes ? undefined : "Cette œuvre n'est pas segmentée en paragraphes."}
+                style={{ display: 'inline-flex', border: '1px solid #e0dacf', borderRadius: '999px', overflow: 'hidden', opacity: eligibleParagraphes ? 1 : 0.55 }}>
+                {(['paragraphes', 'segments'] as const).map(m => {
+                  const actif = modeLecture === m
+                  return (
+                    <button key={m} disabled={!eligibleParagraphes} onClick={() => basculerMode(m)}
+                      style={{ fontSize: '0.5625rem', padding: '3px 10px', border: 'none', background: actif ? '#3d6b4f' : 'transparent', color: actif ? '#fff' : '#8a8278', cursor: eligibleParagraphes ? 'pointer' : 'default', fontWeight: actif ? 600 : 400, letterSpacing: '0.02em', transition: 'background 0.12s' }}>
+                      {m === 'paragraphes' ? 'Paragraphes' : 'Segments'}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           </div>
 
 
@@ -1338,11 +1418,17 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           <PageTitre auteur={auteur} oeuvre={oeuvreLocale} titre={titreAffiche} estAdmin={estAdmin}
             onModifier={(champ, va) => setEditionCible({ type: 'titre_oeuvre', champ, texteActuel: va })} />
 
+          {/* Fleuron (feuille de vigne) séparant la page de titre du niveau 1,
+              à la place du long filet. */}
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 44px' }}>
+            <FeuilleVigne />
+          </div>
+
           {/* Navigation précédent/suivant — toujours au niveau 1 */}
           {vue === 'texte' && !texteSansNiveaux && (
-            <div id="barre-nav-niv1" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,2fr) minmax(0,1fr)', alignItems: 'center', columnGap: '14px', marginBottom: '1.5rem', paddingBottom: '1rem', paddingRight: '60px', borderBottom: '1px solid #ede9e2', minHeight: '32px', scrollMarginTop: '60px' }}>
+            <div id="barre-nav-niv1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #ede9e2', minHeight: '32px', scrollMarginTop: '60px' }}>
               <button onClick={() => niv1Prev && changerNiv1(niv1Prev, { conserverPosition: true })} disabled={!niv1Prev}
-                style={{ justifySelf: 'start', fontSize: '1.125rem', lineHeight: 1, color: niv1Prev ? '#9a958d' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
+                style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Prev ? '#9a958d' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
                 {niv1Prev ? '‹' : ''}
               </button>
               <span style={{ fontSize: '1.45rem', fontWeight: 500, color: '#2a3d30', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'pre-line', overflowWrap: 'break-word', position: 'relative' }}>
@@ -1375,7 +1461,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 )}
               </span>
               <button onClick={() => niv1Next && changerNiv1(niv1Next, { conserverPosition: true })} disabled={!niv1Next}
-                style={{ justifySelf: 'end', fontSize: '1.125rem', lineHeight: 1, color: niv1Next ? '#9a958d' : 'transparent', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Next ? 'auto' : 'none' }}>
+                style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Next ? '#9a958d' : 'transparent', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Next ? 'auto' : 'none' }}>
                 {niv1Next ? '›' : ''}
               </button>
             </div>
@@ -1385,7 +1471,27 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           {vue === 'texte' && (() => {
             let dniv2 = '', dniv3 = '', dniv4 = ''
             let isFirstGroupe = true
-            return groupesFiltres.map((groupe) => {
+            // Introductions (arguments) hissées en tête de l'homélie, hors des groupes
+            // et de la pagination : police plus petite et plus claire, marges latérales.
+            // Rendues depuis l'état complet des segments, et seulement sur la 1re page.
+            const intros = pageActuelle === 0 ? segments.filter(s => s.nature === 'introduction') : []
+            return (<>
+              {intros.map(s => (
+                <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: '0 0 1.6rem' }}>
+                  <div lang="fr" onClick={() => setSegActif(segActif === s.id ? null : s.id)} className="seg-p"
+                    style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.74rem', fontStyle: 'italic', color: '#7a7268', lineHeight: 1.6, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', cursor: 'pointer', borderRadius: '3px', padding: '2px 6px', margin: 0, background: segActif === s.id ? '#ddeee2' : 'transparent' } as React.CSSProperties}>
+                    {rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
+                  </div>
+                  <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: '#fff', border: '1px solid #e0dacf', borderRadius: '8px', boxShadow: '0 2px 10px rgba(45,35,25,0.12)', padding: '2px 4px' }}>
+                    {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
+                    <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} />
+                    <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
+                  </div>
+                </div>
+              ))}
+              {groupesFiltres.map((groupe) => {
+              const itemsReels = groupe.itemIds.filter(id => segMap.get(id)?.nature !== 'introduction')
+              if (itemsReels.length === 0) return null
               const showNiv2 = profondeurCorps >= 2 && groupe.niv2 && groupe.niv2 !== dniv2
               const showNiv3 = profondeurCorps >= 3 && groupe.niv3 && groupe.niv3 !== dniv3
               const showNiv4 = profondeurCorps >= 4 && groupe.niv4 && groupe.niv4 !== dniv4
@@ -1438,7 +1544,28 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       )}
                     </p>
                   )}
-                  {groupe.itemIds.map(sid => {
+                  {modeLecture === 'paragraphes' ? paragraphesDe(itemsReels).map((chunk) => (
+                    <p key={`para-${chunk.ids[0]}`} lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line', paddingRight: estAdmin ? '8px' : 0 } as React.CSSProperties}>
+                      {chunk.ids.map((sid, i) => {
+                        const s = segMap.get(sid)
+                        if (!s) return null
+                        const actif = segActif === sid
+                        const estPremier = sid === premierSegmentId
+                        return (
+                          <Fragment key={sid}>
+                            <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: '60px' }}
+                              onClick={(e) => { setSegActif(actif ? null : sid); positionnerToolbar(e.currentTarget as HTMLElement, sid) }}
+                              onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
+                              onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
+                              {configNiveaux.afficherNumeros && !estPremier && <sup style={{ fontSize: '0.50rem', color: '#b0a89e', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
+                              {estPremier && normaliserEspaces(s.texte).length > 0 ? (() => { const t = nettoyerFin(normaliserEspaces(s.texte)); const chars = [...t]; const li = chars.findIndex(ch => /\p{L}/u.test(ch)); if (li <= 0) { return (<><span style={DROPCAP}>{chars[0] ?? t[0]}</span>{rendreTexteAvecNotes(chars.slice(1).join(''), s.notes ?? {})}</>) } const prefix = chars.slice(0, li).join(''); const lettre = chars[li]; const suite = chars.slice(li + 1).join(''); return (<>{rendreTexteAvecNotes(prefix, s.notes ?? {})}<span style={DROPCAP}>{lettre}</span>{rendreTexteAvecNotes(suite, s.notes ?? {})}</>) })() : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
+                            </span>
+                            {i < chunk.ids.length - 1 ? ' ' : ''}
+                          </Fragment>
+                        )
+                      })}
+                    </p>
+                  )) : itemsReels.map(sid => {
                     const s = segMap.get(sid)
                     if (!s) return null
                     const actif = segActif === sid
@@ -1451,7 +1578,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         <p id={`s${s.numero}`} onClick={() => { if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return } if (mobile) setActionsSegMobileId(null); setSegActif(actif ? null : sid) }} className="seg-p"
                           lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {configNiveaux.afficherNumeros && sid !== premierSegmentId && <sup style={{ fontSize: '0.50rem', color: '#b0a89e', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                          {sid === premierSegmentId && normaliserEspaces(s.texte).length > 0 ? (() => { const t = nettoyerFin(normaliserEspaces(s.texte)); const chars = [...t]; const li = chars.findIndex(ch => /\p{L}/u.test(ch)); if (li <= 0) { return (<><span style={{ float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }}>{chars[0] ?? t[0]}</span>{rendreTexteAvecNotes(chars.slice(1).join(''), s.notes ?? {})}</>) } const prefix = chars.slice(0, li).join(''); const lettre = chars[li]; const suite = chars.slice(li + 1).join(''); return (<>{prefix}<span style={{ float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }}>{lettre}</span>{rendreTexteAvecNotes(suite, s.notes ?? {})}</>) })() : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
+                          {sid === premierSegmentId && normaliserEspaces(s.texte).length > 0 ? (() => { const t = nettoyerFin(normaliserEspaces(s.texte)); const chars = [...t]; const li = chars.findIndex(ch => /\p{L}/u.test(ch)); if (li <= 0) { return (<><span style={{ float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }}>{chars[0] ?? t[0]}</span>{rendreTexteAvecNotes(chars.slice(1).join(''), s.notes ?? {})}</>) } const prefix = chars.slice(0, li).join(''); const lettre = chars[li]; const suite = chars.slice(li + 1).join(''); return (<>{rendreTexteAvecNotes(prefix, s.notes ?? {})}<span style={{ float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }}>{lettre}</span>{rendreTexteAvecNotes(suite, s.notes ?? {})}</>) })() : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
                         </p>
                         <div className="seg-actions" style={mobile ? {
                           position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6, opacity: 1, display: actionsSegMobileId === sid ? 'flex' : 'none', flexDirection: 'row', gap: '0.25rem', alignItems: 'center', background: '#fff', border: '1px solid #d6d0c4', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
@@ -1472,7 +1599,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   })}
                 </div>
               )
-            })
+            })}
+            </>)
           })()}
 
           {/* Navigation de pages — bas de page */}
@@ -1514,7 +1642,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                             <p id={`a${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
                               lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', paddingRight: estAdmin ? '72px' : '4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                               {configNiveaux.afficherNumeros && <sup style={{ fontSize: '0.50rem', color: '#b0a89e', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                              {rendreTexteEnrichi(nettoyerFin(normaliserEspaces(s.texte)))}
+                              {rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
                             </p>
                             {estAdmin && (
                               <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)"
@@ -1837,6 +1965,26 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         )}
       </div>
 
+      {/* Mode paragraphes : cellule d'actions flottante du segment survolé/sélectionné. */}
+      {segSurvol && modeLecture === 'paragraphes' && vue === 'texte' && typeof document !== 'undefined' && (() => {
+        const s = segMap.get(segSurvol.id)
+        if (!s) return null
+        return createPortal(
+          <div onMouseEnter={() => { if (timerSurvolRef.current) clearTimeout(timerSurvolRef.current) }}
+            onMouseLeave={() => masquerToolbar(segSurvol.id)}
+            style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: '#fff', border: '1px solid #e0dacf', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.16)', padding: '2px 4px' }}>
+            {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
+            <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} />
+            <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
+            {estAdmin && (
+              <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" aria-label="Modifier ce segment"
+                style={{ ...BTN_STYLE, color: '#c8c0b4' }}>✎</button>
+            )}
+          </div>,
+          document.body
+        )
+      })()}
+
       {apercuVerset && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}
           onClick={() => setApercuVerset(null)}>
@@ -1868,7 +2016,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   ) : (
                     <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.02em' }}>{auteur}</span>
                   )}
-                  <span style={{ color: '#cbc3b6', margin: '0 7px' }}>–</span>
+                  <span style={{ margin: '0 3px' }}> </span>
                   <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', color: '#2a3d30' }}>{rendreTexteEnrichi(titreAffiche)}</span>
                 </p>
                 {oeuvreLocale.sous_titre && (
@@ -1885,8 +2033,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               if (!aOriginal && !aEdition) return null
               const carte: React.CSSProperties = { background: '#f6f8f3', border: '1px solid #e2ebdc', borderLeft: '2.5px solid #a7c4a0', borderRadius: '8px', padding: '11px 13px' }
               const legende: React.CSSProperties = { fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.10em', color: '#6f9268', margin: '0 0 8px', textTransform: 'uppercase' }
-              const cle: React.CSSProperties = { fontSize: '0.53125rem', color: '#a9b0a2', display: 'block', marginBottom: 0, lineHeight: 1.1 }
-              const val: React.CSSProperties = { fontSize: '0.71875rem', color: '#3a3530', lineHeight: 1.35 }
+              const cle: React.CSSProperties = { fontSize: '0.53125rem', color: '#a9b0a2', display: 'block', marginBottom: '-3px', lineHeight: 0.95 }
+              const val: React.CSSProperties = { fontSize: '0.71875rem', color: '#3a3530', lineHeight: 1.15 }
               return (
                 <div style={{ display: 'grid', gridTemplateColumns: (aOriginal && aEdition) ? 'minmax(0,1fr) minmax(0,1fr)' : '1fr', gap: '10px', marginBottom: '12px' }}>
                   {aOriginal && (

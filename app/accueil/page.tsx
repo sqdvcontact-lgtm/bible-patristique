@@ -16,12 +16,24 @@ export default function AccueilPage() {
         .colophon-regle { display: block; width: 36px; height: 1px; background: #c8b89e; margin: 0 auto; }
         .hero-title-ornament { width: min(265px, 48vw); height: auto; display: block; margin: 0 auto 8px; opacity: .82; }
         .hero-title-ornament + div { display: none; }
+        /* Colophon final : pyramide desktop calibrée en rem ; sur écran étroit,
+           les lignes longues débordaient (« soins » rejeté seul). On bascule alors
+           sur un découpage mobile en lignes plus courtes et plus nombreuses. */
+        .colophon-pyr-mobile { display: none; }
+        @media (max-width: 600px) {
+          .colophon-pyr-desktop { display: none; }
+          .colophon-pyr-mobile { display: block; }
+          .colophon-pyr-mobile p { margin: 0 auto; max-width: 90vw; }
+          /* Liens légaux empilés, chacun entier sur sa ligne. */
+          .liens-legaux { display: flex; flex-direction: column; align-items: center; gap: 9px; }
+          .liens-legaux .sep-legal { display: none; }
+        }
       `}</style>
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <main style={{
         minHeight: "calc(100vh - 3.5rem)",
-        background: "#f6f2e8",
+        background: "#eef2ea",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -67,7 +79,7 @@ export default function AccueilPage() {
           {/* Filet */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", margin: "0 auto 14px", maxWidth: "15rem" }}>
             <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #b8a070)" }} />
-            <span style={{ fontSize: "0.625rem", color: "#9a8248", letterSpacing: "0.2em" }}>✦</span>
+            <span style={{ fontSize: "0.95rem", color: "#9a8248", lineHeight: 1 }}>❧</span>
             <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #b8a070)" }} />
           </div>
 
@@ -76,7 +88,7 @@ export default function AccueilPage() {
             fontFamily: "var(--font-source-serif), Georgia, serif",
             fontSize: "0.875rem",
             fontStyle: "italic",
-            color: "#4a6050",
+            color: "#3d6b4f",
             letterSpacing: "0.02em",
             marginBottom: "6px",
           }}>
@@ -95,26 +107,9 @@ export default function AccueilPage() {
 
         <AccueilCards />
 
-        {/* Logo du site — deux anges encadrant le livre, en emblème sous les cartes.
-            Le PNG est en crème ; on le rend via un masque CSS pour le teinter et le
-            poser comme un fer typographique sur le parchemin. Il occupe (flex:1)
-            l'espace libre entre les cartes et le bouton « Soutenir », centré. */}
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minHeight: "clamp(120px, 20vh, 240px)", padding: "28px 0 8px" }}>
-          <div aria-hidden="true" style={{
-            width: "clamp(150px, 19vw, 275px)",
-            aspectRatio: "1079 / 757",
-            WebkitMaskImage: "url(/icons/corpus-scriptura-mark.png)",
-            maskImage: "url(/icons/corpus-scriptura-mark.png)",
-            WebkitMaskRepeat: "no-repeat",
-            maskRepeat: "no-repeat",
-            WebkitMaskSize: "contain",
-            maskSize: "contain",
-            WebkitMaskPosition: "center",
-            maskPosition: "center",
-            background: "#9a8248",
-            opacity: 0.9,
-          }} />
-        </div>
+        {/* Espace libre entre les cartes et le bouton « Soutenir » (l'emblème aux
+            deux anges a été retiré). */}
+        <div style={{ flex: 1, minHeight: "clamp(48px, 12vh, 140px)" }} />
         </div>
 
         {/* Soutenir — ancré en bas du viewport initial */}
@@ -123,7 +118,7 @@ export default function AccueilPage() {
           alignItems: "center",
           gap: "7px",
           fontSize: "0.75rem",
-          color: "#3a5030",
+          color: "#3d6b4f",
           background: "rgba(255,253,245,0.97)",
           textDecoration: "none",
           padding: "8px 22px",
@@ -135,14 +130,14 @@ export default function AccueilPage() {
         }}>
           <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ opacity: 0.60 }}>
             <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z"
-              stroke="#3a5030" strokeWidth="1.1" strokeLinejoin="round"/>
+              stroke="#3d6b4f" strokeWidth="1.1" strokeLinejoin="round"/>
           </svg>
           Soutenir le projet
         </Link>
       </main>
 
       {/* ── À propos — style colophon ─────────────────────────────────────── */}
-      <div id="apropos" style={{ background: "#f3efe2", scrollMarginTop: "3.5rem", borderTop: "1px solid #d8cdb0" }}>
+      <div id="apropos" style={{ background: "#e7ede1", scrollMarginTop: "3.5rem", borderTop: "1px solid #cdd6c2" }}>
         <div style={{
           maxWidth: "35rem",
           margin: "0 auto",
@@ -188,39 +183,55 @@ export default function AccueilPage() {
 
           <ColophonSection titre="Contributions">
             <p style={paraStyle}>La bibliothèque s&rsquo;enrichit progressivement. Vous pouvez y contribuer en nous transmettant des textes patristiques du domaine public, soigneusement établis, ou en nous signalant corrections, références et erreurs à relever.</p>
-            <p style={paraStyle}>Si vous êtes artiste — peintre, graveur, illustrateur — des acquisitions d&rsquo;œuvres destinées à illustrer les Pères de l&rsquo;Église sont possibles : consultez la page <Link href="/bibliotheque" style={{ color: "#3d5c30", textDecoration: "none", borderBottom: "1px dotted #8a7a5e" }}>Bibliothèque</Link>.</p>
+            <p style={paraStyle}>Si vous êtes artiste — peintre, graveur, illustrateur — des acquisitions d&rsquo;œuvres destinées à illustrer les Pères de l&rsquo;Église sont possibles : consultez la page <Link href="/bibliotheque" style={{ color: "#3d6b4f", textDecoration: "none", borderBottom: "1px dotted #8a7a5e" }}>Bibliothèque</Link>.</p>
           </ColophonSection>
 
           <ColophonSection titre="Soutenir">
             <p style={paraStyle}>Le site est proposé en accès entièrement libre. Son développement suppose néanmoins du temps, des outils, des vérifications et un travail régulier de mise en forme et d&rsquo;établissement des textes.</p>
-            <p style={paraStyle}>Si vous souhaitez soutenir cette entreprise, un don, même modeste, peut être adressé depuis la page <Link href="/soutenir" style={{ color: "#3d5c30", textDecoration: "none", borderBottom: "1px dotted #8a7a5e" }}>Soutenir le projet</Link>. Votre aide contribue directement à l&rsquo;enrichissement de la bibliothèque et à la mise en ligne de nouvelles œuvres.</p>
+            <p style={paraStyle}>Si vous souhaitez soutenir cette entreprise, un don, même modeste, peut être adressé depuis la page <Link href="/soutenir" style={{ color: "#3d6b4f", textDecoration: "none", borderBottom: "1px dotted #8a7a5e" }}>Soutenir le projet</Link>. Votre aide contribue directement à l&rsquo;enrichissement de la bibliothèque et à la mise en ligne de nouvelles œuvres.</p>
           </ColophonSection>
 
           {/* ── Colophon final — pyramide ─────────────────────────────────── */}
-          <div style={{ marginTop: "56px" }}>
-            <OrnementsTriple />
-            <div style={{ marginTop: "32px", fontSize: "0.8125rem", lineHeight: "2.1", color: "#4a4a30", letterSpacing: "0.01em" }}>
-              <p style={{ maxWidth: "28.75rem", margin: "0 auto" }}>Imprimé sur le réseau des réseaux par les soins</p>
-              <p style={{ maxWidth: "23.75rem", margin: "0 auto" }}>de <em>Corpus Scriptura</em>, somme ouverte dédiée</p>
-              <p style={{ maxWidth: "18.75rem", margin: "0 auto" }}>à la lecture des Saintes Écritures</p>
-              <p style={{ maxWidth: "14.375rem", margin: "0 auto" }}>et des Pères de l&rsquo;Église,</p>
-              <p style={{ maxWidth: "10.625rem", margin: "0 auto" }}>en l&rsquo;An de grâce</p>
-              <p style={{ maxWidth: "6.875rem", margin: "0 auto" }}>MMXXVI.</p>
+          {/* Un seul séparateur : celui qui clôt la section « Soutenir » ci-dessus
+              suffit (on a retiré le second, qui faisait doublon). */}
+          <div style={{ marginTop: "44px" }}>
+            <div style={{ fontSize: "0.8125rem", lineHeight: "2.1", color: "#4a4a30", letterSpacing: "0.01em" }}>
+              <div className="colophon-pyr-desktop">
+                <p style={{ maxWidth: "28.75rem", margin: "0 auto" }}>Imprimé sur le réseau des réseaux par les soins</p>
+                <p style={{ maxWidth: "23.75rem", margin: "0 auto" }}>de <em>Corpus Scriptura</em>, somme ouverte dédiée</p>
+                <p style={{ maxWidth: "18.75rem", margin: "0 auto" }}>à la lecture des Saintes Écritures</p>
+                <p style={{ maxWidth: "14.375rem", margin: "0 auto" }}>et des Pères de l&rsquo;Église,</p>
+                <p style={{ maxWidth: "10.625rem", margin: "0 auto" }}>en l&rsquo;An de grâce</p>
+                <p style={{ maxWidth: "6.875rem", margin: "0 auto" }}>MMXXVI.</p>
+              </div>
+              <div className="colophon-pyr-mobile">
+                <p>Imprimé sur le réseau des réseaux</p>
+                <p>par les soins de <em>Corpus Scriptura</em>,</p>
+                <p>somme ouverte dédiée</p>
+                <p>à la lecture des Saintes Écritures</p>
+                <p>et des Pères de l&rsquo;Église,</p>
+                <p>en l&rsquo;An de grâce</p>
+                <p>MMXXVI.</p>
+              </div>
             </div>
 
             {/* Marque finale */}
-            <div style={{ marginTop: "28px", fontSize: "1.25rem", color: "#9a8a6e", letterSpacing: "0.3em" }}>
-              ✦
+            <div style={{ marginTop: "28px", fontSize: "1.4rem", color: "#9a8248", lineHeight: 1 }}>
+              ❧
             </div>
 
-            {/* Liens légaux */}
-            <div style={{ marginTop: "28px", fontSize: "0.65625rem", color: "#b0a088", letterSpacing: "0.06em" }}>
-              <Link href="/conditions-utilisation" style={{ color: "#9a8a6e", textDecoration: "none", borderBottom: "1px dotted #c8b89e" }}>
+            {/* Liens légaux — en ligne sur desktop, empilés (sans coupure) sur mobile */}
+            <div className="liens-legaux" style={{ marginTop: "28px", fontSize: "0.65625rem", color: "#b0a088", letterSpacing: "0.06em" }}>
+              <Link href="/conditions-utilisation" className="lien-legal" style={{ color: "#9a8a6e", textDecoration: "none", borderBottom: "1px dotted #c8b89e", whiteSpace: "nowrap" }}>
                 Conditions d&rsquo;utilisation
               </Link>
-              <span style={{ margin: "0 14px", opacity: 0.4 }}>·</span>
-              <Link href="/confidentialite" style={{ color: "#9a8a6e", textDecoration: "none", borderBottom: "1px dotted #c8b89e" }}>
+              <span className="sep-legal" style={{ margin: "0 14px", opacity: 0.4 }}>·</span>
+              <Link href="/confidentialite" className="lien-legal" style={{ color: "#9a8a6e", textDecoration: "none", borderBottom: "1px dotted #c8b89e", whiteSpace: "nowrap" }}>
                 Politique de confidentialité
+              </Link>
+              <span className="sep-legal" style={{ margin: "0 14px", opacity: 0.4 }}>·</span>
+              <Link href="/contact" className="lien-legal" style={{ color: "#9a8a6e", textDecoration: "none", borderBottom: "1px dotted #c8b89e", whiteSpace: "nowrap" }}>
+                Contact
               </Link>
             </div>
           </div>
@@ -237,7 +248,7 @@ function OrnementsTriple() {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", margin: "0 auto", maxWidth: "18.75rem" }}>
       <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #b8a060)" }} />
-      <span style={{ fontSize: "1rem", color: "#9a8248", letterSpacing: "0.15em" }}>⁂</span>
+      <span style={{ fontSize: "1.15rem", color: "#9a8248", lineHeight: 1 }}>❧</span>
       <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #b8a060)" }} />
     </div>
   )
@@ -251,7 +262,7 @@ function ColophonSection({ titre, children }: { titre: string; children: React.R
         fontWeight: 600,
         letterSpacing: "0.22em",
         textTransform: "uppercase",
-        color: "#8a7440",
+        color: "#3d6b4f",
         margin: "0 0 16px",
       }}>
         {titre}

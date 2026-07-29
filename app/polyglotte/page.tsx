@@ -737,13 +737,35 @@ export default function PolyglottePage() {
         .poly-edit:focus-visible { opacity: 1; pointer-events: auto; }
       `}</style>
 
-      <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "48px 22px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: "#5b544c" }}>
-        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.375rem', color: VERT, margin: "0 0 14px" }}>Polyglotte</h1>
-        <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: 0 }}>
+      <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "56px 22px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: "#5b544c" }}>
+        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.375rem', color: VERT, margin: "0 0 16px" }}>Polyglotte</h1>
+        <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: "0 0 30px" }}>
           Cette page compare plusieurs traductions côte à côte : elle demande un écran large.
           <br /><br />
           <strong>Ouvrez-la depuis un ordinateur ou une tablette.</strong>
         </p>
+
+        {/* Dessin en pied de message : un ordinateur surmonté d'une langue de feu,
+            en référence à l'Esprit de la Pentecôte (« des langues comme de feu se
+            posèrent sur chacun d'eux »). Portrait, pensé pour l'écran étroit. */}
+        <svg width="150" height="216" viewBox="0 0 150 216" role="img" aria-label="Ordinateur surmonté d'une langue de feu" style={{ display: "block", margin: "0 auto" }}>
+          <defs>
+            <linearGradient id="poly-flamme" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#e7a13f" />
+              <stop offset="0.55" stopColor="#d1642a" />
+              <stop offset="1" stopColor="#b23c22" />
+            </linearGradient>
+          </defs>
+          {/* Langue de feu */}
+          <path d="M75 6 C 90 34, 102 48, 97 74 C 94 92, 82 100, 75 100 C 68 100, 56 92, 53 74 C 48 48, 60 34, 75 6 Z" fill="url(#poly-flamme)" />
+          <path d="M75 34 C 84 52, 89 62, 86 76 C 84 87, 78 92, 75 92 C 72 92, 66 87, 64 76 C 61 62, 66 52, 75 34 Z" fill="#f6d789" />
+          <path d="M75 54 C 80 66, 82 72, 80 80 C 79 85, 76 88, 75 88 C 74 88, 71 85, 70 80 C 68 72, 70 66, 75 54 Z" fill="#fbedbf" />
+          {/* Ordinateur : écran + col + socle */}
+          <rect x="30" y="116" width="90" height="64" rx="7" fill="#eef2ea" stroke="#3d6b4f" strokeWidth="2.6" />
+          <rect x="39" y="124" width="72" height="48" rx="3" fill="rgba(61,107,79,0.10)" />
+          <line x1="75" y1="180" x2="75" y2="196" stroke="#3d6b4f" strokeWidth="2.6" strokeLinecap="round" />
+          <path d="M52 202 Q75 191 98 202" fill="none" stroke="#3d6b4f" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </div>
 
       {/* Le MÊME volet que la page Bible — pas un cousin qui lui ressemble. Un seul composant
@@ -1051,11 +1073,11 @@ export default function PolyglottePage() {
                               <span className="poly-lettrine">
                                 {cs.map((c, k) => (
                                   <span key={k} className="poly-lettrine-item">
-                                    <span className="poly-lettrine-ref" title={`${c.ch_orig}, ${c.v_orig}${c.v_orig_suffixe ?? ""}`}>
+                                    <span className="poly-lettrine-ref" title={`${c.ch_orig}, ${c.v_orig}${t.trad_id === "TR0004" ? "" : (c.v_orig_suffixe ?? "")}`}>
                                       {/* Chapitre ET verset, toujours : la référence d'origine ne se
                                           lit qu'entière. Le chapitre est simplement composé plus clair
                                           pour que le verset, lui, se détache. */}
-                                      <span className="poly-lettrine-ch">{c.ch_orig},</span> {c.v_orig}{c.v_orig_suffixe ?? ""}
+                                      <span className="poly-lettrine-ch">{c.ch_orig},</span> {c.v_orig}{t.trad_id === "TR0004" ? "" : (c.v_orig_suffixe ?? "")}
                                       {/* Une intervention d'alignement laisse toujours sa trace dans
                                           `notes` : le lecteur voit QU'il y a eu intervention, et le
                                           survol lui dit LAQUELLE. Rien n'est corrigé en silence. */}
