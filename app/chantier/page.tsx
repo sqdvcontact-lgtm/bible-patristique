@@ -71,7 +71,7 @@ function IcoExigence() {
           La balance parlait de tribunal, ce qui n'est pas le propos. */}
       <path d="M3.5 5.5h11M3.5 9h11M3.5 12.5h6" {...traits} />
       <circle cx="15.4" cy="15.4" r="4.6" {...traits} />
-      <path d="M18.9 18.9 21.5 21.5" {...traits} strokeWidth={1.7} />
+      <path d="M18.9 18.9 21.5 21.5" {...traits} />
     </svg>
   );
 }
@@ -174,17 +174,17 @@ const PRINCIPES: { ico: React.ReactNode; titre: string; texte: React.ReactNode }
       originales suivront, et peut-être des éditions critiques sous licence.</> },
   // « Ce qu'on ne trouve pas ailleurs » : autrefois un bloc à part sous les encarts, il
   // rejoint ici la série — même registre, un seul cadre.
-  { ico: <IcoExigence />, titre: "Ce qu’on ne trouve pas ailleurs",
+  { ico: <IcoExigence />, titre: "Des textes qu’on ne trouve pas ailleurs",
     texte: <>De nombreux ouvrages excellents ne subsistent que dans des éditions anciennes,
       introuvables ou coûteuses. Nous nous efforçons de les retrouver, de les acquérir et de les
       republier avec le plus grand soin – c’est le cœur du travail, et ce qui prend le plus de temps.</> },
   // Les deux anciens encarts « Chaque verset… » et « Des rapprochements vérifiés » réunis :
   // le renvoi aux Pères et sa vérification disaient une même chose en deux temps.
-  { ico: <IcoLien />, titre: "Chaque verset, et ce qu’on en a dit",
+  { ico: <IcoLien />, titre: "Chaque verset et ses commentaires",
     texte: <>En regard du texte biblique s’affichent les passages des Pères qui le citent ou le
       commentent : c’est le cœur du site. Chaque rapprochement est établi puis relu ; les passages
       incertains sont signalés comme tels, et vos signalements servent à corriger le site.</> },
-  { ico: <IcoPlume />, titre: "Les lecteurs publient",
+  { ico: <IcoPlume />, titre: "Les lecteurs contribuent",
     texte: <>Les lecteurs inscrits publient leurs propres essais et méditations, à lire et à
       commenter. Le site n’est pas qu’une bibliothèque : c’est aussi un lieu où l’on écrit.</> },
   { ico: <IcoLibre />, titre: "Gratuit, sans publicité",
@@ -426,13 +426,19 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-chapeau { font-size: 0.90625rem; color: #6a6259; line-height: 1.75;
                       max-width: 32.5rem; margin: 0 auto; }
         .cs-suite { display: block; margin-top: 1rem; color: #a89e8e; }
-        .cs-principes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; margin-bottom: 2.375rem; }
-        /* Encart : pictogramme, titre, texte — empilés et centrés. La pastille
-           pose le pictogramme au calme ; le filet sous le titre le rattache au
-           texte sans le cerner. */
-        .cs-encart { display: flex; flex-direction: column; align-items: center; text-align: center;
-                     padding: 1.375rem 1.375rem 1.5rem; border: 1px solid #e7e0d4; border-radius: 0.75rem;
-                     background: linear-gradient(#fdfbf6, #f8f4ea); }
+        /* Grille des six encarts. grid-auto-rows:1fr donne à toutes les rangées
+           la même hauteur : les six cartes sont ainsi rigoureusement égales, quel
+           que soit le nombre de lignes du texte. L'écart (gap) est le même dans
+           les deux sens, pour que l'ensemble respire régulièrement. */
+        .cs-principes { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr;
+                        gap: 1.5rem; margin-bottom: 2.375rem; }
+        /* Encart : pictogramme, titre, filet, texte — empilés et centrés, à
+           distances fixes pour que les titres tombent au même niveau dans chaque
+           rangée. Ivoire léger (distinct du fond, sans blanc froid), angles peu
+           arrondis, filet fin beige, ombre à peine perceptible. */
+        .cs-encart { display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+                     text-align: center; padding: 1.5rem 1.5rem; border: 1px solid #e7e0d4;
+                     border-radius: 0.5rem; background: #faf6ec; box-shadow: 0 1px 2px rgba(60,50,30,0.04); }
         .cs-encart-ico { display: flex; align-items: center; justify-content: center;
                          width: 2.875rem; height: 2.875rem; border-radius: 50%; margin-bottom: 0.75rem;
                          color: #3d6b4f; background: #eef3ee; border: 1px solid #dbe6dd; }
@@ -488,6 +494,15 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-route-item--fait .cs-route-titre { color: #a89e8e; text-decoration: line-through;
                           text-decoration-color: #c3b9a6; }
         .cs-chiffres { display: flex; justify-content: center; gap: 3.375rem; flex-wrap: wrap; margin: 0.375rem 0 2.125rem; }
+
+        /* ── Cartes en écran étroit ───────────────────────────────────────────
+           Sous ~750px, les six cartes passent sur une seule colonne, pleine
+           largeur, et leur corps de texte remonte à 15px : lu de près sur un
+           téléphone, le petit corps de la version deux-colonnes se lirait mal. */
+        @media (max-width: 750px) {
+          .cs-principes { grid-template-columns: 1fr; gap: 1.125rem; }
+          .cs-encart-texte { font-size: 0.9375rem; line-height: 1.6; max-width: 40ch; }
+        }
 
         /* ── Téléphone ────────────────────────────────────────────────────────
            Une colonne, marges resserrées, et surtout des cibles tactiles qui
