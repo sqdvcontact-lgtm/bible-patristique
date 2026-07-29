@@ -685,7 +685,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
 export default function PanneauPatristique({
   verset, livreActif, nomLivre, chapitreActif,
   panelWidth = null, onWidthChange, mobile = false,
-  voletMobile = null, setVoletMobile, barreMobile = true,
+  voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
 }: {
   verset: Verset | null
   livreActif: string
@@ -697,6 +697,7 @@ export default function PanneauPatristique({
   voletMobile?: 'livres' | 'commentaires' | null
   setVoletMobile?: (v: 'livres' | 'commentaires' | null) => void
   barreMobile?: boolean
+  presentation?: 'drawer' | 'inline'
 }) {
   type Onglet = 'patristique' | 'commentaires'
   type SousOnglet = 'citations' | 'doctrine' | 'echos'
@@ -1065,12 +1066,14 @@ export default function PanneauPatristique({
 
   return (
     <>
-    {/* Empilé (mobile) : le panneau des Pères monte en TIROIR depuis le bas,
-        par-dessus le texte, avec un fond assombri. La barre « Commentaires »
-        reste toujours visible (voir la branche repliée). */}
-    {mobile && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
+    {/* Empilé (mobile) : en mode ONGLETS (presentation='inline'), les Pères occupent
+        toute la page sous la barre d'onglets, sans fond assombri. En mode tiroir, le
+        panneau monte depuis le bas par-dessus le texte, avec un fond assombri. */}
+    {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
     <div ref={refPanel} style={mobile
-      ? { position:'fixed', bottom:BANDEAU_NAV_MOBILE, left:0, right:0, zIndex:2401, background:'#fff', borderTop:'1px solid #d6d0c4', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem - ${BANDEAU_NAV_MOBILE})`, minHeight:0, boxShadow:'0 -10px 28px rgba(45,35,25,0.22)' }
+      ? (presentation === 'inline'
+        ? { width:'100%', background:'#fff', display:'flex', flexDirection:'column', paddingTop:'2.875rem', minHeight:`calc(100dvh - ${HAUTEUR_NAVBAR})`, paddingBottom:BANDEAU_NAV_MOBILE }
+        : { position:'fixed', bottom:BANDEAU_NAV_MOBILE, left:0, right:0, zIndex:2401, background:'#fff', borderTop:'1px solid #d6d0c4', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem - ${BANDEAU_NAV_MOBILE})`, minHeight:0, boxShadow:'0 -10px 28px rgba(45,35,25,0.22)' })
       : { width: panelWidth == null ? 'clamp(260px, 20vw, 460px)' : panelWidth + 'px', flexShrink:0, background:'#fff', borderLeft:'1px solid #d6d0c4', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
       {!mobile && handleDrag && (
         <div onMouseDown={handleDrag} title="Glisser pour redimensionner"

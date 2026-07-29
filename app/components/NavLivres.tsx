@@ -116,7 +116,8 @@ type Props = {
   // Mobile : accordéon des trois volets piloté par le parent (un seul ouvert à la fois).
   voletMobile?: 'livres' | 'commentaires' | null
   setVoletMobile?: (v: 'livres' | 'commentaires' | null) => void
-  barreMobile?: boolean                     // afficher la barre fixe mobile (false : ouverture par swipe)
+  barreMobile?: boolean                     // afficher la barre fixe mobile (false : sans barre)
+  presentation?: 'drawer' | 'inline'        // mobile : tiroir superposé, ou page pleine (onglets)
 }
 
 /**
@@ -150,7 +151,7 @@ export default function NavLivres({
   panelWidth = null, onWidthChange,
   livresVides, onChoisirLivre, sansChapitres, titre,
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, entierActif,
-  mobile = false, voletMobile = null, setVoletMobile, barreMobile = true,
+  mobile = false, voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
 }: Props) {
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
@@ -363,16 +364,20 @@ export default function NavLivres({
 
   return (
     <>
-    {/* Empilé (mobile) : le volet déplié s'ouvre en TIROIR par-dessus le texte,
-        sous la navbar, avec un fond assombri qui le referme au tap. La barre
-        « Livres » reste, elle, toujours visible (voir la branche repliée). */}
-    {mobile && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
-    <div ref={refPanel} style={mobile ? {
+    {/* Empilé (mobile) : en mode ONGLETS (presentation='inline'), le sommaire occupe
+        toute la page sous la barre d'onglets, sans fond assombri. En mode tiroir, il
+        se superpose au texte avec un fond assombri qui le referme au tap. */}
+    {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
+    <div ref={refPanel} style={mobile ? (presentation === 'inline' ? {
+      width: '100%', background: '#faf8f4', display: 'flex', flexDirection: 'column',
+      paddingTop: '2.875rem', minHeight: `calc(100dvh - ${HAUTEUR_NAVBAR})`,
+      paddingBottom: `calc(0.75rem + 2.5rem)`,
+    } : {
       position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 2401,
       background: '#faf8f4', borderBottom: '1px solid #d6d0c4',
       display: 'flex', flexDirection: 'column', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`,
       boxShadow: '0 10px 28px rgba(45,35,25,0.22)',
-    } : {
+    }) : {
       width: panelWidth == null ? 'clamp(200px, 14vw, 320px)' : panelWidth + 'px', flexShrink: 0, background: '#faf8f4',
       borderRight: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', height: '100%',
       position: 'relative',
