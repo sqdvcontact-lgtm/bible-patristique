@@ -200,62 +200,90 @@ const PRINCIPES: { ico: React.ReactNode; titre: string; texte: React.ReactNode }
 ];
 
 // ── Feuille de route ─────────────────────────────────────────────────────────
-// Deux colonnes, le chemin parcouru en regard du chemin restant : « Déjà en
-// place » barré, « Avant l'ouverture » à venir. On ne date pas — une date tenue
-// de loin est une promesse qu'on rompt — et l'on s'en tient aux titres, chacun
-// devant se comprendre seul : le détail, c'est le reste de la page qui le donne.
-const ETAPES: { titre: string; fait: boolean }[] = [
-  // Déjà en place
-  { titre: "Cinq traductions françaises de la Bible", fait: true },
-  { titre: "La lecture de plusieurs traductions en regard", fait: true },
-  { titre: "La lecture des œuvres des Pères", fait: true },
-  { titre: "Les renvois d’un verset aux Pères qui le citent", fait: true },
-  { titre: "L’enregistrement de ses passages favoris", fait: true },
-  { titre: "La publication de textes par les lecteurs", fait: true },
-  { titre: "La création d’un compte de lecteur", fait: true },
-  // Avant l'ouverture
-  { titre: "Trente œuvres des Pères publiées", fait: false },
-  { titre: "Un moteur de recherche opérationnel", fait: false },
-  { titre: "Des traductions bibliques parfaitement alignées", fait: false },
-  { titre: "Le catalogue des traductions complété", fait: false },
-  { titre: "Les textes en langues anciennes : grec, latin, hébreu, syriaque", fait: false },
-  { titre: "Les écrits apocryphes primitifs", fait: false },
-  { titre: "Un site adapté à la lecture sur mobile", fait: false },
+// Deux temps : le chemin parcouru, puis le chemin restant, ce dernier réparti
+// par domaine (corpus, fiabilité, fonctionnement). On ne date pas — une date
+// tenue de loin est une promesse qu'on rompt — et l'on s'en tient à des intitulés
+// qui se comprennent seuls : le détail, c'est le reste de la page qui le donne.
+const ACQUIS: string[] = [
+  "Cinq versions de la Bible, dont les textes grec et latin",
+  "Lecture simple ou polyglotte des textes bibliques",
+  "Lecture des œuvres des Pères",
+  "Renvois d’un verset biblique aux passages patristiques qui le citent ou le commentent",
+  "Bibliothèque personnelle de passages favoris",
+  "Espace de publication ouvert aux lecteurs",
+  "Système de commentaires",
+  "Comptes et profils des lecteurs",
+  "Moteur de recherche opérationnel",
+];
+
+const AVANT: { groupe: string; items: string[] }[] = [
+  { groupe: "Enrichissement des corpus", items: [
+    "Publier au moins trente œuvres patristiques",
+    "Ajouter, autant que possible, le texte original des œuvres des Pères",
+    "OCRiser et reprendre éditorialement les traductions anciennes libres de droit",
+    "Ajouter les principaux écrits apocryphes des premiers siècles",
+    "Compléter le corpus biblique par des versions hébraïques, syriaques et, si possible, coptes",
+    "Associer à chaque texte des références bibliographiques et éditoriales précises",
+  ] },
+  { groupe: "Alignement et fiabilité des données", items: [
+    "Achever l’alignement des traductions bibliques",
+    "Contrôler les divergences de versification, notamment dans les Psaumes et les livres deutérocanoniques",
+    "Vérifier les renvois entre les versets bibliques et les textes patristiques",
+    "Stabiliser les identifiants des textes, des œuvres et des passages",
+    "Formaliser la charte éditoriale et la méthode d’établissement des correspondances",
+  ] },
+  { groupe: "Fonctionnement du site", items: [
+    "Achever l’adaptation du site aux téléphones et aux tablettes",
+    "Améliorer la navigation entre les différentes versions d’un même passage",
+    "Permettre le signalement des erreurs et la proposition de nouvelles références",
+    "Mettre en place les outils de modération des publications et des commentaires",
+    "Prévoir l’export, la sauvegarde et la restauration régulière des données",
+    "Vérifier l’accessibilité, les performances et la compatibilité avec les principaux navigateurs",
+    "Effectuer une phase de test auprès d’un groupe restreint de lecteurs",
+    "Finaliser les mentions légales, les règles de contribution et la présentation des droits attachés à chaque texte",
+  ] },
 ];
 
 function FeuilleDeRoute() {
-  const faits = ETAPES.filter(e => e.fait);
-  const aVenir = ETAPES.filter(e => !e.fait);
   return (
     <section className="cs-route">
       <p className="cs-route-kicker">Feuille de route</p>
       <p className="cs-route-chapeau">
         Ce qui est déjà en place, et ce qui reste avant l’ouverture. Nous n’annonçons pas de date.
       </p>
-      <div className="cs-route-cols">
-        <div className="cs-route-col">
-          <h3 className="cs-route-col-titre">Déjà en place</h3>
-          <ul className="cs-route-liste">
-            {faits.map(e => (
-              // Coche verte, titre barré et grisé : l'acquis recule d'un plan
-              // sans disparaître.
-              <li key={e.titre} className="cs-route-item cs-route-item--fait">
-                <span className="cs-route-puce" aria-hidden="true">✓</span>
-                <span className="cs-route-titre">{e.titre}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="cs-route-col">
-          <h3 className="cs-route-col-titre">Avant l’ouverture</h3>
-          <ul className="cs-route-liste">
-            {aVenir.map(e => (
-              <li key={e.titre} className="cs-route-item">
-                <span className="cs-route-puce cs-route-puce--reste" aria-hidden="true">○</span>
-                <span className="cs-route-titre">{e.titre}</span>
-              </li>
-            ))}
-          </ul>
+
+      {/* L'acquis : coches vertes, intitulés barrés — cela recule d'un plan sans
+          disparaître. Deux colonnes qui se replient d'elles-mêmes si besoin. */}
+      <div className="cs-route-bloc">
+        <h3 className="cs-route-col-titre">Déjà en place</h3>
+        <ul className="cs-route-liste cs-route-liste--cols">
+          {ACQUIS.map(t => (
+            <li key={t} className="cs-route-item cs-route-item--fait">
+              <span className="cs-route-puce" aria-hidden="true">✓</span>
+              <span className="cs-route-titre">{t}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Le travail restant, par domaine : trois groupes en colonnes, chacun avec
+          son sous-titre ; l'ensemble se replie de lui-même sur écran étroit. */}
+      <div className="cs-route-bloc">
+        <h3 className="cs-route-col-titre">Avant l’ouverture</h3>
+        <div className="cs-route-groupes">
+          {AVANT.map(g => (
+            <div key={g.groupe} className="cs-route-groupe">
+              <h4 className="cs-route-sous-titre">{g.groupe}</h4>
+              <ul className="cs-route-liste">
+                {g.items.map(t => (
+                  <li key={t} className="cs-route-item">
+                    <span className="cs-route-puce cs-route-puce--reste" aria-hidden="true">○</span>
+                    <span className="cs-route-titre">{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -478,17 +506,27 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-route-chapeau { font-size: 0.8125rem; color: #6a6259; line-height: 1.7;
                             max-width: 28.75rem; margin: 0 auto 1.5rem; text-align: center;
                             font-family: var(--font-source-serif), Georgia, serif; }
-        /* Deux colonnes en regard : l'acquis à gauche, le reste à droite. Un
-           filet sous chaque en-tête tient les deux listes sur une même ligne
-           de base, quand bien même l'une est plus longue que l'autre. */
-        .cs-route-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.875rem;
-                         max-width: 40rem; margin: 0 auto; }
+        /* Deux grands blocs empilés : l'acquis, puis le travail restant réparti
+           par domaine. Chaque liste se répartit en colonnes qui se replient
+           d'elles-mêmes (auto-fit) dès que la largeur vient à manquer — pas de
+           point de rupture à régler à la main. */
+        .cs-route-bloc { max-width: 44rem; margin: 0 auto; }
+        .cs-route-bloc + .cs-route-bloc { margin-top: 2.25rem; }
         .cs-route-col-titre { font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.14em;
-                              text-transform: uppercase; color: #6f5518; margin: 0 0 0.75rem;
+                              text-transform: uppercase; color: #6f5518; margin: 0 0 1rem;
                               padding-bottom: 0.5rem; border-bottom: 1px solid #e5ddce;
                               text-align: center; }
         .cs-route-liste { list-style: none; margin: 0; padding: 0;
                           display: flex; flex-direction: column; gap: 0.6875rem; }
+        /* L'acquis, sur deux colonnes ; le travail restant, en trois groupes. */
+        .cs-route-liste--cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+                                gap: 0.5rem 1.75rem; }
+        .cs-route-groupes { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+                            gap: 1.5rem 1.75rem; }
+        .cs-route-groupe .cs-route-liste { gap: 0.5625rem; }
+        .cs-route-sous-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: 600;
+                               font-size: 0.8125rem; color: #3d5142; margin: 0 0 0.625rem;
+                               padding-bottom: 0.375rem; border-bottom: 1px solid #eae3d5; }
         .cs-route-item { display: flex; align-items: baseline; gap: 0.625rem; }
         /* La puce tient sa case pour que les titres restent alignés à gauche,
            et que les lignes qui se replient reviennent sous le titre, non sous
@@ -525,7 +563,6 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           .cs-principes { grid-template-columns: 1fr; gap: 1.125rem; margin-bottom: 1.875rem; }
           .cs-cartes { grid-template-columns: 1fr; }
           .cs-route { padding: 1.375rem 0 1.5rem; }
-          .cs-route-cols { grid-template-columns: 1fr; gap: 1.5rem; max-width: 21.25rem; }
           .cs-route-liste { gap: 0.75rem; }
           .cs-chiffres { gap: 0; justify-content: space-between; margin: 0.25rem 0 1.75rem; }
           .cs-chiffre-valeur { font-size: 1.5625rem !important; }
