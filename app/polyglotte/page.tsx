@@ -207,7 +207,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
 }) {
   const [valeur, setValeur] = useState(valeurInitiale);
   const ta = useRef<HTMLTextAreaElement>(null);
-  const outil: React.CSSProperties = { fontSize: 11, padding: "4px 9px", borderRadius: 4, border: "1px solid #d6d0c4", background: "#fff", color: "#2a2520", cursor: "pointer", fontFamily: "inherit", lineHeight: 1 };
+  const outil: React.CSSProperties = { fontSize: '0.6875rem', padding: "4px 9px", borderRadius: 4, border: "1px solid #d6d0c4", background: "#fff", color: "#2a2520", cursor: "pointer", fontFamily: "inherit", lineHeight: 1 };
   const entourer = (avant: string, apres: string = avant) => {
     const el = ta.current; if (!el) return;
     const d = el.selectionStart, f = el.selectionEnd, sel = valeur.slice(d, f) || "texte";
@@ -224,8 +224,8 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
     <div onClick={onFermer} style={{ position: "fixed", inset: 0, background: "rgba(30,25,20,0.4)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 9, padding: "18px 20px", width: 520, maxWidth: "100%", boxShadow: "0 12px 36px rgba(40,30,15,0.24)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
-          <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: VERT }}>Modifier — {reference}</p>
-          <button onClick={onFermer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 15, color: "#b0a89e", lineHeight: 1, padding: 0 }}>✕</button>
+          <p style={{ margin: 0, fontSize: '0.78125rem', fontWeight: 600, color: VERT }}>Modifier — {reference}</p>
+          <button onClick={onFermer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: '0.9375rem', color: "#b0a89e", lineHeight: 1, padding: 0 }}>✕</button>
         </div>
         <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap", alignItems: "center" }}>
           <button onClick={() => entourer("<b>", "</b>")} title="Gras" style={{ ...outil, fontWeight: 700 }}>G</button>
@@ -239,13 +239,13 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
         <textarea ref={ta} autoFocus value={valeur} onChange={e => setValeur(e.target.value)}
           onKeyDown={e => { if (e.key === "Escape") onFermer(); if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) onEnregistrer(valeur); }}
           rows={5}
-          style={{ width: "100%", boxSizing: "border-box", fontSize: 13.5, lineHeight: 1.5, fontFamily: "var(--font-source-serif), Georgia, serif", padding: "9px 11px", border: "1px solid #d6d0c4", borderRadius: 5, background: "#faf8f4", color: "#2a2520", outline: "none", resize: "vertical" }} />
+          style={{ width: "100%", boxSizing: "border-box", fontSize: '0.84375rem', lineHeight: 1.5, fontFamily: "var(--font-source-serif), Georgia, serif", padding: "9px 11px", border: "1px solid #d6d0c4", borderRadius: 5, background: "#faf8f4", color: "#2a2520", outline: "none", resize: "vertical" }} />
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
-          <span style={{ fontSize: 10.5, color: "#b0a89e", marginRight: "auto" }}>⌘/Ctrl+↵ enregistre · Échap ferme</span>
-          {statut === "erreur" && <span style={{ fontSize: 11, color: ROUGE }}>échec de l’enregistrement</span>}
-          <button onClick={onFermer} style={{ padding: "5px 12px", fontSize: 11.5, borderRadius: 4, border: "1px solid #d6cfc2", background: "#fff", color: "#8a8378", cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
+          <span style={{ fontSize: '0.65625rem', color: "#b0a89e", marginRight: "auto" }}>⌘/Ctrl+↵ enregistre · Échap ferme</span>
+          {statut === "erreur" && <span style={{ fontSize: '0.6875rem', color: ROUGE }}>échec de l’enregistrement</span>}
+          <button onClick={onFermer} style={{ padding: "5px 12px", fontSize: '0.71875rem', borderRadius: 4, border: "1px solid #d6cfc2", background: "#fff", color: "#8a8378", cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
           <button onClick={() => onEnregistrer(valeur)} disabled={statut === "envoi"}
-            style={{ padding: "5px 15px", fontSize: 11.5, borderRadius: 4, border: "none", background: VERT, color: "#fff", cursor: statut === "envoi" ? "default" : "pointer", fontFamily: "inherit", fontWeight: 500 }}>
+            style={{ padding: "5px 15px", fontSize: '0.71875rem', borderRadius: 4, border: "none", background: VERT, color: "#fff", cursor: statut === "envoi" ? "default" : "pointer", fontFamily: "inherit", fontWeight: 500 }}>
             {statut === "envoi" ? "Enregistrement…" : "Enregistrer"}
           </button>
         </div>
@@ -257,7 +257,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
 // ── Petites actions de la colonne N° (lecteur) : citer, signaler ──────────────────────
 // Mêmes symboles que les pages Bible et Œuvre : le signet ajoute le verset à « mes
 // citations », le fanion ouvre un signalement. Discrets, révélés au survol de la ligne.
-const ACT_BTN: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 0, width: 14, height: 10, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, lineHeight: 1, transition: "color .15s" };
+const ACT_BTN: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 0, width: 14, height: 10, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: '0.625rem', lineHeight: 1, transition: "color .15s" };
 function IconeSignet({ rempli }: { rempli?: boolean }) {
   return (
     <svg width="10" height="11" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display: "block" }}>
@@ -697,8 +697,8 @@ export default function PolyglottePage() {
       `}</style>
 
       <div className="poly-mobile" style={{ maxWidth: 520, margin: "0 auto", padding: "48px 22px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: "#5b544c" }}>
-        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 22, color: VERT, margin: "0 0 14px" }}>Polyglotte</h1>
-        <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0 }}>
+        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.375rem', color: VERT, margin: "0 0 14px" }}>Polyglotte</h1>
+        <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: 0 }}>
           Cette page compare plusieurs traductions côte à côte : elle demande un écran large.
           <br /><br />
           <strong>Ouvrez-la depuis un ordinateur ou une tablette.</strong>
@@ -716,7 +716,7 @@ export default function PolyglottePage() {
         <div style={{ position: "sticky", top: HAUTEUR_NAVBAR, height: HAUTEUR_SOUS_NAVBAR, flexShrink: 0, display: "flex", flexDirection: "column" }}>
           {/* Titre de la page, en tête du volet de gauche. */}
           <div style={{ flexShrink: 0, background: "#faf8f4", borderRight: "1px solid #d6d0c4", borderBottom: "1px solid #d6d0c4", padding: "12px 14px 11px" }}>
-            <h1 style={{ margin: 0, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 16, fontWeight: 600, color: VERT, letterSpacing: "0.01em", lineHeight: 1.2 }}>Bible polyglotte</h1>
+            <h1 style={{ margin: 0, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', fontWeight: 600, color: VERT, letterSpacing: "0.01em", lineHeight: 1.2 }}>Bible polyglotte</h1>
           </div>
           <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
             <NavLivres
@@ -736,7 +736,7 @@ export default function PolyglottePage() {
           </div>
         </div>
 
-      <div style={{ flex: 1, minWidth: 0, maxWidth: 1500, margin: "0 auto", padding: "12px 18px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "#2a2620" }}>
+      <div style={{ flex: 1, minWidth: 0, padding: "12px 18px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "#2a2620" }}>
         {/* Aucun livre choisi : la page reste vide et l'explique */}
         {!onglet && (
           <div style={{ margin: "60px auto", maxWidth: 560, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
@@ -744,7 +744,7 @@ export default function PolyglottePage() {
                 marge négative pour qu'elle se pose sous LE LIVRE, non sous le cadre de l'image. */}
             <img src="/ornements/livre_pol.png" alt="" aria-hidden="true"
               style={{ width: "min(230px, 55%)", height: "auto", opacity: 0.9, mixBlendMode: "multiply", marginBottom: 0 }} />
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 15, fontStyle: "italic", color: "#9a958d", letterSpacing: "0.02em", margin: "-42px 0 0" }}>Ouvrez un livre</p>
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "#9a958d", letterSpacing: "0.02em", margin: "-42px 0 0" }}>Ouvrez un livre</p>
           </div>
         )}
 
@@ -774,7 +774,7 @@ export default function PolyglottePage() {
               <div style={{ position: "relative", background: VERT_ENTETE, color: "#fff", borderBottom: "1px solid rgba(255,255,255,0.18)" }}>
                 <div style={{ display: "grid", gridTemplateColumns: tmpl, alignItems: "center", minHeight: HAUT_TITRE }}>
                   <div />
-                  <div style={{ gridColumn: "2 / -1", padding: "3px 12px", textAlign: "center", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 14.5, letterSpacing: "0.01em" }}>
+                  <div style={{ gridColumn: "2 / -1", padding: "3px 12px", textAlign: "center", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.90625rem', letterSpacing: "0.01em" }}>
                     {toutAfficher
                       ? LIBELLE_ONGLET[onglet]
                       : `${livres.find(l => l.code === livreChoisi)?.nom_fr ?? LIBELLE_ONGLET[onglet]}${chapitreChoisi != null ? ` · Chapitre ${chapitreChoisi}` : ""}`}
@@ -796,7 +796,7 @@ export default function PolyglottePage() {
                             else { setSurnumOnly(!actif); if (!actif) { setSensiblesOnly(false); setToutAfficher(false); } }
                           }}
                           title={libelle}
-                          style={{ padding: "2px 9px", fontSize: 10.5, fontWeight: 500, cursor: "pointer", borderRadius: 999, fontFamily: "var(--font-source-sans), Arial, sans-serif",
+                          style={{ padding: "2px 9px", fontSize: '0.65625rem', fontWeight: 500, cursor: "pointer", borderRadius: 999, fontFamily: "var(--font-source-sans), Arial, sans-serif",
                             border: `1px solid ${actif ? teinte : "rgba(255,255,255,0.30)"}`,
                             background: actif ? teinte : "transparent",
                             color: actif ? "#22301f" : "rgba(255,255,255,0.72)", transition: "all .15s", whiteSpace: "nowrap" }}>
@@ -806,7 +806,7 @@ export default function PolyglottePage() {
                     </span>
                   )}
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: tmpl, background: VERT_ENTETE_BAS, color: "#fff", fontSize: 12, minHeight: HAUT_ENTETE }}>
+              <div style={{ display: "grid", gridTemplateColumns: tmpl, background: VERT_ENTETE_BAS, color: "#fff", fontSize: '0.75rem', minHeight: HAUT_ENTETE }}>
                 <div />
                 {/* Un en-tête par colonne de traduction, exactement : la numérotation
                     d'origine ayant rejoint le texte en lettrine, il n'y a plus de seconde
@@ -825,14 +825,14 @@ export default function PolyglottePage() {
                       <span className="poly-trad-pick" title="Cliquer pour changer de traduction"
                         style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minWidth: 0, padding: "4px 18px 4px 6px", borderRadius: 4, transition: "background .15s, box-shadow .15s" }}>
                         <span aria-hidden style={{ minWidth: 0, textAlign: "center", lineHeight: 1.06 }}>
-                          <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 12.5, color: "rgba(255,255,255,0.96)" }}>
+                          <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.78125rem', color: "rgba(255,255,255,0.96)" }}>
                             {sc.trad?.nom ?? "Aucune traduction"}
                           </span>
                           {/* Le millésime seul, en petites capitales espacées, sous le nom.
                               Sans filet de séparation : le simple retrait vertical suffit à
                               distinguer les deux lignes. */}
                           {sc.trad?.edition && (
-                            <span style={{ display: "block", marginTop: 6, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: 8.5, fontWeight: 600, letterSpacing: "0.18em", textIndent: "0.18em", color: "rgba(255,255,255,0.62)" }}>
+                            <span style={{ display: "block", marginTop: 6, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.53125rem', fontWeight: 600, letterSpacing: "0.18em", textIndent: "0.18em", color: "rgba(255,255,255,0.62)" }}>
                               {sc.trad.edition}
                             </span>
                           )}
@@ -876,11 +876,11 @@ export default function PolyglottePage() {
               ? `Verset hors ossature canonique, porté par ${editions} éditions au même numéro (${g.ch}, ${g.v})`
               : `Verset propre à cette édition — hors ossature canonique (${g.ch}, ${g.v})`;
             return (
-              <div key={cle} style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid #e3e0f2", fontSize: 13 }}>
+              <div key={cle} style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid #e3e0f2", fontSize: '0.8125rem' }}>
                 {/* « ✦ » plutôt que « ＋ » : le plus disait « on a ajouté quelque chose », ce qui
                     est faux et un peu comptable. L'étoile marque un verset qui existe hors de
                     l'ossature, sans porter de jugement sur sa légitimité. */}
-                <div title={titre} style={{ padding: "5px 6px", whiteSpace: "nowrap", fontWeight: 700, fontSize: 11.5, color: SURNUM, borderRight: `2px solid ${SURNUM}` }}>✦</div>
+                <div title={titre} style={{ padding: "5px 6px", whiteSpace: "nowrap", fontWeight: 700, fontSize: '0.71875rem', color: SURNUM, borderRight: `2px solid ${SURNUM}` }}>✦</div>
                 {slotCols.map((sc, i) => {
                   const r = sc.trad ? g.par.get(sc.trad.trad_id) : undefined;
                   return (
@@ -911,10 +911,10 @@ export default function PolyglottePage() {
             if (!srs.length) return null;
             return (
               <section key={l.code} style={{ contentVisibility: "auto", containIntrinsicSize: `0 ${srs.length * 34 + 40}px` } as React.CSSProperties}>
-                <h2 style={{ margin: 0, padding: "8px 12px 8px 70px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
-                  {l.nom_fr} <span style={{ fontSize: 12, fontWeight: 400, color: SURNUM }}>· {srs.length} surnuméraire{srs.length > 1 ? "s" : ""}</span>
+                <h2 style={{ margin: 0, padding: "8px 12px 8px 70px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
+                  {l.nom_fr} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: SURNUM }}>· {srs.length} surnuméraire{srs.length > 1 ? "s" : ""}</span>
                 {titresEdition(l.code).map(({ trad, ed }) => (
-                  <span key={trad} style={{ display: "block", fontSize: 11.5, fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
+                  <span key={trad} style={{ display: "block", fontSize: '0.71875rem', fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
                     {trad} : {ed.nom}
                   </span>
                 ))}
@@ -942,10 +942,10 @@ export default function PolyglottePage() {
                   en dessous le donnait à lire deux fois. Les désignations propres aux éditions,
                   elles, restent dans tous les cas — l'en-tête ne les porte pas. */}
               {(toutAfficher || titresEdition(l.code).length > 0) && (
-                <h2 style={{ margin: 0, padding: "8px 12px 8px 70px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 16, color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
+                <h2 style={{ margin: 0, padding: "8px 12px 8px 70px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
                   {toutAfficher && l.nom_fr}
                   {titresEdition(l.code).map(({ trad, ed }) => (
-                    <span key={trad} style={{ display: "block", fontSize: 11.5, fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
+                    <span key={trad} style={{ display: "block", fontSize: '0.71875rem', fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
                       {trad} : {ed.nom}
                     </span>
                   ))}
@@ -983,8 +983,8 @@ export default function PolyglottePage() {
                 return (
                   <Fragment key={r.id}>
                     <div className="poly-row" id={`poly-${l.code}-${r.ch_canon}-${r.v_canon}`}
-                      style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? "#fff3c4" : fond, borderTop: "1px solid #dfe8e0", fontSize: 13, scrollMarginTop: SOMMET_CORPS + 8, transition: "background .4s" }}>
-                      <div title={signaler ? desc : undefined} style={{ padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: 11.5, lineHeight: 1.15, color: signaler ? ROUGE : ligneVide ? "#aeb4ae" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : "1px solid #dfe8e0" }}>
+                      style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? "#fff3c4" : fond, borderTop: "1px solid #dfe8e0", fontSize: '0.8125rem', scrollMarginTop: SOMMET_CORPS + 8, transition: "background .4s" }}>
+                      <div title={signaler ? desc : undefined} style={{ padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: '0.71875rem', lineHeight: 1.15, color: signaler ? ROUGE : ligneVide ? "#aeb4ae" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : "1px solid #dfe8e0" }}>
                         <div style={{ whiteSpace: "nowrap" }}>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</div>
                         {/* Citer / signaler : empilés verticalement sous le numéro, dans un petit
                             cartouche arrondi qui n'apparaît qu'au survol de la ligne. */}
@@ -1023,7 +1023,7 @@ export default function PolyglottePage() {
                                     {estAdmin && (
                                       <button title="Modifier ce verset" aria-label="Modifier ce verset" className="poly-edit"
                                         onClick={() => { setCibleEdition({ id: c.id, texte: c.texte ?? "", reference: `${l.nom_fr} ${c.ch_orig}, ${c.v_orig}` }); setEnregistre("idle"); }}
-                                        style={{ border: "none", cursor: "pointer", color: "#7a8f80", fontSize: 10.5, lineHeight: 1, background: fond, transition: "color .15s" }}
+                                        style={{ border: "none", cursor: "pointer", color: "#7a8f80", fontSize: '0.65625rem', lineHeight: 1, background: fond, transition: "color .15s" }}
                                         onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = VERT; }}
                                         onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "#7a8f80"; }}>
                                         ✎
@@ -1036,7 +1036,7 @@ export default function PolyglottePage() {
                             {cs.length === 0 ? (
                               deuterocanonique(r.id)
                                 ? <span title={`Ce passage nous est parvenu en grec, non en hébreu. Les Bibles catholique et orthodoxe le reçoivent ; la Bible protestante et la Bible hébraïque ne le comptent pas parmi les livres canoniques. La case est donc vide pour cette traduction, et non par oubli.`}
-                                        style={{ color: "#9a8fb5", fontStyle: "italic", fontSize: 12, cursor: "help" }}>
+                                        style={{ color: "#9a8fb5", fontStyle: "italic", fontSize: '0.75rem', cursor: "help" }}>
                                     Absent dans cette traduction
                                   </span>
                                 : <span style={{ color: "#d3ccbf" }}>—</span>

@@ -719,15 +719,15 @@ export default function RechercheClient() {
         {/* ── VOLET GAUCHE : intitulé · recherche · options · onglets. Collé sous la
             navbar, pleine hauteur. Le bloc du haut est fixe ; les onglets, en dessous,
             prennent le reste et défilent si besoin. */}
-        <aside style={{ width:'340px', flexShrink:0, borderRight:'1px solid #d6d0c4', background:'#fbf9f4', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+        <aside style={{ width:'clamp(300px, 22vw, 440px)', flexShrink:0, borderRight:'1px solid #d6d0c4', background:'#fbf9f4', display:'flex', flexDirection:'column', overflow:'hidden' }}>
           <div style={{ flexShrink:0, padding:'9px 20px 12px', display:'flex', flexDirection:'column', alignItems:'stretch', gap:'9px' }}>
 
             {/* Titre + nombre total de résultats, sur la même ligne, en tête du volet. */}
             <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'8px' }}>
-              <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'12px', letterSpacing:'0.12em', textTransform:'uppercase', color:'#9a958d', fontWeight:400 }}>Recherche</span>
+              <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.75rem', letterSpacing:'0.12em', textTransform:'uppercase', color:'#9a958d', fontWeight:400 }}>Recherche</span>
               {done && (() => {
                 const total = versetsRes.length + segmentsRes.length + essaisRes.length
-                return <span style={{ fontSize:'10.5px', color:'#b8b0a6', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
+                return <span style={{ fontSize:'0.65625rem', color:'#b8b0a6', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
               })()}
             </div>
 
@@ -749,10 +749,10 @@ export default function RechercheClient() {
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck={false}
-                style={{ width:'100%', fontSize:'13.5px', padding:'8px 38px 8px 14px', border:'1px solid #c8c0b4', borderRadius:'7px', background:'#fff', color:'#2a2520', outline:'none', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }} />
+                style={{ width:'100%', fontSize:'0.84375rem', padding:'8px 38px 8px 14px', border:'1px solid #c8c0b4', borderRadius:'7px', background:'#fff', color:'#2a2520', outline:'none', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }} />
               {query ? (
                 <button onClick={() => { setQuery(''); setSugg([]); setDone(false); setVersetsRes([]); setSegmentsRes([]); setEssaisRes([]); setShowSugg(false) }}
-                  style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#c0b8ae', fontSize:'16px', lineHeight:1, padding:0 }} title="Effacer">×</button>
+                  style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#c0b8ae', fontSize:'1rem', lineHeight:1, padding:0 }} title="Effacer">×</button>
               ) : (
                 <svg style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', color:'#c8c0b4', pointerEvents:'none' }} width="15" height="15" viewBox="0 0 20 20" fill="none">
                   <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6"/>
@@ -764,11 +764,11 @@ export default function RechercheClient() {
                   {sugg.map(s => (
                     <li key={s.mot}
                       onMouseDown={e => { e.preventDefault(); setQuery(s.mot); setShowSugg(false); lancer(s.mot) }}
-                      style={{ padding:'7px 18px', fontSize:'14px', color:'#2a2520', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:"var(--font-source-serif), Georgia, serif" }}
+                      style={{ padding:'7px 18px', fontSize:'0.875rem', color:'#2a2520', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:"var(--font-source-serif), Georgia, serif" }}
                       onMouseEnter={e => (e.currentTarget.style.background='#f4f0ea')}
                       onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
                       <span>{s.mot}</span>
-                      {s.freq > 0 && <span style={{ fontSize:'10px', color:'#c0b8ae' }}>{s.freq}</span>}
+                      {s.freq > 0 && <span style={{ fontSize:'0.625rem', color:'#c0b8ae' }}>{s.freq}</span>}
                     </li>
                   ))}
                   {/* Tout rechercher : lance la recherche par DÉBUT DE MOT sur ce qui est
@@ -776,11 +776,11 @@ export default function RechercheClient() {
                       (ils commencent tous par le préfixe). Légèrement mis en évidence. */}
                   <li
                     onMouseDown={e => { e.preventDefault(); setShowSugg(false); setMode('prefixe'); lancer(query, 'prefixe') }}
-                    style={{ marginTop:'4px', borderTop:'1px solid #ede9e2', padding:'9px 18px', fontSize:'12.5px', fontWeight:600, color:'#2f6046', background:'#f2f8f4', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', letterSpacing:'0.01em' }}
+                    style={{ marginTop:'4px', borderTop:'1px solid #ede9e2', padding:'9px 18px', fontSize:'0.78125rem', fontWeight:600, color:'#2f6046', background:'#f2f8f4', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', letterSpacing:'0.01em' }}
                     onMouseEnter={e => (e.currentTarget.style.background='#e7f2ea')}
                     onMouseLeave={e => (e.currentTarget.style.background='#f2f8f4')}>
                     <span>Tout rechercher</span>
-                    <span style={{ fontSize:'13px' }}>↵</span>
+                    <span style={{ fontSize:'0.8125rem' }}>↵</span>
                   </li>
                 </ul>
               )}
@@ -791,12 +791,12 @@ export default function RechercheClient() {
               {/* Mode + « Explicitations » en INFO-BULLE au survol du « ? » : les deux
                   explications ensemble, ce qui évite l'encart qui alourdissait le volet. */}
               <div>
-                <p style={{ fontSize:'9px', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'#9a958d', margin:'0 0 5px', display:'flex', alignItems:'center', gap:'3px' }}>
+                <p style={{ fontSize:'0.5625rem', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'#9a958d', margin:'0 0 5px', display:'flex', alignItems:'center', gap:'3px' }}>
                   Mode
                   <span className="expl-wrap">
                     <span className="expl-badge">?</span>
                     <span className="expl-tip">
-                      <span style={{ display:'block', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', fontSize:'8.5px', color:'#9a958d', marginBottom:'7px' }}>Les deux modes</span>
+                      <span style={{ display:'block', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', fontSize:'0.53125rem', color:'#9a958d', marginBottom:'7px' }}>Les deux modes</span>
 
                       <span style={{ display:'block', marginBottom:'8px' }}>
                         <span style={{ display:'block', fontWeight:700, color:'#2f6046', marginBottom:'1px' }}>Début de mot</span>
@@ -822,7 +822,7 @@ export default function RechercheClient() {
                   jamais : il commande l'affichage quel que soit le périmètre. */}
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
                 <div>
-                  <p style={{ fontSize:'9px', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'#9a958d', margin:'0 0 4px' }}>Chercher dans</p>
+                  <p style={{ fontSize:'0.5625rem', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'#9a958d', margin:'0 0 4px' }}>Chercher dans</p>
                   <select className="ctrl-sel" style={{ width:'100%' }} value={tradScope}
                     onChange={e => { const v=e.target.value; setTradScope(v); if(v!=='ALL') setTradAffichage(v) }}>
                     <option value="ALL">Toutes les bibles</option>
@@ -830,7 +830,7 @@ export default function RechercheClient() {
                   </select>
                 </div>
                 <div>
-                  <p style={{ fontSize:'9px', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'#9a958d', margin:'0 0 4px' }}>Afficher en</p>
+                  <p style={{ fontSize:'0.5625rem', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'#9a958d', margin:'0 0 4px' }}>Afficher en</p>
                   <select className="ctrl-sel" style={{ width:'100%' }} value={tradAffichage} onChange={e=>setTradAffichage(e.target.value)}>
                     {traductions.map(t=><option key={t.code} value={t.code}>{t.label}</option>)}
                   </select>
@@ -846,7 +846,7 @@ export default function RechercheClient() {
                 <div style={{ display:'flex', flexDirection:'column', gap:'3px', marginTop:'2px' }}>
                   {done && (versetsRes.length + segmentsRes.length + essaisRes.length) > 0 && (
                     <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
-                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'11px', color:'#3d6b4f', background:'rgba(61,107,79,0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
+                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'0.6875rem', color:'#3d6b4f', background:'rgba(61,107,79,0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
                       onMouseEnter={e => (e.currentTarget.style.background='rgba(61,107,79,0.12)')}
                       onMouseLeave={e => (e.currentTarget.style.background='rgba(61,107,79,0.06)')}>
                       <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
@@ -860,7 +860,7 @@ export default function RechercheClient() {
                   {/* Reprendre : même hauteur que « Enregistrer », date d'enregistrement à droite. */}
                   {rechercheSauvee && (
                     <button onClick={reprendreRecherche} title={`Reprendre « ${rechercheSauvee.query} » là où vous en étiez`}
-                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'11px', color:'#3d6b4f', background:'rgba(61,107,79,0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
+                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'0.6875rem', color:'#3d6b4f', background:'rgba(61,107,79,0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
                       onMouseEnter={e => (e.currentTarget.style.background='rgba(61,107,79,0.12)')}
                       onMouseLeave={e => (e.currentTarget.style.background='rgba(61,107,79,0.06)')}>
                       <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
@@ -871,7 +871,7 @@ export default function RechercheClient() {
                         Reprendre ma recherche
                         <span style={{ color:'#9a958d', fontStyle:'italic' }}> {rechercheSauvee.query}</span>
                       </span>
-                      {rechercheSauvee.ts ? <span style={{ flexShrink:0, color:'#b8b0a6', fontStyle:'italic', fontSize:'9.5px' }}>{formatDateCourt(rechercheSauvee.ts)}</span> : null}
+                      {rechercheSauvee.ts ? <span style={{ flexShrink:0, color:'#b8b0a6', fontStyle:'italic', fontSize:'0.59375rem' }}>{formatDateCourt(rechercheSauvee.ts)}</span> : null}
                     </button>
                   )}
                 </div>
@@ -894,9 +894,9 @@ export default function RechercheClient() {
                 return (
                   <Fragment key={o.k}>
                     <button onClick={()=>setOnglet(o.k)}
-                      style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', padding:'9px 20px', border:'none', borderLeft:`3px solid ${actif?'#3d6b4f':'transparent'}`, background:actif?'rgba(61,107,79,0.07)':'transparent', color:actif?'#2a3d30':'#6b6560', fontWeight:actif?600:400, fontSize:'12.5px', cursor:'pointer', textAlign:'left', fontFamily:"var(--font-source-serif), Georgia, serif", transition:'background 0.12s, color 0.12s' }}>
+                      style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', padding:'9px 20px', border:'none', borderLeft:`3px solid ${actif?'#3d6b4f':'transparent'}`, background:actif?'rgba(61,107,79,0.07)':'transparent', color:actif?'#2a3d30':'#6b6560', fontWeight:actif?600:400, fontSize:'0.78125rem', cursor:'pointer', textAlign:'left', fontFamily:"var(--font-source-serif), Georgia, serif", transition:'background 0.12s, color 0.12s' }}>
                       <span style={{ whiteSpace:'normal', lineHeight:1.25 }}>{o.label}</span>
-                      <span style={{ flexShrink:0, fontSize:'10px', color:actif?'#6a9a7a':'#c0b8ae', fontWeight:400 }}>{o.n}</span>
+                      <span style={{ flexShrink:0, fontSize:'0.625rem', color:actif?'#6a9a7a':'#c0b8ae', fontWeight:400 }}>{o.n}</span>
                     </button>
                     {/* Répartition détaillée sous l'onglet actif : livres (Bible/Polyglotte),
                         œuvres (Pères), publications (communauté), avec le nombre d'occurrences.
@@ -956,8 +956,8 @@ export default function RechercheClient() {
           {/* Bannière troncature */}
           {done && tronque.length > 0 && (
             <div style={{ flexShrink:0, background:'#fef8ec', border:'1px solid #e8c96a', borderRadius:'6px', padding:'7px 14px', margin:'12px 24px 0', display:'flex', alignItems:'center', gap:'8px' }}>
-              <span style={{ fontSize:'13px' }}>⚠️</span>
-              <span style={{ fontSize:'11.5px', color:'#7a5a10' }}>
+              <span style={{ fontSize:'0.8125rem' }}>⚠️</span>
+              <span style={{ fontSize:'0.71875rem', color:'#7a5a10' }}>
                 Résultats trop nombreux dans {tronque.join(', ')} — seuls les premiers affichés. Affinez votre recherche ou utilisez le mode <strong>Mot exact</strong>.
               </span>
             </div>
@@ -1001,12 +1001,12 @@ export default function RechercheClient() {
                     le fond blanc du dessin dans le papier de la page. */}
                 <img src="/ornements/cul-de-lampe-cristaux.png" alt="" aria-hidden="true"
                   style={{ width:'min(300px, 56%)', height:'auto', opacity:0.5, mixBlendMode:'multiply', marginBottom:'22px' }} />
-                <p style={{ fontSize:'13px', color:'#c0b8ae', fontStyle:'italic', letterSpacing:'0.02em' }}>Lancez une recherche</p>
+                <p style={{ fontSize:'0.8125rem', color:'#c0b8ae', fontStyle:'italic', letterSpacing:'0.02em' }}>Lancez une recherche</p>
               </div>
             )}
             {loading && (
               <div style={{ textAlign:'center', marginTop:'80px' }}>
-                <p style={{ fontSize:'13px', color:'#b0a89e', fontStyle:'italic' }}>Recherche en cours…</p>
+                <p style={{ fontSize:'0.8125rem', color:'#b0a89e', fontStyle:'italic' }}>Recherche en cours…</p>
               </div>
             )}
 
@@ -1036,18 +1036,18 @@ export default function RechercheClient() {
                           {/* Référence (couleur neutre, pas verte), traduction affichée (barrée si
                               le mot y est absent) puis TOUTES les traductions qui contiennent le mot. */}
                           <div style={{ display:'flex', alignItems:'baseline', gap:'8px', flexWrap:'wrap', marginBottom:'2px' }}>
-                            <span style={{ fontSize:'10.5px', fontWeight:600, color:'#5a5248', letterSpacing:'0.01em' }}>{refFr(v.ref)}</span>
+                            <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'#5a5248', letterSpacing:'0.01em' }}>{refFr(v.ref)}</span>
                             {/* Tous les noms de bibles : même couleur, même espacement (le gap
                                 du conteneur), chacun dans son propre span. La traduction affichée
                                 est barrée quand le mot n'y figure pas — seule distinction retenue. */}
-                            <span style={{ fontSize:'9.5px', color:'#9a958d', textDecoration: displayLeMot ? 'none' : 'line-through' }}>{labelDisplay}</span>
+                            <span style={{ fontSize:'0.59375rem', color:'#9a958d', textDecoration: displayLeMot ? 'none' : 'line-through' }}>{labelDisplay}</span>
                             {contientDans.filter(t => t.code !== tradBible).map(t => (
-                              <span key={t.code} style={{ fontSize:'9.5px', color:'#9a958d' }}>{t.label}</span>
+                              <span key={t.code} style={{ fontSize:'0.59375rem', color:'#9a958d' }}>{t.label}</span>
                             ))}
                           </div>
                           {/* Toujours le texte de la traduction CHOISIE, SANS SÉRIF. Surligné si le
                               mot y est ; sinon montré tel quel (la ligne du haut dit où il se trouve). */}
-                          <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'12.5px', lineHeight:1.4, color:'#2a2520', margin:0 }}>
+                          <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.4, color:'#2a2520', margin:0 }}>
                             {texte
                               ? rendreEtSurligner(texte, lastQuery, mode)
                               : <span style={{ color:'#b0a89e', fontStyle:'italic' }}>Ce verset n’existe pas dans {labelDisplay}.</span>}
@@ -1071,11 +1071,11 @@ export default function RechercheClient() {
                           par une espace claire (plus de point médian). Le niveau 1 ne paraît que
                           s'il existe. Résultats triés par nom d'auteur (alphabétique). */}
                       <div style={{ display:'flex', alignItems:'baseline', gap:'8px', flexWrap:'wrap', marginBottom:'2px' }}>
-                        <span style={{ fontSize:'10.5px', fontWeight:600, color:'#3d6b4f' }}>{s.auteur_nom}</span>
-                        {s.oeuvre_titre && <span style={{ fontSize:'9.5px', color:'#9a958d', fontStyle:'italic' }}>{s.oeuvre_titre}</span>}
-                        {s.ref_niv1 && <span style={{ fontSize:'9.5px', color:'#c0b8ae' }}>{s.ref_niv1}</span>}
+                        <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'#3d6b4f' }}>{s.auteur_nom}</span>
+                        {s.oeuvre_titre && <span style={{ fontSize:'0.59375rem', color:'#9a958d', fontStyle:'italic' }}>{s.oeuvre_titre}</span>}
+                        {s.ref_niv1 && <span style={{ fontSize:'0.59375rem', color:'#c0b8ae' }}>{s.ref_niv1}</span>}
                       </div>
-                      <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'12.5px', lineHeight:1.4, color:'#2a2520', margin:0 }}>
+                      <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.4, color:'#2a2520', margin:0 }}>
                         {rendreEtSurligner(nettoyerFin(s.segment_texte), lastQuery, mode)}
                       </p>
                     </a>
@@ -1094,11 +1094,11 @@ export default function RechercheClient() {
                     return (
                       <a key={e.id} href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer" className="res-card">
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:'3px' }}>
-                          <span style={{ fontSize:'10.5px', fontWeight:600, color:'#3d6b4f' }}>{e.titre}</span>
-                          {e.categories?.[0] && <span style={{ fontSize:'9.5px', color:'#c0b8ae', fontStyle:'italic' }}>{e.categories[0]}</span>}
+                          <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'#3d6b4f' }}>{e.titre}</span>
+                          {e.categories?.[0] && <span style={{ fontSize:'0.59375rem', color:'#c0b8ae', fontStyle:'italic' }}>{e.categories[0]}</span>}
                         </div>
-                        {e.sous_titre && <p style={{ fontSize:'11px', color:'#8a8278', fontStyle:'italic', margin:'0 0 3px' }}>{e.sous_titre}</p>}
-                        <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'12.5px', lineHeight:1.55, color:'#2a2520', margin:0 }}>
+                        {e.sous_titre && <p style={{ fontSize:'0.6875rem', color:'#8a8278', fontStyle:'italic', margin:'0 0 3px' }}>{e.sous_titre}</p>}
+                        <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.55, color:'#2a2520', margin:0 }}>
                           {highlighter(texteAffiche, lastQuery, mode)}
                         </p>
                       </a>
@@ -1167,7 +1167,7 @@ export default function RechercheClient() {
                                           })}
                                         </span>
                                       )}
-                                      {!brut ? <span style={{ display:'block', textAlign:'center', textAlignLast:'center', color:'#8aa593', fontStyle:'italic', fontSize:'11px' }}>Absent dans cette traduction</span>
+                                      {!brut ? <span style={{ display:'block', textAlign:'center', textAlignLast:'center', color:'#8aa593', fontStyle:'italic', fontSize:'0.6875rem' }}>Absent dans cette traduction</span>
                                         : lang === 'grc' ? (absent ? cesurerGrec(brut) : highlighter(cesurerGrec(brut), lastQuery, mode))
                                         : rendreEtSurligner(original, lastQuery, mode)}
                                     </div>
@@ -1190,7 +1190,7 @@ export default function RechercheClient() {
               <button className="pag-btn" disabled={pageActive===0}
                 onMouseDown={()=>demarrerDefilement(-1)} onMouseUp={arreterDefilement} onMouseLeave={arreterDefilement}
                 onTouchStart={e=>{e.preventDefault();demarrerDefilement(-1)}} onTouchEnd={arreterDefilement}>← Précédent</button>
-              <span style={{ fontSize:'11px', color:'#b0a89e' }}>{debut}–{fin} <span style={{ color:'#d6d0c4' }}>sur</span> {totalActive}</span>
+              <span style={{ fontSize:'0.6875rem', color:'#b0a89e' }}>{debut}–{fin} <span style={{ color:'#d6d0c4' }}>sur</span> {totalActive}</span>
               <button className="pag-btn" disabled={pageActive>=pagesTotal-1}
                 onMouseDown={()=>demarrerDefilement(1)} onMouseUp={arreterDefilement} onMouseLeave={arreterDefilement}
                 onTouchStart={e=>{e.preventDefault();demarrerDefilement(1)}} onTouchEnd={arreterDefilement}>Suivant →</button>
@@ -1206,16 +1206,16 @@ export default function RechercheClient() {
           style={{ position:'fixed', inset:0, background:'rgba(30,28,24,0.38)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:'20px' }}>
           <div onClick={e => e.stopPropagation()}
             style={{ background:'#fbf9f4', border:'1px solid #d6d0c4', borderRadius:'10px', boxShadow:'0 14px 40px rgba(30,46,38,0.25)', padding:'20px 22px', maxWidth:'340px', width:'100%' }}>
-            <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'14px', fontWeight:600, color:'#2a3d30', margin:'0 0 8px' }}>Écraser la recherche précédente ?</p>
-            <p style={{ fontSize:'12px', color:'#6b6560', lineHeight:1.5, margin:'0 0 16px' }}>
+            <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.875rem', fontWeight:600, color:'#2a3d30', margin:'0 0 8px' }}>Écraser la recherche précédente ?</p>
+            <p style={{ fontSize:'0.75rem', color:'#6b6560', lineHeight:1.5, margin:'0 0 16px' }}>
               Une recherche est déjà enregistrée (« {rechercheSauvee.query} », {formatDateCourt(rechercheSauvee.ts)}).
               L'enregistrer maintenant remplacera cette sauvegarde par « {lastQuery} ».
             </p>
             <div style={{ display:'flex', gap:'8px', justifyContent:'flex-end' }}>
               <button onClick={() => setConfirmEcrasement(false)}
-                style={{ fontSize:'11.5px', padding:'6px 14px', border:'1px solid #d6d0c4', borderRadius:'6px', background:'#fff', color:'#6b6560', cursor:'pointer' }}>Annuler</button>
+                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'1px solid #d6d0c4', borderRadius:'6px', background:'#fff', color:'#6b6560', cursor:'pointer' }}>Annuler</button>
               <button onClick={() => { ecrireRecherche(); setConfirmEcrasement(false) }}
-                style={{ fontSize:'11.5px', padding:'6px 14px', border:'none', borderRadius:'6px', background:'#3d6b4f', color:'#fff', fontWeight:600, cursor:'pointer' }}>Écraser</button>
+                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'none', borderRadius:'6px', background:'#3d6b4f', color:'#fff', fontWeight:600, cursor:'pointer' }}>Écraser</button>
             </div>
           </div>
         </div>
@@ -1225,5 +1225,5 @@ export default function RechercheClient() {
 }
 
 function Vide({ texte }: { texte: string }) {
-  return <p style={{ fontSize:'12px', color:'#b0a89e', fontStyle:'italic', marginTop:'24px', textAlign:'center' }}>{texte}</p>
+  return <p style={{ fontSize:'0.75rem', color:'#b0a89e', fontStyle:'italic', marginTop:'24px', textAlign:'center' }}>{texte}</p>
 }
