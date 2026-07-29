@@ -547,8 +547,8 @@ export default function TexteBible({
           `}</style>
 
           {(versets.length === 0 || versets.every(v => !v[traduction])) && (
-            {/* Charte : l'image + légende se placent au tiers supérieur du bloc, non
-                centrées verticalement dans le vide. */}
+            // Charte : l'image + légende se placent au tiers supérieur du bloc,
+            // non centrées verticalement dans le vide.
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '60vh', gap: 0, padding: '8vh 16px 0' }}>
               {/* Des ruines fumantes plutôt qu'un fleuron : l'ornement disait « fin de
                   chapitre », là où il faut dire « il n'y a rien ici ». Taille mesurée,
