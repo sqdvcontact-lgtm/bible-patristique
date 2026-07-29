@@ -2,6 +2,7 @@
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { useEstMobile } from '@/app/lib/useEstMobile'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { nettoyerFin } from '@/app/lib/ponctuation'
@@ -216,6 +217,9 @@ function snippetEssai(texte: string, terme: string, max = 220): string {
 }
 
 export default function RechercheClient() {
+  // ≤ 900px : le formulaire et les résultats s'empilent (le côte-à-côte
+  // écraserait les deux). Voir AGENTS § Responsive mobile.
+  const mobile = useEstMobile(900)
   const searchParams = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') ?? '')
   const [mode, setMode] = useState<Mode>(searchParams.get('mode') === 'exact' ? 'exact' : 'prefixe')
@@ -714,12 +718,16 @@ export default function RechercheClient() {
       {/* Le layout global (`app/layout.tsx`) décale DÉJÀ le contenu de HAUTEUR_NAVBAR sous
           la navbar. On ne rajoute donc PAS de paddingTop ici (sinon double décalage, gros
           blanc en haut) : on prend simplement toute la hauteur restante sous la navbar. */}
-      <div style={{ background:'#f7f4ef', height:'calc(100dvh - 3.5rem)', display:'flex', overflow:'hidden' }}>
+      <div style={mobile
+        ? { background:'#f7f4ef', display:'flex', flexDirection:'column' }
+        : { background:'#f7f4ef', height:'calc(100dvh - 3.5rem)', display:'flex', overflow:'hidden' }}>
 
         {/* ── VOLET GAUCHE : intitulé · recherche · options · onglets. Collé sous la
             navbar, pleine hauteur. Le bloc du haut est fixe ; les onglets, en dessous,
             prennent le reste et défilent si besoin. */}
-        <aside style={{ width:'clamp(300px, 22vw, 440px)', flexShrink:0, borderRight:'1px solid #d6d0c4', background:'#fbf9f4', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+        <aside style={mobile
+          ? { width:'100%', borderBottom:'1px solid #d6d0c4', background:'#fbf9f4', display:'flex', flexDirection:'column' }
+          : { width:'clamp(300px, 22vw, 440px)', flexShrink:0, borderRight:'1px solid #d6d0c4', background:'#fbf9f4', display:'flex', flexDirection:'column', overflow:'hidden' }}>
           <div style={{ flexShrink:0, padding:'9px 20px 12px', display:'flex', flexDirection:'column', alignItems:'stretch', gap:'9px' }}>
 
             {/* Titre + nombre total de résultats, sur la même ligne, en tête du volet. */}
@@ -883,7 +891,7 @@ export default function RechercheClient() {
               défilent si l'écran est court. Les libellés longs passent à la ligne au lieu
               d'être coupés. */}
           {done && (
-            <nav style={{ flex:1, minHeight:0, overflowY:'auto', borderTop:'1px solid #e4dfd8', padding:'6px 0 10px' }}>
+            <nav style={{ flex:1, minHeight:0, maxHeight: mobile ? '45vh' : undefined, overflowY:'auto', borderTop:'1px solid #e4dfd8', padding:'6px 0 10px' }}>
               {([
                 { k:'bible', label:'Bible', n:versetsRes.length },
                 { k:'polyglotte', label:'Polyglotte', n:versetsRes.length },
@@ -951,7 +959,7 @@ export default function RechercheClient() {
         </aside>
 
         {/* ── TABLEAU DE RÉSULTATS : tout l'espace libre ── */}
-        <main style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
+        <main style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', overflow: mobile ? 'visible' : 'hidden' }}>
 
           {/* Bannière troncature */}
           {done && tronque.length > 0 && (
@@ -993,7 +1001,7 @@ export default function RechercheClient() {
           )}
 
           {/* Résultats */}
-          <div ref={zoneResultatsRef} style={{ flex:1, overflowY:'auto', scrollbarGutter:'stable', padding: (done && onglet==='polyglotte' && versetsRes.length > 0) ? '0 22px 4px' : '6px 22px 4px' }}>
+          <div ref={zoneResultatsRef} style={{ flex:1, minHeight: mobile ? '40vh' : undefined, overflowY: mobile ? 'visible' : 'auto', scrollbarGutter:'stable', padding: (done && onglet==='polyglotte' && versetsRes.length > 0) ? '0 22px 4px' : '6px 22px 4px' }}>
 
             {!done && !loading && (
               <div style={{ display:'flex', flexDirection:'column', alignItems:'center', marginTop:'70px' }}>
