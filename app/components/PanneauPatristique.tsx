@@ -326,7 +326,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
 // Pas plus de 5 majuscules consécutives (accentuées comprises).
 const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
 
-function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userId: string | null; isAdmin: boolean }) {
+function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Verset; userId: string | null; isAdmin: boolean; onCount?: (n: number) => void }) {
   type Commentaire2 = Commentaire & { user_id: string | null; valide: boolean; reponse_a: number | null; pseudo: string | null; score: number | null; nbLikes: number; nbDislikes: number; monVote: 1 | -1 | null; demande_validation: boolean; certifie?: boolean | null; supprime: boolean }
   const [commentaires, setCommentaires] = useState<Commentaire2[]>([])
   const [loading, setLoading] = useState(true)
@@ -380,6 +380,12 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
   }
 
   useEffect(() => { charger() }, [verset.id_verset, userId])
+
+  // Le compteur de l'onglet vit dans le parent (chargé une fois par verset) ; sans
+  // ce report, un ajout ou une suppression ne s'y refléterait pas. On remonte le
+  // nombre de lignes chargées — même périmètre que le comptage parent (par id_verset).
+  // Uniquement une fois le chargement terminé, pour éviter un « 0 » transitoire.
+  useEffect(() => { if (!loading) onCount?.(commentaires.length) }, [commentaires, loading, onCount])
 
   // Fil structuré : commentaires principaux (chronologique), chacun suivi de
   // ses réponses directes (chronologique aussi) — un seul niveau, pas d'arborescence.
@@ -1122,7 +1128,7 @@ export default function PanneauPatristique({
           {/* Contenu scrollable */}
           <div style={{ overflowY:'auto', flex:1, padding:'0 12px' }}>
             {onglet === 'commentaires' && verset ? (
-              <OngletCommentaires verset={verset} userId={userId} isAdmin={isAdmin} />
+              <OngletCommentaires verset={verset} userId={userId} isAdmin={isAdmin} onCount={setNbCommentairesBible} />
             ) : (
               <>
                 {/* Sous-onglets Citations / Doctrine / Échos */}
