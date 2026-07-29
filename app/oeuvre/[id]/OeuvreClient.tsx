@@ -1133,6 +1133,30 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   // Lettrine (drop cap) du tout premier segment, réutilisée par les deux modes.
   const DROPCAP: React.CSSProperties = { float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }
 
+  // Rend un texte de segment avec sa lettrine (drop cap) sur la première LETTRE.
+  // Si le paragraphe s'ouvre sur une ponctuation (guillemet «, tiret…), celle-ci
+  // doit rester SOLIDAIRE de la lettrine flottante : rendue à part, un « float »
+  // la rejetterait à droite de la lettrine (« [V] « ous… » au lieu de « «V ous… »).
+  // On la glisse donc dans le même flottant, en petit corps calé sur le haut.
+  const rendreAvecLettrine = (texte: string, notes: Record<string, string>): React.ReactNode => {
+    const t = nettoyerFin(normaliserEspaces(texte))
+    const chars = [...t]
+    const li = chars.findIndex(ch => /\p{L}/u.test(ch))
+    if (li < 0) return rendreTexteAvecNotes(t, notes)
+    const prefix = chars.slice(0, li).join('')
+    const lettre = chars[li]
+    const suite = chars.slice(li + 1).join('')
+    return (
+      <>
+        <span style={DROPCAP}>
+          {prefix && <span style={{ fontSize: '0.34em', verticalAlign: '0.72em', lineHeight: 1, paddingRight: '1px' }}>{rendreTexteAvecNotes(prefix, notes)}</span>}
+          {lettre}
+        </span>
+        {rendreTexteAvecNotes(suite, notes)}
+      </>
+    )
+  }
+
   // Mode paragraphes : découpe les segments d'un groupe en paragraphes (colonne
   // `paragraphe`, charte §6.1), ordonnés en interne par `rang`. Segments
   // consécutifs de même paragraphe → un bloc coulant. Un `paragraphe` nul isole
@@ -1558,7 +1582,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                               onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                               onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                               {configNiveaux.afficherNumeros && !estPremier && <sup style={{ fontSize: '0.50rem', color: '#b0a89e', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                              {estPremier && normaliserEspaces(s.texte).length > 0 ? (() => { const t = nettoyerFin(normaliserEspaces(s.texte)); const chars = [...t]; const li = chars.findIndex(ch => /\p{L}/u.test(ch)); if (li <= 0) { return (<><span style={DROPCAP}>{chars[0] ?? t[0]}</span>{rendreTexteAvecNotes(chars.slice(1).join(''), s.notes ?? {})}</>) } const prefix = chars.slice(0, li).join(''); const lettre = chars[li]; const suite = chars.slice(li + 1).join(''); return (<>{rendreTexteAvecNotes(prefix, s.notes ?? {})}<span style={DROPCAP}>{lettre}</span>{rendreTexteAvecNotes(suite, s.notes ?? {})}</>) })() : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
+                              {estPremier && normaliserEspaces(s.texte).length > 0 ? rendreAvecLettrine(s.texte, s.notes ?? {}) : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
                             </span>
                             {i < chunk.ids.length - 1 ? ' ' : ''}
                           </Fragment>
@@ -1578,7 +1602,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         <p id={`s${s.numero}`} onClick={() => { if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return } if (mobile) setActionsSegMobileId(null); setSegActif(actif ? null : sid) }} className="seg-p"
                           lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {configNiveaux.afficherNumeros && sid !== premierSegmentId && <sup style={{ fontSize: '0.50rem', color: '#b0a89e', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                          {sid === premierSegmentId && normaliserEspaces(s.texte).length > 0 ? (() => { const t = nettoyerFin(normaliserEspaces(s.texte)); const chars = [...t]; const li = chars.findIndex(ch => /\p{L}/u.test(ch)); if (li <= 0) { return (<><span style={{ float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }}>{chars[0] ?? t[0]}</span>{rendreTexteAvecNotes(chars.slice(1).join(''), s.notes ?? {})}</>) } const prefix = chars.slice(0, li).join(''); const lettre = chars[li]; const suite = chars.slice(li + 1).join(''); return (<>{rendreTexteAvecNotes(prefix, s.notes ?? {})}<span style={{ float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }}>{lettre}</span>{rendreTexteAvecNotes(suite, s.notes ?? {})}</>) })() : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
+                          {sid === premierSegmentId && normaliserEspaces(s.texte).length > 0 ? rendreAvecLettrine(s.texte, s.notes ?? {}) : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
                         </p>
                         <div className="seg-actions" style={mobile ? {
                           position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6, opacity: 1, display: actionsSegMobileId === sid ? 'flex' : 'none', flexDirection: 'row', gap: '0.25rem', alignItems: 'center', background: '#fff', border: '1px solid #d6d0c4', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
