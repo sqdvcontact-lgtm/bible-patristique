@@ -23,7 +23,7 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
   const inchangees = lignes.length - modifiees.length
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(30,26,22,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ background: '#fff', borderRadius: '10px', width: '100%', maxWidth: '860px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}>
+      <div style={{ background: '#fff', borderRadius: '10px', width: '100%', maxWidth: '53.75rem', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}>
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #e4dfd8', flexShrink: 0 }}>
           <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 'normal', color: '#2a3d30', margin: '0 0 6px' }}>Validation de l'import</h2>
           <p style={{ fontSize: '0.75rem', color: '#9a958d', margin: 0 }}>
@@ -199,7 +199,7 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 2100, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '600px', background: '#f7f4ef', borderRadius: '10px', padding: '18px', boxShadow: '0 20px 60px rgba(0,0,0,0.32)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '37.5rem', background: '#f7f4ef', borderRadius: '10px', padding: '18px', boxShadow: '0 20px 60px rgba(0,0,0,0.32)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
             Cadrer la photo – <em style={{ color: '#7a7268' }}>{auteur.nom}</em>
@@ -213,7 +213,7 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
         <div onMouseMove={onMove} onMouseUp={endDrag} onMouseLeave={endDrag}
           style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', overflow: 'hidden', userSelect: 'none' }}>
           <div style={{ display: 'flex', minHeight: '176px' }}>
-            <div ref={carteRef} style={{ width: '132px', flexShrink: 0, position: 'relative', overflow: 'hidden', background: '#ede9e2' }}>
+            <div ref={carteRef} style={{ width: '8.25rem', flexShrink: 0, position: 'relative', overflow: 'hidden', background: '#ede9e2' }}>
               <img src={photoUrl} alt="" draggable={false} style={{ width: '100%', height: '100%', display: 'block', ...stylePhotoAuteur(pos) }} />
               <div onMouseDown={startDrag} style={{ position: 'absolute', inset: 0, cursor: dragRef.current ? 'grabbing' : 'grab' }} />
             </div>
@@ -700,7 +700,7 @@ function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]
           <>
             <input value={saisie} onChange={e => setSaisie(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') ajouterCustom(); if (e.key === 'Escape') { setNouveau(false); setSaisie('') } }}
-              autoFocus style={{ ...inputStyleAuteur, width: '160px', fontSize: '0.6875rem', padding: '4px 8px' }} />
+              autoFocus style={{ ...inputStyleAuteur, width: '10rem', fontSize: '0.6875rem', padding: '4px 8px' }} />
             <button onClick={ajouterCustom} style={{ fontSize: '0.65625rem', padding: '3px 10px', borderRadius: '3px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer' }}>Ajouter</button>
             <button onClick={() => { setNouveau(false); setSaisie('') }} style={{ fontSize: '0.65625rem', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#9a958d', cursor: 'pointer' }}>Annuler</button>
           </>
@@ -1433,7 +1433,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           <div onClick={() => setConfigOeuvre(null)}
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div onClick={e => e.stopPropagation()}
-              style={{ background: '#fff', borderRadius: '10px', padding: '24px 28px', width: '480px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
+              style={{ background: '#fff', borderRadius: '10px', padding: '24px 28px', width: '30rem', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', color: '#2a3d30', margin: 0 }}>{oeuvreNom}</p>
                 <button onClick={() => setConfigOeuvre(null)} style={{ fontSize: '0.875rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
@@ -1512,11 +1512,11 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           style={{ flex: 1, fontSize: '0.75rem', padding: '6px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#fff', color: '#1e1a16', outline: 'none' }} />
         {recherche && <button onClick={() => setRecherche('')} style={{ fontSize: '0.6875rem', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>}
         <button onClick={() => { setAjoutAuteur(!ajoutAuteur); setMsgAjoutAuteur(null) }}
-          style={{ width: '118px', textAlign: 'center', fontSize: '0.75rem', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutAuteur ? '#2e5440' : '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          style={{ width: '7.375rem', textAlign: 'center', fontSize: '0.75rem', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutAuteur ? '#2e5440' : '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
           {ajoutAuteur ? 'Fermer' : '+ Nouvel auteur'}
         </button>
         <button onClick={() => { setAjoutOeuvre(!ajoutOeuvre); setVueBibliotheque('oeuvres') }}
-          style={{ width: '128px', textAlign: 'center', fontSize: '0.75rem', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutOeuvre ? '#2e5440' : '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          style={{ width: '8rem', textAlign: 'center', fontSize: '0.75rem', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutOeuvre ? '#2e5440' : '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
           {ajoutOeuvre ? 'Fermer' : '+ Nouvelle œuvre'}
         </button>
         {/* Menu déroulant de filtrage des auteurs (remplace l'ancien bouton bascule). */}
@@ -1727,7 +1727,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                       </a>
                       <span style={{ fontSize: '0.75rem', color: '#3a3530', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{surbrillance(oeuvre.titre)}</span>
                       {oeuvre.trad_auteur && (
-                        <span style={{ fontSize: '0.65625rem', color: '#9a958d', fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px', flexShrink: 0 }}>
+                        <span style={{ fontSize: '0.65625rem', color: '#9a958d', fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '9.375rem', flexShrink: 0 }}>
                           Trad. {oeuvre.trad_auteur}
                         </span>
                       )}

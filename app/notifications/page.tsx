@@ -120,9 +120,9 @@ export default function NotificationsPage() {
         </div>
 
         {connecte === false ? (
-          <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Connectez-vous pour consulter vos notifications.</p>
+          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Connectez-vous pour consulter vos notifications.</p>
         ) : items === null ? (
-          <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
         ) : (
           <>
             <div style={{ display: 'flex', justifyContent: 'center', borderBottom: '1px solid #d6d0c4', marginBottom: '14px' }}>
@@ -133,14 +133,14 @@ export default function NotificationsPage() {
                 <button key={o.key} onClick={() => setOnglet(o.key)}
                   style={{ padding: '8px 14px', fontSize: '0.75rem', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#3d6b4f' : '#8a8278', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer' }}>
                   {o.label}
-                  <span style={{ marginLeft: '5px', fontSize: '10px', color: '#b0a89e' }}>({o.count})</span>
+                  <span style={{ marginLeft: '5px', fontSize: '0.625rem', color: '#b0a89e' }}>({o.count})</span>
                 </button>
               ))}
             </div>
 
             {liste.length === 0 ? (
               <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '16px 18px' }}>
-                <p style={{ fontSize: '12.5px', color: '#9a958d', margin: 0, fontStyle: 'italic' }}>
+                <p style={{ fontSize: '0.78125rem', color: '#9a958d', margin: 0, fontStyle: 'italic' }}>
                   {onglet === 'nouvelles' ? 'Aucune notification nouvelle.' : 'Aucune notification archivée.'}
                 </p>
               </div>
@@ -160,23 +160,23 @@ export default function NotificationsPage() {
                     <div className="notification-contenu">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '10px', marginBottom: '5px' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 2px' }}>{n.titre}</p>
+                          <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 2px' }}>{n.titre}</p>
                           <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: '#1e2e24', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.objet}</p>
                         </div>
-                        <span style={{ fontSize: '9.5px', color: '#b0a89e', flexShrink: 0 }}>{dateCourte(n.date)}</span>
+                        <span style={{ fontSize: '0.59375rem', color: '#b0a89e', flexShrink: 0 }}>{dateCourte(n.date)}</span>
                       </div>
                       {n.contexte && (
-                        <p style={{ fontSize: '11px', color: '#8a8278', fontStyle: 'italic', margin: '0 0 6px', lineHeight: 1.35 }}>
+                        <p style={{ fontSize: '0.6875rem', color: '#8a8278', fontStyle: 'italic', margin: '0 0 6px', lineHeight: 1.35 }}>
                           À propos : {n.contexte}
                         </p>
                       )}
-                      <p style={{ fontSize: '10.5px', color: '#9a958d', margin: '0 0 4px' }}>
+                      <p style={{ fontSize: '0.65625rem', color: '#9a958d', margin: '0 0 4px' }}>
                         Message de <strong style={{ color: '#5a5450' }}>{n.auteur}</strong>
                       </p>
                       <p style={{ fontSize: '0.75rem', color: '#2a2520', lineHeight: 1.45, whiteSpace: 'pre-wrap', margin: 0 }}>{n.message}</p>
                       {n.href && (
                         <Link href={n.href} onClick={e => { e.stopPropagation(); archiver(n) }}
-                          style={{ display: 'inline-block', marginTop: '7px', fontSize: '11px', color: '#3d6b4f', fontWeight: 600, textDecoration: 'none' }}>
+                          style={{ display: 'inline-block', marginTop: '7px', fontSize: '0.6875rem', color: '#3d6b4f', fontWeight: 600, textDecoration: 'none' }}>
                           {n.type === 'essai' ? 'Voir la publication' : n.type === 'commentaire' ? 'Voir le commentaire' : 'Ouvrir'}
                         </Link>
                       )}

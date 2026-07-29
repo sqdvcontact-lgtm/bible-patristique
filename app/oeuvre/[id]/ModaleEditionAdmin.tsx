@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react'
 import type { EditionCible } from './oeuvreTypes'
 
-const BTN_MODAL: React.CSSProperties = { fontSize: '11px', padding: '4px 9px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a3530', cursor: 'pointer' }
+const BTN_MODAL: React.CSSProperties = { fontSize: '0.6875rem', padding: '4px 9px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a3530', cursor: 'pointer' }
 
 async function appelerAPI(chemin: string, corps: object): Promise<{ ok: boolean; error?: string }> {
   const res = await fetch(chemin, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corps) })
@@ -103,12 +103,12 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '8px', padding: '20px 24px', width: '680px', maxWidth: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '8px', padding: '20px 24px', width: '42.5rem', maxWidth: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <p style={{ fontSize: '12px', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>
+          <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>
             {cible.type === 'segment' ? 'Modifier le segment' : cible.type === 'titre_oeuvre' ? (CHAMP_LABEL[cible.champ] ?? "Modifier le titre de l'œuvre") : `Modifier le titre de niveau ${cible.niveau}`}
           </p>
-          <button onClick={onClose} style={{ fontSize: '14px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} style={{ fontSize: '0.875rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
 
         {etape === 'edition' ? <>
@@ -123,54 +123,54 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
           </div>
           <textarea ref={taRef} value={valeur} onChange={e => setValeur(e.target.value)}
             rows={cible.type === 'segment' ? 8 : cible.type === 'titre_oeuvre' && cible.champ === 'titre' ? 3 : 2} autoFocus
-            style={{ width: '100%', fontSize: '12.5px', padding: '8px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#2a2520', resize: 'vertical', outline: 'none', lineHeight: 1.55, boxSizing: 'border-box', fontFamily: cible.type === 'segment' ? 'var(--font-source-sans), Arial, sans-serif' : 'inherit' }} />
+            style={{ width: '100%', fontSize: '0.78125rem', padding: '8px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#2a2520', resize: 'vertical', outline: 'none', lineHeight: 1.55, boxSizing: 'border-box', fontFamily: cible.type === 'segment' ? 'var(--font-source-sans), Arial, sans-serif' : 'inherit' }} />
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
             {cible.type === 'titre' ? (
-              <button onClick={supprimerTitre} style={{ fontSize: '10.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <button onClick={supprimerTitre} style={{ fontSize: '0.65625rem', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 Supprimer
               </button>
             ) : cible.type === 'segment' ? (
-              <button onClick={() => setEtape('confirmation-suppression')} style={{ fontSize: '10.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <button onClick={() => setEtape('confirmation-suppression')} style={{ fontSize: '0.65625rem', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 Supprimer
               </button>
             ) : cible.type === 'titre_oeuvre' && cible.champ !== 'titre' ? (
-              <button onClick={() => viderChampOeuvre(cible.champ)} style={{ fontSize: '10.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <button onClick={() => viderChampOeuvre(cible.champ)} style={{ fontSize: '0.65625rem', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 Supprimer
               </button>
             ) : <span />}
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={onClose} style={{ fontSize: '11px', padding: '5px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
+              <button onClick={onClose} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
               <button onClick={() => setEtape('confirmation')} disabled={!valeur.trim()}
-                style={{ fontSize: '11px', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: valeur.trim() ? 'pointer' : 'default', background: valeur.trim() ? '#3d6b4f' : '#e4dfd8', color: '#fff', fontWeight: 500 }}>
+                style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: valeur.trim() ? 'pointer' : 'default', background: valeur.trim() ? '#3d6b4f' : '#e4dfd8', color: '#fff', fontWeight: 500 }}>
                 Modifier
               </button>
             </div>
           </div>
           {statut === 'erreur' && (
-            <p style={{ fontSize: '10px', color: '#c0562a', marginTop: '8px' }}>
+            <p style={{ fontSize: '0.625rem', color: '#c0562a', marginTop: '8px' }}>
               Erreur d&rsquo;enregistrement{erreurMsg ? ` — ${erreurMsg}` : ' — rien n’a été modifié.'}
             </p>
           )}
         </> : etape === 'confirmation' ? <>
-          <p style={{ fontSize: '11px', color: '#6b6560', marginBottom: '10px' }}>Confirmer cette modification ?</p>
-          <div style={{ background: '#faf8f4', border: '1px solid #ede9e2', borderRadius: '5px', padding: '8px 10px', fontSize: '11.5px', color: '#2a2520', marginBottom: '12px', maxHeight: '160px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+          <p style={{ fontSize: '0.6875rem', color: '#6b6560', marginBottom: '10px' }}>Confirmer cette modification ?</p>
+          <div style={{ background: '#faf8f4', border: '1px solid #ede9e2', borderRadius: '5px', padding: '8px 10px', fontSize: '0.71875rem', color: '#2a2520', marginBottom: '12px', maxHeight: '160px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
             {valeur}
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <button onClick={() => setEtape('edition')} disabled={statut === 'envoi'} style={{ fontSize: '11px', padding: '5px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Retour</button>
-            <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '11px', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: '#3d6b4f', color: '#fff', fontWeight: 500 }}>
+            <button onClick={() => setEtape('edition')} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Retour</button>
+            <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: '#3d6b4f', color: '#fff', fontWeight: 500 }}>
               {statut === 'envoi' ? 'Envoi…' : 'Confirmer'}
             </button>
           </div>
         </> : <>
-          <p style={{ fontSize: '11px', color: '#c0562a', marginBottom: '10px' }}>Supprimer définitivement ce segment ? La numérotation des segments suivants sera décalée automatiquement.</p>
-          <div style={{ background: '#faf8f4', border: '1px solid #ede9e2', borderRadius: '5px', padding: '8px 10px', fontSize: '11.5px', color: '#2a2520', marginBottom: '12px', maxHeight: '160px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+          <p style={{ fontSize: '0.6875rem', color: '#c0562a', marginBottom: '10px' }}>Supprimer définitivement ce segment ? La numérotation des segments suivants sera décalée automatiquement.</p>
+          <div style={{ background: '#faf8f4', border: '1px solid #ede9e2', borderRadius: '5px', padding: '8px 10px', fontSize: '0.71875rem', color: '#2a2520', marginBottom: '12px', maxHeight: '160px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
             {valeur}
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <button onClick={() => setEtape('edition')} disabled={statut === 'envoi'} style={{ fontSize: '11px', padding: '5px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Retour</button>
-            <button onClick={supprimerSegment} disabled={statut === 'envoi'} style={{ fontSize: '11px', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: '#c0562a', color: '#fff', fontWeight: 500 }}>
+            <button onClick={() => setEtape('edition')} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Retour</button>
+            <button onClick={supprimerSegment} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: '#c0562a', color: '#fff', fontWeight: 500 }}>
               {statut === 'envoi' ? 'Suppression…' : 'Supprimer définitivement'}
             </button>
           </div>

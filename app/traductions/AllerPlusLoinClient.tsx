@@ -186,7 +186,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
       }}>
         <h2 style={{
           fontFamily: "var(--font-source-serif), Georgia, serif",
-          fontSize: '17px', fontWeight: 'normal',
+          fontSize: '1.0625rem', fontWeight: 'normal',
           color: couleurTexte, margin: 0, lineHeight: 1.25,
           textShadow: ombreTexte,
           transition: 'color 0.2s, text-shadow 0.2s',
@@ -196,7 +196,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
         {meta && (
           <span style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
-            fontSize: '11px', fontStyle: 'italic',
+            fontSize: '0.6875rem', fontStyle: 'italic',
             color: couleurMeta, letterSpacing: '0.02em',
             display: 'block', marginTop: '4px',
             textShadow: ombreTexte,
@@ -207,7 +207,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
         )}
         {t.import_maj_le && (
           <span style={{
-            fontSize: '10px', fontStyle: 'italic',
+            fontSize: '0.625rem', fontStyle: 'italic',
             color: t.photo ? (fondSombre ? 'rgba(242,239,232,0.48)' : 'rgba(24,19,15,0.38)') : '#b0a89e',
             display: 'block', marginTop: '3px',
             textShadow: t.photo ? ombreTexte : 'none',
@@ -219,7 +219,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
       </div>
 
       <span style={{
-        position: 'relative', zIndex: 1, fontSize: '10px', flexShrink: 0,
+        position: 'relative', zIndex: 1, fontSize: '0.625rem', flexShrink: 0,
         marginRight: '18px', color: couleurChevron,
         textShadow: t.photo ? ombreTexte : 'none',
         display: 'inline-block', transition: 'transform 0.18s, color 0.2s',
@@ -279,7 +279,7 @@ function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }
                 <div style={{ borderTop: "1px solid #ede9e2", display: "flex", alignItems: "stretch" }}>
                   {t.photo && (
                     <div style={{
-                      width: "140px", flexShrink: 0,
+                      width: "8.75rem", flexShrink: 0,
                       borderRight: "1px solid #ede9e2",
                       overflow: "hidden",
                     }}>
@@ -437,7 +437,7 @@ function OngletAcheter() {
             <span className="lib-fleche" style={{ color: lib.couleur }}>→</span>
           </div>
           <span className="lib-survol" style={{ color: lib.couleur }}>
-            Visiter la librairie <span style={{ fontSize: '13px', opacity: 0.7 }}>→</span>
+            Visiter la librairie <span style={{ fontSize: '0.8125rem', opacity: 0.7 }}>→</span>
           </span>
         </a>
       ))}
@@ -472,9 +472,9 @@ const statLigne: React.CSSProperties = {
   display: 'flex', alignItems: 'baseline', gap: '12px', padding: '10px 14px',
   background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', textDecoration: 'none',
 };
-const statRang: React.CSSProperties = { fontSize: '11px', color: '#b0a89e', fontWeight: 600, width: '20px', flexShrink: 0 };
-const statRef: React.CSSProperties = { fontSize: '11.5px', fontWeight: 600, color: '#2a3d30', margin: '0 0 2px' };
-const statTexte: React.CSSProperties = { fontSize: '12px', color: '#5a5450', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+const statRang: React.CSSProperties = { fontSize: '0.6875rem', color: '#b0a89e', fontWeight: 600, width: '20px', flexShrink: 0 };
+const statRef: React.CSSProperties = { fontSize: '0.71875rem', fontWeight: 600, color: '#2a3d30', margin: '0 0 2px' };
+const statTexte: React.CSSProperties = { fontSize: '0.75rem', color: '#5a5450', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
 
 // En-tête d'une rubrique statistique : titre en serif + courte glose.
 function EnteteStat({ titre, intro, style }: { titre: string; intro: string; style?: React.CSSProperties }) {
@@ -531,9 +531,9 @@ function OngletStatistiques() {
         titre="Les plus cités et commentés par les Pères"
         intro="Classement établi à partir des liens patristiques : un commentaire pèse davantage qu'une citation, une citation davantage qu'une simple allusion. Le score grandira à mesure que les liens sont constitués." />
       {cites === null ? (
-        <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+        <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
       ) : cites.length === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Aucun lien pour l'instant.</p>
+        <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Aucun lien pour l'instant.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {cites.map((v, i) => (
@@ -542,10 +542,10 @@ function OngletStatistiques() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={statRef}>{NOM_LIVRE[v.livre] ?? v.livre} {v.chapitre}, {v.verset}</p>
                 {v.TR0002 && <p style={statTexte}>{v.TR0002}</p>}
-                <p style={{ fontSize: '10.5px', color: '#9a8a6e', margin: '3px 0 0' }}>{detailCite(v)}</p>
+                <p style={{ fontSize: '0.65625rem', color: '#9a8a6e', margin: '3px 0 0' }}>{detailCite(v)}</p>
               </div>
               <span title="Score patristique"
-                style={{ fontSize: '13px', fontWeight: 700, color: '#3d6b4f', background: 'rgba(61,107,79,0.09)', border: '1px solid rgba(61,107,79,0.22)', borderRadius: '6px', padding: '2px 9px', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+                style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#3d6b4f', background: 'rgba(61,107,79,0.09)', border: '1px solid rgba(61,107,79,0.22)', borderRadius: '6px', padding: '2px 9px', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
                 {v.score}
               </span>
             </Link>
@@ -564,7 +564,7 @@ function OngletStatistiques() {
                   <p style={statRef}>{NOM_LIVRE[v.livre] ?? v.livre} {v.chapitre}, {v.verset}</p>
                   <p style={statTexte}>{v.TR0002}</p>
                 </div>
-                <span style={{ fontSize: '11px', color: '#9a958d', flexShrink: 0 }}>{v.nb_lectures} lecture{v.nb_lectures > 1 ? 's' : ''}</span>
+                <span style={{ fontSize: '0.6875rem', color: '#9a958d', flexShrink: 0 }}>{v.nb_lectures} lecture{v.nb_lectures > 1 ? 's' : ''}</span>
               </Link>
             ))}
           </div>

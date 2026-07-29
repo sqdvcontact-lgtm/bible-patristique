@@ -106,7 +106,7 @@ export default function SectionEditeurs() {
   const label: React.CSSProperties = { display: 'block', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.04em', color: '#8a8278', textTransform: 'uppercase', margin: '0 0 3px' }
 
   return (
-    <div style={{ maxWidth: '760px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '47.5rem', margin: '0 auto' }}>
       <p style={{ fontSize: '0.8125rem', color: '#6b6560', lineHeight: 1.55, margin: '0 0 20px' }}>
         Table de référence des maisons d'édition. Le <strong>nom complet</strong> s'affiche partout où l'éditeur est répertorié ; les <strong>variantes</strong> (abréviations, graphies) le résolvent. Les données des œuvres restent intactes.
       </p>

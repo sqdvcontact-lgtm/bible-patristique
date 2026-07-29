@@ -366,7 +366,7 @@ export default function Navbar() {
     alignItems: "center",
     gap: "4px",
     padding: "4px 7px",
-    fontSize: "12px",
+    fontSize: "0.75rem",
   } as const);
 
   // ── Bloc recherche rapide, réutilisé en version desktop et mobile ────────────
@@ -419,7 +419,7 @@ export default function Navbar() {
 
           {/* Barre de statut : nb résultats + spinner/smiley */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 14px 5px", borderBottom: "1px solid #ede9e2", background: "#faf8f5" }}>
-            <span style={{ fontSize: "11px", color: "#6b6560", fontWeight: 500 }}>
+            <span style={{ fontSize: "0.6875rem", color: "#6b6560", fontWeight: 500 }}>
               {rechercheRapideLoading && nbTotalResultats === 0
                 ? "Recherche…"
                 : nbTotalResultats === 0 && rechercheTerminee
@@ -446,17 +446,17 @@ export default function Navbar() {
           </div>
 
           {rechercheRapideLoading && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && essaisTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 ? (
-            <p style={{ fontSize: "12px", color: "#c0b8ae", textAlign: "center", padding: "14px 12px", margin: 0 }}>…</p>
+            <p style={{ fontSize: "0.75rem", color: "#c0b8ae", textAlign: "center", padding: "14px 12px", margin: 0 }}>…</p>
           ) : aucunResultat ? (
-            <p style={{ fontSize: "12px", color: "#9a958d", fontStyle: "italic", textAlign: "center", padding: "14px 12px", margin: 0 }}>Aucun résultat — Entrée pour une recherche complète.</p>
+            <p style={{ fontSize: "0.75rem", color: "#9a958d", fontStyle: "italic", textAlign: "center", padding: "14px 12px", margin: 0 }}>Aucun résultat — Entrée pour une recherche complète.</p>
           ) : (
             <>
               {auteursTrouves.length > 0 && (
                 <div style={{ padding: "8px 0 4px" }}>
-                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "0 14px 3px" }}>Auteurs</p>
+                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "0 14px 3px" }}>Auteurs</p>
                   {auteursTrouves.map(a => (
                     <Link key={a.id_auteur} href={`/auteur/${a.id_auteur}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "5px 14px", fontSize: "13px", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "5px 14px", fontSize: "0.8125rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(a.nom, requeteRapide.trim())}
@@ -466,40 +466,40 @@ export default function Navbar() {
               )}
               {oeuvresTrouvees.length > 0 && (
                 <div style={{ padding: "6px 0 4px", borderTop: auteursTrouves.length > 0 ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Œuvres patristiques</p>
+                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Œuvres patristiques</p>
                   {oeuvresTrouvees.map(o => (
                     <Link key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "5px 14px", fontSize: "13px", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "5px 14px", fontSize: "0.8125rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(o.titre, requeteRapide.trim())}
-                      {o.auteurs?.nom && <span style={{ fontSize: "11px", color: "#9a958d", marginLeft: "7px" }}>{o.auteurs.nom}</span>}
+                      {o.auteurs?.nom && <span style={{ fontSize: "0.6875rem", color: "#9a958d", marginLeft: "7px" }}>{o.auteurs.nom}</span>}
                     </Link>
                   ))}
                 </div>
               )}
               {segmentsTrouves.length > 0 && (
                 <div style={{ padding: "6px 0 4px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0) ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Extraits patristiques</p>
+                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Extraits patristiques</p>
                   {segmentsTrouves.map(s => (
                     <Link key={s.id} href={`/oeuvre/${s.id_oeuvre}?segment=${s.id}#segment-${s.id}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "5px 14px", fontSize: "12px", color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "5px 14px", fontSize: "0.75rem", color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {/* Justifié et borné à TROIS lignes, texte condensé pour épouser la
                           largeur du menu sans creuser de blancs ni déborder. */}
                       <span style={{ fontStyle: "italic", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: 1.32, color: "#3a3530", textAlign: "justify", wordSpacing: "-0.05em", letterSpacing: "-0.012em", hyphens: "auto" }}>{extraireEtSurligner(s.segment_texte, requeteRapide.trim())}</span>
-                      <span style={{ fontSize: "10.5px", color: "#9a958d", marginTop: "2px", display: "block" }}>{s.auteur_nom}{s.auteur_nom && s.oeuvre_titre ? ' · ' : ''}{s.oeuvre_titre}</span>
+                      <span style={{ fontSize: "0.65625rem", color: "#9a958d", marginTop: "2px", display: "block" }}>{s.auteur_nom}{s.auteur_nom && s.oeuvre_titre ? ' · ' : ''}{s.oeuvre_titre}</span>
                     </Link>
                   ))}
                 </div>
               )}
               {essaisTrouves.length > 0 && (
                 <div style={{ padding: "6px 0 4px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Essais et méditations</p>
+                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Essais et méditations</p>
                   {essaisTrouves.map(e => (
                     <Link key={e.id} href={`/essais/${e.id}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "5px 14px", fontSize: "13px", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "5px 14px", fontSize: "0.8125rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={ev => (ev.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                       onMouseLeave={ev => (ev.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(e.titre, requeteRapide.trim())}
@@ -509,10 +509,10 @@ export default function Navbar() {
               )}
               {livresTrouves.length > 0 && (
                 <div style={{ padding: "6px 0 4px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0 || essaisTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Livres bibliques</p>
+                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Livres bibliques</p>
                   {livresTrouves.map(l => (
                     <Link key={l.code} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "5px 14px", fontSize: "13px", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "5px 14px", fontSize: "0.8125rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(l.nom, requeteRapide.trim())}
@@ -522,10 +522,10 @@ export default function Navbar() {
               )}
               {traductionsTrouvees.length > 0 && (
                 <div style={{ padding: "6px 0 8px", borderTop: (auteursTrouves.length > 0 || livresTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "9.5px", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Traductions</p>
+                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Traductions</p>
                   {traductionsTrouvees.map(t => (
                     <Link key={t.code} href={`/traductions#${t.code}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "5px 14px", fontSize: "13px", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "5px 14px", fontSize: "0.8125rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(t.nom, requeteRapide.trim())}
@@ -536,11 +536,11 @@ export default function Navbar() {
               {(auteursTrouves.length >= 4 || oeuvresTrouvees.length >= 8 || segmentsTrouves.length >= 5 || essaisTrouves.length >= 4) && (
                 <div style={{ borderTop: "1px solid #ede9e2", padding: "5px 0" }}>
                   <Link href={`/recherche?q=${encodeURIComponent(requeteRapide.trim())}&mode=prefixe`} onClick={fermerRechercheRapide}
-                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", padding: "7px 14px", fontSize: "12px", color: "#3d6b4f", fontWeight: 600, textDecoration: "none", letterSpacing: "0.02em" }}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", padding: "7px 14px", fontSize: "0.75rem", color: "#3d6b4f", fontWeight: 600, textDecoration: "none", letterSpacing: "0.02em" }}
                     onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                     onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                     Tout voir
-                    <span style={{ fontSize: "14px", lineHeight: 1 }}>→</span>
+                    <span style={{ fontSize: "0.875rem", lineHeight: 1 }}>→</span>
                   </Link>
                 </div>
               )}
@@ -555,7 +555,7 @@ export default function Navbar() {
   // ── Interrupteur admin / utilisateur standard — visible directement dans la barre ─
   const toggleAdmin = (mobile: boolean) => (estAdmin || estAdminEmail) && (
     <div style={mobile
-      ? { display: "flex", alignItems: "center", gap: "8px", padding: "9px 12px", fontSize: "13px", color: "rgba(255,255,255,0.85)" }
+      ? { display: "flex", alignItems: "center", gap: "8px", padding: "9px 12px", fontSize: "0.8125rem", color: "rgba(255,255,255,0.85)" }
       : { display: "inline-flex", alignItems: "center", gap: "5px", height: "28px", padding: "0 6px 0 2px", fontSize: "0.6875rem", color: "rgba(255,255,255,0.74)", letterSpacing: "0.01em" }}>
       <button type="button" role="switch" aria-checked={modeUtilisateurStandard}
         onClick={() => setModeUtilisateurStandard(!modeUtilisateurStandard)}
@@ -578,15 +578,15 @@ export default function Navbar() {
       {!mobile && (
         <button onClick={() => setMenuOuvert(!menuOuvert)} style={{ display: "flex", alignItems: "center", gap: "5px", height: "30px", background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.17)", borderRadius: "6px", padding: "0 8px 0 7px", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "0.75rem", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="5" r="2.8" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M1.5 13c0-3 2.5-4.5 5.5-4.5S12.5 10 12.5 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>
-          <span style={{ maxWidth: "96px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email.split("@")[0]}</span>
-          <span style={{ fontSize: "9px", opacity: 0.6 }}>▼</span>
+          <span style={{ maxWidth: "6rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email.split("@")[0]}</span>
+          <span style={{ fontSize: "0.5625rem", opacity: 0.6 }}>▼</span>
         </button>
       )}
       <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "8px", overflow: "hidden" } : { position: "absolute", top: "calc(100% + 6px)", right: 0, background: "#fff", border: "1px solid #d6d0c4", borderRadius: "8px", boxShadow: "0 6px 24px rgba(0,0,0,0.10)", minWidth: "190px", zIndex: 3100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
         {!mobile && (
           <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid #ede9e2" }}>
-            <p style={{ fontSize: "10.5px", color: "#9a958d", margin: 0 }}>Connecté en tant que</p>
-            <p style={{ fontSize: "11.5px", color: "#2a3d30", fontWeight: 500, margin: "2px 0 0", wordBreak: "break-all" }}>{pseudo ?? user.email}</p>
+            <p style={{ fontSize: "0.65625rem", color: "#9a958d", margin: 0 }}>Connecté en tant que</p>
+            <p style={{ fontSize: "0.71875rem", color: "#2a3d30", fontWeight: 500, margin: "2px 0 0", wordBreak: "break-all" }}>{pseudo ?? user.email}</p>
           </div>
         )}
         {[
@@ -598,8 +598,8 @@ export default function Navbar() {
         ].map(item => (
           <Link key={item.href} href={item.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}
             style={mobile
-              ? { display: "flex", alignItems: "center", gap: "7px", padding: "10px 12px", fontSize: "13px", color: "rgba(255,255,255,0.85)", textDecoration: "none" }
-              : { display: "flex", alignItems: "center", gap: "7px", padding: "10px 14px", fontSize: "12.5px", color: "#2a3d30", textDecoration: "none", borderBottom: "1px solid #ede9e2" }}>
+              ? { display: "flex", alignItems: "center", gap: "7px", padding: "10px 12px", fontSize: "0.8125rem", color: "rgba(255,255,255,0.85)", textDecoration: "none" }
+              : { display: "flex", alignItems: "center", gap: "7px", padding: "10px 14px", fontSize: "0.78125rem", color: "#2a3d30", textDecoration: "none", borderBottom: "1px solid #ede9e2" }}>
             {item.icone === "epee" && (
               <svg width="11" height="14" viewBox="0 0 12 15" aria-hidden="true" style={{ flexShrink: 0, opacity: 0.72 }}>
                 {/* Flamme */}
@@ -618,14 +618,14 @@ export default function Navbar() {
             )}
             <span>{item.label}</span>
             {item.badge > 0 && (
-              <span style={{ marginLeft: '4px', fontSize: '10px', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
+              <span style={{ marginLeft: '4px', fontSize: '0.625rem', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
             )}
           </Link>
         ))}
         <button onClick={seDeconnecter}
           style={mobile
-            ? { display: "block", width: "100%", textAlign: "left", padding: "10px 12px", fontSize: "13px", color: "#e8a0a0", background: "none", border: "none", cursor: "pointer" }
-            : { width: "100%", textAlign: "left", padding: "10px 14px", fontSize: "12.5px", color: "#9a2a2a", background: "none", border: "none", cursor: "pointer" }}>
+            ? { display: "block", width: "100%", textAlign: "left", padding: "10px 12px", fontSize: "0.8125rem", color: "#e8a0a0", background: "none", border: "none", cursor: "pointer" }
+            : { width: "100%", textAlign: "left", padding: "10px 14px", fontSize: "0.78125rem", color: "#9a2a2a", background: "none", border: "none", cursor: "pointer" }}>
           Se déconnecter
         </button>
       </div>
@@ -633,7 +633,7 @@ export default function Navbar() {
     </div>
   ) : (
     <Link href="/chantier" onClick={() => setMobileOuvert(false)} style={mobile
-      ? { display: "block", textAlign: "center", padding: "9px 12px", borderRadius: "6px", fontSize: "13px", color: "#fff", textDecoration: "none", border: "1px solid rgba(255,255,255,0.25)" }
+      ? { display: "block", textAlign: "center", padding: "9px 12px", borderRadius: "6px", fontSize: "0.8125rem", color: "#fff", textDecoration: "none", border: "1px solid rgba(255,255,255,0.25)" }
       : { display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 11px", borderRadius: "5px", fontSize: "0.78125rem", color: "rgba(255,255,255,0.75)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.20)" }}>
       Se connecter
     </Link>
@@ -740,7 +740,7 @@ export default function Navbar() {
                 onMouseLeave={e => { e.currentTarget.style.background = nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
                 <IconParchemin />
                 {nbMessages > 0 && (
-                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: '#c0562a', color: '#fff', borderRadius: '7px', fontSize: '9px', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
+                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: '#c0562a', color: '#fff', borderRadius: '7px', fontSize: '0.5625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
                     {nbMessages > 99 ? '99+' : nbMessages}
                   </span>
                 )}
@@ -752,7 +752,7 @@ export default function Navbar() {
                 onMouseLeave={e => { e.currentTarget.style.background = nbNotifications > 0 ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = nbNotifications > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
                 <IconAngeTrompette />
                 {nbNotifications > 0 && (
-                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: '#c0562a', color: '#fff', borderRadius: '7px', fontSize: '9px', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
+                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: '#c0562a', color: '#fff', borderRadius: '7px', fontSize: '0.5625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
                     {nbNotifications > 99 ? '99+' : nbNotifications}
                   </span>
                 )}
@@ -788,7 +788,7 @@ export default function Navbar() {
                 const actif = pathname === chemin || (chemin !== "/" && pathname.startsWith(chemin));
                 return (
                   <Link key={href} href={href} onClick={() => setMobileOuvert(false)}
-                    style={{ padding: "9px 10px", borderRadius: "6px", fontSize: "14px", color: "#fff", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
+                    style={{ padding: "9px 10px", borderRadius: "6px", fontSize: "0.875rem", color: "#fff", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
                     {label}
                   </Link>
                 );
@@ -796,7 +796,7 @@ export default function Navbar() {
             </div>
             {blocRecherche(true)}
             <Link href="/soutenir" onClick={() => setMobileOuvert(false)}
-              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "9px 10px", borderRadius: "6px", fontSize: "14px", color: "#fff", textDecoration: "none" }}>
+              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "9px 10px", borderRadius: "6px", fontSize: "0.875rem", color: "#fff", textDecoration: "none" }}>
               <IconCoeur /> Soutenir le projet
             </Link>
             {toggleAdmin(true)}
@@ -805,10 +805,10 @@ export default function Navbar() {
         )}
         {toastNotification && (
           <Link href="/notifications" onClick={() => setToastNotification(null)}
-            style={{ position: "fixed", top: "62px", right: "18px", width: "280px", background: "#fff", border: "1px solid #d6d0c4", borderLeft: "3px solid #3d6b4f", borderRadius: "8px", boxShadow: "0 12px 34px rgba(0,0,0,0.16)", padding: "11px 13px", zIndex: 4000, textDecoration: "none" }}>
-            <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#3d6b4f", margin: "0 0 4px" }}>Nouvelle notification</p>
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "14px", color: "#1e2e24", margin: "0 0 4px" }}>{toastNotification.titre}</p>
-            <p style={{ fontSize: "11.5px", color: "#6b6560", lineHeight: 1.35, margin: 0 }}>{toastNotification.message}</p>
+            style={{ position: "fixed", top: "62px", right: "18px", width: "17.5rem", background: "#fff", border: "1px solid #d6d0c4", borderLeft: "3px solid #3d6b4f", borderRadius: "8px", boxShadow: "0 12px 34px rgba(0,0,0,0.16)", padding: "11px 13px", zIndex: 4000, textDecoration: "none" }}>
+            <p style={{ fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#3d6b4f", margin: "0 0 4px" }}>Nouvelle notification</p>
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "#1e2e24", margin: "0 0 4px" }}>{toastNotification.titre}</p>
+            <p style={{ fontSize: "0.71875rem", color: "#6b6560", lineHeight: 1.35, margin: 0 }}>{toastNotification.message}</p>
           </Link>
         )}
       </header>

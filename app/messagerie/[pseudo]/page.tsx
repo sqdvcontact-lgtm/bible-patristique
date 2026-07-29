@@ -82,7 +82,7 @@ export default function ConversationPage() {
 
   if (connecte === false) return (
     <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Connectez-vous pour accéder à votre messagerie.</p>
+      <p style={{ fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Connectez-vous pour accéder à votre messagerie.</p>
     </main>
   )
 
@@ -108,7 +108,7 @@ export default function ConversationPage() {
             style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: '#1e2e24', textDecoration: 'none', fontWeight: 400 }}>
             {pseudo}
           </Link>
-          <p style={{ fontSize: '10px', color: '#b0a89e', margin: '1px 0 0', letterSpacing: '0.04em' }}>
+          <p style={{ fontSize: '0.625rem', color: '#b0a89e', margin: '1px 0 0', letterSpacing: '0.04em' }}>
             Conversation privée
           </p>
         </div>
@@ -117,11 +117,11 @@ export default function ConversationPage() {
       {/* Zone messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 8px', maxWidth: '45rem', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
         {erreur ? (
-          <p style={{ textAlign: 'center', fontSize: '13px', color: '#c87070', fontStyle: 'italic' }}>{erreur}</p>
+          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#c87070', fontStyle: 'italic' }}>{erreur}</p>
         ) : messages === null ? (
-          <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
         ) : messages.length === 0 ? (
-          <p style={{ textAlign: 'center', fontSize: '13px', color: '#b0a89e', fontStyle: 'italic', marginTop: '40px' }}>
+          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#b0a89e', fontStyle: 'italic', marginTop: '40px' }}>
             Début de votre conversation avec {pseudo}.
           </p>
         ) : (
@@ -139,7 +139,7 @@ export default function ConversationPage() {
                     border: m.de_moi ? 'none' : '1px solid #e4dfd8',
                     borderRadius: m.de_moi ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                     padding: '9px 13px',
-                    fontSize: '13.5px',
+                    fontSize: '0.84375rem',
                     lineHeight: 1.5,
                     whiteSpace: 'pre-wrap',
                     wordBreak: 'break-word',
@@ -147,7 +147,7 @@ export default function ConversationPage() {
                     {m.contenu}
                   </div>
                   {(!sameMinute || i === messages.length - 1) && (
-                    <span style={{ fontSize: '9.5px', color: '#b0a89e', margin: '2px 4px 0' }}>
+                    <span style={{ fontSize: '0.59375rem', color: '#b0a89e', margin: '2px 4px 0' }}>
                       {heure(m.created_at)}
                       {m.de_moi && (
                         <span style={{ marginLeft: '4px', color: m.lu ? '#3d6b4f' : '#c8c0b4' }}>
@@ -182,7 +182,7 @@ export default function ConversationPage() {
                 border: '1px solid #d6d0c4',
                 borderRadius: '10px',
                 padding: '9px 12px',
-                fontSize: '13px',
+                fontSize: '0.8125rem',
                 background: '#fff',
                 color: '#1e2e24',
                 fontFamily: 'inherit',
@@ -200,7 +200,7 @@ export default function ConversationPage() {
                 border: 'none',
                 borderRadius: '10px',
                 padding: '10px 18px',
-                fontSize: '13px',
+                fontSize: '0.8125rem',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'background 0.14s',
@@ -210,7 +210,7 @@ export default function ConversationPage() {
               {envoi ? '…' : 'Envoyer'}
             </button>
           </div>
-          <p style={{ fontSize: '9.5px', color: '#c8c0b4', margin: '5px 0 0', textAlign: 'right' }}>
+          <p style={{ fontSize: '0.59375rem', color: '#c8c0b4', margin: '5px 0 0', textAlign: 'right' }}>
             {texte.length}/2000
           </p>
         </div>

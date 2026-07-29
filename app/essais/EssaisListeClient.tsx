@@ -192,7 +192,7 @@ function OngletCommunaute({
       {/* Barre de recherche ET tags sur la même ligne, centrés ; les tags, resserrés et
           discrets, passent à la ligne si la place manque. */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
-        <div style={{ position: 'relative', width: '220px', flexShrink: 0 }}>
+        <div style={{ position: 'relative', width: '13.75rem', flexShrink: 0 }}>
           <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
             placeholder="Auteur, titre, résumé…"
             style={{ width: '100%', fontSize: '0.6875rem', padding: '5px 12px 5px 28px', border: '1px solid #d6d0c4', borderRadius: '999px', background: 'rgba(255,255,255,0.72)', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
@@ -1222,7 +1222,7 @@ function EssaiCarte({ essai: e, miseEnAvant = false, favorisEssais, toggleFavori
 function OngletEcrire({ connecte }: { connecte: boolean | null }) {
   if (connecte === false) {
     return (
-      <div style={{ textAlign: 'center', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '28px 24px', maxWidth: '520px', margin: '0 auto' }}>
+      <div style={{ textAlign: 'center', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '28px 24px', maxWidth: '32.5rem', margin: '0 auto' }}>
         <p style={{ fontSize: '0.8125rem', color: '#6b6560', marginBottom: '14px' }}>Connectez-vous pour écrire un essai ou une méditation.</p>
         <Link href="/chantier" style={{ display: 'inline-block', padding: '8px 18px', fontSize: '0.78125rem', fontWeight: 600, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
           Se connecter
@@ -1232,14 +1232,14 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
   }
   if (connecte === null) return <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
   return (
-    <div style={{ maxWidth: '620px', margin: '0 auto', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '30px 34px', textAlign: 'center' }}>
+    <div style={{ maxWidth: '38.75rem', margin: '0 auto', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '30px 34px', textAlign: 'center' }}>
       <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 8px' }}>
         Espace de rédaction
       </p>
       <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 10px' }}>
         Écrire une publication
       </h2>
-      <p style={{ fontSize: '0.78125rem', color: '#6b6560', lineHeight: 1.65, margin: '0 auto 20px', maxWidth: '440px' }}>
+      <p style={{ fontSize: '0.78125rem', color: '#6b6560', lineHeight: 1.65, margin: '0 auto 20px', maxWidth: '27.5rem' }}>
         Le titre, le résumé, les catégories et le texte se renseignent désormais dans la même page.
       </p>
       <Link href="/essais/nouveau?depuis=publications" style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
@@ -1311,7 +1311,7 @@ function OngletMesEcrits({
   }
 
   return (
-    <div style={{ maxWidth: '680px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '42.5rem', margin: '0 auto' }}>
       {/* Filtres — puces discrètes ; le compteur ne s'affiche que s'il y a des écrits. */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', flexWrap: 'wrap', marginBottom: '14px' }}>
         {groupes.map(g => {
@@ -1450,7 +1450,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
   const peutRelancer = versets.length < MAX_SUGGESTIONS_JOUR
 
   return (
-    <div style={{ maxWidth: '560px', margin: '0 auto', textAlign: 'center', paddingTop: '8px' }}>
+    <div style={{ maxWidth: '35rem', margin: '0 auto', textAlign: 'center', paddingTop: '8px' }}>
       {!verset ? (
         <p style={{ fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic', marginTop: '20px' }}>
           {chargement ? 'Chargement…' : 'Impossible de charger une suggestion.'}

@@ -11,7 +11,7 @@ type Props = {
 }
 
 const boutonOutil: React.CSSProperties = {
-  fontSize: '10px',
+  fontSize: '0.625rem',
   padding: '2px 7px',
   borderRadius: '3px',
   borderWidth: '1px',
@@ -232,7 +232,7 @@ export default function EditeurCommentaire({ value, onChange, placeholder = 'Vot
         onKeyUp={majActifs}
         onMouseUp={majActifs}
         onFocus={majActifs}
-        style={{ minHeight, maxHeight: 180, overflowY: 'auto', width: '100%', fontSize: '11.3px', padding: '7px 8px', border: '1px solid #cfd8d0', borderRadius: '5px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box', lineHeight: 1.45, boxShadow: 'inset 3px 0 0 rgba(61,107,79,0.12)', whiteSpace: 'pre-wrap' }}
+        style={{ minHeight, maxHeight: 180, overflowY: 'auto', width: '100%', fontSize: '0.70625rem', padding: '7px 8px', border: '1px solid #cfd8d0', borderRadius: '5px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box', lineHeight: 1.45, boxShadow: 'inset 3px 0 0 rgba(61,107,79,0.12)', whiteSpace: 'pre-wrap' }}
       />
       <style>{`
         [contenteditable][data-placeholder]:empty::before {

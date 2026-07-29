@@ -120,7 +120,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 2000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: '#f7f4ef', borderRadius: '10px', padding: '18px 18px 16px', maxWidth: '680px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#f7f4ef', borderRadius: '10px', padding: '18px 18px 16px', maxWidth: '42.5rem', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>
 
         {/* En-tête */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -184,7 +184,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
             <div
               ref={lateralRef}
               style={{
-                position: 'relative', width: '140px', flexShrink: 0,
+                position: 'relative', width: '8.75rem', flexShrink: 0,
                 borderRight: '1px solid #ede9e2', overflow: 'hidden',
                 outline: active === 'lateral' ? '3px solid #3d6b4f' : '3px solid transparent',
                 outlineOffset: '-3px', transition: 'outline-color 0.12s',
@@ -912,7 +912,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
         if (!t) return null
         return (
           <div onClick={() => { if (replaceStatut !== 'loading') setReplaceModal(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-            <div onClick={e => e.stopPropagation()} style={{ background: '#f7f4ef', borderRadius: '10px', padding: '22px 24px', maxWidth: '440px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: '#f7f4ef', borderRadius: '10px', padding: '22px 24px', maxWidth: '27.5rem', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                 <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
                   Remplacer · <em style={{ color: '#7a7268' }}>{t.nom}</em>

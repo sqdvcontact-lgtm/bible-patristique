@@ -50,7 +50,7 @@ function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]
           <>
             <input value={saisie} onChange={e => setSaisie(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') ajouterCustom(); if (e.key === 'Escape') { setNouveau(false); setSaisie('') } }}
-              autoFocus style={{ ...inp, width: '180px', fontSize: '0.6875rem', padding: '4px 8px' }} />
+              autoFocus style={{ ...inp, width: '11.25rem', fontSize: '0.6875rem', padding: '4px 8px' }} />
             <button onClick={ajouterCustom} style={{ fontSize: '0.65625rem', padding: '3px 10px', borderRadius: '3px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer' }}>Ajouter</button>
             <button onClick={() => { setNouveau(false); setSaisie('') }} style={{ fontSize: '0.65625rem', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#9a958d', cursor: 'pointer' }}>Annuler</button>
           </>
@@ -646,7 +646,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.71875rem' }}>
               <thead><tr style={{ background: '#f7f4ef', position: 'sticky', top: 0 }}>
                 <th style={{ padding: '7px 12px', textAlign: 'left', color: '#6b6560', fontWeight: 500, borderBottom: '1px solid #e4dfd8', width: '50px' }}>§</th>
-                <th style={{ padding: '7px 12px', textAlign: 'left', color: '#6b6560', fontWeight: 500, borderBottom: '1px solid #e4dfd8', width: '110px' }}>Réf.</th>
+                <th style={{ padding: '7px 12px', textAlign: 'left', color: '#6b6560', fontWeight: 500, borderBottom: '1px solid #e4dfd8', width: '6.875rem' }}>Réf.</th>
                 <th style={{ padding: '7px 12px', textAlign: 'left', color: '#6b6560', fontWeight: 500, borderBottom: '1px solid #e4dfd8' }}>Texte</th>
               </tr></thead>
               <tbody>

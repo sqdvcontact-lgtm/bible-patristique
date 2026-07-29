@@ -33,17 +33,17 @@ export default function BandeauMobile() {
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
         <div style={{ flex: 1 }}>
-          <p style={{ fontSize: '13px', color: '#2a3d30', fontWeight: 700, margin: '0 0 4px', lineHeight: 1.4 }}>
+          <p style={{ fontSize: '0.8125rem', color: '#2a3d30', fontWeight: 700, margin: '0 0 4px', lineHeight: 1.4 }}>
             Site non optimisé pour mobile
           </p>
-          <p style={{ fontSize: '11.5px', color: '#5f675b', margin: '0 0 10px', lineHeight: 1.55 }}>
+          <p style={{ fontSize: '0.71875rem', color: '#5f675b', margin: '0 0 10px', lineHeight: 1.55 }}>
             Corpus Scriptura est conçu pour ordinateur. L'expérience mobile est incomplète ; une refonte est prévue.
           </p>
           <a
             href="/soutenir"
             onClick={fermer}
             style={{
-              fontSize: '11.5px',
+              fontSize: '0.71875rem',
               color: '#3d6b4f',
               textDecoration: 'underline',
               textUnderlineOffset: '2px',
@@ -61,7 +61,7 @@ export default function BandeauMobile() {
             border: 'none',
             color: '#8a7759',
             cursor: 'pointer',
-            fontSize: '18px',
+            fontSize: '1.125rem',
             lineHeight: 1,
             padding: '0 2px',
             flexShrink: 0,

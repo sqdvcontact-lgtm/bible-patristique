@@ -1205,7 +1205,7 @@ export default function RechercheClient() {
         <div onClick={() => setConfirmEcrasement(false)}
           style={{ position:'fixed', inset:0, background:'rgba(30,28,24,0.38)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:'20px' }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ background:'#fbf9f4', border:'1px solid #d6d0c4', borderRadius:'10px', boxShadow:'0 14px 40px rgba(30,46,38,0.25)', padding:'20px 22px', maxWidth:'340px', width:'100%' }}>
+            style={{ background:'#fbf9f4', border:'1px solid #d6d0c4', borderRadius:'10px', boxShadow:'0 14px 40px rgba(30,46,38,0.25)', padding:'20px 22px', maxWidth:'21.25rem', width:'100%' }}>
             <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.875rem', fontWeight:600, color:'#2a3d30', margin:'0 0 8px' }}>Écraser la recherche précédente ?</p>
             <p style={{ fontSize:'0.75rem', color:'#6b6560', lineHeight:1.5, margin:'0 0 16px' }}>
               Une recherche est déjà enregistrée (« {rechercheSauvee.query} », {formatDateCourt(rechercheSauvee.ts)}).

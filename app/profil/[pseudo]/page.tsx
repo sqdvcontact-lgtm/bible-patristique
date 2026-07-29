@@ -29,7 +29,7 @@ function Filet({ couleur = '#c8b89e', symbole = '✦', maxWidth = '200px' }: { c
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', maxWidth, margin: '0 auto' }}>
       <div style={{ flex: 1, height: '1px', background: `linear-gradient(to right, transparent, ${couleur})` }} />
-      <span style={{ fontSize: '9px', color: couleur, letterSpacing: '0.18em' }}>{symbole}</span>
+      <span style={{ fontSize: '0.5625rem', color: couleur, letterSpacing: '0.18em' }}>{symbole}</span>
       <div style={{ flex: 1, height: '1px', background: `linear-gradient(to left, transparent, ${couleur})` }} />
     </div>
   )
@@ -38,7 +38,7 @@ function Filet({ couleur = '#c8b89e', symbole = '✦', maxWidth = '200px' }: { c
 // ── Étiquette de section ──────────────────────────────────────────────────────
 function Etiquette({ children }: { children: React.ReactNode }) {
   return (
-    <p style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#7a8a6e', margin: '0 0 16px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+    <p style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#7a8a6e', margin: '0 0 16px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
       {children}
     </p>
   )
@@ -90,16 +90,16 @@ export default function ProfilPublicPage() {
   if (erreur) return (
     <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f3efe2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
-        <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '18px', color: '#b0a89e', marginBottom: '8px' }}>Profil introuvable</p>
-        <p style={{ fontSize: '12.5px', color: '#c8c0b8' }}>@{pseudo}</p>
-        <Link href="/" style={{ fontSize: '12px', color: '#3a5030', textDecoration: 'none', marginTop: '16px', display: 'inline-block' }}>← Accueil</Link>
+        <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', color: '#b0a89e', marginBottom: '8px' }}>Profil introuvable</p>
+        <p style={{ fontSize: '0.78125rem', color: '#c8c0b8' }}>@{pseudo}</p>
+        <Link href="/" style={{ fontSize: '0.75rem', color: '#3a5030', textDecoration: 'none', marginTop: '16px', display: 'inline-block' }}>← Accueil</Link>
       </div>
     </main>
   )
 
   if (!profil) return (
     <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f3efe2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ fontSize: '13px', color: '#9a8a72', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>Chargement…</p>
+      <p style={{ fontSize: '0.8125rem', color: '#9a8a72', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>Chargement…</p>
     </main>
   )
 
@@ -209,7 +209,7 @@ export default function ProfilPublicPage() {
               </div>
             ) : (
               <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(145deg, #3a5030, #2a3d22)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '2px solid #b8c8b0', boxShadow: '0 2px 12px rgba(40,60,30,0.14)' }}>
-                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '22px', color: '#e0ead8', fontWeight: 'normal', lineHeight: 1 }}>
+                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', color: '#e0ead8', fontWeight: 'normal', lineHeight: 1 }}>
                   {profil.pseudo.charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -222,13 +222,13 @@ export default function ProfilPublicPage() {
           </h1>
 
           {profil.nom_reel && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '12px', color: '#d7ccb1', margin: '0 0 6px', fontStyle: 'italic' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.75rem', color: '#d7ccb1', margin: '0 0 6px', fontStyle: 'italic' }}>
               {profil.nom_reel}
             </p>
           )}
 
           {/* Date + email */}
-          <p style={{ fontSize: '10px', color: '#c8bea7', margin: '0 0 12px', letterSpacing: '0.05em' }}>
+          <p style={{ fontSize: '0.625rem', color: '#c8bea7', margin: '0 0 12px', letterSpacing: '0.05em' }}>
             Lecteur depuis {annee}
             {profil.contact_email && (
               <>
@@ -239,7 +239,7 @@ export default function ProfilPublicPage() {
                   </a>
                 ) : (
                   <button onClick={() => setEmailVisible(true)}
-                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#ead9a9', fontSize: '10px', letterSpacing: '0.05em', fontFamily: 'inherit', textDecoration: 'underline', textDecorationStyle: 'dotted' }}>
+                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#ead9a9', fontSize: '0.625rem', letterSpacing: '0.05em', fontFamily: 'inherit', textDecoration: 'underline', textDecorationStyle: 'dotted' }}>
                     Afficher l&apos;adresse mail
                   </button>
                 )}
@@ -255,10 +255,10 @@ export default function ProfilPublicPage() {
           {/* Rang */}
           {rang && couleurs && (
             <div style={{ marginBottom: profil.bio ? '14px' : '0' }}>
-              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '11px', fontStyle: 'normal', color: '#e2c98d' }}>
+              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.6875rem', fontStyle: 'normal', color: '#e2c98d' }}>
                 {rang.rang}
               </span>
-              <span style={{ fontSize: '10px', color: '#c8bea7', marginLeft: '8px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+              <span style={{ fontSize: '0.625rem', color: '#c8bea7', marginLeft: '8px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                 · {profil.classement!.score} pt{profil.classement!.score !== 1 ? 's' : ''}
               </span>
             </div>
@@ -292,11 +292,11 @@ export default function ProfilPublicPage() {
         {citationPreferee && (
           <div style={{ textAlign: 'center', margin: '0 0 10px', background: 'rgba(154,122,56,0.06)', border: '1px solid rgba(154,122,56,0.28)', borderRadius: '8px', padding: '16px 28px 14px', position: 'relative' }}>
             <Filet couleur='#c8a858' symbole='★' maxWidth='80px' />
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '14px', fontStyle: 'italic', color: '#2a2010', lineHeight: 1.45, margin: '10px 0 8px' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontStyle: 'italic', color: '#2a2010', lineHeight: 1.45, margin: '10px 0 8px' }}>
               «&#8201;{(() => { const t = texteSansEnrichissement(citationPreferee.texte); return t.length > 220 ? t.slice(0, 220) + '…' : t })()}&#8201;»
             </p>
             {(citationPreferee.ref || citationPreferee.auteur) && (
-              <p style={{ fontSize: '10px', color: '#9a7a38', margin: 0, letterSpacing: '0.10em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+              <p style={{ fontSize: '0.625rem', color: '#9a7a38', margin: 0, letterSpacing: '0.10em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                 {citationPreferee.type === 'biblique'
                   ? citationPreferee.ref
                   : [citationPreferee.auteur, citationPreferee.titre_oeuvre].filter(Boolean).join(', ')}
@@ -315,7 +315,7 @@ export default function ProfilPublicPage() {
                   <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', color: '#1a2818', flex: 1, lineHeight: 1.4 }}>
                     {o.titre}
                   </span>
-                  <span style={{ fontSize: '10.5px', color: '#8a7e72', flexShrink: 0, marginLeft: '12px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                  <span style={{ fontSize: '0.65625rem', color: '#8a7e72', flexShrink: 0, marginLeft: '12px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                     {o.auteur}
                   </span>
                 </Link>
@@ -334,7 +334,7 @@ export default function ProfilPublicPage() {
                   <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: '#2a2818', lineHeight: 1.6, margin: '0 0 4px', fontStyle: 'italic' }}>
                     «&#8201;{v.texte.length > 160 ? v.texte.slice(0, 160) + '…' : v.texte}&#8201;»
                   </p>
-                  <p style={{ fontSize: '9.5px', color: '#8a7e72', margin: 0, letterSpacing: '0.04em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                  <p style={{ fontSize: '0.59375rem', color: '#8a7e72', margin: 0, letterSpacing: '0.04em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                     {v.ref_livre_abr} {v.ref_chapitre},{v.ref_verset}
                     {v.traduction && <span style={{ marginLeft: '5px', opacity: 0.65 }}>· {v.traduction}</span>}
                   </p>
@@ -351,11 +351,11 @@ export default function ProfilPublicPage() {
             <div>
               {profil.essais!.map(e => (
                 <Link key={e.id} href={`/essais/${e.id}`} className="profil-essai-link">
-                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '13.5px', fontStyle: 'italic', color: '#1a2818', flex: 1, lineHeight: 1.4 }}>
+                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', fontStyle: 'italic', color: '#1a2818', flex: 1, lineHeight: 1.4 }}>
                     {e.titre}
                   </span>
                   {e.publie_at && (
-                    <span style={{ fontSize: '10px', color: '#b0a090', flexShrink: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                    <span style={{ fontSize: '0.625rem', color: '#b0a090', flexShrink: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                       {new Date(e.publie_at).getFullYear()}
                     </span>
                   )}
@@ -367,7 +367,7 @@ export default function ProfilPublicPage() {
 
         {/* Rien de public */}
         {rienDePublic && (
-          <p style={{ fontSize: '12.5px', color: '#b0a89e', fontStyle: 'italic', textAlign: 'center', paddingTop: '32px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+          <p style={{ fontSize: '0.78125rem', color: '#b0a89e', fontStyle: 'italic', textAlign: 'center', paddingTop: '32px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
             Ce profil ne partage pas encore d&apos;informations publiques.
           </p>
         )}

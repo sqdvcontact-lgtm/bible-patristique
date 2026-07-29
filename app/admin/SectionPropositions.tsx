@@ -89,14 +89,14 @@ export default function SectionPropositions() {
 
   if (chargement) return <p style={{ fontSize: '0.75rem', color: '#b0a89e', fontStyle: 'italic' }}>Chargement…</p>
   if (erreur) return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: '#fdf2ee', border: '1px solid #e4c4b8', borderRadius: '7px', maxWidth: '500px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: '#fdf2ee', border: '1px solid #e4c4b8', borderRadius: '7px', maxWidth: '31.25rem' }}>
       <span style={{ fontSize: '0.75rem', color: '#c0562a' }}>{erreur}</span>
       <button onClick={charger} style={{ fontSize: '0.6875rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #e4c4b8', background: '#fff', color: '#c0562a', cursor: 'pointer', whiteSpace: 'nowrap' }}>Réessayer</button>
     </div>
   )
 
   return (
-    <div style={{ maxWidth: '820px' }}>
+    <div style={{ maxWidth: '51.25rem' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '16px' }}>
         <h2 style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', margin: 0 }}>
           Propositions d'œuvres

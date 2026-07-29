@@ -102,7 +102,7 @@ export default function VotesClient() {
   }, [userId, mesVotes, enCours])
 
   return (
-    <section style={{ maxWidth: '640px', width: '100%', margin: '0 auto', padding: '64px 24px 80px' }}>
+    <section style={{ maxWidth: '40rem', width: '100%', margin: '0 auto', padding: '64px 24px 80px' }}>
       <div style={{ textAlign: 'center', marginBottom: '32px' }}>
         <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 28px' }} />
         <h2 style={{
@@ -114,12 +114,12 @@ export default function VotesClient() {
         </h2>
         <div style={{
           ...fondParchemin,
-          maxWidth: '520px',
+          maxWidth: '32.5rem',
           margin: '0 auto',
           borderRadius: '8px',
           padding: '13px 18px',
         }}>
-        <p style={{ fontSize: '13.5px', color: '#4f604f', lineHeight: 1.72, margin: 0 }}>
+        <p style={{ fontSize: '0.84375rem', color: '#4f604f', lineHeight: 1.72, margin: 0 }}>
           Pour continuer à développer Corpus Scriptura et y consacrer davantage de temps, j'explore plusieurs pistes.
           Aucune décision n'est prise : vos votes m'aident à comprendre ce qui vous semble acceptable.
         </p>
@@ -127,7 +127,7 @@ export default function VotesClient() {
       </div>
 
       {chargement ? (
-        <p style={{ textAlign: 'center', fontSize: '12px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+        <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {PROPOSITIONS.map(p => {
@@ -159,13 +159,13 @@ export default function VotesClient() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
                     <span style={{
                       fontFamily: "var(--font-source-serif), Georgia, serif",
-                      fontSize: '14.5px', color: '#1e2e24', fontWeight: 'normal',
+                      fontSize: '0.90625rem', color: '#1e2e24', fontWeight: 'normal',
                     }}>
                       {p.titre}
                     </span>
                     {p.tag && tag && (
                       <span style={{
-                        fontSize: '9.5px', fontWeight: 600, letterSpacing: '0.06em',
+                        fontSize: '0.59375rem', fontWeight: 600, letterSpacing: '0.06em',
                         textTransform: 'uppercase', padding: '2px 7px', borderRadius: '4px',
                         background: tag.fond, color: tag.texte,
                       }}>
@@ -173,7 +173,7 @@ export default function VotesClient() {
                       </span>
                     )}
                   </div>
-                  <p style={{ fontSize: '12.5px', color: '#6b6560', lineHeight: 1.65, margin: 0 }}>
+                  <p style={{ fontSize: '0.78125rem', color: '#6b6560', lineHeight: 1.65, margin: 0 }}>
                     {p.description}
                   </p>
                 </div>
@@ -186,7 +186,7 @@ export default function VotesClient() {
                       border: `1px solid ${vote ? '#3d6b4f' : '#d8d0c4'}`,
                       background: vote ? '#3d6b4f' : '#fff',
                       color: vote ? '#fff' : '#8a8278',
-                      cursor: 'pointer', fontSize: '15px',
+                      cursor: 'pointer', fontSize: '0.9375rem',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'background 0.15s, border-color 0.15s, color 0.15s',
                     }}
@@ -194,7 +194,7 @@ export default function VotesClient() {
                     ▲
                   </button>
                   <span style={{
-                    fontSize: '12px', fontWeight: 700,
+                    fontSize: '0.75rem', fontWeight: 700,
                     color: vote ? '#3d6b4f' : '#9a958d',
                     lineHeight: 1,
                   }}>
@@ -208,7 +208,7 @@ export default function VotesClient() {
       )}
 
       {!userId && !chargement && (
-        <p style={{ textAlign: 'center', fontSize: '11.5px', color: '#9a958d', marginTop: '16px', fontStyle: 'italic' }}>
+        <p style={{ textAlign: 'center', fontSize: '0.71875rem', color: '#9a958d', marginTop: '16px', fontStyle: 'italic' }}>
           Connectez-vous pour voter.
         </p>
       )}

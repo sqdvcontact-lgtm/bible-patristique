@@ -133,7 +133,7 @@ function BoutonCiter({ onCiter }: { onCiter: () => void }) {
 
 
 const petitChoixStyle: CSSProperties = {
-  fontSize: '10px', padding: '3px 7px', borderRadius: '4px', border: '1px solid #d6d0c4',
+  fontSize: '0.625rem', padding: '3px 7px', borderRadius: '4px', border: '1px solid #d6d0c4',
   background: '#fff', color: '#3d6b4f', cursor: 'pointer', whiteSpace: 'nowrap',
 }
 
@@ -141,7 +141,7 @@ const petitChoixStyle: CSSProperties = {
 function BoutonRetour({ onClick, children, inline = false }: { onClick: () => void; children: ReactNode; inline?: boolean }) {
   return (
     <button type="button" onClick={onClick}
-      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: inline ? 0 : '10px' }}>
+      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.6875rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: inline ? 0 : '10px' }}>
       <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', borderRadius: '50%', border: '1px solid #cddbd1', background: '#f4f8f5' }}>
         <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
           <path d="M10 3.5L5.5 8l4.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -164,13 +164,13 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,22,0.45)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', width: '100%', maxWidth: '720px', height: '78vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', width: '100%', maxWidth: '45rem', height: '78vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 12px', borderBottom: '1px solid #e4dfd8' }}>
           <div style={{ display: 'flex', gap: '6px' }}>
             {(['bible', 'patristique'] as const).map(s => (
               <button key={s} onClick={() => setSource(s)}
-                style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '5px', border: 'none', cursor: 'pointer', background: source === s ? '#3d6b4f' : '#e4dfd8', color: source === s ? '#fff' : '#6b6560', fontWeight: source === s ? 600 : 400 }}>
+                style={{ fontSize: '0.75rem', padding: '6px 14px', borderRadius: '5px', border: 'none', cursor: 'pointer', background: source === s ? '#3d6b4f' : '#e4dfd8', color: source === s ? '#fff' : '#6b6560', fontWeight: source === s ? 600 : 400 }}>
                 {s === 'bible' ? 'Bible' : 'Patristique'}
               </button>
             ))}
@@ -178,12 +178,12 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
           <div style={{ display: 'flex', gap: '6px' }}>
             {(['parcourir', 'mes-citations'] as const).map(m => (
               <button key={m} onClick={() => setMode(m)}
-                style={{ fontSize: '11px', padding: '5px 11px', borderRadius: '12px', border: `1px solid ${mode === m ? '#3d6b4f' : '#d6d0c4'}`, cursor: 'pointer', background: mode === m ? 'rgba(61,107,79,0.10)' : '#fff', color: mode === m ? '#3d6b4f' : '#8a8278' }}>
+                style={{ fontSize: '0.6875rem', padding: '5px 11px', borderRadius: '12px', border: `1px solid ${mode === m ? '#3d6b4f' : '#d6d0c4'}`, cursor: 'pointer', background: mode === m ? 'rgba(61,107,79,0.10)' : '#fff', color: mode === m ? '#3d6b4f' : '#8a8278' }}>
                 {m === 'parcourir' ? 'Parcourir' : 'Mes citations'}
               </button>
             ))}
           </div>
-          <button onClick={demanderFermeture} style={{ fontSize: '15px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+          <button onClick={demanderFermeture} style={{ fontSize: '0.9375rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
@@ -212,7 +212,7 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
   if (!livre) return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px' }}>
       {Object.keys(ABREV_FR).map(l => (
-        <button key={l} onClick={() => setLivre(l)} style={{ fontSize: '12px', padding: '8px 4px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a3d30', cursor: 'pointer' }}>{ABREV_FR[l]}</button>
+        <button key={l} onClick={() => setLivre(l)} style={{ fontSize: '0.75rem', padding: '8px 4px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a3d30', cursor: 'pointer' }}>{ABREV_FR[l]}</button>
       ))}
     </div>
   )
@@ -222,7 +222,7 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
       <BoutonRetour onClick={() => setLivre('')}>Livres</BoutonRetour>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '5px' }}>
         {Array.from({ length: NB_CHAPITRES[livre] }, (_, i) => i + 1).map(c => (
-          <button key={c} onClick={() => choisirChapitre(c)} style={{ fontSize: '11.5px', padding: '6px 0', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a3d30', cursor: 'pointer' }}>{c}</button>
+          <button key={c} onClick={() => choisirChapitre(c)} style={{ fontSize: '0.71875rem', padding: '6px 0', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a3d30', cursor: 'pointer' }}>{c}</button>
         ))}
       </div>
     </div>
@@ -231,15 +231,15 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
   return (
     <div>
       <BoutonRetour onClick={() => setChapitre(null)}>{ABREV_FR[livre]}, chapitres</BoutonRetour>
-      {chargement ? <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p> : (
+      {chargement ? <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {versets.map(v => {
             const ref = labelVerset(livre, chapitre, v.verset)
             return (
             <div key={v.id_verset}
               style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'flex-start' }}>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#3d6b4f', flexShrink: 0 }}>{v.verset}</span>
-              <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{rendreTexteEnrichi(v.texte)}</span>
+              <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#3d6b4f', flexShrink: 0 }}>{v.verset}</span>
+              <span style={{ fontSize: '0.78125rem', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{rendreTexteEnrichi(v.texte)}</span>
               <BoutonCiter
                 onCiter={() => {
                   const { corps, fin } = corpsCitation(v.texte)
@@ -295,16 +295,16 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
       <div>
         <input value={rechercheOeuvre} onChange={e => setRechercheOeuvre(e.target.value)} autoFocus
           placeholder="Chercher une œuvre (titre ou auteur)…"
-          style={{ width: '100%', boxSizing: 'border-box', fontSize: '13px', padding: '9px 12px', borderRadius: '6px', border: '1px solid #d6d0c4', background: '#faf8f4', color: '#2a2520', marginBottom: '12px', outline: 'none' }} />
+          style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.8125rem', padding: '9px 12px', borderRadius: '6px', border: '1px solid #d6d0c4', background: '#faf8f4', color: '#2a2520', marginBottom: '12px', outline: 'none' }} />
         {oeuvres === null ? (
-          <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic' }}>Chargement du catalogue…</p>
+          <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement du catalogue…</p>
         ) : resultats.length === 0 ? (
-          <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic' }}>{q ? 'Aucune œuvre ne correspond.' : 'Aucune œuvre disponible.'}</p>
+          <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>{q ? 'Aucune œuvre ne correspond.' : 'Aucune œuvre disponible.'}</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {resultats.slice(0, 60).map(o => (
               <button key={o.id_oeuvre} onClick={() => choisirOeuvre(o)}
-                style={{ textAlign: 'left', fontSize: '13px', padding: '8px 11px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', color: '#2a3d30', cursor: 'pointer' }}>
+                style={{ textAlign: 'left', fontSize: '0.8125rem', padding: '8px 11px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', color: '#2a3d30', cursor: 'pointer' }}>
                 {o.titre}
                 {o.auteurNom && <span style={{ color: '#9a958d', fontStyle: 'italic' }}> — {o.auteurNom}</span>}
               </button>
@@ -336,14 +336,14 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '8px' }}>
         <BoutonRetour inline onClick={() => { setOeuvre(null); setSelection(new Set()) }}>Œuvres</BoutonRetour>
-        <span style={{ fontSize: '12px', color: '#2a3d30', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{oeuvre.titre}</span>
-        {oeuvre.auteurNom && <span style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic' }}>{oeuvre.auteurNom}</span>}
+        <span style={{ fontSize: '0.75rem', color: '#2a3d30', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{oeuvre.titre}</span>
+        {oeuvre.auteurNom && <span style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic' }}>{oeuvre.auteurNom}</span>}
       </div>
       <input value={rechercheSeg} onChange={e => setRechercheSeg(e.target.value)}
         placeholder="Chercher un passage dans cette œuvre…"
-        style={{ width: '100%', boxSizing: 'border-box', fontSize: '12px', padding: '7px 10px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#faf8f4', color: '#2a2520', marginBottom: '10px', outline: 'none', flexShrink: 0 }} />
+        style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.75rem', padding: '7px 10px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#faf8f4', color: '#2a2520', marginBottom: '10px', outline: 'none', flexShrink: 0 }} />
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-        {chargement ? <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p> : (
+        {chargement ? <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {segmentsFiltres.map(s => {
               const sel = selection.has(s.id)
@@ -351,9 +351,9 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
               return (
                 <button key={s.id} type="button" onClick={() => toggle(s.id)}
                   style={{ display: 'flex', gap: '9px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: `1px solid ${sel ? '#3d6b4f' : '#ede9e2'}`, background: sel ? 'rgba(61,107,79,0.07)' : '#fff', cursor: 'pointer', alignItems: 'flex-start' }}>
-                  <span style={{ flexShrink: 0, width: '14px', height: '14px', marginTop: '1px', borderRadius: '3px', border: `1px solid ${sel ? '#3d6b4f' : '#c8c0b4'}`, background: sel ? '#3d6b4f' : '#fff', color: '#fff', fontSize: '10px', lineHeight: '13px', textAlign: 'center' }}>{sel ? '✓' : ''}</span>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#3d6b4f', flexShrink: 0 }}>§{s.segment_numero}</span>
-                  <span style={{ fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{t.slice(0, 200) + (t.length > 200 ? '…' : '')}</span>
+                  <span style={{ flexShrink: 0, width: '14px', height: '14px', marginTop: '1px', borderRadius: '3px', border: `1px solid ${sel ? '#3d6b4f' : '#c8c0b4'}`, background: sel ? '#3d6b4f' : '#fff', color: '#fff', fontSize: '0.625rem', lineHeight: '13px', textAlign: 'center' }}>{sel ? '✓' : ''}</span>
+                  <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#3d6b4f', flexShrink: 0 }}>§{s.segment_numero}</span>
+                  <span style={{ fontSize: '0.78125rem', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{t.slice(0, 200) + (t.length > 200 ? '…' : '')}</span>
                 </button>
               )
             })}
@@ -362,7 +362,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
       </div>
       {/* Barre d'insertion : agit sur le OU LES segments sélectionnés. */}
       <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '10px', marginTop: '4px', borderTop: '1px solid #ede9e2' }}>
-        <span style={{ fontSize: '11.5px', color: segsSelectionnes.length ? '#3d6b4f' : '#9a958d' }}>
+        <span style={{ fontSize: '0.71875rem', color: segsSelectionnes.length ? '#3d6b4f' : '#9a958d' }}>
           {segsSelectionnes.length === 0 ? 'Sélectionnez un ou plusieurs segments' : `${segsSelectionnes.length} segment${segsSelectionnes.length > 1 ? 's' : ''} sélectionné${segsSelectionnes.length > 1 ? 's' : ''}`}
         </span>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
@@ -388,8 +388,8 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
     })
   }, [source])
 
-  if (items === null) return <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
-  if (items.length === 0) return <p style={{ fontSize: '12px', color: '#9a958d', fontStyle: 'italic' }}>Aucune citation enregistrée dans « Mes citations » pour l'instant.</p>
+  if (items === null) return <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+  if (items.length === 0) return <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Aucune citation enregistrée dans « Mes citations » pour l'instant.</p>
 
   const choisir = async (it: any) => {
     if (source === 'bible') {
@@ -424,8 +424,8 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
           <div key={it.id}
             style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'flex-start' }}>
             <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#3d6b4f' }}>{label}</span>
-              <span style={{ display: 'block', fontSize: '12.5px', color: '#2a2520', lineHeight: 1.5 }}>{it.texte?.slice(0, 200)}</span>
+              <span style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 700, color: '#3d6b4f' }}>{label}</span>
+              <span style={{ display: 'block', fontSize: '0.78125rem', color: '#2a2520', lineHeight: 1.5 }}>{it.texte?.slice(0, 200)}</span>
             </span>
             <BoutonCiter onCiter={() => choisir(it)} />
           </div>

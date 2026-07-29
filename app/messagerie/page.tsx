@@ -54,15 +54,15 @@ export default function MessageriePage() {
 
         {connecte === false ? (
           <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '28px 24px', textAlign: 'center' }}>
-            <p style={{ fontSize: '13.5px', color: '#9a958d', fontStyle: 'italic', margin: '0 0 14px' }}>Connectez-vous pour accéder à votre messagerie.</p>
-            <Link href="/chantier" style={{ fontSize: '12px', color: '#3d6b4f', fontWeight: 600, textDecoration: 'none' }}>Se connecter</Link>
+            <p style={{ fontSize: '0.84375rem', color: '#9a958d', fontStyle: 'italic', margin: '0 0 14px' }}>Connectez-vous pour accéder à votre messagerie.</p>
+            <Link href="/chantier" style={{ fontSize: '0.75rem', color: '#3d6b4f', fontWeight: 600, textDecoration: 'none' }}>Se connecter</Link>
           </div>
         ) : conversations === null ? (
-          <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
         ) : conversations.length === 0 ? (
           <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px', padding: '32px 24px', textAlign: 'center' }}>
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#b0a89e', margin: '0 0 8px' }}>Aucun message</p>
-            <p style={{ fontSize: '12px', color: '#c8c0b4', margin: 0 }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: '#b0a89e', margin: '0 0 8px' }}>Aucun message</p>
+            <p style={{ fontSize: '0.75rem', color: '#c8c0b4', margin: 0 }}>
               Rendez-vous sur le{' '}
               <Link href="/" style={{ color: '#3d6b4f', textDecoration: 'none' }}>profil d'un lecteur</Link>
               {' '}pour lui écrire.
@@ -87,12 +87,12 @@ export default function MessageriePage() {
                         {c.partenaire_pseudo}
                       </span>
                       {c.nb_non_lus > 0 && (
-                        <span style={{ background: '#3d6b4f', color: '#fff', fontSize: '9.5px', fontWeight: 700, borderRadius: '10px', padding: '1px 7px', letterSpacing: '0.04em' }}>
+                        <span style={{ background: '#3d6b4f', color: '#fff', fontSize: '0.59375rem', fontWeight: 700, borderRadius: '10px', padding: '1px 7px', letterSpacing: '0.04em' }}>
                           {c.nb_non_lus}
                         </span>
                       )}
                     </div>
-                    <span style={{ fontSize: '10px', color: '#b0a89e', flexShrink: 0 }}>
+                    <span style={{ fontSize: '0.625rem', color: '#b0a89e', flexShrink: 0 }}>
                       {dateRelative(c.dernier_at)}
                     </span>
                   </div>

@@ -108,7 +108,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
       onMouseLeave={e => { e.currentTarget.style.borderColor = '#e4dfd8'; e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.transform = 'none' }}>
 
       <div style={{ display: 'flex' }}>
-        <div style={{ width: '120px', flexShrink: 0, background: '#ede9e2', position: 'relative', minHeight: '170px', overflow: 'hidden' }}>
+        <div style={{ width: '7.5rem', flexShrink: 0, background: '#ede9e2', position: 'relative', minHeight: '170px', overflow: 'hidden' }}>
           {!imgErreur && (
             <Image src={auteur.imageUrl} alt={auteur.nom} fill sizes="240px" unoptimized
               onError={() => setImgErreur(true)}
@@ -207,9 +207,9 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                         <Link href={`/oeuvre/${o.id_oeuvre}`}
                           style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 12px 4px 32px', textDecoration: 'none' }}>
                           <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '11.5px', color: '#3d6b4f', fontWeight: 500 }}>{trad ? `Traduction ${libelle}` : libelle}</span>
-                            {trad && edition && <span style={{ fontSize: '10px', color: '#a59c90' }}>{rendreSiecles(edition)}</span>}
-                            {!trad && !edition && <span style={{ fontSize: '10px', color: '#c4bcb0', fontStyle: 'italic' }}>Certaines données manquent.</span>}
+                            <span style={{ fontSize: '0.71875rem', color: '#3d6b4f', fontWeight: 500 }}>{trad ? `Traduction ${libelle}` : libelle}</span>
+                            {trad && edition && <span style={{ fontSize: '0.625rem', color: '#a59c90' }}>{rendreSiecles(edition)}</span>}
+                            {!trad && !edition && <span style={{ fontSize: '0.625rem', color: '#c4bcb0', fontStyle: 'italic' }}>Certaines données manquent.</span>}
                           </span>
                           <span className="bib-lire">
                             Lire
@@ -255,7 +255,7 @@ function Chip({ actif, onClick, children, theme = 'genre' }: { actif: boolean; o
   const t = THEMES[theme] ?? THEMES.genre
   return (
     <button onClick={onClick} style={{
-      padding: '2px 9px', borderRadius: '3px', fontSize: '11px',
+      padding: '2px 9px', borderRadius: '3px', fontSize: '0.6875rem',
       border: `1px solid ${actif ? t.borderActif : t.border}`,
       background: actif ? t.bgActif : t.bg,
       color: actif ? '#fff' : t.color,
@@ -270,7 +270,7 @@ function Chip({ actif, onClick, children, theme = 'genre' }: { actif: boolean; o
 function LigneFiltres({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-      <span style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#c0b8ae', minWidth: '54px', textAlign: 'right', flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#c0b8ae', minWidth: '54px', textAlign: 'right', flexShrink: 0 }}>{label}</span>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>{children}</div>
     </div>
   )
@@ -337,7 +337,7 @@ function BoutonSignalerNotice({ reference, texte }: { reference: string; texte?:
   return (
     <>
       <button onClick={e => { e.stopPropagation(); setOuvert(true) }} title="Signaler une erreur sur cette traduction"
-        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: '7px', color: '#c4b8a4', fontSize: '10.5px', lineHeight: 1 }}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: '7px', color: '#c4b8a4', fontSize: '0.65625rem', lineHeight: 1 }}
         onMouseEnter={e => (e.currentTarget.style.color = '#b0442a')}
         onMouseLeave={e => (e.currentTarget.style.color = '#c4b8a4')}>⚑</button>
       {ouvert && <ModalSignalement titre={reference} texteObjet={texte} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
@@ -374,18 +374,18 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
       <div style={{ display: 'flex' }}>
         {/* Zone initiales */}
         <div style={{ width: '64px', flexShrink: 0, background: '#e8e2d6', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '58px' }}>
-          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '17px', fontStyle: 'italic', color: '#a89a80', letterSpacing: '0.04em', userSelect: 'none' }}>{initiale}</span>
+          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontStyle: 'italic', color: '#a89a80', letterSpacing: '0.04em', userSelect: 'none' }}>{initiale}</span>
         </div>
 
         {/* Infos auteur + bouton */}
         <div style={{ flex: 1, padding: '9px 16px 8px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '5px' }}>
-          <h2 style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '13px', fontWeight: 600, color: '#4a4030', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
+          <h2 style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.8125rem', fontWeight: 600, color: '#4a4030', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
             {nomAuteur}
           </h2>
 
           <button onClick={() => setOuvert(!ouvert)}
-            style={{ fontSize: '10.5px', color: '#8a7a5a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}>
-            <span style={{ fontSize: '8px' }}>{ouvert ? '▲' : '▼'}</span>
+            style={{ fontSize: '0.65625rem', color: '#8a7a5a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}>
+            <span style={{ fontSize: '0.5rem' }}>{ouvert ? '▲' : '▼'}</span>
             {nbMot.charAt(0).toUpperCase() + nbMot.slice(1)} œuvre{nb > 1 ? 's' : ''} répertoriée{nb > 1 ? 's' : ''}
           </button>
         </div>
@@ -423,7 +423,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                 style={{ borderTop: idx > 0 ? '1px solid #eee8de' : 'none' }}>
                 {/* Titre + éditions */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: '13px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: '#3a342e', lineHeight: 1.35 }}>{groupe.titreStable}</span>
+                  <span style={{ display: 'block', fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: '#3a342e', lineHeight: 1.35 }}>{groupe.titreStable}</span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', marginTop: '3px' }}>
                     {groupe.notices.map(n => {
                       // Une phrase, pas une suite d'abréviations : même modèle
@@ -436,17 +436,17 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                       ].filter(Boolean).join(', ')
                       const dp = n.domaine_public?.includes('oui')
                       return (
-                        <span key={n.id} style={{ fontSize: '10.5px', color: '#a09080', lineHeight: 1.4 }}>
+                        <span key={n.id} style={{ fontSize: '0.65625rem', color: '#a09080', lineHeight: 1.4 }}>
                           {meta || titreDeclineCatalogue(n)}
-                          {dp && <span title="Domaine public — œuvre libre de droits" style={{ marginLeft: '5px', fontSize: '9px', color: '#7a8a6a', fontWeight: 700, letterSpacing: '0.04em', cursor: 'help' }}>DP</span>}
+                          {dp && <span title="Domaine public — œuvre libre de droits" style={{ marginLeft: '5px', fontSize: '0.5625rem', color: '#7a8a6a', fontWeight: 700, letterSpacing: '0.04em', cursor: 'help' }}>DP</span>}
                           <BoutonSignalerNotice reference={`${nomAuteur} — ${groupe.titreStable}`} texte={meta || titreDeclineCatalogue(n)} />
                         </span>
                       )
                     })}
                   </div>
                   {/* Vérification des données */}
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px', fontSize: '9px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: couleur }}>
-                    <span style={{ fontSize: '9px' }}>{icone}</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: couleur }}>
+                    <span style={{ fontSize: '0.5625rem' }}>{icone}</span>
                     {libelle}
                   </span>
                 </div>
@@ -476,7 +476,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                       <path d="M8 13.5S2.5 9.8 2.5 6.3A2.9 2.9 0 0 1 8 5a2.9 2.9 0 0 1 5.5 1.3c0 3.5-5.5 7.2-5.5 7.2z"
                         stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
                     </svg>
-                    <span style={{ minWidth: '10px', textAlign: 'left', fontSize: '11px' }}>{nbVotes > 0 ? nbVotes : ''}</span>
+                    <span style={{ minWidth: '10px', textAlign: 'left', fontSize: '0.6875rem' }}>{nbVotes > 0 ? nbVotes : ''}</span>
                   </button>
                 </div>
               </div>
@@ -522,10 +522,10 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
     <div onMouseDown={tenterFermer}
       style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(30,26,20,0.42)', display: 'flex', padding: '20px', overflowY: 'auto' }}>
       <div onMouseDown={e => e.stopPropagation()} onInput={() => { toucheRef.current = true }}
-        style={{ margin: 'auto', background: '#f7f4ef', borderRadius: '10px', border: '1px solid #ddd5c4', width: '100%', maxWidth: '660px', boxShadow: '0 12px 40px rgba(0,0,0,0.2)' }}>
+        style={{ margin: 'auto', background: '#f7f4ef', borderRadius: '10px', border: '1px solid #ddd5c4', width: '100%', maxWidth: '41.25rem', boxShadow: '0 12px 40px rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 22px 12px', borderBottom: '1px solid #e4dcd0' }}>
-          <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '16px', color: '#3a342e', margin: 0 }}>{(auteur || titre) ? 'Proposer cette œuvre' : 'Proposer une œuvre'}</h3>
-          <button onClick={tenterFermer} aria-label="Fermer" style={{ fontSize: '16px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+          <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: '#3a342e', margin: 0 }}>{(auteur || titre) ? 'Proposer cette œuvre' : 'Proposer une œuvre'}</h3>
+          <button onClick={tenterFermer} aria-label="Fermer" style={{ fontSize: '1rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
         <div style={{ padding: '0 22px' }}>
           <OngletProposer valeursInitiales={{ auteur_nom: auteur, titre }} onDirtyChange={d => { modifieRef.current = d }} />
@@ -538,18 +538,18 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
         <div onMouseDown={e => { e.stopPropagation(); setDemandeFermeture(false) }}
           style={{ position: 'fixed', inset: 0, zIndex: 110, background: 'rgba(30,26,20,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div onMouseDown={e => e.stopPropagation()}
-            style={{ background: '#fff', borderRadius: '10px', border: '1px solid #e4dcd0', width: '100%', maxWidth: '380px', padding: '20px 22px', boxShadow: '0 12px 40px rgba(0,0,0,0.24)' }}>
-            <h4 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#3a342e', margin: '0 0 8px' }}>Fermer sans enregistrer ?</h4>
-            <p style={{ fontSize: '12.5px', color: '#6b6560', lineHeight: 1.55, margin: '0 0 18px' }}>
+            style={{ background: '#fff', borderRadius: '10px', border: '1px solid #e4dcd0', width: '100%', maxWidth: '23.75rem', padding: '20px 22px', boxShadow: '0 12px 40px rgba(0,0,0,0.24)' }}>
+            <h4 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: '#3a342e', margin: '0 0 8px' }}>Fermer sans enregistrer ?</h4>
+            <p style={{ fontSize: '0.78125rem', color: '#6b6560', lineHeight: 1.55, margin: '0 0 18px' }}>
               Les informations que vous avez saisies seront perdues.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '9px' }}>
               <button onClick={() => setDemandeFermeture(false)}
-                style={{ fontSize: '12px', padding: '7px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a342e', cursor: 'pointer' }}>
+                style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a342e', cursor: 'pointer' }}>
                 Continuer l’édition
               </button>
               <button onClick={onClose}
-                style={{ fontSize: '12px', padding: '7px 14px', borderRadius: '5px', border: 'none', background: '#c0562a', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>
+                style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '5px', border: 'none', background: '#c0562a', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>
                 Fermer sans enregistrer
               </button>
             </div>
@@ -704,14 +704,14 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
           ouvrant une fenêtre plutôt que de basculer d'onglet. */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', minHeight: '40px' }}>
         <button onClick={() => setProposition({ auteur: '', titre: '' })}
-          style={{ position: 'absolute', left: 0, fontSize: '11px', color: '#7a6a48', background: 'rgba(139,107,60,0.08)', border: '1px solid rgba(139,107,60,0.22)', borderRadius: '5px', cursor: 'pointer', padding: '7px 12px' }}>
+          style={{ position: 'absolute', left: 0, fontSize: '0.6875rem', color: '#7a6a48', background: 'rgba(139,107,60,0.08)', border: '1px solid rgba(139,107,60,0.22)', borderRadius: '5px', cursor: 'pointer', padding: '7px 12px' }}>
           Proposer une œuvre
         </button>
         {/* Recherche — identique en placement et en forme à l'onglet Bibliothèque */}
-        <div style={{ position: 'relative', width: '100%', maxWidth: '340px' }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: '21.25rem' }}>
           <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
             placeholder="Rechercher un auteur ou une œuvre"
-            style={{ width: '100%', fontSize: '13px', padding: '9px 14px 9px 38px', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
+            style={{ width: '100%', fontSize: '0.8125rem', padding: '9px 14px 9px 38px', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
             <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
             <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
@@ -720,9 +720,9 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
       </div>
 
       {chargement ? (
-        <p style={{ fontSize: '12px', color: '#b0a89e', fontStyle: 'italic' }}>Chargement…</p>
+        <p style={{ fontSize: '0.75rem', color: '#b0a89e', fontStyle: 'italic' }}>Chargement…</p>
       ) : auteursTriés.length === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+        <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
           Aucun auteur ne correspond à ces critères.
         </p>
       ) : (
@@ -763,7 +763,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
               </button>
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginTop: '22px' }}>
-                <span style={{ fontSize: '11px', color: '#a09484', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic' }}>
+                <span style={{ fontSize: '0.6875rem', color: '#a09484', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic' }}>
                   Page {pageActive + 1} sur {nbPages}
                 </span>
               </div>
@@ -785,7 +785,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
 
 // ── Onglet Proposer ───────────────────────────────────────────────────────────
 const CHAMP_STYLE: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box', fontSize: '13px', padding: '8px 11px',
+  width: '100%', boxSizing: 'border-box', fontSize: '0.8125rem', padding: '8px 11px',
   border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4',
   color: '#2a2520', outline: 'none', fontFamily: 'var(--font-source-serif), Georgia, serif',
 }
@@ -833,7 +833,7 @@ function ComboAuteur({ value, onChange, onAuteurId }: {
       <input autoFocus value={saisie} onChange={e => { setSaisie(e.target.value); onChange(e.target.value) }}
         placeholder="Nom de l'auteur" style={CHAMP_STYLE} />
       <button type="button" onClick={() => { setLibre(false); setSaisie(''); onChange(''); onAuteurId(null) }}
-        style={{ fontSize: '11px', padding: '6px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#8a7f74', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+        style={{ fontSize: '0.6875rem', padding: '6px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#8a7f74', cursor: 'pointer', whiteSpace: 'nowrap' }}>
         ← Catalogue
       </button>
     </div>
@@ -848,14 +848,14 @@ function ComboAuteur({ value, onChange, onAuteurId }: {
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: '#fff', border: '1px solid #d6d0c4', borderRadius: '5px', boxShadow: '0 4px 12px rgba(0,0,0,.1)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
           {suggestions.map(s => (
             <div key={s.id_auteur} onMouseDown={() => choisir(s.nom, s.id_auteur)}
-              style={{ padding: '8px 12px', fontSize: '13px', color: '#2a2520', cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif' }}
+              style={{ padding: '8px 12px', fontSize: '0.8125rem', color: '#2a2520', cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif' }}
               onMouseEnter={e => (e.currentTarget.style.background = '#f5f2ec')}
               onMouseLeave={e => (e.currentTarget.style.background = '')}>
               {s.nom}
             </div>
           ))}
           <div onMouseDown={choisirAutre}
-            style={{ padding: '8px 12px', fontSize: '12px', color: '#8a7f74', cursor: 'pointer', borderTop: suggestions.length ? '1px solid #ede9e2' : 'none', fontStyle: 'italic' }}
+            style={{ padding: '8px 12px', fontSize: '0.75rem', color: '#8a7f74', cursor: 'pointer', borderTop: suggestions.length ? '1px solid #ede9e2' : 'none', fontStyle: 'italic' }}
             onMouseEnter={e => (e.currentTarget.style.background = '#f5f2ec')}
             onMouseLeave={e => (e.currentTarget.style.background = '')}>
             Autre auteur (saisie libre)
@@ -911,7 +911,7 @@ function ComboTitre({ value, onChange, auteurNom }: {
       <input autoFocus value={saisie} onChange={e => { setSaisie(e.target.value); onChange(e.target.value) }}
         placeholder="Titre de l'œuvre" style={CHAMP_STYLE} />
       <button type="button" onClick={() => { setLibre(false); setSaisie(''); onChange('') }}
-        style={{ fontSize: '11px', padding: '6px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#8a7f74', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+        style={{ fontSize: '0.6875rem', padding: '6px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#8a7f74', cursor: 'pointer', whiteSpace: 'nowrap' }}>
         ← Catalogue
       </button>
     </div>
@@ -926,14 +926,14 @@ function ComboTitre({ value, onChange, auteurNom }: {
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: '#fff', border: '1px solid #d6d0c4', borderRadius: '5px', boxShadow: '0 4px 12px rgba(0,0,0,.1)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
           {suggestions.map((titre, i) => (
             <div key={i} onMouseDown={() => choisir(titre)}
-              style={{ padding: '8px 12px', fontSize: '13px', color: '#2a2520', cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif' }}
+              style={{ padding: '8px 12px', fontSize: '0.8125rem', color: '#2a2520', cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif' }}
               onMouseEnter={e => (e.currentTarget.style.background = '#f5f2ec')}
               onMouseLeave={e => (e.currentTarget.style.background = '')}>
               {titre}
             </div>
           ))}
           <div onMouseDown={choisirAutre}
-            style={{ padding: '8px 12px', fontSize: '12px', color: '#8a7f74', cursor: 'pointer', borderTop: suggestions.length ? '1px solid #ede9e2' : 'none', fontStyle: 'italic' }}
+            style={{ padding: '8px 12px', fontSize: '0.75rem', color: '#8a7f74', cursor: 'pointer', borderTop: suggestions.length ? '1px solid #ede9e2' : 'none', fontStyle: 'italic' }}
             onMouseEnter={e => (e.currentTarget.style.background = '#f5f2ec')}
             onMouseLeave={e => (e.currentTarget.style.background = '')}>
             Autre titre (saisie libre)
@@ -1018,54 +1018,54 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
   if (connecte === null) return null
 
   if (!connecte) return (
-    <div style={{ maxWidth: '520px', margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
+    <div style={{ maxWidth: '32.5rem', margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
       <svg width="38" height="38" viewBox="0 0 40 40" fill="none" style={{ marginBottom: '16px', opacity: 0.35 }}>
         <circle cx="20" cy="14" r="7" stroke="#2a3d30" strokeWidth="1.4" fill="none"/>
         <path d="M4 38 Q6 24 20 20 Q34 24 36 38" stroke="#2a3d30" strokeWidth="1.4" fill="none" strokeLinecap="round"/>
       </svg>
-      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#3d4a40', marginBottom: '6px' }}>Connexion requise</p>
-      <p style={{ fontSize: '12.5px', color: '#8a8278', lineHeight: 1.65, marginBottom: '22px' }}>
+      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: '#3d4a40', marginBottom: '6px' }}>Connexion requise</p>
+      <p style={{ fontSize: '0.78125rem', color: '#8a8278', lineHeight: 1.65, marginBottom: '22px' }}>
         Seuls les membres de Corpus Scriptura peuvent proposer un texte.<br/>Connectez-vous pour contribuer à la bibliothèque.
       </p>
-      <a href="/chantier" style={{ display: 'inline-block', padding: '9px 22px', background: '#3d6b4f', color: '#fff', borderRadius: '6px', fontSize: '13px', textDecoration: 'none', fontWeight: 500 }}>
+      <a href="/chantier" style={{ display: 'inline-block', padding: '9px 22px', background: '#3d6b4f', color: '#fff', borderRadius: '6px', fontSize: '0.8125rem', textDecoration: 'none', fontWeight: 500 }}>
         Se connecter
       </a>
     </div>
   )
 
   if (statut === 'limite') return (
-    <div style={{ maxWidth: '520px', margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
-      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '16px', color: '#9a5a2a', marginBottom: '8px' }}>Limite journalière atteinte</p>
-      <p style={{ fontSize: '12.5px', color: '#8a8278', lineHeight: 1.65, marginBottom: '24px' }}>
+    <div style={{ maxWidth: '32.5rem', margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
+      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: '#9a5a2a', marginBottom: '8px' }}>Limite journalière atteinte</p>
+      <p style={{ fontSize: '0.78125rem', color: '#8a8278', lineHeight: 1.65, marginBottom: '24px' }}>
         {messageErreur ?? 'Vous avez atteint le nombre maximum de propositions pour aujourd\'hui. Revenez demain.'}
       </p>
     </div>
   )
 
   if (statut === 'ok') return (
-    <div style={{ maxWidth: '520px', margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
+    <div style={{ maxWidth: '32.5rem', margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
       <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(61,107,79,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l5 5 7-8" stroke="#3d6b4f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </div>
-      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '16px', color: '#2a3d30', marginBottom: '8px' }}>Proposition envoyée</p>
-      <p style={{ fontSize: '12.5px', color: '#8a8278', lineHeight: 1.65, marginBottom: '24px' }}>
+      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: '#2a3d30', marginBottom: '8px' }}>Proposition envoyée</p>
+      <p style={{ fontSize: '0.78125rem', color: '#8a8278', lineHeight: 1.65, marginBottom: '24px' }}>
         Merci pour votre contribution. L'équipe éditoriale examinera votre proposition.
       </p>
-      <button onClick={() => setStatut('idle')} style={{ fontSize: '12.5px', color: '#3d6b4f', background: 'none', border: '1px solid #3d6b4f', borderRadius: '6px', padding: '8px 20px', cursor: 'pointer' }}>
+      <button onClick={() => setStatut('idle')} style={{ fontSize: '0.78125rem', color: '#3d6b4f', background: 'none', border: '1px solid #3d6b4f', borderRadius: '6px', padding: '8px 20px', cursor: 'pointer' }}>
         Proposer une autre œuvre
       </button>
     </div>
   )
 
   return (
-    <div style={{ maxWidth: '620px', margin: '0 auto', padding: '8px 0 80px' }}>
+    <div style={{ maxWidth: '38.75rem', margin: '0 auto', padding: '8px 0 80px' }}>
       <div style={{ background: 'rgba(61,107,79,0.06)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '8px', padding: '14px 18px', marginBottom: '28px' }}>
-        <p style={{ fontSize: '12.5px', color: '#3a5040', lineHeight: 1.65, margin: 0 }}>
+        <p style={{ fontSize: '0.78125rem', color: '#3a5040', lineHeight: 1.65, margin: 0 }}>
           Vous souhaitez enrichir la bibliothèque patristique ? Proposez un texte <strong>libre de droits</strong> (auteur décédé depuis plus de 70 ans, ou traduction ancienne dans le domaine public).
           Fournissez de préférence un texte propre, déjà structuré. L'équipe éditoriale vous contactera si nécessaire.
         </p>
         {quotaRestant !== null && (
-          <p style={{ fontSize: '11px', color: quotaRestant === 0 ? '#c0562a' : '#6a8c78', margin: '10px 0 0', borderTop: '1px solid rgba(61,107,79,0.15)', paddingTop: '10px' }}>
+          <p style={{ fontSize: '0.6875rem', color: quotaRestant === 0 ? '#c0562a' : '#6a8c78', margin: '10px 0 0', borderTop: '1px solid rgba(61,107,79,0.15)', paddingTop: '10px' }}>
             {quotaRestant === 0
               ? 'Vous avez atteint votre limite de propositions pour aujourd\'hui.'
               : `${quotaRestant} proposition${quotaRestant > 1 ? 's' : ''} restante${quotaRestant > 1 ? 's' : ''} aujourd'hui.`}
@@ -1077,7 +1077,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         {/* Auteur + titre */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>
+            <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>
               Auteur patristique <span style={{ color: '#c0562a' }}>*</span>
             </label>
             <ComboAuteur value={form.auteur_nom}
@@ -1085,7 +1085,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
               onAuteurId={id => setAuteurId(id)} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>
+            <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>
               Titre de l'œuvre <span style={{ color: '#c0562a' }}>*</span>
             </label>
             <ComboTitre value={form.titre}
@@ -1097,11 +1097,11 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         {/* Traducteur + éditeur */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>Traducteur</label>
+            <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>Traducteur</label>
             <input value={form.traducteur} onChange={set('traducteur')} placeholder="ex. Louis de Mondalon" style={CHAMP_STYLE} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>Éditeur</label>
+            <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>Éditeur</label>
             <input value={form.editeur} onChange={set('editeur')} placeholder="ex. Desclée de Brouwer" style={CHAMP_STYLE} />
           </div>
         </div>
@@ -1109,15 +1109,15 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         {/* Collection + ville + date */}
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>Collection</label>
+            <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>Collection</label>
             <input value={form.collection} onChange={set('collection')} placeholder="ex. Sources chrétiennes" style={CHAMP_STYLE} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>Ville</label>
+            <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>Ville</label>
             <input value={form.ville} onChange={set('ville')} placeholder="ex. Paris" style={CHAMP_STYLE} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>Date de publication</label>
+            <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>Date de publication</label>
             <input value={form.date_publication} onChange={set('date_publication')} placeholder="ex. 1924" style={CHAMP_STYLE} />
           </div>
         </div>
@@ -1125,11 +1125,11 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         {/* Siècle + langue */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>Siècle de l'auteur</label>
+            <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>Siècle de l'auteur</label>
             <input value={form.siecle} onChange={set('siecle')} placeholder="ex. IVe" style={CHAMP_STYLE} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>Langue originale</label>
+            <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>Langue originale</label>
             <select value={form.langue} onChange={set('langue')} style={CHAMP_STYLE}>
               <option value="">— sélectionner —</option>
               {['Grec', 'Latin', 'Syriaque', 'Copte', 'Arménien', 'Autre'].map(l => <option key={l} value={l}>{l}</option>)}
@@ -1139,7 +1139,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
 
         {/* Note */}
         <div>
-          <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>
+          <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>
             Note (source, droits, contexte)
           </label>
           <textarea value={form.note} onChange={set('note')} rows={3}
@@ -1149,14 +1149,14 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
 
         {/* Texte */}
         <div>
-          <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>
+          <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '5px' }}>
             Texte complet
           </label>
           <textarea value={form.texte} onChange={set('texte')} rows={18}
             placeholder="Collez ici le texte intégral de l'œuvre. Un texte structuré avec des titres de chapitres est préférable."
-            style={{ ...CHAMP_STYLE, fontFamily: 'ui-monospace, Consolas, monospace', fontSize: '12px', resize: 'vertical', lineHeight: 1.65 }} />
+            style={{ ...CHAMP_STYLE, fontFamily: 'ui-monospace, Consolas, monospace', fontSize: '0.75rem', resize: 'vertical', lineHeight: 1.65 }} />
           {form.texte && (
-            <p style={{ fontSize: '10px', color: '#b0a89e', marginTop: '4px' }}>
+            <p style={{ fontSize: '0.625rem', color: '#b0a89e', marginTop: '4px' }}>
               {form.texte.length.toLocaleString('fr-FR')} caractères
             </p>
           )}
@@ -1166,7 +1166,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', padding: '12px 14px', background: 'rgba(61,107,79,0.05)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '6px' }}>
           <input type="checkbox" checked={droitsGarantis} onChange={e => setDroitsGarantis(e.target.checked)}
             style={{ marginTop: '2px', accentColor: '#3d6b4f', flexShrink: 0, width: '14px', height: '14px' }} />
-          <span style={{ fontSize: '12px', color: '#3a5040', lineHeight: 1.6 }}>
+          <span style={{ fontSize: '0.75rem', color: '#3a5040', lineHeight: 1.6 }}>
             <strong>J'atteste</strong> que cette traduction est <strong>libre de droits</strong> (auteur décédé depuis plus de 70 ans ou édition dans le domaine public) et que le texte n'a pas été dénaturé.
           </span>
         </label>
@@ -1175,17 +1175,17 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
           <input type="checkbox" checked={afficherNom} onChange={e => setAfficherNom(e.target.checked)}
             style={{ accentColor: '#3d6b4f', width: '14px', height: '14px' }} />
-          <span style={{ fontSize: '12.5px', color: '#6b6560' }}>
+          <span style={{ fontSize: '0.78125rem', color: '#6b6560' }}>
             Faire apparaître mon nom ou pseudo comme apporteur de cette contribution
           </span>
         </label>
 
-        <p style={{ fontSize: '11px', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>
+        <p style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>
           Les contributions acceptées rapportent des points à leur apporteur et sont visibles dans votre profil.
         </p>
 
         {statut === 'erreur' && (
-          <p style={{ fontSize: '12px', color: '#c0562a', margin: 0 }}>Une erreur est survenue. Veuillez réessayer.</p>
+          <p style={{ fontSize: '0.75rem', color: '#c0562a', margin: 0 }}>Une erreur est survenue. Veuillez réessayer.</p>
         )}
 
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -1193,7 +1193,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
             const pret = !!form.auteur_nom.trim() && !!form.titre.trim() && !!form.texte.trim() && droitsGarantis
             return (
               <button onClick={envoyer} disabled={statut === 'envoi' || !pret}
-                style={{ padding: '10px 28px', background: '#3d6b4f', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: 500, cursor: pret ? 'pointer' : 'default', opacity: pret ? 1 : 0.45, transition: 'opacity 0.15s' }}>
+                style={{ padding: '10px 28px', background: '#3d6b4f', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.8125rem', fontWeight: 500, cursor: pret ? 'pointer' : 'default', opacity: pret ? 1 : 0.45, transition: 'opacity 0.15s' }}>
                 {statut === 'envoi' ? 'Envoi…' : 'Envoyer la proposition'}
               </button>
             )
@@ -1224,14 +1224,14 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
   }, [auteurs, favorisOeuvres])
 
   if (!favorisPret) {
-    return <p style={{ textAlign: 'center', fontSize: '12.5px', color: '#9a958d', fontStyle: 'italic' }}>Chargement des favoris…</p>
+    return <p style={{ textAlign: 'center', fontSize: '0.78125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement des favoris…</p>
   }
 
   if (oeuvresFavorites.length === 0) {
     return (
-      <div style={{ maxWidth: '520px', margin: '0 auto', textAlign: 'center', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '22px 24px' }}>
-        <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '15px', color: '#2a3d30', margin: '0 0 6px' }}>Aucune œuvre favorite</p>
-        <p style={{ fontSize: '12px', color: '#9a958d', lineHeight: 1.6, margin: 0 }}>
+      <div style={{ maxWidth: '32.5rem', margin: '0 auto', textAlign: 'center', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '22px 24px' }}>
+        <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: '#2a3d30', margin: '0 0 6px' }}>Aucune œuvre favorite</p>
+        <p style={{ fontSize: '0.75rem', color: '#9a958d', lineHeight: 1.6, margin: 0 }}>
           Ajoutez une œuvre à vos favoris depuis sa ligne dans la bibliothèque ou depuis sa page de lecture.
         </p>
       </div>
@@ -1239,12 +1239,12 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
   }
 
   return (
-    <div style={{ maxWidth: '680px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '42.5rem', margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
         <svg width="14" height="14" viewBox="0 0 16 16" fill="#b88a45" style={{ flexShrink: 0 }}>
           <path d="M8 1.5l1.854 3.756 4.146.603-3 2.924.708 4.131L8 10.765l-3.708 1.949.708-4.131-3-2.924 4.146-.603z"/>
         </svg>
-        <span style={{ fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#9a8a6e' }}>Œuvres favorites</span>
+        <span style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#9a8a6e' }}>Œuvres favorites</span>
         <div style={{ flex: 1, height: '1px', background: '#e4dfd8' }} />
       </div>
       {/* La liste reprend exactement la présentation des œuvres de la
@@ -1278,7 +1278,7 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
           }
           return blocs.map((bloc, bi) => (
             <div key={bloc.auteur.id_auteur} style={{ borderTop: bi > 0 ? '1px solid #eadfc9' : 'none' }}>
-              <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a7636', margin: 0, padding: '9px 20px 3px' }}>
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a7636', margin: 0, padding: '9px 20px 3px' }}>
                 {bloc.auteur.nom}
               </p>
               {bloc.oeuvres.map((o, idx) => {
@@ -1292,11 +1292,11 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
                     <Link href={`/oeuvre/${o.id_oeuvre}`}
                       style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', padding: '7px 12px 7px 20px', textDecoration: 'none', borderLeft: '3px solid #cfa657' }}>
                       <span style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ display: 'block', fontSize: '13px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: '#3a3122', lineHeight: 1.35 }}>{o.titre}</span>
+                        <span style={{ display: 'block', fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: '#3a3122', lineHeight: 1.35 }}>{o.titre}</span>
                         {meta ? (
-                          <span style={{ display: 'block', fontSize: '10.5px', color: '#b3a488', marginTop: '2px', lineHeight: 1.4 }}>{rendreSiecles(meta)}</span>
+                          <span style={{ display: 'block', fontSize: '0.65625rem', color: '#b3a488', marginTop: '2px', lineHeight: 1.4 }}>{rendreSiecles(meta)}</span>
                         ) : (
-                          <span style={{ display: 'block', fontSize: '10.5px', color: '#cbbfa2', marginTop: '2px', lineHeight: 1.4, fontStyle: 'italic' }}>Certaines données manquent.</span>
+                          <span style={{ display: 'block', fontSize: '0.65625rem', color: '#cbbfa2', marginTop: '2px', lineHeight: 1.4, fontStyle: 'italic' }}>Certaines données manquent.</span>
                         )}
                       </span>
                       <span className="fav-lire">
@@ -1405,10 +1405,10 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
         {onglet === 'bibliotheque' && (
           <>
             {/* Recherche */}
-            <div style={{ position: 'relative', maxWidth: '340px', margin: '0 auto 18px' }}>
+            <div style={{ position: 'relative', maxWidth: '21.25rem', margin: '0 auto 18px' }}>
               <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
                 placeholder="Rechercher un auteur ou une œuvre"
-                style={{ width: '100%', fontSize: '12.5px', padding: '7px 14px 7px 36px', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
+                style={{ width: '100%', fontSize: '0.78125rem', padding: '7px 14px 7px 36px', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
                 <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
                 <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
@@ -1416,7 +1416,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
             </div>
 
             {auteursFiltres.length === 0 ? (
-              <p style={{ textAlign: 'center', fontSize: '13px', color: '#9a958d', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+              <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                 Aucun auteur ne correspond à ces critères.
               </p>
             ) : (

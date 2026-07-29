@@ -20,8 +20,8 @@ const LIEN_PAYPAL = "https://www.paypal.com/donate/?hosted_button_id=9M463NPH2RQ
 // Mordoré : le brun doré des reliures, entre l'or des filets et le brun du texte.
 const MORDORE = "#7d5f28";
 
-const inputStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: "13.5px", border: "1px solid #d6d0c4", borderRadius: "6px", background: "#f9f7f4", color: "#1e1a16", outline: "none", boxSizing: "border-box" };
-const labelStyle: React.CSSProperties = { fontSize: "11px", fontWeight: 600, color: "#566150", letterSpacing: "0.06em", display: "block", marginBottom: "5px" };
+const inputStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: "0.84375rem", border: "1px solid #d6d0c4", borderRadius: "6px", background: "#f9f7f4", color: "#1e1a16", outline: "none", boxSizing: "border-box" };
+const labelStyle: React.CSSProperties = { fontSize: "0.6875rem", fontWeight: 600, color: "#566150", letterSpacing: "0.06em", display: "block", marginBottom: "5px" };
 
 /** Où revenir après avoir confirmé son adresse par courriel. */
 function urlCompte(): string {
@@ -282,10 +282,10 @@ function Chiffres() {
     <div className="cs-chiffres">
       {cases.map(([valeur, libelle]) => (
         <div key={libelle} style={{ textAlign: "center" }}>
-          <div className="cs-chiffre-valeur" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "30px", color: "#3d6b4f", lineHeight: 1 }}>
+          <div className="cs-chiffre-valeur" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.875rem", color: "#3d6b4f", lineHeight: 1 }}>
             {valeur}
           </div>
-          <div className="cs-chiffre-libelle" style={{ fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6a6259", marginTop: "6px" }}>
+          <div className="cs-chiffre-libelle" style={{ fontSize: "0.625rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6a6259", marginTop: "6px" }}>
             {libelle}
           </div>
         </div>
@@ -321,7 +321,7 @@ function Prevenir() {
   if (etat === "fait") {
     return (
       <div style={{ background: "rgba(61,107,79,0.07)", border: "1px solid rgba(61,107,79,0.22)", borderRadius: "8px", padding: "16px 18px" }}>
-        <p style={{ fontSize: "13px", color: "#2a6040", margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: "0.8125rem", color: "#2a6040", margin: 0, lineHeight: 1.6 }}>
           C’est noté. Vous recevrez un message le jour de l’ouverture – un seul, et rien d’autre.
         </p>
       </div>
@@ -330,19 +330,19 @@ function Prevenir() {
 
   return (
     <form onSubmit={envoyer}>
-      <p style={{ fontSize: "12.5px", color: "#6a6259", margin: "0 0 12px", lineHeight: 1.6 }}>
+      <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: "0 0 12px", lineHeight: 1.6 }}>
         Les travaux avancent, la date reste incertaine. Laissez votre adresse : elle ne servira
         qu’à vous prévenir, une fois.
       </p>
       {erreur && (
-        <p style={{ fontSize: "12px", color: "#9a2a2a", margin: "0 0 10px", lineHeight: 1.5 }}>{erreur}</p>
+        <p style={{ fontSize: "0.75rem", color: "#9a2a2a", margin: "0 0 10px", lineHeight: 1.5 }}>{erreur}</p>
       )}
       <div className="cs-prevenir-champs" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
         <input type="email" required autoComplete="email" value={adresse} onChange={e => setAdresse(e.target.value)}
           placeholder="vous@exemple.fr" aria-label="Votre adresse e-mail"
           style={{ ...inputStyle, flex: "1 1 180px", width: "auto" }} />
         <button type="submit" disabled={etat === "envoi"}
-          style={{ padding: "9px 18px", borderRadius: "6px", border: "none", background: etat === "envoi" ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "13px", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
+          style={{ padding: "9px 18px", borderRadius: "6px", border: "none", background: etat === "envoi" ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
           {etat === "envoi" ? "Envoi…" : "Me prévenir"}
         </button>
       </div>
@@ -582,21 +582,21 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         {/* ── Être prévenu, et soutenir ── */}
         <div className="cs-cartes">
           <div className="cs-carte" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "24px 26px" }}>
-            <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#6a6259", margin: "0 0 14px", textAlign: "center" }}>
+            <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#6a6259", margin: "0 0 14px", textAlign: "center" }}>
               Recevoir un mail à l’ouverture
             </p>
             <Prevenir />
           </div>
           <div className="cs-carte" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "24px 26px", display: "flex", flexDirection: "column" }}>
-            <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#6a6259", margin: "0 0 14px", textAlign: "center" }}>
+            <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#6a6259", margin: "0 0 14px", textAlign: "center" }}>
               Soutenir le projet
             </p>
-            <p style={{ fontSize: "12.5px", color: "#6a6259", margin: "0 0 14px", lineHeight: 1.6, flex: 1 }}>
+            <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: "0 0 14px", lineHeight: 1.6, flex: 1 }}>
               Le travail est bénévole, les frais ne le sont pas : hébergement, achat des
               éditions, numérisation. Un don avance le chantier.
             </p>
             <a href={LIEN_PAYPAL} target="_blank" rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "9px 18px", borderRadius: "6px", border: "1px solid #3d6b4f", background: "#fff", color: "#3d6b4f", fontSize: "13px", fontWeight: 500, textDecoration: "none" }}>
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "9px 18px", borderRadius: "6px", border: "1px solid #3d6b4f", background: "#fff", color: "#3d6b4f", fontSize: "0.8125rem", fontWeight: 500, textDecoration: "none" }}>
               <svg width="14" height="14" viewBox="0 0 40 40" fill="none" aria-hidden="true">
                 <path d="M20 34S4 23 4 13a8 8 0 0 1 16-2 8 8 0 0 1 16 2c0 10-16 21-16 21z"
                   stroke="currentColor" strokeWidth="2.5" fill="rgba(61,107,79,0.08)" strokeLinejoin="round" />
@@ -607,19 +607,19 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         </div>
 
         {/* ── Connexion ── */}
-        <div className="cs-connexion" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "30px 32px 34px", width: "100%", maxWidth: "380px", margin: "0 auto", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}>
+        <div className="cs-connexion" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "30px 32px 34px", width: "100%", maxWidth: "23.75rem", margin: "0 auto", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}>
         <div style={{ textAlign: "center", marginBottom: "24px" }}>
-          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "20px", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>
+          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.25rem", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>
             {mode === "connexion" ? "Connexion" : "Créer un compte"}
           </h2>
         </div>
         {erreur === "__confirm__" ? (
           <div style={{ background: "rgba(61,107,79,0.07)", border: "1px solid rgba(61,107,79,0.2)", borderRadius: "6px", padding: "14px 16px", marginBottom: "20px" }}>
-            <p style={{ fontSize: "13px", color: "#2a6040", lineHeight: 1.65, margin: 0 }}>Compte créé. Vérifiez votre boîte mail pour confirmer votre adresse, puis connectez-vous.</p>
+            <p style={{ fontSize: "0.8125rem", color: "#2a6040", lineHeight: 1.65, margin: 0 }}>Compte créé. Vérifiez votre boîte mail pour confirmer votre adresse, puis connectez-vous.</p>
           </div>
         ) : erreur ? (
           <div style={{ background: "rgba(180,50,40,0.06)", border: "1px solid rgba(180,50,40,0.18)", borderRadius: "6px", padding: "10px 14px", marginBottom: "18px" }}>
-            <p style={{ fontSize: "12.5px", color: "#9a2a2a", margin: 0, lineHeight: 1.55 }}>{erreur}</p>
+            <p style={{ fontSize: "0.78125rem", color: "#9a2a2a", margin: 0, lineHeight: 1.55 }}>{erreur}</p>
           </div>
         ) : null}
         <form onSubmit={soumettre} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
@@ -638,7 +638,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             <input id="cs-mdp" autoComplete={mode === "connexion" ? "current-password" : "new-password"} type="password" value={mdp} onChange={e => setMdp(e.target.value)} required minLength={6} placeholder="··········" style={inputStyle} />
           </div>
           <button type="submit" disabled={chargement}
-            style={{ marginTop: "6px", padding: "10px", borderRadius: "6px", border: "none", background: chargement ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "13.5px", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
+            style={{ marginTop: "6px", padding: "10px", borderRadius: "6px", border: "none", background: chargement ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
             {chargement ? "Chargement…" : mode === "connexion" ? "Se connecter" : "Créer le compte"}
           </button>
         </form>
@@ -650,18 +650,18 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             sans quoi l'API reste ouverte à qui la connaît. */}
         {process.env.NEXT_PUBLIC_INSCRIPTIONS_OUVERTES === "1" ? (
           <div style={{ marginTop: "20px", textAlign: "center", borderTop: "1px solid #ede9e2", paddingTop: "18px" }}>
-            <p style={{ fontSize: "12.5px", color: "#6a6259", margin: 0 }}>
+            <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: 0 }}>
               {mode === "connexion" ? "Pas encore de compte ?" : "Déjà un compte ?"}
               {" "}
               <button onClick={() => { setMode(mode === "connexion" ? "inscription" : "connexion"); setErreur(null); setMdp(""); setPseudo(""); }}
-                style={{ background: "none", border: "none", cursor: "pointer", fontSize: "12.5px", color: "#3d6b4f", fontWeight: 500, padding: 0, textDecoration: "underline" }}>
+                style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.78125rem", color: "#3d6b4f", fontWeight: 500, padding: 0, textDecoration: "underline" }}>
                 {mode === "connexion" ? "Créer un compte" : "Se connecter"}
               </button>
             </p>
           </div>
         ) : (
           <div style={{ marginTop: "20px", textAlign: "center", borderTop: "1px solid #ede9e2", paddingTop: "18px" }}>
-            <p style={{ fontSize: "12.5px", color: "#6a6259", margin: 0, lineHeight: 1.55 }}>
+            <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: 0, lineHeight: 1.55 }}>
               Les comptes sont réservés aux personnes qui travaillent au chantier.<br />
               Les inscriptions ouvriront avec le site.
             </p>
@@ -671,7 +671,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
 
         {/* Les mentions légales doivent être atteignables d'ici : c'est sur
             cette page qu'on recueille des adresses. */}
-        <nav style={{ marginTop: "30px", textAlign: "center", fontSize: "11.5px", color: "#6a6259" }}>
+        <nav style={{ marginTop: "30px", textAlign: "center", fontSize: "0.71875rem", color: "#6a6259" }}>
           <a href="/confidentialite" style={{ color: "#6a6259", textDecoration: "underline", textUnderlineOffset: "2px" }}>
             Politique de confidentialité
           </a>
@@ -686,18 +686,18 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         </nav>
 
         {/* ── Démarchage ── */}
-        <aside style={{ marginTop: "34px", border: "1px solid #ddc9c2", background: "#fdf6f4", borderRadius: "10px", padding: "20px 24px", maxWidth: "660px", marginLeft: "auto", marginRight: "auto" }}>
-          <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a4a3a", margin: "0 0 10px" }}>
+        <aside style={{ marginTop: "34px", border: "1px solid #ddc9c2", background: "#fdf6f4", borderRadius: "10px", padding: "20px 24px", maxWidth: "41.25rem", marginLeft: "auto", marginRight: "auto" }}>
+          <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a4a3a", margin: "0 0 10px" }}>
             Aucun démarchage
           </p>
-          <p style={{ fontSize: "12.5px", color: "#6a5a54", lineHeight: 1.7, margin: 0 }}>
+          <p style={{ fontSize: "0.78125rem", color: "#6a5a54", lineHeight: 1.7, margin: 0 }}>
             Toute sollicitation commerciale relative à ce site – référencement, refonte,
             audit, publicité, intelligence artificielle, prestation de développement –
             est <strong style={{ color: "#8a3a2a" }}>refusée par avance</strong>, qu’elle soit
             envoyée par une personne ou par un automate. Les adresses figurant sur ce site
             ne valent pas consentement et ne sont pas collectables.
           </p>
-          <p style={{ fontSize: "12.5px", color: "#6a5a54", lineHeight: 1.7, margin: "10px 0 0" }}>
+          <p style={{ fontSize: "0.78125rem", color: "#6a5a54", lineHeight: 1.7, margin: "10px 0 0" }}>
             La prospection par voie électronique sans accord préalable est interdite en France
             (article L. 34-5 du code des postes et des communications électroniques) et
             constitue un traitement de données sans base légale au sens du RGPD. Tout message

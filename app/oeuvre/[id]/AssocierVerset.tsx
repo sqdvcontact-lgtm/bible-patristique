@@ -54,11 +54,11 @@ export default function AssocierVerset({ segId, onAssocie }: {
       <button
         onClick={() => { setErreur(null); setOuvert(true) }}
         title="Ajouter un lien biblique à ce segment"
-        style={{ fontSize: '11px', color: '#3d6b4f', background: 'rgba(61,107,79,0.04)', border: '1px dashed #b8cdc0', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px' }}
+        style={{ fontSize: '0.6875rem', color: '#3d6b4f', background: 'rgba(61,107,79,0.04)', border: '1px dashed #b8cdc0', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px' }}
       >
         + Ajouter un lien biblique
       </button>
-      {erreur && <p style={{ fontSize: '11px', color: '#c0562a', margin: '6px 0 0' }}>{erreur}</p>}
+      {erreur && <p style={{ fontSize: '0.6875rem', color: '#c0562a', margin: '6px 0 0' }}>{erreur}</p>}
       {ouvert && (
         <ModalLienBiblique
           ouvert={ouvert}

@@ -99,7 +99,7 @@ export function Bulle({ texte, children, position = 'top', avecFixation = false 
           ...posStyle(position),
           background: '#2a3d30',
           color: '#f2ede6',
-          fontSize: '11px',
+          fontSize: '0.6875rem',
           lineHeight: 1.45,
           padding: '5px 9px',
           borderRadius: '5px',
@@ -138,7 +138,7 @@ export function Bulle({ texte, children, position = 'top', avecFixation = false 
               aria-label="Fermer"
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
-                color: 'rgba(242,237,230,0.55)', fontSize: '14px', lineHeight: 1,
+                color: 'rgba(242,237,230,0.55)', fontSize: '0.875rem', lineHeight: 1,
                 padding: '0 0 0 1px', flexShrink: 0,
               }}
               onMouseEnter={e => (e.currentTarget.style.color = '#f2ede6')}

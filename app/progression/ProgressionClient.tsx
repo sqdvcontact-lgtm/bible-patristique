@@ -60,8 +60,8 @@ function BarreProgression({ label, pourcentage, couleur }: { label: string; pour
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', gap: '12px' }}>
-        <span style={{ fontSize: '11px', color: '#6b6560', fontWeight: 600 }}>{label}</span>
-        <span style={{ fontSize: '11px', color: '#3d6b4f', fontWeight: 700 }}>{Math.round(pourcentage)}%</span>
+        <span style={{ fontSize: '0.6875rem', color: '#6b6560', fontWeight: 600 }}>{label}</span>
+        <span style={{ fontSize: '0.6875rem', color: '#3d6b4f', fontWeight: 700 }}>{Math.round(pourcentage)}%</span>
       </div>
       <div style={{ height: '7px', background: '#ebe7df', borderRadius: '999px', overflow: 'hidden' }}>
         <div style={{
@@ -76,8 +76,8 @@ function BarreProgression({ label, pourcentage, couleur }: { label: string; pour
 function StatutLecture({ label, valeur }: { label: string; valeur: string }) {
   return (
     <div style={{ padding: '9px 12px', borderRadius: '8px', background: 'rgba(61,107,79,0.055)', border: '1px solid rgba(61,107,79,0.10)' }}>
-      <p style={{ fontSize: '18px', color: '#2a3d30', fontFamily: "var(--font-source-serif), Georgia, serif", margin: '0 0 2px' }}>{valeur}</p>
-      <p style={{ fontSize: '10.5px', color: '#7a867b', margin: 0 }}>{label}</p>
+      <p style={{ fontSize: '1.125rem', color: '#2a3d30', fontFamily: "var(--font-source-serif), Georgia, serif", margin: '0 0 2px' }}>{valeur}</p>
+      <p style={{ fontSize: '0.65625rem', color: '#7a867b', margin: 0 }}>{label}</p>
     </div>
   )
 }
@@ -146,7 +146,7 @@ function CarteLivre({ livre, lu, onToggle }: { livre: LivreBible; lu: boolean; o
       }}>
         {livre.nom}
       </span>
-      <span style={{ fontSize: '10px', color: '#b0a89e', marginLeft: 'auto', flexShrink: 0 }}>
+      <span style={{ fontSize: '0.625rem', color: '#b0a89e', marginLeft: 'auto', flexShrink: 0 }}>
         {lu ? 'lu' : 'à lire'}
       </span>
     </button>
@@ -267,7 +267,7 @@ export default function ProgressionClient() {
         }}>
           Ma progression de lecture
         </h1>
-        <p style={{ fontSize: '12px', color: '#9a958d', textAlign: 'center', marginBottom: '22px', fontStyle: 'italic' }}>
+        <p style={{ fontSize: '0.75rem', color: '#9a958d', textAlign: 'center', marginBottom: '22px', fontStyle: 'italic' }}>
           Cochez un livre une fois sa lecture achevée.
         </p>
 
@@ -278,13 +278,13 @@ export default function ProgressionClient() {
         }}>
           <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '22px', alignItems: 'center' }}>
             <div style={{
-              width: '132px', height: '132px', borderRadius: '50%',
+              width: '8.25rem', height: '132px', borderRadius: '50%',
               background: `conic-gradient(#3d6b4f ${pourcentTotalAnime}%, #ece8df 0)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto',
             }}>
-              <div style={{ width: '106px', height: '106px', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+              <div style={{ width: '6.625rem', height: '106px', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                 <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.875rem', color: '#2a3d30', lineHeight: 1 }}>{Math.round(pourcentTotalAnime)}%</span>
-                <span style={{ fontSize: '10px', color: '#9a958d', marginTop: '3px' }}>parcouru</span>
+                <span style={{ fontSize: '0.625rem', color: '#9a958d', marginTop: '3px' }}>parcouru</span>
               </div>
             </div>
             <div>
@@ -303,18 +303,18 @@ export default function ProgressionClient() {
         {!userId && !chargement && (
           <div style={{
             background: '#fff', border: '1px solid #e4c4b8', borderRadius: '8px',
-            padding: '12px 16px', marginBottom: '24px', fontSize: '12.5px', color: '#9a4a2a', textAlign: 'center',
+            padding: '12px 16px', marginBottom: '24px', fontSize: '0.78125rem', color: '#9a4a2a', textAlign: 'center',
           }}>
             Connectez-vous pour enregistrer votre progression.
           </div>
         )}
 
         {chargement ? (
-          <p style={{ textAlign: 'center', color: '#9a958d', fontSize: '13px', fontStyle: 'italic' }}>Chargement…</p>
+          <p style={{ textAlign: 'center', color: '#9a958d', fontSize: '0.8125rem', fontStyle: 'italic' }}>Chargement…</p>
         ) : (
           <>
             <h2 style={{
-              fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+              fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
               color: '#7a7268', marginBottom: '12px', marginTop: '8px',
             }}>
               Ancien Testament
@@ -326,7 +326,7 @@ export default function ProgressionClient() {
             </div>
 
             <h2 style={{
-              fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+              fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
               color: '#7a7268', marginBottom: '12px',
             }}>
               Nouveau Testament

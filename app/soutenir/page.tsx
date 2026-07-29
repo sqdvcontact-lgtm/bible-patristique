@@ -53,7 +53,7 @@ export default function SoutenirPage() {
       </h1>
 
       {/* Filet ornemental */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "150px", margin: "0 auto 16px", flexShrink: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "9.375rem", margin: "0 auto 16px", flexShrink: 0 }}>
         <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #cfc6b6)" }} />
         <span style={{ fontSize: "0.5rem", color: "#b0a088", letterSpacing: "0.22em" }}>· · ·</span>
         <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #cfc6b6)" }} />

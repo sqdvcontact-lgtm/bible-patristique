@@ -65,7 +65,7 @@ export default function AccueilPage() {
           </h1>
 
           {/* Filet */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", margin: "0 auto 14px", maxWidth: "240px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", margin: "0 auto 14px", maxWidth: "15rem" }}>
             <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #b8a070)" }} />
             <span style={{ fontSize: "0.625rem", color: "#9a8248", letterSpacing: "0.2em" }}>✦</span>
             <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #b8a070)" }} />
@@ -235,7 +235,7 @@ export default function AccueilPage() {
 
 function OrnementsTriple() {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", margin: "0 auto", maxWidth: "300px" }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", margin: "0 auto", maxWidth: "18.75rem" }}>
       <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #b8a060)" }} />
       <span style={{ fontSize: "1rem", color: "#9a8248", letterSpacing: "0.15em" }}>⁂</span>
       <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #b8a060)" }} />

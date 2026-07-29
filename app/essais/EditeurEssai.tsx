@@ -625,7 +625,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             {/* Barre d'outils et zone de rédaction */}
             <div style={{ display: 'flex', gap: '20px', paddingLeft: '128px' }}>
               <div style={{
-                position: 'fixed', top: '48px', left: 0, width: '128px', height: 'calc(100vh - 48px)',
+                position: 'fixed', top: '48px', left: 0, width: '8rem', height: 'calc(100vh - 48px)',
                 background: '#faf8f4', borderRight: '1px solid #d6d0c4', padding: '20px 14px', overflowY: 'auto',
                 zIndex: 50, display: 'flex', flexDirection: 'column', gap: '5px',
               }}>
@@ -737,7 +737,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
           Resserrée et épurée. */}
       {confirmPublier && typeof document !== 'undefined' && createPortal(
         <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '20px 22px', maxWidth: '440px', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.20)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.20)' }}>
             <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 8px' }}>
               Soumettre cette publication ?
             </h3>

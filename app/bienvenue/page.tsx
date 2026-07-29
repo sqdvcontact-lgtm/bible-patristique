@@ -19,16 +19,16 @@ export default function BienvenuePage() {
 
   if (!pret) return (
     <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ fontSize: '13px', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+      <p style={{ fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
     </main>
   )
 
   return (
     <main style={{ minHeight: 'calc(100vh - 48px)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
-      <div style={{ width: '100%', maxWidth: '480px', textAlign: 'center' }}>
+      <div style={{ width: '100%', maxWidth: '30rem', textAlign: 'center' }}>
 
         {/* En-tête */}
-        <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7aaa8e', margin: '0 0 18px' }}>
+        <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7aaa8e', margin: '0 0 18px' }}>
           Corpus Scriptura
         </p>
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.625rem', fontWeight: 'normal', color: '#2a3d30', margin: '0 0 10px', lineHeight: 1.3 }}>
@@ -67,7 +67,7 @@ export default function BienvenuePage() {
         </div>
 
         <button onClick={() => router.push('/compte')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#b0a89e', textDecoration: 'underline', padding: 0 }}>
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', color: '#b0a89e', textDecoration: 'underline', padding: 0 }}>
           Aller à mon compte
         </button>
       </div>

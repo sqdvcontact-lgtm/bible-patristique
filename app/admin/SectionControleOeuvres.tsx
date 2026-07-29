@@ -188,7 +188,7 @@ function rendreTitreColophonControle(texte: string) {
     return `${Math.round(96 - 54 * Math.pow(t, 1.08))}%`
   })
   return (
-    <span className="titre-colophon" style={{ display: 'block', maxWidth: '610px', margin: '0 auto', textAlign: 'center', lineHeight: 1.24, wordSpacing: '-0.04em', letterSpacing: '-0.004em' }}>
+    <span className="titre-colophon" style={{ display: 'block', maxWidth: '38.125rem', margin: '0 auto', textAlign: 'center', lineHeight: 1.24, wordSpacing: '-0.04em', letterSpacing: '-0.004em' }}>
       {lignes.map((ligne, index) => (
         <span key={`${ligne}-${index}`} style={{ display: 'block', width: largeurs[index] ?? '42%', margin: '0 auto' }}>
           {ligne}

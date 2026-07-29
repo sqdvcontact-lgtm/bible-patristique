@@ -211,7 +211,7 @@ function rendreTitreColophon(texte: string) {
   if (propre.length < SEUIL_TITRE_COLOPHON || !titreCompatibleColophon(propre)) return rendreTexteEnrichi(propre)
   const lignes = decouperTitreColophon(propre)
   if (lignes.length <= 1) return rendreTexteEnrichi(propre)
-  return rendreLignesColophonAvecLargeurs(lignes, { display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '650px', margin: '0 auto', lineHeight: 1.24, wordSpacing: '-0.04em', letterSpacing: '-0.004em', hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties)
+  return rendreLignesColophonAvecLargeurs(lignes, { display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '40.625rem', margin: '0 auto', lineHeight: 1.24, wordSpacing: '-0.04em', letterSpacing: '-0.004em', hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties)
 }
 
 function rendreLongTexteColophon(texte: string) {
@@ -340,20 +340,20 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
         padding: '10px 12px',
         zIndex: 9999,
         fontFamily: "var(--font-source-serif), Georgia, serif",
-        fontSize: 12.5,
+        fontSize: '0.78125rem',
         lineHeight: 1.65,
         color: '#2a2218',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.09em', color: '#9a8a6e', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: '#9a8a6e', textTransform: 'uppercase' }}>
           Note {lettre}
         </span>
         {figee && (
           <button
             onClick={fermer}
             aria-label="Fermer"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a08a', fontSize: 15, lineHeight: 1, padding: '0 2px' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a08a', fontSize: '0.9375rem', lineHeight: 1, padding: '0 2px' }}
           >×</button>
         )}
       </div>
@@ -454,7 +454,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
       </button>
       {ouvert && (
         <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '8px', padding: '20px 22px', width: '360px', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '8px', padding: '20px 22px', width: '22.5rem', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>Proposer un lien biblique</p>
               <button onClick={() => setOuvert(false)} style={{ fontSize: '0.875rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
@@ -1313,7 +1313,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         )}
 
         {/* ── TEXTE CENTRAL ── */}
-        <main lang="fr" style={{ flex: 1, minWidth: 0, padding: '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: '560px', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
+        <main lang="fr" style={{ flex: 1, minWidth: 0, padding: '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: '35rem', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
           <PageTitre auteur={auteur} oeuvre={oeuvreLocale} titre={titreAffiche} estAdmin={estAdmin}
             onModifier={(champ, va) => setEditionCible({ type: 'titre_oeuvre', champ, texteActuel: va })} />
 
@@ -1663,7 +1663,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         on remonte le texte (marge négative) pour qu'il se pose sous le DESSIN, non
                         sous le rectangle de l'image — l'ensemble reste ainsi équilibré. */}
                     <img src="/ornements/cul-de-lampe-buisson-ardent.png" alt="" aria-hidden="true"
-                      style={{ width: '82%', maxWidth: '190px', height: 'auto', opacity: 0.42, mixBlendMode: 'multiply' }} />
+                      style={{ width: '82%', maxWidth: '11.875rem', height: 'auto', opacity: 0.42, mixBlendMode: 'multiply' }} />
                     <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: '#9a958d', textAlign: 'center', margin: '-30px 0 0' }}>Cliquez sur un paragraphe.</p>
                   </div>
                 )}
@@ -1801,7 +1801,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       {apercuVerset && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}
           onClick={() => setApercuVerset(null)}>
-          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#faf6ee', borderRadius: '8px', border: '1px solid #c8b89e', padding: '16px 18px', width: '380px', maxWidth: '100%', boxShadow: '0 12px 40px rgba(44,30,10,0.22)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#faf6ee', borderRadius: '8px', border: '1px solid #c8b89e', padding: '16px 18px', width: '23.75rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(44,30,10,0.22)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
               <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontWeight: 600, color: '#3d6b4f' }}>{apercuVerset.label}</span>
               <button onClick={() => setApercuVerset(null)} aria-label="Fermer" style={{ fontSize: '0.9375rem', color: '#b0a08a', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 12px', lineHeight: 1 }}>×</button>
@@ -1817,7 +1817,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       {infoEditionOuverte && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', top: 48, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}
           onClick={() => setInfoEditionOuverte(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#fff', borderRadius: '10px', padding: '18px 22px', width: '540px', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#fff', borderRadius: '10px', padding: '18px 22px', width: '33.75rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
               <div style={{ minWidth: 0 }}>
                 <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: '#6f9268', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette édition</p>
@@ -1905,7 +1905,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       {estAdmin && configOuverte && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
           onClick={() => setConfigOuverte(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '20px 22px', width: '400px', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '20px 22px', width: '25rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>Niveaux d'affichage</p>
               <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.9375rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>

@@ -206,7 +206,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: '0 56px 80px' }}>
 
           {essai.statut === 'en_attente' && (
-            <p style={{ fontSize: '11.5px', color: '#9a5a2a', background: '#fff8f0', border: '1px solid #e4c4a0', borderRadius: '6px', padding: '8px 12px', margin: '24px 0 0' }}>
+            <p style={{ fontSize: '0.71875rem', color: '#9a5a2a', background: '#fff8f0', border: '1px solid #e4c4a0', borderRadius: '6px', padding: '8px 12px', margin: '24px 0 0' }}>
               Cet essai est en attente de validation par l'administration — seul vous pouvez le voir ainsi.
             </p>
           )}
@@ -219,11 +219,11 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             marginBottom: '48px', textAlign: 'center',
           }}>
             {essai.auteur_pseudo && (
-              <p style={{ fontSize: '11.5px', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '28px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+              <p style={{ fontSize: '0.71875rem', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '28px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                 {essai.auteur_pseudo}
               </p>
             )}
-            <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.2, margin: '0 0 14px', maxWidth: '560px' }}>
+            <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.2, margin: '0 0 14px', maxWidth: '35rem' }}>
               {essai.titre}
             </h1>
             {essai.sous_titre && (
@@ -232,15 +232,15 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
               </p>
             )}
             <div style={{ width: '32px', height: '1px', background: '#c8c0b4', marginBottom: '16px' }} />
-            <p style={{ fontSize: '11px', letterSpacing: '0.06em', color: '#b0a89e', marginBottom: '28px' }}>
+            <p style={{ fontSize: '0.6875rem', letterSpacing: '0.06em', color: '#b0a89e', marginBottom: '28px' }}>
               {dateFormatee}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
-              <p style={{ fontSize: '10.5px', color: '#c0b8b0', letterSpacing: '0.04em', margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+              <p style={{ fontSize: '0.65625rem', color: '#c0b8b0', letterSpacing: '0.04em', margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                 Cette publication a été lue {nbVues} fois
               </p>
               <button onClick={toggleApprecier} disabled={!userId}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10.5px', color: aApprecie ? '#3d6b4f' : '#c0b8b0', background: 'none', border: 'none', padding: 0, cursor: userId ? 'pointer' : 'default', fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: '0.03em' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.65625rem', color: aApprecie ? '#3d6b4f' : '#c0b8b0', background: 'none', border: 'none', padding: 0, cursor: userId ? 'pointer' : 'default', fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: '0.03em' }}>
                 <svg width="11" height="11" viewBox="0 0 12 12" fill={aApprecie ? 'currentColor' : 'none'} aria-hidden="true">
                   <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z" stroke="currentColor" strokeWidth="1"/>
                 </svg>
@@ -256,11 +256,11 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           </div>
 
           {versetParse && (
-            <div style={{ margin: '0 auto 52px', maxWidth: '420px', textAlign: 'center' }}>
+            <div style={{ margin: '0 auto 52px', maxWidth: '26.25rem', textAlign: 'center' }}>
               <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.90625rem', lineHeight: 1.8, color: '#4a4440', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
                 {'« '}{rendreTexteEnrichi(versetParse.texte)}{' »'}
               </p>
-              <p style={{ fontSize: '10.5px', letterSpacing: '0.1em', color: '#a09890', margin: 0, fontFamily: 'var(--font-source-sans), Arial, sans-serif', textTransform: 'uppercase' }}>
+              <p style={{ fontSize: '0.65625rem', letterSpacing: '0.1em', color: '#a09890', margin: 0, fontFamily: 'var(--font-source-sans), Arial, sans-serif', textTransform: 'uppercase' }}>
                 {expanderRef(versetParse.ref)}
               </p>
             </div>
@@ -275,7 +275,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
       {/* Volet droit — ouvert */}
       {voletOuvert ? (
-        <div style={{ width: '300px', flexShrink: 0, background: '#faf8f4', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div style={{ width: '18.75rem', flexShrink: 0, background: '#faf8f4', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', height: '100%' }}>
 
           {/* Barre supérieure : fermer | titre | partager */}
           <div style={{ minHeight: '41px', padding: '6px 8px 6px 6px', borderBottom: '1px solid #ede9e2', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -285,7 +285,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
                 <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <span style={{ flex: 1, minWidth: 0, alignSelf: 'center', textAlign: 'center', fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#9a958d', whiteSpace: 'nowrap' }}>Commentaires</span>
+            <span style={{ flex: 1, minWidth: 0, alignSelf: 'center', textAlign: 'center', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#9a958d', whiteSpace: 'nowrap' }}>Commentaires</span>
             <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
               <BoutonPartage label="Copier le lien" onClick={copierLien}>
                 <svg width="11" height="11" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
@@ -330,7 +330,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M10 4l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span style={{ writingMode: 'vertical-rl', fontSize: '8px', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>Commentaires</span>
+          <span style={{ writingMode: 'vertical-rl', fontSize: '0.5rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>Commentaires</span>
         </button>
       )}
     </div>

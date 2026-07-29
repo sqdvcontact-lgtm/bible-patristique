@@ -278,7 +278,7 @@ export default function SectionVerificationCatalogue() {
   ]
 
   return (
-    <div style={{ maxWidth: '960px' }}>
+    <div style={{ maxWidth: '60rem' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
         <h2 style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', margin: 0 }}>
           Catalogue bibliographique - {total.toLocaleString('fr-FR')} notices
@@ -287,7 +287,7 @@ export default function SectionVerificationCatalogue() {
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
           placeholder="Filtrer par auteur..."
-          style={{ fontSize: '0.71875rem', padding: '5px 10px', border: '1px solid #344d3e', borderRadius: '4px', background: '#1e2e26', color: '#c8d8cc', outline: 'none', width: '200px' }}
+          style={{ fontSize: '0.71875rem', padding: '5px 10px', border: '1px solid #344d3e', borderRadius: '4px', background: '#1e2e26', color: '#c8d8cc', outline: 'none', width: '12.5rem' }}
         />
       </div>
 
@@ -334,7 +334,7 @@ export default function SectionVerificationCatalogue() {
                 <div style={{ padding: '9px 14px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => setOuverte(ouv ? null : n.id)}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '0.7625rem', fontWeight: 500, color: '#3f3832', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '360px', fontStyle: n.titre_edition || n.titre_original ? 'italic' : 'normal' }}>
+                      <span style={{ fontSize: '0.7625rem', fontWeight: 500, color: '#3f3832', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '22.5rem', fontStyle: n.titre_edition || n.titre_original ? 'italic' : 'normal' }}>
                         {titreDeclineNotice(n)}
                       </span>
                       {n.dates_auteur && <span style={{ fontSize: '0.625rem', color: '#b0a89e' }}>{formaterDateHistorique(n.dates_auteur)}</span>}

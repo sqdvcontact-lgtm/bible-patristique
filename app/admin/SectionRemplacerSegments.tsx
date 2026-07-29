@@ -106,7 +106,7 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
   const inputStyle: React.CSSProperties = { width: '100%', padding: '7px 10px', fontSize: '0.78125rem', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#f9f7f4', color: '#1e1a16', outline: 'none', boxSizing: 'border-box' }
 
   return (
-    <div style={{ maxWidth: '640px' }}>
+    <div style={{ maxWidth: '40rem' }}>
       <div style={{ background: '#fff8f0', border: '1px solid #e4c4a0', borderRadius: '8px', padding: '14px 18px', marginBottom: '24px' }}>
         <p style={{ fontSize: '0.78125rem', color: '#8a4a1a', margin: 0, fontWeight: 500 }}>
           ⚠ Opération irréversible — remplace l'intégralité de la table segments.

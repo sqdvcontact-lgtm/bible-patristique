@@ -15,7 +15,7 @@ import ModalSignalement from '@/app/components/ModalSignalement'
 const VERSET_ACTION_BTN: React.CSSProperties = {
   background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
   borderRadius:'3px', width:'16px', height:'16px', display:'inline-flex',
-  alignItems:'center', justifyContent:'center', fontSize:'12px',
+  alignItems:'center', justifyContent:'center', fontSize:'0.75rem',
   lineHeight:1, flexShrink:0, transition:'color 0.15s',
 }
 
@@ -332,36 +332,36 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
     onEnregistre(valeur)
   }
 
-  const btnEd: React.CSSProperties = { fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }
+  const btnEd: React.CSSProperties = { fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }
   const gardeSel = (e: React.MouseEvent) => e.preventDefault()
 
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background:'#fff', borderRadius:'8px', padding:'20px 22px', width:'480px', maxWidth:'100%', boxShadow:'0 8px 32px rgba(0,0,0,0.18)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background:'#fff', borderRadius:'8px', padding:'20px 22px', width:'30rem', maxWidth:'100%', boxShadow:'0 8px 32px rgba(0,0,0,0.18)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px' }}>
-          <p style={{ fontSize:'12px', fontWeight:600, color:'#9a5a2a', margin:0 }}>
+          <p style={{ fontSize:'0.75rem', fontWeight:600, color:'#9a5a2a', margin:0 }}>
             Modifier {refCourt} de la {traductionLabel}
           </p>
-          <button onClick={onClose} style={{ fontSize:'14px', color:'#b0a89e', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
+          <button onClick={onClose} style={{ fontSize:'0.875rem', color:'#b0a89e', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
         </div>
         <div style={{ display:'flex', gap:'6px', marginBottom:'8px', flexWrap:'wrap' }}>
           <button onMouseDown={gardeSel} onClick={() => commande('bold')} style={{ ...btnEd, fontWeight:700 }}>G</button>
           <button onMouseDown={gardeSel} onClick={() => commande('italic')} style={{ ...btnEd, fontStyle:'italic' }}>I</button>
-          <button onMouseDown={gardeSel} onClick={petitesCaps} title="Petites capitales" style={{ ...btnEd, fontSize:'10px', fontVariant:'small-caps', letterSpacing:'0.04em' }}>Petites capitales</button>
+          <button onMouseDown={gardeSel} onClick={petitesCaps} title="Petites capitales" style={{ ...btnEd, fontSize:'0.625rem', fontVariant:'small-caps', letterSpacing:'0.04em' }}>Petites capitales</button>
           <button onMouseDown={gardeSel} onClick={() => commande('superscript')} title="Exposant" style={btnEd}>x²</button>
           <span style={{ width:'1px', background:'#e4dfd8' }} />
-          <button onClick={() => inserer('\u00A0')} title="Espace insécable" style={{ fontSize:'10px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>Esp. insécable</button>
-          <button onClick={() => inserer('\u202F')} title="Espace fine insécable" style={{ fontSize:'10px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>Esp. fine</button>
-          <button onClick={() => entourer('«\u202F', '\u202F»')} title="Guillemets français" style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>« »</button>
-          <button onClick={() => entourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)" style={{ fontSize:'11px', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>“ ”</button>
+          <button onClick={() => inserer('\u00A0')} title="Espace insécable" style={{ fontSize:'0.625rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>Esp. insécable</button>
+          <button onClick={() => inserer('\u202F')} title="Espace fine insécable" style={{ fontSize:'0.625rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>Esp. fine</button>
+          <button onClick={() => entourer('«\u202F', '\u202F»')} title="Guillemets français" style={{ fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>« »</button>
+          <button onClick={() => entourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)" style={{ fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>“ ”</button>
         </div>
         {/* Zone d'édition UNIQUE : les enrichissements s'y voient directement (WYSIWYG). */}
         <div ref={edRef} contentEditable suppressContentEditableWarning onInput={sync}
-          style={{ width:'100%', minHeight:'96px', maxHeight:'300px', overflowY:'auto', fontSize:'13px', padding:'8px 10px', border:'1px solid #d6d0c4', borderRadius:'5px', background:'#faf8f4', color:'#1e1a16', outline:'none', lineHeight:1.55, boxSizing:'border-box', textAlign:'justify', whiteSpace:'pre-wrap' }} />
+          style={{ width:'100%', minHeight:'96px', maxHeight:'300px', overflowY:'auto', fontSize:'0.8125rem', padding:'8px 10px', border:'1px solid #d6d0c4', borderRadius:'5px', background:'#faf8f4', color:'#1e1a16', outline:'none', lineHeight:1.55, boxSizing:'border-box', textAlign:'justify', whiteSpace:'pre-wrap' }} />
         <div style={{ display:'flex', justifyContent:'flex-end', gap:'8px', marginTop:'12px' }}>
-          {statut === 'erreur' && <span style={{ fontSize:'11px', color:'#c0562a', alignSelf:'center' }}>Erreur d'enregistrement.</span>}
-          <button onClick={onClose} style={{ fontSize:'11px', padding:'5px 14px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#6b6560', cursor:'pointer' }}>Annuler</button>
-          <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize:'11px', padding:'5px 16px', borderRadius:'4px', border:'none', background:'#3d6b4f', color:'#fff', cursor:'pointer', fontWeight:500 }}>
+          {statut === 'erreur' && <span style={{ fontSize:'0.6875rem', color:'#c0562a', alignSelf:'center' }}>Erreur d'enregistrement.</span>}
+          <button onClick={onClose} style={{ fontSize:'0.6875rem', padding:'5px 14px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#6b6560', cursor:'pointer' }}>Annuler</button>
+          <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize:'0.6875rem', padding:'5px 16px', borderRadius:'4px', border:'none', background:'#3d6b4f', color:'#fff', cursor:'pointer', fontWeight:500 }}>
             {statut === 'envoi' ? 'Enregistrement…' : 'Enregistrer'}
           </button>
         </div>
@@ -483,7 +483,7 @@ export default function TexteBible({
             de 500 px + colonne d'actions de 38 px exclue du centrage), pour que le menu
             se centre sur le même axe que le titre, et non sur la pleine largeur. */}
         <div style={{ width: 'min(var(--mesure-ligne), 100%)', margin: '0.5rem auto 0', display: 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', maxWidth: '360px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', maxWidth: '22.5rem', margin: '0 auto' }}>
           {/* Double filet à gauche : deux traits fins superposés, bien visibles, comme autrefois.
               Le trait est coloré dès le tiers extérieur (et non seulement au ras du menu) pour
               rester perceptible même sur une faible largeur. */}
@@ -501,7 +501,7 @@ export default function TexteBible({
               transition: 'color 0.15s',
             }}>
               <span>{traductionLabel}</span>
-              <span style={{ color: '#a0b8a8', fontSize: '7px', fontStyle: 'normal' }}>{tradOuverte ? '▲' : '▼'}</span>
+              <span style={{ color: '#a0b8a8', fontSize: '0.4375rem', fontStyle: 'normal' }}>{tradOuverte ? '▲' : '▼'}</span>
             </button>
             {tradOuverte && (
               <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', background: '#fff', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '7px', zIndex: 50, boxShadow: '0 10px 26px rgba(47,63,53,0.12)', minWidth: '230px', overflow: 'hidden' }}>
@@ -555,7 +555,7 @@ export default function TexteBible({
               {/* Le texte remonte sous l'image par une marge négative : la gravure est
                   carrée mais les ruines reposent haut, laissant du blanc en bas. Le texte
                   vient ainsi se poser à la lisière du sol, non loin sous le cadre. */}
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '13px', fontStyle: 'italic', color: '#9a958d', textAlign: 'center', lineHeight: 1.65, margin: '-26px 0 0', maxWidth: '340px' }}>
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: '#9a958d', textAlign: 'center', lineHeight: 1.65, margin: '-26px 0 0', maxWidth: '21.25rem' }}>
                 La traduction <em style={{ fontStyle: 'normal', color: '#6b6560' }}>{traductionLabel}</em> ne comporte pas ce livre.
               </p>
             </div>

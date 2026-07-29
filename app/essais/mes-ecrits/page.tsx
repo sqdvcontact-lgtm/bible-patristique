@@ -52,7 +52,7 @@ export default function MesEcritsPage() {
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 48px)', paddingTop: '48px' }}>
-      <div style={{ maxWidth: '700px', margin: '0 auto', padding: '40px 32px 80px' }}>
+      <div style={{ maxWidth: '43.75rem', margin: '0 auto', padding: '40px 32px 80px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '24px' }}>
           <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(22px, 4vw, 28px)', color: '#1e2e24', margin: 0 }}>Mes écrits</h1>
           <Link href="/essais/nouveau" style={{ fontSize: '0.78125rem', padding: '7px 16px', borderRadius: '5px', background: '#3d6b4f', color: '#fff', textDecoration: 'none', fontWeight: 500 }}>
@@ -117,7 +117,7 @@ export default function MesEcritsPage() {
       {/* Modale de confirmation suppression */}
       {supprConfirm !== null && (
         <div onClick={() => setSupprConfirm(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.32)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '28px 28px 24px', maxWidth: '360px', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '28px 28px 24px', maxWidth: '22.5rem', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
             <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 12px' }}>
               Supprimer ce brouillon ?
             </h3>

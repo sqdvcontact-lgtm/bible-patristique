@@ -696,7 +696,7 @@ export default function PolyglottePage() {
         .poly-edit:focus-visible { opacity: 1; pointer-events: auto; }
       `}</style>
 
-      <div className="poly-mobile" style={{ maxWidth: 520, margin: "0 auto", padding: "48px 22px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: "#5b544c" }}>
+      <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "48px 22px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: "#5b544c" }}>
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.375rem', color: VERT, margin: "0 0 14px" }}>Polyglotte</h1>
         <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: 0 }}>
           Cette page compare plusieurs traductions côte à côte : elle demande un écran large.
@@ -739,7 +739,7 @@ export default function PolyglottePage() {
       <div style={{ flex: 1, minWidth: 0, padding: "12px 18px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "#2a2620" }}>
         {/* Aucun livre choisi : la page reste vide et l'explique */}
         {!onglet && (
-          <div style={{ margin: "60px auto", maxWidth: 560, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+          <div style={{ margin: "60px auto", maxWidth: '35rem', display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
             {/* L'image porte un large blanc (dégradé) sous le dessin : on remonte l'invite en
                 marge négative pour qu'elle se pose sous LE LIVRE, non sous le cadre de l'image. */}
             <img src="/ornements/livre_pol.png" alt="" aria-hidden="true"

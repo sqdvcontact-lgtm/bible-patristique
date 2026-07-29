@@ -139,7 +139,7 @@ export default function SectionCharteAccentuation() {
   }
 
   return (
-    <div style={{ maxWidth: '780px' }}>
+    <div style={{ maxWidth: '48.75rem' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '4px' }}>
         <h2 style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', margin: 0 }}>
           Charte d'accentuation
