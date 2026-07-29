@@ -61,6 +61,18 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
     { cle: null, label: 'Texte' },
     { cle: 'commentaires', label: 'Commentaires' },
   ]
+  // Défilement de l'onglet Texte : la page entière défile, donc masquer le texte
+  // (display:none) le retire du flux et l'écran remonte. On mémorise la position au
+  // départ et on la restaure au retour, pour que le texte reste EXACTEMENT en place.
+  const scrollTexteRef = useRef(0)
+  const changerOnglet = (cle: 'livres' | 'commentaires' | null) => {
+    if (voletMobile === null && cle !== null) scrollTexteRef.current = window.scrollY
+    setVoletMobile(cle)
+    if (cle === null) {
+      const y = scrollTexteRef.current
+      requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, y)))
+    }
+  }
 
   // Changer de livre ou de chapitre efface la sélection héritée du chapitre
   // précédent : le volet de droite bascule alors sur l'apparat de tout le nouveau
@@ -197,7 +209,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
           {ONGLETS_MOBILE.map(o => {
             const actif = voletMobile === o.cle
             return (
-              <button key={o.label} onClick={() => setVoletMobile(o.cle)}
+              <button key={o.label} onClick={() => changerOnglet(o.cle)}
                 style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: actif ? 'rgba(61,107,79,0.05)' : 'none', border: 'none', borderBottom: actif ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', color: actif ? '#2a3d30' : '#8a8278', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: actif ? 600 : 500, transition: 'color 0.12s, background 0.12s' }}>
                 {o.label}
               </button>
