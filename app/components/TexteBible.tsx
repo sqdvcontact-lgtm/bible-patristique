@@ -49,6 +49,7 @@ type Props = {
   nomLivre: string
   versetSelectionne: Verset | null
   setVersetSelectionne: (v: Verset | null) => void
+  mobile?: boolean
 }
 
 // ── Bouton copie ──────────────────────────────────────────────────────────────
@@ -373,7 +374,7 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
 export default function TexteBible({
   versets, traduction, traductionIndex, setTraductionIndex, traductions,
   livreActif, chapitreActif, nomLivre,
-  versetSelectionne, setVersetSelectionne
+  versetSelectionne, setVersetSelectionne, mobile = false
 }: Props) {
   const [userId, setUserId] = useState<string | null>(null)
   const [estAdmin, setEstAdmin] = useState(false)
@@ -450,7 +451,7 @@ export default function TexteBible({
   const allerAuChapitre = (n: number) => router.push(`/?livre=${livreActif}&chapitre=${n}&trad=${tradCode}`)
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden" style={{ background: '#f7f4ef' }}>
+    <div className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'} style={{ background: '#f7f4ef', ...(mobile ? { width: '100%' } : {}) }}>
 
       {/* En-tête */}
       <div style={{ borderBottom: '1px solid #d6d0c4', background: '#f7f4ef', padding: '14px 32px 10px' }}>
@@ -534,7 +535,7 @@ export default function TexteBible({
 
       </div>
 
-      <div className="overflow-y-auto flex-1" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
+      <div className={mobile ? '' : 'overflow-y-auto flex-1'} style={{ paddingTop: '20px', paddingBottom: '20px' }}>
         <div style={{ maxWidth: 'var(--mesure-page)', margin: '0 auto', paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
           <style>{`
             .verset-row:hover { background: rgba(61,107,79,0.05); }

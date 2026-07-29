@@ -6,6 +6,7 @@ import TexteBible from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
 import { supabase } from '@/app/lib/supabase'
 import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
+import { useEstMobile } from '@/app/lib/useEstMobile'
 
 type Livre = { code: string; nom: string; testament: string }
 type Verset = {
@@ -40,6 +41,10 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
   const [versetSelectionne, setVersetSelectionne] = useState<Verset | null>(null)
+
+  // Sur téléphone/tablette portrait, les trois volets s'empilent verticalement
+  // (voir AGENTS.md § Responsive mobile) : le côte-à-côte écraserait le texte.
+  const mobile = useEstMobile(900)
 
   // Changer de livre ou de chapitre efface la sélection héritée du chapitre
   // précédent : le volet de droite bascule alors sur l'apparat de tout le nouveau
@@ -165,7 +170,11 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
     // navbar par le layout : la page dépassait donc l'écran d'autant et défilait,
     // emportant hors de vue la barre de recherche du volet de gauche. Elle reste
     // désormais à l'écran quel que soit l'endroit où l'on est descendu.
-    <div className="flex overflow-hidden" style={{ position: 'relative', height: HAUTEUR_SOUS_NAVBAR }}>
+    <div
+      className={mobile ? '' : 'flex overflow-hidden'}
+      style={mobile
+        ? { position: 'relative', display: 'flex', flexDirection: 'column' }
+        : { position: 'relative', display: 'flex', height: HAUTEUR_SOUS_NAVBAR, overflow: 'hidden' }}>
       <NavLivres
         livres={livres}
         livreActif={livreActif}
@@ -176,6 +185,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         panelWidth={navWidth}
         onWidthChange={setNavWidth}
         livresVides={livresVides}
+        mobile={mobile}
       />
       <TexteBible
         versets={versets}
@@ -188,6 +198,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         nomLivre={nomLivre}
         versetSelectionne={versetSelectionne}
         setVersetSelectionne={setVersetSelectionne}
+        mobile={mobile}
       />
       <PanneauPatristique
         verset={versetSelectionne}
@@ -196,8 +207,9 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         chapitreActif={chapitreActif}
         panelWidth={pannWidth}
         onWidthChange={setPannWidth}
+        mobile={mobile}
       />
-      {isDirty && (
+      {!mobile && isDirty && (
         <button
           onClick={reset}
           style={{

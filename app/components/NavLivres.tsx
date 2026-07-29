@@ -111,6 +111,7 @@ type Props = {
   onChoisirLivreEntier?: (code: string) => void
   onChoisirVerset?: (code: string, chapitre: number, verset: number) => void
   entierActif?: boolean                     // le livre actif est-il montré EN ENTIER (bouton allumé)
+  mobile?: boolean                          // empilé pleine largeur (téléphone/tablette)
 }
 
 /**
@@ -144,6 +145,7 @@ export default function NavLivres({
   panelWidth = null, onWidthChange,
   livresVides, onChoisirLivre, sansChapitres, titre,
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, entierActif,
+  mobile = false,
 }: Props) {
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
@@ -159,7 +161,7 @@ export default function NavLivres({
   const [autresOuvert, setAutresOuvert] = useState(false)
   const [ouvert, setOuvert] = useState(true)
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 880) setOuvert(false)
+    if (typeof window !== 'undefined' && window.innerWidth < 900) setOuvert(false)
   }, [])
   const scrollRef = useRef<HTMLDivElement>(null)
   const refPanel = useRef<HTMLDivElement>(null)
@@ -204,6 +206,9 @@ export default function NavLivres({
   const handleChapitre = (code: string, ch: number) => {
     setLivreActifLocal(code)
     setChapitreActifLocal(ch)
+    // Empilé (mobile) : une fois le chapitre choisi, on replie la nav pour
+    // rendre le texte tout de suite visible sous elle.
+    if (mobile) setOuvert(false)
     // Polyglotte : on reste sur place et l'on demande le chapitre au parent.
     if (onChoisirChapitre) { onChoisirChapitre(code, ch); return }
     router.push(`/?livre=${code}&chapitre=${ch}&trad=${tradCode}`)
@@ -308,6 +313,19 @@ export default function NavLivres({
   }
 
   if (!ouvert) {
+    // Empilé (mobile) : une barre horizontale pleine largeur, et non le rail
+    // vertical du desktop — on est en haut de la pile, pas sur un côté.
+    if (mobile) {
+      return (
+        <button onClick={() => setOuvert(true)} title="Ouvrir le sommaire des livres"
+          style={{ width: '100%', flexShrink: 0, background: '#faf8f4', border: 'none', borderBottom: '1px solid #d6d0c4', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.75rem 1rem' }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(90deg)', color: '#9a958d' }}>
+            <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: '#6b6560' }}>{titre ?? 'Livres de la Bible'}</span>
+        </button>
+      )
+    }
     return (
       <button onClick={() => setOuvert(true)} title="Ouvrir le sommaire des livres"
         style={{ width: '22px', flexShrink: 0, background: '#faf8f4', border: 'none', borderRight: '1px solid #d6d0c4', cursor: 'pointer', color: '#9a958d', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '100%' }}>
@@ -330,12 +348,15 @@ export default function NavLivres({
   } : undefined
 
   return (
-    <div ref={refPanel} style={{
+    <div ref={refPanel} style={mobile ? {
+      width: '100%', flexShrink: 0, background: '#faf8f4', borderBottom: '1px solid #d6d0c4',
+      display: 'flex', flexDirection: 'column', maxHeight: '70vh', position: 'relative',
+    } : {
       width: panelWidth == null ? 'clamp(200px, 14vw, 320px)' : panelWidth + 'px', flexShrink: 0, background: '#faf8f4',
       borderRight: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', height: '100%',
       position: 'relative',
     }}>
-      {handleDrag && (
+      {!mobile && handleDrag && (
         <div onMouseDown={handleDrag} title="Glisser pour redimensionner"
           style={{ position: 'absolute', right: '-4px', top: 0, bottom: 0, width: '9px', cursor: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex: 10, background: 'transparent', transition: 'background 0.14s, box-shadow 0.14s' }}
           onMouseEnter={e => {

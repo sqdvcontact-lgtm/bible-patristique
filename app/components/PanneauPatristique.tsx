@@ -634,7 +634,7 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
 // ── Panneau principal ─────────────────────────────────────────────────────────
 export default function PanneauPatristique({
   verset, livreActif, nomLivre, chapitreActif,
-  panelWidth = null, onWidthChange,
+  panelWidth = null, onWidthChange, mobile = false,
 }: {
   verset: Verset | null
   livreActif: string
@@ -642,6 +642,7 @@ export default function PanneauPatristique({
   chapitreActif: number
   panelWidth?: number | null
   onWidthChange?: (w: number) => void
+  mobile?: boolean
 }) {
   type Onglet = 'patristique' | 'commentaires'
   type SousOnglet = 'citations' | 'doctrine' | 'echos'
@@ -652,7 +653,7 @@ export default function PanneauPatristique({
   const [ouvert, setOuvert] = useState(true)
   const refPanel = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 880) setOuvert(false)
+    if (typeof window !== 'undefined' && window.innerWidth < 900) setOuvert(false)
   }, [])
 
   // Citations = lien_1 (exactes) + lien_2 (libres) fusionnés ; Doctrine = lien_3.
@@ -967,6 +968,18 @@ export default function PanneauPatristique({
     : modeChapitre ? `${nomLivre} ${chapitreActif}` : null
 
   if (!ouvert) {
+    // Empilé (mobile) : barre horizontale pleine largeur en bas de la pile.
+    if (mobile) {
+      return (
+        <button onClick={() => setOuvert(true)} title="Ouvrir les textes patristiques"
+          style={{ width: '100%', flexShrink: 0, background: '#faf8f4', border: 'none', borderTop: '1px solid #d6d0c4', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.75rem 1rem' }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(90deg)', color: '#9a958d' }}>
+            <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: '#6b6560' }}>Commentaires</span>
+        </button>
+      )
+    }
     return (
       <button onClick={() => setOuvert(true)} title="Ouvrir les textes patristiques"
         style={{ width: '22px', flexShrink: 0, background: '#faf8f4', border: 'none', borderLeft: '1px solid #d6d0c4', cursor: 'pointer', color: '#9a958d', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '100%' }}>
@@ -989,8 +1002,10 @@ export default function PanneauPatristique({
   } : undefined
 
   return (
-    <div ref={refPanel} style={{ width: panelWidth == null ? 'clamp(260px, 20vw, 460px)' : panelWidth + 'px', flexShrink:0, background:'#fff', borderLeft:'1px solid #d6d0c4', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
-      {handleDrag && (
+    <div ref={refPanel} style={mobile
+      ? { width: '100%', flexShrink:0, background:'#fff', borderTop:'1px solid #d6d0c4', display:'flex', flexDirection:'column', maxHeight:'75vh', minHeight:0, position:'relative' }
+      : { width: panelWidth == null ? 'clamp(260px, 20vw, 460px)' : panelWidth + 'px', flexShrink:0, background:'#fff', borderLeft:'1px solid #d6d0c4', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
+      {!mobile && handleDrag && (
         <div onMouseDown={handleDrag} title="Glisser pour redimensionner"
           style={{ position:'absolute', left:'-4px', top:0, bottom:0, width:'9px', cursor:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex:10,
             background:'transparent', transition:'background 0.14s, box-shadow 0.14s' }}
