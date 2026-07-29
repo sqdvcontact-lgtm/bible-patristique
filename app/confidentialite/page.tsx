@@ -1,3 +1,5 @@
+import GestionConsentement from "../components/GestionConsentement";
+
 export const metadata = {
   title: { absolute: "Politique de confidentialité – Corpus Scriptura" },
   description: "Traitement des données personnelles sur Corpus Scriptura (corpus-scriptura.fr).",
@@ -125,9 +127,11 @@ export default function ConfidentialitePage() {
           <Section titre="5. Destinataires des données">
             <p>
               Vos données sont hébergées par <strong>Supabase Inc.</strong> (base de données et
-              authentification) et le site lui-même est servi par <strong>Vercel Inc.</strong> Ces deux
-              prestataires agissent en qualité de sous-traitants au sens du RGPD et n&rsquo;accèdent à vos données
-              que dans la mesure nécessaire à la fourniture de leurs services techniques.
+              authentification) et le site lui-même est servi par <strong>Vercel Inc.</strong> La mesure
+              d&rsquo;audience, lorsque vous y consentez, fait intervenir <strong>Google Ireland Limited /
+              Google LLC</strong> (voir le point 8). Ces prestataires agissent en qualité de sous-traitants
+              au sens du RGPD et n&rsquo;accèdent à vos données que dans la mesure nécessaire à la fourniture de
+              leurs services techniques.
             </p>
             <p>
               Aucune donnée n&rsquo;est cédée, louée ou transmise à des fins commerciales à un tiers.
@@ -136,7 +140,7 @@ export default function ConfidentialitePage() {
 
           <Section titre="6. Transferts hors Union européenne">
             <p>
-              Supabase Inc. et Vercel Inc. sont des sociétés dont les infrastructures peuvent impliquer un
+              Supabase Inc., Vercel Inc. et Google LLC sont des sociétés dont les infrastructures peuvent impliquer un
               hébergement de données hors de l&rsquo;Union européenne (notamment aux États-Unis). Ces transferts
               sont encadrés par les clauses contractuelles types de la Commission européenne ou par un
               mécanisme équivalent garantissant un niveau de protection adéquat des données.
@@ -172,16 +176,19 @@ export default function ConfidentialitePage() {
               service demandé par l&rsquo;utilisateur.
             </p>
             <p>
-              Le site est susceptible d&rsquo;intégrer prochainement un outil de mesure d&rsquo;audience (de type
-              Plausible Analytics, outil respectueux de la vie privée, ou équivalent). Si cet outil implique
-              le dépôt de cookies non essentiels ou la collecte de données personnelles au-delà de ce qui
-              est strictement nécessaire, un bandeau de consentement conforme aux recommandations de la CNIL
-              sera mis en place avant tout déploiement, et cette politique sera mise à jour en conséquence.
+              Le site utilise <strong>Google Analytics 4</strong> (fourni par Google Ireland Limited /
+              Google LLC) pour mesurer son audience de façon agrégée : nombre de visites, pages consultées,
+              provenance approximative. Cet outil dépose des cookies non essentiels et n&rsquo;est chargé
+              <strong> qu&rsquo;après votre consentement explicite</strong>. Tant que vous n&rsquo;avez pas accepté,
+              aucun script ni cookie Google n&rsquo;est déposé ; si vous refusez, aucune mesure n&rsquo;a lieu.
             </p>
             <p>
-              À la date de mise à jour de cette page, aucun cookie de traçage ni outil d&rsquo;audience tiers
-              n&rsquo;est actif sur le site.
+              La base légale de ce traitement est votre consentement (article 6.1.a du RGPD). Vous pouvez le
+              retirer à tout moment, aussi simplement que vous l&rsquo;avez donné, au moyen du bouton ci-dessous.
+              Ces données peuvent être transférées vers les États-Unis ; ce transfert est encadré par les
+              clauses contractuelles types de la Commission européenne (voir le point 6).
             </p>
+            <GestionConsentement />
           </Section>
 
           <Section titre="9. Vos droits">

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Source_Sans_3, Source_Serif_4 } from "next/font/google";
 import Navbar from "./components/Navbar";
 import BandeauMobile from "./components/BandeauMobile";
+import Consentement from "./components/Consentement";
 import { ProvisionAffichageAdmin } from "./lib/contexteAffichageAdmin";
 import { HAUTEUR_NAVBAR } from "./lib/mesures";
 import "./globals.css";
@@ -68,6 +69,7 @@ export default function RootLayout({
           <BandeauMobile />
           {/* Décalage sous la navbar fixe — voir app/lib/mesures.ts */}
           <div id="cs-corps" className="flex flex-col flex-1" style={{ paddingTop: HAUTEUR_NAVBAR }}>{children}</div>
+          <Consentement />
         </ProvisionAffichageAdmin>
       </body>
     </html>
