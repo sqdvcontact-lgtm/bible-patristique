@@ -907,22 +907,26 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
   const chargerNiv1Data = async (n1: string): Promise<{ groupes: GroupeData[]; segments: SegData[] }> => {
     const SELECT = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original'
-    const segs: any[] = []
-    let from = 0
-    while (true) {
-      let requete = supabase
-        .from('segments')
-        .select(SELECT)
-        .eq('id_oeuvre', idOeuvre)
-        .in('nature', ['texte', 'introduction'])
-        .order('segment_numero')
-        .range(from, from + 999)
-      if (!texteSansNiveaux || n1) requete = requete.eq('ref_niv1', n1)
-      const { data: batch } = await requete
-      if (!batch || batch.length === 0) break
-      segs.push(...batch)
-      if (batch.length < 1000) break
-      from += 1000
+    // Chargement par lots de 1000 mais EN PARALLÈLE (les grosses divisions, ex.
+    // Somme théologique ~6500 segments/niv1, se chargeaient en séquentiel) : on
+    // récupère le total avec le 1er lot, puis on tire le reste d'un coup.
+    const lotNiv1 = (from: number) => {
+      let q = supabase.from('segments').select(SELECT).eq('id_oeuvre', idOeuvre)
+        .in('nature', ['texte', 'introduction']).order('segment_numero').range(from, from + 999)
+      if (!texteSansNiveaux || n1) q = q.eq('ref_niv1', n1)
+      return q
+    }
+    let premierReq = supabase.from('segments').select(SELECT, { count: 'exact' }).eq('id_oeuvre', idOeuvre)
+      .in('nature', ['texte', 'introduction']).order('segment_numero').range(0, 999)
+    if (!texteSansNiveaux || n1) premierReq = premierReq.eq('ref_niv1', n1)
+    const premier = await premierReq
+    const segs: any[] = [...((premier.data as any[]) ?? [])]
+    const total = premier.count ?? segs.length
+    if (total > 1000) {
+      const restes = await Promise.all(
+        Array.from({ length: Math.ceil(total / 1000) - 1 }, (_, i) => lotNiv1((i + 1) * 1000))
+      )
+      for (const r of restes) segs.push(...((r.data as any[]) ?? []))
     }
 
     // Les liens ne sont plus portés par le segment : on les rapporte de

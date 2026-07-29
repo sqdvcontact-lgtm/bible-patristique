@@ -158,21 +158,33 @@ export default async function OeuvrePage({
   const SELECT_SEG = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original'
 
   async function chargerTousSegments(filtre: Record<string, string>) {
-    const acc: any[] = []
-    let from = 0
-    while (true) {
-      let q = supabase.from('segments').select(SELECT_SEG).eq('id_oeuvre', id).order('id', { ascending: true }).range(from, from + 999)
-      // Le corps de lecture charge le texte ET les introductions d'homélie
-      // (nature « introduction »), rendues en tête de leur division.
+    // Applique le filtre à une requête (nature « texte » embarque les introductions).
+    const appliquer = (q: any) => {
       for (const [k, v] of Object.entries(filtre)) {
         if (k === 'nature' && v === 'texte') q = q.in('nature', ['texte', 'introduction'])
         else q = q.eq(k, v)
       }
-      const { data: batch } = await q
-      if (!batch || batch.length === 0) break
-      acc.push(...batch)
-      if (batch.length < 1000) break
-      from += 1000
+      return q
+    }
+    const lot = (from: number) =>
+      appliquer(supabase.from('segments').select(SELECT_SEG).eq('id_oeuvre', id))
+        .order('id', { ascending: true }).range(from, from + 999)
+
+    // 1er lot AVEC le total exact (une seule requête) : les grosses divisions
+    // (ex. Somme théologique, ~6500 segments par niv1) se chargeaient auparavant
+    // par allers-retours SÉQUENTIELS de 1000. On récupère le total tout de suite,
+    // puis on tire les lots restants EN PARALLÈLE.
+    const premier = await appliquer(
+      supabase.from('segments').select(SELECT_SEG, { count: 'exact' }).eq('id_oeuvre', id)
+    ).order('id', { ascending: true }).range(0, 999)
+
+    const acc: any[] = [...((premier.data as any[]) ?? [])]
+    const total = premier.count ?? acc.length
+    if (total > 1000) {
+      const restes = await Promise.all(
+        Array.from({ length: Math.ceil(total / 1000) - 1 }, (_, i) => lot((i + 1) * 1000))
+      )
+      for (const r of restes) acc.push(...((r.data as any[]) ?? []))
     }
     // Les liens ne sont plus portés par le segment : on les repose au format
     // attendu, avec le client du serveur — c'est ce rendu que le lecteur voit.
