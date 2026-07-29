@@ -449,31 +449,31 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
   return (
     <>
       <button onClick={() => { setTexte(''); setStatut('idle'); setOuvert(true) }}
-        style={{ fontSize: '11px', color: '#6b8270', background: 'rgba(61,107,79,0.04)', border: '1px dashed #b8cdc0', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px', width: '100%', textAlign: 'left' }}>
+        style={{ fontSize: '0.6875rem', color: '#6b8270', background: 'rgba(61,107,79,0.04)', border: '1px dashed #b8cdc0', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px', width: '100%', textAlign: 'left' }}>
         + Proposer un lien biblique
       </button>
       {ouvert && (
         <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '8px', padding: '20px 22px', width: '360px', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <p style={{ fontSize: '12px', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>Proposer un lien biblique</p>
-              <button onClick={() => setOuvert(false)} style={{ fontSize: '14px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
+              <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>Proposer un lien biblique</p>
+              <button onClick={() => setOuvert(false)} style={{ fontSize: '0.875rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
             </div>
-            <p style={{ fontSize: '10.5px', color: '#9a958d', fontStyle: 'italic', margin: '0 0 10px', lineHeight: 1.45 }}>
+            <p style={{ fontSize: '0.65625rem', color: '#9a958d', fontStyle: 'italic', margin: '0 0 10px', lineHeight: 1.45 }}>
               Indiquez la référence biblique que vous souhaitez associer à ce passage (ex. : Jn 1, 1 ou Rm 8, 28-30).
             </p>
             {statut === 'ok' ? (
-              <p style={{ fontSize: '11.5px', color: '#3d6b4f', fontStyle: 'italic', textAlign: 'center', padding: '8px 0' }}>Proposition envoyée, merci !</p>
+              <p style={{ fontSize: '0.71875rem', color: '#3d6b4f', fontStyle: 'italic', textAlign: 'center', padding: '8px 0' }}>Proposition envoyée, merci !</p>
             ) : (
               <>
                 <textarea value={texte} onChange={e => setTexte(e.target.value)} rows={3} autoFocus
                   placeholder="Référence biblique proposée…"
-                  style={{ width: '100%', fontSize: '11px', padding: '7px 9px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#2a2520', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
+                  style={{ width: '100%', fontSize: '0.6875rem', padding: '7px 9px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#2a2520', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
-                  {statut === 'err' && <span style={{ fontSize: '10px', color: '#c0562a', alignSelf: 'center' }}>Erreur d'envoi.</span>}
-                  <button onClick={() => setOuvert(false)} style={{ fontSize: '11px', padding: '5px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
+                  {statut === 'err' && <span style={{ fontSize: '0.625rem', color: '#c0562a', alignSelf: 'center' }}>Erreur d'envoi.</span>}
+                  <button onClick={() => setOuvert(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
                   <button onClick={envoyer} disabled={statut === 'envoi' || !texte.trim()}
-                    style={{ fontSize: '11px', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? '#3d6b4f' : '#e4dfd8', color: texte.trim() ? '#fff' : '#9a958d', fontWeight: 500 }}>
+                    style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? '#3d6b4f' : '#e4dfd8', color: texte.trim() ? '#fff' : '#9a958d', fontWeight: 500 }}>
                     {statut === 'envoi' ? 'Envoi…' : 'Envoyer'}
                   </button>
                 </div>
@@ -508,9 +508,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const [panneauOuvert, setPanneauOuvert] = useState(true)
   const [infoEditionOuverte, setInfoEditionOuverte] = useState(false)
   const [auteurModalOuvert, setAuteurModalOuvert] = useState(false)
-  const [navWidth, setNavWidth] = useState(240)
-  const [pannWidth, setPannWidth] = useState(288)
-  const voletsDirty = navWidth !== 240 || pannWidth !== 288
+  // null = largeur AUTO (responsive, s'adapte à l'écran, plancher de lisibilité) ;
+  // number = largeur fixée à la main (drag), en px.
+  const [navWidth, setNavWidth] = useState<number | null>(null)
+  const [pannWidth, setPannWidth] = useState<number | null>(null)
+  const voletsDirty = navWidth !== null || pannWidth !== null
+  const refNav = useRef<HTMLElement>(null)
+  const refAside = useRef<HTMLElement>(null)
   const [configNiveaux, setConfigNiveaux] = useState({
     sommaire: niveauxSommaire ?? 1, corps: niveauxCorps ?? 1,
     txtSommaire: (txtSommaire ?? []).concat([false,false,false,false,false]).slice(0,5) as boolean[],
@@ -519,7 +523,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   })
   const [configOuverte, setConfigOuverte] = useState(false)
   const [configEnvoi, setConfigEnvoi] = useState(false)
-  const resetVolets = () => { setNavWidth(240); setPannWidth(288) }
+  const resetVolets = () => { setNavWidth(null); setPannWidth(null); try { localStorage.removeItem('cs_volets_oeuvre2') } catch {} }
   const [problemes, setProblemes] = useState<{
     id: number; segment_numero: number; segment_texte: string
     reference_manuelle: string | null; ref_niv1: string | null
@@ -597,7 +601,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   }, [ongletDroit, idOeuvre, problemesCharges])
   useEffect(() => {
     try {
-      const s = JSON.parse(localStorage.getItem('cs_volets_oeuvre') ?? 'null')
+      const s = JSON.parse(localStorage.getItem('cs_volets_oeuvre2') ?? 'null')
       if (s?.nav) setNavWidth(s.nav)
       if (s?.pann) setPannWidth(s.pann)
     } catch {}
@@ -607,7 +611,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
     }
   }, [])
   useEffect(() => {
-    localStorage.setItem('cs_volets_oeuvre', JSON.stringify({ nav: navWidth, pann: pannWidth }))
+    localStorage.setItem('cs_volets_oeuvre2', JSON.stringify({ nav: navWidth, pann: pannWidth }))
   }, [navWidth, pannWidth])
   useEffect(() => {
     if (!tradOuverte) return
@@ -1125,10 +1129,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
         {/* ── NAV GAUCHE ── */}
         {navOuverte ? (
-        <nav style={{ width: navWidth + 'px', flexShrink: 0, position: 'sticky', top: '48px', alignSelf: 'flex-start', height: 'calc(100vh - 48px)', overflowY: 'auto', borderRight: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <nav ref={refNav} style={{ width: navWidth == null ? 'clamp(240px, 16vw, 380px)' : navWidth + 'px', flexShrink: 0, position: 'sticky', top: '48px', alignSelf: 'flex-start', height: 'calc(100vh - 48px)', overflowY: 'auto', borderRight: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <div onMouseDown={e => {
             e.preventDefault()
-            const startX = e.clientX, startW = navWidth
+            const startW = navWidth ?? refNav.current?.getBoundingClientRect().width ?? 240
+            const startX = e.clientX
             const onMove = (ev: MouseEvent) => setNavWidth(Math.max(120, Math.min(400, startW + ev.clientX - startX)))
             const onUp = () => document.removeEventListener('mousemove', onMove)
             document.addEventListener('mousemove', onMove)
@@ -1145,7 +1150,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           />
           <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid #d6d0c4', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <p style={{ fontSize: '13px', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>{auteur}</p>
+              <p style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>{auteur}</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                 {estAdmin && (
                   <button onClick={() => setConfigOuverte(true)} title="Configurer les niveaux d'affichage"
@@ -1163,12 +1168,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 </button>
               </div>
             </div>
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '13px', color: '#2a3d30', lineHeight: 1.35, margin: 0, whiteSpace: 'pre-line' }}>
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', color: '#2a3d30', lineHeight: 1.35, margin: 0, whiteSpace: 'pre-line' }}>
               {rendreTexteEnrichi(titreAffiche)}
             </p>
             {(oeuvreLocale.sous_titre || oeuvreLocale.titre_original || oeuvreLocale.trad_auteur || oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication || oeuvreLocale.collection) && (
               <button onClick={() => setInfoEditionOuverte(true)}
-                style={{ fontSize: '10px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: '6px', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+                style={{ fontSize: '0.625rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: '6px', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
                 En savoir plus sur cette édition
               </button>
             )}
@@ -1179,14 +1184,14 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             <div style={{ borderBottom: '1px solid #d6d0c4', flexShrink: 0 }}>
               <button onClick={() => setAuteurOuvert(!auteurOuvert)}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
-                <span style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e' }}>DU MÊME AUTEUR</span>
-                <span style={{ fontSize: '7px', color: '#c0bab0' }}>{auteurOuvert ? '▲' : '▼'}</span>
+                <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e' }}>DU MÊME AUTEUR</span>
+                <span style={{ fontSize: '0.4375rem', color: '#c0bab0' }}>{auteurOuvert ? '▲' : '▼'}</span>
               </button>
               {auteurOuvert && (
                 <div style={{ padding: '0 16px 12px' }}>
                   {oeuvresAuteur.map(o => (
                     <a key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
-                      style={{ display: 'block', fontSize: '11px', color: '#3a3530', textDecoration: 'none', padding: '3px 0', lineHeight: 1.35, borderBottom: '1px solid #f0ece6' }}
+                      style={{ display: 'block', fontSize: '0.6875rem', color: '#3a3530', textDecoration: 'none', padding: '3px 0', lineHeight: 1.35, borderBottom: '1px solid #f0ece6' }}
                       onMouseEnter={e => (e.currentTarget.style.color = '#3d6b4f')}
                       onMouseLeave={e => (e.currentTarget.style.color = '#3a3530')}>
                       {o.titre}
@@ -1204,15 +1209,15 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               <div style={{ ...(apparatOuvert ? { flex: '0 1 auto', maxHeight: '50%', minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid #d6d0c4' }}>
                 <button onClick={() => setApparatOuvert(!apparatOuvert)}
                   style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
-                  <span style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e' }}>APPARAT CRITIQUE</span>
-                  <span style={{ fontSize: '7px', color: '#c0bab0' }}>{apparatOuvert ? '▲' : '▼'}</span>
+                  <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e' }}>APPARAT CRITIQUE</span>
+                  <span style={{ fontSize: '0.4375rem', color: '#c0bab0' }}>{apparatOuvert ? '▲' : '▼'}</span>
                 </button>
                 {apparatOuvert && (
                   <div style={{ flex: '0 1 auto', overflowY: 'auto', padding: '0 16px 14px' }}>
                     {tocApparatLocal.map((entry, i) => (
                       <div key={i}>
                         <a href={`#${entry.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(entry.niv1); setAncreEnAttente(entry.anchor) }} className="toc-lien-n1"
-                          style={{ display: 'block', fontSize: '11.5px', fontWeight: apparatNiv1Actif === entry.niv1 ? 600 : 400, color: apparatNiv1Actif === entry.niv1 ? '#3d6b4f' : '#3a3530', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
+                          style={{ display: 'block', fontSize: '0.71875rem', fontWeight: apparatNiv1Actif === entry.niv1 ? 600 : 400, color: apparatNiv1Actif === entry.niv1 ? '#3d6b4f' : '#3a3530', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
                           {entry.niv1}
                         </a>
                       </div>
@@ -1225,8 +1230,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             <div style={{ ...(sommaireOuvert ? { flex: 1, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
               <button onClick={() => setSommaireOuvert(!sommaireOuvert)}
                 style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
-                <span style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e' }}>SOMMAIRE</span>
-                <span style={{ fontSize: '7px', color: '#c0bab0' }}>{sommaireOuvert ? '▲' : '▼'}</span>
+                <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e' }}>SOMMAIRE</span>
+                <span style={{ fontSize: '0.4375rem', color: '#c0bab0' }}>{sommaireOuvert ? '▲' : '▼'}</span>
               </button>
 
               {sommaireOuvert && (
@@ -1234,7 +1239,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             <p style={{ display: 'none' }}></p>
 
             {texteSansNiveaux && (
-              <p style={{ fontSize: '11.5px', color: '#9a958d', fontStyle: 'italic', lineHeight: 1.45, margin: '4px 0 0' }}>
+              <p style={{ fontSize: '0.71875rem', color: '#9a958d', fontStyle: 'italic', lineHeight: 1.45, margin: '4px 0 0' }}>
                 Texte complet
               </p>
             )}
@@ -1246,10 +1251,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 <div key={n1} style={{ marginBottom: profondeurSommaire >= 2 ? '6px' : '0' }}>
                   {/* Niv1 */}
                   <button onClick={() => changerNiv1(n1)}
-                    style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '11.5px', fontWeight: estActif ? 600 : 400, color: estActif ? '#3d6b4f' : '#3a3530', lineHeight: 1.35, whiteSpace: 'pre-line' }}>
+                    style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? '#3d6b4f' : '#3a3530', lineHeight: 1.35, whiteSpace: 'pre-line' }}>
                     {n1}
                     {niv1TexteMap[n1] && configNiveaux.txtSommaire[0] && (
-                      <span style={{ fontSize: '9.5px', color: estActif ? '#3d6b4f' : '#9a958d', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{niv1TexteMap[n1]}</span>
+                      <span style={{ fontSize: '0.59375rem', color: estActif ? '#3d6b4f' : '#9a958d', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{niv1TexteMap[n1]}</span>
                     )}
                   </button>
 
@@ -1268,8 +1273,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         <button
                           onClick={() => allerAuNiv2(actif2 ? null : n2)}
                           style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0 3px 8px' }}>
-                          <span style={{ fontSize: '10.5px', color: actif2 ? '#3d6b4f' : '#7a7268', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{n2}</span>
-                          {n2txt && configNiveaux.txtSommaire[1] && <span style={{ fontSize: '9.5px', color: actif2 ? '#3d6b4f' : '#9a958d', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{n2txt}</span>}
+                          <span style={{ fontSize: '0.65625rem', color: actif2 ? '#3d6b4f' : '#7a7268', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{n2}</span>
+                          {n2txt && configNiveaux.txtSommaire[1] && <span style={{ fontSize: '0.59375rem', color: actif2 ? '#3d6b4f' : '#9a958d', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{n2txt}</span>}
                         </button>
                         {/* Niv3 — toujours visible, sans accordéon */}
                         {niv3DeN2.map(n3 => {
@@ -1283,8 +1288,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                 if (ancre) naviguerVersAncre(ancre)
                               }}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0 2px 16px' }}>
-                              <span style={{ fontSize: '9.5px', color: '#9a958d', display: 'block', lineHeight: 1.3 }}>{n3}</span>
-                              {n3txt && configNiveaux.txtSommaire[2] && <span style={{ fontSize: '9px', color: '#b0a89e', fontStyle: 'italic', display: 'block', lineHeight: 1.2 }}>{n3txt}</span>}
+                              <span style={{ fontSize: '0.59375rem', color: '#9a958d', display: 'block', lineHeight: 1.3 }}>{n3}</span>
+                              {n3txt && configNiveaux.txtSommaire[2] && <span style={{ fontSize: '0.5625rem', color: '#b0a89e', fontStyle: 'italic', display: 'block', lineHeight: 1.2 }}>{n3txt}</span>}
                             </button>
                           )
                         })}
@@ -1303,7 +1308,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           <button onClick={() => setNavOuverte(true)} title="Ouvrir le sommaire"
             style={{ position: 'sticky', top: '48px', alignSelf: 'flex-start', flexShrink: 0, height: 'calc(100vh - 48px)', width: '22px', background: '#faf8f4', border: 'none', borderRight: '1px solid #d6d0c4', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: 0 }}>
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}><path d="M3 1l4 4-4 4" stroke="#9a958d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '8px', letterSpacing: '0.13em', textTransform: 'uppercase' as any, fontWeight: 600, color: '#b0a89e', userSelect: 'none' }}>Sommaire</span>
+            <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '0.5rem', letterSpacing: '0.13em', textTransform: 'uppercase' as any, fontWeight: 600, color: '#b0a89e', userSelect: 'none' }}>Sommaire</span>
           </button>
         )}
 
@@ -1316,19 +1321,19 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           {vue === 'texte' && !texteSansNiveaux && (
             <div id="barre-nav-niv1" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,2fr) minmax(0,1fr)', alignItems: 'center', columnGap: '14px', marginBottom: '1.5rem', paddingBottom: '1rem', paddingRight: '60px', borderBottom: '1px solid #ede9e2', minHeight: '32px', scrollMarginTop: '60px' }}>
               <button onClick={() => niv1Prev && changerNiv1(niv1Prev, { conserverPosition: true })} disabled={!niv1Prev}
-                style={{ justifySelf: 'start', fontSize: '18px', lineHeight: 1, color: niv1Prev ? '#9a958d' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
+                style={{ justifySelf: 'start', fontSize: '1.125rem', lineHeight: 1, color: niv1Prev ? '#9a958d' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
                 {niv1Prev ? '‹' : ''}
               </button>
               <span style={{ fontSize: '1.45rem', fontWeight: 500, color: '#2a3d30', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'pre-line', overflowWrap: 'break-word', position: 'relative' }}>
                 {niv1Erreur ? (
-                  <span style={{ fontSize: '12px', color: '#c0562a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#c0562a', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     Erreur de chargement.{' '}
                     <button onClick={() => changerNiv1(niv1Erreur, { forceRefresh: true })}
-                      style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '3px', border: '1px solid #e4c4b8', background: '#fff', color: '#c0562a', cursor: 'pointer' }}>
+                      style={{ fontSize: '0.6875rem', padding: '2px 8px', borderRadius: '3px', border: '1px solid #e4c4b8', background: '#fff', color: '#c0562a', cursor: 'pointer' }}>
                       Réessayer
                     </button>
                   </span>
-                ) : niv1Loading ? <span style={{ fontSize: '13px', color: '#b0a89e' }}>Chargement…</span> : (
+                ) : niv1Loading ? <span style={{ fontSize: '0.8125rem', color: '#b0a89e' }}>Chargement…</span> : (
                   <>
                     {rendreTitreColophon(niv1Actif)}
                     {(() => {
@@ -1340,16 +1345,16 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     {estAdmin && (() => { const g = groupes[0] ?? { niv1: niv1Actif, niv2: '', niv3: '', niv4: '', anchor: '', itemIds: [] }; return (
                       <div style={{ position: 'absolute', right: '-52px', top: '2px', display: 'flex', gap: '3px', alignItems: 'center' }}>
                         <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe: g, texteActuel: niv1Actif, schemaTexte: false })}
-                          title="Modifier le titre" style={{ fontSize: '13px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}>✎</button>
+                          title="Modifier le titre" style={{ fontSize: '0.8125rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}>✎</button>
                         <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe: g, texteActuel: g.niv1_texte ?? '', schemaTexte: true })}
-                          title="Modifier le sous-titre" style={{ fontSize: '10px', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1, fontStyle: 'italic' }}>✎</button>
+                          title="Modifier le sous-titre" style={{ fontSize: '0.625rem', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1, fontStyle: 'italic' }}>✎</button>
                       </div>
                     )})()}
                   </>
                 )}
               </span>
               <button onClick={() => niv1Next && changerNiv1(niv1Next, { conserverPosition: true })} disabled={!niv1Next}
-                style={{ justifySelf: 'end', fontSize: '18px', lineHeight: 1, color: niv1Next ? '#9a958d' : 'transparent', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Next ? 'auto' : 'none' }}>
+                style={{ justifySelf: 'end', fontSize: '1.125rem', lineHeight: 1, color: niv1Next ? '#9a958d' : 'transparent', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Next ? 'auto' : 'none' }}>
                 {niv1Next ? '›' : ''}
               </button>
             </div>
@@ -1377,9 +1382,9 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2, schemaTexte: false })}
-                            title="Modifier le titre" style={{ fontSize: '11px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✎</button>
+                            title="Modifier le titre" style={{ fontSize: '0.6875rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✎</button>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2_texte ?? '', schemaTexte: true })}
-                            title="Modifier le sous-titre" style={{ fontSize: '9px', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}>✎</button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}>✎</button>
                         </div>
                       )}
                     </div>
@@ -1391,9 +1396,9 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: 0, top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 3, groupe, texteActuel: groupe.niv3, schemaTexte: false })}
-                            title="Modifier le titre" style={{ fontSize: '10px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✎</button>
+                            title="Modifier le titre" style={{ fontSize: '0.625rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✎</button>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 3, groupe, texteActuel: groupe.niv3_texte ?? '', schemaTexte: true })}
-                            title="Modifier le sous-titre" style={{ fontSize: '9px', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}>✎</button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}>✎</button>
                         </div>
                       )}
                     </div>
@@ -1405,9 +1410,9 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       {estAdmin && (
                         <span style={{ position: 'absolute', right: 0, top: 0, display: 'inline-flex', gap: '3px', alignItems: 'center', textTransform: 'none' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 4, groupe, texteActuel: groupe.niv4, schemaTexte: false })}
-                            title="Modifier le titre" style={{ fontSize: '9px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', letterSpacing: 0 }}>✎</button>
+                            title="Modifier le titre" style={{ fontSize: '0.5625rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', letterSpacing: 0 }}>✎</button>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 4, groupe, texteActuel: groupe.niv4_texte ?? '', schemaTexte: true })}
-                            title="Modifier le sous-titre" style={{ fontSize: '8px', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic', letterSpacing: 0 }}>✎</button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.5rem', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic', letterSpacing: 0 }}>✎</button>
                         </span>
                       )}
                     </p>
@@ -1469,7 +1474,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                           <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: '#2a2520', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophon(groupe.niv1_texte || groupe.niv1)}</h2>
                           {estAdmin && (
                             <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe, texteActuel: groupe.niv1_texte || groupe.niv1, schemaTexte: true })}
-                              title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '11px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✎</button>
+                              title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '0.6875rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✎</button>
                           )}
                         </div>
                       )}
@@ -1505,10 +1510,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
         {/* ── PANNEAU DROIT ── */}
         {panneauOuvert ? (
-        <aside style={{ width: pannWidth + 'px', flexShrink: 0, position: 'sticky', top: '48px', alignSelf: 'flex-start', height: 'calc(100vh - 48px)', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+        <aside ref={refAside} style={{ width: pannWidth == null ? 'clamp(280px, 21vw, 480px)' : pannWidth + 'px', flexShrink: 0, position: 'sticky', top: '48px', alignSelf: 'flex-start', height: 'calc(100vh - 48px)', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', background: '#fff' }}>
           <div onMouseDown={e => {
             e.preventDefault()
-            const startX = e.clientX, startW = pannWidth
+            const startW = pannWidth ?? refAside.current?.getBoundingClientRect().width ?? 320
+            const startX = e.clientX
             const onMove = (ev: MouseEvent) => setPannWidth(Math.max(200, Math.min(560, startW - (ev.clientX - startX))))
             const onUp = () => document.removeEventListener('mousemove', onMove)
             document.addEventListener('mousemove', onMove)
@@ -1540,7 +1546,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     )}
                     <button onClick={() => setOngletDroit(key)} className="onglet-btn"
                       style={{ flex: 1, padding: '7px 4px 6px', background: 'transparent', border: 'none', borderBottom: actif ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
-                      <span style={{ fontSize: '10px', fontWeight: actif ? 600 : 400, color: actif ? '#3d6b4f' : '#6b6560', whiteSpace: 'nowrap' }}>{labels[key]}</span>
+                      <span style={{ fontSize: '0.625rem', fontWeight: actif ? 600 : 400, color: actif ? '#3d6b4f' : '#6b6560', whiteSpace: 'nowrap' }}>{labels[key]}</span>
                     </button>
                   </Fragment>
                 )
@@ -1556,9 +1562,9 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   {/* Sélecteur de traduction remis dans le style général du site : libellé en
                       capitales espacées grises + contrôle sobre à bord neutre (au lieu de la
                       pilule verte). Le vert ne sert plus qu'à l'option active et au focus. */}
-                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', margin: '0 0 4px' }}>Traduction</p>
+                  <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', margin: '0 0 4px' }}>Traduction</p>
                   <button onClick={() => setTradOuverte(!tradOuverte)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '5px', border: `1px solid ${tradOuverte ? '#3d6b4f' : '#d6d0c4'}`, background: '#fff', fontSize: '10.5px', color: '#2a3d30', cursor: 'pointer', transition: 'border-color 0.12s' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '5px', border: `1px solid ${tradOuverte ? '#3d6b4f' : '#d6d0c4'}`, background: '#fff', fontSize: '0.65625rem', color: '#2a3d30', cursor: 'pointer', transition: 'border-color 0.12s' }}>
                     <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{traductionsBible[tradIndex]?.label ?? trad}</span>
                     <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: '#9a958d', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </button>
@@ -1566,7 +1572,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     <div style={{ position: 'absolute', top: 'calc(100% - 2px)', left: 0, right: 0, background: '#fff', border: '1px solid #d6d0c4', borderRadius: '6px', zIndex: 50, boxShadow: '0 4px 20px rgba(0,0,0,0.10)', overflow: 'hidden' }}>
                       {traductionsBible.map((t, i) => (
                         <button key={t.code} onClick={() => { setTradIndex(i); setTradOuverte(false) }} className="trad-option"
-                          style={{ width: '100%', textAlign: 'left', padding: '6px 10px', fontSize: '10.5px', border: 'none', borderBottom: i < traductionsBible.length - 1 ? '1px solid #f0ece6' : 'none', background: tradIndex === i ? '#eef5f1' : '#fff', color: tradIndex === i ? '#3d6b4f' : '#3a3530', fontWeight: tradIndex === i ? 600 : 400, cursor: 'pointer' }}>
+                          style={{ width: '100%', textAlign: 'left', padding: '6px 10px', fontSize: '0.65625rem', border: 'none', borderBottom: i < traductionsBible.length - 1 ? '1px solid #f0ece6' : 'none', background: tradIndex === i ? '#eef5f1' : '#fff', color: tradIndex === i ? '#3d6b4f' : '#3a3530', fontWeight: tradIndex === i ? 600 : 400, cursor: 'pointer' }}>
                           {t.label}
                         </button>
                       ))}
@@ -1578,7 +1584,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 {segActifData ? (
                   <>
                     {segActifData.versets.length === 0 ? (
-                      <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>Aucun lien biblique pour ce passage.</p>
+                      <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: '#9a958d' }}>Aucun lien biblique pour ce passage.</p>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         {regrouperVersetsConsecutifs(segActifData.versets).map(groupe => {
@@ -1607,18 +1613,18 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                             <div key={key}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: note ? '2px' : '4px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
-                                  <a href={`/?livre=${encodeURIComponent(premier.livre)}&chapitre=${encodeURIComponent(premier.chapitre)}&verset=${encodeURIComponent(premier.verset)}&trad=${encodeURIComponent(trad)}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '11px', fontWeight: 600, color: '#3d6b4f', margin: 0, textDecoration: 'none' }}>{labelGroupe}</a>
+                                  <a href={`/?livre=${encodeURIComponent(premier.livre)}&chapitre=${encodeURIComponent(premier.chapitre)}&verset=${encodeURIComponent(premier.verset)}&trad=${encodeURIComponent(trad)}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#3d6b4f', margin: 0, textDecoration: 'none' }}>{labelGroupe}</a>
                                   {/* La nature du rapport, dite sans peser : le lecteur
                                       voit la référence d'abord, et peut savoir à quel
                                       titre elle est là s'il y prend garde. */}
                                   {natures.length > 0 && (
-                                    <span style={{ fontSize: '9.5px', color: '#a89f92', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+                                    <span style={{ fontSize: '0.59375rem', color: '#a89f92', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
                                       {natures.join(' · ')}
                                     </span>
                                   )}
                                   {estAdmin && (
                                     <button onClick={() => groupe.forEach(v => supprimerLienBiblique(segActifData.id, v.id))} title="Supprimer ce lien biblique"
-                                      style={{ fontSize: '9.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                      style={{ fontSize: '0.59375rem', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>
                                       {multiple ? 'Supprimer les liens' : 'Supprimer le lien'}
                                     </button>
                                   )}
@@ -1630,14 +1636,14 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                 </div>
                               </div>
                               {note && (
-                                <p style={{ fontSize: '10px', fontStyle: 'italic', color: '#9a8a6a', margin: '0 0 3px', lineHeight: 1.3 }}>
+                                <p style={{ fontSize: '0.625rem', fontStyle: 'italic', color: '#9a8a6a', margin: '0 0 3px', lineHeight: 1.3 }}>
                                   ↳ {note}
                                 </p>
                               )}
                               {/* Texte du/des verset(s) réuni(s) : SANS SÉRIF, même mise en forme que les
                                   citations patristiques du panneau Bible — justifié, wordSpacing serré,
                                   césure. Enrichissement (« <i> » de Sacy) rendu. */}
-                              <p lang="fr" style={{ fontSize: '11.2px', lineHeight: '1.38', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.08em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 4px' } as React.CSSProperties}>
+                              <p lang="fr" style={{ fontSize: '0.7rem', lineHeight: '1.38', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.08em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 4px' } as React.CSSProperties}>
                                 {corps ? rendreTexteEnrichi(corps) : '—'}
                               </p>
                             </div>
@@ -1658,7 +1664,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         sous le rectangle de l'image — l'ensemble reste ainsi équilibré. */}
                     <img src="/ornements/cul-de-lampe-buisson-ardent.png" alt="" aria-hidden="true"
                       style={{ width: '82%', maxWidth: '190px', height: 'auto', opacity: 0.42, mixBlendMode: 'multiply' }} />
-                    <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d', textAlign: 'center', margin: '-30px 0 0' }}>Cliquez sur un paragraphe.</p>
+                    <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: '#9a958d', textAlign: 'center', margin: '-30px 0 0' }}>Cliquez sur un paragraphe.</p>
                   </div>
                 )}
               </>
@@ -1668,7 +1674,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               </div>
             ) : (
               <div style={{ paddingTop: '14px' }}>
-                <div style={{ fontSize: '9.5px', color: '#8a8278', margin: '0 0 10px', lineHeight: 1.4, padding: '6px 9px', background: '#f7f4ef', borderRadius: '5px', borderLeft: '2px solid #cbb98e' }}>
+                <div style={{ fontSize: '0.59375rem', color: '#8a8278', margin: '0 0 10px', lineHeight: 1.4, padding: '6px 9px', background: '#f7f4ef', borderRadius: '5px', borderLeft: '2px solid #cbb98e' }}>
                   <span style={{ fontWeight: 600, color: '#7a6f4e', letterSpacing: '0.05em', textTransform: 'uppercase' }}>À propos · </span>
                   Aidez-nous à relier ces passages à l'Écriture. Merci de votre concours.
                 </div>
@@ -1676,7 +1682,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 <div style={{ display: 'flex', gap: '2px', margin: '0 0 12px', background: '#ede9e2', borderRadius: '5px', padding: '2px' }}>
                   {([['lien_a_constituer', 'À constituer'], ['probable', 'À vérifier']] as const).map(([key, label]) => (
                     <button key={key} onClick={() => setFiltreProbleme(key)}
-                      style={{ flex: 1, fontSize: '10px', fontWeight: filtreProbleme === key ? 700 : 400, padding: '4px 6px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: filtreProbleme === key ? '#fff' : 'transparent', color: filtreProbleme === key ? '#3a3530' : '#9a958d', boxShadow: filtreProbleme === key ? '0 1px 2px rgba(0,0,0,0.08)' : 'none', letterSpacing: '0.04em', textTransform: 'uppercase' as const, transition: 'all 0.12s' }}>
+                      style={{ flex: 1, fontSize: '0.625rem', fontWeight: filtreProbleme === key ? 700 : 400, padding: '4px 6px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: filtreProbleme === key ? '#fff' : 'transparent', color: filtreProbleme === key ? '#3a3530' : '#9a958d', boxShadow: filtreProbleme === key ? '0 1px 2px rgba(0,0,0,0.08)' : 'none', letterSpacing: '0.04em', textTransform: 'uppercase' as const, transition: 'all 0.12s' }}>
                       {label}
                     </button>
                   ))}
@@ -1685,18 +1691,18 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     vraisemblablement un lien à l'Écriture, mais il n'est pas évident — c'est à
                     vous de l'identifier. */}
                 {filtreProbleme === 'lien_a_constituer' && (
-                  <p style={{ fontSize: '9.5px', fontStyle: 'italic', color: '#9a958d', lineHeight: 1.45, margin: '0 0 12px' }}>
+                  <p style={{ fontSize: '0.59375rem', fontStyle: 'italic', color: '#9a958d', lineHeight: 1.45, margin: '0 0 12px' }}>
                     Ces passages semblent renvoyer à l'Écriture, mais le lien n'est pas manifeste : à vous de repérer le verset visé.
                   </p>
                 )}
                 {!problemesCharges ? (
-                  <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>Chargement…</p>
+                  <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: '#9a958d' }}>Chargement…</p>
                 ) : (() => {
                   const filtres = problemes.filter(s =>
                     filtreProbleme === 'lien_a_constituer' ? s.aConstituer : !s.aConstituer
                   )
                   if (filtres.length === 0) return (
-                    <p style={{ fontSize: '11.5px', fontStyle: 'italic', color: '#9a958d' }}>
+                    <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: '#9a958d' }}>
                       {filtreProbleme === 'lien_a_constituer' ? 'Aucun passage « à constituer » pour cette œuvre.' : 'Aucun passage « à vérifier » pour cette œuvre.'}
                     </p>
                   )
@@ -1708,11 +1714,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         ))
                         return (
                           <div key={s.id} style={{ paddingBottom: '12px', borderBottom: '1px solid #ede9e2' }}>
-                            <div lang="fr" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '12px', lineHeight: 1.38, color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 7px', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                            <div lang="fr" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.75rem', lineHeight: 1.38, color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 7px', whiteSpace: 'pre-line' } as React.CSSProperties}>
                               {rendreTexteEnrichi(nettoyerFin(normaliserEspaces(s.segment_texte)))}
                             </div>
                             {s.reference_manuelle && (
-                              <p style={{ fontSize: '10.5px', color: '#9a5a2a', fontStyle: 'italic', margin: '0 0 5px' }}>
+                              <p style={{ fontSize: '0.65625rem', color: '#9a5a2a', fontStyle: 'italic', margin: '0 0 5px' }}>
                                 Référence proposée : {s.reference_manuelle}
                               </p>
                             )}
@@ -1726,7 +1732,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                     <button key={idV} type="button"
                                       onClick={() => setApercuVerset({ label, texte: vi.texte })}
                                       title="Voir le verset"
-                                      style={{ fontSize: '10.5px', color: '#3d5a4f', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline', textUnderlineOffset: '2px', textDecorationColor: '#c8d2cb' }}>
+                                      style={{ fontSize: '0.65625rem', color: '#3d5a4f', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline', textUnderlineOffset: '2px', textDecorationColor: '#c8d2cb' }}>
                                       {label}
                                       {vi.chapAlt != null && (
                                         <span style={{ color: '#9a958d', fontStyle: 'italic' }}>
@@ -1752,7 +1758,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                   changerNiv1(s.ref_niv1, { conserverPosition: true })
                                 }
                               }} className="ref-lien"
-                              style={{ display: 'block', fontSize: '10.5px', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, margin: '0 0 6px' }}>
+                              style={{ display: 'block', fontSize: '0.65625rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, margin: '0 0 6px' }}>
                               Aller au passage
                             </button>
                             {/* Les qualificatifs tiennent sur UNE seule ligne (pas de retour à la
@@ -1761,14 +1767,14 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                               {filtreProbleme === 'lien_a_constituer' ? (
                                 <>
                                   <button onClick={() => setSuggestionSignalee({ ...s, nature: 'suggestion' })} title="Proposer une référence biblique pour ce passage"
-                                    style={{ flexShrink: 0, whiteSpace: 'nowrap', fontSize:'9.5px', color:'#9a5a2a', background:'none', border:'1px solid #e3cdb0', borderRadius:'999px', padding:'2px 8px', cursor:'pointer' }}>Suggérer une référence</button>
+                                    style={{ flexShrink: 0, whiteSpace: 'nowrap', fontSize:'0.59375rem', color:'#9a5a2a', background:'none', border:'1px solid #e3cdb0', borderRadius:'999px', padding:'2px 8px', cursor:'pointer' }}>Suggérer une référence</button>
                                   <button onClick={() => setSuggestionSignalee({ ...s, nature: 'pas_de_reference' })} title="Signaler que ce passage ne renvoie à aucun verset"
-                                    style={{ flexShrink: 0, whiteSpace: 'nowrap', fontSize:'9.5px', color:'#8a8278', background:'none', border:'1px solid #ddd6cb', borderRadius:'999px', padding:'2px 8px', cursor:'pointer' }}>Pas de référence</button>
+                                    style={{ flexShrink: 0, whiteSpace: 'nowrap', fontSize:'0.59375rem', color:'#8a8278', background:'none', border:'1px solid #ddd6cb', borderRadius:'999px', padding:'2px 8px', cursor:'pointer' }}>Pas de référence</button>
                                 </>
                               ) : (
                                 ([['Citation','citation'],['Paraphrase','paraphrase'],['Commentaire','commentaire'],['Écho','echo']] as const).map(([label, nat]) => (
                                   <button key={nat} onClick={() => setSuggestionSignalee({ ...s, nature: nat })} title={`Signaler ce lien comme « ${label} »`}
-                                    style={{ flexShrink: 0, whiteSpace: 'nowrap', fontSize:'9.5px', color:'#3d5a4f', background:'none', border:'1px solid #cbd8cf', borderRadius:'999px', padding:'2px 8px', cursor:'pointer' }}>{label}</button>
+                                    style={{ flexShrink: 0, whiteSpace: 'nowrap', fontSize:'0.59375rem', color:'#3d5a4f', background:'none', border:'1px solid #cbd8cf', borderRadius:'999px', padding:'2px 8px', cursor:'pointer' }}>{label}</button>
                                 ))
                               )}
                             </div>
@@ -1787,7 +1793,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           <button onClick={() => setPanneauOuvert(true)} title="Ouvrir le panneau de références"
             style={{ position: 'sticky', top: '48px', alignSelf: 'flex-start', flexShrink: 0, height: 'calc(100vh - 48px)', width: '22px', background: '#fff', border: 'none', borderLeft: '1px solid #d6d0c4', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: 0 }}>
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}><path d="M7 1l-4 4 4 4" stroke="#9a958d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{ writingMode: 'vertical-rl' as any, fontSize: '8px', letterSpacing: '0.13em', textTransform: 'uppercase' as any, fontWeight: 600, color: '#b0a89e', userSelect: 'none' }}>Commentaires et références bibliques</span>
+            <span style={{ writingMode: 'vertical-rl' as any, fontSize: '0.5rem', letterSpacing: '0.13em', textTransform: 'uppercase' as any, fontWeight: 600, color: '#b0a89e', userSelect: 'none' }}>Commentaires et références bibliques</span>
           </button>
         )}
       </div>
@@ -1797,10 +1803,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           onClick={() => setApercuVerset(null)}>
           <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#faf6ee', borderRadius: '8px', border: '1px solid #c8b89e', padding: '16px 18px', width: '380px', maxWidth: '100%', boxShadow: '0 12px 40px rgba(44,30,10,0.22)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
-              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '13px', fontWeight: 600, color: '#3d6b4f' }}>{apercuVerset.label}</span>
-              <button onClick={() => setApercuVerset(null)} aria-label="Fermer" style={{ fontSize: '15px', color: '#b0a08a', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 12px', lineHeight: 1 }}>×</button>
+              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontWeight: 600, color: '#3d6b4f' }}>{apercuVerset.label}</span>
+              <button onClick={() => setApercuVerset(null)} aria-label="Fermer" style={{ fontSize: '0.9375rem', color: '#b0a08a', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 12px', lineHeight: 1 }}>×</button>
             </div>
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '13px', lineHeight: 1.6, color: '#2a2218', margin: 0, whiteSpace: 'pre-line' }}>
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', lineHeight: 1.6, color: '#2a2218', margin: 0, whiteSpace: 'pre-line' }}>
               {apercuVerset.texte || <em style={{ color: '#b0a08a' }}>Texte du verset indisponible.</em>}
             </p>
           </div>
@@ -1814,23 +1820,23 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#fff', borderRadius: '10px', padding: '18px 22px', width: '540px', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
               <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.12em', color: '#6f9268', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette édition</p>
+                <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: '#6f9268', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette édition</p>
                 {/* Auteur ET titre sur la même ligne ; l'auteur ouvre sa fiche. */}
                 <p style={{ margin: 0, lineHeight: 1.28 }}>
                   {auteurId ? (
                     <button onClick={() => setAuteurModalOuvert(true)} title="Voir la fiche de l’auteur"
-                      style={{ fontSize: '12px', fontWeight: 600, color: '#3d6b4f', background: 'none', border: 'none', padding: 0, cursor: 'pointer', letterSpacing: '0.02em' }}>{auteur}</button>
+                      style={{ fontSize: '0.75rem', fontWeight: 600, color: '#3d6b4f', background: 'none', border: 'none', padding: 0, cursor: 'pointer', letterSpacing: '0.02em' }}>{auteur}</button>
                   ) : (
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.02em' }}>{auteur}</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.02em' }}>{auteur}</span>
                   )}
                   <span style={{ color: '#cbc3b6', margin: '0 7px' }}>–</span>
-                  <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '14px', color: '#2a3d30' }}>{rendreTexteEnrichi(titreAffiche)}</span>
+                  <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', color: '#2a3d30' }}>{rendreTexteEnrichi(titreAffiche)}</span>
                 </p>
                 {oeuvreLocale.sous_titre && (
-                  <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '11.5px', color: '#8a8278', fontStyle: 'italic', lineHeight: 1.3, margin: '3px 0 0' }}>{oeuvreLocale.sous_titre}</p>
+                  <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.71875rem', color: '#8a8278', fontStyle: 'italic', lineHeight: 1.3, margin: '3px 0 0' }}>{oeuvreLocale.sous_titre}</p>
                 )}
               </div>
-              <button onClick={() => setInfoEditionOuverte(false)} style={{ fontSize: '16px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0 }}>✕</button>
+              <button onClick={() => setInfoEditionOuverte(false)} style={{ fontSize: '1rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0 }}>✕</button>
             </div>
 
             {/* Deux colonnes distinctes : texte original / édition de référence. */}
@@ -1839,9 +1845,9 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               const aEdition = !!(oeuvreLocale.trad_auteur || oeuvreLocale.trad_date || oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication || oeuvreLocale.collection)
               if (!aOriginal && !aEdition) return null
               const carte: React.CSSProperties = { background: '#f6f8f3', border: '1px solid #e2ebdc', borderLeft: '2.5px solid #a7c4a0', borderRadius: '8px', padding: '11px 13px' }
-              const legende: React.CSSProperties = { fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.10em', color: '#6f9268', margin: '0 0 8px', textTransform: 'uppercase' }
-              const cle: React.CSSProperties = { fontSize: '8.5px', color: '#a9b0a2', display: 'block', marginBottom: 0, lineHeight: 1.1 }
-              const val: React.CSSProperties = { fontSize: '11.5px', color: '#3a3530', lineHeight: 1.35 }
+              const legende: React.CSSProperties = { fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.10em', color: '#6f9268', margin: '0 0 8px', textTransform: 'uppercase' }
+              const cle: React.CSSProperties = { fontSize: '0.53125rem', color: '#a9b0a2', display: 'block', marginBottom: 0, lineHeight: 1.1 }
+              const val: React.CSSProperties = { fontSize: '0.71875rem', color: '#3a3530', lineHeight: 1.35 }
               return (
                 <div style={{ display: 'grid', gridTemplateColumns: (aOriginal && aEdition) ? 'minmax(0,1fr) minmax(0,1fr)' : '1fr', gap: '10px', marginBottom: '12px' }}>
                   {aOriginal && (
@@ -1853,7 +1859,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       {oeuvreLocale.genres && oeuvreLocale.genres.length > 0 && (
                         <div><span style={cle}>Genre{oeuvreLocale.genres.length > 1 ? 's' : ''}</span>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                            {oeuvreLocale.genres.map(g => <span key={g} style={{ fontSize: '9.5px', background: '#ece7de', color: '#6b6560', borderRadius: '3px', padding: '2px 6px' }}>{g}</span>)}
+                            {oeuvreLocale.genres.map(g => <span key={g} style={{ fontSize: '0.59375rem', background: '#ece7de', color: '#6b6560', borderRadius: '3px', padding: '2px 6px' }}>{g}</span>)}
                           </div>
                         </div>
                       )}
@@ -1875,7 +1881,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             {oeuvreLocale.url_source && (
               <div style={{ marginBottom: '10px' }}>
                 <a href={oeuvreLocale.url_source} target="_blank" rel="noopener noreferrer"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', color: '#3d6b4f', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.71875rem', color: '#3d6b4f', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
                   Consulter la source en ligne
                   <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M3.5 3h5.5v5.5M9 3L3 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </a>
@@ -1884,7 +1890,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
             {/* Note corpus */}
             <div style={{ background: '#faf8f4', borderRadius: '6px', padding: '10px 12px' }}>
-              <p style={{ fontSize: '11px', color: '#8a8278', lineHeight: 1.55, margin: 0 }}>
+              <p style={{ fontSize: '0.6875rem', color: '#8a8278', lineHeight: 1.55, margin: 0 }}>
                 Ce texte est mis à disposition dans le cadre du projet <strong style={{ color: '#3d6b4f', fontWeight: 600 }}>Corpus Scriptura</strong>, qui vise à relier les écrits des Pères de l'Église aux versets bibliques qu'ils citent ou évoquent. Les segments sont indexés et reliés aux textes scripturaires correspondants.
               </p>
             </div>
@@ -1901,10 +1907,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           onClick={() => setConfigOuverte(false)}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '20px 22px', width: '400px', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <p style={{ fontSize: '12px', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>Niveaux d'affichage</p>
-              <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '15px', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+              <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#3d6b4f', margin: 0 }}>Niveaux d'affichage</p>
+              <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.9375rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
             </div>
-            <p style={{ fontSize: '11px', color: '#8a8278', lineHeight: 1.5, margin: '0 0 16px' }}>
+            <p style={{ fontSize: '0.6875rem', color: '#8a8278', lineHeight: 1.5, margin: '0 0 16px' }}>
               Réglez la finesse des titres affichés, séparément pour le <strong style={{ color: '#6b6560' }}>sommaire</strong> (colonne de gauche) et le <strong style={{ color: '#6b6560' }}>corps</strong> du texte.
             </p>
             {(['sommaire', 'corps'] as const).map(type => {
@@ -1913,20 +1919,20 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               const titre = type === 'sommaire' ? 'Sommaire' : 'Corps du texte'
               return (
                 <div key={type} style={{ marginBottom: '14px', padding: '12px 14px', background: '#faf8f4', borderRadius: '7px', border: '1px solid #ece7de' }}>
-                  <p style={{ fontSize: '11px', fontWeight: 700, color: '#3d6b4f', margin: '0 0 10px' }}>{titre}</p>
+                  <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#3d6b4f', margin: '0 0 10px' }}>{titre}</p>
 
-                  <label style={{ fontSize: '10.5px', color: '#6b6560', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Niveaux de titres affichés</label>
+                  <label style={{ fontSize: '0.65625rem', color: '#6b6560', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Niveaux de titres affichés</label>
                   <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
                     {[1,2,3,4,5].map(n => (
                       <button key={n} onClick={() => setConfigNiveaux(prev => ({ ...prev, [key]: n }))}
                         title={`Afficher jusqu’au niveau ${n}`}
-                        style={{ width: '34px', height: '30px', borderRadius: '5px', border: `1px solid ${configNiveaux[key] === n ? '#3d6b4f' : '#d6d0c4'}`, background: configNiveaux[key] === n ? '#3d6b4f' : '#fff', color: configNiveaux[key] === n ? '#fff' : '#6b6560', fontSize: '12px', cursor: 'pointer', fontWeight: configNiveaux[key] === n ? 700 : 400 }}>
+                        style={{ width: '34px', height: '30px', borderRadius: '5px', border: `1px solid ${configNiveaux[key] === n ? '#3d6b4f' : '#d6d0c4'}`, background: configNiveaux[key] === n ? '#3d6b4f' : '#fff', color: configNiveaux[key] === n ? '#fff' : '#6b6560', fontSize: '0.75rem', cursor: 'pointer', fontWeight: configNiveaux[key] === n ? 700 : 400 }}>
                         {n}
                       </button>
                     ))}
                   </div>
 
-                  <label style={{ fontSize: '10.5px', color: '#6b6560', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Chapeaux descriptifs</label>
+                  <label style={{ fontSize: '0.65625rem', color: '#6b6560', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Chapeaux descriptifs</label>
                   <div style={{ display: 'flex', gap: '4px' }}>
                     {[1,2,3,4,5].map((n, i) => {
                       const actif = configNiveaux[txtKey][i]
@@ -1938,7 +1944,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                           return { ...prev, [txtKey]: arr }
                         })}
                           title={disponible ? `Chapeau du niveau ${n}` : `Le niveau ${n} n’est pas affiché`}
-                          style={{ width: '34px', height: '30px', borderRadius: '5px', border: `1px solid ${actif ? '#3d6b4f' : '#d6d0c4'}`, background: actif ? '#3d6b4f' : '#fff', color: actif ? '#fff' : '#9a958d', fontSize: '10.5px', cursor: disponible ? 'pointer' : 'default', opacity: disponible ? 1 : 0.4 }}>
+                          style={{ width: '34px', height: '30px', borderRadius: '5px', border: `1px solid ${actif ? '#3d6b4f' : '#d6d0c4'}`, background: actif ? '#3d6b4f' : '#fff', color: actif ? '#fff' : '#9a958d', fontSize: '0.65625rem', cursor: disponible ? 'pointer' : 'default', opacity: disponible ? 1 : 0.4 }}>
                           N{n}
                         </button>
                       )
@@ -1948,14 +1954,14 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               )
             })}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.10em', color: '#b0a89e', margin: 0, textTransform: 'uppercase' }}>Numéros de segments</p>
+              <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.10em', color: '#b0a89e', margin: 0, textTransform: 'uppercase' }}>Numéros de segments</p>
               <button onClick={() => setConfigNiveaux(prev => ({ ...prev, afficherNumeros: !prev.afficherNumeros }))}
-                style={{ fontSize: '11px', padding: '4px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: configNiveaux.afficherNumeros ? '#3d6b4f' : '#fff', color: configNiveaux.afficherNumeros ? '#fff' : '#9a958d', cursor: 'pointer' }}>
+                style={{ fontSize: '0.6875rem', padding: '4px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: configNiveaux.afficherNumeros ? '#3d6b4f' : '#fff', color: configNiveaux.afficherNumeros ? '#fff' : '#9a958d', cursor: 'pointer' }}>
                 {configNiveaux.afficherNumeros ? 'Affichés' : 'Masqués'}
               </button>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '12px', borderTop: '1px solid #ede9e2' }}>
-              <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '11px', padding: '5px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
+              <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
               <button disabled={configEnvoi} onClick={async () => {
                 setConfigEnvoi(true)
                 const toStr = (b: boolean[]) => b.map(x => x ? '1' : '0').join('')
@@ -1972,7 +1978,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 setConfigEnvoi(false)
                 setConfigOuverte(false)
               }}
-                style={{ fontSize: '11px', padding: '5px 14px', borderRadius: '4px', border: 'none', background: '#3d6b4f', color: '#fff', fontWeight: 500, cursor: 'pointer' }}>
+                style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: '#3d6b4f', color: '#fff', fontWeight: 500, cursor: 'pointer' }}>
                 {configEnvoi ? 'Enregistrement…' : 'Enregistrer'}
               </button>
             </div>
@@ -2008,7 +2014,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             color: '#6f665b',
             boxShadow: '0 6px 20px rgba(55,45,35,0.12)',
             backdropFilter: 'blur(6px)',
-            fontSize: '11.5px',
+            fontSize: '0.71875rem',
             fontFamily: 'var(--font-source-serif), Georgia, serif',
             fontStyle: 'italic',
             cursor: 'pointer',
@@ -2054,17 +2060,17 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
             onClick={() => peutReculer && setPageActuelle(pageActuelle - 1)}
             disabled={!peutReculer}
             title="Page précédente"
-            style={{ background: 'none', border: 'none', cursor: peutReculer ? 'pointer' : 'default', color: peutReculer ? '#7a7268' : '#d6d0c4', fontSize: '15px', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
+            style={{ background: 'none', border: 'none', cursor: peutReculer ? 'pointer' : 'default', color: peutReculer ? '#7a7268' : '#d6d0c4', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
             ‹
           </button>
-          <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'italic', fontSize: '12px', color: '#9a958d', letterSpacing: '0.02em', userSelect: 'none', minWidth: '80px', textAlign: 'center' }}>
+          <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'italic', fontSize: '0.75rem', color: '#9a958d', letterSpacing: '0.02em', userSelect: 'none', minWidth: '80px', textAlign: 'center' }}>
             {pageActuelle + 1} / {total}
           </span>
           <button
             onClick={() => peutAvancer && setPageActuelle(pageActuelle + 1)}
             disabled={!peutAvancer}
             title="Page suivante"
-            style={{ background: 'none', border: 'none', cursor: peutAvancer ? 'pointer' : 'default', color: peutAvancer ? '#7a7268' : '#d6d0c4', fontSize: '15px', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
+            style={{ background: 'none', border: 'none', cursor: peutAvancer ? 'pointer' : 'default', color: peutAvancer ? '#7a7268' : '#d6d0c4', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
             ›
           </button>
         </div>

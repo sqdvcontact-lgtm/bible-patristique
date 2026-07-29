@@ -242,7 +242,7 @@ export default function NavLivres({
       <div key={livre.code}>
         <button onClick={() => handleLivre(livre.code)} style={{
           width: '100%', textAlign: 'left',
-          padding: '2px 6px', borderRadius: '4px', fontSize: '0.77687rem',
+          padding: '2px 6px', borderRadius: '4px', fontSize: '0.85456rem',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           background: suggere ? 'rgba(61,107,79,0.12)' : actif ? 'rgba(61,107,79,0.10)' : 'transparent',
           color: vide ? '#c0b8ae' : actif || suggere ? '#2a3d30' : '#4a4540',
@@ -252,7 +252,7 @@ export default function NavLivres({
           opacity: vide ? 0.55 : 1,
         }}>
           <span>{livre.nom}</span>
-          {!vide && !sansChapitres && <span style={{ color: '#c0bab0', fontSize: '0.45906rem', flexShrink: 0, opacity: 0.55 }}>{ouvert ? '▲' : '▼'}</span>}
+          {!vide && !sansChapitres && <span style={{ color: '#c0bab0', fontSize: '0.50497rem', flexShrink: 0, opacity: 0.55 }}>{ouvert ? '▲' : '▼'}</span>}
         </button>
 
         {montrerOptions && polyMode && onChoisirLivreEntier && (
@@ -260,7 +260,7 @@ export default function NavLivres({
             {/* Mêmes couleurs que les cases de chapitre : allumé = vert plein, éteint = beige. */}
             <button onClick={() => { setLivreActifLocal(livre.code); onChoisirLivreEntier(livre.code) }}
               style={{
-                width: '100%', fontSize: '0.67094rem', height: '20px', padding: '0 6px', borderRadius: '3px',
+                width: '100%', fontSize: '0.73803rem', height: '1.5rem', padding: '0 6px', borderRadius: '4px',
                 border: 'none', cursor: 'pointer', textAlign: 'center', letterSpacing: '0.02em',
                 background: entierSel ? '#3d6b4f' : '#e8e4dc',
                 color: entierSel ? '#fff' : '#6b6560',
@@ -274,8 +274,8 @@ export default function NavLivres({
         {montrerOptions && (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(20px, 1fr))',
-            gap: '2px', padding: '2px 6px 5px 6px', boxSizing: 'border-box',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(1.625rem, 1fr))',
+            gap: '3px', padding: '2px 6px 6px 6px', boxSizing: 'border-box',
           }}>
             {Array.from({ length: nb }, (_, i) => i + 1).map(ch => {
               const estChapSuggere = suggere && refParsee?.chapitre === ch
@@ -287,7 +287,7 @@ export default function NavLivres({
                     handleChapitre(livre.code, ch)
                   }
                 }} style={{
-                  fontSize: '0.67094rem', height: '20px', borderRadius: '3px',
+                  fontSize: '0.73803rem', height: '1.625rem', borderRadius: '4px',
                   border: estChapSuggere ? '1px solid #3d6b4f' : 'none',
                   cursor: 'pointer', padding: 0,
                   background: (actif && chapitreActifLocal === ch) ? '#3d6b4f'
@@ -314,7 +314,7 @@ export default function NavLivres({
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '0.565rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>{titre ?? 'Livres de la Bible'}</span>
+        <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '0.6215rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>{titre ?? 'Livres de la Bible'}</span>
       </button>
     )
   }
@@ -331,7 +331,7 @@ export default function NavLivres({
 
   return (
     <div ref={refPanel} style={{
-      width: panelWidth == null ? 'clamp(180px, 13vw, 300px)' : panelWidth + 'px', flexShrink: 0, background: '#faf8f4',
+      width: panelWidth == null ? 'clamp(200px, 14vw, 320px)' : panelWidth + 'px', flexShrink: 0, background: '#faf8f4',
       borderRight: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', height: '100%',
       position: 'relative',
     }}>
@@ -357,7 +357,7 @@ export default function NavLivres({
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && refParsee) appliquerRefParsee() }}
-          style={{ flex: 1, minWidth: 0, fontSize: '0.74156rem', padding: '4px 7px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#f0ede7', color: '#3a3530', outline: 'none', boxSizing: 'border-box' }}
+          style={{ flex: 1, minWidth: 0, fontSize: '0.81572rem', padding: '4px 7px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#f0ede7', color: '#3a3530', outline: 'none', boxSizing: 'border-box' }}
         />
         <button onClick={() => setOuvert(false)} title="Réduire le volet"
           style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#b0a89e', display: 'flex', alignItems: 'center' }}>
@@ -372,7 +372,7 @@ export default function NavLivres({
         <div style={{ padding: '8px' }}>
           <button onClick={appliquerRefParsee} style={{
             width: '100%', textAlign: 'left',
-            fontSize: '0.77687rem', padding: '8px 9px', borderRadius: '5px',
+            fontSize: '0.85456rem', padding: '8px 9px', borderRadius: '5px',
             background: 'rgba(61,107,79,0.10)', border: '1px solid rgba(61,107,79,0.25)',
             color: '#2a3d30', cursor: 'pointer', lineHeight: 1.5, boxSizing: 'border-box',
           }}>
@@ -396,8 +396,8 @@ export default function NavLivres({
               width: '100%', background: 'none', border: 'none', cursor: 'pointer',
               padding: '5px 6px 2px', textAlign: 'left',
             }}>
-              <span style={{ fontSize: '0.67094rem', fontWeight: 800, letterSpacing: '0.10em', color: '#3a4a3e', textTransform: 'uppercase' }}>Ancien Testament</span>
-              <span style={{ fontSize: '0.49437rem', color: '#c0bab0' }}>{atOuvert ? '▲' : '▼'}</span>
+              <span style={{ fontSize: '0.73803rem', fontWeight: 800, letterSpacing: '0.10em', color: '#3a4a3e', textTransform: 'uppercase' }}>Ancien Testament</span>
+              <span style={{ fontSize: '0.54381rem', color: '#c0bab0' }}>{atOuvert ? '▲' : '▼'}</span>
             </button>
             {atOuvert && AT.map(renderLivre)}
           </>
@@ -410,8 +410,8 @@ export default function NavLivres({
               width: '100%', background: 'none', border: 'none', cursor: 'pointer',
               padding: '7px 6px 2px', textAlign: 'left',
             }}>
-              <span style={{ fontSize: '0.67094rem', fontWeight: 800, letterSpacing: '0.10em', color: '#3a4a3e', textTransform: 'uppercase' }}>Nouveau Testament</span>
-              <span style={{ fontSize: '0.49437rem', color: '#c0bab0' }}>{ntOuvert ? '▲' : '▼'}</span>
+              <span style={{ fontSize: '0.73803rem', fontWeight: 800, letterSpacing: '0.10em', color: '#3a4a3e', textTransform: 'uppercase' }}>Nouveau Testament</span>
+              <span style={{ fontSize: '0.54381rem', color: '#c0bab0' }}>{ntOuvert ? '▲' : '▼'}</span>
             </button>
             {ntOuvert && NT.map(renderLivre)}
           </>
@@ -424,15 +424,15 @@ export default function NavLivres({
               width: '100%', background: 'none', border: 'none', cursor: 'pointer',
               padding: '7px 6px 2px', textAlign: 'left',
             }}>
-              <span style={{ fontSize: '0.67094rem', fontWeight: 800, letterSpacing: '0.10em', color: '#7a6f5e', textTransform: 'uppercase' }}>Écrits non canoniques</span>
-              <span style={{ fontSize: '0.49437rem', color: '#c0bab0' }}>{autresOuvert ? '▲' : '▼'}</span>
+              <span style={{ fontSize: '0.73803rem', fontWeight: 800, letterSpacing: '0.10em', color: '#7a6f5e', textTransform: 'uppercase' }}>Écrits non canoniques</span>
+              <span style={{ fontSize: '0.54381rem', color: '#c0bab0' }}>{autresOuvert ? '▲' : '▼'}</span>
             </button>
             {autresOuvert && AUTRES.map(renderLivre)}
           </>
         )}
 
         {AT.length === 0 && NT.length === 0 && AUTRES.length === 0 && (
-          <p style={{ fontSize: '0.77687rem', color: '#9a958d', textAlign: 'center', padding: '16px 0' }}>Aucun résultat</p>
+          <p style={{ fontSize: '0.85456rem', color: '#9a958d', textAlign: 'center', padding: '16px 0' }}>Aucun résultat</p>
         )}
       </div>
       )}
