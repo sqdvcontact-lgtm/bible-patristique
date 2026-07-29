@@ -36,6 +36,8 @@ export const metadata: Metadata = {
   description:
     "L’Écriture et ce que les Pères de l’Église en ont dit, mis en regard verset par verset. Les traductions françaises côte à côte, le corpus patristique découpé et relié au texte.",
   applicationName: "Corpus Scriptura",
+  // Vérification de propriété Google Search Console (méthode balise HTML).
+  verification: { google: "4oCD0P3ntD7JHUPlyTNDO0QxjFm2Koc6q2nj1xCR1ng" },
   openGraph: {
     type: "website",
     locale: "fr_FR",
