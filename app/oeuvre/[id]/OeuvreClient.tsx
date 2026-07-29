@@ -3,6 +3,7 @@ import { ABREV_FR } from '@/app/lib/bible'
 import { hydraterLiensHerites } from '@/app/lib/liens'
 
 import { useState, useEffect, useRef, useMemo, useCallback, Fragment } from 'react'
+import { useRouter } from 'next/navigation'
 import { createPortal } from 'react-dom'
 import { parseNotes } from '@/app/lib/notes'
 import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
@@ -704,6 +705,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   }, [tradOuverte])
 
     const [oeuvresAuteur, setOeuvresAuteur] = useState<OeuvreResumee[]>([])
+  const router = useRouter()
+  // Traductions sœurs : œuvres du MÊME auteur au MÊME titre normalisé (comme le
+  // regroupement de la Bibliothèque). Sert au sélecteur de traduction du volet gauche.
+  type VersionTrad = { id_oeuvre: string; titre: string; trad_auteur: string | null; editeur: string | null; ville: string | null; date_publication: string | null; note: string | null }
+  const [versions, setVersions] = useState<VersionTrad[]>([])
   const [auteurOuvert, setAuteurOuvert] = useState(false)
   const [apparatOuvert, setApparatOuvert] = useState(false)
   const [sommaireOuvert, setSommaireOuvert] = useState(true)
@@ -1143,6 +1149,21 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       .then(({ data }) => setOeuvresAuteur(((data ?? []) as any[]).filter(estOeuvrePubliee)))
   }, [auteurId, idOeuvre])
 
+  // Charge les traductions sœurs (même auteur, même titre normalisé), œuvre courante
+  // incluse. S'il y en a plus d'une, le sélecteur de traduction s'affiche.
+  useEffect(() => {
+    if (!auteurId) return
+    const norm = (s: string) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+    const cible = norm(oeuvre?.titre || '')
+    supabase.from('oeuvres').select('id_oeuvre, titre, trad_auteur, editeur, ville, date_publication, note')
+      .eq('id_auteur', auteurId)
+      .order('date_publication', { ascending: true, nullsFirst: true })
+      .then(({ data }) => {
+        const soeurs = ((data ?? []) as VersionTrad[]).filter(o => norm(o.titre) === cible && estOeuvrePubliee(o))
+        setVersions(soeurs)
+      })
+  }, [auteurId, oeuvre?.titre])
+
   const chargerSauvegardesSegs = async (uid: string, oeuvreId: string) => {
     const { data } = await supabase
       .from('prelevements')
@@ -1356,6 +1377,25 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     return (
                       <button key={mode} onClick={() => basculerBilingue(mode === 'bilingue')}
                         style={{ fontSize: '0.5625rem', padding: '3px 10px', border: 'none', background: actif ? '#3d6b4f' : 'transparent', color: actif ? '#fff' : '#8a8278', cursor: 'pointer', fontWeight: actif ? 600 : 400, letterSpacing: '0.02em', transition: 'background 0.12s' }}>
+                        {label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+            {versions.length > 1 && (
+              <div style={{ marginTop: '7px' }}>
+                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#b0a89e', display: 'block', marginBottom: '4px' }}>Traduction</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  {versions.map(v => {
+                    const actif = v.id_oeuvre === idOeuvre
+                    const label = v.trad_auteur ? libelleTrad(v.trad_auteur) : (formaterEditeur(v.editeur) || 'Édition')
+                    return (
+                      <button key={v.id_oeuvre} disabled={actif}
+                        onClick={() => { if (!actif) router.push(`/oeuvre/${v.id_oeuvre}`) }}
+                        title={actif ? 'Traduction affichée' : 'Afficher cette traduction'}
+                        style={{ textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '5px', border: `1px solid ${actif ? '#3d6b4f' : '#e0dacf'}`, background: actif ? 'rgba(61,107,79,0.07)' : 'transparent', color: actif ? '#2a3d30' : '#6b6560', cursor: actif ? 'default' : 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' }}>
                         {label}
                       </button>
                     )
