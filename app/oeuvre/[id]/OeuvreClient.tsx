@@ -1121,7 +1121,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         .trad-option:hover { background: rgba(61,107,79,0.06) !important; }
       `}</style>
 
-      <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', minHeight: '100vh' }}>
+      <div style={{ display: 'flex', minHeight: '100vh' }}>
 
         {/* ── NAV GAUCHE ── */}
         {navOuverte ? (
