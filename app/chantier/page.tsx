@@ -472,7 +472,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
            rangée. Ivoire léger (distinct du fond, sans blanc froid), angles peu
            arrondis, filet fin beige, ombre à peine perceptible. */
         .cs-encart { display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-                     text-align: center; padding: 1.5rem 1.5rem; border: 1px solid #e7e0d4;
+                     text-align: center; padding: 2rem 2.125rem; border: 1px solid #e7e0d4;
                      border-radius: 0.5rem; background: #faf6ec; box-shadow: 0 1px 2px rgba(60,50,30,0.04); }
         .cs-encart-ico { display: flex; align-items: center; justify-content: center;
                          width: 2.875rem; height: 2.875rem; border-radius: 50%; margin-bottom: 0.75rem;
