@@ -201,47 +201,37 @@ const PRINCIPES: { ico: React.ReactNode; titre: string; texte: React.ReactNode }
 ];
 
 // ── Feuille de route ─────────────────────────────────────────────────────────
-// Deux temps : le chemin parcouru, puis le chemin restant, ce dernier réparti
-// par domaine (corpus, fiabilité, fonctionnement). On ne date pas — une date
-// tenue de loin est une promesse qu'on rompt — et l'on s'en tient à des intitulés
-// qui se comprennent seuls : le détail, c'est le reste de la page qui le donne.
-const ACQUIS: string[] = [
-  "Cinq versions de la Bible, dont les textes grec et latin",
-  "Lecture simple ou polyglotte des textes bibliques",
-  "Lecture des œuvres des Pères",
-  "Renvois d’un verset biblique aux passages patristiques qui le citent ou le commentent",
-  "Bibliothèque personnelle de passages favoris",
-  "Espace de publication ouvert aux lecteurs",
-  "Système de commentaires",
-  "Comptes et profils des lecteurs",
-  "Moteur de recherche opérationnel",
-];
-
-const AVANT: { groupe: string; items: string[] }[] = [
-  { groupe: "Enrichissement des corpus", items: [
+// Trois temps en regard : ce qui est déjà en place, ce qui reste à faire avant
+// d'ouvrir, ce qui suivra une fois le site ouvert. Trois colonnes de longueur
+// égale, chacune coiffée d'un titre sérif. On ne date pas : une date tenue de
+// loin est une promesse qu'on rompt.
+const PHASES: { titre: string; etat: "fait" | "avant" | "apres"; items: string[] }[] = [
+  { titre: "Déjà en place", etat: "fait", items: [
+    "Cinq versions de la Bible, dont le grec et le latin",
+    "Lecture simple ou polyglotte",
+    "Lecture des œuvres des Pères",
+    "Renvois entre la Bible et les textes patristiques",
+    "Bibliothèque de passages favoris",
+    "Comptes, commentaires et publications des lecteurs",
+    "Moteur de recherche",
+  ] },
+  { titre: "Avant l’ouverture", etat: "avant", items: [
     "Publier au moins trente œuvres patristiques",
-    "Ajouter, autant que possible, le texte original des œuvres des Pères",
-    "OCRiser et reprendre éditorialement les traductions anciennes libres de droit",
-    "Ajouter les principaux écrits apocryphes des premiers siècles",
-    "Compléter le corpus biblique par des versions hébraïques, syriaques et, si possible, coptes",
-    "Associer à chaque texte des références bibliographiques et éditoriales précises",
-  ] },
-  { groupe: "Alignement et fiabilité des données", items: [
     "Achever l’alignement des traductions bibliques",
-    "Contrôler les divergences de versification, notamment dans les Psaumes et les livres deutérocanoniques",
-    "Vérifier les renvois entre les versets bibliques et les textes patristiques",
-    "Stabiliser les identifiants des textes, des œuvres et des passages",
-    "Formaliser la charte éditoriale et la méthode d’établissement des correspondances",
+    "Ajouter les textes originaux disponibles",
+    "Reprendre les traductions anciennes libres de droit",
+    "Ajouter l’hébreu, le syriaque et les premiers apocryphes",
+    "Adapter pleinement le site aux mobiles",
+    "Tester et corriger l’ensemble du site",
   ] },
-  { groupe: "Fonctionnement du site", items: [
-    "Achever l’adaptation du site aux téléphones et aux tablettes",
-    "Améliorer la navigation entre les différentes versions d’un même passage",
-    "Permettre le signalement des erreurs et la proposition de nouvelles références",
-    "Mettre en place les outils de modération des publications et des commentaires",
-    "Prévoir l’export, la sauvegarde et la restauration régulière des données",
-    "Vérifier l’accessibilité, les performances et la compatibilité avec les principaux navigateurs",
-    "Effectuer une phase de test auprès d’un groupe restreint de lecteurs",
-    "Finaliser les mentions légales, les règles de contribution et la présentation des droits attachés à chaque texte",
+  { titre: "Après l’ouverture", etat: "apres", items: [
+    "Enrichir progressivement la bibliothèque patristique",
+    "Ajouter de nouvelles traductions bibliques",
+    "Développer les correspondances entre les textes",
+    "Améliorer la recherche et la navigation",
+    "Corriger les erreurs signalées par les lecteurs",
+    "Encourager les publications et les commentaires",
+    "Constituer une communauté de contributeurs",
   ] },
 ];
 
@@ -250,42 +240,22 @@ function FeuilleDeRoute() {
     <section className="cs-route">
       <p className="cs-route-kicker">Feuille de route</p>
       <p className="cs-route-chapeau">
-        Ce qui est déjà en place, et ce qui reste avant l’ouverture. Nous n’annonçons pas de date.
+        Ce qui est déjà en place, ce qui reste avant l’ouverture, et ce qui suivra. Nous n’annonçons pas de date.
       </p>
-
-      {/* L'acquis : coches vertes, intitulés barrés — cela recule d'un plan sans
-          disparaître. Deux colonnes qui se replient d'elles-mêmes si besoin. */}
-      <div className="cs-route-bloc">
-        <h3 className="cs-route-col-titre">Déjà en place</h3>
-        <ul className="cs-route-liste cs-route-liste--cols">
-          {ACQUIS.map(t => (
-            <li key={t} className="cs-route-item cs-route-item--fait">
-              <span className="cs-route-puce" aria-hidden="true">✓</span>
-              <span className="cs-route-titre">{t}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Le travail restant, par domaine : trois groupes en colonnes, chacun avec
-          son sous-titre ; l'ensemble se replie de lui-même sur écran étroit. */}
-      <div className="cs-route-bloc">
-        <h3 className="cs-route-col-titre">Avant l’ouverture</h3>
-        <div className="cs-route-groupes">
-          {AVANT.map(g => (
-            <div key={g.groupe} className="cs-route-groupe">
-              <h4 className="cs-route-sous-titre">{g.groupe}</h4>
-              <ul className="cs-route-liste">
-                {g.items.map(t => (
-                  <li key={t} className="cs-route-item">
-                    <span className="cs-route-puce cs-route-puce--reste" aria-hidden="true">○</span>
-                    <span className="cs-route-titre">{t}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+      <div className="cs-route-phases">
+        {PHASES.map(ph => (
+          <div key={ph.titre} className={`cs-phase cs-phase--${ph.etat}`}>
+            <h3 className="cs-phase-titre">{ph.titre}</h3>
+            <ul className="cs-route-liste">
+              {ph.items.map(t => (
+                <li key={t} className="cs-route-item">
+                  <span className="cs-route-puce" aria-hidden="true">{ph.etat === "fait" ? "✓" : "○"}</span>
+                  <span className="cs-route-titre">{t}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -485,60 +455,48 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-encart--mordore .cs-encart-titre { color: #4a3d24; }
         .cs-encart--vert .cs-encart-titre::after { background: #a9c3b1; }
         .cs-encart-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
-                           font-size: 0.9375rem; color: #2a3d30; margin: 0 0 0.5625rem; padding-bottom: 0.5625rem;
+                           font-size: 1.0625rem; color: #2a3d30; margin: 0 0 0.625rem; padding-bottom: 0.625rem;
                            position: relative; }
         .cs-encart-titre::after { content: ""; position: absolute; left: 50%; bottom: 0;
                                   width: 1.625rem; height: 1px; background: #cdb98c; transform: translateX(-50%); }
         .cs-encart-texte { font-size: 0.78125rem; color: #6a6259; line-height: 1.65; margin: 0; max-width: 34ch; }
         /* Le point surnuméraire enjambe les deux colonnes et se centre. */
         .cs-principe-seul { grid-column: 1 / -1; max-width: 21.25rem; margin: 0 auto; }
-        .cs-cartes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.125rem; }
+        .cs-cartes { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        /* Cartes du bas (prévenir, soutenir, connexion) accordées aux encarts :
+           même ivoire, mêmes angles, même filet, même ombre à peine perceptible. */
+        .cs-carte, .cs-connexion { background: #faf6ec; border: 1px solid #e7e0d4;
+                     border-radius: 0.5rem; box-shadow: 0 1px 2px rgba(60,50,30,0.04); }
+        /* Titre de bloc : sérif, sobre, centré — la voix des titres du site. */
+        .cs-bloc-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
+                         font-size: 1rem; color: #2a3d30; text-align: center; margin: 0 0 1rem; }
 
         /* ── Feuille de route ─────────────────────────────────────────────────
-           Une liste de titres, filets en haut et en bas comme le bloc « textes
-           rares » : c'est le même registre – ce que nous devons au visiteur –
-           et deux cadres différents à deux pas l'un de l'autre feraient bavard.
-           Les acquis, barrés et grisés, ouvrent la liste ; le reste suit. */
+           Trois colonnes en regard (déjà / avant / après), chacune coiffée d'un
+           titre sérif ; le corps des listes est sans-serif. Les colonnes se
+           replient d'elles-mêmes (auto-fit) dès que la largeur vient à manquer. */
         .cs-route { border-top: 1px solid #e0d9cc; border-bottom: 1px solid #e0d9cc;
-                    padding: 1.625rem 0 1.75rem; margin-bottom: 2.125rem; }
-        .cs-route-kicker { font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.18em;
+                    padding: 2rem 0 2.125rem; margin-bottom: 2.375rem; }
+        .cs-route-kicker { font-size: 0.625rem; font-weight: 700; letter-spacing: 0.18em;
                            text-transform: uppercase; color: #6f5518; margin: 0 0 0.75rem;
                            text-align: center; }
-        .cs-route-chapeau { font-size: 0.8125rem; color: #6a6259; line-height: 1.7;
-                            max-width: 28.75rem; margin: 0 auto 1.5rem; text-align: center;
-                            font-family: var(--font-source-serif), Georgia, serif; }
-        /* Deux grands blocs empilés : l'acquis, puis le travail restant réparti
-           par domaine. Chaque liste se répartit en colonnes qui se replient
-           d'elles-mêmes (auto-fit) dès que la largeur vient à manquer — pas de
-           point de rupture à régler à la main. */
-        .cs-route-bloc { max-width: 44rem; margin: 0 auto; }
-        .cs-route-bloc + .cs-route-bloc { margin-top: 2.25rem; }
-        .cs-route-col-titre { font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.14em;
-                              text-transform: uppercase; color: #6f5518; margin: 0 0 1rem;
-                              padding-bottom: 0.5rem; border-bottom: 1px solid #e5ddce;
-                              text-align: center; }
+        .cs-route-chapeau { font-size: 0.84375rem; color: #6a6259; line-height: 1.7;
+                            max-width: 34rem; margin: 0 auto 2rem; text-align: center; }
+        .cs-route-phases { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+                           gap: 2rem 2.25rem; max-width: 46rem; margin: 0 auto; }
+        .cs-phase-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
+                          font-size: 1.0625rem; color: #2a3d30; text-align: center;
+                          margin: 0 0 1rem; padding-bottom: 0.625rem; border-bottom: 1px solid #e5ddce; }
         .cs-route-liste { list-style: none; margin: 0; padding: 0;
-                          display: flex; flex-direction: column; gap: 0.6875rem; }
-        /* L'acquis, sur deux colonnes ; le travail restant, en trois groupes. */
-        .cs-route-liste--cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-                                gap: 0.5rem 1.75rem; }
-        .cs-route-groupes { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-                            gap: 1.5rem 1.75rem; }
-        .cs-route-groupe .cs-route-liste { gap: 0.5625rem; }
-        .cs-route-sous-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: 600;
-                               font-size: 0.8125rem; color: #3d5142; margin: 0 0 0.625rem;
-                               padding-bottom: 0.375rem; border-bottom: 1px solid #eae3d5; }
-        .cs-route-item { display: flex; align-items: baseline; gap: 0.625rem; }
-        /* La puce tient sa case pour que les titres restent alignés à gauche,
-           et que les lignes qui se replient reviennent sous le titre, non sous
-           la puce. */
-        .cs-route-puce { flex: 0 0 auto; width: 0.8125rem; text-align: center;
-                         color: #3d6b4f; font-size: 0.75rem; }
-        .cs-route-puce--reste { color: #bca877; font-size: 0.625rem; }
-        .cs-route-titre { font-family: var(--font-source-serif), Georgia, serif;
-                          font-size: 0.84375rem; line-height: 1.4; color: #2a3d30; }
-        .cs-route-item--fait .cs-route-titre { color: #a89e8e; text-decoration: line-through;
-                          text-decoration-color: #c3b9a6; }
+                          display: flex; flex-direction: column; gap: 0.75rem; }
+        .cs-route-item { display: flex; align-items: baseline; gap: 0.5625rem; }
+        /* La puce tient sa case pour que les intitulés restent alignés à gauche,
+           et que les lignes repliées reviennent sous l'intitulé, non sous la puce. */
+        .cs-route-puce { flex: 0 0 auto; width: 0.875rem; text-align: center;
+                         font-size: 0.6875rem; color: #bca877; }
+        .cs-phase--fait .cs-route-puce { color: #3d6b4f; }
+        .cs-phase--apres .cs-route-puce { color: #c3b9a6; }
+        .cs-route-titre { font-size: 0.84375rem; line-height: 1.45; color: #4a463f; }
         .cs-chiffres { display: flex; justify-content: center; gap: 3.375rem; flex-wrap: wrap; margin: 0.375rem 0 2.125rem; }
 
         /* ── Cartes en écran étroit ───────────────────────────────────────────
@@ -641,16 +599,12 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
 
         {/* ── Être prévenu, et soutenir ── */}
         <div className="cs-cartes">
-          <div className="cs-carte" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "0.75rem", padding: "1.5rem 1.625rem" }}>
-            <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#6a6259", margin: "0 0 0.875rem", textAlign: "center" }}>
-              Recevoir un mail à l’ouverture
-            </p>
+          <div className="cs-carte" style={{ padding: "1.75rem 1.875rem" }}>
+            <p className="cs-bloc-titre">Recevoir un mail à l’ouverture</p>
             <Prevenir />
           </div>
-          <div className="cs-carte" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "0.75rem", padding: "1.5rem 1.625rem", display: "flex", flexDirection: "column" }}>
-            <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#6a6259", margin: "0 0 0.875rem", textAlign: "center" }}>
-              Soutenir le projet
-            </p>
+          <div className="cs-carte" style={{ padding: "1.75rem 1.875rem", display: "flex", flexDirection: "column" }}>
+            <p className="cs-bloc-titre">Soutenir le projet</p>
             <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: "0 0 0.875rem", lineHeight: 1.6, flex: 1 }}>
               Le travail est bénévole, les frais ne le sont pas : hébergement, achat des
               éditions, numérisation. Un don avance le chantier.
@@ -667,9 +621,9 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         </div>
 
         {/* ── Connexion ── */}
-        <div className="cs-connexion" style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "0.75rem", padding: "1.875rem 2rem 2.125rem", width: "100%", maxWidth: "23.75rem", margin: "0 auto", boxShadow: "0 0.25rem 1.5rem rgba(0,0,0,0.05)" }}>
+        <div className="cs-connexion" style={{ padding: "1.875rem 2rem 2.125rem", width: "100%", maxWidth: "23.75rem", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.25rem", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>
+          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.125rem", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>
             {mode === "connexion" ? "Connexion" : "Créer un compte"}
           </h2>
         </div>
@@ -722,8 +676,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         ) : (
           <div style={{ marginTop: "1.25rem", textAlign: "center", borderTop: "1px solid #ede9e2", paddingTop: "1.125rem" }}>
             <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: 0, lineHeight: 1.55 }}>
-              Les comptes sont réservés aux personnes qui travaillent au chantier.<br />
-              Les inscriptions ouvriront avec le site.
+              Pour l’heure, les comptes sont réservés aux personnes qui participent au projet. Les inscriptions seront ouvertes lors du lancement du site. Il est toutefois possible de demander un accès anticipé depuis la page de contact.
             </p>
           </div>
         )}
@@ -746,8 +699,8 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         </nav>
 
         {/* ── Démarchage ── */}
-        <aside style={{ marginTop: "2.125rem", border: "1px solid #ddc9c2", background: "#fdf6f4", borderRadius: "0.625rem", padding: "1.25rem 1.5rem", maxWidth: "41.25rem", marginLeft: "auto", marginRight: "auto" }}>
-          <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9a4a3a", margin: "0 0 0.625rem" }}>
+        <aside style={{ marginTop: "2.125rem", border: "1px solid #ddc9c2", background: "#fdf6f4", borderRadius: "0.5rem", padding: "1.375rem 1.625rem", maxWidth: "41.25rem", marginLeft: "auto", marginRight: "auto" }}>
+          <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.9375rem", color: "#9a4a3a", margin: "0 0 0.5rem" }}>
             Aucun démarchage
           </p>
           <p style={{ fontSize: "0.78125rem", color: "#6a5a54", lineHeight: 1.7, margin: 0 }}>
@@ -773,4 +726,3 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
     </main>
   );
 }
-
