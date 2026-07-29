@@ -10,6 +10,7 @@ import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { segmentsLiesAuVerset, segmentsLiesAuChapitre, type TypeLien } from '@/app/lib/liens'
 import IconeSignet from '@/app/components/IconeSignet'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import ModalSignalement from '@/app/components/ModalSignalement'
 
 type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
@@ -970,10 +971,12 @@ export default function PanneauPatristique({
   if (!ouvert) {
     // Empilé (mobile) : barre horizontale pleine largeur en bas de la pile.
     if (mobile) {
+      // Barre TOUJOURS visible, fixée en bas de l'écran. Fermée par défaut ;
+      // au tap, le tiroir des Pères monte depuis le bas.
       return (
         <button onClick={() => setOuvert(true)} title="Ouvrir les textes patristiques"
-          style={{ width: '100%', flexShrink: 0, background: '#faf8f4', border: 'none', borderTop: '1px solid #d6d0c4', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.75rem 1rem' }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(90deg)', color: '#9a958d' }}>
+          style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#faf8f4', border: 'none', borderTop: '1px solid #d6d0c4', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(-90deg)', color: '#9a958d' }}>
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: '#6b6560' }}>Commentaires</span>
@@ -1002,8 +1005,13 @@ export default function PanneauPatristique({
   } : undefined
 
   return (
+    <>
+    {/* Empilé (mobile) : le panneau des Pères monte en TIROIR depuis le bas,
+        par-dessus le texte, avec un fond assombri. La barre « Commentaires »
+        reste toujours visible (voir la branche repliée). */}
+    {mobile && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
     <div ref={refPanel} style={mobile
-      ? { width: '100%', flexShrink:0, background:'#fff', borderTop:'1px solid #d6d0c4', display:'flex', flexDirection:'column', maxHeight:'75vh', minHeight:0, position:'relative' }
+      ? { position:'fixed', bottom:0, left:0, right:0, zIndex:2401, background:'#fff', borderTop:'1px solid #d6d0c4', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, minHeight:0, boxShadow:'0 -10px 28px rgba(45,35,25,0.22)' }
       : { width: panelWidth == null ? 'clamp(260px, 20vw, 460px)' : panelWidth + 'px', flexShrink:0, background:'#fff', borderLeft:'1px solid #d6d0c4', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
       {!mobile && handleDrag && (
         <div onMouseDown={handleDrag} title="Glisser pour redimensionner"
@@ -1351,6 +1359,7 @@ export default function PanneauPatristique({
         </div>
       )}
     </div>
+    </>
   )
 }
 

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 const NB_CHAPITRES: Record<string, number> = {
   GEN:50,EXO:40,LEV:27,NUM:36,DEU:34,JOS:24,JDG:21,RUT:4,
@@ -316,9 +317,11 @@ export default function NavLivres({
     // Empilé (mobile) : une barre horizontale pleine largeur, et non le rail
     // vertical du desktop — on est en haut de la pile, pas sur un côté.
     if (mobile) {
+      // Barre TOUJOURS visible, fixée juste sous la navbar. Fermée par défaut ;
+      // au tap, elle ouvre le tiroir des livres (branche dépliée ci-dessous).
       return (
         <button onClick={() => setOuvert(true)} title="Ouvrir le sommaire des livres"
-          style={{ width: '100%', flexShrink: 0, background: '#faf8f4', border: 'none', borderBottom: '1px solid #d6d0c4', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.75rem 1rem' }}>
+          style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#faf8f4', border: 'none', borderBottom: '1px solid #d6d0c4', boxShadow: '0 1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(90deg)', color: '#9a958d' }}>
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -348,9 +351,16 @@ export default function NavLivres({
   } : undefined
 
   return (
+    <>
+    {/* Empilé (mobile) : le volet déplié s'ouvre en TIROIR par-dessus le texte,
+        sous la navbar, avec un fond assombri qui le referme au tap. La barre
+        « Livres » reste, elle, toujours visible (voir la branche repliée). */}
+    {mobile && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
     <div ref={refPanel} style={mobile ? {
-      width: '100%', flexShrink: 0, background: '#faf8f4', borderBottom: '1px solid #d6d0c4',
-      display: 'flex', flexDirection: 'column', maxHeight: '70vh', position: 'relative',
+      position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 2401,
+      background: '#faf8f4', borderBottom: '1px solid #d6d0c4',
+      display: 'flex', flexDirection: 'column', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`,
+      boxShadow: '0 10px 28px rgba(45,35,25,0.22)',
     } : {
       width: panelWidth == null ? 'clamp(200px, 14vw, 320px)' : panelWidth + 'px', flexShrink: 0, background: '#faf8f4',
       borderRight: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', height: '100%',
@@ -458,5 +468,6 @@ export default function NavLivres({
       </div>
       )}
     </div>
+    </>
   )
 }
