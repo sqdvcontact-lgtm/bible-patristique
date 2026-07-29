@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 // Modale de signalement UNIQUE, partagée par toutes les pages (Bible, Œuvre,
@@ -39,7 +40,11 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
     } catch (error) { console.error('Erreur signalement:', error); setStatut('err') }
   }
 
-  return (
+  // Rendu dans un PORTAIL vers <body> : sans cela, un ancêtre porteur d'un
+  // `transform` (cartes au survol) devient le bloc conteneur du `position: fixed`,
+  // et la fenêtre se retrouve piégée puis rognée dans le bloc (overflow: hidden).
+  if (typeof document === 'undefined') return null
+  return createPortal(
     <div onClick={onClose}
       style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div onClick={e => e.stopPropagation()}
@@ -101,6 +106,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
