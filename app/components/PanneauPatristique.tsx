@@ -1092,12 +1092,15 @@ export default function PanneauPatristique({
 
       {/* En-tête */}
       <div style={{ position:'relative', borderBottom:'1px solid #d6d0c4', minHeight:'38px', display:'flex', alignItems:'center', justifyContent:'center', padding:'6px 36px' }}>
-        <button onClick={() => setOuvert(false)} title="Réduire le volet"
-          style={{ position:'absolute', left:'8px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', padding:'3px', color:'#b0a89e', display:'flex', alignItems:'center' }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
+        {/* Flèche « réduire » inutile en mode onglets (mobile) ; gardée pour desktop. */}
+        {presentation !== 'inline' && (
+          <button onClick={() => setOuvert(false)} title="Réduire le volet"
+            style={{ position:'absolute', left:'8px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', padding:'3px', color:'#b0a89e', display:'flex', alignItems:'center' }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        )}
         {refFr && (
           <h2 style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.91812rem', fontWeight:500, color:'#2a3d30', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', textAlign:'center' }}>
             {refFr}

@@ -406,12 +406,16 @@ export default function NavLivres({
           onKeyDown={e => { if (e.key === 'Enter' && refParsee) appliquerRefParsee() }}
           style={{ flex: 1, minWidth: 0, fontSize: '0.81572rem', padding: '4px 7px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#f0ede7', color: '#3a3530', outline: 'none', boxSizing: 'border-box' }}
         />
-        <button onClick={() => setOuvert(false)} title="Réduire le volet"
-          style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#b0a89e', display: 'flex', alignItems: 'center' }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
+        {/* Flèche « réduire » inutile en mode onglets (mobile) : les onglets en haut
+            font office de navigation. Conservée pour le repli desktop. */}
+        {presentation !== 'inline' && (
+          <button onClick={() => setOuvert(false)} title="Réduire le volet"
+            style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#b0a89e', display: 'flex', alignItems: 'center' }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Suggestion de ref parsée — remplace toute la liste tant qu'une référence est reconnue */}
