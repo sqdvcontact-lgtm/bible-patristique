@@ -82,10 +82,11 @@ const CHIFFRES_FR = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'h
 function enLettres(n: number): string { return n >= 1 && n <= 20 ? CHIFFRES_FR[n - 1] : String(n) }
 
 // ── Bandeau auteur ────────────────────────────────────────────────────────────
-function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, onOuvrirAuteur }: {
+function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, onOuvrirAuteur, ouvertParDefaut = false }: {
   auteur: Auteur; recherche: string
   favorisOeuvres: Set<string>; toggleFavoriOeuvre: (id: string) => void
   onOuvrirAuteur: (id: string) => void
+  ouvertParDefaut?: boolean
 }) {
   const q = sansAccents(recherche.trim())
   const oeuvresTriees = useMemo(
@@ -93,7 +94,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
     [auteur.oeuvres]
   )
   const oeuvreCorrespondante = q ? oeuvresTriees.find(o => sansAccents(o.titre).includes(q)) : null
-  const [ouvert, setOuvert] = useState(false)
+  const [ouvert, setOuvert] = useState(ouvertParDefaut)
   const [imgErreur, setImgErreur] = useState(false)
   const listeOuverte = ouvert || !!oeuvreCorrespondante
   const nb = auteur.oeuvres.length
@@ -1207,11 +1208,12 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
 // ── Page principale ────────────────────────────────────────────────────────────
 type Onglet = 'bibliotheque' | 'favoris' | 'catalogue' | 'proposer'
 
-function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvre }: {
+function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvre, onOuvrirAuteur }: {
   auteurs: Auteur[]
   favorisOeuvres: Set<string>
   favorisPret: boolean
   toggleFavoriOeuvre: (id: string) => void
+  onOuvrirAuteur: (id: string) => void
 }) {
   const oeuvresFavorites = useMemo(() => {
     const lignes: { oeuvre: Oeuvre; auteur: Auteur }[] = []
@@ -1222,6 +1224,18 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
     }
     return lignes.sort((a, b) => a.auteur.nom.localeCompare(b.auteur.nom, 'fr') || a.oeuvre.titre.localeCompare(b.oeuvre.titre, 'fr'))
   }, [auteurs, favorisOeuvres])
+
+  // Regroupement par auteur : un auteur (avec ses seules œuvres favorites) par carte,
+  // pour reprendre la présentation de l'onglet Bibliothèque (PanneauAuteur).
+  const auteursFavoris = useMemo(() => {
+    const parId = new Map<string, Auteur>()
+    for (const { oeuvre, auteur } of oeuvresFavorites) {
+      const existant = parId.get(auteur.id_auteur)
+      if (existant) existant.oeuvres.push(oeuvre)
+      else parId.set(auteur.id_auteur, { ...auteur, oeuvres: [oeuvre] })
+    }
+    return [...parId.values()]
+  }, [oeuvresFavorites])
 
   if (!favorisPret) {
     return <p style={{ textAlign: 'center', fontSize: '0.78125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement des favoris…</p>
@@ -1247,72 +1261,12 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
         <span style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#9a8a6e' }}>Œuvres favorites</span>
         <div style={{ flex: 1, height: '1px', background: '#e4dfd8' }} />
       </div>
-      {/* La liste reprend exactement la présentation des œuvres de la
-          Bibliothèque (titre en serif italique, ligne meta avec repli
-          « Certaines données manquent. », survol « Lire cette œuvre » + flèche),
-          transposée dans une palette dorée sobre : l'or est rappelé par le
-          filet de gauche, l'accent des textes et le survol, sans clinquant. */}
-      <div style={{ background: '#fffdf8', borderRadius: '8px', border: '1px solid #eadfc9', overflow: 'hidden', padding: '8px 0 12px' }}>
-        <style>{`
-          .fav-ligne { display: flex; align-items: stretch; transition: background-color 0.18s ease; }
-          .fav-ligne:hover { background-color: rgba(184,138,69,0.07); }
-          .fav-lire {
-            display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0;
-            font-size:0.625rem; font-style: italic; letter-spacing: 0.03em; color: #9a7636;
-            font-family: var(--font-source-serif), Georgia, serif;
-            opacity: 0; transform: translateX(4px); transition: opacity 0.22s ease, transform 0.22s ease;
-            white-space: nowrap; pointer-events: none;
-          }
-          .fav-ligne:hover .fav-lire { opacity: 0.78; transform: translateX(0); }
-          .fav-fleche { transition: transform 0.22s ease; }
-          .fav-ligne:hover .fav-fleche { transform: translateX(3px); }
-        `}</style>
-        {/* Regroupées par auteur : un intitulé d'auteur par bloc, puis ses œuvres — le nom
-            de l'auteur n'est plus répété sous chaque titre. */}
-        {(() => {
-          const blocs: { auteur: Auteur; oeuvres: Oeuvre[] }[] = []
-          for (const { oeuvre, auteur } of oeuvresFavorites) {
-            const dernier = blocs[blocs.length - 1]
-            if (dernier && dernier.auteur.id_auteur === auteur.id_auteur) dernier.oeuvres.push(oeuvre)
-            else blocs.push({ auteur, oeuvres: [oeuvre] })
-          }
-          return blocs.map((bloc, bi) => (
-            <div key={bloc.auteur.id_auteur} style={{ borderTop: bi > 0 ? '1px solid #eadfc9' : 'none' }}>
-              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a7636', margin: 0, padding: '9px 20px 3px' }}>
-                {bloc.auteur.nom}
-              </p>
-              {bloc.oeuvres.map((o, idx) => {
-                const edition = [o.editeur, o.ville, formaterDateHistorique(o.date_publication)].filter(Boolean).join(', ')
-                const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
-                const meta = edition && trad ? `${edition} – ${trad}` : edition || trad
-                return (
-                  <div key={o.id_oeuvre}
-                    className="fav-ligne"
-                    style={{ borderTop: idx > 0 ? '1px solid #f2e9d8' : 'none' }}>
-                    <Link href={`/oeuvre/${o.id_oeuvre}`}
-                      style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', padding: '7px 12px 7px 20px', textDecoration: 'none', borderLeft: '3px solid #cfa657' }}>
-                      <span style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ display: 'block', fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: '#3a3122', lineHeight: 1.35 }}>{o.titre}</span>
-                        {meta ? (
-                          <span style={{ display: 'block', fontSize: '0.65625rem', color: '#b3a488', marginTop: '2px', lineHeight: 1.4 }}>{rendreSiecles(meta)}</span>
-                        ) : (
-                          <span style={{ display: 'block', fontSize: '0.65625rem', color: '#cbbfa2', marginTop: '2px', lineHeight: 1.4, fontStyle: 'italic' }}>Certaines données manquent.</span>
-                        )}
-                      </span>
-                      <span className="fav-lire">
-                        Lire cette œuvre
-                        <svg className="fav-fleche" width="17" height="9" viewBox="0 0 18 9" fill="none" aria-hidden="true"><path d="M0.5 4.5h15.5M12 1l4 3.5-4 3.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      </span>
-                    </Link>
-                    <div style={{ display: 'flex', alignItems: 'center', paddingRight: '14px' }}>
-                      <EtoileFavori actif={true} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          ))
-        })()}
+      {/* Présentation reprise de l'onglet Bibliothèque : une carte d'auteur par bloc
+          (photo, dates, notice), ouverte par défaut, ne listant que les œuvres favorites. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {auteursFavoris.map(a => (
+          <PanneauAuteur key={a.id_auteur} auteur={a} recherche="" favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={onOuvrirAuteur} ouvertParDefaut />
+        ))}
       </div>
     </div>
   )
@@ -1436,6 +1390,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
             favorisOeuvres={favorisOeuvres}
             favorisPret={favorisPret}
             toggleFavoriOeuvre={toggleFavoriOeuvre}
+            onOuvrirAuteur={setAuteurModal}
           />
         )}
 
