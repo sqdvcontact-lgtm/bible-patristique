@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useEstMobile } from '@/app/lib/useEstMobile'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
@@ -28,6 +29,10 @@ type Props = {
 
 export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInitiales, versetEnTeteInitial }: Props) {
   const router = useRouter()
+  // L'éditeur est un outil d'écriture à trois panneaux (mise en forme, texte,
+  // notes) : impraticable sur téléphone. Comme la Polyglotte, on y renvoie vers
+  // un grand écran plutôt que d'entasser les panneaux (voir AGENTS § mobile).
+  const mobile = useEstMobile(900)
   const [meta, setMeta] = useState<Metadonnees>({
     titre: essaiExistant?.titre ?? metadonneesInitiales?.titre ?? '',
     sousTitre: essaiExistant?.sous_titre ?? metadonneesInitiales?.sousTitre ?? '',
@@ -473,6 +478,21 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   }
 
   const diff = comparaisonOuverte ? diffMots(contenuOriginalRef.current, contenuTexte) : null
+
+  if (mobile) {
+    return (
+      <main style={{ background: '#f7f4ef', minHeight: 'calc(100dvh - 3.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
+        <div style={{ maxWidth: '32.5rem', textAlign: 'center', color: '#5b544c', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', color: '#3d6b4f', margin: '0 0 14px' }}>Écrire</h1>
+          <p style={{ fontSize: '0.9375rem', lineHeight: 1.6, margin: 0 }}>
+            L’éditeur demande un écran large : il réunit la mise en forme, les notes et les citations.
+            <br /><br />
+            <strong>Ouvrez cette page depuis un ordinateur ou une tablette.</strong>
+          </p>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 3.5rem)', paddingRight: '320px' }}>

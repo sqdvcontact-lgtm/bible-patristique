@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useEstMobile } from '@/app/lib/useEstMobile'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { supabase } from '@/app/lib/supabase'
 import { rendreEssai } from '@/app/lib/texteEnrichiEssai'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -53,7 +55,11 @@ function BoutonPartage({ label, onClick, children, loading }: { label: string; o
 }
 
 export default function EssaiClient({ essai }: { essai: Essai }) {
+  // ≤ 900px : le volet Commentaires devient une barre fixe en bas + tiroir,
+  // et le texte prend toute la largeur (voir AGENTS § Responsive mobile).
+  const mobile = useEstMobile(900)
   const [voletOuvert, setVoletOuvert] = useState(true)
+  useEffect(() => { if (typeof window !== 'undefined' && window.innerWidth < 900) setVoletOuvert(false) }, [])
   const [nbVues, setNbVues] = useState(essai.nb_vues)
   const [nbAppreciations, setNbAppreciations] = useState(0)
   const [aApprecie, setApprecie] = useState(false)
@@ -145,7 +151,9 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   const versetParse = (() => { try { return essai.verset_en_tete ? JSON.parse(essai.verset_en_tete) as { ref: string; texte: string } : null } catch { return null } })()
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 3.5rem)', background: '#f7f4ef' }}>
+    <div style={mobile
+      ? { display: 'flex', flexDirection: 'column', background: '#f7f4ef' }
+      : { display: 'flex', height: 'calc(100vh - 3.5rem)', background: '#f7f4ef' }}>
       <style>{`
         .essai-lecture-corps p {
           text-align: justify !important;
@@ -202,7 +210,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
       `}</style>
 
       {/* Zone de lecture — scroll indépendant */}
-      <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
+      <div style={{ flex: 1, overflowY: mobile ? 'visible' : 'auto', minWidth: 0, paddingBottom: mobile ? '3.25rem' : undefined }}>
         <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: '0 56px 80px' }}>
 
           {essai.statut === 'en_attente' && (
@@ -275,7 +283,11 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
       {/* Volet droit — ouvert */}
       {voletOuvert ? (
-        <div style={{ width: '18.75rem', flexShrink: 0, background: '#faf8f4', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <>
+        {mobile && <div onClick={() => setVoletOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
+        <div style={mobile
+          ? { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, background: '#faf8f4', borderTop: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', boxShadow: '0 -10px 28px rgba(45,35,25,0.22)' }
+          : { width: '18.75rem', flexShrink: 0, background: '#faf8f4', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', height: '100%' }}>
 
           {/* Barre supérieure : fermer | titre | partager */}
           <div style={{ minHeight: '41px', padding: '6px 8px 6px 6px', borderBottom: '1px solid #ede9e2', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -323,6 +335,16 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             <EssaiCommentaires idEssai={essai.id} />
           </div>
         </div>
+        </>
+      ) : mobile ? (
+        /* Volet droit — barre fixe en bas (mobile) */
+        <button onClick={() => setVoletOuvert(true)} title="Ouvrir les commentaires"
+          style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#faf8f4', border: 'none', borderTop: '1px solid #d6d0c4', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(-90deg)', color: '#9a958d' }}>
+            <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: '#6b6560' }}>Commentaires</span>
+        </button>
       ) : (
         /* Volet droit — réduit (tab vertical) */
         <button onClick={() => setVoletOuvert(true)} title="Ouvrir le panneau"
