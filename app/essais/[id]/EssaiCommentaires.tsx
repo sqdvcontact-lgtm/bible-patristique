@@ -229,7 +229,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
           align-items: center;
           justify-content: center;
           color: rgba(176,58,42,0);
-          font-size: 12px;
+          font-size:0.75rem;
           font-weight: 800;
           letter-spacing: 0.04em;
           pointer-events: none;

@@ -82,7 +82,7 @@ export default function NotificationsPage() {
           align-items: center;
           justify-content: center;
           color: rgba(61,107,79,0);
-          font-size: 13px;
+          font-size:0.8125rem;
           font-weight: 800;
           letter-spacing: 0.08em;
           text-transform: uppercase;

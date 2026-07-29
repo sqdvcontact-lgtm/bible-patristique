@@ -229,7 +229,7 @@ function OngletCommunaute({
           margin: 0;
           text-align: center;
           font-family: var(--font-source-sans), Arial, sans-serif;
-          font-size: 9px;
+          font-size:0.5625rem;
           font-weight: 700;
           letter-spacing: 0.24em;
           text-transform: uppercase;
@@ -311,7 +311,7 @@ function OngletCommunaute({
           display: block;
           margin: 0 0 7px;
           text-align: center;
-          font-size: 9px;
+          font-size:0.5625rem;
           font-weight: 700;
           letter-spacing: 0.13em;
           text-transform: uppercase;
@@ -326,7 +326,7 @@ function OngletCommunaute({
           justify-content: center;
           text-align: center;
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 16px;
+          font-size:1rem;
           line-height: 1.2;
           color: #1e2e24;
         }
@@ -344,7 +344,7 @@ function OngletCommunaute({
           margin-bottom: 8px;
           color: rgba(154,122,64,0.78);
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 10px;
+          font-size:0.625rem;
           letter-spacing: 0.18em;
         }
         /* L'en-tête est le seul élément flex du panneau à côté de la grille : il ne
@@ -363,7 +363,7 @@ function OngletCommunaute({
           max-width: 270px;
           margin: 12px auto 0;
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 11.5px;
+          font-size:0.71875rem;
           line-height: 1.48;
           color: #71685d;
           text-align: left;
@@ -380,7 +380,7 @@ function OngletCommunaute({
           border-top: 1px solid rgba(190,155,75,0.18);
         }
         .publication-populaire-meta {
-          font-size: 9.5px;
+          font-size:0.59375rem;
           color: #a49b90;
           display: inline-flex;
           align-items: center;
@@ -390,12 +390,12 @@ function OngletCommunaute({
            procédé que l'étoile favori), au ton rosé quand la publication est aimée. */
         .publication-populaire-like {
           display: inline-flex; align-items: center; gap: 3px;
-          font-size: 9.5px; color: #a49b90; line-height: 1;
+          font-size:0.59375rem; color: #a49b90; line-height: 1;
           background: none; border: none; padding: 0; margin: 0;
           font-family: inherit; cursor: pointer;
           transition: color 0.15s, transform 0.12s;
         }
-        .publication-populaire-like .coeur { font-size: 10.5px; line-height: 1; }
+        .publication-populaire-like .coeur { font-size:0.65625rem; line-height: 1; }
         .publication-populaire-like[data-aime="true"] { color: #c25b4e; }
         button.publication-populaire-like:hover { color: #c25b4e; transform: scale(1.08); }
         @keyframes podium-shimmer {
@@ -437,7 +437,7 @@ function OngletCommunaute({
           opacity: 1;
         }
         .podium-overlay-lire-texte {
-          font-size: 12px;
+          font-size:0.75rem;
           font-weight: 600;
           color: #c8a84a;
           letter-spacing: 0.03em;
@@ -515,13 +515,13 @@ function OngletCommunaute({
         }
         .essai-hover-titre {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 13.5px;
+          font-size:0.84375rem;
           color: #1e2e24;
           margin: 0;
           line-height: 1.25;
         }
         .essai-hover-auteur {
-          font-size: 8.5px;
+          font-size:0.53125rem;
           font-weight: 700;
           letter-spacing: 0.14em;
           text-transform: uppercase;
@@ -530,14 +530,14 @@ function OngletCommunaute({
         }
         .essai-hover-date {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 10px;
+          font-size:0.625rem;
           color: #a09880;
           font-style: italic;
           margin: 0;
         }
         .essai-hover-resume {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 11px;
+          font-size:0.6875rem;
           color: #5a524a;
           line-height: 1.42;
           margin: 6px 0 0;
@@ -546,7 +546,7 @@ function OngletCommunaute({
         .essai-hover-lire {
           display: inline-block;
           margin-top: 9px;
-          font-size: 11.5px;
+          font-size:0.71875rem;
           color: #3d6b4f;
           font-weight: 600;
           letter-spacing: 0.03em;
@@ -577,7 +577,7 @@ function OngletCommunaute({
         }
         .article-journal-lignes {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 10.05px;
+          font-size:0.62813rem;
           line-height: 15px;
           letter-spacing: -0.002em;
           word-spacing: -0.06em;
@@ -663,7 +663,7 @@ function OngletCommunaute({
         }
         .article-journal-cartouche-auteur {
           margin: 0 0 4px;
-          font-size: 8.5px;
+          font-size:0.53125rem;
           line-height: 1.1;
           font-style: normal;
           font-weight: 700;
@@ -674,7 +674,7 @@ function OngletCommunaute({
         .article-journal-cartouche-titre {
           margin: 0;
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 15px;
+          font-size:0.9375rem;
           line-height: 1.1;
           font-weight: normal;
           color: #1e2e24;
@@ -695,7 +695,7 @@ function OngletCommunaute({
           clear: both;
         }
         .article-journal-categorie {
-          font-size: 8.5px;
+          font-size:0.53125rem;
           color: #4f4942;
           letter-spacing: 0.08em;
           text-transform: uppercase;
@@ -724,7 +724,7 @@ function OngletCommunaute({
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 9.5px;
+          font-size:0.59375rem;
           font-style: italic;
           color: rgba(61,107,79,0.55);
           letter-spacing: 0.08em;
@@ -738,7 +738,7 @@ function OngletCommunaute({
           background: transparent;
           border: none;
           cursor: pointer;
-          font-size: 10px;
+          font-size:0.625rem;
           font-family: var(--font-source-serif), Georgia, serif;
           font-style: italic;
           color: #3d6b4f;

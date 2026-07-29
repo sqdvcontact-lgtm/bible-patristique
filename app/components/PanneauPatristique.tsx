@@ -549,7 +549,7 @@ function OngletCommentaires({ verset, userId, isAdmin }: { verset: Verset; userI
           align-items: center;
           justify-content: center;
           color: rgba(176,58,42,0);
-          font-size: 10px;
+          font-size:0.625rem;
           font-weight: 800;
           letter-spacing: 0.04em;
           pointer-events: none;

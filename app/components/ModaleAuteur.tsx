@@ -214,7 +214,7 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
         )}
 
         <style>{`
-          .auteur-prose { font-family: var(--font-source-sans), Arial, sans-serif; font-size: 12px; line-height: 1.5; color: #3a3530; text-align: justify; hyphens: auto; margin: 0; }
+          .auteur-prose { font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; line-height: 1.5; color: #3a3530; text-align: justify; hyphens: auto; margin: 0; }
           .auteur-oeuvre { display: block; padding: 1px 8px; margin: 0 -8px; border-radius: 4px; text-decoration: none; transition: background 0.12s; }
           a.auteur-oeuvre:hover { background: rgba(61,107,79,0.06); }
           .auteur-oeuvre--absente { cursor: default; }

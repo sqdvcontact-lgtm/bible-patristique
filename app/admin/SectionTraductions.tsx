@@ -114,7 +114,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
     ? DOMPurify.sanitize(t.commentaire_editorial.startsWith('<')
         ? t.commentaire_editorial
         : t.commentaire_editorial.split(/\n+/).filter(Boolean)
-            .map(l => `<p style="color:#2a2520;font-size:13.5px;line-height:1.78;margin:0 0 12px">${l}</p>`)
+            .map(l => `<p style="color:#2a2520;font-size:0.84375rem;line-height:1.78;margin:0 0 12px">${l}</p>`)
             .join(''))
     : ''
 

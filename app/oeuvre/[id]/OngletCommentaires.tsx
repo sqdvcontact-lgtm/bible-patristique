@@ -331,7 +331,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           align-items: center;
           justify-content: center;
           color: rgba(176,58,42,0);
-          font-size: 11px;
+          font-size:0.6875rem;
           font-weight: 800;
           letter-spacing: 0.04em;
           pointer-events: none;

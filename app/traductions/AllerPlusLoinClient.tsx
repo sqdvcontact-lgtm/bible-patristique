@@ -235,7 +235,7 @@ function normaliserContenu(texte: string): string {
   if (/^\s*<(p|h[1-6]|div|ul|ol|blockquote)[\s>]/i.test(texte)) {
     html = texte;
   } else {
-    const pStyle = 'color:#2a2520;font-size:13.5px;line-height:1.78;margin:0 0 12px;text-decoration:none';
+    const pStyle = 'color:#2a2520;font-size:0.84375rem;line-height:1.78;margin:0 0 12px;text-decoration:none';
     html = texte
       .split(/\n+/)
       .map(l => l.trim())
@@ -385,7 +385,7 @@ function OngletAcheter() {
           pointer-events: none;
           transition: opacity 0.18s ease;
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 15.5px;
+          font-size:0.96875rem;
           letter-spacing: 0.01em;
         }
         .lib-row:hover .lib-survol { opacity: 1; }
@@ -404,13 +404,13 @@ function OngletAcheter() {
         }
         .lib-nom {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 17px;
+          font-size:1.0625rem;
           font-weight: normal;
           margin: 0 0 4px;
           line-height: 1.15;
         }
         .lib-desc {
-          font-size: 12px;
+          font-size:0.75rem;
           color: #6a6258;
           margin: 0;
           line-height: 1.45;
@@ -418,7 +418,7 @@ function OngletAcheter() {
         .lib-fleche {
           margin-left: auto;
           padding-left: 18px;
-          font-size: 18px;
+          font-size:1.125rem;
           flex-shrink: 0;
           opacity: 0.82;
         }

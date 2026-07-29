@@ -416,13 +416,13 @@ export default function PrelevementsPage() {
 
         .prel-actions { display: flex; gap: 0; align-items: center; flex-shrink: 0; margin-left: 10px; opacity: 0; transition: opacity 0.15s; }
         .prel-item:hover .prel-actions { opacity: 1; }
-        .prel-action { background: none; border: none; cursor: pointer; color: #b0a89e; padding: 0; line-height: 1; transition: color 0.12s; font-family: inherit; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 22px; box-sizing: border-box; text-decoration: none; }
+        .prel-action { background: none; border: none; cursor: pointer; color: #b0a89e; padding: 0; line-height: 1; transition: color 0.12s; font-family: inherit; font-size:0.8125rem; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 22px; box-sizing: border-box; text-decoration: none; }
         .prel-action:hover { color: #3d6b4f; }
         .prel-coeur-active { color: #9a7a38 !important; opacity: 1 !important; }
-        .prel-confirm { font-size: 10.5px; color: #9a8a72; display: flex; align-items: center; white-space: nowrap; }
+        .prel-confirm { font-size:0.65625rem; color: #9a8a72; display: flex; align-items: center; white-space: nowrap; }
         .prel-trad-sel {
           appearance: none; -webkit-appearance: none;
-          font-family: var(--font-source-serif), Georgia, serif; font-size: 12px; font-style: normal;
+          font-family: var(--font-source-serif), Georgia, serif; font-size:0.75rem; font-style: normal;
           color: #5a4e3a; background: transparent; border: none;
           border-bottom: 1px solid #c8b8a0; padding: 3px 20px 3px 0;
           cursor: pointer; outline: none; text-align: center;

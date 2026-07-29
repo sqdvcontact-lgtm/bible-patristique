@@ -660,21 +660,21 @@ export default function RechercheClient() {
         .res-card--absent { background:#fff9f7; border-color:#f0c4b8; }
         .res-card--absent:hover { border-color:#c0562a; }
         /* Lignes de répartition cliquables (filtre par livre / œuvre / publication). */
-        .brk-row { display:flex; align-items:baseline; justify-content:space-between; gap:8px; width:100%; text-align:left; border:none; background:transparent; cursor:pointer; padding:2px 6px; border-radius:4px; font-size:11px; color:#6b6560; line-height:1.4; font-family:inherit; transition:background 0.1s; }
+        .brk-row { display:flex; align-items:baseline; justify-content:space-between; gap:8px; width:100%; text-align:left; border:none; background:transparent; cursor:pointer; padding:2px 6px; border-radius:4px; font-size:0.6875rem; color:#6b6560; line-height:1.4; font-family:inherit; transition:background 0.1s; }
         .brk-row:hover { background:rgba(61,107,79,0.08); }
         .brk-row--actif { background:rgba(61,107,79,0.15); color:#2a3d30; font-weight:600; }
         .brk-row--actif:hover { background:rgba(61,107,79,0.2); }
-        .brk-count { flex-shrink:0; font-size:9.5px; color:#b0a89e; }
+        .brk-count { flex-shrink:0; font-size:0.59375rem; color:#b0a89e; }
         .brk-row--actif .brk-count { color:#6a9a7a; }
-        .ong-btn { padding:8px 16px; font-size:11.5px; border:none; border-bottom:3px solid transparent; cursor:pointer; background:transparent; color:#8a8278; font-weight:400; transition:color 0.12s, border-color 0.12s; white-space:nowrap; margin-bottom:-2px; }
+        .ong-btn { padding:8px 16px; font-size:0.71875rem; border:none; border-bottom:3px solid transparent; cursor:pointer; background:transparent; color:#8a8278; font-weight:400; transition:color 0.12s, border-color 0.12s; white-space:nowrap; margin-bottom:-2px; }
         .ong-btn--actif { color:#2a3d30; font-weight:600; border-bottom-color:#3d6b4f; }
         .ong-btn:not(.ong-btn--actif):hover { color:#3d6b4f; border-bottom-color:#c0d8c8; }
-        .ong-count { margin-left:5px; font-size:9.5px; color:#c0b8ae; font-weight:400; }
+        .ong-count { margin-left:5px; font-size:0.59375rem; color:#c0b8ae; font-weight:400; }
         .ong-btn--actif .ong-count { color:#6a9a7a; }
-        .pag-btn { font-size:11px; padding:5px 16px; border:1px solid #d6d0c4; border-radius:20px; background:#fff; color:#3a3530; cursor:pointer; transition:background 0.12s,color 0.12s; }
+        .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid #d6d0c4; border-radius:20px; background:#fff; color:#3a3530; cursor:pointer; transition:background 0.12s,color 0.12s; }
         .pag-btn:hover:not(:disabled) { background:#3d6b4f; color:#fff; border-color:#3d6b4f; }
         .pag-btn:disabled { color:#c8c0b8; border-color:#ece8e2; cursor:default; }
-        .mode-btn { padding:5px 14px; font-size:11px; border:none; cursor:pointer; transition:background 0.12s,color 0.12s; }
+        .mode-btn { padding:5px 14px; font-size:0.6875rem; border:none; cursor:pointer; transition:background 0.12s,color 0.12s; }
         .mode-btn--actif { background:#3d6b4f; color:#fff; font-weight:500; }
         .mode-btn--inactif { background:#fff; color:#6b6560; }
         .mode-btn--inactif:hover { background:#f0ece6; }
@@ -683,30 +683,30 @@ export default function RechercheClient() {
         .poly-hd { background:#2b4536; display:grid; gap:0; overflow:hidden; border-radius:8px 8px 0 0; }
         .poly-hd-col { display:flex; align-items:center; gap:6px; padding:0 12px; height:38px; border-right:1px solid rgba(255,255,255,0.14); }
         .poly-hd-col:last-child { border-right:none; }
-        .poly-hd-sel { font-size:10px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; text-align:center; text-align-last:center; color:rgba(255,255,255,0.9); background:transparent; border:none; outline:none; cursor:pointer; appearance:none; -webkit-appearance:none; padding:2px 16px; flex:1; transition:color 0.12s; }
+        .poly-hd-sel { font-size:0.625rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; text-align:center; text-align-last:center; color:rgba(255,255,255,0.9); background:transparent; border:none; outline:none; cursor:pointer; appearance:none; -webkit-appearance:none; padding:2px 16px; flex:1; transition:color 0.12s; }
         .poly-hd-sel:hover { color:#a8ccb8; }
-        .poly-hd-sel option { background:#2b4536; color:#e4ede7; font-weight:400; text-transform:none; font-size:12px; }
+        .poly-hd-sel option { background:#2b4536; color:#e4ede7; font-weight:400; text-transform:none; font-size:0.75rem; }
         .poly-hd-sel option:disabled { color:#6a8474; }
         .poly-hd-chevron { color:#6a8c76; pointer-events:none; flex-shrink:0; transition:color 0.12s; }
         .poly-hd-col:hover .poly-hd-chevron { color:#a8ccb8; }
         /* ── Corps de la Polyglotte : classes REPRISES TELLES QUELLES de la page de
            lecture (app/polyglotte/page.tsx) — grille, lettrine, césure, espacement. ── */
-        .poly-livre-hd { margin:0; padding:2px 12px; font-family:var(--font-source-serif), Georgia, serif; font-size:12.5px; line-height:1.35; color:#1f3b2b; background:#b7d3bf; border-top:1px solid #9fc2ac; border-bottom:1px solid #9fc2ac; text-align:center; }
-        .poly-row { display:grid; border-top:1px solid #dfe8e0; font-size:13px; text-decoration:none; }
-        .poly-num { padding:5px 4px; text-align:center; font-weight:700; font-size:11.5px; line-height:1.15; color:#3d6b4f; border-right:1px solid #dfe8e0; white-space:nowrap; }
-        .poly-texte-cell { min-width:0; padding:5px 10px 6px; border-left:1px solid #dfe8e0; text-align:justify; text-align-last:left; hyphens:auto; -webkit-hyphens:auto; hyphenate-limit-chars:5 2 2; word-spacing:-0.06em; letter-spacing:-0.01em; line-height:1.26; font-family:var(--font-source-sans), Arial, sans-serif; font-size:12px; color:#2a302b; }
+        .poly-livre-hd { margin:0; padding:2px 12px; font-family:var(--font-source-serif), Georgia, serif; font-size:0.78125rem; line-height:1.35; color:#1f3b2b; background:#b7d3bf; border-top:1px solid #9fc2ac; border-bottom:1px solid #9fc2ac; text-align:center; }
+        .poly-row { display:grid; border-top:1px solid #dfe8e0; font-size:0.8125rem; text-decoration:none; }
+        .poly-num { padding:5px 4px; text-align:center; font-weight:700; font-size:0.71875rem; line-height:1.15; color:#3d6b4f; border-right:1px solid #dfe8e0; white-space:nowrap; }
+        .poly-texte-cell { min-width:0; padding:5px 10px 6px; border-left:1px solid #dfe8e0; text-align:justify; text-align-last:left; hyphens:auto; -webkit-hyphens:auto; hyphenate-limit-chars:5 2 2; word-spacing:-0.06em; letter-spacing:-0.01em; line-height:1.26; font-family:var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; color:#2a302b; }
         .poly-texte-cell::after { content:""; display:block; clear:both; }
         .poly-texte-cell--absent { background:#fbeceb; color:#7a1d16; }
         .poly-lettrine { float:left; display:flex; flex-direction:column; align-items:flex-end; margin:0 8px 0 0; padding:0 7px 0 0; border-right:1px solid rgba(61,107,79,0.22); font-family:var(--font-source-sans), Arial, sans-serif; font-weight:400; letter-spacing:0.03em; font-variant-numeric:tabular-nums; color:#6f8f7b; text-align:right; }
         .poly-lettrine-item { position:relative; display:flex; align-items:center; justify-content:flex-end; height:1.26em; }
-        .poly-lettrine-ref { display:block; white-space:nowrap; font-size:8.5px; line-height:1; }
+        .poly-lettrine-ref { display:block; white-space:nowrap; font-size:0.53125rem; line-height:1; }
         .poly-lettrine-ch { font-weight:400; color:#a9bcb0; }
-        .ctrl-sel { font-size:11px; padding:4px 8px; border:1px solid #d6d0c4; border-radius:4px; background:#fff; color:#2a3d30; outline:none; cursor:pointer; }
+        .ctrl-sel { font-size:0.6875rem; padding:4px 8px; border:1px solid #d6d0c4; border-radius:4px; background:#fff; color:#2a3d30; outline:none; cursor:pointer; }
         .ctrl-sel:focus { border-color:#3d6b4f; }
         /* Info-bulle « Explicitations » : au survol du « ? », les deux modes expliqués. */
         .expl-wrap { position:relative; display:inline-flex; }
-        .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #b6ccbd; color:#3d6b4f; background:#f2f8f4; font-size:8.5px; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
-        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:#fff; border:1px solid #d6d0c4; border-radius:7px; box-shadow:0 10px 28px rgba(30,46,38,0.14); padding:9px 11px; font-size:10.5px; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
+        .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #b6ccbd; color:#3d6b4f; background:#f2f8f4; font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
+        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:#fff; border:1px solid #d6d0c4; border-radius:7px; box-shadow:0 10px 28px rgba(30,46,38,0.14); padding:9px 11px; font-size:0.65625rem; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
         .expl-wrap:hover .expl-tip { opacity:1; visibility:visible; transform:translateY(0); }
         ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#d6d0c4;border-radius:3px}
       `}</style>

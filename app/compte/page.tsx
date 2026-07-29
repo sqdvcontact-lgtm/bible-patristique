@@ -616,9 +616,9 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
     <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "#f3efe3", padding: "40px 20px 100px", display: "flex", justifyContent: "center" }}>
       <style>{`
         .cs-section-card { background: #fff; border: 1px solid #e4dfd8; border-radius: 10px; padding: 24px 26px; margin-bottom: 16px; }
-        .cs-section-title { font-family: var(--font-source-sans), Arial, sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #9a958d; margin: 0 0 18px; }
+        .cs-section-title { font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.5625rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #9a958d; margin: 0 0 18px; }
         .cs-check-item { display: flex; align-items: center; gap: 10px; }
-        .cs-check-circle { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .cs-check-circle { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size:0.625rem; }
       `}</style>
 
       <div style={{ width: "100%", maxWidth: "32.5rem" }}>

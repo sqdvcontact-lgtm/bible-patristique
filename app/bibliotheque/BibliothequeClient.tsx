@@ -172,7 +172,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
             .bib-correspond { background: rgba(61,107,79,0.07); }
             .bib-lire {
               display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0;
-              font-size: 10px; font-style: italic; letter-spacing: 0.03em; color: #3d6b4f;
+              font-size:0.625rem; font-style: italic; letter-spacing: 0.03em; color: #3d6b4f;
               font-family: var(--font-source-serif), Georgia, serif;
               opacity: 0; transform: translateX(4px); transition: opacity 0.22s ease, transform 0.22s ease;
               white-space: nowrap; pointer-events: none;
@@ -1258,7 +1258,7 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
           .fav-ligne:hover { background-color: rgba(184,138,69,0.07); }
           .fav-lire {
             display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0;
-            font-size: 10px; font-style: italic; letter-spacing: 0.03em; color: #9a7636;
+            font-size:0.625rem; font-style: italic; letter-spacing: 0.03em; color: #9a7636;
             font-family: var(--font-source-serif), Georgia, serif;
             opacity: 0; transform: translateX(4px); transition: opacity 0.22s ease, transform 0.22s ease;
             white-space: nowrap; pointer-events: none;
