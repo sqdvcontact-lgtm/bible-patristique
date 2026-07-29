@@ -14,7 +14,7 @@
 // ────────────────────────────────────────────────────────────────────────────
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { cesurerGrec, codeLangue } from "@/app/lib/grec";
+import { cesurerGrec, codeLangue, copierSansCesuresGrecques } from "@/app/lib/grec";
 import { supabase } from "@/app/lib/supabase";
 import NavLivres from "@/app/components/NavLivres";
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
@@ -1041,7 +1041,7 @@ export default function PolyglottePage() {
                         const t = sc.trad;
                         const cs = cellule.get(`${r.id}|${t.trad_id}`) ?? [];
                         return (
-                          <div key={i} className="poly-texte-cell" lang={t.lang}
+                          <div key={i} className="poly-texte-cell" lang={t.lang} onCopy={copierSansCesuresGrecques}
                             style={{ borderLeft: "1px solid #dfe8e0", color: signaler ? "#7a1d16" : "#2a302b" }}>
                             {/* La lettrine : référence(s) d'origine et crayon, en bloc flottant que
                                 le texte habille. Plusieurs versets de l'édition peuvent partager un

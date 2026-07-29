@@ -19,6 +19,13 @@ export function codeLangue(langue: string | null | undefined): string {
 }
 
 const SHY = "­";
+export function copierSansCesuresGrecques(e: { clipboardData: { setData(type: string, value: string): void }; preventDefault(): void }) {
+  if (typeof window === "undefined") return;
+  const selection = window.getSelection()?.toString() ?? "";
+  if (!selection.includes(SHY)) return;
+  e.clipboardData.setData("text/plain", selection.replaceAll(SHY, ""));
+  e.preventDefault();
+}
 const VOY_GR = new Set(["α", "ε", "η", "ι", "ο", "υ", "ω"]);
 const ONSETS2_GR = new Set([
   "πλ", "πρ", "βλ", "βρ", "φλ", "φρ", "τρ", "δρ", "θλ", "θρ", "κλ", "κρ", "γλ", "γρ", "χλ", "χρ",
