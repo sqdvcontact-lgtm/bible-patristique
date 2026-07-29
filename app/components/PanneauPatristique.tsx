@@ -613,7 +613,13 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
       `}</style>
       {loading && <p style={{ fontSize:'0.74156rem', color:'#9a958d', fontStyle:'italic' }}>Chargement…</p>}
       {!loading && commentaires.length === 0 && (
-        <p style={{ fontSize:'0.74156rem', color:'#b0a89e', fontStyle:'italic', marginBottom:'12px' }}>Aucun commentaire pour ce verset.</p>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', marginTop:'26px', marginBottom:'14px' }}>
+          {/* Cul-de-lampe d'état vide (carapace de tortue). `multiply` fond le fond
+              blanc du dessin dans le papier du panneau. */}
+          <img src="/ornements/carapace-vide.png" alt="" aria-hidden="true"
+            style={{ width:'min(168px, 58%)', height:'auto', opacity:0.46, mixBlendMode:'multiply', marginBottom:'14px' }} />
+          <p style={{ fontSize:'0.74156rem', color:'#b0a89e', fontStyle:'italic', margin:0 }}>Aucun commentaire pour ce verset.</p>
+        </div>
       )}
       {principaux.map(c => (
         <div key={c.id}>
