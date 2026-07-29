@@ -28,6 +28,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Ce pseudo est réservé.' }, { status: 400 })
   }
 
+  // On exige une session dont l'identifiant correspond à `user_id` : nul ne peut
+  // créer un profil pour un autre compte.
+  //
+  // ⚠️ PIÈGE À LA RÉOUVERTURE DES INSCRIPTIONS. Cette route est appelée juste
+  // après `signUp` sur la page du chantier. Tant que les inscriptions sont
+  // fermées, ce chemin est dormant. Mais si l'on rouvre avec la CONFIRMATION
+  // D'E-MAIL activée dans Supabase, `signUp` ne crée PAS de session (l'adresse
+  // n'est pas encore confirmée) : `getUser()` renverra null ici, et le pseudo ne
+  // sera pas enregistré. Dans ce cas, déplacer la création du profil après la
+  // confirmation (trigger SQL sur auth.users, ou route appelée au premier login),
+  // et non ici.
   const supabase = await creerSupabaseServeur()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user || user.id !== user_id) {

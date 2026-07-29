@@ -237,7 +237,7 @@ const PHASES: { titre: string; etat: "fait" | "avant" | "apres"; items: string[]
 function FeuilleDeRoute() {
   return (
     <section className="cs-route">
-      <p className="cs-route-kicker">Feuille de route</p>
+      <h2 className="cs-route-kicker">Feuille de route</h2>
       <p className="cs-route-chapeau">
         Ce qui est déjà en place, ce qui reste avant l’ouverture, et ce qui suivra.<br />
         Nous n’annonçons pas de date.
@@ -599,7 +599,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             return (
               <div key={p.titre} className={`cs-encart${teinte}${seul ? " cs-principe-seul" : ""}`}>
                 <span className="cs-encart-ico">{p.ico}</span>
-                <h3 className="cs-encart-titre">{p.titre}</h3>
+                <h2 className="cs-encart-titre">{p.titre}</h2>
                 <p className="cs-encart-texte">{p.texte}</p>
               </div>
             );
@@ -617,20 +617,20 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         {/* ── Être prévenu, et soutenir ── */}
         <div className="cs-cartes">
           <div className="cs-carte" style={{ padding: "1.75rem 1.875rem" }}>
-            <p className="cs-bloc-titre">Recevoir un mail à l’ouverture</p>
+            <h2 className="cs-bloc-titre">Recevoir un mail à l’ouverture</h2>
             <Prevenir />
           </div>
           <div className="cs-carte" style={{ padding: "1.75rem 1.875rem", display: "flex", flexDirection: "column" }}>
-            <p className="cs-bloc-titre">Soutenir le projet</p>
+            <h2 className="cs-bloc-titre">Soutenir le projet</h2>
             <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: "0 0 0.875rem", lineHeight: 1.6, flex: 1 }}>
               Le travail est bénévole, les frais ne le sont pas : hébergement, achat des
               éditions, numérisation. Un don avance le chantier.
             </p>
             <a href={LIEN_PAYPAL} target="_blank" rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.5625rem 1.125rem", borderRadius: "0.375rem", border: "1px solid #3d6b4f", background: "#fff", color: "#3d6b4f", fontSize: "0.8125rem", fontWeight: 500, textDecoration: "none" }}>
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.5625rem 1.125rem", borderRadius: "0.375rem", border: "none", background: "#3d6b4f", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, textDecoration: "none" }}>
               <svg width="14" height="14" viewBox="0 0 40 40" fill="none" aria-hidden="true">
                 <path d="M20 34S4 23 4 13a8 8 0 0 1 16-2 8 8 0 0 1 16 2c0 10-16 21-16 21z"
-                  stroke="currentColor" strokeWidth="2.5" fill="rgba(61,107,79,0.08)" strokeLinejoin="round" />
+                  stroke="currentColor" strokeWidth="2.5" fill="rgba(255,255,255,0.15)" strokeLinejoin="round" />
               </svg>
               Faire un don
             </a>
@@ -717,9 +717,9 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
 
         {/* ── Démarchage ── */}
         <aside style={{ marginTop: "2.125rem", border: "1px solid #ddc9c2", background: "#fdf6f4", borderRadius: "0.5rem", padding: "1.375rem 1.625rem", maxWidth: "41.25rem", marginLeft: "auto", marginRight: "auto" }}>
-          <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.9375rem", color: "#9a4a3a", margin: "0 0 0.5rem" }}>
+          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: "normal", fontSize: "0.9375rem", color: "#9a4a3a", margin: "0 0 0.5rem" }}>
             Aucun démarchage
-          </p>
+          </h2>
           <p style={{ fontSize: "0.78125rem", color: "#6a5a54", lineHeight: 1.7, margin: 0 }}>
             Toute sollicitation commerciale relative à ce site est
             <strong style={{ color: "#8a3a2a" }}> refusée par avance</strong>, qu’elle soit
