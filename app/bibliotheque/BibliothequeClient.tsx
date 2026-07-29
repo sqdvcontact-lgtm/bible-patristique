@@ -207,7 +207,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                         <Link href={`/oeuvre/${o.id_oeuvre}`}
                           style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 12px 4px 32px', textDecoration: 'none' }}>
                           <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '0.71875rem', color: '#3d6b4f', fontWeight: 500 }}>{trad ? `Traduction ${libelle}` : libelle}</span>
+                            <span style={{ fontSize: '0.71875rem', color: '#3d6b4f', fontWeight: 500 }}>{libelle}</span>
                             {trad && edition && <span style={{ fontSize: '0.625rem', color: '#a59c90' }}>{rendreSiecles(edition)}</span>}
                             {!trad && !edition && <span style={{ fontSize: '0.625rem', color: '#c4bcb0', fontStyle: 'italic' }}>Certaines données manquent.</span>}
                           </span>
