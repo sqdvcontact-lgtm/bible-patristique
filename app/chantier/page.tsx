@@ -191,9 +191,10 @@ const PRINCIPES: { ico: React.ReactNode; titre: string; texte: React.ReactNode }
       commentent : c’est le cœur du site. Chaque rapprochement est établi puis relu ; les passages
       incertains sont signalés comme tels, et vos signalements servent à corriger le site.</> },
   { ico: <IcoPlume />, titre: "Les lecteurs contribuent",
-    texte: <>Les lecteurs inscrits publient leurs propres essais et méditations, que chacun peut lire,
-      commenter et discuter. Le site n’est pas qu’une bibliothèque : c’est aussi un atelier, où la
-      lecture des Pères se prolonge en écriture et en conversation.</> },
+    texte: <>Les lecteurs inscrits publient leurs propres essais, dans le registre qu’ils veulent —
+      exégétique, théologique, spirituel ou littéraire —, que chacun peut lire, commenter et discuter.
+      Le site n’est pas qu’une bibliothèque : c’est aussi un atelier, où la lecture des Pères se
+      prolonge en écriture et en conversation.</> },
   { ico: <IcoLibre />, titre: "Gratuit, sans publicité",
     texte: <>Ni abonnement, ni publicité, ni revente de données. Le travail est bénévole,
       et le restera.</> },
