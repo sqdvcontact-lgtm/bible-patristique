@@ -1048,7 +1048,7 @@ export default function RechercheClient() {
                             {/* Tous les noms de bibles : même couleur, même espacement (le gap
                                 du conteneur), chacun dans son propre span. La traduction affichée
                                 est barrée quand le mot n'y figure pas — seule distinction retenue. */}
-                            <span style={{ fontSize:'0.59375rem', color:'#9a958d', textDecoration: displayLeMot ? 'none' : 'line-through' }}>{labelDisplay}</span>
+                            <span style={{ fontSize:'0.59375rem', fontWeight:600, color:'#9a958d', textDecoration: displayLeMot ? 'none' : 'line-through' }}>{labelDisplay}</span>
                             {contientDans.filter(t => t.code !== tradBible).map(t => (
                               <span key={t.code} style={{ fontSize:'0.59375rem', color:'#9a958d' }}>{t.label}</span>
                             ))}
