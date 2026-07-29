@@ -159,18 +159,18 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-        <p style={{ margin: 0, fontSize: '0.75rem', color: '#7a7268' }}>
+        <p style={{ margin: 0, fontSize: '0.8625rem', color: '#7a7268' }}>
           Liens suggérés par l'IA à confirmer ou rejeter, un par un.
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '0.71875rem', color: '#9a958d' }}>
+          <span style={{ fontSize: '0.82656rem', color: '#9a958d' }}>
             {chargement ? 'Chargement…' : `${paires.length} lien${paires.length > 1 ? 's' : ''} à vérifier`}
           </span>
         </div>
       </div>
 
       {!chargement && paires.length === 0 && (
-        <p style={{ fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>
+        <p style={{ fontSize: '0.93437rem', color: '#9a958d', fontStyle: 'italic' }}>
           Aucun lien en attente de vérification.
         </p>
       )}
@@ -214,7 +214,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
               {/* Boutons de qualification */}
               <div style={{ display: 'flex', gap: '7px', padding: '10px 16px 12px', borderTop: '1px solid #ede9e2', flexWrap: 'wrap' }}>
                 {st === 'err' && (
-                  <span style={{ fontSize: '0.6875rem', color: '#c0562a', fontStyle: 'italic', alignSelf: 'center' }}>
+                  <span style={{ fontSize: '0.79062rem', color: '#c0562a', fontStyle: 'italic', alignSelf: 'center' }}>
                     Erreur : {statut[`${key}_msg`] || 'inconnue'}
                   </span>
                 )}
@@ -222,7 +222,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
                   <button key={opt.action}
                     onClick={() => choisir(seg, idVerset, opt.action)}
                     style={{
-                      fontSize: '0.6875rem', padding: '5px 11px', borderRadius: '4px', fontWeight: 600,
+                      fontSize: '0.79062rem', padding: '5px 11px', borderRadius: '4px', fontWeight: 600,
                       border: opt.couleur ? `1px solid ${opt.couleur}` : '1px solid #d6d0c4',
                       background: '#fff',
                       color: opt.couleur ?? '#3d6b4f',
@@ -232,12 +232,12 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
                   </button>
                 ))}
                 {st === 'loading' && (
-                  <span style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic', alignSelf: 'center' }}>
+                  <span style={{ fontSize: '0.79062rem', color: '#9a958d', fontStyle: 'italic', alignSelf: 'center' }}>
                     Enregistrement…
                   </span>
                 )}
                 {st === 'ok' && (
-                  <span style={{ fontSize: '0.6875rem', color: '#3d6b4f', fontWeight: 600, alignSelf: 'center' }}>
+                  <span style={{ fontSize: '0.79062rem', color: '#3d6b4f', fontWeight: 600, alignSelf: 'center' }}>
                     ✓ Enregistré
                   </span>
                 )}
@@ -259,17 +259,17 @@ function Pagination({ page, nbPages, total, onPage, bas = false }: {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: bas ? '16px 0 0' : '0 0 14px', justifyContent: bas ? 'center' : 'flex-start' }}>
       <button onClick={() => onPage(p => Math.max(0, p - 1))} disabled={page === 0} style={paginationBtn(page === 0)}>Préc.</button>
-      <span style={{ fontSize: '0.71875rem', color: '#9a958d' }}>Page {page + 1} / {nbPages} · {total} lien{total > 1 ? 's' : ''}</span>
+      <span style={{ fontSize: '0.82656rem', color: '#9a958d' }}>Page {page + 1} / {nbPages} · {total} lien{total > 1 ? 's' : ''}</span>
       <button onClick={() => onPage(p => Math.min(nbPages - 1, p + 1))} disabled={page >= nbPages - 1} style={paginationBtn(page >= nbPages - 1)}>Suiv.</button>
     </div>
   )
 }
 
 function paginationBtn(disabled: boolean): React.CSSProperties {
-  return { fontSize: '0.71875rem', padding: '4px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: disabled ? '#c0bab4' : '#3a3530', cursor: disabled ? 'default' : 'pointer' }
+  return { fontSize: '0.82656rem', padding: '4px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: disabled ? '#c0bab4' : '#3a3530', cursor: disabled ? 'default' : 'pointer' }
 }
 
 const carteStyle: React.CSSProperties = { background: '#fff', border: '1px solid #d6d0c4', borderRadius: '8px', overflow: 'hidden' }
-const enteteColStyle: React.CSSProperties = { display: 'block', padding: '9px 16px', background: 'rgba(61,107,79,0.06)', color: '#1e2e24', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none', minWidth: 0, letterSpacing: '0.01em' }
-const texteBibleStyle: React.CSSProperties = { fontSize: '0.78125rem', color: '#3a3530', lineHeight: 1.58, margin: 0, textAlign: 'justify' }
-const textePatristiqueStyle: React.CSSProperties = { fontSize: '0.78125rem', color: '#1e1a16', lineHeight: 1.58, margin: 0, textAlign: 'justify', wordSpacing: '-0.02em' }
+const enteteColStyle: React.CSSProperties = { display: 'block', padding: '9px 16px', background: 'rgba(61,107,79,0.06)', color: '#1e2e24', fontSize: '0.8625rem', fontWeight: 600, textDecoration: 'none', minWidth: 0, letterSpacing: '0.01em' }
+const texteBibleStyle: React.CSSProperties = { fontSize: '0.89844rem', color: '#3a3530', lineHeight: 1.58, margin: 0, textAlign: 'justify' }
+const textePatristiqueStyle: React.CSSProperties = { fontSize: '0.89844rem', color: '#1e1a16', lineHeight: 1.58, margin: 0, textAlign: 'justify', wordSpacing: '-0.02em' }

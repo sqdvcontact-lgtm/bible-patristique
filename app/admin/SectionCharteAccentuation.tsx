@@ -141,49 +141,49 @@ export default function SectionCharteAccentuation() {
   return (
     <div style={{ maxWidth: '48.75rem' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '4px' }}>
-        <h2 style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', margin: 0 }}>
+        <h2 style={{ fontSize: '0.71875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', margin: 0 }}>
           Charte d'accentuation
         </h2>
         {misAJour && (
-          <span style={{ fontSize: '0.625rem', color: '#b0a89e' }}>
+          <span style={{ fontSize: '0.71875rem', color: '#b0a89e' }}>
             Mise à jour le {new Date(misAJour).toLocaleString('fr-FR')}
           </span>
         )}
       </div>
-      <p style={{ fontSize: '0.75rem', color: '#8a8278', lineHeight: 1.55, margin: '0 0 14px' }}>
+      <p style={{ fontSize: '0.8625rem', color: '#8a8278', lineHeight: 1.55, margin: '0 0 14px' }}>
         Règles et requêtes SQL pour la correction des majuscules non accentuées dans le corpus patristique.
       </p>
 
       <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', padding: '16px 18px', marginBottom: '12px' }}>
         {statut === 'loading' ? (
-          <p style={{ fontSize: '0.75rem', color: '#b0a89e', fontStyle: 'italic', margin: 0 }}>Chargement…</p>
+          <p style={{ fontSize: '0.8625rem', color: '#b0a89e', fontStyle: 'italic', margin: 0 }}>Chargement…</p>
         ) : (
           <textarea
             value={contenu}
             onChange={e => setContenu(e.target.value)}
             rows={32}
-            style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.78125rem', fontFamily: 'ui-monospace, Consolas, monospace', lineHeight: 1.65, padding: '10px 12px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#2a2520', resize: 'vertical', outline: 'none' }}
+            style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.89844rem', fontFamily: 'ui-monospace, Consolas, monospace', lineHeight: 1.65, padding: '10px 12px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#2a2520', resize: 'vertical', outline: 'none' }}
           />
         )}
-        <p style={{ fontSize: '0.625rem', color: '#b0a89e', margin: '5px 0 0' }}>{contenu.length.toLocaleString('fr-FR')} caractères</p>
+        <p style={{ fontSize: '0.71875rem', color: '#b0a89e', margin: '5px 0 0' }}>{contenu.length.toLocaleString('fr-FR')} caractères</p>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
         <button onClick={sauvegarder} disabled={statut === 'loading' || statut === 'saving'} className="btn-vert"
-          style={{ fontSize: '0.75rem', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}>
+          style={{ fontSize: '0.8625rem', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}>
           {statut === 'saving' ? 'Enregistrement…' : statut === 'ok' ? '✓ Enregistré' : 'Sauvegarder'}
         </button>
         <button onClick={copier} disabled={!contenu || statut === 'loading'} className="btn-gris"
-          style={{ fontSize: '0.75rem', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}>
+          style={{ fontSize: '0.8625rem', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}>
           {copie ? '✓ Copié' : 'Copier'}
         </button>
         {!contenu && statut === 'idle' && (
           <button onClick={preRemplir} className="btn-gris"
-            style={{ fontSize: '0.75rem', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}>
+            style={{ fontSize: '0.8625rem', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}>
             Pré-remplir avec le modèle
           </button>
         )}
-        {statut === 'erreur' && <span style={{ fontSize: '0.6875rem', color: '#c0562a' }}>Erreur de connexion.</span>}
+        {statut === 'erreur' && <span style={{ fontSize: '0.79062rem', color: '#c0562a' }}>Erreur de connexion.</span>}
       </div>
     </div>
   )

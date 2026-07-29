@@ -128,10 +128,10 @@ function ChampNotice({ label, valeur, accent = false, transform }: {
       borderRadius: '6px',
       padding: '7px 9px',
     }}>
-      <span style={{ display: 'block', marginBottom: '2px', fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: critique ? '#b14b38' : '#9a958d' }}>
+      <span style={{ display: 'block', marginBottom: '2px', fontSize: '0.61094rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: critique ? '#b14b38' : '#9a958d' }}>
         {label}
       </span>
-      <span style={{ display: 'block', fontSize: '0.71875rem', lineHeight: 1.3, color: critique ? '#a43d2d' : '#2a3d30', fontWeight: accent ? 700 : 400, wordBreak: 'break-word' }}>
+      <span style={{ display: 'block', fontSize: '0.82656rem', lineHeight: 1.3, color: critique ? '#a43d2d' : '#2a3d30', fontWeight: accent ? 700 : 400, wordBreak: 'break-word' }}>
         {contenu}
       </span>
     </div>
@@ -141,7 +141,7 @@ function ChampNotice({ label, valeur, accent = false, transform }: {
 function GroupeNotice({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
     <section style={{ border: '1px solid #ede9e2', borderRadius: '8px', background: '#fbfaf7', padding: '10px' }}>
-      <h3 style={{ margin: '0 0 8px', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#857c73' }}>{titre}</h3>
+      <h3 style={{ margin: '0 0 8px', fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#857c73' }}>{titre}</h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: '7px' }}>
         {children}
       </div>
@@ -158,7 +158,7 @@ function DetailNotice({ n }: { n: Notice }) {
           ['Id oeuvre', n.id_oeuvre_stable],
           ['Id auteur', n.id_auteur],
         ].map(([label, valeur]) => (
-          <span key={label} style={{ fontSize: '0.5625rem', color: '#8a8278', background: '#f0ece6', border: '1px solid #e4dfd8', borderRadius: '4px', padding: '2px 6px' }}>
+          <span key={label} style={{ fontSize: '0.64687rem', color: '#8a8278', background: '#f0ece6', border: '1px solid #e4dfd8', borderRadius: '4px', padding: '2px 6px' }}>
             <strong style={{ color: '#6b6560' }}>{label}</strong> {valeur || 'A completer'}
           </span>
         ))}
@@ -280,21 +280,21 @@ export default function SectionVerificationCatalogue() {
   return (
     <div style={{ maxWidth: '60rem' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-        <h2 style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', margin: 0 }}>
+        <h2 style={{ fontSize: '0.71875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', margin: 0 }}>
           Catalogue bibliographique - {total.toLocaleString('fr-FR')} notices
         </h2>
         <input
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
           placeholder="Filtrer par auteur..."
-          style={{ fontSize: '0.71875rem', padding: '5px 10px', border: '1px solid #344d3e', borderRadius: '4px', background: '#1e2e26', color: '#c8d8cc', outline: 'none', width: '12.5rem' }}
+          style={{ fontSize: '0.82656rem', padding: '5px 10px', border: '1px solid #344d3e', borderRadius: '4px', background: '#1e2e26', color: '#c8d8cc', outline: 'none', width: '12.5rem' }}
         />
       </div>
 
       <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #344d3e', marginBottom: '20px' }}>
         {FILTRES_STATUT.map(([key, label]) => (
           <button key={key} onClick={() => { setFiltre(key); setPage(0) }} style={{
-            padding: '7px 14px', fontSize: '0.6875rem', background: 'none', border: 'none',
+            padding: '7px 14px', fontSize: '0.79062rem', background: 'none', border: 'none',
             borderBottom: filtre === key ? '2px solid #7aaa8e' : '2px solid transparent',
             color: filtre === key ? '#a8d4b8' : '#6a9080', cursor: 'pointer', marginBottom: '-1px',
           }}>
@@ -304,22 +304,22 @@ export default function SectionVerificationCatalogue() {
       </div>
 
       {chargement ? (
-        <p style={{ fontSize: '0.75rem', color: '#6a9080', fontStyle: 'italic' }}>Chargement...</p>
+        <p style={{ fontSize: '0.8625rem', color: '#6a9080', fontStyle: 'italic' }}>Chargement...</p>
       ) : erreur ? (
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.75rem', color: '#c0562a' }}>{erreur}</span>
-          <button onClick={charger} style={{ fontSize: '0.6875rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #4a6459', background: 'transparent', color: '#7aaa8e', cursor: 'pointer' }}>Réessayer</button>
+          <span style={{ fontSize: '0.8625rem', color: '#c0562a' }}>{erreur}</span>
+          <button onClick={charger} style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #4a6459', background: 'transparent', color: '#7aaa8e', cursor: 'pointer' }}>Réessayer</button>
         </div>
       ) : notices.length === 0 ? (
-        <p style={{ fontSize: '0.78125rem', color: '#6a9080', fontStyle: 'italic' }}>Aucune notice dans cette catégorie.</p>
+        <p style={{ fontSize: '0.89844rem', color: '#6a9080', fontStyle: 'italic' }}>Aucune notice dans cette catégorie.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {regrouperNotices(notices).map(groupe => (
             <div key={groupe.cle} style={{ border: '1px solid #e4dfd8', borderRadius: '8px', overflow: 'hidden', background: '#fff' }}>
               <div style={{ padding: '9px 14px', background: '#f5f1e8', borderBottom: '1px solid #e4dfd8', display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#2a3d30', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>{groupe.titre}</span>
-                <span style={{ fontSize: '0.6875rem', color: '#6b6560', fontStyle: 'italic' }}>{groupe.auteur}</span>
-                <span style={{ fontSize: '0.625rem', color: '#b0a89e' }}>{groupe.notices.length} titre{groupe.notices.length > 1 ? 's' : ''}</span>
+                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#2a3d30', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>{groupe.titre}</span>
+                <span style={{ fontSize: '0.79062rem', color: '#6b6560', fontStyle: 'italic' }}>{groupe.auteur}</span>
+                <span style={{ fontSize: '0.71875rem', color: '#b0a89e' }}>{groupe.notices.length} titre{groupe.notices.length > 1 ? 's' : ''}</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {groupe.notices.map(n => {
@@ -334,12 +334,12 @@ export default function SectionVerificationCatalogue() {
                 <div style={{ padding: '9px 14px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => setOuverte(ouv ? null : n.id)}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '0.7625rem', fontWeight: 500, color: '#3f3832', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '22.5rem', fontStyle: n.titre_edition || n.titre_original ? 'italic' : 'normal' }}>
+                      <span style={{ fontSize: '0.87687rem', fontWeight: 500, color: '#3f3832', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '22.5rem', fontStyle: n.titre_edition || n.titre_original ? 'italic' : 'normal' }}>
                         {titreDeclineNotice(n)}
                       </span>
-                      {n.dates_auteur && <span style={{ fontSize: '0.625rem', color: '#b0a89e' }}>{formaterDateHistorique(n.dates_auteur)}</span>}
+                      {n.dates_auteur && <span style={{ fontSize: '0.71875rem', color: '#b0a89e' }}>{formaterDateHistorique(n.dates_auteur)}</span>}
                     </div>
-                    <div style={{ fontSize: '0.625rem', color: '#b0a89e', marginTop: '2px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.71875rem', color: '#b0a89e', marginTop: '2px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                       {n.traducteur && <span>trad. {n.traducteur}</span>}
                       {datePublication(n) && <span>{datePublication(n)}</span>}
                       {n.editeur && <span>{n.editeur}</span>}
@@ -347,16 +347,16 @@ export default function SectionVerificationCatalogue() {
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
-                    <span style={{ fontSize: '0.59375rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: '#f0f0ee', color: couleurScore(n.score_fiabilite), minWidth: '24px', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.68281rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: '#f0f0ee', color: couleurScore(n.score_fiabilite), minWidth: '24px', textAlign: 'center' }}>
                       {n.score_fiabilite ?? 'Score ?'}
                     </span>
-                    <span style={{ fontSize: '0.5625rem', padding: '2px 7px', borderRadius: '4px', background: dec.bg, color: dec.color, border: `1px solid ${dec.border}`, whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: '0.64687rem', padding: '2px 7px', borderRadius: '4px', background: dec.bg, color: dec.color, border: `1px solid ${dec.border}`, whiteSpace: 'nowrap' }}>
                       {labelDecision(n.decision_import)}
                     </span>
                     {n.verifie ? (
-                      <span style={{ fontSize: '0.5625rem', padding: '2px 6px', borderRadius: '4px', background: '#d8ede2', color: '#3d6b4f', fontWeight: 600 }}>Validee</span>
+                      <span style={{ fontSize: '0.64687rem', padding: '2px 6px', borderRadius: '4px', background: '#d8ede2', color: '#3d6b4f', fontWeight: 600 }}>Validee</span>
                     ) : (
-                      <span style={{ fontSize: '0.5625rem', padding: '2px 6px', borderRadius: '4px', background: '#fff1ee', color: '#a43d2d' }}>A verifier</span>
+                      <span style={{ fontSize: '0.64687rem', padding: '2px 6px', borderRadius: '4px', background: '#fff1ee', color: '#a43d2d' }}>A verifier</span>
                     )}
                     {n.url_source && (
                       <a
@@ -365,14 +365,14 @@ export default function SectionVerificationCatalogue() {
                         rel="noopener noreferrer"
                         onClick={e => e.stopPropagation()}
                         title={n.url_source}
-                        style={{ fontSize: '0.59375rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid #b8cddd', background: '#eef4f8', color: '#2f5d7a', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap', textDecoration: 'none' }}
+                        style={{ fontSize: '0.68281rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid #b8cddd', background: '#eef4f8', color: '#2f5d7a', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap', textDecoration: 'none' }}
                       >
                         Source&nbsp;↗
                       </a>
                     )}
                     <button
                       onClick={e => { e.stopPropagation(); setOuverte(ouv ? null : n.id) }}
-                      style={{ fontSize: '0.59375rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid #d6d0c4', background: ouv ? '#3d6b4f' : '#fff', color: ouv ? '#fff' : '#3d6b4f', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}
+                      style={{ fontSize: '0.68281rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid #d6d0c4', background: ouv ? '#3d6b4f' : '#fff', color: ouv ? '#fff' : '#3d6b4f', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}
                     >
                       {ouv ? 'Replier' : 'Déployer'}
                     </button>
@@ -384,21 +384,21 @@ export default function SectionVerificationCatalogue() {
                     <DetailNotice n={n} />
 
                     {n.url_source && (
-                      <a href={n.url_source} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.6875rem', color: '#3d6b87', wordBreak: 'break-all', textDecoration: 'underline' }}>
+                      <a href={n.url_source} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.79062rem', color: '#3d6b87', wordBreak: 'break-all', textDecoration: 'underline' }}>
                         {n.url_source}
                       </a>
                     )}
 
                     {n.verifie ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '6px', borderTop: '1px solid #b8d4c4' }}>
-                        <span style={{ fontSize: '0.6875rem', color: '#3d6b4f', fontStyle: 'italic' }}>Notice validée - verrouillée définitivement</span>
+                        <span style={{ fontSize: '0.79062rem', color: '#3d6b4f', fontStyle: 'italic' }}>Notice validée - verrouillée définitivement</span>
                       </div>
                     ) : (
                       <div style={{ display: 'flex', gap: '8px', paddingTop: '6px', borderTop: '1px solid #ede9e2', flexWrap: 'wrap' }}>
-                        <button onClick={() => valider(n.id)} className="btn-vert" style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', cursor: 'pointer' }}>
+                        <button onClick={() => valider(n.id)} className="btn-vert" style={{ fontSize: '0.79062rem', padding: '5px 14px', borderRadius: '4px', cursor: 'pointer' }}>
                           Valider définitivement
                         </button>
-                        <button onClick={() => supprimer(n.id)} className="btn-rouge" style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', marginLeft: 'auto' }}>
+                        <button onClick={() => supprimer(n.id)} className="btn-rouge" style={{ fontSize: '0.79062rem', padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', marginLeft: 'auto' }}>
                           Supprimer
                         </button>
                       </div>
@@ -415,12 +415,12 @@ export default function SectionVerificationCatalogue() {
           {total > 100 && (
             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', paddingTop: '16px', alignItems: 'center' }}>
               <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
-                style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid #344d3e', background: 'transparent', color: page === 0 ? '#4a6459' : '#7aaa8e', cursor: page === 0 ? 'default' : 'pointer' }}>
+                style={{ fontSize: '0.79062rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid #344d3e', background: 'transparent', color: page === 0 ? '#4a6459' : '#7aaa8e', cursor: page === 0 ? 'default' : 'pointer' }}>
                 Précédent
               </button>
-              <span style={{ fontSize: '0.6875rem', color: '#6a9080' }}>Page {page + 1} / {Math.ceil(total / 100)}</span>
+              <span style={{ fontSize: '0.79062rem', color: '#6a9080' }}>Page {page + 1} / {Math.ceil(total / 100)}</span>
               <button onClick={() => setPage(p => p + 1)} disabled={(page + 1) * 100 >= total}
-                style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid #344d3e', background: 'transparent', color: (page + 1) * 100 >= total ? '#4a6459' : '#7aaa8e', cursor: (page + 1) * 100 >= total ? 'default' : 'pointer' }}>
+                style={{ fontSize: '0.79062rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid #344d3e', background: 'transparent', color: (page + 1) * 100 >= total ? '#4a6459' : '#7aaa8e', cursor: (page + 1) * 100 >= total ? 'default' : 'pointer' }}>
                 Suivant
               </button>
             </div>

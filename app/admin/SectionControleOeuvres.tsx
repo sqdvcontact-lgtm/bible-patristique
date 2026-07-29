@@ -922,14 +922,14 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         </div>
       </div>
 
-      {erreur && <p style={{ color: '#9a2a2a', fontSize: '0.75rem' }}>Erreur de chargement : {erreur}</p>}
+      {erreur && <p style={{ color: '#9a2a2a', fontSize: '0.8625rem' }}>Erreur de chargement : {erreur}</p>}
       {!idOeuvre ? (
         <div className="controle-accueil">
           {modeControle === 'corpus' && chargementRangs && (
-            <p style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic', margin: '0 0 8px', padding: '0 12px' }}>Chargement de la qualité…</p>
+            <p style={{ fontSize: '0.79062rem', color: '#9a958d', fontStyle: 'italic', margin: '0 0 8px', padding: '0 12px' }}>Chargement de la qualité…</p>
           )}
           {oeuvresRecherche.length === 0 ? (
-            <p style={{ color: '#9a958d', fontStyle: 'italic', fontSize: '0.8125rem', padding: '10px 12px', margin: 0 }}>Aucune œuvre à contrôler.</p>
+            <p style={{ color: '#9a958d', fontStyle: 'italic', fontSize: '0.93437rem', padding: '10px 12px', margin: 0 }}>Aucune œuvre à contrôler.</p>
           ) : (
             <ul>
               {oeuvresRecherche.map(o => {
@@ -960,15 +960,15 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
           )}
         </div>
       ) : chargement ? (
-        <div className="segments-panel"><p style={{ color: '#9a958d', fontStyle: 'italic', fontSize: '0.8125rem' }}>Chargement de l’œuvre…</p></div>
+        <div className="segments-panel"><p style={{ color: '#9a958d', fontStyle: 'italic', fontSize: '0.93437rem' }}>Chargement de l’œuvre…</p></div>
       ) : (
         <div className="controle-layout">
           <div className="segments-panel">
             <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-              <button type="button" onClick={() => setIdOeuvre('')} style={{ display: 'block', margin: '0 auto 12px', background: 'transparent', border: 0, color: '#3d6b4f', fontSize: '0.6875rem', cursor: 'pointer' }}>← Toutes les œuvres</button>
-              <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.55rem', color: '#1e2e24', margin: 0, lineHeight: 1.28 }}>{titreCourtControle(auteurs, idOeuvre, modeControle, oeuvresPerso)}</p>
+              <button type="button" onClick={() => setIdOeuvre('')} style={{ display: 'block', margin: '0 auto 12px', background: 'transparent', border: 0, color: '#3d6b4f', fontSize: '0.79062rem', cursor: 'pointer' }}>← Toutes les œuvres</button>
+              <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.7825rem', color: '#1e2e24', margin: 0, lineHeight: 1.28 }}>{titreCourtControle(auteurs, idOeuvre, modeControle, oeuvresPerso)}</p>
               <div style={{ width: '42px', height: '1px', background: '#c8b89e', margin: '14px auto 8px' }} />
-              <p style={{ fontSize: '0.65625rem', color: '#9a958d', margin: '3px 0 0' }}>{segmentsAffiches.length} segment(s) affiché(s)</p>
+              <p style={{ fontSize: '0.75469rem', color: '#9a958d', margin: '3px 0 0' }}>{segmentsAffiches.length} segment(s) affiché(s)</p>
             </div>
 
             {pagesControle.length > 1 && (
@@ -1089,11 +1089,11 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                     })}
                   </div>
                   {actif.controle_rang_manuel && (
-                    <p style={{ fontSize: '0.65625rem', color: '#5b3a7a', margin: '8px 0 0', lineHeight: 1.45 }}>
+                    <p style={{ fontSize: '0.75469rem', color: '#5b3a7a', margin: '8px 0 0', lineHeight: 1.45 }}>
                       Rang imposé — le score reste celui de l’analyse ({verdictActif.score}/20).
                     </p>
                   )}
-                  {statutAction === 'erreur' && <p style={{ fontSize: '0.6875rem', color: '#9a2a2a', margin: '8px 0 0' }}>Erreur lors de l’enregistrement.</p>}
+                  {statutAction === 'erreur' && <p style={{ fontSize: '0.79062rem', color: '#9a2a2a', margin: '8px 0 0' }}>Erreur lors de l’enregistrement.</p>}
                 </div>
 
                 {/* ── Notes : ce qui justifie le score, sans complaisance ── */}
@@ -1112,7 +1112,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                     </div>
                   )}
                   {verdictActif.rouge.length === 0 && verdictActif.vert.length === 0 && (
-                    <p style={{ fontSize: '0.71875rem', color: '#9a958d', margin: 0, fontStyle: 'italic' }}>
+                    <p style={{ fontSize: '0.82656rem', color: '#9a958d', margin: 0, fontStyle: 'italic' }}>
                       Aucun défaut relevé. Pas de note : une boîte vide est une information.
                     </p>
                   )}
@@ -1131,7 +1131,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                       ))}
                     </ul>
                   ) : (
-                    <p style={{ fontSize: '0.71875rem', color: '#9a958d', margin: 0 }}>Aucune note.</p>
+                    <p style={{ fontSize: '0.82656rem', color: '#9a958d', margin: 0 }}>Aucune note.</p>
                   )}
                   <button className="controle-action-btn" style={{ marginTop: '7px' }} disabled={statutAction === 'envoi'} onClick={ajouterNote}>Ajouter une note</button>
                 </div>
@@ -1152,14 +1152,14 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                       })}
                     </div>
                   ) : (
-                    <p style={{ fontSize: '0.71875rem', color: '#9a958d', margin: 0 }}>Aucun lien biblique.</p>
+                    <p style={{ fontSize: '0.82656rem', color: '#9a958d', margin: 0 }}>Aucun lien biblique.</p>
                   )}
                   <button className="controle-action-btn" style={{ marginTop: '7px' }} disabled={statutAction === 'envoi'} onClick={ajouterLienBiblique}>Ajouter un lien biblique</button>
                 </div>}
 
                 <div className="controle-section">
                   <p className="controle-section-title">Données</p>
-                  <div style={{ fontSize: '0.6875rem', color: '#5a5450', lineHeight: 1.9 }}>
+                  <div style={{ fontSize: '0.79062rem', color: '#5a5450', lineHeight: 1.9 }}>
                     <div>Longueur : {(actif.segment_texte ?? '').trim().length} signes</div>
                     <div>Liens : {liensSegment(actif).length || 'aucun'}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1178,7 +1178,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                 </div>
               </>
             ) : (
-              <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Sélectionnez un segment.</p>
+              <p style={{ fontSize: '0.8625rem', color: '#9a958d', fontStyle: 'italic' }}>Sélectionnez un segment.</p>
             )}
           </aside>
         </div>

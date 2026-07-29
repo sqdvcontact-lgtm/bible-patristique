@@ -102,18 +102,18 @@ export default function SectionEditeurs() {
     await charger()
   }
 
-  const champ: React.CSSProperties = { width: '100%', fontSize: '0.75rem', padding: '6px 9px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }
-  const label: React.CSSProperties = { display: 'block', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.04em', color: '#8a8278', textTransform: 'uppercase', margin: '0 0 3px' }
+  const champ: React.CSSProperties = { width: '100%', fontSize: '0.8625rem', padding: '6px 9px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }
+  const label: React.CSSProperties = { display: 'block', fontSize: '0.71875rem', fontWeight: 700, letterSpacing: '0.04em', color: '#8a8278', textTransform: 'uppercase', margin: '0 0 3px' }
 
   return (
     <div style={{ maxWidth: '47.5rem', margin: '0 auto' }}>
-      <p style={{ fontSize: '0.8125rem', color: '#6b6560', lineHeight: 1.55, margin: '0 0 20px' }}>
+      <p style={{ fontSize: '0.93437rem', color: '#6b6560', lineHeight: 1.55, margin: '0 0 20px' }}>
         Table de référence des maisons d'édition. Le <strong>nom complet</strong> s'affiche partout où l'éditeur est répertorié ; les <strong>variantes</strong> (abréviations, graphies) le résolvent. Les données des œuvres restent intactes.
       </p>
 
       {/* Formulaire ajout / édition */}
       <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '9px', padding: '16px 18px', marginBottom: '22px' }}>
-        <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#3d6b4f', margin: '0 0 12px' }}>{brouillon.id ? 'Modifier un éditeur' : 'Ajouter un éditeur'}</p>
+        <p style={{ fontSize: '0.8625rem', fontWeight: 700, color: '#3d6b4f', margin: '0 0 12px' }}>{brouillon.id ? 'Modifier un éditeur' : 'Ajouter un éditeur'}</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '11px', marginBottom: '11px' }}>
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={label}>Nom complet *</label>
@@ -142,10 +142,10 @@ export default function SectionEditeurs() {
             <input style={champ} value={brouillon.notes} onChange={e => setBrouillon(b => ({ ...b, notes: e.target.value }))} placeholder="Facultatif" />
           </div>
         </div>
-        {statut === 'err' && <p style={{ fontSize: '0.6875rem', color: '#c0562a', margin: '0 0 8px' }}>{erreur}</p>}
+        {statut === 'err' && <p style={{ fontSize: '0.79062rem', color: '#c0562a', margin: '0 0 8px' }}>{erreur}</p>}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-          {brouillon.id && <button onClick={() => { setBrouillon(VIDE); setStatut('idle') }} style={{ fontSize: '0.71875rem', padding: '6px 13px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>}
-          <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '0.71875rem', padding: '6px 15px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+          {brouillon.id && <button onClick={() => { setBrouillon(VIDE); setStatut('idle') }} style={{ fontSize: '0.82656rem', padding: '6px 13px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>}
+          <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '0.82656rem', padding: '6px 15px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
             {statut === 'envoi' ? 'Enregistrement…' : brouillon.id ? 'Enregistrer' : 'Ajouter'}
           </button>
         </div>
@@ -154,12 +154,12 @@ export default function SectionEditeurs() {
       {/* À normaliser */}
       {aNormaliser.length > 0 && (
         <div style={{ marginBottom: '22px' }}>
-          <p style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#9a5a2a', margin: '0 0 8px' }}>À normaliser ({aNormaliser.length})</p>
-          <p style={{ fontSize: '0.71875rem', color: '#8a8278', margin: '0 0 10px' }}>Formes rencontrées dans le catalogue, pas encore répertoriées. Cliquez pour préremplir le formulaire.</p>
+          <p style={{ fontSize: '0.79062rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#9a5a2a', margin: '0 0 8px' }}>À normaliser ({aNormaliser.length})</p>
+          <p style={{ fontSize: '0.82656rem', color: '#8a8278', margin: '0 0 10px' }}>Formes rencontrées dans le catalogue, pas encore répertoriées. Cliquez pour préremplir le formulaire.</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
             {aNormaliser.map(nom => (
               <button key={nom} onClick={() => { setBrouillon({ ...VIDE, nom_complet: nom }); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-                style={{ fontSize: '0.71875rem', padding: '4px 11px', borderRadius: '999px', border: '1px solid #e3cdb0', background: '#fdf6ef', color: '#9a5a2a', cursor: 'pointer' }}>
+                style={{ fontSize: '0.82656rem', padding: '4px 11px', borderRadius: '999px', border: '1px solid #e3cdb0', background: '#fdf6ef', color: '#9a5a2a', cursor: 'pointer' }}>
                 {nom}
               </button>
             ))}
@@ -168,25 +168,25 @@ export default function SectionEditeurs() {
       )}
 
       {/* Liste des éditeurs répertoriés */}
-      <p style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#8a8278', margin: '0 0 8px' }}>Répertoriés ({editeurs?.length ?? 0})</p>
+      <p style={{ fontSize: '0.79062rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#8a8278', margin: '0 0 8px' }}>Répertoriés ({editeurs?.length ?? 0})</p>
       {editeurs === null ? (
-        <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+        <p style={{ fontSize: '0.8625rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
       ) : editeurs.length === 0 ? (
-        <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Aucun éditeur répertorié pour l'instant.</p>
+        <p style={{ fontSize: '0.8625rem', color: '#9a958d', fontStyle: 'italic' }}>Aucun éditeur répertorié pour l'instant.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {editeurs.map(e => (
             <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '7px', padding: '9px 13px' }}>
               <div style={{ minWidth: 0 }}>
-                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', color: '#1e2e24' }}>{e.nom_complet}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', fontSize: '0.625rem', color: '#b0a89e', marginTop: '2px' }}>
+                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.97031rem', color: '#1e2e24' }}>{e.nom_complet}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', fontSize: '0.71875rem', color: '#b0a89e', marginTop: '2px' }}>
                   {e.variantes?.length > 0 && <span>≈ {e.variantes.join(', ')}</span>}
                   {(e.ville || e.annee_debut || e.annee_fin) && <span>{[e.ville, [e.annee_debut, e.annee_fin].filter(Boolean).join('–')].filter(Boolean).join(', ')}</span>}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
-                <button onClick={() => editer(e)} style={{ fontSize: '0.6875rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Modifier</button>
-                <button onClick={() => supprimer(e.id)} style={{ fontSize: '0.6875rem', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Supprimer</button>
+                <button onClick={() => editer(e)} style={{ fontSize: '0.79062rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Modifier</button>
+                <button onClick={() => supprimer(e.id)} style={{ fontSize: '0.79062rem', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Supprimer</button>
               </div>
             </div>
           ))}

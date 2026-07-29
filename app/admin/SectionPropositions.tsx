@@ -87,42 +87,42 @@ export default function SectionPropositions() {
   )
   const compteATraiter = (comptes.en_attente ?? 0) + (comptes.en_cours ?? 0)
 
-  if (chargement) return <p style={{ fontSize: '0.75rem', color: '#b0a89e', fontStyle: 'italic' }}>Chargement…</p>
+  if (chargement) return <p style={{ fontSize: '0.8625rem', color: '#b0a89e', fontStyle: 'italic' }}>Chargement…</p>
   if (erreur) return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: '#fdf2ee', border: '1px solid #e4c4b8', borderRadius: '7px', maxWidth: '31.25rem' }}>
-      <span style={{ fontSize: '0.75rem', color: '#c0562a' }}>{erreur}</span>
-      <button onClick={charger} style={{ fontSize: '0.6875rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #e4c4b8', background: '#fff', color: '#c0562a', cursor: 'pointer', whiteSpace: 'nowrap' }}>Réessayer</button>
+      <span style={{ fontSize: '0.8625rem', color: '#c0562a' }}>{erreur}</span>
+      <button onClick={charger} style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #e4c4b8', background: '#fff', color: '#c0562a', cursor: 'pointer', whiteSpace: 'nowrap' }}>Réessayer</button>
     </div>
   )
 
   return (
     <div style={{ maxWidth: '51.25rem' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '16px' }}>
-        <h2 style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', margin: 0 }}>
+        <h2 style={{ fontSize: '0.71875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', margin: 0 }}>
           Propositions d'œuvres
         </h2>
-        <span style={{ fontSize: '0.6875rem', color: '#b0a89e' }}>{propositions.length} proposition{propositions.length > 1 ? 's' : ''}</span>
+        <span style={{ fontSize: '0.79062rem', color: '#b0a89e' }}>{propositions.length} proposition{propositions.length > 1 ? 's' : ''}</span>
       </div>
 
       {/* Onglets statut */}
       <div style={{ display: 'flex', gap: '0', borderBottom: '1px solid #344d3e', marginBottom: '20px' }}>
         {([['a_traiter', 'En attente', compteATraiter], ['acceptee', 'Acceptées', comptes.acceptee], ['refusee', 'Refusées', comptes.refusee]] as [string, string, number][]).map(([key, label, count]) => (
           <button key={key} onClick={() => setFiltreStatut(key)} style={{
-            padding: '7px 14px', fontSize: '0.6875rem', background: 'none', border: 'none',
+            padding: '7px 14px', fontSize: '0.79062rem', background: 'none', border: 'none',
             borderBottom: filtreStatut === key ? '2px solid #7aaa8e' : '2px solid transparent',
             color: filtreStatut === key ? '#a8d4b8' : '#6a9080', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', marginBottom: '-1px',
           }}>
             {label}
             {count > 0 && (
-              <span style={{ fontSize: '0.59375rem', background: key === 'a_traiter' ? '#c0562a' : '#4a6459', color: '#fff', borderRadius: '10px', padding: '1px 5px' }}>{count}</span>
+              <span style={{ fontSize: '0.68281rem', background: key === 'a_traiter' ? '#c0562a' : '#4a6459', color: '#fff', borderRadius: '10px', padding: '1px 5px' }}>{count}</span>
             )}
           </button>
         ))}
       </div>
 
       {filtrees.length === 0 ? (
-        <p style={{ fontSize: '0.78125rem', color: '#9a958d', fontStyle: 'italic' }}>Aucune proposition dans cette catégorie.</p>
+        <p style={{ fontSize: '0.89844rem', color: '#9a958d', fontStyle: 'italic' }}>Aucune proposition dans cette catégorie.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {filtrees.map(p => {
@@ -135,20 +135,20 @@ export default function SectionPropositions() {
                   onClick={() => setOuverte(estOuverte ? null : p.id)}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '0.84375rem', fontWeight: 600, color: '#2a3d30' }}>{p.titre}</span>
-                      <span style={{ fontSize: '0.75rem', color: '#8a8278' }}>{p.auteur_nom}</span>
+                      <span style={{ fontSize: '0.97031rem', fontWeight: 600, color: '#2a3d30' }}>{p.titre}</span>
+                      <span style={{ fontSize: '0.8625rem', color: '#8a8278' }}>{p.auteur_nom}</span>
                     </div>
-                    <div style={{ fontSize: '0.6875rem', color: '#b0a89e', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <div style={{ fontSize: '0.79062rem', color: '#b0a89e', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span>{[p.traducteur ? `trad. ${p.traducteur}` : null, p.editeur, formaterDateHistorique(p.date_publication)].filter(Boolean).join(' · ')}</span>
                       <span>{new Date(p.created_at).toLocaleDateString('fr-FR')}</span>
                       {p.nb_30j != null && p.nb_30j > 1 && (
-                        <span style={{ fontSize: '0.625rem', fontWeight: 600, padding: '1px 6px', borderRadius: '8px', background: p.nb_30j >= 3 ? '#fdf2ee' : '#fef5e8', color: p.nb_30j >= 3 ? '#c0562a' : '#9a5a2a' }}>
+                        <span style={{ fontSize: '0.71875rem', fontWeight: 600, padding: '1px 6px', borderRadius: '8px', background: p.nb_30j >= 3 ? '#fdf2ee' : '#fef5e8', color: p.nb_30j >= 3 ? '#c0562a' : '#9a5a2a' }}>
                           {p.nb_30j} propositions / 30 j
                         </span>
                       )}
                     </div>
                   </div>
-                  <span style={{ fontSize: '0.625rem', fontWeight: 600, padding: '3px 9px', borderRadius: '4px', background: s.bg, color: s.couleur, whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: '0.71875rem', fontWeight: 600, padding: '3px 9px', borderRadius: '4px', background: s.bg, color: s.couleur, whiteSpace: 'nowrap' }}>
                     {s.label}
                   </span>
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, opacity: 0.4, transform: estOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
@@ -164,31 +164,31 @@ export default function SectionPropositions() {
                         .filter(([, v]) => v)
                         .map(([k, v]) => (
                           <div key={k}>
-                            <span style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', display: 'block' }}>{k}</span>
-                            <span style={{ fontSize: '0.75rem', color: '#2a3d30' }}>{v}</span>
+                            <span style={{ fontSize: '0.68281rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', display: 'block' }}>{k}</span>
+                            <span style={{ fontSize: '0.8625rem', color: '#2a3d30' }}>{v}</span>
                           </div>
                         ))}
                     </div>
 
                     {p.note && (
                       <div style={{ background: '#f7f4ef', borderRadius: '5px', padding: '10px 12px' }}>
-                        <span style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', display: 'block', marginBottom: '4px' }}>Note</span>
-                        <p style={{ fontSize: '0.75rem', color: '#3a3530', lineHeight: 1.6, margin: 0 }}>{p.note}</p>
+                        <span style={{ fontSize: '0.68281rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', display: 'block', marginBottom: '4px' }}>Note</span>
+                        <p style={{ fontSize: '0.8625rem', color: '#3a3530', lineHeight: 1.6, margin: 0 }}>{p.note}</p>
                       </div>
                     )}
 
                     {p.texte && (
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d' }}>
+                          <span style={{ fontSize: '0.68281rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d' }}>
                             Texte · {p.texte.length.toLocaleString('fr-FR')} caractères
                           </span>
                           <button onClick={() => navigator.clipboard.writeText(p.texte!)}
-                            style={{ fontSize: '0.625rem', color: '#6a9080', background: 'none', border: '1px solid #4a6459', borderRadius: '3px', padding: '2px 8px', cursor: 'pointer' }}>
+                            style={{ fontSize: '0.71875rem', color: '#6a9080', background: 'none', border: '1px solid #4a6459', borderRadius: '3px', padding: '2px 8px', cursor: 'pointer' }}>
                             Copier
                           </button>
                         </div>
-                        <pre style={{ fontSize: '0.71875rem', lineHeight: 1.65, color: '#2a2520', background: '#faf8f4', border: '1px solid #e4dfd8', borderRadius: '5px', padding: '10px 12px', maxHeight: '280px', overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, fontFamily: 'ui-monospace, Consolas, monospace' }}>
+                        <pre style={{ fontSize: '0.82656rem', lineHeight: 1.65, color: '#2a2520', background: '#faf8f4', border: '1px solid #e4dfd8', borderRadius: '5px', padding: '10px 12px', maxHeight: '280px', overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, fontFamily: 'ui-monospace, Consolas, monospace' }}>
                           {p.texte}
                         </pre>
                       </div>
@@ -198,13 +198,13 @@ export default function SectionPropositions() {
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', paddingTop: '4px', borderTop: '1px solid #ede9e2' }}>
                       {(['en_attente', 'en_cours', 'acceptee', 'refusee'] as const).filter(st => st !== p.statut).map(st => (
                         <button key={st} onClick={() => changerStatut(p.id, st)} style={{
-                          fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', border: 'none',
+                          fontSize: '0.79062rem', padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', border: 'none',
                           background: STATUTS[st].bg, color: STATUTS[st].couleur, fontWeight: 500,
                         }}>
                           → {STATUTS[st].label}
                         </button>
                       ))}
-                      <button onClick={() => supprimer(p.id)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', background: 'transparent', color: '#c0562a', border: '1px solid #e4c4b8', marginLeft: 'auto' }}>
+                      <button onClick={() => supprimer(p.id)} style={{ fontSize: '0.79062rem', padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', background: 'transparent', color: '#c0562a', border: '1px solid #e4c4b8', marginLeft: 'auto' }}>
                         Supprimer
                       </button>
                     </div>
