@@ -126,7 +126,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
           </div>
         )}
 
-        <div style={{ flex: 1, padding: compact ? '9px 14px' : '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: compact ? '4px' : '8px' }}>
+        <div style={{ flex: 1, padding: compact ? '6px 12px' : '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: compact ? '2px' : '8px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px' }}>
               <h2 style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.875rem', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0 }}>
@@ -139,7 +139,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                 <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M3.5 3h5.5v5.5M9 3L3 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
             </div>
-            {datesAuteur && (
+            {!compact && datesAuteur && (
               <p style={{ fontSize: '0.71875rem', color: '#9a8a70', margin: '1px 0 0', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', letterSpacing: '0.01em' }}>
                 {rendreSiecles(datesAuteur)}
               </p>
@@ -158,7 +158,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
             </p>
           )}
 
-          <div style={{ marginTop: 'auto', paddingTop: '6px' }}>
+          <div style={{ marginTop: 'auto', paddingTop: compact ? '2px' : '6px' }}>
             <button onClick={() => setOuvert(!ouvert)}
               style={{ fontSize: '0.65625rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span style={{ fontSize: '0.5rem' }}>{listeOuverte ? '▲' : '▼'}</span>
