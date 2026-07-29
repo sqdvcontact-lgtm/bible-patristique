@@ -404,7 +404,7 @@ export default function Navbar() {
           onKeyDown={e => { if (e.key === 'Enter') validerRechercheRapide() }}
           placeholder="Rechercher…"
           className="recherche-rapide-input"
-          style={{ width: mobile ? "100%" : "220px", fontSize: "0.84rem", padding: "6px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "#fff", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
+          style={{ width: mobile ? "100%" : "13.75rem", fontSize: "0.84rem", padding: "6px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "#fff", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
         />
         {/* Bouton « Nouvelle recherche » : conduit à la page de recherche VIERGE (pas de
             ?q), pour repartir de zéro. Si l'on y est DÉJÀ (l'URL peut être « /recherche »
