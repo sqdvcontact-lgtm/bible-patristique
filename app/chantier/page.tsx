@@ -487,17 +487,20 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
            Trois colonnes en regard (déjà / avant / après), chacune coiffée d'un
            titre sérif ; le corps des listes est sans-serif. Les colonnes se
            replient d'elles-mêmes (auto-fit) dès que la largeur vient à manquer. */
-        .cs-route { border-top: 1px solid #e0d9cc; border-bottom: 1px solid #e0d9cc;
-                    padding: 2rem 0 2.125rem; margin-bottom: 2.375rem; }
-        .cs-route-kicker { font-size: 0.625rem; font-weight: 700; letter-spacing: 0.18em;
-                           text-transform: uppercase; color: #6f5518; margin: 0 0 0.75rem;
+        /* Pas de filet autour de la section : le muguet cul-de-lampe qui la
+           précède fait la séparation, et une ligne juste en dessous lui coupait
+           l'herbe sous le pied. L'espace seul délimite désormais la feuille de
+           route, en haut comme en bas. */
+        .cs-route { padding: 0.75rem 0 0.5rem; margin-bottom: 2.75rem; }
+        .cs-route-kicker { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
+                           font-size: 1.375rem; color: #2a3d30; margin: 0 0 0.625rem;
                            text-align: center; }
         .cs-route-chapeau { font-size: 0.84375rem; color: #6a6259; line-height: 1.7;
                             max-width: 34rem; margin: 0 auto 2rem; text-align: center; }
         .cs-route-phases { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
                            gap: 2rem 2.25rem; max-width: 46rem; margin: 0 auto; }
         .cs-phase-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
-                          font-size: 1.0625rem; color: #2a3d30; text-align: center;
+                          font-size: 1.1875rem; color: #2a3d30; text-align: center;
                           margin: 0 0 1rem; padding-bottom: 0.625rem; border-bottom: 1px solid #e5ddce; }
         .cs-route-liste { list-style: none; margin: 0; padding: 0;
                           display: flex; flex-direction: column; gap: 0.75rem; }
