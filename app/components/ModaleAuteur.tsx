@@ -22,6 +22,7 @@ type OeuvreResumee = {
   id_oeuvre: string; titre: string; sous_titre: string | null
   trad_auteur: string | null; editeur: string | null
   ville: string | null; date_publication: string | null; langue: string | null; note?: string | null
+  date_composition: string | null; date_approx: string | null; composition_debut_annee: number | null
 }
 type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 type Auteur = {
@@ -85,10 +86,14 @@ function Contenu({ auteur, onClose }: { auteur: Auteur; onClose: () => void }) {
   const initiales = auteur.nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('')
   const meta = rendreSiecles([datesAuteur, auteur.langue_principale, ...(auteur.traditions ?? [])].filter(Boolean).join(' · '))
 
-  // Tri par date de publication (croissante). Les œuvres sans date closent la liste,
-  // départagées par le titre.
+  // Affichage : la date de COMPOSITION (estimée ou connue), non la date de la
+  // traduction. Repli sur date_approx quand date_composition manque.
+  const dateCompo = (o: OeuvreResumee) => o.date_composition || o.date_approx || ''
+  // Tri par année de composition (croissante). Les œuvres sans date closent la
+  // liste, départagées par le titre.
   const anneeTri = (o: OeuvreResumee) => {
-    const m = (o.date_publication || '').match(/\d{3,4}/)
+    if (o.composition_debut_annee != null) return o.composition_debut_annee
+    const m = dateCompo(o).match(/\d{2,4}/)
     return m ? parseInt(m[0], 10) : Infinity
   }
   const parDate = (a: OeuvreResumee, b: OeuvreResumee) =>
@@ -118,9 +123,10 @@ function Contenu({ auteur, onClose }: { auteur: Auteur; onClose: () => void }) {
         </div>
       </header>
 
-      {/* Deux colonnes : à gauche la vie, à droite la chronologie. */}
-      <div style={{ display: 'grid', gridTemplateColumns: aColonnes ? 'minmax(0, 1.35fr) minmax(0, 1fr)' : '1fr', gap: '26px', alignItems: 'start' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderRight: aColonnes ? '1px solid #ece7de' : 'none', paddingRight: aColonnes ? '24px' : 0 }}>
+      {/* Deux colonnes : à gauche la vie, à droite la chronologie. Repliées en une
+          seule colonne sur mobile (voir media-query .auteur-grid). */}
+      <div className="auteur-grid" style={{ display: 'grid', gridTemplateColumns: aColonnes ? 'minmax(0, 1.35fr) minmax(0, 1fr)' : '1fr', gap: '26px', alignItems: 'start' }}>
+        <div className="auteur-grid-vie" style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderRight: aColonnes ? '1px solid #ece7de' : 'none', paddingRight: aColonnes ? '24px' : 0 }}>
           {auteur.note_biographique && <section><TitreSection>Vie</TitreSection><p className="auteur-prose">{rendreSiecles(auteur.note_biographique)}</p></section>}
           {auteur.anecdotes?.trim() && (
             <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.71875rem', color: '#6b6560', lineHeight: 1.5, margin: 0, paddingLeft: '11px', borderLeft: '1px solid #ddd0b0' }}>{rendreSiecles(auteur.anecdotes)}</p>
@@ -138,26 +144,26 @@ function Contenu({ auteur, onClose }: { auteur: Auteur; onClose: () => void }) {
       {(oeuvresPresentes.length > 0 || oeuvresAbsentes.length > 0) && (
         <section style={{ marginTop: '20px', borderTop: '1px solid #ece7de', paddingTop: '14px' }}>
           <TitreSection>Œuvres</TitreSection>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+          {/* Titre à gauche (presque aligné sur le titre « Œuvres », léger retrait),
+              date de COMPOSITION à droite. */}
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, paddingLeft: '5px' }}>
             {oeuvresPresentes.map(o => (
               <li key={o.id_oeuvre}>
-                {/* Date de publication à gauche, sur le modèle de la chronologie ; titre seul,
-                    sans sous-titre. */}
                 <Link href={`/oeuvre/${o.id_oeuvre}`} onClick={onClose} className="auteur-oeuvre"
-                  style={{ display: 'grid', gridTemplateColumns: '46px 1fr', gap: '9px', alignItems: 'baseline' }}>
-                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: '#b7a06a', textAlign: 'right', whiteSpace: 'nowrap' }}>{formaterDateHistorique(o.date_publication)}</span>
-                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: '#2a3d30' }}>{o.titre}</span>
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '14px' }}>
+                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: '#2a3d30', minWidth: 0 }}>{o.titre}</span>
+                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: '#b7a06a', whiteSpace: 'nowrap', flexShrink: 0 }}>{rendreSiecles(dateCompo(o))}</span>
                 </Link>
               </li>
             ))}
             {oeuvresAbsentes.map(o => (
               <li key={o.id_oeuvre} className="auteur-oeuvre auteur-oeuvre--absente" title="Œuvre répertoriée, pas encore disponible"
-                style={{ display: 'grid', gridTemplateColumns: '46px 1fr', gap: '9px', alignItems: 'baseline' }}>
-                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: '#cdbe93', textAlign: 'right', whiteSpace: 'nowrap' }}>{formaterDateHistorique(o.date_publication)}</span>
-                <span>
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '14px' }}>
+                <span style={{ minWidth: 0 }}>
                   <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: '#a8a29a' }}>{o.titre}</span>
                   <span style={{ marginLeft: '7px', fontSize: '0.53125rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#b7ad9a' }}>répertoriée</span>
                 </span>
+                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: '#cdbe93', whiteSpace: 'nowrap', flexShrink: 0 }}>{rendreSiecles(dateCompo(o))}</span>
               </li>
             ))}
           </ul>
@@ -177,7 +183,7 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
     supabase.from('auteurs')
       .select(`id_auteur, nom, nom_original, titre, dates, siecle, traditions, photo_position,
         note_biographique, note_theologique, langue_principale, chronologie, anecdotes, influence,
-        oeuvres ( id_oeuvre, titre, sous_titre, trad_auteur, editeur, ville, date_publication, note )`)
+        oeuvres ( id_oeuvre, titre, sous_titre, trad_auteur, editeur, ville, date_publication, note, date_composition, date_approx, composition_debut_annee )`)
       .eq('id_auteur', id).maybeSingle()
       .then(({ data, error }) => {
         if (error || !data) { setErreur(true); return }
@@ -198,9 +204,9 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
   if (!id || typeof document === 'undefined') return null
 
   return createPortal(
-    <div onClick={onClose}
+    <div onClick={onClose} className="auteur-modale-overlay"
       style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.42)', zIndex: 2100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 20px', overflowY: 'auto' }}>
-      <div onClick={e => e.stopPropagation()}
+      <div onClick={e => e.stopPropagation()} className="auteur-modale-inner"
         style={{ position: 'relative', width: '100%', maxWidth: '47.5rem', background: '#f7f4ef', borderRadius: '12px', border: '1px solid #e0d8cc', boxShadow: '0 20px 60px rgba(40,30,15,0.30)', padding: '30px 34px 28px', margin: 'auto' }}>
         <button onClick={onClose} aria-label="Fermer" title="Fermer"
           style={{ position: 'absolute', top: '12px', right: '14px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid #e0d8cc', background: '#fff', color: '#9a958d', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
@@ -218,6 +224,13 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
           .auteur-oeuvre { display: block; padding: 1px 8px; margin: 0 -8px; border-radius: 4px; text-decoration: none; transition: background 0.12s; }
           a.auteur-oeuvre:hover { background: rgba(61,107,79,0.06); }
           .auteur-oeuvre--absente { cursor: default; }
+          /* Mobile : tout sur une seule colonne, cadre resserré. */
+          @media (max-width: 640px) {
+            .auteur-modale-overlay { padding: 14px 8px !important; }
+            .auteur-modale-inner { padding: 22px 15px 20px !important; border-radius: 10px !important; }
+            .auteur-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+            .auteur-grid-vie { border-right: none !important; padding-right: 0 !important; }
+          }
         `}</style>
       </div>
     </div>,
