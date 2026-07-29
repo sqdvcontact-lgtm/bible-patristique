@@ -190,14 +190,13 @@ const PRINCIPES: { ico: React.ReactNode; titre: string; texte: React.ReactNode }
     texte: <>En regard du texte biblique s’affichent les passages des Pères qui le citent ou le
       commentent : c’est le cœur du site. Chaque rapprochement est établi puis relu ; les passages
       incertains sont signalés comme tels, et vos signalements servent à corriger le site.</> },
-  { ico: <IcoPlume />, titre: "Les lecteurs contribuent",
+  { ico: <IcoPlume />, titre: "Somme collaborative",
     texte: <>Les lecteurs inscrits publient leurs propres essais, dans le registre qu’ils veulent :
       exégétique, théologique, spirituel ou littéraire. Chacun peut les lire, les commenter et en
-      discuter. Le site n’est pas qu’une bibliothèque. C’est aussi un atelier, où la lecture des
-      Pères se prolonge en écriture et en conversation.</> },
+      discuter.</> },
   { ico: <IcoLibre />, titre: "Gratuit, sans publicité",
-    texte: <>Ni abonnement, ni publicité, ni revente de données. Le travail est bénévole,
-      et le restera.</> },
+    texte: <>Le site est accessible gratuitement, sans abonnement ni publicité, et les données
+      personnelles ne sont jamais revendues. Le travail est bénévole et le restera.</> },
 ];
 
 // ── Feuille de route ─────────────────────────────────────────────────────────
@@ -220,7 +219,7 @@ const PHASES: { titre: string; etat: "fait" | "avant" | "apres"; items: string[]
     "Achever l’alignement des traductions bibliques",
     "Ajouter les textes originaux disponibles",
     "Reprendre les traductions anciennes libres de droit",
-    "Ajouter l’hébreu, le syriaque et les premiers apocryphes",
+    "Élargir aux langues anciennes et aux apocryphes",
     "Adapter pleinement le site aux mobiles",
     "Tester et corriger l’ensemble du site",
   ] },
@@ -240,7 +239,8 @@ function FeuilleDeRoute() {
     <section className="cs-route">
       <p className="cs-route-kicker">Feuille de route</p>
       <p className="cs-route-chapeau">
-        Ce qui est déjà en place, ce qui reste avant l’ouverture, et ce qui suivra. Nous n’annonçons pas de date.
+        Ce qui est déjà en place, ce qui reste avant l’ouverture, et ce qui suivra.<br />
+        Nous n’annonçons pas de date.
       </p>
       <div className="cs-route-phases">
         {PHASES.map(ph => (
@@ -431,7 +431,19 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
                     font-size: 1.25rem; font-style: italic; margin: 0.625rem 0 1rem; }
         .cs-chapeau { font-size: 0.90625rem; color: #6a6259; line-height: 1.75;
                       max-width: 32.5rem; margin: 0 auto; }
-        .cs-suite { display: block; margin-top: 1rem; color: #a89e8e; }
+        /* Chevron d'invite à descendre : bouton discret, un peu plus grand, qui
+           oscille doucement pour signaler qu'il y a une suite, et pousse au clic
+           jusqu'au corps de la page. L'oscillation se coupe si l'on préfère moins
+           de mouvement. */
+        .cs-suite { display: inline-flex; align-items: center; justify-content: center;
+                    margin-top: 1.25rem; width: 2.75rem; height: 2.75rem; padding: 0;
+                    border: none; background: none; color: #b0a48f; cursor: pointer;
+                    border-radius: 50%; transition: color 0.2s ease;
+                    animation: cs-suite-bob 2.4s ease-in-out infinite; }
+        .cs-suite:hover { color: #7d5f28; }
+        .cs-suite:focus-visible { outline: 2px solid #a9c3b1; outline-offset: 0.125rem; }
+        @keyframes cs-suite-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(0.25rem); } }
+        @media (prefers-reduced-motion: reduce) { .cs-suite { animation: none; } }
         /* Grille des six encarts. grid-auto-rows:1fr donne à toutes les rangées
            la même hauteur : les six cartes sont ainsi rigoureusement égales, quel
            que soit le nombre de lignes du texte. L'écart (gap) est le même dans
@@ -563,15 +575,17 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         <div style={{ marginTop: "1.625rem" }}><Chiffres /></div>
 
         {/* Invite à faire défiler : sans elle, un premier écran qui tient dans la
-            fenêtre laisse croire qu'il n'y a rien en dessous. */}
-        <span className="cs-suite" aria-hidden="true">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
-            <path d="M12 5v13M6.5 12.5 12 18l5.5-5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+            fenêtre laisse croire qu'il n'y a rien en dessous. Au clic, elle pousse
+            le lecteur jusqu'au corps de la page (les encarts). */}
+        <button type="button" className="cs-suite" aria-label="Voir la suite"
+          onClick={() => document.getElementById("cs-corps-chantier")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M5 9.5 12 16.5 19 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </span>
+        </button>
       </header>
 
-      <div className="cs-ouverture-corps" style={{ paddingBottom: "3.5rem" }}>
+      <div className="cs-ouverture-corps" id="cs-corps-chantier" style={{ paddingBottom: "3.5rem" }}>
 
         <div className="cs-principes" style={{ paddingTop: "2.75rem" }}>
           {PRINCIPES.map((p, i) => {
