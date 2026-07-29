@@ -218,9 +218,10 @@ function rendreTitreColophon(texte: string) {
   return rendreLignesColophonAvecLargeurs(lignes, { display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '40.625rem', margin: '0 auto', lineHeight: 1.24, wordSpacing: '-0.04em', letterSpacing: '-0.004em', hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties)
 }
 
-function rendreLongTexteColophon(texte: string) {
-  const propre = preparerTitreColophon(texte)
-  return rendreTexteEnrichi(propre)
+// Le sommaire est une navigation compacte : les appels restent actifs dans le
+// titre développé du corps, mais leur syntaxe de stockage ne doit pas y paraître.
+function titreSansAppelsDeNote(texte: string) {
+  return texte.replace(/\[\[[A-Z0-9]+\]\]/g, '')
 }
 
 const TRADUCTIONS_FALLBACK = [
@@ -293,6 +294,18 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
 
   const entrerTooltip = () => {
     effacerTimers()
+    setFigee(true)
+  }
+
+  const basculerTooltip = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation()
+    if (visible && figee) { fermer(); return }
+    effacerTimers()
+    if (marceurRef.current) {
+      const r = marceurRef.current.getBoundingClientRect()
+      setRect({ left: r.left, top: r.top, bottom: r.bottom })
+    }
+    setVisible(true)
     setFigee(true)
   }
 
@@ -373,6 +386,11 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
         ref={marceurRef as React.RefObject<HTMLElement>}
         onMouseEnter={survolMarceur}
         onMouseLeave={quitterMarceur}
+        onClick={basculerTooltip}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') basculerTooltip(e) }}
+        role="button"
+        tabIndex={0}
+        aria-label={`Consulter la note ${lettre}`}
         style={{
           cursor: 'help',
           color: '#8a6a3e',
@@ -403,6 +421,9 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
   // marqueur distinct : une note rappelée deux fois garde son numéro.
   const numeros = new Map<string, number>()
   const numeroDe = (marqueur: string) => {
+    // Les imports récents portent déjà une numérotation éditoriale globale.
+    // Ne jamais la renuméroter localement (un [[78]] doit rester 78).
+    if (/^\d+$/.test(marqueur)) return Number(marqueur)
     const connu = numeros.get(marqueur)
     if (connu) return connu
     const n = numeros.size + 1
@@ -432,6 +453,16 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
   }
   if (dernierIndex < texte.length) noeuds.push(texte.slice(dernierIndex))
   return noeuds
+}
+
+// Les titres utilisent le mÃªme systÃ¨me de notes que le corps. Lorsqu'un appel
+// est prÃ©sent, on privilÃ©gie son rendu interactif ; les autres titres gardent
+// la composition en colophon Ã©ventuellement appliquÃ©e aux intitulÃ©s longs.
+function rendreTitreColophonAvecNotes(texte: string, notes: Record<string, string>): React.ReactNode {
+  const propre = preparerTitreColophon(texte)
+  return /\[\[[A-Z0-9]+\]\]/.test(propre)
+    ? rendreTexteAvecNotes(propre, notes)
+    : rendreTitreColophon(propre)
 }
 
 // ── Proposition de lien biblique (non-admin) ──────────────────────────────────
@@ -525,16 +556,32 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   // l'identique. La préférence est mémorisée ; elle n'a d'effet que si l'œuvre
   // porte la colonne `paragraphe` (sinon le mode paragraphes est indisponible).
   const [modeLecturePref, setModeLecturePref] = useState<'paragraphes' | 'segments'>('paragraphes')
+  const aTexteOriginal = useMemo(
+    () => [...segmentsInit, ...segmentsApparatInit].some(s => Boolean(s.texteOriginal?.trim())),
+    [segmentsInit, segmentsApparatInit],
+  )
+  const [affichageBilingue, setAffichageBilingue] = useState(false)
   useEffect(() => {
     try {
       const v = localStorage.getItem('cs_mode_lecture_oeuvre')
       if (v === 'segments' || v === 'paragraphes') setModeLecturePref(v)
+      setAffichageBilingue(localStorage.getItem(`cs_bilingue_${idOeuvre}`) === '1')
     } catch {}
-  }, [])
+  }, [idOeuvre])
   const modeLecture: 'paragraphes' | 'segments' = eligibleParagraphes ? modeLecturePref : 'segments'
   const basculerMode = (m: 'paragraphes' | 'segments') => {
     setModeLecturePref(m)
     try { localStorage.setItem('cs_mode_lecture_oeuvre', m) } catch {}
+  }
+  const basculerBilingue = (actif: boolean) => {
+    setAffichageBilingue(actif)
+    // L'original est aligné sur le paragraphe source (rang 1), non sur chaque
+    // micro-segment français : la vue bilingue impose donc le mode paragraphes.
+    if (actif && eligibleParagraphes) setModeLecturePref('paragraphes')
+    try {
+      localStorage.setItem(`cs_bilingue_${idOeuvre}`, actif ? '1' : '0')
+      if (actif && eligibleParagraphes) localStorage.setItem('cs_mode_lecture_oeuvre', 'paragraphes')
+    } catch {}
   }
   // Survol d'un segment en mode paragraphes : cellule d'actions flottante ancrée
   // sur le segment (via portail, pour n'être pas clippée par le corps).
@@ -1208,10 +1255,15 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         .seg-inline { border-radius: 2px; padding: 0 0.5px; cursor: pointer; transition: background 0.12s; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
         .seg-inline:hover { background: rgba(61,107,79,0.09); }
         .seg-inline--actif { background: #ddeee2; }
+        .para-bilingue { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; border-bottom: 1px solid rgba(214,208,196,0.55); margin-bottom: 0.85rem; }
+        .para-bilingue > p { margin-bottom: 0.85rem !important; }
+        .texte-original { color: #575048; font-family: var(--font-source-serif), Georgia, serif; }
         @media(max-width: 980px){
           .titre-colophon{max-width:100%!important;line-height:1.32!important;word-spacing:normal!important;letter-spacing:0!important;}
           .titre-colophon > span{display:inline!important;width:auto!important;max-width:100%!important;}
           .titre-colophon > span:not(:last-child)::after{content:" ";}
+          .para-bilingue { grid-template-columns: 1fr; gap: 0.15rem; }
+          .para-bilingue > .texte-original { padding-left: 0.85rem; border-left: 2px solid #ddd6cb; }
         }
         .toc-lien-n1:hover, .toc-lien-n2:hover { color: #3d6b4f !important; }
         .ref-lien:hover { color: #3d6b4f !important; }
@@ -1295,6 +1347,22 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 })}
               </div>
             </div>
+            {aTexteOriginal && (
+              <div style={{ marginTop: '7px', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#b0a89e', flexShrink: 0 }}>Texte</span>
+                <div style={{ display: 'inline-flex', border: '1px solid #e0dacf', borderRadius: '999px', overflow: 'hidden' }}>
+                  {([['traduction', 'Français'], ['bilingue', 'Français · latin']] as const).map(([mode, label]) => {
+                    const actif = mode === 'bilingue' ? affichageBilingue : !affichageBilingue
+                    return (
+                      <button key={mode} onClick={() => basculerBilingue(mode === 'bilingue')}
+                        style={{ fontSize: '0.5625rem', padding: '3px 10px', border: 'none', background: actif ? '#3d6b4f' : 'transparent', color: actif ? '#fff' : '#8a8278', cursor: 'pointer', fontWeight: actif ? 600 : 400, letterSpacing: '0.02em', transition: 'background 0.12s' }}>
+                        {label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
 
@@ -1372,7 +1440,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? '#3d6b4f' : '#3a3530', lineHeight: 1.35, whiteSpace: 'pre-line' }}>
                     {n1}
                     {niv1TexteMap[n1] && configNiveaux.txtSommaire[0] && (
-                      <span style={{ fontSize: '0.59375rem', color: estActif ? '#3d6b4f' : '#9a958d', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{niv1TexteMap[n1]}</span>
+                      <span style={{ fontSize: '0.59375rem', color: estActif ? '#3d6b4f' : '#9a958d', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{titreSansAppelsDeNote(niv1TexteMap[n1])}</span>
                     )}
                   </button>
 
@@ -1439,7 +1507,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
         {/* ── TEXTE CENTRAL ── */}
         <main lang="fr" style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: '35rem', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
-          <PageTitre auteur={auteur} oeuvre={oeuvreLocale} titre={titreAffiche} estAdmin={estAdmin}
+          <PageTitre auteur={auteur} oeuvre={oeuvreLocale} titre={titreAffiche} estAdmin={estAdmin} mobile={mobile}
             onModifier={(champ, va) => setEditionCible({ type: 'titre_oeuvre', champ, texteActuel: va })} />
 
           {/* Fleuron (feuille de vigne) séparant la page de titre du niveau 1,
@@ -1466,11 +1534,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   </span>
                 ) : niv1Loading ? <span style={{ fontSize: '0.8125rem', color: '#b0a89e' }}>Chargement…</span> : (
                   <>
-                    {rendreTitreColophon(niv1Actif)}
+                    {rendreTitreColophonAvecNotes(niv1Actif, segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes ?? {})}
                     {(() => {
                       const txt = groupes[0]?.niv1_texte || niv1TexteMap[niv1Actif] || ''
+                      const notesTitre = segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes ?? {}
                       return txt && configNiveaux.txtCorps[0]
-                        ? <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{rendreLongTexteColophon(txt)}</span>
+                        ? <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{rendreTexteAvecNotes(preparerTitreColophon(txt), notesTitre)}</span>
                         : null
                     })()}
                     {estAdmin && (() => { const g = groupes[0] ?? { niv1: niv1Actif, niv2: '', niv3: '', niv4: '', anchor: '', itemIds: [] }; return (
@@ -1516,6 +1585,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               {groupesFiltres.map((groupe) => {
               const itemsReels = groupe.itemIds.filter(id => segMap.get(id)?.nature !== 'introduction')
               if (itemsReels.length === 0) return null
+              const notesTitre = segMap.get(itemsReels[0])?.notes ?? {}
               const showNiv2 = profondeurCorps >= 2 && groupe.niv2 && groupe.niv2 !== dniv2
               const showNiv3 = profondeurCorps >= 3 && groupe.niv3 && groupe.niv3 !== dniv3
               const showNiv4 = profondeurCorps >= 4 && groupe.niv4 && groupe.niv4 !== dniv4
@@ -1528,8 +1598,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
                   {showNiv2 && (
                     <div style={{ textAlign: 'center', marginTop: marginTop, marginBottom: '1rem', paddingTop: '0.5rem', paddingRight: estAdmin ? '52px' : '60px', position: 'relative' }}>
-                      <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.1rem', fontWeight: 400, color: '#2a3d30', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophon(groupe.niv2)}</h3>
-                      {groupe.niv2_texte && configNiveaux.txtCorps[1] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.92rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophon(groupe.niv2_texte)}</p>}
+                      <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.1rem', fontWeight: 400, color: '#2a3d30', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre)}</h3>
+                      {groupe.niv2_texte && configNiveaux.txtCorps[1] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.92rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2, schemaTexte: false })}
@@ -1542,8 +1612,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   )}
                   {showNiv3 && (
                     <div style={{ marginTop: isFirstGroupe ? '0' : '1rem', marginBottom: '0.4rem', paddingLeft: '11px', borderLeft: '1px solid #ddd6cb', position: 'relative', paddingRight: estAdmin ? '44px' : 0 }}>
-                      <p style={{ fontSize: '0.78rem', fontWeight: 600, color: '#5a5450', lineHeight: 1.3, margin: 0, letterSpacing: '0.02em', whiteSpace: 'pre-line', textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophon(groupe.niv3)}</p>
-                      {groupe.niv3_texte && configNiveaux.txtCorps[2] && <p style={{ fontSize: '0.75rem', fontStyle: 'italic', color: '#9a958d', lineHeight: 1.3, margin: '2px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophon(groupe.niv3_texte)}</p>}
+                      <p style={{ fontSize: '0.78rem', fontWeight: 600, color: '#5a5450', lineHeight: 1.3, margin: 0, letterSpacing: '0.02em', whiteSpace: 'pre-line', textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophonAvecNotes(groupe.niv3, notesTitre)}</p>
+                      {groupe.niv3_texte && configNiveaux.txtCorps[2] && <p style={{ fontSize: '0.75rem', fontStyle: 'italic', color: '#9a958d', lineHeight: 1.3, margin: '2px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv3_texte, notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: 0, top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 3, groupe, texteActuel: groupe.niv3, schemaTexte: false })}
@@ -1556,8 +1626,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   )}
                   {showNiv4 && (
                     <p style={{ fontSize: '0.72rem', fontWeight: 600, color: '#b0a89e', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: '0.25rem', marginTop: '0.5rem', position: 'relative', paddingRight: estAdmin ? '44px' : 0, whiteSpace: 'pre-line' }}>
-                      {rendreTitreColophon(groupe.niv4)}
-                      {groupe.niv4_texte && configNiveaux.txtCorps[3] && <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px', fontStyle: 'italic' }}>{rendreTitreColophon(groupe.niv4_texte)}</span>}
+                      {rendreTitreColophonAvecNotes(groupe.niv4, notesTitre)}
+                      {groupe.niv4_texte && configNiveaux.txtCorps[3] && <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px', fontStyle: 'italic' }}>{rendreTitreColophonAvecNotes(groupe.niv4_texte, notesTitre)}</span>}
                       {estAdmin && (
                         <span style={{ position: 'absolute', right: 0, top: 0, display: 'inline-flex', gap: '3px', alignItems: 'center', textTransform: 'none' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 4, groupe, texteActuel: groupe.niv4, schemaTexte: false })}
@@ -1568,28 +1638,38 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       )}
                     </p>
                   )}
-                  {modeLecture === 'paragraphes' ? paragraphesDe(itemsReels).map((chunk) => (
-                    <p key={`para-${chunk.ids[0]}`} lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line', paddingRight: estAdmin ? '8px' : 0 } as React.CSSProperties}>
-                      {chunk.ids.map((sid, i) => {
-                        const s = segMap.get(sid)
-                        if (!s) return null
-                        const actif = segActif === sid
-                        const estPremier = sid === premierSegmentId
-                        return (
-                          <Fragment key={sid}>
-                            <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: '60px' }}
-                              onClick={(e) => { setSegActif(actif ? null : sid); positionnerToolbar(e.currentTarget as HTMLElement, sid) }}
-                              onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
-                              onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
-                              {configNiveaux.afficherNumeros && !estPremier && <sup style={{ fontSize: '0.50rem', color: '#b0a89e', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                              {estPremier && normaliserEspaces(s.texte).length > 0 ? rendreAvecLettrine(s.texte, s.notes ?? {}) : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
-                            </span>
-                            {i < chunk.ids.length - 1 ? ' ' : ''}
-                          </Fragment>
-                        )
-                      })}
-                    </p>
-                  )) : itemsReels.map(sid => {
+                  {modeLecture === 'paragraphes' ? paragraphesDe(itemsReels).map((chunk) => {
+                    const original = chunk.ids.map(sid => segMap.get(sid)).find(s => Boolean(s?.texteOriginal?.trim()))
+                    return (
+                    <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? 'para-bilingue' : undefined}>
+                      <p lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line', paddingRight: estAdmin ? '8px' : 0 } as React.CSSProperties}>
+                        {chunk.ids.map((sid, i) => {
+                          const s = segMap.get(sid)
+                          if (!s) return null
+                          const actif = segActif === sid
+                          const estPremier = sid === premierSegmentId
+                          return (
+                            <Fragment key={sid}>
+                              <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: '60px' }}
+                                onClick={(e) => { setSegActif(actif ? null : sid); positionnerToolbar(e.currentTarget as HTMLElement, sid) }}
+                                onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
+                                onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
+                                {configNiveaux.afficherNumeros && !estPremier && <sup style={{ fontSize: '0.50rem', color: '#b0a89e', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
+                                {estPremier && normaliserEspaces(s.texte).length > 0 ? rendreAvecLettrine(s.texte, s.notes ?? {}) : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
+                              </span>
+                              {i < chunk.ids.length - 1 ? ' ' : ''}
+                            </Fragment>
+                          )
+                        })}
+                      </p>
+                      {affichageBilingue && original?.texteOriginal && (
+                        <p lang="la" className="texte-original" style={{ fontSize: '0.79rem', lineHeight: '1.58', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          {rendreTexteAvecNotes(normaliserEspaces(original.texteOriginal), original.notes ?? {})}
+                        </p>
+                      )}
+                    </div>
+                    )
+                  }) : itemsReels.map(sid => {
                     const s = segMap.get(sid)
                     if (!s) return null
                     const actif = segActif === sid
@@ -1643,18 +1723,28 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   // affichées ici — leurs résidus apparat_critique sont filtrés.
                   if (niv1TexteSetClient.has(groupe.niv1)) return null
                   const showNiv1 = groupe.niv1 && groupe.niv1 !== dniv1
-                  if (showNiv1) dniv1 = groupe.niv1
+                  if (showNiv1) { dniv1 = groupe.niv1; dniv2 = '' }
+                  const showNiv2 = groupe.niv2 && groupe.niv2 !== dniv2
+                  if (showNiv2) dniv2 = groupe.niv2
+                  const notesTitre = segMapApparat.get(groupe.itemIds[0])?.notes ?? {}
                   const marginTop = isFirst ? '0' : '2.5rem'
                   if (isFirst) isFirst = false
                   return (
                     <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
                       {showNiv1 && (
                         <div style={{ position: 'relative', marginTop: marginTop, marginBottom: '0.5rem' }}>
-                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: '#2a2520', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophon(groupe.niv1_texte || groupe.niv1)}</h2>
+                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: '#2a2520', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre)}</h2>
+                          {groupe.niv1_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.95rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', textAlign: 'center', lineHeight: 1.4, margin: '4px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1_texte, notesTitre)}</p>}
                           {estAdmin && (
                             <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe, texteActuel: groupe.niv1_texte || groupe.niv1, schemaTexte: true })}
                               title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '0.6875rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>✎</button>
                           )}
+                        </div>
+                      )}
+                      {showNiv2 && (
+                        <div style={{ margin: showNiv1 ? '1rem 0 0.6rem' : '2rem 0 0.6rem', textAlign: 'center' }}>
+                          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.05rem', fontWeight: 500, color: '#3d3832', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre)}</h3>
+                          {groupe.niv2_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.86rem', color: '#7a7268', fontStyle: 'italic', lineHeight: 1.35, margin: '3px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                         </div>
                       )}
                       {groupe.itemIds.map(sid => {

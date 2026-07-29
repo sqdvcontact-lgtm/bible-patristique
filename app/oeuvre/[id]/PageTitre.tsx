@@ -104,18 +104,23 @@ const BTN: React.CSSProperties = {
 }
 
 // ── Page de titre ─────────────────────────────────────────────────────────────
-export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier }: {
+export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier, mobile = false }: {
   auteur: string
   oeuvre: Props['oeuvre']
   titre: string
   estAdmin: boolean
   onModifier: (champ: ChampOeuvre, valeurActuelle: string) => void
+  mobile?: boolean
 }) {
   return (
     <div style={{
       minHeight: '60vh', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
-      padding: '80px 48px 40px 48px',
+      // Desktop : padding droit plus grand pour recentrer le titre sur le CORPS DU
+      // TEXTE seul, en excluant la gouttière des boutons d'action (~62px à droite).
+      // Le centre visuel se décale ainsi d'environ 31px vers la gauche. Sur mobile,
+      // pas de colonne d'actions : padding symétrique et sobre.
+      padding: mobile ? '48px 22px 28px' : '80px 110px 40px 48px',
       marginBottom: '8px', textAlign: 'center',
     }}>
       {/* Nom d'auteur : légèrement agrandi, interlettrage un peu plus ouvert pour
