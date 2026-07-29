@@ -351,7 +351,7 @@ export default function Navbar() {
     // de feuille, et `.cs-onglet:hover` n'aurait donc jamais pu s'appliquer. Il passe
     // par deux variables que la classe lit — l'une pour l'état, l'autre pour le survol.
     return {
-      display: "inline-block", padding: "4px 8px", borderRadius: "5px",
+      display: "inline-block", padding: "0.25rem 0.5rem", borderRadius: "5px",
       fontSize: "0.875rem", letterSpacing: "0.01em", textDecoration: "none", whiteSpace: "nowrap",
       fontWeight: primaire ? 600 : 400,
       color: actif ? "#fff" : primaire ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.60)",
@@ -556,7 +556,7 @@ export default function Navbar() {
   const toggleAdmin = (mobile: boolean) => (estAdmin || estAdminEmail) && (
     <div style={mobile
       ? { display: "flex", alignItems: "center", gap: "8px", padding: "9px 12px", fontSize: "0.91rem", color: "rgba(255,255,255,0.85)" }
-      : { display: "inline-flex", alignItems: "center", gap: "5px", height: "28px", padding: "0 6px 0 2px", fontSize: "0.77rem", color: "rgba(255,255,255,0.74)", letterSpacing: "0.01em" }}>
+      : { display: "inline-flex", alignItems: "center", gap: "0.3125rem", height: "1.75rem", padding: "0 0.375rem 0 0.125rem", fontSize: "0.77rem", color: "rgba(255,255,255,0.74)", letterSpacing: "0.01em" }}>
       <button type="button" role="switch" aria-checked={modeUtilisateurStandard}
         onClick={() => setModeUtilisateurStandard(!modeUtilisateurStandard)}
         title="Affichage seulement — vos droits réels ne changent pas"
@@ -576,7 +576,7 @@ export default function Navbar() {
   const blocCompte = (mobile: boolean) => user ? (
     <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", alignItems: mobile ? "stretch" : "center", gap: mobile ? "2px" : "6px", width: mobile ? "100%" : undefined }}>
       {!mobile && (
-        <button onClick={() => setMenuOuvert(!menuOuvert)} style={{ display: "flex", alignItems: "center", gap: "5px", height: "30px", background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.17)", borderRadius: "6px", padding: "0 8px 0 7px", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "0.84rem", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
+        <button onClick={() => setMenuOuvert(!menuOuvert)} style={{ display: "flex", alignItems: "center", gap: "0.3125rem", height: "1.875rem", background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.17)", borderRadius: "6px", padding: "0 0.5rem 0 0.4375rem", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "0.84rem", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="5" r="2.8" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M1.5 13c0-3 2.5-4.5 5.5-4.5S12.5 10 12.5 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>
           <span style={{ maxWidth: "6rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email.split("@")[0]}</span>
           <span style={{ fontSize: "0.63rem", opacity: 0.6 }}>▼</span>
@@ -634,7 +634,7 @@ export default function Navbar() {
   ) : (
     <Link href="/chantier" onClick={() => setMobileOuvert(false)} style={mobile
       ? { display: "block", textAlign: "center", padding: "9px 12px", borderRadius: "6px", fontSize: "0.91rem", color: "#fff", textDecoration: "none", border: "1px solid rgba(255,255,255,0.25)" }
-      : { display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 11px", borderRadius: "5px", fontSize: "0.875rem", color: "rgba(255,255,255,0.75)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.20)" }}>
+      : { display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.25rem 0.6875rem", borderRadius: "5px", fontSize: "0.875rem", color: "rgba(255,255,255,0.75)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.20)" }}>
       Se connecter
     </Link>
   );
@@ -672,11 +672,11 @@ export default function Navbar() {
              sur les angles arrondis. */
           .cs-bible { position: relative; display: inline-flex; border-radius: 5px; overflow: hidden; transition: background 220ms ease-in-out; }
           .cs-bible:hover, .cs-bible:focus-within { background: rgba(255,255,255,0.085); }
-          .cs-bible-face { display: inline-flex; align-items: center; padding: 4px 8px; color: rgba(255,255,255,0.85); font-weight: 600; font-size: 0.78125rem; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; transition: opacity 220ms ease-in-out; }
+          .cs-bible-face { display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; color: rgba(255,255,255,0.85); font-weight: 600; font-size: 0.78125rem; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; transition: opacity 220ms ease-in-out; }
           .cs-bible:hover .cs-bible-face, .cs-bible:focus-within .cs-bible-face { opacity: 0; pointer-events: none; }
           .cs-bible-split { position: absolute; inset: 0; display: flex; opacity: 0; pointer-events: none; transition: opacity 220ms ease-in-out; }
           .cs-bible:hover .cs-bible-split, .cs-bible:focus-within .cs-bible-split { opacity: 1; pointer-events: auto; }
-          .cs-bible-seg { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 6px; color: rgba(255,255,255,0.82); font-size: 0.75rem; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background 160ms ease, color 160ms ease; }
+          .cs-bible-seg { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 0.375rem; color: rgba(255,255,255,0.82); font-size: 0.75rem; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background 160ms ease, color 160ms ease; }
           .cs-bible-seg:hover { background: rgba(255,255,255,0.13); color: #fff; }
           .cs-bible-seg + .cs-bible-seg { box-shadow: inset 1px 0 0 rgba(255,255,255,0.16); }
           .cs-bible-seg--actif { color: #fff; background: rgba(255,255,255,0.10); }
@@ -701,7 +701,7 @@ export default function Navbar() {
           </Link>
 
           {/* ── Navigation desktop ──────────────────────────────────────────── */}
-          <nav className="hidden lg:flex flex-1 items-center gap-0.5 min-w-0">
+          <nav className="hidden lg:flex flex-1 items-center gap-1 min-w-0">
             {/* Bouton « Bible » unique : au survol il se décompose en « Classique »
                 (lecture suivie) et « Polyglotte » (comparaison). Un clic direct sur la face
                 mène à la lecture classique — utile au tactile, où il n'y a pas de survol. */}
@@ -717,13 +717,13 @@ export default function Navbar() {
             {LIENS_PRIMAIRES.map(({ href, label, exact, discret }) => (
               <Link key={href} href={href} className="cs-onglet" style={styleLien(href, exact, !discret)}>{label}</Link>
             ))}
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: "4px", paddingLeft: "8px", minWidth: 0, borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginLeft: "0.25rem", paddingLeft: "0.5rem", minWidth: 0, borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
               {blocRecherche(false)}
             </div>
           </nav>
 
           {/* ── Compte desktop ──────────────────────────────────────────────── */}
-          <div className="hidden lg:flex items-center" style={{ marginLeft: "auto", flexShrink: 0, gap: "2px", paddingLeft: "4px" }}>
+          <div className="hidden lg:flex items-center" style={{ marginLeft: "auto", flexShrink: 0, gap: "0.125rem", paddingLeft: "0.25rem" }}>
             {toggleAdmin(false)}
             {(estAdmin || estAdminEmail) && (
               <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 4px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
