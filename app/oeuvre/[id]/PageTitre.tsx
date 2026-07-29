@@ -27,7 +27,9 @@ export function formaterEditeur(editeur: string | null | undefined): string {
   if (!brut) return ''
   return brut.split(/\s*[;/]\s*/).filter(Boolean)
     .map(part => resoudreEditeur(part) ?? part)
-    .join(' / ')
+    // Barre oblique entre deux éditeurs distincts : une fine insécable (U+202F)
+    // de part et d'autre — espace légère, et la barre ne passe pas seule à la ligne.
+    .join(' / ')
 }
 
 // Quelques maisons dont le nom court appelle l'article contracté « du » (« les Éditions
@@ -162,7 +164,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier 
       )}
 
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
-        <MarqueImprimeur size={58} />
+        <MarqueImprimeur size={150} />
       </div>
 
       {/* Traducteur */}

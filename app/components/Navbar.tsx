@@ -25,6 +25,17 @@ const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?:
 ];
 const LIENS_SECONDAIRES: { href: string; label: string }[] = [];
 
+// Couleurs de domaine pour la recherche rapide : chaque catégorie de résultats est
+// rattachée à un grand domaine par une couleur FORTE (filet gauche + libellé + fond
+// léger) — Bible (bleu), Patristique (vert), Publications (ocre). Les sous-ensembles
+// d'un même domaine partagent la couleur et se distinguent plus légèrement (libellé
+// + fins séparateurs).
+const DOMAINE = {
+  bible:        { base: "#3a5a8c", fond: "rgba(58,90,140,0.05)",  survol: "rgba(58,90,140,0.11)" },
+  patristique:  { base: "#3d6b4f", fond: "rgba(61,107,79,0.05)",  survol: "rgba(61,107,79,0.10)" },
+  publications: { base: "#9a6a2e", fond: "rgba(154,106,46,0.06)", survol: "rgba(154,106,46,0.12)" },
+} as const;
+
 // ── Données statiques pour la recherche rapide ───────────────────────────────
 const LIVRES_RECHERCHE = LIVRES.map(({ code, nom }) => ({ code, nom }));
 const TRADUCTIONS_RECHERCHE: { code: string; nom: string }[] = [
@@ -452,12 +463,12 @@ export default function Navbar() {
           ) : (
             <>
               {auteursTrouves.length > 0 && (
-                <div style={{ padding: "8px 0 4px" }}>
-                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "0 14px 3px" }}>Auteurs</p>
+                <div style={{ padding: "8px 0 4px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond }}>
+                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "0 14px 3px" }}>Auteurs</p>
                   {auteursTrouves.map(a => (
                     <Link key={a.id_auteur} href={`/auteur/${a.id_auteur}`} onClick={fermerRechercheRapide}
                       style={{ display: "block", padding: "5px 14px", fontSize: "0.91rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
-                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
+                      onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.patristique.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(a.nom, requeteRapide.trim())}
                     </Link>
@@ -465,12 +476,12 @@ export default function Navbar() {
                 </div>
               )}
               {oeuvresTrouvees.length > 0 && (
-                <div style={{ padding: "6px 0 4px", borderTop: auteursTrouves.length > 0 ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Œuvres patristiques</p>
+                <div style={{ padding: "6px 0 4px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond, borderTop: auteursTrouves.length > 0 ? "1px solid rgba(61,107,79,0.14)" : "none" }}>
+                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "3px 14px 3px" }}>Œuvres patristiques</p>
                   {oeuvresTrouvees.map(o => (
                     <Link key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`} onClick={fermerRechercheRapide}
                       style={{ display: "block", padding: "5px 14px", fontSize: "0.91rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
-                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
+                      onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.patristique.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(o.titre, requeteRapide.trim())}
                       {o.auteurs?.nom && <span style={{ fontSize: "0.77rem", color: "#9a958d", marginLeft: "7px" }}>{o.auteurs.nom}</span>}
@@ -479,12 +490,12 @@ export default function Navbar() {
                 </div>
               )}
               {segmentsTrouves.length > 0 && (
-                <div style={{ padding: "6px 0 4px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0) ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Extraits patristiques</p>
+                <div style={{ padding: "6px 0 4px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0) ? "1px solid rgba(61,107,79,0.14)" : "none" }}>
+                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "3px 14px 3px" }}>Extraits patristiques</p>
                   {segmentsTrouves.map(s => (
                     <Link key={s.id} href={`/oeuvre/${s.id_oeuvre}?segment=${s.id}#segment-${s.id}`} onClick={fermerRechercheRapide}
                       style={{ display: "block", padding: "5px 14px", fontSize: "0.84rem", color: "#2a3d30", textDecoration: "none" }}
-                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
+                      onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.patristique.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {/* Justifié et borné à TROIS lignes, texte condensé pour épouser la
                           largeur du menu sans creuser de blancs ni déborder. */}
@@ -495,12 +506,12 @@ export default function Navbar() {
                 </div>
               )}
               {essaisTrouves.length > 0 && (
-                <div style={{ padding: "6px 0 4px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Essais et méditations</p>
+                <div style={{ padding: "6px 0 4px", borderLeft: `3px solid ${DOMAINE.publications.base}`, background: DOMAINE.publications.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0) ? "1px solid rgba(154,106,46,0.16)" : "none" }}>
+                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: DOMAINE.publications.base, textTransform: "uppercase", margin: "3px 14px 3px" }}>Essais et méditations</p>
                   {essaisTrouves.map(e => (
                     <Link key={e.id} href={`/essais/${e.id}`} onClick={fermerRechercheRapide}
                       style={{ display: "block", padding: "5px 14px", fontSize: "0.91rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
-                      onMouseEnter={ev => (ev.currentTarget.style.background = "rgba(61,107,79,0.06)")}
+                      onMouseEnter={ev => (ev.currentTarget.style.background = DOMAINE.publications.survol)}
                       onMouseLeave={ev => (ev.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(e.titre, requeteRapide.trim())}
                     </Link>
@@ -508,12 +519,12 @@ export default function Navbar() {
                 </div>
               )}
               {livresTrouves.length > 0 && (
-                <div style={{ padding: "6px 0 4px", borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0 || essaisTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Livres bibliques</p>
+                <div style={{ padding: "6px 0 4px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0 || essaisTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
+                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "3px 14px 3px" }}>Livres bibliques</p>
                   {livresTrouves.map(l => (
                     <Link key={l.code} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}
                       style={{ display: "block", padding: "5px 14px", fontSize: "0.91rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
-                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
+                      onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.bible.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(l.nom, requeteRapide.trim())}
                     </Link>
@@ -521,12 +532,12 @@ export default function Navbar() {
                 </div>
               )}
               {traductionsTrouvees.length > 0 && (
-                <div style={{ padding: "6px 0 8px", borderTop: (auteursTrouves.length > 0 || livresTrouves.length > 0) ? "1px solid #ede9e2" : "none" }}>
-                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: "#9a958d", textTransform: "uppercase", margin: "3px 14px 3px" }}>Traductions</p>
+                <div style={{ padding: "6px 0 8px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (auteursTrouves.length > 0 || livresTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
+                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "3px 14px 3px" }}>Traductions</p>
                   {traductionsTrouvees.map(t => (
                     <Link key={t.code} href={`/traductions#${t.code}`} onClick={fermerRechercheRapide}
                       style={{ display: "block", padding: "5px 14px", fontSize: "0.91rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
-                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
+                      onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.bible.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(t.nom, requeteRapide.trim())}
                     </Link>
