@@ -191,10 +191,10 @@ const PRINCIPES: { ico: React.ReactNode; titre: string; texte: React.ReactNode }
       commentent : c’est le cœur du site. Chaque rapprochement est établi puis relu ; les passages
       incertains sont signalés comme tels, et vos signalements servent à corriger le site.</> },
   { ico: <IcoPlume />, titre: "Les lecteurs contribuent",
-    texte: <>Les lecteurs inscrits publient leurs propres essais, dans le registre qu’ils veulent —
-      exégétique, théologique, spirituel ou littéraire —, que chacun peut lire, commenter et discuter.
-      Le site n’est pas qu’une bibliothèque : c’est aussi un atelier, où la lecture des Pères se
-      prolonge en écriture et en conversation.</> },
+    texte: <>Les lecteurs inscrits publient leurs propres essais, dans le registre qu’ils veulent :
+      exégétique, théologique, spirituel ou littéraire. Chacun peut les lire, les commenter et en
+      discuter. Le site n’est pas qu’une bibliothèque. C’est aussi un atelier, où la lecture des
+      Pères se prolonge en écriture et en conversation.</> },
   { ico: <IcoLibre />, titre: "Gratuit, sans publicité",
     texte: <>Ni abonnement, ni publicité, ni revente de données. Le travail est bénévole,
       et le restera.</> },
@@ -358,7 +358,7 @@ function Prevenir() {
     return (
       <div style={{ background: "rgba(61,107,79,0.07)", border: "1px solid rgba(61,107,79,0.22)", borderRadius: "0.5rem", padding: "1rem 1.125rem" }}>
         <p style={{ fontSize: "0.8125rem", color: "#2a6040", margin: 0, lineHeight: 1.6 }}>
-          C’est noté. Vous recevrez un message le jour de l’ouverture – un seul, et rien d’autre.
+          C’est noté. Vous recevrez un message le jour de l’ouverture. Un seul, et rien d’autre.
         </p>
       </div>
     );
@@ -751,11 +751,12 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             Aucun démarchage
           </p>
           <p style={{ fontSize: "0.78125rem", color: "#6a5a54", lineHeight: 1.7, margin: 0 }}>
-            Toute sollicitation commerciale relative à ce site – référencement, refonte,
-            audit, publicité, intelligence artificielle, prestation de développement –
-            est <strong style={{ color: "#8a3a2a" }}>refusée par avance</strong>, qu’elle soit
-            envoyée par une personne ou par un automate. Les adresses figurant sur ce site
-            ne valent pas consentement et ne sont pas collectables.
+            Toute sollicitation commerciale relative à ce site est
+            <strong style={{ color: "#8a3a2a" }}> refusée par avance</strong>, qu’elle soit
+            envoyée par une personne ou par un automate. Cela vaut pour le référencement,
+            la refonte, l’audit, la publicité, l’intelligence artificielle ou la prestation
+            de développement. Les adresses figurant sur ce site ne valent pas consentement
+            et ne sont pas collectables.
           </p>
           <p style={{ fontSize: "0.78125rem", color: "#6a5a54", lineHeight: 1.7, margin: "0.625rem 0 0" }}>
             La prospection par voie électronique sans accord préalable est interdite en France
