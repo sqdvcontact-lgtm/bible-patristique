@@ -156,19 +156,20 @@ export default async function OeuvrePage({
   // bp_admin_session, qui n'est plus jamais posé depuis la suppression de la
   // page de connexion par mot de passe.
   const SELECT_SEG = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original'
+  const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent']
 
   async function chargerTousSegments(filtre: Record<string, string>) {
     // Applique le filtre à une requête (nature « texte » embarque les introductions).
     const appliquer = (q: any) => {
       for (const [k, v] of Object.entries(filtre)) {
-        if (k === 'nature' && v === 'texte') q = q.in('nature', ['texte', 'introduction'])
+        if (k === 'nature' && v === 'texte') q = q.in('nature', NATURES_TEXTE)
         else q = q.eq(k, v)
       }
       return q
     }
     const lot = (from: number) =>
       appliquer(supabase.from('segments').select(SELECT_SEG).eq('id_oeuvre', id))
-        .order('id', { ascending: true }).range(from, from + 999)
+        .order('segment_numero', { ascending: true }).range(from, from + 999)
 
     // 1er lot AVEC le total exact (une seule requête) : les grosses divisions
     // (ex. Somme théologique, ~6500 segments par niv1) se chargeaient auparavant
@@ -176,7 +177,7 @@ export default async function OeuvrePage({
     // puis on tire les lots restants EN PARALLÈLE.
     const premier = await appliquer(
       supabase.from('segments').select(SELECT_SEG, { count: 'exact' }).eq('id_oeuvre', id)
-    ).order('id', { ascending: true }).range(0, 999)
+    ).order('segment_numero', { ascending: true }).range(0, 999)
 
     const acc: any[] = [...((premier.data as any[]) ?? [])]
     const total = premier.count ?? acc.length
@@ -192,47 +193,36 @@ export default async function OeuvrePage({
     return acc
   }
 
-  async function completerNiv1TexteMap(niv1Cibles: string[], cible: Record<string, string>) {
-    const manquants = niv1Cibles.filter(n1 => n1 && !cible[n1])
-    if (manquants.length === 0) return
-
-    const tailleLot = 25
-    for (let i = 0; i < manquants.length; i += tailleLot) {
-      const lot = manquants.slice(i, i + tailleLot)
-      const attendus = new Set(lot)
-      let from = 0
-
-      while (attendus.size > 0) {
-        const { data: batch } = await supabase
-          .from('segments')
-          .select('ref_niv1, ref_niv1_texte')
-          .eq('id_oeuvre', id)
-          .eq('nature', 'texte')
-          .in('ref_niv1', lot)
-          .not('ref_niv1_texte', 'is', null)
-          .order('id', { ascending: true })
-          .range(from, from + 999)
-
-        if (!batch || batch.length === 0) break
-
-        batch.forEach((r: any) => {
-          if (r.ref_niv1 && r.ref_niv1_texte && attendus.has(r.ref_niv1)) {
-            cible[r.ref_niv1] = r.ref_niv1_texte
-            attendus.delete(r.ref_niv1)
-          }
-        })
-
-        if (batch.length < 1000) break
-        from += 1000
+  // Première tranche d'un niveau 1 (ordre de LECTURE = segment_numero, comme le
+  // chargeur client `chargerNiv1Data`, pour que la tranche soit un vrai préfixe du
+  // chargement complet), plus l'indication qu'il reste des segments. Sert à peindre
+  // vite les grosses divisions (ex. Somme théologique, ~9000 segments dans un seul
+  // niv1) sans tout charger d'un coup : le reste est complété en tâche de fond côté
+  // client, pendant que le lecteur lit déjà la première page.
+  const PLAFOND_TRANCHE = 1000
+  async function chargerTrancheTexte(filtre: Record<string, string>): Promise<{ segments: Segment[]; partiel: boolean }> {
+    const appliquer = (q: any) => {
+      for (const [k, v] of Object.entries(filtre)) {
+        if (k === 'nature' && v === 'texte') q = q.in('nature', NATURES_TEXTE)
+        else q = q.eq(k, v)
       }
+      return q
     }
+    const premier = await appliquer(
+      supabase.from('segments').select(SELECT_SEG, { count: 'exact' }).eq('id_oeuvre', id)
+    ).order('segment_numero', { ascending: true }).range(0, PLAFOND_TRANCHE - 1)
+    const acc: any[] = [...((premier.data as any[]) ?? [])]
+    const total = premier.count ?? acc.length
+    await hydraterLiensHerites(acc, supabase)
+    return { segments: acc as Segment[], partiel: total > acc.length }
   }
 
   // ── Vague 1 : 6 requêtes indépendantes en parallèle ──────────────────────
-  const [estAdmin, { data: oeuvre }, { data: niv1Raw, error: rpcError }, { data: segmentCibleData }, segmentsApparatRaw, codesTraductions] = await Promise.all([
+  const [estAdmin, { data: oeuvre }, { data: niv1Raw, error: rpcError }, { data: niv1TexteRaw }, { data: segmentCibleData }, segmentsApparatRaw, codesTraductions] = await Promise.all([
     verifierEstAdmin(),
     supabase.from('oeuvres').select('*, auteurs(id_auteur, nom)').eq('id_oeuvre', id).single(),
     supabase.rpc('get_niv1_list', { p_id_oeuvre: id }),
+    supabase.rpc('get_niv1_texte', { p_id_oeuvre: id }),
     Number.isFinite(segmentCibleId) && segmentCibleId > 0
       ? supabase.from('segments').select('id,ref_niv1,nature').eq('id_oeuvre', id).eq('id', segmentCibleId).maybeSingle()
       : Promise.resolve({ data: null }),
@@ -248,49 +238,41 @@ export default async function OeuvrePage({
 
   if (rpcError) console.error('get_niv1_list error:', rpcError)
 
-  // Calcul des niv1 + niv1TexteMap
+  // niv1 ayant du texte + libellés ref_niv1_texte : une seule RPC agrégée
+  // (get_niv1_texte) remplace l'ancien N+1 (un count par niv1 pour exclure les niv1
+  // uniquement apparat) et la pagination séquentielle de reconstitution des libellés.
   const niv1Complet: string[] = (niv1Raw ?? []).map((r: any) => r.ref_niv1).filter(Boolean)
   const niv1TexteMap: Record<string, string> = {}
-  ;(niv1Raw ?? []).forEach((r: any) => {
-    if (r.ref_niv1 && r.ref_niv1_texte) niv1TexteMap[r.ref_niv1] = r.ref_niv1_texte
+  const niv1AvecTexte = new Set<string>()
+  ;(niv1TexteRaw ?? []).forEach((r: any) => {
+    if (!r.ref_niv1) return
+    niv1AvecTexte.add(r.ref_niv1)
+    if (r.ref_niv1_texte) niv1TexteMap[r.ref_niv1] = r.ref_niv1_texte
   })
-
-  // Exclure du sommaire les niv1 qui n'ont AUCUN segment texte (uniquement apparat).
-  // Stratégie : on part des niv1 présents dans segmentsApparatRaw (déjà chargés
-  // en entier via pagination) et on vérifie en parallèle si chacun a aussi des
-  // segments texte. Évite de scanner tous les segments texte, ce qui était limité
-  // à 1000 lignes et cassait les grandes œuvres (ex. Discours sur les Psaumes).
-  const apparatNiv1List = Array.from(
-    new Set((segmentsApparatRaw as Segment[]).map(s => s.ref_niv1).filter(Boolean) as string[])
-  )
-  const niv1OnlyApparat = new Set<string>()
-  if (apparatNiv1List.length > 0) {
-    const texteChecks = await Promise.all(
-      apparatNiv1List.map(n1 =>
-        supabase.from('segments').select('id', { count: 'estimated', head: true })
-          .eq('id_oeuvre', id).eq('ref_niv1', n1).eq('nature', 'texte')
-      )
-    )
-    apparatNiv1List.forEach((n1, i) => {
-      if ((texteChecks[i].count ?? 0) === 0) niv1OnlyApparat.add(n1)
-    })
-  }
-  const niv1List = niv1Complet.filter(n1 => !niv1OnlyApparat.has(n1))
-  await completerNiv1TexteMap(niv1List, niv1TexteMap)
+  // On conserve l'ordre du sommaire (get_niv1_list) et on exclut les niv1 sans
+  // segment texte (apparat critique seul).
+  const niv1List = niv1Complet.filter(n1 => niv1AvecTexte.has(n1))
 
   const segmentCible = segmentCibleData
   const vueInitiale = segmentCible?.nature === 'apparat_critique' ? 'apparat' : 'texte'
   const texteSansNiveaux = niv1List.length === 0
+  const lectureTexteEntier = oeuvre.lecture_texte_entier === true
   const premierNiv1 = vueInitiale === 'texte' && segmentCible?.ref_niv1
     ? segmentCible.ref_niv1
     : niv1List[0] ?? null
 
-  // ── Vague 2 : segments texte du premier niv1 (apparat_critique exclus) ──
-  const segmentsTexteRaw = texteSansNiveaux
-    ? await chargerTousSegments({ nature: 'texte' })
-    : premierNiv1
-      ? await chargerTousSegments({ ref_niv1: premierNiv1, nature: 'texte' })
-      : []
+  // ── Vague 2 : PREMIÈRE TRANCHE du texte du premier niv1 (apparat exclus) ──
+  // On ne charge plus tout le niv1 avant le premier rendu : seule la 1re tranche
+  // (~1000 segments) part du serveur ; le client complète le reste en tâche de fond.
+  const trancheInitiale = lectureTexteEntier
+    ? { segments: await chargerTousSegments({ nature: 'texte' }) as Segment[], partiel: false }
+    : texteSansNiveaux
+      ? await chargerTrancheTexte({ nature: 'texte' })
+      : premierNiv1
+        ? await chargerTrancheTexte({ ref_niv1: premierNiv1, nature: 'texte' })
+        : { segments: [] as Segment[], partiel: false }
+  const segmentsTexteRaw = trancheInitiale.segments
+  const niv1InitialPartiel = trancheInitiale.partiel
 
   const segmentsTexte = segmentsTexteRaw as Segment[]
   const segmentsApparat = segmentsApparatRaw as Segment[]
@@ -349,6 +331,8 @@ export default async function OeuvrePage({
       id: s.id, numero: numLocauxApparat.get(s.id) || s.segment_numero,
       texte: s.segment_texte, versets: [],
       notes: parseNotes((s as any).notes),
+      paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
+      nature: s.nature,
     }))
 
   const groupesApparatData = groupesApparat.map((g, gi) => ({
@@ -371,13 +355,15 @@ export default async function OeuvrePage({
       txtSommaire={(oeuvre.texte_sommaire ?? '0,0,0,0,0').split(',').map((v: string) => v === '1')}
       txtCorps={(oeuvre.texte_corps ?? '0,0,0,0,0').split(',').map((v: string) => v === '1')}
       afficherNumeros={oeuvre.afficher_numeros !== false}
-      oeuvre={{titre:oeuvre.titre,titre_affichage:oeuvre.titre_affichage,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,id_oeuvre:oeuvre.id_oeuvre,date_composition:oeuvre.date_composition,langue_originale:oeuvre.langue_originale,genres:oeuvre.genres,url_source:oeuvre.url_source}}
+      lectureTexteEntier={lectureTexteEntier}
+      oeuvre={{titre:oeuvre.titre,titre_affichage:oeuvre.titre_affichage,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,commentaire_traduction:oeuvre.commentaire_traduction,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,date_mise_en_ligne:oeuvre.date_mise_en_ligne,id_oeuvre:oeuvre.id_oeuvre,date_composition:oeuvre.date_composition,langue_originale:oeuvre.langue_originale,genres:oeuvre.genres,url_source:oeuvre.url_source}}
       groupes={groupesData} segments={segmentsData}
       tocApparat={tocApparat} groupesApparat={groupesApparatData} segmentsApparat={segmentsApparatData}
       segmentCibleId={Number.isFinite(segmentCibleId) && segmentCibleId > 0 ? segmentCibleId : null}
       niv1Initial={premierNiv1 ?? niv1List[0] ?? null}
       vueInitiale={vueInitiale}
       eligibleParagraphes={eligibleParagraphes}
+      niv1InitialPartiel={niv1InitialPartiel}
     />
   )
 }

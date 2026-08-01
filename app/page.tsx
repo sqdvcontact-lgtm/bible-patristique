@@ -11,6 +11,22 @@ import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
 const NOMS_LIVRES = Object.fromEntries(LIVRES.map(l => [l.code, l.nom]))
 
+// Titre unique par chapitre lu (« Genèse 1 · Corpus Scriptura ») plutôt que le titre
+// générique du site. Sans paramètre, la page redirige vers l'accueil : titre neutre.
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ livre?: string; chapitre?: string }>
+}) {
+  const p = await searchParams
+  if (!p.livre && !p.chapitre) return {}
+  const nom = NOMS_LIVRES[p.livre || 'GEN'] || 'Bible'
+  const ch = parseInt(p.chapitre || '1')
+  // Le gabarit « %s · Corpus Scriptura » du layout racine ne s'applique pas à la page
+  // racine (même segment) : on compose donc le suffixe ici, pour rester cohérent.
+  return { title: { absolute: `${nom} ${Number.isFinite(ch) ? ch : 1} · Corpus Scriptura` } }
+}
+
 export default async function Home({
   searchParams,
 }: {
@@ -29,7 +45,7 @@ export default async function Home({
     // sur l'ossature canonique. C'est ce travail-là — alignements, scissions recollées,
     // coquilles relevées — que la page Bible doit montrer.
     supabase.from('versets_lecture').select('*').eq('livre', livre).eq('chapitre', chapitre).order('verset'),
-    supabase.from('traductions').select('trad_id, nom').order('ordre', { ascending: true }),
+    supabase.from('traductions').select('trad_id, nom, auteur, date_publication, confession, langue').order('ordre', { ascending: true }),
   ])
 
   return (
@@ -37,7 +53,7 @@ export default async function Home({
       <BibleLayout
         livres={LIVRES}
         versets={versets || []}
-        traductions={(traductions || []).map(t => ({ code: t.trad_id, label: t.nom }))}
+        traductions={(traductions || []).map(t => ({ code: t.trad_id, label: t.nom, auteur: t.auteur, datePublication: t.date_publication, confession: t.confession, langue: t.langue }))}
         livreActif={livre}
         chapitreActif={chapitre}
         nomLivre={NOMS_LIVRES[livre] || livre}

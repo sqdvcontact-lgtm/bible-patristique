@@ -1,12 +1,13 @@
 // Combien de liens type 3 ai-je posés (par lecture, provenance non-editeur) ? Pour
-// dimensionner un re-crible « commentaire vs écho ». Sur les Confessions d'abord.
+// dimensionner un re-crible « commentaire vs écho ».
 import { readFileSync } from 'node:fs';
 import { createClient } from '@supabase/supabase-js';
 const env = Object.fromEntries(readFileSync('.env.local', 'utf8').split(/\r?\n/)
   .map((l) => l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/)).filter(Boolean)
   .map((m) => [m[1], m[2].replace(/^["']|["']$/g, '')]));
 const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-const OEUVRE = process.argv[2] || 'A0010O0001';
+const OEUVRE = process.argv[2];
+if (!OEUVRE) throw new Error('Usage : node scripts/compte-type3.mjs <id_oeuvre>');
 
 async function pageAll(sel) {
   const o = [];

@@ -36,7 +36,8 @@ with v2 as (
   select ancree.canon_id, ancree.trad_id,
          string_agg(ancree.texte, ' '
            order by ancree.ch_orig, ancree.v_orig, coalesce(ancree.v_orig_suffixe, '')) as texte,
-         string_agg(ancree.ch_orig || ', ' || ancree.v_orig || coalesce(ancree.v_orig_suffixe, ''), ' · '
+         string_agg(ancree.ch_orig || ', ' || ancree.v_orig ||
+           case when ancree.trad_id = 'TR0004' then '' else coalesce(ancree.v_orig_suffixe, '') end, ' · '
            order by ancree.ch_orig, ancree.v_orig, coalesce(ancree.v_orig_suffixe, '')) as num_origine
   from ancree
   where ancree.canon_id is not null

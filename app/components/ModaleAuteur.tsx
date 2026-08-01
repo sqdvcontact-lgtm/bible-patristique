@@ -15,6 +15,8 @@ import { supabase } from '@/app/lib/supabase'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { rendreSiecles } from '@/app/lib/siecles'
+import { rendreDate } from '@/app/lib/datesAffichage'
+import { sansPointFinal } from '@/app/lib/titres'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
@@ -55,22 +57,32 @@ function stylePhoto(pos: AuteurPhotoPos): CSSProperties {
   }
 }
 
-function TitreSection({ children }: { children: ReactNode }) {
-  return <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontWeight: 'normal', fontSize: '0.84375rem', color: '#3d6b4f', margin: '0 0 5px' }}>{children}</h3>
+function TitreSection({ children, centre }: { children: ReactNode; centre?: boolean }) {
+  return <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontWeight: 'normal', fontSize: '0.84375rem', color: '#3d6b4f', margin: '0 0 5px', textAlign: centre ? 'center' : 'left' }}>{children}</h3>
 }
 
 // Chronologie : « année | événement », serrée.
 function Chronologie({ texte }: { texte: string }) {
   const evenements = texte.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
-    const m = l.match(/^(.*?)\s*(?:\||—|–|\t|:)\s*(.+)$/)
+    // Séparateur année/événement : « | » ou tabulation (sans ambiguïté), ou bien
+    // « — / – / : » MAIS uniquement entourés d'espaces — sinon un tiret de fourchette
+    // (« 843–850 », sans espaces) serait pris pour le séparateur et couperait la date.
+    const m = l.match(/^(.*?)\s*[|\t]\s*(.+)$/) || l.match(/^(.*?)\s+[—–:]\s+(.+)$/)
     return m ? { annee: m[1].trim(), evenement: m[2].trim() } : { annee: '', evenement: l }
   })
+    // On n'autorise dans la chronologie que les dates concrètes (année chiffrée) :
+    // les dates vagues sans chiffre (« Milieu du IXe siècle ») sont exclues.
+    .filter(e => /\d/.test(e.annee))
   if (!evenements.length) return null
+  // La colonne des années se dimensionne sur la PLUS LARGE (max-content), et non
+  // plus à 46px fixes : « Vers 395-396 » ou « 413-426 » débordaient et chevauchaient
+  // le texte. `ul` en grille + `li` en `display:contents` pour que toutes les lignes
+  // partagent les mêmes colonnes (années alignées, gouttière constante).
   return (
-    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: 'max-content 1fr', columnGap: '9px', rowGap: '4px', alignItems: 'baseline' }}>
       {evenements.map((e, i) => (
-        <li key={i} style={{ display: 'grid', gridTemplateColumns: '46px 1fr', gap: '9px', alignItems: 'baseline' }}>
-          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: '#b7a06a', textAlign: 'right', whiteSpace: 'nowrap' }}>{e.annee}</span>
+        <li key={i} style={{ display: 'contents' }}>
+          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: '#b7a06a', textAlign: 'right', whiteSpace: 'nowrap' }}>{rendreDate(e.annee)}</span>
           <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6875rem', color: '#3a3530', lineHeight: 1.38 }}>{e.evenement}</span>
         </li>
       ))}
@@ -78,7 +90,109 @@ function Chronologie({ texte }: { texte: string }) {
   )
 }
 
-function Contenu({ auteur, onClose }: { auteur: Auteur; onClose: () => void }) {
+// ── Frise agregee de l'auteur ──────────────────────────────────────────────────
+// Trois brins, distingues par la couleur du point : Vie (le parcours de l'auteur),
+// Oeuvres (compositions), Contexte (arriere-plan ecclesial et politique). La categorie
+// derive de nature_lien de l'association ; portee sert de repli.
+type EvtFrise = {
+  id: string; date_debut: number | null; date_fin: number | null; date_exacte: string | null
+  qualification_date: string | null; titre: string; notice: string | null
+  portee: string | null; importance_generale: string | null; genre: string | null; famille: string | null
+}
+type EvtAssoc = {
+  nature_lien: string | null; pertinence: string | null
+  titre_personnalise: string | null; ordre_force: number | null; ev: EvtFrise
+}
+
+// Vie = vert foncé (l'auteur), Œuvres = vert clair (ses écrits), Contexte = doré.
+const COUL_CAT: Record<string, string> = { vie: '#3d6b4f', oeuvres: '#83a06a', contexte: '#c19a3e' }
+
+function categorieEvt(nature: string | null, portee: string | null): 'vie' | 'oeuvres' | 'contexte' {
+  const n = (nature || '').toLowerCase()
+  if (n === 'bibliographique') return 'oeuvres'
+  if (n === 'direct') return 'vie'
+  if (!n) {
+    if (portee === 'bibliographique') return 'oeuvres'
+    if (portee === 'biographique') return 'vie'
+  }
+  return 'contexte'
+}
+
+// Annee(s) compactes pour la colonne de gauche ; la date exacte/notice va en infobulle.
+function anneeFrise(e: EvtFrise): string {
+  const f = (a: number) => (a < 0 ? `${-a} av. J.-C.` : String(a))
+  if (e.date_debut == null) return e.date_exacte || ''
+  if (e.date_fin != null && e.date_fin !== e.date_debut) return `${f(e.date_debut)}–${f(e.date_fin)}`
+  return f(e.date_debut)
+}
+
+// Puce pleine, à la couleur de la catégorie (Vie, Œuvres, Contexte).
+function stylePuce(cat: 'vie' | 'oeuvres' | 'contexte') {
+  return { background: COUL_CAT[cat], border: '1.5px solid #f7f4ef' }
+}
+
+function FriseAuteur({ evenements }: { evenements: EvtAssoc[] }) {
+  const [ouverts, setOuverts] = useState<Set<string>>(new Set())
+  if (!evenements.length) return null
+  const CATS = [
+    { cle: 'vie', label: <>Vie</> },
+    { cle: 'oeuvres', label: <>&OElig;uvres</> },
+    { cle: 'contexte', label: <>Contexte</> },
+  ] as const
+  const presentes = new Set(evenements.map(a => categorieEvt(a.nature_lien, a.ev.portee)))
+  const basculer = (k: string) => setOuverts(prev => { const s = new Set(prev); s.has(k) ? s.delete(k) : s.add(k); return s })
+  return (
+    <div>
+      {/* Legende centree : seulement les brins effectivement presents. */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', marginBottom: '13px', justifyContent: 'center' }}>
+        {CATS.filter(c => presentes.has(c.cle)).map(c => (
+          <span key={c.cle} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.5625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9a938a' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0, ...stylePuce(c.cle) }} />
+            {c.label}
+          </span>
+        ))}
+      </div>
+      {/* Trois colonnes : date | rail (avec la puce) | intitulé. Le point est aligné
+          sur la première ligne — date, point et intitulé sur une même ligne. Un clic
+          sur l'intitulé déplie la notice. */}
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: 'max-content 16px 1fr', columnGap: '9px', rowGap: 0, alignItems: 'baseline' }}>
+        {evenements.map((a, i) => {
+          const cat = categorieEvt(a.nature_lien, a.ev.portee)
+          const contexte = cat === 'contexte'
+          const italique = cat === 'oeuvres' || contexte
+          const dernier = i === evenements.length - 1
+          const cle = a.ev.id + ':' + i
+          const notice = a.ev.notice || a.ev.date_exacte || null
+          const ouvert = ouverts.has(cle)
+          const pb = dernier && !ouvert ? '0' : '10px'
+          return (
+            <li key={cle} style={{ display: 'contents' }}>
+              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: contexte ? '#d2c69f' : '#b7a06a', textAlign: 'right', whiteSpace: 'nowrap', lineHeight: 1.18, paddingBottom: pb }}>{anneeFrise(a.ev)}</span>
+              {/* Rail + puce. La puce est dimensionnée et positionnée en `em` (relatifs à
+                  la taille du titre) : elle suit la police fluide et reste alignée sur la
+                  première ligne, quelle que soit l'échelle de l'écran. */}
+              <div style={{ position: 'relative', alignSelf: 'stretch', fontSize: '0.6875rem' }}>
+                <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '2px', transform: 'translateX(-50%)', background: '#e9e1d0' }} />
+                <div style={{ position: 'absolute', left: '50%', top: '0.6em', width: '0.82em', height: '0.82em', borderRadius: '50%', transform: 'translate(-50%, -50%)', boxSizing: 'border-box', ...stylePuce(cat) }} />
+              </div>
+              <div style={{ paddingBottom: pb, fontSize: '0.6875rem', lineHeight: 1.18 }}>
+                <span onClick={notice ? () => basculer(cle) : undefined}
+                  style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1em', lineHeight: 'inherit', color: contexte ? '#8a8278' : '#2a3d30', fontStyle: italique ? 'italic' : 'normal', cursor: notice ? 'pointer' : 'default' }}>
+                  {a.titre_personnalise || a.ev.titre}
+                </span>
+                {ouvert && notice && (
+                  <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6rem', lineHeight: 1.3, letterSpacing: '-0.005em', color: '#8a8278', margin: '3px 0 1px', textAlign: 'justify' }}>{notice}</p>
+                )}
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
+function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () => void; evenements: EvtAssoc[] }) {
   const [photoOk, setPhotoOk] = useState(true)
   const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${auteur.id_auteur}.jpg`
   const photoPos = parsePhotoPos(auteur.photo_position)
@@ -100,7 +214,50 @@ function Contenu({ auteur, onClose }: { auteur: Auteur; onClose: () => void }) {
     anneeTri(a) - anneeTri(b) || a.titre.localeCompare(b.titre, 'fr')
   const oeuvresPresentes = auteur.oeuvres.filter(estOeuvrePubliee).sort(parDate)
   const oeuvresAbsentes = auteur.oeuvres.filter(o => !estOeuvrePubliee(o)).sort(parDate)
-  const aColonnes = !!(auteur.note_biographique || auteur.note_theologique || auteur.influence || auteur.anecdotes) && !!(auteur.chronologie && auteur.chronologie.trim())
+  // Chronologie : la frise agregee (evenements associes) prime ; a defaut, l'ancien
+  // texte libre `chronologie` (conserve tant que la frise n'est pas generalisee).
+  const aFrise = evenements.length > 0
+  const aChrono = aFrise || !!(auteur.chronologie && auteur.chronologie.trim())
+  const aColonnes = !!(auteur.note_biographique || auteur.note_theologique || auteur.influence || auteur.anecdotes) && aChrono
+  const aOeuvres = oeuvresPresentes.length > 0 || oeuvresAbsentes.length > 0
+
+  const blocChrono = aChrono ? (
+    <section>
+      <TitreSection centre>Chronologie</TitreSection>
+      {aFrise ? <FriseAuteur evenements={evenements} /> : <Chronologie texte={auteur.chronologie!} />}
+    </section>
+  ) : null
+
+  // Contenu « Œuvres », harmonisé avec la Chronologie (colonne de date à droite, même
+  // gouttière, même rythme vertical) : « année · titre » comme « année · événement ».
+  const contenuOeuvres = aOeuvres ? (
+    <>
+      <TitreSection centre>Œuvres</TitreSection>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {oeuvresPresentes.map(o => (
+          <li key={o.id_oeuvre}>
+            {/* Œuvre disponible : titre en vert, cliquable vers l'œuvre. */}
+            <Link href={`/oeuvre/${o.id_oeuvre}`} onClick={onClose} className="auteur-oeuvre"
+              style={{ display: 'grid', gridTemplateColumns: '5.25rem 1fr', alignItems: 'baseline', columnGap: '9px' }}>
+              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: dateCompo(o) ? '#b7a06a' : '#c9c1b4', fontStyle: dateCompo(o) ? 'normal' : 'italic', textAlign: 'right', whiteSpace: 'nowrap' }}>{dateCompo(o) ? rendreDate(dateCompo(o)) : 'Date inconnue'}</span>
+              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: '#3d6b4f', minWidth: 0, lineHeight: 1.38 }}>{sansPointFinal(o.titre)}</span>
+            </Link>
+          </li>
+        ))}
+        {oeuvresAbsentes.map(o => (
+          <li key={o.id_oeuvre} className="auteur-oeuvre auteur-oeuvre--absente" title="Œuvre répertoriée, pas encore disponible"
+            style={{ display: 'grid', gridTemplateColumns: '5.25rem 1fr', alignItems: 'baseline', columnGap: '9px' }}>
+            <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: dateCompo(o) ? '#cdbe93' : '#d3ccc0', fontStyle: dateCompo(o) ? 'normal' : 'italic', textAlign: 'right', whiteSpace: 'nowrap' }}>{dateCompo(o) ? rendreDate(dateCompo(o)) : 'Date inconnue'}</span>
+            <span style={{ minWidth: 0, lineHeight: 1.38 }}>
+              {/* Œuvre répertoriée mais pas encore disponible : estompée, non cliquable. */}
+              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: '#a8a29a' }}>{sansPointFinal(o.titre)}</span>
+              <span style={{ marginLeft: '7px', fontSize: '0.53125rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#b7ad9a' }}>répertoriée</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </>
+  ) : null
 
   return (
     <>
@@ -134,39 +291,23 @@ function Contenu({ auteur, onClose }: { auteur: Auteur; onClose: () => void }) {
           {auteur.note_theologique && <section><TitreSection>Pensée</TitreSection><p className="auteur-prose">{rendreSiecles(auteur.note_theologique)}</p></section>}
           {auteur.influence?.trim() && <section><TitreSection>Postérité</TitreSection><p className="auteur-prose">{rendreSiecles(auteur.influence)}</p></section>}
         </div>
-        {auteur.chronologie?.trim() && (
-          <section><TitreSection>Chronologie</TitreSection><Chronologie texte={auteur.chronologie} /></section>
+        {/* Colonne de droite : la chronologie (frise), puis — DESSOUS — la liste des
+            œuvres, dans le même gabarit. N'existe qu'en présentation deux colonnes. */}
+        {aColonnes ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', minWidth: 0 }}>
+            {blocChrono}
+            {contenuOeuvres && <section>{contenuOeuvres}</section>}
+          </div>
+        ) : (
+          blocChrono
         )}
       </div>
 
-      {/* Œuvres — liste compacte, sans fleuron. Les œuvres répertoriées mais non encore
-          présentes figurent en grisé, non cliquables. */}
-      {(oeuvresPresentes.length > 0 || oeuvresAbsentes.length > 0) && (
+      {/* Sans colonne de droite (pas de chronologie), les œuvres restent en pleine largeur
+          dessous, séparées par un filet. */}
+      {!aColonnes && contenuOeuvres && (
         <section style={{ marginTop: '20px', borderTop: '1px solid #ece7de', paddingTop: '14px' }}>
-          <TitreSection>Œuvres</TitreSection>
-          {/* Titre à gauche (presque aligné sur le titre « Œuvres », léger retrait),
-              date de COMPOSITION à droite. */}
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0, paddingLeft: '5px' }}>
-            {oeuvresPresentes.map(o => (
-              <li key={o.id_oeuvre}>
-                <Link href={`/oeuvre/${o.id_oeuvre}`} onClick={onClose} className="auteur-oeuvre"
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '14px' }}>
-                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: '#2a3d30', minWidth: 0 }}>{o.titre}</span>
-                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: '#b7a06a', whiteSpace: 'nowrap', flexShrink: 0 }}>{rendreSiecles(dateCompo(o))}</span>
-                </Link>
-              </li>
-            ))}
-            {oeuvresAbsentes.map(o => (
-              <li key={o.id_oeuvre} className="auteur-oeuvre auteur-oeuvre--absente" title="Œuvre répertoriée, pas encore disponible"
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '14px' }}>
-                <span style={{ minWidth: 0 }}>
-                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: '#a8a29a' }}>{o.titre}</span>
-                  <span style={{ marginLeft: '7px', fontSize: '0.53125rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#b7ad9a' }}>répertoriée</span>
-                </span>
-                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: '#cdbe93', whiteSpace: 'nowrap', flexShrink: 0 }}>{rendreSiecles(dateCompo(o))}</span>
-              </li>
-            ))}
-          </ul>
+          {contenuOeuvres}
         </section>
       )}
     </>
@@ -175,11 +316,12 @@ function Contenu({ auteur, onClose }: { auteur: Auteur; onClose: () => void }) {
 
 export default function ModaleAuteur({ id, onClose }: { id: string | null; onClose: () => void }) {
   const [auteur, setAuteur] = useState<Auteur | null>(null)
+  const [evenements, setEvenements] = useState<EvtAssoc[]>([])
   const [erreur, setErreur] = useState(false)
 
   useEffect(() => {
-    if (!id) { setAuteur(null); setErreur(false); return }
-    setAuteur(null); setErreur(false)
+    if (!id) { setAuteur(null); setEvenements([]); setErreur(false); return }
+    setAuteur(null); setEvenements([]); setErreur(false)
     supabase.from('auteurs')
       .select(`id_auteur, nom, nom_original, titre, dates, siecle, traditions, photo_position,
         note_biographique, note_theologique, langue_principale, chronologie, anecdotes, influence,
@@ -188,6 +330,39 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
       .then(({ data, error }) => {
         if (error || !data) { setErreur(true); return }
         setAuteur(data as Auteur)
+      })
+    // Frise : evenements associes affiches, joints a la fiche evenement (genre + famille).
+    supabase.from('auteurs_evenements')
+      .select('nature_lien, pertinence, titre_personnalise, ordre_force, est_affiche, evenements ( id, date_debut, date_fin, date_exacte, qualification_date, titre, notice, portee, importance_generale, est_publie, genres_evenements ( nom, familles_evenements ( nom ) ) )')
+      .eq('auteur_id', id).eq('est_affiche', true)
+      .then(({ data }) => {
+        const rows = (data || []) as any[]
+        const liste: EvtAssoc[] = rows
+          .map(r => Array.isArray(r.evenements) ? { ...r, evenements: r.evenements[0] } : r)
+          .filter(r => r.evenements && r.evenements.est_publie !== false)
+          .map(r => {
+            const g = Array.isArray(r.evenements.genres_evenements) ? r.evenements.genres_evenements[0] : r.evenements.genres_evenements
+            const f = g && (Array.isArray(g.familles_evenements) ? g.familles_evenements[0] : g.familles_evenements)
+            return {
+              nature_lien: r.nature_lien, pertinence: r.pertinence,
+              titre_personnalise: r.titre_personnalise, ordre_force: r.ordre_force,
+              ev: {
+                id: r.evenements.id, date_debut: r.evenements.date_debut, date_fin: r.evenements.date_fin,
+                date_exacte: r.evenements.date_exacte, qualification_date: r.evenements.qualification_date,
+                titre: r.evenements.titre, notice: r.evenements.notice, portee: r.evenements.portee,
+                importance_generale: r.evenements.importance_generale,
+                genre: g?.nom ?? null, famille: f?.nom ?? null,
+              },
+            }
+          })
+          .sort((a, b) => {
+            const da = a.ev.date_debut ?? 999999, db = b.ev.date_debut ?? 999999
+            if (da !== db) return da - db
+            const fa = a.ev.date_fin ?? a.ev.date_debut ?? 999999, fb = b.ev.date_fin ?? b.ev.date_debut ?? 999999
+            if (fa !== fb) return fa - fb
+            return a.ev.titre.localeCompare(b.ev.titre, 'fr')
+          })
+        setEvenements(liste)
       })
   }, [id])
 
@@ -216,7 +391,7 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
         ) : !auteur ? (
           <p style={{ fontSize: '0.8125rem', color: '#b0a89e', fontStyle: 'italic', textAlign: 'center', margin: '30px 0' }}>Chargement…</p>
         ) : (
-          <Contenu auteur={auteur} onClose={onClose} />
+          <Contenu auteur={auteur} onClose={onClose} evenements={evenements} />
         )}
 
         <style>{`

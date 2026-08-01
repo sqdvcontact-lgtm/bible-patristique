@@ -3,6 +3,7 @@ import { rendreTexteEnrichi } from './texteEnrichi'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { resoudreEditeur } from '@/app/lib/editeurs'
 import { MarqueImprimeur } from './Ornements'
+import { sansPointFinal } from '@/app/lib/titres'
 
 const TITRES_RE = /^(M\.|Mme\.?|Mlle\.?|Dr\.?|Pr\.?|Dom |Père |Frère |Sœur |Abbé |Saint |Sainte |Rev\.? ?|Mgr\.?|R\.\s*P\.|l['']abbé|le père)/i
 
@@ -112,10 +113,16 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
   onModifier: (champ: ChampOeuvre, valeurActuelle: string) => void
   mobile?: boolean
 }) {
+  const SERIF = "var(--font-source-serif), Georgia, serif"
+  // Millésime de l'édition en ligne (colophon), estampillé en base à la première
+  // publication de l'œuvre (colonne `date_mise_en_ligne`). Absent → ligne masquée.
+  const anneeEnLigne = oeuvre.date_mise_en_ligne
+    ? new Date(oeuvre.date_mise_en_ligne).getFullYear()
+    : null
   return (
     <div style={{
       minHeight: '60vh', display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
+      alignItems: 'center', justifyContent: 'center', fontFamily: SERIF,
       // Desktop : padding droit plus grand pour recentrer le titre sur le CORPS DU
       // TEXTE seul, en excluant la gouttière des boutons d'action (~62px à droite).
       // Le centre visuel se décale ainsi d'environ 31px vers la gauche. Sur mobile,
@@ -123,18 +130,18 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
       padding: mobile ? '48px 22px 28px' : '80px 110px 40px 48px',
       marginBottom: '8px', textAlign: 'center',
     }}>
-      {/* Nom d'auteur : légèrement agrandi, interlettrage un peu plus ouvert pour
-          garder l'élégance de la capitale à cette taille. */}
-      <p style={{ fontSize: '0.9375rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '34px', paddingLeft: '0.2em' }}>
+      {/* Nom d'auteur : sérif, corps agrandi, interlettrage resserré (approche des
+          lettres) pour une capitale plus dense et plus posée. */}
+      <p style={{ fontFamily: SERIF, fontSize: '1.0625rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#345c44', marginBottom: '34px', paddingLeft: '0.12em' }}>
         {auteur}
       </p>
 
-      {/* Titre principal */}
+      {/* Titre principal (nom de l'œuvre en français) — agrandi */}
       <div style={{ position: 'relative', maxWidth: '35rem' }}>
-        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.2, marginBottom: oeuvre.sous_titre ? '4px' : oeuvre.titre_original ? '18px' : '32px', whiteSpace: 'pre-line' }}>
+        <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(33px, 4.7vw, 50px)', fontWeight: 'normal', color: '#141f18', lineHeight: 1.18, marginBottom: oeuvre.sous_titre ? '14px' : oeuvre.titre_original ? '20px' : '34px', whiteSpace: 'pre-line' }}>
           {/* Affichage = titre_affichage (avec sauts de ligne éditoriaux) si présent,
               sinon le titre canonique. L'édition admin ci-dessous vise le titre canonique. */}
-          {rendreTexteEnrichi(oeuvre.titre_affichage || titre)}
+          {rendreTexteEnrichi(sansPointFinal(oeuvre.titre_affichage || titre))}
         </h1>
         {estAdmin && (
           <button onClick={() => onModifier('titre', titre)} title="Modifier le titre de l'œuvre"
@@ -142,11 +149,11 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
         )}
       </div>
 
-      {/* Sous-titre */}
+      {/* Sous-titre — agrandi, foncé, un peu plus détaché du titre */}
       {(oeuvre.sous_titre || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '35rem' }}>
-          <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(16px, 2vw, 20px)', fontStyle: 'normal', color: '#6f675f', margin: oeuvre.titre_original ? '0 0 22px' : '0 0 40px', lineHeight: 1.32, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
-            {oeuvre.sous_titre ? rendreTexteEnrichi(oeuvre.sous_titre) : estAdmin ? <span style={{ color: '#d6d0c4', fontStyle: 'italic', fontSize: '0.8125rem' }}>Sous-titre…</span> : null}
+          <p style={{ fontFamily: SERIF, fontSize: 'clamp(18px, 2.4vw, 24px)', fontStyle: 'normal', color: '#4a443c', margin: oeuvre.titre_original ? '0 0 24px' : '0 0 42px', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
+            {oeuvre.sous_titre ? rendreTexteEnrichi(sansPointFinal(oeuvre.sous_titre)) : estAdmin ? <span style={{ color: '#d6d0c4', fontStyle: 'italic', fontSize: '0.8125rem' }}>Sous-titre…</span> : null}
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('sous_titre', oeuvre.sous_titre ?? '')} title="Modifier le sous-titre"
@@ -158,7 +165,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
       {/* Titre original */}
       {(oeuvre.titre_original || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '35rem' }}>
-          <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(15px, 2vw, 19px)', fontStyle: 'italic', color: '#8a8278', marginBottom: '40px', letterSpacing: 0, whiteSpace: 'pre-line' }}>
+          <p style={{ fontFamily: SERIF, fontSize: 'clamp(16px, 2.1vw, 21px)', fontStyle: 'italic', color: '#7c7369', marginBottom: '42px', letterSpacing: 0, whiteSpace: 'pre-line' }}>
             {oeuvre.titre_original ? oeuvre.titre_original : estAdmin ? <span style={{ color: '#d6d0c4', fontSize: '0.8125rem' }}>Titre original…</span> : null}
           </p>
           {estAdmin && (
@@ -168,14 +175,10 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
-        <MarqueImprimeur size={172} />
-      </div>
-
-      {/* Traducteur */}
+      {/* Traducteur — vient AVANT la marque d'imprimeur */}
       {(oeuvre.trad_auteur || estAdmin) && (
         <div style={{ position: 'relative' }}>
-          <p style={{ fontSize: '0.8125rem', color: '#7a7268', marginBottom: '6px' }}>
+          <p style={{ fontFamily: SERIF, fontSize: '0.875rem', color: '#655d54', marginBottom: '6px' }}>
             {oeuvre.trad_auteur ? <>{libelleTrad(oeuvre.trad_auteur)}</> : estAdmin ? <span style={{ color: '#d6d0c4', fontStyle: 'italic', fontSize: '0.75rem' }}>Traduction de…</span> : null}
           </p>
           {estAdmin && (
@@ -185,12 +188,31 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
         </div>
       )}
 
-      <p style={{ fontSize: '0.6875rem', letterSpacing: '0.08em', color: '#b0a89e', marginBottom: '4px' }}>
+      {/* Commentaire sur la traduction (ex. attribution discutée) — note discrète. */}
+      {oeuvre.commentaire_traduction?.trim() && (
+        <p style={{ fontFamily: SERIF, fontSize: '0.75rem', fontStyle: 'italic', color: '#8a8278', maxWidth: '30rem', lineHeight: 1.4, margin: '0 0 2px' }}>
+          {sansPointFinal(oeuvre.commentaire_traduction)}
+        </p>
+      )}
+
+      {/* Marque d'imprimeur — désormais après la traduction */}
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '26px 0 22px' }}>
+        <MarqueImprimeur size={172} />
+      </div>
+
+      {/* Colophon : maison d'édition en ligne (vert), rappel de l'auteur,
+          provenance de la traduction, millésime de l'édition en ligne. */}
+      <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.08em', color: '#3d6b4f', marginBottom: '6px' }}>
         Corpus Scriptura
       </p>
       {(oeuvre.editeur || oeuvre.ville || oeuvre.date_publication) && (
-        <p style={{ fontSize: '0.6875rem', color: '#c0b8b0' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: '#a89f95', marginBottom: '3px' }}>
           {formulerProvenance(oeuvre.editeur, oeuvre.ville, formaterDateHistorique(oeuvre.date_publication))}
+        </p>
+      )}
+      {anneeEnLigne && (
+        <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: '#a89f95' }}>
+          Édition en ligne, {anneeEnLigne}
         </p>
       )}
     </div>

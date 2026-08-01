@@ -13,6 +13,7 @@ import SectionCharteAccentuation from './SectionCharteAccentuation'
 import SectionPropositions from './SectionPropositions'
 import SectionTaches from './SectionTaches'
 import SectionControleOeuvres from './SectionControleOeuvres'
+import SectionEvenements from './SectionEvenements'
 import type { AdminProps as Props, Onglet } from './adminTypes'
 
 export default function AdminClient({
@@ -59,6 +60,7 @@ export default function AdminClient({
     { key: 'controle-oeuvres',    label: 'Contrôle œuvres' },
     { key: 'traductions',         label: 'Traductions' },
     { key: 'editeurs',            label: 'Éditeurs' },
+    { key: 'evenements',          label: 'Chronologie' },
     { key: 'essais',              label: 'Essais', badge: nbEssais },
     { key: 'verifications',       label: 'Vérifications', badge: nbVerif, separateur: true },
     { key: 'moderation',          label: 'Modération', badge: nbMod },
@@ -110,6 +112,14 @@ export default function AdminClient({
         // Le contrôle des œuvres prend toute la largeur : on y lit du texte suivi en
         // regard d'un volet d'analyse, et l'un comme l'autre étouffaient à 1320 px.
         ? { maxWidth: 'none', margin: 0, padding: '20px 14px 48px' }
+        // Essais : tableaux larges (colonne d'actions à boutons de largeur fixe).
+        : onglet === 'essais'
+        ? { maxWidth: '74rem', margin: '0 auto', padding: '28px 24px 64px' }
+        // Bibliothèque : les lignes-œuvres publiées portent une longue rangée de
+        // boutons (⚙, Modifier, Import/Export, Score, statut, URL/Notice/Fichier,
+        // Détails, Contrôle, Dépublier, Supprimer) qui étouffaient à 60 rem.
+        : onglet === 'bibliotheque'
+        ? { maxWidth: '90rem', margin: '0 auto', padding: '28px 24px 64px' }
         : { maxWidth: '60rem', margin: '0 auto', padding: '28px 24px 64px' }}>
         {onglet === 'taches'               && <SectionTaches />}
         {onglet === 'charte'               && <SectionCharte />}
@@ -117,6 +127,7 @@ export default function AdminClient({
         {onglet === 'propositions'   && <SectionPropositions />}
         {onglet === 'bibliotheque'   && <SectionBibliotheque auteurs={auteurs} />}
         {onglet === 'controle-oeuvres' && <SectionControleOeuvres auteurs={auteurs} />}
+        {onglet === 'evenements'     && <SectionEvenements auteurs={auteurs} />}
         {onglet === 'verifications'  && <SectionVerifications onCountChange={setNbVerif} />}
         {onglet === 'traductions'    && <SectionTraductions traductions={traductions} />}
         {onglet === 'editeurs'       && <SectionEditeurs />}

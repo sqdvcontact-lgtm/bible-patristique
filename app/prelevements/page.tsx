@@ -7,6 +7,9 @@ import { supabase } from "@/app/lib/supabase";
 import { formaterDateHistorique } from "@/app/lib/datesHistoriques";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 
+// Les appels de note ([[A]], [[B1]]…) ne doivent pas paraître dans les citations.
+const sansAppelsNote = (t: string) => t.replace(/\[\[[A-Z0-9]+\]\]/g, "");
+
 type TypePrelevement = "biblique" | "patristique";
 
 type Prelevement = {
@@ -225,7 +228,7 @@ function GroupeRepliable({ label, count, ouvert, onToggle, children }: {
     <div style={{ borderTop: "2px solid #c8bdb0" }}>
       <button onClick={onToggle}
         style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(61,107,79,0.05)", border: "none", cursor: "pointer", padding: "11px 10px 10px", width: "100%", textAlign: "left" }}>
-        <span style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#3d6b4f", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
+        <span style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#3d6b4f", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
           {label}
         </span>
         <span style={{ fontSize: "0.59375rem", color: "#b0a89e", background: "transparent", padding: "0 4px", letterSpacing: "0.04em" }}>{count}</span>
@@ -384,7 +387,7 @@ export default function PrelevementsPage() {
 
   if (chargement) return (
     <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "#f0ebe0", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <p style={{ fontSize: "0.8125rem", color: "#9a8a72", fontStyle: "italic", fontFamily: "var(--font-source-serif), Georgia, serif" }}>Chargement…</p>
+      <p style={{ fontSize: "0.8125rem", color: "#9a8a72", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Chargement…</p>
     </main>
   );
 
@@ -422,7 +425,7 @@ export default function PrelevementsPage() {
         .prel-confirm { font-size:0.65625rem; color: #9a8a72; display: flex; align-items: center; white-space: nowrap; }
         .prel-trad-sel {
           appearance: none; -webkit-appearance: none;
-          font-family: var(--font-source-serif), Georgia, serif; font-size:0.75rem; font-style: normal;
+          font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; font-style: normal;
           color: #5a4e3a; background: transparent; border: none;
           border-bottom: 1px solid #c8b8a0; padding: 3px 20px 3px 0;
           cursor: pointer; outline: none; text-align: center;
@@ -440,12 +443,12 @@ export default function PrelevementsPage() {
           <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "clamp(22px, 4vw, 28px)", fontWeight: "normal", color: "#1e1a14", margin: "0 0 10px", letterSpacing: "0.015em" }}>
             Mes citations
           </h1>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", maxWidth: "12.5rem", margin: "0 auto 10px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", maxWidth: "13rem", margin: "2px auto 12px" }}>
             <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #c8b8a4)" }} />
-            <span style={{ fontSize: "0.5625rem", color: "#b0a088", letterSpacing: "0.25em" }}>⁂</span>
+            <img src="/icons/sacre-coeur.png" alt="" aria-hidden="true" style={{ height: "26px", width: "auto", display: "block" }} />
             <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #c8b8a4)" }} />
           </div>
-          <p style={{ fontSize: "0.65625rem", color: "#b8a888", margin: 0, fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: "italic" }}>
+          <p style={{ fontSize: "0.65625rem", color: "#b8a888", margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: "0.04em" }}>
             {prelevements.length} citation{prelevements.length > 1 ? "s" : ""} enregistrée{prelevements.length > 1 ? "s" : ""}
           </p>
         </div>
@@ -455,8 +458,8 @@ export default function PrelevementsPage() {
           {(["biblique", "patristique"] as TypePrelevement[]).map(t => (
             <button key={t} onClick={() => setOnglet(t)}
               style={{
-                padding: "9px 22px", fontSize: "0.75rem", fontFamily: "var(--font-source-serif), Georgia, serif",
-                fontWeight: "normal", fontStyle: onglet === t ? "normal" : "italic",
+                padding: "9px 22px", fontSize: "0.75rem", fontFamily: "var(--font-source-sans), Arial, sans-serif",
+                fontWeight: onglet === t ? 600 : 400,
                 color: onglet === t ? "#1e1a14" : "#a89e8e",
                 background: "transparent", border: "none",
                 borderBottom: onglet === t ? "1.5px solid #3d6b4f" : "1.5px solid transparent",
@@ -485,7 +488,7 @@ export default function PrelevementsPage() {
         {onglet === "biblique" && (
           bibliques.length === 0 ? (
             <div style={{ textAlign: "center", padding: "64px 0" }}>
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "#9a8a72", fontStyle: "italic", marginBottom: "20px" }}>
+              <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.875rem", color: "#9a8a72", marginBottom: "20px" }}>
                 Aucun verset enregistré.
               </p>
               <Link href="/?livre=GEN&chapitre=1" style={{ fontSize: "0.71875rem", color: "#3d6b4f", textDecoration: "none", letterSpacing: "0.04em" }}>Ouvrir la Bible →</Link>
@@ -507,15 +510,15 @@ export default function PrelevementsPage() {
                       return (
                         <div key={i} className={`prel-item${estPref ? " prel-pref" : ""}`}>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", fontStyle: "italic", color: "#1e1a14", lineHeight: 1.38, margin: "0 0 3px", wordSpacing: "-0.03em" }}>
-                              «&#8201;{rendreTexteEnrichi(texte)}&#8201;»
+                            <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.8125rem", color: "#1e1a14", lineHeight: 1.45, margin: "0 0 3px" }}>
+                              «&#8201;{rendreTexteEnrichi(sansAppelsNote(texte))}&#8201;»
                             </p>
-                            <p style={{ fontSize: "0.5625rem", color: "#9a8a72", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-serif), Georgia, serif", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                            <p style={{ fontSize: "0.5625rem", color: "#9a8a72", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
                               <span style={{ fontWeight: 600, color: estPref ? "#9a7a38" : "#6a7b6e" }}>{ref}</span>
                               {nomTrad && (
                                 <>
                                   <span style={{ opacity: 0.4 }}>·</span>
-                                  <span style={{ fontStyle: "italic" }}>Prélevé dans la {nomTrad}</span>
+                                  <span>Prélevé dans la {nomTrad}</span>
                                 </>
                               )}
                             </p>
@@ -540,7 +543,7 @@ export default function PrelevementsPage() {
         {onglet === "patristique" && (
           patristiques.length === 0 ? (
             <div style={{ textAlign: "center", padding: "64px 0" }}>
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "#9a8a72", fontStyle: "italic", marginBottom: "20px" }}>
+              <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.875rem", color: "#9a8a72", marginBottom: "20px" }}>
                 Aucun passage enregistré.
               </p>
               <Link href="/bibliotheque" style={{ fontSize: "0.71875rem", color: "#3d6b4f", textDecoration: "none", letterSpacing: "0.04em" }}>Ouvrir la bibliothèque →</Link>
@@ -568,11 +571,11 @@ export default function PrelevementsPage() {
                       return (
                         <div key={p.id} className={`prel-item${estPref ? " prel-pref" : ""}`}>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", fontStyle: "italic", color: "#1e1a14", lineHeight: 1.38, margin: "0 0 3px", wordSpacing: "-0.03em" }}>
-                              «&#8201;{rendreTexteEnrichi(p.texte)}&#8201;»
+                            <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.8125rem", color: "#1e1a14", lineHeight: 1.45, margin: "0 0 3px" }}>
+                              «&#8201;{rendreTexteEnrichi(sansAppelsNote(p.texte))}&#8201;»
                             </p>
                             {(p.ref_niv1 || p.ref_niv2) && (
-                              <p style={{ fontSize: "0.5625rem", color: "#9a8a72", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
+                              <p style={{ fontSize: "0.5625rem", color: "#9a8a72", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                                 <span style={{ fontWeight: 600, color: estPref ? "#9a7a38" : "#6a7b6e" }}>
                                   {[p.ref_niv1, p.ref_niv2].filter(Boolean).join(", ")}
                                 </span>

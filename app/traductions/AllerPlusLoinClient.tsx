@@ -464,7 +464,7 @@ const NOM_LIVRE: Record<string, string> = {
 type VersetPopulaire = { id_verset: string; livre: string; chapitre: number; verset: number; TR0002: string; nb_lectures: number };
 type VersetCite = {
   canon_id: string; livre: string; chapitre: number; verset: number;
-  score: number; nb_citations: number; nb_commentaires: number; nb_allusions: number; nb_segments: number;
+  score: number; nb_citations: number; nb_commentaires: number; nb_allusions: number; nb_oeuvres: number;
   TR0002: string | null;
 };
 
@@ -494,7 +494,7 @@ function OngletStatistiques() {
   // (vue versets_plus_cites) à partir des liens patristiques.
   useEffect(() => {
     supabase.from('versets_plus_cites')
-      .select('canon_id, livre, chapitre, verset, score, nb_citations, nb_commentaires, nb_allusions, nb_segments, TR0002')
+      .select('canon_id, livre, chapitre, verset, score, nb_citations, nb_commentaires, nb_allusions, nb_oeuvres, TR0002')
       .order('score', { ascending: false })
       .order('nb_commentaires', { ascending: false })
       .limit(30)
@@ -529,7 +529,7 @@ function OngletStatistiques() {
     <div style={{ maxWidth: '40rem', margin: '0 auto', padding: '16px 24px 80px' }}>
       <EnteteStat
         titre="Les plus cités et commentés par les Pères"
-        intro="Classement établi à partir des liens patristiques : un commentaire pèse davantage qu'une citation, une citation davantage qu'une simple allusion. Le score grandira à mesure que les liens sont constitués." />
+        intro="Classement établi à partir des liens patristiques, comptés par œuvre (un même texte ne pèse qu'une fois, même s'il revient longuement sur un verset) : un commentaire pèse davantage qu'une citation, une citation davantage qu'une simple allusion. Le score grandira à mesure que les liens sont constitués." />
       {cites === null ? (
         <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
       ) : cites.length === 0 ? (

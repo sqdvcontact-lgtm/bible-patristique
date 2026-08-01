@@ -21,7 +21,8 @@ export type Props = {
   txtSommaire?: boolean[]
   txtCorps?: boolean[]
   afficherNumeros?: boolean
-  oeuvre: { titre: string; titre_affichage?: string | null; sous_titre?: string; titre_original?: string; trad_auteur?: string; trad_date?: string; editeur?: string; collection?: string; ville?: string; date_publication?: string; id_oeuvre?: string; date_composition?: string | null; langue_originale?: string | null; genres?: string[] | null; url_source?: string | null }
+  lectureTexteEntier?: boolean
+  oeuvre: { titre: string; titre_affichage?: string | null; sous_titre?: string; titre_original?: string; trad_auteur?: string; trad_date?: string; commentaire_traduction?: string | null; editeur?: string; collection?: string; ville?: string; date_publication?: string; date_mise_en_ligne?: string | null; id_oeuvre?: string; date_composition?: string | null; langue_originale?: string | null; genres?: string[] | null; url_source?: string | null }
   groupes: GroupeData[]
   segments: SegData[]
   tocApparat: TocEntry[]
@@ -31,6 +32,9 @@ export type Props = {
   niv1Initial?: string | null
   vueInitiale?: 'texte' | 'apparat'
   eligibleParagraphes?: boolean
+  // Le serveur n'a envoyé que la 1re tranche du niv1 initial : le client charge
+  // le reste en tâche de fond (grosses divisions).
+  niv1InitialPartiel?: boolean
 }
 
 export type ChampOeuvre = 'titre' | 'sous_titre' | 'titre_original' | 'trad_auteur'

@@ -279,7 +279,7 @@ function OngletCommunaute({
           grid-template-rows: subgrid;
           grid-row: span 5;
           min-height: 0;
-          padding: 12px 20px;
+          padding: 15px 24px;
           color: #332c23;
           text-decoration: none;
           transition: background 0.18s;
@@ -326,9 +326,10 @@ function OngletCommunaute({
           justify-content: center;
           text-align: center;
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size:1rem;
-          line-height: 1.2;
+          font-size:1.0625rem;
+          line-height: 1.26;
           color: #1e2e24;
+          letter-spacing: 0.005em;
         }
         .publication-populaire-titre > span {
           display: -webkit-box;
@@ -341,11 +342,12 @@ function OngletCommunaute({
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 8px;
-          color: rgba(154,122,64,0.78);
+          margin-bottom: 11px;
+          color: #b0863c;
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size:0.625rem;
-          letter-spacing: 0.18em;
+          font-size:0.9375rem;
+          font-style: italic;
+          letter-spacing: 0.1em;
         }
         /* L'en-tête est le seul élément flex du panneau à côté de la grille : il ne
            doit pas se comprimer. Les cinq rangs, eux, sont désormais des rangs de
@@ -361,13 +363,14 @@ function OngletCommunaute({
           min-height: 0;
           overflow: hidden;
           max-width: 270px;
-          margin: 12px auto 0;
+          margin: 13px auto 0;
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size:0.71875rem;
-          line-height: 1.48;
+          font-size:0.75rem;
+          line-height: 1.52;
           color: #71685d;
-          text-align: left;
-          padding-bottom: 12px;
+          text-align: center;
+          font-style: italic;
+          padding-bottom: 13px;
         }
         .publication-populaire-meta-ligne {
           display: flex;
@@ -501,7 +504,7 @@ function OngletCommunaute({
           opacity: 0;
           transition: opacity 0.18s;
           z-index: 4;
-          padding: 14px 12px;
+          padding: 26px 24px;
           pointer-events: none;
         }
         .essai-carte:hover .essai-hover-overlay { opacity: 1; pointer-events: auto; }
@@ -568,13 +571,66 @@ function OngletCommunaute({
           flex-direction: column;
         }
         .article-journal-carre {
-          width: min(100%, 270px);
-          height: 285px;
+          position: relative;
+          width: 100%;
+          height: 328px;
           margin: 0 auto;
-          display: flex;
-          flex-direction: column;
           overflow: hidden;
         }
+        /* Filigrane : un seul flux de texte continu, justifié, qui remplit la carte
+           et se fond au bas (masque dégradé). Le cartouche opaque passe par-dessus. */
+        .article-journal-fond {
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 0.75rem;
+          line-height: 1.0625rem;
+          letter-spacing: -0.002em;
+          word-spacing: -0.03em;
+          color: #4f4942;
+          margin: 0;
+          height: 100%;
+          overflow: hidden;
+          text-align: justify;
+          hyphens: auto;
+          -webkit-hyphens: auto;
+          overflow-wrap: break-word;
+          -webkit-mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
+        }
+        .article-journal-cartouche-centre {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
+          padding: 0 8px;
+        }
+        .article-journal-cartouche-centre > .article-journal-cartouche { pointer-events: auto; }
+        /* Zones de filigrane : vrai texte CSS, justifié, qui s'enroule naturellement
+           et se fait couper par la HAUTEUR de la zone (plus de calcul au caractère). */
+        .article-journal-zone {
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 0.6875rem;
+          line-height: 1rem;
+          letter-spacing: -0.002em;
+          word-spacing: -0.04em;
+          color: #4f4942;
+          margin: 0;
+          overflow: hidden;
+          text-align: justify;
+          text-align-last: justify;
+          hyphens: auto;
+          -webkit-hyphens: auto;
+          overflow-wrap: break-word;
+        }
+        .article-journal-zone-haut { height: 96px; }
+        .article-journal-zone-bas { height: 96px; }
+        .article-journal-zone-cote { height: 118px; min-width: 0; }
+        /* Le texte des côtés épouse le cartouche (pas de justification en colonne
+           étroite, qui creuse de gros trous) : la colonne gauche se cale à droite,
+           la colonne droite à gauche. */
+        .article-journal-zone-gauche { text-align: right; text-align-last: right; }
+        .article-journal-zone-droite { text-align: left; text-align-last: left; }
         .article-journal-lignes {
           font-family: var(--font-source-serif), Georgia, serif;
           font-size:0.62813rem;
@@ -594,9 +650,9 @@ function OngletCommunaute({
           display: grid;
           grid-template-columns: minmax(0, 1fr) clamp(150px, 54%, 220px) minmax(0, 1fr);
           align-items: start;
-          column-gap: 7px;
-          height: 105px;
-          margin: 0;
+          column-gap: 11px;
+          height: 118px;
+          margin: 9px 0;
         }
         .article-journal-lignes-cote {
           min-width: 0;
@@ -643,19 +699,21 @@ function OngletCommunaute({
         .article-journal-cartouche {
           position: relative;
           z-index: 2;
-          width: 100%;
-          height: 105px;
+          width: min(80%, 244px);
+          height: 132px;
           box-sizing: border-box;
           min-width: 0;
           max-width: none;
           margin: 0 auto;
-          padding: 6px 10px 7px;
+          padding: 8px 12px 9px;
           background: #faf8f3;
           border: 1px solid rgba(61, 107, 79, 0.58);
+          /* Passe-partout opaque (couleur de la page) : masque les lignes de texte
+             coupées à demi juste au-dessus/en-dessous du cadre. */
           box-shadow:
-            0 0 0 2px rgba(250, 248, 243, 0.92),
-            0 0 0 3px rgba(61, 107, 79, 0.11),
-            0 6px 14px rgba(38, 32, 24, 0.055);
+            0 0 0 10px #f7f4ef,
+            0 0 0 11px rgba(61, 107, 79, 0.12),
+            0 7px 16px rgba(38, 32, 24, 0.06);
           text-align: center;
           display: flex;
           flex-direction: column;
@@ -749,7 +807,7 @@ function OngletCommunaute({
         .ecrire-option:hover { background: rgba(61,107,79,0.08); }
         .ecrire-option + .ecrire-option { border-left: 1px solid rgba(61,107,79,0.16); }
         .ecrire-bandeau:hover .ecrire-option { opacity: 1; }
-        @media (max-width: 780px) {
+        @media (max-width: 900px) {
           .publications-populaires-tete { width: 100%; height: auto; max-height: none; min-height: 0; padding: 0 14px 8px; }
           .publications-populaires-entete { grid-template-columns: 1fr auto 1fr; gap: 6px; }
           .publications-populaires-palme-symetrique { width: 34px; height: 34px; }
@@ -768,9 +826,10 @@ function OngletCommunaute({
           .publications-litteraires { padding: 18px 10px 28px; }
           .essais-journal { grid-template-columns: 1fr; }
           .essais-journal .essai-carte { border-right: none; }
-          .article-journal-centre-row { grid-template-columns: 1fr; }
-          .article-journal-lignes-cote { display: none; }
-          .article-journal-cartouche { width: min(82%, 230px); }
+          /* On garde la mise en page INTERNE de la carte (texte enroulé autour du
+             cartouche) : seule la GRILLE des cartes passe à une colonne. La carte
+             étant pleine largeur en mobile, les zones latérales ont la place de
+             s'afficher — le texte entoure donc toujours le bloc central. */
           .essai-carte.featured { grid-row: auto; padding: 22px 20px 20px; }
         }
       `}</style>
@@ -799,7 +858,7 @@ function OngletCommunaute({
 // contenu excède ce que l'écran peut montrer.
 const HAUTEUR_MIN_TETE = 250   // en deçà, mieux vaut déborder que rendre illisible
 const MARGE_BAS_TETE = 18      // respiration sous le panneau
-const SEUIL_MOBILE = 780       // largeur sous laquelle la grille passe en colonne unique
+const SEUIL_MOBILE = 900       // largeur sous laquelle la grille passe en colonne unique
 // Le résumé s'affiche EN ENTIER : le corpus tient entre 108 et 122 caractères (mesuré
 // le 24/07/2026 sur les 10 essais publiés). Cette borne n'est qu'un garde-fou contre un
 // résumé démesuré qui ferait éclater le panneau ; elle ne se déclenche pas aujourd'hui.
@@ -916,24 +975,6 @@ function EnTetePublicationsPopulaires({ essais, favorisEssais, toggleFavoriEssai
     </section>
   )
 }
-type HabillageJournal = {
-  haut: string[]
-  gauche: string[]
-  droite: string[]
-  bas: string[]
-}
-
-const LARGEUR_LIGNE_JOURNAL = 260
-const LARGEUR_LIGNE_COTE_JOURNAL = 49
-
-function largeurCaractereJournal(caractere: string, type: 'marge' | 'auteur' | 'titre' = 'marge') {
-  const facteur = type === 'titre' ? 1.46 : type === 'auteur' ? 1.14 : 1
-  if (caractere === ' ') return 3.2 * facteur
-  if ("ilI.,;:!'â€™".includes(caractere)) return 2.7 * facteur
-  if ('mwMWÃ¢ÃªÃ´Ã»Ã‚ÃŠÃ”Ã›'.includes(caractere)) return 7.4 * facteur
-  return 5.35 * facteur
-}
-
 function largeurMotJournal(mot: string, type: 'marge' | 'auteur' | 'titre' = 'marge') {
   const facteur = type === 'titre' ? 1.46 : type === 'auteur' ? 1.14 : 1
   return mot.split('').reduce((total, caractere) => {
@@ -946,71 +987,6 @@ function largeurMotJournal(mot: string, type: 'marge' | 'auteur' | 'titre' = 'ma
 
 function largeurTexteJournal(texte: string, type: 'marge' | 'auteur' | 'titre' = 'marge') {
   return texte.split(/\s+/).filter(Boolean).reduce((total, mot, i) => total + largeurMotJournal(mot, type) + (i > 0 ? 3.2 : 0), 0)
-}
-
-function prendreLongueur(mots: string[], index: number, cible: number, minMots = 2, maxMots = 14) {
-  const pris: string[] = []
-  let longueur = 0
-  while (pris.length < maxMots) {
-    const mot = mots[index % mots.length]
-    const prochaineLongueur = longueur + largeurTexteJournal(mot) + (pris.length > 0 ? 3.2 : 0)
-    if (pris.length >= minMots && prochaineLongueur > cible) break
-    pris.push(mot)
-    longueur = prochaineLongueur
-    index += 1
-  }
-  return { texte: pris.join(' '), index }
-}
-
-function estLettreJournal(caractere: string | undefined) {
-  return !!caractere && /[A-Za-zÀ-ÖØ-öø-ÿ]/.test(caractere)
-}
-
-function prendreLigneForcee(texte: string, index: number, cible: number) {
-  while (texte[index % texte.length] === ' ') index += 1
-  const depart = index
-  let longueur = 0
-  let ligne = ''
-  while (index - depart < 90) {
-    const caractere = texte[index % texte.length]
-    const largeur = largeurCaractereJournal(caractere)
-    if (ligne.length > 0 && longueur + largeur > cible) break
-    ligne += caractere
-    longueur += largeur
-    index += 1
-  }
-  const finitSurEspace = /\s$/.test(ligne)
-  const ligneSansBlanc = ligne.trimEnd()
-  const finitSurTiret = /[-‐‑‒–—]$/.test(ligneSansBlanc)
-  const precedent = ligneSansBlanc.at(-1)
-  const suivant = texte[index % texte.length]
-  if (!finitSurEspace && !finitSurTiret && estLettreJournal(precedent) && estLettreJournal(suivant)) {
-    const largeurTiret = largeurCaractereJournal('-')
-    if (longueur + largeurTiret <= cible) {
-      ligne = `${ligneSansBlanc}-`
-    } else if (ligneSansBlanc.length > 2) {
-      ligne = `${ligneSansBlanc.slice(0, -1)}-`
-      index -= 1
-    }
-  } else {
-    ligne = ligneSansBlanc
-  }
-  while (texte[index % texte.length] === ' ') index += 1
-  const ligneNettoyee = ligne
-    .trim()
-    .replace(/\s+[-‐‑‒–—]$/, '')
-    .replace(/[-‐‑‒–—]{2,}$/, '-')
-  return { texte: ligneNettoyee, index }
-}
-
-function prendreLignesForcees(texte: string, index: number, nombre: number, cible: number) {
-  const lignes: string[] = []
-  for (let i = 0; i < nombre; i++) {
-    const ligne = prendreLigneForcee(texte, index, cible)
-    index = ligne.index
-    lignes.push(ligne.texte)
-  }
-  return { lignes, index }
 }
 
 function lignesTitreCentre(titre: string) {
@@ -1032,25 +1008,19 @@ function lignesTitreCentre(titre: string) {
   return [mots.slice(0, meilleurIndex).join(' '), mots.slice(meilleurIndex).join(' ')].filter(Boolean)
 }
 
-function creerHabillageJournal(texte: string): HabillageJournal {
-  const base = texte.replace(/\s+/g, ' ').trim() || 'Lire cette contribution dans son entier pour en suivre le développement et les nuances.'
-  const source = base.length < 520 ? `${base} ${base} ${base}` : base
-  let index = 0
-  const hautForce = prendreLignesForcees(source, index, 6, LARGEUR_LIGNE_JOURNAL)
-  index = hautForce.index
-
-  const gaucheForce = prendreLignesForcees(source, index, 7, LARGEUR_LIGNE_COTE_JOURNAL)
-  index = gaucheForce.index
-  const droiteForce = prendreLignesForcees(source, index, 7, LARGEUR_LIGNE_COTE_JOURNAL)
-  index = droiteForce.index
-
-  const basForce = prendreLignesForcees(source, index, 6, LARGEUR_LIGNE_JOURNAL)
-  return {
-    haut: hautForce.lignes,
-    gauche: gaucheForce.lignes,
-    droite: droiteForce.lignes,
-    bas: basForce.lignes,
-  }
+// Découpe le texte en quatre ZONES de filigrane (haut, gauche, droite, bas) autour
+// du cartouche central. On ne calcule plus de lignes au caractère près (fragile) :
+// chaque zone reçoit une rotation du texte source assez longue pour toujours remplir,
+// et le CSS s'occupe de l'habillage (retour à la ligne naturel, coupé par la hauteur).
+// Texte de filigrane : le texte de l'essai, répété si besoin pour remplir toute la
+// carte (le CSS clippe le trop-plein). Un seul flux continu justifié — pas de
+// découpage en zones (source des défauts d'« enroulement »).
+function texteFiligrane(texte: string): string {
+  const base = texte.replace(/\s+/g, ' ').trim()
+    || 'Lire cette contribution dans son entier pour en suivre le développement et les nuances.'
+  let source = base
+  while (source.length < 1400) source += ' ' + base
+  return source
 }
 
 function nettoyerTextePublication(texte: string) {
@@ -1075,7 +1045,7 @@ function EssaiCarte({ essai: e, miseEnAvant = false, favorisEssais, toggleFavori
     ? (resume.length < 150 ? `${resume} ${resume}` : resume)
     : 'Lire cette contribution dans son entier pour en suivre le développement et les nuances.'
   const lignesTitreAffichees = lignesTitreCentre(e.titre)
-  const lignesHabillage = creerHabillageJournal(resumeJournal)
+  const filigrane = texteFiligrane(resumeJournal)
 
   if (!miseEnAvant) {
     return (
@@ -1101,17 +1071,11 @@ function EssaiCarte({ essai: e, miseEnAvant = false, favorisEssais, toggleFavori
 
         <div className="essai-contenu article-journal-normal">
           <div className="article-journal-carre">
-            <div className="article-journal-lignes article-journal-lignes-haut" aria-hidden="true">
-              {lignesHabillage.haut.map((ligne, i) => (
-                <span key={i} className="article-journal-ligne">{ligne}</span>
-              ))}
-            </div>
-            <div className="article-journal-centre-row">
-              <div className="article-journal-lignes article-journal-lignes-cote article-journal-lignes-gauche" aria-hidden="true">
-                {lignesHabillage.gauche.map((ligne, i) => (
-                  <span key={i} className="article-journal-ligne">{ligne}</span>
-                ))}
-              </div>
+            {/* Bloc-texte : le texte de l'essai en filigrane, en flux continu justifié,
+                clippé proprement par la carte (léger fondu au bas). */}
+            <p className="article-journal-fond" aria-hidden="true">{filigrane}</p>
+            {/* Cartouche titre + auteur, centré et OPAQUE par-dessus le texte. */}
+            <div className="article-journal-cartouche-centre">
               <div className="article-journal-cartouche" style={e.avatar_url ? { backgroundImage: `url(${e.avatar_url})`, backgroundSize: 'cover', backgroundPosition: 'center top' } : {}}>
                 {e.avatar_url && <div className="article-journal-cartouche-overlay" />}
                 <div style={{ position: 'relative', zIndex: 1 }}>
@@ -1126,16 +1090,6 @@ function EssaiCarte({ essai: e, miseEnAvant = false, favorisEssais, toggleFavori
                   )}
                 </div>
               </div>
-              <div className="article-journal-lignes article-journal-lignes-cote article-journal-lignes-droite" aria-hidden="true">
-                {lignesHabillage.droite.map((ligne, i) => (
-                  <span key={i} className="article-journal-ligne">{ligne}</span>
-                ))}
-              </div>
-            </div>
-            <div className="article-journal-lignes article-journal-lignes-bas" aria-hidden="true">
-              {lignesHabillage.bas.map((ligne, i) => (
-                <span key={i} className="article-journal-ligne">{ligne}</span>
-              ))}
             </div>
           </div>
           <div className="article-journal-categories">

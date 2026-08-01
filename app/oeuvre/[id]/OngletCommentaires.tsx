@@ -303,7 +303,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   }
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       <style>{`
         .commentaire-carte {
           transition: opacity 180ms ease, box-shadow 180ms ease, margin 180ms ease;
@@ -343,15 +343,19 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           transform: translateX(0);
         }
       `}</style>
-      {loading && <p style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>}
-      {!loading && commentaires.length === 0 && <p style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic', marginBottom: '12px' }}>Aucun commentaire pour ce passage.</p>}
-      {principaux.map(c => (
-        <div key={c.id}>
-          {renderCommentaire(c, false)}
-          {reponsesDe(c.id).map(r => renderCommentaire(r, true))}
-        </div>
-      ))}
-      <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #d6d0c4' }}>
+      {/* Liste défilante : occupe la place disponible pour que le formulaire de saisie
+          reste épinglé au bas du volet. */}
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingTop: '2px' }}>
+        {loading && <p style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>}
+        {!loading && commentaires.length === 0 && <p style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic', marginBottom: '12px' }}>Aucun commentaire pour ce passage.</p>}
+        {principaux.map(c => (
+          <div key={c.id}>
+            {renderCommentaire(c, false)}
+            {reponsesDe(c.id).map(r => renderCommentaire(r, true))}
+          </div>
+        ))}
+      </div>
+      <div style={{ flexShrink: 0, marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #d6d0c4' }}>
         {!userId ? (
           <p style={{ fontSize: '0.71875rem', color: '#9a4a2a', fontStyle: 'italic' }}>Connectez-vous pour commenter ce passage.</p>
         ) : (

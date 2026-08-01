@@ -76,7 +76,7 @@ function dice(a, b) {
 const segs = []
 for (let from = 0; ; from += 1000) {
   let q = sb.from('segments')
-    .select('id, segment_numero, segment_texte').eq('id_oeuvre', OEUVRE).eq('nature', 'texte')
+    .select('id, segment_numero, segment_texte').eq('id_oeuvre', OEUVRE).in('nature', ['texte', 'citation'])
   if (PARTIE) q = q.eq('ref_niv1', PARTIE)
   const { data, error } = await q.order('segment_numero').range(from, from + 999)
   if (error) throw error

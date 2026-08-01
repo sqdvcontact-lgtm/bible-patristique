@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const message = typeof body?.message === 'string' ? body.message.trim() : ''
+    const message = typeof body?.message === 'string' ? body.message.trim().slice(0, 4000) : ''
     const importanceStr = typeof body?.importance === 'string' ? body.importance : null
     const importance: number = importanceStr === 'bloquant' ? 3 : importanceStr === 'mineur' ? 1 : 2
     const urlSource = typeof body?.url_source === 'string' && body.url_source ? body.url_source.slice(0, 500) : null

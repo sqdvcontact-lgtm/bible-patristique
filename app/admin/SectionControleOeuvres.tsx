@@ -83,6 +83,15 @@ type LigneOeuvrePerso = {
   controle_rang_manuel: Rang | null
   controle_verifie: boolean | null
 }
+
+// La colonne `notes` est un BLOB TEXTE (appels « [[N]] … », séparés par des retours à la
+// ligne), et non un tableau JSON. On la lit en tableau (une note par ligne) pour l'afficher,
+// et on la réécrit en texte à l'enregistrement — sans quoi `.map` plantait sur une chaîne.
+function notesEnTableau(v: unknown): string[] {
+  if (Array.isArray(v)) return v.filter((x): x is string => typeof x === 'string')
+  if (typeof v === 'string') return v.split('\n').map(s => s.trim()).filter(Boolean)
+  return []
+}
 type VersetSupabaseControle = {
   id_verset: string
   ref: string | null
@@ -277,6 +286,9 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
   // vient de `analyserCorpus`, non stocké en base) — voir la note plus bas.
   const [rangsParOeuvre, setRangsParOeuvre] = React.useState<Map<string, { critique: number; moyen: number }>>(new Map())
   const [chargementRangs, setChargementRangs] = React.useState(false)
+  // Date du dernier calcul figé + recalcul en cours (bouton « Recalculer »).
+  const [calculeLe, setCalculeLe] = React.useState<string | null>(null)
+  const [recalculEnCours, setRecalculEnCours] = React.useState(false)
   const [idOeuvre, setIdOeuvre] = React.useState('')
   const [segments, setSegments] = React.useState<SegmentControle[]>([])
   const [chargement, setChargement] = React.useState(false)
@@ -335,33 +347,52 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     return () => { annule = true }
   }, [modeControle])
 
-  // Rangs par œuvre (corpus) pour la coloration de l'accueil. Le calcul est fait EN BASE par
-  // la vue `oeuvres_controle_stats` (elle porte les signaux les plus lourds d'analyserCorpus
-  // et respecte le rang manuel) : UNE requête, au lieu de parcourir ~120 000 segments côté
-  // client. Le détail fin par segment reste calculé en JS pour l'œuvre ouverte.
+  // Rangs par œuvre (corpus) pour la coloration de l'accueil. Le calcul (parcours de
+  // ~120 000 segments + regex) est FIGÉ dans la vue matérialisée `oeuvres_controle_stats_mat` :
+  // la lecture est instantanée (au lieu de ~10 s). Le recalcul ne se fait plus à chaque
+  // ouverture mais SUR DEMANDE (bouton « Recalculer », route admin `controle-refresh`).
+  const chargerRangs = React.useCallback(async () => {
+    const [{ data }, { data: meta }] = await Promise.all([
+      supabase.from('oeuvres_controle_stats_mat').select('id_oeuvre, critique, moyen'),
+      supabase.from('controle_stats_meta').select('calcule_le').maybeSingle(),
+    ])
+    const compte = new Map<string, { critique: number; moyen: number }>()
+    ;((data ?? []) as any[]).forEach(r => {
+      if (r.critique || r.moyen) compte.set(r.id_oeuvre, { critique: r.critique ?? 0, moyen: r.moyen ?? 0 })
+    })
+    setRangsParOeuvre(compte)
+    setCalculeLe((meta as { calcule_le: string } | null)?.calcule_le ?? null)
+  }, [])
+
   React.useEffect(() => {
     if (modeControle !== 'corpus') return
     let annule = false
     setChargementRangs(true)
-    ;(async () => {
-      const { data } = await supabase.from('oeuvres_controle_stats').select('id_oeuvre, critique, moyen')
-      if (annule) return
-      const compte = new Map<string, { critique: number; moyen: number }>()
-      ;((data ?? []) as any[]).forEach(r => {
-        if (r.critique || r.moyen) compte.set(r.id_oeuvre, { critique: r.critique ?? 0, moyen: r.moyen ?? 0 })
-      })
-      setRangsParOeuvre(compte)
-      setChargementRangs(false)
-    })()
+    chargerRangs().finally(() => { if (!annule) setChargementRangs(false) })
     return () => { annule = true }
-  }, [modeControle])
+  }, [modeControle, chargerRangs])
+
+  // Recalcul explicite : rafraîchit la vue matérialisée en base (REFRESH ... CONCURRENTLY,
+  // ~10 s, sans bloquer les lectures) puis relit. Réservé à l'admin par la route.
+  const recalculerRangs = React.useCallback(async () => {
+    setRecalculEnCours(true)
+    try {
+      const res = await fetch('/api/admin/controle-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+      if (res.ok) await chargerRangs()
+    } catch { /* on garde l'affichage figé précédent */ } finally {
+      setRecalculEnCours(false)
+    }
+  }, [chargerRangs])
 
   React.useEffect(() => {
     if (modeControle !== 'corpus') return
     const params = new URLSearchParams(window.location.search)
     const depuisUrl = params.get('id_oeuvre')
-    // On s'ouvre sur la LISTE des œuvres (idOeuvre vide), sauf si l'URL en désigne une.
-    setIdOeuvre(depuisUrl || '')
+    // On s'ouvre sur la LISTE des œuvres (idOeuvre vide), sauf si l'URL désigne une œuvre
+    // BIEN DU CORPUS. Un id « perso » (préfixe PERSO-) laissé dans l'URL après un passage
+    // par l'onglet Perso ne doit pas s'afficher ici en brut : on l'ignore.
+    const valide = !!depuisUrl && !depuisUrl.startsWith('PERSO-')
+    setIdOeuvre(valide ? depuisUrl! : '')
   }, [modeControle, toutesOeuvres])
 
   React.useEffect(() => {
@@ -385,11 +416,13 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
   }, [modeControle])
 
   React.useEffect(() => {
-    if (!idOeuvre) return
     const params = new URLSearchParams(window.location.search)
     params.set('onglet', 'controle-oeuvres')
-    params.set('id_oeuvre', idOeuvre)
     params.set('mode', modeControle)
+    // Sans œuvre sélectionnée, on RETIRE `id_oeuvre` de l'URL (sinon un id périmé y
+    // subsistait et réapparaissait au changement de mode).
+    if (idOeuvre) params.set('id_oeuvre', idOeuvre)
+    else params.delete('id_oeuvre')
     window.history.replaceState(null, '', `/admin?${params.toString()}`)
   }, [idOeuvre, modeControle])
 
@@ -542,7 +575,8 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     if (!actif) return
     setSegments(prev => prev.map(s => s.id === actif.id ? { ...s, notes } : s))
     setStatutAction('envoi')
-    const { error } = await supabase.from(table).update({ notes }).eq('id', actif.id)
+    // La colonne est du texte : on réécrit les notes jointes par des retours à la ligne.
+    const { error } = await supabase.from(table).update({ notes: notes.length ? notes.join('\n') : null }).eq('id', actif.id)
     setStatutAction(error ? 'erreur' : 'idle')
   }
 
@@ -642,7 +676,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
           fiabilite: null,
           nature: s.nature ?? 'texte',
           statut_controle: versRang(s.statut_controle),
-          notes: s.notes ?? [],
+          notes: notesEnTableau(s.notes),
           note_style: s.note_style,
           controle_rang_manuel: s.controle_rang_manuel,
           controle_verifie: s.controle_verifie ?? false,
@@ -894,8 +928,11 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
       <div className="toolbar">
         <h1>Contrôle des œuvres</h1>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '7px', marginTop: '5px' }}>
-          <button className={`mode-btn${modeControle === 'corpus' ? ' active' : ''}`} onClick={() => { setModeControle('corpus'); setRechercheOeuvre('') }}>Corpus</button>
-          <button className={`mode-btn${modeControle === 'perso' ? ' active' : ''}`} onClick={() => { setModeControle('perso'); setRechercheOeuvre('') }}>Perso</button>
+          {/* Changer de mode revient à la LISTE : on relâche l'œuvre sélectionnée (sinon un
+              id « perso » restait affiché dans le volet central sous forme brute en passant
+              au corpus), et l'on nettoie les segments/sélections associés. */}
+          <button className={`mode-btn${modeControle === 'corpus' ? ' active' : ''}`} onClick={() => { setModeControle('corpus'); setRechercheOeuvre(''); setIdOeuvre(''); setSegments([]); setSegmentActif(null); setEditionSegmentId(null) }}>Corpus</button>
+          <button className={`mode-btn${modeControle === 'perso' ? ' active' : ''}`} onClick={() => { setModeControle('perso'); setRechercheOeuvre(''); setIdOeuvre(''); setSegments([]); setSegmentActif(null); setEditionSegmentId(null) }}>Perso</button>
           {modeControle === 'perso' && <button className="mode-btn" onClick={ajouterTextePersonnel}>+ Texte</button>}
         </div>
         <div className="toolbar-regle" />
@@ -925,8 +962,20 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
       {erreur && <p style={{ color: '#9a2a2a', fontSize: '0.8625rem' }}>Erreur de chargement : {erreur}</p>}
       {!idOeuvre ? (
         <div className="controle-accueil">
-          {modeControle === 'corpus' && chargementRangs && (
-            <p style={{ fontSize: '0.79062rem', color: '#9a958d', fontStyle: 'italic', margin: '0 0 8px', padding: '0 12px' }}>Chargement de la qualité…</p>
+          {modeControle === 'corpus' && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap', margin: '0 0 8px', padding: '0 12px' }}>
+              <span style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic' }}>
+                {chargementRangs ? 'Chargement de la qualité…'
+                  : recalculEnCours ? 'Recalcul de la qualité en cours (~10 s)…'
+                  : calculeLe ? `Qualité calculée le ${formaterDateLiens(calculeLe)}`
+                  : 'Qualité non encore calculée'}
+              </span>
+              <button type="button" onClick={recalculerRangs} disabled={recalculEnCours || chargementRangs}
+                title="Recalculer les couleurs de qualité (parcourt tous les segments)"
+                style={{ fontSize: '0.625rem', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', borderRadius: '999px', padding: '3px 10px', cursor: recalculEnCours || chargementRangs ? 'default' : 'pointer', opacity: recalculEnCours || chargementRangs ? 0.5 : 1, whiteSpace: 'nowrap' }}>
+                ↻ Recalculer
+              </button>
+            </div>
           )}
           {oeuvresRecherche.length === 0 ? (
             <p style={{ color: '#9a958d', fontStyle: 'italic', fontSize: '0.93437rem', padding: '10px 12px', margin: 0 }}>Aucune œuvre à contrôler.</p>

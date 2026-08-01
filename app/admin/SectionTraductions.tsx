@@ -357,99 +357,326 @@ function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: s
 
 // ── Édition source précise + apparats critiques ───────────────────────────────
 type EditionSource = {
-  id: number; trad_id: string; titre_edition: string | null; traducteur: string | null
+  id: number; trad_id: string; titre_edition: string | null; sous_titre_edition: string | null; traducteur: string | null
   editeur: string | null; annee_edition: string | null; lieu_edition: string | null; langue: string | null
   confession: string | null; source_type: string | null; source_nom: string | null; source_url: string | null
   source_fichier: string | null; licence: string | null; graphie: string | null; date_extraction: string | null
-  particularites: string | null; integrite_verifiee: boolean | null; notes: string | null
+  particularites: string | null; integrite_verifiee: boolean | null; notes: string | null; nombre_tomes: number | null; numero_edition: number | null
 }
 type ApparatPiece = { id: number; trad_id: string; livre: string | null; piece: string | null; ordre: number | null; texte: string; source: string | null }
+type EntreeJournalIA = { id: number; cree_le: string | null; sujet: string | null; probleme: string | null; reponse: string | null; statut: string | null }
 
-// Un paragraphe qui parle de CETTE édition précise (et non de la traduction en général).
-function phraseEdition(e: EditionSource): string {
-  const lieuAnnee = [e.lieu_edition, e.annee_edition].filter(Boolean).join(', ')
-  const parts: string[] = []
-  if (e.titre_edition) parts.push(`« ${e.titre_edition} »`)
-  if (e.editeur) parts.push(e.editeur)
-  if (lieuAnnee) parts.push(lieuAnnee)
-  let s = parts.join(', ')
-  if (s) s += '.'
-  if (e.source_nom) s += ` Texte établi d’après ${e.source_nom}${e.source_type ? ` (${e.source_type})` : ''}.`
-  if (e.graphie) s += ` Graphie : ${e.graphie}.`
-  return s || 'Édition non détaillée.'
+// Extrait les URL http(s) d'un champ (une source, ou plusieurs séparées par des espaces,
+// retours à la ligne ou points-virgules — cas des éditions en plusieurs tomes).
+function urlsDe(champ: string | null): string[] {
+  return (champ || '').split(/[\s;]+/).map(s => s.trim()).filter(s => /^https?:\/\//i.test(s))
 }
 
-function PanneauEditionApparat({ edition, pieces }: { edition?: EditionSource; pieces: ApparatPiece[] }) {
-  const sousTitre: React.CSSProperties = { fontSize: '0.71875rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 8px' }
-  const vide: React.CSSProperties = { fontSize: '0.8625rem', color: '#9a958d', fontStyle: 'italic', margin: 0 }
-  const champs: [string, string | null][] = edition ? [
-    ['Traducteur', edition.traducteur],
-    ['Éditeur', edition.editeur],
-    ['Lieu', edition.lieu_edition],
-    ['Année', edition.annee_edition],
-    ['Langue', edition.langue],
-    ['Confession', edition.confession],
-    ['Source', [edition.source_nom, edition.source_type].filter(Boolean).join(' · ') || null],
-    ['Extraction', edition.date_extraction],
-  ] : []
-
+// Lien vers une source : un bouton sobre si une seule URL, un menu déroulant si plusieurs.
+function BoutonSource({ label, urls }: { label: string; urls: string[] }) {
+  const [ouvert, setOuvert] = React.useState(false)
+  const base: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.65rem', fontWeight: 500, color: '#3d6b4f', textDecoration: 'none', padding: '3px 11px', border: '1px solid #cfdccb', borderRadius: '999px', background: '#fff', lineHeight: 1.3 }
+  if (urls.length === 1) {
+    return <a href={urls[0]} target="_blank" rel="noopener noreferrer" style={base}>{label}<span aria-hidden="true" style={{ opacity: 0.7 }}>↗</span></a>
+  }
   return (
-    <div style={{ padding: '16px 18px 18px', borderTop: '1px solid #f0ece6', background: '#fbfaf7' }}>
-      {/* Cette édition précise */}
-      <p style={sousTitre}>Cette édition précise</p>
-      {edition ? (
+    <span style={{ position: 'relative', display: 'inline-block' }}>
+      <button onClick={() => setOuvert(o => !o)} style={{ ...base, cursor: 'pointer' }}>
+        {label}<span style={{ color: '#9a958d' }}>· {urls.length}</span><span aria-hidden="true" style={{ opacity: 0.7 }}>▾</span>
+      </button>
+      {ouvert && (
         <>
-          <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.93437rem', color: '#2a2520', lineHeight: 1.6, margin: '0 0 10px' }}>
-            {phraseEdition(edition)}
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '6px 14px', marginBottom: '10px' }}>
-            {champs.filter(([, v]) => v).map(([label, v]) => (
-              <div key={label} style={{ minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: '0.61094rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#b0a89e' }}>{label}</span>
-                <span style={{ fontSize: '0.8625rem', color: '#3a3530', wordBreak: 'break-word' }}>{v}</span>
-              </div>
+          <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, zIndex: 9 }} />
+          <div style={{ position: 'absolute', top: 'calc(100% + 3px)', left: 0, zIndex: 10, background: '#fff', border: '1px solid #d6d0c4', borderRadius: '7px', boxShadow: '0 6px 20px rgba(0,0,0,0.10)', minWidth: '8rem', overflow: 'hidden' }}>
+            {urls.map((u, i) => (
+              <a key={i} href={u} target="_blank" rel="noopener noreferrer" onClick={() => setOuvert(false)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '6px 12px', fontSize: '0.65rem', color: '#3d6b4f', textDecoration: 'none', borderBottom: i < urls.length - 1 ? '1px solid #f0ece6' : 'none' }}>
+                Tome {i + 1}<span aria-hidden="true" style={{ opacity: 0.7 }}>↗</span>
+              </a>
             ))}
           </div>
-          {edition.licence && (
-            <p style={{ fontSize: '0.82656rem', color: '#7a5a2a', background: 'rgba(154,90,42,0.08)', border: '1px solid rgba(154,90,42,0.20)', borderRadius: '5px', padding: '7px 10px', margin: '0 0 8px', lineHeight: 1.5 }}>
-              <strong style={{ letterSpacing: '0.04em' }}>Licence :</strong> {edition.licence}
-            </p>
+        </>
+      )}
+    </span>
+  )
+}
+
+// Découpe un champ multi-valeurs (séparé par des points-virgules) en valeurs distinctes.
+function enValeurs(champ: string | null | undefined): string[] {
+  return String(champ ?? '').split(';').map(s => s.trim()).filter(Boolean)
+}
+function mentionEdition(n: number): string {
+  if (n === 1) return '1re édition'
+  return `${n}e édition`
+}
+const styleTag: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', background: '#f0ece3', color: '#5a5450', border: '1px solid #e3ddcf', borderRadius: '999px', padding: '1px 9px', lineHeight: 1.45 }
+const styleInput: React.CSSProperties = { width: '100%', fontSize: '0.74rem', padding: '4px 8px', border: '1px solid #cfc4ae', borderRadius: '5px', background: '#fff', color: '#2a3530', outline: 'none', boxSizing: 'border-box' }
+const styleMini: React.CSSProperties = { fontSize: '0.62rem', padding: '3px 9px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', cursor: 'pointer', color: '#6b6560' }
+
+// Éditeur de valeurs multiples sous forme de tags (add / remove), enregistré joint par « ; ».
+function EditeurTags({ initial, onValider, onAnnuler }: { initial: string[]; onValider: (v: string[]) => void; onAnnuler: () => void }) {
+  const [tags, setTags] = React.useState<string[]>(initial)
+  const [saisie, setSaisie] = React.useState('')
+  const ajouter = () => { const v = saisie.trim(); if (v) { setTags([...tags, v]); setSaisie('') } }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      {tags.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+          {tags.map((v, i) => (
+            <span key={i} style={styleTag}>{v}
+              <button onClick={() => setTags(tags.filter((_, j) => j !== i))} title="Retirer" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9a8a6e', padding: 0, fontSize: '0.78rem', lineHeight: 1 }}>×</button>
+            </span>
+          ))}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+        <input value={saisie} autoFocus onChange={e => setSaisie(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); ajouter() } if (e.key === 'Escape') onAnnuler() }}
+          placeholder="Ajouter une valeur…" style={{ ...styleInput, flex: 1 }} />
+        <button onClick={ajouter} style={styleMini}>Ajouter</button>
+        <button onClick={() => onValider(tags)} style={{ ...styleMini, color: '#3d6b4f', borderColor: '#bcd3c0', fontWeight: 600 }}>Enregistrer</button>
+        <button onClick={onAnnuler} style={{ ...styleMini, color: '#9a958d' }}>Annuler</button>
+      </div>
+    </div>
+  )
+}
+
+function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: EditionSource; pieces: ApparatPiece[]; nomBref: string }) {
+  // Un seul apparat ouvert à la fois : on n'affiche que les titres, le texte s'ouvre en grand au clic.
+  const [pieceOuverte, setPieceOuverte] = React.useState<number | null>(null)
+  // Petit onglet en tête : la fiche d'édition, ou le journal des commentaires IA (chargé
+  // à la demande, parcouru par une barre de navigation).
+  const [onglet, setOnglet] = React.useState<'fiche' | 'ia'>('fiche')
+  const [journal, setJournal] = React.useState<EntreeJournalIA[] | null>(null)
+  const [idxJ, setIdxJ] = React.useState(0)
+  React.useEffect(() => {
+    if (onglet === 'ia' && journal === null) {
+      supabase.from('journal_ia').select('id, cree_le, sujet, probleme, reponse, statut').order('cree_le', { ascending: false })
+        .then(({ data }) => setJournal((data as EntreeJournalIA[]) ?? []))
+    }
+  }, [onglet, journal])
+  // Édition en ligne : copie locale synchronisée avec la prop ; champ en cours d'édition.
+  const [local, setLocal] = React.useState<EditionSource | undefined>(edition)
+  React.useEffect(() => { setLocal(edition) }, [edition])
+  const [champEdit, setChampEdit] = React.useState<keyof EditionSource | null>(null)
+  const [brouillon, setBrouillon] = React.useState('')
+  const [erreurSave, setErreurSave] = React.useState(false)
+  async function enregistrer(patch: Partial<EditionSource>) {
+    if (!local) return
+    setErreurSave(false)
+    const { error } = await supabase.from('editions_sources').update(patch).eq('id', local.id)
+    if (error) { setErreurSave(true); return }
+    setLocal({ ...local, ...patch })
+    setChampEdit(null)
+  }
+  const editerSingle = (k: keyof EditionSource) => { setChampEdit(k); setBrouillon(String((local as Record<string, unknown> | undefined)?.[k] ?? '')) }
+  const validerSingle = (k: keyof EditionSource, numeric?: boolean) => {
+    const v = brouillon.trim()
+    enregistrer({ [k]: v === '' ? null : (numeric ? Number(v) : v) } as Partial<EditionSource>)
+  }
+  const sousTitre: React.CSSProperties = { fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 4px' }
+  const vide: React.CSSProperties = { fontSize: '0.8rem', color: '#9a958d', fontStyle: 'italic', margin: 0 }
+  const cleStyle: React.CSSProperties = { display: 'block', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#b0a89e', marginBottom: '1px' }
+  // Ligne (libellé à gauche, valeur à droite) — présentation sobre en lignes, texte réduit.
+  const labelLigne: React.CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.53rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#b0a89e', lineHeight: 1.35 }
+  const tiret = <span style={{ color: '#c8c0b4' }}>—</span>
+  const Ligne = ({ cle, children }: { cle: string; children: React.ReactNode }) => (
+    <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid #f1ede6', alignItems: 'baseline' }}>
+      <span style={labelLigne}>{cle}</span>
+      <span style={{ fontSize: '0.74rem', color: '#3a3530', lineHeight: 1.4, wordBreak: 'break-word', flex: 1 }}>{children}</span>
+    </div>
+  )
+  // Ligne éditable au clic. `multi` → tags (séparés par « ; ») ; `numeric` → nombre ;
+  // `rendu` transforme la valeur affichée (ex. « 1re édition »).
+  const LigneEd = ({ cle, champ: k, multi, numeric, rendu }: { cle: string; champ: keyof EditionSource; multi?: boolean; numeric?: boolean; rendu?: (v: string) => React.ReactNode }) => {
+    const brut = (local as Record<string, unknown> | undefined)?.[k]
+    const enEd = champEdit === k
+    return (
+      <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid #f1ede6', alignItems: enEd ? 'flex-start' : 'baseline' }}>
+        <span style={labelLigne}>{cle}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {enEd ? (
+            multi ? (
+              <EditeurTags initial={enValeurs(brut as string)} onAnnuler={() => setChampEdit(null)}
+                onValider={(vals) => enregistrer({ [k]: vals.length ? vals.join(' ; ') : null } as Partial<EditionSource>)} />
+            ) : (
+              <input autoFocus value={brouillon} onChange={ev => setBrouillon(ev.target.value)}
+                onKeyDown={ev => { if (ev.key === 'Enter') validerSingle(k, numeric); if (ev.key === 'Escape') setChampEdit(null) }}
+                onBlur={() => validerSingle(k, numeric)} style={styleInput} />
+            )
+          ) : (
+            <span onClick={() => multi ? setChampEdit(k) : editerSingle(k)} title="Cliquer pour modifier"
+              style={{ fontSize: '0.74rem', color: '#3a3530', lineHeight: 1.4, wordBreak: 'break-word', cursor: 'pointer', ...(multi ? {} : { borderBottom: '1px dotted #ddd6c8' }) }}>
+              {multi
+                ? (enValeurs(brut as string).length ? <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '4px' }}>{enValeurs(brut as string).map((v, i) => <span key={i} style={styleTag}>{v}</span>)}</span> : tiret)
+                : (brut != null && String(brut) !== '' ? (rendu ? rendu(String(brut)) : String(brut)) : tiret)}
+            </span>
           )}
-          {edition.particularites && (
-            <p style={{ fontSize: '0.8625rem', color: '#5a5450', lineHeight: 1.55, margin: '0 0 6px' }}><em>Particularités —</em> {edition.particularites}</p>
+        </div>
+      </div>
+    )
+  }
+  // Ligne éditable en texte long (particularités, notes) — textarea au clic.
+  const LigneEdTexte = ({ cle, champ: k }: { cle: string; champ: keyof EditionSource }) => {
+    const brut = (local as Record<string, unknown> | undefined)?.[k]
+    const enEd = champEdit === k
+    return (
+      <div style={{ padding: '5px 0', borderTop: '1px solid #f1ede6' }}>
+        <span style={{ ...labelLigne, width: 'auto', display: 'block', marginBottom: '3px' }}>{cle}</span>
+        {enEd ? (
+          <textarea autoFocus value={brouillon} rows={3} onChange={ev => setBrouillon(ev.target.value)}
+            onKeyDown={ev => { if (ev.key === 'Escape') setChampEdit(null) }}
+            onBlur={() => enregistrer({ [k]: brouillon.trim() || null } as Partial<EditionSource>)}
+            style={{ ...styleInput, resize: 'vertical', lineHeight: 1.5 }} />
+        ) : (
+          <span onClick={() => editerSingle(k)} title="Cliquer pour modifier"
+            style={{ fontSize: '0.74rem', color: '#5a5450', lineHeight: 1.5, cursor: 'pointer', whiteSpace: 'pre-wrap', display: 'block' }}>
+            {brut && String(brut).trim() ? String(brut) : <em style={{ color: '#c8c0b4' }}>Cliquer pour renseigner…</em>}
+          </span>
+        )}
+      </div>
+    )
+  }
+  const e = local
+  const ongletBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.7rem', fontWeight: 600, padding: '5px 13px', borderRadius: '6px', border: `1px solid ${actif ? '#3d6b4f' : '#d6d0c4'}`, background: actif ? 'rgba(61,107,79,0.09)' : '#fff', color: actif ? '#3d6b4f' : '#8a8278', cursor: 'pointer' })
+  const navBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.72rem', padding: '4px 12px', borderRadius: '5px', border: `1px solid ${actif ? '#d6d0c4' : '#ece7de'}`, background: '#fff', color: actif ? '#3d6b4f' : '#c8c0b4', cursor: actif ? 'pointer' : 'default' })
+
+  return (
+    <div style={{ padding: '16px 18px 20px', borderTop: '1px solid #f0ece6', background: '#fbfaf7' }}>
+      {/* Petit onglet en tête : Fiche / Commentaires IA */}
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '15px' }}>
+        <button onClick={() => setOnglet('fiche')} style={ongletBtn(onglet === 'fiche')}>Fiche</button>
+        <button onClick={() => setOnglet('ia')} style={ongletBtn(onglet === 'ia')}>Commentaires IA</button>
+      </div>
+
+      {onglet === 'ia' ? (
+        <div>
+          {/* Notes propres à cette édition (fusionnées ici) — éditables au clic. */}
+          {e && (
+            <div style={{ marginBottom: '16px' }}>
+              <p style={sousTitre}>Notes de cette édition</p>
+              <LigneEdTexte cle="Particularités" champ="particularites" />
+              <LigneEdTexte cle="Notes" champ="notes" />
+            </div>
           )}
-          {edition.notes && (
-            <p style={{ fontSize: '0.8625rem', color: '#5a5450', lineHeight: 1.55, margin: '0 0 6px' }}>{edition.notes}</p>
-          )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', fontSize: '0.79062rem', color: '#9a958d' }}>
-            <span>Intégrité vérifiée : <strong style={{ color: edition.integrite_verifiee ? '#3d6b4f' : '#c0562a' }}>{edition.integrite_verifiee ? 'oui' : 'non'}</strong></span>
-            {edition.source_url && (
-              <a href={edition.source_url} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline', textUnderlineOffset: '2px' }}>Source en ligne ↗</a>
+          <p style={sousTitre}>Journal des commentaires IA</p>
+          {journal === null ? <p style={{ ...vide, marginTop: '6px' }}>Chargement…</p>
+          : journal.length === 0 ? <p style={{ ...vide, marginTop: '6px' }}>Aucun commentaire IA.</p>
+          : (() => {
+          const idx = Math.min(idxJ, journal.length - 1)
+          const j = journal[idx]
+          return (
+            <div style={{ marginTop: '8px' }}>
+              {/* Barre de navigation */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '10px' }}>
+                <button disabled={idx <= 0} onClick={() => setIdxJ(idx - 1)} style={navBtn(idx > 0)}>‹ Précédent</button>
+                <span style={{ fontSize: '0.72rem', color: '#8a8278' }}>{idx + 1} / {journal.length}</span>
+                <button disabled={idx >= journal.length - 1} onClick={() => setIdxJ(idx + 1)} style={navBtn(idx < journal.length - 1)}>Suivant ›</button>
+              </div>
+              <div style={{ border: '1px solid #e4dfd8', borderRadius: '7px', background: '#fff', padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', marginBottom: '5px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#2a3d30' }}>{j.sujet || 'Sans sujet'}</span>
+                  {j.statut && <span style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#3d6b4f', background: 'rgba(61,107,79,0.10)', borderRadius: '4px', padding: '2px 7px', flexShrink: 0 }}>{j.statut}</span>}
+                </div>
+                {j.cree_le && <p style={{ fontSize: '0.65rem', color: '#b0a89e', margin: '0 0 9px' }}>{new Date(j.cree_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
+                {j.probleme && <div style={{ marginBottom: '9px' }}><span style={cleStyle}>Problème</span><p style={{ fontSize: '0.85rem', color: '#5a5450', lineHeight: 1.55, margin: 0, whiteSpace: 'pre-wrap' }}>{j.probleme}</p></div>}
+                {j.reponse && <div><span style={cleStyle}>Réponse</span><p style={{ fontSize: '0.85rem', color: '#2a2520', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>{j.reponse}</p></div>}
+              </div>
+            </div>
+          )
+        })()}
+        </div>
+      ) : (
+      <>
+      {e ? (
+        <>
+          {/* Première ligne — SEULE en colonnes : sources, licence, intégrité (tout éditable). */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px 16px', padding: '9px 12px', border: '1px solid #e7e1d6', borderRadius: '8px', background: '#fff', marginBottom: '14px' }}>
+            {champEdit === 'source_url' ? (
+              <input autoFocus value={brouillon} onChange={ev => setBrouillon(ev.target.value)} onKeyDown={ev => { if (ev.key === 'Enter') validerSingle('source_url'); if (ev.key === 'Escape') setChampEdit(null) }} onBlur={() => validerSingle('source_url')} placeholder="URL notice (plusieurs séparées par un espace)…" style={{ ...styleInput, maxWidth: '20rem' }} />
+            ) : (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                {urlsDe(e.source_url).length > 0 ? <BoutonSource label="Notice" urls={urlsDe(e.source_url)} /> : <span style={{ fontSize: '0.65rem', color: '#c8c0b4' }}>Notice —</span>}
+                <button onClick={() => editerSingle('source_url')} title="Modifier l’URL notice" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a89e', fontSize: '0.66rem', padding: '1px 2px', lineHeight: 1 }}>✎</button>
+              </span>
             )}
+            {champEdit === 'source_fichier' ? (
+              <input autoFocus value={brouillon} onChange={ev => setBrouillon(ev.target.value)} onKeyDown={ev => { if (ev.key === 'Enter') validerSingle('source_fichier'); if (ev.key === 'Escape') setChampEdit(null) }} onBlur={() => validerSingle('source_fichier')} placeholder="URL texte (plusieurs séparées par un espace)…" style={{ ...styleInput, maxWidth: '20rem' }} />
+            ) : (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                {urlsDe(e.source_fichier).length > 0 ? <BoutonSource label="Source" urls={urlsDe(e.source_fichier)} /> : <strong style={{ fontSize: '0.65rem', color: '#c0562a' }}>Source manquante</strong>}
+                <button onClick={() => editerSingle('source_fichier')} title="Modifier l’URL texte" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a89e', fontSize: '0.66rem', padding: '1px 2px', lineHeight: 1 }}>✎</button>
+              </span>
+            )}
+            <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px 14px' }}>
+              {champEdit === 'licence' ? (
+                <input autoFocus value={brouillon} onChange={ev => setBrouillon(ev.target.value)} onKeyDown={ev => { if (ev.key === 'Enter') validerSingle('licence'); if (ev.key === 'Escape') setChampEdit(null) }} onBlur={() => validerSingle('licence')} placeholder="Licence…" style={{ ...styleInput, maxWidth: '12rem' }} />
+              ) : (
+                <span onClick={() => editerSingle('licence')} title="Modifier la licence" style={{ fontSize: '0.65rem', color: '#6b6560', cursor: 'pointer' }}><span style={{ color: '#b0a89e' }}>Licence · </span>{e.licence || <em style={{ color: '#c8c0b4' }}>définir</em>}</span>
+              )}
+              <button onClick={() => enregistrer({ integrite_verifiee: !e.integrite_verifiee })} title="Basculer l’état d’intégrité" style={{ fontSize: '0.65rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                <span style={{ color: '#b0a89e' }}>Intégrité · </span><strong style={{ color: e.integrite_verifiee ? '#3d6b4f' : '#c0562a' }}>{e.integrite_verifiee ? 'vérifiée' : 'non vérifiée'}</strong>
+              </button>
+            </span>
           </div>
+          {erreurSave && <p style={{ fontSize: '0.66rem', color: '#c0562a', margin: '0 0 10px' }}>Échec de l’enregistrement.</p>}
+
+          {/* Le reste en LIGNES éditables au clic ; les champs à occurrences multiples en tags. */}
+          <p style={sousTitre}>Titre</p>
+          <Ligne cle="Titre bref">{nomBref || tiret}</Ligne>
+          <LigneEd cle="Titre d’origine" champ="titre_edition" />
+          <LigneEd cle="Sous-titre d’origine" champ="sous_titre_edition" />
+
+          <p style={{ ...sousTitre, marginTop: '14px' }}>Publication</p>
+          <LigneEd cle="Traducteur(s)" champ="traducteur" multi />
+          <LigneEd cle="Éditeur(s)" champ="editeur" multi />
+          <LigneEd cle="Lieu de publication" champ="lieu_edition" multi />
+          <LigneEd cle="Année de publication" champ="annee_edition" />
+          <LigneEd cle="Édition" champ="numero_edition" numeric rendu={v => mentionEdition(Number(v))} />
+
+          <p style={{ ...sousTitre, marginTop: '14px' }}>Tomes</p>
+          <LigneEd cle="Nombre de tomes" champ="nombre_tomes" numeric rendu={v => `${v} ${Number(v) > 1 ? 'tomes' : 'tome'}`} />
+
+          <p style={{ ...sousTitre, marginTop: '14px' }}>Caractéristiques</p>
+          <LigneEd cle="Langue" champ="langue" />
+          <LigneEd cle="Confession" champ="confession" />
+          <LigneEd cle="Graphie" champ="graphie" />
+          <LigneEd cle="Source (nom)" champ="source_nom" />
+          <LigneEd cle="Source (type)" champ="source_type" />
         </>
       ) : (
-        <p style={vide}>Aucune fiche d’édition source (<code style={{ fontSize: '0.79062rem' }}>editions_sources</code>) n’est enregistrée pour cette traduction.</p>
+        <p style={{ ...vide, marginBottom: '16px' }}>Aucune fiche d’édition source (<code style={{ fontSize: '0.79062rem' }}>editions_sources</code>) n’est enregistrée pour cette traduction.</p>
       )}
 
-      {/* Apparats critiques */}
-      <p style={{ ...sousTitre, marginTop: '18px' }}>Apparats critiques sauvegardés — {pieces.length}</p>
+      {/* Apparats critiques — rubrique dédiée ; texte replié, ouvert en grand au clic sur le titre. */}
+      <p style={{ ...sousTitre, marginTop: '18px' }}>Apparats critiques — {pieces.length}</p>
       {pieces.length === 0 ? (
         <p style={vide}>Aucun apparat critique enregistré pour cette traduction.</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {pieces.map(p => (
-            <div key={p.id} style={{ border: '1px solid #e4dfd8', borderRadius: '6px', background: '#fff', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap', padding: '7px 11px', background: '#f5f1e8', borderBottom: '1px solid #ede9e2' }}>
-                <span style={{ fontSize: '0.8625rem', fontWeight: 600, color: '#2a3d30' }}>{[p.livre, p.piece].filter(Boolean).join(' · ') || 'Apparat'}</span>
-                {p.source && <span style={{ fontSize: '0.75469rem', color: '#9a8a6e', fontStyle: 'italic' }}>{p.source}</span>}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          {pieces.map(p => {
+            const ouv = pieceOuverte === p.id
+            return (
+              <div key={p.id} style={{ border: '1px solid #e4dfd8', borderRadius: '6px', background: '#fff', overflow: 'hidden' }}>
+                <button onClick={() => setPieceOuverte(ouv ? null : p.id)}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%', textAlign: 'left', padding: '8px 11px', background: ouv ? '#eef2ec' : '#f5f1e8', border: 'none', borderBottom: ouv ? '1px solid #ede9e2' : 'none', cursor: 'pointer' }}>
+                  <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap', minWidth: 0 }}>
+                    <span style={{ fontSize: '0.8625rem', fontWeight: 600, color: '#2a3d30' }}>{[p.livre, p.piece].filter(Boolean).join(' · ') || 'Apparat'}</span>
+                    {p.source && <span style={{ fontSize: '0.75469rem', color: '#9a8a6e', fontStyle: 'italic' }}>{p.source}</span>}
+                  </span>
+                  <span style={{ fontSize: '0.7rem', color: ouv ? '#3d6b4f' : '#9a958d', flexShrink: 0, fontWeight: 600 }}>{ouv ? 'Réduire ▲' : 'Ouvrir ▾'}</span>
+                </button>
+                {ouv && (
+                  <div style={{ padding: '11px 14px', fontSize: '0.9rem', color: '#2a2520', lineHeight: 1.65, maxHeight: '480px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+                    {p.texte}
+                  </div>
+                )}
               </div>
-              <div style={{ padding: '8px 11px', fontSize: '0.8625rem', color: '#3a3530', lineHeight: 1.6, maxHeight: '180px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
-                {p.texte}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
+      )}
+      </>
       )}
     </div>
   )
@@ -781,8 +1008,8 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 </span>
               )}
             </div>
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-              <code style={{ fontSize: '0.75469rem', background: '#f0ece6', padding: '2px 6px', borderRadius: '3px', color: '#6b6560' }}>{t.trad_id}</code>
+            <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+              <code style={{ fontSize: '0.6875rem', background: '#f0ece6', padding: '1px 5px', borderRadius: '3px', color: '#6b6560', marginRight: '1px' }}>{t.trad_id}</code>
               {photoStatut[t.trad_id] === 'loading' && (
                 <span style={{ fontSize: '0.75469rem', color: '#9a958d', fontStyle: 'italic' }}>Envoi…</span>
               )}
@@ -798,7 +1025,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 onClick={() => photoRefs.current[t.trad_id]?.click()}
                 disabled={photoStatut[t.trad_id] === 'loading'}
                 title={t.photo ? 'Remplacer la photo' : 'Ajouter une photo'}
-                style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: `1px solid ${t.photo ? '#3d6b4f' : '#d6d0c4'}`, background: t.photo ? 'rgba(61,107,79,0.08)' : '#fff', color: t.photo ? '#3d6b4f' : '#9a958d', cursor: photoStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: `1px solid ${t.photo ? '#3d6b4f' : '#d6d0c4'}`, background: t.photo ? 'rgba(61,107,79,0.08)' : '#fff', color: t.photo ? '#3d6b4f' : '#9a958d', cursor: photoStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap', minWidth: '4.5rem', textAlign: 'center' }}>
                 {t.photo ? '✓ Photo' : '+ Photo'}
               </button>
               {/* Toujours présent — grisé et désactivé quand il n'y a pas de photo, pour que
@@ -807,7 +1034,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 onClick={() => t.photo && setPositionModal(t.trad_id)}
                 disabled={!t.photo}
                 title={t.photo ? "Cadrer et zoomer l'image" : 'Aucune photo à cadrer'}
-                style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: t.photo ? '#6b6560' : '#c8c0b4', cursor: t.photo ? 'pointer' : 'default', lineHeight: 1, whiteSpace: 'nowrap' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: t.photo ? '#6b6560' : '#c8c0b4', cursor: t.photo ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>
                 ⊹ Cadrer
               </button>
               <input ref={el => { photoRefs.current[t.trad_id] = el }} type="file" accept="image/*" style={{ display: 'none' }}
@@ -833,26 +1060,26 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 onClick={() => exporterCSV(t.trad_id, t.nom)}
                 disabled={exportStatut[t.trad_id] === 'loading'}
                 title="Exporter cette traduction en CSV"
-                style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: exportStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: exportStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
                 ↓ CSV
               </button>
               <button
                 onClick={() => ouvrirRemplacement(t.trad_id)}
                 title="Remplacer les versets de cette traduction via un CSV"
-                style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#9a7e3d', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#9a7e3d', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 ↑ Remplacer
               </button>
               <button onClick={() => setPanneauInfos(panneauInfos === t.trad_id ? null : t.trad_id)}
                 title="Voir l'édition source précise et les apparats critiques"
-                style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: `1px solid ${panneauInfos === t.trad_id ? '#3d6b4f' : '#d6d0c4'}`, background: panneauInfos === t.trad_id ? 'rgba(61,107,79,0.08)' : '#fff', color: '#3d6b4f', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: `1px solid ${panneauInfos === t.trad_id ? '#3d6b4f' : '#d6d0c4'}`, background: panneauInfos === t.trad_id ? 'rgba(61,107,79,0.08)' : '#fff', color: '#3d6b4f', cursor: 'pointer', whiteSpace: 'nowrap', minWidth: '8.5rem', textAlign: 'center' }}>
                 Édition &amp; apparat{apparats[t.trad_id]?.length ? ` (${apparats[t.trad_id].length})` : ''}
               </button>
               <button onClick={() => edition === t.trad_id ?fermer() : ouvrir(t)}
-                style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer', minWidth: '4.5rem', textAlign: 'center' }}>
                 {edition === t.trad_id ?'Fermer' : 'Modifier'}
               </button>
               <button onClick={() => supprimer(t.trad_id)}
-                style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #e4c4b8', background: '#fff', color: '#c0562a', cursor: 'pointer' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid #e4c4b8', background: '#fff', color: '#c0562a', cursor: 'pointer' }}>
                 Supprimer
               </button>
             </div>
@@ -860,7 +1087,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
 
           {/* Panneau « Édition & apparat » : cette édition précise + apparats critiques */}
           {panneauInfos === t.trad_id && (
-            <PanneauEditionApparat edition={editionsSrc[t.trad_id]} pieces={apparats[t.trad_id] ?? []} />
+            <PanneauEditionApparat edition={editionsSrc[t.trad_id]} pieces={apparats[t.trad_id] ?? []} nomBref={t.nom} />
           )}
 
           {/* Formulaire édition */}

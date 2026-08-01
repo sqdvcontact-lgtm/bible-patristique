@@ -11,8 +11,8 @@
 //   • ancien = première constitution (liens_anciens_controle.json), canon résolu
 // Les psaumes sont donnés en grec (ossature) ET hébreu (édition) pour comparer.
 //
-//   node scripts/candidats-lecture.mjs A0010O0001 "Livre Sixième"
-//   node scripts/candidats-lecture.mjs A0010O0001            (toute l'œuvre)
+//   node scripts/candidats-lecture.mjs <id_oeuvre> "Livre Sixième"
+//   node scripts/candidats-lecture.mjs <id_oeuvre>            (toute l'œuvre)
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createClient } from '@supabase/supabase-js';
@@ -22,7 +22,8 @@ const env = Object.fromEntries(readFileSync('.env.local', 'utf8').split(/\r?\n/)
   .map((m) => [m[1], m[2].replace(/^["']|["']$/g, '')]));
 const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
-const OEUVRE = process.argv.find((a) => /^A\d{4}O\d{4}$/.test(a)) || 'A0010O0001';
+const OEUVRE = process.argv.find((a) => /^A\d{4}O\d{4}$/.test(a));
+if (!OEUVRE) throw new Error('Usage : node scripts/candidats-lecture.mjs <id_oeuvre> [section]');
 const LIVRE = process.argv.slice(2).find((a) => !/^A\d{4}O\d{4}$/.test(a) && !a.startsWith('--'));
 
 async function pageAll(table, sel, filt) {

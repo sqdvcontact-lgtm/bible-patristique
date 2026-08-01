@@ -25,6 +25,12 @@ export async function POST(req: NextRequest) {
     'langue_originale', 'date_composition', 'date_publication', 'trad_date',
     'lien_source', 'couverture', 'categories', 'description', 'sous_genre',
     'fiabilite', 'tags', 'nb_segments', 'traditions', 'ordre',
+    'niveaux_sommaire', 'niveaux_corps', 'texte_sommaire', 'texte_corps',
+    'afficher_numeros', 'lecture_texte_entier',
+    // Champs du formulaire « Modifier l'œuvre » qui manquaient à cette liste blanche :
+    // ils étaient rejetés (400) et n'étaient donc PAS enregistrés en base. La RPC
+    // admin_update_oeuvre_champ les prend en charge.
+    'titre_original', 'trad_auteur', 'editeur', 'collection', 'ville', 'url_source', 'genres',
   ])
   if (!CHAMPS_AUTORISES.has(champ)) {
     return NextResponse.json({ error: 'Champ non autorisé.' }, { status: 400 })
@@ -34,13 +40,26 @@ export async function POST(req: NextRequest) {
     ? normaliserDateHistoriqueTexte(valeur)
     : valeur ?? null
 
-  const { error } = await supabaseAdmin.rpc('admin_update_oeuvre_champ', {
-    p_id_oeuvre: id_oeuvre,
-    p_champ: champ,
-    p_valeur: valeurNormalisee,
-  })
+  const { error } = champ === 'lecture_texte_entier'
+    ? await supabaseAdmin.from('oeuvres').update({ lecture_texte_entier: Boolean(valeur) }).eq('id_oeuvre', id_oeuvre)
+    : await supabaseAdmin.rpc('admin_update_oeuvre_champ', {
+      p_id_oeuvre: id_oeuvre,
+      p_champ: champ,
+      p_valeur: valeurNormalisee,
+    })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Publication (effacement du marqueur dans `note`) : on estampille la date de
+  // mise en ligne à la PREMIÈRE publication seulement (ne pas écraser si déjà fixée).
+  if (champ === 'note' && (valeurNormalisee === null || valeurNormalisee === '')) {
+    const { error: dateError } = await supabaseAdmin
+      .from('oeuvres')
+      .update({ date_mise_en_ligne: new Date().toISOString() })
+      .eq('id_oeuvre', id_oeuvre)
+      .is('date_mise_en_ligne', null)
+    if (dateError) return NextResponse.json({ error: dateError.message }, { status: 500 })
+  }
 
   if (champ === 'date_publication' || champ === 'date_composition') {
     const prefixe = champ === 'date_publication' ? 'publication' : 'composition'

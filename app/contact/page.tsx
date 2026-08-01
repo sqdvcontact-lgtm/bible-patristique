@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 // Point de contact du site. Public par nature — il vit hors du verrou (le proxy
 // le laisse passer), pour que les mentions légales puissent y renvoyer même
@@ -24,7 +24,6 @@ export default function ContactPage() {
   const [etat, setEtat] = useState<"repos" | "envoi" | "fait">("repos");
   const [erreur, setErreur] = useState<string | null>(null);
 
-  useEffect(() => { document.title = "Contact – Corpus Scriptura"; }, []);
 
   const envoyer = async (e: React.FormEvent) => {
     e.preventDefault();

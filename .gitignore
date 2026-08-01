@@ -46,6 +46,15 @@ scripts/*.json
 scripts/*.docx
 scripts/giguet-revue.md
 
+# Heptateuque : fac-similés (103 Mo), node_modules locaux, DOCX régénérables
+scripts/heptateuque/img/
+scripts/heptateuque/node_modules/
+scripts/heptateuque/package-lock.json
+scripts/heptateuque/*.docx
+
+# sauvegardes et dry-runs de base (charte §1.4) — locaux, volumineux (106 Mo)
+/audit/
+
 # dossier de travail temporaire (OCR, PDF volumineux, artefacts)
 /tmp/
 

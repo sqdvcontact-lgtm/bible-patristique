@@ -71,6 +71,30 @@ function stylePhotoAuteur(pos: AuteurPhotoPos): React.CSSProperties {
 
 function sansAccents(s: string): string { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase() }
 
+// Clé de tri alphabétique d'un titre : on retire l'article ou le déterminant de tête
+// (« Le », « La », « Les », « L' », « Un », « Une », « De », « Des », « Du », « D' »…),
+// pour que « La Cité de Dieu » se range à « C » et non à « L ».
+const ARTICLE_TETE = /^(l['’]|d['’]|le |la |les |un |une |des |du |de |au |aux )/;
+function cleTriTitre(titre: string): string {
+  return sansAccents(titre.trim()).replace(ARTICLE_TETE, '').trim();
+}
+function comparerTitres(a: string, b: string): number {
+  return cleTriTitre(a).localeCompare(cleTriTitre(b), 'fr') || a.localeCompare(b, 'fr');
+}
+
+// Numéro de siècle à partir de la chaîne stockée (« IVe », « 4 », « IVe-Ve »… → 4).
+const ROMAINS_SIECLE: Record<string, number> = {
+  i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6, vii: 7, viii: 8, ix: 9, x: 10, xi: 11, xii: 12, xiii: 13,
+};
+function siecleEnNombre(s: string | null | undefined): number | null {
+  if (!s) return null;
+  const t = s.trim().toLowerCase();
+  const rom = t.match(/^[ivx]+/);
+  if (rom && ROMAINS_SIECLE[rom[0]] != null) return ROMAINS_SIECLE[rom[0]];
+  const ar = t.match(/\d+/);
+  return ar ? parseInt(ar[0]) : null;
+}
+
 function extraireAnnee(s: string | null | undefined): number | null {
   if (!s) return null
   const m = s.match(/\d+/)
@@ -91,7 +115,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
 }) {
   const q = sansAccents(recherche.trim())
   const oeuvresTriees = useMemo(
-    () => [...auteur.oeuvres].sort((a, b) => a.titre.localeCompare(b.titre, 'fr')),
+    () => [...auteur.oeuvres].sort((a, b) => comparerTitres(a.titre, b.titre)),
     [auteur.oeuvres]
   )
   const oeuvreCorrespondante = q ? oeuvresTriees.find(o => sansAccents(o.titre).includes(q)) : null
@@ -200,18 +224,22 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
               return (
                 <div key={grp.versions[0].id_oeuvre}
                   className={`bib-oeuvre${correspond ? ' bib-correspond' : ''}`}
-                  style={{ borderTop: idx > 0 ? '1px solid #f3efe9' : 'none', borderLeft: correspond ? '3px solid #3d6b4f' : '3px solid transparent', padding: '7px 0 8px' }}>
-                  <span style={{ display: 'block', fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? '#2a4d35' : '#2a3d30', fontWeight: correspond ? 600 : 400, lineHeight: 1.35, padding: '0 18px 0 20px' }}>{grp.titre}</span>
+                  style={{ borderTop: idx > 0 ? '1px solid #f3efe9' : 'none', borderLeft: correspond ? '3px solid #3d6b4f' : '3px solid transparent', padding: '4px 0 5px' }}>
+                  <span style={{ display: 'block', fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? '#2a4d35' : '#2a3d30', fontWeight: correspond ? 600 : 400, lineHeight: 1.3, padding: '0 18px 0 20px' }}>{grp.titre}</span>
                   {grp.versions.map(o => {
                     const edition = [o.editeur, o.ville, formaterDateHistorique(o.date_publication)].filter(Boolean).join(', ')
                     const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
                     const libelle = trad || edition || 'Édition'
                     return (
-                      <div key={o.id_oeuvre} className="bib-ligne" style={{ marginTop: '3px' }}>
+                      <div key={o.id_oeuvre} className="bib-ligne" style={{ marginTop: '1px', alignItems: 'center' }}>
+                        {/* Favori en tête de ligne, en guise de puce, à gauche de la traduction. */}
+                        <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '20px' }}>
+                          <EtoileFavori actif={favorisOeuvres.has(o.id_oeuvre)} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={12} />
+                        </div>
                         <Link href={`/oeuvre/${o.id_oeuvre}`}
-                          style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 12px 4px 32px', textDecoration: 'none' }}>
+                          style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
                           <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '0.71875rem', color: '#3d6b4f', fontWeight: 500 }}>{libelle}</span>
+                            <span style={{ fontSize: '0.71875rem', color: '#4a4038', fontWeight: 500 }}>{libelle}</span>
                             {trad && edition && <span style={{ fontSize: '0.625rem', color: '#a59c90' }}>{rendreSiecles(edition)}</span>}
                             {!trad && !edition && <span style={{ fontSize: '0.625rem', color: '#c4bcb0', fontStyle: 'italic' }}>Certaines données manquent.</span>}
                           </span>
@@ -220,9 +248,6 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                             <svg className="bib-fleche" width="17" height="9" viewBox="0 0 18 9" fill="none" aria-hidden="true"><path d="M0.5 4.5h15.5M12 1l4 3.5-4 3.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>
                           </span>
                         </Link>
-                        <div style={{ display: 'flex', alignItems: 'center', paddingRight: '14px' }}>
-                          <EtoileFavori actif={favorisOeuvres.has(o.id_oeuvre)} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={13} />
-                        </div>
                       </div>
                     )
                   })}
@@ -1318,12 +1343,39 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
   // Fiche auteur ouverte en fenêtre (plutôt qu'une navigation vers une page dédiée).
   const [auteurModal, setAuteurModal] = useState<string | null>(null)
 
+  // Filtres à facettes, sur le modèle du volet droit de la page Bible : période (siècle),
+  // langue et tradition, dépliés depuis un bouton posé à côté de la barre de recherche.
+  const [filtresOuverts, setFiltresOuverts] = useState(false)
+  const [periodesActives, setPeriodesActives] = useState<Set<number>>(new Set())
+  const [languesActives, setLanguesActives] = useState<Set<string>>(new Set())
+  const [traditionsActives, setTraditionsActives] = useState<Set<string>>(new Set())
+  const basculer = <T,>(setter: React.Dispatch<React.SetStateAction<Set<T>>>, v: T) =>
+    setter(prev => { const s = new Set(prev); s.has(v) ? s.delete(v) : s.add(v); return s })
+
+  // Facettes réellement présentes dans les données (pas de tag vide).
+  const languesDispo = useMemo(
+    () => Array.from(new Set(auteurs.map(a => a.langue_principale).filter(Boolean) as string[])).sort((a, b) => a.localeCompare(b, 'fr')),
+    [auteurs])
+  const traditionsDispo = useMemo(
+    () => Array.from(new Set(auteurs.flatMap(a => a.traditions ?? []))).sort((a, b) => a.localeCompare(b, 'fr')),
+    [auteurs])
+  const nbFiltres = periodesActives.size + languesActives.size + traditionsActives.size
+
   const qNorm = sansAccents(recherche.trim())
 
   const auteursFiltres = useMemo(() => auteurs
     .filter(a => !qNorm || sansAccents(a.nom).includes(qNorm) || a.oeuvres.some(o => sansAccents(o.titre).includes(qNorm)))
+    .filter(a => {
+      if (periodesActives.size) {
+        const n = siecleEnNombre(a.siecle)
+        if (n == null || ![...periodesActives].some(i => n >= PERIODES[i].min && n <= PERIODES[i].max)) return false
+      }
+      if (languesActives.size && !(a.langue_principale && languesActives.has(a.langue_principale))) return false
+      if (traditionsActives.size && !(a.traditions ?? []).some(t => traditionsActives.has(t))) return false
+      return true
+    })
     .sort((a, b) => a.nom.localeCompare(b.nom, 'fr')),
-  [auteurs, qNorm])
+  [auteurs, qNorm, periodesActives, languesActives, traditionsActives])
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '3.5rem' }}>
@@ -1361,16 +1413,59 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
         {/* Contenu onglet Bibliothèque */}
         {onglet === 'bibliotheque' && (
           <>
-            {/* Recherche */}
-            <div style={{ position: 'relative', maxWidth: '21.25rem', margin: '0 auto 18px' }}>
-              <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
-                placeholder="Rechercher un auteur ou une œuvre"
-                style={{ width: '100%', fontSize: '0.78125rem', padding: '7px 14px 7px 36px', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
-                <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
-                <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
-              </svg>
+            {/* Recherche + bouton Filtres, côte à côte. */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', margin: '0 auto 12px', maxWidth: '30rem' }}>
+              <div style={{ position: 'relative', flex: 1, maxWidth: '21.25rem' }}>
+                <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
+                  placeholder="Rechercher un auteur ou une œuvre"
+                  style={{ width: '100%', fontSize: '0.78125rem', padding: '7px 14px 7px 36px', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box' }} />
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
+                  <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
+                  <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <button onClick={() => setFiltresOuverts(o => !o)} aria-expanded={filtresOuverts}
+                style={{ position: 'relative', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78125rem', color: filtresOuverts || nbFiltres > 0 ? '#3d6b4f' : '#6b6560', background: filtresOuverts ? 'rgba(61,107,79,0.06)' : '#fff', border: `1px solid ${filtresOuverts || nbFiltres > 0 ? '#a9c9b6' : '#d6d0c4'}`, borderRadius: '6px', cursor: 'pointer', padding: '7px 14px', fontFamily: 'inherit' }}>
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M1.5 3h11M3.5 7h7M5.5 11h3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                Filtres
+                {nbFiltres > 0 && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '15px', height: '15px', padding: '0 4px', borderRadius: '999px', background: '#3d6b4f', color: '#fff', fontSize: '0.5625rem', fontWeight: 700, lineHeight: 1 }}>{nbFiltres}</span>
+                )}
+              </button>
             </div>
+
+            {/* Panneau de filtres à facettes (période · langue · tradition). */}
+            {filtresOuverts && (
+              <div style={{ maxWidth: '40rem', margin: '0 auto 18px', padding: '14px 16px', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <LigneFiltres label="Période">
+                  {PERIODES.map((p, i) => (
+                    <Chip key={i} theme="periode" actif={periodesActives.has(i)} onClick={() => basculer(setPeriodesActives, i)}>{p.jsx}</Chip>
+                  ))}
+                </LigneFiltres>
+                {languesDispo.length > 0 && (
+                  <LigneFiltres label="Langue">
+                    {languesDispo.map(l => (
+                      <Chip key={l} theme="langue" actif={languesActives.has(l)} onClick={() => basculer(setLanguesActives, l)}>{l}</Chip>
+                    ))}
+                  </LigneFiltres>
+                )}
+                {traditionsDispo.length > 0 && (
+                  <LigneFiltres label="Tradition">
+                    {traditionsDispo.map(t => (
+                      <Chip key={t} theme="genre" actif={traditionsActives.has(t)} onClick={() => basculer(setTraditionsActives, t)}>{t}</Chip>
+                    ))}
+                  </LigneFiltres>
+                )}
+                {nbFiltres > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '2px' }}>
+                    <button onClick={() => { setPeriodesActives(new Set()); setLanguesActives(new Set()); setTraditionsActives(new Set()) }}
+                      style={{ fontSize: '0.65625rem', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                      Effacer les filtres
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {auteursFiltres.length === 0 ? (
               <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>

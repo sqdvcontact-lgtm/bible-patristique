@@ -24,6 +24,7 @@ export type Oeuvre = {
   texte_corps?: string | null
   afficher_numeros?: boolean | null
   note?: string | null
+  commentaire_traduction?: string | null
 }
 export type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 export type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }
@@ -107,4 +108,4 @@ export type AdminProps = {
   actionRenvoyerBrouillonEssai: (id: number, note: string, refus?: boolean) => Promise<void>
 }
 
-export type Onglet = 'bibliotheque' | 'controle-oeuvres' | 'traductions' | 'editeurs' | 'verifications' | 'moderation' | 'essais' | 'charte' | 'charte-accentuation' | 'propositions' | 'taches'
+export type Onglet = 'bibliotheque' | 'controle-oeuvres' | 'traductions' | 'editeurs' | 'evenements' | 'verifications' | 'moderation' | 'essais' | 'charte' | 'charte-accentuation' | 'propositions' | 'taches'

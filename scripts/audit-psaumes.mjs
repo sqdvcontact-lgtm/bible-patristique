@@ -8,7 +8,7 @@
 // source (filet ou lu), et le span cité. On SIGNALE les segments où les liens de
 // psaume divergent (héb différent) — c'est là que se cachent les erreurs de numéro.
 //
-//   node scripts/audit-psaumes.mjs A0010O0001
+//   node scripts/audit-psaumes.mjs <id_oeuvre>
 
 import { readFileSync } from 'node:fs';
 import { createClient } from '@supabase/supabase-js';

@@ -14,6 +14,7 @@ import { createPortal } from 'react-dom'
 import { supabase } from '@/app/lib/supabase'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { rendreSiecles } from '@/app/lib/siecles'
+import { useEstMobile } from '@/app/lib/useEstMobile'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const DELAI_OUVERTURE = 220
@@ -45,6 +46,9 @@ export default function ApercuAuteur({
   onOuvrirFiche: () => void
   children: React.ReactNode
 }) {
+  // Sur mobile, l'aperçu au survol ne fonctionne pas (pas de vrai « hover » au
+  // doigt) : on le supprime et le clic sur le nom ouvre directement la fenêtre.
+  const mobile = useEstMobile(900)
   const [visible, setVisible] = useState(false)
   const [auteur, setAuteur] = useState<AuteurApercu | null>(null)
   const [photoOk, setPhotoOk] = useState(true)
@@ -100,7 +104,7 @@ export default function ApercuAuteur({
   const initiales = auteur ? auteur.nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('') : ''
 
   return (
-    <span ref={ancreRef} onMouseEnter={entrer} onMouseLeave={sortir}
+    <span ref={ancreRef} onMouseEnter={mobile ? undefined : entrer} onMouseLeave={mobile ? undefined : sortir}
       style={{ display: 'inline-flex', maxWidth: '100%' }}>
       <button onClick={onOuvrirFiche} disabled={!auteurId}
         title={auteurId ? 'Voir la fiche de l’auteur' : undefined}
@@ -110,7 +114,7 @@ export default function ApercuAuteur({
         {children}
       </button>
 
-      {visible && auteur && pos && typeof document !== 'undefined' && createPortal(
+      {!mobile && visible && auteur && pos && typeof document !== 'undefined' && createPortal(
         <div onMouseEnter={() => { if (timerFerme.current) clearTimeout(timerFerme.current) }}
           onMouseLeave={sortir}
           onClick={onOuvrirFiche}

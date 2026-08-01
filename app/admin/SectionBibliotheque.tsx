@@ -283,6 +283,7 @@ type NoticeCatalogueAdmin = {
   collection_nom: string | null
   domaine_public: string | null
   url_source: string | null
+  url_texte_integral: string | null
   decision_import: string | null
   niveau_verification: string | null
   score_fiabilite: number | null
@@ -365,58 +366,73 @@ function ChampCatalogue({ label, valeur, accent = false, transform, lien = false
   }
 
   return (
-    <div
-      // Petit effet au survol : le bloc se soulève d'un cheveu et prend une ombre douce,
-      // pour signaler qu'il réagit (et qu'il est éditable). Neutralisé pendant l'édition.
-      onMouseEnter={e => { if (!enEdition) { e.currentTarget.style.boxShadow = '0 2px 7px rgba(70,58,34,0.10)'; e.currentTarget.style.transform = 'translateY(-1px)' } }}
-      onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none' }}
-      style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '1px',
-      minWidth: 0,
-      padding: '3px 8px 4px',
-      borderRadius: '5px',
-      // Teintes plus douces : le manque se dit dans un sable rosé, non plus dans un rouge
-      // d'alerte ; le champ renseigné repose sur un blanc cassé chaud.
-      background: manque ? '#fbf3ef' : '#fbfaf7',
-      border: `1px solid ${enEdition ? '#a9c9b6' : (manque ? '#ecd6cc' : '#ece7de')}`,
-      boxShadow: 'none',
-      transition: 'box-shadow 0.15s ease, transform 0.15s ease',
-    }}>
-      <span style={{ fontSize: '0.575rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: manque ? '#bd8672' : '#a89a86', lineHeight: 1 }}>{label}</span>
-      {enEdition ? (
-        <>
-          <input autoFocus value={saisie} disabled={saving}
-            onChange={e => setSaisie(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') valider(); if (e.key === 'Escape') { setEnEdition(false); setErreur(null) } }}
-            onBlur={valider}
-            style={{ fontSize: '0.82656rem', padding: '1px 4px', border: '1px solid #b8ccc0', borderRadius: '3px', background: '#fff', color: '#2a322a', outline: 'none', width: '100%', boxSizing: 'border-box' }} />
-          {erreur && <span style={{ fontSize: '0.64687rem', color: '#b3261e', lineHeight: 1.25, marginTop: '1px' }}>{erreur}</span>}
-        </>
-      ) : estUrl ? (
-        <a href={texte} target="_blank" rel="noopener noreferrer"
-          style={{ fontSize: '0.82656rem', fontWeight: accent ? 700 : 400, color: '#3d6b4f', textDecoration: 'underline', textUnderlineOffset: '2px', lineHeight: 1.3, wordBreak: 'break-all' }}>{texte}</a>
-      ) : (
-        <span onClick={ouvrir}
-          title={edit ? 'Cliquer pour modifier' : undefined}
-          style={{ fontSize: '0.82656rem', fontWeight: accent ? 700 : 400, color: manque ? '#b06a54' : '#2a322a', lineHeight: 1.3, wordBreak: 'break-word', cursor: edit ? 'text' : 'default' }}>
-          {texte}
-        </span>
-      )}
+    // Une LIGNE claire : libellé fixe à gauche, valeur à droite (éditable au clic).
+    <div style={{ display: 'flex', gap: '14px', padding: '4px 0', alignItems: enEdition ? 'flex-start' : 'baseline', borderTop: '1px solid #f4efe6' }}>
+      <span style={{ flexShrink: 0, width: '8rem', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: manque ? '#c6a08c' : '#b3a893', lineHeight: 1.5 }}>{label}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {enEdition ? (
+          <>
+            <input autoFocus value={saisie} disabled={saving}
+              onChange={e => setSaisie(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') valider(); if (e.key === 'Escape') { setEnEdition(false); setErreur(null) } }}
+              onBlur={valider}
+              style={{ fontSize: '0.8rem', padding: '2px 7px', border: '1px solid #b8ccc0', borderRadius: '4px', background: '#fff', color: '#2a322a', outline: 'none', width: '100%', boxSizing: 'border-box' }} />
+            {erreur && <span style={{ fontSize: '0.64687rem', color: '#b3261e', lineHeight: 1.25, marginTop: '1px', display: 'block' }}>{erreur}</span>}
+          </>
+        ) : estUrl ? (
+          <a href={texte} target="_blank" rel="noopener noreferrer"
+            style={{ fontSize: '0.8rem', fontWeight: accent ? 700 : 400, color: '#3d6b4f', textDecoration: 'underline', textUnderlineOffset: '2px', lineHeight: 1.4, wordBreak: 'break-all' }}>{texte}</a>
+        ) : (
+          <span onClick={ouvrir} title={edit ? 'Cliquer pour modifier' : undefined}
+            style={{ fontSize: '0.8rem', fontWeight: accent ? 700 : 400, fontStyle: manque ? 'italic' : 'normal', color: manque ? '#c0836a' : '#2a2520', lineHeight: 1.4, wordBreak: 'break-word', cursor: edit ? 'pointer' : 'default', borderBottom: edit && !manque ? '1px dotted #e2dccd' : 'none' }}>
+            {texte}
+          </span>
+        )}
+      </div>
     </div>
   )
 }
 
+// Bouton de redirection vers une URL (notice ou fichier en ligne). Grisé si absent.
+function BoutonLienNotice({ href, label }: { href: string | null; label: string }) {
+  const ok = !!href && /^https?:\/\//i.test(href)
+  const base: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.7rem', fontWeight: 500, textDecoration: 'none', padding: '4px 13px', borderRadius: '999px', lineHeight: 1.3 }
+  if (!ok) return <span style={{ ...base, color: '#c8c0b4', border: '1px solid #ece7de', background: '#faf7f1', cursor: 'default' }} title="Aucune URL renseignée">{label}<span aria-hidden="true"> —</span></span>
+  return <a href={href!} target="_blank" rel="noopener noreferrer" style={{ ...base, color: '#3d6b4f', border: '1px solid #cfdccb', background: '#fff' }}>{label}<span aria-hidden="true" style={{ opacity: 0.7 }}>↗</span></a>
+}
+
+// Petite flèche oblique nette (nord-est) pour les liens sortants.
+function FlecheRaide({ muted = false }: { muted?: boolean }) {
+  return (
+    <svg width="9" height="9" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ flexShrink: 0, opacity: muted ? 0.5 : 0.85 }}>
+      <path d="M4 8L8 4M8 4H4.6M8 4V7.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+// Deux liens compacts pour une notice de catalogue : « URL » (fichier / texte en ligne)
+// et « Notice » (fiche source), chacun avec une flèche. Grisés si l'adresse manque.
+function LiensUrlNotice({ urlTexte, urlNotice }: { urlTexte: string | null; urlNotice: string | null }) {
+  const lien = (href: string | null, label: string, titre: string) => {
+    const ok = !!href && /^https?:\/\//i.test(href)
+    const base: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.71875rem', fontWeight: 500, textDecoration: 'none', whiteSpace: 'nowrap' }
+    if (!ok) return <span style={{ ...base, color: '#c2bcb2', cursor: 'default' }} title="Aucune URL renseignée">{label}<FlecheRaide muted /></span>
+    return <a href={href!} target="_blank" rel="noopener noreferrer" title={titre} style={{ ...base, color: '#3d6b4f' }}>{label}<FlecheRaide /></a>
+  }
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '11px' }}>
+      {lien(urlTexte, 'URL', 'Ouvrir le fichier ou le texte en ligne')}
+      {lien(urlNotice, 'Notice', 'Ouvrir la notice source')}
+    </span>
+  )
+}
+
+// Rubrique : un titre discret en vert, puis ses champs empilés en lignes claires.
 function LigneCatalogue({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '74px minmax(0, 1fr)', borderTop: '1px solid #f0ebe2' }}>
-      <div style={{
-        fontSize: '0.61094rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase',
-        color: '#9a9080', background: '#faf7f1', borderRight: '1px solid #efe9df',
-        padding: '6px 8px 6px 12px', display: 'flex', alignItems: 'flex-start', lineHeight: 1.3,
-      }}>{titre}</div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '4px', padding: '4px 10px 5px', minWidth: 0 }}>{children}</div>
+    <div style={{ padding: '0 16px' }}>
+      <p style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#3d6b4f', margin: '13px 0 0' }}>{titre}</p>
+      {children}
     </div>
   )
 }
@@ -456,10 +472,10 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
   }
   const groupes = regrouperNoticesCatalogue(notices, oeuvre.titre)
   return (
-    <div style={{ margin: '0 18px 8px 34px', background: '#fdfcf9', border: '1px solid #ddd5c0', borderRadius: '8px', overflow: 'hidden' }}>
+    <div style={{ margin: '0 18px 8px 34px', background: '#fdfcf9', border: '1px solid #e6ddcc', borderRadius: '8px', overflow: 'hidden' }}>
       {groupes.map((groupe, gi) => (
-        <div key={groupe.cle} style={{ borderTop: gi > 0 ? '2px solid #d8cfbc' : 'none' }}>
-          <div style={{ padding: '9px 14px', background: '#f2ede4', borderBottom: '1px solid #e0d8ca' }}>
+        <div key={groupe.cle} style={{ borderTop: gi > 0 ? '2px solid #e2d9c8' : 'none' }}>
+          <div style={{ padding: '9px 14px', background: '#f7f3ec', borderBottom: '1px solid #ebe3d6' }}>
             <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.99187rem', fontWeight: 700, color: '#1a2820', lineHeight: 1.3 }}>
               {groupe.titre}
             </span>
@@ -476,7 +492,7 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
             <div key={n.id} style={{ borderTop: ni > 0 ? '1px solid #e8e1d4' : 'none' }}>
 
           {/* En-tête de la notice */}
-          <div style={{ padding: '10px 14px 9px', background: '#f5f1e8', borderBottom: '1px solid #e4dfd8', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px' }}>
+          <div style={{ padding: '10px 14px 9px', background: '#faf7f0', borderBottom: '1px solid #ede7dc', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.90562rem', fontWeight: 500, color: '#4a4038', marginBottom: '8px', lineHeight: 1.3, fontStyle: n.titre_edition || n.titre_original ? 'italic' : 'normal' }}>
                 {n.titre_edition || n.titre_original || n.titre_stable || oeuvre.titre}
@@ -581,9 +597,17 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
             <LigneCatalogue titre="Import">
               <ChampCatalogue label="Décision" valeur={n.decision_import} accent transform={() => labelDecisionCatalogue(n.decision_import)} edit={ed('decision_import', n.decision_import)} />
               <ChampCatalogue label="Vérif." valeur={n.niveau_verification} edit={ed('niveau_verification', n.niveau_verification)} />
-              <ChampCatalogue label="URL" valeur={n.url_source ?? oeuvre.url_source} lien />
+              <ChampCatalogue label="URL notice" valeur={n.url_source ?? oeuvre.url_source} edit={ed('url_source', n.url_source)} />
+              <ChampCatalogue label="URL fichier" valeur={n.url_texte_integral} edit={ed('url_texte_integral', n.url_texte_integral)} />
               <ChampCatalogue label="Sur site" valeur={n.presence_sur_le_site} transform={v => v ? 'OUI' : 'NON'} />
               <ChampCatalogue label="Notice" valeur={n.verifie} transform={v => v ? 'VALIDÉE' : 'NON VALIDÉE'} />
+            </LigneCatalogue>
+            {/* Redirections directes vers la notice et vers le fichier plein texte en ligne. */}
+            <LigneCatalogue titre="Liens">
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '3px 0 2px' }}>
+                <BoutonLienNotice href={n.url_source ?? oeuvre.url_source ?? null} label="Notice" />
+                <BoutonLienNotice href={n.url_texte_integral} label="Fichier" />
+              </div>
             </LigneCatalogue>
           </div>
 
@@ -653,13 +677,11 @@ function BlocCatalogueAuteurSeul({ nom, notices, onValiderAdmin, onRefuser }: {
                   {n.traducteur && <span style={{ fontStyle: 'italic' }}>trad. {n.traducteur}</span>}
                   {n.editeur && <span>{n.editeur}</span>}
                   {n.decision_import && (
-                    <span title={n.decision_import} style={{ fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '1px 6px', borderRadius: '3px', ...decorDecision(n.decision_import) }}>
+                    <span title={n.decision_import} style={{ fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '1px 4px', borderRadius: '3px', width: '5.75rem', textAlign: 'center', boxSizing: 'border-box', display: 'inline-block', ...decorDecision(n.decision_import) }}>
                       {abregerDecision(n.decision_import)}
                     </span>
                   )}
-                  {n.url_source && (
-                    <a href={n.url_source} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline', textUnderlineOffset: '2px' }}>Source ↗</a>
-                  )}
+                  <LiensUrlNotice urlTexte={n.url_texte_integral} urlNotice={n.url_source} />
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -1750,6 +1772,14 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                           Trad. {oeuvre.trad_auteur}
                         </span>
                       )}
+                      {oeuvre.commentaire_traduction && (
+                        // Commentaire sur la traduction (ex. attribution discutée) — consultation
+                        // seule ; tronqué, texte complet en infobulle.
+                        <span title={oeuvre.commentaire_traduction}
+                          style={{ fontSize: '0.70312rem', color: '#7a7268', fontStyle: 'italic', background: '#f2efe8', border: '1px solid #e4dfd8', borderRadius: '3px', padding: '1px 6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '12rem', flexShrink: 0 }}>
+                          🗨 {oeuvre.commentaire_traduction}
+                        </span>
+                      )}
                       {!publiee && (
                         <span title="Œuvre conservée au catalogue mais retirée de la lecture"
                           style={{ fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9a6a3e', background: '#f6ece1', border: '1px solid #e0cdbe', borderRadius: '3px', padding: '1px 6px', flexShrink: 0 }}>
@@ -1786,6 +1816,20 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                         style={{ fontSize: '0.71875rem', padding: '3px 7px', borderRadius: '4px', border: `1px solid ${noticeCatalogue?.verifie ? '#c8d8ce' : '#e4d3c8'}`, background: noticeCatalogue?.verifie ? '#f7fbf8' : '#fbf7f2', color: noticeCatalogue?.verifie ? '#2f6046' : '#8a5a32', fontWeight: 600, width: '78px', boxSizing: 'border-box', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {noticeCatalogue?.verifie ? 'Validé' : 'À vérifier'}
                       </span>
+                      {/* Redirections directes : notice source et fichier plein texte en ligne.
+                          Grisées et non cliquables quand l'URL manque. */}
+                      {(() => {
+                        const urlNotice = noticeCatalogue?.url_source ?? oeuvre.url_source ?? null
+                        const urlFichier = noticeCatalogue?.url_texte_integral ?? null
+                        const okN = !!urlNotice && /^https?:\/\//i.test(urlNotice)
+                        const okF = !!urlFichier && /^https?:\/\//i.test(urlFichier)
+                        const lien = (ok: boolean, href: string | null, label: string, titre: string) => ok
+                          ? <a key={label} href={href!} target="_blank" rel="noopener noreferrer" title={titre}
+                              style={{ ...btnVert, width: '62px', textAlign: 'center', boxSizing: 'border-box' }}>{label} ↗</a>
+                          : <span key={label} title="Aucune URL renseignée"
+                              style={{ ...btnSobre, width: '62px', textAlign: 'center', boxSizing: 'border-box', color: '#c2bcb2', background: '#faf8f4', cursor: 'default' }}>{label} —</span>
+                        return <>{lien(okN, urlNotice, 'Notice', 'Ouvrir la notice source')}{lien(okF, urlFichier, 'Fichier', 'Ouvrir le fichier en ligne (PDF, TXT…)')}</>
+                      })()}
                       <button onClick={() => setCatalogueDeploye(prev => ({ ...prev, [oeuvre.id_oeuvre]: !prev[oeuvre.id_oeuvre] }))}
                         style={{ ...(catalogueOuvert ? btnActif : btnVert), minWidth: '52px', textAlign: 'center' }}>
                         {catalogueOuvert ? 'Replier' : 'Détails'}
@@ -1913,16 +1957,16 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                             </span>
                             {n.annee_edition && <span style={{ fontSize: '0.75469rem', color: '#9a958d' }}>{n.annee_edition}</span>}
                             {n.traducteur && <span style={{ fontSize: '0.75469rem', color: '#9a958d', fontStyle: 'italic' }}>trad. {n.traducteur}</span>}
-                            <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                            {/* Liens URL/Notice d'abord, puis la pastille de décision en dernier :
+                                sa case a une largeur fixe et se cale au bord droit, si bien que
+                                toutes les décisions (« Prioritaire », « Candidat »…) s'alignent. */}
+                            <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '11px' }}>
+                              <LiensUrlNotice urlTexte={n.url_texte_integral} urlNotice={n.url_source} />
                               {n.decision_import && (
                                 <span title={n.decision_import}
-                                  style={{ fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: '3px', whiteSpace: 'nowrap', ...decorDecision(n.decision_import) }}>
+                                  style={{ fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '2px 4px', borderRadius: '3px', whiteSpace: 'nowrap', width: '5.75rem', textAlign: 'center', boxSizing: 'border-box', ...decorDecision(n.decision_import) }}>
                                   {abregerDecision(n.decision_import)}
                                 </span>
-                              )}
-                              {n.url_source && (
-                                <a href={n.url_source} target="_blank" rel="noreferrer"
-                                  style={{ fontSize: '0.75469rem', color: '#3d6b4f', textDecoration: 'none', whiteSpace: 'nowrap' }}>Source ↗</a>
                               )}
                             </span>
                           </div>

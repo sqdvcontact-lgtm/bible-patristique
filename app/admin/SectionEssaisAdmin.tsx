@@ -115,13 +115,13 @@ function TableModeration({ essais: init, actionPublierEssai, actionRenvoyerBroui
     <div style={{ background: '#fff', border: '1px solid #e4dfd8', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
         <colgroup>
-          <col style={{ width: '32%' }} />
-          <col style={{ width: '14%' }} />
-          <col style={{ width: '11%' }} />
-          <col style={{ width: '13%' }} />
+          <col style={{ width: '28%' }} />
+          <col style={{ width: '12%' }} />
           <col style={{ width: '10%' }} />
-          <col style={{ width: '10%' }} />
-          <col style={{ width: '10%' }} />
+          <col style={{ width: '12%' }} />
+          <col style={{ width: '8%' }} />
+          <col style={{ width: '8%' }} />
+          <col style={{ width: '22%' }} />
         </colgroup>
         <thead>
           <tr style={{ background: '#faf8f4', borderBottom: '1px solid #e4dfd8' }}>
@@ -163,7 +163,7 @@ function TableModeration({ essais: init, actionPublierEssai, actionRenvoyerBroui
                 ) : action[e.id] === 'renvoye' ? (
                   <span style={{ fontSize: '0.75469rem', color: '#c0562a' }}>Renvoyé</span>
                 ) : (
-                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', flexWrap: 'nowrap' }}>
                     <button onClick={() => renvoyer(e.id)} style={petitBouton('#6b6560', '#d6d0c4')}>Renvoyer</button>
                     <button onClick={() => renvoyer(e.id, true)} style={petitBouton('#c0562a', '#e4c4b8')}>Refus</button>
                     <button onClick={() => publier(e.id)} style={petitBouton('#3d6b4f', '#b4d4c0')}>Publier ✓</button>
@@ -231,13 +231,13 @@ function TableArchive({ essais: init }: { essais: EssaiArchive[] }) {
     <div style={{ background: '#fff', border: '1px solid #e4dfd8', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
         <colgroup>
-          <col style={{ width: '28%' }} />
-          <col style={{ width: '13%' }} />
+          <col style={{ width: '25%' }} />
+          <col style={{ width: '11%' }} />
           <col style={{ width: '9%' }} />
-          <col style={{ width: '13%' }} />
-          <col style={{ width: '13%' }} />
+          <col style={{ width: '12%' }} />
+          <col style={{ width: '11%' }} />
           <col style={{ width: '10%' }} />
-          <col style={{ width: '14%' }} />
+          <col style={{ width: '22%' }} />
         </colgroup>
         <thead>
           <tr style={{ background: '#faf8f4', borderBottom: '1px solid #e4dfd8' }}>
@@ -281,12 +281,16 @@ function TableArchive({ essais: init }: { essais: EssaiArchive[] }) {
                   {action[e.id] === 'ok' ? (
                     <span style={{ fontSize: '0.75469rem', color: '#3d6b4f', fontWeight: 600 }}>✓ Renvoyé</span>
                   ) : (
-                    <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', flexWrap: 'nowrap' }}>
                       <Link href={`/essais/${e.id}/modifier`} style={petitBouton('#3d6b4f', '#d6d0c4')}>Modifier</Link>
-                      {!estBrouillon && (
+                      {!estBrouillon ? (
                         <button onClick={() => demanderModification(e.id)} disabled={action[e.id] === 'loading'} style={petitBouton('#9a5a2a', '#e4d2bd')}>
                           Renvoyer
                         </button>
+                      ) : (
+                        // Brouillon : pas de « Renvoyer », mais on réserve sa place pour que
+                        // « Modifier » reste aligné avec les autres lignes.
+                        <span aria-hidden style={{ minWidth: '5rem' }} />
                       )}
                       <button onClick={() => supprimer(e.id)} disabled={action[e.id] === 'loading'} style={petitBouton('#c0562a', '#e4c4b8')}>
                         Supprimer
@@ -339,5 +343,14 @@ function CountInfo({ label, valeur, alerte = false }: { label: string; valeur: n
 }
 
 function petitBouton(couleur: string, bordure: string): React.CSSProperties {
-  return { fontSize: '0.71875rem', padding: '3px 7px', borderRadius: '4px', border: `1px solid ${bordure}`, background: '#fff', color: couleur, cursor: 'pointer', textDecoration: 'none', fontWeight: 600 }
+  // Largeur FIXE et centrage : tous les boutons d'action ont exactement la même
+  // largeur (Renvoyer/Refus/Publier ; Modifier/Renvoyer/Supprimer), et le `<Link>`
+  // « Modifier » se comporte comme les `<button>` (inline-flex).
+  return {
+    fontSize: '0.71875rem', padding: '3px 7px', borderRadius: '4px',
+    border: `1px solid ${bordure}`, background: '#fff', color: couleur,
+    cursor: 'pointer', textDecoration: 'none', fontWeight: 600,
+    minWidth: '5rem', boxSizing: 'border-box',
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  }
 }

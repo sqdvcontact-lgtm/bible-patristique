@@ -8,7 +8,10 @@ import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { chargerNotificationsUtilisateur, cleArchivesNotifications, cleNotificationsConnues, lireSetLocalStorage } from "@/app/lib/notificationsClient";
 import { LIVRES } from "@/app/lib/bible";
 import { estOeuvrePubliee } from "@/app/lib/oeuvresPublication";
+import { lireOeuvresRecentes, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
+import { sansPointFinal } from "@/app/lib/titres";
 import ModaleMessagerie from "@/app/components/ModaleMessagerie";
+import VoletNotifications from "@/app/components/VoletNotifications";
 
 // Bible et Polyglotte sont deux entrées dans le même texte : l'une le donne à lire,
 // l'autre à comparer. Elles vont donc ensemble, accolées en un seul bloc, plutôt
@@ -23,7 +26,9 @@ const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?:
   { href: "/essais", label: "Publications" },
   { href: "/traductions", label: "Aller plus loin", discret: true },
 ];
-const LIENS_SECONDAIRES: { href: string; label: string }[] = [];
+const LIENS_SECONDAIRES: { href: string; label: string }[] = [
+  { href: "/histoire", label: "Histoire de l’Église" },
+];
 
 // Couleurs de domaine pour la recherche rapide : chaque catégorie de résultats est
 // rattachée à un grand domaine par une couleur FORTE (filet gauche + libellé + fond
@@ -43,6 +48,63 @@ const TRADUCTIONS_RECHERCHE: { code: string; nom: string }[] = [
   { code: 'TR0003', nom: 'Bible Crampon' }, { code: 'TR0004', nom: 'Vulgate' },
 ];
 function sansAccents(s: string): string { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() }
+
+// Onglet \u00ab Patristique \u00bb : au survol, un menu d\u00e9roulant pr\u00e9sente les trois derni\u00e8res
+// \u0153uvres consult\u00e9es (suivi local, cf. oeuvresRecentes). S'il n'y en a aucune, l'onglet
+// se comporte comme un simple lien.
+function OngletPatristique({ href, label, style }: { href: string; label: string; style: React.CSSProperties }) {
+  const [ouvert, setOuvert] = useState(false);
+  const [recentes, setRecentes] = useState<OeuvreRecente[]>([]);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ouvrir = () => {
+    if (timer.current) clearTimeout(timer.current);
+    setRecentes(lireOeuvresRecentes(3));
+    setOuvert(true);
+  };
+  const fermer = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setOuvert(false), 160);
+  };
+  return (
+    <span style={{ position: "relative", display: "inline-flex" }} onMouseEnter={ouvrir} onMouseLeave={fermer}>
+      <Link href={href} className="cs-onglet" style={style}>{label}</Link>
+      {ouvert && recentes.length > 0 && (
+        <div onMouseEnter={ouvrir} onMouseLeave={fermer}
+          style={{ position: "absolute", top: "100%", left: 0, marginTop: "6px", minWidth: "15rem", maxWidth: "20rem", background: "#fff", border: "1px solid #e0d8cc", borderRadius: "8px", boxShadow: "0 10px 30px rgba(30,26,20,0.18)", padding: "7px", zIndex: 3000 }}>
+          <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: "#a89f95", margin: "2px 8px 6px" }}>{"Derni\u00e8res \u0153uvres consult\u00e9es"}</p>
+          {recentes.map(o => (
+            <Link key={o.id} href={`/oeuvre/${o.id}`} onClick={() => setOuvert(false)}
+              style={{ display: "block", padding: "6px 8px", borderRadius: "5px", textDecoration: "none" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.07)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+              <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.75rem", color: "#6b6560", lineHeight: 1.2 }}>{sansPointFinal(o.titre)}</span>
+              {o.auteur && <span style={{ display: "block", fontSize: "0.5625rem", color: "#a89f95", fontStyle: "italic", marginTop: "1px" }}>{o.auteur}</span>}
+            </Link>
+          ))}
+        </div>
+      )}
+    </span>
+  );
+}
+
+// \u00ab Aller plus loin \u00bb : un menu d\u00e9roulant (Traductions + Histoire de l'\u00c9glise).
+// Le clic sur le libell\u00e9 m\u00e8ne aux Traductions (utile au tactile, sans survol).
+function OngletAllerPlusLoin({ label, style }: { label: string; style: React.CSSProperties }) {
+  return (
+    <span className="cs-plus" style={{ display: "inline-flex" }}>
+      <Link href="/traductions" className="cs-onglet" style={{ ...style, display: "inline-flex", alignItems: "center", gap: "3px" }}>
+        {label}
+        <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ opacity: 0.55, flexShrink: 0 }}>
+          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Link>
+      <div className="cs-plus-menu">
+        <Link href="/traductions" className="cs-plus-lien">Traductions bibliques</Link>
+        <Link href="/histoire" className="cs-plus-lien">Histoire de l&rsquo;&Eacute;glise</Link>
+      </div>
+    </span>
+  );
+}
 
 function normaliserExtrait(s: string): string {
   return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
@@ -132,6 +194,7 @@ export default function Navbar() {
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [mobileOuvert, setMobileOuvert] = useState(false);
   const [nbNotifications, setNbNotifications] = useState(0);
+  const [notifsOuvertes, setNotifsOuvertes] = useState(false);
   const [nbMessages, setNbMessages] = useState(0);
   const [messagerieOuverte, setMessagerieOuverte] = useState(false);
   const [nbActionsAdmin, setNbActionsAdmin] = useState(0);
@@ -165,7 +228,7 @@ export default function Navbar() {
       abortRef.current?.abort();
       abortRef.current = new AbortController();
       const signal = abortRef.current.signal;
-      let pending = 4;
+      let pending = 3;
       const done = () => {
         if (--pending === 0 && !signal.aborted) {
           setRechercheRapideLoading(false);
@@ -186,7 +249,6 @@ export default function Navbar() {
         supabase.from('auteurs').select('*', { count: 'exact', head: true }).or(prefixeOr('nom')).abortSignal(signal),
         supabase.from('essais').select('*', { count: 'exact', head: true }).eq('statut', 'publie').or([...prefixeOr('titre').split(','), ...prefixeOr('resume').split(',')].join(',')).abortSignal(signal),
         supabase.from('oeuvres').select('*', { count: 'exact', head: true }).or(prefixeOr('titre')).abortSignal(signal),
-        supabase.from('segments').select('*', { count: 'exact', head: true }).eq('nature', 'texte').or(prefixeOr('segment_texte')).abortSignal(signal),
       ]).then(res => {
         if (signal.aborted) return;
         const total = res.reduce((s, r) => s + (r.count ?? 0), 0);
@@ -212,27 +274,9 @@ export default function Navbar() {
           setNbResultatsProgressif(p => p + filtered.length);
           done();
         });
-      supabase.from('segments').select('id, segment_texte, id_oeuvre')
-        .or(prefixeOr('segment_texte')).eq('nature', 'texte').limit(5).abortSignal(signal)
-        .then(async ({ data }) => {
-          if (signal.aborted) { done(); return; }
-          const segs = data ?? []
-          if (!segs.length) { setSegmentsTrouves([]); done(); return }
-          const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
-          const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs(nom)').in('id_oeuvre', oeuvreIds).abortSignal(signal)
-          if (signal.aborted) { done(); return; }
-          const oMap: Record<string, { oeuvre_titre: string; auteur_nom: string }> = {}
-          for (const o of ((oeuvres ?? []) as any[]).filter(estOeuvrePubliee)) {
-            oMap[o.id_oeuvre] = {
-              oeuvre_titre: o.titre ?? '',
-              auteur_nom: (Array.isArray(o.auteurs) ? o.auteurs[0]?.nom : o.auteurs?.nom) ?? '',
-            }
-          }
-          const filtered = segs.filter((s: any) => oMap[s.id_oeuvre]).map((s: any) => ({ id: s.id, segment_texte: s.segment_texte, id_oeuvre: s.id_oeuvre, ...(oMap[s.id_oeuvre] ?? { oeuvre_titre: '', auteur_nom: '' }) }));
-          setSegmentsTrouves(filtered);
-          setNbResultatsProgressif(p => p + filtered.length);
-          done();
-        });
+      // Les « Extraits patristiques » (recherche plein texte des segments) ne sont plus
+      // proposés dans le menu déroulant : ils prenaient trop de place. La recherche
+      // complète (page /recherche) les couvre toujours.
     }, 250);
     return () => { clearTimeout(timer); abortRef.current?.abort(); setRechercheRapideLoading(false); };
   }, [requeteRapide]);
@@ -296,12 +340,16 @@ export default function Navbar() {
     }
 
     void chargerNotifications(false)
-    const interval = window.setInterval(() => void chargerNotifications(true), 45000)
+    // On ne sonde pas quand l'onglet est caché ; on rafraîchit au retour à l'onglet.
+    const interval = window.setInterval(() => { if (!document.hidden) void chargerNotifications(true) }, 45000)
     const onArchivees = () => void chargerNotifications(false)
+    const onVisible = () => { if (!document.hidden) void chargerNotifications(true) }
     window.addEventListener('notifications-archivees', onArchivees)
+    document.addEventListener('visibilitychange', onVisible)
     return () => {
       window.clearInterval(interval)
       window.removeEventListener('notifications-archivees', onArchivees)
+      document.removeEventListener('visibilitychange', onVisible)
     }
   }, [user?.id]);
 
@@ -317,8 +365,11 @@ export default function Navbar() {
       } catch { /* non-critique */ }
     }
     chargerMessages()
-    const interval = window.setInterval(chargerMessages, 60000)
-    return () => window.clearInterval(interval)
+    // Idem : pas de sondage onglet caché, rafraîchissement au retour.
+    const interval = window.setInterval(() => { if (!document.hidden) chargerMessages() }, 60000)
+    const onVisible = () => { if (!document.hidden) chargerMessages() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { window.clearInterval(interval); document.removeEventListener('visibilitychange', onVisible) }
   }, [user?.id]);
 
   useEffect(() => {
@@ -337,7 +388,7 @@ export default function Navbar() {
       setNbVerifAdmin(verif)
     }
     charger()
-    const interval = window.setInterval(charger, 60000)
+    const interval = window.setInterval(() => { if (!document.hidden) charger() }, 60000)
     const onVisible = () => { if (!document.hidden) charger() }
     const onVerif = (e: Event) => setNbVerifAdmin((e as CustomEvent<number>).detail)
     document.addEventListener('visibilitychange', onVisible)
@@ -363,7 +414,7 @@ export default function Navbar() {
     // par deux variables que la classe lit — l'une pour l'état, l'autre pour le survol.
     return {
       display: "inline-block", padding: "0.25rem 0.5rem", borderRadius: "5px",
-      fontSize: "0.875rem", letterSpacing: "0.01em", textDecoration: "none", whiteSpace: "nowrap",
+      fontSize: "0.9375rem", letterSpacing: "0.01em", textDecoration: "none", whiteSpace: "nowrap",
       fontWeight: primaire ? 600 : 400,
       color: actif ? "#fff" : primaire ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.60)",
       "--fond": actif ? "rgba(255,255,255,0.14)" : "transparent",
@@ -377,7 +428,7 @@ export default function Navbar() {
     alignItems: "center",
     gap: "4px",
     padding: "4px 7px",
-    fontSize: "0.84rem",
+    fontSize: "0.9375rem",
   } as const);
 
   // ── Bloc recherche rapide, réutilisé en version desktop et mobile ────────────
@@ -388,7 +439,7 @@ export default function Navbar() {
   const nbTotalResultats = Math.max(nbTotalReel, nbResultatsProgressif) + nbLocalStatique;
 
   const blocRecherche = (mobile: boolean) => (
-    <div style={{ position: "relative", width: mobile ? "100%" : undefined }}>
+    <div style={{ position: "relative", width: mobile ? "100%" : "fit-content" }}>
       <style>{`
         .recherche-rapide-input::placeholder { color: rgba(255,255,255,0.45); }
         @keyframes spin-search { to { transform: rotate(360deg); } }
@@ -404,7 +455,7 @@ export default function Navbar() {
           onKeyDown={e => { if (e.key === 'Enter') validerRechercheRapide() }}
           placeholder="Rechercher…"
           className="recherche-rapide-input"
-          style={{ width: mobile ? "100%" : "13.75rem", fontSize: "0.84rem", padding: "6px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "#fff", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
+          style={{ width: mobile ? "100%" : "13.75rem", height: "1.875rem", fontSize: "0.84rem", padding: "0 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "#fff", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
         />
         {/* Bouton « Nouvelle recherche » : conduit à la page de recherche VIERGE (pas de
             ?q), pour repartir de zéro. Si l'on y est DÉJÀ (l'URL peut être « /recherche »
@@ -415,7 +466,7 @@ export default function Navbar() {
             fermerRechercheRapide();
             if (pathname.startsWith("/recherche")) { e.preventDefault(); window.location.assign("/recherche"); }
           }}
-          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px", height: "29px", padding: "0 9px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap", fontSize: "0.77rem", fontWeight: 500, letterSpacing: "0.01em", transition: "background 0.13s, color 0.13s" }}
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px", height: "1.875rem", boxSizing: "border-box", padding: "0 9px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap", fontSize: "0.77rem", fontWeight: 500, letterSpacing: "0.01em", transition: "background 0.13s, color 0.13s" }}
           onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.20)"; e.currentTarget.style.color = "#fff"; }}
           onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.10)"; e.currentTarget.style.color = "rgba(255,255,255,0.82)"; }}>
           <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
@@ -426,11 +477,11 @@ export default function Navbar() {
       </div>
 
       {rechercheOuverte && qNorm && (
-        <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: "calc(100% + 8px)", left: 0, width: mobile ? "100%" : "300px", background: "#fff", border: "1px solid #d6d0c4", borderRadius: "9px", boxShadow: mobile ? "none" : "0 12px 36px rgba(0,0,0,0.16)", zIndex: 100, overflow: "hidden", maxHeight: mobile ? "70vh" : "min(72vh, 640px)", overflowY: "auto" }}>
+        <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: "calc(100% + 8px)", left: 0, right: 0, width: mobile ? "100%" : "auto", background: "#fff", border: "1px solid #d6d0c4", borderRadius: "8px", boxShadow: mobile ? "none" : "0 12px 36px rgba(0,0,0,0.16)", zIndex: 100, overflow: "hidden", maxHeight: mobile ? "70vh" : "min(72vh, 640px)", overflowY: "auto" }}>
 
           {/* Barre de statut : nb résultats + spinner/smiley */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 14px 5px", borderBottom: "1px solid #ede9e2", background: "#faf8f5" }}>
-            <span style={{ fontSize: "0.77rem", color: "#6b6560", fontWeight: 500 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px 4px", borderBottom: "1px solid #ede9e2", background: "#faf8f5" }}>
+            <span style={{ fontSize: "0.71rem", color: "#6b6560", fontWeight: 500 }}>
               {rechercheRapideLoading && nbTotalResultats === 0
                 ? "Recherche…"
                 : nbTotalResultats === 0 && rechercheTerminee
@@ -457,17 +508,17 @@ export default function Navbar() {
           </div>
 
           {rechercheRapideLoading && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && essaisTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 ? (
-            <p style={{ fontSize: "0.84rem", color: "#c0b8ae", textAlign: "center", padding: "14px 12px", margin: 0 }}>…</p>
+            <p style={{ fontSize: "0.78rem", color: "#c0b8ae", textAlign: "center", padding: "11px 12px", margin: 0 }}>…</p>
           ) : aucunResultat ? (
-            <p style={{ fontSize: "0.84rem", color: "#9a958d", fontStyle: "italic", textAlign: "center", padding: "14px 12px", margin: 0 }}>Aucun résultat — Entrée pour une recherche complète.</p>
+            <p style={{ fontSize: "0.78rem", color: "#9a958d", fontStyle: "italic", textAlign: "center", padding: "11px 12px", margin: 0 }}>Aucun résultat — Entrée pour une recherche complète.</p>
           ) : (
             <>
               {auteursTrouves.length > 0 && (
-                <div style={{ padding: "8px 0 4px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond }}>
-                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "0 14px 3px" }}>Auteurs</p>
-                  {auteursTrouves.map(a => (
+                <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond }}>
+                  <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Auteurs</p>
+                  {auteursTrouves.slice(0, 3).map(a => (
                     <Link key={a.id_auteur} href={`/auteur/${a.id_auteur}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "5px 14px", fontSize: "0.91rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.patristique.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(a.nom, requeteRapide.trim())}
@@ -476,41 +527,25 @@ export default function Navbar() {
                 </div>
               )}
               {oeuvresTrouvees.length > 0 && (
-                <div style={{ padding: "6px 0 4px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond, borderTop: auteursTrouves.length > 0 ? "1px solid rgba(61,107,79,0.14)" : "none" }}>
-                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "3px 14px 3px" }}>Œuvres patristiques</p>
-                  {oeuvresTrouvees.map(o => (
+                <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond, borderTop: auteursTrouves.length > 0 ? "1px solid rgba(61,107,79,0.14)" : "none" }}>
+                  <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Œuvres patristiques</p>
+                  {oeuvresTrouvees.slice(0, 3).map(o => (
                     <Link key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "5px 14px", fontSize: "0.91rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.patristique.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(o.titre, requeteRapide.trim())}
-                      {o.auteurs?.nom && <span style={{ fontSize: "0.77rem", color: "#9a958d", marginLeft: "7px" }}>{o.auteurs.nom}</span>}
-                    </Link>
-                  ))}
-                </div>
-              )}
-              {segmentsTrouves.length > 0 && (
-                <div style={{ padding: "6px 0 4px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0) ? "1px solid rgba(61,107,79,0.14)" : "none" }}>
-                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "3px 14px 3px" }}>Extraits patristiques</p>
-                  {segmentsTrouves.map(s => (
-                    <Link key={s.id} href={`/oeuvre/${s.id_oeuvre}?segment=${s.id}#segment-${s.id}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "5px 14px", fontSize: "0.84rem", color: "#2a3d30", textDecoration: "none" }}
-                      onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.patristique.survol)}
-                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                      {/* Justifié et borné à TROIS lignes, texte condensé pour épouser la
-                          largeur du menu sans creuser de blancs ni déborder. */}
-                      <span style={{ fontStyle: "italic", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: 1.32, color: "#3a3530", textAlign: "justify", wordSpacing: "-0.05em", letterSpacing: "-0.012em", hyphens: "auto" }}>{extraireEtSurligner(s.segment_texte, requeteRapide.trim())}</span>
-                      <span style={{ fontSize: "0.735rem", color: "#9a958d", marginTop: "2px", display: "block" }}>{s.auteur_nom}{s.auteur_nom && s.oeuvre_titre ? ' · ' : ''}{s.oeuvre_titre}</span>
+                      {o.auteurs?.nom && <span style={{ fontSize: "0.71rem", color: "#9a958d", marginLeft: "7px" }}>{o.auteurs.nom}</span>}
                     </Link>
                   ))}
                 </div>
               )}
               {essaisTrouves.length > 0 && (
-                <div style={{ padding: "6px 0 4px", borderLeft: `3px solid ${DOMAINE.publications.base}`, background: DOMAINE.publications.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0) ? "1px solid rgba(154,106,46,0.16)" : "none" }}>
-                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: DOMAINE.publications.base, textTransform: "uppercase", margin: "3px 14px 3px" }}>Essais et méditations</p>
-                  {essaisTrouves.map(e => (
+                <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.publications.base}`, background: DOMAINE.publications.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0) ? "1px solid rgba(154,106,46,0.16)" : "none" }}>
+                  <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.publications.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Essais et méditations</p>
+                  {essaisTrouves.slice(0, 3).map(e => (
                     <Link key={e.id} href={`/essais/${e.id}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "5px 14px", fontSize: "0.91rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={ev => (ev.currentTarget.style.background = DOMAINE.publications.survol)}
                       onMouseLeave={ev => (ev.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(e.titre, requeteRapide.trim())}
@@ -519,11 +554,11 @@ export default function Navbar() {
                 </div>
               )}
               {livresTrouves.length > 0 && (
-                <div style={{ padding: "6px 0 4px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0 || essaisTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
-                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "3px 14px 3px" }}>Livres bibliques</p>
-                  {livresTrouves.map(l => (
+                <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0 || essaisTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
+                  <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Livres bibliques</p>
+                  {livresTrouves.slice(0, 3).map(l => (
                     <Link key={l.code} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "5px 14px", fontSize: "0.91rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.bible.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(l.nom, requeteRapide.trim())}
@@ -532,11 +567,11 @@ export default function Navbar() {
                 </div>
               )}
               {traductionsTrouvees.length > 0 && (
-                <div style={{ padding: "6px 0 8px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (auteursTrouves.length > 0 || livresTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
-                  <p style={{ fontSize: "0.665rem", fontWeight: 700, letterSpacing: "0.10em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "3px 14px 3px" }}>Traductions</p>
-                  {traductionsTrouvees.map(t => (
+                <div style={{ padding: "4px 0 6px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (auteursTrouves.length > 0 || livresTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
+                  <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Traductions</p>
+                  {traductionsTrouvees.slice(0, 3).map(t => (
                     <Link key={t.code} href={`/traductions#${t.code}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "5px 14px", fontSize: "0.91rem", lineHeight: 1.3, color: "#2a3d30", textDecoration: "none" }}
+                      style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "#2a3d30", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.bible.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(t.nom, requeteRapide.trim())}
@@ -544,14 +579,14 @@ export default function Navbar() {
                   ))}
                 </div>
               )}
-              {(auteursTrouves.length >= 4 || oeuvresTrouvees.length >= 8 || segmentsTrouves.length >= 5 || essaisTrouves.length >= 4) && (
-                <div style={{ borderTop: "1px solid #ede9e2", padding: "5px 0" }}>
+              {(auteursTrouves.length > 3 || oeuvresTrouvees.length > 3 || segmentsTrouves.length > 3 || essaisTrouves.length > 3 || livresTrouves.length > 3 || traductionsTrouvees.length > 3) && (
+                <div style={{ borderTop: "1px solid #ede9e2", padding: "4px 0" }}>
                   <Link href={`/recherche?q=${encodeURIComponent(requeteRapide.trim())}&mode=prefixe`} onClick={fermerRechercheRapide}
-                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", padding: "7px 14px", fontSize: "0.84rem", color: "#3d6b4f", fontWeight: 600, textDecoration: "none", letterSpacing: "0.02em" }}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", padding: "5px 12px", fontSize: "0.78rem", color: "#3d6b4f", fontWeight: 600, textDecoration: "none", letterSpacing: "0.02em" }}
                     onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
                     onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                     Tout voir
-                    <span style={{ fontSize: "0.98rem", lineHeight: 1 }}>→</span>
+                    <span style={{ fontSize: "0.9rem", lineHeight: 1 }}>→</span>
                   </Link>
                 </div>
               )}
@@ -605,7 +640,9 @@ export default function Navbar() {
           ...(pseudo ? [{ href: `/profil/${encodeURIComponent(pseudo)}`, label: "Ma page", badge: 0, icone: null }] : []),
           { href: "/prelevements", label: "Mes citations", badge: 0, icone: null },
           { href: "/progression", label: "Ma progression", badge: 0, icone: null },
-          ...(estAdminAffiche ? [{ href: "/admin", label: "Administration", badge: nbActionsAdmin + nbVerifAdmin, icone: "epee" }] : []),
+          // Le lien Administration reste toujours accessible à un vrai admin, quel que
+          // soit l'état de l'interrupteur d'affichage « mode utilisateur standard ».
+          ...((estAdmin || estAdminEmail) ? [{ href: "/admin", label: "Administration", badge: nbActionsAdmin + nbVerifAdmin, icone: "epee" }] : []),
         ].map(item => (
           <Link key={item.href} href={item.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}
             style={mobile
@@ -668,7 +705,7 @@ export default function Navbar() {
              sur les angles arrondis. */
           .cs-bible { position: relative; display: inline-flex; border-radius: 5px; overflow: hidden; transition: background 220ms ease-in-out; }
           .cs-bible:hover, .cs-bible:focus-within { background: rgba(255,255,255,0.085); }
-          .cs-bible-face { display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; color: rgba(255,255,255,0.85); font-weight: 600; font-size: 0.78125rem; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; transition: opacity 220ms ease-in-out; }
+          .cs-bible-face { display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; color: rgba(255,255,255,0.85); font-weight: 600; font-size: 0.9375rem; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; transition: opacity 220ms ease-in-out; }
           .cs-bible:hover .cs-bible-face, .cs-bible:focus-within .cs-bible-face { opacity: 0; pointer-events: none; }
           .cs-bible-split { position: absolute; inset: 0; display: flex; opacity: 0; pointer-events: none; transition: opacity 220ms ease-in-out; }
           .cs-bible:hover .cs-bible-split, .cs-bible:focus-within .cs-bible-split { opacity: 1; pointer-events: auto; }
@@ -676,6 +713,13 @@ export default function Navbar() {
           .cs-bible-seg:hover { background: rgba(255,255,255,0.13); color: #fff; }
           .cs-bible-seg + .cs-bible-seg { box-shadow: inset 1px 0 0 rgba(255,255,255,0.16); }
           .cs-bible-seg--actif { color: #fff; background: rgba(255,255,255,0.10); }
+          /* « Aller plus loin » : petit menu déroulant au survol (CSS :hover, sans gap
+             mort — le menu touche le déclencheur). */
+          .cs-plus { position: relative; }
+          .cs-plus-menu { position: absolute; top: 100%; left: 0; min-width: 13rem; background: #fff; border: 1px solid #d6d0c4; border-radius: 8px; box-shadow: 0 12px 30px rgba(0,0,0,0.16); overflow: hidden; z-index: 3000; padding: 4px; display: none; }
+          .cs-plus:hover .cs-plus-menu, .cs-plus:focus-within .cs-plus-menu { display: block; }
+          .cs-plus-lien { display: block; padding: 7px 12px; font-size: 0.82rem; color: #2a3d30; text-decoration: none; border-radius: 5px; white-space: nowrap; }
+          .cs-plus-lien:hover { background: rgba(61,107,79,0.08); }
           @media (prefers-reduced-motion: reduce) {
             .cs-onglet, .cs-bible, .cs-bible-face, .cs-bible-split { transition: none; }
           }
@@ -688,12 +732,12 @@ export default function Navbar() {
 
           <Link href="/accueil" className="flex items-center gap-1.5 shrink-0"
             style={{ color: "rgba(255,255,255,0.93)", textDecoration: "none" }}>
-            <span style={{ fontSize: "0.77rem", opacity: 0.6 }}>✦</span>
-            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.05rem", fontWeight: 600, letterSpacing: "0.01em" }}>Corpus Scriptura</span>
+            <span style={{ fontSize: "0.85rem", opacity: 0.6 }}>✦</span>
+            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.2rem", fontWeight: 600, letterSpacing: "0.01em" }}>Corpus Scriptura</span>
             {/* « bêta » sobre : un petit mot en italique, posé contre le nom, sans cercle
                 ni capitales — un simple murmure de version. */}
             <span title="Version bêta" aria-label="Version bêta"
-              style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.735rem", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.5)", position: "relative", top: "1.5px" }}>bêta</span>
+              style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.82rem", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.5)", position: "relative", top: "1.5px" }}>bêta</span>
           </Link>
 
           {/* ── Navigation desktop ──────────────────────────────────────────── */}
@@ -711,7 +755,11 @@ export default function Navbar() {
               </div>
             </div>
             {LIENS_PRIMAIRES.map(({ href, label, exact, discret }) => (
-              <Link key={href} href={href} className="cs-onglet" style={styleLien(href, exact, !discret)}>{label}</Link>
+              href === "/bibliotheque"
+                ? <OngletPatristique key={href} href={href} label={label} style={styleLien(href, exact, !discret)} />
+                : href === "/traductions"
+                ? <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} />
+                : <Link key={href} href={href} className="cs-onglet" style={styleLien(href, exact, !discret)}>{label}</Link>
             ))}
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginLeft: "0.25rem", paddingLeft: "0.5rem", minWidth: 0, borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
               {blocRecherche(false)}
@@ -731,7 +779,7 @@ export default function Navbar() {
               <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 2px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
             )}
             {user && (
-              <button onClick={() => setMessagerieOuverte(true)} aria-label="Messages" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', border: 'none', cursor: 'pointer', padding: 0, color: nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', background: nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
+              <button onClick={() => setMessagerieOuverte(v => !v)} aria-label="Messages" aria-expanded={messagerieOuverte} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', border: 'none', cursor: 'pointer', padding: 0, color: nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', background: nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.95)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
                 <IconParchemin />
@@ -743,17 +791,19 @@ export default function Navbar() {
               </button>
             )}
             {user && (
-              <Link href="/notifications" aria-label="Notifications" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', color: nbNotifications > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', textDecoration: 'none', background: nbNotifications > 0 ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
+              <button type="button" onClick={() => setNotifsOuvertes(o => !o)} aria-label="Notifications" aria-expanded={notifsOuvertes}
+                style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', border: 'none', cursor: 'pointer', color: (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', background: (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.95)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = nbNotifications > 0 ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = nbNotifications > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
+                onMouseLeave={e => { e.currentTarget.style.background = (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
                 <IconAngeTrompette />
                 {nbNotifications > 0 && (
                   <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: '#c0562a', color: '#fff', borderRadius: '7px', fontSize: '0.63rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
                     {nbNotifications > 99 ? '99+' : nbNotifications}
                   </span>
                 )}
-              </Link>
+              </button>
             )}
+            {user && notifsOuvertes && <VoletNotifications uid={user.id} onFermer={() => setNotifsOuvertes(false)} />}
             <div style={{ position: "relative", marginLeft: "4px" }}>
               {blocCompte(false)}
             </div>
@@ -800,12 +850,12 @@ export default function Navbar() {
           </div>
         )}
         {toastNotification && (
-          <Link href="/notifications" onClick={() => setToastNotification(null)}
-            style={{ position: "fixed", top: "calc(3.5rem + 0.75rem)", right: "18px", width: "17.5rem", background: "#fff", border: "1px solid #d6d0c4", borderLeft: "3px solid #3d6b4f", borderRadius: "8px", boxShadow: "0 12px 34px rgba(0,0,0,0.16)", padding: "11px 13px", zIndex: 4000, textDecoration: "none" }}>
+          <div role="button" tabIndex={0} onClick={() => { setToastNotification(null); setNotifsOuvertes(true); }}
+            style={{ position: "fixed", top: "calc(3.5rem + 0.75rem)", right: "18px", width: "17.5rem", background: "#fff", border: "1px solid #d6d0c4", borderLeft: "3px solid #3d6b4f", borderRadius: "8px", boxShadow: "0 12px 34px rgba(0,0,0,0.16)", padding: "11px 13px", zIndex: 4000, cursor: "pointer" }}>
             <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#3d6b4f", margin: "0 0 4px" }}>Nouvelle notification</p>
             <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.98rem", color: "#1e2e24", margin: "0 0 4px" }}>{toastNotification.titre}</p>
             <p style={{ fontSize: "0.805rem", color: "#6b6560", lineHeight: 1.35, margin: 0 }}>{toastNotification.message}</p>
-          </Link>
+          </div>
         )}
       </header>
       {/* Messagerie EN FENÊTRE (plus une page) : ouverte depuis l'icône parchemin. */}

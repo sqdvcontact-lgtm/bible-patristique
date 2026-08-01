@@ -10,6 +10,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '@/app/lib/supabase'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 type Conversation = { partenaire_pseudo: string; dernier_message: string; dernier_at: string; nb_non_lus: number }
 type Message = { id: string; de_moi: boolean; contenu: string; lu: boolean; created_at: string }
@@ -112,10 +113,22 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
   const convsFiltrees = (conversations ?? []).filter(c => filtre === 'tous' || c.nb_non_lus > 0)
 
   return createPortal(
-    <div onClick={onClose}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.42)', zIndex: 2100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div onClick={e => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: '27.5rem', height: 'min(620px, calc(100vh - 60px))', background: '#f7f4ef', borderRadius: '12px', border: '1px solid #e0d8cc', boxShadow: '0 20px 60px rgba(40,30,15,0.30)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div onClick={onClose} className="msg-backdrop"
+      style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.42)', zIndex: 2100 }}>
+      {/* Ouverture fluide : le fond se pose en fondu, le volet glisse depuis la droite,
+          sous la navbar, et surplombe le contenu sur toute la hauteur. */}
+      <style>{`
+        @keyframes msg-fond { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes msg-glisser { from { transform: translateX(100%) } to { transform: none } }
+        .msg-backdrop { animation: msg-fond 0.18s ease-out }
+        .msg-panneau { animation: msg-glisser 0.26s cubic-bezier(0.2, 0.7, 0.3, 1) }
+        @media (prefers-reduced-motion: reduce) {
+          .msg-backdrop { animation: none }
+          .msg-panneau { animation: msg-fond 0.18s ease-out }
+        }
+      `}</style>
+      <div onClick={e => e.stopPropagation()} className="msg-panneau"
+        style={{ position: 'fixed', top: HAUTEUR_NAVBAR, right: 0, bottom: 0, width: 'min(27.5rem, 100vw)', background: '#f7f4ef', borderLeft: '1px solid #e0d8cc', borderTopLeftRadius: '12px', boxShadow: '-16px 0 50px rgba(40,30,15,0.26)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* En-tête */}
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '10px', padding: '13px 16px', borderBottom: '1px solid #e4dfd8', background: '#faf8f4' }}>

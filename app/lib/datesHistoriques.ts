@@ -59,6 +59,19 @@ export function parserDateHistorique(valeur: unknown): PeriodeHistorique | null 
   const borneUnique = lireBorne(texte)
   if (borneUnique) return { debut: borneUnique }
 
+  // Fourchettes en toutes lettres : « Entre 396 et 399 », « de 396 à 399 »,
+  // « 396 à 399 », « 396 et 399 » → période « 396-399 ». On exige que les DEUX
+  // bornes soient des années, pour ne pas confondre avec un texte libre. Le
+  // formateur rendra ensuite « 396-399 » (sans « Entre », avec trait d'union).
+  const fourchette =
+    texte.match(/^(?:entre|de)\s+(.+?)\s+(?:et|à|a)\s+(.+)$/i) ||
+    texte.match(/^(.+?)\s+(?:et|à|a)\s+(.+)$/i)
+  if (fourchette) {
+    const debut = lireBorne(fourchette[1])
+    const fin = lireBorne(fourchette[2])
+    if (debut && fin) return { debut, fin }
+  }
+
   // Séparation en période : trouver le tiret séparateur positionné après un chiffre
   // "100-200" → sep=3 ; "-300-200" → sep=4 ; "-300--200" → sep=4
   let sep = -1

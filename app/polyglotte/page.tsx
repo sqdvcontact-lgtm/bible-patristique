@@ -20,7 +20,7 @@ import NavLivres from "@/app/components/NavLivres";
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { ABREV_FR } from "@/app/lib/bible";
-import { texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
+import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 import ModalSignalement from "@/app/components/ModalSignalement";
 
 type Livre = { code: string; nom_fr: string; ordre: number };
@@ -91,14 +91,10 @@ type Surnum = { cle: string; livre: string; ch: number; v: number; ancre: string
 
 function texteEnrichi(t: string | null) {
   if (!t) return null;
-  if (!t.includes("<i>") && !t.includes("<b>")) return t;
-  return t.split(/(<i>[\s\S]*?<\/i>|<b>[\s\S]*?<\/b>)/g).filter(Boolean).map((bout, i) =>
-    bout.startsWith("<i>")
-      ? <i key={i}>{bout.slice(3, -4)}</i>
-      : bout.startsWith("<b>")
-      ? <b key={i}>{bout.slice(3, -4)}</b>
-      : <span key={i}>{bout}</span>
-  );
+  // Rendu commun au reste du site (gras **, italique <i>/*, petites capitales ++,
+  // exposant ^^, siècles en romain). Compat : l'ancien balisage <b> devient **.
+  const norm = t.replace(/<b>([\s\S]*?)<\/b>/g, "**$1**");
+  return rendreTexteEnrichi(norm);
 }
 
 // Enrichit le texte APRÈS avoir posé les tirets conditionnels, mais seulement sur le grec
@@ -123,7 +119,9 @@ const ROSE_FOND = "#fdeaf4";
 // Zébrage : un vert franc mais tenu, assez présent pour guider l'œil d'une colonne à
 // l'autre sur une ligne, assez pâle pour ne pas concurrencer les fonds signalétiques
 // (rouge, rose, violet) qui, eux, veulent dire quelque chose.
-const VERT_ZEBRE = "#e4efe6";
+// Contraste réduit entre les deux fonds de lignes : les deux tons sont désormais très
+// proches (guidage discret d'une colonne à l'autre, sans effet de bandes marqué).
+const VERT_ZEBRE = "#eef4ef";
 const VERT_ZEBRE_CLAIR = "#f7fbf7";
 const SURNUM = "#5a4b9c";       // versets propres à la Septante (hors ossature canonique)
 const SURNUM_FOND = "#f0eef9";
@@ -234,8 +232,10 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
           <button onClick={onFermer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: '0.9375rem', color: "#b0a89e", lineHeight: 1, padding: 0 }}>✕</button>
         </div>
         <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap", alignItems: "center" }}>
-          <button onClick={() => entourer("<b>", "</b>")} title="Gras" style={{ ...outil, fontWeight: 700 }}>G</button>
+          <button onClick={() => entourer("**", "**")} title="Gras" style={{ ...outil, fontWeight: 700 }}>G</button>
           <button onClick={() => entourer("<i>", "</i>")} title="Italique — mots ajoutés par le traducteur" style={{ ...outil, fontStyle: "italic" }}>I</button>
+          <button onClick={() => entourer("++", "++")} title="Petites capitales" style={{ ...outil, fontVariant: "small-caps", letterSpacing: "0.03em" }}>Pc</button>
+          <button onClick={() => entourer("^^", "^^")} title="Exposant" style={outil}>x<sup style={{ fontSize: "0.7em" }}>2</sup></button>
           <span style={{ width: 1, alignSelf: "stretch", background: "#e4dfd8" }} />
           <button onClick={() => inserer(" ")} title="Espace insécable" style={outil}>Esp. inséc.</button>
           <button onClick={() => inserer(" ")} title="Espace fine insécable" style={outil}>Esp. fine</button>
@@ -246,9 +246,15 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
           onKeyDown={e => { if (e.key === "Escape") onFermer(); if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) onEnregistrer(valeur); }}
           rows={5}
           style={{ width: "100%", boxSizing: "border-box", fontSize: '0.84375rem', lineHeight: 1.5, fontFamily: "var(--font-source-serif), Georgia, serif", padding: "9px 11px", border: "1px solid #d6d0c4", borderRadius: 5, background: "#faf8f4", color: "#2a2520", outline: "none", resize: "vertical" }} />
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
-          <span style={{ fontSize: '0.65625rem', color: "#b0a89e", marginRight: "auto" }}>⌘/Ctrl+↵ enregistre · Échap ferme</span>
-          {statut === "erreur" && <span style={{ fontSize: '0.6875rem', color: ROUGE }}>échec de l’enregistrement</span>}
+        {/* Aperçu en direct : l'apparence enrichie du verset, telle qu'elle s'affichera. */}
+        <div style={{ marginTop: 8 }}>
+          <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: "#b0a89e" }}>Aperçu</span>
+          <div style={{ marginTop: 3, minHeight: "2.4em", fontSize: '0.84375rem', lineHeight: 1.55, fontFamily: "var(--font-source-serif), Georgia, serif", color: "#2a2520", padding: "8px 11px", border: "1px solid #ece7de", borderRadius: 5, background: "#fff" }}>
+            {valeur.trim() ? texteEnrichi(valeur) : <span style={{ color: "#c8c0b4", fontStyle: "italic" }}>—</span>}
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
+          {statut === "erreur" && <span style={{ fontSize: '0.6875rem', color: ROUGE, marginRight: "auto" }}>échec de l’enregistrement</span>}
           <button onClick={onFermer} style={{ padding: "5px 12px", fontSize: '0.71875rem', borderRadius: 4, border: "1px solid #d6cfc2", background: "#fff", color: "#8a8378", cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
           <button onClick={() => onEnregistrer(valeur)} disabled={statut === "envoi"}
             style={{ padding: "5px 15px", fontSize: '0.71875rem', borderRadius: 4, border: "none", background: VERT, color: "#fff", cursor: statut === "envoi" ? "default" : "pointer", fontFamily: "inherit", fontWeight: 500 }}>
@@ -268,6 +274,17 @@ function IconeSignet({ rempli }: { rempli?: boolean }) {
   return (
     <svg width="10" height="11" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display: "block" }}>
       <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill={rempli ? "currentColor" : "none"} />
+    </svg>
+  );
+}
+// Fanion de signalement dessiné au MÊME gabarit que le signet (SVG 10×11, trait 1,25),
+// pour que les deux symboles de la colonne de références aient exactement la même taille
+// (le glyphe « ⚑ » se rendait bien plus gros).
+function IconeFanion() {
+  return (
+    <svg width="10" height="11" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display: "block" }}>
+      <path d="M3.4 1.3V11.7" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+      <path d="M3.4 2.1H9.6L8 4.3L9.6 6.5H3.4Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none" />
     </svg>
   );
 }
@@ -328,7 +345,7 @@ function BoutonSignalerVerset({ refLisible, texte }: { refLisible: string; texte
   return (
     <>
       <button onClick={e => { e.stopPropagation(); setOuvert(true); }} title="Signaler une erreur" className="poly-act"
-        style={{ ...ACT_BTN, color: "#b7ad9a" }} aria-label="Signaler">⚑</button>
+        style={{ ...ACT_BTN, color: "#b7ad9a" }} aria-label="Signaler"><IconeFanion /></button>
       {ouvert && <ModalSignalement titre={refLisible} texteObjet={texte || undefined} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   );
@@ -344,6 +361,20 @@ export default function PolyglottePage() {
   const [slots, setSlots] = useState<string[]>([]);
   // Nombre de colonnes tenant à l'écran (mesuré), et conteneur du tableau observé.
   const [maxSlots, setMaxSlots] = useState(NB_SLOTS);
+  // Préférence utilisateur du nombre de traductions visibles (null = automatique, selon
+  // la largeur d'écran). Mémorisée. Un ref évite la fermeture périmée dans le ResizeObserver.
+  const [nbTradPref, setNbTradPref] = useState<number | null>(null);
+  const prefRef = useRef<number | null>(null);
+  const autoRef = useRef<number>(NB_SLOTS);
+  useEffect(() => {
+    try { const v = window.localStorage.getItem("polyglotte-nbtrad"); if (v === "auto") setNbTradPref(null); else if (v) { const n = parseInt(v, 10); if (n >= MIN_SLOTS && n <= MAX_SLOTS) setNbTradPref(n); } } catch { /* stockage indisponible */ }
+  }, []);
+  useEffect(() => { prefRef.current = nbTradPref; }, [nbTradPref]);
+  // Applique la préférence (ou revient à la valeur automatique mesurée).
+  useEffect(() => {
+    setMaxSlots(nbTradPref != null ? Math.max(MIN_SLOTS, Math.min(MAX_SLOTS, nbTradPref)) : autoRef.current);
+    try { window.localStorage.setItem("polyglotte-nbtrad", nbTradPref == null ? "auto" : String(nbTradPref)); } catch { /* stockage indisponible */ }
+  }, [nbTradPref]);
   const refTable = useRef<HTMLDivElement>(null);
   // Mémorise le choix des colonnes dès qu'il est renseigné (jamais l'état initial vide).
   useEffect(() => {
@@ -359,7 +390,9 @@ export default function PolyglottePage() {
     const calc = () => {
       const dispo = el.clientWidth - 36 - 46;   // paddings latéraux + colonne de référence (46px)
       const n = Math.max(MIN_SLOTS, Math.min(MAX_SLOTS, Math.floor(dispo / MIN_COL_PX)));
-      setMaxSlots(n);
+      autoRef.current = n;
+      // La préférence utilisateur prime sur la mesure ; sinon on suit la largeur d'écran.
+      setMaxSlots(prefRef.current != null ? Math.max(MIN_SLOTS, Math.min(MAX_SLOTS, prefRef.current)) : n);
     };
     calc();
     const ro = new ResizeObserver(calc);
@@ -673,7 +706,7 @@ export default function PolyglottePage() {
         /* Légèrement desserrés ENTRE EUX (petit écart vertical), et décollés du numéro
            canonique : c'est la marge haute qui les en sépare. */
         .poly-actstack {
-          display: flex; flex-direction: column; align-items: center; gap: 4px;
+          display: flex; flex-direction: column; align-items: center; gap: 9px;
           width: -moz-fit-content; width: fit-content; margin: 6px auto 0;
           line-height: 0;
         }
@@ -781,6 +814,23 @@ export default function PolyglottePage() {
           <div style={{ flexShrink: 0, background: "#faf8f4", borderRight: "1px solid #d6d0c4", borderBottom: "1px solid #d6d0c4", padding: "12px 14px 11px" }}>
             <h1 style={{ margin: 0, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', fontWeight: 600, color: VERT, letterSpacing: "0.01em", lineHeight: 1.2 }}>Bible polyglotte</h1>
           </div>
+          {/* Choix du nombre de traductions affichées (Auto = selon la largeur d'écran). */}
+          <div style={{ flexShrink: 0, background: "#faf8f4", borderRight: "1px solid #d6d0c4", borderBottom: "1px solid #d6d0c4", padding: "8px 14px 9px" }}>
+            <span style={{ display: "block", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a958d", marginBottom: "5px" }}>Traductions visibles</span>
+            <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+              {([["Auto", null], ["2", 2], ["3", 3], ["4", 4], ["5", 5]] as const).map(([lbl, val]) => {
+                const actif = nbTradPref === val;
+                return (
+                  <button key={lbl} onClick={() => setNbTradPref(val)}
+                    style={{ fontSize: "0.62rem", fontWeight: actif ? 600 : 400, padding: "2px 9px", borderRadius: "999px", cursor: "pointer",
+                      border: `1px solid ${actif ? VERT : "#d6d0c4"}`, background: actif ? "rgba(61,107,79,0.10)" : "#fff", color: actif ? VERT : "#6b6560",
+                      fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+                    {lbl}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
             <NavLivres
               livres={livresNav}
@@ -802,12 +852,18 @@ export default function PolyglottePage() {
       <div ref={refTable} style={{ flex: 1, minWidth: 0, padding: "12px 18px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "#2a2620" }}>
         {/* Aucun livre choisi : la page reste vide et l'explique */}
         {!onglet && (
-          <div style={{ margin: "60px auto", maxWidth: '35rem', display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-            {/* Le livre relié et son reflet dans le miroir : image de la polyglotte
-                (un même texte, plusieurs reflets). Fond fondu par mix-blend-mode multiply. */}
-            <img src="/ornements/livre-miroir.png" alt="" aria-hidden="true"
-              style={{ width: "min(320px, 68%)", height: "auto", opacity: 0.9, mixBlendMode: "multiply", marginBottom: "16px" }} />
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "#9a958d", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
+          // Le groupe (image + légende) est centré au TIERS SUPÉRIEUR du bloc : son centre
+          // se pose à 33 % de la hauteur, un peu plus bas qu'auparavant.
+          <div style={{ position: "relative", minHeight: "calc(100dvh - 3.5rem - 6rem)" }}>
+            <div style={{ position: "absolute", top: "33%", left: "50%", transform: "translate(-50%, -50%)", width: "min(35rem, 90%)", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+              {/* Le livre relié et son reflet dans le miroir : image de la polyglotte
+                  (un même texte, plusieurs reflets). PNG détouré (fond transparent, luminance
+                  passée en alpha) : plus de rectangle clair sur le fond crème, donc plus besoin
+                  de mix-blend-mode. */}
+              <img src="/ornements/livre-miroir-detoure.png" alt="" aria-hidden="true"
+                style={{ width: "min(320px, 68%)", height: "auto", opacity: 0.92, marginBottom: "16px" }} />
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "#9a958d", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
+            </div>
           </div>
         )}
 
@@ -845,17 +901,14 @@ export default function PolyglottePage() {
                 </div>
                   {estAdmin && (
                     <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", display: "flex", gap: 5 }}>
-                      {([["tout", toutAfficher, "#c8b98a", "Tout afficher", livresOnglet.length > 1],
-                         ["sensibles", sensiblesOnly, "#e0908a", "Lignes problématiques", true],
+                      {([["sensibles", sensiblesOnly, "#e0908a", "Lignes problématiques", true],
                          ["surnum", surnumOnly, "#b3a6e8", "Surnuméraires", true]] as const)
                         .filter(([, , , , visible]) => visible)
                         .map(([cle, actif, teinte, libelle]) => (
                         <button key={cle}
                           onClick={() => {
-                            // Les trois réglages s'excluent : activer l'un désactive les deux
-                            // autres (plus de cumul « tout afficher » + « surnuméraires »…).
-                            if (cle === "tout") { setToutAfficher(!actif); if (!actif) { setSensiblesOnly(false); setSurnumOnly(false); } }
-                            else if (cle === "sensibles") { setSensiblesOnly(!actif); if (!actif) { setSurnumOnly(false); setToutAfficher(false); } }
+                            // Les deux réglages s'excluent : activer l'un désactive l'autre.
+                            if (cle === "sensibles") { setSensiblesOnly(!actif); if (!actif) { setSurnumOnly(false); setToutAfficher(false); } }
                             else { setSurnumOnly(!actif); if (!actif) { setSensiblesOnly(false); setToutAfficher(false); } }
                           }}
                           title={libelle}
@@ -939,7 +992,7 @@ export default function PolyglottePage() {
               ? `Verset hors ossature canonique, porté par ${editions} éditions au même numéro (${g.ch}, ${g.v})`
               : `Verset propre à cette édition — hors ossature canonique (${g.ch}, ${g.v})`;
             return (
-              <div key={cle} style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid #e3e0f2", fontSize: '0.8125rem' }}>
+              <div key={cle} style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid #e3e0f2", fontSize: '0.875rem' }}>
                 {/* « ✦ » plutôt que « ＋ » : le plus disait « on a ajouté quelque chose », ce qui
                     est faux et un peu comptable. L'étoile marque un verset qui existe hors de
                     l'ossature, sans porter de jugement sur sa légitimité. */}
@@ -1046,8 +1099,8 @@ export default function PolyglottePage() {
                 return (
                   <Fragment key={r.id}>
                     <div className="poly-row" id={`poly-${l.code}-${r.ch_canon}-${r.v_canon}`}
-                      style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? "#fff3c4" : fond, borderTop: "1px solid #dfe8e0", fontSize: '0.8125rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_TITRE + HAUT_ENTETE + 8}px)`, transition: "background .4s" }}>
-                      <div title={signaler ? desc : undefined} style={{ padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: '0.71875rem', lineHeight: 1.15, color: signaler ? ROUGE : ligneVide ? "#aeb4ae" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : "1px solid #dfe8e0" }}>
+                      style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? "#fff3c4" : fond, borderTop: "1px solid #dfe8e0", fontSize: '0.875rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_TITRE + HAUT_ENTETE + 8}px)`, transition: "background .4s" }}>
+                      <div title={signaler ? desc : undefined} style={{ padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: '0.78125rem', lineHeight: 1.15, color: signaler ? ROUGE : ligneVide ? "#aeb4ae" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : "1px solid #dfe8e0" }}>
                         <div style={{ whiteSpace: "nowrap" }}>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</div>
                         {/* Citer / signaler : empilés verticalement sous le numéro, dans un petit
                             cartouche arrondi qui n'apparaît qu'au survol de la ligne. */}

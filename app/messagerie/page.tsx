@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 type Conversation = {
   partenaire_pseudo: string
@@ -42,8 +43,10 @@ export default function MessageriePage() {
   }, [])
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '3.5rem' }}>
-      <div style={{ maxWidth: '42.5rem', margin: '0 auto', padding: '34px 24px 80px' }}>
+    <main style={{ minHeight: `calc(100vh - ${HAUTEUR_NAVBAR})`, background: '#f7f4ef', display: 'flex' }}>
+      {/* `margin: auto` centre le bloc dans l'espace SOUS la navbar quand il est court,
+          et l'aligne en haut (sans passer sous la navbar) quand il devient long. */}
+      <div style={{ maxWidth: '44rem', width: '100%', margin: 'auto', padding: '40px 24px 64px', boxSizing: 'border-box' }}>
 
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 'normal', color: '#1e2e24', marginBottom: '10px' }}>

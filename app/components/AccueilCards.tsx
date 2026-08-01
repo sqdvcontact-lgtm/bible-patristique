@@ -232,14 +232,16 @@ export default function AccueilCards() {
           opacity: 0.12;
           transform: scale(0.99);
         }
+        /* Trois tons terreux SOBRES et coordonnés (assourdis) : vert sombre,
+           bronze doux, olive — distincts mais sans éclat. */
         .ac-bible {
-          background: linear-gradient(160deg, #1e3828 0%, #162a1e 100%);
+          background: linear-gradient(160deg, #2c3a31 0%, #222e27 100%);
         }
         .ac-patristique {
-          background: linear-gradient(160deg, #6b571c 0%, #473a10 100%);
+          background: linear-gradient(160deg, #52472c 0%, #3b3320 100%);
         }
         .ac-publications {
-          background: linear-gradient(160deg, #283820 0%, #1e2c18 100%);
+          background: linear-gradient(160deg, #3a3d2b 0%, #2d3021 100%);
         }
         .ac-title {
           font-family: var(--font-source-serif), Georgia, serif;
@@ -280,14 +282,14 @@ export default function AccueilCards() {
           text-align: center;
           border-radius: 0;
           border: none;
-          background: rgba(255,255,255,0.08);
-          color: rgba(255,255,255,0.92);
+          background: rgba(255,255,255,0.15);
+          color: rgba(255,255,255,0.96);
           text-decoration: none;
           box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
           transition: background 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
         }
         .ac-hover-choice:first-child {
-          border-bottom: 1px solid rgba(255,255,255,0.20);
+          border-bottom: 1px solid rgba(255,255,255,0.22);
           border-radius: 10px 10px 0 0;
         }
         .ac-hover-choice:last-child {
@@ -295,7 +297,7 @@ export default function AccueilCards() {
         }
         .ac-hover-choice:hover,
         .ac-hover-choice:focus-visible {
-          background: rgba(255,255,255,0.16);
+          background: rgba(255,255,255,0.26);
           transform: none;
           outline: none;
         }
@@ -304,12 +306,12 @@ export default function AccueilCards() {
           pointer-events: none;
         }
         .ac-hover-kicker {
-          font-size: 0.5625rem;
+          font-size: 0.625rem;
           font-weight: 700;
           letter-spacing: 0.10em;
           text-transform: uppercase;
           line-height: 1.15;
-          color: rgba(255,255,255,0.70);
+          color: rgba(255,255,255,0.84);
           text-align: center;
         }
         .ac-hover-line {
@@ -322,7 +324,7 @@ export default function AccueilCards() {
           padding: 0 10px;
           box-sizing: border-box;
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 0.75rem;
+          font-size: 0.8125rem;
           font-style: italic;
           line-height: 1.25;
           overflow: hidden;

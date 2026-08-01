@@ -16,7 +16,7 @@ type Verset = {
   chapitre: number; verset: number
   [traduction: string]: string | number | null | undefined
 }
-type Traduction = { code: string; label: string }
+type Traduction = { code: string; label: string; auteur?: string | null; datePublication?: string | null; confession?: string | null; langue?: string | null }
 
 type Props = {
   livres: Livre[]

@@ -159,12 +159,14 @@ export default function NoteTooltip({ lettre, el, isRef }: {
       {lettre}
     </button>
   ) : (
-    <sup style={{ marginLeft: '0.1em' }}>
+    // Exposant qui n'agrandit PAS l'interligne (décalage de peinture + line-height:0),
+    // au lieu de <sup> (vertical-align:super) qui gonfle la boîte de ligne.
+    <span style={{ marginLeft: '0.1em', display: 'inline-block', position: 'relative', top: '-0.45em', verticalAlign: 'baseline', lineHeight: 0, fontSize: '0.72em' }}>
       <button onMouseEnter={traiterEntrer} onMouseLeave={traiterSortir} onClick={traiterClic}
-        style={{ color: fixe ? '#1e2e24' : '#3d6b4f', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: '0.82em', fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'normal', lineHeight: 1 }}>
+        style={{ color: fixe ? '#1e2e24' : '#3d6b4f', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: 'inherit', fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'normal', lineHeight: 1 }}>
         {lettre}
       </button>
-    </sup>
+    </span>
   )
 
   // Position de la flèche selon le type de déclencheur

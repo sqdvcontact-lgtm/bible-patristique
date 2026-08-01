@@ -19,13 +19,18 @@ const arg = (nom, def) => { const i = process.argv.indexOf(nom); return i >= 0 ?
 const OEUVRE = process.argv.find(a => /^A\d{4}O\d{4}$/.test(a))
 const N = +arg('-n', arg('--n', 15))
 const PROV = arg('--prov', null), FIAB = arg('--fiab', null), TYPE = arg('--type', null)
+const QFROM = +(arg('--q-from', 0)), QTO = +(arg('--q-to', 0))
+const NIV1 = arg('--niv1', null)
 if (!OEUVRE) { console.error('usage : node scripts/liens-controle.mjs <id_oeuvre> [--prov ia|editeur|lecture] [--fiab probable|douteux|...] [--type 1..4] [-n 15]'); process.exit(1) }
 
 // Segments de l'œuvre (pour restreindre les liens et récupérer le texte).
 const segs = new Map()
 for (let from = 0; ; from += 1000) {
-  const { data } = await sb.from('segments').select('id, segment_numero, ref_niv1, ref_niv2, segment_texte, texte_original')
-    .eq('id_oeuvre', OEUVRE).eq('nature', 'texte').order('id').range(from, from + 999)
+  let query = sb.from('segments').select('id, segment_numero, ref_niv1, ref_niv2, segment_texte, texte_original')
+    .eq('id_oeuvre', OEUVRE).in('nature', ['texte', 'citation']).order('id').range(from, from + 999)
+  if (NIV1) query = query.eq('ref_niv1', NIV1)
+  if (QFROM && QTO) query = query.in('ref_niv2', Array.from({ length: QTO - QFROM + 1 }, (_, i) => `Question ${QFROM + i}`))
+  const { data } = await query
   if (!data?.length) break
   for (const s of data) segs.set(s.id, s)
   if (data.length < 1000) break
@@ -52,18 +57,41 @@ const canons = [...new Set(echantillon.map(l => l.canon_id).filter(Boolean))]
 const versets = new Map()
 for (let i = 0; i < canons.length; i += 200) {
   const { data } = await sb.from('versets_lecture').select('id_verset, "TR0003", "TR0001", "TR0004"').in('id_verset', canons.slice(i, i + 200))
-  for (const v of data ?? []) versets.set(v.id_verset, v.TR0003 || v.TR0001 || v.TR0004 || '')
+  for (const v of data ?? []) versets.set(v.id_verset, v)
 }
 
-const citation = t => (String(t || '').match(/«\s*([^»]{6,110})/) || [, null])[1]
+// Un segment peut contenir plusieurs citations. Ne jamais afficher aveuglément la
+// première face à toutes les cibles : choisir l'ancre dont le vocabulaire recoupe
+// le mieux le verset, puis conserver assez de contexte pour contrôler les types 3/4.
+const stop = new Set('avec dans pour plus cette comme mais donc ainsi sont avoir être elle elles nous vous leur leurs tout tous toute toutes une des les que qui par sur aux ses ces est car'.split(' '))
+const tokens = value => new Set(String(value || '').normalize('NFD').replace(/\p{Diacritic}/gu, '')
+  .toLowerCase().match(/[a-z]{3,}/g)?.filter(w => !stop.has(w)) ?? [])
+const bestWitness = (texte, witnesses) => {
+  if (!witnesses) return { label: '?', text: '(verset introuvable)' }
+  const sourceTokens = tokens(texte)
+  return ['TR0001', 'TR0003', 'TR0004'].map(label => ({ label, text: witnesses[label] || '' }))
+    .filter(x => x.text).map(x => ({ ...x, score: [...tokens(x.text)].filter(w => sourceTokens.has(w)).length }))
+    .sort((a, b) => b.score - a.score)[0]
+}
+const citation = (texte, cible) => {
+  const quotes = [...String(texte || '').matchAll(/«\s*([^»]{6,500})\s*»/g)].map(m => m[1])
+  if (!quotes.length) return null
+  const wanted = tokens(cible)
+  const ranked = quotes.map(q => ({ q, score: [...tokens(q)].filter(w => wanted.has(w)).length }))
+    .sort((a, b) => b.score - a.score)
+  return ranked[0].score >= 2 ? ranked[0].q : null
+}
 console.log(`\n═══ CONTRÔLE — ${OEUVRE} · ${echantillon.length}/${liens.length} liens${PROV ? ` · prov=${PROV}` : ''}${FIAB ? ` · fiab=${FIAB}` : ''}${TYPE ? ` · type=${TYPE}` : ''} ═══\n`)
 for (const l of echantillon) {
   const s = segs.get(l.segment_id)
   const src = s?.texte_original ?? s?.segment_texte ?? ''
-  const cite = citation(src)
-  const cible = l.canon_id ? (versets.get(l.canon_id) ?? '(verset introuvable)') : `${l.livre} ch.${l.chapitre} (chapitre)`
+  const witness = l.canon_id ? bestWitness(src, versets.get(l.canon_id)) : null
+  const cible = witness?.text ?? `${l.livre} ch.${l.chapitre} (chapitre)`
+  const cite = citation(src, cible)
+  const contexte = src.replace(/\s+/g, ' ').slice(0, 420)
   console.log(`• ${s?.ref_niv1 ?? '?'}${s?.ref_niv2 ? '/' + s.ref_niv2 : ''} #${s?.segment_numero}  [t${l.type} ${l.fiabilite} ${l.provenance}]`)
-  console.log(`   segment : ${cite ? '« ' + cite + ' »' : src.replace(/\s+/g, ' ').slice(0, 100)}`)
-  console.log(`   → ${l.canon_id ?? l.livre + '.' + l.chapitre} : ${String(cible).replace(/\s+/g, ' ').slice(0, 100)}\n`)
+  console.log(`   ancre   : ${cite ? '« ' + cite + ' »' : '(pas d’ancre littérale sûre — lire le contexte)'}`)
+  console.log(`   contexte: ${contexte}`)
+  console.log(`   → ${l.canon_id ?? l.livre + '.' + l.chapitre}${witness ? ` [${witness.label}]` : ''} : ${String(cible).replace(/\s+/g, ' ').slice(0, 220)}\n`)
 }
 console.log(`À LIRE : pour chacun, la citation du segment correspond-elle au verset cible, et le type est-il juste ? Noter le taux d'erreur avant de poursuivre.`)

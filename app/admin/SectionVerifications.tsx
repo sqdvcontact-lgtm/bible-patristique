@@ -158,24 +158,21 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-        <p style={{ margin: 0, fontSize: '0.8625rem', color: '#7a7268' }}>
-          Liens suggérés par l'IA à confirmer ou rejeter, un par un.
-        </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '0.82656rem', color: '#9a958d' }}>
-            {chargement ? 'Chargement…' : `${paires.length} lien${paires.length > 1 ? 's' : ''} à vérifier`}
-          </span>
-        </div>
+      {/* Compteur central, élégant : le nombre en chiffre serif, mis en avant. */}
+      <div style={{ textAlign: 'center', margin: '4px 0 20px' }}>
+        {chargement ? (
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+        ) : paires.length === 0 ? (
+          <p style={{ margin: 0, fontSize: '0.93437rem', color: '#9a958d', fontStyle: 'italic' }}>Aucun lien en attente de vérification.</p>
+        ) : (
+          <p style={{ margin: 0, color: '#6b6560', fontSize: '0.9rem', letterSpacing: '0.01em' }}>
+            <strong style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontWeight: 'normal', fontSize: '1.65rem', color: '#3d6b4f', verticalAlign: '-2px' }}>{paires.length}</strong>
+            {'  '}lien{paires.length > 1 ? 's' : ''} à vérifier
+          </p>
+        )}
       </div>
 
-      {!chargement && paires.length === 0 && (
-        <p style={{ fontSize: '0.93437rem', color: '#9a958d', fontStyle: 'italic' }}>
-          Aucun lien en attente de vérification.
-        </p>
-      )}
-
-      {nbPages > 1 && <Pagination page={page} nbPages={nbPages} total={paires.length} onPage={setPage} />}
+      {nbPages > 1 && <Pagination page={page} nbPages={nbPages} onPage={setPage} />}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {pageCourante.map(({ seg, idVerset }) => {
@@ -204,7 +201,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
               {/* Corps : texte biblique | texte patristique */}
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)' }}>
                 <div style={{ padding: '14px 16px', background: '#fbfaf7' }}>
-                  <p style={texteBibleStyle}>{verset?.texte || 'Verset introuvable.'}</p>
+                  <p style={texteBibleStyle}>{verset?.texte ? rendreTexteEnrichi(verset.texte) : 'Verset introuvable.'}</p>
                 </div>
                 <div style={{ padding: '14px 16px', borderLeft: '1px solid #ede9e2' }}>
                   <p style={textePatristiqueStyle}>{rendreTexteEnrichi(seg.segment_texte)}</p>
@@ -247,26 +244,38 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
         })}
       </div>
 
-      {nbPages > 1 && <Pagination page={page} nbPages={nbPages} total={paires.length} onPage={setPage} bas />}
+      {nbPages > 1 && <Pagination page={page} nbPages={nbPages} onPage={setPage} bas />}
     </div>
   )
 }
 
-function Pagination({ page, nbPages, total, onPage, bas = false }: {
-  page: number; nbPages: number; total: number
+// Pagination centrée et sobre : deux flèches rondes encadrant « Page X sur Y » en serif.
+function Pagination({ page, nbPages, onPage, bas = false }: {
+  page: number; nbPages: number
   onPage: React.Dispatch<React.SetStateAction<number>>; bas?: boolean
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: bas ? '16px 0 0' : '0 0 14px', justifyContent: bas ? 'center' : 'flex-start' }}>
-      <button onClick={() => onPage(p => Math.max(0, p - 1))} disabled={page === 0} style={paginationBtn(page === 0)}>Préc.</button>
-      <span style={{ fontSize: '0.82656rem', color: '#9a958d' }}>Page {page + 1} / {nbPages} · {total} lien{total > 1 ? 's' : ''}</span>
-      <button onClick={() => onPage(p => Math.min(nbPages - 1, p + 1))} disabled={page >= nbPages - 1} style={paginationBtn(page >= nbPages - 1)}>Suiv.</button>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', margin: bas ? '22px 0 0' : '0 0 20px' }}>
+      <button aria-label="Page précédente" onClick={() => onPage(p => Math.max(0, p - 1))} disabled={page === 0} style={flecheBtn(page === 0)}>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3l-5 5 5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+      <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.85rem', color: '#8a8278', minWidth: '6.5rem', textAlign: 'center' }}>
+        Page {page + 1} sur {nbPages}
+      </span>
+      <button aria-label="Page suivante" onClick={() => onPage(p => Math.min(nbPages - 1, p + 1))} disabled={page >= nbPages - 1} style={flecheBtn(page >= nbPages - 1)}>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
     </div>
   )
 }
 
-function paginationBtn(disabled: boolean): React.CSSProperties {
-  return { fontSize: '0.82656rem', padding: '4px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: disabled ? '#c0bab4' : '#3a3530', cursor: disabled ? 'default' : 'pointer' }
+function flecheBtn(disabled: boolean): React.CSSProperties {
+  return {
+    width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #ddd5c4',
+    background: '#fff', color: disabled ? '#cfc7bb' : '#3d6b4f', cursor: disabled ? 'default' : 'pointer',
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: disabled ? 'none' : '0 1px 5px rgba(60,50,30,0.06)', transition: 'color 0.12s, box-shadow 0.12s',
+  }
 }
 
 const carteStyle: React.CSSProperties = { background: '#fff', border: '1px solid #d6d0c4', borderRadius: '8px', overflow: 'hidden' }

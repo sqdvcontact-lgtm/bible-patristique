@@ -106,6 +106,51 @@ function siecleEnRomain(n: number): string {
   return (r[n - 1] ?? String(n)) + 'e'
 }
 
+// Rang chronologique d'un siècle donné en toutes lettres (« IXe siècle »,
+// « IVe-Ve siècle ») ou en nombre — pour trier les périodes par ordre chronologique.
+function rangSiecle(s: unknown): number {
+  const str = String(s).trim()
+  const dec = str.match(/^\d+/)
+  if (dec) return parseInt(dec[0], 10)
+  const m = str.toUpperCase().match(/[IVXLCDM]+/)
+  if (!m) return 9999
+  const val: Record<string, number> = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 }
+  const rn = m[0]
+  let n = 0
+  for (let i = 0; i < rn.length; i++) {
+    const c = val[rn[i]] ?? 0, suiv = val[rn[i + 1]] ?? 0
+    n += c < suiv ? -c : c
+  }
+  return n
+}
+
+// Libellé d'un siècle. `auteurs.siecle` est du TEXTE déjà complet (« IXe siècle »,
+// « IVe-Ve siècle ») : on le rend tel quel. On ne construit le libellé que si la valeur
+// est un simple nombre (évite le doublon « sièclee »).
+function labelSiecle(s: unknown): string {
+  const str = String(s).trim()
+  if (/[a-zà-ÿ]/i.test(str)) return str
+  const n = parseInt(str, 10)
+  return Number.isFinite(n) ? `${siecleEnRomain(n)} siècle` : str
+}
+
+// Rendu typographique d'un libellé de siècle : le chiffre romain en PETITES CAPITALES,
+// l'ordinal (« e ») en EXPOSANT, le reste (« siècle », « - », espaces) en romain normal.
+// Ex. « IVe-Ve siècle ». Pas de flag insensible à la casse : « siècle » contient i/c/l.
+function rendreSiecle(str: string): React.ReactNode {
+  const parts: React.ReactNode[] = []
+  const re = /([IVXLCDM]+)(er|ère|ème|e)?/g
+  let last = 0, m: RegExpExecArray | null, k = 0
+  while ((m = re.exec(str)) !== null) {
+    if (m.index > last) parts.push(str.slice(last, m.index))
+    parts.push(<span key={k++} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{m[1].toLowerCase()}</span>)
+    if (m[2]) parts.push(<sup key={k++} style={{ fontSize: '0.68em' }}>{m[2]}</sup>)
+    last = re.lastIndex
+  }
+  if (last < str.length) parts.push(str.slice(last))
+  return parts
+}
+
 function construireCitationPatristique(
   texte: string, auteur: string, titre: string,
   sousTitre?: string, tradAuteur?: string | null, editeur?: string | null,
@@ -326,6 +371,46 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
 // ── Onglet commentaires ───────────────────────────────────────────────────────
 // Pas plus de 5 majuscules consécutives (accentuées comprises).
 const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
+
+// Groupe de tags de filtre : n'affiche que ~2 lignes ; « Afficher plus » déplie le reste.
+// La hauteur de deux lignes est mesurée (position du 1er tag de la 3e ligne) pour un
+// repli net, sans demi-ligne.
+function GroupeTags({ titre, children }: { titre: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [ouvert, setOuvert] = useState(false)
+  const [hauteur2, setHauteur2] = useState<number | null>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) { return }
+    const enfants = Array.from(el.children) as HTMLElement[]
+    if (enfants.length === 0) { setHauteur2(null); return }
+    const base = enfants[0].offsetTop
+    let lignes = 1, dernierTop = enfants[0].offsetTop, h: number | null = null
+    for (const c of enfants) {
+      if (c.offsetTop > dernierTop + 2) {
+        lignes++; dernierTop = c.offsetTop
+        if (lignes === 3) { h = c.offsetTop - base; break }
+      }
+    }
+    setHauteur2(h)
+  })
+  const replie = hauteur2 != null && !ouvert
+  return (
+    <div style={{ marginTop: '8px' }}>
+      <p style={{ fontSize: '0.60031rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>{titre}</p>
+      <div ref={ref} style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', overflow: 'hidden', maxHeight: replie ? `${hauteur2}px` : undefined }}>
+        {children}
+      </div>
+      {hauteur2 != null && (
+        // Collé aux tags, mais distinct : petit lien souligné (pas une pastille).
+        <button onClick={() => setOuvert(o => !o)}
+          style={{ marginTop: '1px', fontSize: '0.585rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 2px', fontWeight: 600, fontStyle: 'italic', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+          {ouvert ? 'Afficher moins' : 'Afficher plus'}
+        </button>
+      )}
+    </div>
+  )
+}
 
 function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Verset; userId: string | null; isAdmin: boolean; onCount?: (n: number) => void }) {
   type Commentaire2 = Commentaire & { user_id: string | null; valide: boolean; reponse_a: number | null; pseudo: string | null; score: number | null; nbLikes: number; nbDislikes: number; monVote: 1 | -1 | null; demande_validation: boolean; certifie?: boolean | null; supprime: boolean }
@@ -571,7 +656,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
   }
 
   return (
-    <div style={{ padding:'10px 0' }}>
+    <div style={{ display:'flex', flexDirection:'column', height:'100%', minHeight:0, padding:'10px 0' }}>
       <style>{`
         .commentaire-carte {
           transition: opacity 180ms ease, box-shadow 180ms ease, margin 180ms ease;
@@ -611,24 +696,27 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
           transform: translateX(0);
         }
       `}</style>
-      {loading && <p style={{ fontSize:'0.74156rem', color:'#9a958d', fontStyle:'italic' }}>Chargement…</p>}
-      {!loading && commentaires.length === 0 && (
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', marginTop:'26px', marginBottom:'14px' }}>
-          {/* Cul-de-lampe d'état vide (carapace de tortue). `multiply` fond le fond
-              blanc du dessin dans le papier du panneau. */}
-          <img src="/ornements/carapace-vide.png" alt="" aria-hidden="true"
-            style={{ width:'min(168px, 58%)', height:'auto', opacity:0.46, mixBlendMode:'multiply', marginBottom:'14px' }} />
-          <p style={{ fontSize:'0.74156rem', color:'#b0a89e', fontStyle:'italic', margin:0 }}>Aucun commentaire pour ce verset.</p>
-        </div>
-      )}
-      {principaux.map(c => (
-        <div key={c.id}>
-          {renderCommentaire(c, false)}
-          {reponsesDe(c.id).map(r => renderCommentaire(r, true))}
-        </div>
-      ))}
-      {commentaires.length > 0 && <div style={{ borderTop:'1px solid #ede9e2', marginTop:'4px', paddingTop:'10px' }} />}
-      <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+      {/* Liste défilante : occupe la place disponible pour que la zone de saisie
+          reste épinglée au bas du volet. */}
+      <div style={{ flex:1, minHeight:0, overflowY:'auto' }}>
+        {loading && <p style={{ fontSize:'0.74156rem', color:'#9a958d', fontStyle:'italic' }}>Chargement…</p>}
+        {!loading && commentaires.length === 0 && (
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', marginTop:'26px', marginBottom:'14px' }}>
+            {/* Cul-de-lampe d'état vide (carapace de tortue). `multiply` fond le fond
+                blanc du dessin dans le papier du panneau. */}
+            <img src="/ornements/carapace-vide.png" alt="" aria-hidden="true"
+              style={{ width:'min(168px, 58%)', height:'auto', opacity:0.46, mixBlendMode:'multiply', marginBottom:'14px' }} />
+            <p style={{ fontSize:'0.74156rem', color:'#b0a89e', fontStyle:'italic', margin:0 }}>Aucun commentaire pour ce verset.</p>
+          </div>
+        )}
+        {principaux.map(c => (
+          <div key={c.id}>
+            {renderCommentaire(c, false)}
+            {reponsesDe(c.id).map(r => renderCommentaire(r, true))}
+          </div>
+        ))}
+      </div>
+      <div style={{ flexShrink:0, display:'flex', flexDirection:'column', gap:'5px', borderTop:'1px solid #ede9e2', marginTop:'4px', paddingTop:'10px' }}>
         {cibleReponse && (
           <div style={{ display:'flex', alignItems:'center', gap:'6px', background:'rgba(61,107,79,0.07)', border:'1px solid rgba(61,107,79,0.18)', borderRadius:'5px', padding:'5px 8px' }}>
             <span style={{ display:'inline-flex', alignItems:'center', gap:'5px', fontSize:'0.70625rem', color:'#3d6b4f' }}>
@@ -997,7 +1085,7 @@ export default function PanneauPatristique({
       const siecle = id ? auteurMeta[id]?.siecle : null
       if (siecle) s.add(siecle)
     })
-    return [...s].sort((a, b) => a - b)
+    return [...s].sort((a, b) => rangSiecle(a) - rangSiecle(b))
   }, [itemsAffiches, oeuvres, auteurMeta])
 
   const genresDisponibles = useMemo(() => {
@@ -1081,6 +1169,13 @@ export default function PanneauPatristique({
         ? { width:'100%', background:'#fff', display:'flex', flexDirection:'column', paddingTop:'2.875rem', minHeight:`calc(100dvh - ${HAUTEUR_NAVBAR})`, paddingBottom:BANDEAU_NAV_MOBILE }
         : { position:'fixed', bottom:BANDEAU_NAV_MOBILE, left:0, right:0, zIndex:2401, background:'#fff', borderTop:'1px solid #d6d0c4', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem - ${BANDEAU_NAV_MOBILE})`, minHeight:0, boxShadow:'0 -10px 28px rgba(45,35,25,0.22)' })
       : { width: panelWidth == null ? 'clamp(260px, 20vw, 460px)' : panelWidth + 'px', flexShrink:0, background:'#fff', borderLeft:'1px solid #d6d0c4', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
+      {/* Tag de filtre : un fantôme en gras (::after) fige la largeur, pour que la
+          sélection (texte mis en gras) ne repousse pas les tags voisins. */}
+      <style>{`
+        .pp-tag { display: inline-grid; align-items: center; justify-items: center; }
+        .pp-tag > span { grid-area: 1 / 1; }
+        .pp-tag::after { content: attr(data-label); grid-area: 1 / 1; font-weight: 600; visibility: hidden; white-space: nowrap; }
+      `}</style>
       {!mobile && handleDrag && (
         <div onMouseDown={handleDrag} title="Glisser pour redimensionner"
           style={{ position:'absolute', left:'-4px', top:0, bottom:0, width:'9px', cursor:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex:10,
@@ -1129,9 +1224,11 @@ export default function PanneauPatristique({
                   color: onglet === t.code ? '#2a3d30' : '#8a8278',
                   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
                   transition:'color 0.12s, background 0.12s',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', gap: '2px',
                 }}>
-                <span style={{ fontSize:'0.67094rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: onglet === t.code ? 600 : 400 }}>{t.label}</span>
+                {/* Le libellé réserve deux lignes et se cale EN BAS : « Commentaires » (une
+                    ligne) descend donc au même niveau que « Pères de l'Église » (deux lignes). */}
+                <span style={{ fontSize:'0.67094rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: onglet === t.code ? 600 : 400, minHeight: '2.3em', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', textAlign: 'center', lineHeight: 1.15 }}>{t.label}</span>
                 {t.count != null && t.count > 0 && (
                   <span style={{ fontSize: '0.63562rem', color: onglet === t.code ? '#3d6b4f' : '#b0a89e', fontWeight: 500, lineHeight: 1 }}>{t.count}</span>
                 )}
@@ -1142,8 +1239,11 @@ export default function PanneauPatristique({
             ))}
           </div>
 
-          {/* Contenu scrollable */}
-          <div style={{ overflowY:'auto', flex:1, padding:'0 12px' }}>
+          {/* Contenu scrollable (sauf onglet commentaires : la liste défile en interne
+              pour épingler la saisie au bas du volet). */}
+          <div style={onglet === 'commentaires' && verset
+            ? { flex:1, minHeight:0, overflow:'hidden', padding:'0 12px', display:'flex', flexDirection:'column' }
+            : { overflowY:'auto', flex:1, padding:'0 12px' }}>
             {onglet === 'commentaires' && verset ? (
               <OngletCommentaires verset={verset} userId={userId} isAdmin={isAdmin} onCount={setNbCommentairesBible} />
             ) : (
@@ -1182,8 +1282,9 @@ export default function PanneauPatristique({
                 {/* Bouton filtres */}
                 <div style={{ display: 'flex', alignItems: 'center', padding: '8px 0 0' }}>
                   <button onClick={() => setFiltreVoletOuvert(o => !o)} style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '4px',
-                    fontSize: '0.67094rem', padding: '3px 9px', borderRadius: '12px', cursor: 'pointer',
+                    position: 'relative',
+                    display: 'flex', width: '100%', justifyContent: 'center', alignItems: 'center', gap: '4px',
+                    fontSize: '0.67094rem', padding: '5px 9px', borderRadius: '7px', cursor: 'pointer',
                     border: `1px solid ${filtreVoletOuvert || nombreFiltresActifs > 0 ? '#3d6b4f' : '#d6d0c4'}`,
                     background: filtreVoletOuvert || nombreFiltresActifs > 0 ? 'rgba(61,107,79,0.10)' : '#fff',
                     color: filtreVoletOuvert || nombreFiltresActifs > 0 ? '#3d6b4f' : '#8a8278',
@@ -1193,8 +1294,9 @@ export default function PanneauPatristique({
                       <path d="M2 4h10M4 7h6M6 10h2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
                     </svg>
                     Filtres
+                    {/* Badge en ABSOLU : « Filtres » reste centré, la barre ne s'élargit pas. */}
                     {nombreFiltresActifs > 0 && (
-                      <span style={{ background: '#3d6b4f', color: '#fff', borderRadius: '8px', fontSize: '0.565rem', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
+                      <span style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: '#3d6b4f', color: '#fff', borderRadius: '8px', fontSize: '0.565rem', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
                         {nombreFiltresActifs}
                       </span>
                     )}
@@ -1251,73 +1353,72 @@ export default function PanneauPatristique({
 
                     {/* Traditions */}
                     {(traditionsDisponibles.some(t => !filtreTraditions.has(t)) || filtreTraditions.size > 0) && (
-                      <div style={{ marginTop: '8px' }}>
-                        <p style={{ fontSize: '0.60031rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Tradition</p>
+                      <GroupeTags titre="Tradition">
                         {/* Liste stable : chaque tag bascule sur place (aucune croix, aucun
-                            réagencement). Sélectionné = vert ; indisponible sous le tri = grisé. */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                          {traditionsDisponibles.map(t => {
-                            const sel = filtreTraditions.has(t)
-                            const dispo = sel || traditionsActives.has(t)
-                            return (
-                              <button key={t} disabled={!dispo}
-                                onClick={() => { setFiltreTraditions(prev => { const n = new Set(prev); if (n.has(t)) n.delete(t); else n.add(t); return n }); setPageItems(0) }}
-                                style={{
-                                  fontSize: '0.63562rem', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
-                                  border: `1px solid ${sel ? '#3d6b4f' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
-                                  background: sel ? 'rgba(61,107,79,0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
-                                  color: sel ? '#2a5a38' : dispo ? '#6b5f4a' : '#c4bcae', fontWeight: sel ? 600 : 400,
-                                }}>{t}</button>
-                            )
-                          })}
-                        </div>
-                      </div>
+                            réagencement). Sélectionné = vert ; indisponible sous le tri = grisé.
+                            Le poids du texte va sur le <span> ; la largeur reste figée (pp-tag). */}
+                        {traditionsDisponibles.map(t => {
+                          const sel = filtreTraditions.has(t)
+                          const dispo = sel || traditionsActives.has(t)
+                          return (
+                            <button key={t} className="pp-tag" data-label={t} disabled={!dispo}
+                              onClick={() => { setFiltreTraditions(prev => { const n = new Set(prev); if (n.has(t)) n.delete(t); else n.add(t); return n }); setPageItems(0) }}
+                              style={{
+                                fontSize: '0.63562rem', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
+                                border: `1px solid ${sel ? '#3d6b4f' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
+                                background: sel ? 'rgba(61,107,79,0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                color: sel ? '#2a5a38' : dispo ? '#6b5f4a' : '#c4bcae',
+                              }}>
+                              <span style={{ fontWeight: sel ? 600 : 400 }}>{t}</span>
+                            </button>
+                          )
+                        })}
+                      </GroupeTags>
                     )}
 
                     {/* Genre */}
                     {(genresDisponibles.some(g => !filtreGenres.has(g)) || filtreGenres.size > 0) && (
-                      <div style={{ marginTop: '8px' }}>
-                        <p style={{ fontSize: '0.60031rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Genre</p>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                          {genresDisponibles.map(g => {
-                            const sel = filtreGenres.has(g)
-                            const dispo = sel || genresActifs.has(g)
-                            return (
-                              <button key={g} disabled={!dispo}
-                                onClick={() => { setFiltreGenres(prev => { const n = new Set(prev); if (n.has(g)) n.delete(g); else n.add(g); return n }); setPageItems(0) }}
-                                style={{
-                                  fontSize: '0.63562rem', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
-                                  border: `1px solid ${sel ? '#3d6b4f' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
-                                  background: sel ? 'rgba(61,107,79,0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
-                                  color: sel ? '#2a5a38' : dispo ? '#6b5f4a' : '#c4bcae', fontWeight: sel ? 600 : 400,
-                                }}>{g}</button>
-                            )
-                          })}
-                        </div>
-                      </div>
+                      <GroupeTags titre="Genre">
+                        {genresDisponibles.map(g => {
+                          const sel = filtreGenres.has(g)
+                          const dispo = sel || genresActifs.has(g)
+                          return (
+                            <button key={g} className="pp-tag" data-label={g} disabled={!dispo}
+                              onClick={() => { setFiltreGenres(prev => { const n = new Set(prev); if (n.has(g)) n.delete(g); else n.add(g); return n }); setPageItems(0) }}
+                              style={{
+                                fontSize: '0.63562rem', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
+                                border: `1px solid ${sel ? '#3d6b4f' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
+                                background: sel ? 'rgba(61,107,79,0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                color: sel ? '#2a5a38' : dispo ? '#6b5f4a' : '#c4bcae',
+                              }}>
+                              <span style={{ fontWeight: sel ? 600 : 400 }}>{g}</span>
+                            </button>
+                          )
+                        })}
+                      </GroupeTags>
                     )}
 
-                    {/* Siècles */}
+                    {/* Période (siècles) — déjà triés par ordre chronologique croissant. */}
                     {(sieclesDisponibles.some(s => !filtreSiecles.has(s)) || filtreSiecles.size > 0) && (
-                      <div style={{ marginTop: '8px' }}>
-                        <p style={{ fontSize: '0.60031rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a', margin: '0 0 4px' }}>Période</p>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                          {sieclesDisponibles.map(s => {
-                            const sel = filtreSiecles.has(s)
-                            const dispo = sel || sieclesActifs.has(s)
-                            return (
-                              <button key={s} disabled={!dispo}
-                                onClick={() => { setFiltreSiecles(prev => { const n = new Set(prev); if (n.has(s)) n.delete(s); else n.add(s); return n }); setPageItems(0) }}
-                                style={{
-                                  fontSize: '0.63562rem', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
-                                  border: `1px solid ${sel ? '#9a7e3d' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
-                                  background: sel ? 'rgba(154,126,61,0.16)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
-                                  color: sel ? '#7a5e1a' : dispo ? '#6b5f4a' : '#c4bcae', fontWeight: sel ? 600 : 400,
-                                }}>{siecleEnRomain(s)}</button>
-                            )
-                          })}
-                        </div>
-                      </div>
+                      <GroupeTags titre="Période">
+                        {sieclesDisponibles.map(s => {
+                          const sel = filtreSiecles.has(s)
+                          const dispo = sel || sieclesActifs.has(s)
+                          const lbl = labelSiecle(s)
+                          return (
+                            <button key={s} className="pp-tag" data-label={lbl} disabled={!dispo}
+                              onClick={() => { setFiltreSiecles(prev => { const n = new Set(prev); if (n.has(s)) n.delete(s); else n.add(s); return n }); setPageItems(0) }}
+                              style={{
+                                fontSize: '0.63562rem', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
+                                border: `1px solid ${sel ? '#9a7e3d' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
+                                background: sel ? 'rgba(154,126,61,0.16)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                color: sel ? '#7a5e1a' : dispo ? '#6b5f4a' : '#c4bcae',
+                              }}>
+                              <span style={{ fontWeight: sel ? 600 : 400 }}>{rendreSiecle(lbl)}</span>
+                            </button>
+                          )
+                        })}
+                      </GroupeTags>
                     )}
 
                     {/* Tout effacer */}

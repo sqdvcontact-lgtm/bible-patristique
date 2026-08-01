@@ -27,7 +27,16 @@ export function useFavoris(type: Type) {
   const [pret, setPret] = useState(false)
 
   useEffect(() => {
+    let annule = false
+    // Écouteur `storage` (synchronisation entre onglets pour un visiteur non connecté),
+    // installé/retiré au niveau de l'effet — pas dans le `.then`, que React ne peut pas
+    // nettoyer.
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === LS_KEYS[type]) setFavoris(lireLS(type))
+    }
+
     supabase.auth.getSession().then(async ({ data }) => {
+      if (annule) return
       const uid = data.session?.user.id ?? null
       setUserId(uid)
 
@@ -37,19 +46,20 @@ export function useFavoris(type: Type) {
           .select('ref_id')
           .eq('user_id', uid)
           .eq('type', type)
+        if (annule) return
         setFavoris(new Set((rows ?? []).map(r => r.ref_id)))
       } else {
         setFavoris(lireLS(type))
-        const onStorage = (e: StorageEvent) => {
-          if (e.key === LS_KEYS[type]) setFavoris(lireLS(type))
-        }
         window.addEventListener('storage', onStorage)
-        setPret(true)
-        return () => window.removeEventListener('storage', onStorage)
       }
 
       setPret(true)
     })
+
+    return () => {
+      annule = true
+      window.removeEventListener('storage', onStorage)
+    }
   }, [type])
 
   const toggle = useCallback(async (refId: string) => {

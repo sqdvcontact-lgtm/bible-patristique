@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { rendreEssai, compterCaracteres, lettreDepuisIndex, type ElementPanneau } from '@/app/lib/texteEnrichiEssai'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
-import { syntaxeVersHtml, htmlVersSyntaxe } from '@/app/lib/serialisationEssai'
+import { syntaxeVersHtml, htmlVersSyntaxe, styleNote } from '@/app/lib/serialisationEssai'
 import { diffMots } from '@/app/lib/diffTexte'
 import VoletEssai from '@/app/lib/VoletEssai'
 import SelecteurCitation from '@/app/lib/SelecteurCitation'
@@ -192,7 +192,9 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     // retoucher avec une Range mémorisée plus tôt risquait de la faire sauter
     // ailleurs si le DOM avait changé depuis (ex. un précédent formatBlock).
     if (sel && sel.rangeCount > 0 && editableRef.current?.contains(sel.anchorNode)) return
-    editableRef.current?.focus()
+    // `preventScroll` : sans lui, redonner le focus à la zone d'édition la fait défiler
+    // en haut de page (très désagréable lors de l'insertion d'une citation/note).
+    editableRef.current?.focus({ preventScroll: true })
     if (sel && savedRange.current) { sel.removeAllRanges(); sel.addRange(savedRange.current) }
   }
 
@@ -219,7 +221,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       s?.removeAllRanges(); s?.addRange(r)
       marqueur.remove()
     } else {
-      editableRef.current?.focus()
+      editableRef.current?.focus({ preventScroll: true })
     }
   }
 
@@ -264,7 +266,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   const ajouterNote = () => {
     const texte = window.prompt('Texte de la note :\nVous pouvez y écrire un renvoi sous la forme [libellé](verset:ID) ou [libellé](segment:ID).')
     if (!texte) return
-    insererHTML(`<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(texte)}" style="display:inline-block;color:#3d6b4f;font-weight:600;font-size:0.78em;vertical-align:super;cursor:pointer;background:transparent;padding:0;border:0;border-radius:0;">note</span>&nbsp;`)
+    insererHTML(`<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(texte)}" style="${styleNote}">note</span>&nbsp;`)
   }
 
   const ouvrirCreationNote = () => {
@@ -282,7 +284,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       declencherChangement()
       return
     }
-    insererHTML(`<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(texte)}" style="display:inline-block;margin-left:0.08em;color:#3d6b4f;font-weight:600;font-size:0.78em;vertical-align:super;cursor:pointer;background:transparent;padding:0;border:0;border-radius:0;">note</span>&nbsp;`)
+    insererHTML(`<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(texte)}" style="${styleNote}">note</span>&nbsp;`)
     const notes = editableRef.current?.querySelectorAll<HTMLElement>('[data-chip="note"]')
     noteCibleRef.current = notes && notes.length > 0 ? notes[notes.length - 1] : null
     setPanneau({ type: 'note', texte })
@@ -298,7 +300,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       // Le contenu de la note peut porter des *italiques* (titre d'œuvre) : on encode aussi
       // l'astérisque pour qu'il ne soit pas réinterprété par la syntaxe légère au rechargement.
       const noteEnc = encodeURIComponent(c.ref ?? c.label).replace(/\*/g, '%2A')
-      const note = `<span contenteditable="false" data-chip="note" data-note="${noteEnc}" style="display:inline-block;color:#3d6b4f;font-weight:600;font-size:0.78em;vertical-align:super;cursor:pointer;background:transparent;padding:0;border:0;border-radius:0;">note</span>`
+      const note = `<span contenteditable="false" data-chip="note" data-note="${noteEnc}" style="${styleNote}">note</span>`
       insererHTML(`<blockquote>${esc(c.texte)}${note}${esc(c.fin ?? '.')}</blockquote><p><br></p>`)
     } else {
       insererHTML(`<span contenteditable="false" data-chip="${c.type}" data-id="${c.id}" data-label="${c.label}" style="display:inline-block;color:#3d6b4f;text-decoration:underline;background:rgba(61,107,79,0.07);padding:1px 5px;border-radius:3px;cursor:pointer;">${c.label}</span>&nbsp;`)
@@ -508,6 +510,9 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         .editeur-essai blockquote { font-style: normal; font-size: 0.93em; color: #3a3530; margin-left: 8mm; text-align: justify; }
         .editeur-essai p,
         .editeur-essai blockquote { line-height: 1.5; word-spacing: -0.09em; letter-spacing: -0.006em; }
+        /* Citations resserrées : interligne réduit et bloc condensé (ne touche pas
+           aux paragraphes). */
+        .editeur-essai blockquote { line-height: 1.3; font-size: 0.9em; margin-top: 0.32em; margin-bottom: 0.5em; }
         .editeur-essai h2 + h3,
         .editeur-essai h2 + h2 { margin-top: 3mm; }
         .editeur-essai h2 + p,

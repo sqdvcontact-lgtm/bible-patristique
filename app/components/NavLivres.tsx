@@ -1,8 +1,125 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
+import DOMPurify from 'dompurify'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { supabase } from '@/app/lib/supabase'
+
+// Encart d'informations sur la traduction actuellement lue (volet gauche, Bible
+// classique). Taille FIXE (hauteur constante, contenu rogné) pour ne jamais faire
+// bouger la mise en page. Données passées en prop (chargées côté serveur avec la
+// session du visiteur), et lien « En savoir plus » sur le modèle de la page Œuvre.
+// Petite fenêtre « À propos de cette traduction », sur le modèle de la page Œuvre.
+// Constituée de toute pièce à partir de la fiche `traductions` (chargée à l'ouverture).
+type InfoTradModale = { nom: string | null; auteur: string | null; dates: string | null; bio_courte: string | null; date_publication: string | null; confession: string | null; langue: string | null; schema_numerotation: string | null; source_edition: string | null; licence: string | null; commentaire_editorial: string | null }
+
+// Libellé lisible du schéma de numérotation stocké en base.
+const NUMEROTATION_LABEL: Record<string, string> = {
+  vulgate: 'Vulgate (latine)', hebreu: 'Hébraïque', grec: 'Grecque', septante: 'Septante (grecque)',
+}
+
+// Le commentaire éditorial est un HTML d'administration fait de sections
+// « <h1>Titre</h1> texte ». On le découpe pour un rendu élégant (titre en petites
+// capitales, corps en serif), plutôt qu'un bloc brut aux <h1> démesurés.
+function decouperCommentaire(html: string): { titre: string; corps: string }[] {
+  const morceaux = html.split(/<h1>([\s\S]*?)<\/h1>/g)
+  const sections: { titre: string; corps: string }[] = []
+  const tete = (morceaux[0] ?? '').trim()
+  if (tete) sections.push({ titre: '', corps: tete })
+  for (let k = 1; k < morceaux.length; k += 2) {
+    const corps = (morceaux[k + 1] ?? '').trim()
+    const titre = (morceaux[k] ?? '').trim()
+    if (titre || corps) sections.push({ titre, corps })
+  }
+  return sections
+}
+
+function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFallback: string; onFermer: () => void }) {
+  const [info, setInfo] = useState<InfoTradModale | null>(null)
+  useEffect(() => {
+    let annule = false
+    supabase.from('traductions').select('nom, auteur, dates, bio_courte, date_publication, confession, langue, schema_numerotation, source_edition, licence, commentaire_editorial').eq('trad_id', code).maybeSingle()
+      .then(({ data }) => { if (!annule) setInfo((data as InfoTradModale | null) ?? ({} as InfoTradModale)) })
+    return () => { annule = true }
+  }, [code])
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onFermer() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onFermer])
+  if (typeof document === 'undefined') return null
+  const SERIF = 'var(--font-source-serif), Georgia, serif'
+  const i = info ?? ({} as InfoTradModale)
+  const cle: React.CSSProperties = { flexShrink: 0, width: '9rem', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#b0a89e', lineHeight: 1.5 }
+  const Ligne = ({ c, children }: { c: string; children: React.ReactNode }) => children ? (
+    <div style={{ display: 'flex', gap: '14px', padding: '5px 0', borderTop: '1px solid #f1ede6', alignItems: 'baseline' }}>
+      <span style={cle}>{c}</span><span style={{ flex: 1, fontSize: '0.8rem', color: '#3a3530', lineHeight: 1.45 }}>{children}</span>
+    </div>
+  ) : null
+  const titreSection: React.CSSProperties = { fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: '#6f9268', margin: '0 0 5px' }
+  const corpsSection: React.CSSProperties = { fontFamily: SERIF, fontSize: '0.8rem', lineHeight: 1.6, color: '#4a4038', margin: 0, textAlign: 'justify' }
+  const numerotation = i.schema_numerotation ? (NUMEROTATION_LABEL[i.schema_numerotation] ?? i.schema_numerotation) : null
+  return createPortal(
+    <div onClick={onFermer} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}>
+      <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#fff', borderRadius: '10px', padding: '20px 26px 22px', width: '40rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '10px' }}>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: '#6f9268', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette traduction</p>
+            <p style={{ fontFamily: SERIF, fontSize: '1.15rem', color: '#1e2a1c', margin: 0, fontWeight: 500 }}>{i.nom || nomFallback}</p>
+            {i.auteur && <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontStyle: 'italic', color: '#7c7369', margin: '2px 0 0' }}>{i.auteur}{i.dates ? ` (${i.dates})` : ''}</p>}
+          </div>
+          <button onClick={onFermer} aria-label="Fermer" style={{ fontSize: '1rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0 }}>✕</button>
+        </div>
+        {info === null ? (
+          <p style={{ fontSize: '0.8rem', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>Chargement…</p>
+        ) : (
+          <>
+            {/* Bio du traducteur : discrète, un cran plus petite et en italique. */}
+            {i.bio_courte && <p style={{ fontFamily: SERIF, fontSize: '0.72rem', fontStyle: 'italic', color: '#6f665c', lineHeight: 1.55, margin: '0 0 14px' }}>{i.bio_courte}</p>}
+            {/* Fiche claire, alimentée par les champs de la base. */}
+            <div style={{ marginBottom: '16px' }}>
+              <Ligne c="Publication">{i.date_publication}</Ligne>
+              <Ligne c="Confession">{i.confession}</Ligne>
+              <Ligne c="Langue">{i.langue}</Ligne>
+              <Ligne c="Numérotation">{numerotation}</Ligne>
+              <Ligne c="Édition de référence">{i.source_edition}</Ligne>
+              <Ligne c="Licence">{i.licence}</Ligne>
+            </div>
+            {/* Notice éditoriale : sections « La conception », « Le style »… mises en forme. */}
+            {i.commentaire_editorial && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderTop: '1px solid #efeae0', paddingTop: '15px' }}>
+                {decouperCommentaire(i.commentaire_editorial).map((s, k) => (
+                  <div key={k}>
+                    {s.titre && <p style={titreSection}>{s.titre}</p>}
+                    <div style={corpsSection} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(s.corps) }} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
+function EncartTraduction({ trad }: { trad: Traduction }) {
+  const [modaleOuverte, setModaleOuverte] = useState(false)
+  const meta = [trad.confession, trad.langue].filter(Boolean).join(' · ')
+  return (
+    <div style={{ flexShrink: 0, height: '6.75rem', boxSizing: 'border-box', overflow: 'hidden', padding: '9px 10px', borderBottom: '1px solid #d6d0c4', background: '#f3efe7', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a' }}>Traduction</span>
+      <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', fontWeight: 500, color: '#2a3d30', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{trad.label || '—'}</span>
+      {trad.auteur && <span style={{ fontSize: '0.65rem', color: '#6b6560', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{trad.auteur}{trad.datePublication ? `, ${trad.datePublication}` : ''}</span>}
+      {meta && <span style={{ fontSize: '0.6rem', color: '#8a8278', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta}</span>}
+      <button onClick={() => setModaleOuverte(true)} style={{ marginTop: 'auto', fontSize: '0.6rem', color: '#b0a89e', textDecoration: 'underline', textUnderlineOffset: '2px', width: 'fit-content', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>En savoir plus sur cette traduction</button>
+      {modaleOuverte && <ModaleTraduction code={trad.code} nomFallback={trad.label || ''} onFermer={() => setModaleOuverte(false)} />}
+    </div>
+  )
+}
 
 const NB_CHAPITRES: Record<string, number> = {
   GEN:50,EXO:40,LEV:27,NUM:36,DEU:34,JOS:24,JDG:21,RUT:4,
@@ -86,7 +203,7 @@ const ABREV_TO_CODE: Record<string, string> = {
 }
 
 type Livre = { code: string; nom: string; testament: string }
-type Traduction = { code: string; label: string }
+type Traduction = { code: string; label: string; auteur?: string | null; datePublication?: string | null; confession?: string | null; langue?: string | null }
 
 type Props = {
   livres: Livre[]
@@ -289,8 +406,8 @@ export default function NavLivres({
         {montrerOptions && (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(1.625rem, 1fr))',
-            gap: '3px', padding: '2px 6px 6px 6px', boxSizing: 'border-box',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(1.45rem, 1fr))',
+            gap: '2px', padding: '2px 6px 6px 6px', boxSizing: 'border-box',
           }}>
             {Array.from({ length: nb }, (_, i) => i + 1).map(ch => {
               const estChapSuggere = suggere && refParsee?.chapitre === ch
@@ -302,13 +419,14 @@ export default function NavLivres({
                     handleChapitre(livre.code, ch)
                   }
                 }} style={{
-                  fontSize: '0.73803rem', height: '1.625rem', borderRadius: '4px',
+                  fontSize: '0.70rem', height: '1.45rem', borderRadius: '4px',
                   border: estChapSuggere ? '1px solid #3d6b4f' : 'none',
                   cursor: 'pointer', padding: 0,
+                  /* Cases plus petites et teinte verte TRÈS légère au repos. */
                   background: (actif && chapitreActifLocal === ch) ? '#3d6b4f'
-                    : estChapSuggere ? 'rgba(61,107,79,0.15)' : '#e8e4dc',
+                    : estChapSuggere ? 'rgba(61,107,79,0.15)' : '#f0f4ee',
                   color: (actif && chapitreActifLocal === ch) ? '#fff'
-                    : estChapSuggere ? '#2a3d30' : '#6b6560',
+                    : estChapSuggere ? '#2a3d30' : '#7c8676',
                   fontWeight: estChapSuggere ? 700 : 400,
                   lineHeight: 1, textAlign: 'center',
                 }}>
@@ -395,6 +513,9 @@ export default function NavLivres({
           }}
         />
       )}
+      {/* Encart traduction (Bible classique, desktop) — au-dessus de la recherche. */}
+      {!polyMode && !sansChapitres && !mobile && traductions[traductionIndex] && <EncartTraduction trad={traductions[traductionIndex]} />}
+
       {/* Barre de recherche. Elle ne défile JAMAIS : elle est hors du conteneur défilant,
           et `flexShrink: 0` l'empêche d'être comprimée quand la liste des livres est longue. */}
       <div style={{ flexShrink: 0, padding: '8px 8px 6px', borderBottom: '1px solid #d6d0c4', display: 'flex', alignItems: 'center', gap: '6px' }}>

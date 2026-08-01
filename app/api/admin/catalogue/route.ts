@@ -27,7 +27,7 @@ export async function GET(req: Request) {
     .select(
       'id, id_ligne, id_auteur, auteur, dates_auteur, id_oeuvre_stable, titre_stable, titre_original, ' +
       'titre_edition, traducteur, annee_edition, siecle_edition, editeur, collection_nom, domaine_public, ' +
-      'url_source, decision_import, niveau_verification, score_fiabilite, presence_sur_le_site, ' +
+      'url_source, url_texte_integral, decision_import, niveau_verification, score_fiabilite, presence_sur_le_site, ' +
       'verifie, verifie_admin, refuse_admin, genre, langue_originale, date_oeuvre, authenticite, created_at',
       { count: 'exact' }
     )
@@ -76,7 +76,7 @@ export async function PATCH(req: Request) {
   // remontée telle quelle au client, qui l'affiche.
   const TEXTE_OK = new Set(['auteur', 'authenticite', 'titre_stable', 'titre_original', 'titre_edition',
     'editeur', 'collection_nom', 'siecle_edition', 'genre', 'langue_originale', 'date_oeuvre',
-    'decision_import', 'niveau_verification', 'url_source', 'dates_auteur'])
+    'decision_import', 'niveau_verification', 'url_source', 'url_texte_integral', 'dates_auteur'])
   const NUM_OK = new Set(['annee_edition', 'score_fiabilite'])
   const champs = body.champs
   if (champs && typeof champs === 'object') {

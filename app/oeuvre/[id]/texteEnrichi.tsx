@@ -38,24 +38,27 @@ export function rendreTexteEnrichi(
   // porte aussi, l'éditeur de verset produisant désormais ce balisage.
   const regex = /\*\*(.+?)\*\*|\+\+(.+?)\+\+|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>/g
   let dernierIndex = 0, k = 0, m: RegExpExecArray | null
+  // La clé est FIGÉE avant de construire l'élément (const key = k++). Sous le runtime JSX
+  // automatique, l'attribut `key` est évalué APRÈS les enfants : mélanger `key={k}` (avec
+  // un `k++` dans l'enfant) et `key={k++}` produisait des clés en double.
   while ((m = regex.exec(texte))) {
-    if (m.index > dernierIndex) noeuds.push(<Fragment key={k}>{tf(texte.slice(dernierIndex, m.index), `t${k++}`)}</Fragment>)
-    if (m[1] !== undefined) noeuds.push(<strong key={k}>{tf(m[1], `b${k++}`)}</strong>)
-    else if (m[2] !== undefined) noeuds.push(<span key={k} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{tf(m[2], `s${k++}`)}</span>)
-    else if (m[3] !== undefined) noeuds.push(<sup key={k++}>{m[3]}</sup>)
-    else if (m[4] !== undefined) noeuds.push(<em key={k}>{tf(m[4], `e${k++}`)}</em>)
-    else if (m[5] !== undefined) noeuds.push(
-      <a key={k} href={m[6]} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{tf(m[5], `a${k++}`)}</a>
-    )
+    if (m.index > dernierIndex) { const key = k++; noeuds.push(<Fragment key={key}>{tf(texte.slice(dernierIndex, m.index), `t${key}`)}</Fragment>) }
+    if (m[1] !== undefined) { const key = k++; noeuds.push(<strong key={key}>{tf(m[1], `b${key}`)}</strong>) }
+    else if (m[2] !== undefined) { const key = k++; noeuds.push(<span key={key} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{tf(m[2], `s${key}`)}</span>) }
+    else if (m[3] !== undefined) { noeuds.push(<sup key={k++}>{m[3]}</sup>) }
+    else if (m[4] !== undefined) { const key = k++; noeuds.push(<em key={key}>{tf(m[4], `e${key}`)}</em>) }
+    else if (m[5] !== undefined) { const key = k++; noeuds.push(
+      <a key={key} href={m[6]} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{tf(m[5], `a${key}`)}</a>
+    ) }
     else if (m[7] !== undefined) {
       noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)
       noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[8]}</sup>)
       noeuds.push(<Fragment key={k++}>{m[9]}</Fragment>)
     }
-    else if (m[10] !== undefined) { if (m[10]) noeuds.push(<em key={k}>{tf(m[10], `e${k++}`)}</em>) }
+    else if (m[10] !== undefined) { if (m[10]) { const key = k++; noeuds.push(<em key={key}>{tf(m[10], `e${key}`)}</em>) } }
     dernierIndex = regex.lastIndex
   }
-  if (dernierIndex < texte.length) noeuds.push(<Fragment key={k}>{tf(texte.slice(dernierIndex), `t${k++}`)}</Fragment>)
+  if (dernierIndex < texte.length) { const key = k++; noeuds.push(<Fragment key={key}>{tf(texte.slice(dernierIndex), `t${key}`)}</Fragment>) }
   return noeuds
 }
 

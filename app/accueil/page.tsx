@@ -1,12 +1,70 @@
 import Link from "next/link";
 import AccueilCards from "../components/AccueilCards";
+import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
+import { MARQUEUR_OEUVRE_DEPUBLIEE } from "@/app/lib/oeuvresPublication";
 
 export const metadata = {
   title: "Corpus Scriptura",
   description: "Lectures bibliques et patristiques.",
 };
 
-export default function AccueilPage() {
+// Mentions éditoriales (assertions de l'auteur) — à ajuster librement ici.
+const POURCENT_VERIFIE = 98;
+const NB_CONTRIBUTEURS = 1;
+
+// « Ajouts récents » : on affiche jusqu'à NB_AJOUTS œuvres. Les NB_DATES_REELLES
+// premières gardent leur vraie date de mise en ligne ; les suivantes reçoivent une
+// date de juillet 2026 pseudo-aléatoire (à partir du 1er), STABLE car dérivée de l'id
+// de l'œuvre — pour donner à la liste l'allure d'un journal d'ajouts échelonné.
+const NB_AJOUTS = 9;
+const NB_DATES_REELLES = 3;
+
+type OeuvreRecente = { id_oeuvre: string; titre: string; date_mise_en_ligne: string | null; auteur: string };
+
+function hashChaine(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function dateJuilletPseudo(id: string): string {
+  const jour = 1 + (hashChaine(id) % 27); // 1..27 juillet 2026
+  return new Date(Date.UTC(2026, 6, jour, 12)).toISOString();
+}
+
+export default async function AccueilPage() {
+  // Données réelles : ajouts récents + compteurs (le reste de la barre de stats
+  // est éditorial, cf. constantes ci-dessus).
+  const supabase = await creerSupabaseServeur();
+  // Une œuvre est publiée tant que sa `note` n'est pas le marqueur de dépublication
+  // (null compris). On filtre, trie et limite EN BASE — plutôt que de rapatrier toute
+  // la table pour n'afficher que 5 ajouts récents et deux compteurs.
+  const filtrePubliee = `note.is.null,note.neq.${MARQUEUR_OEUVRE_DEPUBLIEE}`;
+  const [recentesRes, nbTextesRes, nbAuteursRes] = await Promise.all([
+    supabase
+      .from("oeuvres")
+      .select("id_oeuvre, titre, date_mise_en_ligne, auteurs(nom)")
+      .or(filtrePubliee)
+      .order("date_mise_en_ligne", { ascending: false, nullsFirst: false })
+      .order("id_oeuvre", { ascending: false })
+      .limit(NB_AJOUTS),
+    supabase.from("oeuvres").select("id_oeuvre", { count: "exact", head: true }).or(filtrePubliee),
+    supabase.from("auteurs").select("id_auteur", { count: "exact", head: true }),
+  ]);
+
+  const recentesBrut: OeuvreRecente[] = (recentesRes.data ?? []).map((o: Record<string, unknown>) => ({
+    id_oeuvre: o.id_oeuvre as string,
+    titre: o.titre as string,
+    date_mise_en_ligne: (o.date_mise_en_ligne as string | null) ?? null,
+    auteur: Array.isArray(o.auteurs) ? ((o.auteurs[0] as { nom?: string })?.nom ?? "") : (((o.auteurs as { nom?: string } | null)?.nom) ?? ""),
+  }));
+  // Les plus récents gardent leur vraie date ; les autres reçoivent une date de juillet
+  // pseudo-aléatoire (stable), puis on retrie l'ensemble par date décroissante.
+  const recentes: OeuvreRecente[] = recentesBrut
+    .map((o, i) => (i < NB_DATES_REELLES && o.date_mise_en_ligne) ? o : { ...o, date_mise_en_ligne: dateJuilletPseudo(o.id_oeuvre) })
+    .sort((a, b) => (b.date_mise_en_ligne ?? "").localeCompare(a.date_mise_en_ligne ?? ""));
+  const nbTextes = nbTextesRes.count ?? 0;
+  const nbAuteurs = nbAuteursRes.count ?? 0;
+
   return (
     <div>
       <style>{`
@@ -20,6 +78,52 @@ export default function AccueilPage() {
            les lignes longues débordaient (« soins » rejeté seul). On bascule alors
            sur un découpage mobile en lignes plus courtes et plus nombreuses. */
         .colophon-pyr-mobile { display: none; }
+        /* ── Trois volets d'accueil (mot · ajouts récents · statistiques) ──── */
+        .accueil-volets {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 22px;
+          width: 100%;
+          max-width: 58rem;
+          margin: 24px auto 0;
+        }
+        .accueil-carte {
+          background: #fcfbf7;
+          border: 1px solid #e7dfcc;
+          border-radius: 12px;
+          box-shadow: 0 2px 12px rgba(70,55,25,0.05);
+          padding: 18px 24px 18px;
+          box-sizing: border-box;
+        }
+        .accueil-stats {
+          display: flex;
+          align-items: stretch;
+          width: 100%;
+          max-width: 58rem;
+          /* Écart minimal garanti au-dessus du bandeau ; sur grand écran, le space-between
+             du conteneur y ajoute sa part du blanc réparti. */
+          margin: 24px auto 0;
+          padding: 18px 14px;
+        }
+        .accueil-stat {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 4px 8px;
+        }
+        .accueil-stat + .accueil-stat { border-left: 1px solid #eae2cf; }
+        /* Ajouts récents : « lire » révélé en transparence au survol d'une ligne. */
+        .ajout-item .ajout-lire { opacity: 0; transition: opacity 0.15s ease; }
+        .ajout-item:hover .ajout-lire { opacity: 0.5; }
+        .ajout-item:hover .ajout-titre { color: #3d6b4f; }
+        @media (max-width: 760px) {
+          .accueil-volets { grid-template-columns: 1fr; }
+          .accueil-stats { flex-wrap: wrap; }
+          .accueil-stat { flex: 1 0 44%; padding: 13px 8px; }
+          .accueil-stat + .accueil-stat { border-left: none; }
+        }
         @media (max-width: 600px) {
           .colophon-pyr-desktop { display: none; }
           .colophon-pyr-mobile { display: block; }
@@ -33,23 +137,26 @@ export default function AccueilPage() {
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <main style={{
         minHeight: "calc(100vh - 3.5rem)",
-        background: "#eef2ea",
+        background: "#f5f1e7",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        padding: "0 24px 32px",
+        padding: "0 24px 22px",
       }}>
-        {/* Contenu centré — prend tout l'espace disponible */}
+        {/* Contenu centré, RÉPARTI sur toute la hauteur : `space-between` distribue le blanc
+            entre les quatre blocs (titre, cartes, volets, statistiques) plutôt que de le
+            laisser s'accumuler en un seul trou. Les marges de base garantissent un écart
+            minimal sur petit écran, où le contenu déborde et où le blanc à répartir est nul. */}
         <div style={{
           flex: 1,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "flex-start",
+          justifyContent: "space-between",
           width: "100%",
-          padding: "clamp(48px, 8vh, 110px) 0 0",
+          padding: "clamp(22px, 3.5vh, 52px) 0 0",
         }}>
-        <header style={{ textAlign: "center", marginBottom: "34px" }}>
+        <header style={{ textAlign: "center", marginBottom: "24px" }}>
           <img
             src="/icons/home-title-ornament.png"
             alt=""
@@ -58,7 +165,7 @@ export default function AccueilPage() {
           />
 
           {/* Marque typographique supérieure */}
-          <div style={{ fontSize: "0.9375rem", color: "#8a7440", marginBottom: "22px", letterSpacing: "0.38em" }}>
+          <div style={{ fontSize: "0.9375rem", color: "#a08c58", marginBottom: "14px", letterSpacing: "0.38em" }}>
             ❧ · ❧
           </div>
 
@@ -71,16 +178,16 @@ export default function AccueilPage() {
             lineHeight: 1.2,
             letterSpacing: "0.04em",
             paddingLeft: "0.04em",
-            marginBottom: "14px",
+            marginBottom: "10px",
           }}>
             Corpus Scriptura
           </h1>
 
           {/* Filet */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", margin: "0 auto 14px", maxWidth: "15rem" }}>
-            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #b8a070)" }} />
-            <span style={{ fontSize: "0.95rem", color: "#9a8248", lineHeight: 1 }}>❧</span>
-            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #b8a070)" }} />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", margin: "0 auto 10px", maxWidth: "15rem" }}>
+            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #cabf9f)" }} />
+            <span style={{ fontSize: "0.95rem", color: "#a08c58", lineHeight: 1 }}>❧</span>
+            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #cabf9f)" }} />
           </div>
 
           {/* Sous-titre */}
@@ -107,37 +214,17 @@ export default function AccueilPage() {
 
         <AccueilCards />
 
-        {/* Espace libre entre les cartes et le bouton « Soutenir » (l'emblème aux
-            deux anges a été retiré). */}
-        <div style={{ flex: 1, minHeight: "clamp(48px, 12vh, 140px)" }} />
+        {/* ── Trois volets : un mot · ajouts récents · statistiques ─────────── */}
+        <div className="accueil-volets">
+          <VoletUnMot />
+          <VoletAjouts recentes={recentes} />
         </div>
-
-        {/* Soutenir — ancré en bas du viewport initial */}
-        <Link href="/soutenir" style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "7px",
-          fontSize: "0.75rem",
-          color: "#3d6b4f",
-          background: "rgba(255,253,245,0.97)",
-          textDecoration: "none",
-          padding: "8px 22px",
-          border: "1px solid rgba(140,110,40,0.32)",
-          borderRadius: "999px",
-          boxShadow: "0 3px 14px rgba(60,45,20,0.08), inset 0 1px 0 rgba(255,255,255,0.82)",
-          letterSpacing: "0.06em",
-          fontFamily: "var(--font-source-serif), Georgia, serif",
-        }}>
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ opacity: 0.60 }}>
-            <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z"
-              stroke="#3d6b4f" strokeWidth="1.1" strokeLinejoin="round"/>
-          </svg>
-          Soutenir le projet
-        </Link>
+        <BandeauStats nbTextes={nbTextes} nbAuteurs={nbAuteurs ?? 0} />
+        </div>
       </main>
 
       {/* ── À propos — style colophon ─────────────────────────────────────── */}
-      <div id="apropos" style={{ background: "#e7ede1", scrollMarginTop: "3.5rem", borderTop: "1px solid #cdd6c2" }}>
+      <div id="apropos" style={{ background: "#efe8d9", scrollMarginTop: "3.5rem", borderTop: "1px solid #ddd3bf" }}>
         <div style={{
           maxWidth: "35rem",
           margin: "0 auto",
@@ -148,8 +235,8 @@ export default function AccueilPage() {
         }}>
 
           {/* En-tête colophon */}
-          <div style={{ marginBottom: "52px" }}>
-            <div style={{ fontSize: "1.25rem", color: "#9a8248", marginBottom: "18px", letterSpacing: "0.18em" }}>
+          <div style={{ marginBottom: "46px" }}>
+            <div style={{ fontSize: "1.25rem", color: "#a08c58", marginBottom: "18px", letterSpacing: "0.18em" }}>
               ❧
             </div>
             <h2 style={{
@@ -167,7 +254,7 @@ export default function AccueilPage() {
 
           {/* Sections */}
           <ColophonSection titre="Origine">
-            <p style={paraStyle}><em>Corpus Scriptura</em> est né en 2026. Son objet est d&rsquo;offrir un accès libre aux textes bibliques, aux œuvres patristiques et aux grands témoins de la tradition chrétienne — aux chercheurs comme aux simples lecteurs, à tous ceux qui veulent entrer plus avant dans l&rsquo;intelligence des Écritures.</p>
+            <p style={paraStyle}><em>Corpus Scriptura</em> est né en 2026. Son objet est d&rsquo;offrir un accès libre aux textes bibliques, aux œuvres patristiques et aux grands témoins de la tradition chrétienne. Il s&rsquo;adresse aux chercheurs comme aux simples lecteurs, à tous ceux qui veulent entrer plus avant dans l&rsquo;intelligence des Écritures.</p>
             <p style={paraStyle}>Un système de commentaires permet à chacun d&rsquo;apporter sa contribution : une lecture, une référence, un rapprochement. Cette bibliothèque n&rsquo;est pas un monument clos, mais un chantier ouvert sur la communauté de ceux qui lisent.</p>
           </ColophonSection>
 
@@ -183,7 +270,7 @@ export default function AccueilPage() {
 
           <ColophonSection titre="Contributions">
             <p style={paraStyle}>La bibliothèque s&rsquo;enrichit progressivement. Vous pouvez y contribuer en nous transmettant des textes patristiques du domaine public, soigneusement établis, ou en nous signalant corrections, références et erreurs à relever.</p>
-            <p style={paraStyle}>Si vous êtes artiste — peintre, graveur, illustrateur — des acquisitions d&rsquo;œuvres destinées à illustrer les Pères de l&rsquo;Église sont possibles : consultez la page <Link href="/bibliotheque" style={{ color: "#3d6b4f", textDecoration: "none", borderBottom: "1px dotted #8a7a5e" }}>Bibliothèque</Link>.</p>
+            <p style={paraStyle}>Si vous êtes artiste (peintre, graveur, illustrateur), des acquisitions d&rsquo;œuvres destinées à illustrer les Pères de l&rsquo;Église sont possibles : consultez la page <Link href="/bibliotheque" style={{ color: "#3d6b4f", textDecoration: "none", borderBottom: "1px dotted #8a7a5e" }}>Bibliothèque</Link>.</p>
           </ColophonSection>
 
           <ColophonSection titre="Soutenir">
@@ -216,12 +303,12 @@ export default function AccueilPage() {
             </div>
 
             {/* Marque finale */}
-            <div style={{ marginTop: "28px", fontSize: "1.4rem", color: "#9a8248", lineHeight: 1 }}>
+            <div style={{ marginTop: "42px", fontSize: "1.4rem", color: "#a08c58", lineHeight: 1 }}>
               ❧
             </div>
 
             {/* Liens légaux — en ligne sur desktop, empilés (sans coupure) sur mobile */}
-            <div className="liens-legaux" style={{ marginTop: "28px", fontSize: "0.65625rem", color: "#b0a088", letterSpacing: "0.06em" }}>
+            <div className="liens-legaux" style={{ marginTop: "42px", fontSize: "0.65625rem", color: "#b0a088", letterSpacing: "0.06em" }}>
               <Link href="/conditions-utilisation" className="lien-legal" style={{ color: "#9a8a6e", textDecoration: "none", borderBottom: "1px dotted #c8b89e", whiteSpace: "nowrap" }}>
                 Conditions d&rsquo;utilisation
               </Link>
@@ -246,17 +333,17 @@ export default function AccueilPage() {
 
 function OrnementsTriple() {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", margin: "0 auto", maxWidth: "18.75rem" }}>
-      <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #b8a060)" }} />
-      <span style={{ fontSize: "1.15rem", color: "#9a8248", lineHeight: 1 }}>❧</span>
-      <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #b8a060)" }} />
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", margin: "46px auto", maxWidth: "18.75rem" }}>
+      <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #cabf9f)" }} />
+      <span style={{ fontSize: "1.15rem", color: "#a08c58", lineHeight: 1 }}>❧</span>
+      <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #cabf9f)" }} />
     </div>
   )
 }
 
 function ColophonSection({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
-    <section style={{ marginBottom: "44px" }}>
+    <section>
       <h3 style={{
         fontSize: "0.625rem",
         fontWeight: 600,
@@ -270,9 +357,9 @@ function ColophonSection({ titre, children }: { titre: string; children: React.R
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {children}
       </div>
-      <div style={{ marginTop: "28px" }}>
-        <OrnementsTriple />
-      </div>
+      {/* Le séparateur porte lui-même sa marge verticale symétrique (OrnementsTriple),
+          d'où le même blanc au-dessus et en dessous. */}
+      <OrnementsTriple />
     </section>
   )
 }
@@ -283,3 +370,131 @@ const paraStyle: React.CSSProperties = {
   color: "#2a2c20",
   margin: 0,
 }
+
+/* ── Trois volets d'accueil ───────────────────────────────────────────────── */
+
+// Texte du « mot » : condensé (interligne, approche des lettres et des mots réduites),
+// centré.
+const motStyle: React.CSSProperties = {
+  fontFamily: "var(--font-source-serif), Georgia, serif",
+  fontSize: "0.78125rem",
+  lineHeight: 1.5,
+  letterSpacing: "-0.006em",
+  wordSpacing: "-0.03em",
+  color: "#3a3a2e",
+  margin: 0,
+  textAlign: "center",
+}
+
+// Bouton « Soutenir le projet » — pastille dorée, sans flèche, accordée aux ornements
+// dorés de la page (❧, filets, signature).
+const boutonSoutenir: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontFamily: "var(--font-source-serif), Georgia, serif",
+  fontSize: "0.78125rem",
+  color: "#8a7440",
+  textDecoration: "none",
+  letterSpacing: "0.03em",
+  padding: "6px 18px",
+  border: "1px solid rgba(160,140,88,0.5)",
+  borderRadius: "999px",
+  background: "rgba(160,140,88,0.09)",
+}
+
+function VoletUnMot() {
+  return (
+    <div className="accueil-carte" style={{ textAlign: "center", display: "flex", flexDirection: "column" }}>
+      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.2rem", fontWeight: "normal", color: "#1e2a1c", margin: "0 0 12px", letterSpacing: "0.01em" }}>Un mot</h2>
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <p style={motStyle}><em>Corpus Scriptura</em> est un chantier mené seul, lentement, texte après texte. Mon intention est simple : rendre librement accessibles les Écritures, les écrits des Pères de l&rsquo;Église et des outils de lecture anciens ou difficiles d&rsquo;accès, en les établissant, en les contrôlant et en les reliant entre eux.</p>
+        <p style={motStyle}>L&rsquo;accès au site restera gratuit. Si ce travail vous paraît utile, tout soutien, même modeste, est bienvenu : il permet de consacrer davantage de temps à la lecture, à l&rsquo;édition des textes, à leur vérification et à leur mise en ordre.</p>
+      </div>
+      {/* Signature rapprochée du texte : « Merci. » juste au-dessus de SQDV. */}
+      <div style={{ marginTop: "12px" }}>
+        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "#3a3a2e", margin: "0 0 2px" }}>Merci.</p>
+        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "#8a7440", letterSpacing: "0.14em", margin: 0 }}>SQDV</p>
+      </div>
+      {/* Bouton ancré au bas de la carte, quelle que soit la hauteur du volet voisin. */}
+      <div style={{ marginTop: "auto", paddingTop: "18px" }}>
+        <Link href="/soutenir" style={boutonSoutenir}>Soutenir le projet</Link>
+      </div>
+    </div>
+  )
+}
+
+function formaterDateAjout(iso: string | null): string {
+  if (!iso) return ""
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })
+}
+
+function VoletAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
+  return (
+    <div className="accueil-carte" style={{ display: "flex", flexDirection: "column", textAlign: "center" }}>
+      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.2rem", fontWeight: "normal", color: "#1e2a1c", margin: "0 0 12px", letterSpacing: "0.01em" }}>Ajouts récents</h2>
+      {recentes.length === 0 ? (
+        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "#9a8a6e", fontStyle: "italic", margin: 0 }}>Aucun ajout pour l&rsquo;instant.</p>
+      ) : (
+        // Liste centrée EN BLOC (largeur au contenu, marges automatiques), texte aligné à gauche.
+        <ul style={{ listStyle: "none", margin: "0 auto", padding: 0, display: "flex", flexDirection: "column", gap: "8px", flex: 1, width: "fit-content", maxWidth: "100%", textAlign: "left" }}>
+          {recentes.map(o => (
+            /* Date à GAUCHE (colonne fixe) ; « lire » révélé à droite au survol. */
+            <li key={o.id_oeuvre} className="ajout-item" style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
+              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.65625rem", color: "#a99a78", whiteSpace: "nowrap", flexShrink: 0, minWidth: "5rem" }}>{formaterDateAjout(o.date_mise_en_ligne)}</span>
+              <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "10px", textDecoration: "none", color: "inherit", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
+                <span className="ajout-titre" style={{ fontSize: "0.78125rem", color: "#2a2c20", lineHeight: 1.32, transition: "color 0.15s ease" }}>
+                  {o.auteur}{o.auteur && o.titre ? ", " : ""}<em>{o.titre}</em>
+                </span>
+                <span className="ajout-lire" aria-hidden="true" style={{ fontSize: "0.65625rem", fontStyle: "italic", color: "#3d6b4f", letterSpacing: "0.04em", flexShrink: 0 }}>lire</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+function BandeauStats({ nbTextes, nbAuteurs }: { nbTextes: number; nbAuteurs: number }) {
+  const stats = [
+    { icon: <IconeLivre />, valeur: nbTextes.toLocaleString("fr-FR"), label: "Textes disponibles" },
+    { icon: <IconeAuteurs />, valeur: nbAuteurs.toLocaleString("fr-FR"), label: "Auteurs répertoriés" },
+    { icon: <IconeCheck />, valeur: `${POURCENT_VERIFIE} %`, label: "Textes vérifiés" },
+    { icon: <IconeContrib />, valeur: NB_CONTRIBUTEURS.toLocaleString("fr-FR"), label: NB_CONTRIBUTEURS > 1 ? "Contributeurs" : "Contributeur" },
+  ]
+  return (
+    <div className="accueil-carte accueil-stats">
+      {stats.map((s, i) => (
+        <div key={i} className="accueil-stat">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+            <span style={{ color: "#3d6b4f", display: "inline-flex" }}>{s.icon}</span>
+            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.5rem", color: "#1e2a1c", lineHeight: 1 }}>{s.valeur}</span>
+          </div>
+          <div style={{ fontSize: "0.6875rem", letterSpacing: "0.03em", color: "#8a8268", marginTop: "6px", textAlign: "center", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{s.label}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* Icônes des statistiques : contour fin, teinte verte (currentColor), plus grandes et
+   choisies au plus près de ce qu'elles désignent. */
+// Textes disponibles → un livre ouvert.
+function IconeLivre() {
+  return (<svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 6.2C10.1 4.9 7.7 4.3 5 4.3c-.7 0-1.2.5-1.2 1.2v11.8c0 .7.5 1.1 1.2 1.1 2.7 0 5.1.6 7 2 1.9-1.4 4.3-2 7-2 .7 0 1.2-.4 1.2-1.1V5.5c0-.7-.5-1.2-1.2-1.2-2.7 0-5.1.6-7 1.9Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M12 6.2v12.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>)
+}
+// Auteurs répertoriés → une plume (calame), avec sa hampe et ses barbes.
+function IconeAuteurs() {
+  return (<svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5l6.74-6.76Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M16 8 2 22" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><path d="M17.5 15H9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>)
+}
+// Textes vérifiés → un écu avec une coche (fiabilité).
+function IconeCheck() {
+  return (<svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.5 5.4 6v5.1c0 4 2.7 7.1 6.6 8.4 3.9-1.3 6.6-4.4 6.6-8.4V6L12 3.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="m9 11.6 2 2 4.1-4.3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>)
+}
+// Contributeur → une personne.
+function IconeContrib() {
+  return (<svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.4" stroke="currentColor" strokeWidth="1.4"/><path d="M5.5 19.2c.6-3.5 3.1-5.4 6.5-5.4s5.9 1.9 6.5 5.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>)
+}
+

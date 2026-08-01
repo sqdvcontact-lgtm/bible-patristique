@@ -505,7 +505,7 @@ export default function TexteBible({
               transition: 'color 0.15s',
             }}>
               <span>{traductionLabel}</span>
-              <span style={{ color: '#a0b8a8', fontSize: '0.4375rem', fontStyle: 'normal' }}>{tradOuverte ? '▲' : '▼'}</span>
+              <span style={{ color: '#a0b8a8', fontSize: '0.4375rem', fontStyle: 'normal', position: 'relative', top: '1.5px' }}>{tradOuverte ? '▲' : '▼'}</span>
             </button>
             {tradOuverte && (
               <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', background: '#fff', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '7px', zIndex: 50, boxShadow: '0 10px 26px rgba(47,63,53,0.12)', minWidth: '230px', overflow: 'hidden' }}>

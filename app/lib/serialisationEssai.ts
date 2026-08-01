@@ -7,7 +7,11 @@ function echapper(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-const styleNote = 'display:inline-block;margin-left:0.08em;color:#3d6b4f;font-weight:600;font-size:0.78em;vertical-align:super;cursor:pointer;background:transparent;padding:0;border:0;border-radius:0;'
+// Appel de note en exposant qui N'AUGMENTE PAS l'interligne : on n'utilise plus
+// `vertical-align:super` (qui agrandit la boîte de ligne). L'exposant est obtenu par
+// `position:relative; top` (décalage de PEINTURE, sans effet sur la hauteur de ligne)
+// et `line-height:0` — l'interligne reste identique dans tout le paragraphe.
+export const styleNote = 'display:inline-block;margin-left:0.06em;color:#3d6b4f;font-weight:600;font-size:0.72em;line-height:0;position:relative;top:-0.45em;vertical-align:baseline;cursor:pointer;background:transparent;padding:0;border:0;border-radius:0;'
 
 function inlineVersHtml(s: string): string {
   let r = echapper(s)
@@ -48,7 +52,7 @@ export function syntaxeVersHtml(texte: string): string {
     }
     if (ligne.startsWith('> ')) {
       flush()
-      blocs.push(`<blockquote style="font-style:normal;font-size:0.93em;font-family:var(--font-source-sans), Arial, sans-serif;color:#3a3530;margin:0.48em 0 0.76em 8mm;line-height:1.62;word-spacing:0.018em;letter-spacing:0.004em;text-align:justify;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
+      blocs.push(`<blockquote style="font-style:normal;font-size:0.9em;font-family:var(--font-source-sans), Arial, sans-serif;color:#3a3530;margin:0.32em 0 0.5em 8mm;line-height:1.3;word-spacing:-0.01em;letter-spacing:-0.004em;text-align:justify;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
       return
     }
     if (ligne.startsWith('## ')) {

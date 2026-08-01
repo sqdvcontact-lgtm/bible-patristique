@@ -104,6 +104,16 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
             <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement...</p>
           ) : elementActif.type === 'note' && editionNote?.actif && onEnregistrerNote ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Aperçu RENDU (enrichissements visibles : titre d'œuvre en italique…),
+                  mis à jour en direct pendant la saisie. */}
+              <div style={{ border: '1px solid #ece7de', borderRadius: '6px', background: '#fbfaf6', padding: '9px 11px' }}>
+                <span style={{ display: 'block', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#a89f95', marginBottom: '5px' }}>Aperçu</span>
+                <p style={{ fontSize: '0.8125rem', color: '#2a2520', lineHeight: 1.5, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                  {texteNote.trim()
+                    ? rendreNote(texteNote)
+                    : <span style={{ color: '#b0a89e', fontStyle: 'italic' }}>L’aperçu de la note s’affichera ici.</span>}
+                </p>
+              </div>
               <textarea value={texteNote} onChange={e => setTexteNote(e.target.value)} rows={8} placeholder="Texte de la note..."
                 style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.78125rem', lineHeight: 1.55, color: '#2a2520', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', padding: '9px 10px', resize: 'vertical', outline: 'none' }} />
               <p style={{ fontSize: '0.65625rem', color: '#8a8278', lineHeight: 1.45, margin: 0 }}>
