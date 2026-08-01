@@ -17,6 +17,7 @@ import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { rendreSiecles } from '@/app/lib/siecles'
 import { rendreDate } from '@/app/lib/datesAffichage'
 import { sansPointFinal } from '@/app/lib/titres'
+import { type RangChrono, coulType, LIB_TYPE, libelleSource, estUrl } from '@/app/lib/frise'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
@@ -90,98 +91,78 @@ function Chronologie({ texte }: { texte: string }) {
   )
 }
 
-// ── Frise agregee de l'auteur ──────────────────────────────────────────────────
-// Trois brins, distingues par la couleur du point : Vie (le parcours de l'auteur),
-// Oeuvres (compositions), Contexte (arriere-plan ecclesial et politique). La categorie
-// derive de nature_lien de l'association ; portee sert de repli.
-type EvtFrise = {
-  id: string; date_debut: number | null; date_fin: number | null; date_exacte: string | null
-  qualification_date: string | null; titre: string; notice: string | null
-  portee: string | null; importance_generale: string | null; genre: string | null; famille: string | null
-}
-type EvtAssoc = {
-  nature_lien: string | null; pertinence: string | null
-  titre_personnalise: string | null; ordre_force: number | null; ev: EvtFrise
+// ── Frise agrégée de l'auteur ──────────────────────────────────────────────────
+// Trois brins, distingués par la couleur du point : Vie (le parcours de l'auteur),
+// Œuvre (compositions), Contexte (arrière-plan ecclésial et politique). Le type
+// vient de `type_affichage` dans la vue ; il n'est plus déduit ici.
+
+// Puce pleine, à la couleur du type d'événement (Vie, Œuvre, Contexte).
+function stylePuce(type: string | null) {
+  return { background: coulType(type), border: '1.5px solid #f7f4ef' }
 }
 
-// Vie = vert foncé (l'auteur), Œuvres = vert clair (ses écrits), Contexte = doré.
-const COUL_CAT: Record<string, string> = { vie: '#3d6b4f', oeuvres: '#83a06a', contexte: '#c19a3e' }
-
-function categorieEvt(nature: string | null, portee: string | null): 'vie' | 'oeuvres' | 'contexte' {
-  const n = (nature || '').toLowerCase()
-  if (n === 'bibliographique') return 'oeuvres'
-  if (n === 'direct') return 'vie'
-  if (!n) {
-    if (portee === 'bibliographique') return 'oeuvres'
-    if (portee === 'biographique') return 'vie'
-  }
-  return 'contexte'
-}
-
-// Annee(s) compactes pour la colonne de gauche ; la date exacte/notice va en infobulle.
-function anneeFrise(e: EvtFrise): string {
-  const f = (a: number) => (a < 0 ? `${-a} av. J.-C.` : String(a))
-  if (e.date_debut == null) return e.date_exacte || ''
-  if (e.date_fin != null && e.date_fin !== e.date_debut) return `${f(e.date_debut)}–${f(e.date_fin)}`
-  return f(e.date_debut)
-}
-
-// Puce pleine, à la couleur de la catégorie (Vie, Œuvres, Contexte).
-function stylePuce(cat: 'vie' | 'oeuvres' | 'contexte') {
-  return { background: COUL_CAT[cat], border: '1.5px solid #f7f4ef' }
-}
-
-function FriseAuteur({ evenements }: { evenements: EvtAssoc[] }) {
-  const [ouverts, setOuverts] = useState<Set<string>>(new Set())
+// Chronologie d'un auteur : une SEULE frise mêlant vie, œuvres et contexte,
+// dans l'ordre éditorial de la vue (`ordre_affichage`, jamais recalculé ici).
+// Les trois types se distinguent par la puce et une nuance typographique, sans
+// blocs colorés qui rompraient l'homogénéité.
+function FriseAuteur({ evenements }: { evenements: RangChrono[] }) {
+  const [ouverts, setOuverts] = useState<Set<number>>(new Set())
   if (!evenements.length) return null
-  const CATS = [
-    { cle: 'vie', label: <>Vie</> },
-    { cle: 'oeuvres', label: <>&OElig;uvres</> },
-    { cle: 'contexte', label: <>Contexte</> },
-  ] as const
-  const presentes = new Set(evenements.map(a => categorieEvt(a.nature_lien, a.ev.portee)))
-  const basculer = (k: string) => setOuverts(prev => { const s = new Set(prev); s.has(k) ? s.delete(k) : s.add(k); return s })
+  const presents = new Set(evenements.map(a => a.type_affichage))
+  const basculer = (k: number) => setOuverts(prev => { const s = new Set(prev); s.has(k) ? s.delete(k) : s.add(k); return s })
   return (
     <div>
-      {/* Legende centree : seulement les brins effectivement presents. */}
+      {/* Légende : seulement les brins effectivement présents. */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', marginBottom: '13px', justifyContent: 'center' }}>
-        {CATS.filter(c => presentes.has(c.cle)).map(c => (
-          <span key={c.cle} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.5625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9a938a' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0, ...stylePuce(c.cle) }} />
-            {c.label}
+        {['vie', 'œuvre', 'contexte'].filter(t => presents.has(t)).map(t => (
+          <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.5625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9a938a' }}>
+            <span aria-hidden style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0, ...stylePuce(t) }} />
+            {LIB_TYPE[t] ?? t}
           </span>
         ))}
       </div>
       {/* Trois colonnes : date | rail (avec la puce) | intitulé. Le point est aligné
-          sur la première ligne — date, point et intitulé sur une même ligne. Un clic
-          sur l'intitulé déplie la notice. */}
+          sur la première ligne. Un clic sur l'intitulé déplie le détail. */}
       <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: 'max-content 16px 1fr', columnGap: '9px', rowGap: 0, alignItems: 'baseline' }}>
         {evenements.map((a, i) => {
-          const cat = categorieEvt(a.nature_lien, a.ev.portee)
-          const contexte = cat === 'contexte'
-          const italique = cat === 'oeuvres' || contexte
+          const type = a.type_affichage
+          const contexte = type === 'contexte'
+          const italique = type === 'œuvre' || contexte
           const dernier = i === evenements.length - 1
-          const cle = a.ev.id + ':' + i
-          const notice = a.ev.notice || a.ev.date_exacte || null
+          const cle = a.association_id
           const ouvert = ouverts.has(cle)
+          const aDetail = !!(a.notice || a.justification || a.note_datation || a.source_principale || a.source_lien || a.lieu)
           const pb = dernier && !ouvert ? '0' : '10px'
           return (
             <li key={cle} style={{ display: 'contents' }}>
-              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: contexte ? '#d2c69f' : '#b7a06a', textAlign: 'right', whiteSpace: 'nowrap', lineHeight: 1.18, paddingBottom: pb }}>{anneeFrise(a.ev)}</span>
+              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: contexte ? '#d2c69f' : '#b7a06a', textAlign: 'right', whiteSpace: 'nowrap', lineHeight: 1.18, paddingBottom: pb }}>{a.date_affichage}</span>
               {/* Rail + puce. La puce est dimensionnée et positionnée en `em` (relatifs à
                   la taille du titre) : elle suit la police fluide et reste alignée sur la
                   première ligne, quelle que soit l'échelle de l'écran. */}
               <div style={{ position: 'relative', alignSelf: 'stretch', fontSize: '0.6875rem' }}>
                 <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '2px', transform: 'translateX(-50%)', background: '#e9e1d0' }} />
-                <div style={{ position: 'absolute', left: '50%', top: '0.6em', width: '0.82em', height: '0.82em', borderRadius: '50%', transform: 'translate(-50%, -50%)', boxSizing: 'border-box', ...stylePuce(cat) }} />
+                <div aria-hidden style={{ position: 'absolute', left: '50%', top: '0.6em', width: '0.82em', height: '0.82em', borderRadius: '50%', transform: 'translate(-50%, -50%)', boxSizing: 'border-box', ...stylePuce(type) }} />
               </div>
               <div style={{ paddingBottom: pb, fontSize: '0.6875rem', lineHeight: 1.18 }}>
-                <span onClick={notice ? () => basculer(cle) : undefined}
-                  style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1em', lineHeight: 'inherit', color: contexte ? '#8a8278' : '#2a3d30', fontStyle: italique ? 'italic' : 'normal', cursor: notice ? 'pointer' : 'default' }}>
-                  {a.titre_personnalise || a.ev.titre}
-                </span>
-                {ouvert && notice && (
-                  <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6rem', lineHeight: 1.3, letterSpacing: '-0.005em', color: '#8a8278', margin: '3px 0 1px', textAlign: 'justify' }}>{notice}</p>
+                {aDetail ? (
+                  <button onClick={() => basculer(cle)} aria-expanded={ouvert}
+                    style={{ display: 'inline', textAlign: 'left', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1em', lineHeight: 'inherit', color: contexte ? '#8a8278' : '#2a3d30', fontStyle: italique ? 'italic' : 'normal' }}>
+                    {a.titre}
+                  </button>
+                ) : (
+                  <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1em', lineHeight: 'inherit', color: contexte ? '#8a8278' : '#2a3d30', fontStyle: italique ? 'italic' : 'normal' }}>
+                    {a.titre}
+                  </span>
+                )}
+                {ouvert && (
+                  <div style={{ margin: '3px 0 1px' }}>
+                    {a.notice && <DetailChrono>{a.notice}</DetailChrono>}
+                    {a.justification && <DetailChrono label="Rapport avec l’auteur">{a.justification}</DetailChrono>}
+                    {a.lieu && <DetailChrono label="Lieu">{a.lieu}</DetailChrono>}
+                    {a.note_datation && <DetailChrono label="Précision sur la date">{a.note_datation}</DetailChrono>}
+                    {a.source_principale && <DetailChrono label="Source de l’événement"><LienSource valeur={a.source_principale} /></DetailChrono>}
+                    {a.source_lien && <DetailChrono label="Source du rattachement"><LienSource valeur={a.source_lien} /></DetailChrono>}
+                  </div>
                 )}
               </div>
             </li>
@@ -192,7 +173,22 @@ function FriseAuteur({ evenements }: { evenements: EvtAssoc[] }) {
   )
 }
 
-function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () => void; evenements: EvtAssoc[] }) {
+function DetailChrono({ label, children }: { label?: string; children: ReactNode }) {
+  return (
+    <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6rem', lineHeight: 1.3, letterSpacing: '-0.005em', color: '#8a8278', margin: '0 0 2px', textAlign: 'justify' }}>
+      {label && <span style={{ color: '#a89f94' }}>{label} : </span>}{children}
+    </p>
+  )
+}
+
+// Jamais d'URL brute : un libellé de domaine, ouvert dans un nouvel onglet.
+function LienSource({ valeur }: { valeur: string }) {
+  const lib = libelleSource(valeur)
+  if (!estUrl(valeur)) return <>{lib}</>
+  return <a href={valeur} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f' }}>{lib}</a>
+}
+
+function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () => void; evenements: RangChrono[] }) {
   const [photoOk, setPhotoOk] = useState(true)
   const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${auteur.id_auteur}.jpg`
   const photoPos = parsePhotoPos(auteur.photo_position)
@@ -316,7 +312,7 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
 
 export default function ModaleAuteur({ id, onClose }: { id: string | null; onClose: () => void }) {
   const [auteur, setAuteur] = useState<Auteur | null>(null)
-  const [evenements, setEvenements] = useState<EvtAssoc[]>([])
+  const [evenements, setEvenements] = useState<RangChrono[]>([])
   const [erreur, setErreur] = useState(false)
 
   useEffect(() => {
@@ -331,39 +327,11 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
         if (error || !data) { setErreur(true); return }
         setAuteur(data as Auteur)
       })
-    // Frise : evenements associes affiches, joints a la fiche evenement (genre + famille).
-    supabase.from('auteurs_evenements')
-      .select('nature_lien, pertinence, titre_personnalise, ordre_force, est_affiche, evenements ( id, date_debut, date_fin, date_exacte, qualification_date, titre, notice, portee, importance_generale, est_publie, genres_evenements ( nom, familles_evenements ( nom ) ) )')
-      .eq('auteur_id', id).eq('est_affiche', true)
-      .then(({ data }) => {
-        const rows = (data || []) as any[]
-        const liste: EvtAssoc[] = rows
-          .map(r => Array.isArray(r.evenements) ? { ...r, evenements: r.evenements[0] } : r)
-          .filter(r => r.evenements && r.evenements.est_publie !== false)
-          .map(r => {
-            const g = Array.isArray(r.evenements.genres_evenements) ? r.evenements.genres_evenements[0] : r.evenements.genres_evenements
-            const f = g && (Array.isArray(g.familles_evenements) ? g.familles_evenements[0] : g.familles_evenements)
-            return {
-              nature_lien: r.nature_lien, pertinence: r.pertinence,
-              titre_personnalise: r.titre_personnalise, ordre_force: r.ordre_force,
-              ev: {
-                id: r.evenements.id, date_debut: r.evenements.date_debut, date_fin: r.evenements.date_fin,
-                date_exacte: r.evenements.date_exacte, qualification_date: r.evenements.qualification_date,
-                titre: r.evenements.titre, notice: r.evenements.notice, portee: r.evenements.portee,
-                importance_generale: r.evenements.importance_generale,
-                genre: g?.nom ?? null, famille: f?.nom ?? null,
-              },
-            }
-          })
-          .sort((a, b) => {
-            const da = a.ev.date_debut ?? 999999, db = b.ev.date_debut ?? 999999
-            if (da !== db) return da - db
-            const fa = a.ev.date_fin ?? a.ev.date_debut ?? 999999, fb = b.ev.date_fin ?? b.ev.date_debut ?? 999999
-            if (fa !== fb) return fa - fb
-            return a.ev.titre.localeCompare(b.ev.titre, 'fr')
-          })
-        setEvenements(liste)
-      })
+    // Frise : la vue porte déjà l'ordre éditorial, la date rédigée, le type et
+    // les sources. Les associations masquées en sont exclues à la source.
+    supabase.from('v_chronologie_auteurs').select('*')
+      .eq('auteur_id', id).order('ordre_affichage')
+      .then(({ data }) => setEvenements((data ?? []) as RangChrono[]))
   }, [id])
 
   // Échap ferme ; le défilement de fond est gelé tant que la fenêtre est ouverte.
