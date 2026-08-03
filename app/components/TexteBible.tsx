@@ -15,8 +15,8 @@ import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 
 const VERSET_ACTION_BTN: React.CSSProperties = {
   background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
-  borderRadius:'3px', width:'16px', height:'16px', display:'inline-flex',
-  alignItems:'center', justifyContent:'center', fontSize:'0.75rem',
+  borderRadius:'3px', width:'18px', height:'18px', display:'inline-flex',
+  alignItems:'center', justifyContent:'center', fontSize:'0.85rem',
   lineHeight:1, flexShrink:0, transition:'color 0.15s',
 }
 
@@ -593,9 +593,9 @@ export default function TexteBible({
               style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: mobile ? '0.03125rem 0.375rem' : '0.1875rem 0.375rem', borderRadius: '4px', cursor: 'pointer', marginBottom: mobile ? '0.05rem' : '0.25rem', background: 'transparent' }}>
 
               <div style={{ display: 'grid', gridTemplateColumns: mobile ? 'minmax(0, 1fr)' : 'minmax(0, var(--mesure-bloc)) 2.375rem', width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', alignItems: 'flex-start' }}>
-                <div style={{ display:'grid', gridTemplateColumns:'auto minmax(0, var(--mesure-texte))', columnGap:'0.1875rem', borderRadius:'5px', padding:'0.125rem 0.25rem 0.125rem 0', background: actif ? 'rgba(61,107,79,0.11)' : 'transparent' }}>
-                  {/* Numéro — inclus dans le bloc sélectionné */}
-                  <span style={{ minWidth: '1.0625rem', textAlign: 'right', paddingRight: '0.3125rem', fontSize: '0.625rem', fontWeight: 600, color: '#b0a89e', lineHeight: 1.40, paddingTop: '1px', whiteSpace: 'nowrap' }}>
+                <div style={{ display:'grid', gridTemplateColumns:'auto minmax(0, var(--mesure-texte))', columnGap:'0.1875rem', alignItems: 'baseline', borderRadius:'5px', padding:'0.125rem 0.25rem 0.125rem 0', background: actif ? 'rgba(61,107,79,0.11)' : 'transparent' }}>
+                  {/* Numéro — inclus dans le bloc sélectionné, aligné sur la 1re ligne du texte (ligne de base) */}
+                  <span style={{ minWidth: '1.0625rem', textAlign: 'right', paddingRight: '0.3125rem', fontSize: '0.625rem', fontWeight: 600, color: '#b0a89e', lineHeight: 1.40, whiteSpace: 'nowrap' }}>
                     {v.verset}
                     {v.chapitre_alternatif != null && (
                       <span style={{ fontWeight: 400, fontStyle: 'italic', color: '#c0bab0' }}>
@@ -620,7 +620,7 @@ export default function TexteBible({
                   position: 'absolute', bottom: '100%', right: '0.25rem', marginBottom: '3px', zIndex: 6,
                   display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
                   background: '#fff', border: '1px solid #d6d0c4', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
-                } : { width: '2.375rem', paddingLeft: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.125rem', overflow: 'visible' }}>
+                } : { width: '2.375rem', paddingLeft: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible' }}>
                   {userId && (
                     <BoutonEnregistrer
                       verset={v} nomLivre={nomLivre} livreActif={livreActif}

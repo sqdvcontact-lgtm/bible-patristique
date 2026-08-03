@@ -1,0 +1,199 @@
+IMPORT BIBLE 899 — LOT_001 BLOC B v0.7
+======================================
+
+STATUT FINAL
+------------
+
+IMPORT RÉUSSI.
+
+Le TEI du LOT_001 Bloc B v0.7 a été importé transactionnellement et sans
+transformation éditoriale. Le sous-ensemble TEI, le parseur, les types, les tests
+et le lecteur prennent désormais en charge add place="margin" comme intervention
+explicitement signalée dans les trois modes.
+
+SOURCES ET EMPREINTES
+---------------------
+
+Archive conservée :
+work/bible899/incoming/Bible_899_LOT_001_Bloc_B_v0.7.zip
+
+SHA-256 attendu et vérifié de l’archive :
+a7435ff3a7172fc58baac97dee9f1b1777a9e56dc6840e5c2a50f6d1e65c0ffb
+
+SHA-256 attendu et vérifié du TEI candidat :
+b40d1dca45955015ecfc20004a812177d0406f80b83008c2e042b721a9d7d914
+
+Les 11 empreintes internes énumérées dans reports/SHA256SUMS.txt ont été
+contrôlées avec succès.
+
+PRÉREQUIS ET EMPREINTES AVANT/APRÈS
+-----------------------------------
+
+Avant import :
+- version éditoriale : 0.6 ;
+- SHA-256 du TEI actif :
+  8b0f7c4430d2a06133af6106b4f74ba6ae7d3c38ea80157fcbadf4700e185cad ;
+- concordance entre le TEI et le manifeste actif : réussie.
+
+Après import :
+- version éditoriale : 0.7 ;
+- SHA-256 du TEI actif :
+  b40d1dca45955015ecfc20004a812177d0406f80b83008c2e042b721a9d7d914 ;
+- concordance entre le TEI, le candidat et le manifeste : réussie.
+
+Le TEI actif après import est identique octet pour octet au candidat fourni.
+
+COMPTAGES AVANT ET APRÈS
+------------------------
+
+Avant import, version 0.6 :
+- folios : 3 ;
+- colonnes : 6 ;
+- lignes : 240 ;
+- choice : 151 ;
+- gap : 8 ;
+- unclear : 3 ;
+- add margin : 0 ;
+- images actives : 6.
+
+Après import, version 0.7 :
+- folios : 5 ;
+- colonnes : 9 ;
+- lignes : 360 ;
+- choice : 242 ;
+- gap : 8 ;
+- unclear : 3 ;
+- add margin dans la couche diplomatique : 1 ;
+- images actives : 9.
+
+Les trois nouvelles colonnes 2v_a, 2v_b et 3r_a sont présentes et contiennent
+chacune 40 lignes.
+
+PRISE EN CHARGE DE add place="margin"
+-------------------------------------
+
+Le schéma Relax NG accepte add uniquement avec place="margin" et avec un contenu.
+Le parseur rejette explicitement :
+- add sans attribut place ;
+- add vide ;
+- add avec une valeur place non prise en charge.
+
+Les types exposent chaque ajout marginal sous la forme :
+- place : "margin" ;
+- text : contenu exact de l’ajout.
+
+La ligne f2v_a_l01 contient exactement l’ajout marginal « mathusale ». Il est
+affiché comme suit :
+- diplomatique : [ajout marginal : mathusale] ;
+- abréviations développées : [ajout marginal : mathusale] ;
+- graphie modernisée : [ajout marginal : Mathusalem].
+
+Le lecteur identifie visuellement ce marqueur comme ajout marginal. L’ajout n’est
+jamais intégré silencieusement au corps du texte.
+
+CONTRÔLES ÉDITORIAUX
+--------------------
+
+- « mathusale » est conservé exactement dans la couche diplomatique et développée ;
+- « Mathusalem » est conservé dans la couche modernisée fournie par le TEI ;
+- le numéral « .vi. anz. » est conservé sans correction dans le texte continu ;
+- la répétition textuelle de la colonne 2v_b est conservée ;
+- empreinte de contrôle des 40 lignes diplomatiques/développées de 2v_b :
+  a4511905cb78ea548fe1d99978f7bf7b6e0fec8edf6f92cc47860e2f521bf839 ;
+- 88 coupures break="no" sont conservées et réunies sans espace ajouté ;
+- les 8 lacunes et les 3 lectures incertaines demeurent présentes ;
+- les trois modes d’affichage sont disponibles pour les neuf colonnes ;
+- aucune unité modernisée n’est non appariée.
+
+Aucune lecture, abréviation, lacune, répétition ou ponctuation n’a été corrigée.
+
+SCHÉMA ET VALIDATION
+--------------------
+
+Le schéma Relax NG modifié compile correctement. Le candidat v0.7 et la fixture
+valide d’ajout marginal sont tous deux conformes au schéma.
+
+La validation TypeScript contrôle également le placement et le contenu de add,
+avec localisation par folio, colonne, ligne et xml:id.
+
+TESTS, LINT ET BUILD
+--------------------
+
+Tests ciblés préalables pour add :
+- 2 tests réussis ;
+- 13 tests hors cible ignorés pendant ce contrôle préalable.
+
+Tests exécutés par l’import :
+- 1 fichier de tests réussi ;
+- 15 tests réussis sur 15.
+
+Tests finaux séparés :
+- 1 fichier de tests réussi ;
+- 15 tests réussis sur 15.
+
+Tests après nettoyage :
+- 1 fichier de tests réussi ;
+- 15 tests réussis sur 15.
+
+ESLint ciblé : réussi, 0 erreur et 0 avertissement.
+
+Build exécuté par l’import : réussi.
+Build final séparé : réussi.
+- compilation Next.js 16.2.9 réussie ;
+- vérification TypeScript réussie ;
+- 83 pages générées ;
+- route /manuscrits/bible-899 générée statiquement.
+
+FICHIERS MODIFIÉS
+-----------------
+
+- app/manuscrits/bible-899/_lib/tei.ts ;
+- app/manuscrits/bible-899/_lib/manifest.ts ;
+- app/manuscrits/bible-899/_lib/tei.test.ts ;
+- app/manuscrits/bible-899/Bible899Reader.tsx ;
+- app/manuscrits/bible-899/bible899.module.css ;
+- data/manuscrits/bible-899/schema/bible899-subset.rng ;
+- data/manuscrits/bible-899/README.md ;
+- data/manuscrits/bible-899/Bible_899_master.xml ;
+- data/manuscrits/bible-899/manifest.json ;
+- scripts/bible899/generate-manifest.ts.
+
+FICHIERS CRÉÉS
+--------------
+
+- app/manuscrits/bible-899/_lib/fixtures/marginal-addition.xml ;
+- app/manuscrits/bible-899/_lib/fixtures/invalid-additions.xml ;
+- public/manuscrits/bible-899/f002v_a.png ;
+- public/manuscrits/bible-899/f002v_b.png ;
+- public/manuscrits/bible-899/f003r_a.png ;
+- work/bible899/incoming/Bible_899_LOT_001_Bloc_B_v0.7.zip ;
+- BIBLE_899_IMPORT_V0.7_REPORT.txt ;
+- CLEANUP_REPORT_V0.7.txt.
+
+Les nouvelles images ont été copiées sans rééchantillonnage. Leurs SHA-256 sont :
+- f002v_a.png : f064ae9a13ff935118bf654ca82e44bf2f348f998db8cad01a840c05108298e1 ;
+- f002v_b.png : 550b5bfbdaef571cfa1cbe51add06eaafbe431bd15bc2f43acae43710d249975 ;
+- f003r_a.png : ca1c1efc7bc2e2dfb6d7cccc8d959f0f99c78dc93ba63aefc4bfe7f6758fe268.
+
+NETTOYAGE
+---------
+
+Une cible temporaire a été supprimée après tous les contrôles :
+- tmp/bible899-import-bloc-b-v0.7 ;
+- 12 fichiers supprimés ;
+- 1 658 254 octets libérés, soit environ 1,58 Mio.
+
+Aucune archive draft v0.7 distincte n’a été trouvée hors de cette extraction.
+Les archives finales v0.6 et v0.7 ont été conservées.
+
+Le détail figure dans CLEANUP_REPORT_V0.7.txt.
+
+ERREURS OU QUESTIONS
+--------------------
+
+Erreur d’import, de test, de lint ou de build : aucune.
+Question éditoriale non résolue : aucune.
+
+Point de contrôle non bloquant : les coordonnées détaillées de zones restent
+absentes pour les neuf colonnes actives. Cette absence est signalée ; aucune
+coordonnée fictive n’a été ajoutée.

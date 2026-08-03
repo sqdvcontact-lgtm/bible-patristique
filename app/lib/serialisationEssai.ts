@@ -13,7 +13,7 @@ function echapper(s: string): string {
 // et `line-height:0` — l'interligne reste identique dans tout le paragraphe.
 export const styleNote = 'display:inline-block;margin-left:0.06em;color:#3d6b4f;font-weight:600;font-size:0.72em;line-height:0;position:relative;top:-0.45em;vertical-align:baseline;cursor:pointer;background:transparent;padding:0;border:0;border-radius:0;'
 
-function inlineVersHtml(s: string): string {
+export function inlineVersHtml(s: string): string {
   let r = echapper(s)
   // Les jetons atomiques (notes, renvois) d'ABORD : leur contenu — qui peut porter des
   // *italiques* (titre d'œuvre) — ne doit pas être réinterprété comme du gras/italique. On
@@ -38,7 +38,9 @@ export function syntaxeVersHtml(texte: string): string {
 
   const flush = () => {
     if (paragraphe.length === 0) return
-    blocs.push(`<p style="margin:0 0 0.62em;word-spacing:0.018em;letter-spacing:0.004em;font-family:var(--font-source-sans), Arial, sans-serif;line-height:1.62;text-align:left;">${paragraphe.map(inlineVersHtml).join('<br>')}</p>`)
+    // Présentation calquée sur la page de lecture (.essai-lecture-corps p) :
+    // sérif, interligne 1,5, justifié, alinéa de 0,9em.
+    blocs.push(`<p style="margin:0 0 1.6mm;font-family:var(--font-source-serif), Georgia, serif;line-height:1.5;text-align:justify;text-indent:0.9em;">${paragraphe.map(inlineVersHtml).join('<br>')}</p>`)
     paragraphe = []
   }
 
@@ -52,7 +54,7 @@ export function syntaxeVersHtml(texte: string): string {
     }
     if (ligne.startsWith('> ')) {
       flush()
-      blocs.push(`<blockquote style="font-style:normal;font-size:0.9em;font-family:var(--font-source-sans), Arial, sans-serif;color:#3a3530;margin:0.32em 0 0.5em 8mm;line-height:1.3;word-spacing:-0.01em;letter-spacing:-0.004em;text-align:justify;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
+      blocs.push(`<blockquote style="font-style:normal;font-size:0.9em;font-family:var(--font-source-serif), Georgia, serif;color:#4a4440;margin:3mm 8mm;line-height:1.44;text-align:justify;text-indent:0;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
       return
     }
     if (ligne.startsWith('## ')) {

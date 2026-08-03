@@ -80,6 +80,8 @@ Pour les textes anciens, on conserve la langue propre de l'édition utilisée : 
 13. Une citation biblique repérée en italique dans la source doit être repassée en romain et placée entre guillemets. Toute autre utilisation de l'italique (langue étrangère, emphase de l'auteur) reste en italique.
 14. Pas de guillemets droits, pas de caractères corrompus, pas de chaînes `null`.
 
+**Coquilles orthographiques de l’édition.** Lorsqu’une coquille orthographique est attestée par le fac-similé, conserver la leçon imprimée et lui apposer immédiatement `[<i>sic</i>]` : les crochets restent en romain et le mot *sic* est rendu en italique. Cette règle ne s’applique pas automatiquement aux archaïsmes, aux anomalies grammaticales ou syntaxiques ni aux leçons douteuses ; celles-ci sont conservées et signalées dans l’audit tant que leur nature n’est pas certaine.
+
 **Détection des erreurs de guillemets en base :**
 `select id, id_oeuvre, segment_numero, segment_texte from segments where segment_texte ~ '«[^»]*«' order by id_oeuvre, segment_numero;`
 

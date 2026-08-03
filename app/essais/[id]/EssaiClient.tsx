@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { supabase } from '@/app/lib/supabase'
-import { rendreEssai } from '@/app/lib/texteEnrichiEssai'
+import { rendreEssai, extraireSommaire } from '@/app/lib/texteEnrichiEssai'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import EssaiCommentaires from './EssaiCommentaires'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
+import ModalSignalement from '@/app/components/ModalSignalement'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 
 const ABREV_VERS_NOM: Record<string, string> = Object.fromEntries(
@@ -48,7 +49,7 @@ function BoutonPartage({ label, onClick, children, loading }: { label: string; o
   }
   return (
     <button onClick={handleClick} title={label} disabled={loading}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: '5px', border: '1px solid #ddd8cf', background: flash ? '#edf5f0' : '#fff', color: flash ? '#3d6b4f' : loading ? '#c8c0b4' : '#9a958d', cursor: loading ? 'default' : 'pointer', transition: 'background 0.2s, color 0.2s', flexShrink: 0 }}>
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '6px', border: '1px solid #ddd8cf', background: flash ? '#edf5f0' : '#fff', color: flash ? '#3d6b4f' : loading ? '#c8c0b4' : '#9a958d', cursor: loading ? 'default' : 'pointer', transition: 'background 0.2s, color 0.2s', flexShrink: 0 }}>
       {children}
     </button>
   )
@@ -116,16 +117,33 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   }
 
   const [pdfEnCours, setPdfEnCours] = useState(false)
+  const [signalerOuvert, setSignalerOuvert] = useState(false)
+
+  const envoyerSignalement = async (message: string, importance?: string) => {
+    const { data } = await supabase.auth.getSession()
+    const token = data.session?.access_token
+    const headers: HeadersInit = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+    const res = await fetch('/api/signalements', {
+      method: 'POST', headers,
+      body: JSON.stringify({ reference: `Publication : ${essai.titre}`, message, importance, url_source: typeof window !== 'undefined' ? window.location.href : null }),
+    })
+    if (!res.ok) throw new Error('échec du signalement')
+  }
+
+  // Un message clair accompagne le lien partagé (le lien redirige vers la lecture).
+  const texteInvitation = () =>
+    `« ${essai.titre} »${essai.auteur_pseudo ? `, par ${essai.auteur_pseudo}` : ''} — à lire sur Corpus Scriptura`
 
   const copierLien = () => {
-    navigator.clipboard.writeText(window.location.href).catch(() => {})
+    navigator.clipboard.writeText(`${texteInvitation()} :\n${window.location.href}`).catch(() => {})
   }
 
   const partager = async () => {
+    const url = window.location.href
     if (navigator.share) {
-      await navigator.share({ title: essai.titre, url: window.location.href }).catch(() => {})
+      await navigator.share({ title: essai.titre, text: texteInvitation(), url }).catch(() => {})
     } else {
-      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(essai.titre)}`, '_blank', 'noopener')
+      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(texteInvitation())}`, '_blank', 'noopener')
     }
   }
 
@@ -149,6 +167,46 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
   const dateFormatee = new Date(dateAffichee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
   const versetParse = (() => { try { return essai.verset_en_tete ? JSON.parse(essai.verset_en_tete) as { ref: string; texte: string } : null } catch { return null } })()
+  const sommaire = extraireSommaire(essai.contenu)
+  const allerAu = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+  // Boutons télécharger / partager / copier le lien, réutilisés dans le volet gauche
+  // (desktop) et, en mobile, dans l'en-tête du volet des commentaires.
+  const boutonsPartage = (
+    <>
+      <BoutonPartage label="Copier le lien" onClick={copierLien}>
+        <svg width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+          <path d="M5 7.5a2.5 2.5 0 0 0 3.5.5l2-2A2.5 2.5 0 0 0 7 2.5L5.8 3.8"/>
+          <path d="M8 5.5a2.5 2.5 0 0 0-3.5-.5l-2 2A2.5 2.5 0 0 0 6 10.5l1.2-1.2"/>
+        </svg>
+      </BoutonPartage>
+      <BoutonPartage label={pdfEnCours ? 'Génération…' : 'Télécharger en PDF'} onClick={telechargerPDF} loading={pdfEnCours}>
+        {pdfEnCours ? (
+          <svg width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+            <circle cx="6.5" cy="6.5" r="4.5" strokeDasharray="12 8">
+              <animateTransform attributeName="transform" type="rotate" from="0 6.5 6.5" to="360 6.5 6.5" dur="0.8s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2.5 9.5v1a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-1"/>
+            <path d="M6.5 1.5v6M4 5.5l2.5 2.5 2.5-2.5"/>
+          </svg>
+        )}
+      </BoutonPartage>
+      <BoutonPartage label="Partager" onClick={partager}>
+        <svg width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="10" cy="2.5" r="1.3"/>
+          <circle cx="10" cy="10.5" r="1.3"/>
+          <circle cx="3" cy="6.5" r="1.3"/>
+          <path d="M4.2 7.2l4.7 2.6M8.9 3.2 4.2 5.8"/>
+        </svg>
+      </BoutonPartage>
+      <BoutonPartage label="Signaler" onClick={() => setSignalerOuvert(true)}>
+        <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>⚑</span>
+      </BoutonPartage>
+    </>
+  )
 
   return (
     <div style={mobile
@@ -156,18 +214,19 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
       : { display: 'flex', height: 'calc(100vh - 3.5rem)', background: '#f7f4ef' }}>
       <style>{`
         .essai-lecture-corps p {
+          font-family: var(--font-source-serif), Georgia, serif !important;
           text-align: justify !important;
-          line-height: 1.36 !important;
-          word-spacing: -0.02em !important;
-          letter-spacing: -0.006em !important;
-          text-indent: 0.75em !important;
+          line-height: 1.5 !important;
+          word-spacing: 0 !important;
+          letter-spacing: 0 !important;
+          text-indent: 0.9em !important;
           margin-top: 0 !important;
-          margin-bottom: 1.4mm !important;
+          margin-bottom: 1.6mm !important;
         }
         .essai-lecture-corps blockquote {
           font-style: normal !important;
           text-align: justify !important;
-          font-family: var(--font-source-sans), Arial, sans-serif !important;
+          font-family: var(--font-source-serif), Georgia, serif !important;
           color: #4a4440 !important;
           line-height: 1.44 !important;
           word-spacing: -0.02em !important;
@@ -209,6 +268,44 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         }
       `}</style>
 
+      {/* Volet gauche (desktop) : titre, date, actions, sommaire — sur le modèle du
+          volet de lecture des Pères. Les boutons télécharger/partager/lien y vivent. */}
+      {!mobile && (
+        <aside style={{ width: '15rem', flexShrink: 0, background: '#faf8f4', borderRight: '1px solid #d6d0c4', height: '100%', overflowY: 'auto', padding: '22px 16px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            {essai.auteur_pseudo && (
+              <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 8px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{essai.auteur_pseudo}</p>
+            )}
+            <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 600, color: '#1e2e24', lineHeight: 1.28, margin: 0 }}>{essai.titre}</h2>
+            {essai.sous_titre && (
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: '#8a8278', margin: '5px 0 0', lineHeight: 1.35 }}>{essai.sous_titre}</p>
+            )}
+            <p style={{ fontSize: '0.625rem', letterSpacing: '0.04em', color: '#b0a89e', margin: '12px 0 0', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Publié le {dateFormatee}</p>
+            <p style={{ fontSize: '0.59375rem', color: '#c0b8b0', margin: '3px 0 0', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Lu {nbVues} fois</p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {boutonsPartage}
+          </div>
+
+          {sommaire.length > 0 && (
+            <div style={{ borderTop: '1px solid #ede9e2', paddingTop: '14px' }}>
+              <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#a2988b', margin: '0 0 9px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Sommaire</p>
+              <nav style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                {sommaire.map(s => (
+                  <button key={s.id} onClick={() => allerAu(s.id)}
+                    style={{ textAlign: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: s.niveau === 2 ? '0.75rem' : '0.8125rem', fontStyle: s.niveau === 2 ? 'italic' : 'normal', color: s.niveau === 2 ? '#6f665c' : '#4a4440', background: 'none', border: 'none', padding: 0, paddingLeft: s.niveau === 2 ? '12px' : 0, cursor: 'pointer', lineHeight: 1.32 }}
+                    onMouseEnter={e => { e.currentTarget.style.color = '#3d6b4f' }}
+                    onMouseLeave={e => { e.currentTarget.style.color = s.niveau === 2 ? '#6f665c' : '#4a4440' }}>
+                    {rendreTexteEnrichi(s.titre)}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          )}
+        </aside>
+      )}
+
       {/* Zone de lecture — scroll indépendant */}
       <div style={{ flex: 1, overflowY: mobile ? 'visible' : 'auto', minWidth: 0, paddingBottom: mobile ? '3.25rem' : undefined }}>
         <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: '0 56px 80px' }}>
@@ -219,12 +316,12 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             </p>
           )}
 
-          {/* Page de titre */}
+          {/* Page de titre — rapprochée du texte (moins de hauteur et de marge basse). */}
           <div style={{
-            minHeight: '46vh', display: 'flex', flexDirection: 'column',
+            minHeight: '30vh', display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center',
-            padding: '64px 24px 52px', borderBottom: '1px solid #d6d0c4',
-            marginBottom: '48px', textAlign: 'center',
+            padding: '40px 24px 26px', borderBottom: '1px solid #d6d0c4',
+            marginBottom: '26px', textAlign: 'center',
           }}>
             {essai.auteur_pseudo && (
               <p style={{ fontSize: '0.71875rem', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '28px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
@@ -274,7 +371,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             </div>
           )}
 
-          <div className="essai-lecture-corps" style={{ fontSize: '0.84375rem', color: '#1e1a16', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+          <div className="essai-lecture-corps" style={{ fontSize: '0.875rem', color: '#1e1a16', fontFamily: "var(--font-source-serif), Georgia, serif" }}>
             {rendreEssai(essai.contenu)}
           </div>
 
@@ -298,40 +395,16 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
               </svg>
             </button>
             <span style={{ flex: 1, minWidth: 0, alignSelf: 'center', textAlign: 'center', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#9a958d', whiteSpace: 'nowrap' }}>Commentaires</span>
-            <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
-              <BoutonPartage label="Copier le lien" onClick={copierLien}>
-                <svg width="11" height="11" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
-                  <path d="M5 7.5a2.5 2.5 0 0 0 3.5.5l2-2A2.5 2.5 0 0 0 7 2.5L5.8 3.8"/>
-                  <path d="M8 5.5a2.5 2.5 0 0 0-3.5-.5l-2 2A2.5 2.5 0 0 0 6 10.5l1.2-1.2"/>
-                </svg>
-              </BoutonPartage>
-              <BoutonPartage label={pdfEnCours ? 'Génération…' : 'Télécharger en PDF'} onClick={telechargerPDF} loading={pdfEnCours}>
-                {pdfEnCours ? (
-                  <svg width="11" height="11" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
-                    <circle cx="6.5" cy="6.5" r="4.5" strokeDasharray="12 8">
-                      <animateTransform attributeName="transform" type="rotate" from="0 6.5 6.5" to="360 6.5 6.5" dur="0.8s" repeatCount="indefinite"/>
-                    </circle>
-                  </svg>
-                ) : (
-                  <svg width="11" height="11" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M2.5 9.5v1a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-1"/>
-                    <path d="M6.5 1.5v6M4 5.5l2.5 2.5 2.5-2.5"/>
-                  </svg>
-                )}
-              </BoutonPartage>
-              <BoutonPartage label="Partager" onClick={partager}>
-                <svg width="11" height="11" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="10" cy="2.5" r="1.3"/>
-                  <circle cx="10" cy="10.5" r="1.3"/>
-                  <circle cx="3" cy="6.5" r="1.3"/>
-                  <path d="M4.2 7.2l4.7 2.6M8.9 3.2 4.2 5.8"/>
-                </svg>
-              </BoutonPartage>
-            </div>
+            {/* En desktop, les actions vivent dans le volet gauche ; en mobile, ici. */}
+            {mobile && (
+              <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
+                {boutonsPartage}
+              </div>
+            )}
           </div>
 
-          {/* Commentaires */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px' }}>
+          {/* Commentaires — la liste défile, l'outil de rédaction reste ancré en bas. */}
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             <EssaiCommentaires idEssai={essai.id} />
           </div>
         </div>
@@ -354,6 +427,11 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           </svg>
           <span style={{ writingMode: 'vertical-rl', fontSize: '0.5rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>Commentaires</span>
         </button>
+      )}
+
+      {signalerOuvert && (
+        <ModalSignalement titre={`Publication : ${essai.titre}`} avecNiveauImportance
+          onClose={() => setSignalerOuvert(false)} onEnvoyer={envoyerSignalement} />
       )}
     </div>
   )

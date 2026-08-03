@@ -706,7 +706,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
                 blanc du dessin dans le papier du panneau. */}
             <img src="/ornements/carapace-vide.png" alt="" aria-hidden="true"
               style={{ width:'min(168px, 58%)', height:'auto', opacity:0.46, mixBlendMode:'multiply', marginBottom:'14px' }} />
-            <p style={{ fontSize:'0.74156rem', color:'#b0a89e', fontStyle:'italic', margin:0 }}>Aucun commentaire pour ce verset.</p>
+            <p style={{ fontSize:'0.74156rem', color:'#b0a89e', fontStyle:'italic', margin:0 }}>Aucun commentaire.</p>
           </div>
         )}
         {principaux.map(c => (
@@ -1224,10 +1224,11 @@ export default function PanneauPatristique({
                   color: onglet === t.code ? '#2a3d30' : '#8a8278',
                   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
                   transition:'color 0.12s, background 0.12s',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', gap: '2px',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
                 }}>
-                {/* Le libellé réserve deux lignes et se cale EN BAS : « Commentaires » (une
-                    ligne) descend donc au même niveau que « Pères de l'Église » (deux lignes). */}
+                {/* Le libellé réserve deux lignes et se cale EN BAS de sa boîte : « Commentaires »
+                    (une ligne) et « Pères de l'Église » (deux lignes) gardent ainsi leur compteur au
+                    même niveau, et le groupe libellé + compteur est centré verticalement par le bouton. */}
                 <span style={{ fontSize:'0.67094rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: onglet === t.code ? 600 : 400, minHeight: '2.3em', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', textAlign: 'center', lineHeight: 1.15 }}>{t.label}</span>
                 {t.count != null && t.count > 0 && (
                   <span style={{ fontSize: '0.63562rem', color: onglet === t.code ? '#3d6b4f' : '#b0a89e', fontWeight: 500, lineHeight: 1 }}>{t.count}</span>

@@ -114,10 +114,20 @@ export default async function AccueilPage() {
           padding: 4px 8px;
         }
         .accueil-stat + .accueil-stat { border-left: 1px solid #eae2cf; }
-        /* Ajouts récents : « lire » révélé en transparence au survol d'une ligne. */
-        .ajout-item .ajout-lire { opacity: 0; transition: opacity 0.15s ease; }
-        .ajout-item:hover .ajout-lire { opacity: 0.5; }
-        .ajout-item:hover .ajout-titre { color: #3d6b4f; }
+        /* Ajouts récents : au survol, « Lire » remplace TOUTE la ligne auteur-titre
+           (la date, elle, reste). Fondu croisé : le titre s'efface, « Lire » — en
+           lettres espacées, sobre et large — apparaît à sa place. */
+        .ajout-item .ajout-titre { transition: opacity 0.18s ease; }
+        .ajout-item:hover .ajout-titre { opacity: 0; }
+        .ajout-item .ajout-lire {
+          position: absolute; inset: 0;
+          display: flex; align-items: center; gap: 7px;
+          opacity: 0; transition: opacity 0.2s ease;
+          pointer-events: none;
+        }
+        .ajout-item:hover .ajout-lire { opacity: 1; }
+        .ajout-lire .fleche { transition: transform 0.24s cubic-bezier(0.22,0.61,0.36,1); }
+        .ajout-item:hover .ajout-lire .fleche { transform: translateX(3px); }
         @media (max-width: 760px) {
           .accueil-volets { grid-template-columns: 1fr; }
           .accueil-stats { flex-wrap: wrap; }
@@ -255,27 +265,21 @@ export default async function AccueilPage() {
           {/* Sections */}
           <ColophonSection titre="Origine">
             <p style={paraStyle}><em>Corpus Scriptura</em> est né en 2026. Son objet est d&rsquo;offrir un accès libre aux textes bibliques, aux œuvres patristiques et aux grands témoins de la tradition chrétienne. Il s&rsquo;adresse aux chercheurs comme aux simples lecteurs, à tous ceux qui veulent entrer plus avant dans l&rsquo;intelligence des Écritures.</p>
-            <p style={paraStyle}>Un système de commentaires permet à chacun d&rsquo;apporter sa contribution : une lecture, une référence, un rapprochement. Cette bibliothèque n&rsquo;est pas un monument clos, mais un chantier ouvert sur la communauté de ceux qui lisent.</p>
           </ColophonSection>
 
           <ColophonSection titre="Les textes">
-            <p style={paraStyle}>Chaque texte proposé appartient au domaine public ou est librement accessible. Nous puisons dans des éditions classiques et des bases ouvertes, avec le constant souci de rendre ces sources plus lisibles, plus sûres et plus facilement consultables.</p>
-            <p style={paraStyle}>Nous sollicitons également les éditeurs, institutions et ayants droit qui œuvrent à la transmission de la foi et de la culture chrétienne : toute autorisation d&rsquo;utilisation nous permet d&rsquo;étendre le corpus, d&rsquo;en favoriser la diffusion et d&rsquo;en assurer la conservation.</p>
+            <p style={paraStyle}>Chaque texte proposé appartient au domaine public. <em>Corpus Scriptura</em> puise dans des éditions classiques et des bases ouvertes, avec le constant souci de rendre ces sources plus lisibles, plus sûres et plus facilement consultables.</p>
+            <p style={paraStyle}>Les éditeurs, institutions et ayants droit engagés dans la transmission de la foi et de la culture chrétienne sont également sollicités : chaque autorisation d&rsquo;utilisation contribue à l&rsquo;enrichissement du corpus, à sa diffusion et à sa conservation.</p>
           </ColophonSection>
 
           <ColophonSection titre="L&rsquo;intelligence artificielle">
-            <p style={paraStyle}>L&rsquo;intelligence artificielle est employée comme outil d&rsquo;assistance : nettoyage des textes, découpage, structuration, établissement de rapprochements entre les versets bibliques et les œuvres patristiques.</p>
+            <p style={paraStyle}>L&rsquo;intelligence artificielle est employée comme outil d&rsquo;assistance : transcription des documents, nettoyage des textes, découpage, structuration, établissement de rapprochements entre les versets bibliques et les œuvres patristiques.</p>
             <p style={paraStyle}>Ce travail exige une vérification humaine constante. Les textes, les correspondances et les références doivent être relus, corrigés et confirmés. L&rsquo;IA ne remplace ni le jugement, ni la science, ni la prudence du lecteur.</p>
           </ColophonSection>
 
           <ColophonSection titre="Contributions">
-            <p style={paraStyle}>La bibliothèque s&rsquo;enrichit progressivement. Vous pouvez y contribuer en nous transmettant des textes patristiques du domaine public, soigneusement établis, ou en nous signalant corrections, références et erreurs à relever.</p>
-            <p style={paraStyle}>Si vous êtes artiste (peintre, graveur, illustrateur), des acquisitions d&rsquo;œuvres destinées à illustrer les Pères de l&rsquo;Église sont possibles : consultez la page <Link href="/bibliotheque" style={{ color: "#3d6b4f", textDecoration: "none", borderBottom: "1px dotted #8a7a5e" }}>Bibliothèque</Link>.</p>
-          </ColophonSection>
-
-          <ColophonSection titre="Soutenir">
-            <p style={paraStyle}>Le site est proposé en accès entièrement libre. Son développement suppose néanmoins du temps, des outils, des vérifications et un travail régulier de mise en forme et d&rsquo;établissement des textes.</p>
-            <p style={paraStyle}>Si vous souhaitez soutenir cette entreprise, un don, même modeste, peut être adressé depuis la page <Link href="/soutenir" style={{ color: "#3d6b4f", textDecoration: "none", borderBottom: "1px dotted #8a7a5e" }}>Soutenir le projet</Link>. Votre aide contribue directement à l&rsquo;enrichissement de la bibliothèque et à la mise en ligne de nouvelles œuvres.</p>
+            <p style={paraStyle}>Cette bibliothèque n&rsquo;est pas un monument clos, mais un chantier ouvert à la communauté de ses lecteurs. Elle s&rsquo;enrichit progressivement grâce à la transmission de textes patristiques du domaine public, soigneusement établis, ainsi qu&rsquo;au signalement des corrections, références et erreurs à relever.</p>
+            <p style={paraStyle}>Si vous êtes artiste (peintre, graveur, illustrateur), des acquisitions d&rsquo;œuvres destinées à illustrer les Pères de l&rsquo;Église sont possibles.</p>
           </ColophonSection>
 
           {/* ── Colophon final — pyramide ─────────────────────────────────── */}
@@ -284,7 +288,7 @@ export default async function AccueilPage() {
           <div style={{ marginTop: "44px" }}>
             <div style={{ fontSize: "0.8125rem", lineHeight: "2.1", color: "#4a4a30", letterSpacing: "0.01em" }}>
               <div className="colophon-pyr-desktop">
-                <p style={{ maxWidth: "28.75rem", margin: "0 auto" }}>Imprimé sur le réseau des réseaux par les soins</p>
+                <p style={{ maxWidth: "28.75rem", margin: "0 auto" }}>Publié pour navigateur et mobile par les soins</p>
                 <p style={{ maxWidth: "23.75rem", margin: "0 auto" }}>de <em>Corpus Scriptura</em>, somme ouverte dédiée</p>
                 <p style={{ maxWidth: "18.75rem", margin: "0 auto" }}>à la lecture des Saintes Écritures</p>
                 <p style={{ maxWidth: "14.375rem", margin: "0 auto" }}>et des Pères de l&rsquo;Église,</p>
@@ -292,7 +296,7 @@ export default async function AccueilPage() {
                 <p style={{ maxWidth: "6.875rem", margin: "0 auto" }}>MMXXVI.</p>
               </div>
               <div className="colophon-pyr-mobile">
-                <p>Imprimé sur le réseau des réseaux</p>
+                <p>Publié pour navigateur et mobile</p>
                 <p>par les soins de <em>Corpus Scriptura</em>,</p>
                 <p>somme ouverte dédiée</p>
                 <p>à la lecture des Saintes Écritures</p>
@@ -408,7 +412,7 @@ function VoletUnMot() {
     <div className="accueil-carte" style={{ textAlign: "center", display: "flex", flexDirection: "column" }}>
       <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.2rem", fontWeight: "normal", color: "#1e2a1c", margin: "0 0 12px", letterSpacing: "0.01em" }}>Un mot</h2>
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        <p style={motStyle}><em>Corpus Scriptura</em> est un chantier mené seul, lentement, texte après texte. Mon intention est simple : rendre librement accessibles les Écritures, les écrits des Pères de l&rsquo;Église et des outils de lecture anciens ou difficiles d&rsquo;accès, en les établissant, en les contrôlant et en les reliant entre eux.</p>
+        <p style={motStyle}><em>Corpus Scriptura</em> est un chantier mené seul, lentement, texte après texte. Mon intention est de rendre accessibles les Écritures et les écrits des Pères de l&rsquo;Église, anciens ou difficiles d&rsquo;accès, en les établissant, en les contrôlant et en les reliant entre eux.</p>
         <p style={motStyle}>L&rsquo;accès au site restera gratuit. Si ce travail vous paraît utile, tout soutien, même modeste, est bienvenu : il permet de consacrer davantage de temps à la lecture, à l&rsquo;édition des textes, à leur vérification et à leur mise en ordre.</p>
       </div>
       {/* Signature rapprochée du texte : « Merci. » juste au-dessus de SQDV. */}
@@ -427,7 +431,7 @@ function VoletUnMot() {
 function formaterDateAjout(iso: string | null): string {
   if (!iso) return ""
   const d = new Date(iso)
-  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
 }
 
 function VoletAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
@@ -442,12 +446,16 @@ function VoletAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
           {recentes.map(o => (
             /* Date à GAUCHE (colonne fixe) ; « lire » révélé à droite au survol. */
             <li key={o.id_oeuvre} className="ajout-item" style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.65625rem", color: "#a99a78", whiteSpace: "nowrap", flexShrink: 0, minWidth: "5rem" }}>{formaterDateAjout(o.date_mise_en_ligne)}</span>
-              <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "10px", textDecoration: "none", color: "inherit", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
-                <span className="ajout-titre" style={{ fontSize: "0.78125rem", color: "#2a2c20", lineHeight: 1.32, transition: "color 0.15s ease" }}>
+              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.65625rem", color: "#a99a78", whiteSpace: "nowrap", flexShrink: 0, minWidth: "7.5rem" }}>{formaterDateAjout(o.date_mise_en_ligne)}</span>
+              <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ position: "relative", flex: 1, minWidth: 0, display: "block", textDecoration: "none", color: "inherit", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
+                <span className="ajout-titre" style={{ display: "block", fontSize: "0.78125rem", color: "#2a2c20", lineHeight: 1.32 }}>
                   {o.auteur}{o.auteur && o.titre ? ", " : ""}<em>{o.titre}</em>
                 </span>
-                <span className="ajout-lire" aria-hidden="true" style={{ fontSize: "0.65625rem", fontStyle: "italic", color: "#3d6b4f", letterSpacing: "0.04em", flexShrink: 0 }}>lire</span>
+                {/* « Lire » : au survol, remplace toute la ligne auteur-titre. */}
+                <span className="ajout-lire" aria-hidden="true" style={{ fontSize: "0.84rem", fontWeight: 500, color: "#3d6b4f" }}>
+                  <span style={{ letterSpacing: "0.3em" }}>Lire</span>
+                  <span className="fleche" style={{ fontSize: "0.92em", opacity: 0.6 }}>→</span>
+                </span>
               </Link>
             </li>
           ))}

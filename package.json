@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "bible899:manifest": "tsx scripts/bible899/generate-manifest.ts",
+    "bible899:import": "tsx scripts/bible899/import-tei.ts"
   },
   "dependencies": {
     "@next/third-parties": "^16.2.12",
@@ -15,6 +18,7 @@
     "@supabase/supabase-js": "^2.108.1",
     "@types/dompurify": "^3.0.5",
     "dompurify": "^3.4.12",
+    "fast-xml-parser": "^5.10.1",
     "next": "16.2.9",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -29,6 +33,8 @@
     "eslint-config-next": "16.2.9",
     "png-to-ico": "^3.0.2",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.23.4",
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

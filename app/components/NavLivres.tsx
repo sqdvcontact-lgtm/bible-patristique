@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation'
 import DOMPurify from 'dompurify'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { supabase } from '@/app/lib/supabase'
+import { rendreSiecles } from '@/app/lib/siecles'
+import { FriseAuteur } from '@/app/components/ModaleAuteur'
+import { estUrl, type RangChrono } from '@/app/lib/frise'
 
 // Encart d'informations sur la traduction actuellement lue (volet gauche, Bible
 // classique). Taille FIXE (hauteur constante, contenu rogné) pour ne jamais faire
@@ -13,35 +16,64 @@ import { supabase } from '@/app/lib/supabase'
 // session du visiteur), et lien « En savoir plus » sur le modèle de la page Œuvre.
 // Petite fenêtre « À propos de cette traduction », sur le modèle de la page Œuvre.
 // Constituée de toute pièce à partir de la fiche `traductions` (chargée à l'ouverture).
-type InfoTradModale = { nom: string | null; auteur: string | null; dates: string | null; bio_courte: string | null; date_publication: string | null; confession: string | null; langue: string | null; schema_numerotation: string | null; source_edition: string | null; licence: string | null; commentaire_editorial: string | null }
+// Fiche de présentation — alimentée par la vue `v_traductions_page` (chargée par trad_id).
+type InfoTradModale = {
+  trad_id: string; nom: string | null; type_objet: string | null; auteur: string | null
+  responsable_edition: string | null; dates: string | null; bio_courte: string | null
+  date_publication: string | null; confession: string | null; langue: string | null
+  commentaire_editorial: string | null; photo: string | null
+  schema_numerotation: string | null
+  edition_reference_affichee: string | null; edition_reference_url: string | null
+  licence_traduction: string | null; mention_obligatoire: string | null
+  statut_corpus_public: string | null; lacunes_publiques: string | null
+  titre_edition: string | null; sous_titre_edition: string | null
+  editeur: string | null; annee_edition: string | null; lieu_edition: string | null
+  source_type: string | null; source_numerique_nom: string | null; source_numerique_url: string | null
+  graphie: string | null; particularites: string | null; integrite_verifiee: boolean | null
+}
+
+// Intitulé juste selon le type d'objet (jamais la valeur technique brute).
+function intituleTraduction(i: InfoTradModale): string | null {
+  const a = i.auteur?.trim() || null
+  if (i.type_objet === 'edition_critique') { const r = i.responsable_edition?.trim() || a; return r ? `Édition critique établie par ${r}` : null }
+  if (i.type_objet === 'recension') return a ? `Recension de ${a}` : null
+  if (i.type_objet === 'traduction') return a ? `Traduction de ${a}` : null
+  return a
+}
 
 // Libellé lisible du schéma de numérotation stocké en base.
 const NUMEROTATION_LABEL: Record<string, string> = {
   vulgate: 'Vulgate (latine)', hebreu: 'Hébraïque', grec: 'Grecque', septante: 'Septante (grecque)',
 }
 
-// Le commentaire éditorial est un HTML d'administration fait de sections
-// « <h1>Titre</h1> texte ». On le découpe pour un rendu élégant (titre en petites
-// capitales, corps en serif), plutôt qu'un bloc brut aux <h1> démesurés.
-function decouperCommentaire(html: string): { titre: string; corps: string }[] {
-  const morceaux = html.split(/<h1>([\s\S]*?)<\/h1>/g)
-  const sections: { titre: string; corps: string }[] = []
-  const tete = (morceaux[0] ?? '').trim()
-  if (tete) sections.push({ titre: '', corps: tete })
-  for (let k = 1; k < morceaux.length; k += 2) {
-    const corps = (morceaux[k + 1] ?? '').trim()
-    const titre = (morceaux[k] ?? '').trim()
-    if (titre || corps) sections.push({ titre, corps })
-  }
-  return sections
+// Passe typographique française sur la prose éditoriale : espaces fines
+// insécables (avant ; ! ? et à l'intérieur des guillemets), insécable avant
+// « : », et siècles composés en petites capitales + exposant (XVIIᵉ siècle).
+// Ordre important : on pose les espaces AVANT d'injecter les <span>/<sup>
+// (dont le style contient des « : » qu'il ne faut pas toucher).
+function formaterProse(html: string): string {
+  const FINE = " ", INSEC = " "
+  let s = html
+    .replace(/[\s  ]*([;!?])/g, FINE + "$1")
+    .replace(/[\s  ]*:/g, INSEC + ":")
+    .replace(/«[\s  ]*/g, "«" + FINE)
+    .replace(/[\s  ]*»/g, FINE + "»")
+  // Siecles : petites capitales + exposant, uniquement devant « siecle ».
+  s = s.replace(/\b([IVXLCDM]+)(er|re|es|e)\b(?=\s+siècles?\b)/g,
+    (_m, rom, ord) => `<span style="font-variant:all-small-caps;letter-spacing:0.02em">${rom}</span><sup style="font-size:0.62em;line-height:0">${ord}</sup>`)
+  return s
 }
 
 function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFallback: string; onFermer: () => void }) {
   const [info, setInfo] = useState<InfoTradModale | null>(null)
+  const [chrono, setChrono] = useState<RangChrono[]>([])
   useEffect(() => {
     let annule = false
-    supabase.from('traductions').select('nom, auteur, dates, bio_courte, date_publication, confession, langue, schema_numerotation, source_edition, licence, commentaire_editorial').eq('trad_id', code).maybeSingle()
+    // Source unique : la vue de présentation, chargée par trad_id.
+    supabase.from('v_traductions_page').select('*').eq('trad_id', code).maybeSingle()
       .then(({ data }) => { if (!annule) setInfo((data as InfoTradModale | null) ?? ({} as InfoTradModale)) })
+    supabase.from('v_chronologie_traductions').select('*').eq('trad_id', code).order('ordre_affichage')
+      .then(({ data }) => { if (!annule) setChrono((data ?? []) as unknown as RangChrono[]) })
     return () => { annule = true }
   }, [code])
   useEffect(() => {
@@ -58,17 +90,36 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
       <span style={cle}>{c}</span><span style={{ flex: 1, fontSize: '0.8rem', color: '#3a3530', lineHeight: 1.45 }}>{children}</span>
     </div>
   ) : null
-  const titreSection: React.CSSProperties = { fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: '#6f9268', margin: '0 0 5px' }
-  const corpsSection: React.CSSProperties = { fontFamily: SERIF, fontSize: '0.8rem', lineHeight: 1.6, color: '#4a4038', margin: 0, textAlign: 'justify' }
+  const cleTech: React.CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#b8afa2', lineHeight: 1.5, paddingTop: '1px' }
+  const LigneTech = ({ c, children }: { c: string; children: React.ReactNode }) => children ? (
+    <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid #f3efe8', alignItems: 'baseline' }}>
+      <span style={cleTech}>{c}</span><span style={{ flex: 1, fontSize: '0.72rem', color: '#5a5450', lineHeight: 1.45 }}>{children}</span>
+    </div>
+  ) : null
+  const Consulter = ({ url, libelle }: { url: string | null; libelle: string }) => (url && estUrl(url))
+    ? <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline', textUnderlineOffset: '2px' }}>{libelle}</a> : null
+
   const numerotation = i.schema_numerotation ? (NUMEROTATION_LABEL[i.schema_numerotation] ?? i.schema_numerotation) : null
+  const intitule = intituleTraduction(i)
+  const anneeLieu = [i.annee_edition, i.lieu_edition].filter(Boolean).join(' — ')
+  const verif = i.integrite_verifiee == null ? null : (i.integrite_verifiee ? 'Texte vérifié' : 'Contrôle en cours')
+  const licenceDP = (i.licence_traduction ?? '').toLowerCase().includes('domaine public')
+
   return createPortal(
     <div onClick={onFermer} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}>
-      <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#fff', borderRadius: '10px', padding: '20px 26px 22px', width: '40rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+      <div role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#fff', borderRadius: '10px', padding: '20px 26px 22px', width: '40rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+        <style>{`
+          .trad-notice h2 { font-family: ${SERIF}; font-size: 0.95rem; font-weight: 600; color: #3a4a34; margin: 13px 0 3px; }
+          .trad-notice h2:first-child { margin-top: 0; }
+          .trad-notice p { font-size: 0.8rem; line-height: 1.4; color: #4a4038; margin: 0 0 8px; text-align: justify; }
+          .trad-tech > summary { list-style: none; cursor: pointer; }
+          .trad-tech > summary::-webkit-details-marker { display: none; }
+        `}</style>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '10px' }}>
           <div style={{ minWidth: 0 }}>
             <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: '#6f9268', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette traduction</p>
-            <p style={{ fontFamily: SERIF, fontSize: '1.15rem', color: '#1e2a1c', margin: 0, fontWeight: 500 }}>{i.nom || nomFallback}</p>
-            {i.auteur && <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontStyle: 'italic', color: '#7c7369', margin: '2px 0 0' }}>{i.auteur}{i.dates ? ` (${i.dates})` : ''}</p>}
+            <h1 style={{ fontFamily: SERIF, fontSize: '1.15rem', color: '#1e2a1c', margin: 0, fontWeight: 500, lineHeight: 1.25 }}>{i.nom || nomFallback}</h1>
+            {intitule && <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontStyle: 'italic', color: '#7c7369', margin: '2px 0 0' }}>{rendreSiecles(intitule)}{i.dates ? ` (${i.dates})` : ''}</p>}
           </div>
           <button onClick={onFermer} aria-label="Fermer" style={{ fontSize: '1rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0 }}>✕</button>
         </div>
@@ -76,26 +127,59 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
           <p style={{ fontSize: '0.8rem', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>Chargement…</p>
         ) : (
           <>
-            {/* Bio du traducteur : discrète, un cran plus petite et en italique. */}
-            {i.bio_courte && <p style={{ fontFamily: SERIF, fontSize: '0.72rem', fontStyle: 'italic', color: '#6f665c', lineHeight: 1.55, margin: '0 0 14px' }}>{i.bio_courte}</p>}
-            {/* Fiche claire, alimentée par les champs de la base. */}
-            <div style={{ marginBottom: '16px' }}>
-              <Ligne c="Publication">{i.date_publication}</Ligne>
+            {i.bio_courte && <p style={{ fontFamily: SERIF, fontSize: '0.72rem', fontStyle: 'italic', color: '#6f665c', lineHeight: 1.55, margin: '0 0 14px' }}>{rendreSiecles(i.bio_courte)}</p>}
+
+            {/* 2. Métadonnées principales. */}
+            <div style={{ marginBottom: '10px' }}>
+              <Ligne c="Première publication">{i.date_publication}</Ligne>
               <Ligne c="Confession">{i.confession}</Ligne>
               <Ligne c="Langue">{i.langue}</Ligne>
               <Ligne c="Numérotation">{numerotation}</Ligne>
-              <Ligne c="Édition de référence">{i.source_edition}</Ligne>
-              <Ligne c="Licence">{i.licence}</Ligne>
             </div>
-            {/* Notice éditoriale : sections « La conception », « Le style »… mises en forme. */}
+
+            {/* 3. Statut bref du corpus (mention sobre, sans jauge ni voyant). */}
+            {i.statut_corpus_public && (
+              <div style={{ margin: '0 0 16px', padding: '7px 11px', borderRadius: '6px', background: '#f6f3ec', border: '1px solid #ece5d8' }}>
+                <p style={{ margin: 0, fontFamily: SERIF, fontSize: '0.76rem', color: '#4a4a34' }}>{i.statut_corpus_public}</p>
+                {i.lacunes_publiques && <p style={{ margin: '3px 0 0', fontFamily: SERIF, fontSize: '0.68rem', color: '#8a8272', fontStyle: 'italic', lineHeight: 1.45 }}>{i.lacunes_publiques}</p>}
+              </div>
+            )}
+
+            {/* 4. Notice éditoriale : HTML (h2/p) rendu tel quel, aux styles de la page. */}
             {i.commentaire_editorial && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderTop: '1px solid #efeae0', paddingTop: '15px' }}>
-                {decouperCommentaire(i.commentaire_editorial).map((s, k) => (
-                  <div key={k}>
-                    {s.titre && <p style={titreSection}>{s.titre}</p>}
-                    <div style={corpsSection} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(s.corps) }} />
-                  </div>
-                ))}
+              <div className="trad-notice" style={{ borderTop: '1px solid #efeae0', paddingTop: '13px', marginBottom: '16px' }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formaterProse(i.commentaire_editorial)) }} />
+            )}
+
+            {/* 5. Édition et état du texte : section secondaire, repliable (natif, accessible). */}
+            <details className="trad-tech" style={{ borderTop: '1px solid #efeae0', paddingTop: '12px', marginBottom: '16px' }}>
+              <summary style={{ fontFamily: SERIF, fontSize: '0.82rem', fontWeight: 600, color: '#6b6250', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                <span aria-hidden style={{ fontSize: '0.6rem', color: '#b8afa2' }}>▸</span>
+                Édition et état du texte
+              </summary>
+              <div style={{ marginTop: '8px' }}>
+                <LigneTech c="Titre de l’édition">{i.titre_edition ? <>{i.titre_edition}{i.sous_titre_edition ? <><br /><span style={{ fontStyle: 'italic', color: '#8a8272' }}>{i.sous_titre_edition}</span></> : null}</> : null}</LigneTech>
+                <LigneTech c="Année et lieu">{anneeLieu || null}</LigneTech>
+                <LigneTech c="Éditeur">{i.editeur}</LigneTech>
+                <LigneTech c="Responsable de l’édition">{i.responsable_edition}</LigneTech>
+                {/* Édition de référence (imprimée) et source numérique : jamais fusionnées. */}
+                <LigneTech c="Édition de référence">{i.edition_reference_affichee ? <>{i.edition_reference_affichee}{i.edition_reference_url ? <> · <Consulter url={i.edition_reference_url} libelle="Consulter le fac-similé" /></> : null}</> : (i.edition_reference_url ? <Consulter url={i.edition_reference_url} libelle="Consulter le fac-similé" /> : null)}</LigneTech>
+                <LigneTech c="Source numérique">{i.source_numerique_nom ? <>{i.source_numerique_nom}{i.source_numerique_url ? <> · <Consulter url={i.source_numerique_url} libelle="Voir la source numérique" /></> : null}</> : (i.source_numerique_url ? <Consulter url={i.source_numerique_url} libelle="Voir la source numérique" /> : null)}</LigneTech>
+                <LigneTech c="Graphie">{i.graphie}</LigneTech>
+                <LigneTech c="Numérotation">{numerotation}</LigneTech>
+                <LigneTech c="Particularités">{i.particularites}</LigneTech>
+                <LigneTech c="Licence">{licenceDP ? 'Domaine public' : (i.licence_traduction || null)}</LigneTech>
+                {i.mention_obligatoire && <LigneTech c="Mention obligatoire">{i.mention_obligatoire}</LigneTech>}
+                <LigneTech c="Vérification">{verif}</LigneTech>
+                <LigneTech c="Lacunes connues">{i.lacunes_publiques}</LigneTech>
+              </div>
+            </details>
+
+            {/* 6. Frise chronologique — le composant même des pages d'auteur. */}
+            {chrono.length > 0 && (
+              <div style={{ borderTop: '1px solid #efeae0', paddingTop: '14px' }}>
+                <h2 style={{ fontFamily: SERIF, fontSize: '0.95rem', fontWeight: 600, color: '#3a4a34', margin: '0 0 12px' }}>Chronologie</h2>
+                <FriseAuteur evenements={chrono} />
               </div>
             )}
           </>
@@ -377,14 +461,14 @@ export default function NavLivres({
           padding: '2px 6px', borderRadius: '4px', fontSize: '0.85456rem',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           background: suggere ? 'rgba(61,107,79,0.12)' : actif ? 'rgba(61,107,79,0.10)' : 'transparent',
-          color: vide ? '#c0b8ae' : actif || suggere ? '#2a3d30' : '#4a4540',
+          color: vide ? '#b3bdb0' : actif || suggere ? '#2a3d30' : '#4f5f52',
           fontWeight: actif || suggere ? 600 : 400,
           border: suggere ? '1px solid rgba(61,107,79,0.30)' : '1px solid transparent',
           cursor: 'pointer', lineHeight: 1.4, boxSizing: 'border-box',
           opacity: vide ? 0.55 : 1,
         }}>
           <span>{livre.nom}</span>
-          {!vide && !sansChapitres && <span style={{ color: '#c0bab0', fontSize: '0.50497rem', flexShrink: 0, opacity: 0.55 }}>{ouvert ? '▲' : '▼'}</span>}
+          {!vide && !sansChapitres && <span style={{ color: '#a9b6a6', fontSize: '0.50497rem', flexShrink: 0, opacity: 0.55 }}>{ouvert ? '▲' : '▼'}</span>}
         </button>
 
         {montrerOptions && polyMode && onChoisirLivreEntier && (
@@ -394,8 +478,8 @@ export default function NavLivres({
               style={{
                 width: '100%', fontSize: '0.73803rem', height: '1.5rem', padding: '0 6px', borderRadius: '4px',
                 border: 'none', cursor: 'pointer', textAlign: 'center', letterSpacing: '0.02em',
-                background: entierSel ? '#3d6b4f' : '#e8e4dc',
-                color: entierSel ? '#fff' : '#6b6560',
+                background: entierSel ? '#3d6b4f' : '#f0f4ee',
+                color: entierSel ? '#fff' : '#7c8676',
                 fontWeight: entierSel ? 600 : 400, lineHeight: 1,
               }}>
               Livre entier

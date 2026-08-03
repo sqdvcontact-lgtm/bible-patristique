@@ -14,6 +14,7 @@
 // ────────────────────────────────────────────────────────────────────────────
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { cesurerGrec, codeLangue, copierSansCesuresGrecques } from "@/app/lib/grec";
 import { supabase } from "@/app/lib/supabase";
 import NavLivres from "@/app/components/NavLivres";
@@ -269,25 +270,26 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
 // ── Petites actions de la colonne N° (lecteur) : citer, signaler ──────────────────────
 // Mêmes symboles que les pages Bible et Œuvre : le signet ajoute le verset à « mes
 // citations », le fanion ouvre un signalement. Discrets, révélés au survol de la ligne.
-const ACT_BTN: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 0, width: 14, height: 10, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: '0.625rem', lineHeight: 1, transition: "color .15s" };
+const ACT_BTN: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 0, width: 16, height: 16, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: '0.85rem', lineHeight: 1, transition: "color .15s" };
 function IconeSignet({ rempli }: { rempli?: boolean }) {
   return (
-    <svg width="10" height="11" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display: "block" }}>
+    <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display: "block" }}>
       <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill={rempli ? "currentColor" : "none"} />
     </svg>
   );
 }
-// Fanion de signalement dessiné au MÊME gabarit que le signet (SVG 10×11, trait 1,25),
-// pour que les deux symboles de la colonne de références aient exactement la même taille
-// (le glyphe « ⚑ » se rendait bien plus gros).
-function IconeFanion() {
+// Drapeau de signalement, au MÊME gabarit que le signet (11×12, viewBox 12×13, même trait)
+// pour que les deux actions de cellule aient exactement la même taille.
+function IconeSignaler() {
   return (
-    <svg width="10" height="11" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display: "block" }}>
-      <path d="M3.4 1.3V11.7" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
-      <path d="M3.4 2.1H9.6L8 4.3L9.6 6.5H3.4Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none" />
+    <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display: "block" }}>
+      <path d="M3.4 1.4V11.6" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+      <path d="M3.4 2.1L9.4 4.05L3.4 6" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none" />
     </svg>
   );
 }
+// Signalement : le MÊME symbole que la page Bible classique — le glyphe « ⚑ »
+// (U+2691), pour que le drapeau soit identique partout sur le site.
 
 // Bouton « citer » à bascule : ajoute le verset à « mes citations » s'il n'y est pas,
 // l'en retire s'il y est déjà (signet plein = enregistré). Réservé aux comptes connectés.
@@ -322,7 +324,7 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
   return (
     <button onClick={basculer} title={saved ? "Retirer de mes citations" : "Ajouter à mes citations"} className="poly-act"
       onMouseEnter={() => setSurvol(true)} onMouseLeave={() => setSurvol(false)}
-      style={{ ...ACT_BTN, color: montrerCroix ? "#b5502f" : saved ? VERT : "#b7ad9a", opacity: saved ? 1 : undefined }}
+      style={{ ...ACT_BTN, color: montrerCroix ? "#b5502f" : saved ? VERT : "#b7ad9a" }}
       aria-label={saved ? "Retirer de mes citations" : "Ajouter à mes citations"}>
       {busy ? "…" : montrerCroix ? "✕" : <IconeSignet rempli={!!saved} />}
     </button>
@@ -345,8 +347,162 @@ function BoutonSignalerVerset({ refLisible, texte }: { refLisible: string; texte
   return (
     <>
       <button onClick={e => { e.stopPropagation(); setOuvert(true); }} title="Signaler une erreur" className="poly-act"
-        style={{ ...ACT_BTN, color: "#b7ad9a" }} aria-label="Signaler"><IconeFanion /></button>
+        style={{ ...ACT_BTN, color: "#b7ad9a" }} aria-label="Signaler"><IconeSignaler /></button>
       {ouvert && <ModalSignalement titre={refLisible} texteObjet={texte || undefined} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
+    </>
+  );
+}
+
+// Cellule sans texte : une mention centrée, en italique discrète, qui dit clairement
+// que la traduction ne porte pas ce verset (au lieu d'un simple tiret muet). Pour les
+// passages deutérocanoniques, une infobulle explique POURQUOI la case est vide.
+function CelluleAbsente({ deutero }: { deutero?: boolean }) {
+  return (
+    <span
+      title={deutero ? "Ce passage nous est parvenu en grec, non en hébreu. Les Bibles catholique et orthodoxe le reçoivent ; la Bible protestante et la Bible hébraïque ne le comptent pas parmi les livres canoniques. La case est donc vide pour cette traduction, et non par oubli." : undefined}
+      style={{ display: "block", textAlign: "center", fontStyle: "italic", color: "#b3a89b", fontSize: "0.72rem", lineHeight: 1.35, padding: "3px 6px", cursor: deutero ? "help" : "default" }}>
+      {deutero ? "Absent des Bibles hébraïque et protestante" : "Cette traduction ne contient pas ce verset"}
+    </span>
+  );
+}
+
+// Cellule de la colonne « Notes » : vide, elle montre une invite centrée et discrète
+// (« Note sur Gn 1, 6 ») ; au clic, elle devient une vraie zone de saisie (sans poignée
+// d'étirement). L'enregistrement se fait via `onChange` (débouncé côté parent).
+function CelluleNote({ valeur, refLisible, onChange }: {
+  valeur: string; refLisible: string; onChange: (t: string) => void;
+}) {
+  const [focus, setFocus] = useState(false);
+  const demarrer = useRef(false);
+  const vide = !valeur.trim();
+  if (vide && !focus) {
+    return (
+      <button onClick={() => { demarrer.current = true; setFocus(true); }}
+        style={{ width: "100%", minHeight: "1.9rem", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center",
+          background: "none", border: "none", borderRadius: 4, cursor: "text",
+          fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: "italic", fontSize: "0.66rem",
+          color: "#a7b0a6", padding: "3px 6px", lineHeight: 1.3 }}>
+        Prendre une note sur {refLisible}
+      </button>
+    );
+  }
+  return (
+    <textarea value={valeur} onChange={e => onChange(e.target.value)}
+      ref={el => { if (el && demarrer.current) { el.focus(); demarrer.current = false; } }}
+      onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
+      style={{ width: "100%", resize: "none", minHeight: "1.9rem", boxSizing: "border-box", border: "1px solid #e4e0d6", borderRadius: 4,
+        background: "rgba(255,255,255,0.8)", padding: "3px 6px", fontFamily: "var(--font-source-sans), Arial, sans-serif",
+        fontSize: "0.72rem", lineHeight: 1.35, color: "#2a2620", outline: "none" }} />
+  );
+}
+
+// Choix d'une traduction : un menu déroulant SOIGNÉ (popover) à la place du select
+// natif. Un clic sur le nom ouvre une liste claire — nom + millésime, coche sur la
+// traduction active, et mention d'échange quand la traduction est déjà affichée
+// ailleurs. Le panneau est rendu en portail (fixed) pour échapper à l'`overflow`
+// de l'en-tête collant.
+// Groupes du menu de traductions, par langue.
+const GROUPES_LANG: { code: string; label: string }[] = [
+  { code: "fr", label: "Français" },
+  { code: "la", label: "Latin" },
+  { code: "grc", label: "Grec" },
+];
+
+function ChoixTraduction({ trads, slots, index, onChoisir }: {
+  trads: Trad[]; slots: string[]; index: number; onChoisir: (index: number, val: string) => void;
+}) {
+  const [ouvert, setOuvert] = useState(false);
+  const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const panRef = useRef<HTMLDivElement>(null);
+  const courante = trads.find(t => t.trad_id === slots[index]) ?? null;
+
+  useEffect(() => {
+    if (!ouvert) return;
+    const onDoc = (e: MouseEvent) => {
+      if (btnRef.current?.contains(e.target as Node) || panRef.current?.contains(e.target as Node)) return;
+      setOuvert(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOuvert(false); };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDoc); document.removeEventListener("keydown", onKey); };
+  }, [ouvert]);
+
+  const basculer = () => {
+    const r = btnRef.current?.getBoundingClientRect();
+    if (r) setRect({ top: r.bottom + 4, left: r.left, width: Math.max(r.width, 236) });
+    setOuvert(o => !o);
+  };
+  const choisir = (val: string) => { onChoisir(index, val); setOuvert(false); };
+
+  const ligne = (actif: boolean): React.CSSProperties => ({
+    display: "flex", alignItems: "flex-start", gap: 8, width: "100%", textAlign: "left",
+    padding: "7px 10px", borderRadius: 5, border: "none", cursor: "pointer",
+    background: actif ? "rgba(61,107,79,0.10)" : "transparent",
+    fontFamily: "var(--font-source-sans), Arial, sans-serif",
+  });
+  const coche = (actif: boolean) => (
+    <span aria-hidden style={{ width: 12, flexShrink: 0, color: VERT, paddingTop: 2, fontSize: "0.75rem" }}>{actif ? "✓" : ""}</span>
+  );
+
+  return (
+    <>
+      <button ref={btnRef} onClick={basculer} className="poly-trad-pick" title="Changer de traduction"
+        aria-haspopup="listbox" aria-expanded={ouvert}
+        style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minWidth: 0, padding: "4px 18px 4px 6px", borderRadius: 4, background: "none", border: "none", cursor: "pointer", color: "inherit", transition: "background .15s, box-shadow .15s" }}>
+        <span aria-hidden style={{ minWidth: 0, textAlign: "center", lineHeight: 1.06 }}>
+          <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.78125rem", color: "rgba(255,255,255,0.96)" }}>
+            {courante?.nom ?? "Choisir une traduction"}
+          </span>
+          {courante?.edition && (
+            <span style={{ display: "block", marginTop: 6, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.53125rem", fontWeight: 600, letterSpacing: "0.18em", textIndent: "0.18em", color: "rgba(255,255,255,0.62)" }}>
+              {courante.edition}
+            </span>
+          )}
+        </span>
+        <svg aria-hidden width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ position: "absolute", right: 7, top: "50%", transform: `translateY(-50%) rotate(${ouvert ? 180 : 0}deg)`, transition: "transform .15s", pointerEvents: "none", color: "rgba(255,255,255,0.72)" }}>
+          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      {ouvert && rect && createPortal(
+        <div ref={panRef} role="listbox"
+          style={{ position: "fixed", top: rect.top, left: rect.left, width: rect.width, zIndex: 3000,
+            background: "#fff", border: "1px solid #d6d0c4", borderRadius: 9, boxShadow: "0 12px 34px rgba(40,30,15,0.22)",
+            padding: 5, maxHeight: "62vh", overflowY: "auto" }}>
+          {GROUPES_LANG.map(g => {
+            const membres = trads.filter(t => t.lang === g.code);
+            if (!membres.length) return null;
+            return (
+              <div key={g.code} role="group" aria-label={g.label}>
+                {/* En-tête de groupe de langue : Français / Latin / Grec. */}
+                <div style={{ padding: "6px 10px 3px", fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#a2988b" }}>{g.label}</div>
+                {membres.map(t => {
+                  const actif = slots[index] === t.trad_id;
+                  const ailleurs = slots.some((x, idx) => idx !== index && x === t.trad_id);
+                  return (
+                    <button key={t.trad_id} role="option" aria-selected={actif} onClick={() => choisir(t.trad_id)}
+                      style={ligne(actif)}
+                      onMouseEnter={e => { if (!actif) e.currentTarget.style.background = "rgba(61,107,79,0.06)"; }}
+                      onMouseLeave={e => { if (!actif) e.currentTarget.style.background = "transparent"; }}>
+                      {coche(actif)}
+                      <span style={{ minWidth: 0 }}>
+                        <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "#1e2a1c", lineHeight: 1.25 }}>{t.nom}</span>
+                        <span style={{ display: "block", fontSize: "0.625rem", color: "#9a8f80", marginTop: 1 }}>
+                          {t.edition ?? ""}
+                          {ailleurs && courante && <span style={{ color: "#b07d1e" }}>{t.edition ? " · " : ""}Échange avec la position de {courante.nom}</span>}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>,
+        document.body,
+      )}
     </>
   );
 }
@@ -388,7 +544,7 @@ export default function PolyglottePage() {
     const el = refTable.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const calc = () => {
-      const dispo = el.clientWidth - 36 - 46;   // paddings latéraux + colonne de référence (46px)
+      const dispo = el.clientWidth - 36 - 46 - 210;   // paddings + colonne de référence (46px) + colonne Notes (~13rem)
       const n = Math.max(MIN_SLOTS, Math.min(MAX_SLOTS, Math.floor(dispo / MIN_COL_PX)));
       autoRef.current = n;
       // La préférence utilisateur prime sur la mesure ; sinon on suit la largeur d'écran.
@@ -439,6 +595,45 @@ export default function PolyglottePage() {
   const [prelevs, setPrelevs] = useState<Map<string, string>>(new Map());
   const marquerCite = useCallback((cle: string, id: string) => setPrelevs(m => new Map(m).set(cle, id)), []);
   const retirerCite = useCallback((cle: string) => setPrelevs(m => { const n = new Map(m); n.delete(cle); return n; }), []);
+  // Notes personnelles par verset (colonne « Notes ») : canon_id → texte. Enregistrées
+  // sur le compte (table polyglotte_notes, RLS par utilisateur). Écriture débouncée.
+  const [notes, setNotes] = useState<Map<string, string>>(new Map());
+  const [notesReduites, setNotesReduites] = useState(false);   // colonne Notes repliée en rail
+  // Persistance de l'état fermé/ouvert de la colonne Notes : conservé d'une visite à l'autre.
+  useEffect(() => {
+    try { if (window.localStorage.getItem("polyglotte-notes-reduites") === "1") setNotesReduites(true); } catch { /* stockage indisponible */ }
+  }, []);
+  const notesInit = useRef(false);
+  useEffect(() => {
+    if (!notesInit.current) { notesInit.current = true; return; }   // ne pas écraser au montage
+    try { window.localStorage.setItem("polyglotte-notes-reduites", notesReduites ? "1" : "0"); } catch { /* stockage indisponible */ }
+  }, [notesReduites]);
+  const timersNotes = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const majNote = useCallback((canonId: string, texte: string) => {
+    setNotes(m => new Map(m).set(canonId, texte));
+    if (!userId) return;
+    const timers = timersNotes.current;
+    const t0 = timers.get(canonId);
+    if (t0) clearTimeout(t0);
+    timers.set(canonId, setTimeout(() => {
+      timers.delete(canonId);
+      supabase.from("polyglotte_notes").upsert(
+        { user_id: userId, canon_id: canonId, texte, updated_at: new Date().toISOString() },
+        { onConflict: "user_id,canon_id" },
+      ).then(() => {});
+    }, 700));
+  }, [userId]);
+  // Choix d'une traduction dans une colonne : si elle est déjà affichée ailleurs,
+  // les deux colonnes échangent leur place ; sinon la colonne est simplement remplie.
+  const choisirTraduction = useCallback((index: number, val: string) => {
+    setSlots(s => {
+      const n = [...s];
+      const j = n.findIndex((x, idx) => idx !== index && x && x === val);
+      if (j !== -1) n[j] = n[index] ?? "";
+      n[index] = val;
+      return n;
+    });
+  }, []);
   // Verset en cours d'édition dans la petite fenêtre (ouverte par le crayon de survol).
   const [cibleEdition, setCibleEdition] = useState<{ id: string; texte: string; reference: string } | null>(null);
   const [enregistre, setEnregistre] = useState<"idle" | "envoi" | "ok" | "erreur">("idle");
@@ -585,14 +780,27 @@ export default function PolyglottePage() {
   useEffect(() => {
     if (!userId || !livresAffiches.length) { setPrelevs(new Map()); return; }
     const abrs = livresAffiches.map(l => ABREV_FR[l.code] ?? l.code);
-    supabase.from("prelevements").select("id, ref_livre_abr, ref_chapitre, ref_verset")
+    supabase.from("prelevements").select("id, ref_livre_abr, ref_chapitre, ref_verset, traduction")
       .eq("user_id", userId).eq("type", "biblique").in("ref_livre_abr", abrs)
       .then(({ data }) => {
         const m = new Map<string, string>();
-        for (const p of data ?? []) m.set(`${p.ref_livre_abr}|${p.ref_chapitre}|${p.ref_verset}`, p.id);
+        // Clé étendue au nom d'édition : chaque colonne (traduction) a son propre signet.
+        for (const p of data ?? []) m.set(`${p.ref_livre_abr}|${p.ref_chapitre}|${p.ref_verset}|${p.traduction}`, p.id);
         setPrelevs(m);
       });
   }, [userId, livresAffiches]);
+
+  // Charge toutes les notes personnelles de l'utilisateur (peu volumineuses), indexées
+  // par canon_id, pour remplir la colonne « Notes » des versets déjà annotés.
+  useEffect(() => {
+    if (!userId) { setNotes(new Map()); return; }
+    supabase.from("polyglotte_notes").select("canon_id, texte").eq("user_id", userId)
+      .then(({ data }) => {
+        const m = new Map<string, string>();
+        for (const n of data ?? []) if (n.texte) m.set(n.canon_id, n.texte);
+        setNotes(m);
+      });
+  }, [userId]);
 
   // Verset ciblé (barre de recherche du volet) : une fois le chapitre chargé, on y défile
   // et l'on efface le surlignage après un instant. Dépend de `canon` pour attendre le rendu.
@@ -680,7 +888,10 @@ export default function PolyglottePage() {
   // Une seule colonne par traduction : la référence d'origine n'a plus de colonne à elle,
   // elle est passée EN LETTRINE dans le bloc de texte, que le texte vient habiller. Tout
   // ce qu'occupait la colonne étroite revient donc au texte.
-  const tmpl = `46px ${slotCols.map(() => "minmax(0, 1fr)").join(" ")}`;
+  // Dernière colonne : les NOTES personnelles du lecteur (largeur fixe, hors du
+  // partage `fr` des traductions). Enregistrées par verset sur le compte.
+  const LARGEUR_NOTES = notesReduites ? "26px" : "13rem";
+  const tmpl = `46px ${slotCols.map(() => "minmax(0, 1fr)").join(" ")} ${LARGEUR_NOTES}`;
   const HAUT_ENTETE = 43;   // titre et date de l'édition, sur deux lignes
   const HAUT_TITRE  = 25;   // hauteur du bandeau portant le nom du livre
   const HAUT_NAV    = 10;   // blanc entre la NavBar et le haut du tableau
@@ -701,18 +912,45 @@ export default function PolyglottePage() {
           .poly-outil { display: none; }
           .poly-mobile { display: block; }
         }
-        /* Citer / signaler : empilés verticalement sous le numéro canonique, nus (aucun
-           fond) — ils ne se révèlent qu'au survol de la ligne. */
-        /* Légèrement desserrés ENTRE EUX (petit écart vertical), et décollés du numéro
-           canonique : c'est la marge haute qui les en sépare. */
-        .poly-actstack {
-          display: flex; flex-direction: column; align-items: center; gap: 9px;
-          width: -moz-fit-content; width: fit-content; margin: 6px auto 0;
-          line-height: 0;
+        /* Citer / signaler : un jeu DANS chaque cellule (une action par traduction),
+           posé en haut à droite, révélé au seul survol de la cellule. */
+        .poly-cellact {
+          position: absolute; top: 2px; right: 4px; z-index: 2;
+          display: flex; align-items: center; gap: 7px;
+          padding: 1px 5px; border-radius: 6px;
+          background: transparent; box-shadow: none;
+          transition: background .12s, box-shadow .12s;
+        }
+        /* Le bandeau clair n'apparaît qu'au survol de la cellule (au repos : rien). */
+        .poly-texte-cell:hover .poly-cellact {
+          background: rgba(255,255,255,0.88); box-shadow: 0 1px 3px rgba(45,35,25,0.14);
         }
         .poly-act { opacity: 0; transition: opacity .12s, color .15s; }
-        .poly-row:hover .poly-act { opacity: .85; }
+        .poly-texte-cell:hover .poly-act { opacity: .9; }
         .poly-act:hover { opacity: 1 !important; color: #8a6a52; }
+        /* En-tête « Notes » : au survol de toute la cellule, « Notes » s'efface et
+           « Fermer » apparaît à sa place (fondu croisé). */
+        .poly-notes-head .lbl-notes { transition: opacity .15s ease; }
+        .poly-notes-head .lbl-fermer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 3px; opacity: 0; transition: opacity .15s ease; pointer-events: none; }
+        .poly-notes-head:hover .lbl-notes { opacity: 0; }
+        .poly-notes-head:hover .lbl-fermer { opacity: 1; }
+        /* Rail réduit : le crayon s'éclaire au survol. */
+        .poly-notes-rail { transition: background .14s ease, color .14s ease; }
+        .poly-notes-rail:hover { background: rgba(255,255,255,0.14) !important; color: #fff !important; }
+        /* Surbrillance très légère de la ligne survolée. Elle passe par un filtre
+           (et non par le background) pour agir par-dessus les fonds inline — zébrage,
+           signalétique, surnuméraires — sans les remplacer. */
+        /* Rappel de la ligne survolée : une légère SURBRILLANCE (aucun mouvement, qui
+           gênerait la lecture), qui « respire » doucement toutes les 3 s pour rappeler
+           discrètement où se trouve le lecteur. */
+        .poly-row:hover, .poly-surnum-row:hover { filter: brightness(0.958); animation: poly-rappel-ligne 3s ease-in-out infinite; }
+        @keyframes poly-rappel-ligne {
+          0%, 100% { filter: brightness(0.972); }
+          50% { filter: brightness(0.935); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .poly-row:hover, .poly-surnum-row:hover { animation: none; }
+        }
         /* Le menu natif reste posé sur toute la surface, mais son choix est composé en
            deux lignes : titre en sérif, date plus discrète, sans ponctuation parasite. */
         .poly-trad-pick:hover { background: rgba(255,255,255,0.06); }
@@ -725,6 +963,7 @@ export default function PolyglottePage() {
            fragments courts, faute de quoi le navigateur renonce à couper. La langue de la
            cellule (attribut lang) décide du dictionnaire — voir codeLangue(). */
         .poly-texte-cell {
+          position: relative;
           min-width: 0;
           padding: 5px 10px 6px;
           text-align: justify;
@@ -752,7 +991,7 @@ export default function PolyglottePage() {
         /* Le numéro est petit, mais son étui fait EXACTEMENT une ligne de texte (1.26em,
            l'interligne de la cellule) : le flottant ne repousse donc qu'une seule ligne,
            et deux versets partageant un créneau en repoussent deux. */
-        .poly-lettrine-ref { display: block; white-space: nowrap; font-size: 8.5px; line-height: 1; }
+        .poly-lettrine-ref { display: block; white-space: nowrap; font-size: 12px; line-height: 1; }
         /* Le chapitre s'efface derrière le verset : les deux sont là, mais l'œil qui
            parcourt la colonne accroche le numéro qui change. */
         .poly-lettrine-ch { font-weight: 400; color: #a9bcb0; }
@@ -893,7 +1132,7 @@ export default function PolyglottePage() {
               <div style={{ position: "relative", background: VERT_ENTETE, color: "#fff", borderBottom: "1px solid rgba(255,255,255,0.18)" }}>
                 <div style={{ display: "grid", gridTemplateColumns: tmpl, alignItems: "center", minHeight: HAUT_TITRE }}>
                   <div />
-                  <div style={{ gridColumn: "2 / -1", padding: "3px 12px", textAlign: "center", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.90625rem', letterSpacing: "0.01em" }}>
+                  <div style={{ gridColumn: "2 / -2", padding: "3px 12px", textAlign: "center", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.90625rem', letterSpacing: "0.01em" }}>
                     {toutAfficher
                       ? LIBELLE_ONGLET[onglet]
                       : `${livres.find(l => l.code === livreChoisi)?.nom_fr ?? LIBELLE_ONGLET[onglet]}${chapitreChoisi != null ? ` · Chapitre ${chapitreChoisi}` : ""}`}
@@ -936,41 +1175,37 @@ export default function PolyglottePage() {
                     // en-tête sur sa voisine, et les quatre retombaient à la ligne en escalier.
                     <div key={k} style={{ borderLeft: "1px solid rgba(255,255,255,0.14)", padding: "0 4px", display: "flex", alignItems: "stretch", justifyContent: "center", minWidth: 0 }}>
                       {/* Le nom est un menu déroulant : soulignement pointillé + chevron pour
-                          qu'on voie qu'il se clique. Les traductions déjà affichées ailleurs
-                          sont grisées et non sélectionnables. Le libellé porte l'année d'édition. */}
-                      <span className="poly-trad-pick" title="Cliquer pour changer de traduction"
-                        style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minWidth: 0, padding: "4px 18px 4px 6px", borderRadius: 4, transition: "background .15s, box-shadow .15s" }}>
-                        <span aria-hidden style={{ minWidth: 0, textAlign: "center", lineHeight: 1.06 }}>
-                          <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.78125rem', color: "rgba(255,255,255,0.96)" }}>
-                            {sc.trad?.nom ?? "Aucune traduction"}
-                          </span>
-                          {/* Le millésime seul, en petites capitales espacées, sous le nom.
-                              Sans filet de séparation : le simple retrait vertical suffit à
-                              distinguer les deux lignes. */}
-                          {sc.trad?.edition && (
-                            <span style={{ display: "block", marginTop: 6, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.53125rem', fontWeight: 600, letterSpacing: "0.18em", textIndent: "0.18em", color: "rgba(255,255,255,0.62)" }}>
-                              {sc.trad.edition}
-                            </span>
-                          )}
-                        </span>
-                        <select value={slots[i] ?? ""} aria-label={`Traduction ${k + 1}`}
-                          onChange={e => setSlots(s => { const n = [...s]; n[i] = e.target.value; return n; })}
-                          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer" }}>
-                          <option value="" style={{ color: "#2a2620" }}>— aucune —</option>
-                          {trads.map(t => {
-                            const deja = t.trad_id !== slots[i] && slots.includes(t.trad_id);
-                            return <option key={t.trad_id} value={t.trad_id} disabled={deja} style={{ color: deja ? "#b0aaa0" : "#2a2620" }}>{t.label}{deja ? " (déjà affichée)" : ""}</option>;
-                          })}
-                        </select>
-                        {/* Chevron repris de la Polyglotte de recherche : plus fin et mieux
-                            dessiné que le « ▾ » unicode. */}
-                        <svg aria-hidden width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ position: "absolute", right: 7, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "rgba(255,255,255,0.72)" }}>
-                          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </span>
+                          qu'on voie qu'il se clique. Une traduction déjà affichée ailleurs peut être
+                          choisie : les deux colonnes s'échangent alors leur place (indiqué dans
+                          l'option). Le libellé porte l'année d'édition. */}
+                      <ChoixTraduction trads={trads} slots={slots} index={i} onChoisir={choisirTraduction} />
                     </div>
                   );
                 })}
+                {/* En-tête de la colonne Notes — réductible en rail. */}
+                <div style={{ borderLeft: "1px solid rgba(255,255,255,0.14)", padding: notesReduites ? 0 : "0 6px", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, minWidth: 0 }}>
+                  {notesReduites ? (
+                    /* Colonne fermée : un simple crayon, propre et discret, pour rouvrir. */
+                    <button onClick={() => setNotesReduites(false)} title="Afficher la colonne Notes" className="poly-notes-rail"
+                      style={{ background: "rgba(255,255,255,0.06)", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.8)", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", padding: 0 }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3z"/>
+                        <path d="M13.5 6.5l3 3"/>
+                      </svg>
+                    </button>
+                  ) : (
+                    /* Colonne ouverte : toute la cellule est cliquable ; au survol, « Notes »
+                       laisse place à « Fermer ». */
+                    <button onClick={() => setNotesReduites(true)} title="Fermer la colonne Notes" className="poly-notes-head"
+                      style={{ background: "none", border: "none", cursor: "pointer", width: "100%", height: "100%", padding: 0, position: "relative", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.7)" }}>
+                      <span className="lbl-notes" style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.53125rem", fontWeight: 700, letterSpacing: "0.16em", textIndent: "0.16em", textTransform: "uppercase" }}>Notes</span>
+                      <span className="lbl-fermer" style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.53125rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.92)" }}>
+                        Fermer
+                        <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M3.5 2L6.5 5L3.5 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </span>
+                    </button>
+                  )}
+                </div>
               </div>
               </div>
             </div>
@@ -992,11 +1227,11 @@ export default function PolyglottePage() {
               ? `Verset hors ossature canonique, porté par ${editions} éditions au même numéro (${g.ch}, ${g.v})`
               : `Verset propre à cette édition — hors ossature canonique (${g.ch}, ${g.v})`;
             return (
-              <div key={cle} style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid #e3e0f2", fontSize: '0.875rem' }}>
+              <div key={cle} className="poly-surnum-row" style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid #e3e0f2", fontSize: '0.875rem' }}>
                 {/* « ✦ » plutôt que « ＋ » : le plus disait « on a ajouté quelque chose », ce qui
                     est faux et un peu comptable. L'étoile marque un verset qui existe hors de
                     l'ossature, sans porter de jugement sur sa légitimité. */}
-                <div title={titre} style={{ padding: "5px 6px", whiteSpace: "nowrap", fontWeight: 700, fontSize: '0.71875rem', color: SURNUM, borderRight: `2px solid ${SURNUM}` }}>✦</div>
+                <div title={titre} style={{ padding: "5px 6px", textAlign: "center", whiteSpace: "nowrap", fontWeight: 700, fontSize: '0.71875rem', color: SURNUM, borderRight: `2px solid ${SURNUM}` }}>✦</div>
                 {slotCols.map((sc, i) => {
                   const r = sc.trad ? g.par.get(sc.trad.trad_id) : undefined;
                   return (
@@ -1013,10 +1248,19 @@ export default function PolyglottePage() {
                           </span>
                         </span>
                       )}
-                      {!sc.trad ? "" : r ? texteCesure(r.texte, sc.trad.lang) : "—"}
+                      {/* Signalement au survol : un surnuméraire n'a pas de référence canonique,
+                          on signale donc sur sa numérotation d'origine. */}
+                      {r && sc.trad && (
+                        <span className="poly-cellact" onClick={e => e.stopPropagation()}>
+                          <BoutonSignalerVerset refLisible={`${ABREV_FR[g.livre] ?? g.livre} ${g.ch}, ${g.v}`} texte={r.texte ?? undefined} />
+                        </span>
+                      )}
+                      {!sc.trad ? "" : r ? texteCesure(r.texte, sc.trad.lang) : <CelluleAbsente />}
                     </div>
                   );
                 })}
+                {/* Colonne Notes : pas de note sur un surnuméraire (hors ossature du canon). */}
+                <div style={{ borderLeft: "1px solid #e3e0f2" }} />
               </div>
             );
           };
@@ -1089,32 +1333,26 @@ export default function PolyglottePage() {
                 const resiste = estAdmin && sens.resiste(l.code, r.ch_canon, r.v_canon);
                 const fond = resiste ? ROSE_FOND : signaler ? ROUGE_FOND : ligneVide ? "#e8ece8" : r.est_suscription ? "#e3eee6" : (idx % 2 ? VERT_ZEBRE : VERT_ZEBRE_CLAIR);
                 const apres = sensiblesOnly ? [] : (surnumApres.get(r.id) ?? []);
-                // Pour « mes citations » : le texte de la première traduction affichée qui
-                // porte ce verset (la colonne de gauche fait foi), avec son nom d'édition.
+                // Référence canonique lisible, partagée par les actions de chaque cellule
+                // (chaque cellule cite et signale SA propre traduction).
                 const abr = ABREV_FR[l.code] ?? l.code;
                 const refLisible = `${abr} ${r.ch_canon}, ${r.v_canon}`;
-                const cleCite = `${abr}|${r.ch_canon}|${r.v_canon}`;
-                let citeInfo: { texte: string; label: string } | null = null;
-                for (const t of colonnes) { const cc = (cellule.get(`${r.id}|${t.trad_id}`) ?? [])[0]; if (cc?.texte) { citeInfo = { texte: cc.texte, label: t.nom }; break; } }
                 return (
                   <Fragment key={r.id}>
                     <div className="poly-row" id={`poly-${l.code}-${r.ch_canon}-${r.v_canon}`}
                       style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? "#fff3c4" : fond, borderTop: "1px solid #dfe8e0", fontSize: '0.875rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_TITRE + HAUT_ENTETE + 8}px)`, transition: "background .4s" }}>
                       <div title={signaler ? desc : undefined} style={{ padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: '0.78125rem', lineHeight: 1.15, color: signaler ? ROUGE : ligneVide ? "#aeb4ae" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : "1px solid #dfe8e0" }}>
                         <div style={{ whiteSpace: "nowrap" }}>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</div>
-                        {/* Citer / signaler : empilés verticalement sous le numéro, dans un petit
-                            cartouche arrondi qui n'apparaît qu'au survol de la ligne. */}
-                        {!ligneVide && (
-                          <div className="poly-actstack" onClick={e => e.stopPropagation()}>
-                            {citeInfo && <BoutonCiterVerset userId={userId} saved={prelevs.get(cleCite) ?? null} cle={cleCite} refLivre={l.nom_fr} refAbr={abr} chapitre={r.ch_canon} verset={r.v_canon} texte={citeInfo.texte} traductionLabel={citeInfo.label} onSaved={marquerCite} onRemoved={retirerCite} />}
-                            <BoutonSignalerVerset refLisible={refLisible} texte={citeInfo?.texte} />
-                          </div>
-                        )}
                       </div>
                       {slotCols.map((sc, i) => {
                         if (!sc.trad) return <div key={i} style={{ borderLeft: "1px solid #dfe8e0" }} />;
                         const t = sc.trad;
                         const cs = cellule.get(`${r.id}|${t.trad_id}`) ?? [];
+                        // Actions propres à CETTE cellule : citer / signaler la traduction qu'elle
+                        // porte. Clé de citation étendue au nom d'édition pour que chaque colonne
+                        // ait son propre état « enregistré ».
+                        const texteCell = cs.map(c => c.texte).filter(Boolean).join(" ");
+                        const cleCite = `${abr}|${r.ch_canon}|${r.v_canon}|${t.nom}`;
                         return (
                           <div key={i} className="poly-texte-cell" lang={t.lang} onCopy={copierSansCesuresGrecques}
                             style={{ borderLeft: "1px solid #dfe8e0", color: signaler ? "#7a1d16" : "#2a302b" }}>
@@ -1149,19 +1387,29 @@ export default function PolyglottePage() {
                                 ))}
                               </span>
                             )}
+                            {/* Citer / signaler cette traduction — au survol de la cellule. */}
+                            {cs.length > 0 && (
+                              <span className="poly-cellact" onClick={e => e.stopPropagation()}>
+                                <BoutonCiterVerset userId={userId} saved={prelevs.get(cleCite) ?? null} cle={cleCite} refLivre={l.nom_fr} refAbr={abr} chapitre={r.ch_canon} verset={r.v_canon} texte={texteCell} traductionLabel={t.nom} onSaved={marquerCite} onRemoved={retirerCite} />
+                                <BoutonSignalerVerset refLisible={refLisible} texte={texteCell} />
+                              </span>
+                            )}
                             {cs.length === 0 ? (
-                              deuterocanonique(r.id)
-                                ? <span title={`Ce passage nous est parvenu en grec, non en hébreu. Les Bibles catholique et orthodoxe le reçoivent ; la Bible protestante et la Bible hébraïque ne le comptent pas parmi les livres canoniques. La case est donc vide pour cette traduction, et non par oubli.`}
-                                        style={{ color: "#9a8fb5", fontStyle: "italic", fontSize: '0.75rem', cursor: "help" }}>
-                                    Absent dans cette traduction
-                                  </span>
-                                : <span style={{ color: "#d3ccbf" }}>—</span>
+                              <CelluleAbsente deutero={deuterocanonique(r.id)} />
                             ) : cs.map((c, k) => (
                               <span key={k}>{k > 0 ? " " : ""}{texteCesure(c.texte, t.lang)}</span>
                             ))}
                           </div>
                         );
                       })}
+                      {/* Colonne Notes : note personnelle du verset (enregistrée sur le compte). */}
+                      <div style={{ borderLeft: "1px solid #dfe8e0", padding: notesReduites ? 0 : "3px 5px", display: "flex" }} onClick={e => e.stopPropagation()}>
+                        {notesReduites ? null : userId ? (
+                          <CelluleNote valeur={notes.get(r.id) ?? ""} refLisible={refLisible} onChange={t => majNote(r.id, t)} />
+                        ) : (
+                          <span style={{ fontSize: "0.6rem", fontStyle: "italic", color: "#b8b2a6", alignSelf: "center", margin: "0 auto" }}>Connectez-vous pour noter</span>
+                        )}
+                      </div>
                     </div>
                     {apres.map((sr, i) => ligneSurnum(sr, `sa-${r.id}-${i}`))}
                   </Fragment>

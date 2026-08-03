@@ -1,0 +1,2387 @@
+{
+  "generated_at": "2026-08-02T17:08:36.443Z",
+  "graine": "2026-08-02|heptateuque|controle-aleatoire-v1",
+  "methode": "Six segments par livre, classés par SHA-256(graine|segment_numero).",
+  "population": 3262,
+  "echantillon": 42,
+  "segments": [
+    {
+      "id": 548126,
+      "segment_numero": 403,
+      "segment_texte": "« Mais il ne voulut pas être consolé, et il disait : Ma tristesse me conduira aux enfers avec mon fils. » Que faut-il entendre ici par l’enfer ? sujet ordinaire d’une grande question. Est-ce exclusivement le séjour des méchants, ou le séjour commun aux bons et aux méchants après leur mort.",
+      "notes": null,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXVI",
+      "ref_niv2_texte": "Quel est l’enfer dont parle Jacob ?\nGenèse 37, 35",
+      "paragraphe": 1,
+      "livre": "Livre premier",
+      "score": "0075819601bd470b626527c2e3a94a8e3796929efc6db9038d7a52e1b2b94e3a",
+      "liens": [
+        {
+          "segment_id": 548126,
+          "canon_id": "GEN.37.35",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Citation et question sur la descente de Jacob aux enfers avec son fils (GEN.37.35).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.37.35",
+            "TR0001": "Alors tous ses enfans s’assemblerent, pour tâcher de soulager leur pere dans sa douleur : mais il ne voulut point recevoir de consolation, & il leur dit : Je pleurerai toujours jusqu’à ce que je descende avec mon fils au fond de la terre. Ainsi il continua toujours de pleurer.",
+            "TR0003": "Tous ses fils et toutes ses filles vinrent pour le consoler ; mais il refusa d’être consolé ; il disait : « Je descendrai dans le deuil vers mon fils au séjour des morts. » Et son père le pleura.",
+            "TR0004": "Congregatis autem cunctis liberis ejus ut lenirent dolorem patris, noluit consolationem accipere, sed ait : Descendam ad filium meum lugens in infernum. Et illo perseverante in fletu,"
+          }
+        },
+        {
+          "segment_id": 548126,
+          "canon_id": "GEN.37.35",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Citation et question sur la descente de Jacob aux enfers avec son fils (GEN.37.35).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.37.35",
+            "TR0001": "Alors tous ses enfans s’assemblerent, pour tâcher de soulager leur pere dans sa douleur : mais il ne voulut point recevoir de consolation, & il leur dit : Je pleurerai toujours jusqu’à ce que je descende avec mon fils au fond de la terre. Ainsi il continua toujours de pleurer.",
+            "TR0003": "Tous ses fils et toutes ses filles vinrent pour le consoler ; mais il refusa d’être consolé ; il disait : « Je descendrai dans le deuil vers mon fils au séjour des morts. » Et son père le pleura.",
+            "TR0004": "Congregatis autem cunctis liberis ejus ut lenirent dolorem patris, noluit consolationem accipere, sed ait : Descendam ad filium meum lugens in infernum. Et illo perseverante in fletu,"
+          }
+        }
+      ]
+    },
+    {
+      "id": 548261,
+      "segment_numero": 538,
+      "segment_texte": "Lorsque Jacob dit à son fils Joseph qu’il lui donne Sichem à part, et ajoute qu’il s’en est emparé avec son glaive et son arc, on est en droit de demander comment cela peut être vrai à la lettre. Car il acheta cette terre au prix de cent agneaux[[106]] ; et ne s’en rendit pas maître par le droit de conquête.",
+      "notes": "[[106]] Id. XXXIII, 19",
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXVII",
+      "ref_niv2_texte": "Sur le don que fait Jacob à Joseph du pays de Sichem.\nGenèse 48, 22",
+      "paragraphe": 1,
+      "livre": "Livre premier",
+      "score": "00f5619636e071786a10b920f0d36ed03afc96f6ea87c8bd190c75185dfa8021",
+      "liens": [
+        {
+          "segment_id": 548261,
+          "canon_id": "GEN.48.22",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Le don de Sichem par conquête est confronté à son achat antérieur (GEN.48.22).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.48.22",
+            "TR0001": "Je vous donne de plus qu’à vos freres cette part de mon bien que j’ai gagnée sur les Amorrhéens avec mon épée & mon arc.",
+            "TR0003": "Je te donne, de plus qu’à tes frères, une portion que j’ai prise de la main des Amorrhéens avec mon épée et mon arc. »",
+            "TR0004": "Do tibi partem unam extra fratres tuos, quam tuli de manu Amorrhæi in gladio et arcu meo."
+          }
+        },
+        {
+          "segment_id": 548261,
+          "canon_id": "GEN.33.19",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Le don de Sichem par conquête est confronté à son achat antérieur (GEN.33.19).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.33.19",
+            "TR0001": "Il acheta une partie du champ dans lequel il avoit dressé ses tentes, & en paya cent agneaux aux enfans d’Hemor pere de Sichem.",
+            "TR0003": "Il acheta des fils de Hémor, père de Sichem, pour cent késitas, la pièce de terre où il avait dressé sa tente ;",
+            "TR0004": "Emitque partem agri, in qua fixerat tabernacula, a filiis Hemor patris Sichem centum agnis."
+          }
+        },
+        {
+          "segment_id": 548261,
+          "canon_id": "GEN.48.22",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le don de Sichem par conquête est confronté à son achat antérieur (GEN.48.22).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.48.22",
+            "TR0001": "Je vous donne de plus qu’à vos freres cette part de mon bien que j’ai gagnée sur les Amorrhéens avec mon épée & mon arc.",
+            "TR0003": "Je te donne, de plus qu’à tes frères, une portion que j’ai prise de la main des Amorrhéens avec mon épée et mon arc. »",
+            "TR0004": "Do tibi partem unam extra fratres tuos, quam tuli de manu Amorrhæi in gladio et arcu meo."
+          }
+        },
+        {
+          "segment_id": 548261,
+          "canon_id": "GEN.33.19",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le don de Sichem par conquête est confronté à son achat antérieur (GEN.33.19).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.33.19",
+            "TR0001": "Il acheta une partie du champ dans lequel il avoit dressé ses tentes, & en paya cent agneaux aux enfans d’Hemor pere de Sichem.",
+            "TR0003": "Il acheta des fils de Hémor, père de Sichem, pour cent késitas, la pièce de terre où il avait dressé sa tente ;",
+            "TR0004": "Emitque partem agri, in qua fixerat tabernacula, a filiis Hemor patris Sichem centum agnis."
+          }
+        }
+      ]
+    },
+    {
+      "id": 547766,
+      "segment_numero": 43,
+      "segment_texte": "On demande pourquoi il est dit de Nembroth : « Celui-ci fut le premier de la race des géants sur la terre » puisque auparavant il est fait mention dans l’Écriture de la naissance des géants ? Serait-ce parce qu’il est ici question de la restauration d’un nouveau genre humain, du milieu du quel Nembroth apparut le premier comme un géant sur la terre ?",
+      "notes": null,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question XVIII",
+      "ref_niv2_texte": "Nembroth premier des géants après le déluge.\nGenèse 10, 8",
+      "paragraphe": 1,
+      "livre": "Livre premier",
+      "score": "01509d6829cbcd45869f0b7ef44aa780c427df9640fa3eefffc6cf7a5d0b7460",
+      "liens": [
+        {
+          "segment_id": 547766,
+          "canon_id": "GEN.10.8",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Citation explicite vérifiée de Nemrod comme premier homme puissant — ou géant selon le témoin suivi — sur la terre.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.10.8",
+            "TR0001": "Or Chus engendra Nemrod, qui commença à être puissant sur la terre.",
+            "TR0003": "Chus engendra Nemrod : celui-ci fut le premier un homme puissant sur la terre.",
+            "TR0004": "Porro Chus genuit Nemrod : ipse cœpit esse potens in terra,"
+          }
+        },
+        {
+          "segment_id": 547766,
+          "canon_id": "GEN.6.4",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Référence intentionnelle vérifiée à la mention antérieure des géants en Genèse 6,4.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.6.4",
+            "TR0001": "Or il y avoit des geans sur la terre en ce tems-là. Car depuis que les enfans de Dieu eurent épousé les filles des hommes, il en sortit des enfans qui furent des hommes puissans & fameux dans le siecle.",
+            "TR0003": "Or, les géants étaient sur la terre en ces jours-là, et cela après que les fils de Dieu furent venus vers les filles des hommes, et qu’elles leur eurent donné des enfants : ce sont là les héros renommés dès les temps anciens.",
+            "TR0004": "Gigantes autem erant super terram in diebus illis : postquam enim ingressi sunt filii Dei ad filias hominum, illæque genuerunt, isti sunt potentes a sæculo viri famosi."
+          }
+        },
+        {
+          "segment_id": 547766,
+          "canon_id": "GEN.10.8",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Interprétation du caractère premier de Nemrod en Genèse 10,8 après le renouvellement du genre humain.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.10.8",
+            "TR0001": "Or Chus engendra Nemrod, qui commença à être puissant sur la terre.",
+            "TR0003": "Chus engendra Nemrod : celui-ci fut le premier un homme puissant sur la terre.",
+            "TR0004": "Porro Chus genuit Nemrod : ipse cœpit esse potens in terra,"
+          }
+        }
+      ]
+    },
+    {
+      "id": 548061,
+      "segment_numero": 338,
+      "segment_texte": "L’Écriture dit en effet que Rébecca reçut des pendants d’oreilles du serviteur d’Abraham : ce qui n’eût pas eu lieu, s’il avait été défendu de porter des pendants-d’oreilles comme ornements. Les pendants d’oreilles qui furent apportés, comme on l’a dit, avec les idoles, étaient donc des amulettes des idoles.",
+      "notes": null,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXI",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre premier",
+      "score": "015643e17ff6518caf8272620866bc5b2c383749790177328de90cfd5302cea6",
+      "liens": [
+        {
+          "segment_id": 548061,
+          "canon_id": "GEN.24.47",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Référence intentionnelle vérifiée aux pendants donnés à Rébecca par le serviteur d’Abraham.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.24.47",
+            "TR0001": "Je l’ai ensuite interrogée, & je lui ai demandé : De qui êtes-vous fille ? Elle m’a répondu qu’elle étoit fille de Bathuel fils de Nachor & de Melcha sa femme. Je lui ai donc mis ces pendans-d’oreilles pour parer son visage, & lui ai mis ces brasselets aux bras.",
+            "TR0003": "Et je l’ai interrogée, en disant : De qui es-tu fille ? Elle a répondu : Je suis fille de Bathuel, le fils de Nachor, que Melcha lui a enfanté. Alors j’ai mis l’anneau à ses narines et les bracelets à ses mains.",
+            "TR0004": "Interrogavique eam, et dixi : Cujus es filia ? Quæ respondit : Filia Bathuelis sum, filii Nachor, quem peperit ei Melcha. Suspendi itaque inaures ad ornandam faciem ejus, et armillas posui in manibus ejus."
+          }
+        },
+        {
+          "segment_id": 548061,
+          "canon_id": "GEN.35.4",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le précédent de Rébecca distingue l’ornement licite des amulettes idolâtriques de Genèse 35,4.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.35.4",
+            "TR0001": "Ils lui donnerent donc tous les dieux étrangers qu’ils avoient, & les pendans-d’oreilles qui y étoient attachés : & Jacob les cacha dans la terre sous un terebinthe qui est derriere la ville de Sichem.",
+            "TR0003": "Et ils donnèrent à Jacob tous les dieux étrangers qui étaient entre leurs mains et les boucles qu’ils avaient aux oreilles, et Jacob les enfouit sous le térébinthe qui est à Sichem.",
+            "TR0004": "Dederunt ergo ei omnes deos alienos quos habebant, et inaures quæ erant in auribus eorum : at ille infodit ea subter terebinthum, quæ est post urbem Sichem."
+          }
+        }
+      ]
+    },
+    {
+      "id": 547940,
+      "segment_numero": 217,
+      "segment_texte": "Cependant si Abraham eut, après la mort de Sara, dix enfants de Céthura, il ne faut pas juger ce trait de sa vie d’après la coutume et les idées humaines, ni croire qu’il n’eut d’autre dessein que de se créer une nombreuse postérité.",
+      "notes": null,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question LXX",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre premier",
+      "score": "01c3f502614a7fc836c495a8d167275d0623208a11a79ccf8322d2acd5a9b502",
+      "liens": [
+        {
+          "segment_id": 547940,
+          "canon_id": "GEN.25.2",
+          "type": 2,
+          "fiabilite": "vérifié",
+          "motif": "Les enfants directs de Céthura sont repris dans le discours sur la postérité d’Abraham.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.25.2",
+            "TR0001": "qui lui enfanta Zamram, Jecsan, Madan, Madian, Jesboc, & Sué.",
+            "TR0003": "Et elle lui enfanta Zamran, Jecsan, Madan, Madian, Jesboc et Sué. —",
+            "TR0004": "quæ peperit ei Zamran et Jecsan, et Madan, et Madian, et Jesboc, et Sue."
+          }
+        },
+        {
+          "segment_id": 547940,
+          "canon_id": "GEN.25.3",
+          "type": 2,
+          "fiabilite": "vérifié",
+          "motif": "La suite de la descendance de Céthura est absorbée dans le décompte évoqué par l’auteur.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.25.3",
+            "TR0001": "Jecsan engendra Saba & Dadan. Les enfans de Dadan furent, Assurim, Latusim, & Loomim.",
+            "TR0003": "Jecsan engendra Saba et Dadan ; les fils de Dadan furent les Assurim, les Latusim et les Laomim. —",
+            "TR0004": "Jecsan quoque genuit Saba et Dadan. Filii Dadan fuerunt Assurim, et Latusim, et Loomin."
+          }
+        },
+        {
+          "segment_id": 547940,
+          "canon_id": "GEN.25.4",
+          "type": 2,
+          "fiabilite": "vérifié",
+          "motif": "La fin de la généalogie de Céthura est reprise dans la mention globale des enfants.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.25.4",
+            "TR0001": "Les enfans de Madian furent Epha, Opher, Henoch, Abida & Eldaa. Tous ceux-ci <i>furent</i> enfans de Cethura.",
+            "TR0003": "Les fils de Madian furent Epha, Opher, Hénoch, Abida et Eldaa. — Ce sont là tous les fils de Cétura.",
+            "TR0004": "At vero ex Madian ortus est Epha, et Opher, et Henoch, et Abida, et Eldaa : omnes hi filii Ceturæ."
+          }
+        },
+        {
+          "segment_id": 547940,
+          "canon_id": "GEN.25.2",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La descendance de Genèse 25,2 ouvre la recherche d’une intention prophétique.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.25.2",
+            "TR0001": "qui lui enfanta Zamram, Jecsan, Madan, Madian, Jesboc, & Sué.",
+            "TR0003": "Et elle lui enfanta Zamran, Jecsan, Madan, Madian, Jesboc et Sué. —",
+            "TR0004": "quæ peperit ei Zamran et Jecsan, et Madan, et Madian, et Jesboc, et Sue."
+          }
+        },
+        {
+          "segment_id": 547940,
+          "canon_id": "GEN.25.3",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La généalogie de Genèse 25,3 participe à l’examen du dessein d’Abraham.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.25.3",
+            "TR0001": "Jecsan engendra Saba & Dadan. Les enfans de Dadan furent, Assurim, Latusim, & Loomim.",
+            "TR0003": "Jecsan engendra Saba et Dadan ; les fils de Dadan furent les Assurim, les Latusim et les Laomim. —",
+            "TR0004": "Jecsan quoque genuit Saba et Dadan. Filii Dadan fuerunt Assurim, et Latusim, et Loomin."
+          }
+        },
+        {
+          "segment_id": 547940,
+          "canon_id": "GEN.25.4",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La généalogie de Genèse 25,4 participe à la recherche d’un sens prophétique.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.25.4",
+            "TR0001": "Les enfans de Madian furent Epha, Opher, Henoch, Abida & Eldaa. Tous ceux-ci <i>furent</i> enfans de Cethura.",
+            "TR0003": "Les fils de Madian furent Epha, Opher, Hénoch, Abida et Eldaa. — Ce sont là tous les fils de Cétura.",
+            "TR0004": "At vero ex Madian ortus est Epha, et Opher, et Henoch, et Abida, et Eldaa : omnes hi filii Ceturæ."
+          }
+        }
+      ]
+    },
+    {
+      "id": 548292,
+      "segment_numero": 569,
+      "segment_texte": "Or, tous ceux que nomme l’Écriture, pour compléter ce nombre de soixante-quinze, en y comprenant les petits-fils de Benjamin, ont pu naître et vivre dans cet intervalle de temps.",
+      "notes": null,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXXIII",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre premier",
+      "score": "01c6a73705b93948915cf0b7305cb04bb10e154a888d64e6d6fcb2adc1b8f414",
+      "liens": [
+        {
+          "segment_id": 548292,
+          "canon_id": "GEN.46.21",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Référence intentionnelle aux petits-fils de Benjamin compris dans le dénombrement (GEN.46.21).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.46.21",
+            "TR0001": "Les fils de Benjamin <i>étoient</i> Béla, Béchor, Asbel, Géra, Naaman, Echi, Ros, Mophim, Ophim & Ared.",
+            "TR0003": "Fils de Benjamin : Béla, Bochor, Asbel, Géra, Naaman, Echi, Ros, Mophim, Ophim et Ared. —",
+            "TR0004": "Filii Benjamin : Bela et Bechor et Asbel et Gera et Naaman et Echi et Ros et Mophim et Ophim et Ared."
+          }
+        },
+        {
+          "segment_id": 548292,
+          "canon_id": "GEN.50.23",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La durée de la vie de Joseph explique l’inclusion progressive des descendants dans le total de la famille entrée en Égypte (GEN.50.23).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.50.23",
+            "TR0001": "Il demeura dans l’Egypte avec toute la maison de son pere, & il vécut cent dix ans. Il vit les enfans d’Ephraïm jusqu’à la troisiéme generation. Machir fils de Manassé eut aussi des enfans, qui furent élevés sur les genous de Joseph.",
+            "TR0003": "Joseph vit les fils d’Éphraïm jusqu’à la troisième génération ; des fils de Machir, fils de Manassé, naquirent aussi sur les genoux de Joseph.",
+            "TR0004": "Et vidit Ephraim filios usque ad tertiam generationem. Filii quoque Machir filii Manasse nati sunt in genibus Joseph."
+          }
+        },
+        {
+          "segment_id": 548292,
+          "canon_id": "GEN.46.27",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La durée de la vie de Joseph explique l’inclusion progressive des descendants dans le total de la famille entrée en Égypte (GEN.46.27).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "GEN.46.27",
+            "TR0001": "<i>Il y faut joindre</i> les deux enfans de Joseph qui lui étoient nés en Egypte. <i>Ainsi</i> toutes les personnes de la maison de Jacob qui vinrent en Egypte, furent au nombre de soixante & dix.",
+            "TR0003": "Les fils de Joseph qui lui étaient nés en Égypte étaient deux. — Le total des personnes de la famille de Jacob qui vinrent en Égypte était de soixante-dix.",
+            "TR0004": "Filii autem Joseph, qui nati sunt ei in terra Ægypti, animæ duæ. Omnes animæ domus Jacob, quæ ingressæ sunt in Ægyptum, fuere septuaginta."
+          }
+        }
+      ]
+    },
+    {
+      "id": 548338,
+      "segment_numero": 615,
+      "segment_texte": "Pourquoi dit-on au peuple que Dieu a donné l’ordre de le transporter de l’Égypte dans la terre de Chanaan : tandis qu’on dit à Pharaon que les Hébreux veulent aller trois journées de chemin dans le désert, pour offrir au Seigneur le sacrifice qu’il leur a commandé ?",
+      "notes": null,
+      "ref_niv1": "Livre deuxième",
+      "ref_niv2": "Question XII [<i>sic</i>]",
+      "ref_niv2_texte": "Dieu n’ordonne que ce qu’il veut qu’on fasse.\nExode 5, 1-3",
+      "paragraphe": 1,
+      "livre": "Livre deuxième",
+      "score": "00193d2de886fd323cbd0636b0c93fcf3ee21d1bd87ec7699162bc24f9f30e24",
+      "liens": [
+        {
+          "segment_id": 548338,
+          "canon_id": "EXO.3.17",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "La sortie vers Chanaan est confrontée à l’ordre des trois journées de marche et du sacrifice (EXO.3.17).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.3.17",
+            "TR0001": "J’ai resolu de vous tirer de l’oppression des Egyptiens, & de vous faire passer au païs des Chananéens, des Hethéens, des Amorrhéens, des Pherezéens, des Hevéens, & des Jebuséens ; en une terre où coulent des ruisseaux de lait & de miel.",
+            "TR0003": "et j’ai dit : Je vous ferai monter de l’Égypte, où l’on vous opprime, dans le pays des Chananéens, des Héthéens, des Amorrhéens, des Phérézéens, des Hévéens et des Jébuséens, dans un pays où coulent le lait et le miel.",
+            "TR0004": "Et dixi ut educam vos de afflictione Ægypti in terram Chananæi, et Hethæi, et Amorrhæi, et Pherezæi, et Hevæi, et Jebusæi, ad terram fluentem lacte et melle."
+          }
+        },
+        {
+          "segment_id": 548338,
+          "canon_id": "EXO.3.18",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "La sortie vers Chanaan est confrontée à l’ordre des trois journées de marche et du sacrifice (EXO.3.18).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.3.18",
+            "TR0001": "Ils écouteront votre voix, & vous irez, vous & les anciens d’Israel, vers le roi d’Egypte, vous lui direz : Le Seigneur, le Dieu des Hebreux nous a appellés. C’est-pourquoi nous sommes obligés d’aller trois journées de chemin dans le desert, pour sacrifier au Seigneur notre Dieu.",
+            "TR0003": "Ils écouteront ta voix, et tu iras, toi et les anciens d’Israël, vers le roi d’Égypte, et vous lui direz : Yahweh, le Dieu des Hébreux, s’est présenté à nous. Et maintenant, laisse-nous aller à trois journées de marche dans le désert, pour offrir des sacrifices à Yahweh notre Dieu.",
+            "TR0004": "Et audient vocem tuam : ingredierisque tu, et seniores Israël, ad regem Ægypti, et dices ad eum : Dominus Deus Hebræorum vocavit nos : ibimus viam trium dierum in solitudinem, ut immolemus Domino Deo nostro."
+          }
+        },
+        {
+          "segment_id": 548338,
+          "canon_id": "EXO.5.1",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "La sortie vers Chanaan est confrontée à l’ordre des trois journées de marche et du sacrifice (EXO.5.1).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.5.1",
+            "TR0001": "Après cela Moïse & Aaron vinrent trouver Pharaon, & lui parlerent en ces termes : Voici ce que dit le Seigneur le Dieu d’Israel : Laissez aller mon peuple, afin qu’il me sacrifie dans le desert.",
+            "TR0003": "Ensuite Moïse et Aaron se rendirent auprès de Pharaon et lui dirent : « Ainsi parle Yahweh, le Dieu d’Israël : Laisse aller mon peuple, pour qu’il célèbre une fête en mon honneur dans le désert. »",
+            "TR0004": "Post hæc ingressi sunt Moyses et Aaron, et dixerunt Pharaoni : Hæc dicit Dominus Deus Israël : Dimitte populum meum ut sacrificet mihi in deserto."
+          }
+        },
+        {
+          "segment_id": 548338,
+          "canon_id": "EXO.5.3",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "La sortie vers Chanaan est confrontée à l’ordre des trois journées de marche et du sacrifice (EXO.5.3).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.5.3",
+            "TR0001": "Ils lui dirent encore : Le Dieu des Hebreux nous a ordonné d’aller trois journées de chemin dans le desert pour sacrifier au Seigneur notre Dieu, de-peur que nous ne soyons frappés de peste ou de l’épée.",
+            "TR0003": "Ils dirent : « Le Dieu des Hébreux s’est présenté à nous. Permets-nous de faire trois journées de marche au désert, pour offrir des sacrifices à Yahweh, afin qu’il ne nous frappe pas de la peste ou de l’épée. »",
+            "TR0004": "Dixeruntque : Deus Hebræorum vocavit nos, ut eamus viam trium dierum in solitudinem, et sacrificemus Domino Deo nostro : ne forte accidat nobis pestis aut gladius."
+          }
+        },
+        {
+          "segment_id": 548338,
+          "canon_id": "EXO.3.17",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La sortie vers Chanaan est confrontée à l’ordre des trois journées de marche et du sacrifice (EXO.3.17).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.3.17",
+            "TR0001": "J’ai resolu de vous tirer de l’oppression des Egyptiens, & de vous faire passer au païs des Chananéens, des Hethéens, des Amorrhéens, des Pherezéens, des Hevéens, & des Jebuséens ; en une terre où coulent des ruisseaux de lait & de miel.",
+            "TR0003": "et j’ai dit : Je vous ferai monter de l’Égypte, où l’on vous opprime, dans le pays des Chananéens, des Héthéens, des Amorrhéens, des Phérézéens, des Hévéens et des Jébuséens, dans un pays où coulent le lait et le miel.",
+            "TR0004": "Et dixi ut educam vos de afflictione Ægypti in terram Chananæi, et Hethæi, et Amorrhæi, et Pherezæi, et Hevæi, et Jebusæi, ad terram fluentem lacte et melle."
+          }
+        },
+        {
+          "segment_id": 548338,
+          "canon_id": "EXO.3.18",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La sortie vers Chanaan est confrontée à l’ordre des trois journées de marche et du sacrifice (EXO.3.18).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.3.18",
+            "TR0001": "Ils écouteront votre voix, & vous irez, vous & les anciens d’Israel, vers le roi d’Egypte, vous lui direz : Le Seigneur, le Dieu des Hebreux nous a appellés. C’est-pourquoi nous sommes obligés d’aller trois journées de chemin dans le desert, pour sacrifier au Seigneur notre Dieu.",
+            "TR0003": "Ils écouteront ta voix, et tu iras, toi et les anciens d’Israël, vers le roi d’Égypte, et vous lui direz : Yahweh, le Dieu des Hébreux, s’est présenté à nous. Et maintenant, laisse-nous aller à trois journées de marche dans le désert, pour offrir des sacrifices à Yahweh notre Dieu.",
+            "TR0004": "Et audient vocem tuam : ingredierisque tu, et seniores Israël, ad regem Ægypti, et dices ad eum : Dominus Deus Hebræorum vocavit nos : ibimus viam trium dierum in solitudinem, ut immolemus Domino Deo nostro."
+          }
+        },
+        {
+          "segment_id": 548338,
+          "canon_id": "EXO.5.1",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La sortie vers Chanaan est confrontée à l’ordre des trois journées de marche et du sacrifice (EXO.5.1).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.5.1",
+            "TR0001": "Après cela Moïse & Aaron vinrent trouver Pharaon, & lui parlerent en ces termes : Voici ce que dit le Seigneur le Dieu d’Israel : Laissez aller mon peuple, afin qu’il me sacrifie dans le desert.",
+            "TR0003": "Ensuite Moïse et Aaron se rendirent auprès de Pharaon et lui dirent : « Ainsi parle Yahweh, le Dieu d’Israël : Laisse aller mon peuple, pour qu’il célèbre une fête en mon honneur dans le désert. »",
+            "TR0004": "Post hæc ingressi sunt Moyses et Aaron, et dixerunt Pharaoni : Hæc dicit Dominus Deus Israël : Dimitte populum meum ut sacrificet mihi in deserto."
+          }
+        },
+        {
+          "segment_id": 548338,
+          "canon_id": "EXO.5.3",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La sortie vers Chanaan est confrontée à l’ordre des trois journées de marche et du sacrifice (EXO.5.3).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.5.3",
+            "TR0001": "Ils lui dirent encore : Le Dieu des Hebreux nous a ordonné d’aller trois journées de chemin dans le desert pour sacrifier au Seigneur notre Dieu, de-peur que nous ne soyons frappés de peste ou de l’épée.",
+            "TR0003": "Ils dirent : « Le Dieu des Hébreux s’est présenté à nous. Permets-nous de faire trois journées de marche au désert, pour offrir des sacrifices à Yahweh, afin qu’il ne nous frappe pas de la peste ou de l’épée. »",
+            "TR0004": "Dixeruntque : Deus Hebræorum vocavit nos, ut eamus viam trium dierum in solitudinem, et sacrificemus Domino Deo nostro : ne forte accidat nobis pestis aut gladius."
+          }
+        }
+      ]
+    },
+    {
+      "id": 548748,
+      "segment_numero": 1025,
+      "segment_texte": "C’est de plus un nombre parfait, car il se compose, comme le nombre six, de ses propres éléments, Quant à ces paroles du texte, si fréquemment répétées : « Tu feras les Chérubins en ouvrage de broderie » quel en est le sens ; sinon qu’une science immense présida à toutes ces choses ; c’est d’ailleurs la signification du mot Chérubin.",
+      "notes": null,
+      "ref_niv1": "Livre deuxième",
+      "ref_niv2": "Question CVII",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre deuxième",
+      "score": "007065145b0f6893c3614e989fb43ff052e8d3fd262b310bfcee26f6e93aff33",
+      "liens": [
+        {
+          "segment_id": 548748,
+          "canon_id": "EXO.26.1",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le nombre, l’ampleur et les chérubins des rideaux sont interprétés selon la Loi, la charité et la science.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.26.1",
+            "TR0001": "Vous ferez le tabernacle en cette maniere : Il y aura dix rideaux de fin lin retors, de couleur d’hyacinthe, de pourpre & d’écarlate teinte deux fois. Ils seront parsemés d’ouvrages de broderie.",
+            "TR0003": "« Tu feras la Demeure de dix tentures ; tu les feras de lin retors, de pourpre violette, de pourpre écarlate et de cramoisi, avec des chérubins, ouvrage d’habile tisseur.",
+            "TR0004": "Tabernaculum vero ita facies : decem cortinas de bysso retorta, et hyacintho, ac purpura, coccoque bis tincto, variatas opere plumario facies."
+          }
+        }
+      ]
+    },
+    {
+      "id": 548652,
+      "segment_numero": 929,
+      "segment_texte": "Supposé en effet qu’une âme vivante puisse exister dans un corps informe et par conséquent privé de sensibilité, on ne peut dire cependant que cette âme vit, tant que le corps n’est pas doué de ses sens. Quant à ces mots : « Et il paiera sur <i>sa demande</i> » <i>μετὰ ἀξιώματος</i> l’indemnité que le mari fixera pour l’avortement, il n’est pas facile d’en déterminer le sens.",
+      "notes": null,
+      "ref_niv1": "Livre deuxième",
+      "ref_niv2": "Question LXXX",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre deuxième",
+      "score": "00de9320b3c9beb039fdb152e3f1cd0f82c3fee8a05e987d1bd421f147abd0a3",
+      "liens": [
+        {
+          "segment_id": 548652,
+          "canon_id": "EXO.21.22",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le cas de l’enfant non formé, l’absence d’homicide et l’indemnité sont directement interprétés.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.21.22",
+            "TR0001": "Si des hommes se querellent, & que l’un d’eux ayant frappé une femme grosse, elle accouche d’un enfant mort sans qu’elle meure elle-même, il sera obligé de payer ce que le mari de la femme voudra, & ce qui aura été ordonné par des arbitres.",
+            "TR0003": "Lorsque des hommes se battent, et qu’ils heurtent une femme enceinte, s’ils la font accoucher, sans autre accident, le coupable sera passible d’une amende que lui imposera le mari de la femme, et qu’il paiera selon la décision des juges.",
+            "TR0004": "Si rixati fuerint viri, et percusserit quis mulierem prægnantem, et abortivum quidem fecerit, sed ipsa vixerit : subjacebit damno quantum maritus mulieris expetierit, et arbitri judicaverint."
+          }
+        }
+      ]
+    },
+    {
+      "id": 548789,
+      "segment_numero": 1066,
+      "segment_texte": "Mais de quelque nature que soient ces lettres, de quelque manière qu’elles existent, ainsi que je l’ai dit, ces lettres : <i>la sainteté</i>, ou, si on l’aime mieux la <i>sanctification du Seigneur</i>, conformément au terme grec <i>ἁγίασμα</i>, n’a pu être, selon moi, marqué sur l’or qu’avec des lettres.",
+      "notes": null,
+      "ref_niv1": "Livre deuxième",
+      "ref_niv2": "Question CXX",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre deuxième",
+      "score": "00e719a38e498852e35646b36d09b84cc8369befeaca27bc7914ff1ef96401e5",
+      "liens": [
+        {
+          "segment_id": 548789,
+          "canon_id": "EXO.28.36",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’inscription Sainteté du Seigneur est expliquée comme un titre gravé en lettres sur l’or.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.28.36",
+            "TR0001": "Vous ferez aussi une lame d’un or très-pur, sur laquelle vous ferez graver par un ouvrier habile <i>ces mots</i> : La Saintete’ est au Seigneur.",
+            "TR0003": "Tu feras une lame d’or pur, et tu y graveras, comme on grave sur un cachet : Sainteté à Yahweh.",
+            "TR0004": "Facies et laminam de auro purissimo, in qua sculpes opere cælatoris, Sanctum Domino."
+          }
+        }
+      ]
+    },
+    {
+      "id": 548866,
+      "segment_numero": 1143,
+      "segment_texte": "Dieu n’a point de malice ; mais il envoie des <i>maux</i> aux <i>méchants</i>, parce qu’il est juste.",
+      "notes": null,
+      "ref_niv1": "Livre deuxième",
+      "ref_niv2": "Question CXLIII",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre deuxième",
+      "score": "01744f51381bff0eaab04d2097cc8c199730a7b6487aa074085582d750637a06",
+      "liens": [
+        {
+          "segment_id": 548866,
+          "canon_id": "EXO.32.14",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le mal annoncé au peuple est expliqué comme une peine juste et non comme une malice divine.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.32.14",
+            "TR0001": "Alors le Seigneur s’appaisa, pour ne point faire à son peuple le mal dont il venoit de parler.",
+            "TR0003": "Et Yahweh se repentit du mal qu’il avait parlé de faire à son peuple.",
+            "TR0004": "Placatusque est Dominus ne faceret malum quod locutus fuerat adversus populum suum."
+          }
+        },
+        {
+          "segment_id": 548866,
+          "canon_id": "SIR.11.14",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Les maux venant de Dieu sont précisés comme les peines justement envoyées aux méchants.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "SIR.11.14",
+            "TR0001": "Les biens & les maux, la vie & la mort, la pauvreté & les richesses viennent de Dieu.",
+            "TR0003": "Les biens et les maux, la mort et la vie, la pauvreté et la richesse viennent du Seigneur.",
+            "TR0004": "Bona et mala, vita et mors, paupertas et honestas, a Deo sunt :"
+          }
+        }
+      ]
+    },
+    {
+      "id": 548302,
+      "segment_numero": 579,
+      "segment_texte": "<i>Est-ce un ange ou le Christ qui apparaît à Moïse dans le buisson ardent</i> ? - « Le Seigneur l’appela du milieu du buisson. » Le Seigneur était-il caché dans l’ange ? ou le Seigneur est-il ici celui qui s’appelle « l’ange du grand conseil[[126]] » et qui est le Christ ?",
+      "notes": "[[126]] Isa. IX, 6",
+      "ref_niv1": "Livre deuxième",
+      "ref_niv2": "Question III",
+      "ref_niv2_texte": "Exode 3, 4",
+      "paragraphe": 1,
+      "livre": "Livre deuxième",
+      "score": "01c68169d7274dc33fdf97d469d9408fd269fffdfcbac8875441d1369f13577e",
+      "liens": [
+        {
+          "segment_id": 548302,
+          "canon_id": "EXO.3.4",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Citation explicite vérifiée de l’appel du Seigneur depuis le buisson.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.3.4",
+            "TR0001": "Mais le Seigneur le voyant venir pour considerer ce qu’il voyoit, l’appella du milieu du buisson, & lui dit : Moïse, Moïse. Il lui répondit : Me voici.",
+            "TR0003": "Yahweh vit qu’il se détournait pour regarder ; et Dieu l’appela du milieu du buisson, et dit : « Moïse ! Moïse ! » Il répondit : « Me voici. »",
+            "TR0004": "Cernens autem Dominus quod pergeret ad videndum, vocavit eum de medio rubi, et ait : Moyses, Moyses. Qui respondit : Adsum."
+          }
+        },
+        {
+          "segment_id": 548302,
+          "canon_id": "ISA.9.5",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Citation explicite vérifiée d’Isaïe 9,5 selon la Septante : l’Ange du grand conseil.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "ISA.9.5",
+            "TR0001": "Car un petit enfant nous est né, & un fils nous a été donné. Il portera sur son épaule <i>la marque de</i> sa principauté : & il sera appellé l’Admirable, le Conseiller, Dieu, le Fort, le Pere du siecle futur, le Prince de la paix.",
+            "TR0003": "Car un enfant nous est né, un fils nous a été donné ; l’empire a été posé sur ses épaules, et on lui donne pour nom : Conseiller admirable, Dieu fort, Père éternel, Prince de la paix :",
+            "TR0004": "Parvulus enim natus est nobis, et filius datus est nobis, et factus est principatus super humerum ejus : et vocabitur nomen ejus, Admirabilis, Consiliarius, Deus, Fortis, Pater futuri sæculi, Princeps pacis."
+          }
+        },
+        {
+          "segment_id": 548302,
+          "canon_id": "EXO.3.4",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Question christologique sur le Seigneur qui parle dans le buisson.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.3.4",
+            "TR0001": "Mais le Seigneur le voyant venir pour considerer ce qu’il voyoit, l’appella du milieu du buisson, & lui dit : Moïse, Moïse. Il lui répondit : Me voici.",
+            "TR0003": "Yahweh vit qu’il se détournait pour regarder ; et Dieu l’appela du milieu du buisson, et dit : « Moïse ! Moïse ! » Il répondit : « Me voici. »",
+            "TR0004": "Cernens autem Dominus quod pergeret ad videndum, vocavit eum de medio rubi, et ait : Moyses, Moyses. Qui respondit : Adsum."
+          }
+        },
+        {
+          "segment_id": 548302,
+          "canon_id": "ISA.9.5",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le titre septantant appuie l’identification possible au Christ.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "ISA.9.5",
+            "TR0001": "Car un petit enfant nous est né, & un fils nous a été donné. Il portera sur son épaule <i>la marque de</i> sa principauté : & il sera appellé l’Admirable, le Conseiller, Dieu, le Fort, le Pere du siecle futur, le Prince de la paix.",
+            "TR0003": "Car un enfant nous est né, un fils nous a été donné ; l’empire a été posé sur ses épaules, et on lui donne pour nom : Conseiller admirable, Dieu fort, Père éternel, Prince de la paix :",
+            "TR0004": "Parvulus enim natus est nobis, et filius datus est nobis, et factus est principatus super humerum ejus : et vocabitur nomen ejus, Admirabilis, Consiliarius, Deus, Fortis, Pater futuri sæculi, Princeps pacis."
+          }
+        }
+      ]
+    },
+    {
+      "id": 549305,
+      "segment_numero": 1582,
+      "segment_texte": "Voici encore ce qu’on lit : « Quiconque, par une parole précise, aura fait serment de mal faire, ou de bien faire selon tout ce qui aura été précisé dans le serment, s’il l’ignore, et qu’il le reconnaisse ensuite, et pèche en l’un de ces points, puis fasse contre lui l’aveu du <i>péché</i> dont il s’est rendu coupable ; il offrira pour son <i>délit</i> envers le Seigneur, pour le <i>péché</i> dont il s’est rendu coupable[[390]]. »",
+      "notes": "[[390]] Lev. V, 4-6",
+      "ref_niv1": "Livre troisième",
+      "ref_niv2": "Question XX",
+      "ref_niv2_texte": null,
+      "paragraphe": 5,
+      "livre": "Livre troisième",
+      "score": "00a0a0da4b6d931d35771d0c5e61436a320105b60d0cc4955177108b0fecfd8d",
+      "liens": [
+        {
+          "segment_id": 549305,
+          "canon_id": "LEV.5.4",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Le serment inconsidéré de faire du mal ou du bien est cité — citation ou référence intentionnelle.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "LEV.5.4",
+            "TR0001": "Si un homme ayant juré & prononcé de ses levres, & confirmé par serment & par sa parole qu’il feroit quelque chose de bien ou de mal, l’oublie ensuite, & après cela se ressouvient de sa faute,",
+            "TR0003": "Si quelqu’un, parlant à la légère, jure de faire du mal ou du bien, quoi que ce soit qu’il affirme ainsi par un serment inconsidéré, et que, ne l’ayant pas remarqué d’abord, il s’en aperçoive plus tard, il aura en l’une de ces choses contracté une faute.",
+            "TR0004": "Anima, quæ juraverit, et protulerit labiis suis, ut vel male quid faceret, vel bene, et idipsum juramento et sermone firmaverit, oblitaque postea intellexerit delictum suum,"
+          }
+        },
+        {
+          "segment_id": 549305,
+          "canon_id": "LEV.5.5",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "L’aveu du péché contracté par le serment est cité — citation ou référence intentionnelle.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "LEV.5.5",
+            "TR0001": "qu’il fasse penitence pour son peché, &",
+            "TR0003": "Celui donc qui se sera rendu coupable dans l’une de ces trois choses, confessera ce en quoi il a péché.",
+            "TR0004": "agat pœnitentiam pro peccato,"
+          }
+        },
+        {
+          "segment_id": 549305,
+          "canon_id": "LEV.5.6",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "L’offrande d’expiation pour le péché est citée comme exemple d’alternance terminologique — citation ou référence intentionnelle.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "LEV.5.6",
+            "TR0001": "qu’il prenne dans les troupeaux une jeune brebi, ou une chevre qu’il offrira ; & le prêtre priera pour lui & pour son peché.",
+            "TR0003": "Il amènera à Yahweh, comme expiation, pour le péché qu’il a commis, une femelle de menu bétail, brebis ou chèvre, en sacrifice pour le péché, et le prêtre fera pour lui l’expiation de son péché.",
+            "TR0004": "et offerat de gregibus agnam sive capram, orabitque pro ea sacerdos et pro peccato ejus."
+          }
+        },
+        {
+          "segment_id": 549305,
+          "canon_id": "LEV.7.7",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La distinction puis l’emploi réciproque des mots péché et délit expliquent la loi unique des deux sacrifices.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "LEV.7.7",
+            "TR0001": "Comme on offre une hostie pour le peché, on l’offre de même pour la faute : une seule loi sera pour ces deux hosties. <i>L’une & l’autre</i> appartiendra au prêtre qui l’aura offerte.",
+            "TR0003": "Il en est du sacrifice de réparation comme du sacrifice pour le péché ; la loi est la même pour les deux : la victime appartiendra au prêtre qui fera l’expiation.",
+            "TR0004": "Sicut pro peccato offertur hostia, ita et pro delicto : utriusque hostiæ lex una erit : ad sacerdotem, qui eam obtulerit, pertinebit."
+          }
+        },
+        {
+          "segment_id": 549305,
+          "canon_id": "LEV.5.4",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le serment inconsidéré de faire du mal ou du bien est cité — passage commenté ou mobilisé dans le raisonnement.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "LEV.5.4",
+            "TR0001": "Si un homme ayant juré & prononcé de ses levres, & confirmé par serment & par sa parole qu’il feroit quelque chose de bien ou de mal, l’oublie ensuite, & après cela se ressouvient de sa faute,",
+            "TR0003": "Si quelqu’un, parlant à la légère, jure de faire du mal ou du bien, quoi que ce soit qu’il affirme ainsi par un serment inconsidéré, et que, ne l’ayant pas remarqué d’abord, il s’en aperçoive plus tard, il aura en l’une de ces choses contracté une faute.",
+            "TR0004": "Anima, quæ juraverit, et protulerit labiis suis, ut vel male quid faceret, vel bene, et idipsum juramento et sermone firmaverit, oblitaque postea intellexerit delictum suum,"
+          }
+        },
+        {
+          "segment_id": 549305,
+          "canon_id": "LEV.5.5",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’aveu du péché contracté par le serment est cité — passage commenté ou mobilisé dans le raisonnement.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "LEV.5.5",
+            "TR0001": "qu’il fasse penitence pour son peché, &",
+            "TR0003": "Celui donc qui se sera rendu coupable dans l’une de ces trois choses, confessera ce en quoi il a péché.",
+            "TR0004": "agat pœnitentiam pro peccato,"
+          }
+        },
+        {
+          "segment_id": 549305,
+          "canon_id": "LEV.5.6",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’offrande d’expiation pour le péché est citée comme exemple d’alternance terminologique — passage commenté ou mobilisé dans le raisonnement.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "LEV.5.6",
+            "TR0001": "qu’il prenne dans les troupeaux une jeune brebi, ou une chevre qu’il offrira ; & le prêtre priera pour lui & pour son peché.",
+            "TR0003": "Il amènera à Yahweh, comme expiation, pour le péché qu’il a commis, une femelle de menu bétail, brebis ou chèvre, en sacrifice pour le péché, et le prêtre fera pour lui l’expiation de son péché.",
+            "TR0004": "et offerat de gregibus agnam sive capram, orabitque pro ea sacerdos et pro peccato ejus."
+          }
+        }
+      ]
+    },
+    {
+      "id": 549449,
+      "segment_numero": 1726,
+      "segment_texte": "Certains exemplaires grecs disent néanmoins : « dans son sang impur », au lieu de « dans son sang pur. »",
+      "notes": null,
+      "ref_niv1": "Livre troisième",
+      "ref_niv2": "Question XL",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre troisième",
+      "score": "01b83dce5f83aac72a8c20748dd66951a37badf999cd1603632c7d8d65992eb3",
+      "liens": [
+        {
+          "segment_id": 549449,
+          "canon_id": "LEV.12.4",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La variante « sang impur » est confrontée à la leçon « sang de sa purification ». (LEV.12.4).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "LEV.12.4",
+            "TR0001": "& elle demeurera encore trente-trois jours pour être purifiée de la suite de ses couches. Elle ne touchera à rien qui soit saint, & elle n’entrera point dans le santuaire jusqu’à ce que les jours de sa purification soient accomplis.",
+            "TR0003": "mais elle restera encore trente-trois jours dans le sang de sa purification ; elle ne touchera aucune chose sainte et elle n’ira point au sanctuaire, jusqu’à ce que les jours de sa purification soient accomplis.",
+            "TR0004": "ipsa vero triginta tribus diebus manebit in sanguine purificationis suæ. Omne sanctum non tanget, nec ingredietur in sanctuarium, donec impleantur dies purificationis suæ."
+          }
+        },
+        {
+          "segment_id": 549449,
+          "canon_id": null,
+          "type": 4,
+          "fiabilite": "à constituer",
+          "motif": "RÉFÉRENCE NON BIBLIQUE — variante « dans son sang impur » attestée par certains exemplaires grecs ; témoins textuels à constituer.",
+          "provenance": "lecture",
+          "arbitrage_requis": true,
+          "temoin": null
+        }
+      ]
+    },
+    {
+      "id": 549278,
+      "segment_numero": 1555,
+      "segment_texte": "Cependant le texte sacré dit plus loin : « Tout ce qui est pour le péché et dont on porte du sang dans le tabernacle du témoignage, afin de prier dans le sanctuaire, ne sera pas mangé, mais brûlé au feu[[377]]. » Comment donc est-il donné aux prêtres de manger ce qui reste des sacrifices pour le péché ?",
+      "notes": "[[377]] Lev. VI, 30.",
+      "ref_niv1": "Livre troisième",
+      "ref_niv2": "Question XVIII",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre troisième",
+      "score": "01d5c28ed0a18ba769cb5b21e39dd3f823cdb715490c39ac3907b4568f82a037",
+      "liens": [
+        {
+          "segment_id": 549278,
+          "canon_id": "LEV.6.23",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "La victime dont le sang entre dans la tente pour l’expiation ne doit pas être mangée mais brûlée — citation ou référence intentionnelle.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "LEV.6.23",
+            "TR0001": "Car quant à l’hostie qui s’immole pour le peché, dont on porte le sang dans le tabernacle du témoignage pour faire l’expiation dans le santuaire, on n’en mangera point, mais elle sera brûlée par le feu.",
+            "TR0003": "Mais on ne mangera aucune victime pour le péché dont on doit porter le sang dans la tente de réunion pour faire l’expiation dans le sanctuaire : elle sera brûlée au feu.",
+            "TR0004": "Hostia enim quæ cæditur pro peccato, cujus sanguis infertur in tabernaculum testimonii ad expiandum in sanctuario, non comedetur, sed comburetur igni."
+          }
+        },
+        {
+          "segment_id": 549278,
+          "canon_id": "LEV.6.23",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La victime dont le sang entre dans la tente pour l’expiation ne doit pas être mangée mais brûlée — passage commenté ou mobilisé dans le raisonnement.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "LEV.6.23",
+            "TR0001": "Car quant à l’hostie qui s’immole pour le peché, dont on porte le sang dans le tabernacle du témoignage pour faire l’expiation dans le santuaire, on n’en mangera point, mais elle sera brûlée par le feu.",
+            "TR0003": "Mais on ne mangera aucune victime pour le péché dont on doit porter le sang dans la tente de réunion pour faire l’expiation dans le sanctuaire : elle sera brûlée au feu.",
+            "TR0004": "Hostia enim quæ cæditur pro peccato, cujus sanguis infertur in tabernaculum testimonii ad expiandum in sanctuario, non comedetur, sed comburetur igni."
+          }
+        }
+      ]
+    },
+    {
+      "id": 549662,
+      "segment_numero": 1939,
+      "segment_texte": "La même chose peut se dire encore du larron en croix[[512]] à qui le Seigneur fit entendre ces paroles : « Tu seras aujourd’hui avec moi dans le paradis[[513]]. » Car il ne put jouir d’une félicité si grande, avant d’avoir été sanctifié intérieurement.",
+      "notes": "[[512]] 2 Rétract. 55. n. 9.\n[[513]] Luc. XXIII, 43",
+      "ref_niv1": "Livre troisième",
+      "ref_niv2": "Question LXXXIV",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre troisième",
+      "score": "027c7f16bcc6e46e8a6ffa5572d654eadce4f974c92a873020e4a239598ffe8c",
+      "liens": [
+        {
+          "segment_id": 549662,
+          "canon_id": "LUK.23.43",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Citation explicite de la promesse du paradis faite au larron, exemple de sanctification sans sacrement visible.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "LUK.23.43",
+            "TR0001": "Et Jesus lui répondit : Je vous dis en verité, que vous serez aujourd’hui avec moi dans le paradis.",
+            "TR0003": "Jésus lui répondit : « Je te le dis en vérité, aujourd’hui tu seras avec moi dans le Paradis. »",
+            "TR0004": "Et dixit illi Jesus : Amen dico tibi : hodie mecum eris in paradiso."
+          }
+        },
+        {
+          "segment_id": 549662,
+          "canon_id": null,
+          "type": 4,
+          "fiabilite": "à constituer",
+          "motif": "RÉFÉRENCE NON BIBLIQUE (œuvre patristique — 2 Rétractations, 55, n. 9)",
+          "provenance": "lecture",
+          "arbitrage_requis": true,
+          "temoin": null
+        }
+      ]
+    },
+    {
+      "id": 549687,
+      "segment_numero": 1964,
+      "segment_texte": "Car si une vigne ne doit pas être taillée, elle ne doit pas non plus être bêchée, ni liée, ni recevoir quelqu’autre soin qu’exige sa culture ; de même qu’on prend ordinairement la partie pour le tout, ainsi, dans ce cas, la taille de la vigne s’entend de tous les soins qui regardent son entretien.",
+      "notes": null,
+      "ref_niv1": "Livre troisième",
+      "ref_niv2": "Question LXXXIX",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre troisième",
+      "score": "029fa129f8a04c492cfca0d179f1366063b57af97a5c6a44c7a419b1fbe7e72f",
+      "liens": [
+        {
+          "segment_id": 549687,
+          "canon_id": "LEV.25.4",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Les travaux interdits et la possibilité de vivre des productions spontanées pendant le sabbat sont précisés.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "LEV.25.4",
+            "TR0001": "mais la septiéme année, ce sera le sabbat de la terre consacrée à l’honneur du repos du Seigneur : vous ne semerez point votre champ, & vous ne taillerez point votre vigne.",
+            "TR0003": "Mais la septième année sera un sabbat, un solennel repos pour la terre, un sabbat en l’honneur de Yahweh : tu n’ensemenceras point ton champ et tu ne tailleras point ta vigne.",
+            "TR0004": "septimo autem anno sabbatum erit terræ, requietionis Domini : agrum non seres, et vineam non putabis."
+          }
+        }
+      ]
+    },
+    {
+      "id": 549244,
+      "segment_numero": 1521,
+      "segment_texte": "Dans notre langage ordinaire, nous exprimerions la même pensé [<i>sic</i>] de la manière suivante : Tout péché que l’homme commet, excepté la fornication, est en dehors du corps ; mais celui qui commet la fornication, pèche contre son propre corps.",
+      "notes": null,
+      "ref_niv1": "Livre troisième",
+      "ref_niv2": "Question VIII",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre troisième",
+      "score": "02b3b022b40e590c8a207efaf5cb8f69910d9c96703f9b90508ee3b9c14de730",
+      "liens": [
+        {
+          "segment_id": 549244,
+          "canon_id": "1CO.6.18",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Reformulation citationnelle vérifiée des deux propositions sur le péché hors du corps et la fornication.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "1CO.6.18",
+            "TR0001": "Fuyez la fornication. Quelque autre peché que l’homme commette, il est hors du corps ; mais celui qui commet une fornication, peche contre son propre corps.",
+            "TR0003": "Fuyez l’impudicité. Quelque autre péché qu’un homme commette, ce péché est hors du corps ; mais celui qui se livre à l’impudicité pèche contre son propre corps.",
+            "TR0004": "Fugite fornicationem. Omne peccatum, quodcumque fecerit homo, extra corpus est : qui autem fornicatur, in corpus suum peccat."
+          }
+        },
+        {
+          "segment_id": 549244,
+          "canon_id": "1CO.6.18",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La phrase paulinienne est réécrite dans l’ordre explicite règle générale puis exception.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "1CO.6.18",
+            "TR0001": "Fuyez la fornication. Quelque autre peché que l’homme commette, il est hors du corps ; mais celui qui commet une fornication, peche contre son propre corps.",
+            "TR0003": "Fuyez l’impudicité. Quelque autre péché qu’un homme commette, ce péché est hors du corps ; mais celui qui se livre à l’impudicité pèche contre son propre corps.",
+            "TR0004": "Fugite fornicationem. Omne peccatum, quodcumque fecerit homo, extra corpus est : qui autem fornicatur, in corpus suum peccat."
+          }
+        }
+      ]
+    },
+    {
+      "id": 549778,
+      "segment_numero": 2055,
+      "segment_texte": "2. Tout ce passage demande une sérieuse explication, parce qu’il est plein de locutions inusitées qui en obscurcissent le sens. « Au jour, lisons-nous, où le tabernacle fut établi, une nuée couvrit le tabernacle, la maison du témoignage : » c’est le tabernacle que l’Écriture désigne sous cet autre nom de maison du témoignage.",
+      "notes": null,
+      "ref_niv1": "Livre quatrième",
+      "ref_niv2": "Question XVI",
+      "ref_niv2_texte": null,
+      "paragraphe": 2,
+      "livre": "Livre quatrième",
+      "score": "00a76f1e1000111e9bfe63e0db23c63e1060281dd182f3063cb372b8d3b6c4ad",
+      "liens": [
+        {
+          "segment_id": 549778,
+          "canon_id": "NUM.9.15",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La maison du témoignage est identifiée au tabernacle couvert par la nuée (NUM.9.15).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.9.15",
+            "TR0001": "Le jour donc que le tabernacle fut dressé, il fut couvert d’une nuée. Mais depuis le soir jusqu’au matin on vit paroître comme un feu sur la tente.",
+            "TR0003": "Le jour où la Demeure fut dressée, la nuée couvrit la Demeure : qui est la tente du témoignage ; depuis le soir jusqu’au matin, il y eut sur la Demeure comme l’apparence d’un feu.",
+            "TR0004": "Igitur die qua erectum est tabernaculum, operuit illud nubes. A vespere autem super tentorium erat quasi species ignis usque mane."
+          }
+        }
+      ]
+    },
+    {
+      "id": 549837,
+      "segment_numero": 2114,
+      "segment_texte": "<i>Discours de Caleb et de Josué, pour rassurer</i> <i>le peuple.</i> - Pour que le peuple ne craignît pas d’entrer dans la terre promise, Caleb et Jésus fils de Navé, lui adressèrent, entre autres, ces paroles. « Ne craignez point le peuple de ce pays, car ils seront pour nous une bouchée.",
+      "notes": null,
+      "ref_niv1": "Livre quatrième",
+      "ref_niv2": "Question XXIII",
+      "ref_niv2_texte": "Nombres 14, 9",
+      "paragraphe": 1,
+      "livre": "Livre quatrième",
+      "score": "01a61edfeb5c529879fde2292ee9bc01942ba114bada0444dee00ffbf1d3c3a5",
+      "liens": [
+        {
+          "segment_id": 549837,
+          "canon_id": "NUM.14.9",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Début de la citation explicite : le peuple du pays ne doit pas être craint et sera comme une bouchée.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.14.9",
+            "TR0001": "Ne vous rendez point rebelles contre le Seigneur ; & ne craignez point le peuple de ce païs-là, parceque nous pouvons le devorer ainsi qu’un morceau de pain. Ils sont destitués de tout secours ; le Seigneur est avec nous, ne craignez point.",
+            "TR0003": "Seulement ne vous mettez pas en rébellion contre Yahweh, et ne craignez point les hommes de ce pays, car ils seront pour nous une pâture ; leur abri s’est retiré d’eux, et Yahweh est avec nous, ne les craignez point. »",
+            "TR0004": "Nolite rebelles esse contra Dominum : neque timeatis populum terræ hujus, quia sicut panem ita eos possumus devorare. Recessit ab eis omne præsidium : Dominus nobiscum est, nolite metuere."
+          }
+        },
+        {
+          "segment_id": 549837,
+          "canon_id": "NUM.14.9",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’image de la bouchée et l’opposition entre le temps des impies et la présence du Seigneur sont expliquées sans quitter ce verset.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.14.9",
+            "TR0001": "Ne vous rendez point rebelles contre le Seigneur ; & ne craignez point le peuple de ce païs-là, parceque nous pouvons le devorer ainsi qu’un morceau de pain. Ils sont destitués de tout secours ; le Seigneur est avec nous, ne craignez point.",
+            "TR0003": "Seulement ne vous mettez pas en rébellion contre Yahweh, et ne craignez point les hommes de ce pays, car ils seront pour nous une pâture ; leur abri s’est retiré d’eux, et Yahweh est avec nous, ne les craignez point. »",
+            "TR0004": "Nolite rebelles esse contra Dominum : neque timeatis populum terræ hujus, quia sicut panem ita eos possumus devorare. Recessit ab eis omne præsidium : Dominus nobiscum est, nolite metuere."
+          }
+        }
+      ]
+    },
+    {
+      "id": 549873,
+      "segment_numero": 2150,
+      "segment_texte": "Mais comme l’Écriture rapporte que ces hommes descendirent vivants aux enfers, et que le récit fait assez entendre ce que cela signifie, il est évident que les parties inférieures du sol reçoivent ici le nom <i>d’enfer</i>, par opposition avec cette partie de la terre dont la surface est habitée : c’est ainsi que l’Écriture dit, par opposition avec le ciel supérieur où demeurent les saints Anges, que les Anges prévaricateurs furent précipités dans les ténèbres de l’air et en quelque sorte réservés aux châtiments des cachots de l’enfer.",
+      "notes": null,
+      "ref_niv1": "Livre quatrième",
+      "ref_niv2": "Question XXIX",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre quatrième",
+      "score": "022454a279de740e5ba27f0c5de07a4308d3c3c8f9a36b7522ffb9bf610abda5",
+      "liens": [
+        {
+          "segment_id": 549873,
+          "canon_id": "NUM.16.32",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’ouverture de la terre et l’engloutissement des maisons permettent d’identifier ici un enfer terrestre.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.16.32",
+            "TR0001": "& s’entr’ouvrant, elle les devora avec leurs tentes, & tout ce qui étoit à eux.",
+            "TR0003": "La terre ouvrit sa bouche et les engloutit, eux et leurs familles, avec tous les gens de Coré et tous leurs biens.",
+            "TR0004": "et aperiens os suum, devoravit illos cum tabernaculis suis et universa substantia eorum,"
+          }
+        },
+        {
+          "segment_id": 549873,
+          "canon_id": "NUM.16.33",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La descente vivante dans les entrailles de la terre est distinguée des autres acceptions scripturaires de l’enfer.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.16.33",
+            "TR0001": "Ils descendirent tout vivans dans l’enfer étant couverts de terre, & ils périrent du milieu du peuple.",
+            "TR0003": "Ils descendirent vivants dans le séjour des morts, eux et tout ce qui leur appartenait ; et la terre les recouvrit, et ils disparurent du milieu de l’assemblée.",
+            "TR0004": "descenderuntque vivi in infernum operti humo, et perierunt de medio multitudinis."
+          }
+        },
+        {
+          "segment_id": 549873,
+          "canon_id": "2PE.2.4",
+          "type": 4,
+          "fiabilite": "vérifié",
+          "motif": "Les anges pécheurs réservés dans les ténèbres servent d’analogie à une autre acception de l’enfer.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "2PE.2.4",
+            "TR0001": "Car si Dieu n’a point épargné les anges qui ont peché, mais les a précipités dans l’abîme où les tenebres leur servent de chaînes, pour être tourmentés, & tenus comme en reserve jusqu’au jugement ;",
+            "TR0003": "Si Dieu, en effet, n’a pas épargné les anges qui avaient péché, mais les a précipités dans l’enfer et les a livrés aux abîmes des ténèbres, où il les garde pour le jugement ;",
+            "TR0004": "Si enim Deus angelis peccantibus non pepercit, sed rudentibus inferni detractos in tartarum tradidit cruciandos, in judicium reservari."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550047,
+      "segment_numero": 2324,
+      "segment_texte": "Comme il est parlé ici de la femme qui, encore jeune fille, demeure dans la maison de son père, la question du vœu de virginité se présente tout naturellement : tout le monde sait en effet, que les vierges elles-mêmes sont appelées femmes dans l’Écriture ; et l’Apôtre, lui aussi, semble parler du père, quand il dit : « qu’il conserve sa vierge » et encore : « qu’il marie sa vierge[[609]] » et autres expressions semblables ; plusieurs interprètes ont pris ici « vierge » dans le sens de virginité ; mais ils n’ont pu appuyer leur opinion sur aucun passage de l’Écriture, parce que cette locution y est tout à fait inusitée.",
+      "notes": "[[609]] I Cor. VII, 37, 38",
+      "ref_niv1": "Livre quatrième",
+      "ref_niv2": "Question LVII",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre quatrième",
+      "score": "02782c4b323e4a24b372a328f4bb53b4e7a656eb3167fb35019d8c6c937b8829",
+      "liens": [
+        {
+          "segment_id": 550047,
+          "canon_id": "1CO.7.37",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "L’Apôtre parle de celui qui conserve sa vierge — citation ou référence intentionnelle.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "1CO.7.37",
+            "TR0001": "Mais celui qui n’étant engagé par aucune necessité, & qui se trouvant dans un plein pouvoir de faire ce qu’il voudra, prend une ferme resolution dans son cœur, & juge en lui-même qu’il doit conserver sa fille vierge, fait une bonne œuvre.",
+            "TR0003": "Mais celui qui, sans y être forcé, étant maître de faire ce qu’il veut, a mis dans son cœur une ferme résolution, et a décidé de garder sa fille vierge, celui-là fait bien.",
+            "TR0004": "Nam qui statuit in corde suo firmus, non habens necessitatem, potestatem autem habens suæ voluntatis, et hoc judicavit in corde suo, servare virginem suam, bene facit."
+          }
+        },
+        {
+          "segment_id": 550047,
+          "canon_id": "1CO.7.38",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "L’Apôtre compare celui qui marie sa vierge et celui qui ne la marie pas — citation ou référence intentionnelle.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "1CO.7.38",
+            "TR0001": "Ainsi celui qui marie sa fille, fait bien : & celui qui ne la marie point, fait encore mieux.",
+            "TR0003": "Ainsi celui qui marie sa fille fait bien, et celui qui ne la marie pas fait mieux.",
+            "TR0004": "Igitur et qui matrimonio jungit virginem suam, bene facit : et qui non jungit, melius facit."
+          }
+        },
+        {
+          "segment_id": 550047,
+          "canon_id": "NUM.30.4",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La femme encore jeune dans la maison de son père est interprétée à propos du vœu de virginité. (NUM.30.4).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.30.4",
+            "TR0001": "Lorsqu’une femme aura fait un vœu, & se sera liée par un serment, si c’est une jeune fille qui soit encore dans la maison de son pere, & que le pere ayant connu le vœu qu’elle a fait, & le serment par lequel elle s’est engagée elle-même, n’en ait rien dit, elle sera obligée à son vœu ;",
+            "TR0003": "Si une femme, encore jeune fille dans la maison de son père, fait un vœu à Yahweh et se lie par un engagement,",
+            "TR0004": "Mulier si quippiam voverit, et se constrinxerit juramento, quæ est in domo patris sui, et in ætate adhuc puellari : si cognoverit pater votum quod pollicita est, et juramentum quo obligavit animam suam, et tacuerit, voti rea erit :"
+          }
+        },
+        {
+          "segment_id": 550047,
+          "canon_id": "NUM.30.5",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La femme encore jeune dans la maison de son père est interprétée à propos du vœu de virginité. (NUM.30.5).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.30.5",
+            "TR0001": "& elle accomplira effectivement tout ce qu’elle aura promis & juré.",
+            "TR0003": "et que son père apprenne son vœu et l’engagement qu’elle s’est imposé à elle-même, et que son père garde le silence envers elle, tous ses vœux qu’elle aura faits et tout engagement qu’elle s’est imposé à elle-même seront valables ;",
+            "TR0004": "quidquid pollicita est, et juravit, opere complebit."
+          }
+        },
+        {
+          "segment_id": 550047,
+          "canon_id": "NUM.30.6",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La femme encore jeune dans la maison de son père est interprétée à propos du vœu de virginité. (NUM.30.6).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.30.6",
+            "TR0001": "Mais si le pere s’est opposé à son vœu aussi-tôt qu’il lui a été connu, ses vœux & ses sermens seront nuls, & elle ne sera point obligée à ce qu’elle aura promis, parceque le père s’y est opposé.",
+            "TR0003": "mais si, le jour où il en a connaissance, son père la désavoue, tous ses vœux et tous les engagements qu’elle s’est imposé à elle-même seront sans valeur ; et Yahweh lui pardonnera, parce que son père l’a désavouée.",
+            "TR0004": "Sin autem statim ut audierit, contradixerit pater : et vota et juramenta ejus irrita erunt, nec obnoxia tenebitur sponsioni, eo quod contradixerit pater."
+          }
+        },
+        {
+          "segment_id": 550047,
+          "canon_id": "1CO.7.37",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’Apôtre parle de celui qui conserve sa vierge — passage commenté ou mobilisé dans le raisonnement.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "1CO.7.37",
+            "TR0001": "Mais celui qui n’étant engagé par aucune necessité, & qui se trouvant dans un plein pouvoir de faire ce qu’il voudra, prend une ferme resolution dans son cœur, & juge en lui-même qu’il doit conserver sa fille vierge, fait une bonne œuvre.",
+            "TR0003": "Mais celui qui, sans y être forcé, étant maître de faire ce qu’il veut, a mis dans son cœur une ferme résolution, et a décidé de garder sa fille vierge, celui-là fait bien.",
+            "TR0004": "Nam qui statuit in corde suo firmus, non habens necessitatem, potestatem autem habens suæ voluntatis, et hoc judicavit in corde suo, servare virginem suam, bene facit."
+          }
+        },
+        {
+          "segment_id": 550047,
+          "canon_id": "1CO.7.38",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’Apôtre compare celui qui marie sa vierge et celui qui ne la marie pas — passage commenté ou mobilisé dans le raisonnement.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "1CO.7.38",
+            "TR0001": "Ainsi celui qui marie sa fille, fait bien : & celui qui ne la marie point, fait encore mieux.",
+            "TR0003": "Ainsi celui qui marie sa fille fait bien, et celui qui ne la marie pas fait mieux.",
+            "TR0004": "Igitur et qui matrimonio jungit virginem suam, bene facit : et qui non jungit, melius facit."
+          }
+        },
+        {
+          "segment_id": 550047,
+          "canon_id": null,
+          "type": 4,
+          "fiabilite": "à constituer",
+          "motif": "RÉFÉRENCE NON BIBLIQUE (traduction) : plusieurs interprètes prennent « vierge » au sens abstrait de « virginité »",
+          "provenance": "lecture",
+          "arbitrage_requis": true,
+          "temoin": null
+        }
+      ]
+    },
+    {
+      "id": 549742,
+      "segment_numero": 2019,
+      "segment_texte": "Il indique ensuite de quelle couverture on devait envelopper le drap d’hyacinthe, quand il a ajouté : « Et ils étendront par-dessus une couverture de peau d’hyacinthe. »",
+      "notes": null,
+      "ref_niv1": "Livre quatrième",
+      "ref_niv2": "Question VIII",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre quatrième",
+      "score": "034f571c28c802a32de123118e5022f976e7e51ad7e406ea4fbf06334e1f5d65",
+      "liens": [
+        {
+          "segment_id": 549742,
+          "canon_id": "NUM.4.11",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Les deux couvertures successives, le drap puis la peau, résolvent la difficulté de construction. (NUM.4.11).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.4.11",
+            "TR0001": "Ils envelopperont aussi l’autel d’or d’un drap d’hyacinthe, ils étendront par-dessus une couverture de peaux violettes, & ils feront passer les bâtons <i>dans les anneaux</i>.",
+            "TR0003": "Ils étendront un drap de pourpre violette sur l’autel d’or, et, après l’avoir enveloppé d’une couverture de peau de veau de marin, ils y mettront les barres.",
+            "TR0004": "Necnon et altare aureum involvent hyacinthino vestimento, et extendent desuper operimentum janthinarum pellium, inducentque vectes."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550008,
+      "segment_numero": 2285,
+      "segment_texte": "Or, on donne ordinairement à <i>differat</i>, employé dans ce passage, le sens de : balloter en quelque sorte de côté et d’autre au milieu d’une tempête de paroles, déchirer, mettre en pièces : résultat que le père devait obtenir, ce semble, en accusant son fils.",
+      "notes": null,
+      "ref_niv1": "Livre quatrième",
+      "ref_niv2": "Question XLIX",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre quatrième",
+      "score": "053534dc7080d79be9cc588bfbc946fac29a092b1027797e267871e75880100d",
+      "liens": [
+        {
+          "segment_id": 550008,
+          "canon_id": "NUM.22.22",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le verbe décrivant l’obstacle opposé par l’ange est étudié entre retard, agitation et accusation.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.22.22",
+            "TR0001": "Alors Dieu se mit en colere, & un Ange du Seigneur se présenta dans le chemin devant Balaam qui étoit sur son ânesse, & qui avoit deux serviteurs avec lui.",
+            "TR0003": "La colère de Dieu s’alluma parce qu’il allait, et l’ange de Yahweh se plaça sur le chemin, pour lui faire obstacle. — Balaam était monté sur son ânesse, et il avait avec lui ses deux serviteurs. —",
+            "TR0004": "Et iratus est Deus. Stetitque angelus Domini in via contra Balaam, qui insidebat asinæ, et duos pueros habebat secum."
+          }
+        },
+        {
+          "segment_id": 550008,
+          "canon_id": "NUM.22.32",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La reprise du même verbe dans la bouche de l’ange permet d’en discuter le sens grec et latin.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.22.32",
+            "TR0001": "L’ange lui dit : Pourquoi avez-vous battu votre ânesse par trois fois ? Je suis venu pour m’opposer à vous, parceque votre voie est corrompue, & qu’elle m’est contraire :",
+            "TR0003": "L’ange de Yahweh lui dit : « Pourquoi as-tu frappé ton ânesse ces trois fois ? Voici, je suis sorti pour te faire obstacle, car, à mes yeux, le chemin que tu suis te mène à la ruine.",
+            "TR0004": "Cui angelus : Cur, inquit, tertio verberas asinam tuam ? ego veni ut adversarer tibi, quia perversa est via tua, mihique contraria :"
+          }
+        },
+        {
+          "segment_id": 550008,
+          "canon_id": null,
+          "type": 4,
+          "fiabilite": "à constituer",
+          "motif": "RÉFÉRENCE NON BIBLIQUE (auteur profane) : suite de l’interprétation du passage de Térence où differat décrit une violente harangue accusatrice",
+          "provenance": "lecture",
+          "arbitrage_requis": true,
+          "temoin": null
+        }
+      ]
+    },
+    {
+      "id": 550199,
+      "segment_numero": 2476,
+      "segment_texte": "Moïse veut aussi évidemment faire entendre à son peuple que, si les prodiges annoncés par les faux prophètes se réalisent, il ne faut pas pour cela faire ce qu’ils ordonnent, ni adorer ce qu’ils adorent. Dieu montre aussi que ces prodiges n’arrivent pas sans sa permission ; mais, comme pour aller au-devant de cette question : pourquoi donc alors les permet-il ?",
+      "notes": null,
+      "ref_niv1": "Livre cinquième",
+      "ref_niv2": "Question XIX",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre cinquième",
+      "score": "00076ce5717974e37e6124904c739c4f300ee2dc4f3b32f053bff2f0e808f629",
+      "liens": [
+        {
+          "segment_id": 550199,
+          "canon_id": "DEU.13.1",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Les prodiges des faux prophètes sont permis comme épreuve destinée à faire connaître l’amour du peuple pour Dieu. (DEU.13.1).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "DEU.13.1",
+            "TR0001": "Faites seulement en l’honneur du Seigneur ce que je vous ordonne, sans y rien ajouter ni en rien ôter.",
+            "TR0003": "Toutes les choses que je vous prescris, vous les observerez en les mettant en pratique, sans y rien ajouter et sans en rien retrancher.",
+            "TR0004": "Quod præcipio tibi, hoc tantum facito Domino : nec addas quidquam, nec minuas."
+          }
+        },
+        {
+          "segment_id": 550199,
+          "canon_id": "DEU.13.2",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Les prodiges des faux prophètes sont permis comme épreuve destinée à faire connaître l’amour du peuple pour Dieu. (DEU.13.2).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "DEU.13.2",
+            "TR0001": "S’il s’éleve au milieu de vous un prophete, ou quelqu’un qui dise qu’il a eu une vision en songe, & qui prédise quelque chose d’extraordinaire & de prodigieux,",
+            "TR0003": "S’il s’élève au milieu de toi un prophète ou un songeur qui t’annonce un signe ou un prodige,",
+            "TR0004": "Si surrexerit in medio tui prophetes, aut qui somnium vidisse se dicat, et prædixerit signum atque portentum,"
+          }
+        },
+        {
+          "segment_id": 550199,
+          "canon_id": "DEU.13.3",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Les prodiges des faux prophètes sont permis comme épreuve destinée à faire connaître l’amour du peuple pour Dieu. (DEU.13.3).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "DEU.13.3",
+            "TR0001": "& que ce qu’il avoit prédit soit arrivé ; & qu’il vous dise en même-tems : Allons, suivons des dieux étrangers qui vous étoient inconnus, & servons-les :",
+            "TR0003": "et que s’accomplisse le signe ou le prodige dont il t’a parlé en disant : « Allons après d’autres dieux, — des dieux que tu ne connais pas ! — et servons-les, »",
+            "TR0004": "et evenerit quod locutus est, et dixerit tibi : Eamus, et sequamur deos alienos quos ignoras, et serviamus eis :"
+          }
+        }
+      ]
+    },
+    {
+      "id": 550130,
+      "segment_numero": 2407,
+      "segment_texte": "Ou bien, doit-on admettre qu’il fut favorisé d’une vue plus parfaite, parce qu’il est écrit qu’il entra dans la nuée, autrement dans le cercle des flammes, où Dieu était[[628]] ? Mais si ce privilège lui fut accordé de préférence aux siens, il ne vit point cependant de ses yeux mortels la substance divine.",
+      "notes": "[[628]] Ib. XXIV, 18",
+      "ref_niv1": "Livre cinquième",
+      "ref_niv2": "Question IX",
+      "ref_niv2_texte": null,
+      "paragraphe": 2,
+      "livre": "Livre cinquième",
+      "score": "0024f9a4b0a2bdeaefaeb175528bdbef6559ed401c55f91fdac13e36f37ba75a",
+      "liens": [
+        {
+          "segment_id": 550130,
+          "canon_id": "EXO.24.18",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Référence explicite à Moïse entrant dans la nuée sur la montagne auprès de Dieu.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.24.18",
+            "TR0001": "Et Moïse passant au travers de la nuée, monta sur la montagne, & y demeura quarante jours & quarante nuits.",
+            "TR0003": "Moïse entra au milieu de la nuée, et monta à la montagne ; et Moïse demeura sur la montagne quarante jours et quarante nuits.",
+            "TR0004": "Ingressusque Moyses medium nebulæ, ascendit in montem : et fuit ibi quadraginta diebus, et quadraginta noctibus."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550285,
+      "segment_numero": 2562,
+      "segment_texte": "Que s’il est pauvre, vous ne dormirez pas avec son gage ; vous lui rendrez son vêtement vers le coucher du soleil, et il dormira dans son vêtement, et il vous bénira, et vous serez trouvés miséricordieux devant le Seigneur votre Dieu. »",
+      "notes": null,
+      "ref_niv1": "Livre cinquième",
+      "ref_niv2": "Question XLI",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre cinquième",
+      "score": "00b8acc1096f4a98b1be3bb4cba2cd0bd15055ff1fe1a7ed9cb80c9c7806dece",
+      "liens": [
+        {
+          "segment_id": 550285,
+          "canon_id": "DEU.24.12",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Le créancier ne doit pas dormir avec le gage du pauvre — citation ou référence intentionnelle.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "DEU.24.12",
+            "TR0001": "Que s’il est pauvre, le gage qu’il vous aura donné ne passera pas la nuit chez vous ;",
+            "TR0003": "Si cet homme est pauvre, tu ne te coucheras point avec son gage ;",
+            "TR0004": "Sin autem pauper est, non pernoctabit apud te pignus,"
+          }
+        },
+        {
+          "segment_id": 550285,
+          "canon_id": "DEU.24.13",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Le vêtement rendu au coucher du soleil permet au pauvre de dormir et vaut justice au créancier — citation ou référence intentionnelle.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "DEU.24.13",
+            "TR0001": "mais vous le lui rendrez aussi-tôt avant le coucher du soleil, afin que dormant dans son vêtement, il vous benisse, & que vous soyez trouvé juste devant le Seigneur votre Dieu.",
+            "TR0003": "tu ne manqueras pas de lui rendre le gage au coucher du soleil, afin qu’il couche dans son vêtement et qu’il te bénisse, et ce sera là une justice pour toi devant Yahweh, ton Dieu.",
+            "TR0004": "sed statim reddes ei ante solis occasum : ut dormiens in vestimento suo, benedicat tibi, et habeas justitiam coram Domino Deo tuo."
+          }
+        },
+        {
+          "segment_id": 550285,
+          "canon_id": "DEU.24.12",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le créancier ne doit pas dormir avec le gage du pauvre — passage commenté ou mobilisé dans le raisonnement.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "DEU.24.12",
+            "TR0001": "Que s’il est pauvre, le gage qu’il vous aura donné ne passera pas la nuit chez vous ;",
+            "TR0003": "Si cet homme est pauvre, tu ne te coucheras point avec son gage ;",
+            "TR0004": "Sin autem pauper est, non pernoctabit apud te pignus,"
+          }
+        },
+        {
+          "segment_id": 550285,
+          "canon_id": "DEU.24.13",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le vêtement rendu au coucher du soleil permet au pauvre de dormir et vaut justice au créancier — passage commenté ou mobilisé dans le raisonnement.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "DEU.24.13",
+            "TR0001": "mais vous le lui rendrez aussi-tôt avant le coucher du soleil, afin que dormant dans son vêtement, il vous benisse, & que vous soyez trouvé juste devant le Seigneur votre Dieu.",
+            "TR0003": "tu ne manqueras pas de lui rendre le gage au coucher du soleil, afin qu’il couche dans son vêtement et qu’il te bénisse, et ce sera là une justice pour toi devant Yahweh, ton Dieu.",
+            "TR0004": "sed statim reddes ei ante solis occasum : ut dormiens in vestimento suo, benedicat tibi, et habeas justitiam coram Domino Deo tuo."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550171,
+      "segment_numero": 2448,
+      "segment_texte": "Pourquoi donc Moïse dit-il, dans l’Exode, qu’il écrivit lui-même les dix commandements de la Loi sur les tables, et pourquoi, dans le Deutéronome, rapporte-t-il que c’est Dieu qui les a écrites ?",
+      "notes": null,
+      "ref_niv1": "Livre cinquième",
+      "ref_niv2": "Question XV",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre cinquième",
+      "score": "01ad72acb02275d325773aa095b4f925c79bf5d4e3699340ac948164ef874d54",
+      "liens": [
+        {
+          "segment_id": 550171,
+          "canon_id": "DEU.10.4",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le Deutéronome attribue l’écriture à Dieu tandis que la lecture naturelle de l’Exode l’attribue à Moïse. (DEU.10.4).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "DEU.10.4",
+            "TR0001": "Et le Seigneur écrivit sur ces tables, comme il avoit fait sur les premieres, les dix commandemens, qu’il vous fit entendre en vous parlant du haut de la montagne du milieu du feu, lorsque le peuple étoit assemblé, & il me les donna.",
+            "TR0003": "Il écrivit sur ces tables ce qui avait été écrit sur les premières, les dix paroles que Yahweh vous avait dites sur la montagne, du milieu du feu, le jour de l’assemblée ; et Yahweh me les donna.",
+            "TR0004": "Scripsitque in tabulis, juxta id quod prius scripserat, verba decem, quæ locutus est Dominus ad vos in monte de medio ignis, quando populus congregatus est : et dedit eas mihi."
+          }
+        },
+        {
+          "segment_id": 550171,
+          "canon_id": "EXO.34.28",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le Deutéronome attribue l’écriture à Dieu tandis que la lecture naturelle de l’Exode l’attribue à Moïse. (EXO.34.28).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "EXO.34.28",
+            "TR0001": "Moïse demeura donc quarante jours & quarante nuits avec le Seigneur sur la montagne. Il ne mangea point de pain, & il ne but point d’eau <i>dans tout ce tems ; & le Seigneur</i> écrivit sur les tables les dix paroles de l’alliance.",
+            "TR0003": "Moïse fut là avec Yahweh quarante jours et quarante nuits, sans manger de pain et sans boire d’eau. Et Yahweh écrivit sur les tables les paroles de l’alliance, les dix paroles.",
+            "TR0004": "Fuit ergo ibi cum Domino quadraginta dies et quadraginta noctes : panem non comedit, et aquam non bibit, et scripsit in tabulis verba fœderis decem."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550299,
+      "segment_numero": 2576,
+      "segment_texte": "Pourquoi, après avoir voulu qu’on rendit justice à ces trois sortes de personnes, ne défend-il de prendre que le vêtement de la veuve, sans parler de celui des autres, si ce n’est parce que toutes les personnes désignées ont droit, au même titre, à ce que justice leur soit rendue ?",
+      "notes": null,
+      "ref_niv1": "Livre cinquième",
+      "ref_niv2": "Question XLIII",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre cinquième",
+      "score": "01de1b58bf5adbb1b6cc68def87d146b912bcb259808d4040af4dc3afff7504c",
+      "liens": [
+        {
+          "segment_id": 550299,
+          "canon_id": "DEU.24.17",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La mention particulière du vêtement de la veuve est interprétée comme signe de sa pauvreté et de son absence de défenseur. (DEU.24.17).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "DEU.24.17",
+            "TR0001": "Vous ne violerez point la justice dans la cause de l’étranger ni de l’orphelin, & vous n’ôterez point à la veuve son vêtement pour vous tenir lieu de gage.",
+            "TR0003": "Tu ne violeras pas le droit de l’étranger ni de l’orphelin, et tu ne prendras point en gage le vêtement de la veuve.",
+            "TR0004": "Non pervertes judicium advenæ et pupilli, nec auferes pignoris loco viduæ vestimentum."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550095,
+      "segment_numero": 2372,
+      "segment_texte": "Sur l’endurcissement du cœur. - « Mais Séon, roi d’Esébon, ne voulut point nous laisser passer par chez lui, parce que le Seigneur notre Dieu avait endurci son esprit et affermi son cœur, pour le livrer entre tes mains, comme cela a lieu aujourd’hui. »",
+      "notes": null,
+      "ref_niv1": "Livre cinquième",
+      "ref_niv2": "Question II",
+      "ref_niv2_texte": "Deutéronome 2, 30",
+      "paragraphe": 1,
+      "livre": "Livre cinquième",
+      "score": "0258ae5dea2bfeaaeb3dcd828fc16a6823a1961c65a7209076fd65ddbbb3c36f",
+      "liens": [
+        {
+          "segment_id": 550095,
+          "canon_id": "DEU.2.30",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Citation explicite de l’endurcissement de l’esprit et du cœur de Séhon afin qu’il soit livré à Israël.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "DEU.2.30",
+            "TR0001": "Mais Sehon roi d’Hesebon ne voulut point nous accorder le passage ; parceque le Seigneur votre Dieu lui avoit affermi l’esprit & endurci le cœur, afin qu’il fût livré entre vos mains, comme vous voyez maintenant <i>qu’il l’a été</i>.",
+            "TR0003": "Mais Séhon, roi de Hésebon, ne voulut pas nous laisser passer chez lui, car Yahweh, ton Dieu, avait endurci son esprit et rendu son cœur inflexible, afin de le livrer entre tes mains, comme tu le vois aujourd’hui.",
+            "TR0004": "Noluitque Sehon rex Hesebon dare nobis transitum : quia induraverat Dominus Deus tuus spiritum ejus, et obfirmaverat cor illius, ut traderetur in manus tuas, sicut nunc vides."
+          }
+        },
+        {
+          "segment_id": 550095,
+          "canon_id": "DEU.2.30",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’endurcissement de Séhon est expliqué par sa résistance, sa défaite et la justice insondable de Dieu.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "DEU.2.30",
+            "TR0001": "Mais Sehon roi d’Hesebon ne voulut point nous accorder le passage ; parceque le Seigneur votre Dieu lui avoit affermi l’esprit & endurci le cœur, afin qu’il fût livré entre vos mains, comme vous voyez maintenant <i>qu’il l’a été</i>.",
+            "TR0003": "Mais Séhon, roi de Hésebon, ne voulut pas nous laisser passer chez lui, car Yahweh, ton Dieu, avait endurci son esprit et rendu son cœur inflexible, afin de le livrer entre tes mains, comme tu le vois aujourd’hui.",
+            "TR0004": "Noluitque Sehon rex Hesebon dare nobis transitum : quia induraverat Dominus Deus tuus spiritum ejus, et obfirmaverat cor illius, ut traderetur in manus tuas, sicut nunc vides."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550567,
+      "segment_numero": 2844,
+      "segment_texte": "Si Josué, fils de Navé, ce saint personnage, n’avait pas ajouté : « <i>que suivent tous ceux qui sont sur la terre</i> » il n’y aurait pas matière à discussion ; car nous ne pouvons admettre, à son sujet, aucune supposition qui ne soit digne de lui ; mais, comme il a complété ainsi sa phrase, je m’étonne que le traducteur latin n’ait pas mis « <i>je parcours</i> » ou « <i>je descends</i> » au lieu de « je <i>retourne par</i> le chemin » si le grec « <i>ἀποτρέχω</i> », est susceptible de ce sens.",
+      "notes": null,
+      "ref_niv1": "Livre sixième",
+      "ref_niv2": "Question XXIV",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre sixième",
+      "score": "00f84c81570198b2af8a33888e784b57abbe521992977d9ba86d87dbff8580a6",
+      "liens": [
+        {
+          "segment_id": 550567,
+          "canon_id": "JOS.23.14",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Les sens corporel et spirituel du retour par le chemin de toute la terre sont examinés (JOS.23.14).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JOS.23.14",
+            "TR0001": "Pour moi, je suis aujourd’hui sur le point d’entrer dans la voie de toute la terre, & vous devez considerer avec une parfaite reconnoissance, que tout ce que le Seigneur avoit promis de vous donner, est arrivé effectivement, sans qu’aucune de ses paroles soit tombée à terre.",
+            "TR0003": "Voici que je m’en vais aujourd’hui par le chemin de toute la terre ; reconnaissez de tout votre cœur et de toute votre âme, que, de toutes les bonnes paroles que Yahweh, votre Dieu, a prononcées sur vous, aucune parole n’est restée sans effet ; toutes se sont accomplies pour vous, aucune parole n’en est tombée.",
+            "TR0004": "En ego hodie ingredior viam universæ terræ, et toto animo cognoscetis quod de omnibus verbis, quæ se Dominus præstiturum vobis esse pollicitus est, unum non præterierit incassum."
+          }
+        },
+        {
+          "segment_id": 550567,
+          "canon_id": null,
+          "type": 4,
+          "fiabilite": "à constituer",
+          "motif": "RÉFÉRENCE NON BIBLIQUE (tradition textuelle) : discussion du choix du traducteur latin et du sens possible du grec ἀποτρέχω ; cible de corpus à constituer.",
+          "provenance": "lecture",
+          "arbitrage_requis": true,
+          "temoin": null
+        }
+      ]
+    },
+    {
+      "id": 550587,
+      "segment_numero": 2864,
+      "segment_texte": "1. « Josué fit alliance avec le peuple en ce jour-là, et lui donna la Loi et la justice à Silo, devant le tabernacle du Seigneur Dieu d’Israël. Et il écrivit ces paroles dans le livre de la Loi de Dieu ; et il prit une grande pierre qu’il plaça sous un térébinthe en présence du Seigneur.",
+      "notes": null,
+      "ref_niv1": "Livre sixième",
+      "ref_niv2": "Question XXX",
+      "ref_niv2_texte": "Questions sur Josué 24, 25, 26, 27",
+      "paragraphe": 1,
+      "livre": "Livre sixième",
+      "score": "05bfd4669c3cfa98f897de692daae02d2ccf24ab770010bf7def1d7201e6dd8a",
+      "liens": [
+        {
+          "segment_id": 550587,
+          "canon_id": "JOS.24.25",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Josué conclut une alliance avec le peuple et lui donne loi et justice à Sichem — citation ou référence intentionnelle.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JOS.24.25",
+            "TR0001": "Josué fit donc alliance <i>de la part du Seigneur</i> en ce jour-là avec le peuple, & il lui representa ses préceptes & ses ordonnances à Sichem.",
+            "TR0003": "C’est ainsi que Josué conclut en ce jour-là une alliance avec le peuple, et qu’il lui donna à Sichem des lois et des ordonnances.",
+            "TR0004": "Percussit ergo Josue in die illo fœdus, et proposuit populo præcepta atque judicia in Sichem."
+          }
+        },
+        {
+          "segment_id": 550587,
+          "canon_id": "JOS.24.26",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Josué écrit les paroles dans le livre de la Loi et place une grande pierre sous un arbre — citation ou référence intentionnelle.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JOS.24.26",
+            "TR0001": "Il écrivit aussi toutes ces choses dans le livre de la loi du Seigneur, & il prit une très-grande pierre qu’il mit sous un chêne, qui étoit dans le santuaire du Seigneur,",
+            "TR0003": "Josué écrivit ces paroles dans le livre de la loi de Dieu. Il prit une grande pierre et la dressa là, sous le chêne qui était dans le lieu consacré à Yahweh.",
+            "TR0004": "Scripsit quoque omnia verba hæc in volumine legis Domini : et tulit lapidem pergrandem, posuitque eum subter quercum, quæ erat in sanctuario Domini :"
+          }
+        },
+        {
+          "segment_id": 550587,
+          "canon_id": "JOS.24.25",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Josué conclut une alliance avec le peuple et lui donne loi et justice à Sichem — passage commenté ou mobilisé dans le raisonnement.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JOS.24.25",
+            "TR0001": "Josué fit donc alliance <i>de la part du Seigneur</i> en ce jour-là avec le peuple, & il lui representa ses préceptes & ses ordonnances à Sichem.",
+            "TR0003": "C’est ainsi que Josué conclut en ce jour-là une alliance avec le peuple, et qu’il lui donna à Sichem des lois et des ordonnances.",
+            "TR0004": "Percussit ergo Josue in die illo fœdus, et proposuit populo præcepta atque judicia in Sichem."
+          }
+        },
+        {
+          "segment_id": 550587,
+          "canon_id": "JOS.24.26",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Josué écrit les paroles dans le livre de la Loi et place une grande pierre sous un arbre — passage commenté ou mobilisé dans le raisonnement.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JOS.24.26",
+            "TR0001": "Il écrivit aussi toutes ces choses dans le livre de la loi du Seigneur, & il prit une très-grande pierre qu’il mit sous un chêne, qui étoit dans le santuaire du Seigneur,",
+            "TR0003": "Josué écrivit ces paroles dans le livre de la loi de Dieu. Il prit une grande pierre et la dressa là, sous le chêne qui était dans le lieu consacré à Yahweh.",
+            "TR0004": "Scripsit quoque omnia verba hæc in volumine legis Domini : et tulit lapidem pergrandem, posuitque eum subter quercum, quæ erat in sanctuario Domini :"
+          }
+        }
+      ]
+    },
+    {
+      "id": 550414,
+      "segment_numero": 2691,
+      "segment_texte": "Cela nous donne à entendre que Dieu, quand il a quelque sujet de mécontentement contre ses fidèles serviteurs, les châtie dans le temps présent, et néanmoins les met au nombre de ceux qui sont « des instruments honorables et utiles dans sa maison[[741]] » et participent aux promesses des saints.",
+      "notes": "[[741]] II Tim. II, 21",
+      "ref_niv1": "Livre sixième",
+      "ref_niv2": "Question I",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre sixième",
+      "score": "061effde82a493b8508e3d003617e432342f7b24775aecb59fcb2c617dc72307",
+      "liens": [
+        {
+          "segment_id": 550414,
+          "canon_id": "2TI.2.21",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Citation explicite des instruments honorables, sanctifiés et utiles dans la maison du maître.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "2TI.2.21",
+            "TR0001": "Si quelqu’un donc se garde pur de ces choses, il sera un vase d’honneur, santifié, & propre au service du Seigneur, préparé pour toutes sortes de bonnes œuvres.",
+            "TR0003": "Si donc quelqu’un s’est gardé pur de ces choses-là, il sera un vase d’honneur, sanctifié, utile à son maître, propre à toute bonne œuvre.",
+            "TR0004": "Si quis ergo emundaverit se ab istis, erit vas in honorem sanctificatum, et utile Domino ad omne opus bonum paratum."
+          }
+        },
+        {
+          "segment_id": 550414,
+          "canon_id": "JOS.1.5",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’éloge posthume de Moïse est concilié avec le châtiment temporel qu’il a subi.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JOS.1.5",
+            "TR0001": "Je serai avec vous, comme j’ai été avec Moïse : je ne vous laisserai point, je ne vous abandonnerai point.",
+            "TR0003": "Nul ne tiendra devant toi pendant tous les jours de ta vie ; comme j’ai été avec Moïse, je serai avec toi ; je ne te délaisserai, ni ne t’abandonnerai.",
+            "TR0004": "Nullus poterit vobis resistere cunctis diebus vitæ tuæ : sicut fui cum Moyse, ita ero tecum : non dimittam, nec derelinquam te."
+          }
+        },
+        {
+          "segment_id": 550414,
+          "canon_id": "DEU.32.52",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’exclusion temporelle de Moïse est distinguée de son appartenance aux saints et aux promesses divines.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "DEU.32.52",
+            "TR0001": "Vous verrez devant vous le païs que je donnerai aux enfans d’Israel, & vous n’y entrerez point.",
+            "TR0003": "Tu verras le pays en face de toi, mais tu n’y entreras point, dans ce pays, que je donne aux enfants d’Israël. »",
+            "TR0004": "E contra videbis terram, et non ingredieris in eam, quam ego dabo filiis Israël."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550582,
+      "segment_numero": 2859,
+      "segment_texte": "Il ne faut pas croire que les Israélites aient conservé parmi eux quelque idole des nations, puisque Josué vient de faire l’éloge de leur obéissance ; et s’ils en avaient eu encore, après les menaces effrayantes de la Loi, qu’ils auraient été favorisés de tant de bienfaits ; puisque le larcin, commis par un d’entre eux dans les dépouilles livrées à l’anathème, attira sur le peuple un châtiment si terrible.",
+      "notes": null,
+      "ref_niv1": "Livre sixième",
+      "ref_niv2": "Question XXIX",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre sixième",
+      "score": "074bc3cc6a3150e3ef23bc2fcf672f1d98c878727f58c2dcac5fe85aa6e77edb",
+      "liens": [
+        {
+          "segment_id": 550582,
+          "canon_id": "JOS.7.1",
+          "type": 2,
+          "fiabilite": "vérifié",
+          "motif": "Le larcin d’Achan dans l’anathème et la colère suscitée contre Israël sont rappelés sans référence explicite.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JOS.7.1",
+            "TR0001": "Or les enfans d’Israel violerent la défense qui leur avoit été faite, & ils prirent pour eux de ce qui avoit été mis sous l’anathême. Car Achan fils de Charmi, fils de Zabdi, fils de Zaré de la tribu de Juda, déroba quelque chose de l’anathême ; & le Seigneur se mit en colere contre les enfans d’Israel.",
+            "TR0003": "Les enfants d’Israël commirent une infidélité au sujet de l’anathème. Achan, fils de Charmi, fils de Zabdi, fils de Zaré, de la tribu de Juda, prit des choses dévouées, et la colère de Yahweh s’enflamma contre les enfants d’Israël.",
+            "TR0004": "Filii autem Israël prævaricati sunt mandatum, et usurpaverunt de anathemate. Nam Achan filius Charmi filii Zabdi filii Zare de tribu Juda tulit aliquid de anathemate : iratusque est Dominus contra filios Israël."
+          }
+        },
+        {
+          "segment_id": 550582,
+          "canon_id": "JOS.7.5",
+          "type": 2,
+          "fiabilite": "vérifié",
+          "motif": "Le châtiment collectif consécutif au larcin d’Achan est évoqué comme contraste avec la situation présente.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JOS.7.5",
+            "TR0001": "ils furent chargés par ceux de la ville de Haï, & il y en eut trente-six de tués. Les ennemis les poursuivirent depuis leur porte jusqu’à Sabarim, & tuerent ceux qui s’enfuyoient vers le bas de la colline. Alors le cœur du peuple fut saisi de crainte, & devint comme de l’eau qui s’écoule.",
+            "TR0003": "Les gens d’Haï leur tuèrent environ trente-six hommes ; ils les poursuivirent depuis la porte jusqu’à Sabarim, et les battirent à la descente. Et le cœur du peuple se fondit et il perdit tout courage.",
+            "TR0004": "percussi sunt a viris urbis Hai, et corruerunt ex eis triginta sex homines : persecutique sunt eos adversarii de porta usque ad Sabarim, et ceciderunt per prona fugientes : pertimuitque cor populi, et instar aquæ liquefactum est."
+          }
+        },
+        {
+          "segment_id": 550582,
+          "canon_id": "JOS.24.23",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’ordre ne suppose pas nécessairement la conservation matérielle d’idoles parmi les Israélites (JOS.24.23).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JOS.24.23",
+            "TR0001": "Otez donc maintenant du milieu de vous, ajoûta-t-il, les dieux étrangers, & abaissez vos cœurs, & les soumettez au Seigneur le Dieu d’Israel.",
+            "TR0003": "Il dit : « Et maintenant ôtez les dieux étrangers qui sont au milieu de vous, et tournez vos cœurs vers Yahweh, le Dieu d’Israël. »",
+            "TR0004": "Nunc ergo, ait, auferte deos alienos de medio vestri, et inclinate corda vestra ad Dominum Deum Israël."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550434,
+      "segment_numero": 2711,
+      "segment_texte": "Au reste, la suite le fait voir ; tel est en effet, le langage de l’Écriture : « Josué se fit des couteaux de pierre aiguisés, et circoncit les enfants d’Israël au lieu qui s’appelle la Colline de la Circoncision.",
+      "notes": null,
+      "ref_niv1": "Livre sixième",
+      "ref_niv2": "Question VI",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre sixième",
+      "score": "0ae9a600df935b4a22e366318c579fc16aa8d3bc9faf2544aec2818800d534ee",
+      "liens": [
+        {
+          "segment_id": 550434,
+          "canon_id": "JOS.5.3",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Citation explicite de Josué fabriquant des couteaux de pierre et circoncisant Israël à la Colline de la Circoncision.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JOS.5.3",
+            "TR0001": "Josué fit ce que le Seigneur lui avoit commandé, & il circoncit les enfans d’Israel sur la colline de la circoncision.",
+            "TR0003": "Josué se fit des couteaux de pierre, et il circoncit les enfants d’Israël sur la colline d’Araloth.",
+            "TR0004": "Fecit quod jusserat Dominus, et circumcidit filios Israël in colle præputiorum."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550543,
+      "segment_numero": 2820,
+      "segment_texte": "« Depuis le fleuve » c’est-à-dire, depuis l’Euphrate : car on peut, à défaut même du nom propre, entendre qu’il s’agit du grand fleuve. Il ne peut être question du Jourdain, car les Israélites avaient pris possession des pays situés en deçà et au-delà, même avant le règne de Salomon.",
+      "notes": null,
+      "ref_niv1": "Livre sixième",
+      "ref_niv2": "Question XXI",
+      "ref_niv2_texte": null,
+      "paragraphe": 3,
+      "livre": "Livre sixième",
+      "score": "0c7b0f39a4a131cd9b90f322f75b82f9d9917950970a0e2c1fd33219953a62cb",
+      "liens": [
+        {
+          "segment_id": 550543,
+          "canon_id": "JOS.21.43",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’étendue de la terre donnée à Israël et son accomplissement historique développent l’affirmation du lemma (JOS.21.43).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JOS.21.43",
+            "TR0001": "Il n’y eut pas une seule parole de tout ce que Dieu avoit promis de donner aux Israëlites qui demeurât sans effet ; mais tout fut accompli très-exactement.",
+            "TR0003": "C’est ainsi que Yahweh donna à Israël tout le pays qu’il avait juré de donner à leurs pères ; ils en prirent possession et s’y établirent.",
+            "TR0004": "Deditque Dominus Deus Israëli omnem terram, quam traditurum se patribus eorum juraverat : et possederunt illam, atque habitaverunt in ea."
+          }
+        },
+        {
+          "segment_id": 550543,
+          "canon_id": "1KI.5.1",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le fleuve oriental du royaume de Salomon est identifié à l’Euphrate et non au Jourdain (1KI.5.1).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "1KI.5.1",
+            "TR0001": "Salomon avoit sous sa domination tous les royaumes depuis le fleuve d’<i>Euphrate</i>, jusqu’au païs des Philistins, & jusqu’à la frontiere d’Egypte. Ils lui offroient tous des présens, & lui demeurerent assujettis tous les jours de sa vie.",
+            "TR0003": "Salomon dominait sur tous les royaumes, depuis le fleuve jusqu’au pays des Philistins et à la frontière d’Égypte ; ils apportaient des présents et ils furent assujettis à Salomon tous les jours de sa vie.",
+            "TR0004": "Salomon autem erat in ditione sua, habens omnia regna a flumine terræ Philisthiim usque ad terminum Ægypti : offerentium sibi munera, et servientium ei cunctis diebus vitæ ejus."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550631,
+      "segment_numero": 2908,
+      "segment_texte": "C’est ce qui apparaît ici avec une plus grande évidence. On énumère les villes que Juda ne posséda point, et on dit : « Et le Seigneur était avec Juda, et il occupa la montagne, n’ayant pu se rendre maître des habitants de la vallée. » Qui ne comprend que cela même est la conséquence de ce que le Seigneur était avec Juda ?",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question V",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre septième",
+      "score": "00201e74dccff41f7ea5de59c022e800f76d59a7e1c2ba13685d1487c3e96b7d",
+      "liens": [
+        {
+          "segment_id": 550631,
+          "canon_id": "JOS.21.43",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le don de toute la terre est concilié avec la persistance de territoires non occupés.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JOS.21.43",
+            "TR0001": "Il n’y eut pas une seule parole de tout ce que Dieu avoit promis de donner aux Israëlites qui demeurât sans effet ; mais tout fut accompli très-exactement.",
+            "TR0003": "C’est ainsi que Yahweh donna à Israël tout le pays qu’il avait juré de donner à leurs pères ; ils en prirent possession et s’y établirent.",
+            "TR0004": "Deditque Dominus Deus Israëli omnem terram, quam traditurum se patribus eorum juraverat : et possederunt illam, atque habitaverunt in ea."
+          }
+        },
+        {
+          "segment_id": 550631,
+          "canon_id": "JDG.1.19",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La résistance des habitants de la vallée et leurs chars de fer sont interprétés comme une épreuve providentielle contre l’orgueil.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JDG.1.19",
+            "TR0001": "Le Seigneur fut avec Juda, & il se rendit maître des montagnes ; mais il ne put défaire ceux qui habitoient dans la vallée, parcequ’ils avoient une grande quantité de chariots armés de faulx.",
+            "TR0003": "Yahweh fut avec Juda ; et Juda prit possession de la montagne, mais il ne put chasser les habitants de la plaine, parce qu’ils avaient des chars de fer.",
+            "TR0004": "Fuitque Dominus cum Juda, et montana possedit : nec potuit delere habitatores vallis, quia falcatis curribus abundabant."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550637,
+      "segment_numero": 2914,
+      "segment_texte": "On demande pourquoi il est dit que les enfants de Benjamin « ne s’emparèrent pas du Jébuséen habitant à Jérusalem, et » que « le Jébuséen habita avec les enfants de Benjamin à Jérusalem, jusqu’à ce jour » puisqu’on dit plus haut que cette même ville fut prise par Juda, livrée aux flammes, et les Jébuséens qui l’habitaient exterminés.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question VII",
+      "ref_niv2_texte": "Les anciens habitants de Jérusalem ne furent pas tous détruits.\nJuges 1, 21, 8",
+      "paragraphe": 1,
+      "livre": "Livre septième",
+      "score": "00b44ba962c25485ff13f3a3c8459901d814762a437386a2bb4e734700ab39ad",
+      "liens": [
+        {
+          "segment_id": 550637,
+          "canon_id": "JDG.1.21",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Citation explicite des Jébuséens demeurant avec Benjamin à Jérusalem.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JDG.1.21",
+            "TR0001": "Mais les enfans de Benjamin ne tuerent point les Jebuséens qui demeuroient à Jerusalem : & les Jebuséens demeurerent à Jerusalem avec les enfans de Benjamin, comme ils y sont encore aujourd’hui.",
+            "TR0003": "Les fils de Benjamin ne chassèrent point les Jébuséens qui habitaient Jérusalem, et les Jébuséens ont habité à Jérusalem avec les fils de Benjamin, jusqu’à ce jour.",
+            "TR0004": "Jebusæum autem habitatorem Jerusalem non deleverunt filii Benjamin : habitavitque Jebusæus cum filiis Benjamin in Jerusalem, usque in præsentem diem."
+          }
+        },
+        {
+          "segment_id": 550637,
+          "canon_id": "JDG.1.8",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Référence explicite à la prise et à l’incendie antérieurs de Jérusalem par Juda.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JDG.1.8",
+            "TR0001": "Car les enfans de Juda ayant mis le siege devant Jerusalem, la prirent, taillerent en pieces tout ce qu’ils y trouverent, & mirent le feu dans toute la ville.",
+            "TR0003": "Les fils de Juda attaquèrent Jérusalem et, l’ayant prise, ils la frappèrent du tranchant de l’épée et mirent le feu à la ville.",
+            "TR0004": "Oppugnantes ergo filii Juda Jerusalem, ceperunt eam, et percusserunt in ore gladii, tradentes cunctam incendio civitatem."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550703,
+      "segment_numero": 2980,
+      "segment_texte": "« Et après lui parut Samgar fils d’Aneath, et il tua aux étrangers six cents hommes, sans compter les jeunes bœufs, et il sauva Israël. » On peut demander comment après Aod, Samgar a combattu pour Israël, et comment il l’a délivré, car Israël n’avait pas été réduit de nouveau en captivité, ni soumis à la servitude.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXV",
+      "ref_niv2_texte": "Sur la victoire de Samgar.\nJuges 3, 31",
+      "paragraphe": 1,
+      "livre": "Livre septième",
+      "score": "00c0220887a424d02002860910c29e80a502227441eca44479daac2d49f93e3a",
+      "liens": [
+        {
+          "segment_id": 550703,
+          "canon_id": "JDG.3.31",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Citation explicite de Samgar fils d’Anath tuant six cents étrangers et sauvant Israël.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JDG.3.31",
+            "TR0001": "Après Aod, Samgar fils d’Anath fut en sa place. Ce fut lui qui tua six cens Philistins avec un soc de charue : & il fut aussi le défenseur & le liberateur d’Israel.",
+            "TR0003": "Après lui, il y eut Samgar, fils d’Anath, qui battit six cents hommes des Philistins avec un aiguillon à bœufs ; lui aussi fut un libérateur d’Israël.",
+            "TR0004": "Post hunc fuit Samgar filius Anath, qui percussit de Philisthiim sexcentos viros vomere : et ipse quoque defendit Israël."
+          }
+        },
+        {
+          "segment_id": 550703,
+          "canon_id": "JDG.3.31",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le salut d’Israël signifie que l’agression ennemie fut prévenue et repoussée par le nouveau juge.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JDG.3.31",
+            "TR0001": "Après Aod, Samgar fils d’Anath fut en sa place. Ce fut lui qui tua six cens Philistins avec un soc de charue : & il fut aussi le défenseur & le liberateur d’Israel.",
+            "TR0003": "Après lui, il y eut Samgar, fils d’Anath, qui battit six cents hommes des Philistins avec un aiguillon à bœufs ; lui aussi fut un libérateur d’Israël.",
+            "TR0004": "Post hunc fuit Samgar filius Anath, qui percussit de Philisthiim sexcentos viros vomere : et ipse quoque defendit Israël."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550960,
+      "segment_numero": 3237,
+      "segment_texte": "C’est pourquoi il est ordonné touchant celui-ci, que le fer ne passera point sur sa tête, et qu’il ne boira ni vin ni liqueur fermentée. En effet Samson garda toute sa vie cette observance, que ceux qui portaient le nom de Nazaréens gardaient à certains jours pour acquitter leur vœu.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question LII",
+      "ref_niv2_texte": null,
+      "paragraphe": 1,
+      "livre": "Livre septième",
+      "score": "017c593012983583e5aa92e2b9df1d77875cc368f068cc6ffb306d028b3403c1",
+      "liens": [
+        {
+          "segment_id": 550960,
+          "canon_id": "JDG.13.4",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "L’abstinence de vin et l’interdiction du rasoir rapprochent Samson des nazaréens de la Loi — citation, référence ou reprise explicite.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JDG.13.4",
+            "TR0001": "Prenez donc bien garde de ne point boire de vin, ni rien de ce qui peut enivrer, & de ne manger rien d’impur ;",
+            "TR0003": "Et maintenant, prends bien garde, ne bois ni vin ni liqueur forte et ne mange rien d’impur,",
+            "TR0004": "Cave ergo ne bibas vinum ac siceram, nec immundum quidquam comedas :"
+          }
+        },
+        {
+          "segment_id": 550960,
+          "canon_id": "JDG.13.5",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "L’abstinence de vin et l’interdiction du rasoir rapprochent Samson des nazaréens de la Loi — citation, référence ou reprise explicite.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JDG.13.5",
+            "TR0001": "parceque vous concevrez & vous enfanterez un fils, sur la tête duquel le rasoir ne passera point : car il sera Nazaréen, consacré à Dieu dès son enfance & dès le ventre de sa mere, & c’est lui qui commencera à délivrer Israel de la main des Philistins.",
+            "TR0003": "car tu vas concevoir et enfanter un fils. Le rasoir ne passera point sur sa tête, car cet enfant sera nazaréen de Dieu, dès le sein de sa mère, et c’est lui qui commencera à délivrer Israël de la main des Philistins. »",
+            "TR0004": "quia concipies, et paries filium, cujus non tanget caput novacula : erit enim nazaræus Dei ab infantia sua et ex matris utero, et ipse incipiet liberare Israël de manu Philisthinorum."
+          }
+        },
+        {
+          "segment_id": 550960,
+          "canon_id": "NUM.6.3",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "L’abstinence de vin et l’interdiction du rasoir rapprochent Samson des nazaréens de la Loi — citation, référence ou reprise explicite.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.6.3",
+            "TR0001": "ils s’abstiendront de vin, & de tout ce qui peut enivrer : ils ne boiront point de vinaigre qui est fait de vin, ou de tout autre breuvage, ni rien de ce qui se tire des raisins : ils ne mangeront point de raisins nouvellement cueillis, ni de raisins secs.",
+            "TR0003": "il s’abstiendra de vin et boisson enivrante ; il ne boira ni vinaigre fait avec du vin, ni vinaigre fait avec une boisson enivrante ; il ne boira d’aucun jus de raisin ; il ne mangera ni raisins frais, ni raisins secs.",
+            "TR0004": "a vino, et omni quod inebriare potest, abstinebunt. Acetum ex vino, et ex qualibet alia potione, et quidquid de uva exprimitur, non bibent : uvas recentes siccasque non comedent"
+          }
+        },
+        {
+          "segment_id": 550960,
+          "canon_id": "NUM.6.5",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "L’abstinence de vin et l’interdiction du rasoir rapprochent Samson des nazaréens de la Loi — citation, référence ou reprise explicite.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.6.5",
+            "TR0001": "Pendant tout le tems de la séparation du Nazaréen le rasoir ne passera point sur sa tête, jusqu’à ce que les jours de sa consecration au Seigneur soient accomplis. Il sera saint, laissant croître les cheveux de sa tête.",
+            "TR0003": "Pendant tout le temps du vœu de son nazaréat, le rasoir ne passera point sur sa tête ; jusqu’à l’accomplissement des jours pour la durée desquels il se sépare en l’honneur de Yahweh, il sera saint, laissant croître librement ses cheveux.",
+            "TR0004": "Omni tempore separationis suæ novacula non transibit per caput ejus usque ad completum diem, quo Domino consecratur. Sanctus erit, crescente cæsarie capitis ejus."
+          }
+        },
+        {
+          "segment_id": 550960,
+          "canon_id": "JDG.13.4",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’abstinence de vin et l’interdiction du rasoir rapprochent Samson des nazaréens de la Loi — passage commenté dans le raisonnement.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JDG.13.4",
+            "TR0001": "Prenez donc bien garde de ne point boire de vin, ni rien de ce qui peut enivrer, & de ne manger rien d’impur ;",
+            "TR0003": "Et maintenant, prends bien garde, ne bois ni vin ni liqueur forte et ne mange rien d’impur,",
+            "TR0004": "Cave ergo ne bibas vinum ac siceram, nec immundum quidquam comedas :"
+          }
+        },
+        {
+          "segment_id": 550960,
+          "canon_id": "JDG.13.5",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’abstinence de vin et l’interdiction du rasoir rapprochent Samson des nazaréens de la Loi — passage commenté dans le raisonnement.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JDG.13.5",
+            "TR0001": "parceque vous concevrez & vous enfanterez un fils, sur la tête duquel le rasoir ne passera point : car il sera Nazaréen, consacré à Dieu dès son enfance & dès le ventre de sa mere, & c’est lui qui commencera à délivrer Israel de la main des Philistins.",
+            "TR0003": "car tu vas concevoir et enfanter un fils. Le rasoir ne passera point sur sa tête, car cet enfant sera nazaréen de Dieu, dès le sein de sa mère, et c’est lui qui commencera à délivrer Israël de la main des Philistins. »",
+            "TR0004": "quia concipies, et paries filium, cujus non tanget caput novacula : erit enim nazaræus Dei ab infantia sua et ex matris utero, et ipse incipiet liberare Israël de manu Philisthinorum."
+          }
+        },
+        {
+          "segment_id": 550960,
+          "canon_id": "NUM.6.3",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’abstinence de vin et l’interdiction du rasoir rapprochent Samson des nazaréens de la Loi — passage commenté dans le raisonnement.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.6.3",
+            "TR0001": "ils s’abstiendront de vin, & de tout ce qui peut enivrer : ils ne boiront point de vinaigre qui est fait de vin, ou de tout autre breuvage, ni rien de ce qui se tire des raisins : ils ne mangeront point de raisins nouvellement cueillis, ni de raisins secs.",
+            "TR0003": "il s’abstiendra de vin et boisson enivrante ; il ne boira ni vinaigre fait avec du vin, ni vinaigre fait avec une boisson enivrante ; il ne boira d’aucun jus de raisin ; il ne mangera ni raisins frais, ni raisins secs.",
+            "TR0004": "a vino, et omni quod inebriare potest, abstinebunt. Acetum ex vino, et ex qualibet alia potione, et quidquid de uva exprimitur, non bibent : uvas recentes siccasque non comedent"
+          }
+        },
+        {
+          "segment_id": 550960,
+          "canon_id": "NUM.6.5",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’abstinence de vin et l’interdiction du rasoir rapprochent Samson des nazaréens de la Loi — passage commenté dans le raisonnement.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "NUM.6.5",
+            "TR0001": "Pendant tout le tems de la séparation du Nazaréen le rasoir ne passera point sur sa tête, jusqu’à ce que les jours de sa consecration au Seigneur soient accomplis. Il sera saint, laissant croître les cheveux de sa tête.",
+            "TR0003": "Pendant tout le temps du vœu de son nazaréat, le rasoir ne passera point sur sa tête ; jusqu’à l’accomplissement des jours pour la durée desquels il se sépare en l’honneur de Yahweh, il sera saint, laissant croître librement ses cheveux.",
+            "TR0004": "Omni tempore separationis suæ novacula non transibit per caput ejus usque ad completum diem, quo Domino consecratur. Sanctus erit, crescente cæsarie capitis ejus."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550941,
+      "segment_numero": 3218,
+      "segment_texte": "L’Église, que le bienheureux Apôtre appelle « une chaste vierge[[891]] » sera donc un holocauste quand s’accomplira dans l’universelle résurrection des morts cette parole de l’Écriture : « La mort a été engloutie dans sa victoire. » Alors Jésus-Christ remettra son royaume aux mains de Dieu son Père[[892]].",
+      "notes": "[[891]] II Cor. X, 1, 2.\n[[892]] I Cor. XV, 54, 24.",
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XLIX",
+      "ref_niv2_texte": null,
+      "paragraphe": 26,
+      "livre": "Livre septième",
+      "score": "01f84f21a1bf1e99adfb017eebb39b0f90fa12e43d7cb0b124f543853d876e64",
+      "liens": [
+        {
+          "segment_id": 550941,
+          "canon_id": "2CO.11.2",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "L’Église est présentée au Christ comme une vierge chaste, sens exact malgré l’ancienne référence imprimée 2 Corinthiens 10,1-2 — citation ou référence intentionnelle.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "2CO.11.2",
+            "TR0001": "2. Car j’ai pour vous un amour de jalousie, & d’une jalousie de Dieu, parceque je vous ai fiancés à cet unique époux, qui est Jesus-Christ, pour vous presenter à lui comme une Vierge toute pure.",
+            "TR0003": "J’ai conçu pour vous une jalousie de Dieu ; car je vous ai fiancés à un époux unique, pour vous présenter au Christ comme une vierge pure.",
+            "TR0004": "æmulor enim vos Dei æmulatione. Despondi enim vos uni viro, virginem castam exhibere Christo."
+          }
+        },
+        {
+          "segment_id": 550941,
+          "canon_id": "1CO.15.54",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "La mort est engloutie dans la victoire — citation ou référence intentionnelle.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "1CO.15.54",
+            "TR0001": "Et quand ce corps mortel aura été revêtu de l’immortalité, alors cette parole de l’Ecriture sera accomplie : La mort a été absorbée par la victoire.",
+            "TR0003": "Lorsque ce corps corruptible aura revêtu l’incorruptibilité, et que ce corps mortel aura revêtu l’immortalité, alors s’accomplira la parole qui est écrite : « La mort a été engloutie pour la victoire. »",
+            "TR0004": "Cum autem mortale hoc induerit immortalitatem, tunc fiet sermo, qui scriptus est : Absorpta est mors in victoria."
+          }
+        },
+        {
+          "segment_id": 550941,
+          "canon_id": "1CO.15.24",
+          "type": 1,
+          "fiabilite": "vérifié",
+          "motif": "Le Christ remet le royaume à Dieu le Père — citation ou référence intentionnelle.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "1CO.15.24",
+            "TR0001": "Et alors viendra la consommation <i>de toutes choses</i>, lorsqu’il aura remis son royaume à son Dieu & son Pere, & qu’il aura détruit tout empire, toute domination & toute puissance :",
+            "TR0003": "Puis ce sera la fin, quand il remettra le royaume à Dieu et au Père, après avoir anéanti toute principauté, toute puissance et toute force.",
+            "TR0004": "Deinde finis : cum tradiderit regnum Deo et Patri, cum evacuaverit omnem principatum, et potestatem, et virtutem."
+          }
+        },
+        {
+          "segment_id": 550941,
+          "canon_id": "2CO.11.2",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "L’Église est présentée au Christ comme une vierge chaste, sens exact malgré l’ancienne référence imprimée 2 Corinthiens 10,1-2 — passage commenté ou mobilisé.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "2CO.11.2",
+            "TR0001": "2. Car j’ai pour vous un amour de jalousie, & d’une jalousie de Dieu, parceque je vous ai fiancés à cet unique époux, qui est Jesus-Christ, pour vous presenter à lui comme une Vierge toute pure.",
+            "TR0003": "J’ai conçu pour vous une jalousie de Dieu ; car je vous ai fiancés à un époux unique, pour vous présenter au Christ comme une vierge pure.",
+            "TR0004": "æmulor enim vos Dei æmulatione. Despondi enim vos uni viro, virginem castam exhibere Christo."
+          }
+        },
+        {
+          "segment_id": 550941,
+          "canon_id": "1CO.15.54",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "La mort est engloutie dans la victoire — passage commenté ou mobilisé.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "1CO.15.54",
+            "TR0001": "Et quand ce corps mortel aura été revêtu de l’immortalité, alors cette parole de l’Ecriture sera accomplie : La mort a été absorbée par la victoire.",
+            "TR0003": "Lorsque ce corps corruptible aura revêtu l’incorruptibilité, et que ce corps mortel aura revêtu l’immortalité, alors s’accomplira la parole qui est écrite : « La mort a été engloutie pour la victoire. »",
+            "TR0004": "Cum autem mortale hoc induerit immortalitatem, tunc fiet sermo, qui scriptus est : Absorpta est mors in victoria."
+          }
+        },
+        {
+          "segment_id": 550941,
+          "canon_id": "1CO.15.24",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le Christ remet le royaume à Dieu le Père — passage commenté ou mobilisé.",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "1CO.15.24",
+            "TR0001": "Et alors viendra la consommation <i>de toutes choses</i>, lorsqu’il aura remis son royaume à son Dieu & son Pere, & qu’il aura détruit tout empire, toute domination & toute puissance :",
+            "TR0003": "Puis ce sera la fin, quand il remettra le royaume à Dieu et au Père, après avoir anéanti toute principauté, toute puissance et toute force.",
+            "TR0004": "Deinde finis : cum tradiderit regnum Deo et Patri, cum evacuaverit omnem principatum, et potestatem, et virtutem."
+          }
+        }
+      ]
+    },
+    {
+      "id": 550916,
+      "segment_numero": 3193,
+      "segment_texte": "C’est à ce peuple ennemi du Christ, et dans ses pères, et dans les générations qui vinrent ensuite, traînant comme une longue chaîne le lourd héritage de cette haine ; c’est à ce peuple, enfin converti en ceux de ses membres qui doivent venir au Christ, que cette parole est adressée : « Ne m’avez-vous pas eu en haine, ne m’avez-vous pas chassé de la maison de mon père ? »",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XLIX",
+      "ref_niv2_texte": null,
+      "paragraphe": 21,
+      "livre": "Livre septième",
+      "score": "0265d95c621e13b3907511fbc1fba8f33060cc0fab4556b7f2f19befe999302a",
+      "liens": [
+        {
+          "segment_id": 550916,
+          "canon_id": "JDG.11.7",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le retour d’Israël vers Jephté figure son retour au Christ (JDG.11.7).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JDG.11.7",
+            "TR0001": "Jephté leur répondit : N’est-ce pas vous qui me haïssiez, & qui m’avez chassé de la maison de mon pere ? Et maintenant vous venez à moi, parceque la necessité vous y contraint.",
+            "TR0003": "Jephté dit aux anciens de Galaad : « Ne m’avez-vous pas haï et chassé de la maison de mon père ? Pourquoi venez-vous à moi, maintenant que vous êtes dans la détresse ? »",
+            "TR0004": "Quibus ille respondit : Nonne vos estis, qui odistis me, et ejecistis de domo patris mei ? et nunc venistis ad me necessitate compulsi."
+          }
+        },
+        {
+          "segment_id": 550916,
+          "canon_id": "JDG.11.8",
+          "type": 3,
+          "fiabilite": "vérifié",
+          "motif": "Le retour d’Israël vers Jephté figure son retour au Christ (JDG.11.8).",
+          "provenance": "lecture",
+          "arbitrage_requis": false,
+          "temoin": {
+            "id_verset": "JDG.11.8",
+            "TR0001": "Les principaux de Galaad lui dirent : Nous venons vous trouver, afin que vous marchiez avec nous, que vous combattiez contre les enfans d’Ammon, & que vous soyez le chef de tous ceux qui habitent dans <i>le païs de</i> Galaad.",
+            "TR0003": "Les anciens de Galaad dirent à Jephté : « C’est à cause de cela que nous revenons à toi maintenant, pour que tu marches avec nous, que tu combattes les fils d’Ammon, et que tu sois notre chef, le chef de tous les habitants de Galaad. »",
+            "TR0004": "Dixeruntque principes Galaad ad Jephte : Ob hanc igitur causam nunc ad te venimus, ut proficiscaris nobiscum, et pugnes contra filios Ammon, sisque dux omnium qui habitant in Galaad."
+          }
+        }
+      ]
+    }
+  ]
+}

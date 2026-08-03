@@ -330,7 +330,7 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
     numeros.set(marqueur, n)
     return n
   }
-  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]+)\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)/g
+  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]+)\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>/g
   let dernierIndex = 0, k = 0, m: RegExpExecArray | null
   while ((m = regex.exec(texte))) {
     if (m.index > dernierIndex) noeuds.push(texte.slice(dernierIndex, m.index))
@@ -350,6 +350,9 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
       noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)
       noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[8]}</sup>)
       noeuds.push(m[9])
+    }
+    else if (m[10] !== undefined) {
+      noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[10], notes)}</em>)
     }
     dernierIndex = regex.lastIndex
   }
@@ -480,11 +483,20 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
     try {
       const v = localStorage.getItem('cs_mode_lecture_oeuvre')
       if (v === 'segments' || v === 'paragraphes') setModeLecturePref(v)
+      // Un lien direct « ?mt=la » (texte original / bilingue) l'emporte sur la préférence
+      // enregistrée : il ouvre l'œuvre exactement dans le mode demandé. L'original étant
+      // aligné par paragraphe, les modes « la »/« bilingue » imposent la vue paragraphes.
+      const urlMt = new URLSearchParams(window.location.search).get('mt')
+      if (urlMt === 'fr' || urlMt === 'bilingue' || urlMt === 'la') {
+        setModeTexte(urlMt)
+        if (urlMt !== 'fr' && eligibleParagraphes) setModeLecturePref('paragraphes')
+        return
+      }
       const mt = localStorage.getItem(`cs_modetexte_${idOeuvre}`)
       if (mt === 'fr' || mt === 'bilingue' || mt === 'la') setModeTexte(mt)
       else if (localStorage.getItem(`cs_bilingue_${idOeuvre}`) === '1') setModeTexte('bilingue')
     } catch {}
-  }, [idOeuvre])
+  }, [idOeuvre, eligibleParagraphes])
   const affichageBilingue = modeTexte === 'bilingue'
   const afficherOriginalSeul = modeTexte === 'la'
   const modeLecture: 'paragraphes' | 'segments' = eligibleParagraphes ? modeLecturePref : 'segments'
@@ -1643,8 +1655,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             // Rendues depuis l'état complet des segments, et seulement sur la 1re page.
             const intros = pageActuelle === 0 ? segments.filter(s => s.nature === 'introduction') : []
             return (<>
-              {intros.map(s => (
-                <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: '0 0 1.6rem' }}>
+              {intros.map((s, index) => {
+                const suivant = intros[index + 1]
+                const memeParagraphe = suivant?.paragraphe != null && suivant.paragraphe === s.paragraphe
+                return (
+                <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: `0 0 ${memeParagraphe ? '0.18rem' : '0.55rem'}` }}>
                   <div lang="fr" onClick={() => setSegActif(segActif === s.id ? null : s.id)} className="seg-p"
                     style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.74rem', fontStyle: 'italic', color: '#7a7268', lineHeight: 1.6, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', cursor: 'pointer', borderRadius: '3px', padding: '2px 6px', margin: 0, background: segActif === s.id ? '#ddeee2' : 'transparent' } as React.CSSProperties}>
                     {rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
@@ -1655,7 +1670,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
                   </div>
                 </div>
-              ))}
+                )
+              })}
               {groupesFiltres.map((groupe) => {
               const itemsReels = groupe.itemIds.filter(id => segMap.get(id)?.nature !== 'introduction')
               if (itemsReels.length === 0) return null

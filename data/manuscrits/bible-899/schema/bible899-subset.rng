@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         ns="http://www.tei-c.org/ns/1.0"
+         datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <start>
+    <element name="TEI">
+      <zeroOrMore><ref name="attribute-any" /></zeroOrMore>
+      <zeroOrMore><ref name="content" /></zeroOrMore>
+    </element>
+  </start>
+
+  <define name="content">
+    <choice>
+      <text />
+      <ref name="choice-element" />
+      <ref name="gap-element" />
+      <ref name="unclear-element" />
+      <ref name="add-element" />
+      <ref name="line-element" />
+      <ref name="fw-element" />
+      <ref name="generic-element" />
+    </choice>
+  </define>
+
+  <define name="choice-element">
+    <element name="choice">
+      <zeroOrMore><ref name="attribute-any" /></zeroOrMore>
+      <mixed>
+        <group>
+          <element name="abbr"><zeroOrMore><ref name="content" /></zeroOrMore></element>
+          <element name="expan"><zeroOrMore><ref name="content" /></zeroOrMore></element>
+        </group>
+      </mixed>
+    </element>
+  </define>
+
+  <define name="gap-element">
+    <element name="gap">
+      <optional><attribute name="reason"><text /></attribute></optional>
+      <optional><attribute name="cause"><text /></attribute></optional>
+      <zeroOrMore>
+        <attribute>
+          <anyName>
+            <except><name ns="">reason</name><name ns="">cause</name></except>
+          </anyName>
+        </attribute>
+      </zeroOrMore>
+    </element>
+  </define>
+
+  <define name="unclear-element">
+    <element name="unclear">
+      <zeroOrMore><ref name="attribute-any" /></zeroOrMore>
+      <oneOrMore><ref name="content" /></oneOrMore>
+    </element>
+  </define>
+
+  <define name="add-element">
+    <element name="add">
+      <attribute name="place"><value>margin</value></attribute>
+      <zeroOrMore>
+        <attribute>
+          <anyName><except><name ns="">place</name></except></anyName>
+        </attribute>
+      </zeroOrMore>
+      <oneOrMore><ref name="content" /></oneOrMore>
+    </element>
+  </define>
+
+  <define name="line-element">
+    <element>
+      <choice><name>l</name><name>lb</name></choice>
+      <attribute name="id" ns="http://www.w3.org/XML/1998/namespace"><text /></attribute>
+      <zeroOrMore>
+        <attribute>
+          <anyName>
+            <except><name ns="http://www.w3.org/XML/1998/namespace">id</name></except>
+          </anyName>
+        </attribute>
+      </zeroOrMore>
+      <zeroOrMore><ref name="content" /></zeroOrMore>
+    </element>
+  </define>
+
+  <define name="fw-element">
+    <element name="fw">
+      <attribute name="id" ns="http://www.w3.org/XML/1998/namespace"><text /></attribute>
+      <attribute name="type"><value>catchword</value></attribute>
+      <optional><attribute name="place"><value>bottom</value></attribute></optional>
+      <zeroOrMore>
+        <attribute>
+          <anyName>
+            <except>
+              <name ns="http://www.w3.org/XML/1998/namespace">id</name>
+              <name ns="">type</name>
+              <name ns="">place</name>
+            </except>
+          </anyName>
+        </attribute>
+      </zeroOrMore>
+      <oneOrMore><ref name="content" /></oneOrMore>
+    </element>
+  </define>
+
+  <define name="generic-element">
+    <element>
+      <anyName>
+        <except>
+          <name>choice</name>
+          <name>gap</name>
+          <name>unclear</name>
+          <name>add</name>
+          <name>l</name>
+          <name>lb</name>
+          <name>fw</name>
+        </except>
+      </anyName>
+      <zeroOrMore><ref name="attribute-any" /></zeroOrMore>
+      <zeroOrMore><ref name="content" /></zeroOrMore>
+    </element>
+  </define>
+
+  <define name="attribute-any">
+    <attribute><anyName /></attribute>
+  </define>
+</grammar>

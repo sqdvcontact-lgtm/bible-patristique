@@ -1,0 +1,143 @@
+LOT ÉDITORIAL 001 READY — RAPPORT DE PRÉPARATION
+================================================
+
+1. COMPOSITION DU LOT
+---------------------
+
+Le présent dossier reprend sans modification les 30 images du LOT_001 initial et
+ajoute les trois images du complément consacré au folio 1v.
+
+Contenu total :
+- 11 images pleine face, utilisées comme images de contexte ;
+- 22 images de colonnes ;
+- 33 images PNG au total.
+
+Statut éditorial des colonnes :
+- f001v_a : already_encoded — colonne déjà encodée dans le prototype v0.4,
+  conservée uniquement comme image de contrôle ;
+- f001v_b : to_transcribe — première nouvelle colonne de la continuité ;
+- f002r_a à f006v_b : to_transcribe — vingt autres colonnes nouvelles ;
+- toutes les images pleine face : context_only.
+
+Le périmètre nouveau à transcrire contient donc exactement 21 colonnes, dans
+l’ordre suivant : 1v_b, puis les 20 colonnes de 2r à 6v.
+
+2. SOURCES
+----------
+
+Lot initial repris :
+C:\Corpus Scriptura\bible-patristique\work\bible899\LOT_001
+
+Archive complémentaire utilisée :
+C:\Users\Sébastien\Downloads\LOT_001_COMPLEMENT_f001v.zip
+
+SHA-256 de l’archive complémentaire :
+10afb8863dd8b1076fcb668c71fc25389666fde22c3ac1d7d3c4012c1ba9005b
+
+Le PDF ayant servi aux extractions initiales demeure :
+C:\Corpus Scriptura\bible-patristique\work\bible899\source\BnF_Fr_899.pdf
+
+SHA-256 du PDF :
+0d8bc3825a548b1a71b3cd13ee397f9be0f68601d2dd42b91166538b29e729d1
+
+3. CONTINUITÉ ET CORRESPONDANCE AVEC LE PDF
+------------------------------------------
+
+La continuité éditoriale à traiter commence par la colonne 1v_b. La colonne 1v_a
+la précède matériellement, mais elle est déjà encodée dans le prototype v0.4 et ne
+doit pas être retranscrite.
+
+Face 1v : page PDF 6, moitié gauche de l’ouverture.
+Face 2r : page PDF 6, moitié droite de l’ouverture.
+Faces 2v et 3r : page PDF 8 ; la page PDF 7 est une vue répétée légèrement moins
+large et n’a pas été utilisée.
+Faces 3v et 4r : page PDF 9.
+Faces 4v et 5r : page PDF 10.
+Faces 5v et 6r : page PDF 11.
+Face 6v : page PDF 12, moitié gauche de l’ouverture.
+
+La séquence de foliotation 1v–6v est cohérente. Le numéro de vue Gallica n’étant
+pas exposé dans ce PDF, le champ gallica_view demeure vide sans valeur inventée.
+
+4. MANIFESTE
+------------
+
+LOT_001_MANIFEST.csv contient 33 lignes de données, une par image. Il est encodé
+en UTF-8 et conserve les accents français. Les caractères « ? » qui remplaçaient
+des accents dans le manifeste initial ont été corrigés dans les seuls champs
+descriptifs material_state et observations.
+
+Les coordonnées, dimensions, pages PDF, chemins relatifs et empreintes SHA-256 du
+LOT_001 initial ont été conservés. Les trois lignes du manifeste complémentaire
+ont été ajoutées avec leurs valeurs d’origine exactes.
+
+La colonne editorial_status contient exclusivement :
+- context_only pour les 11 images pleine face ;
+- already_encoded pour images_columns/f001v_a.png ;
+- to_transcribe pour images_columns/f001v_b.png et les 20 colonnes de 2r à 6v.
+
+5. ÉTAT MATÉRIEL ET LIMITES
+---------------------------
+
+Le folio 1v présente une déchirure importante affectant la partie inférieure de
+la colonne a ; la colonne b est complète. Les observations matérielles des faces
+2r à 6v sont conservées dans le manifeste, avec leurs accents restaurés.
+
+Aucun OCR, aucune transcription, aucun développement d’abréviation, aucune
+modernisation et aucune restitution n’ont été effectués. Le TEI maître, le
+manifeste actif du lecteur, Corpus Scriptura et le lecteur n’ont pas été modifiés.
+Aucune image n’a été rééchantillonnée ou traitée.
+
+6. LISTE COMPLÈTE DES 33 IMAGES
+-------------------------------
+
+Images pleine face :
+images_full/f001v_full.png
+images_full/f002r_full.png
+images_full/f002v_full.png
+images_full/f003r_full.png
+images_full/f003v_full.png
+images_full/f004r_full.png
+images_full/f004v_full.png
+images_full/f005r_full.png
+images_full/f005v_full.png
+images_full/f006r_full.png
+images_full/f006v_full.png
+
+Images de colonnes :
+images_columns/f001v_a.png
+images_columns/f001v_b.png
+images_columns/f002r_a.png
+images_columns/f002r_b.png
+images_columns/f002v_a.png
+images_columns/f002v_b.png
+images_columns/f003r_a.png
+images_columns/f003r_b.png
+images_columns/f003v_a.png
+images_columns/f003v_b.png
+images_columns/f004r_a.png
+images_columns/f004r_b.png
+images_columns/f004v_a.png
+images_columns/f004v_b.png
+images_columns/f005r_a.png
+images_columns/f005r_b.png
+images_columns/f005v_a.png
+images_columns/f005v_b.png
+images_columns/f006r_a.png
+images_columns/f006r_b.png
+images_columns/f006v_a.png
+images_columns/f006v_b.png
+
+7. VÉRIFICATIONS DE LIVRAISON
+-----------------------------
+
+Les contrôles de livraison portent sur :
+- la présence des 33 images ;
+- la concordance de leur SHA-256 avec le manifeste ;
+- la concordance des dimensions avec le manifeste ;
+- l’identité binaire des 30 images reprises avec celles du LOT_001 initial ;
+- l’identité binaire des trois images ajoutées avec l’archive complémentaire ;
+- la relecture stricte du CSV en UTF-8 ;
+- l’absence de caractère de remplacement et de point d’interrogation parasite ;
+- les nombres de statuts éditoriaux : 11 context_only, 1 already_encoded et
+  21 to_transcribe.

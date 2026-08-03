@@ -27,6 +27,25 @@ export function lettreDepuisIndex(n: number): string {
   return String(n)
 }
 
+// Rendu des enrichissements d'une note (hors renvois) : **gras**, *italique*,
+// ++petites capitales++, ^^exposant^^. Partagé par le volet de rédaction et la
+// bulle de note publiée, pour que ce qu'on compose s'affiche partout à l'identique.
+export function rendreMarquesNote(t: string, base: number = 0): React.ReactNode[] {
+  const out: React.ReactNode[] = []
+  const re = /\*\*(.+?)\*\*|\+\+(.+?)\+\+|\^\^(.+?)\^\^|\*(.+?)\*/g
+  let d = 0, i = 0, m: RegExpExecArray | null
+  while ((m = re.exec(t))) {
+    if (m.index > d) out.push(t.slice(d, m.index))
+    if (m[1] !== undefined) out.push(<strong key={`b-${base}-${i++}`}>{m[1]}</strong>)
+    else if (m[2] !== undefined) out.push(<span key={`c-${base}-${i++}`} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{m[2]}</span>)
+    else if (m[3] !== undefined) out.push(<sup key={`s-${base}-${i++}`}>{m[3]}</sup>)
+    else if (m[4] !== undefined) out.push(<em key={`i-${base}-${i++}`}>{m[4]}</em>)
+    d = re.lastIndex
+  }
+  if (d < t.length) out.push(t.slice(d))
+  return out
+}
+
 function rendreInline(s: string, cleNote: { n: number }, options: RenduOptions): React.ReactNode[] {
   const noeuds: React.ReactNode[] = []
   const regex = /\*\*(.+?)\*\*|\+\+(.+?)\+\+|\^\^(.+?)\^\^|\*(.+?)\*|\[\^(.+?)\]|\[(.+?)\]\((.+?)\)/g
@@ -71,7 +90,7 @@ export function rendreEssai(texte: string, options: RenduOptions = {}): React.Re
   const blocs: React.ReactNode[] = []
   let paragraphe: string[] = []
   const cleNote = { n: 0 }
-  let indexH1 = 0
+  let indexTitre = 0
 
   const flush = () => {
     if (paragraphe.length === 0) return
@@ -95,12 +114,13 @@ export function rendreEssai(texte: string, options: RenduOptions = {}): React.Re
     }
     if (ligne.startsWith('## ')) {
       flush()
-      blocs.push(<h3 key={blocs.length} style={{ fontStyle: 'italic', fontWeight: 400, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1em', color: '#3a3530', marginTop: '4mm', marginBottom: '1mm', paddingLeft: '3mm', textIndent: 0, textAlign: 'left' }}>{rendreInline(ligne.slice(3), cleNote, options)}</h3>)
+      const id = `essai-h-${indexTitre++}`
+      blocs.push(<h3 id={id} key={blocs.length} style={{ fontStyle: 'italic', fontWeight: 400, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1em', color: '#3a3530', marginTop: '4mm', marginBottom: '1mm', paddingLeft: '3mm', textIndent: 0, textAlign: 'left', scrollMarginTop: '60px' }}>{rendreInline(ligne.slice(3), cleNote, options)}</h3>)
       return
     }
     if (ligne.startsWith('# ')) {
       flush()
-      const id = `essai-h-${indexH1++}`
+      const id = `essai-h-${indexTitre++}`
       blocs.push(<h2 id={id} key={blocs.length} style={{ fontWeight: 600, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.06em', lineHeight: 1.25, color: '#1e2e24', marginTop: '6mm', marginBottom: '4mm', paddingLeft: 0, textIndent: 0, textAlign: 'left', scrollMarginTop: '60px', letterSpacing: '0.01em' }}>{rendreInline(ligne.slice(2), cleNote, options)}</h2>)
       return
     }
@@ -110,11 +130,15 @@ export function rendreEssai(texte: string, options: RenduOptions = {}): React.Re
   return blocs
 }
 
-export function extraireSommaire(texte: string): { titre: string; id: string }[] {
+export function extraireSommaire(texte: string): { titre: string; id: string; niveau: 1 | 2 }[] {
   let i = 0
-  return texte.split('\n')
-    .filter(l => l.startsWith('# '))
-    .map(l => ({ titre: l.slice(2), id: `essai-h-${i++}` }))
+  const out: { titre: string; id: string; niveau: 1 | 2 }[] = []
+  for (const l of texte.split('\n')) {
+    // Même ordre de comptage que rendreEssai (## avant #) pour aligner les id.
+    if (l.startsWith('## ')) out.push({ titre: l.slice(3), id: `essai-h-${i++}`, niveau: 2 })
+    else if (l.startsWith('# ')) out.push({ titre: l.slice(2), id: `essai-h-${i++}`, niveau: 1 })
+  }
+  return out
 }
 
 // Pour le compteur de caractères pendant la rédaction : ne compte que le

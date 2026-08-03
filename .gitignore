@@ -58,5 +58,9 @@ scripts/heptateuque/*.docx
 # dossier de travail temporaire (OCR, PDF volumineux, artefacts)
 /tmp/
 
+# fac-similé source BnF 899 : 108 Mo, au-delà de la limite GitHub (100 Mo).
+# Conservé localement, non versionné.
+work/bible899/source/BnF_Fr_899.pdf
+
 # réglages Claude Code locaux (spécifiques à la machine)
 .claude/settings.local.json

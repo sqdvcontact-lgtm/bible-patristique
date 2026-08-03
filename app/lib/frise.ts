@@ -112,6 +112,10 @@ export const COUL_TYPE: Record<string, string> = {
   vie: '#3d6b4f',
   'œuvre': '#83a06a',
   contexte: '#c19a3e',
+  // Chronologie d'une TRADUCTION : quatre nuances discrètes (pas de couleurs vives).
+  formation: '#3d6b4f',
+  edition: '#8a7440',
+  reception: '#83a06a',
 }
 export const coulType = (t?: string | null) => (t && COUL_TYPE[t]) || '#8a8278'
 
@@ -119,6 +123,9 @@ export const LIB_TYPE: Record<string, string> = {
   vie: 'Vie',
   'œuvre': 'Œuvre',
   contexte: 'Contexte',
+  formation: 'Formation',
+  edition: 'Édition',
+  reception: 'Réception',
 }
 
 // ── Sources : jamais d'URL brute dans le corps de la carte ─────────────────

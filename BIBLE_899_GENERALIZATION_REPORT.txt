@@ -1,0 +1,315 @@
+COMPTE RENDU DE GÉNÉRALISATION TECHNIQUE — BIBLE 899
+Corpus Scriptura
+Date : 2 août 2026
+
+
+1. RÉSULTAT GÉNÉRAL
+
+La chaîne Bible 899 a été généralisée sans importer de nouveau folio, sans ajouter de texte manuscrit, sans modifier les lectures existantes et sans intégrer Supabase.
+
+Le lecteur actif reste disponible à l’adresse :
+
+/manuscrits/bible-899
+
+Le TEI/XML demeure l’unique source textuelle maîtresse du lecteur.
+
+Fichier maître actif :
+
+C:\Corpus Scriptura\bible-patristique\data\manuscrits\bible-899\Bible_899_master.xml
+
+Empreinte SHA-256 :
+
+90b0fb0ab81ef5f36f9d1ae20e0786202dd4df3183314e1ce48d11066f996a84
+
+Cette empreinte est identique à celle du TEI du prototype v0.4. Le fichier n’a subi aucune modification textuelle. Seul son nom de déploiement est devenu stable afin de pouvoir recevoir de futures versions éditoriales.
+
+
+2. GÉNÉRALISATION DU PARSEUR
+
+Les contraintes suivantes ont été supprimées du moteur général :
+
+- exactement 120 lignes ;
+- exactement trois colonnes ;
+- exactement 40 lignes par colonne ;
+- exactement trois paragraphes modernisés ;
+- liste codée en dur des trois dimensions d’images ;
+- empreinte SHA-256 codée en dur dans le parseur.
+
+Ces valeurs subsistent uniquement dans la suite de non-régression du prototype v0.4.
+
+Le parseur accepte maintenant :
+
+- un nombre quelconque de folios ;
+- un nombre quelconque de colonnes par folio ;
+- un nombre variable de lignes par colonne ;
+- des lignes contenues dans des éléments l ;
+- des lignes introduites par des jalons lb, y compris dans un conteneur TEI ;
+- zéro, un ou plusieurs paragraphes modernisés par unité ;
+- l’absence totale de couche modernisée pour une colonne ;
+- des références de fac-similé portées par pb, cb, l ou lb ;
+- des zones TEI internes référencées par facs="#identifiant" ;
+- des fragments d’image de forme #xywh=.
+
+L’ordre des folios, colonnes, lignes, jalons et contenus est dérivé de l’ordre documentaire du TEI. Aucune unité textuelle n’est triée ou reconstruite depuis un nombre attendu.
+
+Lorsqu’une couche modernisée manque, le modèle conserve un tableau vide. Le lecteur affiche alors l’indication explicite :
+
+« Aucune couche modernisée n’est fournie par le TEI pour cette colonne. »
+
+Aucun texte modernisé n’est généré automatiquement.
+
+
+3. MANIFESTE DE VERSIONNEMENT
+
+Le manifeste lisible se trouve ici :
+
+C:\Corpus Scriptura\bible-patristique\data\manuscrits\bible-899\manifest.json
+
+Il contient :
+
+- la version du format de manifeste ;
+- l’identifiant bible-899 ;
+- la version éditoriale 0.4 ;
+- le chemin du TEI maître ;
+- l’empreinte SHA-256 du TEI ;
+- la date de génération ;
+- le nombre de folios, colonnes, lignes, choice, gap et unclear ;
+- la liste des images utilisées ;
+- le chemin public de chaque image ;
+- l’empreinte SHA-256 de chaque image ;
+- les dimensions réelles de chaque image lorsqu’elles sont lisibles.
+
+Comptages actuels enregistrés :
+
+- 2 folios ;
+- 3 colonnes ;
+- 120 lignes ;
+- 58 choice ;
+- 8 gap ;
+- 2 unclear ;
+- 3 images.
+
+Le chargement du lecteur échoue avec un message explicite si :
+
+- l’empreinte du TEI ne correspond plus au manifeste ;
+- les comptages ne correspondent plus ;
+- la version éditoriale ne correspond plus ;
+- la liste des images ne correspond plus ;
+- une image manque ;
+- l’empreinte d’une image a changé.
+
+Commande explicite de régénération :
+
+Set-Location 'C:\Corpus Scriptura\bible-patristique'
+& 'C:\Program Files\nodejs\npm.cmd' run bible899:manifest
+
+Cette commande ne modifie pas le TEI.
+
+
+4. VALIDATION TEI
+
+Schéma Relax NG ajouté :
+
+C:\Corpus Scriptura\bible-patristique\data\manuscrits\bible-899\schema\bible899-subset.rng
+
+Une validation TypeScript équivalente, plus précise pour les messages de contrôle, est exécutée par les tests, la génération du manifeste, l’import et la compilation.
+
+Les validations couvrent notamment :
+
+- présence simultanée de abbr et expan dans chaque choice ;
+- présence de reason ou cause dans chaque gap ;
+- contenu identifiable de chaque unclear ;
+- xml:id stable sur chaque ligne l ou lb ;
+- unicité des identifiants de lignes ;
+- unicité globale des xml:id ;
+- valeurs admises de break ;
+- conservation fonctionnelle de break="no" ;
+- existence des zones TEI référencées ;
+- existence réelle de chaque image utilisée.
+
+Les erreurs indiquent le chemin du fichier et, selon l’unité concernée, le folio, la colonne, le numéro de ligne et le xml:id.
+
+Le schéma Relax NG a été vérifié avec lxml. Les fichiers suivants sont conformes :
+
+- Bible_899_master.xml ;
+- single-column.xml ;
+- multiple-folios.xml ;
+- milestone-lines.xml ;
+- zone-reference.xml.
+
+
+5. FAC-SIMILÉS ET COORDONNÉES
+
+Chaque colonne et chaque ligne peut maintenant recevoir une ou plusieurs références de fac-similé.
+
+Le moteur prend en charge :
+
+- une image complète ;
+- une zone définie dans un surface TEI ;
+- un fragment xywh ;
+- l’héritage d’une image déclarée au niveau du folio ou de la colonne ;
+- l’absence temporaire de coordonnées.
+
+Aucune coordonnée n’a été inventée pour les trois images actuelles.
+
+Les unités actuelles sans coordonnées détaillées sont signalées dans les données de contrôle :
+
+- 1r_a ;
+- 1r_b ;
+- 1v_a.
+
+Le lecteur continue à afficher les trois images actuelles et précise que les coordonnées détaillées ne sont pas renseignées.
+
+
+6. NAVIGATION DU LECTEUR
+
+Le lecteur construit maintenant sa navigation depuis les folios et colonnes réellement produits par le parseur.
+
+La navigation permet :
+
+- de sélectionner un folio dans une liste générée depuis le TEI ;
+- d’aller au folio précédent ;
+- d’aller au folio suivant ;
+- de sélectionner une colonne précise du folio courant.
+
+Une seule colonne est affichée à la fois. Le nombre de lignes indiqué dans son en-tête est calculé depuis le TEI et n’est plus fixé à 40.
+
+Les trois modes sont conservés :
+
+- diplomatique ;
+- abréviations développées ;
+- graphie modernisée.
+
+Le fonctionnement responsive existant est conservé. La navigation se réorganise sur petit écran.
+
+
+7. COMMANDE D’IMPORT DE FUTURS LOTS
+
+Avant un import, les images référencées doivent être placées dans :
+
+C:\Corpus Scriptura\bible-patristique\public\manuscrits\bible-899
+
+Commande d’import ou de remplacement :
+
+Set-Location 'C:\Corpus Scriptura\bible-patristique'
+& 'C:\Program Files\nodejs\npm.cmd' run bible899:import -- 'C:\chemin\vers\le-nouveau-lot.xml'
+
+La commande réalise automatiquement :
+
+1. la lecture du fichier candidat sans transformation ;
+2. sa validation XML et TEI ;
+3. la vérification des identifiants, abréviations, lacunes et lectures incertaines ;
+4. la vérification de toutes les images ;
+5. la copie octet pour octet vers le chemin maître stable ;
+6. le calcul de l’empreinte ;
+7. la régénération du manifeste ;
+8. l’exécution de tous les tests ;
+9. la compilation de production du site.
+
+Si les tests ou la compilation échouent, le TEI maître et le manifeste précédents sont restaurés.
+
+Cette commande ne corrige, ne modernise et ne réécrit jamais le texte du TEI.
+
+Aucun nouveau lot ni nouveau folio n’a été importé pendant cette phase.
+
+
+8. TESTS AJOUTÉS
+
+Fixtures techniques ajoutées :
+
+- prototype-v0.4.xml : instantané historique de non-régression, non utilisé par le site ;
+- single-column.xml : un folio, une colonne, trois lignes, choice, gap, unclear et break="no" ;
+- multiple-folios.xml : plusieurs folios, nombres variables de lignes et couche modernisée partielle ;
+- milestone-lines.xml : lignes introduites par lb et ordre documentaire imbriqué ;
+- zone-reference.xml : image et coordonnées provenant d’une zone TEI ;
+- missing-image.xml : référence d’image absente ;
+- duplicate-id.xml : identifiant de ligne dupliqué ;
+- invalid-elements.xml : abréviation incomplète, gap non qualifié, unclear vide et ligne sans identifiant.
+
+La suite comporte 13 tests.
+
+Résultat : 13 tests réussis sur 13.
+
+La non-régression v0.4 vérifie toujours exactement :
+
+- 120 lignes ;
+- trois colonnes de 40 lignes ;
+- 58 choice ;
+- 8 gap ;
+- 2 unclear ;
+- trois paragraphes modernisés ;
+- l’empreinte exacte des 120 lignes diplomatiques et développées ;
+- les réunions de mots commandées par break="no" ;
+- les lacunes et lectures incertaines dans les trois modes.
+
+
+9. VÉRIFICATIONS EFFECTUÉES
+
+Tests Vitest ciblés : réussis, 13 sur 13.
+
+ESLint sur le lecteur, le parseur, le manifeste, les tests et les scripts d’import : réussi sans erreur ni avertissement.
+
+Compilation Next.js de production : réussie.
+
+Route /manuscrits/bible-899 : pré-rendue statiquement avec succès.
+
+Contrôle interactif du lecteur : réussi.
+
+- sélection de la colonne 1r_b : 40 lignes affichées ;
+- passage par « Folio suivant » vers 1v_a : réussi ;
+- bouton « Folio précédent » réactivé sur le second folio ;
+- mode modernisé : actif et retours à la ligne désactivés ;
+- les 8 lacunes et la lecture incertaine du folio 1v restent présentes.
+
+
+10. FICHIERS MODIFIÉS
+
+C:\Corpus Scriptura\bible-patristique\package.json
+C:\Corpus Scriptura\bible-patristique\package-lock.json
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\page.tsx
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\Bible899Reader.tsx
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\bible899.module.css
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\_lib\tei.ts
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\_lib\tei.test.ts
+C:\Corpus Scriptura\bible-patristique\data\manuscrits\bible-899\README.md
+
+Le fichier TEI a été renommé sans modification de contenu :
+
+Ancien nom : Bible_899_master_v0.4.xml
+Nouveau nom : Bible_899_master.xml
+
+
+11. FICHIERS CRÉÉS
+
+C:\Corpus Scriptura\bible-patristique\BIBLE_899_GENERALIZATION_REPORT.txt
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\_lib\manifest.ts
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\_lib\fixtures\prototype-v0.4.xml
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\_lib\fixtures\single-column.xml
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\_lib\fixtures\multiple-folios.xml
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\_lib\fixtures\milestone-lines.xml
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\_lib\fixtures\zone-reference.xml
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\_lib\fixtures\missing-image.xml
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\_lib\fixtures\duplicate-id.xml
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\_lib\fixtures\invalid-elements.xml
+C:\Corpus Scriptura\bible-patristique\data\manuscrits\bible-899\manifest.json
+C:\Corpus Scriptura\bible-patristique\data\manuscrits\bible-899\schema\bible899-subset.rng
+C:\Corpus Scriptura\bible-patristique\scripts\bible899\generate-manifest.ts
+C:\Corpus Scriptura\bible-patristique\scripts\bible899\import-tei.ts
+
+Les trois images existantes n’ont pas été modifiées. Navbar.tsx et les autres parties de Corpus Scriptura n’ont pas été modifiés pendant cette phase.
+
+
+12. RÉSERVES TECHNIQUES
+
+La dépendance de développement tsx a été ajoutée pour exécuter les commandes TypeScript de manifeste et d’import.
+
+npm signale six vulnérabilités de niveau élevé dans l’arbre général de dépendances. Aucun npm audit fix n’a été lancé.
+
+Les problèmes ESLint antérieurs de Navbar.tsx n’ont pas été corrigés et ne font pas partie des contrôles ciblés de cette phase.
+
+
+13. QUESTIONS ÉDITORIALES
+
+Aucune question éditoriale nouvelle.
+
+Aucune lecture, abréviation, lacune ou lecture incertaine n’a été corrigée ou résolue. Aucune couche modernisée n’a été créée. Aucun nouveau folio n’a été importé.

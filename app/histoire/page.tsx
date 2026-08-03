@@ -2,11 +2,11 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
-import { Siecle } from '@/app/lib/siecles'
+import { rendreSiecles, decouperSiecles, Siecle } from '@/app/lib/siecles'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import {
   type RangFrise, type Densite, DENSITES, coulFamille, passeDensite,
-  poidsTitre, taillePuce, libelleSource, estUrl, siecleDe,
+  libelleSource, estUrl, siecleDe,
 } from '@/app/lib/frise'
 
 // Frise générale de l'histoire de l'Église.
@@ -23,6 +23,26 @@ const VERT = '#3d6b4f'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 
+// ── Réglages du mode frise « à l'échelle » ─────────────────────────────────
+// Colonnes par famille, barre verticale proportionnelle à la durée, événements
+// positionnés sur un axe temporel réel (px par an).
+const PX_PAR_AN = 2.6
+const H_ENTETE_ECHELLE = 34
+const LARG_GOUTTIERE = 62
+const LARG_LANE = 210
+const ECART_LANE = 8
+const ECART_COL = 18
+const BARRE_W = 3
+const GAP_TXT = 10
+const PAD_BLOC = 4
+const GAP_V = 9
+const H_BARRE_MIN = 7
+const LARG_TEXTE = LARG_LANE - BARRE_W - GAP_TXT - 8
+const CHARS_LIGNE = Math.max(8, Math.floor((LARG_TEXTE / 6.0) * 0.62))
+const CHARS_LIGNE_GRAS = Math.max(7, Math.floor((LARG_TEXTE / 6.6) * 0.62))
+const hauteurTexte = (titre: string, important: boolean) =>
+  PAD_BLOC + 13 + Math.max(1, Math.ceil(titre.length / (important ? CHARS_LIGNE_GRAS : CHARS_LIGNE))) * 15.5 + PAD_BLOC
+
 type Filtres = {
   familles: Set<string>
   genres: Set<string>
@@ -37,14 +57,70 @@ const FILTRES_VIDES: Filtres = {
 const aucunFiltre = (f: Filtres) =>
   !f.familles.size && !f.genres.size && !f.zones.size && !f.pays && f.sDe == null && f.sA == null
 
+function sansAccents(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+}
+
+function echapperRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+// Surligne le terme recherché (exact, insensible à la casse) dans un fragment de texte.
+function surligner(texte: string, cle: string, q: string): React.ReactNode[] {
+  if (!q) return [texte]
+  const parts = texte.split(new RegExp(`(${echapperRegex(q)})`, 'gi'))
+  return parts.map((p, i) => (i % 2 === 1)
+    ? <mark key={`${cle}-m${i}`} style={{ background: 'rgba(183,160,106,0.38)', color: 'inherit', borderRadius: '2px', padding: '0 1px' }}>{p}</mark>
+    : <React.Fragment key={`${cle}-t${i}`}>{p}</React.Fragment>)
+}
+
+// Ordinaux de souverains (« Albert Ier ») : chiffre romain en capitales normales,
+// suffixe « er/e » en exposant. On agit sur les fragments NON reconnus comme siècles.
+function rendreTexteLibre(v: string, cle: string, q: string): React.ReactNode[] {
+  const out: React.ReactNode[] = []
+  const re = /\b([IVXLCDM]+)(er|re|e)\b/g
+  let last = 0, m: RegExpExecArray | null, k = 0
+  while ((m = re.exec(v))) {
+    if (m.index > last) out.push(...surligner(v.slice(last, m.index), `${cle}-${k}a`, q))
+    out.push(<React.Fragment key={`${cle}-${k}o`}>{m[1]}<sup style={{ fontSize: '0.62em', lineHeight: 1 }}>{m[2]}</sup></React.Fragment>)
+    k++; last = re.lastIndex
+  }
+  if (last < v.length) out.push(...surligner(v.slice(last), `${cle}-${k}a`, q))
+  return out
+}
+
+// Un segment (déjà découpé hors italiques) : siècles en petites capitales + exposant,
+// ordinaux de souverains, et surlignage du terme recherché.
+function rendreSegment(texte: string, cle: string, q: string): React.ReactNode[] {
+  return decouperSiecles(texte).map((fr, i) =>
+    fr.t === 'romain' ? <span key={`${cle}-r${i}`} style={{ fontVariantCaps: 'all-small-caps' }}>{fr.v}</span>
+    : fr.t === 'ordinal' ? <sup key={`${cle}-o${i}`} style={{ fontSize: '0.6em', lineHeight: 1 }}>{fr.v}</sup>
+    : <React.Fragment key={`${cle}-t${i}`}>{rendreTexteLibre(fr.v, `${cle}-${i}`, q)}</React.Fragment>,
+  )
+}
+
+// Rendu complet d'un texte de frise : d'abord les italiques *…* (titres d'œuvres,
+// termes latins), puis siècles, ordinaux et surlignage à l'intérieur.
+function rendreFrise(texte: string | null | undefined, q: string): React.ReactNode {
+  const t = texte ?? ''
+  if (!t) return t
+  // Découpe sur les paires d'astérisques : indices impairs = contenu en italique.
+  return t.split(/\*([^*]+)\*/g).map((p, i) => i % 2 === 1
+    ? <em key={`i${i}`}>{rendreSegment(p, `i${i}`, q)}</em>
+    : <React.Fragment key={`n${i}`}>{rendreSegment(p, `n${i}`, q)}</React.Fragment>)
+}
+
 export default function HistoirePage() {
   const mobile = useEstMobile(900)
   const [evs, setEvs] = useState<RangFrise[]>([])
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState<string | null>(null)
   const [densite, setDensite] = useState<Densite>('etendu')
+  const [vue, setVue] = useState<'liste' | 'echelle'>('liste')
   const [f, setF] = useState<Filtres>(FILTRES_VIDES)
   const [panneauOuvert, setPanneauOuvert] = useState(false)
+  const [recherche, setRecherche] = useState('')
+  const [toutesNotes, setToutesNotes] = useState(false)
   const initUrlFaite = useRef(false)
 
   useEffect(() => {
@@ -116,8 +192,11 @@ export default function HistoirePage() {
   }, [evs, f.familles])
 
   // ── Application des filtres. L'ordre de la vue est conservé tel quel. ─────
+  const q = sansAccents(recherche.trim())
   const visibles = useMemo(() => evs.filter(e => {
     if (!passeDensite(e.importance_code, densite)) return false
+    // Recherche en direct dans le titre ou la notice (combinée aux autres filtres).
+    if (q && !sansAccents(`${e.titre} ${e.notice ?? ''}`).includes(q)) return false
     if (f.familles.size && !(e.famille && f.familles.has(e.famille))) return false
     if (f.genres.size && !(e.genre && f.genres.has(e.genre))) return false
     if (f.zones.size && !(e.zone_geographique && f.zones.has(e.zone_geographique))) return false
@@ -130,7 +209,44 @@ export default function HistoirePage() {
       if (f.sA != null && s > f.sA) return false
     }
     return true
-  }), [evs, densite, f])
+  }), [evs, densite, f, q])
+
+  // Une occurrence trouvée DANS une notice force l'ouverture de toutes les notices,
+  // sinon le passage surligné resterait masqué (les notices sont repliées par défaut).
+  const matchNotice = useMemo(
+    () => !!q && visibles.some(e => sansAccents(e.notice ?? '').includes(q)),
+    [q, visibles],
+  )
+  const notesOuvertes = toutesNotes || matchNotice
+
+  // ── Colonnes du mode « à l'échelle » : positionnement sur un axe temporel. ──
+  const echelle = useMemo(() => {
+    const avecDate = visibles.filter(e => e.date_debut != null)
+    if (!avecDate.length) return null
+    const ys = avecDate.flatMap(e => [e.date_debut!, e.date_fin ?? e.date_debut!])
+    const debut = Math.floor(Math.min(...ys) / 100) * 100
+    const fin = Math.ceil(Math.max(...ys) / 100) * 100
+    const famillesPresentes = Array.from(new Set(avecDate.map(e => e.famille ?? '').filter(Boolean)))
+    let basMax = 0
+    const cols = famillesPresentes.map(fam => {
+      const items = avecDate.filter(e => (e.famille ?? '') === fam).sort((a, b) => a.date_debut! - b.date_debut!)
+      const finCouloir: number[] = []
+      const places = items.map(e => {
+        const deb = e.date_debut!, ferme = Math.max(e.date_fin ?? deb, deb)
+        const top = (deb - debut) * PX_PAR_AN
+        const dureeH = (ferme - deb) * PX_PAR_AN
+        const occ = Math.max(H_BARRE_MIN, dureeH, hauteurTexte(e.titre, false))
+        const bas = top + occ + GAP_V
+        if (bas > basMax) basMax = bas
+        let c = finCouloir.findIndex(fc => fc <= top)
+        if (c === -1) { c = finCouloir.length; finCouloir.push(bas) } else finCouloir[c] = bas
+        return { e, couloir: c, top, dureeH, occ }
+      })
+      return { fam, places, nbCouloirs: Math.max(1, finCouloir.length) }
+    })
+    const hauteur = Math.max((fin - debut) * PX_PAR_AN, basMax) + 12
+    return { debut, fin, hauteur, cols }
+  }, [visibles])
 
   const basculer = useCallback((cle: 'familles' | 'genres' | 'zones', v: string) => {
     setF(prev => {
@@ -155,6 +271,44 @@ export default function HistoirePage() {
 
   const contenuFiltres = (
     <>
+      {/* Recherche en direct : titre ou notice, combinée aux filtres. */}
+      <div style={{ position: 'relative', marginTop: '2px' }}>
+        <input value={recherche} onChange={e => setRecherche(e.target.value)} type="text"
+          placeholder="Rechercher un événement…" aria-label="Rechercher dans la frise"
+          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px 7px 28px', borderRadius: '6px', border: `1px solid ${BORD}`, background: '#fff', color: '#3a3530', outline: 'none' }} />
+        <svg width="12" height="12" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
+          <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2" />
+          <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round" />
+        </svg>
+        {recherche && (
+          <button onClick={() => setRecherche('')} aria-label="Effacer la recherche"
+            style={{ position: 'absolute', right: '7px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: TEXTE2, fontSize: '0.8rem', lineHeight: 1, padding: 0 }}>✕</button>
+        )}
+      </div>
+
+      {/* Afficher/masquer les notices (et l'accès aux « Sources et détail »). */}
+      <button onClick={() => setToutesNotes(o => !o)} aria-pressed={toutesNotes}
+        style={{ marginTop: '10px', width: '100%', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px', borderRadius: '6px', cursor: 'pointer',
+          border: `1px solid ${toutesNotes ? VERT : BORD}`, background: toutesNotes ? 'rgba(61,107,79,0.10)' : '#fff', color: toutesNotes ? VERT : '#6b6560' }}>
+        {toutesNotes ? 'Masquer toutes les notes' : 'Afficher toutes les notes'}
+      </button>
+
+      <GroupeFiltre label="Disposition">
+        <div style={{ display: 'flex', border: `1px solid ${BORD}`, borderRadius: '999px', overflow: 'hidden' }} role="group" aria-label="Disposition de la frise">
+          {([['liste', 'Liste'], ['echelle', 'À l’échelle']] as ['liste' | 'echelle', string][]).map(([cle, label], i) => (
+            <button key={cle} onClick={() => setVue(cle)} aria-pressed={vue === cle}
+              style={{
+                flex: 1, fontSize: '0.68rem', padding: '5px 4px', border: 'none',
+                borderLeft: i > 0 ? `1px solid ${BORD}` : 'none', cursor: 'pointer',
+                background: vue === cle ? VERT : '#fff', color: vue === cle ? '#fff' : '#6b6560',
+                fontFamily: 'inherit', fontWeight: vue === cle ? 600 : 400, whiteSpace: 'nowrap',
+              }}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </GroupeFiltre>
+
       <GroupeFiltre label="Densité">
         <div style={{ display: 'flex', border: `1px solid ${BORD}`, borderRadius: '999px', overflow: 'hidden' }} role="group" aria-label="Densité de la frise">
           {DENSITES.map((d, i) => (
@@ -272,18 +426,11 @@ export default function HistoirePage() {
 
         {/* ── Frise ──────────────────────────────────────────────────────── */}
         <section style={{ flex: 1, minWidth: 0, padding: mobile ? '16px 14px 56px' : '16px 32px 64px' }}>
-          <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
+          {/* Le mode « à l'échelle » a besoin de toute la largeur (défilement horizontal). */}
+          <div style={{ maxWidth: vue === 'echelle' ? 'none' : '48rem', margin: '0 auto' }}>
 
             {!chargement && !erreur && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', margin: '0 0 16px', paddingBottom: '12px', borderBottom: `1px solid ${SEP}` }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 18px' }}>
-                  {rep.familles.map(nom => (
-                    <span key={nom} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.68rem', color: TEXTE2 }}>
-                      <span aria-hidden style={{ width: '9px', height: '9px', borderRadius: '50%', background: coulFamille(nom), flexShrink: 0 }} />
-                      {nom}
-                    </span>
-                  ))}
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', margin: '0 0 16px', paddingBottom: '12px', borderBottom: `1px solid ${SEP}` }}>
                 <span style={{ fontSize: '0.68rem', color: '#a39a8e', whiteSpace: 'nowrap' }} aria-live="polite">
                   {visibles.length} repère{visibles.length > 1 ? 's' : ''}
                 </span>
@@ -308,8 +455,10 @@ export default function HistoirePage() {
                   </button>
                 )}
               </div>
+            ) : vue === 'echelle' ? (
+              <FriseEchelle echelle={echelle} recherche={recherche.trim()} />
             ) : (
-              <ListeFrise items={visibles} mobile={mobile} />
+              <ListeFrise items={visibles} mobile={mobile} toutesNotes={notesOuvertes} recherche={recherche.trim()} />
             )}
           </div>
         </section>
@@ -318,112 +467,201 @@ export default function HistoirePage() {
   )
 }
 
-// ── Liste verticale : repères de siècle, puis une carte par événement ──────
-function ListeFrise({ items, mobile }: { items: RangFrise[]; mobile: boolean }) {
-  // Les repères de siècle sont des éléments d'interface, pas des événements.
-  const lignes: React.ReactNode[] = []
-  let siecleCourant: number | null = null
-
-  items.forEach((e, i) => {
-    const s = siecleDe(e.date_debut)
-    if (s != null && s !== siecleCourant) {
-      siecleCourant = s
-      lignes.push(
-        <li key={`s${s}`} style={{ listStyle: 'none', margin: i === 0 ? '0 0 10px' : '22px 0 10px' }}>
-          <h2 style={{
-            margin: 0, display: 'flex', alignItems: 'center', gap: '10px',
-            fontFamily: SERIF, fontSize: '0.78rem', fontWeight: 600, color: '#b7a06a',
-            letterSpacing: '0.04em',
-          }}>
-            <Siecle n={s} />
-            <span aria-hidden style={{ flex: 1, height: '1px', background: SEP }} />
-          </h2>
-        </li>,
-      )
-    }
-    lignes.push(<CarteEvenement key={e.id} e={e} mobile={mobile} />)
-  })
-
-  return <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>{lignes}</ul>
+// ── Liste verticale : une carte par événement (plus de repères de siècle). ──
+function ListeFrise({ items, mobile, toutesNotes, recherche }: { items: RangFrise[]; mobile: boolean; toutesNotes: boolean; recherche: string }) {
+  return (
+    <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+      {items.map(e => <CarteEvenement key={e.id} e={e} mobile={mobile} toutesNotes={toutesNotes} recherche={recherche} />)}
+    </ul>
+  )
 }
 
-// ── Carte : compacte par défaut, dépliable sans déplacer la page ───────────
-function CarteEvenement({ e, mobile }: { e: RangFrise; mobile: boolean }) {
-  const [ouvert, setOuvert] = useState(false)
+// ── Mode « à l'échelle » : colonnes par famille, barre ∝ durée, axe temporel. ──
+type PlaceEchelle = { e: RangFrise; couloir: number; top: number; dureeH: number; occ: number }
+type ColEchelle = { fam: string; places: PlaceEchelle[]; nbCouloirs: number }
+function FriseEchelle({ echelle, recherche }: {
+  echelle: { debut: number; fin: number; hauteur: number; cols: ColEchelle[] } | null
+  recherche: string
+}) {
+  if (!echelle) return (
+    <p style={{ fontSize: '0.85rem', color: '#9a958d', fontStyle: 'italic', textAlign: 'center', paddingTop: '20px' }}>
+      Aucun repère daté à placer sur l’échelle pour cette sélection.
+    </p>
+  )
+  const { debut, hauteur, cols } = echelle
+  const largCol = (c: ColEchelle) => c.nbCouloirs * LARG_LANE + (c.nbCouloirs - 1) * ECART_LANE
+  const xCol: number[] = []
+  let x = LARG_GOUTTIERE
+  cols.forEach(c => { xCol.push(x); x += largCol(c) + ECART_COL })
+  const largTotale = x - ECART_COL + 8
+  const bornesSiecles: number[] = []
+  for (let b = debut; b <= echelle.fin; b += 100) bornesSiecles.push(b)
+
+  return (
+    <div style={{ overflowX: 'auto', border: `1px solid ${BORD}`, borderRadius: '10px', background: '#fdfbf7' }}>
+      <div style={{ position: 'relative', width: largTotale, height: H_ENTETE_ECHELLE + hauteur, minWidth: '100%' }}>
+
+        {/* En-têtes de colonnes (une par famille). */}
+        {cols.map((c, i) => (
+          <div key={c.fam} style={{
+            position: 'absolute', top: 0, left: xCol[i], width: largCol(c), height: H_ENTETE_ECHELLE,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textAlign: 'center',
+            borderBottom: `1.5px solid ${coulFamille(c.fam)}44`, padding: '0 8px', boxSizing: 'border-box',
+          }}>
+            <span aria-hidden style={{ width: '8px', height: '8px', borderRadius: '50%', background: coulFamille(c.fam), flexShrink: 0 }} />
+            <span style={{ fontFamily: SANS, fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: coulFamille(c.fam), lineHeight: 1.25 }}>{c.fam}</span>
+          </div>
+        ))}
+
+        <div style={{ position: 'absolute', top: H_ENTETE_ECHELLE, left: 0, right: 0, height: hauteur }}>
+          {/* Filets et repères de siècle dans la gouttière. */}
+          {bornesSiecles.map(b => {
+            const y = (b - debut) * PX_PAR_AN
+            const s = siecleDe(b + 1)
+            return (
+              <React.Fragment key={b}>
+                <div style={{ position: 'absolute', top: y, left: LARG_GOUTTIERE - 6, width: largTotale - LARG_GOUTTIERE + 6, borderTop: `1px solid ${SEP}` }} />
+                {b < echelle.fin && s != null && (
+                  <div style={{ position: 'absolute', top: y + 5, left: 0, width: LARG_GOUTTIERE - 12, textAlign: 'right', fontFamily: SERIF, fontSize: '0.72rem', color: '#c3b48c' }}>
+                    <Siecle n={s} />
+                  </div>
+                )}
+              </React.Fragment>
+            )
+          })}
+
+          {/* Blocs événements, positionnés sur l'axe et répartis en couloirs. */}
+          {cols.map((c, i) => {
+            const teinte = coulFamille(c.fam)
+            return c.places.map(({ e, couloir, top, dureeH, occ }) => {
+              const gauche = xCol[i] + couloir * (LARG_LANE + ECART_LANE)
+              return (
+                <div key={e.id}
+                  title={`${e.date_affichage} · ${e.titre}${e.notice ? '\n\n' + e.notice : ''}`}
+                  style={{ position: 'absolute', top, left: gauche, width: LARG_LANE, height: occ }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, width: BARRE_W, height: Math.max(H_BARRE_MIN, dureeH), background: teinte, opacity: 0.9, borderRadius: '2px' }} />
+                  <div style={{ paddingLeft: BARRE_W + GAP_TXT, paddingTop: PAD_BLOC }}>
+                    <div style={{ fontFamily: SERIF, fontSize: '0.62rem', color: teinte, fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>{rendreSiecles(formaterDateHistoire(e.date_affichage))}</div>
+                    <div style={{ fontFamily: SERIF, fontSize: '0.72rem', color: TEXTE, lineHeight: 1.28, marginTop: '1px' }}>{rendreFrise(e.titre, recherche)}</div>
+                  </div>
+                </div>
+              )
+            })
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Format d'affichage d'une date d'événement (page Histoire) :
+//  • le tiret demi-cadratin entre deux dates est entouré de deux espaces (« 843 – 850 »),
+//    de même qu'un trait d'union entre deux chiffres (sans toucher « J.-C. ») ;
+//  • majuscule systématique en début de ligne.
+function formaterDateHistoire(d: string | null | undefined): string {
+  let t = String(d ?? '').trim()
+  if (!t) return ''
+  t = t.replace(/\s*–\s*/g, ' – ').replace(/(\d)\s*-\s*(\d)/g, '$1 – $2')
+  return t.charAt(0).toUpperCase() + t.slice(1)
+}
+
+// ── Carte : colonnes date · famille · intitulé (une seule ligne chacune) ; un clic
+//    sur l'intitulé déplie la notice correspondante. ─────────────────────────────
+function CarteEvenement({ e, mobile, toutesNotes, recherche }: { e: RangFrise; mobile: boolean; toutesNotes: boolean; recherche: string }) {
+  const [detailOuvert, setDetailOuvert] = useState(false)
+  const [noticeOuverte, setNoticeOuverte] = useState(false)
   const c = coulFamille(e.famille)
   const idCarte = `d-${e.id}`
+  const aNotice = !!(e.notice && e.notice.trim())
+  // La notice s'affiche si le mode global est actif OU si l'on a cliqué sur l'intitulé.
+  const afficheNotice = toutesNotes || noticeOuverte
 
-  // Sur écran large la notice est lisible sans ouverture ; sur mobile elle est
-  // ramenée à quelques lignes, le dépliage donne la suite.
-  const noticeCourte = !mobile || ouvert || !e.notice
-    ? e.notice
-    : e.notice.length > 150 ? e.notice.slice(0, 150).replace(/\s+\S*$/, '') + '…' : e.notice
-  const noticeTronquee = mobile && !ouvert && !!e.notice && e.notice.length > 150
+  const notice = e.notice ?? ''
+  const noticeCourte = !mobile || detailOuvert || noticeOuverte || notice.length <= 150
+    ? notice
+    : notice.slice(0, 150).replace(/\s+\S*$/, '') + '…'
+
+  const dateTexte = formaterDateHistoire(e.date_affichage)
+
+  // Colonnes date et famille : chacune sur UNE ligne (troncature discrète si trop long,
+  // le texte entier restant accessible en infobulle).
+  const dateCol = (
+    <div title={dateTexte} style={{ fontFamily: SERIF, fontSize: '0.76rem', color: '#b7a06a', lineHeight: 1.35, fontVariantNumeric: 'tabular-nums', textAlign: mobile ? 'left' : 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      {rendreSiecles(dateTexte)}
+    </div>
+  )
+  const familleCol = (
+    <div title={e.famille ?? ''} style={{ fontFamily: SANS, fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: c, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      {e.famille ?? ''}
+    </div>
+  )
+
+  // Intitulé sur une seule ligne ; cliquable (quand il y a une notice) pour la déplier.
+  const styleTitre: React.CSSProperties = {
+    margin: 0, fontFamily: SERIF, fontSize: '0.92rem', lineHeight: 1.35, color: TEXTE, fontWeight: 500,
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0,
+  }
+  const titre = aNotice ? (
+    <button onClick={() => setNoticeOuverte(o => !o)} aria-expanded={noticeOuverte} title="Afficher la notice"
+      style={{ ...styleTitre, display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+      {rendreFrise(e.titre, recherche)}
+    </button>
+  ) : (
+    <h3 style={styleTitre}>{rendreFrise(e.titre, recherche)}</h3>
+  )
+
+  // Colonne de contenu : intitulé (une ligne), puis notice/détail dépliés.
+  const contenu = (
+    <div style={{ minWidth: 0 }}>
+      {titre}
+
+      {afficheNotice && noticeCourte && (
+        <p style={{ fontFamily: SERIF, fontSize: '0.78rem', color: '#5a5450', lineHeight: 1.55, margin: '4px 0 0', textAlign: 'justify' }}>
+          {rendreFrise(noticeCourte, recherche)}
+        </p>
+      )}
+
+      {afficheNotice && (
+        <div style={{ marginTop: '5px' }}>
+          <button onClick={() => setDetailOuvert(o => !o)} aria-expanded={detailOuvert} aria-controls={idCarte}
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: '0.63rem', color: '#9a938a', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+            {detailOuvert ? 'Réduire' : 'Sources et détail'}
+          </button>
+        </div>
+      )}
+
+      {afficheNotice && detailOuvert && (
+        <div id={idCarte} style={{ marginTop: '7px', paddingLeft: '10px', borderLeft: `2px solid ${SEP}` }}>
+          {/* Sous-famille (genre) : reléguée ici, pas visible au premier regard. */}
+          {e.genre && <LigneDetail label="Sous-famille">{e.genre}</LigneDetail>}
+          <Geographie e={e} />
+          {e.note_datation && <LigneDetail label="Précision sur la date">{e.note_datation}</LigneDetail>}
+          <Sources principale={e.source_principale} secondaire={e.source_secondaire} />
+        </div>
+      )}
+    </div>
+  )
 
   return (
     <li id={e.id} style={{ listStyle: 'none', scrollMarginTop: '4rem' }}>
-      <article style={{
-        display: 'grid',
-        gridTemplateColumns: mobile ? '1fr' : '5.5rem 1fr',
-        columnGap: '16px',
-        padding: '11px 0',
-        borderTop: `1px solid ${SEP}`,
-      }}>
-        {/* Date : distincte, mais moins appuyée que le titre. */}
-        <div style={{
-          fontFamily: SERIF, fontSize: '0.76rem', color: '#b7a06a',
-          textAlign: mobile ? 'left' : 'right', lineHeight: 1.35,
-          fontVariantNumeric: 'tabular-nums', marginBottom: mobile ? '2px' : 0,
-        }}>
-          {e.date_affichage}
-        </div>
-
-        <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-            <span aria-hidden style={{
-              flexShrink: 0, width: taillePuce(e.importance_code), height: taillePuce(e.importance_code),
-              borderRadius: '50%', background: c, transform: 'translateY(-0.1em)',
-            }} />
-            <h3 style={{
-              margin: 0, fontFamily: SERIF, fontSize: '0.92rem', lineHeight: 1.35,
-              color: TEXTE, fontWeight: poidsTitre(e.importance_code),
-            }}>
-              {e.titre}
-            </h3>
-          </div>
-
-          {noticeCourte && (
-            <p style={{ fontFamily: SERIF, fontSize: '0.78rem', color: '#5a5450', lineHeight: 1.55, margin: '4px 0 0', textAlign: 'justify' }}>
-              {noticeCourte}
-            </p>
-          )}
-
-          {e.lieu && (
-            <p style={{ margin: '4px 0 0', fontFamily: SANS, fontSize: '0.68rem', color: TEXTE2 }}>{e.lieu}</p>
-          )}
-
-          {/* Famille et genre : métadonnées discrètes, sous le titre. */}
-          {(e.famille || e.genre) && (
-            <p style={{ margin: '4px 0 0', fontFamily: SANS, fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: c }}>
-              {[e.famille, e.genre].filter(Boolean).join(' · ')}
-            </p>
-          )}
-
-          <div style={{ marginTop: '5px' }}>
-            <button onClick={() => setOuvert(o => !o)} aria-expanded={ouvert} aria-controls={idCarte}
-              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: '0.63rem', color: '#9a938a', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
-              {ouvert ? 'Réduire' : noticeTronquee ? 'Lire la suite et les sources' : 'Sources et détail'}
-            </button>
-          </div>
-
-          {ouvert && (
-            <div id={idCarte} style={{ marginTop: '7px', paddingLeft: '10px', borderLeft: `2px solid ${SEP}` }}>
-              <Geographie e={e} />
-              {e.note_datation && <LigneDetail label="Précision sur la date">{e.note_datation}</LigneDetail>}
-              <Sources principale={e.source_principale} secondaire={e.source_secondaire} />
+      <article style={mobile
+        ? { padding: '11px 0', borderTop: `1px solid ${SEP}` }
+        : { display: 'grid', gridTemplateColumns: '7rem 10.5rem 1fr', columnGap: '14px', alignItems: 'baseline', padding: '11px 0', borderTop: `1px solid ${SEP}` }}>
+        {mobile ? (
+          <>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap', marginBottom: '3px' }}>
+              {dateCol}
+              {familleCol}
             </div>
-          )}
-        </div>
+            {contenu}
+          </>
+        ) : (
+          <>
+            {dateCol}
+            {familleCol}
+            {contenu}
+          </>
+        )}
       </article>
     </li>
   )

@@ -1,0 +1,174 @@
+RAPPORT D’IMPORT BIBLE 899 — LOT_001 FINAL v0.9
+================================================
+
+Date d’exécution : 2026-08-02 (Europe/Paris)
+Statut final : SUCCÈS
+
+1. SOURCE ET PRÉREQUIS
+----------------------
+
+Archive copiée et conservée :
+work/bible899/incoming/Bible_899_LOT_001_FINAL_v0.9.zip
+
+SHA-256 de l’archive :
+f14733457f4cc5dc424c3cb2ff53ab42804e0a976be6a080d395857ee9b03f75
+
+Le TEI actif avant import était bien en version éditoriale 0.8.
+SHA-256 du TEI actif avant import :
+24d87ba088219bea961f1576649f7ed14d0dc81d754b031017d6c6f1c1fc840e
+
+Le manifeste actif annonçait la version 0.8 et la même empreinte. Tous les
+prérequis étaient satisfaits.
+
+Les 17 empreintes déclarées dans reports/SHA256SUMS.txt ont été vérifiées et
+correspondent aux fichiers extraits.
+
+SHA-256 attendu et vérifié du TEI candidat :
+4424c8f94276b72ed9e834d97201e8cbc92dfa2c8db571aaa16e178374556b99
+
+2. IMPORT
+---------
+
+Les neuf images suivantes ont été copiées sans rééchantillonnage :
+- public/manuscrits/bible-899/f004v_b.png
+- public/manuscrits/bible-899/f005r_a.png
+- public/manuscrits/bible-899/f005r_b.png
+- public/manuscrits/bible-899/f005v_a.png
+- public/manuscrits/bible-899/f005v_b.png
+- public/manuscrits/bible-899/f006r_a.png
+- public/manuscrits/bible-899/f006r_b.png
+- public/manuscrits/bible-899/f006v_a.png
+- public/manuscrits/bible-899/f006v_b.png
+
+Leur empreinte après copie est identique à celle déclarée dans l’archive.
+
+Le TEI candidat a été importé transactionnellement, sans transformation
+textuelle, dans :
+data/manuscrits/bible-899/Bible_899_master.xml
+
+SHA-256 du TEI actif après import :
+4424c8f94276b72ed9e834d97201e8cbc92dfa2c8db571aaa16e178374556b99
+
+Le TEI actif est identique au candidat octet par octet. Le manifeste actif a
+été régénéré en version 0.9 et porte la même empreinte.
+
+3. COMPTAGES AVANT ET APRÈS
+---------------------------
+
+Élément                   Avant v0.8    Après v0.9    Attendu v0.9
+folios                    8             12            12
+colonnes                  15            24            24
+lignes                    600           959           959
+choice                    420           638           638
+gap                       8             8             8
+unclear                   5             11            11
+add place="margin"        1             1             1
+break="no"                144           230           230
+images actives            15            24            24
+unités modernisées        15            24            24
+
+Les folios actifs sont, dans l’ordre du TEI :
+1r, 1v, 2r, 2v, 3r, 3v, 4r, 4v, 5r, 5v, 6r, 6v.
+
+Les 24 images actives existent et leur SHA-256 correspond au manifeste.
+
+4. PÉRIMÈTRE DU LOT_001
+-----------------------
+
+Le lecteur contient 24 colonnes actives : les trois colonnes du prototype et
+les 21 colonnes nouvelles du LOT_001. Les neuf colonnes ajoutées par la v0.9
+sont :
+- f004v_b ;
+- f005r_a ;
+- f005r_b ;
+- f005v_a ;
+- f005v_b ;
+- f006r_a ;
+- f006r_b ;
+- f006v_a ;
+- f006v_b.
+
+La colonne f005v_b contient exactement 39 lignes textuelles. Aucune ligne
+vide ou fictive n’a été créée pour l’espace occupé par la grande initiale.
+
+5. CONTRÔLES ÉDITORIAUX ET LECTEUR
+----------------------------------
+
+Aucun contenu éditorial n’a été modifié par Codex.
+
+Les six nouvelles lectures incertaines signalées ont été conservées :
+- f5v_b_l20 : « trous » ;
+- f6r_b_l16 : « les zuzim et les susim » ;
+- f6r_b_l17 : « a caria... les choreens » ;
+- f6r_b_l19 : « el biau ert et trusquau desert » ;
+- f6r_b_l22 : « amorreens » ;
+- f6v_a_l39 : « tienes ».
+
+Les 8 lacunes, les 11 lectures incertaines, l’ajout marginal et les 230
+coupures break="no" sont conservés. Aucune coordonnée de zone n’a été créée.
+
+Vérification des trois modes :
+- diplomatique : 8 lacunes, 11 indications d’incertitude, 1 ajout marginal ;
+- abréviations développées : mêmes comptages ;
+- graphie modernisée : mêmes comptages ;
+- 24 unités modernisées présentes ;
+- aucune unité modernisée orpheline.
+
+Les coordonnées détaillées sont absentes pour les 24 colonnes. Cette absence
+est explicitement signalée par les données de contrôle et n’empêche pas le
+fonctionnement avec les images de colonnes. Aucune coordonnée fictive n’a été
+ajoutée.
+
+6. TESTS, LINT ET BUILD
+-----------------------
+
+Tests Bible 899 : SUCCÈS
+Commande : npm test
+Résultat : 1 fichier de test passé ; 15 tests sur 15 passés.
+
+ESLint ciblé : SUCCÈS
+Commande : npx eslint "app/manuscrits/bible-899/**/*.{ts,tsx}" "scripts/bible899/**/*.ts"
+Résultat : 0 erreur, 0 avertissement.
+
+Build de production : SUCCÈS
+Commande : npm run build
+Résultat : compilation Next.js 16.2.9 réussie, vérification TypeScript réussie,
+83 pages générées et route /manuscrits/bible-899 produite.
+
+7. FICHIERS MODIFIÉS OU CRÉÉS
+-----------------------------
+
+Modifiés :
+- data/manuscrits/bible-899/Bible_899_master.xml
+- data/manuscrits/bible-899/manifest.json
+
+Créés :
+- work/bible899/incoming/Bible_899_LOT_001_FINAL_v0.9.zip
+- public/manuscrits/bible-899/f004v_b.png
+- public/manuscrits/bible-899/f005r_a.png
+- public/manuscrits/bible-899/f005r_b.png
+- public/manuscrits/bible-899/f005v_a.png
+- public/manuscrits/bible-899/f005v_b.png
+- public/manuscrits/bible-899/f006r_a.png
+- public/manuscrits/bible-899/f006r_b.png
+- public/manuscrits/bible-899/f006v_a.png
+- public/manuscrits/bible-899/f006v_b.png
+- BIBLE_899_IMPORT_V0.9_REPORT.txt
+- CLEANUP_REPORT_V0.9.txt
+
+Aucun fichier de code, aucun autre corpus et aucune autre partie du lecteur
+n’ont été modifiés.
+
+8. NETTOYAGE
+------------
+
+Le nettoyage contrôlé a réussi. Seul le dossier temporaire d’extraction a été
+supprimé. Dix-huit fichiers non suivis par Git ont été supprimés, libérant
+2 394 894 octets. Voir CLEANUP_REPORT_V0.9.txt.
+
+9. ERREURS OU QUESTIONS
+-----------------------
+
+Aucune erreur bloquante.
+Aucune question éditoriale n’a été résolue automatiquement.
+

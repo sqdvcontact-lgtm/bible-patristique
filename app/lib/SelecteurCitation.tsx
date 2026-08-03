@@ -1,5 +1,5 @@
 ﻿'use client'
-import { ABREV_FR } from '@/app/lib/bible'
+import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 
 import { useState, useEffect, type CSSProperties, type ReactNode } from 'react'
 import { supabase } from '@/app/lib/supabase'
@@ -18,11 +18,17 @@ const NOM_FR: Record<string, string> = {
   '2TI':'2 Timothée',TIT:'Tite',PHM:'Philémon',HEB:'Hébreux',JAS:'Jacques','1PE':'1 Pierre','2PE':'2 Pierre',
   '1JN':'1 Jean','2JN':'2 Jean','3JN':'3 Jean',JUD:'Jude',REV:'Apocalypse',
 }
+// Nom complet de CHAQUE livre (y compris deutérocanoniques absents du NOM_FR local),
+// tiré du référentiel `LIVRES` ; le NOM_FR local, s'il existe, a priorité.
+const NOM_LIVRE: Record<string, string> = {
+  ...Object.fromEntries(LIVRES.map(l => [l.code, l.nom])),
+  ...NOM_FR,
+}
 const CODE_PAR_LIBELLE = new Map<string, string>(
   Object.keys(ABREV_FR).flatMap((code): [string, string][] => [
     [sansAccents(code), code],
     [sansAccents(ABREV_FR[code]), code],
-    [sansAccents(NOM_FR[code] ?? ''), code],
+    [sansAccents(NOM_LIVRE[code] ?? ''), code],
   ]).filter(([k]) => !!k)
 )
 const NB_CHAPITRES: Record<string, number> = {
@@ -45,9 +51,9 @@ type Choix = { label: string; type: 'verset' | 'segment'; id: string; href?: str
 type Props = { onChoisir: (c: Choix) => void; onFermer: () => void }
 
 // Liens internes « redirection vers le site » pour un renvoi cliquable.
-function hrefVerset(livre: string, chapitre: number | string, verset: number | string): string {
+function hrefVerset(livre: string, chapitre: number | string, verset: number | string, trad = 'TR0002'): string {
   const code = codeLivre(livre) ?? livre
-  return `/?livre=${code}&chapitre=${chapitre}&trad=TR0002&verset=${verset}`
+  return `/?livre=${code}&chapitre=${chapitre}&trad=${trad}&verset=${verset}`
 }
 function hrefSegment(idOeuvre: string, idSegment: string | number): string {
   return `/oeuvre/${idOeuvre}?segment=${idSegment}`
@@ -64,9 +70,34 @@ function correspondDebutsDeMots(texte: string, requete: string): boolean {
   return termes.every(t => mots.some(m => m.startsWith(t)))
 }
 
+// Abréviation avec une espace après un chiffre de tête : « 1Ch » → « 1 Ch » (partout).
+function abrevEspace(code: string): string {
+  return (ABREV_FR[code] ?? code).replace(/^(\d)([A-Za-zÀ-ÿ])/, '$1 $2')
+}
+
 function labelVerset(livre: string, chapitre: number | string, verset: number | string): string {
   const code = codeLivre(livre) ?? livre
-  return `${ABREV_FR[code] ?? livre} ${chapitre}, ${verset}`
+  return `${abrevEspace(code)} ${chapitre}, ${verset}`
+}
+
+// Livres du Nouveau Testament (pour la division AT / NT / PS du sélecteur biblique).
+const CODES_NT = new Set(['MAT','MRK','LUK','JHN','ACT','ROM','1CO','2CO','GAL','EPH','PHP','COL','1TH','2TH','1TI','2TI','TIT','PHM','HEB','JAS','1PE','2PE','1JN','2JN','3JN','JUD','REV'])
+
+// Clé de tri d'un titre : sans article/déterminant de tête, sans accents, pour un
+// classement alphabétique « La Cité de Dieu » → à « C ».
+const ARTICLE_TETE = /^(l'|d'|le |la |les |un |une |des |du |de |au |aux )/
+function cleTriTitre(titre: string): string {
+  const t = titre.trim().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’']/g, "'")
+  return t.replace(ARTICLE_TETE, '').trim()
+}
+
+// Surligne le terme recherché (tel que tapé, insensible à la casse) dans un texte.
+function surligner(texte: string, q: string): ReactNode {
+  if (!q) return texte
+  const parts = texte.split(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'))
+  return parts.map((p, i) => (i % 2 === 1)
+    ? <mark key={i} style={{ background: 'rgba(61,107,79,0.20)', color: 'inherit', borderRadius: '2px', padding: '0 1px' }}>{p}</mark>
+    : <span key={i}>{p}</span>)
 }
 
 function codeLivre(...valeurs: unknown[]): string | null {
@@ -118,23 +149,32 @@ function refNotePatristique(auteur: string, o: OeuvreMeta, segs: SegPatr[]): str
   return parts.filter(Boolean).join(', ') + '.'
 }
 
-// Note pour un renvoi biblique : la r\u00e9f\u00e9rence, termin\u00e9e par un point.
-function refNoteBiblique(ref: string): string {
-  return `${ref.trim()}.`
+// Note pour un renvoi biblique : la r\u00e9f\u00e9rence (avec, si connue, la traduction citee),
+// termin\u00e9e par un point.
+function refNoteBiblique(ref: string, tradNom?: string | null): string {
+  const base = ref.trim()
+  return tradNom ? `${base}, ${tradNom.trim()}.` : `${base}.`
 }
 
 function BoutonCiter({ onCiter }: { onCiter: () => void }) {
   return (
-    <span style={{ display: 'flex', gap: '5px', flexShrink: 0, alignSelf: 'flex-start' }}>
-      <button type="button" onClick={(e) => { e.stopPropagation(); onCiter() }} style={petitChoixStyle}>Citer</button>
-    </span>
+    <button type="button" onClick={(e) => { e.stopPropagation(); onCiter() }} style={boutonCiterStyle}
+      onMouseEnter={e => { e.currentTarget.style.background = '#35603f' }}
+      onMouseLeave={e => { e.currentTarget.style.background = '#3d6b4f' }}>Citer</button>
   )
 }
-
 
 const petitChoixStyle: CSSProperties = {
   fontSize: '0.625rem', padding: '3px 7px', borderRadius: '4px', border: '1px solid #d6d0c4',
   background: '#fff', color: '#3d6b4f', cursor: 'pointer', whiteSpace: 'nowrap',
+}
+
+// Bouton « Citer » soigné : petite pastille verte pleine, calée en bout de ligne et
+// centrée verticalement.
+const boutonCiterStyle: CSSProperties = {
+  flexShrink: 0, alignSelf: 'center', fontSize: '0.625rem', fontWeight: 600, padding: '4px 12px',
+  borderRadius: '999px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer',
+  whiteSpace: 'nowrap', letterSpacing: '0.02em', transition: 'background 0.15s',
 }
 
 // Bouton de retour : une flèche fine dans une pastille arrondie, plus soignée que le « ← ».
@@ -196,62 +236,125 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
   )
 }
 
+type TradBible = { trad_id: string; nom: string; langue: string | null }
+
 function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
   const [livre, setLivre] = useState('')
   const [chapitre, setChapitre] = useState<number | null>(null)
   const [versets, setVersets] = useState<{ id_verset: string; verset: number; texte: string }[]>([])
   const [chargement, setChargement] = useState(false)
+  // Traduction citée : liste chargée depuis `traductions`, défaut « Segond » (TR0002).
+  const [trads, setTrads] = useState<TradBible[]>([])
+  const [trad, setTrad] = useState('TR0002')
+  const tradNom = trads.find(t => t.trad_id === trad)?.nom ?? null
 
-  const choisirChapitre = async (c: number) => {
-    setChapitre(c); setChargement(true)
-    const { data } = await supabase.from('versets_lecture').select('id_verset, verset, TR0002').eq('livre', livre).eq('chapitre', c).order('verset')
-    setVersets((data ?? []).map((v: any) => ({ id_verset: v.id_verset, verset: v.verset, texte: v.TR0002 ?? '' })))
-    setChargement(false)
-  }
+  useEffect(() => {
+    supabase.from('traductions').select('trad_id, nom, langue, ordre').order('ordre').then(({ data }) => {
+      const liste = ((data ?? []) as any[]).map(t => ({ trad_id: t.trad_id, nom: t.nom, langue: t.langue }))
+      setTrads(liste)
+      if (liste.length && !liste.some(t => t.trad_id === 'TR0002')) setTrad(liste[0].trad_id)
+    })
+  }, [])
 
-  if (!livre) return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px' }}>
-      {Object.keys(ABREV_FR).map(l => (
-        <button key={l} onClick={() => setLivre(l)} style={{ fontSize: '0.75rem', padding: '8px 4px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a3d30', cursor: 'pointer' }}>{ABREV_FR[l]}</button>
-      ))}
+  // Rechargement des versets quand le chapitre OU la traduction change : la vue
+  // `versets_lecture` porte une colonne par traduction ; on lit celle qui est choisie.
+  useEffect(() => {
+    if (!livre || chapitre === null) return
+    let annule = false
+    setChargement(true)
+    supabase.from('versets_lecture').select('*').eq('livre', livre).eq('chapitre', chapitre).order('verset').then(({ data }) => {
+      if (annule) return
+      setVersets((data ?? []).map((v: any) => ({ id_verset: v.id_verset, verset: v.verset, texte: v[trad] ?? '' })))
+      setChargement(false)
+    })
+    return () => { annule = true }
+  }, [livre, chapitre, trad])
+
+  // Sélecteur de traduction, présent à toutes les étapes du parcours biblique.
+  const selecteurTrad = trads.length > 1 && (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+      <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a2988b' }}>Traduction</span>
+      <select value={trad} onChange={e => setTrad(e.target.value)} aria-label="Traduction de la Bible"
+        style={{ fontSize: '0.72rem', padding: '5px 8px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a3d30', cursor: 'pointer' }}>
+        {trads.map(t => <option key={t.trad_id} value={t.trad_id}>{t.nom}{t.langue && t.langue !== 'Français' ? ` (${t.langue})` : ''}</option>)}
+      </select>
     </div>
   )
 
-  if (chapitre === null) return (
-    <div>
-      <BoutonRetour onClick={() => setLivre('')}>Livres</BoutonRetour>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '5px' }}>
-        {Array.from({ length: NB_CHAPITRES[livre] }, (_, i) => i + 1).map(c => (
-          <button key={c} onClick={() => choisirChapitre(c)} style={{ fontSize: '0.71875rem', padding: '6px 0', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a3d30', cursor: 'pointer' }}>{c}</button>
+  let contenu: ReactNode
+  if (!livre) {
+    const codes = Object.keys(ABREV_FR)
+    const sections = [
+      { titre: 'Ancien Testament', codes: codes.filter(c => !CODES_NT.has(c) && c !== 'PSA') },
+      { titre: 'Nouveau Testament', codes: codes.filter(c => CODES_NT.has(c)) },
+      { titre: 'Psaumes', codes: codes.filter(c => c === 'PSA') },
+    ].filter(s => s.codes.length)
+    contenu = (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        {sections.map(s => (
+          <div key={s.titre}>
+            <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#a2988b', margin: '0 0 9px' }}>{s.titre}</p>
+            {/* Pastilles ajustées au contenu (flex-wrap) : plus souple et régulier
+                qu'une grille de cases où les noms longs cassaient les rangées. */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {s.codes.map(l => (
+                <button key={l} onClick={() => setLivre(l)}
+                  style={{ fontSize: '0.71875rem', padding: '5px 12px', borderRadius: '999px', border: '1px solid #e4ddcf', background: '#faf8f4', color: '#2a3d30', cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1.35, transition: 'background 0.12s, border-color 0.12s, color 0.12s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#eef3ee'; e.currentTarget.style.borderColor = '#a9c9b6'; e.currentTarget.style.color = '#1e2e24' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#faf8f4'; e.currentTarget.style.borderColor = '#e4ddcf'; e.currentTarget.style.color = '#2a3d30' }}>
+                  {NOM_LIVRE[l] ?? ABREV_FR[l]}
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
-    </div>
-  )
-
-  return (
-    <div>
-      <BoutonRetour onClick={() => setChapitre(null)}>{ABREV_FR[livre]}, chapitres</BoutonRetour>
-      {chargement ? <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p> : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {versets.map(v => {
-            const ref = labelVerset(livre, chapitre, v.verset)
-            return (
-            <div key={v.id_verset}
-              style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'flex-start' }}>
-              <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#3d6b4f', flexShrink: 0 }}>{v.verset}</span>
-              <span style={{ fontSize: '0.78125rem', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{rendreTexteEnrichi(v.texte)}</span>
-              <BoutonCiter
-                onCiter={() => {
-                  const { corps, fin } = corpsCitation(v.texte)
-                  onChoisir({ label: ref, type: 'verset', id: v.id_verset, href: hrefVerset(livre, chapitre, v.verset), complet: true, texte: corps, fin, ref: refNoteBiblique(ref) })
-                }}
-              />
-            </div>
-          )})}
+    )
+  } else if (chapitre === null) {
+    contenu = (
+      <div>
+        <BoutonRetour onClick={() => setLivre('')}>Livres</BoutonRetour>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '5px' }}>
+          {Array.from({ length: NB_CHAPITRES[livre] }, (_, i) => i + 1).map(c => (
+            <button key={c} onClick={() => setChapitre(c)} style={{ fontSize: '0.71875rem', padding: '6px 0', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a3d30', cursor: 'pointer' }}>{c}</button>
+          ))}
         </div>
-      )}
-    </div>
-  )
+      </div>
+    )
+  } else {
+    contenu = (
+      <div>
+        <BoutonRetour onClick={() => setChapitre(null)}>{NOM_LIVRE[livre] ?? ABREV_FR[livre]}, chapitres</BoutonRetour>
+        {chargement ? <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p> : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {versets.map(v => {
+              const ref = labelVerset(livre, chapitre, v.verset)
+              if (!v.texte) return (
+                <div key={v.id_verset} style={{ display: 'flex', gap: '10px', padding: '8px 10px', borderRadius: '5px', border: '1px solid #f0ece4', background: '#fbfaf7', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#c4b8a4', flexShrink: 0 }}>{v.verset}</span>
+                  <span style={{ fontSize: '0.72rem', color: '#a49b8c', fontStyle: 'italic', flex: 1 }}>Verset absent de cette traduction.</span>
+                </div>
+              )
+              return (
+              <div key={v.id_verset}
+                style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#3d6b4f', flexShrink: 0 }}>{v.verset}</span>
+                <span style={{ fontSize: '0.78125rem', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{rendreTexteEnrichi(v.texte)}</span>
+                <BoutonCiter
+                  onCiter={() => {
+                    const { corps, fin } = corpsCitation(v.texte)
+                    onChoisir({ label: ref, type: 'verset', id: v.id_verset, href: hrefVerset(livre, chapitre, v.verset, trad), complet: true, texte: corps, fin, ref: refNoteBiblique(ref, tradNom) })
+                  }}
+                />
+              </div>
+            )})}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return <div>{selecteurTrad}{contenu}</div>
 }
 
 // Segment d'une œuvre chargée dans le sélecteur.
@@ -261,7 +364,7 @@ type SegPatr = { id: number; segment_numero: number; segment_texte: string; ref_
 // auteur), puis, dans l'œuvre, on cherche le passage et l'on sélectionne un OU PLUSIEURS
 // segments à citer d'un coup. Plus d'étape « choisir un auteur » d'abord.
 function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) {
-  type OeuvreItem = { id_oeuvre: string; titre: string; auteurNom: string } & OeuvreMeta
+  type OeuvreItem = { id_oeuvre: string; titre: string; auteurNom: string; id_auteur?: string | null; titre_original?: string | null } & OeuvreMeta
   const [oeuvres, setOeuvres] = useState<OeuvreItem[] | null>(null)
   const [oeuvre, setOeuvre] = useState<OeuvreItem | null>(null)
   const [segments, setSegments] = useState<SegPatr[]>([])
@@ -273,9 +376,9 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
   // Toutes les œuvres publiées, avec le nom de l'auteur ET les métadonnées d'édition
   // (traducteur, éditeur, ville, date) qui nourrissent la note bibliographique.
   useEffect(() => {
-    supabase.from('oeuvres').select('id_oeuvre, titre, note, trad_auteur, editeur, ville, date_publication, auteurs(nom)').order('titre').then(({ data }) => {
+    supabase.from('oeuvres').select('id_oeuvre, titre, titre_original, id_auteur, note, trad_auteur, editeur, ville, date_publication, auteurs(nom)').order('titre').then(({ data }) => {
       const liste = ((data ?? []) as any[]).filter(estOeuvrePubliee)
-        .map(o => ({ id_oeuvre: o.id_oeuvre, titre: o.titre, auteurNom: o.auteurs?.nom ?? '', trad_auteur: o.trad_auteur, editeur: o.editeur, ville: o.ville, date_publication: o.date_publication }))
+        .map(o => ({ id_oeuvre: o.id_oeuvre, titre: o.titre, titre_original: o.titre_original, id_auteur: o.id_auteur, auteurNom: o.auteurs?.nom ?? '', trad_auteur: o.trad_auteur, editeur: o.editeur, ville: o.ville, date_publication: o.date_publication }))
       setOeuvres(liste)
     })
   }, [])
@@ -290,7 +393,10 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
   // ── Étape 1 : chercher une œuvre ──────────────────────────────────────────
   if (!oeuvre) {
     const q = sansAccents(rechercheOeuvre.trim())
-    const resultats = (oeuvres ?? []).filter(o => !q || correspondDebutsDeMots(`${o.titre} ${o.auteurNom}`, rechercheOeuvre))
+    const resultats = (oeuvres ?? [])
+      .filter(o => !q || correspondDebutsDeMots(`${o.titre} ${o.auteurNom}`, rechercheOeuvre))
+      // Tri alphabétique par titre, article/déterminant de tête ignoré.
+      .sort((a, b) => cleTriTitre(a.titre).localeCompare(cleTriTitre(b.titre), 'fr') || a.titre.localeCompare(b.titre, 'fr'))
     return (
       <div>
         <input value={rechercheOeuvre} onChange={e => setRechercheOeuvre(e.target.value)} autoFocus
@@ -323,12 +429,30 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
   const segsSelectionnes = segments.filter(s => selection.has(s.id)).sort((a, b) => a.segment_numero - b.segment_numero)
   const toggle = (id: number) => setSelection(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n })
 
+  // Traductions ALTERNATIVES d'un même texte : autres œuvres du même auteur portant le
+  // même titre original. Permet de citer le passage dans une autre traduction établie.
+  const memeTexte = (o: OeuvreItem) =>
+    !!o.id_auteur && !!oeuvre.id_auteur && o.id_auteur === oeuvre.id_auteur &&
+    !!o.titre_original && !!oeuvre.titre_original &&
+    sansAccents(o.titre_original) === sansAccents(oeuvre.titre_original)
+  const traductionsOeuvre = (oeuvres ?? [])
+    .filter(o => o.id_oeuvre === oeuvre.id_oeuvre || memeTexte(o))
+    .sort((a, b) => (a.trad_auteur ?? '').localeCompare(b.trad_auteur ?? '', 'fr'))
+  const libelleTradOeuvre = (o: OeuvreItem) =>
+    o.trad_auteur ? `trad. ${o.trad_auteur}` : (o.editeur || (o.date_publication ? formaterDateHistorique(o.date_publication) : '') || 'édition')
+
   const insererSelection = () => {
     if (segsSelectionnes.length === 0) return
     const ref = refNotePatristique(oeuvre.auteurNom, oeuvre, segsSelectionnes)
     const premier = segsSelectionnes[0]
     const href = hrefSegment(oeuvre.id_oeuvre, premier.id)
-    const { corps, fin } = corpsCitation(segsSelectionnes.map(s => s.segment_texte).join(' '))
+    // Segments sautés : on marque la coupure par « […] » dans le corps cité.
+    const morceaux: string[] = []
+    segsSelectionnes.forEach((s, i) => {
+      if (i > 0 && s.segment_numero > segsSelectionnes[i - 1].segment_numero + 1) morceaux.push('[…]')
+      morceaux.push(s.segment_texte)
+    })
+    const { corps, fin } = corpsCitation(morceaux.join(' '))
     onChoisir({ label: ref, type: 'segment', id: String(premier.id), href, complet: true, texte: corps, fin, ref })
   }
 
@@ -339,6 +463,17 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
         <span style={{ fontSize: '0.75rem', color: '#2a3d30', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{oeuvre.titre}</span>
         {oeuvre.auteurNom && <span style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic' }}>{oeuvre.auteurNom}</span>}
       </div>
+      {/* Choix de la traduction, si ce texte existe en plusieurs traductions établies. */}
+      {traductionsOeuvre.length > 1 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+          <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a2988b', flexShrink: 0 }}>Traduction</span>
+          <select value={oeuvre.id_oeuvre} aria-label="Traduction du texte"
+            onChange={e => { const o = traductionsOeuvre.find(x => x.id_oeuvre === e.target.value); if (o) choisirOeuvre(o) }}
+            style={{ fontSize: '0.72rem', padding: '5px 8px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a3d30', cursor: 'pointer', maxWidth: '16rem' }}>
+            {traductionsOeuvre.map(o => <option key={o.id_oeuvre} value={o.id_oeuvre}>{libelleTradOeuvre(o)}</option>)}
+          </select>
+        </div>
+      )}
       <input value={rechercheSeg} onChange={e => setRechercheSeg(e.target.value)}
         placeholder="Chercher un passage dans cette œuvre…"
         style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.75rem', padding: '7px 10px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#faf8f4', color: '#2a2520', marginBottom: '10px', outline: 'none', flexShrink: 0 }} />
@@ -376,6 +511,8 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
 
 function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; onChoisir: (c: Choix) => void }) {
   const [items, setItems] = useState<any[] | null>(null)
+  const [recherche, setRecherche] = useState('')
+  const [oeuvreSel, setOeuvreSel] = useState('')   // patristique : titre d'œuvre ciblé, '' = toutes
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -386,6 +523,7 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
         .order('created_at', { ascending: false })
       setItems(prelevements ?? [])
     })
+    setRecherche(''); setOeuvreSel('')
   }, [source])
 
   if (items === null) return <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
@@ -414,23 +552,83 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
     }
   }
 
+  // Une ligne de citation : libellé + aperçu + bouton « Citer » en bout de ligne.
+  const Ligne = (it: any, label: string) => (
+    <div key={it.id}
+      style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'center' }}>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 700, color: '#3d6b4f' }}>{surligner(label, recherche.trim())}</span>
+        <span style={{ display: 'block', fontSize: '0.78125rem', color: '#2a2520', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{surligner(String(it.texte ?? '').slice(0, 160), recherche.trim())}</span>
+      </span>
+      <BoutonCiter onCiter={() => choisir(it)} />
+    </div>
+  )
+
+  // Recherche : un mot dans l'ensemble des citations, ou dans une œuvre ciblée (patristique).
+  const q = sansAccents(recherche.trim())
+  const oeuvresListe = source === 'patristique'
+    ? [...new Set(items.map(it => String(it.titre_oeuvre ?? '')).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'))
+    : []
+  const itemsFiltres = items.filter(it => {
+    if (source === 'patristique' && oeuvreSel && String(it.titre_oeuvre ?? '') !== oeuvreSel) return false
+    if (q) {
+      const foin = sansAccents([it.texte, it.titre_oeuvre, it.auteur, it.auteur_nom, it.ref_livre, it.ref_livre_abr, it.ref_chapitre, it.ref_verset].filter(Boolean).join(' '))
+      if (!foin.includes(q)) return false
+    }
+    return true
+  })
+
+  const barre = (
+    <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', position: 'sticky', top: 0, background: '#fff', zIndex: 1, paddingBottom: '2px' }}>
+      <input value={recherche} onChange={e => setRecherche(e.target.value)} placeholder="Rechercher un mot…"
+        style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontSize: '0.75rem', padding: '7px 10px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#faf8f4', color: '#2a2520', outline: 'none' }} />
+      {source === 'patristique' && oeuvresListe.length > 1 && (
+        <select value={oeuvreSel} onChange={e => setOeuvreSel(e.target.value)} aria-label="Limiter à une œuvre"
+          style={{ flexShrink: 0, maxWidth: '11rem', fontSize: '0.72rem', padding: '6px 8px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a3530' }}>
+          <option value="">Toutes les œuvres</option>
+          {oeuvresListe.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      )}
+    </div>
+  )
+
+  if (!itemsFiltres.length) {
+    return <div>{barre}<p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Aucune citation ne correspond.</p></div>
+  }
+
+  // Patristique : regroupé par auteur (le § de paragraphe n'est plus affiché).
+  if (source === 'patristique') {
+    const groupes = new Map<string, any[]>()
+    for (const it of itemsFiltres) {
+      const auteur = String(it.auteur ?? it.auteur_nom ?? '').trim() || 'Sans auteur'
+      if (!groupes.has(auteur)) groupes.set(auteur, [])
+      groupes.get(auteur)!.push(it)
+    }
+    const auteurs = [...groupes.keys()].sort((a, b) => a.localeCompare(b, 'fr'))
+    return (
+      <div>
+        {barre}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {auteurs.map(auteur => (
+            <div key={auteur}>
+              <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: '#a2988b', margin: '0 0 8px' }}>{auteur}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {groupes.get(auteur)!.map(it => Ligne(it, String(it.titre_oeuvre ?? '')))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Bible : liste simple, la référence en « 1 Ch 5, 3 » via labelVerset.
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-      {items.map(it => {
-        const label = source === 'bible'
-          ? labelVerset(codeLivre(it.ref_livre, it.ref_livre_abr, it.livre) ?? it.ref_livre, it.ref_chapitre, it.ref_verset)
-          : `${it.auteur ?? it.auteur_nom ?? ''}, ${it.titre_oeuvre ?? ''} §${it.segment_numero}`
-        return (
-          <div key={it.id}
-            style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'flex-start' }}>
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 700, color: '#3d6b4f' }}>{label}</span>
-              <span style={{ display: 'block', fontSize: '0.78125rem', color: '#2a2520', lineHeight: 1.5 }}>{it.texte?.slice(0, 200)}</span>
-            </span>
-            <BoutonCiter onCiter={() => choisir(it)} />
-          </div>
-        )
-      })}
+    <div>
+      {barre}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {itemsFiltres.map(it => Ligne(it, labelVerset(codeLivre(it.ref_livre, it.ref_livre_abr, it.livre) ?? it.ref_livre, it.ref_chapitre, it.ref_verset)))}
+      </div>
     </div>
   )
 }

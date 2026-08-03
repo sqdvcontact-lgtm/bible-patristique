@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
-import type { ElementPanneau } from './texteEnrichiEssai'
+import { rendreMarquesNote, type ElementPanneau } from './texteEnrichiEssai'
 
 // La bulle devient fixe après 2,3 secondes de survol continu.
 const DUREE_FIXATION = 2_300
@@ -27,19 +27,9 @@ function ContenuNote({ el, onNaviguer }: {
     }
   }, [el.type, el.type !== 'note' ? (el as { id: string }).id : ''])
 
-  // Texte simple d'une note : les *italiques* (titre d'œuvre) sont rendus.
-  const rendreTexteSimple = (t: string, base: number): React.ReactNode[] => {
-    const out: React.ReactNode[] = []
-    const re = /\*(.+?)\*/g
-    let d = 0, i = 0, mm: RegExpExecArray | null
-    while ((mm = re.exec(t))) {
-      if (mm.index > d) out.push(t.slice(d, mm.index))
-      out.push(<em key={`i-${base}-${i++}`}>{mm[1]}</em>)
-      d = re.lastIndex
-    }
-    if (d < t.length) out.push(t.slice(d))
-    return out
-  }
+  // Enrichissements d'une note (gras, italique, petites capitales, exposant),
+  // rendus à l'identique de ce que compose l'auteur dans le volet.
+  const rendreTexteSimple = (t: string, base: number): React.ReactNode[] => rendreMarquesNote(t, base)
 
   const rendreTexteAvecLiens = (s: string) => {
     const morceaux: React.ReactNode[] = []
@@ -161,7 +151,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
   ) : (
     // Exposant qui n'agrandit PAS l'interligne (décalage de peinture + line-height:0),
     // au lieu de <sup> (vertical-align:super) qui gonfle la boîte de ligne.
-    <span style={{ marginLeft: '0.1em', display: 'inline-block', position: 'relative', top: '-0.45em', verticalAlign: 'baseline', lineHeight: 0, fontSize: '0.72em' }}>
+    <span style={{ marginLeft: 0, display: 'inline-block', position: 'relative', top: '-0.3em', verticalAlign: 'baseline', lineHeight: 0, fontSize: '0.68em' }}>
       <button onMouseEnter={traiterEntrer} onMouseLeave={traiterSortir} onClick={traiterClic}
         style={{ color: fixe ? '#1e2e24' : '#3d6b4f', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: 'inherit', fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'normal', lineHeight: 1 }}>
         {lettre}

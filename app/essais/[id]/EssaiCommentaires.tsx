@@ -14,7 +14,6 @@ type CommentaireEssai = {
 
 export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const [commentaires, setCommentaires] = useState<CommentaireEssai[]>([])
-  const [tri, setTri] = useState<'pertinents' | 'recents'>('pertinents')
   const [texte, setTexte] = useState('')
   const [passageCite, setPassageCite] = useState('')
   const [afficherPassage, setAfficherPassage] = useState(false)
@@ -89,18 +88,13 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
 
   const nbReponses = (id: number) => commentaires.filter(c => c.reponse_a === id).length
   const racines = commentaires.filter(c => c.reponse_a === null)
+  // Tri unique : les plus commentés d'abord, puis les plus récents.
   const racinesTriees = [...racines].sort((a, b) => {
-    if (tri === 'recents') return +new Date(b.created_at) - +new Date(a.created_at)
     const diff = nbReponses(b.id) - nbReponses(a.id)
     return diff !== 0 ? diff : +new Date(b.created_at) - +new Date(a.created_at)
   })
   const dateHeureCommentaire = (date: string) =>
     new Date(date).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-  const changerTri = (valeur: 'pertinents' | 'recents') => {
-    const doc = document as Document & { startViewTransition?: (callback: () => void) => void }
-    if (doc.startViewTransition) doc.startViewTransition(() => setTri(valeur))
-    else setTri(valeur)
-  }
 
   const LigneActions = ({ c, petit = false }: { c: CommentaireEssai; petit?: boolean }) => (
     <div style={{ display: 'flex', gap: petit ? '7px' : '8px', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap', marginTop: petit ? '4px' : '5px' }}>
@@ -201,7 +195,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   }
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       <style>{`
         .commentaire-carte {
           transition: opacity 180ms ease, box-shadow 180ms ease, margin 180ms ease;
@@ -241,24 +235,23 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
           transform: translateX(0);
         }
       `}</style>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+      {/* Décompte, en tête (le tri a été retiré). */}
+      <div style={{ flexShrink: 0, padding: '12px 14px 8px' }}>
         <span style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic' }}>
           {racines.length > 0 ? `${racines.length} commentaire${racines.length > 1 ? 's' : ''}` : 'Aucun commentaire'}
         </span>
-        <div style={{ display: 'flex', gap: '4px' }}>
-          {(['pertinents', 'recents'] as const).map(t => (
-            <button key={t} onClick={() => changerTri(t)}
-              style={{ fontSize: '0.625rem', padding: '2px 8px', borderRadius: '10px', border: `1px solid ${tri === t ? '#3d6b4f' : '#d6d0c4'}`, background: tri === t ? 'rgba(61,107,79,0.10)' : 'transparent', color: tri === t ? '#3d6b4f' : '#9a958d', cursor: 'pointer' }}>
-              {t === 'pertinents' ? 'Pertinents' : 'Récents'}
-            </button>
-          ))}
-        </div>
       </div>
 
+      {/* Liste défilante des commentaires. */}
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 14px 12px' }}>
+        {racinesTriees.map(c => <Carte key={c.id} c={c} />)}
+      </div>
+
+      {/* Outil de rédaction : ancré EN BAS du volet. */}
       {userId ? (
-        <div style={{ marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid #ede9e2', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ flexShrink: 0, borderTop: '1px solid #ede9e2', background: '#faf8f4', padding: '10px 14px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {cibleReponse && (
-            <p style={{ fontSize: '0.65625rem', color: '#6b6560', background: '#faf8f4', padding: '4px 8px', borderRadius: '4px', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+            <p style={{ fontSize: '0.65625rem', color: '#6b6560', background: '#fff', padding: '4px 8px', borderRadius: '4px', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
               <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
                 <path d="M7 4 3.5 7.5 7 11M3.5 7.5H10a2.5 2.5 0 0 1 2.5 2.5V12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -271,17 +264,15 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
             <button onClick={() => setAfficherPassage(true)} style={{ fontSize: '0.625rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', alignSelf: 'flex-start', padding: 0 }}>+ Citer un passage</button>
           ) : (
             <textarea value={passageCite} onChange={e => setPassageCite(e.target.value)} rows={2} placeholder="Passage exact à commenter…"
-              style={{ width: '100%', fontSize: '0.71875rem', fontStyle: 'italic', padding: '6px 8px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#faf8f4', color: '#5a5450', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
+              style={{ width: '100%', fontSize: '0.71875rem', fontStyle: 'italic', padding: '6px 8px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#fff', color: '#5a5450', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
           )}
           <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: texte.trim() ? '#3d6b4f' : '#e4dfd8', color: texte.trim() ? '#fff' : '#9a958d', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
             {envoi ? 'Envoi…' : 'Publier'}
           </button>
         </div>
       ) : (
-        <p style={{ fontSize: '0.71875rem', color: '#9a958d', fontStyle: 'italic', marginBottom: '14px' }}>Connectez-vous pour commenter.</p>
+        <p style={{ flexShrink: 0, borderTop: '1px solid #ede9e2', fontSize: '0.71875rem', color: '#9a958d', fontStyle: 'italic', padding: '10px 14px' }}>Connectez-vous pour commenter.</p>
       )}
-
-      {racinesTriees.map(c => <Carte key={c.id} c={c} />)}
     </div>
   )
 }

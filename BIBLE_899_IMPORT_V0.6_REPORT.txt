@@ -1,0 +1,157 @@
+IMPORT BIBLE 899 — LOT_001 BLOC A v0.6
+======================================
+
+STATUT FINAL
+------------
+
+IMPORT RÉUSSI.
+
+Le TEI corrigé a été importé sans transformation textuelle par la commande
+bible899:import. Le manifeste a été régénéré en version éditoriale 0.6, les trois
+images ont été copiées octet pour octet, les contrôles ont réussi et le nettoyage
+autorisé a été exécuté.
+
+SOURCE CORRIGÉE
+---------------
+
+Archive conservée :
+work/bible899/incoming/Bible_899_LOT_001_Bloc_A_v0.6_corrected.zip
+
+SHA-256 de l’archive corrigée :
+c343e1131f8bd132f9e9bac7998d394f311f042a6b73b40d92a50d26d010da22
+
+SHA-256 du TEI corrigé attendu et vérifié :
+8b0f7c4430d2a06133af6106b4f74ba6ae7d3c38ea80157fcbadf4700e185cad
+
+La comparaison avec le candidat précédent montre une seule modification dans le
+TEI : l’ajout validé de l’élément editionStmt contenant l’édition n="0.6".
+Dans l’archive reconstruite, seule la ligne correspondante de SHA256SUMS.txt a
+également été mise à jour. Les neuf autres fichiers de contenu sont restés
+identiques et les 11 empreintes internes ont été vérifiées.
+
+EMPREINTES DU TEI ACTIF
+-----------------------
+
+Avant import, version 0.4 :
+90b0fb0ab81ef5f36f9d1ae20e0786202dd4df3183314e1ce48d11066f996a84
+
+Après import, version 0.6 :
+8b0f7c4430d2a06133af6106b4f74ba6ae7d3c38ea80157fcbadf4700e185cad
+
+Le TEI actif après import est identique octet pour octet au candidat corrigé.
+
+COMPTAGES AVANT ET APRÈS
+------------------------
+
+Avant import :
+- folios : 2 ;
+- colonnes : 3 ;
+- lignes : 120 ;
+- choice : 58 ;
+- gap : 8 ;
+- unclear : 2 ;
+- images actives : 3.
+
+Après import :
+- folios : 3 ;
+- colonnes : 6 ;
+- lignes : 240 ;
+- choice : 151 ;
+- gap : 8 ;
+- unclear : 3 ;
+- images actives : 6.
+
+Les six colonnes actives sont : 1r_a, 1r_b, 1v_a, 1v_b, 2r_a et 2r_b.
+Elles contiennent chacune 40 lignes. Les trois nouvelles colonnes 1v_b, 2r_a et
+2r_b sont présentes.
+
+VALIDATION DU LECTEUR
+---------------------
+
+- version manifeste/TEI : 0.6, concordante ;
+- empreinte TEI/manifeste : concordante ;
+- empreintes et dimensions des six images : concordantes ;
+- identifiants et références de fac-similés : validés ;
+- 151 choice, avec abbr et expan contrôlés ;
+- 8 gap maintenus ;
+- 3 unclear maintenus ;
+- lecture incertaine « Ilons es » conservée dans f1v_b_l12 ;
+- 56 coupures break="no" conservées ;
+- réunion des mots coupés vérifiée dans les textes continus diplomatique et
+  développé ;
+- modes diplomatique, abréviations développées et graphie modernisée présents
+  pour les six colonnes ;
+- aucune unité modernisée non appariée.
+
+Les coordonnées détaillées de zones demeurent absentes pour 1r_a, 1r_b, 1v_a,
+1v_b, 2r_a et 2r_b. Cette absence est signalée par le contrôle du lecteur et reste
+admise par la chaîne ; aucune coordonnée fictive n’a été créée.
+
+TESTS, LINT ET BUILD
+--------------------
+
+Import transactionnel : réussi.
+
+Tests exécutés par l’import :
+- 1 fichier de tests réussi ;
+- 13 tests réussis sur 13.
+
+Tests finaux séparés :
+- 1 fichier de tests réussi ;
+- 13 tests réussis sur 13.
+
+Tests après nettoyage :
+- 1 fichier de tests réussi ;
+- 13 tests réussis sur 13.
+
+ESLint ciblé : réussi, 0 erreur et 0 avertissement.
+
+Build de production exécuté par l’import : réussi.
+Build de production final séparé : réussi.
+- compilation Next.js 16.2.9 réussie ;
+- vérification TypeScript réussie ;
+- 83 pages générées ;
+- route /manuscrits/bible-899 générée statiquement.
+
+FICHIERS CRÉÉS OU MODIFIÉS
+--------------------------
+
+Modifiés :
+- data/manuscrits/bible-899/Bible_899_master.xml ;
+- data/manuscrits/bible-899/manifest.json ;
+- BIBLE_899_IMPORT_V0.6_REPORT.txt ;
+- CLEANUP_REPORT.txt.
+
+Créés :
+- public/manuscrits/bible-899/f001v_b.png ;
+- public/manuscrits/bible-899/f002r_a.png ;
+- public/manuscrits/bible-899/f002r_b.png ;
+- work/bible899/incoming/Bible_899_LOT_001_Bloc_A_v0.6_corrected.zip.
+
+Les trois images copiées ont respectivement les SHA-256 suivants :
+- f001v_b.png : 3f2f1500c85e876e55c096a138c7f903330c103ca101afbf253ea3d054ec2471 ;
+- f002r_a.png : 336a33e4a4b253885d02f2b71be5d0ae0559aa4e0c3f6b3bd8a25fb1a5ae8877 ;
+- f002r_b.png : 05ab45f934654b80e81eb9878f8e52bb7755c8318a38ea41c46bca80a77ab65e.
+
+Aucun autre code ou contenu éditorial n’a été modifié.
+
+NETTOYAGE
+---------
+
+Huit cibles strictement redondantes ou temporaires ont été supprimées après
+contrôle Git et contrôle des références actives.
+
+Fichiers et dossiers supprimés : 8 cibles, 76 fichiers ordinaires au total.
+Espace libéré : 41 826 718 octets.
+
+Le détail complet figure dans CLEANUP_REPORT.txt.
+
+QUESTIONS OU ERREURS
+--------------------
+
+Question éditoriale non résolue : aucune.
+Erreur de test, lint, build ou import : aucune.
+
+Point de contrôle non bloquant : les six colonnes ne possèdent pas encore de
+coordonnées détaillées de zones d’image. Ce manque est explicitement signalé et
+n’a pas été compensé automatiquement.

@@ -1,0 +1,596 @@
+{
+  "schemaVersion": 1,
+  "manuscriptId": "bible-899",
+  "editorialVersion": "1.0",
+  "teiPath": "data/manuscrits/bible-899/Bible_899_master.xml",
+  "teiSha256": "79414f98d842c09818ed9bb295b2d7d31f439dcd8f83b11727fecb3f3836d64b",
+  "generatedAt": "2026-08-03T06:15:00.858Z",
+  "counts": {
+    "folios": 32,
+    "columns": 64,
+    "lines": 2445,
+    "choice": 1337,
+    "gap": 8,
+    "unclear": 19,
+    "add": 1,
+    "catchword": 1
+  },
+  "images": [
+    {
+      "reference": "../images/f1r_a.png",
+      "file": "f1r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f1r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f1r_a.png",
+      "sha256": "13904acd91347d15ee5cf87c6a8f7a3a0b066b180cb015abf1a72a6cd7805e6e",
+      "width": 1080,
+      "height": 2900
+    },
+    {
+      "reference": "../images/f1r_b.png",
+      "file": "f1r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f1r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f1r_b.png",
+      "sha256": "c3841c3afd9ab27dde634b24739fb010cd8f7cc3f9dc1738340f8fc3fad534c5",
+      "width": 1260,
+      "height": 2900
+    },
+    {
+      "reference": "../images/f1v_a.png",
+      "file": "f1v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f1v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f1v_a.png",
+      "sha256": "10fe4d727aba321fc87c5d9bb6d9f76833ba7a910c29bc5a1ec44f3e80e5a9b8",
+      "width": 980,
+      "height": 2910
+    },
+    {
+      "reference": "../images/f001v_b.png",
+      "file": "f001v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f001v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f001v_b.png",
+      "sha256": "3f2f1500c85e876e55c096a138c7f903330c103ca101afbf253ea3d054ec2471",
+      "width": 340,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f002r_a.png",
+      "file": "f002r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f002r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f002r_a.png",
+      "sha256": "336a33e4a4b253885d02f2b71be5d0ae0559aa4e0c3f6b3bd8a25fb1a5ae8877",
+      "width": 320,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f002r_b.png",
+      "file": "f002r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f002r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f002r_b.png",
+      "sha256": "05ab45f934654b80e81eb9878f8e52bb7755c8318a38ea41c46bca80a77ab65e",
+      "width": 470,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f002v_a.png",
+      "file": "f002v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f002v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f002v_a.png",
+      "sha256": "f064ae9a13ff935118bf654ca82e44bf2f348f998db8cad01a840c05108298e1",
+      "width": 455,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f002v_b.png",
+      "file": "f002v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f002v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f002v_b.png",
+      "sha256": "550b5bfbdaef571cfa1cbe51add06eaafbe431bd15bc2f43acae43710d249975",
+      "width": 324,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f003r_a.png",
+      "file": "f003r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f003r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f003r_a.png",
+      "sha256": "ca1c1efc7bc2e2dfb6d7cccc8d959f0f99c78dc93ba63aefc4bfe7f6758fe268",
+      "width": 329,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f003r_b.png",
+      "file": "f003r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f003r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f003r_b.png",
+      "sha256": "02d20fa97ec2b1ed39c64d74f783160ead8f56423634fdca9c0d7c8126fcb51a",
+      "width": 440,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f003v_a.png",
+      "file": "f003v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f003v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f003v_a.png",
+      "sha256": "52a5037c56228fb78e30996fc8c2e5d44f829bf91095a7a1ef86354c50bbacc4",
+      "width": 440,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f003v_b.png",
+      "file": "f003v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f003v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f003v_b.png",
+      "sha256": "3bbf57a22ee970f3449aa237589c8ceefb53f0b6234b6aa37e7190dfa1fd3043",
+      "width": 328,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f004r_a.png",
+      "file": "f004r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f004r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f004r_a.png",
+      "sha256": "2a70b65524ad678dcc5b559503d6db4144574029c8f0a2cbb07ed6b473639abf",
+      "width": 320,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f004r_b.png",
+      "file": "f004r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f004r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f004r_b.png",
+      "sha256": "3d2e7b6e7ef4e2c1dd3db2e69fcf3e393f0782de1ac0bedf5324fb2812605245",
+      "width": 448,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f004v_a.png",
+      "file": "f004v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f004v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f004v_a.png",
+      "sha256": "a43510aa5993acc4f58adc81596afcebd09de658bb91d7d6216d15545ea993b5",
+      "width": 448,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f004v_b.png",
+      "file": "f004v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f004v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f004v_b.png",
+      "sha256": "3be1ec7efb61274f773f0c497e842d040dc6b05173bfe3db550fe4cefb933c40",
+      "width": 320,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f005r_a.png",
+      "file": "f005r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f005r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f005r_a.png",
+      "sha256": "2c388d885ba145ee7de9d5cc6796c8d18e7388c56b0126b1f527e87c9ea6cda6",
+      "width": 327,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f005r_b.png",
+      "file": "f005r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f005r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f005r_b.png",
+      "sha256": "3e5700648f83aa404e65482174a70523afb98b2207bdaffb24b297fde2ded2fa",
+      "width": 441,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f005v_a.png",
+      "file": "f005v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f005v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f005v_a.png",
+      "sha256": "61cde759c82d5c19aa31ad16e793df95df5954ccebf60eb04d62c1fadcbe6210",
+      "width": 438,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f005v_b.png",
+      "file": "f005v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f005v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f005v_b.png",
+      "sha256": "e01fc6372770aa79688445d3d89de77ab5409c1639efa00812da57eb92c98726",
+      "width": 340,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f006r_a.png",
+      "file": "f006r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f006r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f006r_a.png",
+      "sha256": "d60161f95001c2cba78f0a53d0e5ad947d4061e813dc88169326e086992c69cc",
+      "width": 313,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f006r_b.png",
+      "file": "f006r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f006r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f006r_b.png",
+      "sha256": "7db574cf508edcfafd70918997cebe6057996bbf30659f4ef633aea45dcd5abe",
+      "width": 465,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f006v_a.png",
+      "file": "f006v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f006v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f006v_a.png",
+      "sha256": "be9d40751d312722be3a3f980e65c63699a8176282d7326ad3cb2d52038e1220",
+      "width": 451,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f006v_b.png",
+      "file": "f006v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f006v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f006v_b.png",
+      "sha256": "a1851e17a5201b2fb75ffded305d631c7d189769a7cc312b298e8d9c3a8f18bb",
+      "width": 329,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f007r_a.png",
+      "file": "f007r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f007r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f007r_a.png",
+      "sha256": "593c27cbe0157e9da979ee8629603d84c22f6d2f535b21499c025b1fb90e59fe",
+      "width": 300,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f007r_b.png",
+      "file": "f007r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f007r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f007r_b.png",
+      "sha256": "9c990d199f1753e4f805d622fa1bb201b1d4b6f67e18c6db4da71e50fcda2808",
+      "width": 480,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f007v_a.png",
+      "file": "f007v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f007v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f007v_a.png",
+      "sha256": "ee41572fc637a1baa8b9ebdd26d675a1e73d38566918d34ec8f8f4d08e210ba9",
+      "width": 472,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f007v_b.png",
+      "file": "f007v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f007v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f007v_b.png",
+      "sha256": "a0ea2e8ae21520e5bbb973bbbe99ea047cac19a6a2dbb6532663b8344b7b21e5",
+      "width": 304,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f008r_a.png",
+      "file": "f008r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f008r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f008r_a.png",
+      "sha256": "a3dc25df76d6c058205ab65e8b8fbea667326c0d18a28b8db7f9862326721180",
+      "width": 344,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f008r_b.png",
+      "file": "f008r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f008r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f008r_b.png",
+      "sha256": "f0f81f14093cd399a43600627fdf72d96604495ba89b55f7e78d8c5d22a33dd0",
+      "width": 433,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f008v_a.png",
+      "file": "f008v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f008v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f008v_a.png",
+      "sha256": "69f48dd725be49459d0f9f0dc812d0f06c025aaa94d87b30250f36030ccdeb50",
+      "width": 455,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f008v_b.png",
+      "file": "f008v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f008v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f008v_b.png",
+      "sha256": "20f41e5447168966d528659e1d14722feb2b6a0906bfc156dc9942e32b549df6",
+      "width": 328,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f009r_a.png",
+      "file": "f009r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f009r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f009r_a.png",
+      "sha256": "3c97637471c85566c57a0093400a0fd9e9c247b78255a972b26388106b5f0aa8",
+      "width": 328,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f009r_b.png",
+      "file": "f009r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f009r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f009r_b.png",
+      "sha256": "a6bb51d694a0021351a4e14677f29df9a82003664e5b3e75e1064e6a4a9a576c",
+      "width": 455,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f009v_a.png",
+      "file": "f009v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f009v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f009v_a.png",
+      "sha256": "dff14dff565e866810c5b29cc8888e1a783dfbd8fc6016fcc2b18ffa38fc6a76",
+      "width": 462,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f009v_b.png",
+      "file": "f009v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f009v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f009v_b.png",
+      "sha256": "af0b3b43399159d04ee444856babf7b0200c4ca4928c4b347aa17fac9b7835a5",
+      "width": 323,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f010r_a.png",
+      "file": "f010r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f010r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f010r_a.png",
+      "sha256": "7f9836048388ba252e8fd9c72449c0e3a32b8cacfca4ccc1d88a274e9f94ae08",
+      "width": 345,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f010r_b.png",
+      "file": "f010r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f010r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f010r_b.png",
+      "sha256": "532899672d2eb0ab88156df82e650482739966f318f3626d1d05898990dd5377",
+      "width": 441,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f010v_a.png",
+      "file": "f010v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f010v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f010v_a.png",
+      "sha256": "6dbac0ef003457a7aef78dff8a0acd1c84cc647dcf032a4a788b88f08fe39a14",
+      "width": 445,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f010v_b.png",
+      "file": "f010v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f010v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f010v_b.png",
+      "sha256": "ff5d8935fee8f363a5d4c50b3ce31cd60ffb6fc4635393b8765c25404662d36c",
+      "width": 326,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f011r_a.png",
+      "file": "f011r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f011r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f011r_a.png",
+      "sha256": "57d41ddded79ddeacd4f893bb6f2bb34e03d659e36187e6f0bab89c692387a91",
+      "width": 364,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f011r_b.png",
+      "file": "f011r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f011r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f011r_b.png",
+      "sha256": "9295eee605ff41c69d0ee4cf8d6ecc561f0a626d9c966a921889b1e048d169e3",
+      "width": 408,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f011v_a.png",
+      "file": "f011v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f011v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f011v_a.png",
+      "sha256": "7b8d7d9c34c7633b46b735ca2e5707fb5959ac70c654ed34f7907daad0576792",
+      "width": 370,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f011v_b.png",
+      "file": "f011v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f011v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f011v_b.png",
+      "sha256": "05b054309432fdfa73f85c1edd511bbebebc1fdb2f39eb088288bfb8b64ed7f4",
+      "width": 391,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f012r_a.png",
+      "file": "f012r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f012r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f012r_a.png",
+      "sha256": "20dfa2ad33f0aec4214e719b958068866b02c94b85dcc6f202e695e49807b2d6",
+      "width": 331,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f012r_b.png",
+      "file": "f012r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f012r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f012r_b.png",
+      "sha256": "e4e9533e11f61848540928eff1ae94399eac43996b1de5a550adcb6e811baadb",
+      "width": 431,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f012v_a.png",
+      "file": "f012v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f012v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f012v_a.png",
+      "sha256": "ffafa947d1c13ad6dd5b8f3155d485cbc3c9aea953e2774dc3cbfd09e9507c84",
+      "width": 438,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f012v_b.png",
+      "file": "f012v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f012v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f012v_b.png",
+      "sha256": "b94b3af64c749a55459b131e1466bb28b08c81972713675a55643c89659058d7",
+      "width": 337,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f013r_a.png",
+      "file": "f013r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f013r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f013r_a.png",
+      "sha256": "446fc5408123c15d8d8191de05fd9783821e4816e6f01bc4d469ee249113a179",
+      "width": 320,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f013r_b.png",
+      "file": "f013r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f013r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f013r_b.png",
+      "sha256": "20379d4a92faa2838036eaf03e9cb5fb3e6c01e90a93e64e1de24c9cb54ae6fd",
+      "width": 456,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f013v_a.png",
+      "file": "f013v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f013v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f013v_a.png",
+      "sha256": "a214c54c046a23cc978c46b7c030028b4accfd673449d97c3f3f73591f6ca14c",
+      "width": 444,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f013v_b.png",
+      "file": "f013v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f013v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f013v_b.png",
+      "sha256": "59580284df96e79162f6d1c8019a1b9e27c1180b5d64aefcd3858a011e82650f",
+      "width": 333,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f014r_a.png",
+      "file": "f014r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f014r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f014r_a.png",
+      "sha256": "545aa5dc70484c30081285d95088eb5552613ceae212108843e5fd62ea14e272",
+      "width": 326,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f014r_b.png",
+      "file": "f014r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f014r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f014r_b.png",
+      "sha256": "8ed7ce717ee7d3aa98e834270f5c999e3e386ad0fde772465b611a6a5d241392",
+      "width": 451,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f014v_a.png",
+      "file": "f014v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f014v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f014v_a.png",
+      "sha256": "fc5fc094f63e26c1f31e79e15e5a12894e8a95f1e5eb0dab421224221b8e8154",
+      "width": 460,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f014v_b.png",
+      "file": "f014v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f014v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f014v_b.png",
+      "sha256": "ff17c2ae417504711a9615bb3f8c02f43c13ed3d46ab9d1596ba04fc8440ec5a",
+      "width": 320,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f015r_a.png",
+      "file": "f015r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f015r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f015r_a.png",
+      "sha256": "c14882cf0119a2d739ab8bd20799d8e4fd30623aaae5552671f59d1f58e84d6f",
+      "width": 315,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f015r_b.png",
+      "file": "f015r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f015r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f015r_b.png",
+      "sha256": "d1125c27f949a18c3c149d5aa1e8ce951afe1ae6a07267140cf2afc05d37f3c4",
+      "width": 465,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f015v_a.png",
+      "file": "f015v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f015v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f015v_a.png",
+      "sha256": "e350761210c298c3f49d937b988b2680e74729d7fe05fb31c5e6108d085f452c",
+      "width": 450,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f015v_b.png",
+      "file": "f015v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f015v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f015v_b.png",
+      "sha256": "952e0bdf4be0f88dcdef2c64c8fa06d48664da778f58db52505b416af9bf77f3",
+      "width": 318,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f016r_a.png",
+      "file": "f016r_a.png",
+      "publicPath": "public/manuscrits/bible-899/f016r_a.png",
+      "publicUrl": "/manuscrits/bible-899/f016r_a.png",
+      "sha256": "3a579b661c3b5d31d76b76a87752da716653763c1f373f37c90fb884ef2a1e89",
+      "width": 318,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f016r_b.png",
+      "file": "f016r_b.png",
+      "publicPath": "public/manuscrits/bible-899/f016r_b.png",
+      "publicUrl": "/manuscrits/bible-899/f016r_b.png",
+      "sha256": "43c2aa89dd0ee066a36ae49bfa1b3ca21ab54a0bd35e61b7431adab896413d6a",
+      "width": 450,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f016v_a.png",
+      "file": "f016v_a.png",
+      "publicPath": "public/manuscrits/bible-899/f016v_a.png",
+      "publicUrl": "/manuscrits/bible-899/f016v_a.png",
+      "sha256": "e81294c14072bc53e313ad8520040b3916446eb15defa105a6196560b6d02ddb",
+      "width": 464,
+      "height": 1024
+    },
+    {
+      "reference": "../images/f016v_b.png",
+      "file": "f016v_b.png",
+      "publicPath": "public/manuscrits/bible-899/f016v_b.png",
+      "publicUrl": "/manuscrits/bible-899/f016v_b.png",
+      "sha256": "f4a861e123c159cb1f227cb547ab78f05b498c5cd7cdf3bcbf32c672ad7099c5",
+      "width": 317,
+      "height": 1024
+    }
+  ]
+}

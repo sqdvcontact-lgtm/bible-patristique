@@ -1,0 +1,3 @@
+{"kind":"sheet","id":"ws/qv94f2","name":"Segments","index":0,"range":"A1:AB3263","address":"A1:AB3263"}
+{"kind":"sheet","id":"ws/3u7iec","name":"Synthèse","index":1,"range":"A1:B16","address":"A1:B16"}
+{"kind":"sheet","id":"ws/y3qabv","name":"Alertes","index":2,"range":"A1:D157","address":"A1:D157"}

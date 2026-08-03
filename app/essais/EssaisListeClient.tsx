@@ -215,13 +215,13 @@ function OngletCommunaute({
           display: flex;
           flex-direction: column;
           width: 100%;
+          max-width: 40rem;
           box-sizing: border-box;
           overflow: hidden;
           margin: 0 auto 16px;
-          padding: 0 24px 6px;
-          background: linear-gradient(180deg, rgba(249,245,232,0.72) 0%, rgba(246,241,225,0.46) 100%);
-          border-top: 1px solid rgba(176,143,72,0.62);
-          border-bottom: 1px solid rgba(176,143,72,0.46);
+          padding: 8px 12px 2px;
+          background: rgba(248,244,232,0.5);
+          border-radius: 8px;
         }
         /* Capitales espacées : en sans, comme tous les libellés du site — la règle
            globale h1…h6 les passerait en serif, ce qui alourdit le dessin. */
@@ -279,7 +279,7 @@ function OngletCommunaute({
           grid-template-rows: subgrid;
           grid-row: span 5;
           min-height: 0;
-          padding: 15px 24px;
+          padding: 9px 12px;
           color: #332c23;
           text-decoration: none;
           transition: background 0.18s;
@@ -304,12 +304,13 @@ function OngletCommunaute({
           opacity: 1;
           animation: podium-shimmer 1.5s linear infinite;
         }
+        /* Séparateurs verticaux retirés : plus sobre. */
         .publication-populaire-item + .publication-populaire-item {
-          border-left: 1px solid rgba(190,155,75,0.28);
+          border-left: none;
         }
         .publication-populaire-auteur {
           display: block;
-          margin: 0 0 7px;
+          margin: 0 0 4px;
           text-align: center;
           font-size:0.5625rem;
           font-weight: 700;
@@ -326,8 +327,8 @@ function OngletCommunaute({
           justify-content: center;
           text-align: center;
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size:1.0625rem;
-          line-height: 1.26;
+          font-size:0.9375rem;
+          line-height: 1.24;
           color: #1e2e24;
           letter-spacing: 0.005em;
         }
@@ -342,10 +343,10 @@ function OngletCommunaute({
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 11px;
+          margin-bottom: 5px;
           color: #b0863c;
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size:0.9375rem;
+          font-size:0.84375rem;
           font-style: italic;
           letter-spacing: 0.1em;
         }
@@ -362,15 +363,15 @@ function OngletCommunaute({
           display: block;
           min-height: 0;
           overflow: hidden;
-          max-width: 270px;
-          margin: 13px auto 0;
+          max-width: 240px;
+          margin: 7px auto 0;
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size:0.75rem;
-          line-height: 1.52;
+          font-size:0.71875rem;
+          line-height: 1.48;
           color: #71685d;
           text-align: center;
           font-style: italic;
-          padding-bottom: 13px;
+          padding-bottom: 7px;
         }
         .publication-populaire-meta-ligne {
           display: flex;
@@ -379,8 +380,8 @@ function OngletCommunaute({
           gap: 5px;
           margin-top: auto;
           margin-bottom: 0;
-          padding-top: 13px;
-          border-top: 1px solid rgba(190,155,75,0.18);
+          padding-top: 6px;
+          border-top: none;
         }
         .publication-populaire-meta {
           font-size:0.59375rem;
@@ -932,13 +933,6 @@ function EnTetePublicationsPopulaires({ essais, favorisEssais, toggleFavoriEssai
       className="publications-populaires-tete"
       style={hauteur ? { maxHeight: `${hauteur}px` } : undefined}
       aria-label="Œuvres les plus lues">
-      <div className="publications-populaires-entete">
-        {/* Filets sobres de part et d'autre du titre (les palmes, trop compactes, sont
-            provisoirement retirées). */}
-        <span className="publications-populaires-filet gauche" aria-hidden="true" />
-        <h2 className="publications-populaires-titre">Œuvres les plus lues</h2>
-        <span className="publications-populaires-filet droite" aria-hidden="true" />
-      </div>
       <div className="publications-populaires-grille">
         {essais.map((e, index) => (
           <Link key={e.id} href={`/essais/${e.id}`} className="publication-populaire-item">
@@ -1250,7 +1244,11 @@ function OngletMesEcrits({
   }
   const basculerPublication = async (e: EssaiPerso) => {
     const dernier = derniereAction(e.id)
-    const dejaValide = e.statut === 'publie' || (e.statut === 'brouillon' && !!e.publie_at && (!e.updated_at || new Date(e.updated_at).getTime() <= new Date(e.publie_at).getTime() + 1000))
+    // « Déjà validée » = possède un publie_at (validée au moins une fois). On ne compare
+    // plus updated_at à publie_at : publie_at est figé à la 1re publication alors que
+    // updated_at avance à chaque édition, ce qui désactivait à tort la republication. Le
+    // serveur (trigger forcer_statut_essai) reste seul juge : contenu modifié → en_attente.
+    const dejaValide = e.statut === 'publie' || (e.statut === 'brouillon' && !!e.publie_at)
     if (!dejaValide) { alert("Cet écrit doit d'abord être validé par l'administration."); return }
     const restant = 60 * 60 * 1000 - (Date.now() - dernier)
     if (restant > 0) {
@@ -1290,7 +1288,11 @@ function OngletMesEcrits({
             const dernier = derniereAction(e.id)
             const restant = Math.max(0, 60 * 60 * 1000 - (maintenant - dernier))
             const verrouille = restant > 0
-            const dejaValide = e.statut === 'publie' || (e.statut === 'brouillon' && !!e.publie_at && (!e.updated_at || new Date(e.updated_at).getTime() <= new Date(e.publie_at).getTime() + 1000))
+            // « Déjà validée » = possède un publie_at (validée au moins une fois). On ne compare
+    // plus updated_at à publie_at : publie_at est figé à la 1re publication alors que
+    // updated_at avance à chaque édition, ce qui désactivait à tort la republication. Le
+    // serveur (trigger forcer_statut_essai) reste seul juge : contenu modifié → en_attente.
+    const dejaValide = e.statut === 'publie' || (e.statut === 'brouillon' && !!e.publie_at)
             const peutBasculer = dejaValide && (e.statut === 'publie' || e.statut === 'brouillon')
             const timer = verrouille ? formatTimer(restant) : ''
             return (

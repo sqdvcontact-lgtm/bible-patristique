@@ -42,12 +42,12 @@ export default function SoutenirPage() {
           `multiply` fond le blanc du dessin dans le papier ; l'invite se pose au ras du
           sillon (marge négative). Taille fluide, plus généreuse sur grand écran. */}
       <img src="/ornements/semeur.png" alt="" aria-hidden="true"
-        style={{ width: "clamp(160px, 12vw + 12vh, 360px)", height: "auto", opacity: 0.92, mixBlendMode: "multiply", marginBottom: "clamp(-14px, -1vh, -8px)", flexShrink: 0 }} />
+        style={{ width: "clamp(150px, 8vw + 8vh, 250px)", height: "auto", opacity: 0.92, mixBlendMode: "multiply", marginBottom: "clamp(-14px, -1vh, -8px)", flexShrink: 0 }} />
 
       {/* Titre */}
       <h1 style={{
         fontFamily: "var(--font-source-serif), Georgia, serif",
-        fontSize: "clamp(1.4rem, 0.9rem + 1.7vw, 2.7rem)",
+        fontSize: "clamp(1.4rem, 0.95rem + 0.85vw, 1.95rem)",
         fontWeight: "normal",
         color: "#1e2e24",
         margin: "0 0 clamp(8px, 1.2vh, 14px)",
@@ -58,7 +58,7 @@ export default function SoutenirPage() {
       </h1>
 
       {/* Filet ornemental */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.7em", width: "clamp(9.375rem, 16vw, 16rem)", margin: "0 auto clamp(16px, 2.4vh, 30px)", flexShrink: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.7em", width: "clamp(9.375rem, 12vw, 13rem)", margin: "0 auto clamp(16px, 2.4vh, 30px)", flexShrink: 0 }}>
         <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #cfc6b6)" }} />
         <span style={{ fontSize: "clamp(0.5rem, 0.4rem + 0.3vw, 0.75rem)", color: "#b0a088", letterSpacing: "0.22em" }}>· · ·</span>
         <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #cfc6b6)" }} />
@@ -67,7 +67,7 @@ export default function SoutenirPage() {
       {/* Colophon pyramide */}
       <div style={{
         fontFamily: "var(--font-source-serif), Georgia, serif",
-        fontSize: "clamp(0.85rem, 0.55rem + 0.7vw, 1.3rem)",
+        fontSize: "clamp(0.85rem, 0.6rem + 0.35vw, 1.08rem)",
         fontStyle: "italic",
         color: "#4a5e50",
         lineHeight: 1.55,
@@ -86,8 +86,8 @@ export default function SoutenirPage() {
           display: "inline-flex", alignItems: "center", gap: "0.6em",
           background: "#3d6b4f", color: "#fff", textDecoration: "none",
           fontFamily: "var(--font-source-serif), Georgia, serif",
-          fontSize: "clamp(0.875rem, 0.6rem + 0.5vw, 1.2rem)", fontWeight: 500,
-          padding: "clamp(10px, 1.3vh, 16px) clamp(24px, 2.4vw, 44px)",
+          fontSize: "clamp(0.875rem, 0.68rem + 0.28vw, 1.05rem)", fontWeight: 500,
+          padding: "clamp(10px, 1.1vh, 14px) clamp(24px, 2vw, 38px)",
           borderRadius: "6px",
           boxShadow: "0 3px 12px rgba(61,107,79,0.22)",
           letterSpacing: "0.01em",
@@ -98,7 +98,7 @@ export default function SoutenirPage() {
       </a>
 
       <p style={{
-        fontSize: "clamp(0.65625rem, 0.5rem + 0.3vw, 0.85rem)",
+        fontSize: "clamp(0.65625rem, 0.55rem + 0.18vw, 0.8rem)",
         color: "#a09488",
         marginTop: "clamp(10px, 1.4vh, 16px)",
         fontStyle: "italic",

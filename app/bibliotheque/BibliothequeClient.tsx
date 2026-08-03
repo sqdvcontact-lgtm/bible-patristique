@@ -19,7 +19,7 @@ type Oeuvre = {
   id_oeuvre: string; titre: string; sous_titre: string | null
   titre_original: string | null; trad_auteur: string | null
   editeur: string | null; ville: string | null; date_publication: string | null
-  genre: string | null; note?: string | null
+  genre: string | null; note?: string | null; langue_originale?: string | null
 }
 type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }
@@ -106,10 +106,11 @@ const CHIFFRES_FR = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'h
 function enLettres(n: number): string { return n >= 1 && n <= 20 ? CHIFFRES_FR[n - 1] : String(n) }
 
 // ── Bandeau auteur ────────────────────────────────────────────────────────────
-function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, onOuvrirAuteur, ouvertParDefaut = false, compact = false }: {
+function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, onOuvrirAuteur, originaux, ouvertParDefaut = false, compact = false }: {
   auteur: Auteur; recherche: string
   favorisOeuvres: Set<string>; toggleFavoriOeuvre: (id: string) => void
   onOuvrirAuteur: (id: string) => void
+  originaux?: Set<string>
   ouvertParDefaut?: boolean
   compact?: boolean
 }) {
@@ -127,13 +128,29 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
   const photoPos = parseAuteurPhotoPositions(auteur.photo_position).carte
   const datesAuteur = formaterDateHistorique(auteur.dates)
 
+  // Notice trop longue pour la zone fixe : on le détecte pour proposer un renvoi
+  // « Ouvrir la page auteur » à la suite des points de suspension.
+  const proseRef = useRef<HTMLDivElement>(null)
+  const [tronque, setTronque] = useState(false)
+  useEffect(() => {
+    const el = proseRef.current
+    if (!el) return
+    const mesurer = () => setTronque(el.scrollHeight > el.clientHeight + 1)
+    mesurer()
+    const ro = new ResizeObserver(mesurer)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [auteur.note_biographique, auteur.note, auteur.note_theologique])
+
   return (
     <div
       style={{ background: '#fff', borderRadius: '8px', border: '1px solid #e4dfd8', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease' }}
       onMouseEnter={e => { e.currentTarget.style.borderColor = '#a9c9b6'; e.currentTarget.style.backgroundColor = '#f8fbf9'; e.currentTarget.style.transform = 'translateY(-2px)' }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = '#e4dfd8'; e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.transform = 'none' }}>
 
-      <div className="bib-carte-haut" style={{ display: 'flex' }}>
+      {/* Hauteur d'en-tête CONSTANTE pour toutes les cartes (notice longue rognée) :
+          la liste dépliée s'ajoute ensuite en dessous, hors de ce bloc. */}
+      <div className="bib-carte-haut" style={{ display: 'flex', ...(compact ? {} : { height: '200px', overflow: 'hidden' }) }}>
         {!compact && (
           <div className="bib-photo" style={{ width: '7.5rem', flexShrink: 0, background: '#ede9e2', position: 'relative', minHeight: '170px', overflow: 'hidden' }}>
             {!imgErreur && (
@@ -150,10 +167,13 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
           </div>
         )}
 
-        <div style={{ flex: 1, padding: compact ? '6px 12px' : '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: compact ? '2px' : '8px' }}>
+        <div style={{ flex: 1, padding: compact ? '6px 12px' : '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: compact ? '2px' : '6px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px' }}>
-              <h2 style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.875rem', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0 }}>
+              <h2 onClick={() => onOuvrirAuteur(auteur.id_auteur)} title="Voir la fiche de l’auteur"
+                style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.875rem', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0, cursor: 'pointer' }}
+                onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; e.currentTarget.style.textUnderlineOffset = '2px' }}
+                onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none' }}>
                 {auteur.nom}
               </h2>
               <button onClick={() => onOuvrirAuteur(auteur.id_auteur)} title="Voir la fiche de l’auteur"
@@ -170,24 +190,41 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
             )}
           </div>
 
-          {!compact && (auteur.note_biographique || auteur.note) && (
-            <p style={{ fontSize: '0.71875rem', color: '#5a5450', lineHeight: 1.6, margin: 0, fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
-              {rendreSiecles(auteur.note_biographique || auteur.note)}
-            </p>
+          {!compact && (auteur.note_biographique || auteur.note || auteur.note_theologique) && (
+            // Conteneur BLOC (surtout pas flex : un parent flex « blockifie » l'enfant et
+            // convertit `display:-webkit-box` en `flow-root`, ce qui désactive line-clamp).
+            <div>
+              {/* Notice bornée à trois lignes par `-webkit-line-clamp` : quand le texte
+                  déborde, un « … » est ajouté AU POINT DE COUPE (collé au texte, en
+                  remplacement de la ponctuation finale). La biographie (italique) et la
+                  note théologique (romain) s'écoulent d'un seul tenant. */}
+              <div ref={proseRef} style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontSize: '0.75rem', lineHeight: 1.5, color: '#5a5450', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                {(auteur.note_biographique || auteur.note) && (
+                  <span style={{ fontStyle: 'italic' }}>{rendreSiecles(auteur.note_biographique || auteur.note)}</span>
+                )}
+                {auteur.note_theologique && (
+                  <>{(auteur.note_biographique || auteur.note) ? ' ' : null}<span>{rendreSiecles(auteur.note_theologique)}</span></>
+                )}
+              </div>
+            </div>
           )}
 
-          {!compact && auteur.note_theologique && (
-            <p style={{ fontSize: '0.71875rem', color: '#5a5450', lineHeight: 1.6, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
-              {rendreSiecles(auteur.note_theologique)}
-            </p>
-          )}
-
-          <div style={{ marginTop: 'auto', paddingTop: compact ? '2px' : '6px' }}>
+          {/* Même ligne : « N œuvres disponibles » à gauche, « Ouvrir la page auteur »
+              (si la notice est tronquée) à droite. */}
+          <div style={{ marginTop: 'auto', paddingTop: compact ? '2px' : '6px', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px' }}>
             <button onClick={() => setOuvert(!ouvert)}
-              style={{ fontSize: '0.65625rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              style={{ fontSize: '0.6875rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'baseline', gap: '4px', lineHeight: 1 }}>
               <span style={{ fontSize: '0.5rem' }}>{listeOuverte ? '▲' : '▼'}</span>
-              {nbMot.charAt(0).toUpperCase() + nbMot.slice(1)} œuvre{nb > 1 ? 's' : ''} disponible{nb > 1 ? 's' : ''}
+              <span>{nbMot.charAt(0).toUpperCase() + nbMot.slice(1)} œuvre{nb > 1 ? 's' : ''} disponible{nb > 1 ? 's' : ''}</span>
             </button>
+            {!compact && tronque && (
+              <button onClick={() => onOuvrirAuteur(auteur.id_auteur)} title="Ouvrir la page de l’auteur"
+                style={{ flexShrink: 0, fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.6875rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap', lineHeight: 1 }}
+                onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; e.currentTarget.style.textUnderlineOffset = '2px' }}
+                onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none' }}>
+                Ouvrir la page auteur
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -230,8 +267,34 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                     const edition = [o.editeur, o.ville, formaterDateHistorique(o.date_publication)].filter(Boolean).join(', ')
                     const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
                     const libelle = trad || edition || 'Édition'
+                    // Texte original parallèle (latin/grec) disponible pour cette édition :
+                    // on propose une sous-ligne menant à l'œuvre en mode « texte original ».
+                    const aOriginal = !!originaux?.has(o.id_oeuvre)
+                    const langueOrig = o.langue_originale === 'Grec' ? 'grec' : 'latin'
                     return (
-                      <div key={o.id_oeuvre} className="bib-ligne" style={{ marginTop: '1px', alignItems: 'center' }}>
+                      <React.Fragment key={o.id_oeuvre}>
+                      {aOriginal && (
+                        // Le texte original est placé EN TÊTE (avant la traduction). Sa cale à
+                        // gauche reproduit EXACTEMENT la colonne du favori (retrait 20px + étoile
+                        // de 16px de large) pour aligner « Texte… » sur « Traduction… ».
+                        <div className="bib-ligne" style={{ marginTop: '1px', alignItems: 'center' }}>
+                          <div aria-hidden style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '20px' }}>
+                            <span style={{ display: 'block', width: '16px', height: '12px' }} />
+                          </div>
+                          <Link href={`/oeuvre/${o.id_oeuvre}?mt=la`}
+                            style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
+                            <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
+                              <span style={{ fontSize: '0.71875rem', color: '#4a4038', fontWeight: 500 }}>Texte original {langueOrig}</span>
+                              {o.titre_original && <span style={{ fontSize: '0.625rem', color: '#a59c90', fontStyle: 'italic' }}>{o.titre_original}</span>}
+                            </span>
+                            <span className="bib-lire">
+                              Lire
+                              <svg className="bib-fleche" width="17" height="9" viewBox="0 0 18 9" fill="none" aria-hidden="true"><path d="M0.5 4.5h15.5M12 1l4 3.5-4 3.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            </span>
+                          </Link>
+                        </div>
+                      )}
+                      <div className="bib-ligne" style={{ marginTop: '1px', alignItems: 'center' }}>
                         {/* Favori en tête de ligne, en guise de puce, à gauche de la traduction. */}
                         <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '20px' }}>
                           <EtoileFavori actif={favorisOeuvres.has(o.id_oeuvre)} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={12} />
@@ -249,6 +312,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           </span>
                         </Link>
                       </div>
+                      </React.Fragment>
                     )
                   })}
                 </div>
@@ -298,9 +362,9 @@ function Chip({ actif, onClick, children, theme = 'genre' }: { actif: boolean; o
 
 function LigneFiltres({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-      <span style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#c0b8ae', minWidth: '54px', textAlign: 'right', flexShrink: 0 }}>{label}</span>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>{children}</div>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '7px' }}>
+      <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.2em', textIndent: '0.2em', textTransform: 'uppercase', color: '#a2988b', textAlign: 'center' }}>{label}</span>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', justifyContent: 'center' }}>{children}</div>
     </div>
   )
 }
@@ -407,7 +471,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
         </div>
 
         {/* Infos auteur + bouton */}
-        <div style={{ flex: 1, padding: '9px 16px 8px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '5px' }}>
+        <div style={{ flex: 1, padding: '9px 16px 8px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1px' }}>
           <h2 style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.8125rem', fontWeight: 600, color: '#4a4030', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
             {nomAuteur}
           </h2>
@@ -474,7 +538,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                     })}
                   </div>
                   {/* Vérification des données */}
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: couleur }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '1px', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: couleur }}>
                     <span style={{ fontSize: '0.5625rem' }}>{icone}</span>
                     {libelle}
                   </span>
@@ -1236,12 +1300,13 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
 // ── Page principale ────────────────────────────────────────────────────────────
 type Onglet = 'bibliotheque' | 'favoris' | 'catalogue' | 'proposer'
 
-function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvre, onOuvrirAuteur }: {
+function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvre, onOuvrirAuteur, originaux }: {
   auteurs: Auteur[]
   favorisOeuvres: Set<string>
   favorisPret: boolean
   toggleFavoriOeuvre: (id: string) => void
   onOuvrirAuteur: (id: string) => void
+  originaux?: Set<string>
 }) {
   const oeuvresFavorites = useMemo(() => {
     const lignes: { oeuvre: Oeuvre; auteur: Auteur }[] = []
@@ -1293,7 +1358,7 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
           sans photo ni notice, ouvertes par défaut, ne listant que les œuvres favorites. */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {auteursFavoris.map(a => (
-          <PanneauAuteur key={a.id_auteur} auteur={a} recherche="" favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={onOuvrirAuteur} ouvertParDefaut compact />
+          <PanneauAuteur key={a.id_auteur} auteur={a} recherche="" favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={onOuvrirAuteur} originaux={originaux} ouvertParDefaut compact />
         ))}
       </div>
     </div>
@@ -1302,7 +1367,7 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SELECT_AUTEURS = `id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, langue_principale, traditions, note, note_biographique, note_theologique, photo_position,
-  oeuvres ( id_oeuvre, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication, genre, note )`
+  oeuvres ( id_oeuvre, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication, genre, note, langue_originale )`
 const imageVersionAuteur = () => Math.floor(Date.now() / 1000)
 const urlImageAuteur = (idAuteur: string, version = imageVersionAuteur()) =>
   `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg?v=${version}`
@@ -1321,6 +1386,15 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
   const [auteurs, setAuteurs] = useState<Auteur[]>(auteursInitiaux)
   const [onglet, setOnglet] = useState<Onglet>('bibliotheque')
   const { favoris: favorisOeuvres, pret: favorisPret, toggle: toggleFavoriOeuvre } = useFavoris('oeuvre')
+
+  // Œuvres qui disposent d'un texte original parallèle (latin/grec), lisible dans la
+  // page de l'œuvre. Sert à proposer le texte original dans la liste des œuvres.
+  const [originaux, setOriginaux] = useState<Set<string>>(new Set())
+  useEffect(() => {
+    supabase.from('v_oeuvres_texte_original').select('id_oeuvre').then(({ data }) => {
+      if (data) setOriginaux(new Set((data as { id_oeuvre: string }[]).map(r => r.id_oeuvre)))
+    })
+  }, [])
 
   useEffect(() => {
     const version = imageVersionAuteur()
@@ -1436,7 +1510,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
 
             {/* Panneau de filtres à facettes (période · langue · tradition). */}
             {filtresOuverts && (
-              <div style={{ maxWidth: '40rem', margin: '0 auto 18px', padding: '14px 16px', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ maxWidth: '52rem', margin: '0 auto 18px', padding: '16px 20px', background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <LigneFiltres label="Période">
                   {PERIODES.map((p, i) => (
                     <Chip key={i} theme="periode" actif={periodesActives.has(i)} onClick={() => basculer(setPeriodesActives, i)}>{p.jsx}</Chip>
@@ -1457,7 +1531,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
                   </LigneFiltres>
                 )}
                 {nbFiltres > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '2px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-start', paddingTop: '2px' }}>
                     <button onClick={() => { setPeriodesActives(new Set()); setLanguesActives(new Set()); setTraditionsActives(new Set()) }}
                       style={{ fontSize: '0.65625rem', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                       Effacer les filtres
@@ -1474,7 +1548,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {auteursFiltres.map(auteur => (
-                  <PanneauAuteur key={auteur.id_auteur} auteur={auteur} recherche={recherche} favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={setAuteurModal} />
+                  <PanneauAuteur key={auteur.id_auteur} auteur={auteur} recherche={recherche} favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={setAuteurModal} originaux={originaux} />
                 ))}
               </div>
             )}
@@ -1489,6 +1563,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
             favorisPret={favorisPret}
             toggleFavoriOeuvre={toggleFavoriOeuvre}
             onOuvrirAuteur={setAuteurModal}
+            originaux={originaux}
           />
         )}
 

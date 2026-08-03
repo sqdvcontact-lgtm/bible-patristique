@@ -24,14 +24,10 @@ Font.register({
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
-const MARGE_H   = 78   // marges latérales égales ≈ 2,75 cm
+const MARGE_H   = 95   // marges latérales égales ≈ 3,35 cm (plus larges)
 const MARGE_TOP = 72   // ≈ 2,54 cm
 const MARGE_BOT = 56   // ≈ 2 cm contenu + 24pt footer
 
-// Retrait première ligne : injecté en tête du premier nœud texte du paragraphe.
-// String TypeScript – le compilateur interprète   en espace insécable (non étirable).
-// 4 × U+00A0 à 11,5 pt Source Serif 4 ≈ 4,1 mm.
-const ALINEA = '    '
 
 const SEP_PARA = 8.5   // ≈ 3 mm entre paragraphes de même style
 
@@ -82,9 +78,26 @@ const s = StyleSheet.create({
     borderBottomWidth: 0.5, borderBottomColor: '#ddd', borderBottomStyle: 'solid',
     marginBottom: 18,
   },
+  // Ornement supérieur (filet · filet) — le fleuron ❧ n'existe pas dans les polices
+  // embarquées ; on compose la marque avec des filets et un point médian.
+  ornement: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: 130, marginBottom: 30 },
+  ornementRule: { flex: 1, height: 0.6, backgroundColor: '#cabf9f' },
+  ornementDot: { fontFamily: 'Source Serif 4', fontSize: '0.75rem', color: '#a08c58', marginLeft: 9, marginRight: 9, lineHeight: 1 },
+  // Mention de propriété — discrète, dans le style de l'auteur.
+  mention: {
+    fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '0.53125rem', color: '#8a8268',
+    textAlign: 'center', marginTop: 44, maxWidth: '17rem', lineHeight: 1.62,
+  },
+  // Marque d'imprimeur en pied de page de titre.
+  marque: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: 165, marginTop: 16 },
+  marqueRule: { flex: 1, height: 0.5, backgroundColor: '#cabf9f' },
+  marqueTexte: {
+    fontFamily: 'Source Sans 3', fontSize: '0.46875rem', letterSpacing: 2.4,
+    textTransform: 'uppercase', color: '#a08c58', marginLeft: 10, marginRight: 10,
+  },
 
   // ── Corps ──
-  p:      { marginBottom: SEP_PARA, textAlign: 'justify' },
+  p:      { marginBottom: SEP_PARA, textAlign: 'justify', textIndent: 14 },   // alinéa visible (~0,5 cm)
   pFirst: { marginBottom: SEP_PARA, textAlign: 'justify' },
   h1: {
     fontFamily: 'Source Serif 4', fontWeight: 700, fontSize: '0.8125rem', color: '#1e2e24',
@@ -92,11 +105,12 @@ const s = StyleSheet.create({
   },
   h2: {
     fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '0.75rem', color: '#2a3d30',
-    marginTop: 14, marginBottom: 4,
+    marginTop: 14, marginBottom: 4, marginLeft: 11.3,   // retrait de ligne du titre 2 (≈ 0,4 cm)
   },
+  // Citation sortie : bloc en retrait, justifié, PAS en italique.
   bq: {
-    fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '0.6875rem', color: C.beige,
-    marginLeft: 28, marginTop: 6, marginBottom: SEP_PARA, lineHeight: 1.41,
+    fontFamily: 'Source Serif 4', fontSize: '0.6875rem', color: C.beige, textAlign: 'justify',
+    marginLeft: 28, marginRight: 14, marginTop: 6, marginBottom: SEP_PARA, lineHeight: 1.41,
   },
   notes: {
     marginTop: 32, paddingTop: 10,
@@ -200,10 +214,12 @@ function renderNodes(nodes: InlineNode[]): React.ReactNode[] {
     // Le gras, l'italique et le texte courant peuvent contenir un siècle ; les
     // petites capitales et les appels de note, non — l'un est déjà une casse
     // choisie par l'auteur, l'autre un numéro.
-    if (n.t === 'bold')      return <Text key={i} style={{ fontFamily: 'Source Sans 3', fontWeight: 700 }}>{avecSiecles(n.v, `b${i}`)}</Text>
+    if (n.t === 'bold')      return <Text key={i} style={{ fontFamily: 'Source Serif 4', fontWeight: 700 }}>{avecSiecles(n.v, `b${i}`)}</Text>
     if (n.t === 'italic')    return <Text key={i} style={{ fontFamily: 'Source Serif 4', fontStyle: 'italic' }}>{avecSiecles(n.v, `i${i}`)}</Text>
     if (n.t === 'smallcaps') return <Text key={i} style={{ fontSize: '0.5625rem', letterSpacing: 1.2 }}>{n.v.toUpperCase()}</Text>
-    if (n.t === 'sup')       return <Text key={i} style={{ fontSize: '0.46875rem', color: C.vert }}>{' [' + n.v + ']'}</Text>
+    // Appel de note (et exposant) : en exposant, sans crochets, dans la couleur du
+    // texte (pas de vert), à une taille discrète (~0,7× le corps).
+    if (n.t === 'sup')       return <Text key={i} style={{ fontSize: '0.5rem', color: C.beige, verticalAlign: 'super' }}>{n.v}</Text>
     if (n.t === 'link')      return <Link key={i} src={n.href!} style={{ color: C.vert }}>{typographier(n.v)}</Link>
     return avecSiecles(n.v, `t${i}`)
   })
@@ -257,20 +273,29 @@ function EssaiDocument({ titre, sousTitre, auteur, date, verset, contenu }: Prop
     <Document>
       <Page size="A4" style={s.page}>
 
-        {/* ── En-tête ── */}
+        {/* ── Page de titre (composée à la manière de la page auteur du site) ── */}
         <View style={s.entete}>
-          <Text style={s.tagCorpus}>Corpus Scriptura</Text>
           {auteur && <Text style={s.auteur}>{auteur}</Text>}
           <Text style={s.titreCouv}>{avecSiecles(titre, 'tit')}</Text>
           {sousTitre && <Text style={s.sousTitreCouv}>{avecSiecles(sousTitre, 'sst')}</Text>}
           <View style={s.filet} />
-          <Text style={s.date}>{date}</Text>
           {verset && (
             <View style={{ alignItems: 'center' }}>
               <Text style={s.versetTexte}>{'« '}{texteSansEnrichissement(verset.texte)}{' »'}</Text>
               <Text style={s.versetRef}>{verset.ref}</Text>
             </View>
           )}
+          {/* Mention de propriété, sur des lignes séparées pour l'harmonie. */}
+          <Text style={s.mention}>{typographier('Ce document demeure la propriété de son auteur.')}</Text>
+          <Text style={[s.mention, { marginTop: 0 }]}>{typographier('Il a été composé, librement et sans frais,')}</Text>
+          <Text style={[s.mention, { marginTop: 0 }]}>{typographier('sur Corpus Scriptura.')}</Text>
+          {/* Marque d'imprimeur, puis la date de publication en dessous. */}
+          <View style={s.marque}>
+            <View style={s.marqueRule} />
+            <Text style={s.marqueTexte}>Corpus Scriptura</Text>
+            <View style={s.marqueRule} />
+          </View>
+          <Text style={[s.date, { marginTop: 10 }]}>{date}</Text>
         </View>
 
         <View style={s.ruleEntete} />
@@ -297,7 +322,6 @@ function EssaiDocument({ titre, sousTitre, auteur, date, verset, contenu }: Prop
           })
           return (
             <Text key={i} style={avecAlinea ? s.p : s.pFirst}>
-              {avecAlinea && ALINEA}
               {renderNodes(noeuds)}
             </Text>
           )
@@ -308,7 +332,7 @@ function EssaiDocument({ titre, sousTitre, auteur, date, verset, contenu }: Prop
           <View style={s.notes}>
             <Text style={s.noteTitre}>Notes</Text>
             {notes.map((n, i) => (
-              <Text key={i} style={s.noteItem}>{`[${i + 1}] `}{renderNodes(parseInline(n, []))}</Text>
+              <Text key={i} style={s.noteItem}><Text style={{ verticalAlign: 'super', fontSize: '0.46875rem', color: C.beige }}>{i + 1}</Text>{' '}{renderNodes(parseInline(n, []))}</Text>
             ))}
           </View>
         )}
@@ -316,8 +340,15 @@ function EssaiDocument({ titre, sousTitre, auteur, date, verset, contenu }: Prop
         {/* ── Pagination ── */}
         <Text
           fixed
-          render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
+          render={({ pageNumber }) => `${pageNumber}`}
           style={{ position: 'absolute', bottom: 20, left: 0, right: 0, textAlign: 'center', fontFamily: 'Source Serif 4', fontSize: '0.5625rem', color: '#888' }}
+        />
+
+        {/* Titre courant : sur les pages qui suivent la page de titre. */}
+        <Text
+          fixed
+          render={({ pageNumber }) => pageNumber > 1 ? typographier(`${auteur ? auteur + ' — ' : ''}${titre}`) : ''}
+          style={{ position: 'absolute', top: 22, left: MARGE_H, right: MARGE_H, textAlign: 'center', fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '0.5625rem', letterSpacing: 0.5, color: '#a99a86' }}
         />
 
       </Page>

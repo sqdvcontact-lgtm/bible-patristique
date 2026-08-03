@@ -28,6 +28,7 @@ const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?:
 ];
 const LIENS_SECONDAIRES: { href: string; label: string }[] = [
   { href: "/histoire", label: "Histoire de l’Église" },
+  { href: "/manuscrits/bible-899", label: "Bible 899" },
 ];
 
 // Couleurs de domaine pour la recherche rapide : chaque catégorie de résultats est
@@ -101,6 +102,7 @@ function OngletAllerPlusLoin({ label, style }: { label: string; style: React.CSS
       <div className="cs-plus-menu">
         <Link href="/traductions" className="cs-plus-lien">Traductions bibliques</Link>
         <Link href="/histoire" className="cs-plus-lien">Histoire de l&rsquo;&Eacute;glise</Link>
+        <Link href="/manuscrits/bible-899" className="cs-plus-lien">Bible 899</Link>
       </div>
     </span>
   );

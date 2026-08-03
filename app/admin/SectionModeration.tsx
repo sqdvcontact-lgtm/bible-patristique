@@ -224,6 +224,7 @@ export default function SectionModeration(props: Props) {
                 <div className="mod-actions">
                   {estCertif ? (
                     <>
+                      <button className="mod-btn rouge" disabled={busy} onClick={() => lancer(item.key, () => actionSupprimerCommentaire(item.c.id))}>Refuser et supprimer</button>
                       <button className="mod-btn" disabled={busy} onClick={() => lancer(item.key, () => actionRetirerDemandeCertification(item.c.id))}>Accepter sans certifier</button>
                       <button className="mod-btn violet" disabled={busy} onClick={() => lancer(item.key, () => actionCertifier(item.c.id))}>Accorder la certification</button>
                     </>

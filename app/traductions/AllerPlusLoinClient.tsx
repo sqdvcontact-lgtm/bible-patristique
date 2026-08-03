@@ -319,8 +319,10 @@ function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }
    Onglet « Acheter des livres »
    ════════════════════════════════════════════════════════════════════════ */
 
+type Librairie = { nom: string; description: string; url: string; couleur: string; sep: string; logo?: string; monogramme?: string }
+
 function OngletAcheter() {
-  const librairies = [
+  const librairies: Librairie[] = [
     {
       nom: 'La Procure',
       description: 'Éditions contemporaines, annotées ou liturgiques — livres neufs.',
@@ -344,6 +346,22 @@ function OngletAcheter() {
       logo: '/icons/librairies/sources-chretiennes-chrisme.png',
       couleur: '#8b1720',
       sep: 'rgba(151,30,37,0.36)',
+    },
+    {
+      nom: 'Corpus Christianorum',
+      description: 'Les éditions critiques de référence des auteurs chrétiens, de l’Antiquité au Moyen Âge (Brepols).',
+      url: 'https://www.brepols.net/series/CC',
+      monogramme: 'CC',
+      couleur: '#1f5a5a',
+      sep: 'rgba(31,90,90,0.34)',
+    },
+    {
+      nom: 'Bibliothèque Augustinienne',
+      description: 'Les œuvres de saint Augustin en bilingue latin-français, introduites et annotées.',
+      url: 'https://www.brepols.net/series/ba',
+      monogramme: 'BA',
+      couleur: '#5d3a6e',
+      sep: 'rgba(93,58,110,0.34)',
     },
   ]
   return (
@@ -427,7 +445,13 @@ function OngletAcheter() {
         <a key={lib.nom} href={lib.url} target="_blank" rel="noopener noreferrer" className="lib-row">
           <div className="lib-contenu">
             <div className="lib-logo-zone">
-              <img src={lib.logo} alt="" aria-hidden style={{ width: '52px', height: 'auto', maxHeight: '48px', objectFit: 'contain' }} />
+              {lib.logo ? (
+                <img src={lib.logo} alt="" aria-hidden style={{ width: '52px', height: 'auto', maxHeight: '48px', objectFit: 'contain' }} />
+              ) : (
+                /* Repli typographique quand la collection n'a pas de logo : un monogramme
+                   sobre en serif, dans la couleur de la collection. */
+                <span aria-hidden style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', fontWeight: 'normal', letterSpacing: '0.04em', color: lib.couleur, opacity: 0.9 }}>{lib.monogramme}</span>
+              )}
             </div>
             <div className="lib-sep" style={{ background: lib.sep }} />
             <div style={{ flex: 1, minWidth: 0 }}>

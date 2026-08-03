@@ -263,6 +263,16 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     declencherChangement()
   }
 
+  // Guillemets : on entoure la sélection (ou insère la paire). Français « … » avec
+  // espaces fines insécables, anglais “ … ” pour une citation de second niveau.
+  const entourerGuillemets = (avant: string, apres: string) => {
+    restaurerSelection()
+    const sel = window.getSelection()
+    const texte = sel && sel.rangeCount ? sel.toString() : ''
+    document.execCommand('insertText', false, `${avant}${texte}${apres}`)
+    declencherChangement()
+  }
+
   const ajouterNote = () => {
     const texte = window.prompt('Texte de la note :\nVous pouvez y écrire un renvoi sous la forme [libellé](verset:ID) ou [libellé](segment:ID).')
     if (!texte) return
@@ -503,16 +513,14 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         .editeur-essai h3,
         .editeur-essai p,
         .editeur-essai blockquote { margin: 0; }
+        /* Présentation calquée EXACTEMENT sur la page de lecture (.essai-lecture-corps) :
+           sérif, interligne 1,5, paragraphes justifiés avec alinéa. */
         .editeur-essai p,
-        .editeur-essai blockquote { font-family: var(--font-source-sans), Arial, sans-serif; }
-        .editeur-essai h2 { font-family: var(--font-source-serif), Georgia, serif; font-weight: 700; font-size: 1.07em; color: #1e2e24; }
-        .editeur-essai h3 { font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-weight: 400; font-size: 1em; color: #2a3d30; }
-        .editeur-essai blockquote { font-style: normal; font-size: 0.93em; color: #3a3530; margin-left: 8mm; text-align: justify; }
-        .editeur-essai p,
-        .editeur-essai blockquote { line-height: 1.5; word-spacing: -0.09em; letter-spacing: -0.006em; }
-        /* Citations resserrées : interligne réduit et bloc condensé (ne touche pas
-           aux paragraphes). */
-        .editeur-essai blockquote { line-height: 1.3; font-size: 0.9em; margin-top: 0.32em; margin-bottom: 0.5em; }
+        .editeur-essai blockquote { font-family: var(--font-source-serif), Georgia, serif; }
+        .editeur-essai h2 { font-family: var(--font-source-serif), Georgia, serif; font-weight: 600; font-size: 1.06em; line-height: 1.25; color: #1e2e24; }
+        .editeur-essai h3 { font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-weight: 400; font-size: 1em; color: #3a3530; }
+        .editeur-essai p { line-height: 1.5; text-align: justify; text-indent: 0.9em; }
+        .editeur-essai blockquote { font-style: normal; font-size: 0.9em; color: #4a4440; margin-left: 8mm; margin-right: 8mm; text-align: justify; line-height: 1.44; }
         .editeur-essai h2 + h3,
         .editeur-essai h2 + h2 { margin-top: 3mm; }
         .editeur-essai h2 + p,
@@ -659,6 +667,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 <button onMouseDown={e => e.preventDefault()} onClick={() => commande('superscript')} style={BTN} title="Exposant">Exposant</button>
                 <button onMouseDown={e => e.preventDefault()} onClick={appliquerPetitesCaps} style={{ ...BTN, fontVariant: 'small-caps' }}>Petites caps</button>
                 <button onMouseDown={e => e.preventDefault()} onClick={insererEspaceInsecable} style={BTN}>Espace insécable</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => entourerGuillemets('« ', ' »')} style={BTN} title="Guillemets français « … »">« »</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => entourerGuillemets('“', '”')} style={BTN} title="Guillemets anglais “ … ” (citation de second niveau)">“ ”</button>
                 <div style={{ height: '1px', background: '#e4dfd8', margin: '4px 0' }} />
                 <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H2')} style={{ ...BTN, background: blocActif === 'h2' ? '#3d6b4f' : '#fff', color: blocActif === 'h2' ? '#fff' : '#2a2520' }}>Titre 1</button>
                 <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H3')} style={{ ...BTN, background: blocActif === 'h3' ? '#3d6b4f' : '#fff', color: blocActif === 'h3' ? '#fff' : '#2a2520' }}>Titre 2</button>

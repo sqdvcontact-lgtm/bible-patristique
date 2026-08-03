@@ -1,0 +1,264 @@
+{
+  "oeuvre": "A0010O0023",
+  "bornes": [
+    2973,
+    2995
+  ],
+  "empreinte": "1c178296dc7c8ef57c63240c47a1978a2fce0ab088525d32f61cd4a105af7a7f",
+  "segments": [
+    {
+      "id": 550696,
+      "segment_numero": 2973,
+      "segment_texte": "On cherche avec raison comment il a pu se faire que « le roi Eglon étant extrêmement grêle, sa graisse recouvrit sa blessure » après qu’il eut reçu le coup mortel.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXI",
+      "ref_niv2_texte": "Antiphrase.\nJuges 3, 17",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550697,
+      "segment_numero": 2974,
+      "segment_texte": "Mais il faut voir ici une antiphrase, manière de parler qui signifie le contraire de ce qu’elle énonce : c’est ainsi qu’on appelle <i>lucus</i>, le <i>bois sacré</i>, où il n’y a pas de <i>lumière</i>, <i>lux</i>, et qu’on exprime le <i>défaut</i> par le terme d<i>’abondance</i>; c’est ainsi encore qu’au livre des Rois il est écrit de Nabuth qu’il bénit le roi, pour marquer qu’il le maudit [[817]].",
+      "notes": "[[817]] 1Ro. XXI. 10,13.",
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXI",
+      "ref_niv2_texte": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550698,
+      "segment_numero": 2975,
+      "segment_texte": "Toutefois nous lisons dans la Vulgate, traduite non sur les Septante mais sur l’hébreu : « Or, Eglon était d’un excessif embonpoint. »",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXI",
+      "ref_niv2_texte": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550699,
+      "segment_numero": 2976,
+      "segment_texte": "« Et Aod sortit dehors et terrassa les gardes, et il ferma les portes de la chambre haute sur soi, et il ferma solidement. » Ces dernières paroles qui avaient d’abord été omises doivent se rattacher à ce qui a été dit précédemment. Car les portes furent d’abord fermées, et seulement alors, Aod descendit et traversa les gardes.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXII",
+      "ref_niv2_texte": "Encore une interversion.\nJuges 3, 23",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550700,
+      "segment_numero": 2977,
+      "segment_texte": "On pourra se demander comment les serviteurs du roi Eglon ont pu ouvrir avec une clef la porte qu’Aod n’avait point fermée à la clef ; ou s’il avait fermé à la clef, comment n’avait-il pas emporté cette clef, afin d’empêcher qu’on ouvrît ? On prit une autre clef, ou bien les portes en question pouvaient se fermer, mais non s’ouvrir sans clefs.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXIII",
+      "ref_niv2_texte": "Comment put-on ouvrir avec une clef une porte qui n’avait pas été fermée à la clef.\nJuges 3, 25",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550701,
+      "segment_numero": 2978,
+      "segment_texte": "Il y a des appartements qui ferment de cette manière, ceux par exemple qui ont des verrous.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXIII",
+      "ref_niv2_texte": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550702,
+      "segment_numero": 2979,
+      "segment_texte": "Sous la judicature d’Aod, Israël jouit de la paix dans la terre promise l’espace de quatre-vingts ans, ce qui est le double de la durée de cette paix fameuse du peuple romain sous le roi Numa Pompilius.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXIV",
+      "ref_niv2_texte": "Très longue paix.\nJuges 3, 30",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550703,
+      "segment_numero": 2980,
+      "segment_texte": "« Et après lui parut Samgar fils d’Aneath, et il tua aux étrangers six cents hommes, sans compter les jeunes bœufs, et il sauva Israël. » On peut demander comment après Aod, Samgar a combattu pour Israël, et comment il l’a délivré, car Israël n’avait pas été réduit de nouveau en captivité, ni soumis à la servitude.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXV",
+      "ref_niv2_texte": "Sur la victoire de Samgar.\nJuges 3, 31",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550704,
+      "segment_numero": 2981,
+      "segment_texte": "Comprenons que cette parole : « il sauva » rappelle non que l’ennemi fit du tort, mais qu’il ne lui fut pas permis d’en faire : il faut croire qu’il essaya de la guerre, mais qu’il fut repoussé par les armes victorieuses du nouveau Juge. Pourquoi ajouter : « <i>sans compter les jeunes bœufs</i>? »",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXV",
+      "ref_niv2_texte": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550705,
+      "segment_numero": 2982,
+      "segment_texte": "c’est obscur. Peut-être Samgar en combattant fit-il un carnage des bœufs ; et pour cette raison l’Écriture dirait qu’il a tué six cents hommes, sans compter les bœufs mis à mort. Mais pourquoi dire : de <i>jeunes</i> bœufs ? Serait-ce que dans la langue grecque l’usage est de donner le nom de veaux à des bœufs déjà forts ?",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXV",
+      "ref_niv2_texte": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550706,
+      "segment_numero": 2983,
+      "segment_texte": "Il paraît que, en Égypte, cette locution est usitée, de même que chez nous on appelle poussins, les poules de tout âge. La version faite sur l’Hébreu ne porte pas celles-ci : « sans compter les jeunes bœufs » comme la version faite sur les Septante : mais en revanche, cette version faite sur l’hébreu porte celles-ci que n’a point la nôtre : « six-cents hommes tués, <i>avec un soc de charrue</i>. »",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXV",
+      "ref_niv2_texte": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550707,
+      "segment_numero": 2984,
+      "segment_texte": "Quel est le sens de cette réponse de Barac à Débora : « Si tu vas, j’irai ; si tu ne viens pas avec moi, je n’irai point, car j’ignore en quel jour le Seigneur favorise son ange avec moi ? » Barac ne pouvait-il pas connaître par la prophétesse ce jour favorable ? Mais celle-ci ne le lui révèle pas elle marche avec lui.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXVI",
+      "ref_niv2_texte": "Sur le secours des anges.\nJuges 4, 8",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550708,
+      "segment_numero": 2985,
+      "segment_texte": "Puis, quel est le sens de ces paroles : « Le Seigneur favorise son ange avec moi ? » Ceci montre-t-il que les anges eux-mêmes ne réussissent dans leurs entreprises que par l’appui du Seigneur ? Est-ce seulement une manière de parler ; et ces mots : « Le Seigneur favorise son ange avec moi » signifieraient-ils : Le Seigneur me donne le succès par le ministère de son ange ?",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXVI",
+      "ref_niv2_texte": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550709,
+      "segment_numero": 2986,
+      "segment_texte": "« Et le Seigneur épouvanta Sisara et tous ses chariots. » C’est ainsi que l’Écriture nous montre Dieu agissant sur les cœurs, et donnant aux événements l’issue qu’il a déterminée. Il épouvante, il stupéfie Sisara, c’est indubitablement pour le livrer.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXVII",
+      "ref_niv2_texte": "Dieu dirige les événements, en agissant sur les cœurs.\nJuges 4, 15",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550710,
+      "segment_numero": 2987,
+      "segment_texte": "Jahel, cette femme qui mit à mort Sisara, ayant parlé à Barac qui cherchait Sisara, l’Écriture dit que Barac « entra auprès d’elle. » Sur cela il faut observer que quand l’Écriture dit d’un homme qu’il entra auprès d’une femme, la conséquence à tirer n’est pas qu’il ait eu commerce avec elle.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXVIII",
+      "ref_niv2_texte": "Sens de ces mots : Il entra auprès d’elle.\nJuges 4, 22",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550711,
+      "segment_numero": 2988,
+      "segment_texte": "À la vérité ces expressions : « il entra auprès d’elle » n’expriment pas ordinairement autre chose ; mais ici ces paroles doivent être prises dans leur sens naturel : « il entra auprès d’elle » c’est-à-dire il entra dans sa maison. Elles ne signifient pas le commerce charnel.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXVIII",
+      "ref_niv2_texte": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550712,
+      "segment_numero": 2989,
+      "segment_texte": "Dans le cantique de Débora il est dit : « Les habitants en Israël défaillirent, ils défaillirent jusqu’à ce que surgit Débora, jusqu’à ce que surgit une mère en Israël, ils choisirent de nouveaux dieux, comme on prend un pain d’orge : alors ils s’emparèrent des villes des princes. »",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXIX",
+      "ref_niv2_texte": "Phrase rendue obscure par une inversion.\nJuges 5, 7, 8",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550713,
+      "segment_numero": 2990,
+      "segment_texte": "Dans ce passage l’ordre des paroles interverti crée de l’obscurité, et soulève une question : Comment comprendre qu’ils « choisirent de nouveaux dieux comme on prend un pain d’orge » et qu’alors ils « s’emparèrent des villes des princes ? »",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXIX",
+      "ref_niv2_texte": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550714,
+      "segment_numero": 2991,
+      "segment_texte": "comme si Dieu les avait favorisés pour prendre ces villes, quand ils choisissaient de nouveaux dieux, préférant un pain d’orge au pain de froment ? Mais nous avons appris dans d’autres passages de l’Écriture comment il y a fréquemment des inversions. Si d’après cette donnée, on rétablit l’ordre dans les termes, le sens devient clair.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXIX",
+      "ref_niv2_texte": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550715,
+      "segment_numero": 2992,
+      "segment_texte": "Voici donc l’ordre véritable : « Les habitants en Israël défaillirent, ils défaillirent et se choisirent de nouveaux dieux, comme on prend un pain d’orge, jusqu’à ce que surgit Débôra, jusqu’à ce que surgit une mère en Israël ; alors ils s’emparèrent des villes des princes. »",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXIX",
+      "ref_niv2_texte": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550716,
+      "segment_numero": 2993,
+      "segment_texte": "On peut demander comment il est dit qu’ils « choisirent de nouveaux dieux comme un pain d’orge. » Comparé au pain de froment, le pain d’orge doit être, à la vérité, laissé de côté : cependant il nourrit, c’est un aliment qui entretient la vie, tandis que les dieux nouveaux dont firent choix ceux qui s’éloignèrent du Dieu vivant, ces dieux ne purent fournir d’aliment à l’âme, mais furent plutôt un poison.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXX",
+      "ref_niv2_texte": "Sur la comparaison des faux dieux au pain d’orge.\nJuges 5, 8",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550717,
+      "segment_numero": 2994,
+      "segment_texte": "Peut-être cette comparaison ne doit-elle être prise que sous un seul point de vue, et n’a-t-elle d’autre but que d’exprimer cette pensée : de même que le dégoût a ordinairement pour effet de porter à rejeter ce qu’il faudrait choisir et à trouver du plaisir dans ce qu’il faudrait repousser ; ainsi par le vice de leur volonté dépravée, atteinte de langueur, et dégoûtée du vrai Dieu, qui était leur Dieu, ils cherchèrent dans les faux dieux la nouveauté seule, après avoir méprisé la vérité ; ils prirent de la sorte un aliment mortel comme si c’eût été un pain d’orge, sans penser qu’ils s’empoisonnaient, mais croyant puiser la vie dans une nourriture saine quoique plus grossière.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXX",
+      "ref_niv2_texte": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 550718,
+      "segment_numero": 2995,
+      "segment_texte": "La comparaison serait donc basée sur l’opinion des Israélites infidèles et leurs dispositions de langueur spirituelle, et non sur la vérité ; car ces dieux nouveaux ne peuvent aucunement être comparés à des aliments qui vivifient.",
+      "notes": null,
+      "ref_niv1": "Livre septième",
+      "ref_niv2": "Question XXX",
+      "ref_niv2_texte": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    }
+  ],
+  "liens_existants": []
+}

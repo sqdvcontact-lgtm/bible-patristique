@@ -8,14 +8,14 @@
 // l'OCR Wikisource (versets/abréviations de notes à revérifier au scan).
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, FootnoteReferenceRun } from "docx";
 import { readFileSync, writeFileSync } from "fs";
+import { enRomain, versEntier } from "./romains.mjs";
 
-const ROM = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV", "XXVI", "XXVII", "XXVIII", "XXIX", "XXX"];
 const ORD = ["", "première", "deuxième", "troisième", "quatrième", "cinquième", "sixième", "septième", "huitième", "neuvième", "dixième", "onzième", "douzième", "treizième", "quatorzième", "quinzième", "seizième", "dix-septième", "dix-huitième", "dix-neuvième", "vingtième", "vingt-et-unième", "vingt-deuxième", "vingt-troisième", "vingt-quatrième", "vingt-cinquième", "vingt-sixième", "vingt-septième", "vingt-huitième", "vingt-neuvième", "trentième"];
-const romVal = (r) => ROM.indexOf(r);
+const romVal = versEntier;
 
 // Restaure le chapitre (1er nombre) d'une réf en romain ; versets inchangés.
 function refRomain(ref) {
-  return ref.replace(/^(\s*(?:[A-ZÉa-zéÎ0-9]+\.?)\s+)(\d+)/, (m, pre, ch) => pre + (ROM[+ch] || ch));
+  return ref.replace(/^(\s*(?:[A-ZÉa-zéÎ0-9]+\.?)\s+)(\d+)/, (m, pre, ch) => pre + (enRomain(ch) || ch));
 }
 
 // ── Corrections OCR vérifiées au scan (pages 383-387) ────────────────────
@@ -143,13 +143,21 @@ const CORR = [
   ["Jésus-Christ ; cal – il est dit de lui", "Jésus-Christ ; car il est dit de lui"],
   ["Lorsque Joseph envoie les premiers de l’Égypte", "Lersque ⟦sic⟧ Joseph envoie les premiers de l’Égypte"],
   ["fils de Manassé, furent élevés sur les genoux", "fils de Manasse, furent élevés sur les genoux"],
+  // Correctifs Wikisource : conserver la leçon réellement imprimée et la
+  // signaler, au lieu d’importer silencieusement la correction moderne.
+  ["{{corr|Sara|Agar}}", "Sara ⟦sic⟧"],
+  ["{{corr|par fois|parfois}}", "par fois ⟦sic⟧"],
 ];
 // Numéros que l'édition imprime fautivement (VÉRIFIÉ au fac-similé p409 :
 // « CXXI » pour CXXXI à Gen. XL, 16 ; « CXXX » pour CXXXIII à Gen. XLI, 30).
 // [sic] apposé au titre, hors des délimiteurs ''' ''' (sinon casse le découpage).
 // Discriminé par (libellé + réf) pour ne pas toucher les VRAIS 121 / 130.
 const LABEL_SIC = [["CXXI", "(Ib. 40, 16"], ["CXXX", "(Ib. 41, 30"]];
-const NORM = [[/ non seulement /g, " non-seulement "]];
+const NORM = [
+  [/ non seulement /g, " non-seulement "],
+  // Raccord p398/399 : le changement de page coupe un mot composé.
+  [/connut- elle/g, "connut-elle"],
+];
 
 // Q XXV (p386-387) : l'OCR confond « Charran » (la ville) et « Chanaan » (le pays).
 // Dans cette question, tout « Chanaan » vaut « Charran », sauf « terre de Chanaan ».
@@ -187,6 +195,9 @@ for (const [a, b] of CORR) {
   raw = raw.replace(new RegExp(pat, "g"), () => b);
 }
 for (const [re, b] of NORM) raw = raw.replace(re, b);
+// Les gabarits de langue et les sauts HTML ne font pas partie du texte.
+raw = raw.replace(/\{\{lang\|grc\|([\s\S]*?)\}\}/g, "$1");
+raw = raw.replace(/<br\s*\/?>/g, "\n");
 raw = fixCharranXXV(raw);
 
 // ── Découpage : intro + questions ────────────────────────────────────────
@@ -194,7 +205,10 @@ raw = fixCharranXXV(raw);
 raw = raw.replace(/^=QUESTIONS SUR L’HEPTATEUQUE=\s*/m, "");
 raw = raw.replace(/^=LIVRE PREMIER\. QUESTIONS SUR LA GENÈSE\.=\s*/m, "");
 const introMatch = raw.match(/==INTRODUCTION\.==\s*([\s\S]*?)(?='''(?:–\s*)?(?:PREMIÈRE QUESTION|[IVXLCDM]+|\d+)\.?''')/);
-const introText = introMatch ? introMatch[1].trim() : "";
+// Wikisource enveloppe toute l’introduction dans un italique absent du scan.
+// Retirer uniquement cette enveloppe extérieure permet aussi de convertir la
+// note imprimée de la p383, au lieu de la laisser prisonnière du balisage.
+const introText = introMatch ? introMatch[1].trim().replace(/^''([\s\S]*)''$/, "$1") : "";
 const afterIntro = raw.slice(raw.indexOf(introMatch[0]) + introMatch[0].length);
 
 // tokens de question : '''PREMIÈRE QUESTION.''' | '''XX.''' | '''2.''' | '''– 1.'''
@@ -219,10 +233,24 @@ for (let i = 1; i < parts.length; i += 3) {
 // ── Construction des runs (italiques '' '', notes <ref>, ⟦sic⟧) ──────────
 let fnCount = 0;
 const footnotes = {};
+function buildInlineRuns(text) {
+  const runs = [];
+  const re = /''([\s\S]*?)''|⟦sic⟧/g;
+  let last = 0, m;
+  const pushText = (s) => { if (s) runs.push(new TextRun(s.replace(/\n+/g, " ").replace(/\s+/g, " "))); };
+  while ((m = re.exec(text))) {
+    pushText(text.slice(last, m.index));
+    if (m[0] === "⟦sic⟧") runs.push(new TextRun("["), new TextRun({ text: "sic", italics: true }), new TextRun("]"));
+    else runs.push(new TextRun({ text: m[1].replace(/\s+/g, " "), italics: true }));
+    last = re.lastIndex;
+  }
+  pushText(text.slice(last));
+  return runs;
+}
 function buildRuns(text) {
   const runs = [];
   // segmente sur <ref>…</ref>, '' '' et ⟦sic⟧
-  const re = /<ref>([\s\S]*?)<\/ref>|''(.*?)''|⟦sic⟧/g;
+  const re = /<ref>([\s\S]*?)<\/ref>|''([\s\S]*?)''|⟦sic⟧/g;
   let last = 0, m;
   const pushText = (s) => { if (s) runs.push(new TextRun(s.replace(/\n+/g, " ").replace(/\s+/g, " "))); };
   while ((m = re.exec(text))) {
@@ -234,7 +262,7 @@ function buildRuns(text) {
       let nt = m[1].replace(/\[\[[^|\]]*\|([^\]]*)\]\]/g, "$1").replace(/\[\[([^\]]*)\]\]/g, "$1").trim();
       if (/^[A-Za-zÉéÎ0-9]+\.?\s+\d+/.test(nt)) nt = refRomain(nt);
       fnCount++;
-      footnotes[fnCount] = { children: [new Paragraph({ children: [new TextRun(nt)] })] };
+      footnotes[fnCount] = { children: [new Paragraph({ children: buildInlineRuns(nt) })] };
       runs.push(new FootnoteReferenceRun(fnCount));
     } else {
       runs.push(new TextRun({ text: m[2].replace(/\s+/g, " "), italics: true }));
@@ -245,11 +273,14 @@ function buildRuns(text) {
   return runs;
 }
 
-// extrait la réf de tête « (…) » d'un contenu de question
+// Extrait la réf de tête « (…) » d'un contenu de question.
+// Une ponctuation parasite peut suivre le numéro dans la source (« '''XXXVII.'''. »),
+// auquel cas la réf n'était pas reconnue et restait dans le corps, non romanisée.
 function splitRef(content) {
-  const m = content.match(/^\s*\(([^)]*)\)\s*/);
-  if (!m) return { ref: "", rest: content.trim() };
-  return { ref: refRomain(m[1].trim()), rest: content.slice(m[0].length).trim() };
+  const c = content.replace(/^\s*[.,;:]\s*/, "");
+  const m = c.match(/^\s*\(([^)]*)\)\s*/);
+  if (!m) return { ref: "", rest: c.trim() };
+  return { ref: refRomain(m[1].trim()), rest: c.slice(m[0].length).trim() };
 }
 
 // extrait réf + titre introductif italique (avant le tiret parasite) + corps
@@ -262,7 +293,16 @@ function splitTitle(content) {
   return { summary, ref, body };
 }
 
-const SOUS = (ref) => new Paragraph({ spacing: { after: 60 }, children: [new TextRun({ text: ref, italics: true, color: "7a746d" })] });
+function buildSubtitleRuns(ref) {
+  const parts = ref.replace(/''/g, "").split("⟦sic⟧");
+  const runs = [];
+  parts.forEach((part, i) => {
+    if (part) runs.push(new TextRun({ text: part, italics: true, color: "7a746d" }));
+    if (i < parts.length - 1) runs.push(new TextRun("["), new TextRun({ text: "sic", italics: true }), new TextRun("]"));
+  });
+  return runs;
+}
+const SOUS = (ref) => new Paragraph({ spacing: { after: 60 }, children: buildSubtitleRuns(ref) });
 
 const body = [
   new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun("Questions sur l’Heptateuque")] }),
@@ -289,7 +329,7 @@ for (const q of questions) {
 
 const doc = new Document({ footnotes, sections: [{ children: body }] });
 const buf = await Packer.toBuffer(doc);
-writeFileSync("Genese_draft_v6.docx", buf);
+writeFileSync("Genese_draft_v7.docx", buf);
 const avecTitre = questions.filter(q => splitTitle(q.content).summary).length;
 console.log("Ex. titres :", questions.slice(7, 11).map(q => `${q.label}→ “${splitTitle(q.content).summary || "(aucun)"}” / ${splitTitle(q.content).ref}`).join(" | "));
 console.log(`Questions avec titre introductif : ${avecTitre}/${questions.length}`);
@@ -300,4 +340,4 @@ if (misses.length) {
   console.log(`\n⚠️ Corrections NON appliquées (cible introuvable) : ${misses.length}`);
   for (const m of misses) console.log("   ✗ " + JSON.stringify(m.length > 70 ? m.slice(0, 70) + "…" : m));
 } else console.log("\n✓ Toutes les corrections CORR ont été appliquées.");
-console.log(`DOCX : Genese_draft_v6.docx (${buf.length} octets)`);
+console.log(`DOCX : Genese_draft_v7.docx (${buf.length} octets)`);

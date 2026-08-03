@@ -43,12 +43,12 @@ export function rendreTexteEnrichi(
   // un `k++` dans l'enfant) et `key={k++}` produisait des clés en double.
   while ((m = regex.exec(texte))) {
     if (m.index > dernierIndex) { const key = k++; noeuds.push(<Fragment key={key}>{tf(texte.slice(dernierIndex, m.index), `t${key}`)}</Fragment>) }
-    if (m[1] !== undefined) { const key = k++; noeuds.push(<strong key={key}>{tf(m[1], `b${key}`)}</strong>) }
-    else if (m[2] !== undefined) { const key = k++; noeuds.push(<span key={key} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{tf(m[2], `s${key}`)}</span>) }
-    else if (m[3] !== undefined) { noeuds.push(<sup key={k++}>{m[3]}</sup>) }
-    else if (m[4] !== undefined) { const key = k++; noeuds.push(<em key={key}>{tf(m[4], `e${key}`)}</em>) }
+    if (m[1] !== undefined) { const key = k++; noeuds.push(<strong key={key}>{rendreTexteEnrichi(m[1], transform)}</strong>) }
+    else if (m[2] !== undefined) { const key = k++; noeuds.push(<span key={key} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{rendreTexteEnrichi(m[2], transform)}</span>) }
+    else if (m[3] !== undefined) { const key = k++; noeuds.push(<sup key={key}>{rendreTexteEnrichi(m[3], transform)}</sup>) }
+    else if (m[4] !== undefined) { const key = k++; noeuds.push(<em key={key}>{rendreTexteEnrichi(m[4], transform)}</em>) }
     else if (m[5] !== undefined) { const key = k++; noeuds.push(
-      <a key={key} href={m[6]} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{tf(m[5], `a${key}`)}</a>
+      <a key={key} href={m[6]} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{rendreTexteEnrichi(m[5], transform)}</a>
     ) }
     else if (m[7] !== undefined) {
       noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)
