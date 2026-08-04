@@ -1210,13 +1210,19 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   // subsistent mais sont vides, si bien que le bouton ne supprimait rien — sans
   // la moindre erreur. On supprime désormais les lignes de la table, tous types
   // confondus : le bouton porte sur le verset, pas sur l'un de ses rapports.
-  const supprimerLienBiblique = async (segId: number, versetId: string) => {
-    if (!estAdmin) return
-    if (!confirm('Supprimer ce lien biblique ?')) return
+  // Supprime en UNE fois tous les liens d'un groupe (un lien fusionné couvre
+  // plusieurs versets) : une seule confirmation, une seule requête, une seule
+  // mise à jour d'état — au lieu d'une boucle qui rouvrait un confirm() natif et
+  // lançait une écriture par verset.
+  const supprimerLiensBibliques = async (segId: number, versetIds: string[]) => {
+    if (!estAdmin || !versetIds.length) return
+    const multiple = versetIds.length > 1
+    if (!confirm(multiple ? `Supprimer ces ${versetIds.length} liens bibliques ?` : 'Supprimer ce lien biblique ?')) return
     const { error } = await supabase.from('liens_bibliques')
-      .delete().eq('segment_id', segId).eq('canon_id', versetId)
+      .delete().eq('segment_id', segId).in('canon_id', versetIds)
     if (error) { alert('Suppression impossible : ' + error.message); return }
-    setSegments(prev => prev.map(s => s.id === segId ? { ...s, versets: s.versets.filter(v => v.id !== versetId) } : s))
+    const aRetirer = new Set(versetIds)
+    setSegments(prev => prev.map(s => s.id === segId ? { ...s, versets: s.versets.filter(v => !aRetirer.has(v.id)) } : s))
   }
 
   // Lettrine (drop cap) du tout premier segment, réutilisée par les deux modes.
@@ -2041,7 +2047,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                     </span>
                                   )}
                                   {estAdmin && (
-                                    <button onClick={() => groupe.forEach(v => supprimerLienBiblique(segActifData.id, v.id))} title="Supprimer ce lien biblique"
+                                    <button onClick={() => supprimerLiensBibliques(segActifData.id, groupe.map(v => v.id))} title="Supprimer ce lien biblique"
                                       style={{ fontSize: '0.59375rem', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>
                                       {multiple ? 'Supprimer les liens' : 'Supprimer le lien'}
                                     </button>

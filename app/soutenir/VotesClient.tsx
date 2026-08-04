@@ -69,15 +69,20 @@ export default function VotesClient() {
       const uid = session.session?.user.id ?? null
       setUserId(uid)
 
-      const { data } = await supabase.from('monetisation_votes').select('proposition_id, user_id')
+      // Totaux via une fonction agrégée (ne renvoie que des comptes, jamais la
+      // liste des votants) ; on ne lit directement QUE ses propres votes.
+      const [comptesRes, miensRes] = await Promise.all([
+        supabase.rpc('compter_votes_monetisation'),
+        uid
+          ? supabase.from('monetisation_votes').select('proposition_id').eq('user_id', uid)
+          : Promise.resolve({ data: [] as { proposition_id: string }[] }),
+      ])
       const comptage: Record<string, number> = {}
-      const miens = new Set<string>()
-      ;(data ?? []).forEach((v: any) => {
-        comptage[v.proposition_id] = (comptage[v.proposition_id] ?? 0) + 1
-        if (uid && v.user_id === uid) miens.add(v.proposition_id)
+      ;((comptesRes.data ?? []) as { proposition_id: string; total: number }[]).forEach(r => {
+        comptage[r.proposition_id] = Number(r.total)
       })
       setVotes(comptage)
-      setMesVotes(miens)
+      setMesVotes(new Set(((miensRes.data ?? []) as { proposition_id: string }[]).map(v => v.proposition_id)))
       setChargement(false)
     }
     init()

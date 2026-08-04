@@ -482,7 +482,10 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
         if (photo.imageUrl) {
           supabase.from("profils").select("avatar_url").eq("id", user.id).maybeSingle().then(({ data }) => {
             if (!data?.avatar_url) {
-              supabase.from("profils").update({ avatar_url: photo.imageUrl }).eq("id", user.id);
+              supabase.from("profils").update({
+                avatar_url: photo.imageUrl, avatar_nom: photo.nom,
+                avatar_pos_x: photo.posX ?? null, avatar_pos_y: photo.posY ?? null, avatar_zoom: photo.zoom ?? null,
+              }).eq("id", user.id);
             }
           });
         }
@@ -504,7 +507,11 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
   const choisirPhoto = (photo: PhotoProfil) => {
     setPhotoProfil(photo);
     localStorage.setItem("cs_photo_profil", JSON.stringify(photo));
-    supabase.from("profils").update({ avatar_url: photo.imageUrl }).eq("id", user.id);
+    // On persiste l'avatar ET son recadrage : le profil public les affiche pour tous.
+    supabase.from("profils").update({
+      avatar_url: photo.imageUrl, avatar_nom: photo.nom,
+      avatar_pos_x: photo.posX ?? null, avatar_pos_y: photo.posY ?? null, avatar_zoom: photo.zoom ?? null,
+    }).eq("id", user.id);
     setModalePhotoOuverte(false);
     setModaleRecadrageOuverte(false);
   };
@@ -514,13 +521,16 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
     const updated = { ...photoProfil, posX, posY, zoom };
     setPhotoProfil(updated);
     localStorage.setItem("cs_photo_profil", JSON.stringify(updated));
+    supabase.from("profils").update({ avatar_pos_x: posX, avatar_pos_y: posY, avatar_zoom: zoom }).eq("id", user.id);
     setModaleRecadrageOuverte(false);
   };
 
   const retirerPhoto = () => {
     setPhotoProfil(null);
     localStorage.removeItem("cs_photo_profil");
-    supabase.from("profils").update({ avatar_url: null }).eq("id", user.id);
+    supabase.from("profils").update({
+      avatar_url: null, avatar_nom: null, avatar_pos_x: null, avatar_pos_y: null, avatar_zoom: null,
+    }).eq("id", user.id);
   };
 
   const enregistrer = async () => {

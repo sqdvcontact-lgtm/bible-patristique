@@ -255,6 +255,7 @@ export default function PrelevementsPage() {
   const [traductionActive, setTraductionActive] = useState("TR0001");
   const [textesTraduits, setTextesTraduits] = useState<Record<string, string>>({});
   const [citationPreferee, setCitationPreferee] = useState<CitationPreferee | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Résoudre un code de traduction (TR0003) ou un nom brut en nom lisible
   const nomTraduction = (val?: string | null): string | null => {
@@ -283,9 +284,12 @@ export default function PrelevementsPage() {
     if (citationPreferee?.id === pref.id) {
       localStorage.removeItem("cs_citation_preferee");
       setCitationPreferee(null);
+      if (userId) supabase.from("profils").update({ citation_preferee: null }).eq("id", userId);
     } else {
       localStorage.setItem("cs_citation_preferee", JSON.stringify(pref));
       setCitationPreferee(pref);
+      // Persistée en base pour être visible sur le profil public.
+      if (userId) supabase.from("profils").update({ citation_preferee: pref }).eq("id", userId);
     }
   };
 
@@ -293,14 +297,17 @@ export default function PrelevementsPage() {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) { router.push("/chantier"); return; }
       const uid = data.session.user.id;
+      setUserId(uid);
       const [{ data: rows }, { data: trads }, { data: profil }] = await Promise.all([
         supabase
           .from("prelevements").select("id, type, ref_livre, ref_livre_abr, ref_chapitre, ref_verset, texte, traduction, auteur, titre_oeuvre, ref_niv1, ref_niv2, id_oeuvre, segment_numero, created_at")
           .eq("user_id", uid)
           .order("created_at", { ascending: false }),
         supabase.from("traductions").select("trad_id, nom").order("ordre", { ascending: true }),
-        supabase.from("profils").select("traduction_defaut").eq("id", uid).maybeSingle(),
+        supabase.from("profils").select("traduction_defaut, citation_preferee").eq("id", uid).maybeSingle(),
       ]);
+      // La base fait foi (visible sur le profil public) ; le localStorage n'est qu'un repli.
+      if (profil?.citation_preferee) setCitationPreferee(profil.citation_preferee as CitationPreferee);
       const prelevsData = rows ?? [];
       setPrelevements(prelevsData);
       const listeTraductions = (trads ?? []).map(t => ({ code: t.trad_id, label: t.nom }));
@@ -357,6 +364,7 @@ export default function PrelevementsPage() {
     if (citationPreferee && ids.includes(citationPreferee.id)) {
       localStorage.removeItem("cs_citation_preferee");
       setCitationPreferee(null);
+      if (userId) supabase.from("profils").update({ citation_preferee: null }).eq("id", userId);
     }
   };
 

@@ -11,10 +11,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
   const { pseudo } = await params
   if (!pseudo) return NextResponse.json({ error: 'Pseudo manquant.' }, { status: 400 })
 
-  // contact_email exclu intentionnellement — champ privé non consenti pour exposition publique
+  // contact_email exclu intentionnellement — champ privé non consenti pour exposition publique.
+  // avatar_* et citation_preferee sont publics (portrait choisi + verset préféré, faible
+  // sensibilité) : le profil public a toujours été censé les afficher.
   const { data: profil, error } = await sb
     .from('profils')
-    .select('id, pseudo, bio, created_at, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets')
+    .select('id, pseudo, bio, created_at, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, avatar_url, avatar_nom, avatar_pos_x, avatar_pos_y, avatar_zoom, citation_preferee')
     .eq('pseudo', pseudo)
     .maybeSingle()
 
@@ -24,6 +26,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
     pseudo: profil.pseudo,
     bio: profil.bio ?? null,
     membre_depuis: profil.created_at,
+    avatar: profil.avatar_url
+      ? { imageUrl: profil.avatar_url, nom: profil.avatar_nom ?? '', posX: profil.avatar_pos_x, posY: profil.avatar_pos_y, zoom: profil.avatar_zoom }
+      : null,
+    citation_preferee: profil.citation_preferee ?? null,
   }
 
   // Toutes les sections conditionnelles exécutées en parallèle (réduction de N requêtes séquentielles → 1 batch)

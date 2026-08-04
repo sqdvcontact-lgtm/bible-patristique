@@ -20,6 +20,8 @@ type ProfilPublic = {
   essais?: { id: number; titre: string; sous_titre: string | null; categories: string[]; publie_at: string | null; nb_vues: number }[]
   oeuvre_favorite?: { titre: string; auteur: string; id: string; n: number } | null
   versets_favoris?: { ref_livre_abr: string | null; ref_chapitre: number | null; ref_verset: number | null; texte: string; traduction: string | null }[]
+  avatar?: { imageUrl: string; nom: string; posX: number | null; posY: number | null; zoom: number | null } | null
+  citation_preferee?: CitationPreferee | null
 }
 
 type PhotoProfil = { id_auteur: string; nom: string; imageUrl: string; posX?: number; posY?: number; zoom?: number }
@@ -62,7 +64,16 @@ export default function ProfilPublicPage() {
         if (!res.ok) throw new Error((await res.json()).error ?? 'Introuvable')
         return res.json()
       })
-      .then(p => { setProfil(p); document.title = `${p.pseudo} · Corpus Scriptura` })
+      .then((p: ProfilPublic) => {
+        setProfil(p); document.title = `${p.pseudo} · Corpus Scriptura`
+        // Avatar (recadrage compris) et citation préférée sont désormais servis par
+        // l'API pour TOUS les visiteurs, plus seulement lus du localStorage du propriétaire.
+        if (p.avatar?.imageUrl) setPhotoProfil({
+          id_auteur: '', nom: p.avatar.nom ?? '', imageUrl: p.avatar.imageUrl,
+          posX: p.avatar.posX ?? undefined, posY: p.avatar.posY ?? undefined, zoom: p.avatar.zoom ?? undefined,
+        })
+        if (p.citation_preferee) setCitationPreferee(p.citation_preferee)
+      })
       .catch(e => setErreur(e.message))
 
     import('@/app/lib/supabase').then(({ supabase }) => {
@@ -76,10 +87,13 @@ export default function ProfilPublicPage() {
             // Injecter le contact_email dans le profil affiché (champ privé, visible par le propriétaire uniquement)
             if (p.contact_email) setProfil(prev => prev ? { ...prev, contact_email: p.contact_email } : prev)
             try {
+              // Repli sur son propre profil tant que la donnée n'a pas encore été
+              // re-persistée en base : l'API prime (functional update = ne remplace
+              // que si l'API n'a rien renvoyé).
               const savedCitation = localStorage.getItem('cs_citation_preferee')
-              if (savedCitation) setCitationPreferee(JSON.parse(savedCitation))
+              if (savedCitation) setCitationPreferee(prev => prev ?? JSON.parse(savedCitation))
               const savedPhoto = localStorage.getItem('cs_photo_profil')
-              if (savedPhoto) setPhotoProfil(JSON.parse(savedPhoto))
+              if (savedPhoto) setPhotoProfil(prev => prev ?? JSON.parse(savedPhoto))
             } catch {}
           }
         }
