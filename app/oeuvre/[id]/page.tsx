@@ -5,7 +5,7 @@ import { ABREV_FR } from '@/app/lib/bible'
 import { parseNotes } from '@/app/lib/notes'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
-import { JsonLd, donneesLivre } from '@/app/lib/donneesStructurees'
+import { JsonLd, donneesLivre, donneesFilAriane } from '@/app/lib/donneesStructurees'
 import OeuvreClient from './OeuvreClient'
 
 // Base fermée au rôle anonyme : chaque entrée serveur (métadonnées, page) crée
@@ -362,14 +362,22 @@ export default async function OeuvrePage({
     <>
       {/* Book JSON-LD — seulement pour une œuvre publique (jamais un brouillon admin). */}
       {estOeuvrePubliee(oeuvre as any) && (
-        <JsonLd donnees={donneesLivre({
-          id,
-          titre: oeuvre.titre,
-          titreOriginal: oeuvre.titre_original,
-          auteur, auteurId: auteurId || null,
-          traducteur: oeuvre.trad_auteur,
-          editeur: oeuvre.editeur,
-        })} />
+        <>
+          <JsonLd donnees={donneesLivre({
+            id,
+            titre: oeuvre.titre,
+            titreOriginal: oeuvre.titre_original,
+            auteur, auteurId: auteurId || null,
+            traducteur: oeuvre.trad_auteur,
+            editeur: oeuvre.editeur,
+          })} />
+          <JsonLd donnees={donneesFilAriane([
+            { nom: 'Accueil', url: '/accueil' },
+            { nom: 'Bibliothèque', url: '/bibliotheque' },
+            ...(auteur ? [{ nom: auteur, url: `/auteur/${auteurId}` }] : []),
+            { nom: oeuvre.titre, url: `/oeuvre/${id}` },
+          ])} />
+        </>
       )}
     <OeuvreClient
       auteur={auteur}

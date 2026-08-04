@@ -132,6 +132,30 @@ export function donneesPericope(p: {
   }
 }
 
+// ── Traductions bibliques : une liste de Book (capte « Bible de Sacy », etc.). ──
+export function donneesBibles(
+  list: { trad_id: string; nom: string; langue?: string | null; annee?: number | null }[],
+) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Traductions bibliques éditées sur Corpus Scriptura',
+    itemListElement: list.map((t, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Book',
+        '@id': `${BASE}/traductions#${t.trad_id}`,
+        name: t.nom,
+        url: `${BASE}/traductions#${t.trad_id}`,
+        inLanguage: t.langue === 'la' ? 'la' : t.langue === 'grc' ? 'grc' : 'fr',
+        about: { '@type': 'Thing', name: 'Bible' },
+        ...(t.annee ? { datePublished: String(t.annee) } : {}),
+      },
+    })),
+  }
+}
+
 // ── Fil d'Ariane (BreadcrumbList) : aide au crawl et à l'affichage Google. ──
 export function donneesFilAriane(elements: { nom: string; url: string }[]) {
   return {

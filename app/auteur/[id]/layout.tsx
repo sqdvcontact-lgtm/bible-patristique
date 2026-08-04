@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
-import { JsonLd, donneesPersonne } from "@/app/lib/donneesStructurees";
+import { JsonLd, donneesPersonne, donneesFilAriane } from "@/app/lib/donneesStructurees";
 
 // Métadonnées + données structurées de la page publique d'un auteur. La page
 // elle-même est un composant client ; titre, description et Person JSON-LD passent
@@ -44,17 +44,26 @@ export default async function AuteurLayout({
   return (
     <>
       {data?.nom && (
-        <JsonLd
-          donnees={donneesPersonne({
-            id,
-            nom: data.nom,
-            nomOriginal: data.nom_original,
-            description:
-              typeof data.note_biographique === "string" && data.note_biographique
-                ? data.note_biographique.slice(0, 300)
-                : null,
-          })}
-        />
+        <>
+          <JsonLd
+            donnees={donneesPersonne({
+              id,
+              nom: data.nom,
+              nomOriginal: data.nom_original,
+              description:
+                typeof data.note_biographique === "string" && data.note_biographique
+                  ? data.note_biographique.slice(0, 300)
+                  : null,
+            })}
+          />
+          <JsonLd
+            donnees={donneesFilAriane([
+              { nom: "Accueil", url: "/accueil" },
+              { nom: "Bibliothèque", url: "/bibliotheque" },
+              { nom: data.nom, url: `/auteur/${id}` },
+            ])}
+          />
+        </>
       )}
       {children}
     </>

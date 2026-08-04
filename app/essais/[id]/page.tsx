@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import { estAdmin } from '@/app/lib/verifAdmin'
+import { JsonLd, donneesArticle, donneesFilAriane } from '@/app/lib/donneesStructurees'
 import EssaiClient from './EssaiClient'
 
 const supabaseAdmin = createClient(
@@ -51,11 +52,27 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
     : (profil?.pseudo ?? null)
 
   return (
-    <EssaiClient essai={{
-      id: essai.id, titre: essai.titre, sous_titre: essai.sous_titre, resume: essai.resume,
-      categories: essai.categories ?? [], contenu: essai.contenu, statut: essai.statut,
-      nb_vues: essai.nb_vues, user_id: essai.user_id, created_at: essai.created_at, publie_at: essai.publie_at,
-      auteur_pseudo: nomAffiche, verset_en_tete: essai.verset_en_tete ?? null,
-    }} />
+    <>
+      {/* Article JSON-LD + fil d'Ariane — seulement pour une publication publiée. */}
+      {essai.statut === 'publie' && (
+        <>
+          <JsonLd donnees={donneesArticle({
+            id: essai.id, titre: essai.titre, sousTitre: essai.sous_titre,
+            resume: essai.resume, auteur: nomAffiche, publieAt: essai.publie_at,
+          })} />
+          <JsonLd donnees={donneesFilAriane([
+            { nom: 'Accueil', url: '/accueil' },
+            { nom: 'Publications', url: '/essais' },
+            { nom: essai.titre, url: `/essais/${essai.id}` },
+          ])} />
+        </>
+      )}
+      <EssaiClient essai={{
+        id: essai.id, titre: essai.titre, sous_titre: essai.sous_titre, resume: essai.resume,
+        categories: essai.categories ?? [], contenu: essai.contenu, statut: essai.statut,
+        nb_vues: essai.nb_vues, user_id: essai.user_id, created_at: essai.created_at, publie_at: essai.publie_at,
+        auteur_pseudo: nomAffiche, verset_en_tete: essai.verset_en_tete ?? null,
+      }} />
+    </>
   )
 }
