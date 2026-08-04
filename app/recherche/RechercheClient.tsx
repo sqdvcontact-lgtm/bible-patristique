@@ -4,6 +4,7 @@ import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { useSearchParams } from 'next/navigation'
+import IconeChevron from '@/app/components/IconeChevron'
 import { supabase } from '@/app/lib/supabase'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import { texteSansEnrichissement, rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -660,26 +661,26 @@ export default function RechercheClient() {
     <>
       <style>{`
         .res-card { display:block; text-decoration:none; padding:6px 12px; background:#fff; border-radius:7px; border:1px solid #e4dfd8; transition:border-color 0.12s, box-shadow 0.12s; }
-        .res-card:hover { border-color:#3d6b4f; box-shadow:0 1px 6px rgba(61,107,79,0.10); }
+        .res-card:hover { border-color:var(--cs-vert); box-shadow:0 1px 6px rgba(var(--cs-vert-rgb),0.10); }
         .res-card--absent { background:#fff9f7; border-color:#f0c4b8; }
         .res-card--absent:hover { border-color:#c0562a; }
         /* Lignes de répartition cliquables (filtre par livre / œuvre / publication). */
         .brk-row { display:flex; align-items:baseline; justify-content:space-between; gap:8px; width:100%; text-align:left; border:none; background:transparent; cursor:pointer; padding:2px 6px; border-radius:4px; font-size:0.6875rem; color:#6b6560; line-height:1.4; font-family:inherit; transition:background 0.1s; }
-        .brk-row:hover { background:rgba(61,107,79,0.08); }
-        .brk-row--actif { background:rgba(61,107,79,0.15); color:#2a3d30; font-weight:600; }
-        .brk-row--actif:hover { background:rgba(61,107,79,0.2); }
+        .brk-row:hover { background:rgba(var(--cs-vert-rgb),0.08); }
+        .brk-row--actif { background:rgba(var(--cs-vert-rgb),0.15); color:#2a3d30; font-weight:600; }
+        .brk-row--actif:hover { background:rgba(var(--cs-vert-rgb),0.2); }
         .brk-count { flex-shrink:0; font-size:0.59375rem; color:#b0a89e; }
         .brk-row--actif .brk-count { color:#6a9a7a; }
         .ong-btn { padding:8px 16px; font-size:0.71875rem; border:none; border-bottom:3px solid transparent; cursor:pointer; background:transparent; color:#8a8278; font-weight:400; transition:color 0.12s, border-color 0.12s; white-space:nowrap; margin-bottom:-2px; }
-        .ong-btn--actif { color:#2a3d30; font-weight:600; border-bottom-color:#3d6b4f; }
-        .ong-btn:not(.ong-btn--actif):hover { color:#3d6b4f; border-bottom-color:#c0d8c8; }
+        .ong-btn--actif { color:#2a3d30; font-weight:600; border-bottom-color:var(--cs-vert); }
+        .ong-btn:not(.ong-btn--actif):hover { color:var(--cs-vert); border-bottom-color:#c0d8c8; }
         .ong-count { margin-left:5px; font-size:0.59375rem; color:#c0b8ae; font-weight:400; }
         .ong-btn--actif .ong-count { color:#6a9a7a; }
         .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid #d6d0c4; border-radius:20px; background:#fff; color:#3a3530; cursor:pointer; transition:background 0.12s,color 0.12s; }
-        .pag-btn:hover:not(:disabled) { background:#3d6b4f; color:#fff; border-color:#3d6b4f; }
+        .pag-btn:hover:not(:disabled) { background:var(--cs-vert); color:#fff; border-color:var(--cs-vert); }
         .pag-btn:disabled { color:#c8c0b8; border-color:#ece8e2; cursor:default; }
         .mode-btn { padding:5px 14px; font-size:0.6875rem; border:none; cursor:pointer; transition:background 0.12s,color 0.12s; }
-        .mode-btn--actif { background:#3d6b4f; color:#fff; font-weight:500; }
+        .mode-btn--actif { background:var(--cs-vert); color:#fff; font-weight:500; }
         .mode-btn--inactif { background:#fff; color:#6b6560; }
         .mode-btn--inactif:hover { background:#f0ece6; }
         /* ── Polyglotte : palette de la page « Polyglotte » (vert), 3 colonnes ── */
@@ -697,19 +698,19 @@ export default function RechercheClient() {
            lecture (app/polyglotte/page.tsx) — grille, lettrine, césure, espacement. ── */
         .poly-livre-hd { margin:0; padding:2px 12px; font-family:var(--font-source-serif), Georgia, serif; font-size:0.78125rem; line-height:1.35; color:#1f3b2b; background:#b7d3bf; border-top:1px solid #9fc2ac; border-bottom:1px solid #9fc2ac; text-align:center; }
         .poly-row { display:grid; border-top:1px solid #dfe8e0; font-size:0.8125rem; text-decoration:none; }
-        .poly-num { padding:5px 4px; text-align:center; font-weight:700; font-size:0.71875rem; line-height:1.15; color:#3d6b4f; border-right:1px solid #dfe8e0; white-space:nowrap; }
+        .poly-num { padding:5px 4px; text-align:center; font-weight:700; font-size:0.71875rem; line-height:1.15; color:var(--cs-vert); border-right:1px solid #dfe8e0; white-space:nowrap; }
         .poly-texte-cell { min-width:0; padding:5px 10px 6px; border-left:1px solid #dfe8e0; text-align:justify; text-align-last:left; hyphens:auto; -webkit-hyphens:auto; hyphenate-limit-chars:5 2 2; word-spacing:-0.06em; letter-spacing:-0.01em; line-height:1.26; font-family:var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; color:#2a302b; }
         .poly-texte-cell::after { content:""; display:block; clear:both; }
         .poly-texte-cell--absent { background:#fbeceb; color:#7a1d16; }
-        .poly-lettrine { float:left; display:flex; flex-direction:column; align-items:flex-end; margin:0 8px 0 0; padding:0 7px 0 0; border-right:1px solid rgba(61,107,79,0.22); font-family:var(--font-source-sans), Arial, sans-serif; font-weight:400; letter-spacing:0.03em; font-variant-numeric:tabular-nums; color:#6f8f7b; text-align:right; }
+        .poly-lettrine { float:left; display:flex; flex-direction:column; align-items:flex-end; margin:0 8px 0 0; padding:0 7px 0 0; border-right:1px solid rgba(var(--cs-vert-rgb),0.22); font-family:var(--font-source-sans), Arial, sans-serif; font-weight:400; letter-spacing:0.03em; font-variant-numeric:tabular-nums; color:#6f8f7b; text-align:right; }
         .poly-lettrine-item { position:relative; display:flex; align-items:center; justify-content:flex-end; height:1.26em; }
         .poly-lettrine-ref { display:block; white-space:nowrap; font-size:0.53125rem; line-height:1; }
         .poly-lettrine-ch { font-weight:400; color:#a9bcb0; }
         .ctrl-sel { font-size:0.6875rem; padding:4px 8px; border:1px solid #d6d0c4; border-radius:4px; background:#fff; color:#2a3d30; outline:none; cursor:pointer; }
-        .ctrl-sel:focus { border-color:#3d6b4f; }
+        .ctrl-sel:focus { border-color:var(--cs-vert); }
         /* Info-bulle « Explicitations » : au survol du « ? », les deux modes expliqués. */
         .expl-wrap { position:relative; display:inline-flex; }
-        .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #b6ccbd; color:#3d6b4f; background:#f2f8f4; font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
+        .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #b6ccbd; color:var(--cs-vert); background:#f2f8f4; font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
         .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:#fff; border:1px solid #d6d0c4; border-radius:7px; box-shadow:0 10px 28px rgba(30,46,38,0.14); padding:9px 11px; font-size:0.65625rem; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
         .expl-wrap:hover .expl-tip { opacity:1; visibility:visible; transform:translateY(0); }
         ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#d6d0c4;border-radius:3px}
@@ -854,9 +855,9 @@ export default function RechercheClient() {
                 <div style={{ display:'flex', flexDirection:'column', gap:'3px', marginTop:'2px' }}>
                   {done && (versetsRes.length + segmentsRes.length + essaisRes.length) > 0 && (
                     <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
-                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'0.6875rem', color:'#3d6b4f', background:'rgba(61,107,79,0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
-                      onMouseEnter={e => (e.currentTarget.style.background='rgba(61,107,79,0.12)')}
-                      onMouseLeave={e => (e.currentTarget.style.background='rgba(61,107,79,0.06)')}>
+                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', background:'rgba(var(--cs-vert-rgb),0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
+                      onMouseEnter={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.12)')}
+                      onMouseLeave={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.06)')}>
                       <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
                         <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none"/>
                       </svg>
@@ -868,9 +869,9 @@ export default function RechercheClient() {
                   {/* Reprendre : même hauteur que « Enregistrer », date d'enregistrement à droite. */}
                   {rechercheSauvee && (
                     <button onClick={reprendreRecherche} title={`Reprendre « ${rechercheSauvee.query} » là où vous en étiez`}
-                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'0.6875rem', color:'#3d6b4f', background:'rgba(61,107,79,0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
-                      onMouseEnter={e => (e.currentTarget.style.background='rgba(61,107,79,0.12)')}
-                      onMouseLeave={e => (e.currentTarget.style.background='rgba(61,107,79,0.06)')}>
+                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', background:'rgba(var(--cs-vert-rgb),0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
+                      onMouseEnter={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.12)')}
+                      onMouseLeave={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.06)')}>
                       <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
                         <path d="M2.5 7a4.5 4.5 0 1 1 1.3 3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
                         <path d="M2.2 4.2v2.6h2.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
@@ -902,7 +903,7 @@ export default function RechercheClient() {
                 return (
                   <Fragment key={o.k}>
                     <button onClick={()=>setOnglet(o.k)}
-                      style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', padding:'9px 20px', border:'none', borderLeft:`3px solid ${actif?'#3d6b4f':'transparent'}`, background:actif?'rgba(61,107,79,0.07)':'transparent', color:actif?'#2a3d30':'#6b6560', fontWeight:actif?600:400, fontSize:'0.78125rem', cursor:'pointer', textAlign:'left', fontFamily:"var(--font-source-serif), Georgia, serif", transition:'background 0.12s, color 0.12s' }}>
+                      style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', padding:'9px 20px', border:'none', borderLeft:`3px solid ${actif?'var(--cs-vert)':'transparent'}`, background:actif?'rgba(var(--cs-vert-rgb),0.07)':'transparent', color:actif?'#2a3d30':'#6b6560', fontWeight:actif?600:400, fontSize:'0.78125rem', cursor:'pointer', textAlign:'left', fontFamily:"var(--font-source-serif), Georgia, serif", transition:'background 0.12s, color 0.12s' }}>
                       <span style={{ whiteSpace:'normal', lineHeight:1.25 }}>{o.label}</span>
                       <span style={{ flexShrink:0, fontSize:'0.625rem', color:actif?'#6a9a7a':'#c0b8ae', fontWeight:400 }}>{o.n}</span>
                     </button>
@@ -1079,7 +1080,7 @@ export default function RechercheClient() {
                           par une espace claire (plus de point médian). Le niveau 1 ne paraît que
                           s'il existe. Résultats triés par nom d'auteur (alphabétique). */}
                       <div style={{ display:'flex', alignItems:'baseline', gap:'8px', flexWrap:'wrap', marginBottom:'2px' }}>
-                        <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'#3d6b4f' }}>{s.auteur_nom}</span>
+                        <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'var(--cs-vert)' }}>{s.auteur_nom}</span>
                         {s.oeuvre_titre && <span style={{ fontSize:'0.59375rem', color:'#9a958d', fontStyle:'italic' }}>{s.oeuvre_titre}</span>}
                         {s.ref_niv1 && <span style={{ fontSize:'0.59375rem', color:'#c0b8ae' }}>{s.ref_niv1}</span>}
                       </div>
@@ -1102,7 +1103,7 @@ export default function RechercheClient() {
                     return (
                       <a key={e.id} href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer" className="res-card">
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:'3px' }}>
-                          <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'#3d6b4f' }}>{e.titre}</span>
+                          <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'var(--cs-vert)' }}>{e.titre}</span>
                           {e.categories?.[0] && <span style={{ fontSize:'0.59375rem', color:'#c0b8ae', fontStyle:'italic' }}>{e.categories[0]}</span>}
                         </div>
                         {e.sous_titre && <p style={{ fontSize:'0.6875rem', color:'#8a8278', fontStyle:'italic', margin:'0 0 3px' }}>{e.sous_titre}</p>}
@@ -1195,13 +1196,13 @@ export default function RechercheClient() {
           {done && totalActive>PAGE && (
             <div style={{ flexShrink:0, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 24px 14px', borderTop:'1px solid #e4dfd8' }}>
               {/* Maintien enfoncé = défilement rapide (souris ET tactile). */}
-              <button className="pag-btn" disabled={pageActive===0}
+              <button className="pag-btn" disabled={pageActive===0} style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}
                 onMouseDown={()=>demarrerDefilement(-1)} onMouseUp={arreterDefilement} onMouseLeave={arreterDefilement}
-                onTouchStart={e=>{e.preventDefault();demarrerDefilement(-1)}} onTouchEnd={arreterDefilement}>← Précédent</button>
+                onTouchStart={e=>{e.preventDefault();demarrerDefilement(-1)}} onTouchEnd={arreterDefilement}><IconeChevron dir="left" size={12} />Précédent</button>
               <span style={{ fontSize:'0.6875rem', color:'#b0a89e' }}>{debut}–{fin} <span style={{ color:'#d6d0c4' }}>sur</span> {totalActive}</span>
-              <button className="pag-btn" disabled={pageActive>=pagesTotal-1}
+              <button className="pag-btn" disabled={pageActive>=pagesTotal-1} style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}
                 onMouseDown={()=>demarrerDefilement(1)} onMouseUp={arreterDefilement} onMouseLeave={arreterDefilement}
-                onTouchStart={e=>{e.preventDefault();demarrerDefilement(1)}} onTouchEnd={arreterDefilement}>Suivant →</button>
+                onTouchStart={e=>{e.preventDefault();demarrerDefilement(1)}} onTouchEnd={arreterDefilement}>Suivant<IconeChevron dir="right" size={12} /></button>
             </div>
           )}
         </main>
@@ -1223,7 +1224,7 @@ export default function RechercheClient() {
               <button onClick={() => setConfirmEcrasement(false)}
                 style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'1px solid #d6d0c4', borderRadius:'6px', background:'#fff', color:'#6b6560', cursor:'pointer' }}>Annuler</button>
               <button onClick={() => { ecrireRecherche(); setConfirmEcrasement(false) }}
-                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'none', borderRadius:'6px', background:'#3d6b4f', color:'#fff', fontWeight:600, cursor:'pointer' }}>Écraser</button>
+                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'none', borderRadius:'6px', background:'var(--cs-vert)', color:'#fff', fontWeight:600, cursor:'pointer' }}>Écraser</button>
             </div>
           </div>
         </div>

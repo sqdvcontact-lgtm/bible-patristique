@@ -121,7 +121,7 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
         <label style={{ fontSize: '0.71875rem', fontWeight: 600, letterSpacing: '0.08em', color: '#9a958d', display: 'block', marginBottom: '4px' }}>FICHIER CSV (table segments complète)</label>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <button onClick={() => fileRef.current?.click()}
-            style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer' }}>
+            style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer' }}>
             ↑ Choisir un CSV
           </button>
           <input ref={fileRef} type="file" accept=".csv" style={{ display: 'none' }}
@@ -131,7 +131,7 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
       </div>
 
       {msg && (
-        <p style={{ fontSize: '0.8625rem', color: statut === 'err' ? '#c0562a' : statut === 'ok' ? '#3d6b4f' : '#6b6560', marginBottom: '16px' }}>
+        <p style={{ fontSize: '0.8625rem', color: statut === 'err' ? '#c0562a' : statut === 'ok' ? 'var(--cs-vert)' : '#6b6560', marginBottom: '16px' }}>
           {msg}
         </p>
       )}
@@ -143,7 +143,7 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
           {preview.slice(0, 3).map((s, i) => (
             <div key={i} style={{ padding: '8px 12px', background: '#faf8f4', border: '1px solid #ede9e2', borderRadius: '4px', marginBottom: '6px', fontSize: '0.82656rem', color: '#2a2520' }}>
               <span style={{ color: '#9a958d', marginRight: '8px' }}>{s.id_oeuvre}</span>
-              <span style={{ color: '#3d6b4f', marginRight: '8px' }}>#{s.segment_numero}</span>
+              <span style={{ color: 'var(--cs-vert)', marginRight: '8px' }}>#{s.segment_numero}</span>
               <span style={{ color: '#b0a89e', marginRight: '8px' }}>{s.ref_niv1}{s.ref_niv2 ? ` ${s.ref_niv2}` : ''}</span>
               {s.segment_texte?.slice(0, 70)}{s.segment_texte?.length > 70 ? '…' : ''}
             </div>

@@ -24,7 +24,7 @@ export type Verdict = {
 }
 
 export const RANGS: Record<Rang, { label: string; fond: string; bord: string; texte: string }> = {
-  bon:      { label: 'Bon',      fond: '#f2f8f4', bord: '#3d6b4f', texte: '#2f6046' },
+  bon:      { label: 'Bon',      fond: '#f2f8f4', bord: 'var(--cs-vert)', texte: '#2f6046' },
   moyen:    { label: 'Moyen',    fond: '#fff8ec', bord: '#c7832f', texte: '#8a541d' },
   critique: { label: 'Critique', fond: '#fff0ed', bord: '#c0562a', texte: '#9a2a2a' },
 }

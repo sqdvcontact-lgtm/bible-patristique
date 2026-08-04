@@ -60,7 +60,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
         </div>
 
         {statut === 'ok' ? (
-          <p style={{ fontSize: '0.78125rem', color: '#3d6b4f', fontStyle: 'italic', textAlign: 'center', padding: '26px 20px', margin: 0 }}>Signalement envoyé, merci !</p>
+          <p style={{ fontSize: '0.78125rem', color: 'var(--cs-vert)', fontStyle: 'italic', textAlign: 'center', padding: '26px 20px', margin: 0 }}>Signalement envoyé, merci !</p>
         ) : (
           <div style={{ padding: '14px 20px 18px', overflowY: 'auto' }}>
             {/* Objet du signalement : le texte cité EN ENTIER */}

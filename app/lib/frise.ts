@@ -1,6 +1,7 @@
 // Règles communes aux deux frises (générale et par auteur).
 //
-// Source unique : les vues `v_frise_generale` et `v_chronologie_auteurs`.
+// Sources de dates : la RPC `rechercher_frise_v2` et la vue
+// `v_chronologie_auteurs_dates`.
 // Ne jamais interroger `evenements` ni `auteurs_evenements` depuis le site :
 // les vues portent déjà l'ordre éditorial (`ordre_affichage`), la date rédigée
 // (`date_affichage`), la géographie de filtrage et les sources. Elles sont en
@@ -12,6 +13,8 @@ export type RangFrise = {
   date_debut: number | null
   date_fin: number | null
   date_affichage: string
+  date_precision_affichage: string | null
+  qualification_date: string | null
   titre: string
   notice: string | null
   lieu: string | null
@@ -39,7 +42,10 @@ export type RangChrono = {
   evenement_id: string
   date_debut: number | null
   date_fin: number | null
-  date_affichage: string
+  date_affichage_courte: string
+  date_precision_affichage: string | null
+  date_exacte: string | null
+  qualification_date: string | null
   titre: string
   notice: string | null
   lieu: string | null
@@ -59,6 +65,21 @@ export type RangChrono = {
   position_relative: string | null
   est_hors_vie: boolean | null
   ordre_affichage: number
+}
+
+export type RangFriseDates = Pick<
+  RangFrise,
+  'id' | 'date_affichage' | 'date_precision_affichage' | 'qualification_date' | 'note_datation'
+>
+
+/** La RPC v2 est canonique pour les textes de date ; la vue conserve les champs
+ * riches nécessaires aux filtres, à la géographie et aux sources. */
+export function fusionnerDatesFrise(rangs: RangFrise[], dates: RangFriseDates[]): RangFrise[] {
+  const datesParId = new Map(dates.map(date => [date.id, date]))
+  return rangs.map(rang => {
+    const date = datesParId.get(rang.id)
+    return date ? { ...rang, ...date } : rang
+  })
 }
 
 // ── Familles : teintes sobres, légèrement désaturées ───────────────────────
@@ -109,11 +130,11 @@ export const taillePuce = (code?: string | null) => {
 // ── Types d'événement dans une chronologie d'auteur ────────────────────────
 // Une seule frise, trois nuances discrètes : la lecture doit rester homogène.
 export const COUL_TYPE: Record<string, string> = {
-  vie: '#3d6b4f',
+  vie: 'var(--cs-vert)',
   'œuvre': '#83a06a',
   contexte: '#c19a3e',
   // Chronologie d'une TRADUCTION : quatre nuances discrètes (pas de couleurs vives).
-  formation: '#3d6b4f',
+  formation: 'var(--cs-vert)',
   edition: '#8a7440',
   reception: '#83a06a',
 }

@@ -98,3 +98,110 @@ Doctrine éditoriale : charte `parametres.charte_ia` **§26**. Invariants techni
   - Siècles via `app/lib/siecles.tsx` (jamais composés à la main). Ne jamais créer d'auteur ni d'association silencieuse depuis les données (charte §26.2–26.3).
 - **Piège d'accès.** Les deux vues sont en `security_invoker=true` : elles s'exécutent avec les droits de l'appelant. `v_chronologie_auteurs` joint `auteurs`, que `anon` ne peut pas lire, d'où un **42501 en anonyme** ; elle fonctionne pour `authenticated`, ce qui suffit tant que le site est fermé (la fiche auteur exige déjà `auteurs`). Si le site s'ouvre au public, accorder `SELECT` sur `auteurs` à `anon` ou passer la vue en `security_definer`.
 - **Admin.** Onglet « Chronologie » : `app/admin/SectionEvenements.tsx` (file « à contrôler », édition événements + associations, ajout d'un lien vers un auteur EXISTANT). Écritures service-role via `app/api/admin/evenements/route.ts` (actions `maj-evenement`, `maj-association`, `suppr-association`, `creer-association` — cette dernière refuse tout auteur introuvable). Contraintes clés : `date_debut`/`date_fin`/`qualification_date`/`genre_id`/`portee`/`source_principale`/`origine_donnee`/`statut_source` sont NOT NULL ; `importance_generale` = grade A/B/C si `portee='générale'`, sinon NULL.
+
+# Fiche « À propos de cette traduction » (NavLivres.tsx) — règles d'affichage
+
+Modale alimentée par `v_traductions_page` (par `trad_id`) et `v_chronologie_traductions`. Règles fixées :
+
+- **Numérotation de la Vulgate : jamais affichée.** Quand `schema_numerotation = 'vulgate'`, la ligne « Numérotation » est masquée (elle va de soi pour un texte établi sur la Vulgate). Les autres schémas restent affichés.
+- **Structure.** Les métadonnées (Première publication, Confession, Langue, puis l'édition) vivent toutes dans la section repliable « Édition et état du texte ». Pas d'encart de statut permanent en tête de fiche.
+- **Année et lieu** sur deux lignes distinctes (jamais « Année et lieu » fusionnés).
+- **Édition de référence** : afficher le libellé seul, **sans** lien « Consulter le fac-similé » — redondant avec « Voir la source numérique » (même URL Gallica pour la Bible de Sacy).
+- **Vérification.** Le statut du corpus (`statut_corpus_public`) et les lacunes (`lacunes_publiques`) ne sont plus un encart : ils se déplient en note en cliquant sur la valeur de la rubrique « Vérification » (« Contrôle en cours »).
+- **Enrichissements de la chronologie.** `FriseAuteur` (partagée) rend intitulés ET notices via `rendreMarquesNote` (`app/lib/texteEnrichiEssai.tsx`) : **gras**, *italique*, ++petites capitales++, ^^exposant^^. Ne pas revenir à un rendu texte brut de la notice.
+- **Légende de la frise.** `FriseAuteur` accepte `sansLegende` (passé pour la chronologie d'une traduction) ; elle se masque aussi d'elle-même quand un seul brin est présent. Trouvaille : la vue `v_chronologie_traductions` renvoie des `type_affichage` **accentués** (« édition », « réception ») qui ne matchent pas les clés non accentuées de `COUL_TYPE`/`LIB_TYPE` — d'où l'ancien « Formation » seul dans la légende et des puces grises. La légende masquée contourne le symptôme ; si un jour on réaffiche la légende d'une traduction, normaliser d'abord les clés.
+
+# Recherche de péricopes (RPC rechercher_pericopes)
+
+Intégrée à la recherche rapide globale de la Navbar (`app/components/Navbar.tsx`), en SECTION distincte « Péricopes », menée en parallèle des autres catégories (effet dédié, non bloquant).
+
+- **RPC** : `supabase.rpc('rechercher_pericopes', { p_requete, p_limite: 8 })`, réservé aux **authentifiés**. Ne pas l'ouvrir aux anonymes sans décision explicite (RLS inchangée). Helper : `chercherPericopes()` dans `app/lib/pericopes.ts` (types, `referencePericope`, `correspondanceVisible`, `libelleCategoriePericope`).
+- **Comportement** : rien sous 2 caractères, debounce ~200 ms, chaque frappe annule la requête précédente (AbortController → aucune réponse obsolète), 8 résultats max, une ligne = une péricope.
+- **Affichage** : titre principal / référence biblique / catégorie. La référence se construit sur la PREMIÈRE occurrence principale. Ligne « Correspond à : X » seulement si `correspondance_visible === true` et `correspondance !== titre` — ne JAMAIS afficher un alias masqué ou inexact (ex. « baleine » → « Jonas et le grand poisson », jamais « Jonas dans la baleine »).
+- **Navigation** : clic ou Entrée → `/pericopes/${pericope_id}` (le `pericope_id` est un slug). Nav clavier (↑/↓), Échap ferme.
+- **Références bibliques** : fonction centralisée `formaterPlageCanonique` dans `app/lib/referencesBibliques.ts` (« JHN.4.1 »/« JHN.4.42 » → « Jean 4,1-42 » ; noms dérivés de `LIVRES`, Psautier au singulier). À réutiliser partout.
+- **Page de détail** : `app/pericopes/[id]/page.tsx` (composant client, session normale) — titre, notice, contexte, occurrences bibliques, variantes `visible_public` uniquement. Lit `pericopes`, `pericope_occurrences`, `pericope_noms` (policies SELECT `authenticated` déjà en place).
+- Le projet n'utilise PAS de types Supabase générés : rien à régénérer.
+
+## Péricopes — pages catalogue & détail
+
+- **Catalogue** : `app/pericopes/page.tsx` (client), accessible depuis « Aller plus loin » (onglet « Péricopes » → `/pericopes`). Volet gauche : recherche par nom, filtre par Testament (AT/NT/Autres, déduit de `LIVRES`) et par **registre** (`categorie`, effectifs affichés). Liste **groupée par livre** en ordre canonique (`LIVRES`), chaque péricope reliée à sa page. Données via `chargerCataloguePericopes()` (fusion `pericopes` + occurrence `est_principale`, un livre représentatif par péricope ; 249 péricopes).
+- **Détail** : `app/pericopes/[id]/page.tsx` affiche notice, contexte, **le texte biblique visé** (étendue de l'occurrence principale) dans une **traduction changeable** (sélecteur `TRADUCTIONS_BIBLE` : Sacy/Segond/Crampon/Vulgate/Septante ; défaut Sacy `TR0001`), plus occurrences et variantes visibles.
+- **Texte biblique** : `chargerTextePericope(livre, canonDebut, canonFin, tradCode)` lit la vue large `versets_lecture` (colonnes `TR000x` = texte, `num_TR000x` = numéro affiché, tri par `ordre`). Récupère la plage par `livre` + `chapitre` bornés puis affine les versets aux bornes exactes. Colonne de traduction choisie dynamiquement (jamais de saisie libre → `select` typé Supabase casté via `unknown`). Septante = AT seulement → « Texte indisponible dans cette traduction » géré.
+
+## Péricope détail — texte de chaque occurrence & volet patristique
+
+- **Toutes les occurrences** sont affichées avec leur texte complet, chacune dans une carte distincte (référence en tête, badge « principale », puis le texte verset par verset). `app/pericopes/[id]/page.tsx` charge le texte de chaque occurrence en parallèle (`chargerTextePericope`) et le recharge au changement de traduction.
+- **Colonne de droite = doublon du volet de la page Bible** : on embarque directement `PanneauPatristique` (collant, hauteur `100dvh - navbar` sur desktop ; empilé `presentation="inline"` en mobile). Nouveau prop **`plage={{ livre, canonDebut, canonFin }}`** (+ `refAffichee`) : le volet charge l'apparat de la PLAGE canonique exacte via `segmentsLiesAPlage` (`app/lib/liens.ts`) au lieu d'un verset/chapitre. Additif : la page Bible ne passe pas `plage`, son comportement est inchangé.
+
+# Page « Publications » (liste des essais) — structure « l'Index »
+
+Refonte de `app/essais/EssaisListeClient.tsx` (onglet « Écrits de la communauté »). Table des matières éditoriale sobre : tout est visible au repos, aucun filigrane, aucune animation, aucun contenu caché au survol. L'ancien dispositif (podium top-3 mesuré au pixel en JS + cartes « filigrane » où le texte s'enroulait autour d'un cartouche, variante `featured` morte, fonctions `largeur*`/`lignesTitreCentre`/`texteFiligrane`) a été entièrement supprimé.
+
+- **En-tête** minimal : titre « Publications », un ◆ discret (or `#9a7a40`), puis les onglets. Pas de sur-titre ni de chapeau (jugés « trop chargés »).
+- **Sommaire** en grille deux colonnes (`.publications-index`), filets fins entre entrées. Chaque entrée : auteur (petites capitales or), date (italique serif), titre (serif), résumé (italique, écrêté 2 lignes), catégories, vues, ♥, étoile favori (`EtoileFavori`, gère lui-même `preventDefault`/`stopPropagation` dans le `Link`).
+- **À la une** : première entrée du sommaire, colonne de gauche, sur **deux rangs** (`grid-row: span 2`), encadrée, avec **lettrine** (or `#7a6030`) et résumé fer à gauche + césures (la justification en colonne étroite creusait des blancs). Masquée dès qu'un filtre catégorie ou une recherche est actif (l'index redevient uniforme). Le symbole ◆ du marqueur reste **droit** (`.losange { font-style: normal }`), le fleuron `❦` a été écarté.
+- **Règle du créneau « à la une »** : chaque publication occupe la une **au moins 10 minutes**, même si une autre paraît juste après. Fenêtres calculées sur `publie_at` : `debut(i) = max(publie_at(i), debut(i-1) + 10 min)` ; la une = l'essai au dernier créneau ouvert à l'instant présent. `uneId` calculé au montage seulement (pas de désaccord d'hydratation : au 1ᵉʳ rendu = le dernier paru) ; recalcul par `setTimeout` uniquement s'il existe un créneau futur. En pratique (publications espacées de jours) = toujours le dernier paru.
+- **Les plus lus** : les 3 premiers par vues (puis ♥) sont signalés « ◆ parmi les plus lus » dans l'index, **sans être retirés** du fil chronologique (l'ancien podium les en sortait).
+- **px → rem** : toutes les `font-size` du bloc `<style>` sont en rem (respect du scaling desktop, cf. § responsive/mise à l'échelle).
+- **Charge serveur** : `app/essais/page.tsx` ne récupère plus `contenu` (lourd, ne servait qu'au filigrane) ; la plomberie d'injection d'avatar (`cs_photo_profil`) a aussi été retirée du client, l'avatar n'étant plus affiché.
+
+# Navbar — menus « Aller plus loin » et « Administration », pages indépendantes
+
+Réorganisation de `app/components/Navbar.tsx` et éclatement de l'ancienne page à onglets `/traductions`.
+
+- **« Aller plus loin » n'est plus une page à onglets.** Chaque ancien onglet est désormais une **page indépendante** ; l'onglet de la navbar déploie au survol (`OngletAllerPlusLoin`, styles `.cs-plus`/`.cs-plus-menu`) la liste `LIENS_ALLER_PLUS_LOIN` : `/traductions` (Les traductions), `/librairies` (Acheter des livres), `/statistiques` (Statistiques), `/pericopes` (Péricopes), `/histoire` (Histoire de l'Église). Le clic sur le libellé ouvre `/traductions`.
+  - `/traductions` = `AllerPlusLoinClient.tsx`, réduit à la seule vue « Les traductions » (garde le lien profond `#TR000x`). `/librairies` = page serveur statique. `/statistiques` = `StatistiquesClient.tsx` (versets les plus cités / les plus lus). L'ancienne redirection `/populaires` pointe désormais vers `/statistiques`.
+- **« Quiz biblique » n'a plus d'accès par onglet** (retiré d'« Aller plus loin » ; `QuizBibliqueClient` n'y est plus importé). La page `/quiz` subsiste mais n'est plus liée depuis la navbar.
+- **Onglet « Administration »** (`OngletAdministration`, réservé aux admins : `estAdmin || estAdminEmail`) : au survol, menu listant chaque section d'admin via `LIENS_ADMIN` → `/admin?onglet=<clé>`, puis, après un filet (`.cs-plus-sep`), l'outil **Bible 899** (`/manuscrits/bible-899`). `AdminClient` lit désormais `?onglet=<clé>` pour **toute** section valide (plus seulement `controle-oeuvres`).
+- **Bible 899 ne vit plus que sous Administration** (retiré d'« Aller plus loin »).
+- **Mobile** : le panneau déplié reconstruit ces groupes (helper `lienMobile`, intertitres `styleSectionMobile`) : lecture + Patristique/Publications, puis « Aller plus loin » déplié, puis, pour un admin, « Administration » (sections + Bible 899).
+
+# Catalogue des péricopes (liste) — mise en forme arrêtée
+
+`app/pericopes/page.tsx`. Partis pris fixés après itérations (ne pas revenir dessus sans raison) :
+
+- **En-tête de livre AU FER À GAUCHE** (jamais centré) : nom en serif, filet dégradé qui s'estompe vers la droite, compte discret au bout (`.peri-livre-tete`).
+- **Deux colonnes par livre** (une seule en mobile). Bloc compact À L'INTÉRIEUR mais **blocs espacés** entre eux (`rowGap: 9px`).
+- **Entrée** : intitulé en **serif** à gauche, **référence dorée à droite** (comme la table d'un livre) ; ligne 2 = registre en petit gris + « notice » (lien italique révélé au survol, toujours visible au tactile via `@media (hover:none)`). L'intitulé ne disparaît plus au survol.
+- **Pas de couleurs de registre** : trop de catégories, le code couleur n'aide pas. Registre en gris uni ; `REGISTRE_COUL`/`coulRegistre` supprimés, pas de pastille dans le filtre. Seul accent conservé : le doré de la référence.
+- **Notice dépliée en place** (chargée à la demande via `chargerNoticePericope`), sous le bloc.
+- **Recherche élargie aux appellations** (`pericope_noms`, chargées par `chargerCataloguePericopes` dans `item.appellations`) ; mention « trouvé via « … » » quand le match ne vient pas du titre.
+- **Index « Aller à un livre »** dans le volet : abréviations `ABREV_FR` en **sans**, alignées en grille de 4 colonnes, **séparées Ancien / Nouveau Testament** (+ Autres). Clic → `scrollIntoView` vers l'ancre `#livre-<code>`. Pas de cadres.
+- **Volet gauche** : sur-titre « Catalogue » (plus « Aller plus loin »), chapeau définissant la péricope sous le titre, ligne d'étendue « De la Genèse à l'Apocalypse » (pas de compteur total ; « N péricopes » retiré).
+- **Enrichissements** (`rendreTexteEnrichi`) appliqués aux intitulés et aux notices, ici comme sur la page détail.
+- **Badge « ensemble »** (italique muet) sur les péricopes `est_collection`.
+
+# Couleur d'accent — token `--cs-vert` (audit, point 1)
+
+Le vert du site est désormais **un token** (`app/globals.css`, `:root`) et non plus une valeur en dur :
+- `--cs-vert` (aplat `#3d6b4f`) — liens, boutons, états actifs ;
+- `--cs-vert-rgb` (`61, 107, 79`) — pour les variantes translucides : `rgba(var(--cs-vert-rgb), α)` ;
+- `--cs-vert-fonce` (`#2e5440`) — survol / pressé.
+
+**Règle : tout nouveau vert d'accent passe par ces tokens** (`color: 'var(--cs-vert)'`, `background: 'rgba(var(--cs-vert-rgb), 0.09)'`), jamais `#3d6b4f`/`rgba(61,107,79,·)` en dur. Migration faite sur 80 fichiers / 681 usages (script `scratchpad/sweep-verts.js`).
+
+**Exceptions volontaires (10) :** les attributs SVG `fill=`/`stroke=` gardent la valeur littérale `#3d6b4f` (une custom property n'y est pas résolue par les navigateurs) — dans `Navbar.tsx`, `polyglotte/page.tsx`, `bibliotheque/BibliothequeClient.tsx`. Pour les tokeniser, passer par `style={{ stroke: 'var(--cs-vert)' }}`.
+
+**Restent en dur (pas encore tokenisés) :** les verts d'ENCRE très foncés `#1e2e24` (~58) et `#2a3d30` (~116), utilisés comme couleur de texte des titres — à décider s'ils rejoignent un token `--cs-vert-encre` ou restent distincts.
+
+# Perf du chemin de lecture (audit, point 2)
+
+- **Scroll-spy du sommaire (`OeuvreClient`)** : le `onScroll` qui lit `getBoundingClientRect()` en boucle est désormais **throttlé par `requestAnimationFrame`** (≤ 1 mesure par frame). Ne plus le déthrottler.
+- **`FiletSignet` (`TexteBible`)** : le `ResizeObserver` sur le paragraphe suffit (il couvre les reflux, y compris au redimensionnement de fenêtre) ; le listener `window resize` redondant (un par verset prélevé) a été retiré. N.B. le filet n'est rendu que pour les versets **déjà prélevés** (peu nombreux), pas tous.
+- **`SelecteurCitation`** : recharge à chaque changement de traduction et ne lit qu'une colonne → passe de `select('*')` à `select('id_verset, verset, ${trad}')` (colonne contrôlée TR000x, jamais de saisie libre).
+- **`app/page.tsx` (Bible) — `versets_lecture.select('*')` est VOLONTAIRE** : il charge toutes les traductions d'un chapitre pour permettre le **basculement de traduction instantané côté client** (TexteBible lit `v[traduction]` dans les données déjà en mémoire, sans round-trip). Ne pas restreindre ce select : ce serait une régression UX, pas une optimisation. (Faux positif d'audit.)
+
+# Accessibilité — focus clavier (audit, point 3a)
+
+Anneau de focus **clavier** global dans `app/globals.css` (`:focus-visible`, couleur `--cs-vert`, `!important` pour couvrir les `outline: none` en ligne). Couvre tous les `input/textarea/select/[contenteditable]` + `a/button/[role=button]/[tabindex=0]`.
+- **Ne plus** neutraliser le focus sans remplacement : `outline: none` inline reste toléré (l'aspect souris), la règle globale rétablit l'anneau au clavier.
+- **Champ sur fond vert/sombre** : ajouter la classe `cs-focus-clair` (anneau clair, sinon le vert ne contraste pas). Déjà posée sur la recherche Navbar et l'input admin sombre.
+- Reste à faire sur le point 3 : les `<div/span onClick>` non focusables (clavier), les interactions au survol seul, quelques contrastes de gris, et les 88 `set-state-in-effect`.
+
+# Tests (audit, point 4) — socle vitest
+
+Config `vitest.config.mts` : la suite ne ramasse que `app/**` et `scripts/**` (`include`), et **exclut** `work/`, `audit/`, `tmp/`, `.next/` — leurs tests jetables (assets manquants d'un lot d'import) faisaient échouer `npm test` sans rapport avec le code applicatif.
+- Lancer : `npm test` (= `vitest run`). Environnement `node` par défaut ; pour un test qui a besoin du DOM, poser `// @vitest-environment jsdom` en tête de fichier.
+- Imports **relatifs** dans les tests (`./referencesBibliques`), pas l'alias `@/` (pas de plugin tsconfig-paths).
+- Premières suites sur la logique pure critique : `app/lib/referencesBibliques.test.ts` (formatage des références, utilisé partout) et `app/lib/classement.test.ts` (score/rangs). **Étendre en priorité** aux invariants sensibles : liens bibliques (`scripts/_liens-commun.mjs::verifierLienMecanique`), alignement `versets_v2`, dates historiques.

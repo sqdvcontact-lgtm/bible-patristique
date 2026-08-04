@@ -1,0 +1,165 @@
+export const metadata = {
+  title: 'Acheter des livres — Corpus Scriptura',
+  description: 'Où trouver les éditions bibliques et patristiques, neuves, anciennes ou critiques.',
+}
+
+type Librairie = { nom: string; description: string; url: string; couleur: string; sep: string; logo?: string; monogramme?: string }
+
+const LIBRAIRIES: Librairie[] = [
+  {
+    nom: 'La Procure',
+    description: 'Éditions contemporaines, annotées ou liturgiques — livres neufs.',
+    url: 'https://www.laprocure.com/',
+    logo: '/icons/librairies/procure-eventail.png',
+    couleur: '#153f78',
+    sep: 'rgba(22,63,125,0.32)',
+  },
+  {
+    nom: 'Librairie Pierre Brunet',
+    description: "Éditions anciennes et épuisées — livres d'occasion et anciens.",
+    url: 'https://www.librairie-pierre-brunet.fr/librairie-en-ligne.html',
+    logo: '/icons/librairies/pierre-brunet-livre.png',
+    couleur: '#5e3a1c',
+    sep: 'rgba(124,88,47,0.38)',
+  },
+  {
+    nom: 'Sources Chrétiennes',
+    description: 'La grande collection bilingue des textes patristiques, en édition critique.',
+    url: 'https://sourceschretiennes.org/',
+    logo: '/icons/librairies/sources-chretiennes-chrisme.png',
+    couleur: '#8b1720',
+    sep: 'rgba(151,30,37,0.36)',
+  },
+  {
+    nom: 'Corpus Christianorum',
+    description: 'Les éditions critiques de référence des auteurs chrétiens, de l’Antiquité au Moyen Âge (Brepols).',
+    url: 'https://www.brepols.net/series/CC',
+    monogramme: 'CC',
+    couleur: '#1f5a5a',
+    sep: 'rgba(31,90,90,0.34)',
+  },
+  {
+    nom: 'Bibliothèque Augustinienne',
+    description: 'Les œuvres de saint Augustin en bilingue latin-français, introduites et annotées.',
+    url: 'https://www.brepols.net/series/ba',
+    monogramme: 'BA',
+    couleur: '#5d3a6e',
+    sep: 'rgba(93,58,110,0.34)',
+  },
+]
+
+export default function LibrairiesPage() {
+  return (
+    <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '3.5rem' }}>
+      <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
+        <div style={{ textAlign: 'center', marginBottom: '18px' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(21px, 3.6vw, 29px)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.15, marginBottom: '8px' }}>
+            Acheter des livres
+          </h1>
+          <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 10px' }} />
+          <p style={{ fontSize: '0.78125rem', color: '#8a8278', fontStyle: 'italic', margin: 0 }}>
+            Où trouver les textes, en éditions neuves, anciennes ou critiques.
+          </p>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: '2px 24px 60px' }}>
+        <style>{`
+          .lib-row {
+            display: flex;
+            align-items: center;
+            height: 80px;
+            box-sizing: border-box;
+            padding: 0;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(214,208,196,0.55);
+            position: relative;
+            overflow: hidden;
+          }
+          .lib-row:first-of-type { border-top: 1px solid rgba(214,208,196,0.55); }
+          .lib-contenu {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+          }
+          .lib-row:hover .lib-contenu {
+            opacity: 0.06;
+            transform: translateX(-10px);
+          }
+          .lib-survol {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.18s ease;
+            font-family: var(--font-source-serif), Georgia, serif;
+            font-size:0.96875rem;
+            letter-spacing: 0.01em;
+          }
+          .lib-row:hover .lib-survol { opacity: 1; }
+          .lib-logo-zone {
+            width: 78px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .lib-sep {
+            width: 1px;
+            height: 44px;
+            flex-shrink: 0;
+            margin: 0 20px;
+          }
+          .lib-nom {
+            font-family: var(--font-source-serif), Georgia, serif;
+            font-size:1.0625rem;
+            font-weight: normal;
+            margin: 0 0 4px;
+            line-height: 1.15;
+          }
+          .lib-desc {
+            font-size:0.75rem;
+            color: #6a6258;
+            margin: 0;
+            line-height: 1.45;
+          }
+          .lib-fleche {
+            margin-left: auto;
+            padding-left: 18px;
+            font-size:1.125rem;
+            flex-shrink: 0;
+            opacity: 0.82;
+          }
+        `}</style>
+        {LIBRAIRIES.map(lib => (
+          <a key={lib.nom} href={lib.url} target="_blank" rel="noopener noreferrer" className="lib-row">
+            <div className="lib-contenu">
+              <div className="lib-logo-zone">
+                {lib.logo ? (
+                  <img src={lib.logo} alt="" aria-hidden style={{ width: '52px', height: 'auto', maxHeight: '48px', objectFit: 'contain' }} />
+                ) : (
+                  <span aria-hidden style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', fontWeight: 'normal', letterSpacing: '0.04em', color: lib.couleur, opacity: 0.9 }}>{lib.monogramme}</span>
+                )}
+              </div>
+              <div className="lib-sep" style={{ background: lib.sep }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p className="lib-nom" style={{ color: lib.couleur }}>{lib.nom}</p>
+                <p className="lib-desc">{lib.description}</p>
+              </div>
+              <span className="lib-fleche" style={{ color: lib.couleur }}>→</span>
+            </div>
+            <span className="lib-survol" style={{ color: lib.couleur }}>
+              Visiter la librairie <span style={{ fontSize: '0.8125rem', opacity: 0.7 }}>→</span>
+            </span>
+          </a>
+        ))}
+      </div>
+    </main>
+  )
+}

@@ -10,7 +10,7 @@ const STATUTS: Record<string, { label: string; couleur: string }> = {
   brouillon:    { label: 'Brouillon',               couleur: '#9a958d' },
   en_attente:   { label: 'En attente de validation', couleur: '#9a5a2a' },
   a_reviser:    { label: 'À réviser',                couleur: '#c0562a' },
-  publie:       { label: 'Publié',                   couleur: '#3d6b4f' },
+  publie:       { label: 'Publié',                   couleur: 'var(--cs-vert)' },
 }
 
 export default function MesEcritsPage() {
@@ -42,7 +42,7 @@ export default function MesEcritsPage() {
       <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#f7f4ef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ background: '#fff', border: '1px solid #d6d0c4', borderRadius: '10px', padding: '36px 40px', textAlign: 'center' }}>
           <p style={{ fontSize: '0.8125rem', color: '#6b6560', marginBottom: '16px' }}>Connectez-vous pour voir vos écrits.</p>
-          <Link href="/chantier" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '0.8125rem', fontWeight: 500, background: '#3d6b4f', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
+          <Link href="/chantier" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '0.8125rem', fontWeight: 500, background: 'var(--cs-vert)', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
             Se connecter
           </Link>
         </div>
@@ -55,7 +55,7 @@ export default function MesEcritsPage() {
       <div style={{ maxWidth: '43.75rem', margin: '0 auto', padding: '40px 32px 80px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '24px' }}>
           <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(22px, 4vw, 28px)', color: '#1e2e24', margin: 0 }}>Mes écrits</h1>
-          <Link href="/essais/nouveau" style={{ fontSize: '0.78125rem', padding: '7px 16px', borderRadius: '5px', background: '#3d6b4f', color: '#fff', textDecoration: 'none', fontWeight: 500 }}>
+          <Link href="/essais/nouveau" style={{ fontSize: '0.78125rem', padding: '7px 16px', borderRadius: '5px', background: 'var(--cs-vert)', color: '#fff', textDecoration: 'none', fontWeight: 500 }}>
             + Écrire
           </Link>
         </div>
@@ -65,7 +65,7 @@ export default function MesEcritsPage() {
         ) : essais.length === 0 ? (
           <div style={{ textAlign: 'center', paddingTop: '40px' }}>
             <p style={{ fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic', marginBottom: '16px' }}>Aucun écrit pour l&apos;instant.</p>
-            <Link href="/essais/nouveau" style={{ fontSize: '0.8125rem', padding: '9px 20px', borderRadius: '6px', background: '#3d6b4f', color: '#fff', textDecoration: 'none', fontWeight: 500 }}>
+            <Link href="/essais/nouveau" style={{ fontSize: '0.8125rem', padding: '9px 20px', borderRadius: '6px', background: 'var(--cs-vert)', color: '#fff', textDecoration: 'none', fontWeight: 500 }}>
               Commencer un essai
             </Link>
           </div>

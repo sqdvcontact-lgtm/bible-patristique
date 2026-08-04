@@ -90,7 +90,7 @@ export default function ConversationPage() {
     <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '3.5rem', display: 'flex', flexDirection: 'column' }}>
       <style>{`
         .msg-bubble { transition: opacity 0.1s; }
-        .msg-input:focus { outline: none; border-color: #3d6b4f !important; }
+        .msg-input:focus { outline: none; border-color: var(--cs-vert) !important; }
         .msg-send:disabled { opacity: 0.4; cursor: not-allowed; }
         .msg-send:not(:disabled):hover { background: #2e5240 !important; }
       `}</style>
@@ -134,7 +134,7 @@ export default function ConversationPage() {
                 <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: m.de_moi ? 'flex-end' : 'flex-start', marginTop: (!memeExp || !sameMinute) ? '6px' : '0' }}>
                   <div className="msg-bubble" style={{
                     maxWidth: '72%',
-                    background: m.de_moi ? '#3d6b4f' : '#fff',
+                    background: m.de_moi ? 'var(--cs-vert)' : '#fff',
                     color: m.de_moi ? '#f0f7f2' : '#1e2e24',
                     border: m.de_moi ? 'none' : '1px solid #e4dfd8',
                     borderRadius: m.de_moi ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
@@ -150,7 +150,7 @@ export default function ConversationPage() {
                     <span style={{ fontSize: '0.59375rem', color: '#b0a89e', margin: '2px 4px 0' }}>
                       {heure(m.created_at)}
                       {m.de_moi && (
-                        <span style={{ marginLeft: '4px', color: m.lu ? '#3d6b4f' : '#c8c0b4' }}>
+                        <span style={{ marginLeft: '4px', color: m.lu ? 'var(--cs-vert)' : '#c8c0b4' }}>
                           {m.lu ? '✓✓' : '✓'}
                         </span>
                       )}
@@ -195,7 +195,7 @@ export default function ConversationPage() {
               onClick={envoyer}
               disabled={!texte.trim() || envoi}
               style={{
-                background: '#3d6b4f',
+                background: 'var(--cs-vert)',
                 color: '#fff',
                 border: 'none',
                 borderRadius: '10px',

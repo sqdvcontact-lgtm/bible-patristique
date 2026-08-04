@@ -10,6 +10,8 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 
 import IconeSignet from '@/app/components/IconeSignet'
+import IconeCrayon from '@/app/components/IconeCrayon'
+import IconeDrapeau from '@/app/components/IconeDrapeau'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 
@@ -64,7 +66,7 @@ function BoutonCopie({ texte }: { texte: string }) {
   }
   return (
     <button onClick={handle} title="Copier ce verset" className="bouton-action-verset"
-      style={{ ...VERSET_ACTION_BTN, opacity:0, color: copie ? '#3d6b4f' : '#c8c0b4' }}
+      style={{ ...VERSET_ACTION_BTN, opacity:0, color: copie ? 'var(--cs-vert)' : '#c8c0b4' }}
       aria-label="Copier">
       {copie ? '✓' : (
         <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
@@ -113,7 +115,7 @@ function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; vers
         className="bouton-action-verset"
         title="Signaler une erreur"
         style={{ ...VERSET_ACTION_BTN, opacity:0, color:'#c8c0b4' }}>
-        ⚑
+        <IconeDrapeau />
       </button>
       {ouvert && <ModalSignalement titre={ref} texteObjet={texte} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
@@ -159,10 +161,12 @@ function FiletSignet({ signal }: { signal: string }) {
     const remesurer = () => { raf1 = requestAnimationFrame(() => { raf2 = requestAnimationFrame(mesurer) }) }
     mesurer()
     remesurer()
+    // Le ResizeObserver sur `p` couvre déjà les reflux du texte, y compris ceux
+    // provoqués par un redimensionnement de la fenêtre (la mesure de ligne change) :
+    // pas besoin d'un listener `resize` global en plus (un par verset prélevé).
     const ro = new ResizeObserver(mesurer)
     ro.observe(p)
-    window.addEventListener('resize', mesurer)
-    return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); ro.disconnect(); window.removeEventListener('resize', mesurer) }
+    return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); ro.disconnect() }
   }, [signal])
   return (
     <span ref={ref} aria-hidden style={{
@@ -171,7 +175,7 @@ function FiletSignet({ signal }: { signal: string }) {
       // Filet volontairement ténu : palissant vers le texte, il ne fait qu'effleurer
       // l'œil. Encore aminci de 30 % (0.16 → 0.112, 0.10 → 0.07), adouci près du signet,
       // pour rester élégant plutôt que d'afficher une barre franche.
-      background: 'linear-gradient(to left, rgba(61,107,79,0.112), rgba(61,107,79,0.07) 55%, rgba(61,107,79,0))',
+      background: 'linear-gradient(to left, rgba(var(--cs-vert-rgb),0.112), rgba(var(--cs-vert-rgb),0.07) 55%, rgba(var(--cs-vert-rgb),0))',
       pointerEvents: 'none',
     }} />
   )
@@ -211,7 +215,7 @@ function BoutonEnregistrer({
         <FiletSignet signal={String(verset[traduction] ?? '')} />
         <button onClick={supprimer} disabled={loading}
           title="Retirer des prélèvements" className="bouton-action-verset"
-          style={{ ...VERSET_ACTION_BTN, opacity:1, color:'#3d6b4f' }}
+          style={{ ...VERSET_ACTION_BTN, opacity:1, color:'var(--cs-vert)' }}
           aria-label="Retirer des prélèvements">
           {loading ? '…' : <IconeSignet plein />}
         </button>
@@ -363,7 +367,7 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
         <div style={{ display:'flex', justifyContent:'flex-end', gap:'8px', marginTop:'12px' }}>
           {statut === 'erreur' && <span style={{ fontSize:'0.6875rem', color:'#c0562a', alignSelf:'center' }}>Erreur d'enregistrement.</span>}
           <button onClick={onClose} style={{ fontSize:'0.6875rem', padding:'5px 14px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#6b6560', cursor:'pointer' }}>Annuler</button>
-          <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize:'0.6875rem', padding:'5px 16px', borderRadius:'4px', border:'none', background:'#3d6b4f', color:'#fff', cursor:'pointer', fontWeight:500 }}>
+          <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize:'0.6875rem', padding:'5px 16px', borderRadius:'4px', border:'none', background:'var(--cs-vert)', color:'#fff', cursor:'pointer', fontWeight:500 }}>
             {statut === 'envoi' ? 'Enregistrement…' : 'Enregistrer'}
           </button>
         </div>
@@ -508,18 +512,18 @@ export default function TexteBible({
               <span style={{ color: '#a0b8a8', fontSize: '0.4375rem', fontStyle: 'normal', position: 'relative', top: '1.5px' }}>{tradOuverte ? '▲' : '▼'}</span>
             </button>
             {tradOuverte && (
-              <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', background: '#fff', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '7px', zIndex: 50, boxShadow: '0 10px 26px rgba(47,63,53,0.12)', minWidth: '230px', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', background: '#fff', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '7px', zIndex: 50, boxShadow: '0 10px 26px rgba(47,63,53,0.12)', minWidth: '230px', overflow: 'hidden' }}>
                 {traductions.map((t, i) => (
                   <button key={t.code} onClick={() => { setTraductionIndex(i); setTradOuverte(false) }} style={{
                     width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '0.8125rem',
                     border: 'none', borderBottom: i < traductions.length - 1 ? '1px solid #ede9e2' : 'none',
-                    background: traductionIndex === i ? 'rgba(61,107,79,0.08)' : '#fff',
-                    color: traductionIndex === i ? '#3d6b4f' : '#2a2520',
+                    background: traductionIndex === i ? 'rgba(var(--cs-vert-rgb),0.08)' : '#fff',
+                    color: traductionIndex === i ? 'var(--cs-vert)' : '#2a2520',
                     fontWeight: traductionIndex === i ? 600 : 400, cursor: 'pointer',
                     fontFamily: "var(--font-source-serif), Georgia, serif", letterSpacing: '0.01em',
                     transition: 'background 0.12s',
                   }}
-                    onMouseEnter={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = 'rgba(61,107,79,0.04)' }}
+                    onMouseEnter={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = 'rgba(var(--cs-vert-rgb),0.04)' }}
                     onMouseLeave={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = '#fff' }}>
                     {t.label}
                   </button>
@@ -538,10 +542,10 @@ export default function TexteBible({
       <div className={mobile ? '' : 'overflow-y-auto flex-1'} style={{ paddingTop: '20px', paddingBottom: '20px' }}>
         <div style={{ maxWidth: 'var(--mesure-page)', margin: '0 auto', paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
           <style>{`
-            .verset-row:hover { background: rgba(61,107,79,0.05); }
+            .verset-row:hover { background: rgba(var(--cs-vert-rgb),0.05); }
             .verset-row:hover .bouton-action-verset { opacity: 1 !important; }
             .verset-row--actif .bouton-action-verset { opacity: 0.5; }
-            .nav-chap-arrow:hover { color: #3d6b4f !important; }
+            .nav-chap-arrow:hover { color: var(--cs-vert) !important; }
             /* Mobile : dans le pavé flottant (appui long), les boutons sont pleins. */
             @media (max-width: 900px) { .verset-actions .bouton-action-verset { opacity: 1 !important; } }
           `}</style>
@@ -593,7 +597,7 @@ export default function TexteBible({
               style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: mobile ? '0.03125rem 0.375rem' : '0.1875rem 0.375rem', borderRadius: '4px', cursor: 'pointer', marginBottom: mobile ? '0.05rem' : '0.25rem', background: 'transparent' }}>
 
               <div style={{ display: 'grid', gridTemplateColumns: mobile ? 'minmax(0, 1fr)' : 'minmax(0, var(--mesure-bloc)) 2.375rem', width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', alignItems: 'flex-start' }}>
-                <div style={{ display:'grid', gridTemplateColumns:'auto minmax(0, var(--mesure-texte))', columnGap:'0.1875rem', alignItems: 'baseline', borderRadius:'5px', padding:'0.125rem 0.25rem 0.125rem 0', background: actif ? 'rgba(61,107,79,0.11)' : 'transparent' }}>
+                <div style={{ display:'grid', gridTemplateColumns:'auto minmax(0, var(--mesure-texte))', columnGap:'0.1875rem', alignItems: 'baseline', borderRadius:'5px', padding:'0.125rem 0.25rem 0.125rem 0', background: actif ? 'rgba(var(--cs-vert-rgb),0.11)' : 'transparent' }}>
                   {/* Numéro — inclus dans le bloc sélectionné, aligné sur la 1re ligne du texte (ligne de base) */}
                   <span style={{ minWidth: '1.0625rem', textAlign: 'right', paddingRight: '0.3125rem', fontSize: '0.625rem', fontWeight: 600, color: '#b0a89e', lineHeight: 1.40, whiteSpace: 'nowrap' }}>
                     {v.verset}
@@ -642,7 +646,7 @@ export default function TexteBible({
                   {estAdmin && !modeUtilisateurStandard && (
                     <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
                       style={{ ...VERSET_ACTION_BTN, opacity:0, color:'#c8c0b4' }}>
-                      ✎
+                      <IconeCrayon size={12} />
                     </button>
                   )}
                 </div>

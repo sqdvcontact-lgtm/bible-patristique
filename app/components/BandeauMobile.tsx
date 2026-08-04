@@ -44,7 +44,7 @@ export default function BandeauMobile() {
             onClick={fermer}
             style={{
               fontSize: '0.71875rem',
-              color: '#3d6b4f',
+              color: 'var(--cs-vert)',
               textDecoration: 'underline',
               textUnderlineOffset: '2px',
               fontWeight: 600,

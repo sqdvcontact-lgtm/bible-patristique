@@ -60,7 +60,7 @@ function EditeurNoteWysiwyg({ valeur, mode, onChange, onEnregistrer }: {
         onInput={synchroniser} data-placeholder="Texte de la note…"
         style={{ minHeight: '5.5em', fontSize: '0.8125rem', lineHeight: 1.55, color: '#2a2520', fontFamily: 'var(--font-source-serif), Georgia, serif', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', padding: '9px 10px', outline: 'none', overflowY: 'auto' }} />
       <button onClick={() => onEnregistrer(valeurCourante())}
-        style={{ alignSelf: 'flex-end', fontSize: '0.71875rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+        style={{ alignSelf: 'flex-end', fontSize: '0.71875rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
         {mode === 'creation' ? 'Insérer la note' : 'Enregistrer la note'}
       </button>
     </div>
@@ -122,7 +122,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
       const [, label, type, id] = m
       morceaux.push(
         <button key={k++} onClick={() => setElementInterne({ type: type as 'verset' | 'segment', id, label })}
-          style={{ color: '#3d6b4f', textDecoration: 'underline', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}>
+          style={{ color: 'var(--cs-vert)', textDecoration: 'underline', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}>
           {label}
         </button>
       )
@@ -151,10 +151,10 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
       ) : (
         <>
           {elementInterne && (
-            <button onClick={() => setElementInterne(null)} style={{ fontSize: '0.6875rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: '8px' }}>← Retour à la note</button>
+            <button onClick={() => setElementInterne(null)} style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: '8px' }}>← Retour à la note</button>
           )}
           {elementActif.type !== 'note' && (
-            <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#3d6b4f', marginBottom: '10px' }}>{elementActif.label}</p>
+            <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', marginBottom: '10px' }}>{elementActif.label}</p>
           )}
           {chargement ? (
             <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement...</p>

@@ -10,6 +10,7 @@ import { LIVRES } from "@/app/lib/bible";
 import { estOeuvrePubliee } from "@/app/lib/oeuvresPublication";
 import { lireOeuvresRecentes, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
 import { sansPointFinal } from "@/app/lib/titres";
+import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
 import ModaleMessagerie from "@/app/components/ModaleMessagerie";
 import VoletNotifications from "@/app/components/VoletNotifications";
 
@@ -26,10 +27,33 @@ const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?:
   { href: "/essais", label: "Publications" },
   { href: "/traductions", label: "Aller plus loin", discret: true },
 ];
-const LIENS_SECONDAIRES: { href: string; label: string }[] = [
+// Pages regroupées sous « Aller plus loin » : anciennement des onglets d'une même page,
+// désormais des pages indépendantes. Le menu déroulant (au survol) les recense.
+const LIENS_ALLER_PLUS_LOIN: { href: string; label: string }[] = [
+  { href: "/traductions", label: "Les traductions" },
+  { href: "/librairies", label: "Acheter des livres" },
+  { href: "/statistiques", label: "Statistiques" },
+  { href: "/pericopes", label: "Péricopes" },
   { href: "/histoire", label: "Histoire de l’Église" },
-  { href: "/manuscrits/bible-899", label: "Bible 899" },
 ];
+// Sections d'administration (menu déroulant « Administration », réservé aux admins) :
+// chaque entrée ouvre /admin sur la section voulue. Bible 899 est un outil d'atelier
+// rattaché à ce menu, ajouté après un séparateur.
+const LIENS_ADMIN: { href: string; label: string }[] = [
+  { href: "/admin?onglet=bibliotheque", label: "Bibliothèque" },
+  { href: "/admin?onglet=controle-oeuvres", label: "Contrôle œuvres" },
+  { href: "/admin?onglet=traductions", label: "Traductions" },
+  { href: "/admin?onglet=editeurs", label: "Éditeurs" },
+  { href: "/admin?onglet=evenements", label: "Chronologie" },
+  { href: "/admin?onglet=essais", label: "Essais" },
+  { href: "/admin?onglet=verifications", label: "Vérifications" },
+  { href: "/admin?onglet=moderation", label: "Modération" },
+  { href: "/admin?onglet=propositions", label: "Propositions" },
+  { href: "/admin?onglet=charte", label: "Charte IA" },
+  { href: "/admin?onglet=charte-accentuation", label: "Accentuation" },
+  { href: "/admin?onglet=taches", label: "À faire" },
+];
+const LIEN_BIBLE_899 = { href: "/manuscrits/bible-899", label: "Bible 899" };
 
 // Couleurs de domaine pour la recherche rapide : chaque catégorie de résultats est
 // rattachée à un grand domaine par une couleur FORTE (filet gauche + libellé + fond
@@ -38,7 +62,7 @@ const LIENS_SECONDAIRES: { href: string; label: string }[] = [
 // + fins séparateurs).
 const DOMAINE = {
   bible:        { base: "#3a5a8c", fond: "rgba(58,90,140,0.12)",  survol: "rgba(58,90,140,0.22)" },
-  patristique:  { base: "#3d6b4f", fond: "rgba(61,107,79,0.12)",  survol: "rgba(61,107,79,0.20)" },
+  patristique:  { base: "var(--cs-vert)", fond: "rgba(var(--cs-vert-rgb),0.12)",  survol: "rgba(var(--cs-vert-rgb),0.20)" },
   publications: { base: "#9a6a2e", fond: "rgba(154,106,46,0.13)", survol: "rgba(154,106,46,0.22)" },
 } as const;
 
@@ -76,7 +100,7 @@ function OngletPatristique({ href, label, style }: { href: string; label: string
           {recentes.map(o => (
             <Link key={o.id} href={`/oeuvre/${o.id}`} onClick={() => setOuvert(false)}
               style={{ display: "block", padding: "6px 8px", borderRadius: "5px", textDecoration: "none" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.07)")}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(var(--cs-vert-rgb),0.07)")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
               <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.75rem", color: "#6b6560", lineHeight: 1.2 }}>{sansPointFinal(o.titre)}</span>
               {o.auteur && <span style={{ display: "block", fontSize: "0.5625rem", color: "#a89f95", fontStyle: "italic", marginTop: "1px" }}>{o.auteur}</span>}
@@ -100,9 +124,32 @@ function OngletAllerPlusLoin({ label, style }: { label: string; style: React.CSS
         </svg>
       </Link>
       <div className="cs-plus-menu">
-        <Link href="/traductions" className="cs-plus-lien">Traductions bibliques</Link>
-        <Link href="/histoire" className="cs-plus-lien">Histoire de l&rsquo;&Eacute;glise</Link>
-        <Link href="/manuscrits/bible-899" className="cs-plus-lien">Bible 899</Link>
+        {LIENS_ALLER_PLUS_LOIN.map(l => (
+          <Link key={l.href} href={l.href} className="cs-plus-lien">{l.label}</Link>
+        ))}
+      </div>
+    </span>
+  );
+}
+
+// « Administration » : onglet réservé aux admins ; au survol, le menu recense chaque
+// section d'admin (chacune ouvre /admin sur la bonne section), puis, après un filet,
+// l'outil « Bible 899 ». Le clic sur le libellé ouvre /admin (section par défaut).
+function OngletAdministration({ label, style }: { label: string; style: React.CSSProperties }) {
+  return (
+    <span className="cs-plus" style={{ display: "inline-flex" }}>
+      <Link href="/admin" className="cs-onglet" style={{ ...style, display: "inline-flex", alignItems: "center", gap: "3px" }}>
+        {label}
+        <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ opacity: 0.55, flexShrink: 0 }}>
+          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Link>
+      <div className="cs-plus-menu">
+        {LIENS_ADMIN.map(l => (
+          <Link key={l.href} href={l.href} className="cs-plus-lien">{l.label}</Link>
+        ))}
+        <div className="cs-plus-sep" />
+        <Link href={LIEN_BIBLE_899.href} className="cs-plus-lien">{LIEN_BIBLE_899.label}</Link>
       </div>
     </span>
   );
@@ -121,7 +168,7 @@ function surlignerMatch(texte: string, query: string): React.ReactNode {
   return (
     <>
       {texte.slice(0, idx)}
-      <strong style={{ color: '#1f5c33', fontWeight: 700, background: 'rgba(61,107,79,0.14)', borderRadius: '2px', padding: '0 1px' }}>{texte.slice(idx, idx + query.length)}</strong>
+      <strong style={{ color: '#1f5c33', fontWeight: 700, background: 'rgba(var(--cs-vert-rgb),0.14)', borderRadius: '2px', padding: '0 1px' }}>{texte.slice(idx, idx + query.length)}</strong>
       {texte.slice(idx + query.length)}
     </>
   )
@@ -141,7 +188,7 @@ function extraireEtSurligner(texte: string, q: string, longueur = 110): React.Re
   if (mIdx < 0) return <>{prefix ? '\u2026' : ''}{extrait}{suffix ? '\u2026' : ''}</>
   return (
     <>
-      {prefix ? '\u2026' : ''}{extrait.slice(0, mIdx)}<strong style={{ color: '#1f5c33', fontWeight: 700, background: 'rgba(61,107,79,0.14)', borderRadius: '2px', padding: '0 1px' }}>{extrait.slice(mIdx, mIdx + q.length)}</strong>{extrait.slice(mIdx + q.length)}{suffix ? '\u2026' : ''}
+      {prefix ? '\u2026' : ''}{extrait.slice(0, mIdx)}<strong style={{ color: '#1f5c33', fontWeight: 700, background: 'rgba(var(--cs-vert-rgb),0.14)', borderRadius: '2px', padding: '0 1px' }}>{extrait.slice(mIdx, mIdx + q.length)}</strong>{extrait.slice(mIdx + q.length)}{suffix ? '\u2026' : ''}
     </>
   )
 }
@@ -219,6 +266,35 @@ export default function Navbar() {
   const [rechercheTerminee, setRechercheTerminee] = useState(false);
   const [nbTotalReel, setNbTotalReel] = useState(0);
 
+  // ── Recherche de péricodes (RPC `rechercher_pericopes`, authentifié) ─────────
+  // Menée EN PARALLÈLE de la recherche rapide, dans son propre effet, pour qu'elle ne
+  // bloque jamais les autres résultats. Rien sous deux caractères ; debounce ~200 ms ;
+  // chaque frappe annule la requête précédente (abort), donc aucune réponse obsolète.
+  const [pericopes, setPericopes] = useState<PericopeSearchResult[]>([]);
+  const [pericopesLoading, setPericopesLoading] = useState(false);
+  const [pericopesFait, setPericopesFait] = useState(false);
+  const [pericopesErreur, setPericopesErreur] = useState(false);
+  const [pericopeActif, setPericopeActif] = useState(-1);
+
+  useEffect(() => {
+    setPericopeActif(-1);
+    const q = requeteRapide.trim();
+    if (q.length < 2) { setPericopes([]); setPericopesLoading(false); setPericopesFait(false); setPericopesErreur(false); return; }
+    setPericopesLoading(true); setPericopesErreur(false);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => {
+      chercherPericopes(q, ctrl.signal)
+        .then(res => { if (!ctrl.signal.aborted) { setPericopes(res); setPericopesFait(true); setPericopesLoading(false); } })
+        .catch(err => {
+          if (ctrl.signal.aborted || err?.name === 'AbortError') return;
+          setPericopes([]); setPericopesErreur(true); setPericopesFait(true); setPericopesLoading(false);
+        });
+    }, 200);
+    return () => { clearTimeout(timer); ctrl.abort(); };
+  }, [requeteRapide]);
+
+  const allerVersPericope = (id: string) => { router.push(`/pericopes/${id}`); fermerRechercheRapide(); };
+
   useEffect(() => {
     const q = requeteRapide.trim();
     if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); setOeuvresTrouvees([]); setSegmentsTrouves([]); setRechercheRapideLoading(false); setNbResultatsProgressif(0); setNbTotalReel(0); setRechercheTerminee(false); return; }
@@ -289,7 +365,7 @@ export default function Navbar() {
   const motCommencePar = (nom: string) => sansAccents(nom).split(/[\s'’-]+/).some(w => w.startsWith(qNorm));
   const livresTrouves = qNorm ? LIVRES_RECHERCHE.filter(l => motCommencePar(l.nom)).slice(0, 5) : [];
   const traductionsTrouvees = qNorm ? TRADUCTIONS_RECHERCHE.filter(t => motCommencePar(t.nom)) : [];
-  const aucunResultat = !rechercheRapideLoading && qNorm.length > 0 && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0;
+  const aucunResultat = !rechercheRapideLoading && !pericopesLoading && qNorm.length > 0 && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0 && pericopes.length === 0;
 
   const fermerRechercheRapide = () => { setRechercheOuverte(false); setRequeteRapide(""); setMobileOuvert(false); };
   const validerRechercheRapide = () => {
@@ -454,9 +530,17 @@ export default function Navbar() {
           value={requeteRapide}
           onChange={e => setRequeteRapide(e.target.value)}
           onFocus={() => setRechercheOuverte(true)}
-          onKeyDown={e => { if (e.key === 'Enter') validerRechercheRapide() }}
+          onKeyDown={e => {
+            if (e.key === 'ArrowDown' && pericopes.length) { e.preventDefault(); setPericopeActif(i => Math.min(i + 1, pericopes.length - 1)); }
+            else if (e.key === 'ArrowUp' && pericopes.length) { e.preventDefault(); setPericopeActif(i => Math.max(i - 1, -1)); }
+            else if (e.key === 'Enter') {
+              if (pericopeActif >= 0 && pericopes[pericopeActif]) { e.preventDefault(); allerVersPericope(pericopes[pericopeActif].pericope_id); }
+              else validerRechercheRapide();
+            }
+            else if (e.key === 'Escape') { setRechercheOuverte(false); setPericopeActif(-1); }
+          }}
           placeholder="Rechercher…"
-          className="recherche-rapide-input"
+          className="recherche-rapide-input cs-focus-clair"
           style={{ width: mobile ? "100%" : "13.75rem", height: "1.875rem", fontSize: "0.84rem", padding: "0 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "#fff", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
         />
         {/* Bouton « Nouvelle recherche » : conduit à la page de recherche VIERGE (pas de
@@ -484,13 +568,13 @@ export default function Navbar() {
           {/* Barre de statut : nb résultats + spinner/smiley */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px 4px", borderBottom: "1px solid #ede9e2", background: "#faf8f5" }}>
             <span style={{ fontSize: "0.71rem", color: "#6b6560", fontWeight: 500 }}>
-              {rechercheRapideLoading && nbTotalResultats === 0
+              {(rechercheRapideLoading || pericopesLoading) && (nbTotalResultats + pericopes.length) === 0
                 ? "Recherche…"
-                : nbTotalResultats === 0 && rechercheTerminee
+                : (nbTotalResultats + pericopes.length) === 0 && rechercheTerminee && pericopesFait
                   ? "Aucun résultat"
-                  : <>{nbTotalResultats} <span style={{ color: "#9a958d", fontWeight: 400 }}>résultat{nbTotalResultats > 1 ? 's' : ''}</span></>}
+                  : <>{nbTotalResultats + pericopes.length} <span style={{ color: "#9a958d", fontWeight: 400 }}>résultat{(nbTotalResultats + pericopes.length) > 1 ? 's' : ''}</span></>}
             </span>
-            {rechercheRapideLoading ? (
+            {(rechercheRapideLoading || pericopesLoading) ? (
               <svg className="spinner-search" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-label="Chargement">
                 <circle cx="7" cy="7" r="5.5" stroke="#d6d0c4" strokeWidth="1.6" fill="none"/>
                 <path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="#3d6b4f" strokeWidth="1.6" strokeLinecap="round" fill="none"/>
@@ -509,12 +593,45 @@ export default function Navbar() {
             ) : null}
           </div>
 
-          {rechercheRapideLoading && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && essaisTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 ? (
+          {rechercheRapideLoading && pericopes.length === 0 && !pericopesLoading && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && essaisTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 ? (
             <p style={{ fontSize: "0.78rem", color: "#c0b8ae", textAlign: "center", padding: "11px 12px", margin: 0 }}>…</p>
           ) : aucunResultat ? (
             <p style={{ fontSize: "0.78rem", color: "#9a958d", fontStyle: "italic", textAlign: "center", padding: "11px 12px", margin: 0 }}>Aucun résultat — Entrée pour une recherche complète.</p>
           ) : (
             <>
+              {/* ── Péricopes (RPC) : section distincte, en tête. Domaine biblique (bleu). ── */}
+              {(pericopesLoading || pericopes.length > 0 || (pericopesFait && !pericopesErreur) || pericopesErreur) && (
+                <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond }}>
+                  <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Péricopes</p>
+                  {pericopes.length > 0 ? (
+                    pericopes.map((p, idx) => {
+                      const ref = referencePericope(p);
+                      const corr = correspondanceVisible(p);
+                      const actif = idx === pericopeActif;
+                      return (
+                        <Link key={p.pericope_id} href={`/pericopes/${p.pericope_id}`} onClick={fermerRechercheRapide}
+                          onMouseEnter={e => { e.currentTarget.style.background = DOMAINE.bible.survol; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = actif ? DOMAINE.bible.survol : "transparent"; }}
+                          style={{ display: "block", padding: "3px 12px", textDecoration: "none", background: actif ? DOMAINE.bible.survol : "transparent" }}>
+                          <span style={{ display: "block", fontSize: "0.83rem", lineHeight: 1.28, color: "#2a3d30" }}>{p.titre}</span>
+                          <span style={{ display: "block", fontSize: "0.71rem", color: "#6b6560", lineHeight: 1.25 }}>
+                            {ref}
+                            {ref && p.categorie ? <span style={{ color: "#b0a89e" }}> · </span> : null}
+                            {p.categorie ? <span style={{ color: "#9a958d" }}>{libelleCategoriePericope(p.categorie)}</span> : null}
+                          </span>
+                          {corr && <span style={{ display: "block", fontSize: "0.66rem", color: "#9a958d", fontStyle: "italic", lineHeight: 1.2 }}>Correspond à : {corr}</span>}
+                        </Link>
+                      );
+                    })
+                  ) : pericopesLoading ? (
+                    <p style={{ fontSize: "0.75rem", color: "#c0b8ae", margin: "1px 12px 3px" }}>…</p>
+                  ) : pericopesErreur ? (
+                    <p style={{ fontSize: "0.72rem", color: "#b0a89e", fontStyle: "italic", margin: "1px 12px 3px" }}>Recherche de péricopes momentanément indisponible.</p>
+                  ) : (
+                    <p style={{ fontSize: "0.72rem", color: "#9a958d", fontStyle: "italic", margin: "1px 12px 3px" }}>Aucune péricope trouvée.</p>
+                  )}
+                </div>
+              )}
               {auteursTrouves.length > 0 && (
                 <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond }}>
                   <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Auteurs</p>
@@ -529,7 +646,7 @@ export default function Navbar() {
                 </div>
               )}
               {oeuvresTrouvees.length > 0 && (
-                <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond, borderTop: auteursTrouves.length > 0 ? "1px solid rgba(61,107,79,0.14)" : "none" }}>
+                <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond, borderTop: auteursTrouves.length > 0 ? "1px solid rgba(var(--cs-vert-rgb),0.14)" : "none" }}>
                   <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Œuvres patristiques</p>
                   {oeuvresTrouvees.slice(0, 3).map(o => (
                     <Link key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`} onClick={fermerRechercheRapide}
@@ -584,8 +701,8 @@ export default function Navbar() {
               {(auteursTrouves.length > 3 || oeuvresTrouvees.length > 3 || segmentsTrouves.length > 3 || essaisTrouves.length > 3 || livresTrouves.length > 3 || traductionsTrouvees.length > 3) && (
                 <div style={{ borderTop: "1px solid #ede9e2", padding: "4px 0" }}>
                   <Link href={`/recherche?q=${encodeURIComponent(requeteRapide.trim())}&mode=prefixe`} onClick={fermerRechercheRapide}
-                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", padding: "5px 12px", fontSize: "0.78rem", color: "#3d6b4f", fontWeight: 600, textDecoration: "none", letterSpacing: "0.02em" }}
-                    onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,107,79,0.06)")}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", padding: "5px 12px", fontSize: "0.78rem", color: "var(--cs-vert)", fontWeight: 600, textDecoration: "none", letterSpacing: "0.02em" }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "rgba(var(--cs-vert-rgb),0.06)")}
                     onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                     Tout voir
                     <span style={{ fontSize: "0.9rem", lineHeight: 1 }}>→</span>
@@ -610,11 +727,11 @@ export default function Navbar() {
         title="Affichage seulement — vos droits réels ne changent pas"
         style={{
           width: "30px", height: "17px", borderRadius: "999px", border: modeUtilisateurStandard ? "1px solid #7fb08e" : "1px solid rgba(255,255,255,0.72)", cursor: "pointer", padding: 0, flexShrink: 0,
-          background: modeUtilisateurStandard ? "#3d6b4f" : "#f7f4ef",
-          boxShadow: modeUtilisateurStandard ? "0 0 0 1px rgba(61,107,79,0.35)" : "0 0 0 1px rgba(0,0,0,0.18)",
+          background: modeUtilisateurStandard ? "var(--cs-vert)" : "#f7f4ef",
+          boxShadow: modeUtilisateurStandard ? "0 0 0 1px rgba(var(--cs-vert-rgb),0.35)" : "0 0 0 1px rgba(0,0,0,0.18)",
           position: "relative", transition: "background 0.15s, border-color 0.15s",
         }}>
-        <span style={{ position: "absolute", top: "2px", left: modeUtilisateurStandard ? "14px" : "2px", width: "11px", height: "11px", borderRadius: "50%", background: modeUtilisateurStandard ? "#fff" : "#3d6b4f", transition: "left 0.15s, background 0.15s" }} />
+        <span style={{ position: "absolute", top: "2px", left: modeUtilisateurStandard ? "14px" : "2px", width: "11px", height: "11px", borderRadius: "50%", background: modeUtilisateurStandard ? "#fff" : "var(--cs-vert)", transition: "left 0.15s, background 0.15s" }} />
       </button>
       <span>Admin</span>
     </div>
@@ -651,7 +768,7 @@ export default function Navbar() {
               ? { display: "flex", alignItems: "center", gap: "7px", padding: "10px 12px", fontSize: "0.91rem", color: "rgba(255,255,255,0.85)", textDecoration: "none" }
               : { display: "flex", alignItems: "center", gap: "7px", padding: "10px 14px", fontSize: "0.875rem", color: "#2a3d30", textDecoration: "none", borderBottom: "1px solid #ede9e2" }}>
             {/* Administration : plus d'icône ; libellé simplement mis en vert (menu desktop). */}
-            <span style={item.icone === "epee" && !mobile ? { color: "#3d6b4f", fontWeight: 600 } : undefined}>{item.label}</span>
+            <span style={item.icone === "epee" && !mobile ? { color: "var(--cs-vert)", fontWeight: 600 } : undefined}>{item.label}</span>
             {item.badge > 0 && (
               <span style={{ marginLeft: '4px', fontSize: '0.7rem', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
             )}
@@ -674,12 +791,25 @@ export default function Navbar() {
     </Link>
   );
 
+  // Lien du menu mobile (liste verticale dépliée sous la barre).
+  const lienMobile = (href: string, label: string) => {
+    const chemin = href.split("?")[0] || "/";
+    const actif = pathname === chemin || (chemin !== "/" && pathname.startsWith(chemin));
+    return (
+      <Link key={href} href={href} onClick={() => setMobileOuvert(false)}
+        style={{ padding: "9px 10px", borderRadius: "6px", fontSize: "0.98rem", color: "#fff", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
+        {label}
+      </Link>
+    );
+  };
+  const styleSectionMobile: React.CSSProperties = { fontSize: "0.66rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", margin: "8px 10px 2px" };
+
   return (
     <>
       {/* `data-cs-navbar` sert de prise à la page d'ouverture, qui se passe de
           barre de navigation : rien à naviguer tant que le site est fermé. */}
       <header data-cs-navbar className="fixed top-0 left-0 right-0 border-b"
-        style={{ background: "#3d6b4f", borderColor: "rgba(255,255,255,0.10)", zIndex: 3000 }}>
+        style={{ background: "var(--cs-vert)", borderColor: "rgba(255,255,255,0.10)", zIndex: 3000 }}>
         <style>{`
           /* Onglets de la barre. Le fond vient des variables posées en ligne par
              styleLien : la classe peut ainsi le reprendre au survol, ce qu'un fond
@@ -721,7 +851,8 @@ export default function Navbar() {
           .cs-plus-menu { position: absolute; top: 100%; left: 0; min-width: 13rem; background: #fff; border: 1px solid #d6d0c4; border-radius: 8px; box-shadow: 0 12px 30px rgba(0,0,0,0.16); overflow: hidden; z-index: 3000; padding: 4px; display: none; }
           .cs-plus:hover .cs-plus-menu, .cs-plus:focus-within .cs-plus-menu { display: block; }
           .cs-plus-lien { display: block; padding: 7px 12px; font-size: 0.82rem; color: #2a3d30; text-decoration: none; border-radius: 5px; white-space: nowrap; }
-          .cs-plus-lien:hover { background: rgba(61,107,79,0.08); }
+          .cs-plus-lien:hover { background: rgba(var(--cs-vert-rgb),0.08); }
+          .cs-plus-sep { height: 1px; background: #ece7de; margin: 4px 6px; }
           @media (prefers-reduced-motion: reduce) {
             .cs-onglet, .cs-bible, .cs-bible-face, .cs-bible-split { transition: none; }
           }
@@ -763,6 +894,9 @@ export default function Navbar() {
                 ? <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} />
                 : <Link key={href} href={href} className="cs-onglet" style={styleLien(href, exact, !discret)}>{label}</Link>
             ))}
+            {(estAdmin || estAdminEmail) && (
+              <OngletAdministration label="Administration" style={styleLien("/admin", false, true)} />
+            )}
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginLeft: "0.25rem", paddingLeft: "0.5rem", minWidth: 0, borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
               {blocRecherche(false)}
             </div>
@@ -829,18 +963,20 @@ export default function Navbar() {
         {mobileOuvert && (
           <div className="lg:hidden" style={{ background: "#345c43", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-              {/* Au mobile la liste est verticale : le groupement n'y a pas de sens
-                  visuel, mais l'ordre reste le même — Bible et Polyglotte en tête. */}
-              {[...LIENS_LECTURE, ...LIENS_PRIMAIRES, ...LIENS_SECONDAIRES].map(({ href, label }) => {
-                const chemin = href.split("?")[0] || "/";
-                const actif = pathname === chemin || (chemin !== "/" && pathname.startsWith(chemin));
-                return (
-                  <Link key={href} href={href} onClick={() => setMobileOuvert(false)}
-                    style={{ padding: "9px 10px", borderRadius: "6px", fontSize: "0.98rem", color: "#fff", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
-                    {label}
-                  </Link>
-                );
-              })}
+              {/* Liste verticale : lecture, puis Patristique/Publications, puis les pages
+                  d'« Aller plus loin » dépliées, et enfin les sections d'admin. */}
+              {[...LIENS_LECTURE, ...LIENS_PRIMAIRES.filter(l => l.href !== "/traductions")].map(({ href, label }) => lienMobile(href, label))}
+
+              <p style={styleSectionMobile}>Aller plus loin</p>
+              {LIENS_ALLER_PLUS_LOIN.map(({ href, label }) => lienMobile(href, label))}
+
+              {(estAdmin || estAdminEmail) && (
+                <>
+                  <p style={styleSectionMobile}>Administration</p>
+                  {LIENS_ADMIN.map(({ href, label }) => lienMobile(href, label))}
+                  {lienMobile(LIEN_BIBLE_899.href, LIEN_BIBLE_899.label)}
+                </>
+              )}
             </div>
             {blocRecherche(true)}
             <Link href="/soutenir" onClick={() => setMobileOuvert(false)}
@@ -853,8 +989,8 @@ export default function Navbar() {
         )}
         {toastNotification && (
           <div role="button" tabIndex={0} onClick={() => { setToastNotification(null); setNotifsOuvertes(true); }}
-            style={{ position: "fixed", top: "calc(3.5rem + 0.75rem)", right: "18px", width: "17.5rem", background: "#fff", border: "1px solid #d6d0c4", borderLeft: "3px solid #3d6b4f", borderRadius: "8px", boxShadow: "0 12px 34px rgba(0,0,0,0.16)", padding: "11px 13px", zIndex: 4000, cursor: "pointer" }}>
-            <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#3d6b4f", margin: "0 0 4px" }}>Nouvelle notification</p>
+            style={{ position: "fixed", top: "calc(3.5rem + 0.75rem)", right: "18px", width: "17.5rem", background: "#fff", border: "1px solid #d6d0c4", borderLeft: "3px solid var(--cs-vert)", borderRadius: "8px", boxShadow: "0 12px 34px rgba(0,0,0,0.16)", padding: "11px 13px", zIndex: 4000, cursor: "pointer" }}>
+            <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-vert)", margin: "0 0 4px" }}>Nouvelle notification</p>
             <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.98rem", color: "#1e2e24", margin: "0 0 4px" }}>{toastNotification.titre}</p>
             <p style={{ fontSize: "0.805rem", color: "#6b6560", lineHeight: 1.35, margin: 0 }}>{toastNotification.message}</p>
           </div>

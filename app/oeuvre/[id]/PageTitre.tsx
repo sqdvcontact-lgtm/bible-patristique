@@ -2,6 +2,7 @@ import type { Props, ChampOeuvre } from './oeuvreTypes'
 import { rendreTexteEnrichi } from './texteEnrichi'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { resoudreEditeur } from '@/app/lib/editeurs'
+import IconeCrayon from '@/app/components/IconeCrayon'
 import { MarqueImprimeur } from './Ornements'
 import { sansPointFinal } from '@/app/lib/titres'
 
@@ -145,7 +146,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
         </h1>
         {estAdmin && (
           <button onClick={() => onModifier('titre', titre)} title="Modifier le titre de l'œuvre"
-            style={{ ...BTN, right: '-24px', top: 0 }}>✎</button>
+            style={{ ...BTN, right: '-24px', top: 0 }}><IconeCrayon size={12} /></button>
         )}
       </div>
 
@@ -157,7 +158,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('sous_titre', oeuvre.sous_titre ?? '')} title="Modifier le sous-titre"
-              style={{ ...BTN, right: '-20px', top: 0 }}>✎</button>
+              style={{ ...BTN, right: '-20px', top: 0 }}><IconeCrayon size={12} /></button>
           )}
         </div>
       )}
@@ -170,7 +171,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('titre_original', oeuvre.titre_original ?? '')} title="Modifier le titre original"
-              style={{ ...BTN, right: '-20px', top: 0 }}>✎</button>
+              style={{ ...BTN, right: '-20px', top: 0 }}><IconeCrayon size={12} /></button>
           )}
         </div>
       )}
@@ -183,7 +184,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('trad_auteur', oeuvre.trad_auteur ?? '')} title="Modifier le traducteur"
-              style={{ ...BTN, right: '-18px', top: 0 }}>✎</button>
+              style={{ ...BTN, right: '-18px', top: 0 }}><IconeCrayon size={12} /></button>
           )}
         </div>
       )}
@@ -202,7 +203,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
 
       {/* Colophon : maison d'édition en ligne (vert), rappel de l'auteur,
           provenance de la traduction, millésime de l'édition en ligne. */}
-      <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.08em', color: '#3d6b4f', marginBottom: '6px' }}>
+      <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--cs-vert)', marginBottom: '6px' }}>
         Corpus Scriptura
       </p>
       {(oeuvre.editeur || oeuvre.ville || oeuvre.date_publication) && (

@@ -17,6 +17,17 @@
   --mesure-bloc:  31.25rem;  /* 500px  bloc de sélection         */
   --mesure-ligne: 33.625rem; /* 538px  largeur de ligne          */
   --mesure-page:  38.75rem;  /* 620px  conteneur de lecture      */
+
+  /* ── Couleur d'accent : le vert du site ──
+     Source unique de la teinte verte, jusqu'ici répétée en dur (~470 fois pour
+     l'aplat, ~150 pour ses variantes translucides). Changer la teinte du site =
+     modifier ces trois lignes. `--cs-vert-rgb` porte les composantes RGB pour
+     composer les variantes translucides via `rgba(var(--cs-vert-rgb), α)`.
+     N.B. les attributs SVG `fill=`/`stroke=` gardent la valeur littérale : une
+     custom property n'y est pas résolue par tous les navigateurs. */
+  --cs-vert: #3d6b4f;         /* aplat d'accent (liens, boutons, actifs) */
+  --cs-vert-rgb: 61, 107, 79; /* mêmes composantes, pour les rgba(...) */
+  --cs-vert-fonce: #2e5440;   /* survol / état pressé */
 }
 
 /* ── Agrandissement fluide sur grands écrans ──
@@ -105,6 +116,31 @@ h6 {
 }
 .trad-article .sc {
   font-variant: small-caps !important;
+}
+
+/* ── Accessibilité : focus clavier toujours visible ──
+   Beaucoup de champs neutralisent l'outline par défaut (`outline: none` en style
+   inline) sans le remplacer : la navigation au clavier devenait invisible. On
+   restaure un anneau de focus, UNIQUEMENT au clavier (`:focus-visible`) — l'aspect
+   au clic/tap souris ne change donc pas. Anneau à la couleur d'accent du site.
+   Le `!important` est nécessaire pour l'emporter sur les `outline: none` en ligne. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[contenteditable="true"]:focus-visible {
+  outline: 2px solid var(--cs-vert) !important;
+  outline-offset: 1px;
+}
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+[tabindex="0"]:focus-visible {
+  outline: 2px solid var(--cs-vert);
+  outline-offset: 2px;
+}
+/* Champs sur fond vert/sombre : l'anneau vert ne contrasterait pas → anneau clair. */
+.cs-focus-clair:focus-visible {
+  outline-color: rgba(255, 255, 255, 0.9) !important;
 }
 
 /* ── Chiffres romains de siècle ── */

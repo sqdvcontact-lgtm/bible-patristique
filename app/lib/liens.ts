@@ -120,6 +120,42 @@ export async function segmentsLiesAuChapitre(livre: string, chapitre: number): P
   return [...(parVerset.data ?? []), ...(parChapitre.data ?? [])] as Lien[]
 }
 
+/** Recherche inverse sur une PLAGE canonique (péricope) : les segments qui renvoient
+ *  à l'un des versets de la plage, plus ceux rattachés à l'un de ses chapitres. Sert le
+ *  volet patristique de la page d'une péricope, à l'identique de la page Bible.
+ */
+export async function segmentsLiesAPlage(livre: string, canonDebut: string, canonFin: string | null): Promise<Lien[]> {
+  const point = (s: string) => {
+    const [, c, v] = s.split('.')
+    return { chapitre: c ? Number(c) : null, verset: v ? Number(v) : null }
+  }
+  const d = point(canonDebut)
+  const f = canonFin ? point(canonFin) : d
+  if (d.chapitre == null) return []
+  const c1 = d.chapitre, c2 = f.chapitre ?? c1
+  const v1 = d.verset, v2 = f.verset
+  const chapitres: number[] = []
+  for (let c = c1; c <= c2; c++) chapitres.push(c)
+  const requetesVerset = chapitres.map(c => supabase.from('liens_bibliques').select(COLS).like('canon_id', `${livre}.${c}.%`))
+  const requeteChapitre = supabase.from('liens_bibliques').select(COLS).is('canon_id', null).eq('livre', livre).in('chapitre', chapitres)
+  const resultats = await Promise.all([...requetesVerset, requeteChapitre])
+  const out: Lien[] = []
+  resultats.forEach((r, idx) => {
+    if (r.error) throw r.error
+    for (const l of (r.data ?? []) as Lien[]) {
+      if (idx < requetesVerset.length) {
+        // Lien au verset : ne garder que ceux DANS la plage (bornes aux chapitres extrêmes).
+        const p = point(l.canon_id ?? '')
+        if (p.verset == null) continue
+        if (v1 != null && p.chapitre === c1 && p.verset < v1) continue
+        if (v2 != null && p.chapitre === c2 && p.verset > v2) continue
+      }
+      out.push(l)
+    }
+  })
+  return out
+}
+
 /** Les versets visés par un segment, dans l'ordre des types — pour l'affichage. */
 export function versetsDuLien(liens: Lien[], type: TypeLien): string[] {
   return liens.filter(l => l.type === type && l.canon_id).map(l => l.canon_id!)

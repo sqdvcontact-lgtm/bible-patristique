@@ -68,7 +68,7 @@ export default function Consentement() {
             Corpus Scriptura utilise une mesure d’audience anonyme (Google Analytics)
             pour comprendre comment le site est consulté. Rien n’est chargé sans votre
             accord.{' '}
-            <Link href="/confidentialite" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>
+            <Link href="/confidentialite" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>
               En savoir plus
             </Link>.
           </p>
@@ -89,7 +89,7 @@ export default function Consentement() {
               style={{
                 fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
                 padding: '9px 18px', borderRadius: '8px',
-                border: '1px solid #3d6b4f', background: '#3d6b4f', color: '#fff',
+                border: '1px solid var(--cs-vert)', background: 'var(--cs-vert)', color: '#fff',
               }}
             >
               Accepter

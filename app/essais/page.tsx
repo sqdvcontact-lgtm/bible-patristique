@@ -16,7 +16,7 @@ export const metadata = {
 export default async function EssaisPage() {
   const { data: essaisRaw } = await supabaseAdmin
     .from('essais')
-    .select('id, titre, sous_titre, resume, contenu, categories, nb_vues, created_at, publie_at, user_id, afficher_nom_reel')
+    .select('id, titre, sous_titre, resume, categories, nb_vues, created_at, publie_at, user_id, afficher_nom_reel')
     .eq('statut', 'publie')
     .order('publie_at', { ascending: false })
 
@@ -48,7 +48,7 @@ export default async function EssaisPage() {
     const p = profilMap[e.user_id]
     const nomAffiche = (e.afficher_nom_reel && p?.nom) ? `${p.prenom ? p.prenom + ' ' : ''}${p.nom}` : (p?.pseudo ?? 'Anonyme')
     return {
-      id: e.id, titre: e.titre, sous_titre: e.sous_titre, resume: e.resume, contenu: e.contenu,
+      id: e.id, titre: e.titre, sous_titre: e.sous_titre, resume: e.resume,
       categories: e.categories ?? [], nb_vues: e.nb_vues, nb_likes: likesParEssai.get(e.id) ?? 0,
       publie_at: e.publie_at, auteur: nomAffiche, auteur_score: scoreMap[e.user_id] ?? 0,
       avatar_url: (p as any)?.avatar_url ?? null, user_id: e.user_id,

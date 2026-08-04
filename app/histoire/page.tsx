@@ -5,21 +5,23 @@ import { supabase } from '@/app/lib/supabase'
 import { rendreSiecles, decouperSiecles, Siecle } from '@/app/lib/siecles'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import {
-  type RangFrise, type Densite, DENSITES, coulFamille, passeDensite,
+  type RangFrise, type RangFriseDates, type Densite, DENSITES, coulFamille, passeDensite,
   libelleSource, estUrl, siecleDe,
+  fusionnerDatesFrise,
 } from '@/app/lib/frise'
+import HistoricalDate from '@/app/components/HistoricalDate'
 
 // Frise générale de l'histoire de l'Église.
-// Source unique : la vue `v_frise_generale`, triée par `ordre_affichage`.
-// L'ordre est éditorial : il ne doit jamais être recalculé ici. Les dates sont
-// affichées telles que rédigées (`date_affichage`), avec leurs nuances.
+// Les champs riches viennent de `v_frise_generale`, triée par `ordre_affichage`.
+// Les dates affichées et leurs précisions viennent de `rechercher_frise_v2`.
+// L'ordre éditorial ne doit jamais être recalculé ici.
 
 const FOND = '#f4f0eb'
 const TEXTE = '#1f1b18'
 const TEXTE2 = '#7a746d'
 const BORD = '#ddd4ca'
 const SEP = '#ece6db'
-const VERT = '#3d6b4f'
+const VERT = 'var(--cs-vert)'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 
@@ -124,10 +126,29 @@ export default function HistoirePage() {
   const initUrlFaite = useRef(false)
 
   useEffect(() => {
-    supabase.from('v_frise_generale').select('*').order('ordre_affichage')
-      .then(({ data, error }) => {
-        if (error) setErreur(error.message)
-        else setEvs((data ?? []) as RangFrise[])
+    // La RPC limite chaque réponse à 500 lignes. Ces plages couvrent la frise
+    // entière sans changer l'ordre éditorial porté par la vue riche.
+    const plages = [
+      { p_date_fin: 999 },
+      { p_date_debut: 1000, p_date_fin: 1499 },
+      { p_date_debut: 1500, p_date_fin: 1799 },
+      { p_date_debut: 1800 },
+    ]
+    const requeteRangs = supabase.from('v_frise_generale').select('*').order('ordre_affichage')
+    const requetesDates = plages.map(plage => supabase.rpc('rechercher_frise_v2', {
+      p_mode: 'tout',
+      p_limite: 500,
+      ...plage,
+    }))
+
+    Promise.all([requeteRangs, ...requetesDates])
+      .then(([rangs, ...resultatsDates]) => {
+        const erreur = rangs.error ?? resultatsDates.find(resultat => resultat.error)?.error
+        if (erreur) setErreur(erreur.message)
+        else {
+          const dates = resultatsDates.flatMap(resultat => (resultat.data ?? []) as RangFriseDates[])
+          setEvs(fusionnerDatesFrise((rangs.data ?? []) as RangFrise[], dates))
+        }
         setChargement(false)
       })
   }, [])
@@ -289,7 +310,7 @@ export default function HistoirePage() {
       {/* Afficher/masquer les notices (et l'accès aux « Sources et détail »). */}
       <button onClick={() => setToutesNotes(o => !o)} aria-pressed={toutesNotes}
         style={{ marginTop: '10px', width: '100%', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px', borderRadius: '6px', cursor: 'pointer',
-          border: `1px solid ${toutesNotes ? VERT : BORD}`, background: toutesNotes ? 'rgba(61,107,79,0.10)' : '#fff', color: toutesNotes ? VERT : '#6b6560' }}>
+          border: `1px solid ${toutesNotes ? VERT : BORD}`, background: toutesNotes ? 'rgba(var(--cs-vert-rgb),0.10)' : '#fff', color: toutesNotes ? VERT : '#6b6560' }}>
         {toutesNotes ? 'Masquer toutes les notes' : 'Afficher toutes les notes'}
       </button>
 
@@ -572,7 +593,11 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche }: { e: RangFrise; m
   const [noticeOuverte, setNoticeOuverte] = useState(false)
   const c = coulFamille(e.famille)
   const idCarte = `d-${e.id}`
-  const aNotice = !!(e.notice && e.notice.trim())
+  const aNotice = !!(
+    (e.notice && e.notice.trim())
+    || (e.date_precision_affichage && e.date_precision_affichage.trim())
+    || (e.note_datation && e.note_datation.trim())
+  )
   // La notice s'affiche si le mode global est actif OU si l'on a cliqué sur l'intitulé.
   const afficheNotice = toutesNotes || noticeOuverte
 
@@ -587,7 +612,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche }: { e: RangFrise; m
   // le texte entier restant accessible en infobulle).
   const dateCol = (
     <div title={dateTexte} style={{ fontFamily: SERIF, fontSize: '0.76rem', color: '#b7a06a', lineHeight: 1.35, fontVariantNumeric: 'tabular-nums', textAlign: mobile ? 'left' : 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-      {rendreSiecles(dateTexte)}
+      <HistoricalDate value={e.date_affichage} variant="short" />
     </div>
   )
   const familleCol = (
@@ -621,6 +646,18 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche }: { e: RangFrise; m
         </p>
       )}
 
+      {afficheNotice && e.date_precision_affichage && (
+        <p style={{ fontFamily: SERIF, fontSize: '0.76rem', color: '#7a6f61', lineHeight: 1.5, margin: '4px 0 0' }}>
+          <HistoricalDate value={e.date_precision_affichage} variant="short" />
+        </p>
+      )}
+
+      {afficheNotice && e.note_datation && (
+        <p style={{ fontFamily: SERIF, fontSize: '0.76rem', color: '#7a6f61', lineHeight: 1.5, margin: '4px 0 0' }}>
+          {rendreFrise(e.note_datation, recherche)}
+        </p>
+      )}
+
       {afficheNotice && (
         <div style={{ marginTop: '5px' }}>
           <button onClick={() => setDetailOuvert(o => !o)} aria-expanded={detailOuvert} aria-controls={idCarte}
@@ -635,7 +672,6 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche }: { e: RangFrise; m
           {/* Sous-famille (genre) : reléguée ici, pas visible au premier regard. */}
           {e.genre && <LigneDetail label="Sous-famille">{e.genre}</LigneDetail>}
           <Geographie e={e} />
-          {e.note_datation && <LigneDetail label="Précision sur la date">{e.note_datation}</LigneDetail>}
           <Sources principale={e.source_principale} secondaire={e.source_secondaire} />
         </div>
       )}

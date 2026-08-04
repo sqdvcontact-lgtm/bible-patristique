@@ -159,7 +159,7 @@ function BoutonCopie({ texte }: { texte: string }) {
   return (
     <button onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(texte).then(() => { setOk(true); setTimeout(() => setOk(false), 1400); }); }}
       className="prel-action" title="Copier"
-      style={{ color: ok ? "#3d6b4f" : undefined }}>
+      style={{ color: ok ? "var(--cs-vert)" : undefined }}>
       {ok ? "✓" : (
         <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
           <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
@@ -227,8 +227,8 @@ function GroupeRepliable({ label, count, ouvert, onToggle, children }: {
   return (
     <div style={{ borderTop: "2px solid #c8bdb0" }}>
       <button onClick={onToggle}
-        style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(61,107,79,0.05)", border: "none", cursor: "pointer", padding: "11px 10px 10px", width: "100%", textAlign: "left" }}>
-        <span style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#3d6b4f", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+        style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(var(--cs-vert-rgb),0.05)", border: "none", cursor: "pointer", padding: "11px 10px 10px", width: "100%", textAlign: "left" }}>
+        <span style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--cs-vert)", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
           {label}
         </span>
         <span style={{ fontSize: "0.59375rem", color: "#b0a89e", background: "transparent", padding: "0 4px", letterSpacing: "0.04em" }}>{count}</span>
@@ -405,7 +405,7 @@ export default function PrelevementsPage() {
           transition: background 0.12s;
         }
         .prel-item:last-child { border-bottom: none; }
-        .prel-item:hover { background: rgba(61,107,79,0.03); }
+        .prel-item:hover { background: rgba(var(--cs-vert-rgb),0.03); }
 
         /* Citation préférée — encadrement doré complet */
         .prel-pref {
@@ -420,7 +420,7 @@ export default function PrelevementsPage() {
         .prel-actions { display: flex; gap: 0; align-items: center; flex-shrink: 0; margin-left: 10px; opacity: 0; transition: opacity 0.15s; }
         .prel-item:hover .prel-actions { opacity: 1; }
         .prel-action { background: none; border: none; cursor: pointer; color: #b0a89e; padding: 0; line-height: 1; transition: color 0.12s; font-family: inherit; font-size:0.8125rem; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 22px; box-sizing: border-box; text-decoration: none; }
-        .prel-action:hover { color: #3d6b4f; }
+        .prel-action:hover { color: var(--cs-vert); }
         .prel-coeur-active { color: #9a7a38 !important; opacity: 1 !important; }
         .prel-confirm { font-size:0.65625rem; color: #9a8a72; display: flex; align-items: center; white-space: nowrap; }
         .prel-trad-sel {
@@ -462,7 +462,7 @@ export default function PrelevementsPage() {
                 fontWeight: onglet === t ? 600 : 400,
                 color: onglet === t ? "#1e1a14" : "#a89e8e",
                 background: "transparent", border: "none",
-                borderBottom: onglet === t ? "1.5px solid #3d6b4f" : "1.5px solid transparent",
+                borderBottom: onglet === t ? "1.5px solid var(--cs-vert)" : "1.5px solid transparent",
                 cursor: "pointer", letterSpacing: "0.01em", transition: "color 0.12s",
                 marginBottom: "-1px",
               }}>
@@ -491,7 +491,7 @@ export default function PrelevementsPage() {
               <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.875rem", color: "#9a8a72", marginBottom: "20px" }}>
                 Aucun verset enregistré.
               </p>
-              <Link href="/?livre=GEN&chapitre=1" style={{ fontSize: "0.71875rem", color: "#3d6b4f", textDecoration: "none", letterSpacing: "0.04em" }}>Ouvrir la Bible →</Link>
+              <Link href="/?livre=GEN&chapitre=1" style={{ fontSize: "0.71875rem", color: "var(--cs-vert)", textDecoration: "none", letterSpacing: "0.04em" }}>Ouvrir la Bible →</Link>
             </div>
           ) : (
             <div>
@@ -546,7 +546,7 @@ export default function PrelevementsPage() {
               <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.875rem", color: "#9a8a72", marginBottom: "20px" }}>
                 Aucun passage enregistré.
               </p>
-              <Link href="/bibliotheque" style={{ fontSize: "0.71875rem", color: "#3d6b4f", textDecoration: "none", letterSpacing: "0.04em" }}>Ouvrir la bibliothèque →</Link>
+              <Link href="/bibliotheque" style={{ fontSize: "0.71875rem", color: "var(--cs-vert)", textDecoration: "none", letterSpacing: "0.04em" }}>Ouvrir la bibliothèque →</Link>
             </div>
           ) : (
             <div>

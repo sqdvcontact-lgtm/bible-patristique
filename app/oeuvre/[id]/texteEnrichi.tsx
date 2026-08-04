@@ -48,7 +48,7 @@ export function rendreTexteEnrichi(
     else if (m[3] !== undefined) { const key = k++; noeuds.push(<sup key={key}>{rendreTexteEnrichi(m[3], transform)}</sup>) }
     else if (m[4] !== undefined) { const key = k++; noeuds.push(<em key={key}>{rendreTexteEnrichi(m[4], transform)}</em>) }
     else if (m[5] !== undefined) { const key = k++; noeuds.push(
-      <a key={key} href={m[6]} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{rendreTexteEnrichi(m[5], transform)}</a>
+      <a key={key} href={m[6]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteEnrichi(m[5], transform)}</a>
     ) }
     else if (m[7] !== undefined) {
       noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)

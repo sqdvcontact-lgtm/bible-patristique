@@ -29,7 +29,7 @@ const boutonOutil: React.CSSProperties = {
 function styleBouton(actif: boolean, extra?: React.CSSProperties): React.CSSProperties {
   return {
     ...boutonOutil,
-    ...(actif ? { background: 'rgba(61,107,79,0.14)', borderColor: '#a9c9b6', color: '#2f6046', fontWeight: 600 } : {}),
+    ...(actif ? { background: 'rgba(var(--cs-vert-rgb),0.14)', borderColor: '#a9c9b6', color: '#2f6046', fontWeight: 600 } : {}),
     ...extra,
   }
 }
@@ -232,7 +232,7 @@ export default function EditeurCommentaire({ value, onChange, placeholder = 'Vot
         onKeyUp={majActifs}
         onMouseUp={majActifs}
         onFocus={majActifs}
-        style={{ minHeight, maxHeight: 180, overflowY: 'auto', width: '100%', fontSize: '0.70625rem', padding: '7px 8px', border: '1px solid #cfd8d0', borderRadius: '5px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box', lineHeight: 1.45, boxShadow: 'inset 3px 0 0 rgba(61,107,79,0.12)', whiteSpace: 'pre-wrap' }}
+        style={{ minHeight, maxHeight: 180, overflowY: 'auto', width: '100%', fontSize: '0.70625rem', padding: '7px 8px', border: '1px solid #cfd8d0', borderRadius: '5px', background: '#fff', color: '#2a2520', outline: 'none', boxSizing: 'border-box', lineHeight: 1.45, boxShadow: 'inset 3px 0 0 rgba(var(--cs-vert-rgb),0.12)', whiteSpace: 'pre-wrap' }}
       />
       <style>{`
         [contenteditable][data-placeholder]:empty::before {

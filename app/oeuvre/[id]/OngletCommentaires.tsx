@@ -6,6 +6,7 @@ import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { insererSignalement } from './signalements'
 import EditeurCommentaire from '@/app/components/EditeurCommentaire'
+import IconeDrapeau from '@/app/components/IconeDrapeau'
 
 // Pas plus de 5 majuscules consécutives (accentuées comprises).
 const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
@@ -48,7 +49,7 @@ function ModalSignalerCommentaire({ titre, onClose, onEnvoyer }: {
         </div>
         <p style={{ fontSize: '0.65625rem', color: '#9a958d', fontStyle: 'italic', marginBottom: '10px', lineHeight: 1.4 }}>{titre}</p>
         {statut === 'ok' ? (
-          <p style={{ fontSize: '0.71875rem', color: '#3d6b4f', fontStyle: 'italic', textAlign: 'center', padding: '8px 0' }}>Signalement envoyé, merci !</p>
+          <p style={{ fontSize: '0.71875rem', color: 'var(--cs-vert)', fontStyle: 'italic', textAlign: 'center', padding: '8px 0' }}>Signalement envoyé, merci !</p>
         ) : (
           <>
             <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Décrivez le problème…" rows={4} autoFocus
@@ -210,7 +211,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   const VoteBoutons = ({ c }: { c: CommentaireAvecAuteur }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '1px', flexShrink: 0 }}>
       <button onClick={() => basculerVote(c, 1)} title="J'aime"
-        style={{ display: 'flex', alignItems: 'center', gap: '2px', color: c.monVote === 1 ? '#3d6b4f' : '#b0a89e', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+        style={{ display: 'flex', alignItems: 'center', gap: '2px', color: c.monVote === 1 ? 'var(--cs-vert)' : '#b0a89e', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
         <svg width="10" height="10" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
         </svg>
@@ -244,9 +245,9 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     const couleurs = rangInfo ? couleurRang(rangInfo.rang) : null
     const estCertifie = !!c.certifie
     const estRevision = !c.valide
-    const fondCarte = estCertifie ? 'rgba(61,107,79,0.08)' : estRevision ? 'rgba(176,58,42,0.07)' : '#fff'
-    const bordureCarte = estCertifie ? 'rgba(61,107,79,0.28)' : estRevision ? 'rgba(176,58,42,0.26)' : '#e4dfd8'
-    const accentCarte = estReponse ? '#c8c0b4' : estCertifie ? '#3d6b4f' : estRevision ? '#b03a2a' : '#d6d0c4'
+    const fondCarte = estCertifie ? 'rgba(var(--cs-vert-rgb),0.08)' : estRevision ? 'rgba(176,58,42,0.07)' : '#fff'
+    const bordureCarte = estCertifie ? 'rgba(var(--cs-vert-rgb),0.28)' : estRevision ? 'rgba(176,58,42,0.26)' : '#e4dfd8'
+    const accentCarte = estReponse ? '#c8c0b4' : estCertifie ? 'var(--cs-vert)' : estRevision ? '#b03a2a' : '#d6d0c4'
     const fondTexte = estCertifie ? 'rgba(255,255,255,0.42)' : estRevision ? 'rgba(255,255,255,0.48)' : 'rgba(255,255,255,0.54)'
     const couleurTexte = estRevision ? '#6f3d35' : '#2a2520'
     return (
@@ -265,7 +266,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
                 {rangInfo.rang}
               </span>
             )}
-            {estCertifie && <span style={{ fontSize: '0.53125rem', fontWeight: 700, color: '#2f6a48', background: 'rgba(61,107,79,0.14)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>CERTIFIÉ</span>}
+            {estCertifie && <span style={{ fontSize: '0.53125rem', fontWeight: 700, color: '#2f6a48', background: 'rgba(var(--cs-vert-rgb),0.14)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>CERTIFIÉ</span>}
             {estRevision && <span style={{ fontSize: '0.53125rem', fontWeight: 700, color: '#b03a2a', background: 'rgba(176,58,42,0.10)', padding: '1px 6px', borderRadius: '3px', letterSpacing: '0.04em' }}>EN RÉVISION</span>}
           </div>
           <span style={{ marginLeft: 'auto', textAlign: 'right', fontSize: '0.5625rem', color: '#b0a89e', flexShrink: 0 }}>{dateHeureCommentaire(c.created_at)}</span>
@@ -292,8 +293,8 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
             </button>
           )}
           <button onClick={() => setCommentaireSignale(c)} title="Signaler ce commentaire"
-            style={{ fontSize: '0.6875rem', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: userId === c.user_id || (estAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink: 0 }}>
-            ⚑
+            style={{ color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: userId === c.user_id || (estAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}>
+            <IconeDrapeau />
           </button>
         </div>
         </>
@@ -361,8 +362,8 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
         ) : (
           <>
             {cibleReponse && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(61,107,79,0.07)', border: '1px solid rgba(61,107,79,0.18)', borderRadius: '5px', padding: '6px 10px', marginBottom: '6px' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.6875rem', color: '#3d6b4f' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(var(--cs-vert-rgb),0.07)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '5px', padding: '6px 10px', marginBottom: '6px' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.6875rem', color: 'var(--cs-vert)' }}>
                   <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
                     <path d="M7 4 3.5 7.5 7 11M3.5 7.5H10a2.5 2.5 0 0 1 2.5 2.5V12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -374,13 +375,13 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
             <EditeurCommentaire value={texte} onChange={setTexte} placeholder={cibleReponse ? 'Votre réponse…' : 'Votre commentaire sur ce passage…'} minHeight={70} />
             <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.65625rem', color: '#6b6560', cursor: 'pointer', lineHeight: 1, height: '16px', marginTop: '6px' }}>
               <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
-                style={{ width: '12px', height: '12px', flexShrink: 0, accentColor: '#3d6b4f', cursor: 'pointer', margin: 0 }} />
+                style={{ width: '12px', height: '12px', flexShrink: 0, accentColor: 'var(--cs-vert)', cursor: 'pointer', margin: 0 }} />
               <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demander la certification</span>
             </label>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px', gap: '8px', alignItems: 'center' }}>
               {statut === 'err' && <span style={{ fontSize: '0.65625rem', color: '#c0562a' }}>Erreur — vérifiez qu'il n'y a pas plus de 5 capitales à la suite.</span>}
               <button onClick={soumettre} disabled={statut === 'sending' || !texte.trim()}
-                style={{ fontSize: '0.71875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? '#3d6b4f' : '#e4dfd8', color: texte.trim() ? '#fff' : '#9a958d', fontWeight: 500 }}>
+                style={{ fontSize: '0.71875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? 'var(--cs-vert)' : '#e4dfd8', color: texte.trim() ? '#fff' : '#9a958d', fontWeight: 500 }}>
                 {statut === 'sending' ? 'Envoi…' : 'Soumettre'}
               </button>
             </div>

@@ -96,7 +96,7 @@ function surligner(texte: string, q: string): ReactNode {
   if (!q) return texte
   const parts = texte.split(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'))
   return parts.map((p, i) => (i % 2 === 1)
-    ? <mark key={i} style={{ background: 'rgba(61,107,79,0.20)', color: 'inherit', borderRadius: '2px', padding: '0 1px' }}>{p}</mark>
+    ? <mark key={i} style={{ background: 'rgba(var(--cs-vert-rgb),0.20)', color: 'inherit', borderRadius: '2px', padding: '0 1px' }}>{p}</mark>
     : <span key={i}>{p}</span>)
 }
 
@@ -160,20 +160,20 @@ function BoutonCiter({ onCiter }: { onCiter: () => void }) {
   return (
     <button type="button" onClick={(e) => { e.stopPropagation(); onCiter() }} style={boutonCiterStyle}
       onMouseEnter={e => { e.currentTarget.style.background = '#35603f' }}
-      onMouseLeave={e => { e.currentTarget.style.background = '#3d6b4f' }}>Citer</button>
+      onMouseLeave={e => { e.currentTarget.style.background = 'var(--cs-vert)' }}>Citer</button>
   )
 }
 
 const petitChoixStyle: CSSProperties = {
   fontSize: '0.625rem', padding: '3px 7px', borderRadius: '4px', border: '1px solid #d6d0c4',
-  background: '#fff', color: '#3d6b4f', cursor: 'pointer', whiteSpace: 'nowrap',
+  background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer', whiteSpace: 'nowrap',
 }
 
 // Bouton « Citer » soigné : petite pastille verte pleine, calée en bout de ligne et
 // centrée verticalement.
 const boutonCiterStyle: CSSProperties = {
   flexShrink: 0, alignSelf: 'center', fontSize: '0.625rem', fontWeight: 600, padding: '4px 12px',
-  borderRadius: '999px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer',
+  borderRadius: '999px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer',
   whiteSpace: 'nowrap', letterSpacing: '0.02em', transition: 'background 0.15s',
 }
 
@@ -181,7 +181,7 @@ const boutonCiterStyle: CSSProperties = {
 function BoutonRetour({ onClick, children, inline = false }: { onClick: () => void; children: ReactNode; inline?: boolean }) {
   return (
     <button type="button" onClick={onClick}
-      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.6875rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: inline ? 0 : '10px' }}>
+      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: inline ? 0 : '10px' }}>
       <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', borderRadius: '50%', border: '1px solid #cddbd1', background: '#f4f8f5' }}>
         <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
           <path d="M10 3.5L5.5 8l4.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -210,7 +210,7 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
           <div style={{ display: 'flex', gap: '6px' }}>
             {(['bible', 'patristique'] as const).map(s => (
               <button key={s} onClick={() => setSource(s)}
-                style={{ fontSize: '0.75rem', padding: '6px 14px', borderRadius: '5px', border: 'none', cursor: 'pointer', background: source === s ? '#3d6b4f' : '#e4dfd8', color: source === s ? '#fff' : '#6b6560', fontWeight: source === s ? 600 : 400 }}>
+                style={{ fontSize: '0.75rem', padding: '6px 14px', borderRadius: '5px', border: 'none', cursor: 'pointer', background: source === s ? 'var(--cs-vert)' : '#e4dfd8', color: source === s ? '#fff' : '#6b6560', fontWeight: source === s ? 600 : 400 }}>
                 {s === 'bible' ? 'Bible' : 'Patristique'}
               </button>
             ))}
@@ -218,7 +218,7 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
           <div style={{ display: 'flex', gap: '6px' }}>
             {(['parcourir', 'mes-citations'] as const).map(m => (
               <button key={m} onClick={() => setMode(m)}
-                style={{ fontSize: '0.6875rem', padding: '5px 11px', borderRadius: '12px', border: `1px solid ${mode === m ? '#3d6b4f' : '#d6d0c4'}`, cursor: 'pointer', background: mode === m ? 'rgba(61,107,79,0.10)' : '#fff', color: mode === m ? '#3d6b4f' : '#8a8278' }}>
+                style={{ fontSize: '0.6875rem', padding: '5px 11px', borderRadius: '12px', border: `1px solid ${mode === m ? 'var(--cs-vert)' : '#d6d0c4'}`, cursor: 'pointer', background: mode === m ? 'rgba(var(--cs-vert-rgb),0.10)' : '#fff', color: mode === m ? 'var(--cs-vert)' : '#8a8278' }}>
                 {m === 'parcourir' ? 'Parcourir' : 'Mes citations'}
               </button>
             ))}
@@ -257,12 +257,15 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
   }, [])
 
   // Rechargement des versets quand le chapitre OU la traduction change : la vue
-  // `versets_lecture` porte une colonne par traduction ; on lit celle qui est choisie.
+  // `versets_lecture` porte une colonne par traduction. Comme on recharge déjà à
+  // chaque changement de traduction et qu'on ne lit qu'une colonne (`v[trad]`), on
+  // ne sélectionne QUE celle-là (au lieu de `*`) — `trad` est toujours un code
+  // contrôlé (TR000x), jamais une saisie libre.
   useEffect(() => {
     if (!livre || chapitre === null) return
     let annule = false
     setChargement(true)
-    supabase.from('versets_lecture').select('*').eq('livre', livre).eq('chapitre', chapitre).order('verset').then(({ data }) => {
+    supabase.from('versets_lecture').select(`id_verset, verset, ${trad}`).eq('livre', livre).eq('chapitre', chapitre).order('verset').then(({ data }) => {
       if (annule) return
       setVersets((data ?? []).map((v: any) => ({ id_verset: v.id_verset, verset: v.verset, texte: v[trad] ?? '' })))
       setChargement(false)
@@ -338,7 +341,7 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
               return (
               <div key={v.id_verset}
                 style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'flex-start' }}>
-                <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#3d6b4f', flexShrink: 0 }}>{v.verset}</span>
+                <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--cs-vert)', flexShrink: 0 }}>{v.verset}</span>
                 <span style={{ fontSize: '0.78125rem', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{rendreTexteEnrichi(v.texte)}</span>
                 <BoutonCiter
                   onCiter={() => {
@@ -485,9 +488,9 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
               const t = texteSansEnrichissement(s.segment_texte)
               return (
                 <button key={s.id} type="button" onClick={() => toggle(s.id)}
-                  style={{ display: 'flex', gap: '9px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: `1px solid ${sel ? '#3d6b4f' : '#ede9e2'}`, background: sel ? 'rgba(61,107,79,0.07)' : '#fff', cursor: 'pointer', alignItems: 'flex-start' }}>
-                  <span style={{ flexShrink: 0, width: '14px', height: '14px', marginTop: '1px', borderRadius: '3px', border: `1px solid ${sel ? '#3d6b4f' : '#c8c0b4'}`, background: sel ? '#3d6b4f' : '#fff', color: '#fff', fontSize: '0.625rem', lineHeight: '13px', textAlign: 'center' }}>{sel ? '✓' : ''}</span>
-                  <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#3d6b4f', flexShrink: 0 }}>§{s.segment_numero}</span>
+                  style={{ display: 'flex', gap: '9px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: `1px solid ${sel ? 'var(--cs-vert)' : '#ede9e2'}`, background: sel ? 'rgba(var(--cs-vert-rgb),0.07)' : '#fff', cursor: 'pointer', alignItems: 'flex-start' }}>
+                  <span style={{ flexShrink: 0, width: '14px', height: '14px', marginTop: '1px', borderRadius: '3px', border: `1px solid ${sel ? 'var(--cs-vert)' : '#c8c0b4'}`, background: sel ? 'var(--cs-vert)' : '#fff', color: '#fff', fontSize: '0.625rem', lineHeight: '13px', textAlign: 'center' }}>{sel ? '✓' : ''}</span>
+                  <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--cs-vert)', flexShrink: 0 }}>§{s.segment_numero}</span>
                   <span style={{ fontSize: '0.78125rem', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{t.slice(0, 200) + (t.length > 200 ? '…' : '')}</span>
                 </button>
               )
@@ -497,12 +500,12 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
       </div>
       {/* Barre d'insertion : agit sur le OU LES segments sélectionnés. */}
       <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '10px', marginTop: '4px', borderTop: '1px solid #ede9e2' }}>
-        <span style={{ fontSize: '0.71875rem', color: segsSelectionnes.length ? '#3d6b4f' : '#9a958d' }}>
+        <span style={{ fontSize: '0.71875rem', color: segsSelectionnes.length ? 'var(--cs-vert)' : '#9a958d' }}>
           {segsSelectionnes.length === 0 ? 'Sélectionnez un ou plusieurs segments' : `${segsSelectionnes.length} segment${segsSelectionnes.length > 1 ? 's' : ''} sélectionné${segsSelectionnes.length > 1 ? 's' : ''}`}
         </span>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
           <button type="button" disabled={!segsSelectionnes.length} onClick={() => insererSelection()}
-            style={{ ...petitChoixStyle, background: segsSelectionnes.length ? '#3d6b4f' : '#e4dfd8', color: segsSelectionnes.length ? '#fff' : '#9a958d', border: 'none', opacity: 1, cursor: segsSelectionnes.length ? 'pointer' : 'default' }}>Citer</button>
+            style={{ ...petitChoixStyle, background: segsSelectionnes.length ? 'var(--cs-vert)' : '#e4dfd8', color: segsSelectionnes.length ? '#fff' : '#9a958d', border: 'none', opacity: 1, cursor: segsSelectionnes.length ? 'pointer' : 'default' }}>Citer</button>
         </span>
       </div>
     </div>
@@ -557,7 +560,7 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
     <div key={it.id}
       style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'center' }}>
       <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 700, color: '#3d6b4f' }}>{surligner(label, recherche.trim())}</span>
+        <span style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 700, color: 'var(--cs-vert)' }}>{surligner(label, recherche.trim())}</span>
         <span style={{ display: 'block', fontSize: '0.78125rem', color: '#2a2520', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{surligner(String(it.texte ?? '').slice(0, 160), recherche.trim())}</span>
       </span>
       <BoutonCiter onCiter={() => choisir(it)} />

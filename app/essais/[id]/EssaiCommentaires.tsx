@@ -99,7 +99,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const LigneActions = ({ c, petit = false }: { c: CommentaireEssai; petit?: boolean }) => (
     <div style={{ display: 'flex', gap: petit ? '7px' : '8px', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap', marginTop: petit ? '4px' : '5px' }}>
       {userId && !petit && (
-        <button onClick={() => setCibleReponse(c)} style={{ fontSize: '0.65625rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Répondre</button>
+        <button onClick={() => setCibleReponse(c)} style={{ fontSize: '0.65625rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Répondre</button>
       )}
       {isAdmin && (
         <button onClick={() => supprimerCommentaire(c.id)} style={{ fontSize: petit ? '10px' : '10.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Supprimer</button>
@@ -261,12 +261,12 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
           )}
           <EditeurCommentaire value={texte} onChange={setTexte} placeholder="Votre commentaire…" minHeight={64} />
           {!afficherPassage ? (
-            <button onClick={() => setAfficherPassage(true)} style={{ fontSize: '0.625rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', alignSelf: 'flex-start', padding: 0 }}>+ Citer un passage</button>
+            <button onClick={() => setAfficherPassage(true)} style={{ fontSize: '0.625rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', alignSelf: 'flex-start', padding: 0 }}>+ Citer un passage</button>
           ) : (
             <textarea value={passageCite} onChange={e => setPassageCite(e.target.value)} rows={2} placeholder="Passage exact à commenter…"
               style={{ width: '100%', fontSize: '0.71875rem', fontStyle: 'italic', padding: '6px 8px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#fff', color: '#5a5450', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
           )}
-          <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: texte.trim() ? '#3d6b4f' : '#e4dfd8', color: texte.trim() ? '#fff' : '#9a958d', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
+          <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: texte.trim() ? 'var(--cs-vert)' : '#e4dfd8', color: texte.trim() ? '#fff' : '#9a958d', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
             {envoi ? 'Envoi…' : 'Publier'}
           </button>
         </div>

@@ -84,12 +84,12 @@ export default function SoutenirPage() {
       <a href={LIEN_PAYPAL} target="_blank" rel="noopener noreferrer"
         style={{
           display: "inline-flex", alignItems: "center", gap: "0.6em",
-          background: "#3d6b4f", color: "#fff", textDecoration: "none",
+          background: "var(--cs-vert)", color: "#fff", textDecoration: "none",
           fontFamily: "var(--font-source-serif), Georgia, serif",
           fontSize: "clamp(0.875rem, 0.68rem + 0.28vw, 1.05rem)", fontWeight: 500,
           padding: "clamp(10px, 1.1vh, 14px) clamp(24px, 2vw, 38px)",
           borderRadius: "6px",
-          boxShadow: "0 3px 12px rgba(61,107,79,0.22)",
+          boxShadow: "0 3px 12px rgba(var(--cs-vert-rgb),0.22)",
           letterSpacing: "0.01em",
           flexShrink: 0,
         }}>

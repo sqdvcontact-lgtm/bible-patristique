@@ -46,7 +46,7 @@ export default function SectionEssais({
           <Carte key={e.id}>
             <div style={{ display: 'flex', gap: '5px', marginBottom: '6px' }}>
               {e.categories.map(c => (
-                <span key={c} style={{ fontSize: '0.68281rem', color: '#3d6b4f', background: 'rgba(61,107,79,0.08)', padding: '1px 8px', borderRadius: '9px', fontWeight: 600 }}>{c}</span>
+                <span key={c} style={{ fontSize: '0.68281rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.08)', padding: '1px 8px', borderRadius: '9px', fontWeight: 600 }}>{c}</span>
               ))}
             </div>
             <Link href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer"
@@ -65,7 +65,7 @@ export default function SectionEssais({
               {statut === 'loading' ? (
                 <span style={{ fontSize: '0.82656rem', color: '#9a958d' }}>…</span>
               ) : statut === 'publie' ? (
-                <span style={{ fontSize: '0.82656rem', color: '#3d6b4f', fontWeight: 600 }}>✓ Publié</span>
+                <span style={{ fontSize: '0.82656rem', color: 'var(--cs-vert)', fontWeight: 600 }}>✓ Publié</span>
               ) : statut === 'renvoye' ? (
                 <span style={{ fontSize: '0.82656rem', color: '#c0562a' }}>Renvoyé en brouillon</span>
               ) : (

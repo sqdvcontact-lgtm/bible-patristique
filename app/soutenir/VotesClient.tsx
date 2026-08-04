@@ -44,8 +44,8 @@ const PROPOSITIONS: Proposition[] = [
 ]
 
 const TAG_COULEUR: Record<string, { fond: string; texte: string }> = {
-  'Gratuit':    { fond: 'rgba(61,107,79,0.10)',  texte: '#2a5c3a' },
-  'Freemium':   { fond: 'rgba(61,107,79,0.08)',  texte: '#3d6b4f' },
+  'Gratuit':    { fond: 'rgba(var(--cs-vert-rgb),0.10)',  texte: '#2a5c3a' },
+  'Freemium':   { fond: 'rgba(var(--cs-vert-rgb),0.08)',  texte: 'var(--cs-vert)' },
   'Service':    { fond: 'rgba(154,126,61,0.12)', texte: '#7a5e1e' },
   'Abonnement': { fond: 'rgba(90,80,140,0.10)',  texte: '#4a3e7a' },
 }
@@ -138,7 +138,7 @@ export default function VotesClient() {
               <div key={p.id} style={{
                 ...fondParchemin,
                 background: vote ? 'rgba(250,253,250,0.96)' : fondParchemin.background,
-                border: `1px solid ${vote ? 'rgba(61,107,79,0.34)' : '#ded6ca'}`,
+                border: `1px solid ${vote ? 'rgba(var(--cs-vert-rgb),0.34)' : '#ded6ca'}`,
                 borderRadius: '8px',
                 padding: '15px 18px 15px 20px',
                 display: 'flex', gap: '16px', alignItems: 'flex-start',
@@ -152,7 +152,7 @@ export default function VotesClient() {
                   top: 0,
                   bottom: 0,
                   width: vote ? '3px' : '1px',
-                  background: vote ? '#3d6b4f' : '#d8d0c4',
+                  background: vote ? 'var(--cs-vert)' : '#d8d0c4',
                   opacity: vote ? 0.72 : 0.9,
                 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -183,8 +183,8 @@ export default function VotesClient() {
                     title={vote ? 'Retirer mon soutien' : 'Soutenir cette proposition'}
                     style={{
                       width: '36px', height: '36px', borderRadius: '50%',
-                      border: `1px solid ${vote ? '#3d6b4f' : '#d8d0c4'}`,
-                      background: vote ? '#3d6b4f' : '#fff',
+                      border: `1px solid ${vote ? 'var(--cs-vert)' : '#d8d0c4'}`,
+                      background: vote ? 'var(--cs-vert)' : '#fff',
                       color: vote ? '#fff' : '#8a8278',
                       cursor: 'pointer', fontSize: '0.9375rem',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -195,7 +195,7 @@ export default function VotesClient() {
                   </button>
                   <span style={{
                     fontSize: '0.75rem', fontWeight: 700,
-                    color: vote ? '#3d6b4f' : '#9a958d',
+                    color: vote ? 'var(--cs-vert)' : '#9a958d',
                     lineHeight: 1,
                   }}>
                     {nb}

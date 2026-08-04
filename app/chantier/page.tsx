@@ -249,7 +249,7 @@ function FeuilleDeRoute() {
             <ul className="cs-route-liste">
               {ph.items.map(t => (
                 <li key={t} className="cs-route-item">
-                  <span className="cs-route-puce" aria-hidden="true">{ph.etat === "fait" ? "✓" : "○"}</span>
+                  <span className="cs-route-puce" aria-hidden="true">{ph.etat === "fait" ? "✓" : "✦"}</span>
                   <span className="cs-route-titre">{t}</span>
                 </li>
               ))}
@@ -288,7 +288,7 @@ function Chiffres() {
     <div className="cs-chiffres">
       {cases.map(([valeur, libelle]) => (
         <div key={libelle} style={{ textAlign: "center" }}>
-          <div className="cs-chiffre-valeur" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.875rem", color: "#3d6b4f", lineHeight: 1 }}>
+          <div className="cs-chiffre-valeur" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.875rem", color: "var(--cs-vert)", lineHeight: 1 }}>
             {valeur}
           </div>
           <div className="cs-chiffre-libelle" style={{ fontSize: "0.625rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6a6259", marginTop: "0.375rem" }}>
@@ -326,7 +326,7 @@ function Prevenir() {
 
   if (etat === "fait") {
     return (
-      <div style={{ background: "rgba(61,107,79,0.07)", border: "1px solid rgba(61,107,79,0.22)", borderRadius: "0.5rem", padding: "1rem 1.125rem" }}>
+      <div style={{ background: "rgba(var(--cs-vert-rgb),0.07)", border: "1px solid rgba(var(--cs-vert-rgb),0.22)", borderRadius: "0.5rem", padding: "1rem 1.125rem" }}>
         <p style={{ fontSize: "0.8125rem", color: "#2a6040", margin: 0, lineHeight: 1.6 }}>
           C’est noté. Vous recevrez un message le jour de l’ouverture. Un seul, et rien d’autre.
         </p>
@@ -348,7 +348,7 @@ function Prevenir() {
           placeholder="vous@exemple.fr" aria-label="Votre adresse e-mail"
           style={{ ...inputStyle, flex: "1 1 11.25rem", width: "auto" }} />
         <button type="submit" disabled={etat === "envoi"}
-          style={{ padding: "0.5625rem 1.125rem", borderRadius: "0.375rem", border: "none", background: etat === "envoi" ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
+          style={{ padding: "0.5625rem 1.125rem", borderRadius: "0.375rem", border: "none", background: etat === "envoi" ? "#8aaa96" : "var(--cs-vert)", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
           {etat === "envoi" ? "Envoi…" : "Me prévenir"}
         </button>
       </div>
@@ -424,7 +424,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
                     align-items: center; justify-content: center;
                     text-align: center; padding: 2rem 1.25rem 1.625rem; }
         .cs-enseigne { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
-                       color: #3d6b4f; letter-spacing: 0.16em; text-transform: uppercase;
+                       color: var(--cs-vert); letter-spacing: 0.16em; text-transform: uppercase;
                        font-size: 1.875rem; line-height: 1.1; margin: 1rem 0 0.25rem; }
         .cs-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
                     color: #1e2e22; line-height: 1.3; letter-spacing: -0.005em;
@@ -459,7 +459,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
                      border-radius: 0.5rem; background: #faf6ec; box-shadow: 0 1px 2px rgba(60,50,30,0.04); }
         .cs-encart-ico { display: flex; align-items: center; justify-content: center;
                          width: 2.875rem; height: 2.875rem; border-radius: 50%; margin-bottom: 0.75rem;
-                         color: #3d6b4f; background: #eef3ee; border: 1px solid #dbe6dd; }
+                         color: var(--cs-vert); background: #eef3ee; border: 1px solid #dbe6dd; }
         /* Vert et mordoré mêlés : une teinte par encart, en alternance. Sur deux colonnes,
            cela pose le vert d'un côté et le mordoré de l'autre — les deux couleurs de la
            charte (le vert des reliures, le brun doré des filets) se répondent. */
@@ -509,7 +509,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
            et que les lignes repliées reviennent sous l'intitulé, non sous la puce. */
         .cs-route-puce { flex: 0 0 auto; width: 0.875rem; text-align: center;
                          font-size: 0.6875rem; color: #bca877; }
-        .cs-phase--fait .cs-route-puce { color: #3d6b4f; }
+        .cs-phase--fait .cs-route-puce { color: var(--cs-vert); }
         .cs-phase--apres .cs-route-puce { color: #c3b9a6; }
         .cs-route-titre { font-size: 0.84375rem; line-height: 1.45; color: #4a463f; }
         .cs-chiffres { display: flex; justify-content: center; gap: 3.375rem; flex-wrap: wrap; margin: 0.375rem 0 2.125rem; }
@@ -627,7 +627,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
               éditions, numérisation. Un don avance le chantier.
             </p>
             <a href={LIEN_PAYPAL} target="_blank" rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.5625rem 1.125rem", borderRadius: "0.375rem", border: "none", background: "#3d6b4f", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, textDecoration: "none" }}>
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.5625rem 1.125rem", borderRadius: "0.375rem", border: "none", background: "var(--cs-vert)", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, textDecoration: "none" }}>
               <svg width="14" height="14" viewBox="0 0 40 40" fill="none" aria-hidden="true">
                 <path d="M20 34S4 23 4 13a8 8 0 0 1 16-2 8 8 0 0 1 16 2c0 10-16 21-16 21z"
                   stroke="currentColor" strokeWidth="2.5" fill="rgba(255,255,255,0.15)" strokeLinejoin="round" />
@@ -645,7 +645,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           </h2>
         </div>
         {erreur === "__confirm__" ? (
-          <div style={{ background: "rgba(61,107,79,0.07)", border: "1px solid rgba(61,107,79,0.2)", borderRadius: "0.375rem", padding: "0.875rem 1rem", marginBottom: "1.25rem" }}>
+          <div style={{ background: "rgba(var(--cs-vert-rgb),0.07)", border: "1px solid rgba(var(--cs-vert-rgb),0.2)", borderRadius: "0.375rem", padding: "0.875rem 1rem", marginBottom: "1.25rem" }}>
             <p style={{ fontSize: "0.8125rem", color: "#2a6040", lineHeight: 1.65, margin: 0 }}>Compte créé. Vérifiez votre boîte mail pour confirmer votre adresse, puis connectez-vous.</p>
           </div>
         ) : erreur ? (
@@ -669,7 +669,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             <input id="cs-mdp" autoComplete={mode === "connexion" ? "current-password" : "new-password"} type="password" value={mdp} onChange={e => setMdp(e.target.value)} required minLength={6} placeholder="··········" style={inputStyle} />
           </div>
           <button type="submit" disabled={chargement}
-            style={{ marginTop: "0.375rem", padding: "0.625rem", borderRadius: "0.375rem", border: "none", background: chargement ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
+            style={{ marginTop: "0.375rem", padding: "0.625rem", borderRadius: "0.375rem", border: "none", background: chargement ? "#8aaa96" : "var(--cs-vert)", color: "#fff", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
             {chargement ? "Chargement…" : mode === "connexion" ? "Se connecter" : "Créer le compte"}
           </button>
         </form>
@@ -685,7 +685,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
               {mode === "connexion" ? "Pas encore de compte ?" : "Déjà un compte ?"}
               {" "}
               <button onClick={() => { setMode(mode === "connexion" ? "inscription" : "connexion"); setErreur(null); setMdp(""); setPseudo(""); }}
-                style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.78125rem", color: "#3d6b4f", fontWeight: 500, padding: 0, textDecoration: "underline" }}>
+                style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.78125rem", color: "var(--cs-vert)", fontWeight: 500, padding: 0, textDecoration: "underline" }}>
                 {mode === "connexion" ? "Créer un compte" : "Se connecter"}
               </button>
             </p>

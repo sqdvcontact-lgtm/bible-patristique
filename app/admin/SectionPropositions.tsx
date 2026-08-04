@@ -14,7 +14,7 @@ type Proposition = {
 
 const STATUTS: Record<string, { label: string; couleur: string; bg: string }> = {
   en_attente: { label: 'En attente', couleur: '#9a5a2a', bg: '#fdf3ea' },
-  acceptee:   { label: 'Acceptée',   couleur: '#3d6b4f', bg: '#edf5f0' },
+  acceptee:   { label: 'Acceptée',   couleur: 'var(--cs-vert)', bg: '#edf5f0' },
   refusee:    { label: 'Refusée',    couleur: '#c0562a', bg: '#fdf2ee' },
   en_cours:   { label: 'En cours',   couleur: '#5a6b9a', bg: '#eef0f8' },
 }

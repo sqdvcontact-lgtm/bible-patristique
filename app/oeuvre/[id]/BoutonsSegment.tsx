@@ -8,6 +8,7 @@ import ModalSignalement from './ModalSignalement'
 import { insererSignalement } from './signalements'
 import { Bulle } from '@/app/components/Bulle'
 import IconeSignet from '@/app/components/IconeSignet'
+import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 
 // Style partagé par tous les petits boutons d'action (segment ET verset)
@@ -58,7 +59,7 @@ export function BoutonEnregistrerSegment({
           // Visible sans survol : le signet plein constate un état, et un état
           // qu'il faut survoler pour connaître ne se voit jamais. La classe est
           // conservée pour le reste de son style ; seule l'opacité est forcée.
-          style={{ ...BTN_STYLE, color:'#3d6b4f', opacity:1 }}
+          style={{ ...BTN_STYLE, color:'var(--cs-vert)', opacity:1 }}
           aria-label="Retirer des prélèvements">{loading ? '…' : <IconeSignet plein />}</button>
       </Bulle>
     )
@@ -133,7 +134,7 @@ export function BoutonCopieSegment({ texte, auteur, titre, sousTitre, tradAuteur
   return (
     <Bulle texte="Copier ce passage">
       <button onClick={handle} className={className}
-        style={{ ...BTN_STYLE, color: copie ? '#3d6b4f' : '#c8c0b4' }}
+        style={{ ...BTN_STYLE, color: copie ? 'var(--cs-vert)' : '#c8c0b4' }}
         aria-label="Copier ce passage">
         {copie ? '✓' : (
           <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
@@ -155,7 +156,7 @@ export function BoutonSignalerSegment({ segId, texteObjet, titreOeuvre, classNam
           className={className}
           style={{ ...BTN_STYLE, color:'#c8c0b4' }}
           aria-label="Signaler une erreur">
-          ⚑
+          <IconeDrapeau />
         </button>
       </Bulle>
       {ouvert && (

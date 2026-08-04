@@ -76,7 +76,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
           <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.95rem', color: '#1e2e24' }}>Notifications</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {onglet === 'nouvelles' && nouvelles.length > 0 && (
-              <button onClick={archiverTout} style={{ fontSize: '0.6875rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, letterSpacing: '0.01em' }}>
+              <button onClick={archiverTout} style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, letterSpacing: '0.01em' }}>
                 Tout archiver
               </button>
             )}
@@ -91,7 +91,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
             { key: 'archivees' as Onglet, label: 'Archivées', count: archivees.length },
           ]).map(o => (
             <button key={o.key} onClick={() => setOnglet(o.key)}
-              style={{ padding: '8px 12px', fontSize: '0.71875rem', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? '#3d6b4f' : '#8a8278', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer' }}>
+              style={{ padding: '8px 12px', fontSize: '0.71875rem', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? 'var(--cs-vert)' : '#8a8278', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid var(--cs-vert)' : '2px solid transparent', cursor: 'pointer' }}>
               {o.label}<span style={{ marginLeft: '5px', fontSize: '0.5625rem', color: '#b0a89e' }}>({o.count})</span>
             </button>
           ))}
@@ -108,10 +108,10 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
           ) : (
             liste.map(n => (
               <article key={n.key}
-                style={{ background: '#fff', border: '1px solid #e4dfd8', borderLeft: `3px solid ${onglet === 'nouvelles' ? '#3d6b4f' : '#c8c0b4'}`, borderRadius: '7px', padding: '9px 11px' }}>
+                style={{ background: '#fff', border: '1px solid #e4dfd8', borderLeft: `3px solid ${onglet === 'nouvelles' ? 'var(--cs-vert)' : '#c8c0b4'}`, borderRadius: '7px', padding: '9px 11px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '10px', marginBottom: '4px' }}>
                   <div style={{ minWidth: 0 }}>
-                    <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 2px' }}>{n.titre}</p>
+                    <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 2px' }}>{n.titre}</p>
                     <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', color: '#1e2e24', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.objet}</p>
                   </div>
                   <span style={{ fontSize: '0.5625rem', color: '#b0a89e', flexShrink: 0 }}>{dateCourte(n.date)}</span>
@@ -124,7 +124,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '7px' }}>
                   {n.href && (
                     <Link href={n.href} onClick={() => { archiver(n); onFermer() }}
-                      style={{ fontSize: '0.6875rem', color: '#3d6b4f', fontWeight: 600, textDecoration: 'none' }}>
+                      style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', fontWeight: 600, textDecoration: 'none' }}>
                       {n.type === 'essai' ? 'Voir la publication' : n.type === 'commentaire' ? 'Voir le commentaire' : 'Ouvrir'}
                     </Link>
                   )}

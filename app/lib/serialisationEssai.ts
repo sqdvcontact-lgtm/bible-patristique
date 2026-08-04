@@ -11,7 +11,7 @@ function echapper(s: string): string {
 // `vertical-align:super` (qui agrandit la boîte de ligne). L'exposant est obtenu par
 // `position:relative; top` (décalage de PEINTURE, sans effet sur la hauteur de ligne)
 // et `line-height:0` — l'interligne reste identique dans tout le paragraphe.
-export const styleNote = 'display:inline-block;margin-left:0.06em;color:#3d6b4f;font-weight:600;font-size:0.72em;line-height:0;position:relative;top:-0.45em;vertical-align:baseline;cursor:pointer;background:transparent;padding:0;border:0;border-radius:0;'
+export const styleNote = 'display:inline-block;margin-left:0.06em;color:var(--cs-vert);font-weight:600;font-size:0.72em;line-height:0;position:relative;top:-0.45em;vertical-align:baseline;cursor:pointer;background:transparent;padding:0;border:0;border-radius:0;'
 
 export function inlineVersHtml(s: string): string {
   let r = echapper(s)
@@ -21,7 +21,7 @@ export function inlineVersHtml(s: string): string {
   r = r.replace(/\[\^(.+?)\]/g, (_m, p1) =>
     `<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(p1).replace(/\*/g, '%2A')}" style="${styleNote}">note</span>&nbsp;`)
   r = r.replace(/\[(.+?)\]\((verset|segment):(.+?)\)/g, (_m, label, type, id) =>
-    `<span contenteditable="false" data-chip="${type}" data-id="${id}" data-label="${label}" style="display:inline-block;color:#3d6b4f;text-decoration:underline;background:rgba(61,107,79,0.07);padding:1px 5px;border-radius:3px;cursor:pointer;">${label}</span>&nbsp;`)
+    `<span contenteditable="false" data-chip="${type}" data-id="${id}" data-label="${label}" style="display:inline-block;color:var(--cs-vert);text-decoration:underline;background:rgba(var(--cs-vert-rgb),0.07);padding:1px 5px;border-radius:3px;cursor:pointer;">${label}</span>&nbsp;`)
   r = r.replace(/\[(.+?)\]\(((?:https?:)[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
   r = r.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
   r = r.replace(/\+\+(.+?)\+\+/g, '<span style="font-variant:small-caps;letter-spacing:0.02em">$1</span>')

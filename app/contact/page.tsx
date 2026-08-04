@@ -46,7 +46,7 @@ export default function ContactPage() {
   return (
     <main style={{ background: "#f7f4ef", minHeight: "calc(100vh - 3.5rem)", padding: "56px 24px 80px" }}>
       <div style={{ maxWidth: "35rem", margin: "0 auto" }}>
-        <p style={{ fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "#3d6b4f", marginBottom: "10px" }}>
+        <p style={{ fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--cs-vert)", marginBottom: "10px" }}>
           Nous écrire
         </p>
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "clamp(26px, 3.5vw, 34px)", fontWeight: "normal", color: "#2a3d30", marginBottom: "12px", lineHeight: 1.25 }}>
@@ -58,7 +58,7 @@ export default function ContactPage() {
         </p>
 
         {etat === "fait" ? (
-          <div style={{ background: "rgba(61,107,79,0.07)", border: "1px solid rgba(61,107,79,0.22)", borderRadius: "8px", padding: "18px 20px" }}>
+          <div style={{ background: "rgba(var(--cs-vert-rgb),0.07)", border: "1px solid rgba(var(--cs-vert-rgb),0.22)", borderRadius: "8px", padding: "18px 20px" }}>
             <p style={{ fontSize: "0.84375rem", color: "#2a6040", margin: 0, lineHeight: 1.65 }}>
               Votre message est parti. Merci&#8239;! Nous vous répondrons si vous avez laissé une adresse.
             </p>
@@ -93,7 +93,7 @@ export default function ContactPage() {
             </div>
             <button type="submit" disabled={etat === "envoi"}
               style={{ alignSelf: "flex-start", padding: "10px 22px", borderRadius: "6px", border: "none",
-                background: etat === "envoi" ? "#8aaa96" : "#3d6b4f", color: "#fff", fontSize: "0.84375rem",
+                background: etat === "envoi" ? "#8aaa96" : "var(--cs-vert)", color: "#fff", fontSize: "0.84375rem",
                 fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer" }}>
               {etat === "envoi" ? "Envoi…" : "Envoyer"}
             </button>

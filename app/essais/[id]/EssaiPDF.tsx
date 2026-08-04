@@ -31,7 +31,7 @@ const MARGE_BOT = 56   // ≈ 2 cm contenu + 24pt footer
 
 const SEP_PARA = 8.5   // ≈ 3 mm entre paragraphes de même style
 
-const C = { vert: '#3d6b4f', texte: '#1a1714', gris: '#777', beige: '#5a5450' }
+const C = { vert: 'var(--cs-vert)', texte: '#1a1714', gris: '#777', beige: '#5a5450' }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 

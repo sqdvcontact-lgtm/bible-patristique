@@ -19,7 +19,7 @@ export function calculerRang(score: number): { rang: Rang; rangSuivant: Rang | n
 export function couleurRang(rang: Rang): { fond: string; texte: string } {
   switch (rang) {
     case 'Catéchumène': return { fond: '#f0ece6', texte: '#8a8278' }
-    case 'Disciple': return { fond: 'rgba(61,107,79,0.10)', texte: '#3d6b4f' }
+    case 'Disciple': return { fond: 'rgba(var(--cs-vert-rgb),0.10)', texte: 'var(--cs-vert)' }
     case 'Docteur': return { fond: 'rgba(192,86,42,0.10)', texte: '#9a4a1f' }
   }
 }

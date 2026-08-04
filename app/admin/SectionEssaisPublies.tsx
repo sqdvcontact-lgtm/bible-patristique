@@ -67,13 +67,13 @@ export default function SectionEssaisPublies({ essais: init, variante = 'publies
                 <Info label="commentaires" valeur={e.nb_commentaires} />
               </Td>
               <Td><Info label="signalements" valeur={e.nb_signalements} alerte={e.nb_signalements > 0} /></Td>
-              <Td><span style={{ fontSize: '0.75469rem', color: estBrouillons ? '#9a5a2a' : '#3d6b4f', fontWeight: 700 }}>{estBrouillons ? 'Brouillon' : 'Publié'}</span></Td>
+              <Td><span style={{ fontSize: '0.75469rem', color: estBrouillons ? '#9a5a2a' : 'var(--cs-vert)', fontWeight: 700 }}>{estBrouillons ? 'Brouillon' : 'Publié'}</span></Td>
               <Td align="right">
                 {action[e.id] === 'ok' ? (
-                  <span style={{ fontSize: '0.79062rem', color: '#3d6b4f', fontWeight: 600 }}>✓ Renvoyé</span>
+                  <span style={{ fontSize: '0.79062rem', color: 'var(--cs-vert)', fontWeight: 600 }}>✓ Renvoyé</span>
                 ) : (
                   <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                    <Link href={`/essais/${e.id}/modifier`} style={petitBouton('#3d6b4f', '#d6d0c4')}>Modifier</Link>
+                    <Link href={`/essais/${e.id}/modifier`} style={petitBouton('var(--cs-vert)', '#d6d0c4')}>Modifier</Link>
                     {!estBrouillons && (
                       <button onClick={() => demanderModification(e.id)} disabled={action[e.id] === 'loading'} style={petitBouton('#9a5a2a', '#e4d2bd')}>
                         Renvoyer

@@ -1,86 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
+import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
 import { formaterSieclesHTML } from '@/app/oeuvre/[id]/texteEnrichi'
-import QuizBibliqueClient from '../quiz/QuizBibliqueClient'
-
-type Onglet = 'traductions' | 'acheter' | 'populaires' | 'quiz'
-
-const ONGLETS: { code: Onglet; label: string }[] = [
-  { code: 'traductions', label: 'Les traductions' },
-  { code: 'acheter', label: 'Acheter des livres' },
-  { code: 'populaires', label: 'Statistiques' },
-  { code: 'quiz', label: 'Quiz biblique' },
-]
-
-export default function AllerPlusLoinClient() {
-  const searchParams = useSearchParams()
-  const [onglet, setOnglet] = useState<Onglet>('traductions')
-  const [hashTraduction, setHashTraduction] = useState<string | null>(null)
-
-  // Arrivée via ?onglet=… (anciens liens /populaires, /progression) ou
-  // via #TR0002 (résultat de la recherche rapide, qui cible une traduction précise).
-  useEffect(() => {
-    const param = searchParams.get('onglet') as Onglet | null
-    if (param && ONGLETS.some(o => o.code === param)) {
-      setOnglet(param)
-      return
-    }
-    const hash = window.location.hash.replace('#', '')
-    if (hash) {
-      setOnglet('traductions')
-      setHashTraduction(hash)
-    }
-  }, [searchParams])
-
-  return (
-    <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '3.5rem' }}>
-      <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
-        <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-          <h1 style={{
-            fontFamily: "var(--font-source-serif), Georgia, serif",
-            fontSize: 'clamp(21px, 3.6vw, 29px)', fontWeight: 'normal',
-            color: '#1e2e24', lineHeight: 1.15, marginBottom: '8px',
-          }}>
-            Aller plus loin
-          </h1>
-          <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 12px' }} />
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', borderBottom: '1px solid #ddd8cf', marginBottom: '12px', flexWrap: 'wrap' }}>
-          {ONGLETS.map(o => (
-            <button key={o.code} onClick={() => setOnglet(o.code)} style={{
-              padding: '8px 14px', fontSize: '0.78125rem', fontWeight: onglet === o.code ? 600 : 400,
-              color: onglet === o.code ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none',
-              borderBottom: onglet === o.code ? '2px solid #3d6b4f' : '2px solid transparent',
-              cursor: 'pointer', whiteSpace: 'nowrap',
-            }}>
-              {o.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {onglet === 'traductions' && <OngletTraductions hashTraduction={hashTraduction} />}
-      {onglet === 'acheter' && <OngletAcheter />}
-      {onglet === 'populaires' && <OngletStatistiques />}
-      {onglet === 'quiz' && <OngletQuiz />}
-    </main>
-  )
-}
-
-function OngletQuiz() {
-  return (
-    <QuizBibliqueClient estAdminReel={false} />
-  )
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   Onglet « Les traductions »
-   ════════════════════════════════════════════════════════════════════════ */
 
 type Traduction = {
   trad_id: string; nom: string; auteur: string | null; dates: string | null;
@@ -93,7 +16,7 @@ type Traduction = {
     bandeau:  { x: number; y: number; scale: number }
     lateral:  { x: number; y: number; scale: number }
   } | null;
-};
+}
 
 function useImageLuminance(url: string | null): boolean | null {
   const [estSombre, setEstSombre] = useState<boolean | null>(null)
@@ -150,7 +73,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
         width: '100%', position: 'relative',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0', minHeight: t.photo ? '92px' : undefined,
-        background: t.photo ? 'transparent' : estOuvert ? 'rgba(61,107,79,0.04)' : '#fff',
+        background: t.photo ? 'transparent' : estOuvert ? 'rgba(var(--cs-vert-rgb),0.04)' : '#fff',
         border: 'none', cursor: 'pointer', textAlign: 'left',
         transition: 'background 0.15s', overflow: 'hidden',
       }}
@@ -230,370 +153,107 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
 }
 
 function normaliserContenu(texte: string): string {
-  if (!texte) return '';
-  let html: string;
+  if (!texte) return ''
+  let html: string
   if (/^\s*<(p|h[1-6]|div|ul|ol|blockquote)[\s>]/i.test(texte)) {
-    html = texte;
+    html = texte
   } else {
-    const pStyle = 'color:#2a2520;font-size:0.84375rem;line-height:1.78;margin:0 0 12px;text-decoration:none';
+    const pStyle = 'color:#2a2520;font-size:0.84375rem;line-height:1.78;margin:0 0 12px;text-decoration:none'
     html = texte
       .split(/\n+/)
       .map(l => l.trim())
       .filter(Boolean)
       .map(l => `<p style="${pStyle}">${l}</p>`)
-      .join('');
+      .join('')
   }
-  return formaterSieclesHTML(html);
+  // Assaini avant injection : `commentaire_editorial` est du HTML éditorial, mais on
+  // le passe par DOMPurify (comme NavLivres) pour ne jamais rendre de script/handler.
+  return DOMPurify.sanitize(formaterSieclesHTML(html))
 }
 
-function OngletTraductions({ hashTraduction }: { hashTraduction: string | null }) {
-  const [traductions, setTraductions] = useState<Traduction[]>([]);
-  const [ouvert, setOuvert] = useState<string | null>(null);
+export default function AllerPlusLoinClient() {
+  const [traductions, setTraductions] = useState<Traduction[]>([])
+  const [ouvert, setOuvert] = useState<string | null>(null)
 
   useEffect(() => {
-    supabase.from("traductions").select("*").order("ordre", { ascending: true })
-      .then(({ data }) => setTraductions(data ?? []));
-  }, []);
+    supabase.from('traductions').select('*').order('ordre', { ascending: true })
+      .then(({ data }) => setTraductions(data ?? []))
+  }, [])
 
+  // Lien profond vers une traduction précise (#TR0002), notamment depuis la recherche rapide.
   useEffect(() => {
-    if (!hashTraduction || traductions.length === 0) return;
-    setOuvert(hashTraduction);
-    const el = document.getElementById(hashTraduction);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [hashTraduction, traductions]);
+    if (traductions.length === 0) return
+    const hash = window.location.hash.replace('#', '')
+    if (!hash) return
+    setOuvert(hash)
+    const el = document.getElementById(hash)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [traductions])
 
   return (
-    <div style={{ maxWidth: "42.5rem", margin: "0 auto", padding: "24px 24px 80px" }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        {traductions.map((t) => {
-          const estOuvert = ouvert === t.trad_id;
-          return (
-            <div key={t.trad_id} id={t.trad_id} style={{
-              scrollMarginTop: "60px",
-              border: "1px solid #ddd8cf", borderRadius: "8px",
-              overflow: "hidden", background: "#fff",
-            }}>
-              <BandeauTraduction t={t} estOuvert={estOuvert} onToggle={() => setOuvert(prev => prev === t.trad_id ? null : t.trad_id)} />
-
-              {estOuvert && (
-                <div style={{ borderTop: "1px solid #ede9e2", display: "flex", alignItems: "stretch" }}>
-                  {t.photo && (
-                    <div style={{
-                      width: "8.75rem", flexShrink: 0,
-                      borderRight: "1px solid #ede9e2",
-                      overflow: "hidden",
-                    }}>
-                      <img src={t.photo} alt="" aria-hidden="true"
-                        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: `${t.photo_position?.lateral?.x ?? 50}% ${t.photo_position?.lateral?.y ?? 20}%`, transform: `scale(${t.photo_position?.lateral?.scale ?? 1})`, transformOrigin: `${t.photo_position?.lateral?.x ?? 50}% ${t.photo_position?.lateral?.y ?? 20}%`, display: "block" }} />
-                    </div>
-                  )}
-                  <div style={{ flex: 1, minWidth: 0, padding: "18px 20px 22px" }}>
-                    {t.bio_courte && (
-                      <p style={{
-                        fontSize: "0.78125rem", color: "#5a6b5e", lineHeight: 1.65,
-                        margin: "0 0 12px", fontStyle: "italic",
-                        textAlign: "justify", hyphens: "auto",
-                      }}>
-                        {t.bio_courte}
-                      </p>
-                    )}
-                    {t.commentaire_editorial && (
-                      <div
-                        className="trad-article"
-                        style={{ color: "#2a2520", fontSize: "0.84375rem", lineHeight: 1.65, textAlign: "justify", hyphens: "auto" }}
-                        dangerouslySetInnerHTML={{ __html: normaliserContenu(t.commentaire_editorial) }}
-                      />
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   Onglet « Acheter des livres »
-   ════════════════════════════════════════════════════════════════════════ */
-
-type Librairie = { nom: string; description: string; url: string; couleur: string; sep: string; logo?: string; monogramme?: string }
-
-function OngletAcheter() {
-  const librairies: Librairie[] = [
-    {
-      nom: 'La Procure',
-      description: 'Éditions contemporaines, annotées ou liturgiques — livres neufs.',
-      url: 'https://www.laprocure.com/',
-      logo: '/icons/librairies/procure-eventail.png',
-      couleur: '#153f78',
-      sep: 'rgba(22,63,125,0.32)',
-    },
-    {
-      nom: 'Librairie Pierre Brunet',
-      description: "Éditions anciennes et épuisées — livres d'occasion et anciens.",
-      url: 'https://www.librairie-pierre-brunet.fr/librairie-en-ligne.html',
-      logo: '/icons/librairies/pierre-brunet-livre.png',
-      couleur: '#5e3a1c',
-      sep: 'rgba(124,88,47,0.38)',
-    },
-    {
-      nom: 'Sources Chrétiennes',
-      description: 'La grande collection bilingue des textes patristiques, en édition critique.',
-      url: 'https://sourceschretiennes.org/',
-      logo: '/icons/librairies/sources-chretiennes-chrisme.png',
-      couleur: '#8b1720',
-      sep: 'rgba(151,30,37,0.36)',
-    },
-    {
-      nom: 'Corpus Christianorum',
-      description: 'Les éditions critiques de référence des auteurs chrétiens, de l’Antiquité au Moyen Âge (Brepols).',
-      url: 'https://www.brepols.net/series/CC',
-      monogramme: 'CC',
-      couleur: '#1f5a5a',
-      sep: 'rgba(31,90,90,0.34)',
-    },
-    {
-      nom: 'Bibliothèque Augustinienne',
-      description: 'Les œuvres de saint Augustin en bilingue latin-français, introduites et annotées.',
-      url: 'https://www.brepols.net/series/ba',
-      monogramme: 'BA',
-      couleur: '#5d3a6e',
-      sep: 'rgba(93,58,110,0.34)',
-    },
-  ]
-  return (
-    <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: '2px 24px 10px' }}>
-      <style>{`
-        .lib-row {
-          display: flex;
-          align-items: center;
-          /* Hauteur STRICTEMENT identique pour les trois bandeaux, quelle que soit la
-             longueur de la description (1 ou 2 lignes) ou la hauteur du logo. */
-          height: 80px;
-          box-sizing: border-box;
-          padding: 0;
-          text-decoration: none;
-          border-bottom: 1px solid rgba(214,208,196,0.55);
-          position: relative;
-          overflow: hidden;
-        }
-        .lib-row:first-of-type { border-top: 1px solid rgba(214,208,196,0.55); }
-        .lib-contenu {
-          display: flex;
-          align-items: center;
-          flex: 1;
-          min-width: 0;
-          transition: opacity 0.18s ease, transform 0.18s ease;
-        }
-        .lib-row:hover .lib-contenu {
-          opacity: 0.06;
-          transform: translateX(-10px);
-        }
-        .lib-survol {
-          position: absolute;
-          inset: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.18s ease;
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-size:0.96875rem;
-          letter-spacing: 0.01em;
-        }
-        .lib-row:hover .lib-survol { opacity: 1; }
-        .lib-logo-zone {
-          width: 78px;
-          flex-shrink: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .lib-sep {
-          width: 1px;
-          height: 44px;
-          flex-shrink: 0;
-          margin: 0 20px;
-        }
-        .lib-nom {
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-size:1.0625rem;
-          font-weight: normal;
-          margin: 0 0 4px;
-          line-height: 1.15;
-        }
-        .lib-desc {
-          font-size:0.75rem;
-          color: #6a6258;
-          margin: 0;
-          line-height: 1.45;
-        }
-        .lib-fleche {
-          margin-left: auto;
-          padding-left: 18px;
-          font-size:1.125rem;
-          flex-shrink: 0;
-          opacity: 0.82;
-        }
-      `}</style>
-      {librairies.map(lib => (
-        <a key={lib.nom} href={lib.url} target="_blank" rel="noopener noreferrer" className="lib-row">
-          <div className="lib-contenu">
-            <div className="lib-logo-zone">
-              {lib.logo ? (
-                <img src={lib.logo} alt="" aria-hidden style={{ width: '52px', height: 'auto', maxHeight: '48px', objectFit: 'contain' }} />
-              ) : (
-                /* Repli typographique quand la collection n'a pas de logo : un monogramme
-                   sobre en serif, dans la couleur de la collection. */
-                <span aria-hidden style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', fontWeight: 'normal', letterSpacing: '0.04em', color: lib.couleur, opacity: 0.9 }}>{lib.monogramme}</span>
-              )}
-            </div>
-            <div className="lib-sep" style={{ background: lib.sep }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p className="lib-nom" style={{ color: lib.couleur }}>{lib.nom}</p>
-              <p className="lib-desc">{lib.description}</p>
-            </div>
-            <span className="lib-fleche" style={{ color: lib.couleur }}>→</span>
-          </div>
-          <span className="lib-survol" style={{ color: lib.couleur }}>
-            Visiter la librairie <span style={{ fontSize: '0.8125rem', opacity: 0.7 }}>→</span>
-          </span>
-        </a>
-      ))}
-    </div>
-  )
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   Onglet « Statistiques »
-   ════════════════════════════════════════════════════════════════════════ */
-
-const NOM_LIVRE: Record<string, string> = {
-  GEN: 'Genèse', EXO: 'Exode', LEV: 'Lévitique', NUM: 'Nombres', DEU: 'Deutéronome', JOS: 'Josué', JDG: 'Juges', RUT: 'Ruth',
-  '1SA': '1 Samuel', '2SA': '2 Samuel', '1KI': '1 Rois', '2KI': '2 Rois', '1CH': '1 Chroniques', '2CH': '2 Chroniques',
-  EZR: 'Esdras', NEH: 'Néhémie', EST: 'Esther', JOB: 'Job', PSA: 'Psaumes', PRO: 'Proverbes', ECC: 'Ecclésiaste', SNG: 'Cantique des cantiques',
-  ISA: 'Isaïe', JER: 'Jérémie', LAM: 'Lamentations', EZK: 'Ézéchiel', DAN: 'Daniel', HOS: 'Osée', JOL: 'Joël', AMO: 'Amos',
-  OBA: 'Abdias', JON: 'Jonas', MIC: 'Michée', NAM: 'Nahum', HAB: 'Habacuc', ZEP: 'Sophonie', HAG: 'Aggée', ZEC: 'Zacharie', MAL: 'Malachie',
-  MAT: 'Matthieu', MRK: 'Marc', LUK: 'Luc', JHN: 'Jean', ACT: 'Actes', ROM: 'Romains', '1CO': '1 Corinthiens', '2CO': '2 Corinthiens',
-  GAL: 'Galates', EPH: 'Éphésiens', PHP: 'Philippiens', COL: 'Colossiens', '1TH': '1 Thessaloniciens', '2TH': '2 Thessaloniciens',
-  '1TI': '1 Timothée', '2TI': '2 Timothée', TIT: 'Tite', PHM: 'Philémon', HEB: 'Hébreux', JAS: 'Jacques', '1PE': '1 Pierre', '2PE': '2 Pierre',
-  '1JN': '1 Jean', '2JN': '2 Jean', '3JN': '3 Jean', JUD: 'Jude', REV: 'Apocalypse',
-};
-
-type VersetPopulaire = { id_verset: string; livre: string; chapitre: number; verset: number; TR0002: string; nb_lectures: number };
-type VersetCite = {
-  canon_id: string; livre: string; chapitre: number; verset: number;
-  score: number; nb_citations: number; nb_commentaires: number; nb_allusions: number; nb_oeuvres: number;
-  TR0002: string | null;
-};
-
-const statLigne: React.CSSProperties = {
-  display: 'flex', alignItems: 'baseline', gap: '12px', padding: '10px 14px',
-  background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', textDecoration: 'none',
-};
-const statRang: React.CSSProperties = { fontSize: '0.6875rem', color: '#b0a89e', fontWeight: 600, width: '20px', flexShrink: 0 };
-const statRef: React.CSSProperties = { fontSize: '0.71875rem', fontWeight: 600, color: '#2a3d30', margin: '0 0 2px' };
-const statTexte: React.CSSProperties = { fontSize: '0.75rem', color: '#5a5450', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-
-// En-tête d'une rubrique statistique : titre en serif + courte glose.
-function EnteteStat({ titre, intro, style }: { titre: string; intro: string; style?: React.CSSProperties }) {
-  return (
-    <div style={{ marginBottom: '12px', ...style }}>
-      <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 4px' }}>{titre}</h2>
-      <p style={{ fontSize: '0.71875rem', color: '#9a958d', lineHeight: 1.55, margin: 0 }}>{intro}</p>
-    </div>
-  );
-}
-
-function OngletStatistiques() {
-  const [cites, setCites] = useState<VersetCite[] | null>(null);
-  const [lus, setLus] = useState<VersetPopulaire[] | null>(null);
-
-  // Versets les plus cités et commentés par les Pères : le score est calculé en base
-  // (vue versets_plus_cites) à partir des liens patristiques.
-  useEffect(() => {
-    supabase.from('versets_plus_cites')
-      .select('canon_id, livre, chapitre, verset, score, nb_citations, nb_commentaires, nb_allusions, nb_oeuvres, TR0002')
-      .order('score', { ascending: false })
-      .order('nb_commentaires', { ascending: false })
-      .limit(30)
-      .then(({ data }) => setCites((data as VersetCite[]) ?? []));
-  }, []);
-
-  // Versets les plus lus : ne s'affiche que si la donnée existe (le classement de lecture
-  // n'est pas toujours alimenté).
-  useEffect(() => {
-    const charger = () => {
-      supabase.from('versets_plus_lus')
-        .select('id_verset, livre, chapitre, verset, TR0002, nb_lectures')
-        .order('nb_lectures', { ascending: false })
-        .limit(30)
-        .then(({ data }) => setLus((data as VersetPopulaire[]) ?? []));
-    };
-    charger();
-    const onVisible = () => { if (!document.hidden) charger(); };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, []);
-
-  const detailCite = (v: VersetCite) => {
-    const parts: string[] = [];
-    if (v.nb_commentaires > 0) parts.push(`${v.nb_commentaires} commentaire${v.nb_commentaires > 1 ? 's' : ''}`);
-    if (v.nb_citations > 0) parts.push(`${v.nb_citations} citation${v.nb_citations > 1 ? 's' : ''}`);
-    if (v.nb_allusions > 0) parts.push(`${v.nb_allusions} allusion${v.nb_allusions > 1 ? 's' : ''}`);
-    return parts.join(' · ');
-  };
-
-  return (
-    <div style={{ maxWidth: '40rem', margin: '0 auto', padding: '16px 24px 80px' }}>
-      <EnteteStat
-        titre="Les plus cités et commentés par les Pères"
-        intro="Classement établi à partir des liens patristiques, comptés par œuvre (un même texte ne pèse qu'une fois, même s'il revient longuement sur un verset) : un commentaire pèse davantage qu'une citation, une citation davantage qu'une simple allusion. Le score grandira à mesure que les liens sont constitués." />
-      {cites === null ? (
-        <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
-      ) : cites.length === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Aucun lien pour l'instant.</p>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          {cites.map((v, i) => (
-            <Link key={v.canon_id} href={`/?livre=${v.livre}&chapitre=${v.chapitre}&trad=TR0002&verset=${v.verset}`} style={statLigne}>
-              <span style={statRang}>{i + 1}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={statRef}>{NOM_LIVRE[v.livre] ?? v.livre} {v.chapitre}, {v.verset}</p>
-                {v.TR0002 && <p style={statTexte}>{v.TR0002}</p>}
-                <p style={{ fontSize: '0.65625rem', color: '#9a8a6e', margin: '3px 0 0' }}>{detailCite(v)}</p>
-              </div>
-              <span title="Score patristique"
-                style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#3d6b4f', background: 'rgba(61,107,79,0.09)', border: '1px solid rgba(61,107,79,0.22)', borderRadius: '6px', padding: '2px 9px', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
-                {v.score}
-              </span>
-            </Link>
-          ))}
+    <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '3.5rem' }}>
+      <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
+        <div style={{ textAlign: 'center', marginBottom: '4px' }}>
+          <h1 style={{
+            fontFamily: "var(--font-source-serif), Georgia, serif",
+            fontSize: 'clamp(21px, 3.6vw, 29px)', fontWeight: 'normal',
+            color: '#1e2e24', lineHeight: 1.15, marginBottom: '8px',
+          }}>
+            Les traductions
+          </h1>
+          <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 12px' }} />
         </div>
-      )}
+      </div>
 
-      {lus && lus.length > 0 && (
-        <>
-          <EnteteStat titre="Les plus lus" intro="D'après les consultations des versets sur le site." style={{ marginTop: '30px' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {lus.map((v, i) => (
-              <Link key={v.id_verset} href={`/?livre=${v.livre}&chapitre=${v.chapitre}&trad=TR0002&verset=${v.verset}`} style={statLigne}>
-                <span style={statRang}>{i + 1}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={statRef}>{NOM_LIVRE[v.livre] ?? v.livre} {v.chapitre}, {v.verset}</p>
-                  <p style={statTexte}>{v.TR0002}</p>
-                </div>
-                <span style={{ fontSize: '0.6875rem', color: '#9a958d', flexShrink: 0 }}>{v.nb_lectures} lecture{v.nb_lectures > 1 ? 's' : ''}</span>
-              </Link>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
+      <div style={{ maxWidth: '42.5rem', margin: '0 auto', padding: '10px 24px 80px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {traductions.map((t) => {
+            const estOuvert = ouvert === t.trad_id
+            return (
+              <div key={t.trad_id} id={t.trad_id} style={{
+                scrollMarginTop: '60px',
+                border: '1px solid #ddd8cf', borderRadius: '8px',
+                overflow: 'hidden', background: '#fff',
+              }}>
+                <BandeauTraduction t={t} estOuvert={estOuvert} onToggle={() => setOuvert(prev => prev === t.trad_id ? null : t.trad_id)} />
+
+                {estOuvert && (
+                  <div style={{ borderTop: '1px solid #ede9e2', display: 'flex', alignItems: 'stretch' }}>
+                    {t.photo && (
+                      <div style={{
+                        width: '8.75rem', flexShrink: 0,
+                        borderRight: '1px solid #ede9e2',
+                        overflow: 'hidden',
+                      }}>
+                        <img src={t.photo} alt="" aria-hidden="true"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${t.photo_position?.lateral?.x ?? 50}% ${t.photo_position?.lateral?.y ?? 20}%`, transform: `scale(${t.photo_position?.lateral?.scale ?? 1})`, transformOrigin: `${t.photo_position?.lateral?.x ?? 50}% ${t.photo_position?.lateral?.y ?? 20}%`, display: 'block' }} />
+                      </div>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0, padding: '18px 20px 22px' }}>
+                      {t.bio_courte && (
+                        <p style={{
+                          fontSize: '0.78125rem', color: '#5a6b5e', lineHeight: 1.65,
+                          margin: '0 0 12px', fontStyle: 'italic',
+                          textAlign: 'justify', hyphens: 'auto',
+                        }}>
+                          {t.bio_courte}
+                        </p>
+                      )}
+                      {t.commentaire_editorial && (
+                        <div
+                          className="trad-article"
+                          style={{ color: '#2a2520', fontSize: '0.84375rem', lineHeight: 1.65, textAlign: 'justify', hyphens: 'auto' }}
+                          dangerouslySetInnerHTML={{ __html: normaliserContenu(t.commentaire_editorial) }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </main>
+  )
 }

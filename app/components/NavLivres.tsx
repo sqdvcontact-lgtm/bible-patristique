@@ -64,9 +64,24 @@ function formaterProse(html: string): string {
   return s
 }
 
+// Ligne « étiquette · valeur » de la section technique. Composants purs, définis
+// au niveau module (jamais recréés à chaque rendu — sinon React perd l'identité
+// et l'état des sous-arbres).
+const cleTech: React.CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#b8afa2', lineHeight: 1.5, paddingTop: '1px' }
+const LigneTech = ({ c, children }: { c: string; children: React.ReactNode }) => children ? (
+  <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid #f3efe8', alignItems: 'baseline' }}>
+    <span style={cleTech}>{c}</span><span style={{ flex: 1, fontSize: '0.72rem', color: '#5a5450', lineHeight: 1.45 }}>{children}</span>
+  </div>
+) : null
+const Consulter = ({ url, libelle }: { url: string | null; libelle: string }) => (url && estUrl(url))
+  ? <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>{libelle}</a> : null
+
 function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFallback: string; onFermer: () => void }) {
   const [info, setInfo] = useState<InfoTradModale | null>(null)
   const [chrono, setChrono] = useState<RangChrono[]>([])
+  // « Contrôle en cours » (rubrique Vérification) déplie une note : statut du
+  // corpus et lacunes connues, plutôt qu'un encart permanent en haut de fiche.
+  const [verifNote, setVerifNote] = useState(false)
   useEffect(() => {
     let annule = false
     // Source unique : la vue de présentation, chargée par trad_id.
@@ -84,24 +99,12 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
   if (typeof document === 'undefined') return null
   const SERIF = 'var(--font-source-serif), Georgia, serif'
   const i = info ?? ({} as InfoTradModale)
-  const cle: React.CSSProperties = { flexShrink: 0, width: '9rem', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#b0a89e', lineHeight: 1.5 }
-  const Ligne = ({ c, children }: { c: string; children: React.ReactNode }) => children ? (
-    <div style={{ display: 'flex', gap: '14px', padding: '5px 0', borderTop: '1px solid #f1ede6', alignItems: 'baseline' }}>
-      <span style={cle}>{c}</span><span style={{ flex: 1, fontSize: '0.8rem', color: '#3a3530', lineHeight: 1.45 }}>{children}</span>
-    </div>
-  ) : null
-  const cleTech: React.CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#b8afa2', lineHeight: 1.5, paddingTop: '1px' }
-  const LigneTech = ({ c, children }: { c: string; children: React.ReactNode }) => children ? (
-    <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid #f3efe8', alignItems: 'baseline' }}>
-      <span style={cleTech}>{c}</span><span style={{ flex: 1, fontSize: '0.72rem', color: '#5a5450', lineHeight: 1.45 }}>{children}</span>
-    </div>
-  ) : null
-  const Consulter = ({ url, libelle }: { url: string | null; libelle: string }) => (url && estUrl(url))
-    ? <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline', textUnderlineOffset: '2px' }}>{libelle}</a> : null
 
-  const numerotation = i.schema_numerotation ? (NUMEROTATION_LABEL[i.schema_numerotation] ?? i.schema_numerotation) : null
+  // Numérotation de la Vulgate : jamais affichée (elle va de soi pour un texte
+  // établi sur la Vulgate, et n'apporte rien au lecteur).
+  const numerotation = (i.schema_numerotation && i.schema_numerotation !== 'vulgate')
+    ? (NUMEROTATION_LABEL[i.schema_numerotation] ?? i.schema_numerotation) : null
   const intitule = intituleTraduction(i)
-  const anneeLieu = [i.annee_edition, i.lieu_edition].filter(Boolean).join(' — ')
   const verif = i.integrite_verifiee == null ? null : (i.integrite_verifiee ? 'Texte vérifié' : 'Contrôle en cours')
   const licenceDP = (i.licence_traduction ?? '').toLowerCase().includes('domaine public')
 
@@ -129,22 +132,6 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
           <>
             {i.bio_courte && <p style={{ fontFamily: SERIF, fontSize: '0.72rem', fontStyle: 'italic', color: '#6f665c', lineHeight: 1.55, margin: '0 0 14px' }}>{rendreSiecles(i.bio_courte)}</p>}
 
-            {/* 2. Métadonnées principales. */}
-            <div style={{ marginBottom: '10px' }}>
-              <Ligne c="Première publication">{i.date_publication}</Ligne>
-              <Ligne c="Confession">{i.confession}</Ligne>
-              <Ligne c="Langue">{i.langue}</Ligne>
-              <Ligne c="Numérotation">{numerotation}</Ligne>
-            </div>
-
-            {/* 3. Statut bref du corpus (mention sobre, sans jauge ni voyant). */}
-            {i.statut_corpus_public && (
-              <div style={{ margin: '0 0 16px', padding: '7px 11px', borderRadius: '6px', background: '#f6f3ec', border: '1px solid #ece5d8' }}>
-                <p style={{ margin: 0, fontFamily: SERIF, fontSize: '0.76rem', color: '#4a4a34' }}>{i.statut_corpus_public}</p>
-                {i.lacunes_publiques && <p style={{ margin: '3px 0 0', fontFamily: SERIF, fontSize: '0.68rem', color: '#8a8272', fontStyle: 'italic', lineHeight: 1.45 }}>{i.lacunes_publiques}</p>}
-              </div>
-            )}
-
             {/* 4. Notice éditoriale : HTML (h2/p) rendu tel quel, aux styles de la page. */}
             {i.commentaire_editorial && (
               <div className="trad-notice" style={{ borderTop: '1px solid #efeae0', paddingTop: '13px', marginBottom: '16px' }}
@@ -158,20 +145,41 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
                 Édition et état du texte
               </summary>
               <div style={{ marginTop: '8px' }}>
+                {/* Premières informations, déplacées ici depuis la tête de fiche. */}
+                <LigneTech c="Première publication">{i.date_publication}</LigneTech>
+                <LigneTech c="Confession">{i.confession}</LigneTech>
+                <LigneTech c="Langue">{i.langue}</LigneTech>
                 <LigneTech c="Titre de l’édition">{i.titre_edition ? <>{i.titre_edition}{i.sous_titre_edition ? <><br /><span style={{ fontStyle: 'italic', color: '#8a8272' }}>{i.sous_titre_edition}</span></> : null}</> : null}</LigneTech>
-                <LigneTech c="Année et lieu">{anneeLieu || null}</LigneTech>
+                {/* Année et lieu : deux lignes distinctes. */}
+                <LigneTech c="Année">{i.annee_edition}</LigneTech>
+                <LigneTech c="Lieu">{i.lieu_edition}</LigneTech>
                 <LigneTech c="Éditeur">{i.editeur}</LigneTech>
                 <LigneTech c="Responsable de l’édition">{i.responsable_edition}</LigneTech>
-                {/* Édition de référence (imprimée) et source numérique : jamais fusionnées. */}
-                <LigneTech c="Édition de référence">{i.edition_reference_affichee ? <>{i.edition_reference_affichee}{i.edition_reference_url ? <> · <Consulter url={i.edition_reference_url} libelle="Consulter le fac-similé" /></> : null}</> : (i.edition_reference_url ? <Consulter url={i.edition_reference_url} libelle="Consulter le fac-similé" /> : null)}</LigneTech>
+                {/* Édition de référence (imprimée) : sans lien « fac-similé », redondant
+                    avec « Voir la source numérique » (même URL). */}
+                <LigneTech c="Édition de référence">{i.edition_reference_affichee}</LigneTech>
                 <LigneTech c="Source numérique">{i.source_numerique_nom ? <>{i.source_numerique_nom}{i.source_numerique_url ? <> · <Consulter url={i.source_numerique_url} libelle="Voir la source numérique" /></> : null}</> : (i.source_numerique_url ? <Consulter url={i.source_numerique_url} libelle="Voir la source numérique" /> : null)}</LigneTech>
                 <LigneTech c="Graphie">{i.graphie}</LigneTech>
                 <LigneTech c="Numérotation">{numerotation}</LigneTech>
                 <LigneTech c="Particularités">{i.particularites}</LigneTech>
                 <LigneTech c="Licence">{licenceDP ? 'Domaine public' : (i.licence_traduction || null)}</LigneTech>
                 {i.mention_obligatoire && <LigneTech c="Mention obligatoire">{i.mention_obligatoire}</LigneTech>}
-                <LigneTech c="Vérification">{verif}</LigneTech>
-                <LigneTech c="Lacunes connues">{i.lacunes_publiques}</LigneTech>
+                {/* Vérification : « Contrôle en cours » se déplie en note (statut du
+                    corpus + lacunes connues), au lieu d'un encart permanent. */}
+                <LigneTech c="Vérification">{verif ? (
+                  (i.statut_corpus_public || i.lacunes_publiques) ? (
+                    <>
+                      <button onClick={() => setVerifNote(o => !o)} aria-expanded={verifNote}
+                        style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: '#5a5450', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '2px', cursor: 'pointer' }}>{verif}</button>
+                      {verifNote && (
+                        <div style={{ margin: '5px 0 1px' }}>
+                          {i.statut_corpus_public && <p style={{ margin: '0 0 3px', fontFamily: SERIF, fontSize: '0.7rem', color: '#5a5450', lineHeight: 1.45 }}>{i.statut_corpus_public}</p>}
+                          {i.lacunes_publiques && <p style={{ margin: 0, fontFamily: SERIF, fontSize: '0.66rem', fontStyle: 'italic', color: '#8a8272', lineHeight: 1.45 }}>{i.lacunes_publiques}</p>}
+                        </div>
+                      )}
+                    </>
+                  ) : verif
+                ) : null}</LigneTech>
               </div>
             </details>
 
@@ -179,7 +187,7 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
             {chrono.length > 0 && (
               <div style={{ borderTop: '1px solid #efeae0', paddingTop: '14px' }}>
                 <h2 style={{ fontFamily: SERIF, fontSize: '0.95rem', fontWeight: 600, color: '#3a4a34', margin: '0 0 12px' }}>Chronologie</h2>
-                <FriseAuteur evenements={chrono} />
+                <FriseAuteur evenements={chrono} sansLegende />
               </div>
             )}
           </>
@@ -192,14 +200,24 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
 
 function EncartTraduction({ trad }: { trad: Traduction }) {
   const [modaleOuverte, setModaleOuverte] = useState(false)
-  const meta = [trad.confession, trad.langue].filter(Boolean).join(' · ')
   return (
-    <div style={{ flexShrink: 0, height: '6.75rem', boxSizing: 'border-box', overflow: 'hidden', padding: '9px 10px', borderBottom: '1px solid #d6d0c4', background: '#f3efe7', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+    <div style={{ flexShrink: 0, minHeight: '6.75rem', boxSizing: 'border-box', overflow: 'hidden', padding: '10px 10px 9px', borderBottom: '1px solid #d6d0c4', background: '#f3efe7', display: 'flex', flexDirection: 'column', gap: '3px' }}>
       <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a' }}>Traduction</span>
-      <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', fontWeight: 500, color: '#2a3d30', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{trad.label || '—'}</span>
-      {trad.auteur && <span style={{ fontSize: '0.65rem', color: '#6b6560', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{trad.auteur}{trad.datePublication ? `, ${trad.datePublication}` : ''}</span>}
-      {meta && <span style={{ fontSize: '0.6rem', color: '#8a8278', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta}</span>}
-      <button onClick={() => setModaleOuverte(true)} style={{ marginTop: 'auto', fontSize: '0.6rem', color: '#b0a89e', textDecoration: 'underline', textUnderlineOffset: '2px', width: 'fit-content', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>En savoir plus sur cette traduction</button>
+      {/* Auteur avec ses dates de vie complètes, puis la référence complète de l'édition
+          présentée (ville, éditeur, date). La langue n'est pas indiquée ici. */}
+      <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', fontWeight: 500, color: '#2a3d30', lineHeight: 1.22 }}>
+        {trad.auteur || trad.label || '—'}
+        {trad.auteurDates && <span style={{ fontWeight: 400, color: '#7c8a72' }}> ({trad.auteurDates})</span>}
+      </span>
+      {/* Div BLOC volontaire : `-webkit-line-clamp` sur un enfant DIRECT du flex serait
+          neutralisé (blockification). Certaines références sont très longues (Crampon),
+          on les borne à deux lignes ; la fiche « En savoir plus » donne le détail. */}
+      {trad.editionRef && (
+        <div>
+          <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontSize: '0.65rem', color: '#6b6560', lineHeight: 1.3 }}>{trad.editionRef}</span>
+        </div>
+      )}
+      <button onClick={() => setModaleOuverte(true)} style={{ marginTop: 'auto', paddingTop: '4px', fontSize: '0.6rem', color: '#b0a89e', textDecoration: 'underline', textUnderlineOffset: '2px', width: 'fit-content', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>En savoir plus sur cette traduction</button>
       {modaleOuverte && <ModaleTraduction code={trad.code} nomFallback={trad.label || ''} onFermer={() => setModaleOuverte(false)} />}
     </div>
   )
@@ -287,7 +305,7 @@ const ABREV_TO_CODE: Record<string, string> = {
 }
 
 type Livre = { code: string; nom: string; testament: string }
-type Traduction = { code: string; label: string; auteur?: string | null; datePublication?: string | null; confession?: string | null; langue?: string | null }
+type Traduction = { code: string; label: string; auteur?: string | null; auteurDates?: string | null; editionRef?: string | null; datePublication?: string | null; confession?: string | null; langue?: string | null }
 
 type Props = {
   livres: Livre[]
@@ -319,6 +337,7 @@ type Props = {
   setVoletMobile?: (v: 'livres' | 'commentaires' | null) => void
   barreMobile?: boolean                     // afficher la barre fixe mobile (false : sans barre)
   presentation?: 'drawer' | 'inline'        // mobile : tiroir superposé, ou page pleine (onglets)
+  sansReduire?: boolean                     // masque la flèche « Réduire » (Polyglotte gère le repli du volet entier)
 }
 
 /**
@@ -353,6 +372,7 @@ export default function NavLivres({
   livresVides, onChoisirLivre, sansChapitres, titre,
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, entierActif,
   mobile = false, voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
+  sansReduire = false,
 }: Props) {
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
@@ -460,10 +480,10 @@ export default function NavLivres({
           width: '100%', textAlign: 'left',
           padding: '2px 6px', borderRadius: '4px', fontSize: '0.85456rem',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          background: suggere ? 'rgba(61,107,79,0.12)' : actif ? 'rgba(61,107,79,0.10)' : 'transparent',
+          background: suggere ? 'rgba(var(--cs-vert-rgb),0.12)' : actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'transparent',
           color: vide ? '#b3bdb0' : actif || suggere ? '#2a3d30' : '#4f5f52',
           fontWeight: actif || suggere ? 600 : 400,
-          border: suggere ? '1px solid rgba(61,107,79,0.30)' : '1px solid transparent',
+          border: suggere ? '1px solid rgba(var(--cs-vert-rgb),0.30)' : '1px solid transparent',
           cursor: 'pointer', lineHeight: 1.4, boxSizing: 'border-box',
           opacity: vide ? 0.55 : 1,
         }}>
@@ -478,7 +498,7 @@ export default function NavLivres({
               style={{
                 width: '100%', fontSize: '0.73803rem', height: '1.5rem', padding: '0 6px', borderRadius: '4px',
                 border: 'none', cursor: 'pointer', textAlign: 'center', letterSpacing: '0.02em',
-                background: entierSel ? '#3d6b4f' : '#f0f4ee',
+                background: entierSel ? 'var(--cs-vert)' : '#f0f4ee',
                 color: entierSel ? '#fff' : '#7c8676',
                 fontWeight: entierSel ? 600 : 400, lineHeight: 1,
               }}>
@@ -504,11 +524,11 @@ export default function NavLivres({
                   }
                 }} style={{
                   fontSize: '0.70rem', height: '1.45rem', borderRadius: '4px',
-                  border: estChapSuggere ? '1px solid #3d6b4f' : 'none',
+                  border: estChapSuggere ? '1px solid var(--cs-vert)' : 'none',
                   cursor: 'pointer', padding: 0,
                   /* Cases plus petites et teinte verte TRÈS légère au repos. */
-                  background: (actif && chapitreActifLocal === ch) ? '#3d6b4f'
-                    : estChapSuggere ? 'rgba(61,107,79,0.15)' : '#f0f4ee',
+                  background: (actif && chapitreActifLocal === ch) ? 'var(--cs-vert)'
+                    : estChapSuggere ? 'rgba(var(--cs-vert-rgb),0.15)' : '#f0f4ee',
                   color: (actif && chapitreActifLocal === ch) ? '#fff'
                     : estChapSuggere ? '#2a3d30' : '#7c8676',
                   fontWeight: estChapSuggere ? 700 : 400,
@@ -605,15 +625,16 @@ export default function NavLivres({
       <div style={{ flexShrink: 0, padding: '8px 8px 6px', borderBottom: '1px solid #d6d0c4', display: 'flex', alignItems: 'center', gap: '6px' }}>
         <input
           type="text"
-          placeholder="Recherche"
+          placeholder="Rechercher un livre biblique"
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && refParsee) appliquerRefParsee() }}
           style={{ flex: 1, minWidth: 0, fontSize: '0.81572rem', padding: '4px 7px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#f0ede7', color: '#3a3530', outline: 'none', boxSizing: 'border-box' }}
         />
         {/* Flèche « réduire » inutile en mode onglets (mobile) : les onglets en haut
-            font office de navigation. Conservée pour le repli desktop. */}
-        {presentation !== 'inline' && (
+            font office de navigation. Conservée pour le repli desktop, sauf quand le
+            parent gère lui-même le repli du volet entier (Polyglotte : `sansReduire`). */}
+        {presentation !== 'inline' && !sansReduire && (
           <button onClick={() => setOuvert(false)} title="Réduire le volet"
             style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#b0a89e', display: 'flex', alignItems: 'center' }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -629,7 +650,7 @@ export default function NavLivres({
           <button onClick={appliquerRefParsee} style={{
             width: '100%', textAlign: 'left',
             fontSize: '0.85456rem', padding: '8px 9px', borderRadius: '5px',
-            background: 'rgba(61,107,79,0.10)', border: '1px solid rgba(61,107,79,0.25)',
+            background: 'rgba(var(--cs-vert-rgb),0.10)', border: '1px solid rgba(var(--cs-vert-rgb),0.25)',
             color: '#2a3d30', cursor: 'pointer', lineHeight: 1.5, boxSizing: 'border-box',
           }}>
             ↳ {livres.find(l => l.code === refParsee.code)?.nom ?? refParsee.code}

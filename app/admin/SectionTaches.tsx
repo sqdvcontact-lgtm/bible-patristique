@@ -285,11 +285,11 @@ function FormTache({ initiale, onSave, onCancel, categoriesConnues }: {
 }
 
 const CSS = `
-.cs-taches{--ink:#1a1f1c;--mut:#4a5c52;--acc:#3d6b4f;--pap:#dde6e0;--bord:#c4d4ca;
+.cs-taches{--ink:#1a1f1c;--mut:#4a5c52;--acc:var(--cs-vert);--pap:#dde6e0;--bord:#c4d4ca;
   color:var(--ink);font-family:var(--font-source-sans), Arial, sans-serif;}
 .cs-taches h1{font-family:var(--font-source-serif), Georgia, serif;font-size:1.375rem;margin:0;font-weight:600;color:#1a2e22;}
 .cs-head{display:flex;justify-content:space-between;align-items:center;gap:16px;
-  border-bottom:2px solid #3d6b4f;padding-bottom:12px;margin-bottom:16px;flex-wrap:wrap;}
+  border-bottom:2px solid var(--cs-vert);padding-bottom:12px;margin-bottom:16px;flex-wrap:wrap;}
 .cs-stats{display:flex;gap:16px;font-size:0.8125rem;color:var(--mut);}
 .cs-stats b{color:#1a2e22;font-size:0.9375rem;}
 .cs-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
@@ -298,11 +298,11 @@ const CSS = `
 .cs-seg{display:inline-flex;border:1px solid var(--bord);border-radius:7px;overflow:hidden;}
 .cs-seg button{border:0;background:#fff;padding:7px 11px;font-size:0.8125rem;cursor:pointer;color:var(--mut);border-left:1px solid var(--bord);}
 .cs-seg button:first-child{border-left:0;}
-.cs-seg button.on{background:#3d6b4f;color:#fff;}
+.cs-seg button.on{background:var(--cs-vert);color:#fff;}
 .cs-ghost{background:#fff;border:1px solid var(--bord);border-radius:7px;padding:7px 11px;font-size:0.8125rem;cursor:pointer;color:var(--mut);}
 .cs-check{font-size:0.8125rem;color:var(--mut);display:inline-flex;align-items:center;gap:5px;cursor:pointer;}
-.cs-add{background:#3d6b4f;color:#fff;border:0;border-radius:7px;padding:8px 14px;font-size:0.8125rem;font-weight:600;cursor:pointer;}
-.cs-add:hover{background:#2e5440;}
+.cs-add{background:var(--cs-vert);color:#fff;border:0;border-radius:7px;padding:8px 14px;font-size:0.8125rem;font-weight:600;cursor:pointer;}
+.cs-add:hover{background:var(--cs-vert-fonce);}
 .cs-groupe{margin-top:20px;}
 .cs-groupe h2{font-family:var(--font-source-serif), Georgia, serif;font-size:0.875rem;font-weight:600;color:#2a4a35;
   margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid var(--bord);display:flex;align-items:center;gap:8px;}
@@ -322,9 +322,9 @@ const CSS = `
 .cs-statut.st-fait{background:#d8eedc;color:#1e4f28;border-color:#9acc9e;}
 .cs-prio{font-weight:700;font-size:0.75rem;border:1.5px solid;border-radius:6px;padding:4px 6px;background:#fff;cursor:pointer;}
 .cs-mini{border:1px solid var(--bord);background:#fff;border-radius:6px;padding:5px 9px;font-size:0.75rem;cursor:pointer;color:var(--mut);white-space:nowrap;}
-.cs-mini:hover{border-color:#3d6b4f;color:#3d6b4f;}
-.cs-mini.claude{color:#3d6b4f;border-color:#9abba6;font-weight:600;}
-.cs-mini.claude:hover{background:#3d6b4f;color:#fff;}
+.cs-mini:hover{border-color:var(--cs-vert);color:var(--cs-vert);}
+.cs-mini.claude{color:var(--cs-vert);border-color:#9abba6;font-weight:600;}
+.cs-mini.claude:hover{background:var(--cs-vert);color:#fff;}
 .cs-mini.danger{color:#b00020;border-color:#e3b4bc;}
 .cs-confirm{display:inline-flex;align-items:center;gap:5px;font-size:0.75rem;color:#b00020;}
 .cs-vide{color:var(--mut);font-style:italic;padding:24px 4px;}

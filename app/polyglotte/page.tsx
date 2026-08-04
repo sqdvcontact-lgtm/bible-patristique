@@ -18,6 +18,9 @@ import { createPortal } from "react-dom";
 import { cesurerGrec, codeLangue, copierSansCesuresGrecques } from "@/app/lib/grec";
 import { supabase } from "@/app/lib/supabase";
 import NavLivres from "@/app/components/NavLivres";
+import IconeCrayon from "@/app/components/IconeCrayon";
+import IconeDrapeau from "@/app/components/IconeDrapeau";
+import IconeChevron from "@/app/components/IconeChevron";
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { ABREV_FR } from "@/app/lib/bible";
@@ -104,7 +107,7 @@ function texteCesure(t: string | null, lang?: string) {
   return texteEnrichi(t && lang === "grc" ? cesurerGrec(t) : t);
 }
 
-const VERT = "#3d6b4f";
+const VERT = "var(--cs-vert)";
 // L'en-tête du tableau ne doit PAS reprendre le vert de la NavBar : collés l'un sous l'autre,
 // deux aplats identiques se lisaient comme un seul bandeau, et on ne voyait plus où commençait
 // le tableau. Un vert nettement plus sombre garde la parenté sans la confusion.
@@ -270,7 +273,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
 // ── Petites actions de la colonne N° (lecteur) : citer, signaler ──────────────────────
 // Mêmes symboles que les pages Bible et Œuvre : le signet ajoute le verset à « mes
 // citations », le fanion ouvre un signalement. Discrets, révélés au survol de la ligne.
-const ACT_BTN: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 0, width: 16, height: 16, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: '0.85rem', lineHeight: 1, transition: "color .15s" };
+const ACT_BTN: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 0, width: 19, height: 19, borderRadius: 3, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: '0.9rem', lineHeight: 1, transition: "color .15s" };
 function IconeSignet({ rempli }: { rempli?: boolean }) {
   return (
     <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display: "block" }}>
@@ -278,18 +281,8 @@ function IconeSignet({ rempli }: { rempli?: boolean }) {
     </svg>
   );
 }
-// Drapeau de signalement, au MÊME gabarit que le signet (11×12, viewBox 12×13, même trait)
-// pour que les deux actions de cellule aient exactement la même taille.
-function IconeSignaler() {
-  return (
-    <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display: "block" }}>
-      <path d="M3.4 1.4V11.6" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
-      <path d="M3.4 2.1L9.4 4.05L3.4 6" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none" />
-    </svg>
-  );
-}
-// Signalement : le MÊME symbole que la page Bible classique — le glyphe « ⚑ »
-// (U+2691), pour que le drapeau soit identique partout sur le site.
+// Signalement : le composant partagé IconeDrapeau (SVG), au même gabarit exact que le
+// signet de prélèvement — les deux SVG restent donc toujours de la même taille.
 
 // Bouton « citer » à bascule : ajoute le verset à « mes citations » s'il n'y est pas,
 // l'en retire s'il y est déjà (signet plein = enregistré). Réservé aux comptes connectés.
@@ -347,7 +340,7 @@ function BoutonSignalerVerset({ refLisible, texte }: { refLisible: string; texte
   return (
     <>
       <button onClick={e => { e.stopPropagation(); setOuvert(true); }} title="Signaler une erreur" className="poly-act"
-        style={{ ...ACT_BTN, color: "#b7ad9a" }} aria-label="Signaler"><IconeSignaler /></button>
+        style={{ ...ACT_BTN, color: "#b7ad9a" }} aria-label="Signaler"><IconeDrapeau /></button>
       {ouvert && <ModalSignalement titre={refLisible} texteObjet={texte || undefined} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   );
@@ -439,7 +432,7 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
   const ligne = (actif: boolean): React.CSSProperties => ({
     display: "flex", alignItems: "flex-start", gap: 8, width: "100%", textAlign: "left",
     padding: "7px 10px", borderRadius: 5, border: "none", cursor: "pointer",
-    background: actif ? "rgba(61,107,79,0.10)" : "transparent",
+    background: actif ? "rgba(var(--cs-vert-rgb),0.10)" : "transparent",
     fontFamily: "var(--font-source-sans), Arial, sans-serif",
   });
   const coche = (actif: boolean) => (
@@ -450,13 +443,13 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
     <>
       <button ref={btnRef} onClick={basculer} className="poly-trad-pick" title="Changer de traduction"
         aria-haspopup="listbox" aria-expanded={ouvert}
-        style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minWidth: 0, padding: "4px 18px 4px 6px", borderRadius: 4, background: "none", border: "none", cursor: "pointer", color: "inherit", transition: "background .15s, box-shadow .15s" }}>
-        <span aria-hidden style={{ minWidth: 0, textAlign: "center", lineHeight: 1.06 }}>
-          <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.78125rem", color: "rgba(255,255,255,0.96)" }}>
+        style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minWidth: 0, padding: "7px 18px 7px 6px", borderRadius: 4, background: "none", border: "none", cursor: "pointer", color: "inherit", transition: "background .15s, box-shadow .15s" }}>
+        <span aria-hidden style={{ minWidth: 0, textAlign: "center", lineHeight: 1.12 }}>
+          <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "rgba(255,255,255,0.97)" }}>
             {courante?.nom ?? "Choisir une traduction"}
           </span>
           {courante?.edition && (
-            <span style={{ display: "block", marginTop: 6, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.53125rem", fontWeight: 600, letterSpacing: "0.18em", textIndent: "0.18em", color: "rgba(255,255,255,0.62)" }}>
+            <span style={{ display: "block", marginTop: 8, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: "0.15em", textIndent: "0.15em", color: "rgba(255,255,255,0.64)" }}>
               {courante.edition}
             </span>
           )}
@@ -484,7 +477,7 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
                   return (
                     <button key={t.trad_id} role="option" aria-selected={actif} onClick={() => choisir(t.trad_id)}
                       style={ligne(actif)}
-                      onMouseEnter={e => { if (!actif) e.currentTarget.style.background = "rgba(61,107,79,0.06)"; }}
+                      onMouseEnter={e => { if (!actif) e.currentTarget.style.background = "rgba(var(--cs-vert-rgb),0.06)"; }}
                       onMouseLeave={e => { if (!actif) e.currentTarget.style.background = "transparent"; }}>
                       {coche(actif)}
                       <span style={{ minWidth: 0 }}>
@@ -527,8 +520,12 @@ export default function PolyglottePage() {
   }, []);
   useEffect(() => { prefRef.current = nbTradPref; }, [nbTradPref]);
   // Applique la préférence (ou revient à la valeur automatique mesurée).
+  const nbTradEcrit = useRef(false);
   useEffect(() => {
     setMaxSlots(nbTradPref != null ? Math.max(MIN_SLOTS, Math.min(MAX_SLOTS, nbTradPref)) : autoRef.current);
+    // Ne JAMAIS écrire au premier rendu : la valeur lue du localStorage (effet ci-dessus)
+    // n'est pas encore appliquée, et l'état initial `null` écraserait la préférence mémorisée.
+    if (!nbTradEcrit.current) { nbTradEcrit.current = true; return; }
     try { window.localStorage.setItem("polyglotte-nbtrad", nbTradPref == null ? "auto" : String(nbTradPref)); } catch { /* stockage indisponible */ }
   }, [nbTradPref]);
   const refTable = useRef<HTMLDivElement>(null);
@@ -554,6 +551,28 @@ export default function PolyglottePage() {
     const ro = new ResizeObserver(calc);
     ro.observe(el);
     return () => ro.disconnect();
+  }, []);
+  // Actions « Prélever / Signaler » : visibles au survol TANT QUE le curseur bouge.
+  // Après une seconde sans mouvement, on retire la classe et les boutons s'effacent,
+  // pour ne pas encombrer la lecture. (Classe basculée sur le nœud, sans re-rendu.)
+  useEffect(() => {
+    const el = refTable.current;
+    if (!el) return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    // Petit seuil : de menus tremblements du curseur ne rallument pas les boutons ;
+    // il faut un déplacement franc (> SEUIL px depuis le dernier point retenu).
+    const SEUIL = 10;
+    let refX = 0, refY = 0, initialise = false;
+    const onMove = (e: MouseEvent) => {
+      if (!initialise) { refX = e.clientX; refY = e.clientY; initialise = true; }
+      if (Math.hypot(e.clientX - refX, e.clientY - refY) < SEUIL) return;   // trop léger : on ignore
+      refX = e.clientX; refY = e.clientY;
+      el.classList.add("poly-curseur-actif");
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => el.classList.remove("poly-curseur-actif"), 1000);
+    };
+    el.addEventListener("mousemove", onMove);
+    return () => { el.removeEventListener("mousemove", onMove); if (timer) clearTimeout(timer); };
   }, []);
   // Ajuste le nombre de slots à la largeur : préserve les traductions déjà choisies,
   // complète par des slots vides, ou retire les colonnes qui ne tiennent plus.
@@ -599,6 +618,7 @@ export default function PolyglottePage() {
   // sur le compte (table polyglotte_notes, RLS par utilisateur). Écriture débouncée.
   const [notes, setNotes] = useState<Map<string, string>>(new Map());
   const [notesReduites, setNotesReduites] = useState(false);   // colonne Notes repliée en rail
+  const [voletReduit, setVoletReduit] = useState(false);       // volet de navigation gauche rabattu
   // Persistance de l'état fermé/ouvert de la colonne Notes : conservé d'une visite à l'autre.
   useEffect(() => {
     try { if (window.localStorage.getItem("polyglotte-notes-reduites") === "1") setNotesReduites(true); } catch { /* stockage indisponible */ }
@@ -892,7 +912,7 @@ export default function PolyglottePage() {
   // partage `fr` des traductions). Enregistrées par verset sur le compte.
   const LARGEUR_NOTES = notesReduites ? "26px" : "13rem";
   const tmpl = `46px ${slotCols.map(() => "minmax(0, 1fr)").join(" ")} ${LARGEUR_NOTES}`;
-  const HAUT_ENTETE = 43;   // titre et date de l'édition, sur deux lignes
+  const HAUT_ENTETE = 52;   // titre et date de l'édition, sur deux lignes (ligne desserrée)
   const HAUT_TITRE  = 25;   // hauteur du bandeau portant le nom du livre
   const HAUT_NAV    = 10;   // blanc entre la NavBar et le haut du tableau
   // Sommet du corps du tableau : sous la navbar, le blanc de séparation, la barre de
@@ -916,17 +936,19 @@ export default function PolyglottePage() {
            posé en haut à droite, révélé au seul survol de la cellule. */
         .poly-cellact {
           position: absolute; top: 2px; right: 4px; z-index: 2;
-          display: flex; align-items: center; gap: 7px;
-          padding: 1px 5px; border-radius: 6px;
+          display: flex; align-items: center; gap: 8px;
+          padding: 2px 7px; border-radius: 6px;
           background: transparent; box-shadow: none;
           transition: background .12s, box-shadow .12s;
         }
-        /* Le bandeau clair n'apparaît qu'au survol de la cellule (au repos : rien). */
-        .poly-texte-cell:hover .poly-cellact {
+        /* Le bandeau clair n'apparaît qu'au survol de la cellule ET tant que le curseur
+           bouge : la classe poly-curseur-actif est retirée après une seconde d'immobilité
+           (JS), ce qui efface les actions pour ne pas gêner la lecture. */
+        .poly-curseur-actif .poly-texte-cell:hover .poly-cellact {
           background: rgba(255,255,255,0.88); box-shadow: 0 1px 3px rgba(45,35,25,0.14);
         }
         .poly-act { opacity: 0; transition: opacity .12s, color .15s; }
-        .poly-texte-cell:hover .poly-act { opacity: .9; }
+        .poly-curseur-actif .poly-texte-cell:hover .poly-act { opacity: .9; }
         .poly-act:hover { opacity: 1 !important; color: #8a6a52; }
         /* En-tête « Notes » : au survol de toute la cellule, « Notes » s'efface et
            « Fermer » apparaît à sa place (fondu croisé). */
@@ -940,13 +962,12 @@ export default function PolyglottePage() {
         /* Surbrillance très légère de la ligne survolée. Elle passe par un filtre
            (et non par le background) pour agir par-dessus les fonds inline — zébrage,
            signalétique, surnuméraires — sans les remplacer. */
-        /* Rappel de la ligne survolée : une légère SURBRILLANCE (aucun mouvement, qui
-           gênerait la lecture), qui « respire » doucement toutes les 3 s pour rappeler
-           discrètement où se trouve le lecteur. */
-        .poly-row:hover, .poly-surnum-row:hover { filter: brightness(0.958); animation: poly-rappel-ligne 3s ease-in-out infinite; }
+        /* Ligne survolée : une légère surbrillance permanente (sans mouvement), PLUS un
+           bref pulse discret TOUTES LES 3 s pour rappeler où se trouve le lecteur. */
+        .poly-row:hover, .poly-surnum-row:hover { filter: brightness(0.955); animation: poly-rappel-ligne 3s ease-in-out infinite; }
         @keyframes poly-rappel-ligne {
-          0%, 100% { filter: brightness(0.972); }
-          50% { filter: brightness(0.935); }
+          0%, 82%, 100% { filter: brightness(0.955); }
+          91% { filter: brightness(0.915); }
         }
         @media (prefers-reduced-motion: reduce) {
           .poly-row:hover, .poly-surnum-row:hover { animation: none; }
@@ -982,7 +1003,7 @@ export default function PolyglottePage() {
           float: left;
           display: flex; flex-direction: column; align-items: flex-end;
           margin: 0 8px 0 0; padding: 0 7px 0 0;
-          border-right: 1px solid rgba(61,107,79,0.22);
+          border-right: 1px solid rgba(var(--cs-vert-rgb),0.22);
           font-family: var(--font-source-sans), Arial, sans-serif;
           font-weight: 400; letter-spacing: 0.03em;
           font-variant-numeric: tabular-nums;
@@ -1049,9 +1070,24 @@ export default function PolyglottePage() {
             descendait. Le volet se cale donc sous la navbar, et n'occupe que la
             hauteur restante. */}
         <div style={{ position: "sticky", top: HAUTEUR_NAVBAR, height: HAUTEUR_SOUS_NAVBAR, flexShrink: 0, display: "flex", flexDirection: "column" }}>
-          {/* Titre de la page, en tête du volet de gauche. */}
-          <div style={{ flexShrink: 0, background: "#faf8f4", borderRight: "1px solid #d6d0c4", borderBottom: "1px solid #d6d0c4", padding: "12px 14px 11px" }}>
+          {voletReduit ? (
+            // Volet rabattu : un mince rail cliquable pour le rouvrir, sur le modèle du
+            // rail de la page Bible (fond clair, filet à droite, chevron discret).
+            <button onClick={() => setVoletReduit(false)} title="Afficher le volet des livres" aria-label="Afficher le volet"
+              style={{ width: "30px", flex: 1, background: "#faf8f4", border: "none", borderRight: "1px solid #d6d0c4", cursor: "pointer", color: "#9a958d", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", paddingTop: "12px" }}>
+              <IconeChevron dir="right" size={14} strokeWidth={1.5} />
+            </button>
+          ) : (
+            <>
+          {/* Titre de la page, en tête du volet de gauche, avec le bouton de repli à sa droite. */}
+          <div style={{ flexShrink: 0, background: "#faf8f4", borderRight: "1px solid #d6d0c4", borderBottom: "1px solid #d6d0c4", padding: "12px 14px 11px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
             <h1 style={{ margin: 0, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', fontWeight: 600, color: VERT, letterSpacing: "0.01em", lineHeight: 1.2 }}>Bible polyglotte</h1>
+            {/* Même bouton « réduire » que la page Bible et les pages d'œuvre : nu, sans
+                cadre, chevron discret. */}
+            <button onClick={() => setVoletReduit(true)} title="Rabattre le volet" aria-label="Rabattre le volet"
+              style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: "3px", color: "#b0a89e", display: "flex", alignItems: "center" }}>
+              <IconeChevron dir="left" size={14} strokeWidth={1.5} />
+            </button>
           </div>
           {/* Choix du nombre de traductions affichées (Auto = selon la largeur d'écran). */}
           <div style={{ flexShrink: 0, background: "#faf8f4", borderRight: "1px solid #d6d0c4", borderBottom: "1px solid #d6d0c4", padding: "8px 14px 9px" }}>
@@ -1062,7 +1098,7 @@ export default function PolyglottePage() {
                 return (
                   <button key={lbl} onClick={() => setNbTradPref(val)}
                     style={{ fontSize: "0.62rem", fontWeight: actif ? 600 : 400, padding: "2px 9px", borderRadius: "999px", cursor: "pointer",
-                      border: `1px solid ${actif ? VERT : "#d6d0c4"}`, background: actif ? "rgba(61,107,79,0.10)" : "#fff", color: actif ? VERT : "#6b6560",
+                      border: `1px solid ${actif ? VERT : "#d6d0c4"}`, background: actif ? "rgba(var(--cs-vert-rgb),0.10)" : "#fff", color: actif ? VERT : "#6b6560",
                       fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                     {lbl}
                   </button>
@@ -1084,8 +1120,11 @@ export default function PolyglottePage() {
               onChoisirVerset={(code, ch, v) => { if (code !== livreChoisi) choisirLivre(code); setChapitreChoisi(ch); setToutAfficher(false); setVersetCible({ ch, v }); }}
               entierActif={chapitreChoisi === null && !toutAfficher}
               titre="Livres à comparer"
+              sansReduire
             />
           </div>
+            </>
+          )}
         </div>
 
       <div ref={refTable} style={{ flex: 1, minWidth: 0, padding: "12px 18px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "#2a2620" }}>
@@ -1188,10 +1227,7 @@ export default function PolyglottePage() {
                     /* Colonne fermée : un simple crayon, propre et discret, pour rouvrir. */
                     <button onClick={() => setNotesReduites(false)} title="Afficher la colonne Notes" className="poly-notes-rail"
                       style={{ background: "rgba(255,255,255,0.06)", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.8)", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", padding: 0 }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3z"/>
-                        <path d="M13.5 6.5l3 3"/>
-                      </svg>
+                      <IconeCrayon size={13} />
                     </button>
                   ) : (
                     /* Colonne ouverte : toute la cellule est cliquable ; au survol, « Notes »
@@ -1372,7 +1408,7 @@ export default function PolyglottePage() {
                                       {/* Une intervention d'alignement laisse toujours sa trace dans
                                           `notes` : le lecteur voit QU'il y a eu intervention, et le
                                           survol lui dit LAQUELLE. Rien n'est corrigé en silence. */}
-                                      {c.notes ? <span title={c.notes} style={{ marginLeft: 2, color: "#7a6fae", cursor: "help" }}>✎</span> : null}
+                                      {c.notes ? <span title={c.notes} style={{ marginLeft: 3, color: "#7a6fae", cursor: "help", display: "inline-flex", verticalAlign: "middle" }}><IconeCrayon size={9} /></span> : null}
                                     </span>
                                     {estAdmin && (
                                       <button title="Modifier ce verset" aria-label="Modifier ce verset" className="poly-edit"
@@ -1380,7 +1416,7 @@ export default function PolyglottePage() {
                                         style={{ border: "none", cursor: "pointer", color: "#7a8f80", fontSize: '0.65625rem', lineHeight: 1, background: fond, transition: "color .15s" }}
                                         onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = VERT; }}
                                         onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "#7a8f80"; }}>
-                                        ✎
+                                        <IconeCrayon size={11} />
                                       </button>
                                     )}
                                   </span>

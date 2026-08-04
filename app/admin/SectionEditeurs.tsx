@@ -113,7 +113,7 @@ export default function SectionEditeurs() {
 
       {/* Formulaire ajout / édition */}
       <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '9px', padding: '16px 18px', marginBottom: '22px' }}>
-        <p style={{ fontSize: '0.8625rem', fontWeight: 700, color: '#3d6b4f', margin: '0 0 12px' }}>{brouillon.id ? 'Modifier un éditeur' : 'Ajouter un éditeur'}</p>
+        <p style={{ fontSize: '0.8625rem', fontWeight: 700, color: 'var(--cs-vert)', margin: '0 0 12px' }}>{brouillon.id ? 'Modifier un éditeur' : 'Ajouter un éditeur'}</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '11px', marginBottom: '11px' }}>
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={label}>Nom complet *</label>
@@ -145,7 +145,7 @@ export default function SectionEditeurs() {
         {statut === 'err' && <p style={{ fontSize: '0.79062rem', color: '#c0562a', margin: '0 0 8px' }}>{erreur}</p>}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
           {brouillon.id && <button onClick={() => { setBrouillon(VIDE); setStatut('idle') }} style={{ fontSize: '0.82656rem', padding: '6px 13px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>}
-          <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '0.82656rem', padding: '6px 15px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+          <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '0.82656rem', padding: '6px 15px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
             {statut === 'envoi' ? 'Enregistrement…' : brouillon.id ? 'Enregistrer' : 'Ajouter'}
           </button>
         </div>
@@ -185,7 +185,7 @@ export default function SectionEditeurs() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
-                <button onClick={() => editer(e)} style={{ fontSize: '0.79062rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Modifier</button>
+                <button onClick={() => editer(e)} style={{ fontSize: '0.79062rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Modifier</button>
                 <button onClick={() => supprimer(e.id)} style={{ fontSize: '0.79062rem', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Supprimer</button>
               </div>
             </div>

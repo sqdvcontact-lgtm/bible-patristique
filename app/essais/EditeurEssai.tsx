@@ -313,7 +313,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       const note = `<span contenteditable="false" data-chip="note" data-note="${noteEnc}" style="${styleNote}">note</span>`
       insererHTML(`<blockquote>${esc(c.texte)}${note}${esc(c.fin ?? '.')}</blockquote><p><br></p>`)
     } else {
-      insererHTML(`<span contenteditable="false" data-chip="${c.type}" data-id="${c.id}" data-label="${c.label}" style="display:inline-block;color:#3d6b4f;text-decoration:underline;background:rgba(61,107,79,0.07);padding:1px 5px;border-radius:3px;cursor:pointer;">${c.label}</span>&nbsp;`)
+      insererHTML(`<span contenteditable="false" data-chip="${c.type}" data-id="${c.id}" data-label="${c.label}" style="display:inline-block;color:var(--cs-vert);text-decoration:underline;background:rgba(var(--cs-vert-rgb),0.07);padding:1px 5px;border-radius:3px;cursor:pointer;">${c.label}</span>&nbsp;`)
     }
     setSelecteurOuvert(false)
   }
@@ -495,7 +495,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     return (
       <main style={{ background: '#f7f4ef', minHeight: 'calc(100dvh - 3.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
         <div style={{ maxWidth: '32.5rem', textAlign: 'center', color: '#5b544c', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', color: '#3d6b4f', margin: '0 0 14px' }}>Écrire</h1>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', color: 'var(--cs-vert)', margin: '0 0 14px' }}>Écrire</h1>
           <p style={{ fontSize: '0.9375rem', lineHeight: 1.6, margin: 0 }}>
             L’éditeur demande un écran large : il réunit la mise en forme, les notes et les citations.
             <br /><br />
@@ -542,7 +542,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
         {essaiExistant && (
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
-            <button onClick={() => setComparaisonOuverte(v => !v)} style={{ fontSize: '0.6875rem', color: comparaisonOuverte ? '#fff' : '#3d6b4f', background: comparaisonOuverte ? '#3d6b4f' : 'none', border: comparaisonOuverte ? 'none' : '1px solid #3d6b4f', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <button onClick={() => setComparaisonOuverte(v => !v)} style={{ fontSize: '0.6875rem', color: comparaisonOuverte ? '#fff' : 'var(--cs-vert)', background: comparaisonOuverte ? 'var(--cs-vert)' : 'none', border: comparaisonOuverte ? 'none' : '1px solid var(--cs-vert)', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
               {comparaisonOuverte ? 'Revenir à la rédaction' : 'Comparer avec la version d\u2019origine'}
             </button>
           </div>
@@ -573,7 +573,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
               <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '7px', padding: '16px 18px 18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '18px', alignItems: 'flex-start', marginBottom: '14px' }}>
                   <div>
-                    <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 4px' }}>
+                    <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 4px' }}>
                       Informations de publication
                     </p>
                     <p style={{ fontSize: '0.6875rem', color: '#9a958d', margin: 0 }}>
@@ -645,7 +645,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                         <button
                           key={categorie}
                           onClick={() => toggleCategorie(categorie)}
-                          style={{ fontSize: '0.6875rem', padding: '4px 11px', borderRadius: '12px', cursor: 'pointer', border: `1px solid ${actif ? '#3d6b4f' : '#d6d0c4'}`, background: actif ? 'rgba(61,107,79,0.10)' : '#fff', color: actif ? '#3d6b4f' : '#8a8278', fontWeight: actif ? 600 : 400 }}>
+                          style={{ fontSize: '0.6875rem', padding: '4px 11px', borderRadius: '12px', cursor: 'pointer', border: `1px solid ${actif ? 'var(--cs-vert)' : '#d6d0c4'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : '#fff', color: actif ? 'var(--cs-vert)' : '#8a8278', fontWeight: actif ? 600 : 400 }}>
                           {categorie}
                         </button>
                       )
@@ -670,10 +670,10 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 <button onMouseDown={e => e.preventDefault()} onClick={() => entourerGuillemets('« ', ' »')} style={BTN} title="Guillemets français « … »">« »</button>
                 <button onMouseDown={e => e.preventDefault()} onClick={() => entourerGuillemets('“', '”')} style={BTN} title="Guillemets anglais “ … ” (citation de second niveau)">“ ”</button>
                 <div style={{ height: '1px', background: '#e4dfd8', margin: '4px 0' }} />
-                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H2')} style={{ ...BTN, background: blocActif === 'h2' ? '#3d6b4f' : '#fff', color: blocActif === 'h2' ? '#fff' : '#2a2520' }}>Titre 1</button>
-                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H3')} style={{ ...BTN, background: blocActif === 'h3' ? '#3d6b4f' : '#fff', color: blocActif === 'h3' ? '#fff' : '#2a2520' }}>Titre 2</button>
-                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('BLOCKQUOTE')} style={{ ...BTN, background: blocActif === 'blockquote' ? '#3d6b4f' : '#fff', color: blocActif === 'blockquote' ? '#fff' : '#2a2520' }}>Citation</button>
-                <button onMouseDown={e => e.preventDefault()} onClick={appliquerParagraphe} style={{ ...BTN, background: blocActif === 'p' ? '#3d6b4f' : '#fff', color: blocActif === 'p' ? '#fff' : '#2a2520' }}>Paragraphe</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H2')} style={{ ...BTN, background: blocActif === 'h2' ? 'var(--cs-vert)' : '#fff', color: blocActif === 'h2' ? '#fff' : '#2a2520' }}>Titre 1</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H3')} style={{ ...BTN, background: blocActif === 'h3' ? 'var(--cs-vert)' : '#fff', color: blocActif === 'h3' ? '#fff' : '#2a2520' }}>Titre 2</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('BLOCKQUOTE')} style={{ ...BTN, background: blocActif === 'blockquote' ? 'var(--cs-vert)' : '#fff', color: blocActif === 'blockquote' ? '#fff' : '#2a2520' }}>Citation</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={appliquerParagraphe} style={{ ...BTN, background: blocActif === 'p' ? 'var(--cs-vert)' : '#fff', color: blocActif === 'p' ? '#fff' : '#2a2520' }}>Paragraphe</button>
                 <div style={{ height: '1px', background: '#e4dfd8', margin: '4px 0' }} />
                 <button onMouseDown={e => e.preventDefault()} onClick={ouvrirCreationNote} style={BTN}>+ Note</button>
                 <button onMouseDown={e => { e.preventDefault(); memoriserSelection() }} onClick={() => setSelecteurOuvert(true)} style={BTN}>Citer depuis le site</button>
@@ -684,14 +684,14 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 <div style={{ border: '1px solid #e4dfd8', borderRadius: '6px', background: '#fff', overflow: 'hidden' }}>
                   {/* En-tête non modifiable — auteur, titre, sous-titre, catégories */}
                   <div style={{ textAlign: 'center', padding: '26px 24px 20px', borderBottom: '1px solid #ede9e2' }}>
-                    <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 12px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+                    <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 12px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                       {nomAffiche}
                     </p>
                     <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.5rem', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 6px' }}>{meta.titre}</h1>
                     {meta.sousTitre && <p style={{ fontSize: '0.875rem', color: '#8a8278', fontStyle: 'italic', margin: '0 0 12px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{meta.sousTitre}</p>}
                     <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '8px' }}>
                       {meta.categories.map(c => (
-                        <span key={c} style={{ fontSize: '0.59375rem', color: '#3d6b4f', background: 'rgba(61,107,79,0.08)', padding: '1px 8px', borderRadius: '9px', fontWeight: 600, fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{c}</span>
+                        <span key={c} style={{ fontSize: '0.59375rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.08)', padding: '1px 8px', borderRadius: '9px', fontWeight: 600, fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{c}</span>
                       ))}
                     </div>
                   </div>
@@ -759,7 +759,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             )}
             <button
               onClick={modeAdmin && essaiExistant?.statut === 'publie' ? publier : ouvrirConfirmationPublication}
-              style={{ fontSize: '0.78125rem', padding: '7px 20px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+              style={{ fontSize: '0.78125rem', padding: '7px 20px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
               {modeAdmin && essaiExistant?.statut === 'publie' ? 'Enregistrer les corrections' : 'Soumettre la publication'}
             </button>
           </div>
@@ -787,7 +787,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 type="checkbox"
                 checked={accepteConditions}
                 onChange={e => { setAccepteConditions(e.target.checked); if (e.target.checked) setErreurConditions(null) }}
-                style={{ marginTop: '2px', accentColor: '#3d6b4f' }}
+                style={{ marginTop: '2px', accentColor: 'var(--cs-vert)' }}
               />
               Je certifie respecter ces conditions de publication.
             </label>
@@ -807,7 +807,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                   setConfirmPublier(false)
                   await publier()
                 }}
-                style={{ fontSize: '0.75rem', padding: '7px 18px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                style={{ fontSize: '0.75rem', padding: '7px 18px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
                 Confirmer
               </button>
             </div>

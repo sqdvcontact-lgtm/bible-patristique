@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AccueilCards from "../components/AccueilCards";
+import IconeChevron from "@/app/components/IconeChevron";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
 import { MARQUEUR_OEUVRE_DEPUBLIEE } from "@/app/lib/oeuvresPublication";
 
@@ -117,17 +118,36 @@ export default async function AccueilPage() {
         /* Ajouts récents : au survol, « Lire » remplace TOUTE la ligne auteur-titre
            (la date, elle, reste). Fondu croisé : le titre s'efface, « Lire » — en
            lettres espacées, sobre et large — apparaît à sa place. */
-        .ajout-item .ajout-titre { transition: opacity 0.18s ease; }
+        .ajout-item .ajout-titre { transition: opacity 0.2s ease; }
         .ajout-item:hover .ajout-titre { opacity: 0; }
+        /* « Lire » : entrée en glissé, mot en italique serif, filet doré qui se trace
+           dessous, et fine flèche dorée qui avance — sobre et soigné. */
         .ajout-item .ajout-lire {
           position: absolute; inset: 0;
-          display: flex; align-items: center; gap: 7px;
-          opacity: 0; transition: opacity 0.2s ease;
+          display: flex; align-items: center; gap: 9px;
+          opacity: 0; transform: translateX(-7px);
+          transition: opacity 0.24s ease, transform 0.34s cubic-bezier(0.22,0.61,0.36,1);
           pointer-events: none;
         }
-        .ajout-item:hover .ajout-lire { opacity: 1; }
-        .ajout-lire .fleche { transition: transform 0.24s cubic-bezier(0.22,0.61,0.36,1); }
-        .ajout-item:hover .ajout-lire .fleche { transform: translateX(3px); }
+        .ajout-item:hover .ajout-lire { opacity: 1; transform: translateX(0); }
+        .ajout-lire-mot {
+          position: relative;
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-style: italic;
+          font-size: 0.9rem;
+          letter-spacing: 0.03em;
+          color: var(--cs-vert);
+        }
+        .ajout-lire-mot::after {
+          content: "";
+          position: absolute; left: 0; right: 0; bottom: -2px; height: 1px;
+          background: linear-gradient(to right, #b08f48, rgba(176,143,72,0.15));
+          transform: scaleX(0); transform-origin: left;
+          transition: transform 0.36s cubic-bezier(0.22,0.61,0.36,1) 0.05s;
+        }
+        .ajout-item:hover .ajout-lire-mot::after { transform: scaleX(1); }
+        .ajout-lire .fleche { color: #b08f48; transition: transform 0.28s cubic-bezier(0.22,0.61,0.36,1); }
+        .ajout-item:hover .ajout-lire .fleche { transform: translateX(4px); }
         @media (max-width: 760px) {
           .accueil-volets { grid-template-columns: 1fr; }
           .accueil-stats { flex-wrap: wrap; }
@@ -205,7 +225,7 @@ export default async function AccueilPage() {
             fontFamily: "var(--font-source-serif), Georgia, serif",
             fontSize: "0.875rem",
             fontStyle: "italic",
-            color: "#3d6b4f",
+            color: "var(--cs-vert)",
             letterSpacing: "0.02em",
             marginBottom: "6px",
           }}>
@@ -353,7 +373,7 @@ function ColophonSection({ titre, children }: { titre: string; children: React.R
         fontWeight: 600,
         letterSpacing: "0.22em",
         textTransform: "uppercase",
-        color: "#3d6b4f",
+        color: "var(--cs-vert)",
         margin: "0 0 16px",
       }}>
         {titre}
@@ -452,9 +472,9 @@ function VoletAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
                   {o.auteur}{o.auteur && o.titre ? ", " : ""}<em>{o.titre}</em>
                 </span>
                 {/* « Lire » : au survol, remplace toute la ligne auteur-titre. */}
-                <span className="ajout-lire" aria-hidden="true" style={{ fontSize: "0.84rem", fontWeight: 500, color: "#3d6b4f" }}>
-                  <span style={{ letterSpacing: "0.3em" }}>Lire</span>
-                  <span className="fleche" style={{ fontSize: "0.92em", opacity: 0.6 }}>→</span>
+                <span className="ajout-lire" aria-hidden="true">
+                  <span className="ajout-lire-mot">Lire</span>
+                  <span className="fleche" style={{ display: "inline-flex" }}><IconeChevron dir="right" size={11} strokeWidth={1.4} /></span>
                 </span>
               </Link>
             </li>
@@ -477,7 +497,7 @@ function BandeauStats({ nbTextes, nbAuteurs }: { nbTextes: number; nbAuteurs: nu
       {stats.map((s, i) => (
         <div key={i} className="accueil-stat">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-            <span style={{ color: "#3d6b4f", display: "inline-flex" }}>{s.icon}</span>
+            <span style={{ color: "var(--cs-vert)", display: "inline-flex" }}>{s.icon}</span>
             <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.5rem", color: "#1e2a1c", lineHeight: 1 }}>{s.valeur}</span>
           </div>
           <div style={{ fontSize: "0.6875rem", letterSpacing: "0.03em", color: "#8a8268", marginTop: "6px", textAlign: "center", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{s.label}</div>

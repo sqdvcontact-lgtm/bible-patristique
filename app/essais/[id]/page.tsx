@@ -8,6 +8,17 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// Titre d'onglet / SEO dynamique par publication. On n'expose le titre que pour une
+// publication publiée (ne pas divulguer le titre d'un brouillon dans les métadonnées).
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const { data } = await supabaseAdmin
+    .from('essais').select('titre, sous_titre, resume, statut').eq('id', id).maybeSingle()
+  if (!data?.titre || data.statut !== 'publie') return { title: 'Publication' }
+  const desc = (data.resume || data.sous_titre || '') as string
+  return { title: data.titre as string, description: desc ? desc.slice(0, 160) : undefined }
+}
+
 export default async function EssaiPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 

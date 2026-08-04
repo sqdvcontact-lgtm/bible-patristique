@@ -5,13 +5,14 @@ import { supabase } from "@/app/lib/supabase"
 import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import { parseNotes } from '@/app/lib/notes'
 import NoteTooltip from '@/app/lib/NoteTooltip'
+import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import EditeurCommentaire from '@/app/components/EditeurCommentaire'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
-import { segmentsLiesAuVerset, segmentsLiesAuChapitre, type TypeLien } from '@/app/lib/liens'
+import { segmentsLiesAuVerset, segmentsLiesAuChapitre, segmentsLiesAPlage, type TypeLien } from '@/app/lib/liens'
 import IconeSignet from '@/app/components/IconeSignet'
 import { HAUTEUR_NAVBAR, BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import ModalSignalement from '@/app/components/ModalSignalement'
@@ -53,7 +54,7 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
     else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{m[2]}</sup>)
     else if (m[3] !== undefined) noeuds.push(<em key={k++}>{m[3]}</em>)
     else if (m[4] !== undefined) noeuds.push(
-      <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{m[4]}</a>
+      <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{m[4]}</a>
     )
     else if (m[6] !== undefined) {
       const marqueur = m[6]
@@ -185,7 +186,7 @@ function BoutonCopieSegment({ texte, auteur, titre, trad_auteur, editeur, collec
   }
   return (
     <button onClick={handle} title="Copier ce segment"
-      style={{ ...ACTION_BTN, color: copie ? '#3d6b4f' : '#c8c0b4' }}>
+      style={{ ...ACTION_BTN, color: copie ? 'var(--cs-vert)' : '#c8c0b4' }}>
       {copie ? '✓' : (
         <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
           <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
@@ -234,7 +235,7 @@ function BoutonEnregistrerSegment({ segment, info, userId }: {
   if (idPrelev) {
     return (
       <button onClick={supprimer} disabled={loading} title="Retirer des prélèvements"
-        style={{ ...ACTION_BTN, color:'#3d6b4f' }}>
+        style={{ ...ACTION_BTN, color:'var(--cs-vert)' }}>
         {loading ? '…' : <IconeSignet plein />}
       </button>
     )
@@ -310,11 +311,11 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
           <div style={{ display:'flex', alignItems:'center', gap:'4px', marginBottom:'1px' }}>
             {info?.id_auteur ? (
               <a href={`/auteur/${info.id_auteur}`} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize:'0.77687rem', fontWeight:600, color:'#3d6b4f', lineHeight:1.2, letterSpacing:'0.026em', textDecoration:'none' }}>
+                style={{ fontSize:'0.77687rem', fontWeight:600, color:'var(--cs-vert)', lineHeight:1.2, letterSpacing:'0.026em', textDecoration:'none' }}>
                 {info.auteur_nom || s.id_oeuvre}
               </a>
             ) : (
-              <span style={{ fontSize:'0.77687rem', fontWeight:600, color:'#3d6b4f', lineHeight:1.2, letterSpacing:'0.026em' }}>
+              <span style={{ fontSize:'0.77687rem', fontWeight:600, color:'var(--cs-vert)', lineHeight:1.2, letterSpacing:'0.026em' }}>
                 {info?.auteur_nom || s.id_oeuvre}
               </span>
             )}
@@ -350,7 +351,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
             />
             <button onClick={e => { e.stopPropagation(); onSignaler(s, info?.titre) }} title="Signaler une erreur"
               style={{ ...ACTION_BTN, color:'#c8c0b4' }}>
-              ⚑
+              <IconeDrapeau />
             </button>
             <BoutonSupprimerLien
               segmentId={s.id} colonneLien={colonneLien}
@@ -404,7 +405,7 @@ function GroupeTags({ titre, children }: { titre: string; children: React.ReactN
       {hauteur2 != null && (
         // Collé aux tags, mais distinct : petit lien souligné (pas une pastille).
         <button onClick={() => setOuvert(o => !o)}
-          style={{ marginTop: '1px', fontSize: '0.585rem', color: '#3d6b4f', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 2px', fontWeight: 600, fontStyle: 'italic', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+          style={{ marginTop: '1px', fontSize: '0.585rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 2px', fontWeight: 600, fontStyle: 'italic', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
           {ouvert ? 'Afficher moins' : 'Afficher plus'}
         </button>
       )}
@@ -578,9 +579,9 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
     const couleurs = rangInfo ? couleurRang(rangInfo.rang) : null
     const estCertifie = !!c.certifie
     const estRevision = !c.valide
-    const fondCarte = estCertifie ? 'rgba(61,107,79,0.08)' : estRevision ? 'rgba(176,58,42,0.07)' : '#fff'
-    const bordureCarte = estCertifie ? 'rgba(61,107,79,0.28)' : estRevision ? 'rgba(176,58,42,0.26)' : '#e4dfd8'
-    const accentCarte = estReponse ? '#c8c0b4' : estCertifie ? '#3d6b4f' : estRevision ? '#b03a2a' : '#d6d0c4'
+    const fondCarte = estCertifie ? 'rgba(var(--cs-vert-rgb),0.08)' : estRevision ? 'rgba(176,58,42,0.07)' : '#fff'
+    const bordureCarte = estCertifie ? 'rgba(var(--cs-vert-rgb),0.28)' : estRevision ? 'rgba(176,58,42,0.26)' : '#e4dfd8'
+    const accentCarte = estReponse ? '#c8c0b4' : estCertifie ? 'var(--cs-vert)' : estRevision ? '#b03a2a' : '#d6d0c4'
     const fondTexte = estCertifie ? 'rgba(255,255,255,0.42)' : estRevision ? 'rgba(255,255,255,0.48)' : 'rgba(255,255,255,0.54)'
     const couleurTexte = estRevision ? '#6f3d35' : '#2a2520'
     return (
@@ -600,7 +601,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
                 {rangInfo.rang}
               </span>
             )}
-            {estCertifie && <span style={{ fontSize:'0.565rem', fontWeight:700, color:'#2f6a48', background:'rgba(61,107,79,0.14)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>CERTIFIÉ</span>}
+            {estCertifie && <span style={{ fontSize:'0.565rem', fontWeight:700, color:'#2f6a48', background:'rgba(var(--cs-vert-rgb),0.14)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>CERTIFIÉ</span>}
             {estRevision && <span style={{ fontSize:'0.565rem', fontWeight:700, color:'#b0392b', background:'rgba(176,58,42,0.10)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>EN RÉVISION</span>}
           </div>
           <span style={{ marginLeft:'auto', textAlign:'right', fontSize:'0.61444rem', color:'#b0a89e', flexShrink:0 }}>{dateHeureCommentaire(c.created_at)}</span>
@@ -612,7 +613,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
           {/* J'aime EN PREMIER, puis Je n'aime pas ; les deux boutons resserrés. */}
           <div style={{ display:'flex', alignItems:'center', gap:'1px', flexShrink:0 }}>
             <button onClick={() => basculerVote(c, 1)} title="J'aime"
-              style={{ display:'flex', alignItems:'center', gap:'2px', color: c.monVote === 1 ? '#3d6b4f' : '#b0a89e', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
+              style={{ display:'flex', alignItems:'center', gap:'2px', color: c.monVote === 1 ? 'var(--cs-vert)' : '#b0a89e', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
               <svg width="10" height="10" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
@@ -645,8 +646,8 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
             </button>
           )}
           <button onClick={() => setCommentaireSignale(c)} title="Signaler ce commentaire"
-            style={{ fontSize:'0.74156rem', color:'#c8c0b4', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft: userId === c.user_id || (isAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink:0 }}>
-            ⚑
+            style={{ color:'#c8c0b4', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft: userId === c.user_id || (isAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink:0, display:'inline-flex', alignItems:'center' }}>
+            <IconeDrapeau />
           </button>
         </div>
         </>
@@ -718,8 +719,8 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
       </div>
       <div style={{ flexShrink:0, display:'flex', flexDirection:'column', gap:'5px', borderTop:'1px solid #ede9e2', marginTop:'4px', paddingTop:'10px' }}>
         {cibleReponse && (
-          <div style={{ display:'flex', alignItems:'center', gap:'6px', background:'rgba(61,107,79,0.07)', border:'1px solid rgba(61,107,79,0.18)', borderRadius:'5px', padding:'5px 8px' }}>
-            <span style={{ display:'inline-flex', alignItems:'center', gap:'5px', fontSize:'0.70625rem', color:'#3d6b4f' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'6px', background:'rgba(var(--cs-vert-rgb),0.07)', border:'1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius:'5px', padding:'5px 8px' }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:'5px', fontSize:'0.70625rem', color:'var(--cs-vert)' }}>
               <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
                 <path d="M7 4 3.5 7.5 7 11M3.5 7.5H10a2.5 2.5 0 0 1 2.5 2.5V12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -741,11 +742,11 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
         {erreur && <p style={{ fontSize:'0.67094rem', color:'#c0392b', margin:0 }}>{erreur}</p>}
         <label style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'0.67094rem', color:'#6b6560', cursor:'pointer', lineHeight:1, height:'16px' }}>
           <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
-            style={{ width:'12px', height:'12px', flexShrink:0, accentColor:'#3d6b4f', cursor:'pointer', margin:0 }} />
+            style={{ width:'12px', height:'12px', flexShrink:0, accentColor:'var(--cs-vert)', cursor:'pointer', margin:0 }} />
           <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demander la certification</span>
         </label>
         <button onClick={envoyer} disabled={envoi}
-          style={{ alignSelf:'flex-end', fontSize:'0.70625rem', padding:'4px 12px', borderRadius:'4px', border:'none', background:'#3d6b4f', color:'#fff', cursor:'pointer', fontWeight:500 }}>
+          style={{ alignSelf:'flex-end', fontSize:'0.70625rem', padding:'4px 12px', borderRadius:'4px', border:'none', background:'var(--cs-vert)', color:'#fff', cursor:'pointer', fontWeight:500 }}>
           {envoi ? '…' : 'Envoyer'}
         </button>
       </div>
@@ -780,6 +781,7 @@ export default function PanneauPatristique({
   verset, livreActif, nomLivre, chapitreActif,
   panelWidth = null, onWidthChange, mobile = false,
   voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
+  plage, refAffichee,
 }: {
   verset: Verset | null
   livreActif: string
@@ -792,6 +794,10 @@ export default function PanneauPatristique({
   setVoletMobile?: (v: 'livres' | 'commentaires' | null) => void
   barreMobile?: boolean
   presentation?: 'drawer' | 'inline'
+  // Page d'une péricope : charge l'apparat d'une PLAGE canonique exacte plutôt que d'un
+  // verset ou d'un chapitre entier. `refAffichee` remplace alors l'en-tête de référence.
+  plage?: { livre: string; canonDebut: string; canonFin: string | null }
+  refAffichee?: string
 }) {
   type Onglet = 'patristique' | 'commentaires'
   type SousOnglet = 'citations' | 'doctrine' | 'echos'
@@ -883,7 +889,7 @@ export default function PanneauPatristique({
   // TOUS ceux du chapitre ouvert (le lecteur voit alors d'emblée l'apparat du chapitre).
   useEffect(() => {
     setPageItems(0)
-    if (!verset && !livreActif) { setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); return }
+    if (!verset && !livreActif && !plage) { setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); return }
     setLoading(true)
     let annule = false
 
@@ -892,7 +898,9 @@ export default function PanneauPatristique({
     // surcroît, ramenaient GEN.1.10 à GEN.1.19 quand on demandait GEN.1.1.
     const SEG_COLS = 'id, id_oeuvre, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, notes'
     ;(async () => {
-      const liens = verset
+      const liens = plage
+        ? await segmentsLiesAPlage(plage.livre, plage.canonDebut, plage.canonFin)
+        : verset
         ? await segmentsLiesAuVerset(verset.id_verset)
         : await segmentsLiesAuChapitre(livreActif, chapitreActif)
       if (annule) return
@@ -934,7 +942,7 @@ export default function PanneauPatristique({
       setLoading(false)
     })()
     return () => { annule = true }
-  }, [verset, livreActif, chapitreActif])
+  }, [verset, livreActif, chapitreActif, plage?.livre, plage?.canonDebut, plage?.canonFin])
 
   // Recherche auteur en direct
   useEffect(() => {
@@ -999,7 +1007,7 @@ export default function PanneauPatristique({
   // Sans verset sélectionné mais avec un chapitre ouvert : mode chapitre (apparat
   // patristique de tout le chapitre). Les commentaires, eux, sont attachés à un
   // verset : leur onglet ne paraît donc qu'avec une sélection.
-  const modeChapitre = !verset && !!livreActif
+  const modeChapitre = !verset && (!!livreActif || !!plage)
   const ONGLETS: { code: Onglet; label: string; count?: number | null }[] = [
     { code: 'patristique',  label: 'Pères de l\'Église', count: nbPatristique },
     ...(verset ? [{ code: 'commentaires' as Onglet, label: 'Commentaires', count: nbCommentairesBible }] : []),
@@ -1116,8 +1124,8 @@ export default function PanneauPatristique({
   const debutItems = pageCouranteItems * ITEMS_PAR_PAGE
   const finItems = Math.min(debutItems + ITEMS_PAR_PAGE, itemsGroupes.length)
   const itemsPage = itemsGroupes.slice(debutItems, finItems)
-  const refFr = verset ? `${nomLivre} ${chapitreActif}, ${verset.verset}`
-    : modeChapitre ? `${nomLivre} ${chapitreActif}` : null
+  const refFr = refAffichee ?? (verset ? `${nomLivre} ${chapitreActif}, ${verset.verset}`
+    : modeChapitre ? `${nomLivre} ${chapitreActif}` : null)
 
   if (!ouvert) {
     // Empilé (mobile) : barre horizontale pleine largeur en bas de la pile.
@@ -1218,20 +1226,21 @@ export default function PanneauPatristique({
               <button key={t.code} onClick={() => setOnglet(t.code)}
                 style={{
                   flex:1, padding:'8px 6px 7px', border:'none',
-                  borderBottom: onglet === t.code ? '2px solid #3d6b4f' : '2px solid transparent',
+                  borderBottom: onglet === t.code ? '2px solid var(--cs-vert)' : '2px solid transparent',
                   cursor:'pointer',
-                  background: onglet === t.code ? 'rgba(61,107,79,0.04)' : 'transparent',
+                  background: onglet === t.code ? 'rgba(var(--cs-vert-rgb),0.04)' : 'transparent',
                   color: onglet === t.code ? '#2a3d30' : '#8a8278',
                   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
                   transition:'color 0.12s, background 0.12s',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
                 }}>
-                {/* Le libellé réserve deux lignes et se cale EN BAS de sa boîte : « Commentaires »
-                    (une ligne) et « Pères de l'Église » (deux lignes) gardent ainsi leur compteur au
-                    même niveau, et le groupe libellé + compteur est centré verticalement par le bouton. */}
-                <span style={{ fontSize:'0.67094rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: onglet === t.code ? 600 : 400, minHeight: '2.3em', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', textAlign: 'center', lineHeight: 1.15 }}>{t.label}</span>
+                {/* Libellé + compteur forment un groupe centré verticalement dans la hauteur
+                    du bouton (justifyContent: center ci-dessus) : chaque bloc (« Pères de
+                    l'Église » + compteur, « Commentaires » + compteur) est ainsi centré, sans
+                    réservation basse qui le ferait descendre. */}
+                <span style={{ fontSize:'0.67094rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: onglet === t.code ? 600 : 400, textAlign: 'center', lineHeight: 1.15 }}>{t.label}</span>
                 {t.count != null && t.count > 0 && (
-                  <span style={{ fontSize: '0.63562rem', color: onglet === t.code ? '#3d6b4f' : '#b0a89e', fontWeight: 500, lineHeight: 1 }}>{t.count}</span>
+                  <span style={{ fontSize: '0.63562rem', color: onglet === t.code ? 'var(--cs-vert)' : '#b0a89e', fontWeight: 500, lineHeight: 1 }}>{t.count}</span>
                 )}
                 {t.count != null && t.count === 0 && !loading && (
                   <span style={{ fontSize: '0.60031rem', color: '#c0b8b0', fontStyle: 'italic', lineHeight: 1 }}>Aucune occurrence</span>
@@ -1265,15 +1274,15 @@ export default function PanneauPatristique({
                         <button key={key} onClick={() => setSousOnglet(key)}
                           style={{
                             flex: 1, background: 'none', border: 'none',
-                            borderBottom: sousOnglet === key ? '2px solid #3d6b4f' : '2px solid transparent',
+                            borderBottom: sousOnglet === key ? '2px solid var(--cs-vert)' : '2px solid transparent',
                             padding: '5px 2px 4px', cursor: 'pointer',
-                            color: sousOnglet === key ? '#3d6b4f' : '#9a958d',
+                            color: sousOnglet === key ? 'var(--cs-vert)' : '#9a958d',
                             fontSize: '0.63562rem', fontWeight: sousOnglet === key ? 600 : 400,
                             letterSpacing: '0.04em', lineHeight: 1.2,
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px',
                           }}>
                           <span>{label}</span>
-                          {nb > 0 && <span style={{ fontSize: '0.565rem', color: sousOnglet === key ? '#3d6b4f' : '#c0b8ae' }}>{nb}</span>}
+                          {nb > 0 && <span style={{ fontSize: '0.565rem', color: sousOnglet === key ? 'var(--cs-vert)' : '#c0b8ae' }}>{nb}</span>}
                         </button>
                       ))}
                     </div>
@@ -1286,9 +1295,9 @@ export default function PanneauPatristique({
                     position: 'relative',
                     display: 'flex', width: '100%', justifyContent: 'center', alignItems: 'center', gap: '4px',
                     fontSize: '0.67094rem', padding: '5px 9px', borderRadius: '7px', cursor: 'pointer',
-                    border: `1px solid ${filtreVoletOuvert || nombreFiltresActifs > 0 ? '#3d6b4f' : '#d6d0c4'}`,
-                    background: filtreVoletOuvert || nombreFiltresActifs > 0 ? 'rgba(61,107,79,0.10)' : '#fff',
-                    color: filtreVoletOuvert || nombreFiltresActifs > 0 ? '#3d6b4f' : '#8a8278',
+                    border: `1px solid ${filtreVoletOuvert || nombreFiltresActifs > 0 ? 'var(--cs-vert)' : '#d6d0c4'}`,
+                    background: filtreVoletOuvert || nombreFiltresActifs > 0 ? 'rgba(var(--cs-vert-rgb),0.10)' : '#fff',
+                    color: filtreVoletOuvert || nombreFiltresActifs > 0 ? 'var(--cs-vert)' : '#8a8278',
                     fontWeight: 500,
                   }}>
                     <svg width="10" height="10" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -1297,7 +1306,7 @@ export default function PanneauPatristique({
                     Filtres
                     {/* Badge en ABSOLU : « Filtres » reste centré, la barre ne s'élargit pas. */}
                     {nombreFiltresActifs > 0 && (
-                      <span style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: '#3d6b4f', color: '#fff', borderRadius: '8px', fontSize: '0.565rem', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
+                      <span style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'var(--cs-vert)', color: '#fff', borderRadius: '8px', fontSize: '0.565rem', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
                         {nombreFiltresActifs}
                       </span>
                     )}
@@ -1328,10 +1337,10 @@ export default function PanneauPatristique({
                               setResultatsAuteur([])
                               setPageItems(0)
                             }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '5px 8px', fontSize: '0.74156rem', color: '#2a3d30', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
-                              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(61,107,79,0.07)')}
+                              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(var(--cs-vert-rgb),0.07)')}
                               onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
                               {a.nom}
-                              <span style={{ fontSize: '0.8475rem', color: '#3d6b4f', lineHeight: 1 }}>+</span>
+                              <span style={{ fontSize: '0.8475rem', color: 'var(--cs-vert)', lineHeight: 1 }}>+</span>
                             </button>
                           ))}
                         </div>
@@ -1340,13 +1349,13 @@ export default function PanneauPatristique({
                     {filtreAuteursBlancs.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '5px' }}>
                         {filtreAuteursBlancs.map(a => (
-                          <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '0.63562rem', padding: '1px 5px 1px 7px', background: 'rgba(61,107,79,0.12)', color: '#2a5a38', borderRadius: '9px', fontWeight: 500 }}>
+                          <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '0.63562rem', padding: '1px 5px 1px 7px', background: 'rgba(var(--cs-vert-rgb),0.12)', color: '#2a5a38', borderRadius: '9px', fontWeight: 500 }}>
                             {a.nom}
                             <button onClick={() => {
                               setFiltreAuteursIds(prev => { const n = new Set(prev); n.delete(a.id_auteur); return n })
                               setFiltreAuteursBlancs(prev => prev.filter(x => x.id_auteur !== a.id_auteur))
                               setPageItems(0)
-                            }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#3d6b4f', fontSize: '0.77687rem', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
+                            }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--cs-vert)', fontSize: '0.77687rem', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
                           </span>
                         ))}
                       </div>
@@ -1366,8 +1375,8 @@ export default function PanneauPatristique({
                               onClick={() => { setFiltreTraditions(prev => { const n = new Set(prev); if (n.has(t)) n.delete(t); else n.add(t); return n }); setPageItems(0) }}
                               style={{
                                 fontSize: '0.63562rem', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
-                                border: `1px solid ${sel ? '#3d6b4f' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
-                                background: sel ? 'rgba(61,107,79,0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                border: `1px solid ${sel ? 'var(--cs-vert)' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
+                                background: sel ? 'rgba(var(--cs-vert-rgb),0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
                                 color: sel ? '#2a5a38' : dispo ? '#6b5f4a' : '#c4bcae',
                               }}>
                               <span style={{ fontWeight: sel ? 600 : 400 }}>{t}</span>
@@ -1388,8 +1397,8 @@ export default function PanneauPatristique({
                               onClick={() => { setFiltreGenres(prev => { const n = new Set(prev); if (n.has(g)) n.delete(g); else n.add(g); return n }); setPageItems(0) }}
                               style={{
                                 fontSize: '0.63562rem', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
-                                border: `1px solid ${sel ? '#3d6b4f' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
-                                background: sel ? 'rgba(61,107,79,0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                border: `1px solid ${sel ? 'var(--cs-vert)' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
+                                background: sel ? 'rgba(var(--cs-vert-rgb),0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
                                 color: sel ? '#2a5a38' : dispo ? '#6b5f4a' : '#c4bcae',
                               }}>
                               <span style={{ fontWeight: sel ? 600 : 400 }}>{g}</span>

@@ -159,11 +159,11 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {messages.map(m => (
                     <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: m.de_moi ? 'flex-end' : 'flex-start' }}>
-                      <div style={{ maxWidth: '78%', background: m.de_moi ? '#3d6b4f' : '#fff', color: m.de_moi ? '#f0f7f2' : '#1e2e24', border: m.de_moi ? 'none' : '1px solid #e4dfd8', borderRadius: m.de_moi ? '14px 14px 3px 14px' : '14px 14px 14px 3px', padding: '8px 12px', fontSize: '0.8125rem', lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      <div style={{ maxWidth: '78%', background: m.de_moi ? 'var(--cs-vert)' : '#fff', color: m.de_moi ? '#f0f7f2' : '#1e2e24', border: m.de_moi ? 'none' : '1px solid #e4dfd8', borderRadius: m.de_moi ? '14px 14px 3px 14px' : '14px 14px 14px 3px', padding: '8px 12px', fontSize: '0.8125rem', lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                         {m.contenu}
                       </div>
                       <span style={{ fontSize: '0.5625rem', color: '#b0a89e', margin: '2px 4px 0' }}>
-                        {heure(m.created_at)}{m.de_moi && <span style={{ marginLeft: '4px', color: m.lu ? '#3d6b4f' : '#c8c0b4' }}>{m.lu ? '✓✓' : '✓'}</span>}
+                        {heure(m.created_at)}{m.de_moi && <span style={{ marginLeft: '4px', color: m.lu ? 'var(--cs-vert)' : '#c8c0b4' }}>{m.lu ? '✓✓' : '✓'}</span>}
                       </span>
                     </div>
                   ))}
@@ -178,7 +178,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                 placeholder="Écrire un message… (Entrée pour envoyer)" rows={2} maxLength={2000}
                 style={{ flex: 1, resize: 'none', border: '1px solid #d6d0c4', borderRadius: '9px', padding: '8px 11px', fontSize: '0.78125rem', background: '#fff', color: '#1e2e24', fontFamily: 'inherit', lineHeight: 1.45, outline: 'none' }} />
               <button onClick={envoyer} disabled={!sansEmoticones(texte).trim() || envoi}
-                style={{ flexShrink: 0, height: '38px', background: '#3d6b4f', color: '#fff', border: 'none', borderRadius: '9px', padding: '0 15px', fontSize: '0.78125rem', fontWeight: 600, cursor: (!sansEmoticones(texte).trim() || envoi) ? 'default' : 'pointer', opacity: (!sansEmoticones(texte).trim() || envoi) ? 0.5 : 1 }}>
+                style={{ flexShrink: 0, height: '38px', background: 'var(--cs-vert)', color: '#fff', border: 'none', borderRadius: '9px', padding: '0 15px', fontSize: '0.78125rem', fontWeight: 600, cursor: (!sansEmoticones(texte).trim() || envoi) ? 'default' : 'pointer', opacity: (!sansEmoticones(texte).trim() || envoi) ? 0.5 : 1 }}>
                 {envoi ? '…' : 'Envoyer'}
               </button>
             </div>
@@ -206,7 +206,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
             <div style={{ flexShrink: 0, display: 'flex', gap: '4px', padding: '8px 14px 4px' }}>
               {([['tous', 'Toutes'], ['non-lus', 'Non lues']] as const).map(([k, lab]) => (
                 <button key={k} onClick={() => setFiltre(k)}
-                  style={{ fontSize: '0.6875rem', padding: '3px 11px', borderRadius: '999px', border: `1px solid ${filtre === k ? '#3d6b4f' : '#d6d0c4'}`, background: filtre === k ? 'rgba(61,107,79,0.09)' : '#fff', color: filtre === k ? '#3d6b4f' : '#8a8278', fontWeight: filtre === k ? 600 : 400, cursor: 'pointer' }}>{lab}</button>
+                  style={{ fontSize: '0.6875rem', padding: '3px 11px', borderRadius: '999px', border: `1px solid ${filtre === k ? 'var(--cs-vert)' : '#d6d0c4'}`, background: filtre === k ? 'rgba(var(--cs-vert-rgb),0.09)' : '#fff', color: filtre === k ? 'var(--cs-vert)' : '#8a8278', fontWeight: filtre === k ? 600 : 400, cursor: 'pointer' }}>{lab}</button>
               ))}
             </div>
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 12px 14px' }}>
@@ -220,11 +220,11 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                   {convsFiltrees.map(c => (
                     <button key={c.partenaire_pseudo} onClick={() => ouvrirConversation(c.partenaire_pseudo)}
-                      style={{ textAlign: 'left', background: c.nb_non_lus > 0 ? '#f9fcf9' : '#fff', border: '1px solid #e4dfd8', borderLeft: `3px solid ${c.nb_non_lus > 0 ? '#3d6b4f' : '#d6d0c4'}`, borderRadius: '8px', padding: '10px 13px', cursor: 'pointer' }}>
+                      style={{ textAlign: 'left', background: c.nb_non_lus > 0 ? '#f9fcf9' : '#fff', border: '1px solid #e4dfd8', borderLeft: `3px solid ${c.nb_non_lus > 0 ? 'var(--cs-vert)' : '#d6d0c4'}`, borderRadius: '8px', padding: '10px 13px', cursor: 'pointer' }}>
                       <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                           <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: '#1e2e24', fontWeight: c.nb_non_lus > 0 ? 600 : 400 }}>{c.partenaire_pseudo}</span>
-                          {c.nb_non_lus > 0 && <span style={{ background: '#3d6b4f', color: '#fff', fontSize: '0.5625rem', fontWeight: 700, borderRadius: '10px', padding: '1px 6px' }}>{c.nb_non_lus}</span>}
+                          {c.nb_non_lus > 0 && <span style={{ background: 'var(--cs-vert)', color: '#fff', fontSize: '0.5625rem', fontWeight: 700, borderRadius: '10px', padding: '1px 6px' }}>{c.nb_non_lus}</span>}
                         </span>
                         <span style={{ fontSize: '0.59375rem', color: '#b0a89e', flexShrink: 0 }}>{dateRelative(c.dernier_at)}</span>
                       </span>

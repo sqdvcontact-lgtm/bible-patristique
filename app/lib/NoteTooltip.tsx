@@ -40,7 +40,7 @@ function ContenuNote({ el, onNaviguer }: {
       const [, label, type, id] = m
       morceaux.push(
         <button key={k++} onClick={() => onNaviguer({ type: type as 'verset' | 'segment', id, label })}
-          style={{ color: '#3d6b4f', textDecoration: 'underline', textDecorationStyle: 'dotted', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}>
+          style={{ color: 'var(--cs-vert)', textDecoration: 'underline', textDecorationStyle: 'dotted', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}>
           {label}
         </button>
       )
@@ -59,10 +59,10 @@ function ContenuNote({ el, onNaviguer }: {
   if (el.type !== 'note') {
     return (
       <span style={{ display: 'block' }}>
-        <span style={{ display: 'block', fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '5px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+        <span style={{ display: 'block', fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: 'var(--cs-vert)', marginBottom: '5px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
           {el.type === 'verset' ? 'Référence biblique' : 'Référence patristique'}
         </span>
-        <span style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 600, color: '#3d6b4f', marginBottom: '6px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{el.label}</span>
+        <span style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-vert)', marginBottom: '6px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{el.label}</span>
         <span style={{ display: 'block', fontSize: '0.75rem', lineHeight: 1.52, color: '#3a3020', fontFamily: "var(--font-source-sans), Arial, sans-serif", fontStyle: 'normal' }}>{texte}</span>
       </span>
     )
@@ -145,7 +145,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
 
   const declencheur = isRef ? (
     <button onMouseEnter={traiterEntrer} onMouseLeave={traiterSortir} onClick={traiterClic}
-      style={{ color: '#3d6b4f', cursor: 'pointer', background: 'none', border: 'none', padding: 0, textDecoration: 'underline', textDecorationStyle: 'dotted', font: 'inherit' }}>
+      style={{ color: 'var(--cs-vert)', cursor: 'pointer', background: 'none', border: 'none', padding: 0, textDecoration: 'underline', textDecorationStyle: 'dotted', font: 'inherit' }}>
       {lettre}
     </button>
   ) : (
@@ -153,7 +153,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
     // au lieu de <sup> (vertical-align:super) qui gonfle la boîte de ligne.
     <span style={{ marginLeft: 0, display: 'inline-block', position: 'relative', top: '-0.3em', verticalAlign: 'baseline', lineHeight: 0, fontSize: '0.68em' }}>
       <button onMouseEnter={traiterEntrer} onMouseLeave={traiterSortir} onClick={traiterClic}
-        style={{ color: fixe ? '#1e2e24' : '#3d6b4f', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: 'inherit', fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'normal', lineHeight: 1 }}>
+        style={{ color: fixe ? '#1e2e24' : 'var(--cs-vert)', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: 'inherit', fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'normal', lineHeight: 1 }}>
         {lettre}
       </button>
     </span>
@@ -224,7 +224,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
             {/* Retour (navigation dans la note) */}
             {profondeur !== el && (
               <button onClick={() => setProfondeur(el)}
-                style={{ fontSize: '0.625rem', color: '#3d6b4f', background: 'none', border: 'none', padding: '0 0 6px', cursor: 'pointer', display: 'block', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+                style={{ fontSize: '0.625rem', color: 'var(--cs-vert)', background: 'none', border: 'none', padding: '0 0 6px', cursor: 'pointer', display: 'block', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                 ← Retour
               </button>
             )}
@@ -245,7 +245,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
                 position: 'absolute',
                 bottom: 0, left: 0,
                 height: '2px',
-                background: 'linear-gradient(90deg, #3d6b4f 0%, #8abf9e 100%)',
+                background: 'linear-gradient(90deg, var(--cs-vert) 0%, #8abf9e 100%)',
                 animation: `essai-note-progress ${DUREE_FIXATION}ms linear forwards`,
 
               }} />

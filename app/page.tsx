@@ -45,7 +45,9 @@ export default async function Home({
     // sur l'ossature canonique. C'est ce travail-là — alignements, scissions recollées,
     // coquilles relevées — que la page Bible doit montrer.
     supabase.from('versets_lecture').select('*').eq('livre', livre).eq('chapitre', chapitre).order('verset'),
-    supabase.from('traductions').select('trad_id, nom, auteur, date_publication, confession, langue').order('ordre', { ascending: true }),
+    // `dates` = vie et mort de l'auteur ; `source_edition` = référence complète de
+    // l'édition présentée (ville, éditeur, date), toutes deux pour l'encart Traduction.
+    supabase.from('traductions').select('trad_id, nom, auteur, dates, source_edition, date_publication, confession, langue').order('ordre', { ascending: true }),
   ])
 
   return (
@@ -53,7 +55,7 @@ export default async function Home({
       <BibleLayout
         livres={LIVRES}
         versets={versets || []}
-        traductions={(traductions || []).map(t => ({ code: t.trad_id, label: t.nom, auteur: t.auteur, datePublication: t.date_publication, confession: t.confession, langue: t.langue }))}
+        traductions={(traductions || []).map(t => ({ code: t.trad_id, label: t.nom, auteur: t.auteur, auteurDates: t.dates ?? null, editionRef: t.source_edition ?? null, datePublication: t.date_publication, confession: t.confession, langue: t.langue }))}
         livreActif={livre}
         chapitreActif={chapitre}
         nomLivre={NOMS_LIVRES[livre] || livre}

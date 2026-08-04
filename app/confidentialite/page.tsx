@@ -12,7 +12,7 @@ export default function ConfidentialitePage() {
 
         <p style={{
           fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.16em",
-          textTransform: "uppercase", color: "#3d6b4f", marginBottom: "10px",
+          textTransform: "uppercase", color: "var(--cs-vert)", marginBottom: "10px",
         }}>
           Informations légales
         </p>
@@ -42,7 +42,7 @@ export default function ConfidentialitePage() {
             <p>
               Pour toute question relative à vos données, ou pour exercer vos droits, vous pouvez écrire
               par le{' '}
-              <a href="/contact" style={{ color: "#3d6b4f", textDecoration: "underline" }}>formulaire de contact</a>
+              <a href="/contact" style={{ color: "var(--cs-vert)", textDecoration: "underline" }}>formulaire de contact</a>
               {' '}du site. Une réponse vous sera apportée dans un délai d&rsquo;un mois.
             </p>
           </Section>
@@ -205,14 +205,14 @@ export default function ConfidentialitePage() {
             </ul>
             <p>
               Pour exercer ces droits, écrivez par le{' '}
-              <a href="/contact" style={{ color: "#3d6b4f", textDecoration: "underline" }}>formulaire de contact</a>
+              <a href="/contact" style={{ color: "var(--cs-vert)", textDecoration: "underline" }}>formulaire de contact</a>
               {' '}en précisant votre demande. Une réponse vous sera apportée dans un délai d&rsquo;un mois.
             </p>
             <p>
               Si vous estimez, après nous avoir contactés, que vos droits ne sont pas respectés, vous pouvez
               introduire une réclamation auprès de la CNIL :{' '}
               <a href="https://www.cnil.fr/fr/plaintes" target="_blank" rel="noopener noreferrer"
-                style={{ color: "#3d6b4f", textDecoration: "underline" }}>
+                style={{ color: "var(--cs-vert)", textDecoration: "underline" }}>
                 www.cnil.fr/fr/plaintes
               </a>,
               ou par courrier à CNIL, 3 place de Fontenoy, TSA 80715, 75334 Paris Cedex 07.

@@ -43,7 +43,7 @@ async function getHeaders(): Promise<Record<string, string>> {
 
 function couleurScore(s: number | null) {
   if (s == null) return '#b66a54'
-  if (s >= 90) return '#3d6b4f'
+  if (s >= 90) return 'var(--cs-vert)'
   if (s >= 70) return '#8a5a00'
   return '#c0562a'
 }
@@ -287,6 +287,7 @@ export default function SectionVerificationCatalogue() {
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
           placeholder="Filtrer par auteur..."
+          className="cs-focus-clair"
           style={{ fontSize: '0.82656rem', padding: '5px 10px', border: '1px solid #344d3e', borderRadius: '4px', background: '#1e2e26', color: '#c8d8cc', outline: 'none', width: '12.5rem' }}
         />
       </div>
@@ -354,7 +355,7 @@ export default function SectionVerificationCatalogue() {
                       {labelDecision(n.decision_import)}
                     </span>
                     {n.verifie ? (
-                      <span style={{ fontSize: '0.64687rem', padding: '2px 6px', borderRadius: '4px', background: '#d8ede2', color: '#3d6b4f', fontWeight: 600 }}>Validee</span>
+                      <span style={{ fontSize: '0.64687rem', padding: '2px 6px', borderRadius: '4px', background: '#d8ede2', color: 'var(--cs-vert)', fontWeight: 600 }}>Validee</span>
                     ) : (
                       <span style={{ fontSize: '0.64687rem', padding: '2px 6px', borderRadius: '4px', background: '#fff1ee', color: '#a43d2d' }}>A verifier</span>
                     )}
@@ -372,7 +373,7 @@ export default function SectionVerificationCatalogue() {
                     )}
                     <button
                       onClick={e => { e.stopPropagation(); setOuverte(ouv ? null : n.id) }}
-                      style={{ fontSize: '0.68281rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid #d6d0c4', background: ouv ? '#3d6b4f' : '#fff', color: ouv ? '#fff' : '#3d6b4f', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}
+                      style={{ fontSize: '0.68281rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid #d6d0c4', background: ouv ? 'var(--cs-vert)' : '#fff', color: ouv ? '#fff' : 'var(--cs-vert)', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}
                     >
                       {ouv ? 'Replier' : 'Déployer'}
                     </button>
@@ -391,7 +392,7 @@ export default function SectionVerificationCatalogue() {
 
                     {n.verifie ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '6px', borderTop: '1px solid #b8d4c4' }}>
-                        <span style={{ fontSize: '0.79062rem', color: '#3d6b4f', fontStyle: 'italic' }}>Notice validée - verrouillée définitivement</span>
+                        <span style={{ fontSize: '0.79062rem', color: 'var(--cs-vert)', fontStyle: 'italic' }}>Notice validée - verrouillée définitivement</span>
                       </div>
                     ) : (
                       <div style={{ display: 'flex', gap: '8px', paddingTop: '6px', borderTop: '1px solid #ede9e2', flexWrap: 'wrap' }}>

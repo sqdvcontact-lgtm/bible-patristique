@@ -76,7 +76,7 @@ function rendreInline(s: string, cleNote: { n: number }, options: RenduOptions):
         const id = cible.slice('segment:'.length)
         noeuds.push(<NoteTooltip key={k++} lettre={label} el={{ type: 'segment', id, label }} isRef />)
       } else {
-        noeuds.push(<a key={k++} href={cible} target="_blank" rel="noopener noreferrer" style={{ color: '#3d6b4f', textDecoration: 'underline' }}>{label}</a>)
+        noeuds.push(<a key={k++} href={cible} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{label}</a>)
       }
     }
     dernier = regex.lastIndex

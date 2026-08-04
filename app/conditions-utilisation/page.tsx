@@ -10,7 +10,7 @@ export default function ConditionsUtilisationPage() {
 
         <p style={{
           fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.16em",
-          textTransform: "uppercase", color: "#3d6b4f", marginBottom: "10px",
+          textTransform: "uppercase", color: "var(--cs-vert)", marginBottom: "10px",
         }}>
           Informations légales
         </p>
@@ -44,7 +44,7 @@ export default function ConditionsUtilisationPage() {
             </p>
             <p>
               Pour toute question relative au site ou à l&rsquo;exercice de vos droits, vous pouvez écrire par le{' '}
-              <a href="/contact" style={{ color: "#3d6b4f", textDecoration: "underline" }}>formulaire de contact</a>.
+              <a href="/contact" style={{ color: "var(--cs-vert)", textDecoration: "underline" }}>formulaire de contact</a>.
             </p>
           </Section>
 
@@ -141,7 +141,7 @@ export default function ConditionsUtilisationPage() {
             <p>
               Le traitement des données personnelles des utilisateurs (adresse e-mail, contenus déposés)
               est décrit dans la{' '}
-              <a href="/confidentialite" style={{ color: "#3d6b4f", textDecoration: "underline" }}>
+              <a href="/confidentialite" style={{ color: "var(--cs-vert)", textDecoration: "underline" }}>
                 politique de confidentialité
               </a>{' '}
               du site, accessible depuis le pied de page. Conformément au Règlement général sur la
@@ -149,7 +149,7 @@ export default function ConditionsUtilisationPage() {
               d&rsquo;accès, de rectification, d&rsquo;effacement et de portabilité de vos données, ainsi que du droit
               d&rsquo;introduire une réclamation auprès de la CNIL (
               <a href="https://www.cnil.fr/fr/plaintes" target="_blank" rel="noopener noreferrer"
-                style={{ color: "#3d6b4f", textDecoration: "underline" }}>
+                style={{ color: "var(--cs-vert)", textDecoration: "underline" }}>
                 www.cnil.fr/fr/plaintes
               </a>).
             </p>

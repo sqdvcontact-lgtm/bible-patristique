@@ -43,7 +43,7 @@ type Props = {
 // ── Localisation ──────────────────────────────────────────────────────────────
 type Lieu = 'Bible' | 'Patristique' | 'Publications' | 'Profil'
 const COULEUR_LIEU: Record<Lieu, { fond: string; texte: string }> = {
-  Bible:        { fond: '#eaf3ee', texte: '#3d6b4f' },
+  Bible:        { fond: '#eaf3ee', texte: 'var(--cs-vert)' },
   Patristique:  { fond: '#f4efe2', texte: '#8a6a30' },
   Publications: { fond: '#eaf1f6', texte: '#3d5a6b' },
   Profil:       { fond: '#edf2e8', texte: '#45633b' },
@@ -150,28 +150,28 @@ export default function SectionModeration(props: Props) {
       <style>{`
         .mod-tabs{display:flex;justify-content:center;gap:8px;margin:0 0 22px;}
         .mod-tab{font-family:var(--font-source-serif), Georgia, serif;font-size:0.875rem;color:#8a8278;background:transparent;border:0;border-radius:999px;padding:7px 20px;cursor:pointer;transition:background .14s,color .14s;display:inline-flex;align-items:center;gap:8px;}
-        .mod-tab:hover{color:#3d6b4f;}
-        .mod-tab.active{background:#3d6b4f;color:#fff;}
+        .mod-tab:hover{color:var(--cs-vert);}
+        .mod-tab.active{background:var(--cs-vert);color:#fff;}
         .mod-tab .n{font-size:0.625rem;font-family:var(--font-source-sans), Arial, sans-serif;border-radius:999px;padding:1px 7px;background:rgba(0,0,0,.06);}
         .mod-tab.active .n{background:rgba(255,255,255,.25);}
         .mod-liste{display:flex;flex-direction:column;gap:10px;max-width:680px;margin:0 auto;}
         .mod-card{background:#fff;border:1px solid #e4dfd8;border-radius:9px;padding:13px 16px;}
         .mod-entete{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px;}
-        .mod-ref{font-family:var(--font-source-serif), Georgia, serif;font-size:0.78125rem;color:#3d6b4f;text-decoration:none;}
+        .mod-ref{font-family:var(--font-source-serif), Georgia, serif;font-size:0.78125rem;color:var(--cs-vert);text-decoration:none;}
         .mod-ref:hover{text-decoration:underline;}
         .mod-date{margin-left:auto;font-size:0.65625rem;color:#b0a89e;white-space:nowrap;}
         .mod-texte{font-size:0.8125rem;color:#2a2520;line-height:1.6;margin:0 0 10px;white-space:pre-line;}
         .mod-cible{font-size:0.71875rem;color:#6b6560;line-height:1.55;font-style:italic;border-left:2px solid #ddd0b0;padding-left:10px;margin:0 0 9px;max-height:110px;overflow:auto;}
         /* Message auquel un commentaire répond : encart discret, gris-vert, au-dessus du texte. */
         .mod-reponse{font-size:0.6875rem;color:#6b6560;line-height:1.5;background:#f4f6f2;border-left:2px solid #b8ccbd;border-radius:0 5px 5px 0;padding:6px 10px;margin:0 0 8px;}
-        .mod-reponse .qui{display:block;font-size:0.59375rem;font-weight:700;letter-spacing:.03em;color:#3d6b4f;margin-bottom:2px;}
+        .mod-reponse .qui{display:block;font-size:0.59375rem;font-weight:700;letter-spacing:.03em;color:var(--cs-vert);margin-bottom:2px;}
         .mod-reponse .quoi{display:block;font-style:italic;color:#7a746c;max-height:70px;overflow:auto;}
         .mod-auteur{font-size:0.6875rem;color:#6b6560;font-weight:500;margin:0 0 10px;}
         .mod-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;}
         .mod-btn{font-size:0.6875rem;padding:5px 12px;border-radius:6px;cursor:pointer;border:1px solid #d6d0c4;background:#fff;color:#5a5450;transition:background .12s,border-color .12s;}
         .mod-btn:hover{background:#f7f4ef;}
-        .mod-btn.vert{background:#3d6b4f;color:#fff;border-color:#3d6b4f;}
-        .mod-btn.vert:hover{background:#2e5440;}
+        .mod-btn.vert{background:var(--cs-vert);color:#fff;border-color:var(--cs-vert);}
+        .mod-btn.vert:hover{background:var(--cs-vert-fonce);}
         .mod-btn.rouge{color:#9a2a2a;border-color:#e2b9aa;background:#fff7f4;}
         .mod-btn.violet{background:#6b4fa0;color:#fff;border-color:#6b4fa0;}
         .mod-btn.violet:hover{background:#573f86;}

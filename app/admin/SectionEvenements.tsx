@@ -148,8 +148,8 @@ export default function SectionEvenements({ auteurs }: { auteurs: Auteur[] }) {
                     <span style={{ fontSize: '0.68rem', color: '#a89a80', marginLeft: '7px' }}>{a.nature_lien} · {a.pertinence}{a.est_affiche ? '' : ' · masquée'}</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                    <button onClick={() => setOuvert(a.evenement_id)} style={{ ...btn('#fff', '#3d6b4f', '#cdd8d0'), fontSize: '0.74rem' }}>Ouvrir</button>
-                    <button onClick={() => majAssoc(a.id, { a_controler: false })} style={{ ...btn('#3d6b4f', '#fff'), fontSize: '0.74rem' }}>Marquer contrôlé</button>
+                    <button onClick={() => setOuvert(a.evenement_id)} style={{ ...btn('#fff', 'var(--cs-vert)', '#cdd8d0'), fontSize: '0.74rem' }}>Ouvrir</button>
+                    <button onClick={() => majAssoc(a.id, { a_controler: false })} style={{ ...btn('var(--cs-vert)', '#fff'), fontSize: '0.74rem' }}>Marquer contrôlé</button>
                   </div>
                 </div>
               )
@@ -281,7 +281,7 @@ function EditeurEvenement({ e, liens, genresTries, auteurNom, auteursTries, onMa
         </label>
         <span style={{ fontSize: '0.68rem', color: '#b0a89e' }}>{e.id}</span>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
-          <button onClick={enregistrer} disabled={envoi} style={btn('#3d6b4f', '#fff')}>{envoi ? 'Enregistrement…' : 'Enregistrer l’événement'}</button>
+          <button onClick={enregistrer} disabled={envoi} style={btn('var(--cs-vert)', '#fff')}>{envoi ? 'Enregistrement…' : 'Enregistrer l’événement'}</button>
         </div>
       </div>
 
@@ -326,7 +326,7 @@ function LigneAssoc({ a, nom, onMaj, onSuppr }: { a: Assoc; nom: string; onMaj: 
           <input type="checkbox" checked={d.a_controler} onChange={ev => { set('a_controler', ev.target.checked); onMaj(a.id, { a_controler: ev.target.checked }) }} /> À contrôler
         </label>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
-          {modifie && <button onClick={() => onMaj(a.id, { nature_lien: d.nature_lien, pertinence: d.pertinence, titre_personnalise: d.titre_personnalise })} style={{ ...btn('#3d6b4f', '#fff'), fontSize: '0.74rem' }}>Enregistrer</button>}
+          {modifie && <button onClick={() => onMaj(a.id, { nature_lien: d.nature_lien, pertinence: d.pertinence, titre_personnalise: d.titre_personnalise })} style={{ ...btn('var(--cs-vert)', '#fff'), fontSize: '0.74rem' }}>Enregistrer</button>}
           <button onClick={() => { if (window.confirm(`Supprimer l’association de ${nom} ? L’événement central n’est pas touché.`)) onSuppr(a.id) }} style={{ ...btn('#fff', '#c0562a', '#e4c4b8'), fontSize: '0.74rem' }}>Supprimer</button>
         </div>
       </div>
@@ -357,7 +357,7 @@ function AjoutAssoc({ auteursTries, dejaLies, onCreer }: { auteursTries: Auteur[
       </div>
       <div><label style={label}>Nature</label><Selecteur value={nature} onChange={setNature} options={NATURES} /></div>
       <div><label style={label}>Pertinence</label><Selecteur value={pertinence} onChange={setPertinence} options={PERTINENCES} /></div>
-      <button onClick={ajouter} disabled={!auteurId || envoi} style={{ ...btn('#3d6b4f', '#fff'), opacity: auteurId ? 1 : 0.5 }}>{envoi ? '…' : 'Relier'}</button>
+      <button onClick={ajouter} disabled={!auteurId || envoi} style={{ ...btn('var(--cs-vert)', '#fff'), opacity: auteurId ? 1 : 0.5 }}>{envoi ? '…' : 'Relier'}</button>
     </div>
   )
 }

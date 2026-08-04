@@ -10,6 +10,7 @@ import EssaiCommentaires from './EssaiCommentaires'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import ModalSignalement from '@/app/components/ModalSignalement'
+import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 
 const ABREV_VERS_NOM: Record<string, string> = Object.fromEntries(
@@ -49,7 +50,7 @@ function BoutonPartage({ label, onClick, children, loading }: { label: string; o
   }
   return (
     <button onClick={handleClick} title={label} disabled={loading}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '6px', border: '1px solid #ddd8cf', background: flash ? '#edf5f0' : '#fff', color: flash ? '#3d6b4f' : loading ? '#c8c0b4' : '#9a958d', cursor: loading ? 'default' : 'pointer', transition: 'background 0.2s, color 0.2s', flexShrink: 0 }}>
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '6px', border: '1px solid #ddd8cf', background: flash ? '#edf5f0' : '#fff', color: flash ? 'var(--cs-vert)' : loading ? '#c8c0b4' : '#9a958d', cursor: loading ? 'default' : 'pointer', transition: 'background 0.2s, color 0.2s', flexShrink: 0 }}>
       {children}
     </button>
   )
@@ -203,7 +204,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         </svg>
       </BoutonPartage>
       <BoutonPartage label="Signaler" onClick={() => setSignalerOuvert(true)}>
-        <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>⚑</span>
+        <IconeDrapeau size={14} />
       </BoutonPartage>
     </>
   )
@@ -262,7 +263,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           display: inline-block;
           width: 14px; height: 14px;
           border: 2px solid #e0dbd4;
-          border-top-color: #3d6b4f;
+          border-top-color: var(--cs-vert);
           border-radius: 50%;
           animation: essai-note-spin 0.65s linear infinite;
         }
@@ -274,7 +275,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         <aside style={{ width: '15rem', flexShrink: 0, background: '#faf8f4', borderRight: '1px solid #d6d0c4', height: '100%', overflowY: 'auto', padding: '22px 16px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
             {essai.auteur_pseudo && (
-              <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: '#3d6b4f', margin: '0 0 8px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{essai.auteur_pseudo}</p>
+              <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{essai.auteur_pseudo}</p>
             )}
             <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 600, color: '#1e2e24', lineHeight: 1.28, margin: 0 }}>{essai.titre}</h2>
             {essai.sous_titre && (
@@ -295,7 +296,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
                 {sommaire.map(s => (
                   <button key={s.id} onClick={() => allerAu(s.id)}
                     style={{ textAlign: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: s.niveau === 2 ? '0.75rem' : '0.8125rem', fontStyle: s.niveau === 2 ? 'italic' : 'normal', color: s.niveau === 2 ? '#6f665c' : '#4a4440', background: 'none', border: 'none', padding: 0, paddingLeft: s.niveau === 2 ? '12px' : 0, cursor: 'pointer', lineHeight: 1.32 }}
-                    onMouseEnter={e => { e.currentTarget.style.color = '#3d6b4f' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--cs-vert)' }}
                     onMouseLeave={e => { e.currentTarget.style.color = s.niveau === 2 ? '#6f665c' : '#4a4440' }}>
                     {rendreTexteEnrichi(s.titre)}
                   </button>
@@ -324,7 +325,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             marginBottom: '26px', textAlign: 'center',
           }}>
             {essai.auteur_pseudo && (
-              <p style={{ fontSize: '0.71875rem', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3d6b4f', marginBottom: '28px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+              <p style={{ fontSize: '0.71875rem', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-vert)', marginBottom: '28px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                 {essai.auteur_pseudo}
               </p>
             )}
@@ -345,7 +346,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
                 Cette publication a été lue {nbVues} fois
               </p>
               <button onClick={toggleApprecier} disabled={!userId}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.65625rem', color: aApprecie ? '#3d6b4f' : '#c0b8b0', background: 'none', border: 'none', padding: 0, cursor: userId ? 'pointer' : 'default', fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: '0.03em' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.65625rem', color: aApprecie ? 'var(--cs-vert)' : '#c0b8b0', background: 'none', border: 'none', padding: 0, cursor: userId ? 'pointer' : 'default', fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: '0.03em' }}>
                 <svg width="11" height="11" viewBox="0 0 12 12" fill={aApprecie ? 'currentColor' : 'none'} aria-hidden="true">
                   <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z" stroke="currentColor" strokeWidth="1"/>
                 </svg>

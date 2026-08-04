@@ -28,7 +28,7 @@ export default function SectionEssaisAdmin({
           { key: 'archive' as const, label: 'Publiés & brouillons', badge: 0 },
         ]).map(o => (
           <button key={o.key} onClick={() => setSous(o.key)}
-            style={{ padding: '9px 14px', fontSize: '0.8625rem', fontWeight: sous === o.key ? 600 : 400, color: sous === o.key ? '#3d6b4f' : '#9a958d', background: 'transparent', border: 'none', borderBottom: sous === o.key ? '2px solid #3d6b4f' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
+            style={{ padding: '9px 14px', fontSize: '0.8625rem', fontWeight: sous === o.key ? 600 : 400, color: sous === o.key ? 'var(--cs-vert)' : '#9a958d', background: 'transparent', border: 'none', borderBottom: sous === o.key ? '2px solid var(--cs-vert)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
             {o.label}
             {o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 600 }}>{o.badge}</span>}
           </button>
@@ -145,7 +145,7 @@ function TableModeration({ essais: init, actionPublierEssai, actionRenvoyerBroui
               </Td>
               <Td>{e.auteur_pseudo ?? '—'}</Td>
               <Td>
-                <span style={{ fontSize: '0.71875rem', fontWeight: 700, color: e._groupe === 'modification' ? '#9a5a2a' : '#3d6b4f' }}>
+                <span style={{ fontSize: '0.71875rem', fontWeight: 700, color: e._groupe === 'modification' ? '#9a5a2a' : 'var(--cs-vert)' }}>
                   {e._groupe === 'modification' ? 'À modifier' : 'En attente'}
                 </span>
               </Td>
@@ -159,14 +159,14 @@ function TableModeration({ essais: init, actionPublierEssai, actionRenvoyerBroui
                 {action[e.id] === 'loading' ? (
                   <span style={{ fontSize: '0.75469rem', color: '#9a958d' }}>…</span>
                 ) : action[e.id] === 'publie' ? (
-                  <span style={{ fontSize: '0.75469rem', color: '#3d6b4f', fontWeight: 600 }}>✓ Publié</span>
+                  <span style={{ fontSize: '0.75469rem', color: 'var(--cs-vert)', fontWeight: 600 }}>✓ Publié</span>
                 ) : action[e.id] === 'renvoye' ? (
                   <span style={{ fontSize: '0.75469rem', color: '#c0562a' }}>Renvoyé</span>
                 ) : (
                   <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', flexWrap: 'nowrap' }}>
                     <button onClick={() => renvoyer(e.id)} style={petitBouton('#6b6560', '#d6d0c4')}>Renvoyer</button>
                     <button onClick={() => renvoyer(e.id, true)} style={petitBouton('#c0562a', '#e4c4b8')}>Refus</button>
-                    <button onClick={() => publier(e.id)} style={petitBouton('#3d6b4f', '#b4d4c0')}>Publier ✓</button>
+                    <button onClick={() => publier(e.id)} style={petitBouton('var(--cs-vert)', '#b4d4c0')}>Publier ✓</button>
                   </div>
                 )}
               </Td>
@@ -263,7 +263,7 @@ function TableArchive({ essais: init }: { essais: EssaiArchive[] }) {
                 </Td>
                 <Td>{e.auteur}</Td>
                 <Td>
-                  <span style={{ fontSize: '0.71875rem', fontWeight: 700, color: estBrouillon ? '#9a5a2a' : '#3d6b4f' }}>
+                  <span style={{ fontSize: '0.71875rem', fontWeight: 700, color: estBrouillon ? '#9a5a2a' : 'var(--cs-vert)' }}>
                     {estBrouillon ? 'Brouillon' : 'Publié'}
                   </span>
                 </Td>
@@ -279,10 +279,10 @@ function TableArchive({ essais: init }: { essais: EssaiArchive[] }) {
                 <Td><CountInfo label="signalements" valeur={e.nb_signalements} alerte={e.nb_signalements > 0} /></Td>
                 <Td align="right">
                   {action[e.id] === 'ok' ? (
-                    <span style={{ fontSize: '0.75469rem', color: '#3d6b4f', fontWeight: 600 }}>✓ Renvoyé</span>
+                    <span style={{ fontSize: '0.75469rem', color: 'var(--cs-vert)', fontWeight: 600 }}>✓ Renvoyé</span>
                   ) : (
                     <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', flexWrap: 'nowrap' }}>
-                      <Link href={`/essais/${e.id}/modifier`} style={petitBouton('#3d6b4f', '#d6d0c4')}>Modifier</Link>
+                      <Link href={`/essais/${e.id}/modifier`} style={petitBouton('var(--cs-vert)', '#d6d0c4')}>Modifier</Link>
                       {!estBrouillon ? (
                         <button onClick={() => demanderModification(e.id)} disabled={action[e.id] === 'loading'} style={petitBouton('#9a5a2a', '#e4d2bd')}>
                           Renvoyer
@@ -315,7 +315,7 @@ function Th({ children, align = 'left' }: { children: React.ReactNode; align?: '
 
 function ThSort({ label, active, dir, onClick }: { label: string; active: boolean; dir: Dir; onClick: () => void }) {
   return (
-    <th onClick={onClick} style={{ padding: '7px 8px', fontSize: '0.64687rem', color: active ? '#3d6b4f' : '#8a8278', letterSpacing: '0.06em', textTransform: 'uppercase', textAlign: 'left', fontWeight: 700, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>
+    <th onClick={onClick} style={{ padding: '7px 8px', fontSize: '0.64687rem', color: active ? 'var(--cs-vert)' : '#8a8278', letterSpacing: '0.06em', textTransform: 'uppercase', textAlign: 'left', fontWeight: 700, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>
       {label} <span style={{ opacity: active ? 1 : 0.3, fontSize: '0.575rem' }}>{active && dir === 'desc' ? '▼' : '▲'}</span>
     </th>
   )

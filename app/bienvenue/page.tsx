@@ -58,7 +58,7 @@ export default function BienvenuePage() {
             },
           ].map(({ href, titre, desc }) => (
             <a key={href} href={href} style={{ display: 'block', background: '#fff', border: '1px solid #ddd8cf', borderRadius: '10px', padding: '20px 24px', textAlign: 'left', textDecoration: 'none', transition: 'border-color 0.15s, box-shadow 0.15s' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#a8c4b4'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(61,107,79,0.08)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#a8c4b4'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(var(--cs-vert-rgb),0.08)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#ddd8cf'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
               <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#2a3d30', margin: '0 0 4px' }}>{titre}</p>
               <p style={{ fontSize: '0.78125rem', color: '#9a958d', margin: 0, lineHeight: 1.6 }}>{desc}</p>

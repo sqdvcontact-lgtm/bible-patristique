@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import { calculerRang, couleurRang } from "@/app/lib/classement";
+import IconeCrayon from "@/app/components/IconeCrayon";
 import Image from "next/image";
 
 const TRADUCTIONS = [
@@ -138,7 +139,7 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
         {erreur && <p style={{ fontSize: "0.78125rem", color: "#9a2a2a", marginBottom: "12px" }}>{erreur}</p>}
         <form onSubmit={valider} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           <input type="text" value={pseudo} onChange={e => setPseudo(e.target.value)} maxLength={32} autoFocus placeholder="Pseudonyme" style={inputStyle} />
-          <button type="submit" disabled={envoi} style={{ padding: "10px", borderRadius: "6px", border: "none", background: "#3d6b4f", color: "#fff", fontSize: "0.84375rem", fontWeight: 500, cursor: "pointer" }}>
+          <button type="submit" disabled={envoi} style={{ padding: "10px", borderRadius: "6px", border: "none", background: "var(--cs-vert)", color: "#fff", fontSize: "0.84375rem", fontWeight: 500, cursor: "pointer" }}>
             {envoi ? "Enregistrement…" : "Valider"}
           </button>
         </form>
@@ -263,7 +264,7 @@ function SectionFavoris({ userId }: { userId: string }) {
         {favoris.map(f => (
           <a key={f.id_oeuvre} href={`/oeuvre/${encodeURIComponent(f.id_oeuvre)}`}
             style={{ display: "block", padding: "12px 14px", background: "#f9f7f3", border: "1px solid #e4dfd8", borderRadius: "7px", textDecoration: "none", borderLeft: "3px solid #c8c0b4", transition: "border-color 0.15s" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderLeftColor = "#3d6b4f"; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderLeftColor = "var(--cs-vert)"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderLeftColor = "#c8c0b4"; }}>
             {f.auteur_nom && <p style={{ fontSize: "0.5625rem", fontWeight: 600, letterSpacing: "0.06em", color: "#9a958d", textTransform: "uppercase", margin: "0 0 3px" }}>{f.auteur_nom}</p>}
             <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.78125rem", fontStyle: "italic", color: "#2a3d30", margin: 0, lineHeight: 1.4 }}>{f.titre}</p>
@@ -333,16 +334,16 @@ function ModaleRecadrage({ photo, onSauvegarder, onChanger, onClose }: {
         <div style={{ marginBottom: "12px" }}>
           <label style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.08em", color: "#6a7b6e", display: "block", marginBottom: "6px" }}>ZOOM</label>
           <input type="range" min="1" max="1.8" step="0.05" value={zoom} onChange={e => setZoom(Number(e.target.value))}
-            style={{ width: "100%", accentColor: "#3d6b4f" }} />
+            style={{ width: "100%", accentColor: "var(--cs-vert)" }} />
         </div>
         <div style={{ marginBottom: "20px" }}>
           <label style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.08em", color: "#6a7b6e", display: "block", marginBottom: "6px" }}>POSITION HORIZONTALE</label>
           <input type="range" min="0" max="100" step="1" value={posX} onChange={e => setPosX(Number(e.target.value))}
-            style={{ width: "100%", accentColor: "#3d6b4f" }} />
+            style={{ width: "100%", accentColor: "var(--cs-vert)" }} />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           <button onClick={() => onSauvegarder(posX, posY, zoom)}
-            style={{ padding: "8px 16px", borderRadius: "6px", border: "none", background: "#3d6b4f", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, cursor: "pointer" }}>
+            style={{ padding: "8px 16px", borderRadius: "6px", border: "none", background: "var(--cs-vert)", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, cursor: "pointer" }}>
             Appliquer
           </button>
           <button onClick={onChanger}
@@ -402,7 +403,7 @@ function AutorPhotoItem({ auteur, base, onChoisir }: { auteur: AuteurPhoto; base
 
   return (
     <button onClick={onChoisir} style={{ background: "none", border: "1px solid #e4dfd8", borderRadius: "8px", padding: "10px 8px 8px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", transition: "border-color 0.15s, background 0.15s" }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#3d6b4f"; (e.currentTarget as HTMLElement).style.background = "#f3f7f4"; }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--cs-vert)"; (e.currentTarget as HTMLElement).style.background = "#f3f7f4"; }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#e4dfd8"; (e.currentTarget as HTMLElement).style.background = ""; }}>
       <div style={{ width: "72px", height: "90px", position: "relative", background: "#ede9e2", borderRadius: "4px", overflow: "hidden" }}>
         <Image src={url} alt={auteur.nom} fill sizes="72px" unoptimized onError={() => setErreur(true)} style={{ objectFit: "cover", objectPosition: "top" }} />
@@ -643,7 +644,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
                 />
               </div>
             ) : (
-              <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "linear-gradient(135deg,#3d6b4f,#2a3d30)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", border: "2px solid #c8d8cc" }}>
+              <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "linear-gradient(135deg,var(--cs-vert),#2a3d30)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", border: "2px solid #c8d8cc" }}>
                 <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.75rem", color: "#e8f0eb", fontWeight: "normal" }}>
                   {profilInit.pseudo.charAt(0).toUpperCase()}
                 </span>
@@ -652,8 +653,8 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
             <button
               onClick={() => photoProfil ? setModaleRecadrageOuverte(true) : setModalePhotoOuverte(true)}
               title={photoProfil ? "Recadrer la photo" : "Choisir une illustration"}
-              style={{ position: "absolute", bottom: "-4px", right: "-4px", width: "22px", height: "22px", borderRadius: "50%", border: "1.5px solid #d6d0c4", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6875rem", color: "#6a7b6e" }}>
-              ✎
+              style={{ position: "absolute", bottom: "-4px", right: "-4px", width: "22px", height: "22px", borderRadius: "50%", border: "1.5px solid #d6d0c4", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#6a7b6e" }}>
+              <IconeCrayon size={11} />
             </button>
           </div>
           {photoProfil && (
@@ -678,7 +679,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
 
           {/* Bouton page publique */}
           <a href={`/profil/${encodeURIComponent(profilInit.pseudo)}`} target="_blank" rel="noopener noreferrer"
-            style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 16px", border: "1px solid #3d6b4f", borderRadius: "20px", fontSize: "0.71875rem", color: "#3d6b4f", textDecoration: "none", letterSpacing: "0.03em", fontWeight: 500, marginBottom: classement ? "24px" : "0" }}>
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 16px", border: "1px solid var(--cs-vert)", borderRadius: "20px", fontSize: "0.71875rem", color: "var(--cs-vert)", textDecoration: "none", letterSpacing: "0.03em", fontWeight: 500, marginBottom: classement ? "24px" : "0" }}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -698,18 +699,18 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
           {/* Checklist intégrée */}
           {!checklistDefinitivementFaite && checklistDB !== null && (
             <div style={{ marginTop: "20px", paddingTop: "18px", borderTop: "1px solid #ede9e2", textAlign: "left" }}>
-              <p style={{ fontSize: "0.53125rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#3d6b4f", margin: "0 0 12px" }}>
+              <p style={{ fontSize: "0.53125rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--cs-vert)", margin: "0 0 12px" }}>
                 Pour commencer
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {etapesChecklist.map(({ fait, label, pts, lien }) => (
                   <div key={label} className="cs-check-item">
-                    <span className="cs-check-circle" style={{ background: fait ? "#edf5f0" : "#f5f3ef", border: `1.5px solid ${fait ? "#7aaa8e" : "#d6d0c4"}`, color: fait ? "#3d6b4f" : "transparent" }}>
+                    <span className="cs-check-circle" style={{ background: fait ? "#edf5f0" : "#f5f3ef", border: `1.5px solid ${fait ? "#7aaa8e" : "#d6d0c4"}`, color: fait ? "var(--cs-vert)" : "transparent" }}>
                       {fait ? "✓" : ""}
                     </span>
                     <span style={{ flex: 1 }}>
                       {lien && !fait ? (
-                        <a href={lien} style={{ fontSize: "0.78125rem", color: "#3d6b4f", textDecoration: "none" }}>{label}</a>
+                        <a href={lien} style={{ fontSize: "0.78125rem", color: "var(--cs-vert)", textDecoration: "none" }}>{label}</a>
                       ) : (
                         <span style={{ fontSize: "0.78125rem", color: fait ? "#b0a89e" : "#3a3530", textDecoration: fait ? "line-through" : "none" }}>{label}</span>
                       )}
@@ -752,10 +753,10 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <button onClick={enregistrer} disabled={enregistrement}
-                style={{ padding: "8px 18px", borderRadius: "6px", border: "none", background: "#3d6b4f", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, cursor: "pointer" }}>
+                style={{ padding: "8px 18px", borderRadius: "6px", border: "none", background: "var(--cs-vert)", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, cursor: "pointer" }}>
                 {enregistrement ? "Enregistrement…" : "Enregistrer"}
               </button>
-              {statut && <span style={{ fontSize: "0.78125rem", color: statut.ok ? "#3d6b4f" : "#9a2a2a" }}>{statut.ok ? "✓" : "✗"} {statut.msg}</span>}
+              {statut && <span style={{ fontSize: "0.78125rem", color: statut.ok ? "var(--cs-vert)" : "#9a2a2a" }}>{statut.ok ? "✓" : "✗"} {statut.msg}</span>}
             </div>
           </div>
 
@@ -782,7 +783,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
               ] as const).map(({ key, label, value, set }) => (
                 <label key={key} style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", userSelect: "none" }}>
                   <button type="button" role="switch" aria-checked={value} onClick={() => set(!value)}
-                    style={{ width: "32px", height: "18px", borderRadius: "999px", border: "none", cursor: "pointer", padding: 0, flexShrink: 0, background: value ? "#3d6b4f" : "#d6d0c4", position: "relative", transition: "background 0.15s" }}>
+                    style={{ width: "32px", height: "18px", borderRadius: "999px", border: "none", cursor: "pointer", padding: 0, flexShrink: 0, background: value ? "var(--cs-vert)" : "#d6d0c4", position: "relative", transition: "background 0.15s" }}>
                     <span style={{ position: "absolute", top: "3px", left: value ? "15px" : "3px", width: "12px", height: "12px", borderRadius: "50%", background: "#fff", transition: "left 0.15s" }} />
                   </button>
                   <span style={{ fontSize: "0.78125rem", color: "#3a3530" }}>{label}</span>
@@ -791,10 +792,10 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <button onClick={enregistrerPage} disabled={enregistrementPage}
-                style={{ padding: "8px 18px", borderRadius: "6px", border: "none", background: "#3d6b4f", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, cursor: "pointer" }}>
+                style={{ padding: "8px 18px", borderRadius: "6px", border: "none", background: "var(--cs-vert)", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, cursor: "pointer" }}>
                 {enregistrementPage ? "Enregistrement…" : "Enregistrer"}
               </button>
-              {statutPage && <span style={{ fontSize: "0.78125rem", color: statutPage.ok ? "#3d6b4f" : "#9a2a2a" }}>{statutPage.ok ? "✓" : "✗"} {statutPage.msg}</span>}
+              {statutPage && <span style={{ fontSize: "0.78125rem", color: statutPage.ok ? "var(--cs-vert)" : "#9a2a2a" }}>{statutPage.ok ? "✓" : "✗"} {statutPage.msg}</span>}
             </div>
           </div>
 
@@ -806,12 +807,12 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
               <div style={{ display: "flex", gap: "8px", marginTop: "2px" }}>
                 <input type="email" value={nouvelEmail} onChange={e => { setNouvelEmail(e.target.value); setStatutEmail(null); }} style={{ ...inputStyle, flex: 1 }} />
                 <button onClick={modifierEmail} disabled={envoiEmail || !nouvelEmail.trim() || nouvelEmail.trim() === user.email}
-                  style={{ padding: "9px 14px", borderRadius: "6px", border: "1px solid #d6d0c4", background: "#fff", color: "#3d6b4f", fontSize: "0.78125rem", fontWeight: 500, cursor: "pointer", whiteSpace: "nowrap" }}>
+                  style={{ padding: "9px 14px", borderRadius: "6px", border: "1px solid #d6d0c4", background: "#fff", color: "var(--cs-vert)", fontSize: "0.78125rem", fontWeight: 500, cursor: "pointer", whiteSpace: "nowrap" }}>
                   {envoiEmail ? "Envoi…" : "Modifier"}
                 </button>
               </div>
-              {user.email_confirmed_at && !statutEmail && <p style={{ fontSize: "0.6875rem", color: "#3d6b4f", margin: "5px 0 0" }}>✓ adresse vérifiée</p>}
-              {statutEmail && <p style={{ fontSize: "0.71875rem", color: statutEmail.ok ? "#3d6b4f" : "#9a2a2a", margin: "5px 0 0", lineHeight: 1.5 }}>{statutEmail.msg}</p>}
+              {user.email_confirmed_at && !statutEmail && <p style={{ fontSize: "0.6875rem", color: "var(--cs-vert)", margin: "5px 0 0" }}>✓ adresse vérifiée</p>}
+              {statutEmail && <p style={{ fontSize: "0.71875rem", color: statutEmail.ok ? "var(--cs-vert)" : "#9a2a2a", margin: "5px 0 0", lineHeight: 1.5 }}>{statutEmail.msg}</p>}
             </div>
             <div style={{ borderTop: "1px solid #ede9e2", paddingTop: "16px" }}>
               <label style={labelStyle}>MOT DE PASSE</label>
@@ -820,10 +821,10 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
                 <input type="password" value={confirmationMdp} onChange={e => { setConfirmationMdp(e.target.value); setStatutMdp(null); }} placeholder="Confirmer" style={inputStyle} />
               </div>
               <button onClick={modifierMotDePasse} disabled={envoiMdp || !nouveauMdp || !confirmationMdp}
-                style={{ marginTop: "8px", padding: "7px 14px", borderRadius: "6px", border: "1px solid #d6d0c4", background: "#fff", color: "#3d6b4f", fontSize: "0.78125rem", fontWeight: 500, cursor: "pointer" }}>
+                style={{ marginTop: "8px", padding: "7px 14px", borderRadius: "6px", border: "1px solid #d6d0c4", background: "#fff", color: "var(--cs-vert)", fontSize: "0.78125rem", fontWeight: 500, cursor: "pointer" }}>
                 {envoiMdp ? "Modification…" : "Changer le mot de passe"}
               </button>
-              {statutMdp && <p style={{ fontSize: "0.71875rem", color: statutMdp.ok ? "#3d6b4f" : "#9a2a2a", margin: "6px 0 0", lineHeight: 1.5 }}>{statutMdp.msg}</p>}
+              {statutMdp && <p style={{ fontSize: "0.71875rem", color: statutMdp.ok ? "var(--cs-vert)" : "#9a2a2a", margin: "6px 0 0", lineHeight: 1.5 }}>{statutMdp.msg}</p>}
             </div>
           </div>
 

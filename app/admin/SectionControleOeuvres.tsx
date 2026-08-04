@@ -3,6 +3,7 @@
 import React from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { ABREV_FR } from '@/app/lib/bible'
+import IconeCrayon from '@/app/components/IconeCrayon'
 import { hydraterLiensHerites } from '@/app/lib/liens'
 import ModalLienBiblique, { type ChampLienBiblique, type VersetLienBiblique } from '@/app/components/ModalLienBiblique'
 import { analyserCorpus, analyserPerso, RANGS, type Rang, type Verdict } from './controleQualite'
@@ -841,7 +842,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .controle-oeuvres .toolbar{background:#fff;border:1px solid #d9e1dc;border-radius:8px;padding:8px 14px 9px;margin-bottom:12px;box-shadow:0 5px 16px rgba(30,46,38,.045);text-align:center;}
         .controle-oeuvres .toolbar-regle{width:34px;height:1px;background:#c8b89e;margin:5px auto 7px;}
         .controle-oeuvres .oeuvre-search{font-size:0.6875rem;border:1px solid #d6d0c4;border-radius:999px;background:#faf8f4;color:#2a2520;padding:5px 12px;width:min(440px,100%);text-align:center;outline:none;transition:border-color .14s,box-shadow .14s,background .14s;}
-        .controle-oeuvres .oeuvre-search:focus{background:#fff;border-color:#8aa185;box-shadow:0 0 0 3px rgba(61,107,79,.09);}
+        .controle-oeuvres .oeuvre-search:focus{background:#fff;border-color:#8aa185;box-shadow:0 0 0 3px rgba(var(--cs-vert-rgb),.09);}
         .controle-oeuvres .toolbar > div:last-child{justify-content:center;margin-top:7px;}
         /* Le texte occupe tout ce qui reste ; le volet d'analyse a une largeur fixe et
            généreuse. Plus de centrage : la colonne de lecture part de la gauche. */
@@ -849,13 +850,13 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .segments-panel{background:#fff;border:1px solid #e3ddd3;border-radius:2px;padding:30px 46px 38px;box-shadow:0 10px 28px rgba(30,46,38,.05);}
         .controle-pagination{display:flex;align-items:center;justify-content:center;gap:13px;margin:0 0 23px;color:#8a8278;font-size:0.75rem;}
         .controle-pagination.bas{margin:24px 0 0;}
-        .controle-pagination button{border:0;background:transparent;color:#3d6b4f;font-family:var(--font-source-serif), Georgia, serif;font-size:1.5rem;line-height:1;cursor:pointer;padding:0 6px;}
+        .controle-pagination button{border:0;background:transparent;color:var(--cs-vert);font-family:var(--font-source-serif), Georgia, serif;font-size:1.5rem;line-height:1;cursor:pointer;padding:0 6px;}
         .controle-pagination button:disabled{opacity:.25;cursor:default;}
         .segment-controle{position:relative;border:0;border-radius:3px;padding:3px 6px 4px;margin-bottom:.38rem;cursor:pointer;transition:background .14s,box-shadow .14s,opacity .14s;}
-        .segment-controle:hover{box-shadow:inset 0 0 0 1px rgba(61,107,79,.12);}
-        .segment-controle.is-active{box-shadow:inset 0 0 0 1px rgba(61,107,79,.28);}
+        .segment-controle:hover{box-shadow:inset 0 0 0 1px rgba(var(--cs-vert-rgb),.12);}
+        .segment-controle.is-active{box-shadow:inset 0 0 0 1px rgba(var(--cs-vert-rgb),.28);}
         /* Le crayon vit DANS le bloc de texte : on corrige là où l'on lit. */
-        .segment-crayon{position:absolute;top:1px;right:1px;opacity:0;border:1px solid #d9e1dc;background:rgba(255,255,255,.94);border-radius:4px;padding:1px 6px 2px;font-size:0.75rem;line-height:1.3;cursor:pointer;color:#3d6b4f;transition:opacity .13s;z-index:2;}
+        .segment-crayon{position:absolute;top:1px;right:1px;opacity:0;border:1px solid #d9e1dc;background:rgba(255,255,255,.94);border-radius:4px;padding:1px 6px 2px;font-size:0.75rem;line-height:1.3;cursor:pointer;color:var(--cs-vert);transition:opacity .13s;z-index:2;}
         .segment-controle:hover .segment-crayon,.segment-controle.is-active .segment-crayon{opacity:1;}
         .segment-crayon:hover{background:#f2f8f4;border-color:#8aa185;}
         .segment-edition{width:100%;box-sizing:border-box;min-height:130px;border:1px solid #8aa185;border-radius:4px;background:#fffdf9;color:#2a2520;font-family:var(--font-source-sans), Arial, sans-serif;font-size:.82rem;line-height:1.52;padding:8px 10px;resize:vertical;outline:none;}
@@ -884,19 +885,19 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .stat-btn{border:1px solid #d6d0c4;background:#fff;border-radius:999px;padding:3px 8px;font-size:0.625rem;cursor:pointer;color:#5a5450;}
         .stat-btn.active{background:#2f6046;color:#fff;border-color:#2f6046;}
         .mode-btn{border:1px solid #d6d0c4;background:#fff;border-radius:999px;padding:3px 9px;font-size:0.625rem;color:#5a5450;cursor:pointer;}
-        .mode-btn.active{background:#f2f8f4;border-color:#3d6b4f;color:#2f6046;font-weight:700;}
+        .mode-btn.active{background:#f2f8f4;border-color:var(--cs-vert);color:#2f6046;font-weight:700;}
         .niveau-btn{border:1px solid #d6d0c4;background:#fff;border-radius:999px;padding:4px 8px;font-size:0.625rem;cursor:pointer;color:#5a5450;transition:background .12s,border-color .12s,color .12s;}
         .niveau-btn.active{font-weight:700;}
         .controle-section{margin-top:16px;padding-top:14px;border-top:1px solid #d8cfbf;}
-        .controle-section-title{font-family:var(--font-source-serif), Georgia, serif;font-style:italic;font-size:0.78125rem;font-weight:normal;letter-spacing:0;text-transform:none;color:#3d6b4f;margin:0 0 8px;}
+        .controle-section-title{font-family:var(--font-source-serif), Georgia, serif;font-style:italic;font-size:0.78125rem;font-weight:normal;letter-spacing:0;text-transform:none;color:var(--cs-vert);margin:0 0 8px;}
         .controle-liste-simple{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px;color:#3a3530;}
         .controle-liste-simple li{font-size:0.71875rem;line-height:1.45;}
         .controle-lien-card{border:1px solid #ede9e2;border-radius:7px;background:#fffdf9;padding:8px 9px;margin-bottom:8px;}
-        .controle-lien-ref{font-size:0.6875rem;font-weight:700;color:#3d6b4f;margin:0 0 4px;}
+        .controle-lien-ref{font-size:0.6875rem;font-weight:700;color:var(--cs-vert);margin:0 0 4px;}
         .controle-lien-texte{font-size:0.71875rem;line-height:1.5;color:#332d28;margin:0;white-space:normal;}
         .controle-mini-btn{border:0;background:transparent;color:#9a2a2a;font-size:0.65625rem;padding:4px 0 0;cursor:pointer;}
         .controle-edition{width:100%;min-height:150px;border:1px solid #d6d0c4;border-radius:6px;background:#fffdf9;color:#2a2520;font-size:0.75rem;line-height:1.55;padding:8px 9px;resize:vertical;}
-        .controle-action-btn{border:1px solid #d6d0c4;background:#fff;border-radius:999px;padding:5px 10px;font-size:0.65625rem;cursor:pointer;color:#3d6b4f;}
+        .controle-action-btn{border:1px solid #d6d0c4;background:#fff;border-radius:999px;padding:5px 10px;font-size:0.65625rem;cursor:pointer;color:var(--cs-vert);}
         .controle-action-btn.danger{color:#9a2a2a;border-color:#e2b9aa;background:#fff7f4;}
         .controle-action-btn:disabled{opacity:.55;cursor:default;}
         /* En-tête du volet : segment + référence sur une ligne, score/rang alignés à droite. */
@@ -913,7 +914,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .controle-accueil ul{list-style:none;margin:0;padding:0;}
         .controle-accueil li + li{border-top:1px solid #f0ece6;}
         .controle-accueil button{display:block;width:100%;text-align:left;background:transparent;border:0;cursor:pointer;padding:9px 12px;font-family:var(--font-source-serif), Georgia, serif;font-size:0.84375rem;color:#2a3d30;border-radius:5px;transition:background .12s;}
-        .controle-accueil button:hover{background:rgba(61,107,79,.06);}
+        .controle-accueil button:hover{background:rgba(var(--cs-vert-rgb),.06);}
         .controle-accueil .accueil-titre{display:block;}
         .controle-accueil .accueil-liens{display:block;font-family:var(--font-source-sans), Arial, sans-serif;font-size:0.625rem;color:#a8a094;margin-top:2px;letter-spacing:.02em;}
         .controle-ancien-commentaires,.controle-ancien-commentaires + div{display:none!important;}
@@ -972,7 +973,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
               </span>
               <button type="button" onClick={recalculerRangs} disabled={recalculEnCours || chargementRangs}
                 title="Recalculer les couleurs de qualité (parcourt tous les segments)"
-                style={{ fontSize: '0.625rem', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', borderRadius: '999px', padding: '3px 10px', cursor: recalculEnCours || chargementRangs ? 'default' : 'pointer', opacity: recalculEnCours || chargementRangs ? 0.5 : 1, whiteSpace: 'nowrap' }}>
+                style={{ fontSize: '0.625rem', border: '1px solid #d6d0c4', background: '#fff', color: 'var(--cs-vert)', borderRadius: '999px', padding: '3px 10px', cursor: recalculEnCours || chargementRangs ? 'default' : 'pointer', opacity: recalculEnCours || chargementRangs ? 0.5 : 1, whiteSpace: 'nowrap' }}>
                 ↻ Recalculer
               </button>
             </div>
@@ -989,7 +990,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                 const coul = !rangsParOeuvre.size ? null
                   : (rg?.critique ?? 0) > 0 ? { bord: '#c0562a', fond: '#fff0ed' }
                   : (rg?.moyen ?? 0) > 0 ? { bord: '#c7832f', fond: '#fff8ec' }
-                  : { bord: '#3d6b4f', fond: '#f2f8f4' }
+                  : { bord: 'var(--cs-vert)', fond: '#f2f8f4' }
                 return (
                   <li key={o.id_oeuvre} style={coul ? { borderLeft: `3px solid ${coul.bord}`, background: coul.fond, borderRadius: '4px' } : undefined}>
                     <button type="button" onClick={() => setIdOeuvre(o.id_oeuvre)}>
@@ -1014,7 +1015,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         <div className="controle-layout">
           <div className="segments-panel">
             <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-              <button type="button" onClick={() => setIdOeuvre('')} style={{ display: 'block', margin: '0 auto 12px', background: 'transparent', border: 0, color: '#3d6b4f', fontSize: '0.79062rem', cursor: 'pointer' }}>← Toutes les œuvres</button>
+              <button type="button" onClick={() => setIdOeuvre('')} style={{ display: 'block', margin: '0 auto 12px', background: 'transparent', border: 0, color: 'var(--cs-vert)', fontSize: '0.79062rem', cursor: 'pointer' }}>← Toutes les œuvres</button>
               <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.7825rem', color: '#1e2e24', margin: 0, lineHeight: 1.28 }}>{titreCourtControle(auteurs, idOeuvre, modeControle, oeuvresPerso)}</p>
               <div style={{ width: '42px', height: '1px', background: '#c8b89e', margin: '14px auto 8px' }} />
               <p style={{ fontSize: '0.75469rem', color: '#9a958d', margin: '3px 0 0' }}>{segmentsAffiches.length} segment(s) affiché(s)</p>
@@ -1072,7 +1073,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                           title="Modifier ce segment"
                           aria-label={`Modifier le segment ${segment.segment_numero}`}
                           onClick={e => { e.stopPropagation(); setSegmentActif(segment.id); setEditionTexte(segment.segment_texte ?? ''); setEditionSegmentId(segment.id) }}
-                        >✎</button>
+                        ><IconeCrayon size={12} /></button>
                         <p className="segment-texte">{segment.segment_texte || 'Segment vide.'}</p>
                       </>
                     )}

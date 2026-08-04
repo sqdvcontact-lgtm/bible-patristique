@@ -8,6 +8,7 @@ import ModalSignalement from './ModalSignalement'
 import { insererSignalement } from './signalements'
 import { Bulle } from '@/app/components/Bulle'
 import IconeSignet from '@/app/components/IconeSignet'
+import IconeDrapeau from '@/app/components/IconeDrapeau'
 
 // Si le texte cité contient déjà des guillemets français, on les convertit
 // en guillemets anglais pour ne pas doubler les guillemets français.
@@ -25,7 +26,7 @@ export function BoutonCopieVerset({ texte, label }: { texte: string; label: stri
   }
   return (
     <Bulle texte="Copier ce verset">
-      <button onClick={handle} style={{ ...BTN_STYLE, color: copie ? '#3d6b4f' : '#c8c0b4' }} aria-label="Copier ce verset">
+      <button onClick={handle} style={{ ...BTN_STYLE, color: copie ? 'var(--cs-vert)' : '#c8c0b4' }} aria-label="Copier ce verset">
         {copie ? '✓' : (
           <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
             <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
@@ -52,7 +53,7 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
 
   if (idPrelev) return (
     <Bulle texte="Retirer des prélèvements">
-      <button onClick={supprimer} disabled={loading} style={{ ...BTN_STYLE, color:'#3d6b4f' }} aria-label="Retirer des prélèvements">
+      <button onClick={supprimer} disabled={loading} style={{ ...BTN_STYLE, color:'var(--cs-vert)' }} aria-label="Retirer des prélèvements">
         {loading ? '…' : <IconeSignet plein />}
       </button>
     </Bulle>
@@ -86,7 +87,7 @@ export function BoutonSignalerVerset({ versetId, label, texte, segmentId }: { ve
   return (
     <>
       <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
-        title="Signaler une erreur" style={{ ...BTN_STYLE, color:'#c8c0b4' }}>⚑</button>
+        title="Signaler une erreur" style={{ ...BTN_STYLE, color:'#c8c0b4' }}><IconeDrapeau /></button>
       {ouvert && (
         <ModalSignalement
           titre={label}

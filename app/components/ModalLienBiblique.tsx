@@ -237,7 +237,7 @@ export default function ModalLienBiblique({
                 <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginBottom: '13px' }}>
                   {chapitres.map(ch => (
                     <button key={ch} onClick={() => setChapitre(ch)}
-                      style={{ minWidth: '30px', border: '1px solid #d8d0c3', borderRadius: '999px', padding: '4px 8px', cursor: 'pointer', background: chapitre === ch ? '#3d6b4f' : '#fff', color: chapitre === ch ? '#fff' : '#5a5450', fontSize: '0.6875rem' }}>
+                      style={{ minWidth: '30px', border: '1px solid #d8d0c3', borderRadius: '999px', padding: '4px 8px', cursor: 'pointer', background: chapitre === ch ? 'var(--cs-vert)' : '#fff', color: chapitre === ch ? '#fff' : '#5a5450', fontSize: '0.6875rem' }}>
                       {ch}
                     </button>
                   ))}
@@ -264,7 +264,7 @@ export default function ModalLienBiblique({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
               {TYPES_LIEN.filter(t => champs.includes(t.champ)).map(t => (
                 <button key={t.champ} onClick={() => setChamp(t.champ)}
-                  style={{ textAlign: 'left', border: `1px solid ${champ === t.champ ? '#3d6b4f' : '#ded7cc'}`, background: champ === t.champ ? '#edf5ef' : '#fff', color: champ === t.champ ? '#2f6046' : '#5a5450', borderRadius: '7px', padding: '8px 9px', cursor: 'pointer', fontSize: '0.71875rem', fontWeight: champ === t.champ ? 700 : 400 }}>
+                  style={{ textAlign: 'left', border: `1px solid ${champ === t.champ ? 'var(--cs-vert)' : '#ded7cc'}`, background: champ === t.champ ? '#edf5ef' : '#fff', color: champ === t.champ ? '#2f6046' : '#5a5450', borderRadius: '7px', padding: '8px 9px', cursor: 'pointer', fontSize: '0.71875rem', fontWeight: champ === t.champ ? 700 : 400 }}>
                   {t.label}
                 </button>
               ))}
@@ -294,7 +294,7 @@ export default function ModalLienBiblique({
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={onFermer} style={{ border: '1px solid #d8d0c3', background: '#fff', color: '#6b6560', borderRadius: '999px', padding: '7px 14px', cursor: 'pointer', fontSize: '0.75rem' }}>Fermer</button>
             <button onClick={valider} disabled={selectionListe.length === 0 || enregistrement}
-              style={{ border: '1px solid #3d6b4f', background: selectionListe.length === 0 || enregistrement ? '#e4dfd8' : '#3d6b4f', color: selectionListe.length === 0 || enregistrement ? '#9a958d' : '#fff', borderRadius: '999px', padding: '7px 15px', cursor: selectionListe.length === 0 || enregistrement ? 'default' : 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
+              style={{ border: '1px solid var(--cs-vert)', background: selectionListe.length === 0 || enregistrement ? '#e4dfd8' : 'var(--cs-vert)', color: selectionListe.length === 0 || enregistrement ? '#9a958d' : '#fff', borderRadius: '999px', padding: '7px 15px', cursor: selectionListe.length === 0 || enregistrement ? 'default' : 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
               {enregistrement ? 'Enregistrement...' : 'Créer le lien biblique'}
             </button>
           </div>

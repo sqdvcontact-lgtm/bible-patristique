@@ -110,7 +110,7 @@ export default function ApercuAuteur({
         title={auteurId ? 'Voir la fiche de l’auteur' : undefined}
         onMouseEnter={e => { if (auteurId) e.currentTarget.style.textDecoration = 'underline' }}
         onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
-        style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#3d6b4f', margin: 0, padding: 0, background: 'none', border: 'none', textAlign: 'left', cursor: auteurId ? 'pointer' : 'default', textUnderlineOffset: '3px', letterSpacing: '0.01em', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0, padding: 0, background: 'none', border: 'none', textAlign: 'left', cursor: auteurId ? 'pointer' : 'default', textUnderlineOffset: '3px', letterSpacing: '0.01em', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {children}
       </button>
 
@@ -139,7 +139,7 @@ export default function ApercuAuteur({
               {extraitBio(auteur.note_biographique)}
             </p>
           )}
-          <p style={{ fontSize: '0.625rem', fontWeight: 600, color: '#3d6b4f', margin: '9px 0 0', letterSpacing: '0.02em' }}>Voir la fiche complète →</p>
+          <p style={{ fontSize: '0.625rem', fontWeight: 600, color: 'var(--cs-vert)', margin: '9px 0 0', letterSpacing: '0.02em' }}>Voir la fiche complète →</p>
         </div>,
         document.body
       )}

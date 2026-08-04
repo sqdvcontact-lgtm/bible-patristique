@@ -29,9 +29,15 @@ export default function AdminClient({
   const [nbMod, setNbMod] = useState(commentaires.length + commentairesPublications.length + signalements.length + demandesCertification.length)
   const [nbEssais, setNbEssais] = useState(essaisEnAttente.length + essaisModification.length)
 
+  // Arrivée via ?onglet=<clé> : le menu Administration de la navbar renvoie à chaque
+  // section. Toute clé d'onglet valide est acceptée (pas seulement « controle-oeuvres »).
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('onglet') === 'controle-oeuvres') setOnglet('controle-oeuvres')
+    const cle = new URLSearchParams(window.location.search).get('onglet') as Onglet | null
+    const valides: Onglet[] = [
+      'bibliotheque', 'controle-oeuvres', 'traductions', 'editeurs', 'evenements', 'essais',
+      'verifications', 'moderation', 'propositions', 'charte', 'charte-accentuation', 'taches',
+    ]
+    if (cle && valides.includes(cle)) setOnglet(cle)
   }, [])
 
   useEffect(() => {
@@ -73,8 +79,8 @@ export default function AdminClient({
   return (
     <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#e8eceb' }}>
       <style>{`
-        .btn-vert { background: #3d6b4f !important; color: #fff !important; border: none !important; }
-        .btn-vert:hover { background: #2e5440 !important; }
+        .btn-vert { background: var(--cs-vert) !important; color: #fff !important; border: none !important; }
+        .btn-vert:hover { background: var(--cs-vert-fonce) !important; }
         .btn-rouge { background: #fff !important; color: #c0562a !important; border: 1px solid #e4c4b8 !important; }
         .btn-rouge:hover { background: #fdf2ee !important; }
         /* Bouton secondaire neutre — réaccordé à la mise en page claire (l'ancienne
@@ -82,7 +88,7 @@ export default function AdminClient({
         .btn-gris { background: #fff !important; color: #6b6560 !important; border: 1px solid #d6d0c4 !important; }
         .btn-gris:hover { background: #f4f2ee !important; border-color: #c8c0b4 !important; }
         .btn-gris:disabled { opacity: 0.5 !important; cursor: default !important; }
-        .adm-onglet:hover { color: #2f6046 !important; background: rgba(61,107,79,0.05) !important; }
+        .adm-onglet:hover { color: #2f6046 !important; background: rgba(var(--cs-vert-rgb),0.05) !important; }
       `}</style>
 
       {/* Barre d'onglets, seule et sticky sous la navbar (l'ancien bandeau « Administration »
@@ -98,7 +104,7 @@ export default function AdminClient({
                 <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '18px', margin: '0 8px 10px', background: '#e2e6e3' }} />
               )}
               <button onClick={() => setOnglet(o.key)} className="adm-onglet"
-                style={{ padding: '12px 16px', fontSize: '0.97031rem', fontWeight: actif ? 600 : 500, color: actif ? '#2f6046' : '#6a8074', background: actif ? 'rgba(61,107,79,0.06)' : 'transparent', border: 'none', borderBottom: actif ? '3px solid #3d6b4f' : '3px solid transparent', borderRadius: '5px 5px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', whiteSpace: 'nowrap', transition: 'color 0.12s, background 0.12s' }}>
+                style={{ padding: '12px 16px', fontSize: '0.97031rem', fontWeight: actif ? 600 : 500, color: actif ? '#2f6046' : '#6a8074', background: actif ? 'rgba(var(--cs-vert-rgb),0.06)' : 'transparent', border: 'none', borderBottom: actif ? '3px solid var(--cs-vert)' : '3px solid transparent', borderRadius: '5px 5px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', whiteSpace: 'nowrap', transition: 'color 0.12s, background 0.12s' }}>
                 {o.label}
                 {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
               </button>

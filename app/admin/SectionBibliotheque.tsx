@@ -28,7 +28,7 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
           <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.22187rem', fontWeight: 'normal', color: '#2a3d30', margin: '0 0 6px' }}>Validation de l'import</h2>
           <p style={{ fontSize: '0.8625rem', color: '#9a958d', margin: 0 }}>
             Fichier : <strong style={{ color: '#2a2520' }}>{nomFichier}</strong>{' — '}
-            <span style={{ color: '#3d6b4f', fontWeight: 500 }}>{modifiees.length} ligne{modifiees.length > 1 ? 's' : ''} modifiée{modifiees.length > 1 ? 's' : ''}</span>
+            <span style={{ color: 'var(--cs-vert)', fontWeight: 500 }}>{modifiees.length} ligne{modifiees.length > 1 ? 's' : ''} modifiée{modifiees.length > 1 ? 's' : ''}</span>
             {inchangees > 0 && <span style={{ color: '#9a958d' }}> · {inchangees} inchangée{inchangees > 1 ? 's' : ''}</span>}
           </p>
         </div>
@@ -46,10 +46,10 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
               <tbody>
                 {modifiees.map((l, i) => (
                   <tr key={l.id || String(i)} style={{ background: i % 2 === 0 ? '#fff' : '#faf8f4', borderBottom: '1px solid #f0ece6' }}>
-                    <td style={{ padding: '7px 12px', color: '#3d6b4f', fontWeight: 500 }}>{l.segment_numero}</td>
+                    <td style={{ padding: '7px 12px', color: 'var(--cs-vert)', fontWeight: 500 }}>{l.segment_numero}</td>
                     <td style={{ padding: '7px 12px' }}>
                       {l._fiabilite_orig !== l.fiabilite ? (
-                        <span><span style={{ color: '#c0562a', textDecoration: 'line-through', marginRight: '4px' }}>{l._fiabilite_orig || '—'}</span><span style={{ color: '#3d6b4f' }}>{l.fiabilite || '—'}</span></span>
+                        <span><span style={{ color: '#c0562a', textDecoration: 'line-through', marginRight: '4px' }}>{l._fiabilite_orig || '—'}</span><span style={{ color: 'var(--cs-vert)' }}>{l.fiabilite || '—'}</span></span>
                       ) : <span style={{ color: '#6b6560' }}>{l.fiabilite || '—'}</span>}
                     </td>
                     <td style={{ padding: '7px 12px', color: '#2a2520' }}>{l.segment_texte.slice(0, 60)}…</td>
@@ -63,7 +63,7 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
         <div style={{ padding: '16px 24px', borderTop: '1px solid #e4dfd8', display: 'flex', justifyContent: 'flex-end', gap: '10px', flexShrink: 0 }}>
           <button onClick={onAnnuler} disabled={importing} style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
           <button onClick={onConfirmer} disabled={importing || modifiees.length === 0}
-            style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: 'none', cursor: modifiees.length > 0 ? 'pointer' : 'default', background: modifiees.length > 0 ? '#3d6b4f' : '#e4dfd8', color: modifiees.length > 0 ? '#fff' : '#9a958d', fontWeight: 500 }}>
+            style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: 'none', cursor: modifiees.length > 0 ? 'pointer' : 'default', background: modifiees.length > 0 ? 'var(--cs-vert)' : '#e4dfd8', color: modifiees.length > 0 ? '#fff' : '#9a958d', fontWeight: 500 }}>
             {importing ? 'Import en cours…' : `Confirmer l'import (${modifiees.length} ligne${modifiees.length > 1 ? 's' : ''})`}
           </button>
         </div>
@@ -224,7 +224,7 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
             </div>
             <div style={{ flex: 1, padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 0 }}>
               <div>
-                <h4 style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.875rem', fontWeight: 600, color: '#3d6b4f', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0 }}>{auteur.nom}</h4>
+                <h4 style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-vert)', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0 }}>{auteur.nom}</h4>
                 {auteur.dates && <p style={{ fontSize: '0.71875rem', color: '#9a8a70', margin: '1px 0 0', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', letterSpacing: '0.01em' }}>{formaterDateHistorique(auteur.dates)}</p>}
               </div>
               {(auteur.note_biographique || auteur.note) && (
@@ -238,7 +238,7 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
                 </p>
               )}
               <div style={{ marginTop: 'auto', paddingTop: '6px' }}>
-                <span style={{ fontSize: '0.65625rem', color: '#3d6b4f', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '0.65625rem', color: 'var(--cs-vert)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                   <span style={{ fontSize: '0.5rem' }}>▼</span>
                   {(auteur.oeuvres?.length ?? 0)} œuvre{(auteur.oeuvres?.length ?? 0) > 1 ? 's' : ''} disponible{(auteur.oeuvres?.length ?? 0) > 1 ? 's' : ''}
                 </span>
@@ -257,7 +257,7 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #e4dfd8' }}>
           <button onClick={onClose} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
-          <button onClick={sauvegarder} disabled={saving} style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: 'none', background: saving ? '#a0b8aa' : '#3d6b4f', color: '#fff', cursor: saving ? 'default' : 'pointer', fontWeight: 500 }}>
+          <button onClick={sauvegarder} disabled={saving} style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: 'none', background: saving ? '#a0b8aa' : 'var(--cs-vert)', color: '#fff', cursor: saving ? 'default' : 'pointer', fontWeight: 500 }}>
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
         </div>
@@ -300,7 +300,7 @@ type NoticeCatalogueAdmin = {
 
 function couleurScoreCatalogue(score: number | null | undefined) {
   if (score == null) return '#b14b38'
-  if (score >= 90) return '#3d6b4f'
+  if (score >= 90) return 'var(--cs-vert)'
   if (score >= 70) return '#8a5a00'
   return '#c0562a'
 }
@@ -381,7 +381,7 @@ function ChampCatalogue({ label, valeur, accent = false, transform, lien = false
           </>
         ) : estUrl ? (
           <a href={texte} target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: '0.8rem', fontWeight: accent ? 700 : 400, color: '#3d6b4f', textDecoration: 'underline', textUnderlineOffset: '2px', lineHeight: 1.4, wordBreak: 'break-all' }}>{texte}</a>
+            style={{ fontSize: '0.8rem', fontWeight: accent ? 700 : 400, color: 'var(--cs-vert)', textDecoration: 'underline', textUnderlineOffset: '2px', lineHeight: 1.4, wordBreak: 'break-all' }}>{texte}</a>
         ) : (
           <span onClick={ouvrir} title={edit ? 'Cliquer pour modifier' : undefined}
             style={{ fontSize: '0.8rem', fontWeight: accent ? 700 : 400, fontStyle: manque ? 'italic' : 'normal', color: manque ? '#c0836a' : '#2a2520', lineHeight: 1.4, wordBreak: 'break-word', cursor: edit ? 'pointer' : 'default', borderBottom: edit && !manque ? '1px dotted #e2dccd' : 'none' }}>
@@ -398,7 +398,7 @@ function BoutonLienNotice({ href, label }: { href: string | null; label: string 
   const ok = !!href && /^https?:\/\//i.test(href)
   const base: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.7rem', fontWeight: 500, textDecoration: 'none', padding: '4px 13px', borderRadius: '999px', lineHeight: 1.3 }
   if (!ok) return <span style={{ ...base, color: '#c8c0b4', border: '1px solid #ece7de', background: '#faf7f1', cursor: 'default' }} title="Aucune URL renseignée">{label}<span aria-hidden="true"> —</span></span>
-  return <a href={href!} target="_blank" rel="noopener noreferrer" style={{ ...base, color: '#3d6b4f', border: '1px solid #cfdccb', background: '#fff' }}>{label}<span aria-hidden="true" style={{ opacity: 0.7 }}>↗</span></a>
+  return <a href={href!} target="_blank" rel="noopener noreferrer" style={{ ...base, color: 'var(--cs-vert)', border: '1px solid #cfdccb', background: '#fff' }}>{label}<span aria-hidden="true" style={{ opacity: 0.7 }}>↗</span></a>
 }
 
 // Petite flèche oblique nette (nord-est) pour les liens sortants.
@@ -417,7 +417,7 @@ function LiensUrlNotice({ urlTexte, urlNotice }: { urlTexte: string | null; urlN
     const ok = !!href && /^https?:\/\//i.test(href)
     const base: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.71875rem', fontWeight: 500, textDecoration: 'none', whiteSpace: 'nowrap' }
     if (!ok) return <span style={{ ...base, color: '#c2bcb2', cursor: 'default' }} title="Aucune URL renseignée">{label}<FlecheRaide muted /></span>
-    return <a href={href!} target="_blank" rel="noopener noreferrer" title={titre} style={{ ...base, color: '#3d6b4f' }}>{label}<FlecheRaide /></a>
+    return <a href={href!} target="_blank" rel="noopener noreferrer" title={titre} style={{ ...base, color: 'var(--cs-vert)' }}>{label}<FlecheRaide /></a>
   }
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '11px' }}>
@@ -431,7 +431,7 @@ function LiensUrlNotice({ urlTexte, urlNotice }: { urlTexte: string | null; urlN
 function LigneCatalogue({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
     <div style={{ padding: '0 16px' }}>
-      <p style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#3d6b4f', margin: '13px 0 0' }}>{titre}</p>
+      <p style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '13px 0 0' }}>{titre}</p>
       {children}
     </div>
   )
@@ -550,7 +550,7 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
                   style={{
                     fontSize: '0.68281rem', fontWeight: 600, padding: '4px 10px', borderRadius: '4px',
                     border: `1px solid ${n.verifie_admin ? '#a9c9b6' : '#cbe0d4'}`,
-                    background: n.verifie_admin ? '#3d6b4f' : '#f4faf6',
+                    background: n.verifie_admin ? 'var(--cs-vert)' : '#f4faf6',
                     color: n.verifie_admin ? '#fff' : '#2f6046',
                     cursor: n.verifie_admin ? 'default' : 'pointer', whiteSpace: 'nowrap',
                   }}>
@@ -630,7 +630,7 @@ function BoutonsAdminNotice({ n, onValiderAdmin, onRefuser }: {
         title={n.verifie_admin ? 'Déjà validée par un administrateur' : 'Valider cette fiche (contrôle humain)'}
         style={{ fontSize: '0.68281rem', fontWeight: 600, padding: '3px 9px', borderRadius: '4px',
           border: `1px solid ${n.verifie_admin ? '#a9c9b6' : '#cbe0d4'}`,
-          background: n.verifie_admin ? '#3d6b4f' : '#f4faf6', color: n.verifie_admin ? '#fff' : '#2f6046',
+          background: n.verifie_admin ? 'var(--cs-vert)' : '#f4faf6', color: n.verifie_admin ? '#fff' : '#2f6046',
           cursor: n.verifie_admin ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
         {n.verifie_admin ? '✓ Validation admin' : 'Validation admin'}
       </button>
@@ -727,7 +727,7 @@ function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]
                 const actif = tags.includes(g)
                 return (
                   <button key={g} onClick={() => actif ? supprimer(g) : ajouter(g)}
-                    style={{ fontSize: '0.75469rem', borderRadius: '3px', padding: '2px 7px', cursor: 'pointer', border: actif ? '1px solid rgba(61,107,79,0.35)' : '1px solid #d6d0c4', background: actif ? 'rgba(61,107,79,0.10)' : '#f7f4ef', color: actif ? '#2e5440' : '#6b6560', fontWeight: actif ? 600 : 400 }}>
+                    style={{ fontSize: '0.75469rem', borderRadius: '3px', padding: '2px 7px', cursor: 'pointer', border: actif ? '1px solid rgba(var(--cs-vert-rgb),0.35)' : '1px solid #d6d0c4', background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : '#f7f4ef', color: actif ? 'var(--cs-vert-fonce)' : '#6b6560', fontWeight: actif ? 600 : 400 }}>
                     {g}
                   </button>
                 )
@@ -742,7 +742,7 @@ function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]
             <input value={saisie} onChange={e => setSaisie(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') ajouterCustom(); if (e.key === 'Escape') { setNouveau(false); setSaisie('') } }}
               autoFocus style={{ ...inputStyleAuteur, width: '10rem', fontSize: '0.79062rem', padding: '4px 8px' }} />
-            <button onClick={ajouterCustom} style={{ fontSize: '0.75469rem', padding: '3px 10px', borderRadius: '3px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer' }}>Ajouter</button>
+            <button onClick={ajouterCustom} style={{ fontSize: '0.75469rem', padding: '3px 10px', borderRadius: '3px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer' }}>Ajouter</button>
             <button onClick={() => { setNouveau(false); setSaisie('') }} style={{ fontSize: '0.75469rem', padding: '3px 8px', borderRadius: '3px', border: '1px solid #d6d0c4', background: '#fff', color: '#9a958d', cursor: 'pointer' }}>Annuler</button>
           </>
         ) : (
@@ -754,7 +754,7 @@ function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]
       {tags.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', paddingTop: '6px', borderTop: '1px solid #ede9e2' }}>
           {tags.map(t => (
-            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.79062rem', background: 'rgba(61,107,79,0.10)', color: '#2e5440', border: '1px solid rgba(61,107,79,0.25)', borderRadius: '3px', padding: '1px 8px' }}>
+            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.79062rem', background: 'rgba(var(--cs-vert-rgb),0.10)', color: 'var(--cs-vert-fonce)', border: '1px solid rgba(var(--cs-vert-rgb),0.25)', borderRadius: '3px', padding: '1px 8px' }}>
               {t}<button onClick={() => supprimer(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9a958d', fontSize: '0.71875rem', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
             </span>
           ))}
@@ -803,7 +803,7 @@ function TagsInput({ tags, onChange, tousLesTags }: { tags: string[]; onChange: 
       {tags.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '5px' }}>
           {tags.map(t => (
-            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.79062rem', background: 'rgba(61,107,79,0.10)', color: '#2e5440', border: '1px solid rgba(61,107,79,0.25)', borderRadius: '3px', padding: '1px 7px' }}>
+            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.79062rem', background: 'rgba(var(--cs-vert-rgb),0.10)', color: 'var(--cs-vert-fonce)', border: '1px solid rgba(var(--cs-vert-rgb),0.25)', borderRadius: '3px', padding: '1px 7px' }}>
               {t}
               <button onClick={() => supprimer(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9a958d', fontSize: '0.71875rem', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
             </span>
@@ -1502,11 +1502,11 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                           const affiche = niveauActuel >= niv
                           const txtAffiche = (cfg[txtKey] ?? [])[i] ?? false
                           return (
-                            <tr key={niv} style={{ background: affiche ? 'rgba(61,107,79,0.04)' : '#faf8f4' }}>
+                            <tr key={niv} style={{ background: affiche ? 'rgba(var(--cs-vert-rgb),0.04)' : '#faf8f4' }}>
                               <td style={{ padding: '5px 8px', color: affiche ? '#2a3d30' : '#c0b8b0' }}>{label}</td>
                               <td style={{ textAlign: 'center', padding: '5px 8px' }}>
                                 <button onClick={() => setCfg({ [type]: affiche && niv <= niveauActuel ? (niv === 1 ? 1 : niv - 1) : niv })}
-                                  style={{ fontSize: '0.79062rem', padding: '2px 10px', borderRadius: '3px', border: '1px solid #d6d0c4', background: affiche ? '#3d6b4f' : '#fff', color: affiche ? '#fff' : '#9a958d', cursor: 'pointer' }}>
+                                  style={{ fontSize: '0.79062rem', padding: '2px 10px', borderRadius: '3px', border: '1px solid #d6d0c4', background: affiche ? 'var(--cs-vert)' : '#fff', color: affiche ? '#fff' : '#9a958d', cursor: 'pointer' }}>
                                   {affiche ? '✓' : '○'}
                                 </button>
                               </td>
@@ -1531,7 +1531,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderTop: '1px solid #ede9e2', marginTop: '4px' }}>
                 <span style={{ fontSize: '0.82656rem', color: '#3a3530' }}>Numéros de segments</span>
                 <button onClick={() => setCfg({ afficherNumeros: !cfg.afficherNumeros })}
-                  style={{ fontSize: '0.79062rem', padding: '4px 14px', borderRadius: '4px', border: '1px solid #d6d0c4', background: cfg.afficherNumeros ? '#3d6b4f' : '#fff', color: cfg.afficherNumeros ? '#fff' : '#9a958d', cursor: 'pointer' }}>
+                  style={{ fontSize: '0.79062rem', padding: '4px 14px', borderRadius: '4px', border: '1px solid #d6d0c4', background: cfg.afficherNumeros ? 'var(--cs-vert)' : '#fff', color: cfg.afficherNumeros ? '#fff' : '#9a958d', cursor: 'pointer' }}>
                   {cfg.afficherNumeros ? 'Affichés' : 'Masqués'}
                 </button>
               </div>
@@ -1539,7 +1539,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '8px' }}>
                 <button onClick={() => setConfigOeuvre(null)} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
                 <button onClick={() => sauvegarderNiveaux(configOeuvre, niveauxConfig[configOeuvre] ?? cfg)}
-                  style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
+                  style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
               </div>
             </div>
           </div>
@@ -1553,11 +1553,11 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           style={{ flex: 1, fontSize: '0.8625rem', padding: '6px 10px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#fff', color: '#1e1a16', outline: 'none' }} />
         {recherche && <button onClick={() => setRecherche('')} style={{ fontSize: '0.79062rem', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>}
         <button onClick={() => { setAjoutAuteur(!ajoutAuteur); setMsgAjoutAuteur(null) }}
-          style={{ width: '7.375rem', textAlign: 'center', fontSize: '0.8625rem', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutAuteur ? '#2e5440' : '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          style={{ width: '7.375rem', textAlign: 'center', fontSize: '0.8625rem', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutAuteur ? 'var(--cs-vert-fonce)' : 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
           {ajoutAuteur ? 'Fermer' : '+ Nouvel auteur'}
         </button>
         <button onClick={() => { setAjoutOeuvre(!ajoutOeuvre); setVueBibliotheque('oeuvres') }}
-          style={{ width: '8rem', textAlign: 'center', fontSize: '0.8625rem', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutOeuvre ? '#2e5440' : '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          style={{ width: '8rem', textAlign: 'center', fontSize: '0.8625rem', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutOeuvre ? 'var(--cs-vert-fonce)' : 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
           {ajoutOeuvre ? 'Fermer' : '+ Nouvelle œuvre'}
         </button>
         {/* Menu déroulant de filtrage des auteurs (remplace l'ancien bouton bascule). */}
@@ -1574,7 +1574,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
               <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 41, background: '#fff', border: '1px solid #d6d0c4', borderRadius: '6px', boxShadow: '0 6px 20px rgba(0,0,0,0.12)', overflow: 'hidden', minWidth: '190px' }}>
                 {FILTRES_AUTEURS.map(f => (
                   <button key={f.code} onClick={() => { setFiltreAuteurs(f.code); setMenuFiltreOuvert(false) }}
-                    style={{ display: 'block', width: '100%', textAlign: 'left', fontSize: '0.8625rem', padding: '7px 12px', border: 'none', borderBottom: '1px solid #f0ece6', background: filtreAuteurs === f.code ? 'rgba(61,107,79,0.08)' : '#fff', color: filtreAuteurs === f.code ? '#2f6046' : '#5a5450', fontWeight: filtreAuteurs === f.code ? 600 : 400, cursor: 'pointer' }}>
+                    style={{ display: 'block', width: '100%', textAlign: 'left', fontSize: '0.8625rem', padding: '7px 12px', border: 'none', borderBottom: '1px solid #f0ece6', background: filtreAuteurs === f.code ? 'rgba(var(--cs-vert-rgb),0.08)' : '#fff', color: filtreAuteurs === f.code ? '#2f6046' : '#5a5450', fontWeight: filtreAuteurs === f.code ? 600 : 400, cursor: 'pointer' }}>
                     {f.label}
                   </button>
                 ))}
@@ -1596,15 +1596,15 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       <>
 
       {ajoutOeuvre && (
-        <div style={{ background: '#fff', border: '2px solid #3d6b4f', borderRadius: '8px', padding: '18px 20px', marginBottom: '10px' }}>
+        <div style={{ background: '#fff', border: '2px solid var(--cs-vert)', borderRadius: '8px', padding: '18px 20px', marginBottom: '10px' }}>
           <SectionAjouterOeuvre auteurs={auteurs} />
         </div>
       )}
 
       {/* Formulaire nouvel auteur */}
       {ajoutAuteur && (
-        <div style={{ background: '#fff', border: '2px solid #3d6b4f', borderRadius: '8px', padding: '16px 20px', marginBottom: '8px' }}>
-          <p style={{ fontSize: '0.8625rem', fontWeight: 600, color: '#3d6b4f', marginBottom: '14px' }}>Nouvel auteur</p>
+        <div style={{ background: '#fff', border: '2px solid var(--cs-vert)', borderRadius: '8px', padding: '16px 20px', marginBottom: '8px' }}>
+          <p style={{ fontSize: '0.8625rem', fontWeight: 600, color: 'var(--cs-vert)', marginBottom: '14px' }}>Nouvel auteur</p>
           <ChampsAuteur
             valeurs={nouvelAuteur}
             onChange={(champ, val) => setNouvelAuteur(p => ({ ...p, [champ]: val }))}
@@ -1614,7 +1614,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           {msgAjoutAuteur && <p style={{ fontSize: '0.82656rem', color: '#c0562a', marginBottom: '8px' }}>{msgAjoutAuteur}</p>}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <button onClick={() => { setAjoutAuteur(false); setMsgAjoutAuteur(null) }} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
-            <button onClick={creerAuteur} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Créer</button>
+            <button onClick={creerAuteur} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Créer</button>
           </div>
         </div>
       )}
@@ -1636,7 +1636,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: (ouvert || editionAuteur === auteur.id_auteur) ? '1px solid #e4dfd8' : 'none' }}>
               <button onClick={() => setAuteurOuvert(auteurOuvert === auteur.id_auteur ? null : auteur.id_auteur)}
                 style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.07813rem', fontWeight: 700, color: '#3d6b4f' }}>{auteur.nom}</span>
+                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.07813rem', fontWeight: 700, color: 'var(--cs-vert)' }}>{auteur.nom}</span>
                 {(() => {
                   const nbPub = auteur.oeuvres.length
                   const surLeSite = new Set(auteur.oeuvres.map(o => o.id_oeuvre))
@@ -1655,14 +1655,14 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                 <button
                   onClick={() => photoRefs.current[auteur.id_auteur]?.click()}
                   title={photos[auteur.id_auteur] ? 'Remplacer la photo' : 'Ajouter une photo'}
-                  style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: `1px solid ${photos[auteur.id_auteur] ? '#3d6b4f' : '#d6d0c4'}`, background: photos[auteur.id_auteur] ? 'rgba(61,107,79,0.08)' : '#fff', color: photos[auteur.id_auteur] ? '#3d6b4f' : '#9a958d', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: `1px solid ${photos[auteur.id_auteur] ? 'var(--cs-vert)' : '#d6d0c4'}`, background: photos[auteur.id_auteur] ? 'rgba(var(--cs-vert-rgb),0.08)' : '#fff', color: photos[auteur.id_auteur] ? 'var(--cs-vert)' : '#9a958d', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   {photos[auteur.id_auteur] ? '✓ Photo' : '+ Photo'}
                 </button>
                 {photos[auteur.id_auteur] && (
                   <button
                     onClick={() => setPositionAuteur(auteur.id_auteur)}
                     title="Cadrer la photo"
-                    style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                     Cadrer
                   </button>
                 )}
@@ -1674,7 +1674,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     e.target.value = ''
                   }} />
                 <button onClick={() => editionAuteur === auteur.id_auteur ? fermerEditionAuteur() : ouvrirEditionAuteur(auteur)}
-                  style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#3d6b4f', cursor: 'pointer' }}>
+                  style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer' }}>
                   {editionAuteur === auteur.id_auteur ? 'Fermer' : 'Modifier'}
                 </button>
                 <span style={{ fontSize: '0.71875rem', color: '#b0a89e', cursor: 'pointer' }} onClick={() => setAuteurOuvert(auteurOuvert === auteur.id_auteur ? null : auteur.id_auteur)}>
@@ -1685,7 +1685,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
             {/* Formulaire d'édition de l'auteur */}
             {editionAuteur === auteur.id_auteur && (
-              <div style={{ padding: '16px 20px 18px', borderBottom: auteurOuvert === auteur.id_auteur ? '1px solid #e4dfd8' : 'none', background: '#fff', borderLeft: '3px solid #3d6b4f' }}>
+              <div style={{ padding: '16px 20px 18px', borderBottom: auteurOuvert === auteur.id_auteur ? '1px solid #e4dfd8' : 'none', background: '#fff', borderLeft: '3px solid var(--cs-vert)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid #ede9e2' }}>
                   <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.97031rem', color: '#2a3d30' }}>
                     Modification — <em>{auteur.nom}</em>
@@ -1700,12 +1700,12 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                 />
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center', marginTop: '14px' }}>
                   {statutAuteur?.id === auteur.id_auteur && (
-                    <span style={{ fontSize: '0.82656rem', color: statutAuteur?.ok ? '#3d6b4f' : '#c0562a' }}>
+                    <span style={{ fontSize: '0.82656rem', color: statutAuteur?.ok ? 'var(--cs-vert)' : '#c0562a' }}>
                       {statutAuteur?.ok ? '✓' : '✗'} {statutAuteur?.msg}
                     </span>
                   )}
                   <button onClick={fermerEditionAuteur} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
-                  <button onClick={sauvegarderAuteur} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
+                  <button onClick={sauvegarderAuteur} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
                 </div>
               </div>
             )}
@@ -1722,7 +1722,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     if (!rechercheNormalisee) return <>{texte}</>
                     const idx = texte.toLowerCase().indexOf(rechercheNormalisee)
                     if (idx === -1) return <>{texte}</>
-                    return <>{texte.slice(0, idx)}<mark style={{ background: 'rgba(61,107,79,0.18)', color: 'inherit', borderRadius: '2px', padding: '0 1px' }}>{texte.slice(idx, idx + rechercheNormalisee.length)}</mark>{texte.slice(idx + rechercheNormalisee.length)}</>
+                    return <>{texte.slice(0, idx)}<mark style={{ background: 'rgba(var(--cs-vert-rgb),0.18)', color: 'inherit', borderRadius: '2px', padding: '0 1px' }}>{texte.slice(idx, idx + rechercheNormalisee.length)}</mark>{texte.slice(idx + rechercheNormalisee.length)}</>
                   }
                   const noticesCatalogue = filtrerNoticesSelonVue(
                     catalogueParOeuvre[oeuvre.id_oeuvre] ?? [], filtreAuteurs)
@@ -1749,14 +1749,14 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                   }
                   const btnActif = {
                     ...btnSobre,
-                    border: '1px solid #3d6b4f',
-                    background: '#3d6b4f',
+                    border: '1px solid var(--cs-vert)',
+                    background: 'var(--cs-vert)',
                     color: '#fff',
                   }
                   return (
                   /* Œuvre PUBLIÉE : léger liseré vert discret (par opposition à l'ocre-rouge
                      des œuvres seulement au catalogue). */
-                  <div key={oeuvre.id_oeuvre} style={{ borderBottom: '1px solid #f0ece6', borderLeft: `2px solid ${publiee ? '#cfe0d5' : '#e0cdbe'}`, background: titreMatch ? 'rgba(61,107,79,0.03)' : (publiee ? undefined : 'rgba(150,110,70,0.035)') }}>
+                  <div key={oeuvre.id_oeuvre} style={{ borderBottom: '1px solid #f0ece6', borderLeft: `2px solid ${publiee ? '#cfe0d5' : '#e0cdbe'}`, background: titreMatch ? 'rgba(var(--cs-vert-rgb),0.03)' : (publiee ? undefined : 'rgba(150,110,70,0.035)') }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 18px 5px 14px', gap: '12px', flexWrap: 'nowrap', minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, overflow: 'hidden', flex: 1 }}>
                       <a href={`/oeuvre/${oeuvre.id_oeuvre}`} target="_blank" rel="noopener noreferrer" title="Ouvrir l'œuvre"
@@ -1786,7 +1786,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                           Dépubliée
                         </span>
                       )}
-                      {resultat?.idOeuvre === oeuvre.id_oeuvre && <span style={{ fontSize: '0.75469rem', color: resultat.ok ? '#3d6b4f' : '#c0562a', flexShrink: 0 }}>{resultat.ok ? '✓' : '✗'} {resultat.msg}</span>}
+                      {resultat?.idOeuvre === oeuvre.id_oeuvre && <span style={{ fontSize: '0.75469rem', color: resultat.ok ? 'var(--cs-vert)' : '#c0562a', flexShrink: 0 }}>{resultat.ok ? '✓' : '✗'} {resultat.msg}</span>}
                     </div>
                     <div style={{ display: 'flex', gap: '4px', flexShrink: 0, alignItems: 'center' }}>
                       <span style={{ width: '1px', height: '16px', background: '#e4dfd8', display: 'inline-block' }} />
@@ -1860,7 +1860,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
                   {/* Formulaire d'édition de l'œuvre */}
                   {editionOeuvre === oeuvre.id_oeuvre && (
-                    <div style={{ padding: '16px 22px 18px', background: '#fff', borderTop: '1px solid #ede9e2', borderLeft: '3px solid #3d6b4f' }}>
+                    <div style={{ padding: '16px 22px 18px', background: '#fff', borderTop: '1px solid #ede9e2', borderLeft: '3px solid var(--cs-vert)' }}>
                       {/* En-tête */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid #ede9e2' }}>
                         <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.97031rem', color: '#2a3d30' }}>
@@ -1921,12 +1921,12 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center', marginTop: '16px' }}>
                         {statutOeuvre?.id === oeuvre.id_oeuvre && (
-                          <span style={{ fontSize: '0.82656rem', color: statutOeuvre?.ok ? '#3d6b4f' : '#c0562a' }}>
+                          <span style={{ fontSize: '0.82656rem', color: statutOeuvre?.ok ? 'var(--cs-vert)' : '#c0562a' }}>
                             {statutOeuvre?.ok ? '✓' : '✗'} {statutOeuvre?.msg}
                           </span>
                         )}
                         <button onClick={fermerEditionOeuvre} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
-                        <button onClick={() => sauvegarderOeuvre(oeuvre.id_oeuvre)} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: '#3d6b4f', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
+                        <button onClick={() => sauvegarderOeuvre(oeuvre.id_oeuvre)} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
                       </div>
                     </div>
                   )}
