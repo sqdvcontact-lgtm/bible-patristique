@@ -145,7 +145,7 @@ export default function PericopePage() {
   const params = useParams<{ id: string }>()
   const id = params?.id
   const mobile = useEstMobile(900)
-  const [etat, setEtat] = useState<'chargement' | 'ok' | 'introuvable'>('chargement')
+  const [etat, setEtat] = useState<'chargement' | 'ok' | 'introuvable' | 'erreur'>('chargement')
   const [peri, setPeri] = useState<Pericope | null>(null)
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
   const [variantes, setVariantes] = useState<Variante[]>([])
@@ -165,27 +165,34 @@ export default function PericopePage() {
     if (!id) return
     let annule = false
     ;(async () => {
-      const { data: p } = await supabase
-        .from('pericopes')
-        .select('id, nom, categorie, est_collection, notice, notice_contexte, notice_exegetique, notice_theologique, notice_tradition, source_notice, source_exegetique, source_theologique, source_tradition')
-        .eq('id', id).maybeSingle()
-      if (annule) return
-      if (!p) { setEtat('introuvable'); return }
-      const [{ data: occ }, { data: noms }] = await Promise.all([
-        supabase.from('pericope_occurrences')
-          .select('id, livre, canon_id_debut, canon_id_fin, niveau, est_principale, fiabilite')
-          .eq('pericope_id', id)
-          .order('est_principale', { ascending: false }).order('niveau').order('id'),
-        supabase.from('pericope_noms')
-          .select('id, nom, usage_recherche, est_principal, ordre')
-          .eq('pericope_id', id).eq('visible_public', true).eq('est_principal', false)
-          .order('ordre'),
-      ])
-      if (annule) return
-      setPeri(p as Pericope)
-      setOccurrences((occ ?? []) as Occurrence[])
-      setVariantes((noms ?? []) as Variante[])
-      setEtat('ok')
+      try {
+        const { data: p, error } = await supabase
+          .from('pericopes')
+          .select('id, nom, categorie, est_collection, notice, notice_contexte, notice_exegetique, notice_theologique, notice_tradition, source_notice, source_exegetique, source_theologique, source_tradition')
+          .eq('id', id).maybeSingle()
+        if (annule) return
+        // Distinguer une panne (error) d'une péricope réellement absente (data null) :
+        // afficher « introuvable » sur une simple erreur réseau était trompeur.
+        if (error) { setEtat('erreur'); return }
+        if (!p) { setEtat('introuvable'); return }
+        const [{ data: occ }, { data: noms }] = await Promise.all([
+          supabase.from('pericope_occurrences')
+            .select('id, livre, canon_id_debut, canon_id_fin, niveau, est_principale, fiabilite')
+            .eq('pericope_id', id)
+            .order('est_principale', { ascending: false }).order('niveau').order('id'),
+          supabase.from('pericope_noms')
+            .select('id, nom, usage_recherche, est_principal, ordre')
+            .eq('pericope_id', id).eq('visible_public', true).eq('est_principal', false)
+            .order('ordre'),
+        ])
+        if (annule) return
+        setPeri(p as Pericope)
+        setOccurrences((occ ?? []) as Occurrence[])
+        setVariantes((noms ?? []) as Variante[])
+        setEtat('ok')
+      } catch {
+        if (!annule) setEtat('erreur')
+      }
     })()
     return () => { annule = true }
   }, [id])
@@ -231,6 +238,15 @@ export default function PericopePage() {
   const onRetire = (cle: string) => setPrelevements(prev => { const n = new Map(prev); n.delete(cle); return n })
 
   if (etat === 'chargement') return <Etat>Chargement…</Etat>
+  if (etat === 'erreur') return (
+    <Etat>
+      <span>Le chargement a échoué.{' '}
+        <button onClick={() => location.reload()} style={{ color: 'var(--cs-vert)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline', font: 'inherit' }}>
+          Réessayer
+        </button>
+      </span>
+    </Etat>
+  )
   if (etat === 'introuvable' || !peri) return <Etat>Péricope introuvable.</Etat>
 
   const categorie = libelleCategoriePericope(peri.categorie)

@@ -1386,7 +1386,11 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SELECT_AUTEURS = 'id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, langue_principale, traditions, note, note_biographique, note_theologique, photo_position'
 const SELECT_OEUVRES_DATES = 'id_oeuvre, id_auteur, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication_affichage_courte, date_publication_precision_affichage, genre, note, langue_originale'
-const imageVersionAuteur = () => Math.floor(Date.now() / 1000)
+// Bucket HORAIRE (identique au serveur, app/bibliotheque/page.tsx) : le paramètre
+// ?v= reste stable au sein d'une heure, donc le navigateur met les photos en cache
+// au lieu de les retélécharger à chaque montage/refetch (auparavant : bucket à la
+// seconde, qui cassait le cache en permanence).
+const imageVersionAuteur = () => Math.floor(Date.now() / (3600 * 1000))
 const urlImageAuteur = (idAuteur: string, version = imageVersionAuteur()) =>
   `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg?v=${version}`
 
@@ -1404,7 +1408,7 @@ function normaliserAuteurs(data: any[], oeuvres: Oeuvre[]): Auteur[] {
     .map(a => ({ ...a, imageUrl: urlImageAuteur(String(a.id_auteur), version) }))
 }
 
-export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteurs: Auteur[] }) {
+export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurChargement = false }: { auteurs: Auteur[]; erreurChargement?: boolean }) {
   useEditeursCharges()
   const searchParams = useSearchParams()
   const [auteurs, setAuteurs] = useState<Auteur[]>(auteursInitiaux)
@@ -1482,6 +1486,11 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux }: { auteu
 
   return (
     <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '3.5rem' }}>
+      {erreurChargement && (
+        <div role="alert" style={{ background: '#fdf2ee', borderBottom: '1px solid #e4c4b8', color: '#a2564a', fontSize: '0.8125rem', padding: '10px 20px', textAlign: 'center' }}>
+          La bibliothèque n’a pas pu être chargée entièrement. Rechargez la page pour réessayer.
+        </div>
+      )}
       <div style={{ maxWidth: '56.25rem', margin: '0 auto', padding: '22px 32px 40px' }}>
 
         {/* En-tête : titre, onglets et recherche, avec une même respiration verticale (≈14 px)

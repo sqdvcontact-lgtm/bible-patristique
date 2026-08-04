@@ -148,21 +148,7 @@ export default async function AdminPage() {
   }
 
   // ── Vague 1 : 12 requêtes indépendantes en parallèle ─────────────────────
-  const [
-    { data: commentaires },
-    signResult,
-    quizResult,
-    { data: demandesCertification },
-    { data: essaisEnAttenteRaw },
-    { data: essaisAReviserRaw },
-    { data: essaisPubliesRaw },
-    { data: essaisBrouillonsRaw },
-    { data: signalementsEssais },
-    { data: auteursData },
-    { data: traductions },
-    { data: nbVerifRaw },
-    { data: commentairesPublicationsRaw },
-  ] = await Promise.all([
+  const vague1 = await Promise.all([
     supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, reponse_a').eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false').order('created_at', { ascending: false }),
     supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, id_verset, user_id, importance, url_source').eq('traite', false).order('created_at', { ascending: false }),
     supabaseAdmin.from('quiz_signalements').select('id, raison, commentaire, created_at, id_verset, user_id').eq('traite', false).order('created_at', { ascending: false }).limit(200),
@@ -177,6 +163,21 @@ export default async function AdminPage() {
     supabaseAdmin.rpc('count_verifications_pending'),
     supabaseAdmin.from('essais_commentaires').select('id, id_essai, texte, auteur_nom, created_at, user_id').eq('valide', false).eq('supprime', false).order('created_at', { ascending: false }),
   ])
+  const [
+    { data: commentaires },
+    signResult,
+    quizResult,
+    { data: demandesCertification },
+    { data: essaisEnAttenteRaw },
+    { data: essaisAReviserRaw },
+    { data: essaisPubliesRaw },
+    { data: essaisBrouillonsRaw },
+    { data: signalementsEssais },
+    { data: auteursData },
+    { data: traductions },
+    { data: nbVerifRaw },
+    { data: commentairesPublicationsRaw },
+  ] = vague1
   const nbVerifications = (nbVerifRaw as number | null) ?? 0
 
   // Signalements : fallback si la colonne id_verset manque
@@ -228,18 +229,7 @@ export default async function AdminPage() {
   const idsEssaisCommentes = [...new Set((commentairesPublicationsRaw ?? []).map(c => c.id_essai).filter(Boolean) as number[])]
 
   // ── Vague 2 : 7 requêtes dépendantes en parallèle ────────────────────────
-  const [
-    { data: segmentsCtx },
-    { data: versetsCtx },
-    { data: profilsEssais },
-    { data: profilsModification },
-    { data: appreciationsEssais },
-    { data: commentairesEssais },
-    { data: profilsPublies },
-    { data: profilsSignalements },
-    { data: titresEssaisCommentes },
-    { data: commentairesParents },
-  ] = await Promise.all([
+  const vague2 = await Promise.all([
     segIdsUniques.length > 0 ? supabaseAdmin.from('segments').select('id, segment_texte, segment_numero, id_oeuvre').in('id', segIdsUniques) : Promise.resolve({ data: [] as any[], error: null }),
     idsVersetsCertif.length > 0 ? supabaseAdmin.from('versets_lecture').select('id_verset, ref, TR0001').in('id_verset', idsVersetsCertif) : Promise.resolve({ data: [] as any[], error: null }),
     idsAuteursEssais.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursEssais) : Promise.resolve({ data: [] as any[], error: null }),
@@ -251,6 +241,30 @@ export default async function AdminPage() {
     idsEssaisCommentes.length > 0 ? supabaseAdmin.from('essais').select('id, titre').in('id', idsEssaisCommentes) : Promise.resolve({ data: [] as any[], error: null }),
     idsParents.length > 0 ? supabaseAdmin.from('commentaires').select('id, auteur_nom, texte').in('id', idsParents) : Promise.resolve({ data: [] as any[], error: null }),
   ])
+  const [
+    { data: segmentsCtx },
+    { data: versetsCtx },
+    { data: profilsEssais },
+    { data: profilsModification },
+    { data: appreciationsEssais },
+    { data: commentairesEssais },
+    { data: profilsPublies },
+    { data: profilsSignalements },
+    { data: titresEssaisCommentes },
+    { data: commentairesParents },
+  ] = vague2
+
+  // Un chargement a-t-il VRAIMENT échoué ? On écarte deux cas connus et non
+  // « rechargeables » : le fallback des signalements (index 1, colonne id_verset
+  // parfois absente, déjà rattrapé) et une table structurellement absente
+  // (PGRST205 — p. ex. quiz_signalements, dont le code gère déjà l'absence).
+  const erreurReelle = (r: unknown) => {
+    const e = (r as { error?: { code?: string } }).error
+    return Boolean(e) && e?.code !== 'PGRST205'
+  }
+  const erreurChargement =
+    vague1.some((r, i) => i !== 1 && erreurReelle(r)) ||
+    vague2.some(r => erreurReelle(r))
 
   // ── Traitement ─────────────────────────────────────────────────────────────
   const segMap: Record<number, { texte: string; numero: number; id_oeuvre: string }> = {}
@@ -327,6 +341,7 @@ export default async function AdminPage() {
       auteurs={auteurs}
       traductions={traductions ?? []}
       nbVerifications={nbVerifications ?? 0}
+      erreurChargement={erreurChargement}
       actionDeconnexion={actionDeconnexion}
       actionValider={actionValiderCommentaire}
       actionSupprimerCommentaire={actionSupprimerCommentaire}

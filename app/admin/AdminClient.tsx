@@ -19,6 +19,7 @@ import type { AdminProps as Props, Onglet } from './adminTypes'
 export default function AdminClient({
   commentaires, commentairesPublications, signalements, demandesCertification, essaisEnAttente, essaisModification, essaisPublies, essaisBrouillons, segMap, versetMap, versetTexteMap, oeuvreTitreMap, signalementAuteurMap, commentaireParentMap, auteurs, traductions,
   nbVerifications,
+  erreurChargement,
   actionValider, actionSupprimerCommentaire, actionValiderCommentaireEssai, actionSupprimerCommentaireEssai,
   actionMarquerTraite, actionMarquerTraiteSilencieux, actionSupprimerSignalement,
   actionCertifier, actionRetirerDemandeCertification,
@@ -90,6 +91,12 @@ export default function AdminClient({
         .btn-gris:disabled { opacity: 0.5 !important; cursor: default !important; }
         .adm-onglet:hover { color: #2f6046 !important; background: rgba(var(--cs-vert-rgb),0.05) !important; }
       `}</style>
+
+      {erreurChargement && (
+        <div role="alert" style={{ background: '#fdf2ee', borderBottom: '1px solid #e4c4b8', color: '#a2564a', fontSize: '0.8125rem', padding: '10px 20px', textAlign: 'center' }}>
+          Certaines données n’ont pas pu être chargées : des sections peuvent être incomplètes. Rechargez la page pour réessayer.
+        </div>
+      )}
 
       {/* Barre d'onglets, seule et sticky sous la navbar (l'ancien bandeau « Administration »
           + Déconnexion est retiré). Surface BLANCHE distincte du fond de la zone admin, pour

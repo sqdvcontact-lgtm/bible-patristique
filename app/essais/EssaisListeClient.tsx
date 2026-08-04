@@ -15,8 +15,8 @@ type Onglet = 'communaute' | 'mes-ecrits' | 'ecrire' | 'suggestion'
 
 type EssaiResume = {
   id: number; titre: string; sous_titre: string | null; resume: string | null
-  categories: string[]; nb_vues: number; nb_likes: number; publie_at: string | null; auteur: string; auteur_score: number
-  avatar_url?: string | null; user_id?: string | null
+  categories: string[]; nb_vues: number; nb_likes: number; publie_at: string | null; auteur: string
+  user_id?: string | null
 }
 
 type EssaiPerso = {

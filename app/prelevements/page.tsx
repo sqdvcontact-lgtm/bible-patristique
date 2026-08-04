@@ -271,7 +271,8 @@ export default function PrelevementsPage() {
     return val;
   };
 
-  useEffect(() => { document.title = 'Mes prélèvements · Corpus Scriptura' }, [])
+  // Le titre d'onglet vient du layout (« Mes citations ») ; on ne le réécrit plus
+  // ici en « Mes prélèvements » (contradiction avec la métadonnée et le titre de page).
 
   useEffect(() => {
     try {

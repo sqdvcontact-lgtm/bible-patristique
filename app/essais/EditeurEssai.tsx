@@ -413,13 +413,6 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       noteCibleRef.current = cible
       setEditionNote({ mode: 'modification' })
       setPanneau({ type: 'note', texte: texteActuelVolet })
-      return
-      const texteActuel = decodeURIComponent(cible!.dataset.note ?? '')
-      const nouveau = window.prompt('Modifier la note :\nVous pouvez y écrire un renvoi sous la forme [libellé](verset:ID) ou [libellé](segment:ID).', texteActuel)
-      if (nouveau === null) return
-      cible!.dataset.note = encodeURIComponent(nouveau ?? '')
-      setPanneau({ type: 'note', texte: nouveau ?? '' })
-      declencherChangement()
     }
     else if (chip === 'verset') setPanneau({ type: 'verset', id: cible.dataset.id!, label: cible.dataset.label! })
     else if (chip === 'segment') setPanneau({ type: 'segment', id: cible.dataset.id!, label: cible.dataset.label! })

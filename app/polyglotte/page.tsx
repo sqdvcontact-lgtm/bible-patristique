@@ -696,11 +696,17 @@ export default function PolyglottePage() {
     supabase.from("points_sensibles").select("livre, reference, type, description, statut, notes").then(({ data }) => setPoints(data ?? []));
     (async () => {
       const { data: tr } = await supabase.from("traductions").select("trad_id, nom, ordre, source_edition, publication_fin_annee, langue").order("ordre");
+      const liste = tr ?? [];
+      // Un count par traduction pour savoir laquelle est migrée dans versets_v2 —
+      // mais TOUS EN PARALLÈLE (auparavant : un await par traduction, en cascade).
+      const comptes = await Promise.all(liste.map(t =>
+        supabase.from("versets_v2").select("trad_id", { count: "exact", head: true }).eq("trad_id", t.trad_id)
+          .then(({ count }) => count ?? 0)
+      ));
       const migres: Trad[] = [];
-      for (const t of tr ?? []) {
-        const { count } = await supabase.from("versets_v2").select("trad_id", { count: "exact", head: true }).eq("trad_id", t.trad_id);
-        if ((count ?? 0) > 0) migres.push({ trad_id: t.trad_id, nom: t.nom, ordre: t.ordre, label: libelleTrad(t), edition: editionTrad(t), lang: codeLangue((t as { langue?: string | null }).langue) });
-      }
+      liste.forEach((t, i) => {
+        if (comptes[i] > 0) migres.push({ trad_id: t.trad_id, nom: t.nom, ordre: t.ordre, label: libelleTrad(t), edition: editionTrad(t), lang: codeLangue((t as { langue?: string | null }).langue) });
+      });
       setTrads(migres);
       // Choix des colonnes : celui que l'utilisateur a laissé la dernière fois (localStorage),
       // sinon par défaut les quatre premières traductions distinctes. On ne retient d'un choix

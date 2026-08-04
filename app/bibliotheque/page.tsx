@@ -43,9 +43,13 @@ export default async function BibliothequePage() {
     .map(a => ({ ...a, oeuvres: oeuvresParAuteur.get(String(a.id_auteur)) ?? [], imageUrl: `${base}/${a.id_auteur}.jpg?v=${cacheV}` }))
     .filter(a => a.oeuvres.length > 0)) as ComponentProps<typeof BibliothequeClient>["auteurs"]
 
+  // Si le chargement des auteurs échoue, on le signale plutôt que d'afficher une
+  // bibliothèque vide comme si de rien n'était.
+  const erreurChargement = Boolean(auteursResultat.error || oeuvresResultat.error)
+
   return (
     <Suspense fallback={null}>
-      <BibliothequeClient auteurs={auteurs} />
+      <BibliothequeClient auteurs={auteurs} erreurChargement={erreurChargement} />
     </Suspense>
   )
 }

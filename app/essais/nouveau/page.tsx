@@ -4,9 +4,11 @@ import NouvelEssaiClient from './NouvelEssaiClient'
 
 export default async function NouvelEssaiPage() {
   const supabase = await creerSupabaseServeur()
-  const { data: { session } } = await supabase.auth.getSession()
+  // getUser() valide la session auprès du serveur d'auth ; getSession() se contente
+  // de lire le cookie (non fiable pour une décision d'autorisation côté serveur).
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) redirect('/compte')
+  if (!user) redirect('/compte')
 
   return <NouvelEssaiClient />
 }
