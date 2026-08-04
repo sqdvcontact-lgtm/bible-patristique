@@ -7,8 +7,8 @@ import React, { useState } from "react";
 // quand le reste du site est fermé.
 
 const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "9px 12px", fontSize: "0.84375rem", border: "1px solid #d6d0c4",
-  borderRadius: "6px", background: "#f9f7f4", color: "#1e1a16", outline: "none",
+  width: "100%", padding: "9px 12px", fontSize: "0.84375rem", border: "1px solid var(--cs-bord)",
+  borderRadius: "6px", background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none",
   boxSizing: "border-box", fontFamily: "inherit",
 };
 const labelStyle: React.CSSProperties = {
@@ -44,12 +44,12 @@ export default function ContactPage() {
   };
 
   return (
-    <main style={{ background: "#f7f4ef", minHeight: "calc(100vh - 3.5rem)", padding: "56px 24px 80px" }}>
+    <main style={{ background: "var(--cs-fond)", minHeight: "calc(100vh - 3.5rem)", padding: "56px 24px 80px" }}>
       <div style={{ maxWidth: "35rem", margin: "0 auto" }}>
         <p style={{ fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--cs-vert)", marginBottom: "10px" }}>
           Nous écrire
         </p>
-        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "clamp(26px, 3.5vw, 34px)", fontWeight: "normal", color: "#2a3d30", marginBottom: "12px", lineHeight: 1.25 }}>
+        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "clamp(26px, 3.5vw, 34px)", fontWeight: "normal", color: "var(--cs-encre)", marginBottom: "12px", lineHeight: 1.25 }}>
           Contact
         </h1>
         <p style={{ fontSize: "0.84375rem", color: "#566150", lineHeight: 1.7, marginBottom: "28px" }}>
@@ -66,7 +66,7 @@ export default function ContactPage() {
         ) : (
           <form onSubmit={envoyer} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             {erreur && (
-              <p style={{ fontSize: "0.78125rem", color: "#9a2a2a", margin: 0, lineHeight: 1.5 }}>{erreur}</p>
+              <p style={{ fontSize: "0.78125rem", color: "var(--cs-danger-fonce)", margin: 0, lineHeight: 1.5 }}>{erreur}</p>
             )}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
               <div>

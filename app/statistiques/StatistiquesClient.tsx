@@ -25,18 +25,18 @@ type VersetCite = {
 
 const statLigne: React.CSSProperties = {
   display: 'flex', alignItems: 'baseline', gap: '12px', padding: '10px 14px',
-  background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', textDecoration: 'none',
+  background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', textDecoration: 'none',
 }
-const statRang: React.CSSProperties = { fontSize: '0.6875rem', color: '#7c7369', fontWeight: 600, width: '20px', flexShrink: 0 }
-const statRef: React.CSSProperties = { fontSize: '0.71875rem', fontWeight: 600, color: '#2a3d30', margin: '0 0 2px' }
-const statTexte: React.CSSProperties = { fontSize: '0.75rem', color: '#5a5450', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
+const statRang: React.CSSProperties = { fontSize: '0.6875rem', color: 'var(--cs-texte-second)', fontWeight: 600, width: '20px', flexShrink: 0 }
+const statRef: React.CSSProperties = { fontSize: '0.71875rem', fontWeight: 600, color: 'var(--cs-encre)', margin: '0 0 2px' }
+const statTexte: React.CSSProperties = { fontSize: '0.75rem', color: 'var(--cs-texte)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
 
 // En-tête d'une rubrique statistique : titre en serif + courte glose.
 function EnteteStat({ titre, intro, style }: { titre: string; intro: string; style?: React.CSSProperties }) {
   return (
     <div style={{ marginBottom: '12px', ...style }}>
-      <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 4px' }}>{titre}</h2>
-      <p style={{ fontSize: '0.71875rem', color: '#9a958d', lineHeight: 1.55, margin: 0 }}>{intro}</p>
+      <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 4px' }}>{titre}</h2>
+      <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', lineHeight: 1.55, margin: 0 }}>{intro}</p>
     </div>
   )
 }
@@ -81,13 +81,13 @@ export default function StatistiquesClient() {
   }
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 3.5rem)', paddingTop: '3.5rem' }}>
+    <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100vh - 3.5rem)', paddingTop: '3.5rem' }}>
       <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '18px' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(1.3125rem, 3.6vw, 1.8125rem)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.15, marginBottom: '8px' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(1.3125rem, 3.6vw, 1.8125rem)', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', lineHeight: 1.15, marginBottom: '8px' }}>
             Statistiques
           </h1>
-          <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 12px' }} />
+          <div style={{ width: '36px', height: '1px', background: 'var(--cs-bord)', margin: '0 auto 12px' }} />
         </div>
       </div>
 
@@ -96,9 +96,9 @@ export default function StatistiquesClient() {
           titre="Les plus cités et commentés par les Pères"
           intro="Classement établi à partir des liens patristiques, comptés par œuvre (un même texte ne pèse qu'une fois, même s'il revient longuement sur un verset) : un commentaire pèse davantage qu'une citation, une citation davantage qu'une simple allusion. Le score grandira à mesure que les liens sont constitués." />
         {cites === null ? (
-          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
         ) : cites.length === 0 ? (
-          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Aucun lien pour l&apos;instant.</p>
+          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun lien pour l&apos;instant.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {cites.map((v, i) => (
@@ -107,7 +107,7 @@ export default function StatistiquesClient() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={statRef}>{NOM_LIVRE[v.livre] ?? v.livre} {v.chapitre}, {v.verset}</p>
                   {v.TR0002 && <p style={statTexte}>{v.TR0002}</p>}
-                  <p style={{ fontSize: '0.65625rem', color: '#9a8a6e', margin: '3px 0 0' }}>{detailCite(v)}</p>
+                  <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', margin: '3px 0 0' }}>{detailCite(v)}</p>
                 </div>
                 <span title="Score patristique"
                   style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.09)', border: '1px solid rgba(var(--cs-vert-rgb),0.22)', borderRadius: '6px', padding: '2px 9px', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
@@ -129,7 +129,7 @@ export default function StatistiquesClient() {
                     <p style={statRef}>{NOM_LIVRE[v.livre] ?? v.livre} {v.chapitre}, {v.verset}</p>
                     <p style={statTexte}>{v.TR0002}</p>
                   </div>
-                  <span style={{ fontSize: '0.6875rem', color: '#9a958d', flexShrink: 0 }}>{v.nb_lectures} lecture{v.nb_lectures > 1 ? 's' : ''}</span>
+                  <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', flexShrink: 0 }}>{v.nb_lectures} lecture{v.nb_lectures > 1 ? 's' : ''}</span>
                 </Link>
               ))}
             </div>

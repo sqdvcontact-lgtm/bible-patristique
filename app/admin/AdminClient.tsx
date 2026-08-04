@@ -82,18 +82,18 @@ export default function AdminClient({
       <style>{`
         .btn-vert { background: var(--cs-vert) !important; color: #fff !important; border: none !important; }
         .btn-vert:hover { background: var(--cs-vert-fonce) !important; }
-        .btn-rouge { background: #fff !important; color: #c0562a !important; border: 1px solid #e4c4b8 !important; }
-        .btn-rouge:hover { background: #fdf2ee !important; }
+        .btn-rouge { background: #fff !important; color: var(--cs-danger) !important; border: 1px solid var(--cs-danger-bord) !important; }
+        .btn-rouge:hover { background: var(--cs-danger-fond) !important; }
         /* Bouton secondaire neutre — réaccordé à la mise en page claire (l'ancienne
            version, pensée pour l'en-tête sombre, jurait sur fond clair). */
-        .btn-gris { background: #fff !important; color: #6b6560 !important; border: 1px solid #d6d0c4 !important; }
-        .btn-gris:hover { background: #f4f2ee !important; border-color: #c8c0b4 !important; }
+        .btn-gris { background: #fff !important; color: var(--cs-texte-second) !important; border: 1px solid var(--cs-bord) !important; }
+        .btn-gris:hover { background: #f4f2ee !important; border-color: var(--cs-bord) !important; }
         .btn-gris:disabled { opacity: 0.5 !important; cursor: default !important; }
         .adm-onglet:hover { color: #2f6046 !important; background: rgba(var(--cs-vert-rgb),0.05) !important; }
       `}</style>
 
       {erreurChargement && (
-        <div role="alert" style={{ background: '#fdf2ee', borderBottom: '1px solid #e4c4b8', color: '#a2564a', fontSize: '0.8125rem', padding: '10px 20px', textAlign: 'center' }}>
+        <div role="alert" style={{ background: 'var(--cs-danger-fond)', borderBottom: '1px solid var(--cs-danger-bord)', color: '#a2564a', fontSize: '0.8125rem', padding: '10px 20px', textAlign: 'center' }}>
           Certaines données n’ont pas pu être chargées : des sections peuvent être incomplètes. Rechargez la page pour réessayer.
         </div>
       )}
@@ -113,7 +113,7 @@ export default function AdminClient({
               <button onClick={() => setOnglet(o.key)} className="adm-onglet"
                 style={{ padding: '12px 16px', fontSize: '0.97031rem', fontWeight: actif ? 600 : 500, color: actif ? '#2f6046' : '#6a8074', background: actif ? 'rgba(var(--cs-vert-rgb),0.06)' : 'transparent', border: 'none', borderBottom: actif ? '3px solid var(--cs-vert)' : '3px solid transparent', borderRadius: '5px 5px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', whiteSpace: 'nowrap', transition: 'color 0.12s, background 0.12s' }}>
                 {o.label}
-                {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: '#c0562a', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
+                {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger)', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
               </button>
             </React.Fragment>
           )

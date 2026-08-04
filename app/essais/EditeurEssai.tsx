@@ -18,7 +18,7 @@ const MIN_CARACTERES_PUBLICATION = 2000
 // Rouge sourd, terreux : signale un compte hors limite (insuffisant ou excédant)
 // sans crier — plus discret et élégant que le rouge-rouille vif des messages d'erreur.
 const ROUGE_COMPTE = '#a8564d'
-const BTN: React.CSSProperties = { fontSize: '0.65625rem', padding: '8px 6px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a2520', cursor: 'pointer', width: '100%', textAlign: 'center' }
+const BTN: React.CSSProperties = { fontSize: '0.65625rem', padding: '8px 6px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-fort)', cursor: 'pointer', width: '100%', textAlign: 'center' }
 
 type Props = {
   essaiExistant?: { id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean; publie_at?: string | null; verset_en_tete?: string | null }
@@ -486,7 +486,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
   if (mobile) {
     return (
-      <main style={{ background: '#f7f4ef', minHeight: 'calc(100dvh - 3.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
+      <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100dvh - 3.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
         <div style={{ maxWidth: '32.5rem', textAlign: 'center', color: '#5b544c', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
           <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', color: 'var(--cs-vert)', margin: '0 0 14px' }}>Écrire</h1>
           <p style={{ fontSize: '0.9375rem', lineHeight: 1.6, margin: 0 }}>
@@ -500,7 +500,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   }
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 3.5rem)', paddingRight: '320px' }}>
+    <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100vh - 3.5rem)', paddingRight: '320px' }}>
       <style>{`
         .editeur-essai h2,
         .editeur-essai h3,
@@ -510,10 +510,10 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
            sérif, interligne 1,5, paragraphes justifiés avec alinéa. */
         .editeur-essai p,
         .editeur-essai blockquote { font-family: var(--font-source-serif), Georgia, serif; }
-        .editeur-essai h2 { font-family: var(--font-source-serif), Georgia, serif; font-weight: 600; font-size: 1.06em; line-height: 1.25; color: #1e2e24; }
-        .editeur-essai h3 { font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-weight: 400; font-size: 1em; color: #3a3530; }
+        .editeur-essai h2 { font-family: var(--font-source-serif), Georgia, serif; font-weight: 600; font-size: 1.06em; line-height: 1.25; color: var(--cs-encre-fonce); }
+        .editeur-essai h3 { font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-weight: 400; font-size: 1em; color: var(--cs-texte); }
         .editeur-essai p { line-height: 1.5; text-align: justify; text-indent: 0.9em; }
-        .editeur-essai blockquote { font-style: normal; font-size: 0.9em; color: #4a4440; margin-left: 8mm; margin-right: 8mm; text-align: justify; line-height: 1.44; }
+        .editeur-essai blockquote { font-style: normal; font-size: 0.9em; color: var(--cs-texte); margin-left: 8mm; margin-right: 8mm; text-align: justify; line-height: 1.44; }
         .editeur-essai h2 + h3,
         .editeur-essai h2 + h2 { margin-top: 3mm; }
         .editeur-essai h2 + p,
@@ -544,18 +544,18 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         {comparaisonOuverte && diff ? (
           <div style={{ display: 'flex', gap: '20px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', color: '#9a958d', marginBottom: '8px' }}>VERSION D'ORIGINE</p>
-              <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '6px', padding: '20px 22px', fontSize: '0.84375rem', lineHeight: 1.7, color: '#1e1a16', whiteSpace: 'pre-wrap' }}>
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--cs-texte-doux)', marginBottom: '8px' }}>VERSION D'ORIGINE</p>
+              <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', padding: '20px 22px', fontSize: '0.84375rem', lineHeight: 1.7, color: 'var(--cs-texte-fort)', whiteSpace: 'pre-wrap' }}>
                 {diff.gauche.map((s, i) => s.type === 'supprime'
-                  ? <span key={i} style={{ color: '#c0392b', textDecoration: 'line-through' }}>{s.texte}</span>
+                  ? <span key={i} style={{ color: 'var(--cs-danger)', textDecoration: 'line-through' }}>{s.texte}</span>
                   : <span key={i}>{s.texte}</span>)}
               </div>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', color: '#9a958d', marginBottom: '8px' }}>VERSION MODIFIÉE</p>
-              <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '6px', padding: '20px 22px', fontSize: '0.84375rem', lineHeight: 1.7, color: '#1e1a16', whiteSpace: 'pre-wrap' }}>
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--cs-texte-doux)', marginBottom: '8px' }}>VERSION MODIFIÉE</p>
+              <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', padding: '20px 22px', fontSize: '0.84375rem', lineHeight: 1.7, color: 'var(--cs-texte-fort)', whiteSpace: 'pre-wrap' }}>
                 {diff.droite.map((s, i) => s.type === 'ajoute'
-                  ? <span key={i} style={{ color: '#c0392b', fontWeight: 600 }}>{s.texte}</span>
+                  ? <span key={i} style={{ color: 'var(--cs-danger)', fontWeight: 600 }}>{s.texte}</span>
                   : <span key={i}>{s.texte}</span>)}
               </div>
             </div>
@@ -563,22 +563,22 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         ) : (
           <>
             <div style={{ paddingLeft: '128px', marginBottom: '14px' }}>
-              <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '7px', padding: '16px 18px 18px' }}>
+              <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '7px', padding: '16px 18px 18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '18px', alignItems: 'flex-start', marginBottom: '14px' }}>
                   <div>
                     <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 4px' }}>
                       Informations de publication
                     </p>
-                    <p style={{ fontSize: '0.6875rem', color: '#9a958d', margin: 0 }}>
+                    <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', margin: 0 }}>
                       Ces informations accompagnent le texte au moment de la soumission.
                     </p>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <p style={{ fontSize: '0.6875rem', color: carHorsLimite ? ROUGE_COMPTE : '#6b6560', fontWeight: carHorsLimite ? 700 : 600, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
+                    <p style={{ fontSize: '0.6875rem', color: carHorsLimite ? ROUGE_COMPTE : 'var(--cs-texte-second)', fontWeight: carHorsLimite ? 700 : 600, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
                       {nbCar.toLocaleString('fr')} / {MAX_CARACTERES.toLocaleString('fr')} caractères
                     </p>
                     {nbCar < MIN_CARACTERES_PUBLICATION && !(modeAdmin && essaiExistant?.statut === 'publie') && (
-                      <p style={{ fontSize: '0.65625rem', color: '#9a958d', margin: '3px 0 0' }}>
+                      <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', margin: '3px 0 0' }}>
                         Publication possible à partir de {MIN_CARACTERES_PUBLICATION.toLocaleString('fr')} caractères
                       </p>
                     )}
@@ -592,31 +592,31 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '12px', marginBottom: '12px' }}>
                   <div>
-                    <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: '#9a958d', textTransform: 'uppercase' }}>Titre *</label>
+                    <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Titre *</label>
                     <input
                       value={meta.titre}
                       onChange={e => setMeta(prev => ({ ...prev, titre: e.target.value }))}
                       autoComplete="off"
                       placeholder="Titre"
-                      style={{ width: '100%', fontSize: '1rem', fontFamily: 'var(--font-source-serif), Georgia, serif', padding: '7px 0 5px', border: 'none', borderBottom: '1px solid #d6d0c4', outline: 'none', color: '#1e2e24', background: 'transparent', boxSizing: 'border-box' }}
+                      style={{ width: '100%', fontSize: '1rem', fontFamily: 'var(--font-source-serif), Georgia, serif', padding: '7px 0 5px', border: 'none', borderBottom: '1px solid var(--cs-bord)', outline: 'none', color: 'var(--cs-encre-fonce)', background: 'transparent', boxSizing: 'border-box' }}
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: '#9a958d', textTransform: 'uppercase' }}>Sous-titre</label>
+                    <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Sous-titre</label>
                     <input
                       value={meta.sousTitre}
                       onChange={e => setMeta(prev => ({ ...prev, sousTitre: e.target.value }))}
                       autoComplete="off"
                       placeholder="Sous-titre"
-                      style={{ width: '100%', fontSize: '0.8125rem', padding: '8px 0 5px', border: 'none', borderBottom: '1px solid #ede9e2', outline: 'none', color: '#3a3530', background: 'transparent', boxSizing: 'border-box' }}
+                      style={{ width: '100%', fontSize: '0.8125rem', padding: '8px 0 5px', border: 'none', borderBottom: '1px solid var(--cs-fond-doux)', outline: 'none', color: 'var(--cs-texte)', background: 'transparent', boxSizing: 'border-box' }}
                     />
                   </div>
                 </div>
 
                 <div style={{ marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', marginBottom: '5px' }}>
-                    <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: '#9a958d', textTransform: 'uppercase' }}>Résumé *</label>
-                    <span style={{ fontSize: '0.65625rem', color: meta.resume.length > 0 && !resumeOk ? ROUGE_COMPTE : '#9a958d', fontVariantNumeric: 'tabular-nums' }}>
+                    <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Résumé *</label>
+                    <span style={{ fontSize: '0.65625rem', color: meta.resume.length > 0 && !resumeOk ? ROUGE_COMPTE : 'var(--cs-texte-doux)', fontVariantNumeric: 'tabular-nums' }}>
                       {resumeLen.toLocaleString('fr')} / {RESUME_MAX.toLocaleString('fr')} caractères
                     </span>
                   </div>
@@ -625,12 +625,12 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                     onChange={e => setMeta(prev => ({ ...prev, resume: e.target.value }))}
                     rows={3}
                     placeholder={`${RESUME_MIN} à ${RESUME_MAX} caractères présentant la publication`}
-                    style={{ width: '100%', fontSize: '0.78125rem', padding: '7px 9px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#2a2520', resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5 }}
+                    style={{ width: '100%', fontSize: '0.78125rem', padding: '7px 9px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5 }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: '#9a958d', textTransform: 'uppercase', display: 'block', marginBottom: '7px' }}>Catégories *</label>
+                  <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase', display: 'block', marginBottom: '7px' }}>Catégories *</label>
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                     {CATEGORIES_ESSAIS.map(categorie => {
                       const actif = meta.categories.includes(categorie)
@@ -638,7 +638,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                         <button
                           key={categorie}
                           onClick={() => toggleCategorie(categorie)}
-                          style={{ fontSize: '0.6875rem', padding: '4px 11px', borderRadius: '12px', cursor: 'pointer', border: `1px solid ${actif ? 'var(--cs-vert)' : '#d6d0c4'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : '#fff', color: actif ? 'var(--cs-vert)' : '#8a8278', fontWeight: actif ? 600 : 400 }}>
+                          style={{ fontSize: '0.6875rem', padding: '4px 11px', borderRadius: '12px', cursor: 'pointer', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : '#fff', color: actif ? 'var(--cs-vert)' : '#8a8278', fontWeight: actif ? 600 : 400 }}>
                           {categorie}
                         </button>
                       )
@@ -652,7 +652,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             <div style={{ display: 'flex', gap: '20px', paddingLeft: '128px' }}>
               <div style={{
                 position: 'fixed', top: '3.5rem', left: 0, width: '8rem', height: 'calc(100vh - 3.5rem)',
-                background: '#faf8f4', borderRight: '1px solid #d6d0c4', padding: '20px 14px', overflowY: 'auto',
+                background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', padding: '20px 14px', overflowY: 'auto',
                 zIndex: 50, display: 'flex', flexDirection: 'column', gap: '5px',
               }}>
                 <button onMouseDown={e => e.preventDefault()} onClick={() => commande('bold')} style={{ ...BTN, fontWeight: 700 }} title="Gras (Ctrl+B)">Gras</button>
@@ -662,25 +662,25 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 <button onMouseDown={e => e.preventDefault()} onClick={insererEspaceInsecable} style={BTN}>Espace insécable</button>
                 <button onMouseDown={e => e.preventDefault()} onClick={() => entourerGuillemets('« ', ' »')} style={BTN} title="Guillemets français « … »">« »</button>
                 <button onMouseDown={e => e.preventDefault()} onClick={() => entourerGuillemets('“', '”')} style={BTN} title="Guillemets anglais “ … ” (citation de second niveau)">“ ”</button>
-                <div style={{ height: '1px', background: '#e4dfd8', margin: '4px 0' }} />
-                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H2')} style={{ ...BTN, background: blocActif === 'h2' ? 'var(--cs-vert)' : '#fff', color: blocActif === 'h2' ? '#fff' : '#2a2520' }}>Titre 1</button>
-                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H3')} style={{ ...BTN, background: blocActif === 'h3' ? 'var(--cs-vert)' : '#fff', color: blocActif === 'h3' ? '#fff' : '#2a2520' }}>Titre 2</button>
-                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('BLOCKQUOTE')} style={{ ...BTN, background: blocActif === 'blockquote' ? 'var(--cs-vert)' : '#fff', color: blocActif === 'blockquote' ? '#fff' : '#2a2520' }}>Citation</button>
-                <button onMouseDown={e => e.preventDefault()} onClick={appliquerParagraphe} style={{ ...BTN, background: blocActif === 'p' ? 'var(--cs-vert)' : '#fff', color: blocActif === 'p' ? '#fff' : '#2a2520' }}>Paragraphe</button>
-                <div style={{ height: '1px', background: '#e4dfd8', margin: '4px 0' }} />
+                <div style={{ height: '1px', background: 'var(--cs-bord-clair)', margin: '4px 0' }} />
+                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H2')} style={{ ...BTN, background: blocActif === 'h2' ? 'var(--cs-vert)' : '#fff', color: blocActif === 'h2' ? '#fff' : 'var(--cs-texte-fort)' }}>Titre 1</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H3')} style={{ ...BTN, background: blocActif === 'h3' ? 'var(--cs-vert)' : '#fff', color: blocActif === 'h3' ? '#fff' : 'var(--cs-texte-fort)' }}>Titre 2</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('BLOCKQUOTE')} style={{ ...BTN, background: blocActif === 'blockquote' ? 'var(--cs-vert)' : '#fff', color: blocActif === 'blockquote' ? '#fff' : 'var(--cs-texte-fort)' }}>Citation</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={appliquerParagraphe} style={{ ...BTN, background: blocActif === 'p' ? 'var(--cs-vert)' : '#fff', color: blocActif === 'p' ? '#fff' : 'var(--cs-texte-fort)' }}>Paragraphe</button>
+                <div style={{ height: '1px', background: 'var(--cs-bord-clair)', margin: '4px 0' }} />
                 <button onMouseDown={e => e.preventDefault()} onClick={ouvrirCreationNote} style={BTN}>+ Note</button>
                 <button onMouseDown={e => { e.preventDefault(); memoriserSelection() }} onClick={() => setSelecteurOuvert(true)} style={BTN}>Citer depuis le site</button>
               </div>
 
               {/* Zone principale — en-tête fixe et zone éditable dans la même carte */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ border: '1px solid #e4dfd8', borderRadius: '6px', background: '#fff', overflow: 'hidden' }}>
+                <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', background: '#fff', overflow: 'hidden' }}>
                   {/* En-tête non modifiable — auteur, titre, sous-titre, catégories */}
-                  <div style={{ textAlign: 'center', padding: '26px 24px 20px', borderBottom: '1px solid #ede9e2' }}>
+                  <div style={{ textAlign: 'center', padding: '26px 24px 20px', borderBottom: '1px solid var(--cs-fond-doux)' }}>
                     <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 12px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                       {nomAffiche}
                     </p>
-                    <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.5rem', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 6px' }}>{meta.titre}</h1>
+                    <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.5rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 6px' }}>{meta.titre}</h1>
                     {meta.sousTitre && <p style={{ fontSize: '0.875rem', color: '#8a8278', fontStyle: 'italic', margin: '0 0 12px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{meta.sousTitre}</p>}
                     <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '8px' }}>
                       {meta.categories.map(c => (
@@ -691,8 +691,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
                   {/* Verset en tête — non modifiable */}
                   {versetEnTete && (
-                    <div style={{ borderBottom: '1px solid #ede9e2', padding: '28px 40px 24px', textAlign: 'center', background: '#fdfcf9' }}>
-                      <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.90625rem', lineHeight: 1.8, color: '#4a4440', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
+                    <div style={{ borderBottom: '1px solid var(--cs-fond-doux)', padding: '28px 40px 24px', textAlign: 'center', background: '#fdfcf9' }}>
+                      <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.90625rem', lineHeight: 1.8, color: 'var(--cs-texte)', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
                         {'« '}{rendreTexteEnrichi(versetEnTete.texte)}{' »'}
                       </p>
                       <p style={{ fontSize: '0.65625rem', letterSpacing: '0.1em', color: '#a09890', margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif", textTransform: 'uppercase' }}>
@@ -715,7 +715,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                     onClick={handleClickEditable}
                     style={{
                       minHeight: '420px', fontSize: '0.9375rem', lineHeight: 1.5, padding: '24px 30px',
-                      background: '#fff', color: '#1e1a16',
+                      background: '#fff', color: 'var(--cs-texte-fort)',
                       outline: 'none', boxSizing: 'border-box',
                     }}
                   />
@@ -730,11 +730,11 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       {!comparaisonOuverte && (
         <div style={{
           position: 'fixed', bottom: 0, left: '128px', right: '320px', zIndex: 60,
-          background: '#faf8f4', borderTop: '1px solid #d6d0c4',
+          background: 'var(--cs-fond-clair)', borderTop: '1px solid var(--cs-bord)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '10px 24px', gap: '12px',
         }}>
-          <span style={{ fontSize: '0.6875rem', color: statutEnr === 'erreur' ? '#c0562a' : nbCar > MAX_CARACTERES ? ROUGE_COMPTE : '#9a958d', flexShrink: 0 }}>
+          <span style={{ fontSize: '0.6875rem', color: statutEnr === 'erreur' ? 'var(--cs-danger)' : nbCar > MAX_CARACTERES ? ROUGE_COMPTE : 'var(--cs-texte-doux)', flexShrink: 0 }}>
             {statutEnr === 'enregistrement' ? 'Enregistrement…'
               : statutEnr === 'enregistre' ? 'Enregistré ✓'
               : statutEnr === 'erreur' ? 'Erreur d’enregistrement'
@@ -746,7 +746,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             {!(modeAdmin && essaiExistant?.statut === 'publie') && (
               <button
                 onClick={() => sauvegarder('brouillon')}
-                style={{ fontSize: '0.78125rem', padding: '7px 18px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a3530', cursor: 'pointer' }}>
+                style={{ fontSize: '0.78125rem', padding: '7px 18px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte)', cursor: 'pointer' }}>
                 Enregistrer comme brouillon
               </button>
             )}
@@ -766,16 +766,16 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       {confirmPublier && typeof document !== 'undefined' && createPortal(
         <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.20)' }}>
-            <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: '#1e2e24', margin: '0 0 8px' }}>
+            <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
               Soumettre cette publication ?
             </h3>
-            <p style={{ fontSize: '0.75rem', color: '#5a5450', lineHeight: 1.5, margin: '0 0 4px' }}>
-              Votre texte «&nbsp;<em style={{ color: '#3a3530', fontStyle: 'italic' }}>{meta.titre}</em>&nbsp;» part en modération ; il reste figé tant qu&apos;il est en attente.
+            <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte)', lineHeight: 1.5, margin: '0 0 4px' }}>
+              Votre texte «&nbsp;<em style={{ color: 'var(--cs-texte)', fontStyle: 'italic' }}>{meta.titre}</em>&nbsp;» part en modération ; il reste figé tant qu&apos;il est en attente.
             </p>
-            <div style={{ maxHeight: '170px', overflowY: 'auto', fontSize: '0.6875rem', color: '#6b6560', lineHeight: 1.5, whiteSpace: 'pre-line', background: '#faf8f4', border: '1px solid #ede9e2', borderRadius: '5px', padding: '9px 11px', margin: '10px 0' }}>
+            <div style={{ maxHeight: '170px', overflowY: 'auto', fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, whiteSpace: 'pre-line', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-fond-doux)', borderRadius: '5px', padding: '9px 11px', margin: '10px 0' }}>
               {CONDITIONS}
             </div>
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '0.71875rem', color: '#3a3530', margin: '0 0 6px', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '0.71875rem', color: 'var(--cs-texte)', margin: '0 0 6px', cursor: 'pointer' }}>
               <input
                 type="checkbox"
                 checked={accepteConditions}
@@ -784,11 +784,11 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
               />
               Je certifie respecter ces conditions de publication.
             </label>
-            {erreurConditions && <p style={{ fontSize: '0.6875rem', color: '#c0562a', margin: '0 0 8px' }}>{erreurConditions}</p>}
+            {erreurConditions && <p style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', margin: '0 0 8px' }}>{erreurConditions}</p>}
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '12px' }}>
               <button
                 onClick={() => { setConfirmPublier(false); setErreurConditions(null) }}
-                style={{ fontSize: '0.75rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a3530', cursor: 'pointer' }}>
+                style={{ fontSize: '0.75rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte)', cursor: 'pointer' }}>
                 Annuler
               </button>
               <button

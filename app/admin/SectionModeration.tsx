@@ -94,7 +94,7 @@ function styleImportance(imp: string | null | undefined) {
     case 'bloquant':  return { fond: '#fbe3e0', bord: '#db988c', accent: '#8a1f1f', label: 'Bloquant' as string | null }
     case 'important': return { fond: '#fdeae2', bord: '#e6ab95', accent: '#b0442a', label: 'Important' as string | null }
     case 'mineur':    return { fond: '#fdf4ef', bord: '#eccdbd', accent: '#9a6650', label: 'Mineur' as string | null }
-    default:          return { fond: '#faf8f4', bord: '#e4dfd8', accent: '#8a8278', label: null as string | null }
+    default:          return { fond: 'var(--cs-fond-clair)', bord: 'var(--cs-bord-clair)', accent: '#8a8278', label: null as string | null }
   }
 }
 
@@ -155,29 +155,29 @@ export default function SectionModeration(props: Props) {
         .mod-tab .n{font-size:0.625rem;font-family:var(--font-source-sans), Arial, sans-serif;border-radius:999px;padding:1px 7px;background:rgba(0,0,0,.06);}
         .mod-tab.active .n{background:rgba(255,255,255,.25);}
         .mod-liste{display:flex;flex-direction:column;gap:10px;max-width:680px;margin:0 auto;}
-        .mod-card{background:#fff;border:1px solid #e4dfd8;border-radius:9px;padding:13px 16px;}
+        .mod-card{background:#fff;border:1px solid var(--cs-bord-clair);border-radius:9px;padding:13px 16px;}
         .mod-entete{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px;}
         .mod-ref{font-family:var(--font-source-serif), Georgia, serif;font-size:0.78125rem;color:var(--cs-vert);text-decoration:none;}
         .mod-ref:hover{text-decoration:underline;}
-        .mod-date{margin-left:auto;font-size:0.65625rem;color:#b0a89e;white-space:nowrap;}
-        .mod-texte{font-size:0.8125rem;color:#2a2520;line-height:1.6;margin:0 0 10px;white-space:pre-line;}
-        .mod-cible{font-size:0.71875rem;color:#6b6560;line-height:1.55;font-style:italic;border-left:2px solid #ddd0b0;padding-left:10px;margin:0 0 9px;max-height:110px;overflow:auto;}
+        .mod-date{margin-left:auto;font-size:0.65625rem;color:var(--cs-texte-faible);white-space:nowrap;}
+        .mod-texte{font-size:0.8125rem;color:var(--cs-texte-fort);line-height:1.6;margin:0 0 10px;white-space:pre-line;}
+        .mod-cible{font-size:0.71875rem;color:var(--cs-texte-second);line-height:1.55;font-style:italic;border-left:2px solid #ddd0b0;padding-left:10px;margin:0 0 9px;max-height:110px;overflow:auto;}
         /* Message auquel un commentaire répond : encart discret, gris-vert, au-dessus du texte. */
-        .mod-reponse{font-size:0.6875rem;color:#6b6560;line-height:1.5;background:#f4f6f2;border-left:2px solid #b8ccbd;border-radius:0 5px 5px 0;padding:6px 10px;margin:0 0 8px;}
+        .mod-reponse{font-size:0.6875rem;color:var(--cs-texte-second);line-height:1.5;background:#f4f6f2;border-left:2px solid #b8ccbd;border-radius:0 5px 5px 0;padding:6px 10px;margin:0 0 8px;}
         .mod-reponse .qui{display:block;font-size:0.59375rem;font-weight:700;letter-spacing:.03em;color:var(--cs-vert);margin-bottom:2px;}
         .mod-reponse .quoi{display:block;font-style:italic;color:#7a746c;max-height:70px;overflow:auto;}
-        .mod-auteur{font-size:0.6875rem;color:#6b6560;font-weight:500;margin:0 0 10px;}
+        .mod-auteur{font-size:0.6875rem;color:var(--cs-texte-second);font-weight:500;margin:0 0 10px;}
         .mod-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;}
-        .mod-btn{font-size:0.6875rem;padding:5px 12px;border-radius:6px;cursor:pointer;border:1px solid #d6d0c4;background:#fff;color:#5a5450;transition:background .12s,border-color .12s;}
-        .mod-btn:hover{background:#f7f4ef;}
+        .mod-btn{font-size:0.6875rem;padding:5px 12px;border-radius:6px;cursor:pointer;border:1px solid var(--cs-bord);background:#fff;color:var(--cs-texte);transition:background .12s,border-color .12s;}
+        .mod-btn:hover{background:var(--cs-fond);}
         .mod-btn.vert{background:var(--cs-vert);color:#fff;border-color:var(--cs-vert);}
         .mod-btn.vert:hover{background:var(--cs-vert-fonce);}
-        .mod-btn.rouge{color:#9a2a2a;border-color:#e2b9aa;background:#fff7f4;}
+        .mod-btn.rouge{color:var(--cs-danger-fonce);border-color:#e2b9aa;background:#fff7f4;}
         .mod-btn.violet{background:#6b4fa0;color:#fff;border-color:#6b4fa0;}
         .mod-btn.violet:hover{background:#573f86;}
         .mod-btn:disabled{opacity:.5;cursor:default;}
         .mod-badge{font-size:0.59375rem;font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:999px;white-space:nowrap;}
-        .mod-vide{text-align:center;color:#9a958d;font-style:italic;font-size:0.8125rem;padding:26px 0;}
+        .mod-vide{text-align:center;color:var(--cs-texte-doux);font-style:italic;font-size:0.8125rem;padding:26px 0;}
       `}</style>
 
       <div className="mod-tabs">
@@ -220,7 +220,7 @@ export default function SectionModeration(props: Props) {
                   </div>
                 )}
                 <p className="mod-texte">{rendreTexteEnrichi(item.c.texte)}</p>
-                <p className="mod-auteur">{item.c.auteur_nom}{mail ? <span style={{ color: '#b0a89e', fontWeight: 400 }}> · {mail}</span> : null}</p>
+                <p className="mod-auteur">{item.c.auteur_nom}{mail ? <span style={{ color: 'var(--cs-texte-faible)', fontWeight: 400 }}> · {mail}</span> : null}</p>
                 <div className="mod-actions">
                   {estCertif ? (
                     <>

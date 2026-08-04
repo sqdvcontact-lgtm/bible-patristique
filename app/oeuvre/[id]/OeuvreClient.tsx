@@ -252,7 +252,7 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
         maxHeight: 340,
         overflowY: 'auto',
         background: '#faf6ee',
-        border: '1px solid #c8b89e',
+        border: '1px solid var(--cs-or-doux)',
         borderRadius: 5,
         boxShadow: '0 6px 24px rgba(44,30,10,0.20)',
         padding: '10px 12px',
@@ -264,7 +264,7 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: '#9a8a6e', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>
           Note {lettre}
         </span>
         {figee && (
@@ -399,9 +399,9 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '8px', padding: '20px 22px', width: '22.5rem', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Proposer un lien biblique</p>
-              <button onClick={() => setOuvert(false)} style={{ fontSize: '0.875rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
+              <button onClick={() => setOuvert(false)} style={{ fontSize: '0.875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
             </div>
-            <p style={{ fontSize: '0.65625rem', color: '#9a958d', fontStyle: 'italic', margin: '0 0 10px', lineHeight: 1.45 }}>
+            <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '0 0 10px', lineHeight: 1.45 }}>
               Indiquez la référence biblique que vous souhaitez associer à ce passage (ex. : Jn 1, 1 ou Rm 8, 28-30).
             </p>
             {statut === 'ok' ? (
@@ -410,12 +410,12 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
               <>
                 <textarea value={texte} onChange={e => setTexte(e.target.value)} rows={3} autoFocus
                   placeholder="Référence biblique proposée…"
-                  style={{ width: '100%', fontSize: '0.6875rem', padding: '7px 9px', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#faf8f4', color: '#2a2520', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
+                  style={{ width: '100%', fontSize: '0.6875rem', padding: '7px 9px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
-                  {statut === 'err' && <span style={{ fontSize: '0.625rem', color: '#c0562a', alignSelf: 'center' }}>Erreur d'envoi.</span>}
-                  <button onClick={() => setOuvert(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
+                  {statut === 'err' && <span style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', alignSelf: 'center' }}>Erreur d'envoi.</span>}
+                  <button onClick={() => setOuvert(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                   <button onClick={envoyer} disabled={statut === 'envoi' || !texte.trim()}
-                    style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? 'var(--cs-vert)' : '#e4dfd8', color: texte.trim() ? '#fff' : '#9a958d', fontWeight: 500 }}>
+                    style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: texte.trim() ? '#fff' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
                     {statut === 'envoi' ? 'Envoi…' : 'Envoyer'}
                   </button>
                 </div>
@@ -431,8 +431,8 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 // ── Composant principal ───────────────────────────────────────────────────────
 // Styles partagés des contrôles du volet gauche (Lecture / Texte / Traduction) :
 // listes verticales pleine largeur, de même gabarit, pour un alignement parfait.
-const LABEL_VOLET: React.CSSProperties = { fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#b0a89e', display: 'block' }
-const BTN_VOLET = (actif: boolean): React.CSSProperties => ({ width: '100%', textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : '#e0dacf'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? '#2a3d30' : '#6b6560', cursor: 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' })
+const LABEL_VOLET: React.CSSProperties = { fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block' }
+const BTN_VOLET = (actif: boolean): React.CSSProperties => ({ width: '100%', textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' })
 
 export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
@@ -1226,7 +1226,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   }
 
   // Lettrine (drop cap) du tout premier segment, réutilisée par les deux modes.
-  const DROPCAP: React.CSSProperties = { float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: '#2a3d30', fontWeight: 'normal', userSelect: 'none' }
+  const DROPCAP: React.CSSProperties = { float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: 'var(--cs-encre)', fontWeight: 'normal', userSelect: 'none' }
 
   // Rend un texte de segment avec sa lettrine (drop cap) sur la première LETTRE.
   // Si le paragraphe s'ouvre sur une ponctuation (guillemet «, tiret…), celle-ci
@@ -1284,7 +1284,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   }
 
   return (
-    <div style={{ background: '#f7f4ef', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--cs-fond)', minHeight: '100vh' }}>
       <style>{`
         .seg-wrapper { position: relative; }
         .seg-wrapper::after { content: ''; position: absolute; top: 0; right: -44px; width: 44px; height: 100%; pointer-events: none; }
@@ -1303,7 +1303,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         .seg-inline { border-radius: 2px; padding: 0 0.5px; cursor: pointer; transition: background 0.12s; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
         .seg-inline:hover { background: rgba(var(--cs-vert-rgb),0.09); }
         .seg-inline--actif { background: #ddeee2; }
-        .para-bilingue { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr); gap: 1.6rem; align-items: start; border-bottom: 1px solid rgba(214,208,196,0.55); margin-bottom: 0.85rem; }
+        .para-bilingue { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr); gap: 1.6rem; align-items: start; border-bottom: 1px solid rgba(var(--cs-bord-rgb),0.55); margin-bottom: 0.85rem; }
         .para-bilingue > p { margin-bottom: 0.85rem !important; }
         .texte-original { color: #575048; font-family: var(--font-source-serif), Georgia, serif; }
         @media(max-width: 980px){
@@ -1317,7 +1317,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         .ref-lien:hover { color: var(--cs-vert) !important; }
         .onglet-btn { transition: color 0.12s, border-color 0.12s; }
         .onglet-btn:hover { color: var(--cs-vert) !important; }
-        .signal-btn:hover { color: #c0562a !important; }
+        .signal-btn:hover { color: var(--cs-danger) !important; }
         .trad-option:hover { background: rgba(var(--cs-vert-rgb),0.06) !important; }
       `}</style>
 
@@ -1329,8 +1329,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         {/* Mobile : tiroir par-dessus le texte, sous la navbar. */}
         {mobile && <div onClick={() => setNavOuverte(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
         <nav ref={refNav} style={mobile ? {
-          position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, overflowY: 'auto', background: '#faf8f4', borderBottom: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', boxShadow: '0 10px 28px rgba(45,35,25,0.22)',
-        } : { width: navWidth == null ? 'clamp(240px, 16vw, 380px)' : navWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100vh - 3.5rem)', overflowY: 'auto', borderRight: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, overflowY: 'auto', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: '0 10px 28px rgba(45,35,25,0.22)',
+        } : { width: navWidth == null ? 'clamp(240px, 16vw, 380px)' : navWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100vh - 3.5rem)', overflowY: 'auto', borderRight: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <div onMouseDown={e => {
             e.preventDefault()
             const startW = navWidth ?? refNav.current?.getBoundingClientRect().width ?? 240
@@ -1349,13 +1349,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               e.currentTarget.style.boxShadow = 'none'
             }}
           />
-          <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid #d6d0c4', flexShrink: 0 }}>
+          <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               <ApercuAuteur auteurId={auteurId ?? null} onOuvrirFiche={() => { if (auteurId) setAuteurModalOuvert(true) }}>{auteur}</ApercuAuteur>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                 {estAdmin && (
                   <button onClick={() => setConfigOuverte(true)} title="Configurer les niveaux d'affichage"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#b0a89e', display: 'flex', alignItems: 'center', lineHeight: 1 }}>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center', lineHeight: 1 }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6"/></svg>
                   </button>
                 )}
@@ -1364,17 +1364,17 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     title={favorisOeuvres.has(idOeuvre) ? 'Retirer des favoris' : 'Ajouter aux favoris'} />
                 )}
                 <button onClick={() => setNavOuverte(false)} title="Réduire le sommaire"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#b0a89e', display: 'flex', alignItems: 'center' }}>
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center' }}>
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
               </div>
             </div>
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', color: '#2a3d30', lineHeight: 1.35, margin: 0, whiteSpace: 'pre-line' }}>
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', color: 'var(--cs-encre)', lineHeight: 1.35, margin: 0, whiteSpace: 'pre-line' }}>
               {rendreTexteEnrichi(oeuvreLocale.titre_affichage || titreAffiche)}
             </p>
             {(oeuvreLocale.sous_titre || oeuvreLocale.titre_original || oeuvreLocale.trad_auteur || oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication || oeuvreLocale.collection) && (
               <button onClick={() => setInfoEditionOuverte(true)}
-                style={{ fontSize: '0.625rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: '6px', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+                style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: '6px', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
                 En savoir plus sur cette édition
               </button>
             )}
@@ -1392,10 +1392,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   .lec-split:hover .lec-split-face, .lec-split:focus-within .lec-split-face { opacity: 0; pointer-events: none; }
                   .lec-split-menu { position: absolute; inset: 0; display: flex; opacity: 0; pointer-events: none; transition: opacity 200ms ease; border-radius: 5px; overflow: hidden; }
                   .lec-split:hover .lec-split-menu, .lec-split:focus-within .lec-split-menu { opacity: 1; pointer-events: auto; }
-                  .lec-split-seg { flex: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; background: transparent; font-family: inherit; font-size: 0.57rem; color: #6b6560; transition: background 140ms ease, color 140ms ease; }
-                  .lec-split-seg:hover { background: rgba(var(--cs-vert-rgb),0.12); color: #2a3d30; }
+                  .lec-split-seg { flex: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; background: transparent; font-family: inherit; font-size: 0.57rem; color: var(--cs-texte-second); transition: background 140ms ease, color 140ms ease; }
+                  .lec-split-seg:hover { background: rgba(var(--cs-vert-rgb),0.12); color: var(--cs-encre); }
                   .lec-split-seg + .lec-split-seg { box-shadow: inset 1px 0 0 rgba(var(--cs-vert-rgb),0.18); }
-                  .lec-split-seg--actif { color: #2a3d30; background: rgba(var(--cs-vert-rgb),0.10); font-weight: 600; }
+                  .lec-split-seg--actif { color: var(--cs-encre); background: rgba(var(--cs-vert-rgb),0.10); font-weight: 600; }
                   @media (prefers-reduced-motion: reduce) { .lec-split-face, .lec-split-menu { transition: none; } }
                 `}</style>
                 <span style={LABEL_VOLET}>Lecture</span>
@@ -1424,7 +1424,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                           )}
                         </button>
                         {/* Deux moitiés révélées au survol. */}
-                        <div className="lec-split-menu" style={{ border: `1px solid ${actif ? 'var(--cs-vert)' : '#e0dacf'}`, background: '#fff' }}>
+                        <div className="lec-split-menu" style={{ border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: '#fff' }}>
                           {(['paragraphes', 'segments'] as const).map(m => (
                             <button key={m} className={`lec-split-seg${actif && modeLecture === m ? ' lec-split-seg--actif' : ''}`}
                               onClick={() => { if (modeTexte !== 'fr') basculerTexte('fr'); basculerMode(m) }}>
@@ -1452,7 +1452,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             ) : null}
             {versions.length > 1 && (
               <div style={{ marginTop: '7px' }}>
-                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#b0a89e', display: 'block', marginBottom: '4px' }}>Traduction</span>
+                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Traduction</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   {versions.map(v => {
                     const actif = v.id_oeuvre === idOeuvre
@@ -1461,7 +1461,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       <button key={v.id_oeuvre} disabled={actif}
                         onClick={() => { if (!actif) router.push(`/oeuvre/${v.id_oeuvre}`) }}
                         title={actif ? 'Traduction affichée' : 'Afficher cette traduction'}
-                        style={{ textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : '#e0dacf'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? '#2a3d30' : '#6b6560', cursor: actif ? 'default' : 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' }}>
+                        style={{ textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: actif ? 'default' : 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' }}>
                         {label}
                       </button>
                     )
@@ -1473,19 +1473,19 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
 
           {oeuvresAuteur.length > 0 && (
-            <div style={{ borderBottom: '1px solid #d6d0c4', flexShrink: 0 }}>
+            <div style={{ borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
               <button onClick={() => setAuteurOuvert(!auteurOuvert)}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
-                <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e' }}>DU MÊME AUTEUR</span>
-                <span style={{ fontSize: '0.4375rem', color: '#c0bab0' }}>{auteurOuvert ? '▲' : '▼'}</span>
+                <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)' }}>DU MÊME AUTEUR</span>
+                <span style={{ fontSize: '0.4375rem', color: 'var(--cs-texte-faible)' }}>{auteurOuvert ? '▲' : '▼'}</span>
               </button>
               {auteurOuvert && (
                 <div style={{ padding: '0 16px 12px' }}>
                   {oeuvresAuteur.map(o => (
                     <a key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
-                      style={{ display: 'block', fontSize: '0.6875rem', color: '#3a3530', textDecoration: 'none', padding: '3px 0', lineHeight: 1.35, borderBottom: '1px solid #f0ece6' }}
+                      style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--cs-texte)', textDecoration: 'none', padding: '3px 0', lineHeight: 1.35, borderBottom: '1px solid var(--cs-fond-doux)' }}
                       onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-vert)')}
-                      onMouseLeave={e => (e.currentTarget.style.color = '#3a3530')}>
+                      onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-texte)')}>
                       {o.titre}
                     </a>
                   ))}
@@ -1498,18 +1498,18 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
             {tocApparatLocal.length > 0 && (
-              <div style={{ ...(apparatOuvert ? { flex: '0 1 auto', maxHeight: '50%', minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid #d6d0c4' }}>
+              <div style={{ ...(apparatOuvert ? { flex: '0 1 auto', maxHeight: '50%', minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
                 <button onClick={() => setApparatOuvert(!apparatOuvert)}
                   style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
-                  <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e' }}>APPARAT CRITIQUE</span>
-                  <span style={{ fontSize: '0.4375rem', color: '#c0bab0' }}>{apparatOuvert ? '▲' : '▼'}</span>
+                  <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)' }}>APPARAT CRITIQUE</span>
+                  <span style={{ fontSize: '0.4375rem', color: 'var(--cs-texte-faible)' }}>{apparatOuvert ? '▲' : '▼'}</span>
                 </button>
                 {apparatOuvert && (
                   <div style={{ flex: '0 1 auto', overflowY: 'auto', padding: '0 16px 14px' }}>
                     {tocApparatLocal.map((entry, i) => (
                       <div key={i}>
                         <a href={`#${entry.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(entry.niv1); setAncreEnAttente(entry.anchor) }} className="toc-lien-n1"
-                          style={{ display: 'block', fontSize: '0.71875rem', fontWeight: apparatNiv1Actif === entry.niv1 ? 600 : 400, color: apparatNiv1Actif === entry.niv1 ? 'var(--cs-vert)' : '#3a3530', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
+                          style={{ display: 'block', fontSize: '0.71875rem', fontWeight: apparatNiv1Actif === entry.niv1 ? 600 : 400, color: apparatNiv1Actif === entry.niv1 ? 'var(--cs-vert)' : 'var(--cs-texte)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
                           {entry.niv1}
                         </a>
                       </div>
@@ -1522,8 +1522,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             <div style={{ ...(sommaireOuvert ? { flex: 1, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
               <button onClick={() => setSommaireOuvert(!sommaireOuvert)}
                 style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
-                <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: '#b0a89e' }}>SOMMAIRE</span>
-                <span style={{ fontSize: '0.4375rem', color: '#c0bab0' }}>{sommaireOuvert ? '▲' : '▼'}</span>
+                <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)' }}>SOMMAIRE</span>
+                <span style={{ fontSize: '0.4375rem', color: 'var(--cs-texte-faible)' }}>{sommaireOuvert ? '▲' : '▼'}</span>
               </button>
 
               {sommaireOuvert && (
@@ -1531,7 +1531,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             <p style={{ display: 'none' }}></p>
 
             {texteSansNiveaux && (
-              <p style={{ fontSize: '0.71875rem', color: '#9a958d', fontStyle: 'italic', lineHeight: 1.45, margin: '4px 0 0' }}>
+              <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', lineHeight: 1.45, margin: '4px 0 0' }}>
                 Texte complet
               </p>
             )}
@@ -1543,10 +1543,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 <div key={n1} style={{ marginBottom: profondeurSommaire >= 2 ? '6px' : '0' }}>
                   {/* Niv1 */}
                   <button onClick={() => changerNiv1(n1)}
-                    style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : '#3a3530', lineHeight: 1.35, whiteSpace: 'pre-line' }}>
+                    style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35, whiteSpace: 'pre-line' }}>
                     {n1}
                     {niv1TexteMap[n1] && configNiveaux.txtSommaire[0] && (
-                      <span style={{ fontSize: '0.59375rem', color: estActif ? 'var(--cs-vert)' : '#9a958d', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{titreSansAppelsDeNote(niv1TexteMap[n1])}</span>
+                      <span style={{ fontSize: '0.59375rem', color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{titreSansAppelsDeNote(niv1TexteMap[n1])}</span>
                     )}
                   </button>
 
@@ -1565,8 +1565,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         <button
                           onClick={() => allerAuNiv2(actif2 ? null : n2)}
                           style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0 3px 8px' }}>
-                          <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : '#7a7268', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{n2}</span>
-                          {n2txt && configNiveaux.txtSommaire[1] && <span style={{ fontSize: '0.59375rem', color: actif2 ? 'var(--cs-vert)' : '#9a958d', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{n2txt}</span>}
+                          <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{n2}</span>
+                          {n2txt && configNiveaux.txtSommaire[1] && <span style={{ fontSize: '0.59375rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{n2txt}</span>}
                         </button>
                         {/* Niv3 — toujours visible, sans accordéon */}
                         {niv3DeN2.map(n3 => {
@@ -1580,8 +1580,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                 if (ancre) naviguerVersAncre(ancre)
                               }}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0 2px 16px' }}>
-                              <span style={{ fontSize: '0.59375rem', color: '#9a958d', display: 'block', lineHeight: 1.3 }}>{n3}</span>
-                              {n3txt && configNiveaux.txtSommaire[2] && <span style={{ fontSize: '0.5625rem', color: '#b0a89e', fontStyle: 'italic', display: 'block', lineHeight: 1.2 }}>{n3txt}</span>}
+                              <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-doux)', display: 'block', lineHeight: 1.3 }}>{n3}</span>
+                              {n3txt && configNiveaux.txtSommaire[2] && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', display: 'block', lineHeight: 1.2 }}>{n3txt}</span>}
                             </button>
                           )
                         })}
@@ -1599,15 +1599,15 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         </>
         ) : mobile ? (
           <button onClick={() => setNavOuverte(true)} title="Ouvrir le sommaire"
-            style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#faf8f4', border: 'none', borderBottom: '1px solid #d6d0c4', boxShadow: '0 1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: 'rotate(90deg)', color: '#9a958d' }}><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: '#6b6560' }}>Sommaire</span>
+            style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderBottom: '1px solid var(--cs-bord)', boxShadow: '0 1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: 'rotate(90deg)', color: 'var(--cs-texte-doux)' }}><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Sommaire</span>
           </button>
         ) : (
           <button onClick={() => setNavOuverte(true)} title="Ouvrir le sommaire"
-            style={{ position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', flexShrink: 0, height: 'calc(100vh - 3.5rem)', width: '22px', background: '#faf8f4', border: 'none', borderRight: '1px solid #d6d0c4', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: 0 }}>
+            style={{ position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', flexShrink: 0, height: 'calc(100vh - 3.5rem)', width: '22px', background: 'var(--cs-fond-clair)', border: 'none', borderRight: '1px solid var(--cs-bord)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: 0 }}>
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}><path d="M3 1l4 4-4 4" stroke="#9a958d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '0.5rem', letterSpacing: '0.13em', textTransform: 'uppercase' as any, fontWeight: 600, color: '#b0a89e', userSelect: 'none' }}>Sommaire</span>
+            <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '0.5rem', letterSpacing: '0.13em', textTransform: 'uppercase' as any, fontWeight: 600, color: 'var(--cs-texte-faible)', userSelect: 'none' }}>Sommaire</span>
           </button>
         )}
 
@@ -1624,43 +1624,43 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
           {/* Navigation précédent/suivant — toujours au niveau 1 */}
           {vue === 'texte' && !texteSansNiveaux && !lectureTexteEntier && (
-            <div id="barre-nav-niv1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', paddingRight: gouttiereTitre, borderBottom: '1px solid #ede9e2', minHeight: '32px', scrollMarginTop: '60px' }}>
+            <div id="barre-nav-niv1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', paddingRight: gouttiereTitre, borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: '60px' }}>
               <button onClick={() => niv1Prev && changerNiv1(niv1Prev, { conserverPosition: true })} disabled={!niv1Prev}
-                style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Prev ? '#9a958d' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
+                style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Prev ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
                 {niv1Prev ? '‹' : ''}
               </button>
-              <span style={{ fontSize: '1.45rem', fontWeight: 500, color: '#2a3d30', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'pre-line', overflowWrap: 'break-word', position: 'relative' }}>
+              <span style={{ fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-encre)', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'pre-line', overflowWrap: 'break-word', position: 'relative' }}>
                 {niv1Erreur ? (
-                  <span style={{ fontSize: '0.75rem', color: '#c0562a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     Erreur de chargement.{' '}
                     <button onClick={() => changerNiv1(niv1Erreur, { forceRefresh: true })}
-                      style={{ fontSize: '0.6875rem', padding: '2px 8px', borderRadius: '3px', border: '1px solid #e4c4b8', background: '#fff', color: '#c0562a', cursor: 'pointer' }}>
+                      style={{ fontSize: '0.6875rem', padding: '2px 8px', borderRadius: '3px', border: '1px solid var(--cs-danger-bord)', background: '#fff', color: 'var(--cs-danger)', cursor: 'pointer' }}>
                       Réessayer
                     </button>
                   </span>
-                ) : niv1Loading ? <span style={{ fontSize: '0.8125rem', color: '#b0a89e' }}>Chargement…</span> : (
+                ) : niv1Loading ? <span style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)' }}>Chargement…</span> : (
                   <>
                     {rendreTitreColophonAvecNotes(niv1Actif, segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes ?? {}, true)}
                     {(() => {
                       const txt = groupes[0]?.niv1_texte || niv1TexteMap[niv1Actif] || ''
                       const notesTitre = segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes ?? {}
                       return txt && configNiveaux.txtCorps[0]
-                        ? <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{rendreTexteAvecNotes(preparerTitreColophon(txt), notesTitre)}</span>
+                        ? <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{rendreTexteAvecNotes(preparerTitreColophon(txt), notesTitre)}</span>
                         : null
                     })()}
                     {estAdmin && (() => { const g = groupes[0] ?? { niv1: niv1Actif, niv2: '', niv3: '', niv4: '', anchor: '', itemIds: [] }; return (
                       <div style={{ position: 'absolute', right: '-52px', top: '2px', display: 'flex', gap: '3px', alignItems: 'center' }}>
                         <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe: g, texteActuel: niv1Actif, schemaTexte: false })}
-                          title="Modifier le titre" style={{ fontSize: '0.8125rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}><IconeCrayon size={12} /></button>
+                          title="Modifier le titre" style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}><IconeCrayon size={12} /></button>
                         <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe: g, texteActuel: g.niv1_texte ?? '', schemaTexte: true })}
-                          title="Modifier le sous-titre" style={{ fontSize: '0.625rem', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1, fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
+                          title="Modifier le sous-titre" style={{ fontSize: '0.625rem', color: 'var(--cs-bord)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1, fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                       </div>
                     )})()}
                   </>
                 )}
               </span>
               <button onClick={() => niv1Next && changerNiv1(niv1Next, { conserverPosition: true })} disabled={!niv1Next}
-                style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Next ? '#9a958d' : 'transparent', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Next ? 'auto' : 'none' }}>
+                style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Next ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Next ? 'auto' : 'none' }}>
                 {niv1Next ? '›' : ''}
               </button>
             </div>
@@ -1682,10 +1682,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 return (
                 <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: `0 0 ${memeParagraphe ? '0.18rem' : '0.55rem'}` }}>
                   <div lang="fr" onClick={() => setSegActif(segActif === s.id ? null : s.id)} className="seg-p"
-                    style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.74rem', fontStyle: 'italic', color: '#7a7268', lineHeight: 1.6, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', cursor: 'pointer', borderRadius: '3px', padding: '2px 6px', margin: 0, background: segActif === s.id ? '#ddeee2' : 'transparent' } as React.CSSProperties}>
+                    style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.74rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.6, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', cursor: 'pointer', borderRadius: '3px', padding: '2px 6px', margin: 0, background: segActif === s.id ? '#ddeee2' : 'transparent' } as React.CSSProperties}>
                     {rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
                   </div>
-                  <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: '#fff', border: '1px solid #e0dacf', borderRadius: '8px', boxShadow: '0 2px 10px rgba(45,35,25,0.12)', padding: '2px 4px' }}>
+                  <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: '0 2px 10px rgba(45,35,25,0.12)', padding: '2px 4px' }}>
                     {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
                     <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} />
                     <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
@@ -1716,48 +1716,48 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
                   {showNiv1 && (
                     <div style={{ textAlign: 'center', marginTop, marginBottom: '1.5rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
-                      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: '#2a3d30', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true)}</h2>
-                      {groupe.niv1_texte && configNiveaux.txtCorps[0] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.95rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTexteAvecNotes(preparerTitreColophon(groupe.niv1_texte), notesTitre)}</p>}
+                      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true)}</h2>
+                      {groupe.niv1_texte && configNiveaux.txtCorps[0] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.95rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTexteAvecNotes(preparerTitreColophon(groupe.niv1_texte), notesTitre)}</p>}
                     </div>
                   )}
                   {showNiv2 && (
                     <div style={{ textAlign: 'center', marginTop: marginTop, marginBottom: '1rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
-                      <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.1rem', fontWeight: 400, color: '#2a3d30', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true)}</h3>
-                      {groupe.niv2_texte && configNiveaux.txtCorps[1] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.92rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
+                      <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.1rem', fontWeight: 400, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true)}</h3>
+                      {groupe.niv2_texte && configNiveaux.txtCorps[1] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.92rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2, schemaTexte: false })}
-                            title="Modifier le titre" style={{ fontSize: '0.6875rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
+                            title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2_texte ?? '', schemaTexte: true })}
-                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-bord)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                         </div>
                       )}
                     </div>
                   )}
                   {showNiv3 && (
                     <div style={{ marginTop: isFirstGroupe ? '0' : '1rem', marginBottom: '0.4rem', paddingLeft: '11px', borderLeft: '1px solid #ddd6cb', position: 'relative', paddingRight: estAdmin ? '44px' : 0 }}>
-                      <p style={{ fontSize: '0.78rem', fontWeight: 600, color: '#5a5450', lineHeight: 1.3, margin: 0, letterSpacing: '0.02em', whiteSpace: 'pre-line', textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophonAvecNotes(groupe.niv3, notesTitre, true)}</p>
-                      {groupe.niv3_texte && configNiveaux.txtCorps[2] && <p style={{ fontSize: '0.75rem', fontStyle: 'italic', color: '#9a958d', lineHeight: 1.3, margin: '2px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv3_texte, notesTitre)}</p>}
+                      <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--cs-texte)', lineHeight: 1.3, margin: 0, letterSpacing: '0.02em', whiteSpace: 'pre-line', textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophonAvecNotes(groupe.niv3, notesTitre, true)}</p>
+                      {groupe.niv3_texte && configNiveaux.txtCorps[2] && <p style={{ fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', lineHeight: 1.3, margin: '2px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv3_texte, notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: 0, top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 3, groupe, texteActuel: groupe.niv3, schemaTexte: false })}
-                            title="Modifier le titre" style={{ fontSize: '0.625rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
+                            title="Modifier le titre" style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 3, groupe, texteActuel: groupe.niv3_texte ?? '', schemaTexte: true })}
-                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-bord)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                         </div>
                       )}
                     </div>
                   )}
                   {showNiv4 && (
-                    <p style={{ fontSize: '0.72rem', fontWeight: 600, color: '#b0a89e', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: '0.25rem', marginTop: '0.5rem', position: 'relative', paddingRight: estAdmin ? '44px' : 0, whiteSpace: 'pre-line' }}>
+                    <p style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--cs-texte-faible)', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: '0.25rem', marginTop: '0.5rem', position: 'relative', paddingRight: estAdmin ? '44px' : 0, whiteSpace: 'pre-line' }}>
                       {rendreTitreColophonAvecNotes(groupe.niv4, notesTitre, true)}
                       {groupe.niv4_texte && configNiveaux.txtCorps[3] && <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px', fontStyle: 'italic' }}>{rendreTitreColophonAvecNotes(groupe.niv4_texte, notesTitre)}</span>}
                       {estAdmin && (
                         <span style={{ position: 'absolute', right: 0, top: 0, display: 'inline-flex', gap: '3px', alignItems: 'center', textTransform: 'none' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 4, groupe, texteActuel: groupe.niv4, schemaTexte: false })}
-                            title="Modifier le titre" style={{ fontSize: '0.5625rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
+                            title="Modifier le titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 4, groupe, texteActuel: groupe.niv4_texte ?? '', schemaTexte: true })}
-                            title="Modifier le sous-titre" style={{ fontSize: '0.5rem', color: '#c8c0b4', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.5rem', color: 'var(--cs-bord)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
                         </span>
                       )}
                     </p>
@@ -1766,7 +1766,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     const original = chunk.ids.map(sid => segMap.get(sid)).find(s => Boolean(s?.texteOriginal?.trim()))
                     return (
                     <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? 'para-bilingue' : undefined}>
-                      <p lang="fr" style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line', paddingRight: estAdmin ? '8px' : 0 } as React.CSSProperties}>
+                      <p lang="fr" style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line', paddingRight: estAdmin ? '8px' : 0 } as React.CSSProperties}>
                         {chunk.ids.map((sid, i) => {
                           const s = segMap.get(sid)
                           if (!s) return null
@@ -1778,7 +1778,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                 onClick={(e) => { setSegActif(actif ? null : sid); positionnerToolbar(e.currentTarget as HTMLElement, sid) }}
                                 onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                 onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
-                                {configNiveaux.afficherNumeros && !estPremier && <sup style={{ fontSize: '0.50rem', color: '#b0a89e', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
+                                {configNiveaux.afficherNumeros && !estPremier && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
                                 {estPremier && normaliserEspaces(s.texte).length > 0 ? rendreAvecLettrine(s.texte, s.notes ?? {}) : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
                               </span>
                               {i < chunk.ids.length - 1 ? ' ' : ''}
@@ -1789,7 +1789,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       {(affichageBilingue || afficherOriginalSeul) && original?.texteOriginal && (
                         // En « Latin seul », l'original occupe seul la colonne, au gabarit du
                         // français (mêmes taille et teinte).
-                        <p lang="la" className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? '#1e1a16' : undefined, lineHeight: afficherOriginalSeul ? '1.62' : '1.58', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                        <p lang="la" className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, lineHeight: afficherOriginalSeul ? '1.62' : '1.58', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {rendreTexteAvecNotes(normaliserEspaces(original.texteOriginal), original.notes ?? {})}
                         </p>
                       )}
@@ -1806,12 +1806,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         onTouchMove={mobile ? () => { if (appuiLongRef.current) clearTimeout(appuiLongRef.current) } : undefined}
                         style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', scrollMarginTop: '60px' }}>
                         <p id={`s${s.numero}`} onClick={() => { if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return } if (mobile) setActionsSegMobileId(null); setSegActif(actif ? null : sid) }} className="seg-p"
-                          lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                          {configNiveaux.afficherNumeros && sid !== premierSegmentId && <sup style={{ fontSize: '0.50rem', color: '#b0a89e', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
+                          lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          {configNiveaux.afficherNumeros && sid !== premierSegmentId && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
                           {sid === premierSegmentId && normaliserEspaces(s.texte).length > 0 ? rendreAvecLettrine(s.texte, s.notes ?? {}) : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
                         </p>
                         <div className="seg-actions" style={mobile ? {
-                          position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6, opacity: 1, display: actionsSegMobileId === sid ? 'flex' : 'none', flexDirection: 'row', gap: '0.25rem', alignItems: 'center', background: '#fff', border: '1px solid #d6d0c4', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
+                          position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6, opacity: 1, display: actionsSegMobileId === sid ? 'flex' : 'none', flexDirection: 'row', gap: '0.25rem', alignItems: 'center', background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
                         } : { display: 'flex', flexDirection: 'row', gap: '2px', flexShrink: 0, width: '68px', paddingTop: '2px', justifyContent: 'flex-end', marginRight: '-8px' }}>
                           {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
                           <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} className="seg-btn-action" />
@@ -1819,7 +1819,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                           {estAdmin && (
                             <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" aria-label="Modifier ce segment"
                               className="seg-btn-action"
-                              style={{ ...BTN_STYLE, color: '#c8c0b4' }}>
+                              style={{ ...BTN_STYLE, color: 'var(--cs-bord)' }}>
                               <IconeCrayon size={12} />
                             </button>
                           )}
@@ -1859,23 +1859,23 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
                       {showNiv1 && (
                         <div style={{ position: 'relative', marginTop: marginTop, marginBottom: '0.5rem' }}>
-                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: '#2a2520', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true)}</h2>
-                          {groupe.niv1_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.95rem', fontWeight: 400, color: '#7a7268', fontStyle: 'italic', textAlign: 'center', lineHeight: 1.4, margin: '4px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1_texte, notesTitre)}</p>}
+                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-texte-fort)', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true)}</h2>
+                          {groupe.niv1_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.95rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', textAlign: 'center', lineHeight: 1.4, margin: '4px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1_texte, notesTitre)}</p>}
                           {estAdmin && (
                             <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe, texteActuel: groupe.niv1_texte || groupe.niv1, schemaTexte: true })}
-                              title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '0.6875rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
+                              title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           )}
                         </div>
                       )}
                       {showNiv2 && (
                         <div style={{ margin: showNiv1 ? '1rem 0 0.6rem' : '2rem 0 0.6rem', textAlign: 'center' }}>
                           <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.05rem', fontWeight: 500, color: '#3d3832', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true)}</h3>
-                          {groupe.niv2_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.86rem', color: '#7a7268', fontStyle: 'italic', lineHeight: 1.35, margin: '3px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
+                          {groupe.niv2_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.86rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.35, margin: '3px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                         </div>
                       )}
                       {modeLecture === 'paragraphes' ? paragraphesDe(groupe.itemIds, segMapApparat).map(chunk => (
                         <div key={`apparat-para-${chunk.ids[0]}`}>
-                          <p lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line', paddingRight: estAdmin ? '8px' : 0 } as React.CSSProperties}>
+                          <p lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line', paddingRight: estAdmin ? '8px' : 0 } as React.CSSProperties}>
                             {chunk.ids.map((sid, i) => {
                               const s = segMapApparat.get(sid)
                               if (!s) return null
@@ -1886,7 +1886,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                     onClick={(e) => { setSegActif(actif ? null : sid); positionnerToolbar(e.currentTarget as HTMLElement, sid) }}
                                     onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                     onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
-                                    {configNiveaux.afficherNumeros && <sup style={{ fontSize: '0.50rem', color: '#b0a89e', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
+                                    {configNiveaux.afficherNumeros && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
                                     {rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
                                   </span>
                                   {i < chunk.ids.length - 1 ? ' ' : ''}
@@ -1902,15 +1902,15 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         return (
                           <div key={sid} id={`segment-${sid}`} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', scrollMarginTop: '60px' }}>
                             <p id={`a${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
-                              lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: '#1e1a16', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', paddingRight: estAdmin ? '72px' : '4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                              {configNiveaux.afficherNumeros && <sup style={{ fontSize: '0.50rem', color: '#b0a89e', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
+                              lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', paddingRight: estAdmin ? '72px' : '4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                              {configNiveaux.afficherNumeros && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
                               {rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
                             </p>
                             {estAdmin && (
                               <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)"
                                 aria-label="Modifier ce segment"
                                 className="seg-btn-action"
-                                style={{ position: 'absolute', right: '-10px', top: '1px', ...BTN_STYLE, color: '#c8c0b4' }}>
+                                style={{ position: 'absolute', right: '-10px', top: '1px', ...BTN_STYLE, color: 'var(--cs-bord)' }}>
                                 <IconeCrayon size={12} />
                               </button>
                             )}
@@ -1931,8 +1931,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         {/* Mobile : tiroir montant du bas, par-dessus le texte. */}
         {mobile && <div onClick={() => setPanneauOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
         <aside ref={refAside} style={mobile ? {
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, borderTop: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', background: '#fff', boxShadow: '0 -10px 28px rgba(45,35,25,0.22)',
-        } : { width: pannWidth == null ? 'clamp(280px, 21vw, 480px)' : pannWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100vh - 3.5rem)', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: '#fff', boxShadow: '0 -10px 28px rgba(45,35,25,0.22)',
+        } : { width: pannWidth == null ? 'clamp(280px, 21vw, 480px)' : pannWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100vh - 3.5rem)', borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: '#fff' }}>
           <div onMouseDown={e => {
             e.preventDefault()
             const startW = pannWidth ?? refAside.current?.getBoundingClientRect().width ?? 320
@@ -1952,9 +1952,9 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             }}
           />
 
-          <div style={{ position: 'relative', borderBottom: '1px solid #d6d0c4', flexShrink: 0, display: 'flex', alignItems: 'stretch' }}>
+          <div style={{ position: 'relative', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0, display: 'flex', alignItems: 'stretch' }}>
             <button onClick={() => setPanneauOuvert(false)} title="Réduire le panneau"
-              style={{ position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 1, padding: '0 6px', background: 'none', border: 'none', cursor: 'pointer', color: '#b0a89e', display: 'flex', alignItems: 'center' }}>
+              style={{ position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 1, padding: '0 6px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center' }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
             <div style={{ display: 'flex', flex: 1 }}>
@@ -1968,7 +1968,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     )}
                     <button onClick={() => setOngletDroit(key)} className="onglet-btn"
                       style={{ flex: 1, padding: '11px 4px 10px', background: 'transparent', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: actif ? '2px solid var(--cs-vert)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
-                      <span style={{ fontSize: '0.78125rem', fontWeight: actif ? 600 : 400, color: actif ? 'var(--cs-vert)' : '#6b6560', whiteSpace: 'nowrap' }}>{labels[key]}</span>
+                      <span style={{ fontSize: '0.78125rem', fontWeight: actif ? 600 : 400, color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-second)', whiteSpace: 'nowrap' }}>{labels[key]}</span>
                     </button>
                   </Fragment>
                 )
@@ -1982,21 +1982,21 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             {ongletDroit === 'refs' ? (
               <>
                 {/* Sélecteur traduction */}
-                <div ref={tradSelectRef} style={{ padding: '10px 0 8px', borderBottom: '1px solid #ede9e2', marginBottom: '10px', position: 'relative' }}>
+                <div ref={tradSelectRef} style={{ padding: '10px 0 8px', borderBottom: '1px solid var(--cs-fond-doux)', marginBottom: '10px', position: 'relative' }}>
                   {/* Sélecteur de traduction remis dans le style général du site : libellé en
                       capitales espacées grises + contrôle sobre à bord neutre (au lieu de la
                       pilule verte). Le vert ne sert plus qu'à l'option active et au focus. */}
-                  <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d', margin: '0 0 4px' }}>Traduction</p>
+                  <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 4px' }}>Traduction</p>
                   <button onClick={() => setTradOuverte(!tradOuverte)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '5px', border: `1px solid ${tradOuverte ? 'var(--cs-vert)' : '#d6d0c4'}`, background: '#fff', fontSize: '0.65625rem', color: '#2a3d30', cursor: 'pointer', transition: 'border-color 0.12s' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '5px', border: `1px solid ${tradOuverte ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: '#fff', fontSize: '0.65625rem', color: 'var(--cs-encre)', cursor: 'pointer', transition: 'border-color 0.12s' }}>
                     <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{traductionsBible[tradIndex]?.label ?? trad}</span>
-                    <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: '#9a958d', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: 'var(--cs-texte-doux)', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </button>
                   {tradOuverte && (
-                    <div style={{ position: 'absolute', top: 'calc(100% - 2px)', left: 0, right: 0, background: '#fff', border: '1px solid #d6d0c4', borderRadius: '6px', zIndex: 50, boxShadow: '0 4px 20px rgba(0,0,0,0.10)', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', top: 'calc(100% - 2px)', left: 0, right: 0, background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '6px', zIndex: 50, boxShadow: '0 4px 20px rgba(0,0,0,0.10)', overflow: 'hidden' }}>
                       {traductionsBible.map((t, i) => (
                         <button key={t.code} onClick={() => { setTradIndex(i); setTradOuverte(false) }} className="trad-option"
-                          style={{ width: '100%', textAlign: 'left', padding: '6px 10px', fontSize: '0.65625rem', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: i < traductionsBible.length - 1 ? '1px solid #f0ece6' : 'none', background: tradIndex === i ? '#eef5f1' : '#fff', color: tradIndex === i ? 'var(--cs-vert)' : '#3a3530', fontWeight: tradIndex === i ? 600 : 400, cursor: 'pointer' }}>
+                          style={{ width: '100%', textAlign: 'left', padding: '6px 10px', fontSize: '0.65625rem', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: i < traductionsBible.length - 1 ? '1px solid var(--cs-fond-doux)' : 'none', background: tradIndex === i ? '#eef5f1' : '#fff', color: tradIndex === i ? 'var(--cs-vert)' : 'var(--cs-texte)', fontWeight: tradIndex === i ? 600 : 400, cursor: 'pointer' }}>
                           {t.label}
                         </button>
                       ))}
@@ -2008,7 +2008,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 {segActifData ? (
                   <>
                     {segActifData.versets.length === 0 ? (
-                      <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: '#9a958d' }}>Aucun lien biblique pour ce passage.</p>
+                      <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)' }}>Aucun lien biblique pour ce passage.</p>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         {regrouperVersetsConsecutifs(segActifData.versets).map(groupe => {
@@ -2048,7 +2048,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                   )}
                                   {estAdmin && (
                                     <button onClick={() => supprimerLiensBibliques(segActifData.id, groupe.map(v => v.id))} title="Supprimer ce lien biblique"
-                                      style={{ fontSize: '0.59375rem', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                      style={{ fontSize: '0.59375rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>
                                       {multiple ? 'Supprimer les liens' : 'Supprimer le lien'}
                                     </button>
                                   )}
@@ -2067,7 +2067,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                               {/* Texte du/des verset(s) réuni(s) : SANS SÉRIF, même mise en forme que les
                                   citations patristiques du panneau Bible — justifié, wordSpacing serré,
                                   césure. Enrichissement (« <i> » de Sacy) rendu. */}
-                              <p lang="fr" style={{ fontSize: '0.7rem', lineHeight: '1.38', color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.08em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 4px' } as React.CSSProperties}>
+                              <p lang="fr" style={{ fontSize: '0.7rem', lineHeight: '1.38', color: 'var(--cs-texte-fort)', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.08em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 4px' } as React.CSSProperties}>
                                 {corps ? rendreTexteEnrichi(corps) : '—'}
                               </p>
                             </div>
@@ -2088,7 +2088,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         sous le rectangle de l'image — l'ensemble reste ainsi équilibré. */}
                     <img src="/ornements/cul-de-lampe-buisson-ardent.png" alt="" aria-hidden="true"
                       style={{ width: '82%', maxWidth: '11.875rem', height: 'auto', opacity: 0.42, mixBlendMode: 'multiply' }} />
-                    <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: '#9a958d', textAlign: 'center', margin: '-30px 0 0' }}>Cliquez sur un paragraphe.</p>
+                    <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', margin: '-30px 0 0' }}>Cliquez sur un paragraphe.</p>
                   </div>
                 )}
               </>
@@ -2099,13 +2099,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             ) : (
               <div style={{ paddingTop: '14px' }}>
                 {!problemesCharges ? (
-                  <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: '#9a958d' }}>Chargement…</p>
+                  <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)' }}>Chargement…</p>
                 ) : (() => {
                   // Plus de division en sous-onglets : tous les passages sont réunis, les
                   // « à constituer » d'abord, chacun portant une pastille qui indique son type.
                   const filtres = [...problemes].sort((a, b) => Number(b.aConstituer) - Number(a.aConstituer))
                   if (filtres.length === 0) return (
-                    <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: '#9a958d' }}>
+                    <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)' }}>
                       Aucun passage à relier pour cette œuvre.
                     </p>
                   )
@@ -2142,7 +2142,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                           ? { color: '#9a5a2a', background: '#fbf1e5', border: '1px solid #e8d3b6' }
                           : { color: '#3d5a4f', background: '#eef4f0', border: '1px solid #cbd8cf' }
                         return (
-                          <div key={s.id} style={{ paddingBottom: '14px', borderBottom: '1px solid #ede9e2' }}>
+                          <div key={s.id} style={{ paddingBottom: '14px', borderBottom: '1px solid var(--cs-fond-doux)' }}>
                             {/* En-tête : pastille de type, puis le titre de l'œuvre à côté, pour
                                 situer le passage d'un coup d'œil. */}
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
@@ -2153,7 +2153,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                 {rendreTexteEnrichi(titreAffiche)}
                               </span>
                             </div>
-                            <div lang="fr" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.75rem', lineHeight: 1.4, color: '#2a2520', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 8px', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                            <div lang="fr" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.75rem', lineHeight: 1.4, color: 'var(--cs-texte-fort)', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 8px', whiteSpace: 'pre-line' } as React.CSSProperties}>
                               {rendreTexteEnrichi(nettoyerFin(normaliserEspaces(s.segment_texte)))}
                             </div>
                             {s.reference_manuelle && (
@@ -2174,7 +2174,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                       style={{ fontSize: '0.65625rem', color: '#3d5a4f', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline', textUnderlineOffset: '2px', textDecorationColor: '#c8d2cb' }}>
                                       {label}
                                       {vi.chapAlt != null && (
-                                        <span style={{ color: '#9a958d', fontStyle: 'italic' }}>
+                                        <span style={{ color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>
                                           {' '}({vi.chapAlt}{vi.verAlt != null ? `, ${vi.verAlt}` : ''})
                                         </span>
                                       )}
@@ -2191,7 +2191,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                 Aller au passage
                                 <svg width="11" height="7" viewBox="0 0 12 8" fill="none" aria-hidden="true"><path d="M0.5 4h9M7 1l3 3-3 3" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/></svg>
                               </button>
-                              <span style={{ width: '1px', height: '13px', background: '#e4dfd8', flexShrink: 0 }} />
+                              <span style={{ width: '1px', height: '13px', background: 'var(--cs-bord-clair)', flexShrink: 0 }} />
                               {s.aConstituer ? (
                                 <>
                                   <button onClick={() => setSuggestionSignalee({ ...s, nature: 'suggestion' })} title="Proposer une référence biblique pour ce passage"
@@ -2220,15 +2220,15 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         </>
         ) : mobile ? (
           <button onClick={() => setPanneauOuvert(true)} title="Ouvrir le panneau de références"
-            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#fff', border: 'none', borderTop: '1px solid #d6d0c4', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: 'rotate(-90deg)', color: '#9a958d' }}><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: '#6b6560' }}>Références &amp; commentaires</span>
+            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#fff', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: 'rotate(-90deg)', color: 'var(--cs-texte-doux)' }}><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Références &amp; commentaires</span>
           </button>
         ) : (
           <button onClick={() => setPanneauOuvert(true)} title="Ouvrir le panneau de références"
-            style={{ position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', flexShrink: 0, height: 'calc(100vh - 3.5rem)', width: '22px', background: '#fff', border: 'none', borderLeft: '1px solid #d6d0c4', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: 0 }}>
+            style={{ position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', flexShrink: 0, height: 'calc(100vh - 3.5rem)', width: '22px', background: '#fff', border: 'none', borderLeft: '1px solid var(--cs-bord)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: 0 }}>
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}><path d="M7 1l-4 4 4 4" stroke="#9a958d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{ writingMode: 'vertical-rl' as any, fontSize: '0.5rem', letterSpacing: '0.13em', textTransform: 'uppercase' as any, fontWeight: 600, color: '#b0a89e', userSelect: 'none' }}>Commentaires et références bibliques</span>
+            <span style={{ writingMode: 'vertical-rl' as any, fontSize: '0.5rem', letterSpacing: '0.13em', textTransform: 'uppercase' as any, fontWeight: 600, color: 'var(--cs-texte-faible)', userSelect: 'none' }}>Commentaires et références bibliques</span>
           </button>
         )}
       </div>
@@ -2240,13 +2240,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         return createPortal(
           <div onMouseEnter={() => { if (timerSurvolRef.current) clearTimeout(timerSurvolRef.current) }}
             onMouseLeave={() => masquerToolbar(segSurvol.id)}
-            style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: '#fff', border: '1px solid #e0dacf', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.16)', padding: '2px 4px' }}>
+            style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.16)', padding: '2px 4px' }}>
             {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
             <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} />
             <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
             {estAdmin && (
               <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" aria-label="Modifier ce segment"
-                style={{ ...BTN_STYLE, color: '#c8c0b4' }}><IconeCrayon size={12} /></button>
+                style={{ ...BTN_STYLE, color: 'var(--cs-bord)' }}><IconeCrayon size={12} /></button>
             )}
           </div>,
           document.body
@@ -2256,7 +2256,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       {apercuVerset && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}
           onClick={() => setApercuVerset(null)}>
-          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#faf6ee', borderRadius: '8px', border: '1px solid #c8b89e', padding: '16px 18px', width: '23.75rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(44,30,10,0.22)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#faf6ee', borderRadius: '8px', border: '1px solid var(--cs-or-doux)', padding: '16px 18px', width: '23.75rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(44,30,10,0.22)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
               <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontWeight: 600, color: 'var(--cs-vert)' }}>{apercuVerset.label}</span>
               <button onClick={() => setApercuVerset(null)} aria-label="Fermer" style={{ fontSize: '0.9375rem', color: '#b0a08a', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 12px', lineHeight: 1 }}>×</button>
@@ -2285,13 +2285,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', letterSpacing: '0.02em' }}>{auteur}</span>
                   )}
                   <span style={{ margin: '0 3px' }}> </span>
-                  <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', color: '#2a3d30' }}>{rendreTexteEnrichi(titreAffiche)}</span>
+                  <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', color: 'var(--cs-encre)' }}>{rendreTexteEnrichi(titreAffiche)}</span>
                 </p>
                 {oeuvreLocale.sous_titre && (
                   <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.71875rem', color: '#8a8278', fontStyle: 'italic', lineHeight: 1.3, margin: '3px 0 0' }}>{oeuvreLocale.sous_titre}</p>
                 )}
               </div>
-              <button onClick={() => setInfoEditionOuverte(false)} style={{ fontSize: '1rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0 }}>✕</button>
+              <button onClick={() => setInfoEditionOuverte(false)} style={{ fontSize: '1rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0 }}>✕</button>
             </div>
 
             {/* Deux colonnes distinctes : texte original / édition de référence. */}
@@ -2302,7 +2302,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               const carte: React.CSSProperties = { background: '#f6f8f3', border: '1px solid #e2ebdc', borderLeft: '2.5px solid #a7c4a0', borderRadius: '8px', padding: '11px 13px' }
               const legende: React.CSSProperties = { fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.10em', color: '#6f9268', margin: '0 0 8px', textTransform: 'uppercase' }
               const cle: React.CSSProperties = { fontSize: '0.53125rem', color: '#a9b0a2', display: 'block', marginBottom: '-3px', lineHeight: 0.95 }
-              const val: React.CSSProperties = { fontSize: '0.71875rem', color: '#3a3530', lineHeight: 1.15 }
+              const val: React.CSSProperties = { fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.15 }
               return (
                 <div style={{ display: 'grid', gridTemplateColumns: (aOriginal && aEdition) ? 'minmax(0,1fr) minmax(0,1fr)' : '1fr', gap: '10px', marginBottom: '12px' }}>
                   {aOriginal && (
@@ -2326,7 +2326,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       {oeuvreLocale.commentaire_traduction?.trim() && (
                         <div style={{ marginTop: '9px', paddingTop: '8px', borderTop: '1px solid #e2ebdc' }}>
                           <span style={{ ...cle, marginBottom: '2px' }}>Commentaire</span>
-                          <span style={{ ...val, display: 'block', lineHeight: 1.55, fontStyle: 'italic', color: '#5a5450', marginTop: '1px' }}>{sansPointFinal(oeuvreLocale.commentaire_traduction)}</span>
+                          <span style={{ ...val, display: 'block', lineHeight: 1.55, fontStyle: 'italic', color: 'var(--cs-texte)', marginTop: '1px' }}>{sansPointFinal(oeuvreLocale.commentaire_traduction)}</span>
                         </div>
                       )}
                     </div>
@@ -2348,12 +2348,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '20px 22px', width: '25rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Niveaux d'affichage</p>
-              <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.9375rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+              <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
             </div>
             <p style={{ fontSize: '0.6875rem', color: '#8a8278', lineHeight: 1.5, margin: '0 0 16px' }}>
-              Réglez la finesse des titres affichés, séparément pour le <strong style={{ color: '#6b6560' }}>sommaire</strong> (colonne de gauche) et le <strong style={{ color: '#6b6560' }}>corps</strong> du texte.
+              Réglez la finesse des titres affichés, séparément pour le <strong style={{ color: 'var(--cs-texte-second)' }}>sommaire</strong> (colonne de gauche) et le <strong style={{ color: 'var(--cs-texte-second)' }}>corps</strong> du texte.
             </p>
-            <div style={{ marginBottom: '14px', padding: '12px 14px', background: '#faf8f4', borderRadius: '7px', border: '1px solid #ece7de' }}>
+            <div style={{ marginBottom: '14px', padding: '12px 14px', background: 'var(--cs-fond-clair)', borderRadius: '7px', border: '1px solid var(--cs-fond-doux)' }}>
               <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--cs-vert)', margin: '0 0 10px' }}>Mode de lecture</p>
               <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                 {[
@@ -2361,7 +2361,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   { valeur: true, libelle: 'Texte entier paginé' },
                 ].map(option => (
                   <button key={option.libelle} onClick={() => setConfigNiveaux(prev => ({ ...prev, texteEntier: option.valeur }))}
-                    style={{ flex: 1, minHeight: '34px', padding: '5px 8px', borderRadius: '5px', border: `1px solid ${configNiveaux.texteEntier === option.valeur ? 'var(--cs-vert)' : '#d6d0c4'}`, background: configNiveaux.texteEntier === option.valeur ? 'var(--cs-vert)' : '#fff', color: configNiveaux.texteEntier === option.valeur ? '#fff' : '#6b6560', fontSize: '0.6875rem', cursor: 'pointer', fontWeight: configNiveaux.texteEntier === option.valeur ? 700 : 400 }}>
+                    style={{ flex: 1, minHeight: '34px', padding: '5px 8px', borderRadius: '5px', border: `1px solid ${configNiveaux.texteEntier === option.valeur ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: configNiveaux.texteEntier === option.valeur ? 'var(--cs-vert)' : '#fff', color: configNiveaux.texteEntier === option.valeur ? '#fff' : 'var(--cs-texte-second)', fontSize: '0.6875rem', cursor: 'pointer', fontWeight: configNiveaux.texteEntier === option.valeur ? 700 : 400 }}>
                     {option.libelle}
                   </button>
                 ))}
@@ -2373,21 +2373,21 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               const txtKey = type === 'sommaire' ? 'txtSommaire' : 'txtCorps'
               const titre = type === 'sommaire' ? 'Sommaire' : 'Corps du texte'
               return (
-                <div key={type} style={{ marginBottom: '14px', padding: '12px 14px', background: '#faf8f4', borderRadius: '7px', border: '1px solid #ece7de' }}>
+                <div key={type} style={{ marginBottom: '14px', padding: '12px 14px', background: 'var(--cs-fond-clair)', borderRadius: '7px', border: '1px solid var(--cs-fond-doux)' }}>
                   <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--cs-vert)', margin: '0 0 10px' }}>{titre}</p>
 
-                  <label style={{ fontSize: '0.65625rem', color: '#6b6560', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Niveaux de titres affichés</label>
+                  <label style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Niveaux de titres affichés</label>
                   <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
                     {[1,2,3,4,5].map(n => (
                       <button key={n} onClick={() => setConfigNiveaux(prev => ({ ...prev, [key]: n }))}
                         title={`Afficher jusqu’au niveau ${n}`}
-                        style={{ width: '34px', height: '30px', borderRadius: '5px', border: `1px solid ${configNiveaux[key] === n ? 'var(--cs-vert)' : '#d6d0c4'}`, background: configNiveaux[key] === n ? 'var(--cs-vert)' : '#fff', color: configNiveaux[key] === n ? '#fff' : '#6b6560', fontSize: '0.75rem', cursor: 'pointer', fontWeight: configNiveaux[key] === n ? 700 : 400 }}>
+                        style={{ width: '34px', height: '30px', borderRadius: '5px', border: `1px solid ${configNiveaux[key] === n ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: configNiveaux[key] === n ? 'var(--cs-vert)' : '#fff', color: configNiveaux[key] === n ? '#fff' : 'var(--cs-texte-second)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: configNiveaux[key] === n ? 700 : 400 }}>
                         {n}
                       </button>
                     ))}
                   </div>
 
-                  <label style={{ fontSize: '0.65625rem', color: '#6b6560', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Chapeaux descriptifs</label>
+                  <label style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Chapeaux descriptifs</label>
                   <div style={{ display: 'flex', gap: '4px' }}>
                     {[1,2,3,4,5].map((n, i) => {
                       const actif = configNiveaux[txtKey][i]
@@ -2399,7 +2399,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                           return { ...prev, [txtKey]: arr }
                         })}
                           title={disponible ? `Chapeau du niveau ${n}` : `Le niveau ${n} n’est pas affiché`}
-                          style={{ width: '34px', height: '30px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : '#d6d0c4'}`, background: actif ? 'var(--cs-vert)' : '#fff', color: actif ? '#fff' : '#9a958d', fontSize: '0.65625rem', cursor: disponible ? 'pointer' : 'default', opacity: disponible ? 1 : 0.4 }}>
+                          style={{ width: '34px', height: '30px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'var(--cs-vert)' : '#fff', color: actif ? '#fff' : 'var(--cs-texte-doux)', fontSize: '0.65625rem', cursor: disponible ? 'pointer' : 'default', opacity: disponible ? 1 : 0.4 }}>
                           N{n}
                         </button>
                       )
@@ -2409,14 +2409,14 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               )
             })}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.10em', color: '#b0a89e', margin: 0, textTransform: 'uppercase' }}>Numéros de segments</p>
+              <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.10em', color: 'var(--cs-texte-faible)', margin: 0, textTransform: 'uppercase' }}>Numéros de segments</p>
               <button onClick={() => setConfigNiveaux(prev => ({ ...prev, afficherNumeros: !prev.afficherNumeros }))}
-                style={{ fontSize: '0.6875rem', padding: '4px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: configNiveaux.afficherNumeros ? 'var(--cs-vert)' : '#fff', color: configNiveaux.afficherNumeros ? '#fff' : '#9a958d', cursor: 'pointer' }}>
+                style={{ fontSize: '0.6875rem', padding: '4px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: configNiveaux.afficherNumeros ? 'var(--cs-vert)' : '#fff', color: configNiveaux.afficherNumeros ? '#fff' : 'var(--cs-texte-doux)', cursor: 'pointer' }}>
                 {configNiveaux.afficherNumeros ? 'Affichés' : 'Masqués'}
               </button>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '12px', borderTop: '1px solid #ede9e2' }}>
-              <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '12px', borderTop: '1px solid var(--cs-fond-doux)' }}>
+              <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
               <button disabled={configEnvoi} onClick={async () => {
                 setConfigEnvoi(true)
                 const toStr = (b: boolean[]) => b.map(x => x ? '1' : '0').join(',')
@@ -2515,28 +2515,28 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
   const peutAvancer = pageActuelle < total - 1
   return (
     <div style={{ paddingRight: '8px', paddingTop: bas ? '2.5rem' : '0', paddingBottom: bas ? '0.5rem' : '1.5rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0', color: '#9a958d' }}>
-        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, transparent, #d6d0c4)' }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0', color: 'var(--cs-texte-doux)' }}>
+        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, transparent, var(--cs-bord))' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 16px' }}>
           <button
             onClick={() => peutReculer && setPageActuelle(pageActuelle - 1)}
             disabled={!peutReculer}
             title="Page précédente"
-            style={{ background: 'none', border: 'none', cursor: peutReculer ? 'pointer' : 'default', color: peutReculer ? '#7a7268' : '#d6d0c4', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
+            style={{ background: 'none', border: 'none', cursor: peutReculer ? 'pointer' : 'default', color: peutReculer ? 'var(--cs-texte-second)' : 'var(--cs-bord)', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
             ‹
           </button>
-          <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'italic', fontSize: '0.75rem', color: '#9a958d', letterSpacing: '0.02em', userSelect: 'none', minWidth: '80px', textAlign: 'center' }}>
+          <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--cs-texte-doux)', letterSpacing: '0.02em', userSelect: 'none', minWidth: '80px', textAlign: 'center' }}>
             {pageActuelle + 1} / {total}
           </span>
           <button
             onClick={() => peutAvancer && setPageActuelle(pageActuelle + 1)}
             disabled={!peutAvancer}
             title="Page suivante"
-            style={{ background: 'none', border: 'none', cursor: peutAvancer ? 'pointer' : 'default', color: peutAvancer ? '#7a7268' : '#d6d0c4', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
+            style={{ background: 'none', border: 'none', cursor: peutAvancer ? 'pointer' : 'default', color: peutAvancer ? 'var(--cs-texte-second)' : 'var(--cs-bord)', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
             ›
           </button>
         </div>
-        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to left, transparent, #d6d0c4)' }} />
+        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to left, transparent, var(--cs-bord))' }} />
       </div>
     </div>
   )

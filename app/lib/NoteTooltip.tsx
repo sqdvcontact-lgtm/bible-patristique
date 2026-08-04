@@ -153,7 +153,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
     // au lieu de <sup> (vertical-align:super) qui gonfle la boîte de ligne.
     <span style={{ marginLeft: 0, display: 'inline-block', position: 'relative', top: '-0.3em', verticalAlign: 'baseline', lineHeight: 0, fontSize: '0.68em' }}>
       <button onMouseEnter={traiterEntrer} onMouseLeave={traiterSortir} onClick={traiterClic}
-        style={{ color: fixe ? '#1e2e24' : 'var(--cs-vert)', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: 'inherit', fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'normal', lineHeight: 1 }}>
+        style={{ color: fixe ? 'var(--cs-encre-fonce)' : 'var(--cs-vert)', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: 'inherit', fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'normal', lineHeight: 1 }}>
         {lettre}
       </button>
     </span>

@@ -444,7 +444,7 @@ export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boo
             ) : chargement ? (
               <p style={etatTexte}>Chargement…</p>
             ) : erreur ? (
-              <p style={{ ...etatTexte, color: '#c0562a' }}>{erreur}</p>
+              <p style={{ ...etatTexte, color: 'var(--cs-danger)' }}>{erreur}</p>
             ) : mode === 'biblique' && verset && livreCorrect ? (
               <JeuBiblique
                 verset={verset} livreCorrect={livreCorrect} etape={etapeB} resultats={resultats} etapesRestantes={etapesRestantes}
@@ -523,7 +523,7 @@ function JeuChasse() {
     ? Math.max(0, nbCorrects * Math.max(5, 60 - Math.floor(secondes / 5)))
     : 0
 
-  const couleurTemps = secondes < 60 ? 'var(--cs-vert)' : secondes < 120 ? '#9a7a20' : '#c0562a'
+  const couleurTemps = secondes < 60 ? 'var(--cs-vert)' : secondes < 120 ? '#9a7a20' : 'var(--cs-danger)'
 
   return (
     <div style={{ display: 'grid', gap: '14px' }}>
@@ -614,8 +614,8 @@ function JeuChasse() {
           {verification.map((v, i) => (
             <div key={i} style={{
               marginBottom: '10px', padding: '10px 12px', borderRadius: '9px',
-              background: !v ? 'rgba(0,0,0,0.03)' : v.ok ? 'rgba(var(--cs-vert-rgb),0.08)' : 'rgba(192,86,42,0.07)',
-              border: `1px solid ${!v ? '#e4dfd8' : v.ok ? 'rgba(var(--cs-vert-rgb),0.20)' : 'rgba(192,86,42,0.18)'}`,
+              background: !v ? 'rgba(0,0,0,0.03)' : v.ok ? 'rgba(var(--cs-vert-rgb),0.08)' : 'rgba(var(--cs-danger-rgb),0.07)',
+              border: `1px solid ${!v ? 'var(--cs-bord-clair)' : v.ok ? 'rgba(var(--cs-vert-rgb),0.20)' : 'rgba(var(--cs-danger-rgb),0.18)'}`,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: v?.texte ? '6px' : 0 }}>
                 <span style={{ fontSize: '0.875rem' }}>{!refs[i].trim() ? '—' : v?.ok ? '✓' : '✗'}</span>
@@ -847,7 +847,7 @@ function BlocResultat({ verset, livreCorrect, score, resultats, nouveauVerset, s
           <button onClick={signaler} disabled={statutSignalement === 'sending' || statutSignalement === 'ok'} style={{ ...btnPrincipal, marginTop: '8px' }}>
             {statutSignalement === 'ok' ? 'Signalement envoyé ✓' : 'Envoyer'}
           </button>
-          {statutSignalement === 'err' && <span style={{ marginLeft: '10px', color: '#c0562a', fontSize: '0.6875rem' }}>Erreur.</span>}
+          {statutSignalement === 'err' && <span style={{ marginLeft: '10px', color: 'var(--cs-danger)', fontSize: '0.6875rem' }}>Erreur.</span>}
         </div>
       )}
     </BlocJeu>

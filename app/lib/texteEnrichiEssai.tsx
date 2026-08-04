@@ -109,19 +109,19 @@ export function rendreEssai(texte: string, options: RenduOptions = {}): React.Re
     if (espace) { flush(); blocs.push(<div key={blocs.length} style={{ height: `${espace[1]}mm` }} />); return }
     if (ligne.startsWith('> ')) {
       flush()
-      blocs.push(<blockquote key={blocs.length} style={{ fontStyle: 'normal', fontSize: '0.9em', fontFamily: "var(--font-source-sans), Arial, sans-serif", color: '#4a4440', marginLeft: '8mm', marginRight: '8mm', marginTop: '1.4mm', marginBottom: '1.4mm', lineHeight: 1.3, textAlign: 'justify', wordSpacing: '-0.01em', letterSpacing: '-0.004em', textIndent: 0 }}>{rendreInline(ligne.slice(2), cleNote, options)}</blockquote>)
+      blocs.push(<blockquote key={blocs.length} style={{ fontStyle: 'normal', fontSize: '0.9em', fontFamily: "var(--font-source-sans), Arial, sans-serif", color: 'var(--cs-texte)', marginLeft: '8mm', marginRight: '8mm', marginTop: '1.4mm', marginBottom: '1.4mm', lineHeight: 1.3, textAlign: 'justify', wordSpacing: '-0.01em', letterSpacing: '-0.004em', textIndent: 0 }}>{rendreInline(ligne.slice(2), cleNote, options)}</blockquote>)
       return
     }
     if (ligne.startsWith('## ')) {
       flush()
       const id = `essai-h-${indexTitre++}`
-      blocs.push(<h3 id={id} key={blocs.length} style={{ fontStyle: 'italic', fontWeight: 400, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1em', color: '#3a3530', marginTop: '4mm', marginBottom: '1mm', paddingLeft: '3mm', textIndent: 0, textAlign: 'left', scrollMarginTop: '60px' }}>{rendreInline(ligne.slice(3), cleNote, options)}</h3>)
+      blocs.push(<h3 id={id} key={blocs.length} style={{ fontStyle: 'italic', fontWeight: 400, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1em', color: 'var(--cs-texte)', marginTop: '4mm', marginBottom: '1mm', paddingLeft: '3mm', textIndent: 0, textAlign: 'left', scrollMarginTop: '60px' }}>{rendreInline(ligne.slice(3), cleNote, options)}</h3>)
       return
     }
     if (ligne.startsWith('# ')) {
       flush()
       const id = `essai-h-${indexTitre++}`
-      blocs.push(<h2 id={id} key={blocs.length} style={{ fontWeight: 600, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.06em', lineHeight: 1.25, color: '#1e2e24', marginTop: '6mm', marginBottom: '4mm', paddingLeft: 0, textIndent: 0, textAlign: 'left', scrollMarginTop: '60px', letterSpacing: '0.01em' }}>{rendreInline(ligne.slice(2), cleNote, options)}</h2>)
+      blocs.push(<h2 id={id} key={blocs.length} style={{ fontWeight: 600, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.06em', lineHeight: 1.25, color: 'var(--cs-encre-fonce)', marginTop: '6mm', marginBottom: '4mm', paddingLeft: 0, textIndent: 0, textAlign: 'left', scrollMarginTop: '60px', letterSpacing: '0.01em' }}>{rendreInline(ligne.slice(2), cleNote, options)}</h2>)
       return
     }
     paragraphe.push(ligne)

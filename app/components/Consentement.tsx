@@ -58,7 +58,7 @@ export default function Consentement() {
           style={{
             position: 'fixed', left: '50%', transform: 'translateX(-50%)',
             bottom: '16px', zIndex: 3000, width: 'min(680px, calc(100% - 24px))',
-            background: '#fbfaf7', border: '1px solid #d9d3c8',
+            background: 'var(--cs-fond-clair)', border: '1px solid #d9d3c8',
             borderRadius: '12px', boxShadow: '0 12px 40px rgba(30,26,22,0.18)',
             padding: '18px 20px',
             display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '14px',
@@ -79,7 +79,7 @@ export default function Consentement() {
               style={{
                 fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
                 padding: '9px 16px', borderRadius: '8px',
-                border: '1px solid #c8c0b4', background: '#fff', color: '#6f675f',
+                border: '1px solid var(--cs-bord)', background: '#fff', color: '#6f675f',
               }}
             >
               Refuser

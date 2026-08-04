@@ -172,18 +172,26 @@ Réorganisation de `app/components/Navbar.tsx` et éclatement de l'ancienne page
 - **Enrichissements** (`rendreTexteEnrichi`) appliqués aux intitulés et aux notices, ici comme sur la page détail.
 - **Badge « ensemble »** (italique muet) sur les péricopes `est_collection`.
 
-# Couleur d'accent — token `--cs-vert` (audit, point 1)
+# Palette harmonisée — tokens sémantiques (`app/globals.css`, `:root`)
 
-Le vert du site est désormais **un token** (`app/globals.css`, `:root`) et non plus une valeur en dur :
-- `--cs-vert` (aplat `#3d6b4f`) — liens, boutons, états actifs ;
-- `--cs-vert-rgb` (`61, 107, 79`) — pour les variantes translucides : `rgba(var(--cs-vert-rgb), α)` ;
-- `--cs-vert-fonce` (`#2e5440`) — survol / pressé.
+Toutes les couleurs de l'interface passent par des **tokens sémantiques** définis dans `:root` de `app/globals.css`. Ils sont **ancrés sur les valeurs déjà dominantes** du code : le rendu perçu ne bouge pas, mais les ~776 couleurs en dur (dont des dizaines de quasi-doublons indiscernables) sont rabattues sur ~22 tokens. **Règle : aucune couleur d'interface n'est écrite en dur ; on utilise le token** (`color: 'var(--cs-texte-doux)'`, `background: 'rgba(var(--cs-danger-rgb), 0.1)'`).
 
-**Règle : tout nouveau vert d'accent passe par ces tokens** (`color: 'var(--cs-vert)'`, `background: 'rgba(var(--cs-vert-rgb), 0.09)'`), jamais `#3d6b4f`/`rgba(61,107,79,·)` en dur. Migration faite sur 80 fichiers / 681 usages (script `scratchpad/sweep-verts.js`).
+Familles :
+- **Accent vert** : `--cs-vert` (`#3d6b4f`), `--cs-vert-rgb` (`61, 107, 79`, pour les `rgba(...)`), `--cs-vert-fonce` (`#2e5440`, survol/pressé), `--cs-vert-pale` (`#dfe8e0`, encarts).
+- **Fonds** (crème) : `--cs-fond` (`#f7f4ef`), `--cs-fond-clair` (`#faf8f4`), `--cs-fond-doux` (`#ede9e2`).
+- **Bordures & filets** : `--cs-bord` (`#d6d0c4`), `--cs-bord-rgb` (`214, 208, 196`), `--cs-bord-clair` (`#e4dfd8`).
+- **Texte** (gris chauds, du ténu au corps) : `--cs-texte-faible` (`#b0a89e`), `--cs-texte-doux` (`#9a958d`), `--cs-texte-second` (`#6b6560`), `--cs-texte` (`#3a3530`), `--cs-texte-fort` (`#2a2520`).
+- **Encre** (verts des titres) : `--cs-encre` (`#2a3d30`), `--cs-encre-fonce` (`#1e2e24`). *(Ces verts d'encre, jadis en dur, sont désormais tokenisés.)*
+- **Danger & alerte** : `--cs-danger` (`#c0562a`), `--cs-danger-rgb` (`192, 86, 42`), `--cs-danger-fonce` (`#9a2a2a`), `--cs-danger-fond` (`#fdf2ee`), `--cs-danger-bord` (`#e4c4b8`).
+- **Or** (références, fleurons, favoris) : `--cs-or` (`#9a7a38`), `--cs-or-doux` (`#c8b89e`).
 
-**Exceptions volontaires (10) :** les attributs SVG `fill=`/`stroke=` gardent la valeur littérale `#3d6b4f` (une custom property n'y est pas résolue par les navigateurs) — dans `Navbar.tsx`, `polyglotte/page.tsx`, `bibliotheque/BibliothequeClient.tsx`. Pour les tokeniser, passer par `style={{ stroke: 'var(--cs-vert)' }}`.
+**Exception volontaire — SVG** : les attributs de présentation `fill=`/`stroke=`/`stop-color=` gardent la valeur **littérale** (une custom property n'y est pas résolue par les navigateurs). Le script de bascule les préserve ; pour tokeniser un SVG, passer par `style={{ stroke: 'var(--cs-vert)' }}`.
 
-**Restent en dur (pas encore tokenisés) :** les verts d'ENCRE très foncés `#1e2e24` (~58) et `#2a3d30` (~116), utilisés comme couleur de texte des titres — à décider s'ils rejoignent un token `--cs-vert-encre` ou restent distincts.
+**Bascule** : script `scratchpad/sweep-palette.mjs` (table de rabat curée, exceptions SVG protégées), migration sur 89 fichiers / ~2082 usages, en plus des 681 usages du vert. `globals.css` est exclu du balayage (c'est là que les tokens sont **définis**). Référence visuelle de la palette : maquette « Palette d'harmonie » (voir charte §18).
+
+**Mode sombre** : le site est en thème **clair** ; les tokens ne portent qu'un jeu de valeurs. Un mode sombre éventuel se dérivera de ces mêmes tokens (chantier distinct — ne pas activer un `@media (prefers-color-scheme: dark)` partiel, le reste du site n'est pas prêt).
+
+**Reliquat** : les `rgba(...)` translucides non « de marque » (ombres `rgba(0,0,0,·)` / `rgba(255,255,255,·)`, et quelques teintes rares utilisées &lt; 5 fois) restent en dur — hors périmètre de cette passe.
 
 # Perf du chemin de lecture (audit, point 2)
 

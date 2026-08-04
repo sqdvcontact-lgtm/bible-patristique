@@ -186,7 +186,7 @@ function BoutonCopieSegment({ texte, auteur, titre, trad_auteur, editeur, collec
   }
   return (
     <button onClick={handle} title="Copier ce segment"
-      style={{ ...ACTION_BTN, color: copie ? 'var(--cs-vert)' : '#c8c0b4' }}>
+      style={{ ...ACTION_BTN, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
       {copie ? '✓' : (
         <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
           <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
@@ -242,7 +242,7 @@ function BoutonEnregistrerSegment({ segment, info, userId }: {
   }
   return (
     <button onClick={enregistrer} disabled={loading} title="Enregistrer dans mes prélèvements"
-      style={{ ...ACTION_BTN, color:'#c8c0b4' }}>
+      style={{ ...ACTION_BTN, color:'var(--cs-bord)' }}>
       {loading ? '…' : <IconeSignet />}
     </button>
   )
@@ -260,7 +260,7 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
     return (
       <button onClick={e => { e.stopPropagation(); setConfirme(true) }}
         title={`Supprimer ${colonneLien}`}
-        style={{ ...ACTION_BTN, fontSize:'1.13rem', color:'#c8c0b4' }}>
+        style={{ ...ACTION_BTN, fontSize:'1.13rem', color:'var(--cs-bord)' }}>
         ×
       </button>
     )
@@ -274,11 +274,11 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
         setLoading(false)
         onSupprime()
       }} disabled={loading}
-        style={{ fontSize:'0.63562rem', padding:'1px 5px', borderRadius:'3px', border:'none', background:'#c0392b', color:'#fff', cursor:'pointer' }}>
+        style={{ fontSize:'0.63562rem', padding:'1px 5px', borderRadius:'3px', border:'none', background:'var(--cs-danger)', color:'#fff', cursor:'pointer' }}>
         {loading ? '…' : 'Oui'}
       </button>
       <button onClick={e => { e.stopPropagation(); setConfirme(false) }}
-        style={{ fontSize:'0.63562rem', padding:'1px 5px', borderRadius:'3px', border:'1px solid #d6d0c4', background:'#fff', color:'#6b6560', cursor:'pointer' }}>
+        style={{ fontSize:'0.63562rem', padding:'1px 5px', borderRadius:'3px', border:'1px solid var(--cs-bord)', background:'#fff', color:'var(--cs-texte-second)', cursor:'pointer' }}>
         Non
       </button>
     </span>
@@ -303,7 +303,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
   }
 
   return (
-    <div style={{ paddingTop:'6px', paddingBottom:'4px', borderBottom:'1px solid #ede9e2' }}>
+    <div style={{ paddingTop:'6px', paddingBottom:'4px', borderBottom:'1px solid var(--cs-fond-doux)' }}>
 
       {/* Ligne méta : auteur + titre + niveaux (gauche), badge + actions (droite) */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'8px' }}>
@@ -321,7 +321,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
             )}
             <a href={`/oeuvre/${s.id_oeuvre}?segment=${s.id}#segment-${s.id}`} target="_blank" rel="noopener noreferrer"
               title="Accéder au passage exact dans l'œuvre"
-              style={{ color:'#b0a89e', textDecoration:'none', flexShrink:0, display:'flex', alignItems:'center' }}>
+              style={{ color:'var(--cs-texte-faible)', textDecoration:'none', flexShrink:0, display:'flex', alignItems:'center' }}>
               <svg width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden="true">
                 <path d="M4 1.5H8.5V6M8.5 1.5L2 8" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -336,7 +336,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
               priment ; la nature du rapport se lit si l'on y prend garde. Un
               passage cité PUIS commenté les porte toutes les deux. */}
           {natures && natures.length > 0 && (
-            <span style={{ display:'block', fontSize:'0.67094rem', color:'#b0a89e', letterSpacing:'0.03em', marginTop:'2px' }}>
+            <span style={{ display:'block', fontSize:'0.67094rem', color:'var(--cs-texte-faible)', letterSpacing:'0.03em', marginTop:'2px' }}>
               {natures.map(n => LIBELLE_NATURE[n] ?? n).join(' · ')}
             </span>
           )}
@@ -350,7 +350,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
               collection={info?.collection} ville={info?.ville ?? undefined} date_publication={info?.date_publication ?? undefined}
             />
             <button onClick={e => { e.stopPropagation(); onSignaler(s, info?.titre) }} title="Signaler une erreur"
-              style={{ ...ACTION_BTN, color:'#c8c0b4' }}>
+              style={{ ...ACTION_BTN, color:'var(--cs-bord)' }}>
               <IconeDrapeau />
             </button>
             <BoutonSupprimerLien
@@ -362,7 +362,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
       </div>
 
       {/* Texte du segment */}
-      <p lang="fr" style={{ fontSize:'0.791rem', lineHeight:'1.38', color:'#2a2520', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
+      <p lang="fr" style={{ fontSize:'0.791rem', lineHeight:'1.38', color:'var(--cs-texte-fort)', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
         {rendreTexteAvecNotes(s.segment_texte, parseNotes(s.notes))}
       </p>
     </div>
@@ -580,14 +580,14 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
     const estCertifie = !!c.certifie
     const estRevision = !c.valide
     const fondCarte = estCertifie ? 'rgba(var(--cs-vert-rgb),0.08)' : estRevision ? 'rgba(176,58,42,0.07)' : '#fff'
-    const bordureCarte = estCertifie ? 'rgba(var(--cs-vert-rgb),0.28)' : estRevision ? 'rgba(176,58,42,0.26)' : '#e4dfd8'
-    const accentCarte = estReponse ? '#c8c0b4' : estCertifie ? 'var(--cs-vert)' : estRevision ? '#b03a2a' : '#d6d0c4'
+    const bordureCarte = estCertifie ? 'rgba(var(--cs-vert-rgb),0.28)' : estRevision ? 'rgba(176,58,42,0.26)' : 'var(--cs-bord-clair)'
+    const accentCarte = estReponse ? 'var(--cs-bord)' : estCertifie ? 'var(--cs-vert)' : estRevision ? 'var(--cs-danger)' : 'var(--cs-bord)'
     const fondTexte = estCertifie ? 'rgba(255,255,255,0.42)' : estRevision ? 'rgba(255,255,255,0.48)' : 'rgba(255,255,255,0.54)'
-    const couleurTexte = estRevision ? '#6f3d35' : '#2a2520'
+    const couleurTexte = estRevision ? '#6f3d35' : 'var(--cs-texte-fort)'
     return (
       <div className="commentaire-carte" key={c.id} style={{ marginLeft: estReponse ? '14px' : 0, marginBottom:'7px', padding:'7px 9px', background: fondCarte, border:'1px solid ' + bordureCarte, borderLeft:'4px solid ' + accentCarte, borderRadius:'6px', viewTransitionName: `commentaire-bible-${c.id}` }}>
         {c.supprime ? (
-          <p style={{ fontSize:'0.74156rem', color:'#9a958d', fontStyle:'italic', margin:0 }}>
+          <p style={{ fontSize:'0.74156rem', color:'var(--cs-texte-doux)', fontStyle:'italic', margin:0 }}>
             {c.pseudo ?? c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
           </p>
         ) : (
@@ -595,7 +595,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
         {/* Ligne 1 : pseudo + rang */}
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'8px', marginBottom:'4px' }}>
           <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', minWidth:0 }}>
-            <span style={{ fontSize:'0.70625rem', fontWeight:600, color:'#2a3d30' }}>{c.pseudo ?? c.auteur_nom}</span>
+            <span style={{ fontSize:'0.70625rem', fontWeight:600, color:'var(--cs-encre)' }}>{c.pseudo ?? c.auteur_nom}</span>
             {couleurs && rangInfo && (
               <span style={{ fontSize:'0.565rem', fontWeight:600, color:couleurs.texte, background:couleurs.fond, padding:'0px 5px', borderRadius:'3px', letterSpacing:'0.02em' }}>
                 {rangInfo.rang}
@@ -604,7 +604,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
             {estCertifie && <span style={{ fontSize:'0.565rem', fontWeight:700, color:'#2f6a48', background:'rgba(var(--cs-vert-rgb),0.14)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>CERTIFIÉ</span>}
             {estRevision && <span style={{ fontSize:'0.565rem', fontWeight:700, color:'#b0392b', background:'rgba(176,58,42,0.10)', padding:'1px 6px', borderRadius:'3px', letterSpacing:'0.04em' }}>EN RÉVISION</span>}
           </div>
-          <span style={{ marginLeft:'auto', textAlign:'right', fontSize:'0.61444rem', color:'#b0a89e', flexShrink:0 }}>{dateHeureCommentaire(c.created_at)}</span>
+          <span style={{ marginLeft:'auto', textAlign:'right', fontSize:'0.61444rem', color:'var(--cs-texte-faible)', flexShrink:0 }}>{dateHeureCommentaire(c.created_at)}</span>
         </div>
         {/* Ligne 2 : texte (gras/italique/liens interprétés, sauts de ligne respectés) */}
         <div style={{ fontSize:'0.76275rem', lineHeight:'1.42', color: couleurTexte, margin:0, whiteSpace:'pre-line', background: fondTexte, borderRadius:'4px', padding:'5px 6px' }}>{rendreTexteEnrichi(c.texte)}</div>
@@ -613,14 +613,14 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
           {/* J'aime EN PREMIER, puis Je n'aime pas ; les deux boutons resserrés. */}
           <div style={{ display:'flex', alignItems:'center', gap:'1px', flexShrink:0 }}>
             <button onClick={() => basculerVote(c, 1)} title="J'aime"
-              style={{ display:'flex', alignItems:'center', gap:'2px', color: c.monVote === 1 ? 'var(--cs-vert)' : '#b0a89e', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
+              style={{ display:'flex', alignItems:'center', gap:'2px', color: c.monVote === 1 ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
               <svg width="10" height="10" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
               <span style={{ minWidth:'10px', textAlign:'left', fontWeight:600, fontSize:'0.63562rem' }}>{c.nbLikes}</span>
             </button>
             <button onClick={() => basculerVote(c, -1)} title="Je n'aime pas"
-              style={{ display:'flex', alignItems:'center', gap:'2px', color: c.monVote === -1 ? '#9a4a2a' : '#b0a89e', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
+              style={{ display:'flex', alignItems:'center', gap:'2px', color: c.monVote === -1 ? 'var(--cs-danger-fonce)' : 'var(--cs-texte-faible)', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
               <svg width="10" height="10" viewBox="0 0 20 20" fill="none" style={{ transform:'rotate(180deg)' }} aria-hidden="true">
                 <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
@@ -629,24 +629,24 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
           </div>
           {!estReponse && (
             <button onClick={() => setCibleReponse(c)}
-              style={{ fontSize:'0.67094rem', color:'#9a958d', background:'none', border:'none', cursor:'pointer', padding:0, flexShrink:0 }}>
+              style={{ fontSize:'0.67094rem', color:'var(--cs-texte-doux)', background:'none', border:'none', cursor:'pointer', padding:0, flexShrink:0 }}>
               Répondre
             </button>
           )}
           {userId === c.user_id && (
             <button onClick={() => supprimerMonCommentaire(c)} title="Supprimer mon commentaire"
-              style={{ fontSize:'0.70625rem', color:'#9a958d', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft:'auto', flexShrink:0 }}>
+              style={{ fontSize:'0.70625rem', color:'var(--cs-texte-doux)', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft:'auto', flexShrink:0 }}>
               Supprimer
             </button>
           )}
           {isAdmin && userId !== c.user_id && (
             <button onClick={() => supprimerCommentaire(c)} title="Supprimer ce commentaire"
-              style={{ fontSize:'0.70625rem', color:'#c0392b', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft:'auto', flexShrink:0 }}>
+              style={{ fontSize:'0.70625rem', color:'var(--cs-danger)', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft:'auto', flexShrink:0 }}>
               Supprimer (admin)
             </button>
           )}
           <button onClick={() => setCommentaireSignale(c)} title="Signaler ce commentaire"
-            style={{ color:'#c8c0b4', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft: userId === c.user_id || (isAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink:0, display:'inline-flex', alignItems:'center' }}>
+            style={{ color:'var(--cs-bord)', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft: userId === c.user_id || (isAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink:0, display:'inline-flex', alignItems:'center' }}>
             <IconeDrapeau />
           </button>
         </div>
@@ -700,14 +700,14 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
       {/* Liste défilante : occupe la place disponible pour que la zone de saisie
           reste épinglée au bas du volet. */}
       <div style={{ flex:1, minHeight:0, overflowY:'auto' }}>
-        {loading && <p style={{ fontSize:'0.74156rem', color:'#9a958d', fontStyle:'italic' }}>Chargement…</p>}
+        {loading && <p style={{ fontSize:'0.74156rem', color:'var(--cs-texte-doux)', fontStyle:'italic' }}>Chargement…</p>}
         {!loading && commentaires.length === 0 && (
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', marginTop:'26px', marginBottom:'14px' }}>
             {/* Cul-de-lampe d'état vide (carapace de tortue). `multiply` fond le fond
                 blanc du dessin dans le papier du panneau. */}
             <img src="/ornements/carapace-vide.png" alt="" aria-hidden="true"
               style={{ width:'min(168px, 58%)', height:'auto', opacity:0.46, mixBlendMode:'multiply', marginBottom:'14px' }} />
-            <p style={{ fontSize:'0.74156rem', color:'#b0a89e', fontStyle:'italic', margin:0 }}>Aucun commentaire.</p>
+            <p style={{ fontSize:'0.74156rem', color:'var(--cs-texte-faible)', fontStyle:'italic', margin:0 }}>Aucun commentaire.</p>
           </div>
         )}
         {principaux.map(c => (
@@ -717,7 +717,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
           </div>
         ))}
       </div>
-      <div style={{ flexShrink:0, display:'flex', flexDirection:'column', gap:'5px', borderTop:'1px solid #ede9e2', marginTop:'4px', paddingTop:'10px' }}>
+      <div style={{ flexShrink:0, display:'flex', flexDirection:'column', gap:'5px', borderTop:'1px solid var(--cs-fond-doux)', marginTop:'4px', paddingTop:'10px' }}>
         {cibleReponse && (
           <div style={{ display:'flex', alignItems:'center', gap:'6px', background:'rgba(var(--cs-vert-rgb),0.07)', border:'1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius:'5px', padding:'5px 8px' }}>
             <span style={{ display:'inline-flex', alignItems:'center', gap:'5px', fontSize:'0.70625rem', color:'var(--cs-vert)' }}>
@@ -726,21 +726,21 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
               </svg>
               Réponse à <strong>{cibleReponse.pseudo ?? cibleReponse.auteur_nom}</strong>
             </span>
-            <button onClick={() => setCibleReponse(null)} style={{ marginLeft:'auto', fontSize:'0.77687rem', color:'#9a958d', background:'none', border:'none', cursor:'pointer', padding:0 }}>✕</button>
+            <button onClick={() => setCibleReponse(null)} style={{ marginLeft:'auto', fontSize:'0.77687rem', color:'var(--cs-texte-doux)', background:'none', border:'none', cursor:'pointer', padding:0 }}>✕</button>
           </div>
         )}
         <EditeurCommentaire value={texte} onChange={setTexte} placeholder={cibleReponse ? 'Votre réponse…' : 'Votre commentaire…'} minHeight={62} />
         {!userId && (
           <>
             <input type="text" value={nom} onChange={e => setNom(e.target.value)} placeholder="Nom *"
-              style={{ width:'100%', fontSize:'0.70625rem', padding:'4px 7px', borderRadius:'4px', border:`1px solid ${erreur && !nom.trim() ? '#c0392b' : '#d6d0c4'}`, background:'#fff', color:'#2a2520', outline:'none', boxSizing:'border-box' }} />
+              style={{ width:'100%', fontSize:'0.70625rem', padding:'4px 7px', borderRadius:'4px', border:`1px solid ${erreur && !nom.trim() ? 'var(--cs-danger)' : 'var(--cs-bord)'}`, background:'#fff', color:'var(--cs-texte-fort)', outline:'none', boxSizing:'border-box' }} />
             <input type="email" value={mail} onChange={e => setMail(e.target.value)} placeholder="Adresse e-mail *"
-              style={{ width:'100%', fontSize:'0.70625rem', padding:'4px 7px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', outline:'none', boxSizing:'border-box' }} />
-            <p style={{ fontSize:'0.63562rem', color:'#b0a89e', margin:0 }}>* L'adresse e-mail ne sera pas publiée.</p>
+              style={{ width:'100%', fontSize:'0.70625rem', padding:'4px 7px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'#fff', color:'var(--cs-texte-fort)', outline:'none', boxSizing:'border-box' }} />
+            <p style={{ fontSize:'0.63562rem', color:'var(--cs-texte-faible)', margin:0 }}>* L'adresse e-mail ne sera pas publiée.</p>
           </>
         )}
-        {erreur && <p style={{ fontSize:'0.67094rem', color:'#c0392b', margin:0 }}>{erreur}</p>}
-        <label style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'0.67094rem', color:'#6b6560', cursor:'pointer', lineHeight:1, height:'16px' }}>
+        {erreur && <p style={{ fontSize:'0.67094rem', color:'var(--cs-danger)', margin:0 }}>{erreur}</p>}
+        <label style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'0.67094rem', color:'var(--cs-texte-second)', cursor:'pointer', lineHeight:1, height:'16px' }}>
           <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
             style={{ width:'12px', height:'12px', flexShrink:0, accentColor:'var(--cs-vert)', cursor:'pointer', margin:0 }} />
           <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demander la certification</span>
@@ -1137,21 +1137,21 @@ export default function PanneauPatristique({
       // au tap, le tiroir des Pères monte depuis le bas.
       return (
         <button onClick={() => setOuvert(true)} title="Ouvrir les textes patristiques"
-          style={{ position: 'fixed', bottom: BANDEAU_NAV_MOBILE, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#faf8f4', border: 'none', borderTop: '1px solid #d6d0c4', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(-90deg)', color: '#9a958d' }}>
+          style={{ position: 'fixed', bottom: BANDEAU_NAV_MOBILE, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(-90deg)', color: 'var(--cs-texte-doux)' }}>
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: '#6b6560' }}>Commentaires</span>
+          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Commentaires</span>
         </button>
       )
     }
     return (
       <button onClick={() => setOuvert(true)} title="Ouvrir les textes patristiques"
-        style={{ width: '22px', flexShrink: 0, background: '#faf8f4', border: 'none', borderLeft: '1px solid #d6d0c4', cursor: 'pointer', color: '#9a958d', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '100%' }}>
+        style={{ width: '22px', flexShrink: 0, background: 'var(--cs-fond-clair)', border: 'none', borderLeft: '1px solid var(--cs-bord)', cursor: 'pointer', color: 'var(--cs-texte-doux)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '100%' }}>
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="M10 4l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        <span style={{ writingMode: 'vertical-rl' as any, fontSize: '0.565rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>Commentaires</span>
+        <span style={{ writingMode: 'vertical-rl' as any, fontSize: '0.565rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-faible)' }}>Commentaires</span>
       </button>
     )
   }
@@ -1175,8 +1175,8 @@ export default function PanneauPatristique({
     <div ref={refPanel} style={mobile
       ? (presentation === 'inline'
         ? { width:'100%', background:'#fff', display:'flex', flexDirection:'column', paddingTop:'2.875rem', minHeight:`calc(100dvh - ${HAUTEUR_NAVBAR})`, paddingBottom:BANDEAU_NAV_MOBILE }
-        : { position:'fixed', bottom:BANDEAU_NAV_MOBILE, left:0, right:0, zIndex:2401, background:'#fff', borderTop:'1px solid #d6d0c4', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem - ${BANDEAU_NAV_MOBILE})`, minHeight:0, boxShadow:'0 -10px 28px rgba(45,35,25,0.22)' })
-      : { width: panelWidth == null ? 'clamp(260px, 20vw, 460px)' : panelWidth + 'px', flexShrink:0, background:'#fff', borderLeft:'1px solid #d6d0c4', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
+        : { position:'fixed', bottom:BANDEAU_NAV_MOBILE, left:0, right:0, zIndex:2401, background:'#fff', borderTop:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem - ${BANDEAU_NAV_MOBILE})`, minHeight:0, boxShadow:'0 -10px 28px rgba(45,35,25,0.22)' })
+      : { width: panelWidth == null ? 'clamp(260px, 20vw, 460px)' : panelWidth + 'px', flexShrink:0, background:'#fff', borderLeft:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
       {/* Tag de filtre : un fantôme en gras (::after) fige la largeur, pour que la
           sélection (texte mis en gras) ne repousse pas les tags voisins. */}
       <style>{`
@@ -1200,18 +1200,18 @@ export default function PanneauPatristique({
       )}
 
       {/* En-tête */}
-      <div style={{ position:'relative', borderBottom:'1px solid #d6d0c4', minHeight:'38px', display:'flex', alignItems:'center', justifyContent:'center', padding:'6px 36px' }}>
+      <div style={{ position:'relative', borderBottom:'1px solid var(--cs-bord)', minHeight:'38px', display:'flex', alignItems:'center', justifyContent:'center', padding:'6px 36px' }}>
         {/* Flèche « réduire » inutile en mode onglets (mobile) ; gardée pour desktop. */}
         {presentation !== 'inline' && (
           <button onClick={() => setOuvert(false)} title="Réduire le volet"
-            style={{ position:'absolute', left:'8px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', padding:'3px', color:'#b0a89e', display:'flex', alignItems:'center' }}>
+            style={{ position:'absolute', left:'8px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', padding:'3px', color:'var(--cs-texte-faible)', display:'flex', alignItems:'center' }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
         )}
         {refFr && (
-          <h2 style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.91812rem', fontWeight:500, color:'#2a3d30', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', textAlign:'center' }}>
+          <h2 style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.91812rem', fontWeight:500, color:'var(--cs-encre)', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', textAlign:'center' }}>
             {refFr}
           </h2>
         )}
@@ -1221,7 +1221,7 @@ export default function PanneauPatristique({
         <div style={{ display:'flex', flexDirection:'column', flex:1, minHeight:0 }}>
 
           {/* Onglets pleine largeur */}
-          <div style={{ display:'flex', borderBottom:'1px solid #d6d0c4' }}>
+          <div style={{ display:'flex', borderBottom:'1px solid var(--cs-bord)' }}>
             {ONGLETS.map(t => (
               <button key={t.code} onClick={() => setOnglet(t.code)}
                 style={{
@@ -1229,7 +1229,7 @@ export default function PanneauPatristique({
                   borderBottom: onglet === t.code ? '2px solid var(--cs-vert)' : '2px solid transparent',
                   cursor:'pointer',
                   background: onglet === t.code ? 'rgba(var(--cs-vert-rgb),0.04)' : 'transparent',
-                  color: onglet === t.code ? '#2a3d30' : '#8a8278',
+                  color: onglet === t.code ? 'var(--cs-encre)' : '#8a8278',
                   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
                   transition:'color 0.12s, background 0.12s',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
@@ -1240,10 +1240,10 @@ export default function PanneauPatristique({
                     réservation basse qui le ferait descendre. */}
                 <span style={{ fontSize:'0.67094rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: onglet === t.code ? 600 : 400, textAlign: 'center', lineHeight: 1.15 }}>{t.label}</span>
                 {t.count != null && t.count > 0 && (
-                  <span style={{ fontSize: '0.63562rem', color: onglet === t.code ? 'var(--cs-vert)' : '#b0a89e', fontWeight: 500, lineHeight: 1 }}>{t.count}</span>
+                  <span style={{ fontSize: '0.63562rem', color: onglet === t.code ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', fontWeight: 500, lineHeight: 1 }}>{t.count}</span>
                 )}
                 {t.count != null && t.count === 0 && !loading && (
-                  <span style={{ fontSize: '0.60031rem', color: '#c0b8b0', fontStyle: 'italic', lineHeight: 1 }}>Aucune occurrence</span>
+                  <span style={{ fontSize: '0.60031rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', lineHeight: 1 }}>Aucune occurrence</span>
                 )}
               </button>
             ))}
@@ -1269,20 +1269,20 @@ export default function PanneauPatristique({
                     ['echos', 'Échos', nbEchos],
                   ]
                   return (
-                    <div style={{ display: 'flex', borderBottom: '1px solid #ede9e2', margin: '6px -12px 0', padding: '0 12px' }}>
+                    <div style={{ display: 'flex', borderBottom: '1px solid var(--cs-fond-doux)', margin: '6px -12px 0', padding: '0 12px' }}>
                       {subTabs.map(([key, label, nb], idx) => (
                         <button key={key} onClick={() => setSousOnglet(key)}
                           style={{
                             flex: 1, background: 'none', border: 'none',
                             borderBottom: sousOnglet === key ? '2px solid var(--cs-vert)' : '2px solid transparent',
                             padding: '5px 2px 4px', cursor: 'pointer',
-                            color: sousOnglet === key ? 'var(--cs-vert)' : '#9a958d',
+                            color: sousOnglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-doux)',
                             fontSize: '0.63562rem', fontWeight: sousOnglet === key ? 600 : 400,
                             letterSpacing: '0.04em', lineHeight: 1.2,
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px',
                           }}>
                           <span>{label}</span>
-                          {nb > 0 && <span style={{ fontSize: '0.565rem', color: sousOnglet === key ? 'var(--cs-vert)' : '#c0b8ae' }}>{nb}</span>}
+                          {nb > 0 && <span style={{ fontSize: '0.565rem', color: sousOnglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-faible)' }}>{nb}</span>}
                         </button>
                       ))}
                     </div>
@@ -1295,7 +1295,7 @@ export default function PanneauPatristique({
                     position: 'relative',
                     display: 'flex', width: '100%', justifyContent: 'center', alignItems: 'center', gap: '4px',
                     fontSize: '0.67094rem', padding: '5px 9px', borderRadius: '7px', cursor: 'pointer',
-                    border: `1px solid ${filtreVoletOuvert || nombreFiltresActifs > 0 ? 'var(--cs-vert)' : '#d6d0c4'}`,
+                    border: `1px solid ${filtreVoletOuvert || nombreFiltresActifs > 0 ? 'var(--cs-vert)' : 'var(--cs-bord)'}`,
                     background: filtreVoletOuvert || nombreFiltresActifs > 0 ? 'rgba(var(--cs-vert-rgb),0.10)' : '#fff',
                     color: filtreVoletOuvert || nombreFiltresActifs > 0 ? 'var(--cs-vert)' : '#8a8278',
                     fontWeight: 500,
@@ -1325,10 +1325,10 @@ export default function PanneauPatristique({
                         value={rechercheAuteur}
                         onChange={e => setRechercheAuteur(e.target.value)}
                         placeholder="Chercher un auteur…"
-                        style={{ width: '100%', fontSize: '0.74156rem', padding: '4px 7px', borderRadius: '4px', border: '1px solid #cfc4ae', background: '#fdf9f4', color: '#2a3d30', boxSizing: 'border-box', outline: 'none' }}
+                        style={{ width: '100%', fontSize: '0.74156rem', padding: '4px 7px', borderRadius: '4px', border: '1px solid var(--cs-or-doux)', background: '#fdf9f4', color: 'var(--cs-encre)', boxSizing: 'border-box', outline: 'none' }}
                       />
                       {resultatsAuteur.length > 0 && (
-                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fdf9f4', border: '1px solid #cfc4ae', borderTop: 'none', borderRadius: '0 0 4px 4px', zIndex: 20, boxShadow: '0 4px 10px rgba(176,160,136,0.18)' }}>
+                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fdf9f4', border: '1px solid var(--cs-or-doux)', borderTop: 'none', borderRadius: '0 0 4px 4px', zIndex: 20, boxShadow: '0 4px 10px rgba(176,160,136,0.18)' }}>
                           {resultatsAuteur.map(a => (
                             <button key={a.id_auteur} onClick={() => {
                               setFiltreAuteursIds(prev => new Set([...prev, a.id_auteur]))
@@ -1336,7 +1336,7 @@ export default function PanneauPatristique({
                               setRechercheAuteur('')
                               setResultatsAuteur([])
                               setPageItems(0)
-                            }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '5px 8px', fontSize: '0.74156rem', color: '#2a3d30', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                            }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '5px 8px', fontSize: '0.74156rem', color: 'var(--cs-encre)', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
                               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(var(--cs-vert-rgb),0.07)')}
                               onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
                               {a.nom}
@@ -1375,7 +1375,7 @@ export default function PanneauPatristique({
                               onClick={() => { setFiltreTraditions(prev => { const n = new Set(prev); if (n.has(t)) n.delete(t); else n.add(t); return n }); setPageItems(0) }}
                               style={{
                                 fontSize: '0.63562rem', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
-                                border: `1px solid ${sel ? 'var(--cs-vert)' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
+                                border: `1px solid ${sel ? 'var(--cs-vert)' : dispo ? 'var(--cs-or-doux)' : '#e6e0d4'}`,
                                 background: sel ? 'rgba(var(--cs-vert-rgb),0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
                                 color: sel ? '#2a5a38' : dispo ? '#6b5f4a' : '#c4bcae',
                               }}>
@@ -1397,7 +1397,7 @@ export default function PanneauPatristique({
                               onClick={() => { setFiltreGenres(prev => { const n = new Set(prev); if (n.has(g)) n.delete(g); else n.add(g); return n }); setPageItems(0) }}
                               style={{
                                 fontSize: '0.63562rem', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
-                                border: `1px solid ${sel ? 'var(--cs-vert)' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
+                                border: `1px solid ${sel ? 'var(--cs-vert)' : dispo ? 'var(--cs-or-doux)' : '#e6e0d4'}`,
                                 background: sel ? 'rgba(var(--cs-vert-rgb),0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
                                 color: sel ? '#2a5a38' : dispo ? '#6b5f4a' : '#c4bcae',
                               }}>
@@ -1420,7 +1420,7 @@ export default function PanneauPatristique({
                               onClick={() => { setFiltreSiecles(prev => { const n = new Set(prev); if (n.has(s)) n.delete(s); else n.add(s); return n }); setPageItems(0) }}
                               style={{
                                 fontSize: '0.63562rem', padding: '2px 7px', borderRadius: '9px', cursor: dispo ? 'pointer' : 'default',
-                                border: `1px solid ${sel ? '#9a7e3d' : dispo ? '#cfc4ae' : '#e6e0d4'}`,
+                                border: `1px solid ${sel ? '#9a7e3d' : dispo ? 'var(--cs-or-doux)' : '#e6e0d4'}`,
                                 background: sel ? 'rgba(154,126,61,0.16)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
                                 color: sel ? '#7a5e1a' : dispo ? '#6b5f4a' : '#c4bcae',
                               }}>
@@ -1437,24 +1437,24 @@ export default function PanneauPatristique({
                         setFiltreAuteursIds(new Set()); setFiltreAuteursBlancs([])
                         setFiltreTraditions(new Set()); setFiltreSiecles(new Set()); setFiltreGenres(new Set())
                         setPageItems(0)
-                      }} style={{ marginTop: '8px', fontSize: '0.63562rem', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                      }} style={{ marginTop: '8px', fontSize: '0.63562rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
                         Tout effacer
                       </button>
                     )}
                   </div>
                 )}
 
-                {loading && <p style={{ fontSize:'0.77687rem', color:'#9a958d', textAlign:'center', padding:'16px 0' }}>Chargement…</p>}
+                {loading && <p style={{ fontSize:'0.77687rem', color:'var(--cs-texte-doux)', textAlign:'center', padding:'16px 0' }}>Chargement…</p>}
                 {!loading && itemsFiltres.length === 0 && itemsAffiches.length === 0 && (
                   <div style={{ display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', marginTop:'26px', marginBottom:'14px' }}>
                     {/* Même cul-de-lampe d'état vide que l'onglet Commentaires (carapace). */}
                     <img src="/ornements/carapace-vide.png" alt="" aria-hidden="true"
                       style={{ width:'min(168px, 58%)', height:'auto', opacity:0.46, mixBlendMode:'multiply', marginBottom:'14px' }} />
-                    <p style={{ fontSize:'0.77687rem', color:'#9a958d', fontStyle:'italic', margin:0 }}>Aucune occurrence.</p>
+                    <p style={{ fontSize:'0.77687rem', color:'var(--cs-texte-doux)', fontStyle:'italic', margin:0 }}>Aucune occurrence.</p>
                   </div>
                 )}
                 {!loading && itemsFiltres.length === 0 && itemsAffiches.length > 0 && (
-                  <p style={{ fontSize:'0.77687rem', color:'#9a958d', textAlign:'center', padding:'12px 0', fontStyle:'italic' }}>Aucun résultat pour ces filtres.</p>
+                  <p style={{ fontSize:'0.77687rem', color:'var(--cs-texte-doux)', textAlign:'center', padding:'12px 0', fontStyle:'italic' }}>Aucun résultat pour ces filtres.</p>
                 )}
                 <div style={{ marginTop: '6px' }}>
                 {itemsPage.map(groupe => {
@@ -1481,18 +1481,18 @@ export default function PanneauPatristique({
 
           {/* Pagination — fixée en pied de panneau, hors zone scrollable */}
           {onglet !== 'commentaires' && !loading && nbPagesItems > 1 && (
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', padding:'8px 0 10px', borderTop:'1px solid #e4dfd8', background:'#fff', flexShrink:0 }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', padding:'8px 0 10px', borderTop:'1px solid var(--cs-bord-clair)', background:'#fff', flexShrink:0 }}>
               <button onClick={() => setPageItems(Math.max(pageCouranteItems - 1, 0))} disabled={pageCouranteItems === 0}
                 title="Page précédente"
-                style={{ fontSize:'1.27125rem', lineHeight:1, padding:'0 6px', border:'none', background:'none', color: pageCouranteItems === 0 ? '#c8c0b4' : '#6b6560', cursor: pageCouranteItems === 0 ? 'default' : 'pointer' }}>
+                style={{ fontSize:'1.27125rem', lineHeight:1, padding:'0 6px', border:'none', background:'none', color: pageCouranteItems === 0 ? 'var(--cs-bord)' : 'var(--cs-texte-second)', cursor: pageCouranteItems === 0 ? 'default' : 'pointer' }}>
                 ‹
               </button>
-              <span style={{ fontSize:'0.67094rem', color:'#9a958d', whiteSpace:'nowrap', padding:'0 2px' }}>
+              <span style={{ fontSize:'0.67094rem', color:'var(--cs-texte-doux)', whiteSpace:'nowrap', padding:'0 2px' }}>
                 {debutItems + 1}–{finItems} / {itemsGroupes.length}{nombreFiltresActifs > 0 ? ` (${itemsAffiches.length})` : ''}
               </span>
               <button onClick={() => setPageItems(Math.min(pageCouranteItems + 1, nbPagesItems - 1))} disabled={pageCouranteItems >= nbPagesItems - 1}
                 title="Page suivante"
-                style={{ fontSize:'1.27125rem', lineHeight:1, padding:'0 6px', border:'none', background:'none', color: pageCouranteItems >= nbPagesItems - 1 ? '#c8c0b4' : '#6b6560', cursor: pageCouranteItems >= nbPagesItems - 1 ? 'default' : 'pointer' }}>
+                style={{ fontSize:'1.27125rem', lineHeight:1, padding:'0 6px', border:'none', background:'none', color: pageCouranteItems >= nbPagesItems - 1 ? 'var(--cs-bord)' : 'var(--cs-texte-second)', cursor: pageCouranteItems >= nbPagesItems - 1 ? 'default' : 'pointer' }}>
                 ›
               </button>
             </div>
@@ -1521,14 +1521,14 @@ export default function PanneauPatristique({
       ) : (
         <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-start', padding:'48px 24px 0' }}>
           <div style={{ display:'flex', alignItems:'center', gap:'8px', width:'100%', marginBottom:'22px' }}>
-            <div style={{ flex:1, height:'1px', background:'linear-gradient(to right, transparent, #d6d0c4)' }} />
-            <span style={{ fontSize:'0.63562rem', color:'#c8c0b4', letterSpacing:'0.2em', flexShrink:0 }}>· · ·</span>
-            <div style={{ flex:1, height:'1px', background:'linear-gradient(to left, transparent, #d6d0c4)' }} />
+            <div style={{ flex:1, height:'1px', background:'linear-gradient(to right, transparent, var(--cs-bord))' }} />
+            <span style={{ fontSize:'0.63562rem', color:'var(--cs-bord)', letterSpacing:'0.2em', flexShrink:0 }}>· · ·</span>
+            <div style={{ flex:1, height:'1px', background:'linear-gradient(to left, transparent, var(--cs-bord))' }} />
           </div>
           <div style={{ textAlign:'center', marginBottom:'14px' }}>
-            <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'1.55375rem', color:'#c8c0b4', lineHeight:1 }}>❧</span>
+            <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'1.55375rem', color:'var(--cs-bord)', lineHeight:1 }}>❧</span>
           </div>
-          <div style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.8475rem', fontStyle:'italic', color:'#9a958d', lineHeight:1.85, textAlign:'center' }}>
+          <div style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.8475rem', fontStyle:'italic', color:'var(--cs-texte-doux)', lineHeight:1.85, textAlign:'center' }}>
             {[
               ['Cliquez sur un verset pour voir', '220px'],
               ['les textes des Pères', '155px'],
@@ -1539,9 +1539,9 @@ export default function PanneauPatristique({
             ))}
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:'8px', width:'100%', marginTop:'22px' }}>
-            <div style={{ flex:1, height:'1px', background:'linear-gradient(to right, transparent, #d6d0c4)' }} />
-            <span style={{ fontSize:'0.63562rem', color:'#c8c0b4', letterSpacing:'0.2em', flexShrink:0 }}>· · ·</span>
-            <div style={{ flex:1, height:'1px', background:'linear-gradient(to left, transparent, #d6d0c4)' }} />
+            <div style={{ flex:1, height:'1px', background:'linear-gradient(to right, transparent, var(--cs-bord))' }} />
+            <span style={{ fontSize:'0.63562rem', color:'var(--cs-bord)', letterSpacing:'0.2em', flexShrink:0 }}>· · ·</span>
+            <div style={{ flex:1, height:'1px', background:'linear-gradient(to left, transparent, var(--cs-bord))' }} />
           </div>
         </div>
       )}

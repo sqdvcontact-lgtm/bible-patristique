@@ -26,7 +26,7 @@ export function BoutonCopieVerset({ texte, label }: { texte: string; label: stri
   }
   return (
     <Bulle texte="Copier ce verset">
-      <button onClick={handle} style={{ ...BTN_STYLE, color: copie ? 'var(--cs-vert)' : '#c8c0b4' }} aria-label="Copier ce verset">
+      <button onClick={handle} style={{ ...BTN_STYLE, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }} aria-label="Copier ce verset">
         {copie ? '✓' : (
           <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
             <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
@@ -75,7 +75,7 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
 
   return (
     <Bulle texte="Enregistrer dans mes prélèvements">
-      <button onClick={enregistrer} disabled={loading} style={{ ...BTN_STYLE, color:'#c8c0b4' }} aria-label="Enregistrer dans mes prélèvements">
+      <button onClick={enregistrer} disabled={loading} style={{ ...BTN_STYLE, color:'var(--cs-bord)' }} aria-label="Enregistrer dans mes prélèvements">
         {loading ? '…' : <IconeSignet />}
       </button>
     </Bulle>
@@ -87,7 +87,7 @@ export function BoutonSignalerVerset({ versetId, label, texte, segmentId }: { ve
   return (
     <>
       <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
-        title="Signaler une erreur" style={{ ...BTN_STYLE, color:'#c8c0b4' }}><IconeDrapeau /></button>
+        title="Signaler une erreur" style={{ ...BTN_STYLE, color:'var(--cs-bord)' }}><IconeDrapeau /></button>
       {ouvert && (
         <ModalSignalement
           titre={label}

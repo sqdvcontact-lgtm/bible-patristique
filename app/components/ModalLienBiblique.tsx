@@ -177,10 +177,10 @@ export default function ModalLienBiblique({
         <div style={{ padding: '16px 20px 13px', borderBottom: '1px solid #e6dfd4', display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'flex-start' }}>
           <div>
             <p style={{ margin: '0 0 4px', fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '.12em', color: '#8b7a5c', fontWeight: 700 }}>Lien biblique</p>
-            <h2 style={{ margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', fontWeight: 400, color: '#1e2e24' }}>{titre}</h2>
+            <h2 style={{ margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', fontWeight: 400, color: 'var(--cs-encre-fonce)' }}>{titre}</h2>
             {erreur && <p style={{ margin: '7px 0 0', color: '#b05638', fontSize: '0.75rem' }}>{erreur}</p>}
           </div>
-          <button onClick={onFermer} style={{ border: 0, background: 'transparent', color: '#9a958d', cursor: 'pointer', fontSize: '1.125rem', lineHeight: 1, padding: '2px 4px' }}>×</button>
+          <button onClick={onFermer} style={{ border: 0, background: 'transparent', color: 'var(--cs-texte-doux)', cursor: 'pointer', fontSize: '1.125rem', lineHeight: 1, padding: '2px 4px' }}>×</button>
         </div>
 
         <div style={{ minHeight: 0, display: 'grid', gridTemplateColumns: '210px minmax(0, 1fr) 250px' }}>
@@ -214,12 +214,12 @@ export default function ModalLienBiblique({
                 }
               }}
               placeholder="Rechercher un mot, une expression ou une référence..."
-              style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #d8d0c3', borderRadius: '999px', padding: '8px 13px', fontSize: '0.75rem', background: '#fff', color: '#2a2520', outline: 'none', marginBottom: '12px' }}
+              style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #d8d0c3', borderRadius: '999px', padding: '8px 13px', fontSize: '0.75rem', background: '#fff', color: 'var(--cs-texte-fort)', outline: 'none', marginBottom: '12px' }}
             />
 
             {recherche.trim().length >= 2 ? (
               <div>
-                <p style={{ margin: '0 0 9px', fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '.1em', color: '#9a958d', fontWeight: 700 }}>
+                <p style={{ margin: '0 0 9px', fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--cs-texte-doux)', fontWeight: 700 }}>
                   {chargementRecherche ? 'Recherche...' : `${resultats.length} résultat(s)`}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
@@ -227,7 +227,7 @@ export default function ModalLienBiblique({
                     <button key={v.id} onClick={() => basculerVerset(v)}
                       style={{ textAlign: 'left', border: `1px solid ${selection[v.id] ? '#7ea185' : '#e4ded4'}`, background: selection[v.id] ? '#f1f7f2' : '#fff', borderRadius: '7px', padding: '8px 10px', cursor: 'pointer' }}>
                       <strong style={{ display: 'block', color: '#2f6046', fontSize: '0.75rem', marginBottom: '3px' }}>{v.label}</strong>
-                      <span style={{ display: 'block', color: '#3a3530', fontSize: '0.75rem', lineHeight: 1.45 }}>{rendreTexteEnrichi(v.texte)}</span>
+                      <span style={{ display: 'block', color: 'var(--cs-texte)', fontSize: '0.75rem', lineHeight: 1.45 }}>{rendreTexteEnrichi(v.texte)}</span>
                     </button>
                   ))}
                 </div>
@@ -237,20 +237,20 @@ export default function ModalLienBiblique({
                 <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginBottom: '13px' }}>
                   {chapitres.map(ch => (
                     <button key={ch} onClick={() => setChapitre(ch)}
-                      style={{ minWidth: '30px', border: '1px solid #d8d0c3', borderRadius: '999px', padding: '4px 8px', cursor: 'pointer', background: chapitre === ch ? 'var(--cs-vert)' : '#fff', color: chapitre === ch ? '#fff' : '#5a5450', fontSize: '0.6875rem' }}>
+                      style={{ minWidth: '30px', border: '1px solid #d8d0c3', borderRadius: '999px', padding: '4px 8px', cursor: 'pointer', background: chapitre === ch ? 'var(--cs-vert)' : '#fff', color: chapitre === ch ? '#fff' : 'var(--cs-texte)', fontSize: '0.6875rem' }}>
                       {ch}
                     </button>
                   ))}
                 </div>
                 {chargementLivre ? (
-                  <p style={{ color: '#9a958d', fontStyle: 'italic', fontSize: '0.75rem' }}>Chargement du livre...</p>
+                  <p style={{ color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontSize: '0.75rem' }}>Chargement du livre...</p>
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '7px' }}>
                     {versetsChapitre.map(v => (
                       <button key={v.id} onClick={() => basculerVerset(v)}
                         style={{ textAlign: 'left', border: `1px solid ${selection[v.id] ? '#7ea185' : '#e4ded4'}`, background: selection[v.id] ? '#f1f7f2' : '#fff', borderRadius: '7px', padding: '8px 9px', cursor: 'pointer' }}>
                         <strong style={{ color: '#2f6046', fontSize: '0.71875rem' }}>{v.label}</strong>
-                        <span style={{ display: 'block', marginTop: '3px', color: '#3a3530', fontSize: '0.71875rem', lineHeight: 1.42 }}>{rendreTexteEnrichi(v.texte)}</span>
+                        <span style={{ display: 'block', marginTop: '3px', color: 'var(--cs-texte)', fontSize: '0.71875rem', lineHeight: 1.42 }}>{rendreTexteEnrichi(v.texte)}</span>
                       </button>
                     ))}
                   </div>
@@ -259,12 +259,12 @@ export default function ModalLienBiblique({
             )}
           </main>
 
-          <aside style={{ minHeight: 0, overflowY: 'auto', borderLeft: '1px solid #eee7dc', padding: '14px 14px', background: '#fbfaf7' }}>
+          <aside style={{ minHeight: 0, overflowY: 'auto', borderLeft: '1px solid #eee7dc', padding: '14px 14px', background: 'var(--cs-fond-clair)' }}>
             <p style={{ margin: '0 0 8px', fontSize: '0.5625rem', letterSpacing: '.12em', textTransform: 'uppercase', color: '#a59b8f', fontWeight: 700 }}>Type de lien</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
               {TYPES_LIEN.filter(t => champs.includes(t.champ)).map(t => (
                 <button key={t.champ} onClick={() => setChamp(t.champ)}
-                  style={{ textAlign: 'left', border: `1px solid ${champ === t.champ ? 'var(--cs-vert)' : '#ded7cc'}`, background: champ === t.champ ? '#edf5ef' : '#fff', color: champ === t.champ ? '#2f6046' : '#5a5450', borderRadius: '7px', padding: '8px 9px', cursor: 'pointer', fontSize: '0.71875rem', fontWeight: champ === t.champ ? 700 : 400 }}>
+                  style={{ textAlign: 'left', border: `1px solid ${champ === t.champ ? 'var(--cs-vert)' : '#ded7cc'}`, background: champ === t.champ ? '#edf5ef' : '#fff', color: champ === t.champ ? '#2f6046' : 'var(--cs-texte)', borderRadius: '7px', padding: '8px 9px', cursor: 'pointer', fontSize: '0.71875rem', fontWeight: champ === t.champ ? 700 : 400 }}>
                   {t.label}
                 </button>
               ))}
@@ -273,7 +273,7 @@ export default function ModalLienBiblique({
 
             <p style={{ margin: '0 0 8px', fontSize: '0.5625rem', letterSpacing: '.12em', textTransform: 'uppercase', color: '#a59b8f', fontWeight: 700 }}>Sélection</p>
             {selectionListe.length === 0 ? (
-              <p style={{ color: '#9a958d', fontStyle: 'italic', fontSize: '0.71875rem', lineHeight: 1.45 }}>Sélectionnez un ou plusieurs versets dans la Bible.</p>
+              <p style={{ color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontSize: '0.71875rem', lineHeight: 1.45 }}>Sélectionnez un ou plusieurs versets dans la Bible.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 {selectionListe.map(v => (
@@ -292,9 +292,9 @@ export default function ModalLienBiblique({
             {selectionListe.length > 0 ? `${selectionListe.length} verset(s) sélectionné(s)` : 'Aucun verset sélectionné'}
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={onFermer} style={{ border: '1px solid #d8d0c3', background: '#fff', color: '#6b6560', borderRadius: '999px', padding: '7px 14px', cursor: 'pointer', fontSize: '0.75rem' }}>Fermer</button>
+            <button onClick={onFermer} style={{ border: '1px solid #d8d0c3', background: '#fff', color: 'var(--cs-texte-second)', borderRadius: '999px', padding: '7px 14px', cursor: 'pointer', fontSize: '0.75rem' }}>Fermer</button>
             <button onClick={valider} disabled={selectionListe.length === 0 || enregistrement}
-              style={{ border: '1px solid var(--cs-vert)', background: selectionListe.length === 0 || enregistrement ? '#e4dfd8' : 'var(--cs-vert)', color: selectionListe.length === 0 || enregistrement ? '#9a958d' : '#fff', borderRadius: '999px', padding: '7px 15px', cursor: selectionListe.length === 0 || enregistrement ? 'default' : 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
+              style={{ border: '1px solid var(--cs-vert)', background: selectionListe.length === 0 || enregistrement ? 'var(--cs-bord-clair)' : 'var(--cs-vert)', color: selectionListe.length === 0 || enregistrement ? 'var(--cs-texte-doux)' : '#fff', borderRadius: '999px', padding: '7px 15px', cursor: selectionListe.length === 0 || enregistrement ? 'default' : 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
               {enregistrement ? 'Enregistrement...' : 'Créer le lien biblique'}
             </button>
           </div>

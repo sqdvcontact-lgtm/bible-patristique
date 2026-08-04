@@ -33,7 +33,7 @@ type Profil = {
 type PhotoProfil = { id_auteur: string; nom: string; imageUrl: string; posX?: number; posY?: number; zoom?: number };
 type CitationPreferee = { id: string; texte: string; type: "biblique" | "patristique"; ref?: string; auteur?: string; titre_oeuvre?: string };
 
-const inputStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: "0.84375rem", border: "1px solid #d6d0c4", borderRadius: "6px", background: "#f9f7f4", color: "#1e1a16", outline: "none", boxSizing: "border-box" };
+const inputStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: "0.84375rem", border: "1px solid var(--cs-bord)", borderRadius: "6px", background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", boxSizing: "border-box" };
 const labelStyle: React.CSSProperties = { fontSize: "0.6875rem", fontWeight: 600, color: "#6a7b6e", letterSpacing: "0.06em", display: "block", marginBottom: "5px" };
 
 function urlCompte(): string {
@@ -70,8 +70,8 @@ export default function ComptePage() {
 
   if (verification || !user) {
     return (
-      <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "#f3efe3", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ fontSize: "0.8125rem", color: "#9a958d", fontStyle: "italic" }}>Chargement…</p>
+      <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "var(--cs-fond)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ fontSize: "0.8125rem", color: "var(--cs-texte-doux)", fontStyle: "italic" }}>Chargement…</p>
       </main>
     );
   }
@@ -105,8 +105,8 @@ function MonCompte({ user, router }: { user: { id: string; email: string; email_
 
   if (chargement) {
     return (
-      <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "#f3efe3", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ fontSize: "0.8125rem", color: "#9a958d", fontStyle: "italic" }}>Chargement…</p>
+      <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "var(--cs-fond)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ fontSize: "0.8125rem", color: "var(--cs-texte-doux)", fontStyle: "italic" }}>Chargement…</p>
       </main>
     );
   }
@@ -132,11 +132,11 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
   };
 
   return (
-    <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "#f3efe3", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
-      <div style={{ background: "#fff", border: "1px solid #ddd8cf", borderRadius: "12px", padding: "32px 36px", width: "100%", maxWidth: "23.75rem" }}>
-        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "#2a3d30", marginBottom: "8px" }}>Choisissez votre pseudonyme</h1>
-        <p style={{ fontSize: "0.78125rem", color: "#9a958d", marginBottom: "20px", lineHeight: 1.5 }}>Il vous identifie sur le site et doit être unique.</p>
-        {erreur && <p style={{ fontSize: "0.78125rem", color: "#9a2a2a", marginBottom: "12px" }}>{erreur}</p>}
+    <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "var(--cs-fond)", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+      <div style={{ background: "#fff", border: "1px solid var(--cs-bord)", borderRadius: "12px", padding: "32px 36px", width: "100%", maxWidth: "23.75rem" }}>
+        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "var(--cs-encre)", marginBottom: "8px" }}>Choisissez votre pseudonyme</h1>
+        <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-doux)", marginBottom: "20px", lineHeight: 1.5 }}>Il vous identifie sur le site et doit être unique.</p>
+        {erreur && <p style={{ fontSize: "0.78125rem", color: "var(--cs-danger-fonce)", marginBottom: "12px" }}>{erreur}</p>}
         <form onSubmit={valider} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           <input type="text" value={pseudo} onChange={e => setPseudo(e.target.value)} maxLength={32} autoFocus placeholder="Pseudonyme" style={inputStyle} />
           <button type="submit" disabled={envoi} style={{ padding: "10px", borderRadius: "6px", border: "none", background: "var(--cs-vert)", color: "#fff", fontSize: "0.84375rem", fontWeight: 500, cursor: "pointer" }}>
@@ -186,18 +186,18 @@ function SectionRang({ score }: { score: number }) {
       <div style={{ marginBottom: "4px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
           {RANGS.map((r, i) => (
-            <span key={r} style={{ fontSize: "0.53125rem", fontWeight: r === rang ? 700 : 400, color: r === rang ? couleurs.texte : "#c0b8ae", letterSpacing: "0.06em", textTransform: "uppercase", flex: 1, textAlign: i === 0 ? "left" : i === 2 ? "right" : "center" }}>
+            <span key={r} style={{ fontSize: "0.53125rem", fontWeight: r === rang ? 700 : 400, color: r === rang ? couleurs.texte : "var(--cs-texte-faible)", letterSpacing: "0.06em", textTransform: "uppercase", flex: 1, textAlign: i === 0 ? "left" : i === 2 ? "right" : "center" }}>
               {r}
             </span>
           ))}
         </div>
         <div style={{ position: "relative", height: "5px", background: "#ece8df", borderRadius: "999px", overflow: "hidden" }}>
           <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: barreWidth, background: barreColor, borderRadius: "999px", transition: "width 1s cubic-bezier(0.4,0,0.2,1), background 0.4s ease" }} />
-          <div style={{ position: "absolute", left: "33.3%", top: 0, bottom: 0, width: "2px", background: "#f3efe3", zIndex: 1 }} />
-          <div style={{ position: "absolute", left: "66.6%", top: 0, bottom: 0, width: "2px", background: "#f3efe3", zIndex: 1 }} />
+          <div style={{ position: "absolute", left: "33.3%", top: 0, bottom: 0, width: "2px", background: "var(--cs-fond)", zIndex: 1 }} />
+          <div style={{ position: "absolute", left: "66.6%", top: 0, bottom: 0, width: "2px", background: "var(--cs-fond)", zIndex: 1 }} />
         </div>
         {rangSuivant && (
-          <p style={{ fontSize: "0.625rem", color: "#c0b8ae", margin: "4px 0 0", fontStyle: "italic", textAlign: "right" }}>
+          <p style={{ fontSize: "0.625rem", color: "var(--cs-texte-faible)", margin: "4px 0 0", fontStyle: "italic", textAlign: "right" }}>
             {seuilSuivant! - score} point{seuilSuivant! - score > 1 ? "s" : ""} avant <em>{rangSuivant}</em>
           </p>
         )}
@@ -224,14 +224,14 @@ function SectionPublications({ userId }: { userId: string }) {
   if (charge || essais.length === 0) return null;
 
   return (
-    <div style={{ background: "#fdf9f3", border: "1px solid #e4dfd8", borderRadius: "10px", padding: "24px 26px", marginBottom: "16px" }}>
-      <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#9a7a38", margin: "0 0 14px", textAlign: "center" }}>Publications</p>
+    <div style={{ background: "#fdf9f3", border: "1px solid var(--cs-bord-clair)", borderRadius: "10px", padding: "24px 26px", marginBottom: "16px" }}>
+      <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--cs-or)", margin: "0 0 14px", textAlign: "center" }}>Publications</p>
       <div style={{ display: "flex", flexDirection: "column" }}>
         {essais.map((e, i) => (
           <a key={e.id} href={`/essais/${e.id}`}
-            style={{ display: "flex", alignItems: "baseline", gap: "10px", padding: "8px 0", textDecoration: "none", borderBottom: i < essais.length - 1 ? "1px solid #f0ece6" : "none" }}>
-            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.84375rem", fontStyle: "italic", color: "#2a3d30", flex: 1, lineHeight: 1.4 }}>{e.titre}</span>
-            <span style={{ fontSize: "0.625rem", color: "#c0b8ae", flexShrink: 0 }}>{new Date(e.cree_le).getFullYear()}</span>
+            style={{ display: "flex", alignItems: "baseline", gap: "10px", padding: "8px 0", textDecoration: "none", borderBottom: i < essais.length - 1 ? "1px solid var(--cs-fond-doux)" : "none" }}>
+            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.84375rem", fontStyle: "italic", color: "var(--cs-encre)", flex: 1, lineHeight: 1.4 }}>{e.titre}</span>
+            <span style={{ fontSize: "0.625rem", color: "var(--cs-texte-faible)", flexShrink: 0 }}>{new Date(e.cree_le).getFullYear()}</span>
           </a>
         ))}
       </div>
@@ -258,16 +258,16 @@ function SectionFavoris({ userId }: { userId: string }) {
   if (charge || favoris.length === 0) return null;
 
   return (
-    <div style={{ background: "#fdf9f3", border: "1px solid #e4dfd8", borderRadius: "10px", padding: "24px 26px", marginBottom: "16px" }}>
-      <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#9a7a38", margin: "0 0 14px", textAlign: "center" }}>Bibliothèque</p>
+    <div style={{ background: "#fdf9f3", border: "1px solid var(--cs-bord-clair)", borderRadius: "10px", padding: "24px 26px", marginBottom: "16px" }}>
+      <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--cs-or)", margin: "0 0 14px", textAlign: "center" }}>Bibliothèque</p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "8px" }}>
         {favoris.map(f => (
           <a key={f.id_oeuvre} href={`/oeuvre/${encodeURIComponent(f.id_oeuvre)}`}
-            style={{ display: "block", padding: "12px 14px", background: "#f9f7f3", border: "1px solid #e4dfd8", borderRadius: "7px", textDecoration: "none", borderLeft: "3px solid #c8c0b4", transition: "border-color 0.15s" }}
+            style={{ display: "block", padding: "12px 14px", background: "#f9f7f3", border: "1px solid var(--cs-bord-clair)", borderRadius: "7px", textDecoration: "none", borderLeft: "3px solid var(--cs-bord)", transition: "border-color 0.15s" }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderLeftColor = "var(--cs-vert)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderLeftColor = "#c8c0b4"; }}>
-            {f.auteur_nom && <p style={{ fontSize: "0.5625rem", fontWeight: 600, letterSpacing: "0.06em", color: "#9a958d", textTransform: "uppercase", margin: "0 0 3px" }}>{f.auteur_nom}</p>}
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.78125rem", fontStyle: "italic", color: "#2a3d30", margin: 0, lineHeight: 1.4 }}>{f.titre}</p>
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderLeftColor = "var(--cs-bord)"; }}>
+            {f.auteur_nom && <p style={{ fontSize: "0.5625rem", fontWeight: 600, letterSpacing: "0.06em", color: "var(--cs-texte-doux)", textTransform: "uppercase", margin: "0 0 3px" }}>{f.auteur_nom}</p>}
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.78125rem", fontStyle: "italic", color: "var(--cs-encre)", margin: 0, lineHeight: 1.4 }}>{f.titre}</p>
           </a>
         ))}
       </div>
@@ -313,8 +313,8 @@ function ModaleRecadrage({ photo, onSauvegarder, onChanger, onClose }: {
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1300, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
       <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "12px", padding: "28px", width: "21.25rem", maxWidth: "100%", boxShadow: "0 16px 48px rgba(0,0,0,0.22)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>Recadrer la photo</h3>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1rem", color: "#b0a89e", padding: "2px" }}>x</button>
+          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", fontWeight: "normal", color: "var(--cs-encre)", margin: 0 }}>Recadrer la photo</h3>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1rem", color: "var(--cs-texte-faible)", padding: "2px" }}>x</button>
         </div>
         <div
           style={{ width: "10rem", height: "160px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 20px", border: "2px solid #c8d8cc", cursor: dragging ? "grabbing" : "grab", position: "relative" }}
@@ -347,7 +347,7 @@ function ModaleRecadrage({ photo, onSauvegarder, onChanger, onClose }: {
             Appliquer
           </button>
           <button onClick={onChanger}
-            style={{ padding: "7px 16px", borderRadius: "6px", border: "1px solid #d6d0c4", background: "#fff", color: "#6a7b6e", fontSize: "0.75rem", cursor: "pointer" }}>
+            style={{ padding: "7px 16px", borderRadius: "6px", border: "1px solid var(--cs-bord)", background: "#fff", color: "#6a7b6e", fontSize: "0.75rem", cursor: "pointer" }}>
             Changer de photo
           </button>
         </div>
@@ -374,14 +374,14 @@ function ModalePhoto({ onChoisir, onClose }: { onChoisir: (photo: PhotoProfil) =
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
       <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "12px", padding: "28px", width: "37.5rem", maxWidth: "100%", maxHeight: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 16px 48px rgba(0,0,0,0.2)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", flexShrink: 0 }}>
-          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.0625rem", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>Choisir une illustration</h3>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1rem", color: "#b0a89e", padding: "2px" }}>✕</button>
+          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.0625rem", fontWeight: "normal", color: "var(--cs-encre)", margin: 0 }}>Choisir une illustration</h3>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1rem", color: "var(--cs-texte-faible)", padding: "2px" }}>✕</button>
         </div>
-        <p style={{ fontSize: "0.71875rem", color: "#9a958d", margin: "0 0 18px", flexShrink: 0, lineHeight: 1.5 }}>
+        <p style={{ fontSize: "0.71875rem", color: "var(--cs-texte-doux)", margin: "0 0 18px", flexShrink: 0, lineHeight: 1.5 }}>
           Identifiez-vous à un Père de l’Église. L’illustration apparaîtra sur votre profil.
         </p>
         {charge ? (
-          <p style={{ fontSize: "0.8125rem", color: "#b0a89e", fontStyle: "italic", textAlign: "center", padding: "30px 0" }}>Chargement…</p>
+          <p style={{ fontSize: "0.8125rem", color: "var(--cs-texte-faible)", fontStyle: "italic", textAlign: "center", padding: "30px 0" }}>Chargement…</p>
         ) : (
           <div style={{ overflowY: "auto", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))", gap: "12px", paddingRight: "4px" }}>
             {auteurs.map(a => (
@@ -402,13 +402,13 @@ function AutorPhotoItem({ auteur, base, onChoisir }: { auteur: AuteurPhoto; base
   if (erreur) return null;
 
   return (
-    <button onClick={onChoisir} style={{ background: "none", border: "1px solid #e4dfd8", borderRadius: "8px", padding: "10px 8px 8px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", transition: "border-color 0.15s, background 0.15s" }}
+    <button onClick={onChoisir} style={{ background: "none", border: "1px solid var(--cs-bord-clair)", borderRadius: "8px", padding: "10px 8px 8px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", transition: "border-color 0.15s, background 0.15s" }}
       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--cs-vert)"; (e.currentTarget as HTMLElement).style.background = "#f3f7f4"; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#e4dfd8"; (e.currentTarget as HTMLElement).style.background = ""; }}>
-      <div style={{ width: "72px", height: "90px", position: "relative", background: "#ede9e2", borderRadius: "4px", overflow: "hidden" }}>
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--cs-bord-clair)"; (e.currentTarget as HTMLElement).style.background = ""; }}>
+      <div style={{ width: "72px", height: "90px", position: "relative", background: "var(--cs-fond-doux)", borderRadius: "4px", overflow: "hidden" }}>
         <Image src={url} alt={auteur.nom} fill sizes="72px" unoptimized onError={() => setErreur(true)} style={{ objectFit: "cover", objectPosition: "top" }} />
       </div>
-      <span style={{ fontSize: "0.59375rem", color: "#3a3530", textAlign: "center", lineHeight: 1.3, fontFamily: "var(--font-source-serif), Georgia, serif" }}>{auteur.nom}</span>
+      <span style={{ fontSize: "0.59375rem", color: "var(--cs-texte)", textAlign: "center", lineHeight: 1.3, fontFamily: "var(--font-source-serif), Georgia, serif" }}>{auteur.nom}</span>
     </button>
   );
 }
@@ -624,10 +624,10 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
   const anneeInscription = profilInit.membre_depuis ? new Date(profilInit.membre_depuis).getFullYear() : null;
 
   return (
-    <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "#f3efe3", padding: "40px 20px 100px", display: "flex", justifyContent: "center" }}>
+    <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "var(--cs-fond)", padding: "40px 20px 100px", display: "flex", justifyContent: "center" }}>
       <style>{`
-        .cs-section-card { background: #fff; border: 1px solid #e4dfd8; border-radius: 10px; padding: 24px 26px; margin-bottom: 16px; }
-        .cs-section-title { font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.5625rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #9a958d; margin: 0 0 18px; }
+        .cs-section-card { background: #fff; border: 1px solid var(--cs-bord-clair); border-radius: 10px; padding: 24px 26px; margin-bottom: 16px; }
+        .cs-section-title { font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.5625rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cs-texte-doux); margin: 0 0 18px; }
         .cs-check-item { display: flex; align-items: center; gap: 10px; }
         .cs-check-circle { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size:0.625rem; }
       `}</style>
@@ -635,7 +635,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
       <div style={{ width: "100%", maxWidth: "32.5rem" }}>
 
         {/* ── EN-TÊTE CENTRÉ ── */}
-        <div style={{ background: "#fff", border: "1px solid #e4dfd8", borderRadius: "10px", padding: "36px 30px 28px", marginBottom: "16px", textAlign: "center" }}>
+        <div style={{ background: "#fff", border: "1px solid var(--cs-bord-clair)", borderRadius: "10px", padding: "36px 30px 28px", marginBottom: "16px", textAlign: "center" }}>
 
           {/* Photo ou avatar */}
           <div style={{ position: "relative", display: "inline-block", marginBottom: "16px" }}>
@@ -654,7 +654,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
                 />
               </div>
             ) : (
-              <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "linear-gradient(135deg,var(--cs-vert),#2a3d30)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", border: "2px solid #c8d8cc" }}>
+              <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "linear-gradient(135deg,var(--cs-vert),var(--cs-encre))", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", border: "2px solid #c8d8cc" }}>
                 <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.75rem", color: "#e8f0eb", fontWeight: "normal" }}>
                   {profilInit.pseudo.charAt(0).toUpperCase()}
                 </span>
@@ -663,7 +663,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
             <button
               onClick={() => photoProfil ? setModaleRecadrageOuverte(true) : setModalePhotoOuverte(true)}
               title={photoProfil ? "Recadrer la photo" : "Choisir une illustration"}
-              style={{ position: "absolute", bottom: "-4px", right: "-4px", width: "22px", height: "22px", borderRadius: "50%", border: "1.5px solid #d6d0c4", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#6a7b6e" }}>
+              style={{ position: "absolute", bottom: "-4px", right: "-4px", width: "22px", height: "22px", borderRadius: "50%", border: "1.5px solid var(--cs-bord)", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#6a7b6e" }}>
               <IconeCrayon size={11} />
             </button>
           </div>
@@ -671,7 +671,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
             <p style={{ fontSize: "0.5625rem", color: "#a89e8e", fontStyle: "italic", margin: "-8px 0 12px", letterSpacing: "0.04em" }}>
               {photoProfil.nom}
               {" · "}
-              <button onClick={retirerPhoto} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.5625rem", color: "#c0562a", padding: 0 }}>retirer</button>
+              <button onClick={retirerPhoto} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.5625rem", color: "var(--cs-danger)", padding: 0 }}>retirer</button>
             </p>
           )}
 
@@ -708,21 +708,21 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
 
           {/* Checklist intégrée */}
           {!checklistDefinitivementFaite && checklistDB !== null && (
-            <div style={{ marginTop: "20px", paddingTop: "18px", borderTop: "1px solid #ede9e2", textAlign: "left" }}>
+            <div style={{ marginTop: "20px", paddingTop: "18px", borderTop: "1px solid var(--cs-fond-doux)", textAlign: "left" }}>
               <p style={{ fontSize: "0.53125rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--cs-vert)", margin: "0 0 12px" }}>
                 Pour commencer
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {etapesChecklist.map(({ fait, label, pts, lien }) => (
                   <div key={label} className="cs-check-item">
-                    <span className="cs-check-circle" style={{ background: fait ? "#edf5f0" : "#f5f3ef", border: `1.5px solid ${fait ? "#7aaa8e" : "#d6d0c4"}`, color: fait ? "var(--cs-vert)" : "transparent" }}>
+                    <span className="cs-check-circle" style={{ background: fait ? "#edf5f0" : "#f5f3ef", border: `1.5px solid ${fait ? "#7aaa8e" : "var(--cs-bord)"}`, color: fait ? "var(--cs-vert)" : "transparent" }}>
                       {fait ? "✓" : ""}
                     </span>
                     <span style={{ flex: 1 }}>
                       {lien && !fait ? (
                         <a href={lien} style={{ fontSize: "0.78125rem", color: "var(--cs-vert)", textDecoration: "none" }}>{label}</a>
                       ) : (
-                        <span style={{ fontSize: "0.78125rem", color: fait ? "#b0a89e" : "#3a3530", textDecoration: fait ? "line-through" : "none" }}>{label}</span>
+                        <span style={{ fontSize: "0.78125rem", color: fait ? "var(--cs-texte-faible)" : "var(--cs-texte)", textDecoration: fait ? "line-through" : "none" }}>{label}</span>
                       )}
                     </span>
                     <span style={{ fontSize: "0.59375rem", color: "#a89e8e", flexShrink: 0 }}>{pts}</span>
@@ -766,7 +766,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
                 style={{ padding: "8px 18px", borderRadius: "6px", border: "none", background: "var(--cs-vert)", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, cursor: "pointer" }}>
                 {enregistrement ? "Enregistrement…" : "Enregistrer"}
               </button>
-              {statut && <span style={{ fontSize: "0.78125rem", color: statut.ok ? "var(--cs-vert)" : "#9a2a2a" }}>{statut.ok ? "✓" : "✗"} {statut.msg}</span>}
+              {statut && <span style={{ fontSize: "0.78125rem", color: statut.ok ? "var(--cs-vert)" : "var(--cs-danger-fonce)" }}>{statut.ok ? "✓" : "✗"} {statut.msg}</span>}
             </div>
           </div>
 
@@ -783,8 +783,8 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
               <label style={labelStyle}>E-MAIL DE CONTACT</label>
               <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="Visible publiquement" style={inputStyle} />
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px", paddingTop: "14px", borderTop: "1px solid #ede9e2" }}>
-              <p style={{ fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a958d", margin: 0 }}>Visibilité</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px", paddingTop: "14px", borderTop: "1px solid var(--cs-fond-doux)" }}>
+              <p style={{ fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-doux)", margin: 0 }}>Visibilité</p>
               {([
                 { key: "pub_rang",            label: "Rang",                 value: pubRang,           set: setPubRang },
                 { key: "pub_essais",          label: "Publications",         value: pubEssais,         set: setPubEssais },
@@ -793,10 +793,10 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
               ] as const).map(({ key, label, value, set }) => (
                 <label key={key} style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", userSelect: "none" }}>
                   <button type="button" role="switch" aria-checked={value} onClick={() => set(!value)}
-                    style={{ width: "32px", height: "18px", borderRadius: "999px", border: "none", cursor: "pointer", padding: 0, flexShrink: 0, background: value ? "var(--cs-vert)" : "#d6d0c4", position: "relative", transition: "background 0.15s" }}>
+                    style={{ width: "32px", height: "18px", borderRadius: "999px", border: "none", cursor: "pointer", padding: 0, flexShrink: 0, background: value ? "var(--cs-vert)" : "var(--cs-bord)", position: "relative", transition: "background 0.15s" }}>
                     <span style={{ position: "absolute", top: "3px", left: value ? "15px" : "3px", width: "12px", height: "12px", borderRadius: "50%", background: "#fff", transition: "left 0.15s" }} />
                   </button>
-                  <span style={{ fontSize: "0.78125rem", color: "#3a3530" }}>{label}</span>
+                  <span style={{ fontSize: "0.78125rem", color: "var(--cs-texte)" }}>{label}</span>
                 </label>
               ))}
             </div>
@@ -805,7 +805,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
                 style={{ padding: "8px 18px", borderRadius: "6px", border: "none", background: "var(--cs-vert)", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, cursor: "pointer" }}>
                 {enregistrementPage ? "Enregistrement…" : "Enregistrer"}
               </button>
-              {statutPage && <span style={{ fontSize: "0.78125rem", color: statutPage.ok ? "var(--cs-vert)" : "#9a2a2a" }}>{statutPage.ok ? "✓" : "✗"} {statutPage.msg}</span>}
+              {statutPage && <span style={{ fontSize: "0.78125rem", color: statutPage.ok ? "var(--cs-vert)" : "var(--cs-danger-fonce)" }}>{statutPage.ok ? "✓" : "✗"} {statutPage.msg}</span>}
             </div>
           </div>
 
@@ -817,36 +817,36 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
               <div style={{ display: "flex", gap: "8px", marginTop: "2px" }}>
                 <input type="email" value={nouvelEmail} onChange={e => { setNouvelEmail(e.target.value); setStatutEmail(null); }} style={{ ...inputStyle, flex: 1 }} />
                 <button onClick={modifierEmail} disabled={envoiEmail || !nouvelEmail.trim() || nouvelEmail.trim() === user.email}
-                  style={{ padding: "9px 14px", borderRadius: "6px", border: "1px solid #d6d0c4", background: "#fff", color: "var(--cs-vert)", fontSize: "0.78125rem", fontWeight: 500, cursor: "pointer", whiteSpace: "nowrap" }}>
+                  style={{ padding: "9px 14px", borderRadius: "6px", border: "1px solid var(--cs-bord)", background: "#fff", color: "var(--cs-vert)", fontSize: "0.78125rem", fontWeight: 500, cursor: "pointer", whiteSpace: "nowrap" }}>
                   {envoiEmail ? "Envoi…" : "Modifier"}
                 </button>
               </div>
               {user.email_confirmed_at && !statutEmail && <p style={{ fontSize: "0.6875rem", color: "var(--cs-vert)", margin: "5px 0 0" }}>✓ adresse vérifiée</p>}
-              {statutEmail && <p style={{ fontSize: "0.71875rem", color: statutEmail.ok ? "var(--cs-vert)" : "#9a2a2a", margin: "5px 0 0", lineHeight: 1.5 }}>{statutEmail.msg}</p>}
+              {statutEmail && <p style={{ fontSize: "0.71875rem", color: statutEmail.ok ? "var(--cs-vert)" : "var(--cs-danger-fonce)", margin: "5px 0 0", lineHeight: 1.5 }}>{statutEmail.msg}</p>}
             </div>
-            <div style={{ borderTop: "1px solid #ede9e2", paddingTop: "16px" }}>
+            <div style={{ borderTop: "1px solid var(--cs-fond-doux)", paddingTop: "16px" }}>
               <label style={labelStyle}>MOT DE PASSE</label>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "2px" }}>
                 <input type="password" value={nouveauMdp} onChange={e => { setNouveauMdp(e.target.value); setStatutMdp(null); }} placeholder="Nouveau mot de passe" style={inputStyle} />
                 <input type="password" value={confirmationMdp} onChange={e => { setConfirmationMdp(e.target.value); setStatutMdp(null); }} placeholder="Confirmer" style={inputStyle} />
               </div>
               <button onClick={modifierMotDePasse} disabled={envoiMdp || !nouveauMdp || !confirmationMdp}
-                style={{ marginTop: "8px", padding: "7px 14px", borderRadius: "6px", border: "1px solid #d6d0c4", background: "#fff", color: "var(--cs-vert)", fontSize: "0.78125rem", fontWeight: 500, cursor: "pointer" }}>
+                style={{ marginTop: "8px", padding: "7px 14px", borderRadius: "6px", border: "1px solid var(--cs-bord)", background: "#fff", color: "var(--cs-vert)", fontSize: "0.78125rem", fontWeight: 500, cursor: "pointer" }}>
                 {envoiMdp ? "Modification…" : "Changer le mot de passe"}
               </button>
-              {statutMdp && <p style={{ fontSize: "0.71875rem", color: statutMdp.ok ? "var(--cs-vert)" : "#9a2a2a", margin: "6px 0 0", lineHeight: 1.5 }}>{statutMdp.msg}</p>}
+              {statutMdp && <p style={{ fontSize: "0.71875rem", color: statutMdp.ok ? "var(--cs-vert)" : "var(--cs-danger-fonce)", margin: "6px 0 0", lineHeight: 1.5 }}>{statutMdp.msg}</p>}
             </div>
           </div>
 
           {/* Suppression du compte */}
           <div style={{ background: "#fff", border: "1px solid #e8d4cc", borderRadius: "10px", padding: "20px 26px" }}>
-            <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#c0562a", margin: "0 0 10px" }}>Suppression du compte</p>
-            <p style={{ fontSize: "0.75rem", color: "#9a958d", marginBottom: "14px", lineHeight: 1.55 }}>
+            <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--cs-danger)", margin: "0 0 10px" }}>Suppression du compte</p>
+            <p style={{ fontSize: "0.75rem", color: "var(--cs-texte-doux)", marginBottom: "14px", lineHeight: 1.55 }}>
               Pour toute question avant suppression, écrivez à{" "}
-              <a href="mailto:sqdv.contact@gmail.com" style={{ color: "#9a7a38", textDecoration: "none" }}>sqdv.contact@gmail.com</a>.
+              <a href="mailto:sqdv.contact@gmail.com" style={{ color: "var(--cs-or)", textDecoration: "none" }}>sqdv.contact@gmail.com</a>.
             </p>
             <button onClick={() => { setModaleSuppressionOuverte(true); setConsentSuppression(false); setErreurSuppression(null); }}
-              style={{ fontSize: "0.78125rem", padding: "7px 16px", borderRadius: "5px", border: "1px solid #e4c4b8", background: "#fff", color: "#c0562a", cursor: "pointer" }}>
+              style={{ fontSize: "0.78125rem", padding: "7px 16px", borderRadius: "5px", border: "1px solid var(--cs-danger-bord)", background: "#fff", color: "var(--cs-danger)", cursor: "pointer" }}>
               Supprimer mon compte
             </button>
           </div>
@@ -868,7 +868,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "12px", padding: "32px", width: "30rem", maxWidth: "100%", boxShadow: "0 16px 48px rgba(0,0,0,0.2)" }}>
             <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.125rem", fontWeight: "normal", color: "#1e1a14", margin: "0 0 16px" }}>Suppression du compte</h3>
-            <p style={{ fontSize: "0.78125rem", color: "#5a5450", lineHeight: 1.65, margin: "0 0 14px" }}>
+            <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte)", lineHeight: 1.65, margin: "0 0 14px" }}>
               Cette action est <strong>irrémédiable</strong>. Elle entraînera la suppression immédiate et définitive de :
             </p>
             <ul style={{ fontSize: "0.75rem", color: "#6a6460", lineHeight: 1.8, margin: "0 0 20px", paddingLeft: "18px" }}>
@@ -882,19 +882,19 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
             </ul>
             <label style={{ display: "flex", alignItems: "flex-start", gap: "10px", cursor: "pointer", marginBottom: "20px" }}>
               <input type="checkbox" checked={consentSuppression} onChange={e => setConsentSuppression(e.target.checked)}
-                style={{ marginTop: "2px", flexShrink: 0, accentColor: "#c0562a" }} />
-              <span style={{ fontSize: "0.78125rem", color: "#3a3530", lineHeight: 1.5 }}>
+                style={{ marginTop: "2px", flexShrink: 0, accentColor: "var(--cs-danger)" }} />
+              <span style={{ fontSize: "0.78125rem", color: "var(--cs-texte)", lineHeight: 1.5 }}>
                 J’ai compris que cette action est définitive et irrémédiable. Je confirme vouloir supprimer mon compte.
               </span>
             </label>
-            {erreurSuppression && <p style={{ fontSize: "0.75rem", color: "#9a2a2a", marginBottom: "12px" }}>{erreurSuppression}</p>}
+            {erreurSuppression && <p style={{ fontSize: "0.75rem", color: "var(--cs-danger-fonce)", marginBottom: "12px" }}>{erreurSuppression}</p>}
             <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
               <button onClick={() => setModaleSuppressionOuverte(false)} disabled={suppressionEnCours}
-                style={{ fontSize: "0.78125rem", padding: "7px 16px", borderRadius: "6px", border: "1px solid #d6d0c4", background: "#fff", color: "#6b6560", cursor: "pointer" }}>
+                style={{ fontSize: "0.78125rem", padding: "7px 16px", borderRadius: "6px", border: "1px solid var(--cs-bord)", background: "#fff", color: "var(--cs-texte-second)", cursor: "pointer" }}>
                 Annuler
               </button>
               <button onClick={supprimerCompte} disabled={suppressionEnCours || !consentSuppression}
-                style={{ fontSize: "0.78125rem", padding: "7px 16px", borderRadius: "6px", border: "none", background: consentSuppression ? "#c0562a" : "#e4c4b8", color: "#fff", fontWeight: 500, cursor: consentSuppression ? "pointer" : "default", transition: "background 0.15s" }}>
+                style={{ fontSize: "0.78125rem", padding: "7px 16px", borderRadius: "6px", border: "none", background: consentSuppression ? "var(--cs-danger)" : "var(--cs-danger-bord)", color: "#fff", fontWeight: 500, cursor: consentSuppression ? "pointer" : "default", transition: "background 0.15s" }}>
                 {suppressionEnCours ? "Suppression…" : "Supprimer définitivement"}
               </button>
             </div>

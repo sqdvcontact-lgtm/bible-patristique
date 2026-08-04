@@ -20,7 +20,7 @@ const LIEN_PAYPAL = "https://www.paypal.com/donate/?hosted_button_id=9M463NPH2RQ
 // Mordoré : le brun doré des reliures, entre l'or des filets et le brun du texte.
 const MORDORE = "#7d5f28";
 
-const inputStyle: React.CSSProperties = { width: "100%", padding: "0.5625rem 0.75rem", fontSize: "0.84375rem", border: "1px solid #d6d0c4", borderRadius: "0.375rem", background: "#f9f7f4", color: "#1e1a16", outline: "none", boxSizing: "border-box" };
+const inputStyle: React.CSSProperties = { width: "100%", padding: "0.5625rem 0.75rem", fontSize: "0.84375rem", border: "1px solid var(--cs-bord)", borderRadius: "0.375rem", background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", boxSizing: "border-box" };
 const labelStyle: React.CSSProperties = { fontSize: "0.6875rem", fontWeight: 600, color: "#566150", letterSpacing: "0.06em", display: "block", marginBottom: "0.3125rem" };
 
 /** Où revenir après avoir confirmé son adresse par courriel. */
@@ -291,7 +291,7 @@ function Chiffres() {
           <div className="cs-chiffre-valeur" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.875rem", color: "var(--cs-vert)", lineHeight: 1 }}>
             {valeur}
           </div>
-          <div className="cs-chiffre-libelle" style={{ fontSize: "0.625rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6a6259", marginTop: "0.375rem" }}>
+          <div className="cs-chiffre-libelle" style={{ fontSize: "0.625rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--cs-texte-second)", marginTop: "0.375rem" }}>
             {libelle}
           </div>
         </div>
@@ -336,12 +336,12 @@ function Prevenir() {
 
   return (
     <form onSubmit={envoyer}>
-      <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: "0 0 0.75rem", lineHeight: 1.6 }}>
+      <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-second)", margin: "0 0 0.75rem", lineHeight: 1.6 }}>
         Les travaux avancent, la date reste incertaine. Laissez votre adresse : elle ne servira
         qu’à vous prévenir, une fois.
       </p>
       {erreur && (
-        <p style={{ fontSize: "0.75rem", color: "#9a2a2a", margin: "0 0 0.625rem", lineHeight: 1.5 }}>{erreur}</p>
+        <p style={{ fontSize: "0.75rem", color: "var(--cs-danger-fonce)", margin: "0 0 0.625rem", lineHeight: 1.5 }}>{erreur}</p>
       )}
       <div className="cs-prevenir-champs" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
         <input type="email" required autoComplete="email" value={adresse} onChange={e => setAdresse(e.target.value)}
@@ -411,7 +411,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         body:has(.cs-ouverture) [data-cs-bandeau-mobile] { display: none !important; }
         body:has(.cs-ouverture) #cs-corps { padding-top: 0 !important; }
 
-        .cs-ouverture { background: #f3efe3; }
+        .cs-ouverture { background: var(--cs-fond); }
         .cs-ouverture-corps { width: 100%; max-width: 48.75rem; margin: 0 auto; padding: 0 1.25rem; }
 
         /* ── Premier écran ────────────────────────────────────────────────────
@@ -429,7 +429,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
                     color: #1e2e22; line-height: 1.3; letter-spacing: -0.005em;
                     font-size: 1.25rem; font-style: italic; margin: 0.625rem 0 1rem; }
-        .cs-chapeau { font-size: 0.90625rem; color: #6a6259; line-height: 1.75;
+        .cs-chapeau { font-size: 0.90625rem; color: var(--cs-texte-second); line-height: 1.75;
                       max-width: 32.5rem; margin: 0 auto; }
         /* Chevron d'invite à descendre : bouton discret, un peu plus grand, qui
            oscille doucement pour signaler qu'il y a une suite, et pousse au clic
@@ -467,11 +467,11 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-encart--mordore .cs-encart-titre { color: #4a3d24; }
         .cs-encart--vert .cs-encart-titre::after { background: #a9c3b1; }
         .cs-encart-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
-                           font-size: 1.0625rem; color: #2a3d30; margin: 0 0 0.625rem; padding-bottom: 0.625rem;
+                           font-size: 1.0625rem; color: var(--cs-encre); margin: 0 0 0.625rem; padding-bottom: 0.625rem;
                            position: relative; }
         .cs-encart-titre::after { content: ""; position: absolute; left: 50%; bottom: 0;
                                   width: 1.625rem; height: 1px; background: #cdb98c; transform: translateX(-50%); }
-        .cs-encart-texte { font-size: 0.78125rem; color: #6a6259; line-height: 1.65; margin: 0; max-width: 34ch; }
+        .cs-encart-texte { font-size: 0.78125rem; color: var(--cs-texte-second); line-height: 1.65; margin: 0; max-width: 34ch; }
         /* Le point surnuméraire enjambe les deux colonnes et se centre. */
         .cs-principe-seul { grid-column: 1 / -1; max-width: 21.25rem; margin: 0 auto; }
         .cs-cartes { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
@@ -481,7 +481,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
                      border-radius: 0.5rem; box-shadow: 0 1px 2px rgba(60,50,30,0.04); }
         /* Titre de bloc : sérif, sobre, centré — la voix des titres du site. */
         .cs-bloc-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
-                         font-size: 1rem; color: #2a3d30; text-align: center; margin: 0 0 1rem; }
+                         font-size: 1rem; color: var(--cs-encre); text-align: center; margin: 0 0 1rem; }
 
         /* ── Feuille de route ─────────────────────────────────────────────────
            Trois colonnes en regard (déjà / avant / après), chacune coiffée d'un
@@ -493,14 +493,14 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
            route, en haut comme en bas. */
         .cs-route { padding: 0.75rem 0 0.5rem; margin-bottom: 2.75rem; }
         .cs-route-kicker { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
-                           font-size: 1.375rem; color: #2a3d30; margin: 0 0 0.625rem;
+                           font-size: 1.375rem; color: var(--cs-encre); margin: 0 0 0.625rem;
                            text-align: center; }
-        .cs-route-chapeau { font-size: 0.84375rem; color: #6a6259; line-height: 1.7;
+        .cs-route-chapeau { font-size: 0.84375rem; color: var(--cs-texte-second); line-height: 1.7;
                             max-width: 34rem; margin: 0 auto 2rem; text-align: center; }
         .cs-route-phases { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
                            gap: 2rem 2.25rem; max-width: 46rem; margin: 0 auto; }
         .cs-phase-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
-                          font-size: 1.1875rem; color: #2a3d30; text-align: center;
+                          font-size: 1.1875rem; color: var(--cs-encre); text-align: center;
                           margin: 0 0 1rem; padding-bottom: 0.625rem; border-bottom: 1px solid #e5ddce; }
         .cs-route-liste { list-style: none; margin: 0; padding: 0;
                           display: flex; flex-direction: column; gap: 0.75rem; }
@@ -622,7 +622,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           </div>
           <div className="cs-carte" style={{ padding: "1.75rem 1.875rem", display: "flex", flexDirection: "column" }}>
             <h2 className="cs-bloc-titre">Soutenir le projet</h2>
-            <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: "0 0 0.875rem", lineHeight: 1.6, flex: 1 }}>
+            <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-second)", margin: "0 0 0.875rem", lineHeight: 1.6, flex: 1 }}>
               Le travail est bénévole, les frais ne le sont pas : hébergement, achat des
               éditions, numérisation. Un don avance le chantier.
             </p>
@@ -640,7 +640,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         {/* ── Connexion ── */}
         <div className="cs-connexion" style={{ padding: "1.875rem 2rem 2.125rem", width: "100%", maxWidth: "23.75rem", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.125rem", fontWeight: "normal", color: "#2a3d30", margin: 0 }}>
+          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.125rem", fontWeight: "normal", color: "var(--cs-encre)", margin: 0 }}>
             {mode === "connexion" ? "Connexion" : "Créer un compte"}
           </h2>
         </div>
@@ -650,7 +650,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           </div>
         ) : erreur ? (
           <div style={{ background: "rgba(180,50,40,0.06)", border: "1px solid rgba(180,50,40,0.18)", borderRadius: "0.375rem", padding: "0.625rem 0.875rem", marginBottom: "1.125rem" }}>
-            <p style={{ fontSize: "0.78125rem", color: "#9a2a2a", margin: 0, lineHeight: 1.55 }}>{erreur}</p>
+            <p style={{ fontSize: "0.78125rem", color: "var(--cs-danger-fonce)", margin: 0, lineHeight: 1.55 }}>{erreur}</p>
           </div>
         ) : null}
         <form onSubmit={soumettre} style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
@@ -680,8 +680,8 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             (Authentication → Sign In / Providers → Allow new users to sign up),
             sans quoi l'API reste ouverte à qui la connaît. */}
         {process.env.NEXT_PUBLIC_INSCRIPTIONS_OUVERTES === "1" ? (
-          <div style={{ marginTop: "1.25rem", textAlign: "center", borderTop: "1px solid #ede9e2", paddingTop: "1.125rem" }}>
-            <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: 0 }}>
+          <div style={{ marginTop: "1.25rem", textAlign: "center", borderTop: "1px solid var(--cs-fond-doux)", paddingTop: "1.125rem" }}>
+            <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-second)", margin: 0 }}>
               {mode === "connexion" ? "Pas encore de compte ?" : "Déjà un compte ?"}
               {" "}
               <button onClick={() => { setMode(mode === "connexion" ? "inscription" : "connexion"); setErreur(null); setMdp(""); setPseudo(""); }}
@@ -691,8 +691,8 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             </p>
           </div>
         ) : (
-          <div style={{ marginTop: "1.25rem", textAlign: "center", borderTop: "1px solid #ede9e2", paddingTop: "1.125rem" }}>
-            <p style={{ fontSize: "0.78125rem", color: "#6a6259", margin: 0, lineHeight: 1.55 }}>
+          <div style={{ marginTop: "1.25rem", textAlign: "center", borderTop: "1px solid var(--cs-fond-doux)", paddingTop: "1.125rem" }}>
+            <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-second)", margin: 0, lineHeight: 1.55 }}>
               Pour l’heure, les comptes sont réservés aux personnes qui participent au projet. Les inscriptions seront ouvertes lors du lancement du site. Il est toutefois possible de demander un accès anticipé depuis la page de contact.
             </p>
           </div>
@@ -701,16 +701,16 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
 
         {/* Les mentions légales doivent être atteignables d'ici : c'est sur
             cette page qu'on recueille des adresses. */}
-        <nav style={{ marginTop: "1.875rem", textAlign: "center", fontSize: "0.71875rem", color: "#6a6259" }}>
-          <a href="/confidentialite" style={{ color: "#6a6259", textDecoration: "underline", textUnderlineOffset: "2px" }}>
+        <nav style={{ marginTop: "1.875rem", textAlign: "center", fontSize: "0.71875rem", color: "var(--cs-texte-second)" }}>
+          <a href="/confidentialite" style={{ color: "var(--cs-texte-second)", textDecoration: "underline", textUnderlineOffset: "2px" }}>
             Politique de confidentialité
           </a>
           <span style={{ margin: "0 0.625rem" }}>·</span>
-          <a href="/conditions-utilisation" style={{ color: "#6a6259", textDecoration: "underline", textUnderlineOffset: "2px" }}>
+          <a href="/conditions-utilisation" style={{ color: "var(--cs-texte-second)", textDecoration: "underline", textUnderlineOffset: "2px" }}>
             Conditions d’utilisation
           </a>
           <span style={{ margin: "0 0.625rem" }}>·</span>
-          <a href="/contact" style={{ color: "#6a6259", textDecoration: "underline", textUnderlineOffset: "2px" }}>
+          <a href="/contact" style={{ color: "var(--cs-texte-second)", textDecoration: "underline", textUnderlineOffset: "2px" }}>
             Contact
           </a>
         </nav>

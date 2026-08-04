@@ -50,7 +50,7 @@ function BoutonPartage({ label, onClick, children, loading }: { label: string; o
   }
   return (
     <button onClick={handleClick} title={label} disabled={loading}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '6px', border: '1px solid #ddd8cf', background: flash ? '#edf5f0' : '#fff', color: flash ? 'var(--cs-vert)' : loading ? '#c8c0b4' : '#9a958d', cursor: loading ? 'default' : 'pointer', transition: 'background 0.2s, color 0.2s', flexShrink: 0 }}>
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '6px', border: '1px solid var(--cs-bord)', background: flash ? '#edf5f0' : '#fff', color: flash ? 'var(--cs-vert)' : loading ? 'var(--cs-bord)' : 'var(--cs-texte-doux)', cursor: loading ? 'default' : 'pointer', transition: 'background 0.2s, color 0.2s', flexShrink: 0 }}>
       {children}
     </button>
   )
@@ -211,8 +211,8 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
   return (
     <div style={mobile
-      ? { display: 'flex', flexDirection: 'column', background: '#f7f4ef' }
-      : { display: 'flex', height: 'calc(100vh - 3.5rem)', background: '#f7f4ef' }}>
+      ? { display: 'flex', flexDirection: 'column', background: 'var(--cs-fond)' }
+      : { display: 'flex', height: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)' }}>
       <style>{`
         .essai-lecture-corps p {
           font-family: var(--font-source-serif), Georgia, serif !important;
@@ -228,7 +228,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           font-style: normal !important;
           text-align: justify !important;
           font-family: var(--font-source-serif), Georgia, serif !important;
-          color: #4a4440 !important;
+          color: var(--cs-texte) !important;
           line-height: 1.44 !important;
           word-spacing: -0.02em !important;
           letter-spacing: -0.006em !important;
@@ -272,17 +272,17 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
       {/* Volet gauche (desktop) : titre, date, actions, sommaire — sur le modèle du
           volet de lecture des Pères. Les boutons télécharger/partager/lien y vivent. */}
       {!mobile && (
-        <aside style={{ width: '15rem', flexShrink: 0, background: '#faf8f4', borderRight: '1px solid #d6d0c4', height: '100%', overflowY: 'auto', padding: '22px 16px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <aside style={{ width: '15rem', flexShrink: 0, background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', height: '100%', overflowY: 'auto', padding: '22px 16px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
             {essai.auteur_pseudo && (
               <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{essai.auteur_pseudo}</p>
             )}
-            <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 600, color: '#1e2e24', lineHeight: 1.28, margin: 0 }}>{essai.titre}</h2>
+            <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 600, color: 'var(--cs-encre-fonce)', lineHeight: 1.28, margin: 0 }}>{essai.titre}</h2>
             {essai.sous_titre && (
               <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: '#8a8278', margin: '5px 0 0', lineHeight: 1.35 }}>{essai.sous_titre}</p>
             )}
-            <p style={{ fontSize: '0.625rem', letterSpacing: '0.04em', color: '#b0a89e', margin: '12px 0 0', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Publié le {dateFormatee}</p>
-            <p style={{ fontSize: '0.59375rem', color: '#c0b8b0', margin: '3px 0 0', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Lu {nbVues} fois</p>
+            <p style={{ fontSize: '0.625rem', letterSpacing: '0.04em', color: 'var(--cs-texte-faible)', margin: '12px 0 0', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Publié le {dateFormatee}</p>
+            <p style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-faible)', margin: '3px 0 0', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Lu {nbVues} fois</p>
           </div>
 
           <div style={{ display: 'flex', gap: '6px' }}>
@@ -290,14 +290,14 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           </div>
 
           {sommaire.length > 0 && (
-            <div style={{ borderTop: '1px solid #ede9e2', paddingTop: '14px' }}>
-              <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#a2988b', margin: '0 0 9px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Sommaire</p>
+            <div style={{ borderTop: '1px solid var(--cs-fond-doux)', paddingTop: '14px' }}>
+              <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 9px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Sommaire</p>
               <nav style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
                 {sommaire.map(s => (
                   <button key={s.id} onClick={() => allerAu(s.id)}
-                    style={{ textAlign: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: s.niveau === 2 ? '0.75rem' : '0.8125rem', fontStyle: s.niveau === 2 ? 'italic' : 'normal', color: s.niveau === 2 ? '#6f665c' : '#4a4440', background: 'none', border: 'none', padding: 0, paddingLeft: s.niveau === 2 ? '12px' : 0, cursor: 'pointer', lineHeight: 1.32 }}
+                    style={{ textAlign: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: s.niveau === 2 ? '0.75rem' : '0.8125rem', fontStyle: s.niveau === 2 ? 'italic' : 'normal', color: s.niveau === 2 ? '#6f665c' : 'var(--cs-texte)', background: 'none', border: 'none', padding: 0, paddingLeft: s.niveau === 2 ? '12px' : 0, cursor: 'pointer', lineHeight: 1.32 }}
                     onMouseEnter={e => { e.currentTarget.style.color = 'var(--cs-vert)' }}
-                    onMouseLeave={e => { e.currentTarget.style.color = s.niveau === 2 ? '#6f665c' : '#4a4440' }}>
+                    onMouseLeave={e => { e.currentTarget.style.color = s.niveau === 2 ? '#6f665c' : 'var(--cs-texte)' }}>
                     {rendreTexteEnrichi(s.titre)}
                   </button>
                 ))}
@@ -321,7 +321,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           <div style={{
             minHeight: '30vh', display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center',
-            padding: '40px 24px 26px', borderBottom: '1px solid #d6d0c4',
+            padding: '40px 24px 26px', borderBottom: '1px solid var(--cs-bord)',
             marginBottom: '26px', textAlign: 'center',
           }}>
             {essai.auteur_pseudo && (
@@ -329,7 +329,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
                 {essai.auteur_pseudo}
               </p>
             )}
-            <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.2, margin: '0 0 14px', maxWidth: '35rem' }}>
+            <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', lineHeight: 1.2, margin: '0 0 14px', maxWidth: '35rem' }}>
               {essai.titre}
             </h1>
             {essai.sous_titre && (
@@ -337,16 +337,16 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
                 {essai.sous_titre}
               </p>
             )}
-            <div style={{ width: '32px', height: '1px', background: '#c8c0b4', marginBottom: '16px' }} />
-            <p style={{ fontSize: '0.6875rem', letterSpacing: '0.06em', color: '#b0a89e', marginBottom: '28px' }}>
+            <div style={{ width: '32px', height: '1px', background: 'var(--cs-bord)', marginBottom: '16px' }} />
+            <p style={{ fontSize: '0.6875rem', letterSpacing: '0.06em', color: 'var(--cs-texte-faible)', marginBottom: '28px' }}>
               {dateFormatee}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
-              <p style={{ fontSize: '0.65625rem', color: '#c0b8b0', letterSpacing: '0.04em', margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+              <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-faible)', letterSpacing: '0.04em', margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                 Cette publication a été lue {nbVues} fois
               </p>
               <button onClick={toggleApprecier} disabled={!userId}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.65625rem', color: aApprecie ? 'var(--cs-vert)' : '#c0b8b0', background: 'none', border: 'none', padding: 0, cursor: userId ? 'pointer' : 'default', fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: '0.03em' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.65625rem', color: aApprecie ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', background: 'none', border: 'none', padding: 0, cursor: userId ? 'pointer' : 'default', fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: '0.03em' }}>
                 <svg width="11" height="11" viewBox="0 0 12 12" fill={aApprecie ? 'currentColor' : 'none'} aria-hidden="true">
                   <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z" stroke="currentColor" strokeWidth="1"/>
                 </svg>
@@ -363,7 +363,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
           {versetParse && (
             <div style={{ margin: '0 auto 52px', maxWidth: '26.25rem', textAlign: 'center' }}>
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.90625rem', lineHeight: 1.8, color: '#4a4440', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.90625rem', lineHeight: 1.8, color: 'var(--cs-texte)', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
                 {'« '}{rendreTexteEnrichi(versetParse.texte)}{' »'}
               </p>
               <p style={{ fontSize: '0.65625rem', letterSpacing: '0.1em', color: '#a09890', margin: 0, fontFamily: 'var(--font-source-sans), Arial, sans-serif', textTransform: 'uppercase' }}>
@@ -372,7 +372,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             </div>
           )}
 
-          <div className="essai-lecture-corps" style={{ fontSize: '0.875rem', color: '#1e1a16', fontFamily: "var(--font-source-serif), Georgia, serif" }}>
+          <div className="essai-lecture-corps" style={{ fontSize: '0.875rem', color: 'var(--cs-texte-fort)', fontFamily: "var(--font-source-serif), Georgia, serif" }}>
             {rendreEssai(essai.contenu)}
           </div>
 
@@ -384,18 +384,18 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         <>
         {mobile && <div onClick={() => setVoletOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
         <div style={mobile
-          ? { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, background: '#faf8f4', borderTop: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', boxShadow: '0 -10px 28px rgba(45,35,25,0.22)' }
-          : { width: '18.75rem', flexShrink: 0, background: '#faf8f4', borderLeft: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', height: '100%' }}>
+          ? { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, background: 'var(--cs-fond-clair)', borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: '0 -10px 28px rgba(45,35,25,0.22)' }
+          : { width: '18.75rem', flexShrink: 0, background: 'var(--cs-fond-clair)', borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', height: '100%' }}>
 
           {/* Barre supérieure : fermer | titre | partager */}
-          <div style={{ minHeight: '41px', padding: '6px 8px 6px 6px', borderBottom: '1px solid #ede9e2', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ minHeight: '41px', padding: '6px 8px 6px 6px', borderBottom: '1px solid var(--cs-fond-doux)', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
             <button onClick={() => setVoletOuvert(false)} title="Réduire le volet"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#b0a89e', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <span style={{ flex: 1, minWidth: 0, alignSelf: 'center', textAlign: 'center', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#9a958d', whiteSpace: 'nowrap' }}>Commentaires</span>
+            <span style={{ flex: 1, minWidth: 0, alignSelf: 'center', textAlign: 'center', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', whiteSpace: 'nowrap' }}>Commentaires</span>
             {/* En desktop, les actions vivent dans le volet gauche ; en mobile, ici. */}
             {mobile && (
               <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
@@ -413,20 +413,20 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
       ) : mobile ? (
         /* Volet droit — barre fixe en bas (mobile) */
         <button onClick={() => setVoletOuvert(true)} title="Ouvrir les commentaires"
-          style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#faf8f4', border: 'none', borderTop: '1px solid #d6d0c4', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(-90deg)', color: '#9a958d' }}>
+          style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(-90deg)', color: 'var(--cs-texte-doux)' }}>
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: '#6b6560' }}>Commentaires</span>
+          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Commentaires</span>
         </button>
       ) : (
         /* Volet droit — réduit (tab vertical) */
         <button onClick={() => setVoletOuvert(true)} title="Ouvrir le panneau"
-          style={{ width: '22px', flexShrink: 0, background: '#faf8f4', border: 'none', borderLeft: '1px solid #d6d0c4', cursor: 'pointer', color: '#9a958d', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '100%' }}>
+          style={{ width: '22px', flexShrink: 0, background: 'var(--cs-fond-clair)', border: 'none', borderLeft: '1px solid var(--cs-bord)', cursor: 'pointer', color: 'var(--cs-texte-doux)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '100%' }}>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M10 4l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span style={{ writingMode: 'vertical-rl', fontSize: '0.5rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>Commentaires</span>
+          <span style={{ writingMode: 'vertical-rl', fontSize: '0.5rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-faible)' }}>Commentaires</span>
         </button>
       )}
 

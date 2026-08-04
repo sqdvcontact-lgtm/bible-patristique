@@ -66,7 +66,7 @@ function BoutonCopie({ texte }: { texte: string }) {
   }
   return (
     <button onClick={handle} title="Copier ce verset" className="bouton-action-verset"
-      style={{ ...VERSET_ACTION_BTN, opacity:0, color: copie ? 'var(--cs-vert)' : '#c8c0b4' }}
+      style={{ ...VERSET_ACTION_BTN, opacity:0, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}
       aria-label="Copier">
       {copie ? '✓' : (
         <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
@@ -114,7 +114,7 @@ function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; vers
       <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
         className="bouton-action-verset"
         title="Signaler une erreur"
-        style={{ ...VERSET_ACTION_BTN, opacity:0, color:'#c8c0b4' }}>
+        style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
         <IconeDrapeau />
       </button>
       {ouvert && <ModalSignalement titre={ref} texteObjet={texte} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
@@ -241,7 +241,7 @@ function BoutonEnregistrer({
   return (
     <button onClick={enregistrer} disabled={loading} title="Enregistrer dans mes prélèvements"
       className="bouton-action-verset"
-      style={{ ...VERSET_ACTION_BTN, opacity:0, color:'#c8c0b4' }}
+      style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}
       aria-label="Enregistrer">
       {loading ? '…' : <IconeSignet />}
     </button>
@@ -338,7 +338,7 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
     onEnregistre(valeur)
   }
 
-  const btnEd: React.CSSProperties = { fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }
+  const btnEd: React.CSSProperties = { fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'#fff', color:'var(--cs-texte-fort)', cursor:'pointer' }
   const gardeSel = (e: React.MouseEvent) => e.preventDefault()
 
   return (
@@ -348,25 +348,25 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
           <p style={{ fontSize:'0.75rem', fontWeight:600, color:'#9a5a2a', margin:0 }}>
             Modifier {refCourt} de la {traductionLabel}
           </p>
-          <button onClick={onClose} style={{ fontSize:'0.875rem', color:'#b0a89e', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
+          <button onClick={onClose} style={{ fontSize:'0.875rem', color:'var(--cs-texte-faible)', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
         </div>
         <div style={{ display:'flex', gap:'6px', marginBottom:'8px', flexWrap:'wrap' }}>
           <button onMouseDown={gardeSel} onClick={() => commande('bold')} style={{ ...btnEd, fontWeight:700 }}>G</button>
           <button onMouseDown={gardeSel} onClick={() => commande('italic')} style={{ ...btnEd, fontStyle:'italic' }}>I</button>
           <button onMouseDown={gardeSel} onClick={petitesCaps} title="Petites capitales" style={{ ...btnEd, fontSize:'0.625rem', fontVariant:'small-caps', letterSpacing:'0.04em' }}>Petites capitales</button>
           <button onMouseDown={gardeSel} onClick={() => commande('superscript')} title="Exposant" style={btnEd}>x²</button>
-          <span style={{ width:'1px', background:'#e4dfd8' }} />
-          <button onClick={() => inserer('\u00A0')} title="Espace insécable" style={{ fontSize:'0.625rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>Esp. insécable</button>
-          <button onClick={() => inserer('\u202F')} title="Espace fine insécable" style={{ fontSize:'0.625rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>Esp. fine</button>
-          <button onClick={() => entourer('«\u202F', '\u202F»')} title="Guillemets français" style={{ fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>« »</button>
-          <button onClick={() => entourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)" style={{ fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#2a2520', cursor:'pointer' }}>“ ”</button>
+          <span style={{ width:'1px', background:'var(--cs-bord-clair)' }} />
+          <button onClick={() => inserer('\u00A0')} title="Espace insécable" style={{ fontSize:'0.625rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'#fff', color:'var(--cs-texte-fort)', cursor:'pointer' }}>Esp. insécable</button>
+          <button onClick={() => inserer('\u202F')} title="Espace fine insécable" style={{ fontSize:'0.625rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'#fff', color:'var(--cs-texte-fort)', cursor:'pointer' }}>Esp. fine</button>
+          <button onClick={() => entourer('«\u202F', '\u202F»')} title="Guillemets français" style={{ fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'#fff', color:'var(--cs-texte-fort)', cursor:'pointer' }}>« »</button>
+          <button onClick={() => entourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)" style={{ fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'#fff', color:'var(--cs-texte-fort)', cursor:'pointer' }}>“ ”</button>
         </div>
         {/* Zone d'édition UNIQUE : les enrichissements s'y voient directement (WYSIWYG). */}
         <div ref={edRef} contentEditable suppressContentEditableWarning onInput={sync}
-          style={{ width:'100%', minHeight:'96px', maxHeight:'300px', overflowY:'auto', fontSize:'0.8125rem', padding:'8px 10px', border:'1px solid #d6d0c4', borderRadius:'5px', background:'#faf8f4', color:'#1e1a16', outline:'none', lineHeight:1.55, boxSizing:'border-box', textAlign:'justify', whiteSpace:'pre-wrap' }} />
+          style={{ width:'100%', minHeight:'96px', maxHeight:'300px', overflowY:'auto', fontSize:'0.8125rem', padding:'8px 10px', border:'1px solid var(--cs-bord)', borderRadius:'5px', background:'var(--cs-fond-clair)', color:'var(--cs-texte-fort)', outline:'none', lineHeight:1.55, boxSizing:'border-box', textAlign:'justify', whiteSpace:'pre-wrap' }} />
         <div style={{ display:'flex', justifyContent:'flex-end', gap:'8px', marginTop:'12px' }}>
-          {statut === 'erreur' && <span style={{ fontSize:'0.6875rem', color:'#c0562a', alignSelf:'center' }}>Erreur d'enregistrement.</span>}
-          <button onClick={onClose} style={{ fontSize:'0.6875rem', padding:'5px 14px', borderRadius:'4px', border:'1px solid #d6d0c4', background:'#fff', color:'#6b6560', cursor:'pointer' }}>Annuler</button>
+          {statut === 'erreur' && <span style={{ fontSize:'0.6875rem', color:'var(--cs-danger)', alignSelf:'center' }}>Erreur d'enregistrement.</span>}
+          <button onClick={onClose} style={{ fontSize:'0.6875rem', padding:'5px 14px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'#fff', color:'var(--cs-texte-second)', cursor:'pointer' }}>Annuler</button>
           <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize:'0.6875rem', padding:'5px 16px', borderRadius:'4px', border:'none', background:'var(--cs-vert)', color:'#fff', cursor:'pointer', fontWeight:500 }}>
             {statut === 'envoi' ? 'Enregistrement…' : 'Enregistrer'}
           </button>
@@ -461,10 +461,10 @@ export default function TexteBible({
   const allerAuChapitre = (n: number) => router.push(`/?livre=${livreActif}&chapitre=${n}&trad=${tradCode}`)
 
   return (
-    <div className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'} style={{ background: '#f7f4ef', ...(mobile ? { width: '100%', paddingTop: '2.875rem', paddingBottom: `calc(0.75rem + ${BANDEAU_NAV_MOBILE})` } : {}) }}>
+    <div className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'} style={{ background: 'var(--cs-fond)', ...(mobile ? { width: '100%', paddingTop: '2.875rem', paddingBottom: `calc(0.75rem + ${BANDEAU_NAV_MOBILE})` } : {}) }}>
 
       {/* En-tête */}
-      <div style={{ borderBottom: '1px solid #d6d0c4', background: '#f7f4ef', padding: '14px 32px 10px' }}>
+      <div style={{ borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', padding: '14px 32px 10px' }}>
 
         {/* Titre + navigation chapitres. Calé sur LE MÊME gabarit que les versets
             (bloc de texte de 500 px + colonne d'actions de 38 px) : le titre est centré
@@ -473,18 +473,18 @@ export default function TexteBible({
         <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
           {chapitreActif > 1 ? (
-            <button onClick={() => allerAuChapitre(chapitreActif - 1)} className="nav-chap-arrow" style={{ color: '#b0a89e', fontSize: '1.25rem', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s' }} title="Chapitre précédent">‹</button>
+            <button onClick={() => allerAuChapitre(chapitreActif - 1)} className="nav-chap-arrow" style={{ color: 'var(--cs-texte-faible)', fontSize: '1.25rem', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s' }} title="Chapitre précédent">‹</button>
           ) : (
-            <span style={{ color: '#d6d0c4', fontSize: '1.25rem', lineHeight: 1 }}>‹</span>
+            <span style={{ color: 'var(--cs-bord)', fontSize: '1.25rem', lineHeight: 1 }}>‹</span>
           )}
 
           <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-            <span style={{ fontSize: '1.25rem', color: '#1e2e24', letterSpacing: '0.01em' }}>{nomLivre}</span>
+            <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>{nomLivre}</span>
             <span style={{ color: '#b0a088', fontSize: '1.25rem', lineHeight: 1 }}>❧</span>
             <span style={{ fontSize: '1.05rem', color: '#5a7260', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>
           </h1>
 
-          <button onClick={() => allerAuChapitre(chapitreActif + 1)} className="nav-chap-arrow" style={{ color: '#b0a89e', fontSize: '1.25rem', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s' }} title="Chapitre suivant">›</button>
+          <button onClick={() => allerAuChapitre(chapitreActif + 1)} className="nav-chap-arrow" style={{ color: 'var(--cs-texte-faible)', fontSize: '1.25rem', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s' }} title="Chapitre suivant">›</button>
         </div>
           <div />
         </div>
@@ -516,9 +516,9 @@ export default function TexteBible({
                 {traductions.map((t, i) => (
                   <button key={t.code} onClick={() => { setTraductionIndex(i); setTradOuverte(false) }} style={{
                     width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '0.8125rem',
-                    border: 'none', borderBottom: i < traductions.length - 1 ? '1px solid #ede9e2' : 'none',
+                    border: 'none', borderBottom: i < traductions.length - 1 ? '1px solid var(--cs-fond-doux)' : 'none',
                     background: traductionIndex === i ? 'rgba(var(--cs-vert-rgb),0.08)' : '#fff',
-                    color: traductionIndex === i ? 'var(--cs-vert)' : '#2a2520',
+                    color: traductionIndex === i ? 'var(--cs-vert)' : 'var(--cs-texte-fort)',
                     fontWeight: traductionIndex === i ? 600 : 400, cursor: 'pointer',
                     fontFamily: "var(--font-source-serif), Georgia, serif", letterSpacing: '0.01em',
                     transition: 'background 0.12s',
@@ -564,8 +564,8 @@ export default function TexteBible({
               {/* Le texte remonte sous l'image par une marge négative : la gravure est
                   carrée mais les ruines reposent haut, laissant du blanc en bas. Le texte
                   vient ainsi se poser à la lisière du sol, non loin sous le cadre. */}
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: '#9a958d', textAlign: 'center', lineHeight: 1.65, margin: '-26px 0 0', maxWidth: '21.25rem' }}>
-                La traduction <em style={{ fontStyle: 'normal', color: '#6b6560' }}>{traductionLabel}</em> ne comporte pas ce livre.
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', lineHeight: 1.65, margin: '-26px 0 0', maxWidth: '21.25rem' }}>
+                La traduction <em style={{ fontStyle: 'normal', color: 'var(--cs-texte-second)' }}>{traductionLabel}</em> ne comporte pas ce livre.
               </p>
             </div>
           )}
@@ -599,20 +599,20 @@ export default function TexteBible({
               <div style={{ display: 'grid', gridTemplateColumns: mobile ? 'minmax(0, 1fr)' : 'minmax(0, var(--mesure-bloc)) 2.375rem', width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', alignItems: 'flex-start' }}>
                 <div style={{ display:'grid', gridTemplateColumns:'auto minmax(0, var(--mesure-texte))', columnGap:'0.1875rem', alignItems: 'baseline', borderRadius:'5px', padding:'0.125rem 0.25rem 0.125rem 0', background: actif ? 'rgba(var(--cs-vert-rgb),0.11)' : 'transparent' }}>
                   {/* Numéro — inclus dans le bloc sélectionné, aligné sur la 1re ligne du texte (ligne de base) */}
-                  <span style={{ minWidth: '1.0625rem', textAlign: 'right', paddingRight: '0.3125rem', fontSize: '0.625rem', fontWeight: 600, color: '#b0a89e', lineHeight: 1.40, whiteSpace: 'nowrap' }}>
+                  <span style={{ minWidth: '1.0625rem', textAlign: 'right', paddingRight: '0.3125rem', fontSize: '0.625rem', fontWeight: 600, color: 'var(--cs-texte-faible)', lineHeight: 1.40, whiteSpace: 'nowrap' }}>
                     {v.verset}
                     {v.chapitre_alternatif != null && (
-                      <span style={{ fontWeight: 400, fontStyle: 'italic', color: '#c0bab0' }}>
+                      <span style={{ fontWeight: 400, fontStyle: 'italic', color: 'var(--cs-texte-faible)' }}>
                         {' '}({v.chapitre_alternatif}{v.verset_alternatif != null ? `,${v.verset_alternatif}` : ''})
                       </span>
                     )}
                   </span>
 
                   {/* Texte — colonne fixe et stable, alignée quel que soit l'état des boutons */}
-                  <p data-verse-text style={{ fontSize: '0.84rem', lineHeight: mobile ? 1.3 : 1.42, color: '#1e1a16', margin: 0, textAlign: 'justify', wordSpacing: '-0.02em', letterSpacing: '-0.003em' }}>
+                  <p data-verse-text style={{ fontSize: '0.84rem', lineHeight: mobile ? 1.3 : 1.42, color: 'var(--cs-texte-fort)', margin: 0, textAlign: 'justify', wordSpacing: '-0.02em', letterSpacing: '-0.003em' }}>
                     {(overrides[v.id_verset]?.[traduction] ?? v[traduction])
                       ? rendreTexteEnrichi(String(overrides[v.id_verset]?.[traduction] ?? v[traduction]))
-                      : <span style={{ color:'#d6d0c4', fontStyle:'italic' }}>—</span>}
+                      : <span style={{ color:'var(--cs-bord)', fontStyle:'italic' }}>—</span>}
                   </p>
                 </div>
 
@@ -623,7 +623,7 @@ export default function TexteBible({
                   // Au-dessus du verset (et non sur lui) : le texte reste lisible.
                   position: 'absolute', bottom: '100%', right: '0.25rem', marginBottom: '3px', zIndex: 6,
                   display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
-                  background: '#fff', border: '1px solid #d6d0c4', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
+                  background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
                 } : { width: '2.375rem', paddingLeft: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible' }}>
                   {userId && (
                     <BoutonEnregistrer
@@ -645,7 +645,7 @@ export default function TexteBible({
                   <BoutonSignaler versetId={v.id_verset} versetRef={v.ref} texte={String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')} />
                   {estAdmin && !modeUtilisateurStandard && (
                     <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
-                      style={{ ...VERSET_ACTION_BTN, opacity:0, color:'#c8c0b4' }}>
+                      style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
                       <IconeCrayon size={12} />
                     </button>
                   )}

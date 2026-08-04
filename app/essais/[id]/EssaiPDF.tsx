@@ -31,7 +31,7 @@ const MARGE_BOT = 56   // ≈ 2 cm contenu + 24pt footer
 
 const SEP_PARA = 8.5   // ≈ 3 mm entre paragraphes de même style
 
-const C = { vert: 'var(--cs-vert)', texte: '#1a1714', gris: '#777', beige: '#5a5450' }
+const C = { vert: 'var(--cs-vert)', texte: '#1a1714', gris: '#777', beige: 'var(--cs-texte)' }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
@@ -55,10 +55,10 @@ const s = StyleSheet.create({
   },
   titreCouv: {
     fontFamily: 'Source Serif 4', fontSize: '1.875rem', lineHeight: 1.2,
-    color: '#1e2e24', textAlign: 'center', marginBottom: 10, maxWidth: '23.75rem',
+    color: 'var(--cs-encre-fonce)', textAlign: 'center', marginBottom: 10, maxWidth: '23.75rem',
   },
   sousTitreCouv: {
-    fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '1rem', color: '#5a5450',
+    fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '1rem', color: 'var(--cs-texte)',
     textAlign: 'center', marginBottom: 18, maxWidth: '23.75rem',
   },
   filet: { width: 40, height: 0.6, backgroundColor: '#aaa', marginBottom: 14 },
@@ -68,7 +68,7 @@ const s = StyleSheet.create({
   },
   versetTexte: {
     fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '0.71875rem', lineHeight: 1.72,
-    color: '#4a4440', textAlign: 'center', marginTop: 36, maxWidth: '20rem',
+    color: 'var(--cs-texte)', textAlign: 'center', marginTop: 36, maxWidth: '20rem',
   },
   versetRef: {
     fontFamily: 'Source Sans 3', fontSize: '0.5rem', letterSpacing: 2.2,
@@ -81,8 +81,8 @@ const s = StyleSheet.create({
   // Ornement supérieur (filet · filet) — le fleuron ❧ n'existe pas dans les polices
   // embarquées ; on compose la marque avec des filets et un point médian.
   ornement: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: 130, marginBottom: 30 },
-  ornementRule: { flex: 1, height: 0.6, backgroundColor: '#cabf9f' },
-  ornementDot: { fontFamily: 'Source Serif 4', fontSize: '0.75rem', color: '#a08c58', marginLeft: 9, marginRight: 9, lineHeight: 1 },
+  ornementRule: { flex: 1, height: 0.6, backgroundColor: 'var(--cs-or-doux)' },
+  ornementDot: { fontFamily: 'Source Serif 4', fontSize: '0.75rem', color: 'var(--cs-or)', marginLeft: 9, marginRight: 9, lineHeight: 1 },
   // Mention de propriété — discrète, dans le style de l'auteur.
   mention: {
     fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '0.53125rem', color: '#8a8268',
@@ -90,21 +90,21 @@ const s = StyleSheet.create({
   },
   // Marque d'imprimeur en pied de page de titre.
   marque: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: 165, marginTop: 16 },
-  marqueRule: { flex: 1, height: 0.5, backgroundColor: '#cabf9f' },
+  marqueRule: { flex: 1, height: 0.5, backgroundColor: 'var(--cs-or-doux)' },
   marqueTexte: {
     fontFamily: 'Source Sans 3', fontSize: '0.46875rem', letterSpacing: 2.4,
-    textTransform: 'uppercase', color: '#a08c58', marginLeft: 10, marginRight: 10,
+    textTransform: 'uppercase', color: 'var(--cs-or)', marginLeft: 10, marginRight: 10,
   },
 
   // ── Corps ──
   p:      { marginBottom: SEP_PARA, textAlign: 'justify', textIndent: 14 },   // alinéa visible (~0,5 cm)
   pFirst: { marginBottom: SEP_PARA, textAlign: 'justify' },
   h1: {
-    fontFamily: 'Source Serif 4', fontWeight: 700, fontSize: '0.8125rem', color: '#1e2e24',
+    fontFamily: 'Source Serif 4', fontWeight: 700, fontSize: '0.8125rem', color: 'var(--cs-encre-fonce)',
     marginTop: 22, marginBottom: 6,
   },
   h2: {
-    fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '0.75rem', color: '#2a3d30',
+    fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--cs-encre)',
     marginTop: 14, marginBottom: 4, marginLeft: 11.3,   // retrait de ligne du titre 2 (≈ 0,4 cm)
   },
   // Citation sortie : bloc en retrait, justifié, PAS en italique.

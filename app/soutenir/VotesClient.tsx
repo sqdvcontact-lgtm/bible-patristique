@@ -109,11 +109,11 @@ export default function VotesClient() {
   return (
     <section style={{ maxWidth: '40rem', width: '100%', margin: '0 auto', padding: '64px 24px 80px' }}>
       <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 28px' }} />
+        <div style={{ width: '36px', height: '1px', background: 'var(--cs-bord)', margin: '0 auto 28px' }} />
         <h2 style={{
           fontFamily: "var(--font-source-serif), Georgia, serif",
           fontSize: 'clamp(17px, 2.5vw, 22px)',
-          fontWeight: 'normal', color: '#2a3d30', marginBottom: '16px',
+          fontWeight: 'normal', color: 'var(--cs-encre)', marginBottom: '16px',
         }}>
           Pistes de monétisation
         </h2>
@@ -132,7 +132,7 @@ export default function VotesClient() {
       </div>
 
       {chargement ? (
-        <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+        <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {PROPOSITIONS.map(p => {
@@ -164,7 +164,7 @@ export default function VotesClient() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
                     <span style={{
                       fontFamily: "var(--font-source-serif), Georgia, serif",
-                      fontSize: '0.90625rem', color: '#1e2e24', fontWeight: 'normal',
+                      fontSize: '0.90625rem', color: 'var(--cs-encre-fonce)', fontWeight: 'normal',
                     }}>
                       {p.titre}
                     </span>
@@ -178,7 +178,7 @@ export default function VotesClient() {
                       </span>
                     )}
                   </div>
-                  <p style={{ fontSize: '0.78125rem', color: '#6b6560', lineHeight: 1.65, margin: 0 }}>
+                  <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.65, margin: 0 }}>
                     {p.description}
                   </p>
                 </div>
@@ -200,7 +200,7 @@ export default function VotesClient() {
                   </button>
                   <span style={{
                     fontSize: '0.75rem', fontWeight: 700,
-                    color: vote ? 'var(--cs-vert)' : '#9a958d',
+                    color: vote ? 'var(--cs-vert)' : 'var(--cs-texte-doux)',
                     lineHeight: 1,
                   }}>
                     {nb}
@@ -213,7 +213,7 @@ export default function VotesClient() {
       )}
 
       {!userId && !chargement && (
-        <p style={{ textAlign: 'center', fontSize: '0.71875rem', color: '#9a958d', marginTop: '16px', fontStyle: 'italic' }}>
+        <p style={{ textAlign: 'center', fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', marginTop: '16px', fontStyle: 'italic' }}>
           Connectez-vous pour voter.
         </p>
       )}

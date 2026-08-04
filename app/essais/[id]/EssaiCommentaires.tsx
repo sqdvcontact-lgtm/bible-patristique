@@ -102,10 +102,10 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
         <button onClick={() => setCibleReponse(c)} style={{ fontSize: '0.65625rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Répondre</button>
       )}
       {isAdmin && (
-        <button onClick={() => supprimerCommentaire(c.id)} style={{ fontSize: petit ? '10px' : '10.5px', color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Supprimer</button>
+        <button onClick={() => supprimerCommentaire(c.id)} style={{ fontSize: petit ? '10px' : '10.5px', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Supprimer</button>
       )}
       {!isAdmin && userId === c.user_id && (
-        <button onClick={() => supprimerMonCommentaire(c.id)} style={{ fontSize: petit ? '10px' : '10.5px', color: '#9a958d', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Supprimer</button>
+        <button onClick={() => supprimerMonCommentaire(c.id)} style={{ fontSize: petit ? '10px' : '10.5px', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Supprimer</button>
       )}
     </div>
   )
@@ -123,15 +123,15 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
     const reponses = commentaires.filter(r => r.reponse_a === c.id)
     const cache = !c.supprime && !c.valide && !revelees.has(c.id)
     const styleCarte: React.CSSProperties = c.valide
-      ? { border: '1px solid #e4dfd8', borderLeft: '4px solid #d6d0c4', background: '#fff' }
-      : { border: '1px solid rgba(176,58,42,0.26)', borderLeft: '4px solid #b03a2a', background: 'rgba(176,58,42,0.07)' }
+      ? { border: '1px solid var(--cs-bord-clair)', borderLeft: '4px solid var(--cs-bord)', background: '#fff' }
+      : { border: '1px solid rgba(176,58,42,0.26)', borderLeft: '4px solid var(--cs-danger)', background: 'rgba(176,58,42,0.07)' }
     const rang = c.score !== null && c.score !== undefined ? calculerRang(c.score).rang : null
     const rangCouleur = rang ? couleurRang(rang) : null
 
     return (
-      <article className="commentaire-carte" style={{ padding: '9px 0', borderBottom: '1px solid #ede9e2', viewTransitionName: `commentaire-essai-${c.id}` }}>
+      <article className="commentaire-carte" style={{ padding: '9px 0', borderBottom: '1px solid var(--cs-fond-doux)', viewTransitionName: `commentaire-essai-${c.id}` }}>
         {c.supprime ? (
-          <p style={{ fontSize: '0.71875rem', color: '#9a958d', fontStyle: 'italic', margin: 0, background: '#f3f0ea', padding: '6px 9px', borderRadius: '4px' }}>
+          <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0, background: '#f3f0ea', padding: '6px 9px', borderRadius: '4px' }}>
             {c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
           </p>
         ) : cache ? (
@@ -139,15 +139,15 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
         ) : (
           <div className="commentaire-carte" style={{ ...styleCarte, padding: '8px 10px', borderRadius: '5px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px', gap: '8px' }}>
-              <p style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#2a3d30', margin: 0 }}>
+              <p style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-encre)', margin: 0 }}>
                 {c.auteur_nom ?? 'Anonyme'}
                 {rang && rangCouleur && <span style={{ marginLeft: '6px', fontSize: '0.53125rem', color: rangCouleur.texte, background: rangCouleur.fond, borderRadius: '3px', padding: '1px 5px' }}>{rang}</span>}
-                {!c.valide && <span style={{ marginLeft: '6px', fontSize: '0.46875rem', fontWeight: 700, color: '#b03a2a', background: 'rgba(176,58,42,0.10)', padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>En révision</span>}
+                {!c.valide && <span style={{ marginLeft: '6px', fontSize: '0.46875rem', fontWeight: 700, color: 'var(--cs-danger)', background: 'rgba(176,58,42,0.10)', padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>En révision</span>}
               </p>
-              <span style={{ fontSize: '0.5625rem', color: '#b0a89e', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateHeureCommentaire(c.created_at)}</span>
+              <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateHeureCommentaire(c.created_at)}</span>
             </div>
             {c.passage_cite && (
-              <blockquote style={{ fontSize: '0.71875rem', color: '#756d64', fontStyle: 'italic', borderLeft: '2px solid #d6d0c4', paddingLeft: '8px', margin: '0 0 5px' }}>
+              <blockquote style={{ fontSize: '0.71875rem', color: '#756d64', fontStyle: 'italic', borderLeft: '2px solid var(--cs-bord)', paddingLeft: '8px', margin: '0 0 5px' }}>
                 « {c.passage_cite} »
               </blockquote>
             )}
@@ -162,25 +162,25 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
             const rangCouleurR = rangR ? couleurRang(rangR) : null
             const cacheReponse = !r.supprime && !r.valide && !revelees.has(r.id)
             return (
-          <div className="commentaire-carte" key={r.id} style={{ marginLeft: '14px', marginTop: '7px', paddingLeft: '10px', borderLeft: '2px solid #ede9e2', viewTransitionName: `commentaire-essai-${r.id}` }}>
+          <div className="commentaire-carte" key={r.id} style={{ marginLeft: '14px', marginTop: '7px', paddingLeft: '10px', borderLeft: '2px solid var(--cs-fond-doux)', viewTransitionName: `commentaire-essai-${r.id}` }}>
             {r.supprime ? (
-              <p style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic', margin: 0, background: '#f3f0ea', padding: '5px 8px', borderRadius: '4px' }}>
+              <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0, background: '#f3f0ea', padding: '5px 8px', borderRadius: '4px' }}>
                 {r.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
               </p>
             ) : cacheReponse ? (
               <CommentaireRetracte c={r} petit />
             ) : (
-              <div className="commentaire-carte" style={{ padding: '7px 9px', borderRadius: '4px', background: r.valide ? '#fff' : 'rgba(176,58,42,0.07)', border: `1px solid ${r.valide ? '#e4dfd8' : 'rgba(176,58,42,0.26)'}`, borderLeft: `3px solid ${r.valide ? '#d6d0c4' : '#b03a2a'}` }}>
+              <div className="commentaire-carte" style={{ padding: '7px 9px', borderRadius: '4px', background: r.valide ? '#fff' : 'rgba(176,58,42,0.07)', border: `1px solid ${r.valide ? 'var(--cs-bord-clair)' : 'rgba(176,58,42,0.26)'}`, borderLeft: `3px solid ${r.valide ? 'var(--cs-bord)' : 'var(--cs-danger)'}` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '3px', gap: '6px' }}>
-                  <p style={{ fontSize: '0.65625rem', fontWeight: 600, color: '#2a3d30', margin: 0 }}>
+                  <p style={{ fontSize: '0.65625rem', fontWeight: 600, color: 'var(--cs-encre)', margin: 0 }}>
                     {r.auteur_nom ?? 'Anonyme'}
                     {rangR && rangCouleurR && <span style={{ marginLeft: '5px', fontSize: '0.5rem', color: rangCouleurR.texte, background: rangCouleurR.fond, borderRadius: '3px', padding: '1px 4px' }}>{rangR}</span>}
-                    {!r.valide && <span style={{ marginLeft: '5px', fontSize: '0.4375rem', fontWeight: 700, color: '#b03a2a', letterSpacing: '0.06em', textTransform: 'uppercase' }}>En révision</span>}
+                    {!r.valide && <span style={{ marginLeft: '5px', fontSize: '0.4375rem', fontWeight: 700, color: 'var(--cs-danger)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>En révision</span>}
                   </p>
-                  <span style={{ fontSize: '0.5625rem', color: '#b0a89e', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateHeureCommentaire(r.created_at)}</span>
+                  <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateHeureCommentaire(r.created_at)}</span>
                 </div>
                 {r.passage_cite && (
-                  <blockquote style={{ fontSize: '0.6875rem', color: '#756d64', fontStyle: 'italic', borderLeft: '2px solid #d6d0c4', paddingLeft: '7px', margin: '0 0 4px' }}>« {r.passage_cite} »</blockquote>
+                  <blockquote style={{ fontSize: '0.6875rem', color: '#756d64', fontStyle: 'italic', borderLeft: '2px solid var(--cs-bord)', paddingLeft: '7px', margin: '0 0 4px' }}>« {r.passage_cite} »</blockquote>
                 )}
                 <div style={{ fontSize: '0.71875rem', color: r.valide ? '#3a3020' : '#6f3d35', lineHeight: 1.48 }}>{rendreTexteEnrichi(r.texte)}</div>
                 <LigneActions c={r} petit />
@@ -237,7 +237,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
       `}</style>
       {/* Décompte, en tête (le tri a été retiré). */}
       <div style={{ flexShrink: 0, padding: '12px 14px 8px' }}>
-        <span style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic' }}>
+        <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>
           {racines.length > 0 ? `${racines.length} commentaire${racines.length > 1 ? 's' : ''}` : 'Aucun commentaire'}
         </span>
       </div>
@@ -249,14 +249,14 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
 
       {/* Outil de rédaction : ancré EN BAS du volet. */}
       {userId ? (
-        <div style={{ flexShrink: 0, borderTop: '1px solid #ede9e2', background: '#faf8f4', padding: '10px 14px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ flexShrink: 0, borderTop: '1px solid var(--cs-fond-doux)', background: 'var(--cs-fond-clair)', padding: '10px 14px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {cibleReponse && (
-            <p style={{ fontSize: '0.65625rem', color: '#6b6560', background: '#fff', padding: '4px 8px', borderRadius: '4px', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+            <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)', background: '#fff', padding: '4px 8px', borderRadius: '4px', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
               <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
                 <path d="M7 4 3.5 7.5 7 11M3.5 7.5H10a2.5 2.5 0 0 1 2.5 2.5V12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               En réponse à <strong>{cibleReponse.auteur_nom}</strong>{' '}
-              <button onClick={() => setCibleReponse(null)} style={{ color: '#c0562a', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.65625rem', padding: 0 }}>✕</button>
+              <button onClick={() => setCibleReponse(null)} style={{ color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.65625rem', padding: 0 }}>✕</button>
             </p>
           )}
           <EditeurCommentaire value={texte} onChange={setTexte} placeholder="Votre commentaire…" minHeight={64} />
@@ -264,14 +264,14 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
             <button onClick={() => setAfficherPassage(true)} style={{ fontSize: '0.625rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', alignSelf: 'flex-start', padding: 0 }}>+ Citer un passage</button>
           ) : (
             <textarea value={passageCite} onChange={e => setPassageCite(e.target.value)} rows={2} placeholder="Passage exact à commenter…"
-              style={{ width: '100%', fontSize: '0.71875rem', fontStyle: 'italic', padding: '6px 8px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#fff', color: '#5a5450', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
+              style={{ width: '100%', fontSize: '0.71875rem', fontStyle: 'italic', padding: '6px 8px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: '#fff', color: 'var(--cs-texte)', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
           )}
-          <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: texte.trim() ? 'var(--cs-vert)' : '#e4dfd8', color: texte.trim() ? '#fff' : '#9a958d', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
+          <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: texte.trim() ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: texte.trim() ? '#fff' : 'var(--cs-texte-doux)', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
             {envoi ? 'Envoi…' : 'Publier'}
           </button>
         </div>
       ) : (
-        <p style={{ flexShrink: 0, borderTop: '1px solid #ede9e2', fontSize: '0.71875rem', color: '#9a958d', fontStyle: 'italic', padding: '10px 14px' }}>Connectez-vous pour commenter.</p>
+        <p style={{ flexShrink: 0, borderTop: '1px solid var(--cs-fond-doux)', fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '10px 14px' }}>Connectez-vous pour commenter.</p>
       )}
     </div>
   )

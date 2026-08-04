@@ -49,22 +49,22 @@ export function syntaxeVersHtml(texte: string): string {
     if (ligne.trim() === '') { flush(); return }
     if (espace) {
       flush()
-      blocs.push(`<div contenteditable="false" data-chip="espace" data-mm="${espace[1]}" style="height:${espace[1]}mm;border-left:2px dashed #d6d0c4;margin:2px 0 2px 4px;"></div>`)
+      blocs.push(`<div contenteditable="false" data-chip="espace" data-mm="${espace[1]}" style="height:${espace[1]}mm;border-left:2px dashed var(--cs-bord);margin:2px 0 2px 4px;"></div>`)
       return
     }
     if (ligne.startsWith('> ')) {
       flush()
-      blocs.push(`<blockquote style="font-style:normal;font-size:0.9em;font-family:var(--font-source-serif), Georgia, serif;color:#4a4440;margin:3mm 8mm;line-height:1.44;text-align:justify;text-indent:0;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
+      blocs.push(`<blockquote style="font-style:normal;font-size:0.9em;font-family:var(--font-source-serif), Georgia, serif;color:var(--cs-texte);margin:3mm 8mm;line-height:1.44;text-align:justify;text-indent:0;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
       return
     }
     if (ligne.startsWith('## ')) {
       flush()
-      blocs.push(`<h3 style="font-style:italic;font-weight:400;font-family:var(--font-source-serif), Georgia, serif;font-size:1em;color:#2a3d30;margin:1.18em 0 0.52em;padding-left:1.08em;">${inlineVersHtml(ligne.slice(3))}</h3>`)
+      blocs.push(`<h3 style="font-style:italic;font-weight:400;font-family:var(--font-source-serif), Georgia, serif;font-size:1em;color:var(--cs-encre);margin:1.18em 0 0.52em;padding-left:1.08em;">${inlineVersHtml(ligne.slice(3))}</h3>`)
       return
     }
     if (ligne.startsWith('# ')) {
       flush()
-      blocs.push(`<h2 style="font-weight:700;font-family:var(--font-source-serif), Georgia, serif;font-size:1.07em;color:#1e2e24;margin:1.65em 0 0.72em;padding-left:0.72em;">${inlineVersHtml(ligne.slice(2))}</h2>`)
+      blocs.push(`<h2 style="font-weight:700;font-family:var(--font-source-serif), Georgia, serif;font-size:1.07em;color:var(--cs-encre-fonce);margin:1.65em 0 0.72em;padding-left:0.72em;">${inlineVersHtml(ligne.slice(2))}</h2>`)
       return
     }
     paragraphe.push(ligne)

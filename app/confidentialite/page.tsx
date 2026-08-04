@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function ConfidentialitePage() {
   return (
-    <main style={{ background: "#f7f4ef", minHeight: "calc(100vh - 3.5rem)", padding: "56px 24px 80px" }}>
+    <main style={{ background: "var(--cs-fond)", minHeight: "calc(100vh - 3.5rem)", padding: "56px 24px 80px" }}>
       <div style={{ maxWidth: "42.5rem", margin: "0 auto" }}>
 
         <p style={{
@@ -19,16 +19,16 @@ export default function ConfidentialitePage() {
 
         <h1 style={{
           fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "clamp(26px, 3.5vw, 34px)",
-          fontWeight: "normal", color: "#2a3d30", marginBottom: "8px", lineHeight: 1.25,
+          fontWeight: "normal", color: "var(--cs-encre)", marginBottom: "8px", lineHeight: 1.25,
         }}>
           Politique de confidentialité
         </h1>
 
-        <p style={{ fontSize: "0.75rem", color: "#9a958d", marginBottom: "40px", fontStyle: "italic" }}>
+        <p style={{ fontSize: "0.75rem", color: "var(--cs-texte-doux)", marginBottom: "40px", fontStyle: "italic" }}>
           Dernière mise à jour : juillet 2026
         </p>
 
-        <div style={{ fontSize: "0.84375rem", lineHeight: 1.75, color: "#3a3530" }}>
+        <div style={{ fontSize: "0.84375rem", lineHeight: 1.75, color: "var(--cs-texte)" }}>
 
           <Section titre="1. Responsable du traitement">
             <p>
@@ -248,8 +248,8 @@ function Section({ titre, children }: { titre: string; children: React.ReactNode
     <section style={{ marginBottom: "32px" }}>
       <h2 style={{
         fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem",
-        fontWeight: "normal", color: "#2a3d30", marginBottom: "10px",
-        borderBottom: "1px solid #d6d0c4", paddingBottom: "6px",
+        fontWeight: "normal", color: "var(--cs-encre)", marginBottom: "10px",
+        borderBottom: "1px solid var(--cs-bord)", paddingBottom: "6px",
       }}>
         {titre}
       </h2>

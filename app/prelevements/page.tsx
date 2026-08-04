@@ -175,9 +175,9 @@ function BoutonSuppr({ ids, onSuppr }: { ids: string[]; onSuppr: () => void }) {
   if (conf) return (
     <span className="prel-confirm" onClick={e => e.stopPropagation()}>
       Supprimer ?&ensp;
-      <button onClick={onSuppr} style={{ fontWeight: 600, color: "#9a2a2a", background: "none", border: "none", cursor: "pointer", fontSize: "inherit", padding: 0 }}>Oui</button>
+      <button onClick={onSuppr} style={{ fontWeight: 600, color: "var(--cs-danger-fonce)", background: "none", border: "none", cursor: "pointer", fontSize: "inherit", padding: 0 }}>Oui</button>
       &ensp;
-      <button onClick={() => setConf(false)} style={{ color: "#9a958d", background: "none", border: "none", cursor: "pointer", fontSize: "inherit", padding: 0 }}>Non</button>
+      <button onClick={() => setConf(false)} style={{ color: "var(--cs-texte-doux)", background: "none", border: "none", cursor: "pointer", fontSize: "inherit", padding: 0 }}>Non</button>
     </span>
   );
   return (
@@ -186,8 +186,8 @@ function BoutonSuppr({ ids, onSuppr }: { ids: string[]; onSuppr: () => void }) {
 }
 
 function BoutonCoeur({ active, onClick }: { active: boolean; onClick: (e: React.MouseEvent) => void }) {
-  const c = active ? "#9a7a38" : "#c0b0a8";
-  const cf = active ? "#9a7a38" : "none";
+  const c = active ? "var(--cs-or)" : "#c0b0a8";
+  const cf = active ? "var(--cs-or)" : "none";
   return (
     <button onClick={onClick} className={`prel-action prel-coeur${active ? " prel-coeur-active" : ""}`}
       title={active ? "Retirer comme citation préférée" : "Marquer comme citation préférée"}
@@ -231,8 +231,8 @@ function GroupeRepliable({ label, count, ouvert, onToggle, children }: {
         <span style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--cs-vert)", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
           {label}
         </span>
-        <span style={{ fontSize: "0.59375rem", color: "#b0a89e", background: "transparent", padding: "0 4px", letterSpacing: "0.04em" }}>{count}</span>
-        <span style={{ fontSize: "0.5rem", color: "#c0b8b0", marginLeft: "auto", transition: "transform 0.18s", display: "inline-block", transform: ouvert ? "rotate(180deg)" : "none" }}>▼</span>
+        <span style={{ fontSize: "0.59375rem", color: "var(--cs-texte-faible)", background: "transparent", padding: "0 4px", letterSpacing: "0.04em" }}>{count}</span>
+        <span style={{ fontSize: "0.5rem", color: "var(--cs-texte-faible)", marginLeft: "auto", transition: "transform 0.18s", display: "inline-block", transform: ouvert ? "rotate(180deg)" : "none" }}>▼</span>
       </button>
       {ouvert && (
         <div style={{ paddingBottom: "4px" }}>
@@ -396,7 +396,7 @@ export default function PrelevementsPage() {
 
   if (chargement) return (
     <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "#f0ebe0", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <p style={{ fontSize: "0.8125rem", color: "#9a8a72", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Chargement…</p>
+      <p style={{ fontSize: "0.8125rem", color: "var(--cs-texte-doux)", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Chargement…</p>
     </main>
   );
 
@@ -428,10 +428,10 @@ export default function PrelevementsPage() {
 
         .prel-actions { display: flex; gap: 0; align-items: center; flex-shrink: 0; margin-left: 10px; opacity: 0; transition: opacity 0.15s; }
         .prel-item:hover .prel-actions { opacity: 1; }
-        .prel-action { background: none; border: none; cursor: pointer; color: #b0a89e; padding: 0; line-height: 1; transition: color 0.12s; font-family: inherit; font-size:0.8125rem; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 22px; box-sizing: border-box; text-decoration: none; }
+        .prel-action { background: none; border: none; cursor: pointer; color: var(--cs-texte-faible); padding: 0; line-height: 1; transition: color 0.12s; font-family: inherit; font-size:0.8125rem; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 22px; box-sizing: border-box; text-decoration: none; }
         .prel-action:hover { color: var(--cs-vert); }
-        .prel-coeur-active { color: #9a7a38 !important; opacity: 1 !important; }
-        .prel-confirm { font-size:0.65625rem; color: #9a8a72; display: flex; align-items: center; white-space: nowrap; }
+        .prel-coeur-active { color: var(--cs-or) !important; opacity: 1 !important; }
+        .prel-confirm { font-size:0.65625rem; color: var(--cs-texte-doux); display: flex; align-items: center; white-space: nowrap; }
         .prel-trad-sel {
           appearance: none; -webkit-appearance: none;
           font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; font-style: normal;
@@ -442,7 +442,7 @@ export default function PrelevementsPage() {
           background-repeat: no-repeat; background-position: right 2px center; background-size: 7px;
           letter-spacing: 0.01em;
         }
-        .prel-trad-sel:focus { border-bottom-color: #9a7a38; }
+        .prel-trad-sel:focus { border-bottom-color: var(--cs-or); }
       `}</style>
 
       <div style={{ maxWidth: "42.5rem", margin: "0 auto", padding: "52px 24px 96px" }}>
@@ -476,7 +476,7 @@ export default function PrelevementsPage() {
                 marginBottom: "-1px",
               }}>
               {t === "biblique" ? "Versets bibliques" : "Textes patristiques"}
-              <span style={{ marginLeft: "7px", fontSize: "0.59375rem", color: onglet === t ? "#9a7a38" : "#c0b8b0" }}>
+              <span style={{ marginLeft: "7px", fontSize: "0.59375rem", color: onglet === t ? "var(--cs-or)" : "var(--cs-texte-faible)" }}>
                 {t === "biblique" ? bibliques.length : patristiques.length}
               </span>
             </button>
@@ -497,7 +497,7 @@ export default function PrelevementsPage() {
         {onglet === "biblique" && (
           bibliques.length === 0 ? (
             <div style={{ textAlign: "center", padding: "64px 0" }}>
-              <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.875rem", color: "#9a8a72", marginBottom: "20px" }}>
+              <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.875rem", color: "var(--cs-texte-doux)", marginBottom: "20px" }}>
                 Aucun verset enregistré.
               </p>
               <Link href="/?livre=GEN&chapitre=1" style={{ fontSize: "0.71875rem", color: "var(--cs-vert)", textDecoration: "none", letterSpacing: "0.04em" }}>Ouvrir la Bible →</Link>
@@ -522,8 +522,8 @@ export default function PrelevementsPage() {
                             <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.8125rem", color: "#1e1a14", lineHeight: 1.45, margin: "0 0 3px" }}>
                               «&#8201;{rendreTexteEnrichi(sansAppelsNote(texte))}&#8201;»
                             </p>
-                            <p style={{ fontSize: "0.5625rem", color: "#9a8a72", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                              <span style={{ fontWeight: 600, color: estPref ? "#9a7a38" : "#6a7b6e" }}>{ref}</span>
+                            <p style={{ fontSize: "0.5625rem", color: "var(--cs-texte-doux)", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                              <span style={{ fontWeight: 600, color: estPref ? "var(--cs-or)" : "#6a7b6e" }}>{ref}</span>
                               {nomTrad && (
                                 <>
                                   <span style={{ opacity: 0.4 }}>·</span>
@@ -552,7 +552,7 @@ export default function PrelevementsPage() {
         {onglet === "patristique" && (
           patristiques.length === 0 ? (
             <div style={{ textAlign: "center", padding: "64px 0" }}>
-              <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.875rem", color: "#9a8a72", marginBottom: "20px" }}>
+              <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.875rem", color: "var(--cs-texte-doux)", marginBottom: "20px" }}>
                 Aucun passage enregistré.
               </p>
               <Link href="/bibliotheque" style={{ fontSize: "0.71875rem", color: "var(--cs-vert)", textDecoration: "none", letterSpacing: "0.04em" }}>Ouvrir la bibliothèque →</Link>
@@ -584,8 +584,8 @@ export default function PrelevementsPage() {
                               «&#8201;{rendreTexteEnrichi(sansAppelsNote(p.texte))}&#8201;»
                             </p>
                             {(p.ref_niv1 || p.ref_niv2) && (
-                              <p style={{ fontSize: "0.5625rem", color: "#9a8a72", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
-                                <span style={{ fontWeight: 600, color: estPref ? "#9a7a38" : "#6a7b6e" }}>
+                              <p style={{ fontSize: "0.5625rem", color: "var(--cs-texte-doux)", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+                                <span style={{ fontWeight: 600, color: estPref ? "var(--cs-or)" : "#6a7b6e" }}>
                                   {[p.ref_niv1, p.ref_niv2].filter(Boolean).join(", ")}
                                 </span>
                               </p>

@@ -100,8 +100,8 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
   const activePos = positions[active]
   const isDragging = !!dragRef.current
   const btnZ: React.CSSProperties = {
-    width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #d6d0c4',
-    background: '#fff', color: '#3a3530', fontSize: '1.22187rem', cursor: 'pointer',
+    width: '28px', height: '28px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
+    background: '#fff', color: 'var(--cs-texte)', fontSize: '1.22187rem', cursor: 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1,
   }
   const badgeStyle: React.CSSProperties = {
@@ -115,22 +115,22 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
     ? DOMPurify.sanitize(t.commentaire_editorial.startsWith('<')
         ? t.commentaire_editorial
         : t.commentaire_editorial.split(/\n+/).filter(Boolean)
-            .map(l => `<p style="color:#2a2520;font-size:0.84375rem;line-height:1.78;margin:0 0 12px">${l}</p>`)
+            .map(l => `<p style="color:var(--cs-texte-fort);font-size:0.84375rem;line-height:1.78;margin:0 0 12px">${l}</p>`)
             .join(''))
     : ''
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 2000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: '#f7f4ef', borderRadius: '10px', padding: '18px 18px 16px', maxWidth: '42.5rem', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-fond)', borderRadius: '10px', padding: '18px 18px 16px', maxWidth: '42.5rem', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>
 
         {/* En-tête */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.00625rem', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
-            Positionner l'image · <em style={{ color: '#7a7268' }}>{t.nom}</em>
+          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.00625rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>
+            Positionner l'image · <em style={{ color: 'var(--cs-texte-second)' }}>{t.nom}</em>
           </h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.07813rem', color: '#b0a89e', padding: 0, lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.07813rem', color: 'var(--cs-texte-faible)', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
-        <p style={{ fontSize: '0.75469rem', color: '#9a958d', margin: '0 0 12px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)', margin: '0 0 12px', lineHeight: 1.5 }}>
           Glissez directement sur le bandeau ou la miniature pour cadrer · + / − pour zoomer
         </p>
 
@@ -141,7 +141,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
           onMouseMove={onMove}
           onMouseUp={endDrag}
           onMouseLeave={endDrag}
-          style={{ border: '1px solid #ddd8cf', borderRadius: '8px', overflow: 'hidden', background: '#fff', userSelect: 'none' }}>
+          style={{ border: '1px solid var(--cs-bord)', borderRadius: '8px', overflow: 'hidden', background: '#fff', userSelect: 'none' }}>
 
           {/* ── Bandeau (copie exacte de BandeauTraduction) ── */}
           <div
@@ -179,14 +179,14 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
           </div>
 
           {/* ── Volet déplié (copie exacte de OngletTraductions) ── */}
-          <div style={{ borderTop: '1px solid #ede9e2', display: 'flex', alignItems: 'stretch' }}>
+          <div style={{ borderTop: '1px solid var(--cs-fond-doux)', display: 'flex', alignItems: 'stretch' }}>
 
             {/* Miniature latérale */}
             <div
               ref={lateralRef}
               style={{
                 position: 'relative', width: '8.75rem', flexShrink: 0,
-                borderRight: '1px solid #ede9e2', overflow: 'hidden',
+                borderRight: '1px solid var(--cs-fond-doux)', overflow: 'hidden',
                 outline: active === 'lateral' ? '3px solid var(--cs-vert)' : '3px solid transparent',
                 outlineOffset: '-3px', transition: 'outline-color 0.12s',
               }}>
@@ -204,7 +204,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
                 </p>
               )}
               {htmlEditorial && (
-                <div className="trad-article" style={{ color: '#2a2520', fontSize: '0.97031rem', lineHeight: 1.65, textAlign: 'justify', hyphens: 'auto' }}
+                <div className="trad-article" style={{ color: 'var(--cs-texte-fort)', fontSize: '0.97031rem', lineHeight: 1.65, textAlign: 'justify', hyphens: 'auto' }}
                   dangerouslySetInnerHTML={{ __html: htmlEditorial }} />
               )}
             </div>
@@ -213,21 +213,21 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
 
         {/* ── Contrôles ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px' }}>
-          <p style={{ fontSize: '0.79062rem', color: '#9a958d', margin: 0, flex: 1 }}>
+          <p style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', margin: 0, flex: 1 }}>
             Zone active : <strong style={{ color: active === 'bandeau' ? 'var(--cs-vert)' : '#9a7e3d' }}>{active === 'bandeau' ? 'bandeau' : 'miniature'}</strong>
           </p>
           <button onClick={() => zoomer(-0.1)} style={btnZ}>−</button>
-          <span style={{ fontSize: '0.8625rem', fontWeight: 600, color: '#2a3d30', minWidth: '44px', textAlign: 'center' }}>{Math.round(activePos.scale * 100)} %</span>
+          <span style={{ fontSize: '0.8625rem', fontWeight: 600, color: 'var(--cs-encre)', minWidth: '44px', textAlign: 'center' }}>{Math.round(activePos.scale * 100)} %</span>
           <button onClick={() => zoomer(+0.1)} style={btnZ}>+</button>
           <button onClick={() => setPositions(prev => ({ ...prev, [active]: { ...POS_DEFAUT } }))}
-            style={{ fontSize: '0.71875rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: '0 4px' }}>
+            style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: '0 4px' }}>
             Réinit.
           </button>
         </div>
 
         {/* ── Actions ── */}
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '14px', borderTop: '1px solid #e8e3dc', paddingTop: '14px' }}>
-          <button onClick={onClose} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
+          <button onClick={onClose} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
           <button onClick={sauvegarder} disabled={saving} style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: 'none', background: saving ? '#a0b8aa' : 'var(--cs-vert)', color: '#fff', cursor: saving ? 'default' : 'pointer', fontWeight: 500 }}>
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
@@ -237,7 +237,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
   )
 }
 
-const labelStyle: React.CSSProperties = { fontSize: '0.71875rem', fontWeight: 600, letterSpacing: '0.08em', color: '#9a958d', display: 'block', marginBottom: '4px' }
+const labelStyle: React.CSSProperties = { fontSize: '0.71875rem', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', display: 'block', marginBottom: '4px' }
 
 // Editeur rich-text
 function parseCSV(texte: string): string[][] {
@@ -305,8 +305,8 @@ function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: s
   }
 
   const btnStyle: React.CSSProperties = {
-    padding: '4px 9px', fontSize: '0.82656rem', border: '1px solid #d6d0c4',
-    borderRadius: '3px', background: '#fff', color: '#3a3530', cursor: 'pointer', lineHeight: 1,
+    padding: '4px 9px', fontSize: '0.82656rem', border: '1px solid var(--cs-bord)',
+    borderRadius: '3px', background: '#fff', color: 'var(--cs-texte)', cursor: 'pointer', lineHeight: 1,
   }
 
   React.useEffect(() => {
@@ -328,18 +328,18 @@ function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: s
   }
 
   return (
-    <div style={{ border: '1px solid #d6d0c4', borderRadius: '5px', overflow: 'hidden' }}>
+    <div style={{ border: '1px solid var(--cs-bord)', borderRadius: '5px', overflow: 'hidden' }}>
       {/* Barre d'outils */}
-      <div style={{ display: 'flex', gap: '4px', padding: '6px 8px', background: '#f7f4ef', borderBottom: '1px solid #d6d0c4', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '4px', padding: '6px 8px', background: 'var(--cs-fond)', borderBottom: '1px solid var(--cs-bord)', flexWrap: 'wrap', alignItems: 'center' }}>
         <button type="button" onMouseDown={e => { e.preventDefault(); appliquerDirect('bold') }} style={btnStyle}><strong>G</strong></button>
         <button type="button" onMouseDown={e => { e.preventDefault(); appliquerDirect('italic') }} style={btnStyle}><em>I</em></button>
-        <div style={{ width: '1px', background: '#d6d0c4', margin: '0 2px', alignSelf: 'stretch' }} />
+        <div style={{ width: '1px', background: 'var(--cs-bord)', margin: '0 2px', alignSelf: 'stretch' }} />
         <button type="button" onMouseDown={e => { e.preventDefault(); appliquerDirect('formatBlock', 'h1') }} style={btnStyle} title="Titre 1">H1</button>
         <button type="button" onMouseDown={e => { e.preventDefault(); appliquerDirect('formatBlock', 'h2') }} style={btnStyle} title="Titre 2">H2</button>
         <button type="button" onMouseDown={e => { e.preventDefault(); appliquerDirect('formatBlock', 'p') }} style={btnStyle} title="Paragraphe">¶</button>
-        <div style={{ width: '1px', background: '#d6d0c4', margin: '0 2px', alignSelf: 'stretch' }} />
+        <div style={{ width: '1px', background: 'var(--cs-bord)', margin: '0 2px', alignSelf: 'stretch' }} />
         <button type="button" onMouseDown={e => { e.preventDefault(); petitesCapitalesDirect() }} style={{ ...btnStyle, fontVariant: 'small-caps' }} title="Petites capitales">sc</button>
-        <span style={{ fontSize: '0.71875rem', color: '#b0a89e', marginLeft: 'auto' }}>direct</span>
+        <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', marginLeft: 'auto' }}>direct</span>
       </div>
       <div
         ref={ref}
@@ -348,7 +348,7 @@ function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: s
         onInput={e => onChange(e.currentTarget.innerHTML)}
         style={{
           width: '100%', minHeight: '150px', padding: '12px 14px', fontSize: '0.93437rem',
-          fontFamily: 'var(--font-source-serif), Georgia, serif', lineHeight: 1.7, color: '#2a2520', outline: 'none',
+          fontFamily: 'var(--font-source-serif), Georgia, serif', lineHeight: 1.7, color: 'var(--cs-texte-fort)', outline: 'none',
           border: 'none', background: '#fff', boxSizing: 'border-box',
         }}
       />
@@ -383,15 +383,15 @@ function BoutonSource({ label, urls }: { label: string; urls: string[] }) {
   return (
     <span style={{ position: 'relative', display: 'inline-block' }}>
       <button onClick={() => setOuvert(o => !o)} style={{ ...base, cursor: 'pointer' }}>
-        {label}<span style={{ color: '#9a958d' }}>· {urls.length}</span><span aria-hidden="true" style={{ opacity: 0.7 }}>▾</span>
+        {label}<span style={{ color: 'var(--cs-texte-doux)' }}>· {urls.length}</span><span aria-hidden="true" style={{ opacity: 0.7 }}>▾</span>
       </button>
       {ouvert && (
         <>
           <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, zIndex: 9 }} />
-          <div style={{ position: 'absolute', top: 'calc(100% + 3px)', left: 0, zIndex: 10, background: '#fff', border: '1px solid #d6d0c4', borderRadius: '7px', boxShadow: '0 6px 20px rgba(0,0,0,0.10)', minWidth: '8rem', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 'calc(100% + 3px)', left: 0, zIndex: 10, background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '7px', boxShadow: '0 6px 20px rgba(0,0,0,0.10)', minWidth: '8rem', overflow: 'hidden' }}>
             {urls.map((u, i) => (
               <a key={i} href={u} target="_blank" rel="noopener noreferrer" onClick={() => setOuvert(false)}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '6px 12px', fontSize: '0.65rem', color: 'var(--cs-vert)', textDecoration: 'none', borderBottom: i < urls.length - 1 ? '1px solid #f0ece6' : 'none' }}>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '6px 12px', fontSize: '0.65rem', color: 'var(--cs-vert)', textDecoration: 'none', borderBottom: i < urls.length - 1 ? '1px solid var(--cs-fond-doux)' : 'none' }}>
                 Tome {i + 1}<span aria-hidden="true" style={{ opacity: 0.7 }}>↗</span>
               </a>
             ))}
@@ -410,9 +410,9 @@ function mentionEdition(n: number): string {
   if (n === 1) return '1re édition'
   return `${n}e édition`
 }
-const styleTag: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', background: '#f0ece3', color: '#5a5450', border: '1px solid #e3ddcf', borderRadius: '999px', padding: '1px 9px', lineHeight: 1.45 }
-const styleInput: React.CSSProperties = { width: '100%', fontSize: '0.74rem', padding: '4px 8px', border: '1px solid #cfc4ae', borderRadius: '5px', background: '#fff', color: '#2a3530', outline: 'none', boxSizing: 'border-box' }
-const styleMini: React.CSSProperties = { fontSize: '0.62rem', padding: '3px 9px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', cursor: 'pointer', color: '#6b6560' }
+const styleTag: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', background: '#f0ece3', color: 'var(--cs-texte)', border: '1px solid #e3ddcf', borderRadius: '999px', padding: '1px 9px', lineHeight: 1.45 }
+const styleInput: React.CSSProperties = { width: '100%', fontSize: '0.74rem', padding: '4px 8px', border: '1px solid var(--cs-or-doux)', borderRadius: '5px', background: '#fff', color: '#2a3530', outline: 'none', boxSizing: 'border-box' }
+const styleMini: React.CSSProperties = { fontSize: '0.62rem', padding: '3px 9px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', cursor: 'pointer', color: 'var(--cs-texte-second)' }
 
 // Éditeur de valeurs multiples sous forme de tags (add / remove), enregistré joint par « ; ».
 function EditeurTags({ initial, onValider, onAnnuler }: { initial: string[]; onValider: (v: string[]) => void; onAnnuler: () => void }) {
@@ -425,7 +425,7 @@ function EditeurTags({ initial, onValider, onAnnuler }: { initial: string[]; onV
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
           {tags.map((v, i) => (
             <span key={i} style={styleTag}>{v}
-              <button onClick={() => setTags(tags.filter((_, j) => j !== i))} title="Retirer" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9a8a6e', padding: 0, fontSize: '0.78rem', lineHeight: 1 }}>×</button>
+              <button onClick={() => setTags(tags.filter((_, j) => j !== i))} title="Retirer" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-doux)', padding: 0, fontSize: '0.78rem', lineHeight: 1 }}>×</button>
             </span>
           ))}
         </div>
@@ -436,7 +436,7 @@ function EditeurTags({ initial, onValider, onAnnuler }: { initial: string[]; onV
           placeholder="Ajouter une valeur…" style={{ ...styleInput, flex: 1 }} />
         <button onClick={ajouter} style={styleMini}>Ajouter</button>
         <button onClick={() => onValider(tags)} style={{ ...styleMini, color: 'var(--cs-vert)', borderColor: '#bcd3c0', fontWeight: 600 }}>Enregistrer</button>
-        <button onClick={onAnnuler} style={{ ...styleMini, color: '#9a958d' }}>Annuler</button>
+        <button onClick={onAnnuler} style={{ ...styleMini, color: 'var(--cs-texte-doux)' }}>Annuler</button>
       </div>
     </div>
   )
@@ -476,15 +476,15 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
     enregistrer({ [k]: v === '' ? null : (numeric ? Number(v) : v) } as Partial<EditionSource>)
   }
   const sousTitre: React.CSSProperties = { fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 4px' }
-  const vide: React.CSSProperties = { fontSize: '0.8rem', color: '#9a958d', fontStyle: 'italic', margin: 0 }
-  const cleStyle: React.CSSProperties = { display: 'block', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#b0a89e', marginBottom: '1px' }
+  const vide: React.CSSProperties = { fontSize: '0.8rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }
+  const cleStyle: React.CSSProperties = { display: 'block', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', marginBottom: '1px' }
   // Ligne (libellé à gauche, valeur à droite) — présentation sobre en lignes, texte réduit.
-  const labelLigne: React.CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.53rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#b0a89e', lineHeight: 1.35 }
-  const tiret = <span style={{ color: '#c8c0b4' }}>—</span>
+  const labelLigne: React.CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.53rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', lineHeight: 1.35 }
+  const tiret = <span style={{ color: 'var(--cs-bord)' }}>—</span>
   const Ligne = ({ cle, children }: { cle: string; children: React.ReactNode }) => (
     <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid #f1ede6', alignItems: 'baseline' }}>
       <span style={labelLigne}>{cle}</span>
-      <span style={{ fontSize: '0.74rem', color: '#3a3530', lineHeight: 1.4, wordBreak: 'break-word', flex: 1 }}>{children}</span>
+      <span style={{ fontSize: '0.74rem', color: 'var(--cs-texte)', lineHeight: 1.4, wordBreak: 'break-word', flex: 1 }}>{children}</span>
     </div>
   )
   // Ligne éditable au clic. `multi` → tags (séparés par « ; ») ; `numeric` → nombre ;
@@ -507,7 +507,7 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
             )
           ) : (
             <span onClick={() => multi ? setChampEdit(k) : editerSingle(k)} title="Cliquer pour modifier"
-              style={{ fontSize: '0.74rem', color: '#3a3530', lineHeight: 1.4, wordBreak: 'break-word', cursor: 'pointer', ...(multi ? {} : { borderBottom: '1px dotted #ddd6c8' }) }}>
+              style={{ fontSize: '0.74rem', color: 'var(--cs-texte)', lineHeight: 1.4, wordBreak: 'break-word', cursor: 'pointer', ...(multi ? {} : { borderBottom: '1px dotted #ddd6c8' }) }}>
               {multi
                 ? (enValeurs(brut as string).length ? <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '4px' }}>{enValeurs(brut as string).map((v, i) => <span key={i} style={styleTag}>{v}</span>)}</span> : tiret)
                 : (brut != null && String(brut) !== '' ? (rendu ? rendu(String(brut)) : String(brut)) : tiret)}
@@ -531,19 +531,19 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
             style={{ ...styleInput, resize: 'vertical', lineHeight: 1.5 }} />
         ) : (
           <span onClick={() => editerSingle(k)} title="Cliquer pour modifier"
-            style={{ fontSize: '0.74rem', color: '#5a5450', lineHeight: 1.5, cursor: 'pointer', whiteSpace: 'pre-wrap', display: 'block' }}>
-            {brut && String(brut).trim() ? String(brut) : <em style={{ color: '#c8c0b4' }}>Cliquer pour renseigner…</em>}
+            style={{ fontSize: '0.74rem', color: 'var(--cs-texte)', lineHeight: 1.5, cursor: 'pointer', whiteSpace: 'pre-wrap', display: 'block' }}>
+            {brut && String(brut).trim() ? String(brut) : <em style={{ color: 'var(--cs-bord)' }}>Cliquer pour renseigner…</em>}
           </span>
         )}
       </div>
     )
   }
   const e = local
-  const ongletBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.7rem', fontWeight: 600, padding: '5px 13px', borderRadius: '6px', border: `1px solid ${actif ? 'var(--cs-vert)' : '#d6d0c4'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.09)' : '#fff', color: actif ? 'var(--cs-vert)' : '#8a8278', cursor: 'pointer' })
-  const navBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.72rem', padding: '4px 12px', borderRadius: '5px', border: `1px solid ${actif ? '#d6d0c4' : '#ece7de'}`, background: '#fff', color: actif ? 'var(--cs-vert)' : '#c8c0b4', cursor: actif ? 'pointer' : 'default' })
+  const ongletBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.7rem', fontWeight: 600, padding: '5px 13px', borderRadius: '6px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.09)' : '#fff', color: actif ? 'var(--cs-vert)' : '#8a8278', cursor: 'pointer' })
+  const navBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.72rem', padding: '4px 12px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-bord)' : 'var(--cs-fond-doux)'}`, background: '#fff', color: actif ? 'var(--cs-vert)' : 'var(--cs-bord)', cursor: actif ? 'pointer' : 'default' })
 
   return (
-    <div style={{ padding: '16px 18px 20px', borderTop: '1px solid #f0ece6', background: '#fbfaf7' }}>
+    <div style={{ padding: '16px 18px 20px', borderTop: '1px solid var(--cs-fond-doux)', background: 'var(--cs-fond-clair)' }}>
       {/* Petit onglet en tête : Fiche / Commentaires IA */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '15px' }}>
         <button onClick={() => setOnglet('fiche')} style={ongletBtn(onglet === 'fiche')}>Fiche</button>
@@ -574,14 +574,14 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
                 <span style={{ fontSize: '0.72rem', color: '#8a8278' }}>{idx + 1} / {journal.length}</span>
                 <button disabled={idx >= journal.length - 1} onClick={() => setIdxJ(idx + 1)} style={navBtn(idx < journal.length - 1)}>Suivant ›</button>
               </div>
-              <div style={{ border: '1px solid #e4dfd8', borderRadius: '7px', background: '#fff', padding: '12px 14px' }}>
+              <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '7px', background: '#fff', padding: '12px 14px' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', marginBottom: '5px' }}>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#2a3d30' }}>{j.sujet || 'Sans sujet'}</span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--cs-encre)' }}>{j.sujet || 'Sans sujet'}</span>
                   {j.statut && <span style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.10)', borderRadius: '4px', padding: '2px 7px', flexShrink: 0 }}>{j.statut}</span>}
                 </div>
-                {j.cree_le && <p style={{ fontSize: '0.65rem', color: '#b0a89e', margin: '0 0 9px' }}>{new Date(j.cree_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
-                {j.probleme && <div style={{ marginBottom: '9px' }}><span style={cleStyle}>Problème</span><p style={{ fontSize: '0.85rem', color: '#5a5450', lineHeight: 1.55, margin: 0, whiteSpace: 'pre-wrap' }}>{j.probleme}</p></div>}
-                {j.reponse && <div><span style={cleStyle}>Réponse</span><p style={{ fontSize: '0.85rem', color: '#2a2520', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>{j.reponse}</p></div>}
+                {j.cree_le && <p style={{ fontSize: '0.65rem', color: 'var(--cs-texte-faible)', margin: '0 0 9px' }}>{new Date(j.cree_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
+                {j.probleme && <div style={{ marginBottom: '9px' }}><span style={cleStyle}>Problème</span><p style={{ fontSize: '0.85rem', color: 'var(--cs-texte)', lineHeight: 1.55, margin: 0, whiteSpace: 'pre-wrap' }}>{j.probleme}</p></div>}
+                {j.reponse && <div><span style={cleStyle}>Réponse</span><p style={{ fontSize: '0.85rem', color: 'var(--cs-texte-fort)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>{j.reponse}</p></div>}
               </div>
             </div>
           )
@@ -597,30 +597,30 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
               <input autoFocus value={brouillon} onChange={ev => setBrouillon(ev.target.value)} onKeyDown={ev => { if (ev.key === 'Enter') validerSingle('source_url'); if (ev.key === 'Escape') setChampEdit(null) }} onBlur={() => validerSingle('source_url')} placeholder="URL notice (plusieurs séparées par un espace)…" style={{ ...styleInput, maxWidth: '20rem' }} />
             ) : (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                {urlsDe(e.source_url).length > 0 ? <BoutonSource label="Notice" urls={urlsDe(e.source_url)} /> : <span style={{ fontSize: '0.65rem', color: '#c8c0b4' }}>Notice —</span>}
-                <button onClick={() => editerSingle('source_url')} title="Modifier l’URL notice" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a89e', fontSize: '0.66rem', padding: '1px 2px', lineHeight: 1 }}><IconeCrayon size={11} /></button>
+                {urlsDe(e.source_url).length > 0 ? <BoutonSource label="Notice" urls={urlsDe(e.source_url)} /> : <span style={{ fontSize: '0.65rem', color: 'var(--cs-bord)' }}>Notice —</span>}
+                <button onClick={() => editerSingle('source_url')} title="Modifier l’URL notice" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-faible)', fontSize: '0.66rem', padding: '1px 2px', lineHeight: 1 }}><IconeCrayon size={11} /></button>
               </span>
             )}
             {champEdit === 'source_fichier' ? (
               <input autoFocus value={brouillon} onChange={ev => setBrouillon(ev.target.value)} onKeyDown={ev => { if (ev.key === 'Enter') validerSingle('source_fichier'); if (ev.key === 'Escape') setChampEdit(null) }} onBlur={() => validerSingle('source_fichier')} placeholder="URL texte (plusieurs séparées par un espace)…" style={{ ...styleInput, maxWidth: '20rem' }} />
             ) : (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                {urlsDe(e.source_fichier).length > 0 ? <BoutonSource label="Source" urls={urlsDe(e.source_fichier)} /> : <strong style={{ fontSize: '0.65rem', color: '#c0562a' }}>Source manquante</strong>}
-                <button onClick={() => editerSingle('source_fichier')} title="Modifier l’URL texte" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a89e', fontSize: '0.66rem', padding: '1px 2px', lineHeight: 1 }}><IconeCrayon size={11} /></button>
+                {urlsDe(e.source_fichier).length > 0 ? <BoutonSource label="Source" urls={urlsDe(e.source_fichier)} /> : <strong style={{ fontSize: '0.65rem', color: 'var(--cs-danger)' }}>Source manquante</strong>}
+                <button onClick={() => editerSingle('source_fichier')} title="Modifier l’URL texte" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-faible)', fontSize: '0.66rem', padding: '1px 2px', lineHeight: 1 }}><IconeCrayon size={11} /></button>
               </span>
             )}
             <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px 14px' }}>
               {champEdit === 'licence' ? (
                 <input autoFocus value={brouillon} onChange={ev => setBrouillon(ev.target.value)} onKeyDown={ev => { if (ev.key === 'Enter') validerSingle('licence'); if (ev.key === 'Escape') setChampEdit(null) }} onBlur={() => validerSingle('licence')} placeholder="Licence…" style={{ ...styleInput, maxWidth: '12rem' }} />
               ) : (
-                <span onClick={() => editerSingle('licence')} title="Modifier la licence" style={{ fontSize: '0.65rem', color: '#6b6560', cursor: 'pointer' }}><span style={{ color: '#b0a89e' }}>Licence · </span>{e.licence || <em style={{ color: '#c8c0b4' }}>définir</em>}</span>
+                <span onClick={() => editerSingle('licence')} title="Modifier la licence" style={{ fontSize: '0.65rem', color: 'var(--cs-texte-second)', cursor: 'pointer' }}><span style={{ color: 'var(--cs-texte-faible)' }}>Licence · </span>{e.licence || <em style={{ color: 'var(--cs-bord)' }}>définir</em>}</span>
               )}
               <button onClick={() => enregistrer({ integrite_verifiee: !e.integrite_verifiee })} title="Basculer l’état d’intégrité" style={{ fontSize: '0.65rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                <span style={{ color: '#b0a89e' }}>Intégrité · </span><strong style={{ color: e.integrite_verifiee ? 'var(--cs-vert)' : '#c0562a' }}>{e.integrite_verifiee ? 'vérifiée' : 'non vérifiée'}</strong>
+                <span style={{ color: 'var(--cs-texte-faible)' }}>Intégrité · </span><strong style={{ color: e.integrite_verifiee ? 'var(--cs-vert)' : 'var(--cs-danger)' }}>{e.integrite_verifiee ? 'vérifiée' : 'non vérifiée'}</strong>
               </button>
             </span>
           </div>
-          {erreurSave && <p style={{ fontSize: '0.66rem', color: '#c0562a', margin: '0 0 10px' }}>Échec de l’enregistrement.</p>}
+          {erreurSave && <p style={{ fontSize: '0.66rem', color: 'var(--cs-danger)', margin: '0 0 10px' }}>Échec de l’enregistrement.</p>}
 
           {/* Le reste en LIGNES éditables au clic ; les champs à occurrences multiples en tags. */}
           <p style={sousTitre}>Titre</p>
@@ -658,17 +658,17 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
           {pieces.map(p => {
             const ouv = pieceOuverte === p.id
             return (
-              <div key={p.id} style={{ border: '1px solid #e4dfd8', borderRadius: '6px', background: '#fff', overflow: 'hidden' }}>
+              <div key={p.id} style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', background: '#fff', overflow: 'hidden' }}>
                 <button onClick={() => setPieceOuverte(ouv ? null : p.id)}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%', textAlign: 'left', padding: '8px 11px', background: ouv ? '#eef2ec' : '#f5f1e8', border: 'none', borderBottom: ouv ? '1px solid #ede9e2' : 'none', cursor: 'pointer' }}>
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%', textAlign: 'left', padding: '8px 11px', background: ouv ? '#eef2ec' : '#f5f1e8', border: 'none', borderBottom: ouv ? '1px solid var(--cs-fond-doux)' : 'none', cursor: 'pointer' }}>
                   <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap', minWidth: 0 }}>
-                    <span style={{ fontSize: '0.8625rem', fontWeight: 600, color: '#2a3d30' }}>{[p.livre, p.piece].filter(Boolean).join(' · ') || 'Apparat'}</span>
-                    {p.source && <span style={{ fontSize: '0.75469rem', color: '#9a8a6e', fontStyle: 'italic' }}>{p.source}</span>}
+                    <span style={{ fontSize: '0.8625rem', fontWeight: 600, color: 'var(--cs-encre)' }}>{[p.livre, p.piece].filter(Boolean).join(' · ') || 'Apparat'}</span>
+                    {p.source && <span style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{p.source}</span>}
                   </span>
-                  <span style={{ fontSize: '0.7rem', color: ouv ? 'var(--cs-vert)' : '#9a958d', flexShrink: 0, fontWeight: 600 }}>{ouv ? 'Réduire ▲' : 'Ouvrir ▾'}</span>
+                  <span style={{ fontSize: '0.7rem', color: ouv ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', flexShrink: 0, fontWeight: 600 }}>{ouv ? 'Réduire ▲' : 'Ouvrir ▾'}</span>
                 </button>
                 {ouv && (
-                  <div style={{ padding: '11px 14px', fontSize: '0.9rem', color: '#2a2520', lineHeight: 1.65, maxHeight: '480px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+                  <div style={{ padding: '11px 14px', fontSize: '0.9rem', color: 'var(--cs-texte-fort)', lineHeight: 1.65, maxHeight: '480px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
                     {p.texte}
                   </div>
                 )}
@@ -919,7 +919,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
     setLignes(prev => prev.filter(t => t.trad_id !== id))
   }
 
-  const inputStyle: React.CSSProperties = { width: '100%', padding: '7px 10px', fontSize: '0.89844rem', border: '1px solid #d6d0c4', borderRadius: '5px', background: '#f9f7f4', color: '#1e1a16', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5 }
+  const inputStyle: React.CSSProperties = { width: '100%', padding: '7px 10px', fontSize: '0.89844rem', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5 }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -959,24 +959,24 @@ export default function SectionTraductions({ traductions: init }: { traductions:
           </div>
 
           {/* Import CSV */}
-          <div style={{ borderTop: '1px solid #ede9e2', paddingTop: '14px', marginBottom: '14px' }}>
-            <p style={{ fontSize: '0.79062rem', fontWeight: 600, color: '#2a3d30', marginBottom: '6px' }}>Fichier CSV des versets *</p>
-            <p style={{ fontSize: '0.75469rem', color: '#9a958d', marginBottom: '10px' }}>
-              Le CSV doit contenir deux colonnes : <code style={{ background: '#f0ece6', padding: '1px 5px', borderRadius: '3px' }}>id_verset</code> et le texte de la traduction.
+          <div style={{ borderTop: '1px solid var(--cs-fond-doux)', paddingTop: '14px', marginBottom: '14px' }}>
+            <p style={{ fontSize: '0.79062rem', fontWeight: 600, color: 'var(--cs-encre)', marginBottom: '6px' }}>Fichier CSV des versets *</p>
+            <p style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)', marginBottom: '10px' }}>
+              Le CSV doit contenir deux colonnes : <code style={{ background: 'var(--cs-fond-doux)', padding: '1px 5px', borderRadius: '3px' }}>id_verset</code> et le texte de la traduction.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <button onClick={() => fileRef.current?.click()}
-                style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer', fontWeight: 500 }}>
+                style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer', fontWeight: 500 }}>
                 ↑ Choisir un CSV
               </button>
               <input ref={fileRef} type="file" accept=".csv" style={{ display: 'none' }}
                 onChange={e => { const f = e.target.files?.[0]; if (f) handleCSV(f) }} />
               {csvNom && (
-                <span style={{ fontSize: '0.79062rem', color: '#6b6560' }}>{csvNom}</span>
+                <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-second)' }}>{csvNom}</span>
               )}
             </div>
             {importMsg && (
-              <p style={{ fontSize: '0.79062rem', marginTop: '8px', color: importStatut === 'err' ?'#c0562a' : importStatut === 'ok' ?'var(--cs-vert)' : '#6b6560' }}>
+              <p style={{ fontSize: '0.79062rem', marginTop: '8px', color: importStatut === 'err' ?'var(--cs-danger)' : importStatut === 'ok' ?'var(--cs-vert)' : 'var(--cs-texte-second)' }}>
                 {importMsg}
               </p>
             )}
@@ -984,7 +984,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
 
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <button onClick={() => { setAjout(false); setNouveau({}); setCsvLignes([]); setCsvNom(''); setImportMsg('') }}
-              style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>
+              style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>
               Annuler
             </button>
             <button onClick={importer} disabled={importStatut === 'loading'}
@@ -997,22 +997,22 @@ export default function SectionTraductions({ traductions: init }: { traductions:
 
       {/* Liste des traductions */}
       {lignes.map(t => (
-        <div key={t.trad_id} style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', overflow: 'hidden' }}>
+        <div key={t.trad_id} style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
           {/* En-tête */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.00625rem', color: '#2a3d30' }}>{t.nom}</span>
-              {t.dates && <span style={{ fontSize: '0.79062rem', color: '#9a958d' }}>{formaterDateHistorique(t.dates)}</span>}
+              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.00625rem', color: 'var(--cs-encre)' }}>{t.nom}</span>
+              {t.dates && <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)' }}>{formaterDateHistorique(t.dates)}</span>}
               {t.import_maj_le && (
-                <span style={{ fontSize: '0.71875rem', color: '#b0a89e', fontStyle: 'italic' }}>
+                <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>
                   import · {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </span>
               )}
             </div>
             <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
-              <code style={{ fontSize: '0.6875rem', background: '#f0ece6', padding: '1px 5px', borderRadius: '3px', color: '#6b6560', marginRight: '1px' }}>{t.trad_id}</code>
+              <code style={{ fontSize: '0.6875rem', background: 'var(--cs-fond-doux)', padding: '1px 5px', borderRadius: '3px', color: 'var(--cs-texte-second)', marginRight: '1px' }}>{t.trad_id}</code>
               {photoStatut[t.trad_id] === 'loading' && (
-                <span style={{ fontSize: '0.75469rem', color: '#9a958d', fontStyle: 'italic' }}>Envoi…</span>
+                <span style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Envoi…</span>
               )}
               {photoStatut[t.trad_id] === 'ok' && (
                 <span style={{ fontSize: '0.75469rem', color: 'var(--cs-vert)', fontWeight: 600 }}>
@@ -1020,13 +1020,13 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 </span>
               )}
               {photoStatut[t.trad_id] === 'err' && (
-                <span style={{ fontSize: '0.75469rem', color: '#c0562a', fontWeight: 600 }}>✗ Erreur</span>
+                <span style={{ fontSize: '0.75469rem', color: 'var(--cs-danger)', fontWeight: 600 }}>✗ Erreur</span>
               )}
               <button
                 onClick={() => photoRefs.current[t.trad_id]?.click()}
                 disabled={photoStatut[t.trad_id] === 'loading'}
                 title={t.photo ? 'Remplacer la photo' : 'Ajouter une photo'}
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: `1px solid ${t.photo ? 'var(--cs-vert)' : '#d6d0c4'}`, background: t.photo ? 'rgba(var(--cs-vert-rgb),0.08)' : '#fff', color: t.photo ? 'var(--cs-vert)' : '#9a958d', cursor: photoStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap', minWidth: '4.5rem', textAlign: 'center' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: `1px solid ${t.photo ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: t.photo ? 'rgba(var(--cs-vert-rgb),0.08)' : '#fff', color: t.photo ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', cursor: photoStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap', minWidth: '4.5rem', textAlign: 'center' }}>
                 {t.photo ? '✓ Photo' : '+ Photo'}
               </button>
               {/* Toujours présent — grisé et désactivé quand il n'y a pas de photo, pour que
@@ -1035,7 +1035,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 onClick={() => t.photo && setPositionModal(t.trad_id)}
                 disabled={!t.photo}
                 title={t.photo ? "Cadrer et zoomer l'image" : 'Aucune photo à cadrer'}
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: t.photo ? '#6b6560' : '#c8c0b4', cursor: t.photo ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: t.photo ? 'var(--cs-texte-second)' : 'var(--cs-bord)', cursor: t.photo ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>
                 ⊹ Cadrer
               </button>
               <input ref={el => { photoRefs.current[t.trad_id] = el }} type="file" accept="image/*" style={{ display: 'none' }}
@@ -1049,38 +1049,38 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                   e.target.value = ''
                 }} />
               {exportStatut[t.trad_id] === 'loading' && (
-                <span style={{ fontSize: '0.75469rem', color: '#9a958d', fontStyle: 'italic' }}>Export…</span>
+                <span style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Export…</span>
               )}
               {exportStatut[t.trad_id] === 'ok' && (
                 <span style={{ fontSize: '0.75469rem', color: 'var(--cs-vert)', fontWeight: 600 }}>✓ Téléchargé</span>
               )}
               {exportStatut[t.trad_id] === 'err' && (
-                <span style={{ fontSize: '0.75469rem', color: '#c0562a', fontWeight: 600 }}>✗ Erreur</span>
+                <span style={{ fontSize: '0.75469rem', color: 'var(--cs-danger)', fontWeight: 600 }}>✗ Erreur</span>
               )}
               <button
                 onClick={() => exporterCSV(t.trad_id, t.nom)}
                 disabled={exportStatut[t.trad_id] === 'loading'}
                 title="Exporter cette traduction en CSV"
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: exportStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: exportStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
                 ↓ CSV
               </button>
               <button
                 onClick={() => ouvrirRemplacement(t.trad_id)}
                 title="Remplacer les versets de cette traduction via un CSV"
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#9a7e3d', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: '#9a7e3d', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 ↑ Remplacer
               </button>
               <button onClick={() => setPanneauInfos(panneauInfos === t.trad_id ? null : t.trad_id)}
                 title="Voir l'édition source précise et les apparats critiques"
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: `1px solid ${panneauInfos === t.trad_id ? 'var(--cs-vert)' : '#d6d0c4'}`, background: panneauInfos === t.trad_id ? 'rgba(var(--cs-vert-rgb),0.08)' : '#fff', color: 'var(--cs-vert)', cursor: 'pointer', whiteSpace: 'nowrap', minWidth: '8.5rem', textAlign: 'center' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: `1px solid ${panneauInfos === t.trad_id ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: panneauInfos === t.trad_id ? 'rgba(var(--cs-vert-rgb),0.08)' : '#fff', color: 'var(--cs-vert)', cursor: 'pointer', whiteSpace: 'nowrap', minWidth: '8.5rem', textAlign: 'center' }}>
                 Édition &amp; apparat{apparats[t.trad_id]?.length ? ` (${apparats[t.trad_id].length})` : ''}
               </button>
               <button onClick={() => edition === t.trad_id ?fermer() : ouvrir(t)}
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer', minWidth: '4.5rem', textAlign: 'center' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer', minWidth: '4.5rem', textAlign: 'center' }}>
                 {edition === t.trad_id ?'Fermer' : 'Modifier'}
               </button>
               <button onClick={() => supprimer(t.trad_id)}
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid #e4c4b8', background: '#fff', color: '#c0562a', cursor: 'pointer' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-danger-bord)', background: '#fff', color: 'var(--cs-danger)', cursor: 'pointer' }}>
                 Supprimer
               </button>
             </div>
@@ -1093,7 +1093,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
 
           {/* Formulaire édition */}
           {edition === t.trad_id && (
-            <div style={{ padding: '16px 18px 18px', borderTop: '1px solid #f0ece6', background: '#faf8f4' }}>
+            <div style={{ padding: '16px 18px 18px', borderTop: '1px solid var(--cs-fond-doux)', background: 'var(--cs-fond-clair)' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
                 {CHAMPS_SIMPLES.map(c => (
                   <div key={c.key}>
@@ -1116,9 +1116,9 @@ export default function SectionTraductions({ traductions: init }: { traductions:
               </div>
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
                 {statut?.id === t.trad_id && (
-                  <span style={{ fontSize: '0.82656rem', color: statut?.ok ? 'var(--cs-vert)' : '#c0562a' }}>{statut?.ok ? '✓' : '✗'} {statut?.msg}</span>
+                  <span style={{ fontSize: '0.82656rem', color: statut?.ok ? 'var(--cs-vert)' : 'var(--cs-danger)' }}>{statut?.ok ? '✓' : '✗'} {statut?.msg}</span>
                 )}
-                <button onClick={fermer} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
+                <button onClick={fermer} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                 <button onClick={sauvegarder} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
               </div>
             </div>
@@ -1140,35 +1140,35 @@ export default function SectionTraductions({ traductions: init }: { traductions:
         if (!t) return null
         return (
           <div onClick={() => { if (replaceStatut !== 'loading') setReplaceModal(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-            <div onClick={e => e.stopPropagation()} style={{ background: '#f7f4ef', borderRadius: '10px', padding: '22px 24px', maxWidth: '27.5rem', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-fond)', borderRadius: '10px', padding: '22px 24px', maxWidth: '27.5rem', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.00625rem', fontWeight: 'normal', color: '#2a3d30', margin: 0 }}>
-                  Remplacer · <em style={{ color: '#7a7268' }}>{t.nom}</em>
-                  <code style={{ fontSize: '0.71875rem', background: '#f0ece6', padding: '1px 5px', borderRadius: '3px', marginLeft: '8px', color: '#6b6560' }}>{t.trad_id}</code>
+                <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.00625rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>
+                  Remplacer · <em style={{ color: 'var(--cs-texte-second)' }}>{t.nom}</em>
+                  <code style={{ fontSize: '0.71875rem', background: 'var(--cs-fond-doux)', padding: '1px 5px', borderRadius: '3px', marginLeft: '8px', color: 'var(--cs-texte-second)' }}>{t.trad_id}</code>
                 </h3>
-                <button onClick={() => setReplaceModal(null)} disabled={replaceStatut === 'loading'} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.07813rem', color: '#b0a89e', padding: 0, lineHeight: 1 }}>✕</button>
+                <button onClick={() => setReplaceModal(null)} disabled={replaceStatut === 'loading'} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.07813rem', color: 'var(--cs-texte-faible)', padding: 0, lineHeight: 1 }}>✕</button>
               </div>
-              <p style={{ fontSize: '0.79062rem', color: '#9a958d', marginBottom: '14px', lineHeight: 1.6 }}>
-                Le CSV doit contenir deux colonnes : <code style={{ background: '#f0ece6', padding: '1px 4px', borderRadius: '3px' }}>id_verset</code> et le texte. Tous les versets identifiés par leur <code style={{ background: '#f0ece6', padding: '1px 4px', borderRadius: '3px' }}>id_verset</code> seront écrasés.
+              <p style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', marginBottom: '14px', lineHeight: 1.6 }}>
+                Le CSV doit contenir deux colonnes : <code style={{ background: 'var(--cs-fond-doux)', padding: '1px 4px', borderRadius: '3px' }}>id_verset</code> et le texte. Tous les versets identifiés par leur <code style={{ background: 'var(--cs-fond-doux)', padding: '1px 4px', borderRadius: '3px' }}>id_verset</code> seront écrasés.
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
                 <button
                   onClick={() => replaceFileRef.current?.click()}
                   disabled={replaceStatut === 'loading'}
-                  style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer', fontWeight: 500, flexShrink: 0 }}>
+                  style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer', fontWeight: 500, flexShrink: 0 }}>
                   ↑ Choisir un CSV
                 </button>
                 {replaceNom && (
-                  <span style={{ fontSize: '0.79062rem', color: '#6b6560', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{replaceNom}</span>
+                  <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-second)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{replaceNom}</span>
                 )}
               </div>
               {replaceMsg && (
-                <p style={{ fontSize: '0.82656rem', marginBottom: '14px', color: replaceStatut === 'err' ? '#c0562a' : replaceStatut === 'ok' ? 'var(--cs-vert)' : '#5a6b5e', fontWeight: replaceStatut === 'ok' || replaceStatut === 'err' ? 600 : 400 }}>
+                <p style={{ fontSize: '0.82656rem', marginBottom: '14px', color: replaceStatut === 'err' ? 'var(--cs-danger)' : replaceStatut === 'ok' ? 'var(--cs-vert)' : '#5a6b5e', fontWeight: replaceStatut === 'ok' || replaceStatut === 'err' ? 600 : 400 }}>
                   {replaceMsg}
                 </p>
               )}
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid #e8e3dc', paddingTop: '14px' }}>
-                <button onClick={() => setReplaceModal(null)} disabled={replaceStatut === 'loading'} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
+                <button onClick={() => setReplaceModal(null)} disabled={replaceStatut === 'loading'} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                 <button
                   onClick={confirmerRemplacement}
                   disabled={replaceLignes.length === 0 || replaceStatut === 'loading' || replaceStatut === 'ok'}

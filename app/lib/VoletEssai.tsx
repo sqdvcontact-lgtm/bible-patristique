@@ -10,8 +10,8 @@ import { inlineVersHtml, htmlVersSyntaxe } from './serialisationEssai'
 // voit la mise en forme immédiatement — plus d'aperçu séparé ni de syntaxe brute.
 const BTN_NOTE: CSSProperties = {
   fontSize: '0.6875rem', width: 26, height: 24, display: 'inline-flex', alignItems: 'center',
-  justifyContent: 'center', border: '1px solid #d6d0c4', borderRadius: 4, background: '#fff',
-  color: '#2a2520', cursor: 'pointer', lineHeight: 1, fontFamily: 'inherit',
+  justifyContent: 'center', border: '1px solid var(--cs-bord)', borderRadius: 4, background: '#fff',
+  color: 'var(--cs-texte-fort)', cursor: 'pointer', lineHeight: 1, fontFamily: 'inherit',
 }
 
 function EditeurNoteWysiwyg({ valeur, mode, onChange, onEnregistrer }: {
@@ -47,7 +47,7 @@ function EditeurNoteWysiwyg({ valeur, mode, onChange, onEnregistrer }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <style>{`.note-zone:empty:before { content: attr(data-placeholder); color: #b0a89e; font-style: italic; }`}</style>
+      <style>{`.note-zone:empty:before { content: attr(data-placeholder); color: var(--cs-texte-faible); font-style: italic; }`}</style>
       {/* Barre d'enrichissement : agit sur la sélection, dans la zone même. */}
       <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => commande('bold')} title="Gras" style={{ ...BTN_NOTE, fontWeight: 700 }}>G</button>
@@ -58,7 +58,7 @@ function EditeurNoteWysiwyg({ valeur, mode, onChange, onEnregistrer }: {
       {/* Zone UNIQUE, éditable, WYSIWYG. */}
       <div ref={ref} className="note-zone" contentEditable suppressContentEditableWarning
         onInput={synchroniser} data-placeholder="Texte de la note…"
-        style={{ minHeight: '5.5em', fontSize: '0.8125rem', lineHeight: 1.55, color: '#2a2520', fontFamily: 'var(--font-source-serif), Georgia, serif', border: '1px solid #d6d0c4', borderRadius: '6px', background: '#fff', padding: '9px 10px', outline: 'none', overflowY: 'auto' }} />
+        style={{ minHeight: '5.5em', fontSize: '0.8125rem', lineHeight: 1.55, color: 'var(--cs-texte-fort)', fontFamily: 'var(--font-source-serif), Georgia, serif', border: '1px solid var(--cs-bord)', borderRadius: '6px', background: '#fff', padding: '9px 10px', outline: 'none', overflowY: 'auto' }} />
       <button onClick={() => onEnregistrer(valeurCourante())}
         style={{ alignSelf: 'flex-end', fontSize: '0.71875rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
         {mode === 'creation' ? 'Insérer la note' : 'Enregistrer la note'}
@@ -136,16 +136,16 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
 
   const contenuVolet = (
     <>
-      {enTete && <div style={{ marginBottom: '18px', paddingBottom: '16px', borderBottom: '1px solid #ede9e2' }}>{enTete}</div>}
+      {enTete && <div style={{ marginBottom: '18px', paddingBottom: '16px', borderBottom: '1px solid var(--cs-fond-doux)' }}>{enTete}</div>}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-        <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9a958d' }}>
+        <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>
           {!elementActif ? 'Notes et citations' : elementActif.type === 'note' ? 'Note' : elementActif.type === 'verset' ? 'Référence biblique' : 'Référence patristique'}
         </span>
-        {elementActif && !toujoursVisible && <button onClick={onFermer} style={{ background: 'none', border: 'none', color: '#b0a89e', cursor: 'pointer', fontSize: '0.875rem' }}>×</button>}
+        {elementActif && !toujoursVisible && <button onClick={onFermer} style={{ background: 'none', border: 'none', color: 'var(--cs-texte-faible)', cursor: 'pointer', fontSize: '0.875rem' }}>×</button>}
       </div>
 
       {!elementActif ? (
-        <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic', lineHeight: 1.6 }}>
+        <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', lineHeight: 1.6 }}>
           Cliquez sur une note ou une citation dans le texte pour l'afficher ici.
         </p>
       ) : (
@@ -157,7 +157,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
             <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', marginBottom: '10px' }}>{elementActif.label}</p>
           )}
           {chargement ? (
-            <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement...</p>
+            <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement...</p>
           ) : elementActif.type === 'note' && editionNote?.actif && onEnregistrerNote ? (
             <EditeurNoteWysiwyg
               key={cleEdition}
@@ -167,7 +167,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
               onEnregistrer={onEnregistrerNote}
             />
           ) : (
-            <p style={{ fontSize: '0.84375rem', color: '#2a2520', lineHeight: 1.55, fontStyle: 'normal', whiteSpace: 'pre-wrap' }}>
+            <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-fort)', lineHeight: 1.55, fontStyle: 'normal', whiteSpace: 'pre-wrap' }}>
               {elementActif.type === 'note' ? rendreNote(contenu ?? '') : contenu}
             </p>
           )}
@@ -181,7 +181,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
   return (
     <div style={{
       position: 'fixed', top: '3.5rem', right: 0, width: '20rem', height: 'calc(100vh - 3.5rem)',
-      background: '#faf8f4', borderLeft: '1px solid #d6d0c4', padding: '20px', overflowY: 'auto',
+      background: 'var(--cs-fond-clair)', borderLeft: '1px solid var(--cs-bord)', padding: '20px', overflowY: 'auto',
       zIndex: 50, boxShadow: '-4px 0 16px rgba(0,0,0,0.06)',
     }}>
       {contenuVolet}

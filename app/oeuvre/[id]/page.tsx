@@ -231,7 +231,7 @@ export default async function OeuvrePage({
   ])
 
   if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre as any))) return (
-    <div className="min-h-screen flex items-center justify-center" style={{background:'#f7f4ef'}}>
+    <div className="min-h-screen flex items-center justify-center" style={{background:'var(--cs-fond)'}}>
       <p style={{color:'#8a8278'}}>Œuvre introuvable.</p>
     </div>
   )

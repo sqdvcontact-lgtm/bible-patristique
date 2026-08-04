@@ -72,7 +72,7 @@ export default async function AccueilPage() {
         html { scroll-behavior: smooth; }
         .colophon-body { font-family: var(--font-source-serif), Georgia, serif; }
         .colophon-ornement { font-size: 1.125rem; color: #7a6a52; letter-spacing: 0.25em; }
-        .colophon-regle { display: block; width: 36px; height: 1px; background: #c8b89e; margin: 0 auto; }
+        .colophon-regle { display: block; width: 36px; height: 1px; background: var(--cs-or-doux); margin: 0 auto; }
         .hero-title-ornament { width: min(265px, 48vw); height: auto; display: block; margin: 0 auto 8px; opacity: .82; }
         .hero-title-ornament + div { display: none; }
         /* Colophon final : pyramide desktop calibrée en rem ; sur écran étroit,
@@ -195,7 +195,7 @@ export default async function AccueilPage() {
           />
 
           {/* Marque typographique supérieure */}
-          <div style={{ fontSize: "0.9375rem", color: "#a08c58", marginBottom: "14px", letterSpacing: "0.38em" }}>
+          <div style={{ fontSize: "0.9375rem", color: "var(--cs-or)", marginBottom: "14px", letterSpacing: "0.38em" }}>
             ❧ · ❧
           </div>
 
@@ -215,9 +215,9 @@ export default async function AccueilPage() {
 
           {/* Filet */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", margin: "0 auto 10px", maxWidth: "15rem" }}>
-            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #cabf9f)" }} />
-            <span style={{ fontSize: "0.95rem", color: "#a08c58", lineHeight: 1 }}>❧</span>
-            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #cabf9f)" }} />
+            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, var(--cs-or-doux))" }} />
+            <span style={{ fontSize: "0.95rem", color: "var(--cs-or)", lineHeight: 1 }}>❧</span>
+            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, var(--cs-or-doux))" }} />
           </div>
 
           {/* Sous-titre */}
@@ -266,7 +266,7 @@ export default async function AccueilPage() {
 
           {/* En-tête colophon */}
           <div style={{ marginBottom: "46px" }}>
-            <div style={{ fontSize: "1.25rem", color: "#a08c58", marginBottom: "18px", letterSpacing: "0.18em" }}>
+            <div style={{ fontSize: "1.25rem", color: "var(--cs-or)", marginBottom: "18px", letterSpacing: "0.18em" }}>
               ❧
             </div>
             <h2 style={{
@@ -327,21 +327,21 @@ export default async function AccueilPage() {
             </div>
 
             {/* Marque finale */}
-            <div style={{ marginTop: "42px", fontSize: "1.4rem", color: "#a08c58", lineHeight: 1 }}>
+            <div style={{ marginTop: "42px", fontSize: "1.4rem", color: "var(--cs-or)", lineHeight: 1 }}>
               ❧
             </div>
 
             {/* Liens légaux — en ligne sur desktop, empilés (sans coupure) sur mobile */}
             <div className="liens-legaux" style={{ marginTop: "42px", fontSize: "0.65625rem", color: "#b0a088", letterSpacing: "0.06em" }}>
-              <Link href="/conditions-utilisation" className="lien-legal" style={{ color: "#9a8a6e", textDecoration: "none", borderBottom: "1px dotted #c8b89e", whiteSpace: "nowrap" }}>
+              <Link href="/conditions-utilisation" className="lien-legal" style={{ color: "var(--cs-texte-doux)", textDecoration: "none", borderBottom: "1px dotted var(--cs-or-doux)", whiteSpace: "nowrap" }}>
                 Conditions d&rsquo;utilisation
               </Link>
               <span className="sep-legal" style={{ margin: "0 14px", opacity: 0.4 }}>·</span>
-              <Link href="/confidentialite" className="lien-legal" style={{ color: "#9a8a6e", textDecoration: "none", borderBottom: "1px dotted #c8b89e", whiteSpace: "nowrap" }}>
+              <Link href="/confidentialite" className="lien-legal" style={{ color: "var(--cs-texte-doux)", textDecoration: "none", borderBottom: "1px dotted var(--cs-or-doux)", whiteSpace: "nowrap" }}>
                 Politique de confidentialité
               </Link>
               <span className="sep-legal" style={{ margin: "0 14px", opacity: 0.4 }}>·</span>
-              <Link href="/contact" className="lien-legal" style={{ color: "#9a8a6e", textDecoration: "none", borderBottom: "1px dotted #c8b89e", whiteSpace: "nowrap" }}>
+              <Link href="/contact" className="lien-legal" style={{ color: "var(--cs-texte-doux)", textDecoration: "none", borderBottom: "1px dotted var(--cs-or-doux)", whiteSpace: "nowrap" }}>
                 Contact
               </Link>
             </div>
@@ -358,9 +358,9 @@ export default async function AccueilPage() {
 function OrnementsTriple() {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", margin: "46px auto", maxWidth: "18.75rem" }}>
-      <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #cabf9f)" }} />
-      <span style={{ fontSize: "1.15rem", color: "#a08c58", lineHeight: 1 }}>❧</span>
-      <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #cabf9f)" }} />
+      <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, var(--cs-or-doux))" }} />
+      <span style={{ fontSize: "1.15rem", color: "var(--cs-or)", lineHeight: 1 }}>❧</span>
+      <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, var(--cs-or-doux))" }} />
     </div>
   )
 }
@@ -430,7 +430,7 @@ const boutonSoutenir: React.CSSProperties = {
 function VoletUnMot() {
   return (
     <div className="accueil-carte" style={{ textAlign: "center", display: "flex", flexDirection: "column" }}>
-      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.2rem", fontWeight: "normal", color: "#1e2a1c", margin: "0 0 12px", letterSpacing: "0.01em" }}>Un mot</h2>
+      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.2rem", fontWeight: "normal", color: "var(--cs-encre-fonce)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Un mot</h2>
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         <p style={motStyle}><em>Corpus Scriptura</em> est un chantier mené seul, lentement, texte après texte. Mon intention est de rendre accessibles les Écritures et les écrits des Pères de l&rsquo;Église, anciens ou difficiles d&rsquo;accès, en les établissant, en les contrôlant et en les reliant entre eux.</p>
         <p style={motStyle}>L&rsquo;accès au site restera gratuit. Si ce travail vous paraît utile, tout soutien, même modeste, est bienvenu : il permet de consacrer davantage de temps à la lecture, à l&rsquo;édition des textes, à leur vérification et à leur mise en ordre.</p>
@@ -457,9 +457,9 @@ function formaterDateAjout(iso: string | null): string {
 function VoletAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
   return (
     <div className="accueil-carte" style={{ display: "flex", flexDirection: "column", textAlign: "center" }}>
-      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.2rem", fontWeight: "normal", color: "#1e2a1c", margin: "0 0 12px", letterSpacing: "0.01em" }}>Ajouts récents</h2>
+      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.2rem", fontWeight: "normal", color: "var(--cs-encre-fonce)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Ajouts récents</h2>
       {recentes.length === 0 ? (
-        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "#9a8a6e", fontStyle: "italic", margin: 0 }}>Aucun ajout pour l&rsquo;instant.</p>
+        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-texte-doux)", fontStyle: "italic", margin: 0 }}>Aucun ajout pour l&rsquo;instant.</p>
       ) : (
         // Liste centrée EN BLOC (largeur au contenu, marges automatiques), texte aligné à gauche.
         <ul style={{ listStyle: "none", margin: "0 auto", padding: 0, display: "flex", flexDirection: "column", gap: "8px", flex: 1, width: "fit-content", maxWidth: "100%", textAlign: "left" }}>
@@ -498,7 +498,7 @@ function BandeauStats({ nbTextes, nbAuteurs }: { nbTextes: number; nbAuteurs: nu
         <div key={i} className="accueil-stat">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
             <span style={{ color: "var(--cs-vert)", display: "inline-flex" }}>{s.icon}</span>
-            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.5rem", color: "#1e2a1c", lineHeight: 1 }}>{s.valeur}</span>
+            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.5rem", color: "var(--cs-encre-fonce)", lineHeight: 1 }}>{s.valeur}</span>
           </div>
           <div style={{ fontSize: "0.6875rem", letterSpacing: "0.03em", color: "#8a8268", marginTop: "6px", textAlign: "center", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{s.label}</div>
         </div>

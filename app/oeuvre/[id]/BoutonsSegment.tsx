@@ -81,7 +81,7 @@ export function BoutonEnregistrerSegment({
     <Bulle texte="Enregistrer dans mes prélèvements">
       <button onClick={enregistrer} disabled={loading}
         className="seg-btn-enreg"
-        style={{ ...BTN_STYLE, color:'#c8c0b4' }}
+        style={{ ...BTN_STYLE, color:'var(--cs-bord)' }}
         aria-label="Enregistrer">
         {loading ? '…' : <IconeSignet />}
       </button>
@@ -134,7 +134,7 @@ export function BoutonCopieSegment({ texte, auteur, titre, sousTitre, tradAuteur
   return (
     <Bulle texte="Copier ce passage">
       <button onClick={handle} className={className}
-        style={{ ...BTN_STYLE, color: copie ? 'var(--cs-vert)' : '#c8c0b4' }}
+        style={{ ...BTN_STYLE, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}
         aria-label="Copier ce passage">
         {copie ? '✓' : (
           <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
@@ -154,7 +154,7 @@ export function BoutonSignalerSegment({ segId, texteObjet, titreOeuvre, classNam
       <Bulle texte="Signaler une erreur">
         <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
           className={className}
-          style={{ ...BTN_STYLE, color:'#c8c0b4' }}
+          style={{ ...BTN_STYLE, color:'var(--cs-bord)' }}
           aria-label="Signaler une erreur">
           <IconeDrapeau />
         </button>

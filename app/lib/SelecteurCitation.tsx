@@ -165,7 +165,7 @@ function BoutonCiter({ onCiter }: { onCiter: () => void }) {
 }
 
 const petitChoixStyle: CSSProperties = {
-  fontSize: '0.625rem', padding: '3px 7px', borderRadius: '4px', border: '1px solid #d6d0c4',
+  fontSize: '0.625rem', padding: '3px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)',
   background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer', whiteSpace: 'nowrap',
 }
 
@@ -206,11 +206,11 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,22,0.45)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', width: '100%', maxWidth: '45rem', height: '78vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 12px', borderBottom: '1px solid #e4dfd8' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 12px', borderBottom: '1px solid var(--cs-bord-clair)' }}>
           <div style={{ display: 'flex', gap: '6px' }}>
             {(['bible', 'patristique'] as const).map(s => (
               <button key={s} onClick={() => setSource(s)}
-                style={{ fontSize: '0.75rem', padding: '6px 14px', borderRadius: '5px', border: 'none', cursor: 'pointer', background: source === s ? 'var(--cs-vert)' : '#e4dfd8', color: source === s ? '#fff' : '#6b6560', fontWeight: source === s ? 600 : 400 }}>
+                style={{ fontSize: '0.75rem', padding: '6px 14px', borderRadius: '5px', border: 'none', cursor: 'pointer', background: source === s ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: source === s ? '#fff' : 'var(--cs-texte-second)', fontWeight: source === s ? 600 : 400 }}>
                 {s === 'bible' ? 'Bible' : 'Patristique'}
               </button>
             ))}
@@ -218,12 +218,12 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
           <div style={{ display: 'flex', gap: '6px' }}>
             {(['parcourir', 'mes-citations'] as const).map(m => (
               <button key={m} onClick={() => setMode(m)}
-                style={{ fontSize: '0.6875rem', padding: '5px 11px', borderRadius: '12px', border: `1px solid ${mode === m ? 'var(--cs-vert)' : '#d6d0c4'}`, cursor: 'pointer', background: mode === m ? 'rgba(var(--cs-vert-rgb),0.10)' : '#fff', color: mode === m ? 'var(--cs-vert)' : '#8a8278' }}>
+                style={{ fontSize: '0.6875rem', padding: '5px 11px', borderRadius: '12px', border: `1px solid ${mode === m ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, cursor: 'pointer', background: mode === m ? 'rgba(var(--cs-vert-rgb),0.10)' : '#fff', color: mode === m ? 'var(--cs-vert)' : '#8a8278' }}>
                 {m === 'parcourir' ? 'Parcourir' : 'Mes citations'}
               </button>
             ))}
           </div>
-          <button onClick={demanderFermeture} style={{ fontSize: '0.9375rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+          <button onClick={demanderFermeture} style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
@@ -276,9 +276,9 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
   // Sélecteur de traduction, présent à toutes les étapes du parcours biblique.
   const selecteurTrad = trads.length > 1 && (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-      <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a2988b' }}>Traduction</span>
+      <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>Traduction</span>
       <select value={trad} onChange={e => setTrad(e.target.value)} aria-label="Traduction de la Bible"
-        style={{ fontSize: '0.72rem', padding: '5px 8px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a3d30', cursor: 'pointer' }}>
+        style={{ fontSize: '0.72rem', padding: '5px 8px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-encre)', cursor: 'pointer' }}>
         {trads.map(t => <option key={t.trad_id} value={t.trad_id}>{t.nom}{t.langue && t.langue !== 'Français' ? ` (${t.langue})` : ''}</option>)}
       </select>
     </div>
@@ -296,15 +296,15 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {sections.map(s => (
           <div key={s.titre}>
-            <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#a2988b', margin: '0 0 9px' }}>{s.titre}</p>
+            <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 9px' }}>{s.titre}</p>
             {/* Pastilles ajustées au contenu (flex-wrap) : plus souple et régulier
                 qu'une grille de cases où les noms longs cassaient les rangées. */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               {s.codes.map(l => (
                 <button key={l} onClick={() => setLivre(l)}
-                  style={{ fontSize: '0.71875rem', padding: '5px 12px', borderRadius: '999px', border: '1px solid #e4ddcf', background: '#faf8f4', color: '#2a3d30', cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1.35, transition: 'background 0.12s, border-color 0.12s, color 0.12s' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#eef3ee'; e.currentTarget.style.borderColor = '#a9c9b6'; e.currentTarget.style.color = '#1e2e24' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = '#faf8f4'; e.currentTarget.style.borderColor = '#e4ddcf'; e.currentTarget.style.color = '#2a3d30' }}>
+                  style={{ fontSize: '0.71875rem', padding: '5px 12px', borderRadius: '999px', border: '1px solid #e4ddcf', background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)', cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1.35, transition: 'background 0.12s, border-color 0.12s, color 0.12s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#eef3ee'; e.currentTarget.style.borderColor = '#a9c9b6'; e.currentTarget.style.color = 'var(--cs-encre-fonce)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'var(--cs-fond-clair)'; e.currentTarget.style.borderColor = '#e4ddcf'; e.currentTarget.style.color = 'var(--cs-encre)' }}>
                   {NOM_LIVRE[l] ?? ABREV_FR[l]}
                 </button>
               ))}
@@ -319,7 +319,7 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
         <BoutonRetour onClick={() => setLivre('')}>Livres</BoutonRetour>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '5px' }}>
           {Array.from({ length: NB_CHAPITRES[livre] }, (_, i) => i + 1).map(c => (
-            <button key={c} onClick={() => setChapitre(c)} style={{ fontSize: '0.71875rem', padding: '6px 0', borderRadius: '4px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a3d30', cursor: 'pointer' }}>{c}</button>
+            <button key={c} onClick={() => setChapitre(c)} style={{ fontSize: '0.71875rem', padding: '6px 0', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-encre)', cursor: 'pointer' }}>{c}</button>
           ))}
         </div>
       </div>
@@ -328,21 +328,21 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
     contenu = (
       <div>
         <BoutonRetour onClick={() => setChapitre(null)}>{NOM_LIVRE[livre] ?? ABREV_FR[livre]}, chapitres</BoutonRetour>
-        {chargement ? <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p> : (
+        {chargement ? <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {versets.map(v => {
               const ref = labelVerset(livre, chapitre, v.verset)
               if (!v.texte) return (
-                <div key={v.id_verset} style={{ display: 'flex', gap: '10px', padding: '8px 10px', borderRadius: '5px', border: '1px solid #f0ece4', background: '#fbfaf7', alignItems: 'flex-start' }}>
+                <div key={v.id_verset} style={{ display: 'flex', gap: '10px', padding: '8px 10px', borderRadius: '5px', border: '1px solid #f0ece4', background: 'var(--cs-fond-clair)', alignItems: 'flex-start' }}>
                   <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#c4b8a4', flexShrink: 0 }}>{v.verset}</span>
                   <span style={{ fontSize: '0.72rem', color: '#a49b8c', fontStyle: 'italic', flex: 1 }}>Verset absent de cette traduction.</span>
                 </div>
               )
               return (
               <div key={v.id_verset}
-                style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'flex-start' }}>
+                style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid var(--cs-fond-doux)', background: '#fff', alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--cs-vert)', flexShrink: 0 }}>{v.verset}</span>
-                <span style={{ fontSize: '0.78125rem', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{rendreTexteEnrichi(v.texte)}</span>
+                <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-fort)', lineHeight: 1.5, flex: 1 }}>{rendreTexteEnrichi(v.texte)}</span>
                 <BoutonCiter
                   onCiter={() => {
                     const { corps, fin } = corpsCitation(v.texte)
@@ -404,18 +404,18 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
       <div>
         <input value={rechercheOeuvre} onChange={e => setRechercheOeuvre(e.target.value)} autoFocus
           placeholder="Chercher une œuvre (titre ou auteur)…"
-          style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.8125rem', padding: '9px 12px', borderRadius: '6px', border: '1px solid #d6d0c4', background: '#faf8f4', color: '#2a2520', marginBottom: '12px', outline: 'none' }} />
+          style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.8125rem', padding: '9px 12px', borderRadius: '6px', border: '1px solid var(--cs-bord)', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', marginBottom: '12px', outline: 'none' }} />
         {oeuvres === null ? (
-          <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement du catalogue…</p>
+          <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement du catalogue…</p>
         ) : resultats.length === 0 ? (
-          <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>{q ? 'Aucune œuvre ne correspond.' : 'Aucune œuvre disponible.'}</p>
+          <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{q ? 'Aucune œuvre ne correspond.' : 'Aucune œuvre disponible.'}</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {resultats.slice(0, 60).map(o => (
               <button key={o.id_oeuvre} onClick={() => choisirOeuvre(o)}
-                style={{ textAlign: 'left', fontSize: '0.8125rem', padding: '8px 11px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', color: '#2a3d30', cursor: 'pointer' }}>
+                style={{ textAlign: 'left', fontSize: '0.8125rem', padding: '8px 11px', borderRadius: '5px', border: '1px solid var(--cs-fond-doux)', background: '#fff', color: 'var(--cs-encre)', cursor: 'pointer' }}>
                 {o.titre}
-                {o.auteurNom && <span style={{ color: '#9a958d', fontStyle: 'italic' }}> — {o.auteurNom}</span>}
+                {o.auteurNom && <span style={{ color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}> — {o.auteurNom}</span>}
               </button>
             ))}
           </div>
@@ -463,35 +463,35 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '8px' }}>
         <BoutonRetour inline onClick={() => { setOeuvre(null); setSelection(new Set()) }}>Œuvres</BoutonRetour>
-        <span style={{ fontSize: '0.75rem', color: '#2a3d30', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{oeuvre.titre}</span>
-        {oeuvre.auteurNom && <span style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic' }}>{oeuvre.auteurNom}</span>}
+        <span style={{ fontSize: '0.75rem', color: 'var(--cs-encre)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{oeuvre.titre}</span>
+        {oeuvre.auteurNom && <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{oeuvre.auteurNom}</span>}
       </div>
       {/* Choix de la traduction, si ce texte existe en plusieurs traductions établies. */}
       {traductionsOeuvre.length > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-          <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a2988b', flexShrink: 0 }}>Traduction</span>
+          <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', flexShrink: 0 }}>Traduction</span>
           <select value={oeuvre.id_oeuvre} aria-label="Traduction du texte"
             onChange={e => { const o = traductionsOeuvre.find(x => x.id_oeuvre === e.target.value); if (o) choisirOeuvre(o) }}
-            style={{ fontSize: '0.72rem', padding: '5px 8px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#2a3d30', cursor: 'pointer', maxWidth: '16rem' }}>
+            style={{ fontSize: '0.72rem', padding: '5px 8px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-encre)', cursor: 'pointer', maxWidth: '16rem' }}>
             {traductionsOeuvre.map(o => <option key={o.id_oeuvre} value={o.id_oeuvre}>{libelleTradOeuvre(o)}</option>)}
           </select>
         </div>
       )}
       <input value={rechercheSeg} onChange={e => setRechercheSeg(e.target.value)}
         placeholder="Chercher un passage dans cette œuvre…"
-        style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.75rem', padding: '7px 10px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#faf8f4', color: '#2a2520', marginBottom: '10px', outline: 'none', flexShrink: 0 }} />
+        style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.75rem', padding: '7px 10px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', marginBottom: '10px', outline: 'none', flexShrink: 0 }} />
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-        {chargement ? <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p> : (
+        {chargement ? <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {segmentsFiltres.map(s => {
               const sel = selection.has(s.id)
               const t = texteSansEnrichissement(s.segment_texte)
               return (
                 <button key={s.id} type="button" onClick={() => toggle(s.id)}
-                  style={{ display: 'flex', gap: '9px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: `1px solid ${sel ? 'var(--cs-vert)' : '#ede9e2'}`, background: sel ? 'rgba(var(--cs-vert-rgb),0.07)' : '#fff', cursor: 'pointer', alignItems: 'flex-start' }}>
-                  <span style={{ flexShrink: 0, width: '14px', height: '14px', marginTop: '1px', borderRadius: '3px', border: `1px solid ${sel ? 'var(--cs-vert)' : '#c8c0b4'}`, background: sel ? 'var(--cs-vert)' : '#fff', color: '#fff', fontSize: '0.625rem', lineHeight: '13px', textAlign: 'center' }}>{sel ? '✓' : ''}</span>
+                  style={{ display: 'flex', gap: '9px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: `1px solid ${sel ? 'var(--cs-vert)' : 'var(--cs-fond-doux)'}`, background: sel ? 'rgba(var(--cs-vert-rgb),0.07)' : '#fff', cursor: 'pointer', alignItems: 'flex-start' }}>
+                  <span style={{ flexShrink: 0, width: '14px', height: '14px', marginTop: '1px', borderRadius: '3px', border: `1px solid ${sel ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: sel ? 'var(--cs-vert)' : '#fff', color: '#fff', fontSize: '0.625rem', lineHeight: '13px', textAlign: 'center' }}>{sel ? '✓' : ''}</span>
                   <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--cs-vert)', flexShrink: 0 }}>§{s.segment_numero}</span>
-                  <span style={{ fontSize: '0.78125rem', color: '#2a2520', lineHeight: 1.5, flex: 1 }}>{t.slice(0, 200) + (t.length > 200 ? '…' : '')}</span>
+                  <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-fort)', lineHeight: 1.5, flex: 1 }}>{t.slice(0, 200) + (t.length > 200 ? '…' : '')}</span>
                 </button>
               )
             })}
@@ -499,13 +499,13 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
         )}
       </div>
       {/* Barre d'insertion : agit sur le OU LES segments sélectionnés. */}
-      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '10px', marginTop: '4px', borderTop: '1px solid #ede9e2' }}>
-        <span style={{ fontSize: '0.71875rem', color: segsSelectionnes.length ? 'var(--cs-vert)' : '#9a958d' }}>
+      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '10px', marginTop: '4px', borderTop: '1px solid var(--cs-fond-doux)' }}>
+        <span style={{ fontSize: '0.71875rem', color: segsSelectionnes.length ? 'var(--cs-vert)' : 'var(--cs-texte-doux)' }}>
           {segsSelectionnes.length === 0 ? 'Sélectionnez un ou plusieurs segments' : `${segsSelectionnes.length} segment${segsSelectionnes.length > 1 ? 's' : ''} sélectionné${segsSelectionnes.length > 1 ? 's' : ''}`}
         </span>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
           <button type="button" disabled={!segsSelectionnes.length} onClick={() => insererSelection()}
-            style={{ ...petitChoixStyle, background: segsSelectionnes.length ? 'var(--cs-vert)' : '#e4dfd8', color: segsSelectionnes.length ? '#fff' : '#9a958d', border: 'none', opacity: 1, cursor: segsSelectionnes.length ? 'pointer' : 'default' }}>Citer</button>
+            style={{ ...petitChoixStyle, background: segsSelectionnes.length ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: segsSelectionnes.length ? '#fff' : 'var(--cs-texte-doux)', border: 'none', opacity: 1, cursor: segsSelectionnes.length ? 'pointer' : 'default' }}>Citer</button>
         </span>
       </div>
     </div>
@@ -529,8 +529,8 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
     setRecherche(''); setOeuvreSel('')
   }, [source])
 
-  if (items === null) return <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
-  if (items.length === 0) return <p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Aucune citation enregistrée dans « Mes citations » pour l'instant.</p>
+  if (items === null) return <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
+  if (items.length === 0) return <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucune citation enregistrée dans « Mes citations » pour l'instant.</p>
 
   const choisir = async (it: any) => {
     if (source === 'bible') {
@@ -558,10 +558,10 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
   // Une ligne de citation : libellé + aperçu + bouton « Citer » en bout de ligne.
   const Ligne = (it: any, label: string) => (
     <div key={it.id}
-      style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid #ede9e2', background: '#fff', alignItems: 'center' }}>
+      style={{ display: 'flex', gap: '10px', textAlign: 'left', padding: '8px 10px', borderRadius: '5px', border: '1px solid var(--cs-fond-doux)', background: '#fff', alignItems: 'center' }}>
       <span style={{ flex: 1, minWidth: 0 }}>
         <span style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 700, color: 'var(--cs-vert)' }}>{surligner(label, recherche.trim())}</span>
-        <span style={{ display: 'block', fontSize: '0.78125rem', color: '#2a2520', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{surligner(String(it.texte ?? '').slice(0, 160), recherche.trim())}</span>
+        <span style={{ display: 'block', fontSize: '0.78125rem', color: 'var(--cs-texte-fort)', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{surligner(String(it.texte ?? '').slice(0, 160), recherche.trim())}</span>
       </span>
       <BoutonCiter onCiter={() => choisir(it)} />
     </div>
@@ -584,10 +584,10 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
   const barre = (
     <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', position: 'sticky', top: 0, background: '#fff', zIndex: 1, paddingBottom: '2px' }}>
       <input value={recherche} onChange={e => setRecherche(e.target.value)} placeholder="Rechercher un mot…"
-        style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontSize: '0.75rem', padding: '7px 10px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#faf8f4', color: '#2a2520', outline: 'none' }} />
+        style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontSize: '0.75rem', padding: '7px 10px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', outline: 'none' }} />
       {source === 'patristique' && oeuvresListe.length > 1 && (
         <select value={oeuvreSel} onChange={e => setOeuvreSel(e.target.value)} aria-label="Limiter à une œuvre"
-          style={{ flexShrink: 0, maxWidth: '11rem', fontSize: '0.72rem', padding: '6px 8px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#3a3530' }}>
+          style={{ flexShrink: 0, maxWidth: '11rem', fontSize: '0.72rem', padding: '6px 8px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte)' }}>
           <option value="">Toutes les œuvres</option>
           {oeuvresListe.map(o => <option key={o} value={o}>{o}</option>)}
         </select>
@@ -596,7 +596,7 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
   )
 
   if (!itemsFiltres.length) {
-    return <div>{barre}<p style={{ fontSize: '0.75rem', color: '#9a958d', fontStyle: 'italic' }}>Aucune citation ne correspond.</p></div>
+    return <div>{barre}<p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucune citation ne correspond.</p></div>
   }
 
   // Patristique : regroupé par auteur (le § de paragraphe n'est plus affiché).
@@ -614,7 +614,7 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {auteurs.map(auteur => (
             <div key={auteur}>
-              <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: '#a2988b', margin: '0 0 8px' }}>{auteur}</p>
+              <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 8px' }}>{auteur}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {groupes.get(auteur)!.map(it => Ligne(it, String(it.titre_oeuvre ?? '')))}
               </div>

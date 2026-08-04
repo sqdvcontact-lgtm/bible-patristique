@@ -53,7 +53,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
         {/* En-tête — teinte chaude (ocre/rouge), liseré d'accent à gauche du titre. */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px 13px', borderBottom: '1px solid #f0dccb', background: 'linear-gradient(180deg, #fbeee4 0%, #fdf6f0 100%)', flexShrink: 0 }}>
           <p style={{ display: 'flex', alignItems: 'center', gap: '9px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: '#7a2f18', margin: 0 }}>
-            <span aria-hidden="true" style={{ display: 'inline-block', width: '3px', height: '17px', borderRadius: '2px', background: '#c0562a' }} />
+            <span aria-hidden="true" style={{ display: 'inline-block', width: '3px', height: '17px', borderRadius: '2px', background: 'var(--cs-danger)' }} />
             {titreFenetre}
           </p>
           <button onClick={onClose} aria-label="Fermer" style={{ fontSize: '0.9375rem', color: '#c09a86', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
@@ -69,7 +69,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
                 <span style={{ display: 'block', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b5764a', marginBottom: '5px' }}>Objet du signalement</span>
                 {titre && <p style={{ fontSize: '0.6875rem', color: '#a85c3a', fontStyle: 'italic', margin: '0 0 5px', lineHeight: 1.45 }}>{titre}</p>}
                 {texteObjet && (
-                  <blockquote style={{ margin: 0, padding: '9px 12px', background: '#fdf4ec', border: '1px solid #efd8c6', borderLeft: '3px solid #c0562a', borderRadius: '0 5px 5px 0', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: '#42352c', lineHeight: 1.6, maxHeight: '150px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+                  <blockquote style={{ margin: 0, padding: '9px 12px', background: '#fdf4ec', border: '1px solid #efd8c6', borderLeft: '3px solid var(--cs-danger)', borderRadius: '0 5px 5px 0', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: '#42352c', lineHeight: 1.6, maxHeight: '150px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
                     {rendreTexteEnrichi(texteObjet)}
                   </blockquote>
                 )}
@@ -78,7 +78,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
 
             {avecNiveauImportance && (
               <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.65625rem', color: '#9a958d', flexShrink: 0 }}>Niveau :</span>
+                <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', flexShrink: 0 }}>Niveau :</span>
                 {NIVEAUX.map(n => {
                   const actif = importance === n.val
                   return (
@@ -93,13 +93,13 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
 
             <textarea value={message} onChange={e => setMessage(e.target.value)}
               placeholder={placeholder} rows={4} autoFocus
-              style={{ width: '100%', fontSize: '0.75rem', padding: '8px 10px', border: '1px solid #e6cdbb', borderRadius: '5px', background: '#fdf9f5', color: '#2a2520', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
+              style={{ width: '100%', fontSize: '0.75rem', padding: '8px 10px', border: '1px solid #e6cdbb', borderRadius: '5px', background: '#fdf9f5', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', gap: '8px', alignItems: 'center' }}>
-              {statut === 'err' && <span style={{ fontSize: '0.625rem', color: '#c0562a', marginRight: 'auto' }}>Erreur d’envoi.</span>}
-              <button onClick={onClose} style={{ fontSize: '0.71875rem', padding: '6px 13px', borderRadius: '5px', border: '1px solid #d6d0c4', background: '#fff', color: '#6b6560', cursor: 'pointer' }}>Annuler</button>
+              {statut === 'err' && <span style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', marginRight: 'auto' }}>Erreur d’envoi.</span>}
+              <button onClick={onClose} style={{ fontSize: '0.71875rem', padding: '6px 13px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
               <button onClick={envoyer} disabled={statut === 'sending' || !message.trim()}
-                style={{ fontSize: '0.71875rem', padding: '6px 15px', borderRadius: '5px', border: 'none', cursor: message.trim() ? 'pointer' : 'default', background: message.trim() ? '#c0562a' : '#e4dfd8', color: message.trim() ? '#fff' : '#9a958d', fontWeight: 500 }}>
+                style={{ fontSize: '0.71875rem', padding: '6px 15px', borderRadius: '5px', border: 'none', cursor: message.trim() ? 'pointer' : 'default', background: message.trim() ? 'var(--cs-danger)' : 'var(--cs-bord-clair)', color: message.trim() ? '#fff' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
                 {statut === 'sending' ? 'Envoi…' : 'Envoyer'}
               </button>
             </div>

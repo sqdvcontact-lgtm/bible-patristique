@@ -28,6 +28,43 @@
   --cs-vert: #3d6b4f;         /* aplat d'accent (liens, boutons, actifs) */
   --cs-vert-rgb: 61, 107, 79; /* mêmes composantes, pour les rgba(...) */
   --cs-vert-fonce: #2e5440;   /* survol / état pressé */
+
+  /* ── Palette harmonisée : tokens sémantiques ──
+     Source unique des neutres, encres, danger et or, jusqu'ici éclatés en
+     ~776 valeurs distinctes (des dizaines de quasi-doublons indiscernables).
+     Chaque token est ANCRÉ sur la valeur déjà dominante de sa famille : le
+     rendu perçu ne bouge pas, seuls les doublons disparaissent. Comme pour le
+     vert, les attributs SVG `fill=`/`stroke=` gardent la valeur littérale
+     (une custom property n'y est pas résolue). Le site est en thème clair ;
+     un éventuel mode sombre se dérivera de ces mêmes tokens. */
+  /* Fonds (papiers crème) */
+  --cs-fond: #f7f4ef;
+  --cs-fond-clair: #faf8f4;
+  --cs-fond-doux: #ede9e2;
+  /* Bordures & filets */
+  --cs-bord: #d6d0c4;
+  --cs-bord-rgb: 214, 208, 196;
+  --cs-bord-clair: #e4dfd8;
+  /* Texte — échelle de gris chauds, du plus ténu au corps */
+  --cs-texte-faible: #b0a89e;
+  --cs-texte-doux: #9a958d;
+  --cs-texte-second: #6b6560;
+  --cs-texte: #3a3530;
+  --cs-texte-fort: #2a2520;
+  /* Encre — verts des titres (deux valeurs, cf. §AGENTS) */
+  --cs-encre: #2a3d30;
+  --cs-encre-fonce: #1e2e24;
+  /* Vert d'accent : teinte pâle pour encarts (l'aplat est au-dessus) */
+  --cs-vert-pale: #dfe8e0;
+  /* Danger & alerte (rouges-orangés d'action destructive) */
+  --cs-danger: #c0562a;
+  --cs-danger-rgb: 192, 86, 42;
+  --cs-danger-fonce: #9a2a2a;
+  --cs-danger-fond: #fdf2ee;
+  --cs-danger-bord: #e4c4b8;
+  /* Or — accent doré (références, fleurons, favoris) */
+  --cs-or: #9a7a38;
+  --cs-or-doux: #c8b89e;
 }
 
 /* ── Agrandissement fluide sur grands écrans ──

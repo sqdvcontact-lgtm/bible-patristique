@@ -57,9 +57,9 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
   const meta = [t.langue, t.date_publication].filter(Boolean).join(' · ')
 
   const fondSombre = estSombre !== false
-  const couleurTexte = t.photo ? (fondSombre ? '#f2efe8' : '#18130f') : '#1e2e24'
-  const couleurMeta  = t.photo ? (fondSombre ? 'rgba(242,239,232,0.72)' : 'rgba(24,19,15,0.58)') : '#7a7268'
-  const couleurChevron = t.photo ? (fondSombre ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.4)') : '#c8c0b4'
+  const couleurTexte = t.photo ? (fondSombre ? '#f2efe8' : '#18130f') : 'var(--cs-encre-fonce)'
+  const couleurMeta  = t.photo ? (fondSombre ? 'rgba(242,239,232,0.72)' : 'rgba(24,19,15,0.58)') : 'var(--cs-texte-second)'
+  const couleurChevron = t.photo ? (fondSombre ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.4)') : 'var(--cs-bord)'
 
   const ombreForte = fondSombre
     ? '0 1px 2px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.65), 0 4px 20px rgba(0,0,0,0.35)'
@@ -131,7 +131,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
         {t.import_maj_le && (
           <span style={{
             fontSize: '0.625rem', fontStyle: 'italic',
-            color: t.photo ? (fondSombre ? 'rgba(242,239,232,0.48)' : 'rgba(24,19,15,0.38)') : '#b0a89e',
+            color: t.photo ? (fondSombre ? 'rgba(242,239,232,0.48)' : 'rgba(24,19,15,0.38)') : 'var(--cs-texte-faible)',
             display: 'block', marginTop: '3px',
             textShadow: t.photo ? ombreTexte : 'none',
             transition: 'color 0.2s',
@@ -158,7 +158,7 @@ function normaliserContenu(texte: string): string {
   if (/^\s*<(p|h[1-6]|div|ul|ol|blockquote)[\s>]/i.test(texte)) {
     html = texte
   } else {
-    const pStyle = 'color:#2a2520;font-size:0.84375rem;line-height:1.78;margin:0 0 12px;text-decoration:none'
+    const pStyle = 'color:var(--cs-texte-fort);font-size:0.84375rem;line-height:1.78;margin:0 0 12px;text-decoration:none'
     html = texte
       .split(/\n+/)
       .map(l => l.trim())
@@ -191,17 +191,17 @@ export default function AllerPlusLoinClient() {
   }, [traductions])
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 3.5rem)', paddingTop: '3.5rem' }}>
+    <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100vh - 3.5rem)', paddingTop: '3.5rem' }}>
       <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '4px' }}>
           <h1 style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
             fontSize: 'clamp(1.3125rem, 3.6vw, 1.8125rem)', fontWeight: 'normal',
-            color: '#1e2e24', lineHeight: 1.15, marginBottom: '8px',
+            color: 'var(--cs-encre-fonce)', lineHeight: 1.15, marginBottom: '8px',
           }}>
             Les traductions
           </h1>
-          <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 12px' }} />
+          <div style={{ width: '36px', height: '1px', background: 'var(--cs-bord)', margin: '0 auto 12px' }} />
         </div>
       </div>
 
@@ -212,17 +212,17 @@ export default function AllerPlusLoinClient() {
             return (
               <div key={t.trad_id} id={t.trad_id} style={{
                 scrollMarginTop: '60px',
-                border: '1px solid #ddd8cf', borderRadius: '8px',
+                border: '1px solid var(--cs-bord)', borderRadius: '8px',
                 overflow: 'hidden', background: '#fff',
               }}>
                 <BandeauTraduction t={t} estOuvert={estOuvert} onToggle={() => setOuvert(prev => prev === t.trad_id ? null : t.trad_id)} />
 
                 {estOuvert && (
-                  <div style={{ borderTop: '1px solid #ede9e2', display: 'flex', alignItems: 'stretch' }}>
+                  <div style={{ borderTop: '1px solid var(--cs-fond-doux)', display: 'flex', alignItems: 'stretch' }}>
                     {t.photo && (
                       <div style={{
                         width: '8.75rem', flexShrink: 0,
-                        borderRight: '1px solid #ede9e2',
+                        borderRight: '1px solid var(--cs-fond-doux)',
                         overflow: 'hidden',
                       }}>
                         <img src={t.photo} alt="" aria-hidden="true"
@@ -242,7 +242,7 @@ export default function AllerPlusLoinClient() {
                       {t.commentaire_editorial && (
                         <div
                           className="trad-article"
-                          style={{ color: '#2a2520', fontSize: '0.84375rem', lineHeight: 1.65, textAlign: 'justify', hyphens: 'auto' }}
+                          style={{ color: 'var(--cs-texte-fort)', fontSize: '0.84375rem', lineHeight: 1.65, textAlign: 'justify', hyphens: 'auto' }}
                           dangerouslySetInnerHTML={{ __html: normaliserContenu(t.commentaire_editorial) }}
                         />
                       )}

@@ -27,10 +27,10 @@ function posStyle(pos: Position): React.CSSProperties {
 function fleche(pos: Position): React.CSSProperties {
   const b: React.CSSProperties = { position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }
   switch (pos) {
-    case 'top':    return { ...b, top: '100%',    left: '50%', transform: 'translateX(-50%)', borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '5px solid #2a3d30' }
-    case 'bottom': return { ...b, bottom: '100%', left: '50%', transform: 'translateX(-50%)', borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: '5px solid #2a3d30' }
-    case 'left':   return { ...b, left: '100%',   top:  '50%', transform: 'translateY(-50%)', borderTop: '5px solid transparent', borderBottom: '5px solid transparent', borderLeft: '5px solid #2a3d30' }
-    case 'right':  return { ...b, right: '100%',  top:  '50%', transform: 'translateY(-50%)', borderTop: '5px solid transparent', borderBottom: '5px solid transparent', borderRight: '5px solid #2a3d30' }
+    case 'top':    return { ...b, top: '100%',    left: '50%', transform: 'translateX(-50%)', borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '5px solid var(--cs-encre)' }
+    case 'bottom': return { ...b, bottom: '100%', left: '50%', transform: 'translateX(-50%)', borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: '5px solid var(--cs-encre)' }
+    case 'left':   return { ...b, left: '100%',   top:  '50%', transform: 'translateY(-50%)', borderTop: '5px solid transparent', borderBottom: '5px solid transparent', borderLeft: '5px solid var(--cs-encre)' }
+    case 'right':  return { ...b, right: '100%',  top:  '50%', transform: 'translateY(-50%)', borderTop: '5px solid transparent', borderBottom: '5px solid transparent', borderRight: '5px solid var(--cs-encre)' }
   }
 }
 
@@ -97,7 +97,7 @@ export function Bulle({ texte, children, position = 'top', avecFixation = false 
         <span style={{
           position: 'absolute',
           ...posStyle(position),
-          background: '#2a3d30',
+          background: 'var(--cs-encre)',
           color: '#f2ede6',
           fontSize: '0.6875rem',
           lineHeight: 1.45,

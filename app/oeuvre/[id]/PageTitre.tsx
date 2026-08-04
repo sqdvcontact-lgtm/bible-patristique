@@ -101,7 +101,7 @@ export function libelleTrad(trad: string | null | undefined): string {
 }
 
 const BTN: React.CSSProperties = {
-  position: 'absolute', fontSize: '0.6875rem', color: '#c8c0b4',
+  position: 'absolute', fontSize: '0.6875rem', color: 'var(--cs-bord)',
   background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1,
 }
 
@@ -154,7 +154,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
       {(oeuvre.sous_titre || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '35rem' }}>
           <p style={{ fontFamily: SERIF, fontSize: 'clamp(18px, 2.4vw, 24px)', fontStyle: 'normal', color: '#4a443c', margin: oeuvre.titre_original ? '0 0 24px' : '0 0 42px', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
-            {oeuvre.sous_titre ? rendreTexteEnrichi(sansPointFinal(oeuvre.sous_titre)) : estAdmin ? <span style={{ color: '#d6d0c4', fontStyle: 'italic', fontSize: '0.8125rem' }}>Sous-titre…</span> : null}
+            {oeuvre.sous_titre ? rendreTexteEnrichi(sansPointFinal(oeuvre.sous_titre)) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.8125rem' }}>Sous-titre…</span> : null}
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('sous_titre', oeuvre.sous_titre ?? '')} title="Modifier le sous-titre"
@@ -166,8 +166,8 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
       {/* Titre original */}
       {(oeuvre.titre_original || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '35rem' }}>
-          <p style={{ fontFamily: SERIF, fontSize: 'clamp(16px, 2.1vw, 21px)', fontStyle: 'italic', color: '#7c7369', marginBottom: '42px', letterSpacing: 0, whiteSpace: 'pre-line' }}>
-            {oeuvre.titre_original ? oeuvre.titre_original : estAdmin ? <span style={{ color: '#d6d0c4', fontSize: '0.8125rem' }}>Titre original…</span> : null}
+          <p style={{ fontFamily: SERIF, fontSize: 'clamp(16px, 2.1vw, 21px)', fontStyle: 'italic', color: 'var(--cs-texte-second)', marginBottom: '42px', letterSpacing: 0, whiteSpace: 'pre-line' }}>
+            {oeuvre.titre_original ? oeuvre.titre_original : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontSize: '0.8125rem' }}>Titre original…</span> : null}
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('titre_original', oeuvre.titre_original ?? '')} title="Modifier le titre original"
@@ -180,7 +180,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
       {(oeuvre.trad_auteur || estAdmin) && (
         <div style={{ position: 'relative' }}>
           <p style={{ fontFamily: SERIF, fontSize: '0.875rem', color: '#655d54', marginBottom: '6px' }}>
-            {oeuvre.trad_auteur ? <>{libelleTrad(oeuvre.trad_auteur)}</> : estAdmin ? <span style={{ color: '#d6d0c4', fontStyle: 'italic', fontSize: '0.75rem' }}>Traduction de…</span> : null}
+            {oeuvre.trad_auteur ? <>{libelleTrad(oeuvre.trad_auteur)}</> : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.75rem' }}>Traduction de…</span> : null}
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('trad_auteur', oeuvre.trad_auteur ?? '')} title="Modifier le traducteur"

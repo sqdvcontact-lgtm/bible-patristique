@@ -5,7 +5,7 @@ import { supabase } from '@/app/lib/supabase'
 import { LIVRES, LivreBible } from '@/app/lib/bible'
 
 // ── Feu d'artifice ─────────────────────────────────────────────────────────────
-const COULEURS_FEU = ['var(--cs-vert)', '#c0562a', '#d4af37', '#8a6fb0', '#3d8bc0', '#c0566a']
+const COULEURS_FEU = ['var(--cs-vert)', 'var(--cs-danger)', '#d4af37', '#8a6fb0', '#3d8bc0', '#c0566a']
 
 function FeuArtifice({ x, y, onFin }: { x: number; y: number; onFin: () => void }) {
   // 14 particules avec angle/distance/couleur/délai aléatoires
@@ -60,7 +60,7 @@ function BarreProgression({ label, pourcentage, couleur }: { label: string; pour
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', gap: '12px' }}>
-        <span style={{ fontSize: '0.6875rem', color: '#6b6560', fontWeight: 600 }}>{label}</span>
+        <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', fontWeight: 600 }}>{label}</span>
         <span style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', fontWeight: 700 }}>{Math.round(pourcentage)}%</span>
       </div>
       <div style={{ height: '7px', background: '#ebe7df', borderRadius: '999px', overflow: 'hidden' }}>
@@ -76,7 +76,7 @@ function BarreProgression({ label, pourcentage, couleur }: { label: string; pour
 function StatutLecture({ label, valeur }: { label: string; valeur: string }) {
   return (
     <div style={{ padding: '9px 12px', borderRadius: '8px', background: 'rgba(var(--cs-vert-rgb),0.055)', border: '1px solid rgba(var(--cs-vert-rgb),0.10)' }}>
-      <p style={{ fontSize: '1.125rem', color: '#2a3d30', fontFamily: "var(--font-source-serif), Georgia, serif", margin: '0 0 2px' }}>{valeur}</p>
+      <p style={{ fontSize: '1.125rem', color: 'var(--cs-encre)', fontFamily: "var(--font-source-serif), Georgia, serif", margin: '0 0 2px' }}>{valeur}</p>
       <p style={{ fontSize: '0.65625rem', color: '#7a867b', margin: 0 }}>{label}</p>
     </div>
   )
@@ -122,14 +122,14 @@ function CarteLivre({ livre, lu, onToggle }: { livre: LivreBible; lu: boolean; o
     <button onClick={onToggle} style={{
       display: 'flex', alignItems: 'center', gap: '10px',
       padding: '10px 12px', borderRadius: '8px',
-      border: `1px solid ${lu ? 'rgba(var(--cs-vert-rgb),0.35)' : '#e4dfd8'}`,
+      border: `1px solid ${lu ? 'rgba(var(--cs-vert-rgb),0.35)' : 'var(--cs-bord-clair)'}`,
       background: lu ? 'rgba(var(--cs-vert-rgb),0.07)' : '#fff',
       cursor: 'pointer', textAlign: 'left', width: '100%',
       transition: 'background 0.2s, border-color 0.2s',
     }}>
       <span style={{
         width: '18px', height: '18px', borderRadius: '5px', flexShrink: 0,
-        border: `1.5px solid ${lu ? 'var(--cs-vert)' : '#c8c0b4'}`,
+        border: `1.5px solid ${lu ? 'var(--cs-vert)' : 'var(--cs-bord)'}`,
         background: lu ? 'var(--cs-vert)' : 'transparent',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'background 0.2s, border-color 0.2s',
@@ -141,12 +141,12 @@ function CarteLivre({ livre, lu, onToggle }: { livre: LivreBible; lu: boolean; o
         )}
       </span>
       <span style={{
-        fontSize: '0.8125rem', color: lu ? '#2a3d30' : '#3a3530',
+        fontSize: '0.8125rem', color: lu ? 'var(--cs-encre)' : 'var(--cs-texte)',
         fontWeight: lu ? 600 : 400, fontFamily: "var(--font-source-serif), Georgia, serif",
       }}>
         {livre.nom}
       </span>
-      <span style={{ fontSize: '0.625rem', color: '#b0a89e', marginLeft: 'auto', flexShrink: 0 }}>
+      <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', marginLeft: 'auto', flexShrink: 0 }}>
         {lu ? 'lu' : 'à lire'}
       </span>
     </button>
@@ -259,20 +259,20 @@ export default function ProgressionClient() {
   const versetsLusAnimes = useValeurAnimee(versetsLusTotal, 1150)
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 3.5rem)', padding: '24px 24px 64px' }}>
+    <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100vh - 3.5rem)', padding: '24px 24px 64px' }}>
       <div style={{ maxWidth: '42.5rem', margin: '0 auto' }}>
         <h1 style={{
           fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.375rem',
-          fontWeight: 'normal', color: '#2a3d30', marginBottom: '4px', textAlign: 'center',
+          fontWeight: 'normal', color: 'var(--cs-encre)', marginBottom: '4px', textAlign: 'center',
         }}>
           Ma progression de lecture
         </h1>
-        <p style={{ fontSize: '0.75rem', color: '#9a958d', textAlign: 'center', marginBottom: '22px', fontStyle: 'italic' }}>
+        <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', textAlign: 'center', marginBottom: '22px', fontStyle: 'italic' }}>
           Cochez un livre une fois sa lecture achevée.
         </p>
 
         <section style={{
-          background: '#fff', border: '1px solid #e4dfd8', borderRadius: '10px',
+          background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px',
           padding: '20px 22px', marginBottom: '24px', boxShadow: '0 8px 28px rgba(var(--cs-vert-rgb),0.06)',
           position: 'sticky', top: '56px', zIndex: 10,
         }}>
@@ -283,8 +283,8 @@ export default function ProgressionClient() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto',
             }}>
               <div style={{ width: '6.625rem', height: '106px', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.875rem', color: '#2a3d30', lineHeight: 1 }}>{Math.round(pourcentTotalAnime)}%</span>
-                <span style={{ fontSize: '0.625rem', color: '#9a958d', marginTop: '3px' }}>parcouru</span>
+                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.875rem', color: 'var(--cs-encre)', lineHeight: 1 }}>{Math.round(pourcentTotalAnime)}%</span>
+                <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', marginTop: '3px' }}>parcouru</span>
               </div>
             </div>
             <div>
@@ -302,20 +302,20 @@ export default function ProgressionClient() {
 
         {!userId && !chargement && (
           <div style={{
-            background: '#fff', border: '1px solid #e4c4b8', borderRadius: '8px',
-            padding: '12px 16px', marginBottom: '24px', fontSize: '0.78125rem', color: '#9a4a2a', textAlign: 'center',
+            background: '#fff', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px',
+            padding: '12px 16px', marginBottom: '24px', fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', textAlign: 'center',
           }}>
             Connectez-vous pour enregistrer votre progression.
           </div>
         )}
 
         {chargement ? (
-          <p style={{ textAlign: 'center', color: '#9a958d', fontSize: '0.8125rem', fontStyle: 'italic' }}>Chargement…</p>
+          <p style={{ textAlign: 'center', color: 'var(--cs-texte-doux)', fontSize: '0.8125rem', fontStyle: 'italic' }}>Chargement…</p>
         ) : (
           <>
             <h2 style={{
               fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
-              color: '#7a7268', marginBottom: '12px', marginTop: '8px',
+              color: 'var(--cs-texte-second)', marginBottom: '12px', marginTop: '8px',
             }}>
               Ancien Testament
             </h2>
@@ -327,7 +327,7 @@ export default function ProgressionClient() {
 
             <h2 style={{
               fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
-              color: '#7a7268', marginBottom: '12px',
+              color: 'var(--cs-texte-second)', marginBottom: '12px',
             }}>
               Nouveau Testament
             </h2>

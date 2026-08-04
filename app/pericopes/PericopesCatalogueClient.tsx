@@ -61,7 +61,7 @@ function refDansLivre(debut: string, fin: string | null): string {
 function GroupeFiltre({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ marginTop: '13px', paddingTop: '13px', borderTop: `1px solid ${SEP}` }}>
-      <div style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7c7369', marginBottom: '8px' }}>{label}</div>
+      <div style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '8px' }}>{label}</div>
       {children}
     </div>
   )
@@ -83,7 +83,7 @@ function LigneCompte({ actif, onClick, label, n }: { actif: boolean; onClick: ()
     <LigneCase actif={actif} onClick={onClick}>
       <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
-        <span style={{ fontFamily: SANS, fontSize: '0.62rem', color: actif ? VERT : '#7c7369' }}>{n}</span>
+        <span style={{ fontFamily: SANS, fontSize: '0.62rem', color: actif ? VERT : 'var(--cs-texte-second)' }}>{n}</span>
       </span>
     </LigneCase>
   )
@@ -184,7 +184,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
       <div style={{ position: 'relative', marginTop: '2px' }}>
         <input value={q} onChange={e => setQ(e.target.value)} type="text"
           placeholder="Rechercher une péricope…" aria-label="Rechercher une péricope"
-          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px 7px 28px', borderRadius: '6px', border: `1px solid ${BORD}`, background: '#fff', color: '#3a3530', outline: 'none' }} />
+          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px 7px 28px', borderRadius: '6px', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte)', outline: 'none' }} />
         <svg width="12" height="12" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
           <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2" />
           <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round" />
@@ -204,7 +204,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
               if (livres.length === 0) return null
               return (
                 <div key={grp.code}>
-                  <p style={{ fontFamily: SANS, fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#7c7369', margin: '0 0 6px' }}>{grp.label}</p>
+                  <p style={{ fontFamily: SANS, fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 6px' }}>{grp.label}</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px 8px' }}>
                     {livres.map(g => (
                       <button key={g.livre} onClick={() => allerAuLivre(g.livre)}
@@ -243,7 +243,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
 
       {filtresActifs && (
         <button onClick={reinitialiser}
-          style={{ marginTop: '14px', width: '100%', padding: '6px 9px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: '#fff', color: '#6b6560', fontFamily: SERIF, fontSize: '0.76rem' }}>
+          style={{ marginTop: '14px', width: '100%', padding: '6px 9px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.76rem' }}>
           Réinitialiser les filtres
         </button>
       )}
@@ -276,7 +276,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         .peri-ens { margin-left: 5px; font-family: ${SERIF}; font-style: italic; font-size: 0.66rem; font-weight: 400; color: #a99f92; }
         .peri-ref { flex-shrink: 0; font-family: ${SERIF}; font-size: 0.73rem; color: #b08f48; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .peri-l2 { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 1px; min-height: 0.9rem; }
-        .peri-reg { font-family: ${SANS}; font-size: 0.53rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #7c7369; }
+        .peri-reg { font-family: ${SANS}; font-size: 0.53rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cs-texte-second); }
         .peri-notice-lien {
           flex-shrink: 0; font-family: ${SERIF}; font-style: italic; font-size: 0.68rem;
           color: #9a8a5a; background: none; border: none; padding: 0; cursor: pointer;
@@ -342,10 +342,10 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
 
             {groupes.length === 0 ? (
               <div style={{ textAlign: 'center', paddingTop: '20px' }}>
-                <p style={{ fontSize: '0.85rem', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>Aucune péricope ne correspond aux filtres retenus.</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Aucune péricope ne correspond aux filtres retenus.</p>
                 {filtresActifs && (
                   <button onClick={reinitialiser}
-                    style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: '#fff', color: '#6b6560', fontFamily: SERIF, fontSize: '0.78rem' }}>
+                    style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.78rem' }}>
                     Réinitialiser les filtres
                   </button>
                 )}

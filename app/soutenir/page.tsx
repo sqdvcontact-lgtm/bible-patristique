@@ -49,7 +49,7 @@ export default function SoutenirPage() {
         fontFamily: "var(--font-source-serif), Georgia, serif",
         fontSize: "clamp(1.4rem, 0.95rem + 0.85vw, 1.95rem)",
         fontWeight: "normal",
-        color: "#1e2e24",
+        color: "var(--cs-encre-fonce)",
         margin: "0 0 clamp(8px, 1.2vh, 14px)",
         letterSpacing: "0.02em",
         flexShrink: 0,

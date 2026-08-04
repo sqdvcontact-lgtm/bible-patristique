@@ -72,7 +72,7 @@ function TitreSection({ children, centre }: { children: ReactNode; centre?: bool
 
 // Puce pleine, à la couleur du type d'événement (Vie, Œuvre, Contexte).
 function stylePuce(type: string | null) {
-  return { background: coulType(type), border: '1.5px solid #f7f4ef' }
+  return { background: coulType(type), border: '1.5px solid var(--cs-fond)' }
 }
 
 // Chronologie d'un auteur : une SEULE frise mêlant vie, œuvres et contexte,
@@ -131,11 +131,11 @@ export function FriseAuteur({ evenements, sansLegende }: { evenements: RangChron
               <div style={{ paddingBottom: pb, fontSize: '0.6875rem', lineHeight: 1.18 }}>
                 {aDetail ? (
                   <button onClick={() => basculer(cle)} aria-expanded={ouvert}
-                    style={{ display: 'inline', textAlign: 'left', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1em', lineHeight: 'inherit', color: contexte ? '#8a8278' : '#2a3d30', fontStyle: italique ? 'italic' : 'normal' }}>
+                    style={{ display: 'inline', textAlign: 'left', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1em', lineHeight: 'inherit', color: contexte ? '#8a8278' : 'var(--cs-encre)', fontStyle: italique ? 'italic' : 'normal' }}>
                     {rendreMarquesNote(a.titre)}
                   </button>
                 ) : (
-                  <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1em', lineHeight: 'inherit', color: contexte ? '#8a8278' : '#2a3d30', fontStyle: italique ? 'italic' : 'normal' }}>
+                  <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1em', lineHeight: 'inherit', color: contexte ? '#8a8278' : 'var(--cs-encre)', fontStyle: italique ? 'italic' : 'normal' }}>
                     {rendreMarquesNote(a.titre)}
                   </span>
                 )}
@@ -209,7 +209,7 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
             <span title={o.date_composition_precision_affichage ?? undefined} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: dateCompo(o) ? '#b7a06a' : '#c9c1b4', fontStyle: dateCompo(o) ? 'normal' : 'italic', textAlign: 'right', whiteSpace: 'nowrap' }}>{dateCompo(o) ? <HistoricalDate value={dateCompo(o)} variant="short" /> : 'Date inconnue'}</span>
             {/* Œuvre disponible : titre en teinte sobre (pas vert), cliquable vers l'œuvre. */}
             <Link href={`/oeuvre/${o.id_oeuvre}`} onClick={onClose} className="auteur-oeuvre"
-              style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: '#3a3530', minWidth: 0, lineHeight: 1.38 }}>{sansPointFinal(o.titre)}</Link>
+              style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte)', minWidth: 0, lineHeight: 1.38 }}>{sansPointFinal(o.titre)}</Link>
           </li>
         ))}
         {oeuvresAbsentes.map(o => (
@@ -230,8 +230,8 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
     <>
       {/* En-tête : portrait, nom, contexte */}
       <header style={{ display: 'flex', gap: '18px', alignItems: 'center', marginBottom: '16px' }}>
-        <div style={{ width: '6.5rem', height: '130px', flexShrink: 0, padding: '5px', background: '#fff', border: '1px solid #ddd5c4', boxShadow: '0 2px 10px rgba(60,50,30,0.10)' }}>
-          <div style={{ width: '100%', height: '100%', overflow: 'hidden', background: '#ede9e2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '6.5rem', height: '130px', flexShrink: 0, padding: '5px', background: '#fff', border: '1px solid var(--cs-bord)', boxShadow: '0 2px 10px rgba(60,50,30,0.10)' }}>
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden', background: 'var(--cs-fond-doux)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {photoOk ? (
               <img src={photoUrl} alt={auteur.nom} onError={() => setPhotoOk(false)}
                 style={{ width: '100%', height: '100%', display: 'block', ...stylePhoto(photoPos) }} />
@@ -241,8 +241,8 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
           </div>
         </div>
         <div style={{ minWidth: 0 }}>
-          <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.4375rem', fontWeight: 'normal', color: '#1e2e24', margin: 0, lineHeight: 1.12 }}>{auteur.nom}</h2>
-          {auteur.nom_original && <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: '#9a8a6e', fontStyle: 'italic', margin: '2px 0 0' }}>{auteur.nom_original}</p>}
+          <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.4375rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.12 }}>{auteur.nom}</h2>
+          {auteur.nom_original && <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '2px 0 0' }}>{auteur.nom_original}</p>}
           {meta && <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.59375rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#a8a094', margin: '8px 0 0' }}>{meta}</p>}
         </div>
       </header>
@@ -250,10 +250,10 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
       {/* Deux colonnes : à gauche la vie, à droite la chronologie. Repliées en une
           seule colonne sur mobile (voir media-query .auteur-grid). */}
       <div className="auteur-grid" style={{ display: 'grid', gridTemplateColumns: aColonnes ? 'minmax(0, 1.35fr) minmax(0, 1fr)' : '1fr', gap: '26px', alignItems: 'start' }}>
-        <div className="auteur-grid-vie" style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderRight: aColonnes ? '1px solid #ece7de' : 'none', paddingRight: aColonnes ? '24px' : 0 }}>
+        <div className="auteur-grid-vie" style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderRight: aColonnes ? '1px solid var(--cs-fond-doux)' : 'none', paddingRight: aColonnes ? '24px' : 0 }}>
           {auteur.note_biographique && <section><TitreSection>Vie</TitreSection><p className="auteur-prose">{rendreSiecles(auteur.note_biographique)}</p></section>}
           {auteur.anecdotes?.trim() && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.71875rem', color: '#6b6560', lineHeight: 1.5, margin: 0, paddingLeft: '11px', borderLeft: '1px solid #ddd0b0' }}>{rendreSiecles(auteur.anecdotes)}</p>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: 0, paddingLeft: '11px', borderLeft: '1px solid #ddd0b0' }}>{rendreSiecles(auteur.anecdotes)}</p>
           )}
           {auteur.note_theologique && <section><TitreSection>Pensée</TitreSection><p className="auteur-prose">{rendreSiecles(auteur.note_theologique)}</p></section>}
           {auteur.influence?.trim() && <section><TitreSection>Postérité</TitreSection><p className="auteur-prose">{rendreSiecles(auteur.influence)}</p></section>}
@@ -315,20 +315,20 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
     <div onClick={onClose} className="auteur-modale-overlay"
       style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.42)', zIndex: 2100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 20px', overflowY: 'auto' }}>
       <div onClick={e => e.stopPropagation()} className="auteur-modale-inner"
-        style={{ position: 'relative', width: '100%', maxWidth: '52rem', background: '#f7f4ef', borderRadius: '12px', border: '1px solid #e0d8cc', boxShadow: '0 20px 60px rgba(40,30,15,0.30)', padding: '30px 34px 28px', margin: 'auto' }}>
+        style={{ position: 'relative', width: '100%', maxWidth: '52rem', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', boxShadow: '0 20px 60px rgba(40,30,15,0.30)', padding: '30px 34px 28px', margin: 'auto' }}>
         <button onClick={onClose} aria-label="Fermer" title="Fermer"
-          style={{ position: 'absolute', top: '12px', right: '14px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid #e0d8cc', background: '#fff', color: '#9a958d', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          style={{ position: 'absolute', top: '12px', right: '14px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: '#fff', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
 
         {erreur ? (
-          <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: '#b0a89e', textAlign: 'center', margin: '30px 0' }}>Auteur introuvable</p>
+          <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-texte-faible)', textAlign: 'center', margin: '30px 0' }}>Auteur introuvable</p>
         ) : !auteur ? (
-          <p style={{ fontSize: '0.8125rem', color: '#b0a89e', fontStyle: 'italic', textAlign: 'center', margin: '30px 0' }}>Chargement…</p>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', textAlign: 'center', margin: '30px 0' }}>Chargement…</p>
         ) : (
           <Contenu auteur={auteur} onClose={onClose} evenements={evenements} />
         )}
 
         <style>{`
-          .auteur-prose { font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; line-height: 1.5; color: #3a3530; text-align: justify; hyphens: auto; margin: 0; }
+          .auteur-prose { font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; line-height: 1.5; color: var(--cs-texte); text-align: justify; hyphens: auto; margin: 0; }
           .auteur-oeuvre { display: block; padding: 1px 8px; margin: 0 -8px; border-radius: 4px; text-decoration: none; transition: background 0.12s; }
           a.auteur-oeuvre:hover { background: rgba(var(--cs-vert-rgb),0.06); }
           .auteur-oeuvre--absente { cursor: default; }

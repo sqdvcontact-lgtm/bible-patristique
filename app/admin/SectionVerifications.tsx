@@ -14,7 +14,7 @@ const OPTIONS: { label: string; action: Action; couleur?: string }[] = [
   { label: 'Citation paraphrastique',  action: 2 },
   { label: 'Commentaire doctrinal',    action: 3 },
   { label: 'Écho thématique',          action: 4 },
-  { label: 'Pas de lien',              action: 'pas_de_lien', couleur: '#c0562a' },
+  { label: 'Pas de lien',              action: 'pas_de_lien', couleur: 'var(--cs-danger)' },
 ]
 
 function verifies(seg: any): string[] {
@@ -161,11 +161,11 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
       {/* Compteur central, élégant : le nombre en chiffre serif, mis en avant. */}
       <div style={{ textAlign: 'center', margin: '4px 0 20px' }}>
         {chargement ? (
-          <p style={{ margin: 0, fontSize: '0.85rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
         ) : paires.length === 0 ? (
-          <p style={{ margin: 0, fontSize: '0.93437rem', color: '#9a958d', fontStyle: 'italic' }}>Aucun lien en attente de vérification.</p>
+          <p style={{ margin: 0, fontSize: '0.93437rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun lien en attente de vérification.</p>
         ) : (
-          <p style={{ margin: 0, color: '#6b6560', fontSize: '0.9rem', letterSpacing: '0.01em' }}>
+          <p style={{ margin: 0, color: 'var(--cs-texte-second)', fontSize: '0.9rem', letterSpacing: '0.01em' }}>
             <strong style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontWeight: 'normal', fontSize: '1.65rem', color: 'var(--cs-vert)', verticalAlign: '-2px' }}>{paires.length}</strong>
             {'  '}lien{paires.length > 1 ? 's' : ''} à vérifier
           </p>
@@ -186,32 +186,32 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
           return (
             <article key={key} style={carteStyle}>
               {/* En-tête : référence biblique | référence patristique */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', borderBottom: '1px solid #ede9e2' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', borderBottom: '1px solid var(--cs-fond-doux)' }}>
                 <a href={`/recherche?q=${encodeURIComponent(refVerset)}`} target="_blank" rel="noopener noreferrer" style={enteteColStyle}>
                   {refVerset}
                 </a>
                 <a href={`/oeuvre/${seg.id_oeuvre}#s${seg.segment_numero}`} target="_blank" rel="noopener noreferrer"
-                  style={{ ...enteteColStyle, borderLeft: '1px solid #ede9e2' }}>
+                  style={{ ...enteteColStyle, borderLeft: '1px solid var(--cs-fond-doux)' }}>
                   <strong>{oeuvre.auteur}</strong>
                   <span style={{ fontStyle: 'italic', marginLeft: '7px' }}>{oeuvre.titre}</span>
-                  {refsPatristiques && <span style={{ color: '#9a958d', marginLeft: '7px' }}>{refsPatristiques}</span>}
+                  {refsPatristiques && <span style={{ color: 'var(--cs-texte-doux)', marginLeft: '7px' }}>{refsPatristiques}</span>}
                 </a>
               </div>
 
               {/* Corps : texte biblique | texte patristique */}
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)' }}>
-                <div style={{ padding: '14px 16px', background: '#fbfaf7' }}>
+                <div style={{ padding: '14px 16px', background: 'var(--cs-fond-clair)' }}>
                   <p style={texteBibleStyle}>{verset?.texte ? rendreTexteEnrichi(verset.texte) : 'Verset introuvable.'}</p>
                 </div>
-                <div style={{ padding: '14px 16px', borderLeft: '1px solid #ede9e2' }}>
+                <div style={{ padding: '14px 16px', borderLeft: '1px solid var(--cs-fond-doux)' }}>
                   <p style={textePatristiqueStyle}>{rendreTexteEnrichi(seg.segment_texte)}</p>
                 </div>
               </div>
 
               {/* Boutons de qualification */}
-              <div style={{ display: 'flex', gap: '7px', padding: '10px 16px 12px', borderTop: '1px solid #ede9e2', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '7px', padding: '10px 16px 12px', borderTop: '1px solid var(--cs-fond-doux)', flexWrap: 'wrap' }}>
                 {st === 'err' && (
-                  <span style={{ fontSize: '0.79062rem', color: '#c0562a', fontStyle: 'italic', alignSelf: 'center' }}>
+                  <span style={{ fontSize: '0.79062rem', color: 'var(--cs-danger)', fontStyle: 'italic', alignSelf: 'center' }}>
                     Erreur : {statut[`${key}_msg`] || 'inconnue'}
                   </span>
                 )}
@@ -220,7 +220,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
                     onClick={() => choisir(seg, idVerset, opt.action)}
                     style={{
                       fontSize: '0.79062rem', padding: '5px 11px', borderRadius: '4px', fontWeight: 600,
-                      border: opt.couleur ? `1px solid ${opt.couleur}` : '1px solid #d6d0c4',
+                      border: opt.couleur ? `1px solid ${opt.couleur}` : '1px solid var(--cs-bord)',
                       background: '#fff',
                       color: opt.couleur ?? 'var(--cs-vert)',
                       cursor: 'pointer',
@@ -229,7 +229,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
                   </button>
                 ))}
                 {st === 'loading' && (
-                  <span style={{ fontSize: '0.79062rem', color: '#9a958d', fontStyle: 'italic', alignSelf: 'center' }}>
+                  <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', alignSelf: 'center' }}>
                     Enregistrement…
                   </span>
                 )}
@@ -271,14 +271,14 @@ function Pagination({ page, nbPages, onPage, bas = false }: {
 
 function flecheBtn(disabled: boolean): React.CSSProperties {
   return {
-    width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #ddd5c4',
+    width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
     background: '#fff', color: disabled ? '#cfc7bb' : 'var(--cs-vert)', cursor: disabled ? 'default' : 'pointer',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: disabled ? 'none' : '0 1px 5px rgba(60,50,30,0.06)', transition: 'color 0.12s, box-shadow 0.12s',
   }
 }
 
-const carteStyle: React.CSSProperties = { background: '#fff', border: '1px solid #d6d0c4', borderRadius: '8px', overflow: 'hidden' }
-const enteteColStyle: React.CSSProperties = { display: 'block', padding: '9px 16px', background: 'rgba(var(--cs-vert-rgb),0.06)', color: '#1e2e24', fontSize: '0.8625rem', fontWeight: 600, textDecoration: 'none', minWidth: 0, letterSpacing: '0.01em' }
-const texteBibleStyle: React.CSSProperties = { fontSize: '0.89844rem', color: '#3a3530', lineHeight: 1.58, margin: 0, textAlign: 'justify' }
-const textePatristiqueStyle: React.CSSProperties = { fontSize: '0.89844rem', color: '#1e1a16', lineHeight: 1.58, margin: 0, textAlign: 'justify', wordSpacing: '-0.02em' }
+const carteStyle: React.CSSProperties = { background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '8px', overflow: 'hidden' }
+const enteteColStyle: React.CSSProperties = { display: 'block', padding: '9px 16px', background: 'rgba(var(--cs-vert-rgb),0.06)', color: 'var(--cs-encre-fonce)', fontSize: '0.8625rem', fontWeight: 600, textDecoration: 'none', minWidth: 0, letterSpacing: '0.01em' }
+const texteBibleStyle: React.CSSProperties = { fontSize: '0.89844rem', color: 'var(--cs-texte)', lineHeight: 1.58, margin: 0, textAlign: 'justify' }
+const textePatristiqueStyle: React.CSSProperties = { fontSize: '0.89844rem', color: 'var(--cs-texte-fort)', lineHeight: 1.58, margin: 0, textAlign: 'justify', wordSpacing: '-0.02em' }

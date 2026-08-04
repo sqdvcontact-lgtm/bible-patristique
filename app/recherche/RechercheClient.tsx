@@ -660,29 +660,29 @@ export default function RechercheClient() {
   return (
     <>
       <style>{`
-        .res-card { display:block; text-decoration:none; padding:6px 12px; background:#fff; border-radius:7px; border:1px solid #e4dfd8; transition:border-color 0.12s, box-shadow 0.12s; }
+        .res-card { display:block; text-decoration:none; padding:6px 12px; background:#fff; border-radius:7px; border:1px solid var(--cs-bord-clair); transition:border-color 0.12s, box-shadow 0.12s; }
         .res-card:hover { border-color:var(--cs-vert); box-shadow:0 1px 6px rgba(var(--cs-vert-rgb),0.10); }
         .res-card--absent { background:#fff9f7; border-color:#f0c4b8; }
-        .res-card--absent:hover { border-color:#c0562a; }
+        .res-card--absent:hover { border-color:var(--cs-danger); }
         /* Lignes de répartition cliquables (filtre par livre / œuvre / publication). */
-        .brk-row { display:flex; align-items:baseline; justify-content:space-between; gap:8px; width:100%; text-align:left; border:none; background:transparent; cursor:pointer; padding:2px 6px; border-radius:4px; font-size:0.6875rem; color:#6b6560; line-height:1.4; font-family:inherit; transition:background 0.1s; }
+        .brk-row { display:flex; align-items:baseline; justify-content:space-between; gap:8px; width:100%; text-align:left; border:none; background:transparent; cursor:pointer; padding:2px 6px; border-radius:4px; font-size:0.6875rem; color:var(--cs-texte-second); line-height:1.4; font-family:inherit; transition:background 0.1s; }
         .brk-row:hover { background:rgba(var(--cs-vert-rgb),0.08); }
-        .brk-row--actif { background:rgba(var(--cs-vert-rgb),0.15); color:#2a3d30; font-weight:600; }
+        .brk-row--actif { background:rgba(var(--cs-vert-rgb),0.15); color:var(--cs-encre); font-weight:600; }
         .brk-row--actif:hover { background:rgba(var(--cs-vert-rgb),0.2); }
-        .brk-count { flex-shrink:0; font-size:0.59375rem; color:#b0a89e; }
+        .brk-count { flex-shrink:0; font-size:0.59375rem; color:var(--cs-texte-faible); }
         .brk-row--actif .brk-count { color:#6a9a7a; }
         .ong-btn { padding:8px 16px; font-size:0.71875rem; border:none; border-bottom:3px solid transparent; cursor:pointer; background:transparent; color:#8a8278; font-weight:400; transition:color 0.12s, border-color 0.12s; white-space:nowrap; margin-bottom:-2px; }
-        .ong-btn--actif { color:#2a3d30; font-weight:600; border-bottom-color:var(--cs-vert); }
+        .ong-btn--actif { color:var(--cs-encre); font-weight:600; border-bottom-color:var(--cs-vert); }
         .ong-btn:not(.ong-btn--actif):hover { color:var(--cs-vert); border-bottom-color:#c0d8c8; }
-        .ong-count { margin-left:5px; font-size:0.59375rem; color:#c0b8ae; font-weight:400; }
+        .ong-count { margin-left:5px; font-size:0.59375rem; color:var(--cs-texte-faible); font-weight:400; }
         .ong-btn--actif .ong-count { color:#6a9a7a; }
-        .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid #d6d0c4; border-radius:20px; background:#fff; color:#3a3530; cursor:pointer; transition:background 0.12s,color 0.12s; }
+        .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:20px; background:#fff; color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
         .pag-btn:hover:not(:disabled) { background:var(--cs-vert); color:#fff; border-color:var(--cs-vert); }
         .pag-btn:disabled { color:#c8c0b8; border-color:#ece8e2; cursor:default; }
         .mode-btn { padding:5px 14px; font-size:0.6875rem; border:none; cursor:pointer; transition:background 0.12s,color 0.12s; }
         .mode-btn--actif { background:var(--cs-vert); color:#fff; font-weight:500; }
-        .mode-btn--inactif { background:#fff; color:#6b6560; }
-        .mode-btn--inactif:hover { background:#f0ece6; }
+        .mode-btn--inactif { background:#fff; color:var(--cs-texte-second); }
+        .mode-btn--inactif:hover { background:var(--cs-fond-doux); }
         /* ── Polyglotte : palette de la page « Polyglotte » (vert), 3 colonnes ── */
         .poly-outer { border-radius:0 0 8px 8px; border:1px solid #cdd8cf; border-top:none; box-shadow:0 4px 14px rgba(30,46,38,0.10); overflow:hidden; }
         .poly-hd { background:#2b4536; display:grid; gap:0; overflow:hidden; border-radius:8px 8px 0 0; }
@@ -697,43 +697,43 @@ export default function RechercheClient() {
         /* ── Corps de la Polyglotte : classes REPRISES TELLES QUELLES de la page de
            lecture (app/polyglotte/page.tsx) — grille, lettrine, césure, espacement. ── */
         .poly-livre-hd { margin:0; padding:2px 12px; font-family:var(--font-source-serif), Georgia, serif; font-size:0.78125rem; line-height:1.35; color:#1f3b2b; background:#b7d3bf; border-top:1px solid #9fc2ac; border-bottom:1px solid #9fc2ac; text-align:center; }
-        .poly-row { display:grid; border-top:1px solid #dfe8e0; font-size:0.8125rem; text-decoration:none; }
-        .poly-num { padding:5px 4px; text-align:center; font-weight:700; font-size:0.71875rem; line-height:1.15; color:var(--cs-vert); border-right:1px solid #dfe8e0; white-space:nowrap; }
-        .poly-texte-cell { min-width:0; padding:5px 10px 6px; border-left:1px solid #dfe8e0; text-align:justify; text-align-last:left; hyphens:auto; -webkit-hyphens:auto; hyphenate-limit-chars:5 2 2; word-spacing:-0.06em; letter-spacing:-0.01em; line-height:1.26; font-family:var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; color:#2a302b; }
+        .poly-row { display:grid; border-top:1px solid var(--cs-vert-pale); font-size:0.8125rem; text-decoration:none; }
+        .poly-num { padding:5px 4px; text-align:center; font-weight:700; font-size:0.71875rem; line-height:1.15; color:var(--cs-vert); border-right:1px solid var(--cs-vert-pale); white-space:nowrap; }
+        .poly-texte-cell { min-width:0; padding:5px 10px 6px; border-left:1px solid var(--cs-vert-pale); text-align:justify; text-align-last:left; hyphens:auto; -webkit-hyphens:auto; hyphenate-limit-chars:5 2 2; word-spacing:-0.06em; letter-spacing:-0.01em; line-height:1.26; font-family:var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; color:#2a302b; }
         .poly-texte-cell::after { content:""; display:block; clear:both; }
         .poly-texte-cell--absent { background:#fbeceb; color:#7a1d16; }
         .poly-lettrine { float:left; display:flex; flex-direction:column; align-items:flex-end; margin:0 8px 0 0; padding:0 7px 0 0; border-right:1px solid rgba(var(--cs-vert-rgb),0.22); font-family:var(--font-source-sans), Arial, sans-serif; font-weight:400; letter-spacing:0.03em; font-variant-numeric:tabular-nums; color:#6f8f7b; text-align:right; }
         .poly-lettrine-item { position:relative; display:flex; align-items:center; justify-content:flex-end; height:1.26em; }
         .poly-lettrine-ref { display:block; white-space:nowrap; font-size:0.53125rem; line-height:1; }
         .poly-lettrine-ch { font-weight:400; color:#a9bcb0; }
-        .ctrl-sel { font-size:0.6875rem; padding:4px 8px; border:1px solid #d6d0c4; border-radius:4px; background:#fff; color:#2a3d30; outline:none; cursor:pointer; }
+        .ctrl-sel { font-size:0.6875rem; padding:4px 8px; border:1px solid var(--cs-bord); border-radius:4px; background:#fff; color:var(--cs-encre); outline:none; cursor:pointer; }
         .ctrl-sel:focus { border-color:var(--cs-vert); }
         /* Info-bulle « Explicitations » : au survol du « ? », les deux modes expliqués. */
         .expl-wrap { position:relative; display:inline-flex; }
-        .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #b6ccbd; color:var(--cs-vert); background:#f2f8f4; font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
-        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:#fff; border:1px solid #d6d0c4; border-radius:7px; box-shadow:0 10px 28px rgba(30,46,38,0.14); padding:9px 11px; font-size:0.65625rem; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
+        .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #b6ccbd; color:var(--cs-vert); background:var(--cs-vert-pale); font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
+        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:#fff; border:1px solid var(--cs-bord); border-radius:7px; box-shadow:0 10px 28px rgba(30,46,38,0.14); padding:9px 11px; font-size:0.65625rem; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
         .expl-wrap:hover .expl-tip { opacity:1; visibility:visible; transform:translateY(0); }
-        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#d6d0c4;border-radius:3px}
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--cs-bord);border-radius:3px}
       `}</style>
 
       {/* Le layout global (`app/layout.tsx`) décale DÉJÀ le contenu de HAUTEUR_NAVBAR sous
           la navbar. On ne rajoute donc PAS de paddingTop ici (sinon double décalage, gros
           blanc en haut) : on prend simplement toute la hauteur restante sous la navbar. */}
       <div style={mobile
-        ? { background:'#f7f4ef', display:'flex', flexDirection:'column' }
-        : { background:'#f7f4ef', height:'calc(100dvh - 3.5rem)', display:'flex', overflow:'hidden' }}>
+        ? { background:'var(--cs-fond)', display:'flex', flexDirection:'column' }
+        : { background:'var(--cs-fond)', height:'calc(100dvh - 3.5rem)', display:'flex', overflow:'hidden' }}>
 
         {/* ── VOLET GAUCHE : intitulé · recherche · options · onglets. Collé sous la
             navbar, pleine hauteur. Le bloc du haut est fixe ; les onglets, en dessous,
             prennent le reste et défilent si besoin. */}
         <aside style={mobile
-          ? { width:'100%', borderBottom:'1px solid #d6d0c4', background:'#fbf9f4', display:'flex', flexDirection:'column' }
-          : { width:'clamp(300px, 22vw, 440px)', flexShrink:0, borderRight:'1px solid #d6d0c4', background:'#fbf9f4', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+          ? { width:'100%', borderBottom:'1px solid var(--cs-bord)', background:'#fbf9f4', display:'flex', flexDirection:'column' }
+          : { width:'clamp(300px, 22vw, 440px)', flexShrink:0, borderRight:'1px solid var(--cs-bord)', background:'#fbf9f4', display:'flex', flexDirection:'column', overflow:'hidden' }}>
           <div style={{ flexShrink:0, padding:'9px 20px 12px', display:'flex', flexDirection:'column', alignItems:'stretch', gap:'9px' }}>
 
             {/* Titre + nombre total de résultats, sur la même ligne, en tête du volet. */}
             <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'8px' }}>
-              <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.75rem', letterSpacing:'0.12em', textTransform:'uppercase', color:'#9a958d', fontWeight:400 }}>Recherche</span>
+              <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.75rem', letterSpacing:'0.12em', textTransform:'uppercase', color:'var(--cs-texte-doux)', fontWeight:400 }}>Recherche</span>
               {done && (() => {
                 const total = versetsRes.length + segmentsRes.length + essaisRes.length
                 return <span style={{ fontSize:'0.65625rem', color:'#b8b0a6', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
@@ -758,26 +758,26 @@ export default function RechercheClient() {
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck={false}
-                style={{ width:'100%', fontSize:'0.84375rem', padding:'8px 38px 8px 14px', border:'1px solid #c8c0b4', borderRadius:'7px', background:'#fff', color:'#2a2520', outline:'none', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }} />
+                style={{ width:'100%', fontSize:'0.84375rem', padding:'8px 38px 8px 14px', border:'1px solid var(--cs-bord)', borderRadius:'7px', background:'#fff', color:'var(--cs-texte-fort)', outline:'none', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }} />
               {query ? (
                 <button onClick={() => { setQuery(''); setSugg([]); setDone(false); setVersetsRes([]); setSegmentsRes([]); setEssaisRes([]); setShowSugg(false) }}
-                  style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#c0b8ae', fontSize:'1rem', lineHeight:1, padding:0 }} title="Effacer">×</button>
+                  style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--cs-texte-faible)', fontSize:'1rem', lineHeight:1, padding:0 }} title="Effacer">×</button>
               ) : (
-                <svg style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', color:'#c8c0b4', pointerEvents:'none' }} width="15" height="15" viewBox="0 0 20 20" fill="none">
+                <svg style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', color:'var(--cs-bord)', pointerEvents:'none' }} width="15" height="15" viewBox="0 0 20 20" fill="none">
                   <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6"/>
                   <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
                 </svg>
               )}
               {showSugg && sugg.length > 0 && (
-                <ul ref={suggRef} style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, background:'#fff', border:'1px solid #c8c0b4', borderRadius:'8px', boxShadow:'0 6px 20px rgba(0,0,0,0.09)', margin:0, padding:'5px 0 0', listStyle:'none', zIndex:100, maxHeight:'300px', overflowY:'auto' }}>
+                <ul ref={suggRef} style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, background:'#fff', border:'1px solid var(--cs-bord)', borderRadius:'8px', boxShadow:'0 6px 20px rgba(0,0,0,0.09)', margin:0, padding:'5px 0 0', listStyle:'none', zIndex:100, maxHeight:'300px', overflowY:'auto' }}>
                   {sugg.map(s => (
                     <li key={s.mot}
                       onMouseDown={e => { e.preventDefault(); setQuery(s.mot); setShowSugg(false); lancer(s.mot) }}
-                      style={{ padding:'7px 18px', fontSize:'0.875rem', color:'#2a2520', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:"var(--font-source-serif), Georgia, serif" }}
+                      style={{ padding:'7px 18px', fontSize:'0.875rem', color:'var(--cs-texte-fort)', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:"var(--font-source-serif), Georgia, serif" }}
                       onMouseEnter={e => (e.currentTarget.style.background='#f4f0ea')}
                       onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
                       <span>{s.mot}</span>
-                      {s.freq > 0 && <span style={{ fontSize:'0.625rem', color:'#c0b8ae' }}>{s.freq}</span>}
+                      {s.freq > 0 && <span style={{ fontSize:'0.625rem', color:'var(--cs-texte-faible)' }}>{s.freq}</span>}
                     </li>
                   ))}
                   {/* Tout rechercher : lance la recherche par DÉBUT DE MOT sur ce qui est
@@ -785,9 +785,9 @@ export default function RechercheClient() {
                       (ils commencent tous par le préfixe). Légèrement mis en évidence. */}
                   <li
                     onMouseDown={e => { e.preventDefault(); setShowSugg(false); setMode('prefixe'); lancer(query, 'prefixe') }}
-                    style={{ marginTop:'4px', borderTop:'1px solid #ede9e2', padding:'9px 18px', fontSize:'0.78125rem', fontWeight:600, color:'#2f6046', background:'#f2f8f4', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', letterSpacing:'0.01em' }}
+                    style={{ marginTop:'4px', borderTop:'1px solid var(--cs-fond-doux)', padding:'9px 18px', fontSize:'0.78125rem', fontWeight:600, color:'#2f6046', background:'var(--cs-vert-pale)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', letterSpacing:'0.01em' }}
                     onMouseEnter={e => (e.currentTarget.style.background='#e7f2ea')}
-                    onMouseLeave={e => (e.currentTarget.style.background='#f2f8f4')}>
+                    onMouseLeave={e => (e.currentTarget.style.background='var(--cs-vert-pale)')}>
                     <span>Tout rechercher</span>
                     <span style={{ fontSize:'0.8125rem' }}>↵</span>
                   </li>
@@ -800,12 +800,12 @@ export default function RechercheClient() {
               {/* Mode + « Explicitations » en INFO-BULLE au survol du « ? » : les deux
                   explications ensemble, ce qui évite l'encart qui alourdissait le volet. */}
               <div>
-                <p style={{ fontSize:'0.5625rem', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'#9a958d', margin:'0 0 5px', display:'flex', alignItems:'center', gap:'3px' }}>
+                <p style={{ fontSize:'0.5625rem', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--cs-texte-doux)', margin:'0 0 5px', display:'flex', alignItems:'center', gap:'3px' }}>
                   Mode
                   <span className="expl-wrap">
                     <span className="expl-badge">?</span>
                     <span className="expl-tip">
-                      <span style={{ display:'block', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', fontSize:'0.53125rem', color:'#9a958d', marginBottom:'7px' }}>Les deux modes</span>
+                      <span style={{ display:'block', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', fontSize:'0.53125rem', color:'var(--cs-texte-doux)', marginBottom:'7px' }}>Les deux modes</span>
 
                       <span style={{ display:'block', marginBottom:'8px' }}>
                         <span style={{ display:'block', fontWeight:700, color:'#2f6046', marginBottom:'1px' }}>Début de mot</span>
@@ -821,9 +821,9 @@ export default function RechercheClient() {
                     </span>
                   </span>
                 </p>
-                <div style={{ display:'flex', border:'1px solid #d6d0c4', borderRadius:'5px', overflow:'hidden' }}>
+                <div style={{ display:'flex', border:'1px solid var(--cs-bord)', borderRadius:'5px', overflow:'hidden' }}>
                   <button className={`mode-btn ${mode==='prefixe'?'mode-btn--actif':'mode-btn--inactif'}`} style={{ flex:1 }} onClick={()=>setMode('prefixe')}>Début de mot</button>
-                  <button className={`mode-btn ${mode==='exact'?'mode-btn--actif':'mode-btn--inactif'}`} style={{ flex:1, borderLeft:'1px solid #d6d0c4' }} onClick={()=>setMode('exact')}>Mot exact</button>
+                  <button className={`mode-btn ${mode==='exact'?'mode-btn--actif':'mode-btn--inactif'}`} style={{ flex:1, borderLeft:'1px solid var(--cs-bord)' }} onClick={()=>setMode('exact')}>Mot exact</button>
                 </div>
               </div>
               {/* « Chercher dans » (périmètre) et « Afficher en » (traduction montrée),
@@ -831,7 +831,7 @@ export default function RechercheClient() {
                   jamais : il commande l'affichage quel que soit le périmètre. */}
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
                 <div>
-                  <p style={{ fontSize:'0.5625rem', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'#9a958d', margin:'0 0 4px' }}>Chercher dans</p>
+                  <p style={{ fontSize:'0.5625rem', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--cs-texte-doux)', margin:'0 0 4px' }}>Chercher dans</p>
                   <select className="ctrl-sel" style={{ width:'100%' }} value={tradScope}
                     onChange={e => { const v=e.target.value; setTradScope(v); if(v!=='ALL') setTradAffichage(v) }}>
                     <option value="ALL">Toutes les bibles</option>
@@ -839,7 +839,7 @@ export default function RechercheClient() {
                   </select>
                 </div>
                 <div>
-                  <p style={{ fontSize:'0.5625rem', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'#9a958d', margin:'0 0 4px' }}>Afficher en</p>
+                  <p style={{ fontSize:'0.5625rem', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--cs-texte-doux)', margin:'0 0 4px' }}>Afficher en</p>
                   <select className="ctrl-sel" style={{ width:'100%' }} value={tradAffichage} onChange={e=>setTradAffichage(e.target.value)}>
                     {traductions.map(t=><option key={t.code} value={t.code}>{t.label}</option>)}
                   </select>
@@ -878,7 +878,7 @@ export default function RechercheClient() {
                       </svg>
                       <span style={{ flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                         Reprendre ma recherche
-                        <span style={{ color:'#9a958d', fontStyle:'italic' }}> {rechercheSauvee.query}</span>
+                        <span style={{ color:'var(--cs-texte-doux)', fontStyle:'italic' }}> {rechercheSauvee.query}</span>
                       </span>
                       {rechercheSauvee.ts ? <span style={{ flexShrink:0, color:'#b8b0a6', fontStyle:'italic', fontSize:'0.59375rem' }}>{formatDateCourt(rechercheSauvee.ts)}</span> : null}
                     </button>
@@ -892,7 +892,7 @@ export default function RechercheClient() {
               défilent si l'écran est court. Les libellés longs passent à la ligne au lieu
               d'être coupés. */}
           {done && (
-            <nav style={{ flex:1, minHeight:0, maxHeight: mobile ? '45vh' : undefined, overflowY:'auto', borderTop:'1px solid #e4dfd8', padding:'6px 0 10px' }}>
+            <nav style={{ flex:1, minHeight:0, maxHeight: mobile ? '45vh' : undefined, overflowY:'auto', borderTop:'1px solid var(--cs-bord-clair)', padding:'6px 0 10px' }}>
               {([
                 { k:'bible', label:'Bible', n:versetsRes.length },
                 { k:'polyglotte', label:'Polyglotte', n:versetsRes.length },
@@ -903,9 +903,9 @@ export default function RechercheClient() {
                 return (
                   <Fragment key={o.k}>
                     <button onClick={()=>setOnglet(o.k)}
-                      style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', padding:'9px 20px', border:'none', borderLeft:`3px solid ${actif?'var(--cs-vert)':'transparent'}`, background:actif?'rgba(var(--cs-vert-rgb),0.07)':'transparent', color:actif?'#2a3d30':'#6b6560', fontWeight:actif?600:400, fontSize:'0.78125rem', cursor:'pointer', textAlign:'left', fontFamily:"var(--font-source-serif), Georgia, serif", transition:'background 0.12s, color 0.12s' }}>
+                      style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', padding:'9px 20px', border:'none', borderLeft:`3px solid ${actif?'var(--cs-vert)':'transparent'}`, background:actif?'rgba(var(--cs-vert-rgb),0.07)':'transparent', color:actif?'var(--cs-encre)':'var(--cs-texte-second)', fontWeight:actif?600:400, fontSize:'0.78125rem', cursor:'pointer', textAlign:'left', fontFamily:"var(--font-source-serif), Georgia, serif", transition:'background 0.12s, color 0.12s' }}>
                       <span style={{ whiteSpace:'normal', lineHeight:1.25 }}>{o.label}</span>
-                      <span style={{ flexShrink:0, fontSize:'0.625rem', color:actif?'#6a9a7a':'#c0b8ae', fontWeight:400 }}>{o.n}</span>
+                      <span style={{ flexShrink:0, fontSize:'0.625rem', color:actif?'#6a9a7a':'var(--cs-texte-faible)', fontWeight:400 }}>{o.n}</span>
                     </button>
                     {/* Répartition détaillée sous l'onglet actif : livres (Bible/Polyglotte),
                         œuvres (Pères), publications (communauté), avec le nombre d'occurrences.
@@ -933,7 +933,7 @@ export default function RechercheClient() {
                               title={sel ? 'Retirer le filtre' : `N'afficher que ${r.auteur}${r.titre ? ' — ' + r.titre : ''}`}>
                               <span style={{ minWidth:0 }}>
                                 <span style={{ color: sel ? 'inherit' : '#4a453f' }}>{r.auteur}</span>
-                                {r.titre && <span style={{ color: sel ? 'inherit' : '#9a958d', fontStyle:'italic' }}> — {r.titre}</span>}
+                                {r.titre && <span style={{ color: sel ? 'inherit' : 'var(--cs-texte-doux)', fontStyle:'italic' }}> — {r.titre}</span>}
                               </span>
                               <span className="brk-count">{r.n}</span>
                             </button>
@@ -1010,12 +1010,12 @@ export default function RechercheClient() {
                     le fond blanc du dessin dans le papier de la page. */}
                 <img src="/ornements/cul-de-lampe-cristaux.png" alt="" aria-hidden="true"
                   style={{ width:'min(300px, 56%)', height:'auto', opacity:0.5, mixBlendMode:'multiply', marginBottom:'22px' }} />
-                <p style={{ fontSize:'0.8125rem', color:'#c0b8ae', fontStyle:'italic', letterSpacing:'0.02em' }}>Lancez une recherche</p>
+                <p style={{ fontSize:'0.8125rem', color:'var(--cs-texte-faible)', fontStyle:'italic', letterSpacing:'0.02em' }}>Lancez une recherche</p>
               </div>
             )}
             {loading && (
               <div style={{ textAlign:'center', marginTop:'80px' }}>
-                <p style={{ fontSize:'0.8125rem', color:'#b0a89e', fontStyle:'italic' }}>Recherche en cours…</p>
+                <p style={{ fontSize:'0.8125rem', color:'var(--cs-texte-faible)', fontStyle:'italic' }}>Recherche en cours…</p>
               </div>
             )}
 
@@ -1049,17 +1049,17 @@ export default function RechercheClient() {
                             {/* Tous les noms de bibles : même couleur, même espacement (le gap
                                 du conteneur), chacun dans son propre span. La traduction affichée
                                 est barrée quand le mot n'y figure pas — seule distinction retenue. */}
-                            <span style={{ fontSize:'0.59375rem', fontWeight:600, color:'#9a958d', textDecoration: displayLeMot ? 'none' : 'line-through' }}>{labelDisplay}</span>
+                            <span style={{ fontSize:'0.59375rem', fontWeight:600, color:'var(--cs-texte-doux)', textDecoration: displayLeMot ? 'none' : 'line-through' }}>{labelDisplay}</span>
                             {contientDans.filter(t => t.code !== tradBible).map(t => (
-                              <span key={t.code} style={{ fontSize:'0.59375rem', color:'#9a958d' }}>{t.label}</span>
+                              <span key={t.code} style={{ fontSize:'0.59375rem', color:'var(--cs-texte-doux)' }}>{t.label}</span>
                             ))}
                           </div>
                           {/* Toujours le texte de la traduction CHOISIE, SANS SÉRIF. Surligné si le
                               mot y est ; sinon montré tel quel (la ligne du haut dit où il se trouve). */}
-                          <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.4, color:'#2a2520', margin:0 }}>
+                          <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.4, color:'var(--cs-texte-fort)', margin:0 }}>
                             {texte
                               ? rendreEtSurligner(texte, lastQuery, mode)
-                              : <span style={{ color:'#b0a89e', fontStyle:'italic' }}>Ce verset n’existe pas dans {labelDisplay}.</span>}
+                              : <span style={{ color:'var(--cs-texte-faible)', fontStyle:'italic' }}>Ce verset n’existe pas dans {labelDisplay}.</span>}
                           </p>
                         </a>
                       )
@@ -1081,10 +1081,10 @@ export default function RechercheClient() {
                           s'il existe. Résultats triés par nom d'auteur (alphabétique). */}
                       <div style={{ display:'flex', alignItems:'baseline', gap:'8px', flexWrap:'wrap', marginBottom:'2px' }}>
                         <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'var(--cs-vert)' }}>{s.auteur_nom}</span>
-                        {s.oeuvre_titre && <span style={{ fontSize:'0.59375rem', color:'#9a958d', fontStyle:'italic' }}>{s.oeuvre_titre}</span>}
-                        {s.ref_niv1 && <span style={{ fontSize:'0.59375rem', color:'#c0b8ae' }}>{s.ref_niv1}</span>}
+                        {s.oeuvre_titre && <span style={{ fontSize:'0.59375rem', color:'var(--cs-texte-doux)', fontStyle:'italic' }}>{s.oeuvre_titre}</span>}
+                        {s.ref_niv1 && <span style={{ fontSize:'0.59375rem', color:'var(--cs-texte-faible)' }}>{s.ref_niv1}</span>}
                       </div>
-                      <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.4, color:'#2a2520', margin:0 }}>
+                      <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.4, color:'var(--cs-texte-fort)', margin:0 }}>
                         {rendreEtSurligner(nettoyerFin(s.segment_texte), lastQuery, mode)}
                       </p>
                     </a>
@@ -1104,10 +1104,10 @@ export default function RechercheClient() {
                       <a key={e.id} href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer" className="res-card">
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:'3px' }}>
                           <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'var(--cs-vert)' }}>{e.titre}</span>
-                          {e.categories?.[0] && <span style={{ fontSize:'0.59375rem', color:'#c0b8ae', fontStyle:'italic' }}>{e.categories[0]}</span>}
+                          {e.categories?.[0] && <span style={{ fontSize:'0.59375rem', color:'var(--cs-texte-faible)', fontStyle:'italic' }}>{e.categories[0]}</span>}
                         </div>
                         {e.sous_titre && <p style={{ fontSize:'0.6875rem', color:'#8a8278', fontStyle:'italic', margin:'0 0 3px' }}>{e.sous_titre}</p>}
-                        <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.55, color:'#2a2520', margin:0 }}>
+                        <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.55, color:'var(--cs-texte-fort)', margin:0 }}>
                           {highlighter(texteAffiche, lastQuery, mode)}
                         </p>
                       </a>
@@ -1194,12 +1194,12 @@ export default function RechercheClient() {
 
           {/* ── Pagination ── */}
           {done && totalActive>PAGE && (
-            <div style={{ flexShrink:0, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 24px 14px', borderTop:'1px solid #e4dfd8' }}>
+            <div style={{ flexShrink:0, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 24px 14px', borderTop:'1px solid var(--cs-bord-clair)' }}>
               {/* Maintien enfoncé = défilement rapide (souris ET tactile). */}
               <button className="pag-btn" disabled={pageActive===0} style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}
                 onMouseDown={()=>demarrerDefilement(-1)} onMouseUp={arreterDefilement} onMouseLeave={arreterDefilement}
                 onTouchStart={e=>{e.preventDefault();demarrerDefilement(-1)}} onTouchEnd={arreterDefilement}><IconeChevron dir="left" size={12} />Précédent</button>
-              <span style={{ fontSize:'0.6875rem', color:'#b0a89e' }}>{debut}–{fin} <span style={{ color:'#d6d0c4' }}>sur</span> {totalActive}</span>
+              <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-faible)' }}>{debut}–{fin} <span style={{ color:'var(--cs-bord)' }}>sur</span> {totalActive}</span>
               <button className="pag-btn" disabled={pageActive>=pagesTotal-1} style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}
                 onMouseDown={()=>demarrerDefilement(1)} onMouseUp={arreterDefilement} onMouseLeave={arreterDefilement}
                 onTouchStart={e=>{e.preventDefault();demarrerDefilement(1)}} onTouchEnd={arreterDefilement}>Suivant<IconeChevron dir="right" size={12} /></button>
@@ -1214,15 +1214,15 @@ export default function RechercheClient() {
         <div onClick={() => setConfirmEcrasement(false)}
           style={{ position:'fixed', inset:0, background:'rgba(30,28,24,0.38)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:'20px' }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ background:'#fbf9f4', border:'1px solid #d6d0c4', borderRadius:'10px', boxShadow:'0 14px 40px rgba(30,46,38,0.25)', padding:'20px 22px', maxWidth:'21.25rem', width:'100%' }}>
-            <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.875rem', fontWeight:600, color:'#2a3d30', margin:'0 0 8px' }}>Écraser la recherche précédente ?</p>
-            <p style={{ fontSize:'0.75rem', color:'#6b6560', lineHeight:1.5, margin:'0 0 16px' }}>
+            style={{ background:'#fbf9f4', border:'1px solid var(--cs-bord)', borderRadius:'10px', boxShadow:'0 14px 40px rgba(30,46,38,0.25)', padding:'20px 22px', maxWidth:'21.25rem', width:'100%' }}>
+            <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.875rem', fontWeight:600, color:'var(--cs-encre)', margin:'0 0 8px' }}>Écraser la recherche précédente ?</p>
+            <p style={{ fontSize:'0.75rem', color:'var(--cs-texte-second)', lineHeight:1.5, margin:'0 0 16px' }}>
               Une recherche est déjà enregistrée (« {rechercheSauvee.query} », {formatDateCourt(rechercheSauvee.ts)}).
               L'enregistrer maintenant remplacera cette sauvegarde par « {lastQuery} ».
             </p>
             <div style={{ display:'flex', gap:'8px', justifyContent:'flex-end' }}>
               <button onClick={() => setConfirmEcrasement(false)}
-                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'1px solid #d6d0c4', borderRadius:'6px', background:'#fff', color:'#6b6560', cursor:'pointer' }}>Annuler</button>
+                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'1px solid var(--cs-bord)', borderRadius:'6px', background:'#fff', color:'var(--cs-texte-second)', cursor:'pointer' }}>Annuler</button>
               <button onClick={() => { ecrireRecherche(); setConfirmEcrasement(false) }}
                 style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'none', borderRadius:'6px', background:'var(--cs-vert)', color:'#fff', fontWeight:600, cursor:'pointer' }}>Écraser</button>
             </div>
@@ -1234,5 +1234,5 @@ export default function RechercheClient() {
 }
 
 function Vide({ texte }: { texte: string }) {
-  return <p style={{ fontSize:'0.75rem', color:'#b0a89e', fontStyle:'italic', marginTop:'24px', textAlign:'center' }}>{texte}</p>
+  return <p style={{ fontSize:'0.75rem', color:'var(--cs-texte-faible)', fontStyle:'italic', marginTop:'24px', textAlign:'center' }}>{texte}</p>
 }

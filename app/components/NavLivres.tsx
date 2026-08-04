@@ -70,7 +70,7 @@ function formaterProse(html: string): string {
 const cleTech: React.CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#b8afa2', lineHeight: 1.5, paddingTop: '1px' }
 const LigneTech = ({ c, children }: { c: string; children: React.ReactNode }) => children ? (
   <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid #f3efe8', alignItems: 'baseline' }}>
-    <span style={cleTech}>{c}</span><span style={{ flex: 1, fontSize: '0.72rem', color: '#5a5450', lineHeight: 1.45 }}>{children}</span>
+    <span style={cleTech}>{c}</span><span style={{ flex: 1, fontSize: '0.72rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{children}</span>
   </div>
 ) : null
 const Consulter = ({ url, libelle }: { url: string | null; libelle: string }) => (url && estUrl(url))
@@ -121,13 +121,13 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '10px' }}>
           <div style={{ minWidth: 0 }}>
             <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: '#6f9268', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette traduction</p>
-            <h1 style={{ fontFamily: SERIF, fontSize: '1.15rem', color: '#1e2a1c', margin: 0, fontWeight: 500, lineHeight: 1.25 }}>{i.nom || nomFallback}</h1>
-            {intitule && <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontStyle: 'italic', color: '#7c7369', margin: '2px 0 0' }}>{rendreSiecles(intitule)}{i.dates ? ` (${i.dates})` : ''}</p>}
+            <h1 style={{ fontFamily: SERIF, fontSize: '1.15rem', color: 'var(--cs-encre-fonce)', margin: 0, fontWeight: 500, lineHeight: 1.25 }}>{i.nom || nomFallback}</h1>
+            {intitule && <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', margin: '2px 0 0' }}>{rendreSiecles(intitule)}{i.dates ? ` (${i.dates})` : ''}</p>}
           </div>
-          <button onClick={onFermer} aria-label="Fermer" style={{ fontSize: '1rem', color: '#b0a89e', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0 }}>✕</button>
+          <button onClick={onFermer} aria-label="Fermer" style={{ fontSize: '1rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0 }}>✕</button>
         </div>
         {info === null ? (
-          <p style={{ fontSize: '0.8rem', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>Chargement…</p>
+          <p style={{ fontSize: '0.8rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Chargement…</p>
         ) : (
           <>
             {i.bio_courte && <p style={{ fontFamily: SERIF, fontSize: '0.72rem', fontStyle: 'italic', color: '#6f665c', lineHeight: 1.55, margin: '0 0 14px' }}>{rendreSiecles(i.bio_courte)}</p>}
@@ -170,10 +170,10 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
                   (i.statut_corpus_public || i.lacunes_publiques) ? (
                     <>
                       <button onClick={() => setVerifNote(o => !o)} aria-expanded={verifNote}
-                        style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: '#5a5450', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '2px', cursor: 'pointer' }}>{verif}</button>
+                        style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--cs-texte)', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '2px', cursor: 'pointer' }}>{verif}</button>
                       {verifNote && (
                         <div style={{ margin: '5px 0 1px' }}>
-                          {i.statut_corpus_public && <p style={{ margin: '0 0 3px', fontFamily: SERIF, fontSize: '0.7rem', color: '#5a5450', lineHeight: 1.45 }}>{i.statut_corpus_public}</p>}
+                          {i.statut_corpus_public && <p style={{ margin: '0 0 3px', fontFamily: SERIF, fontSize: '0.7rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{i.statut_corpus_public}</p>}
                           {i.lacunes_publiques && <p style={{ margin: 0, fontFamily: SERIF, fontSize: '0.66rem', fontStyle: 'italic', color: '#8a8272', lineHeight: 1.45 }}>{i.lacunes_publiques}</p>}
                         </div>
                       )}
@@ -201,11 +201,11 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
 function EncartTraduction({ trad }: { trad: Traduction }) {
   const [modaleOuverte, setModaleOuverte] = useState(false)
   return (
-    <div style={{ flexShrink: 0, minHeight: '6.75rem', boxSizing: 'border-box', overflow: 'hidden', padding: '10px 10px 9px', borderBottom: '1px solid #d6d0c4', background: '#f3efe7', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+    <div style={{ flexShrink: 0, minHeight: '6.75rem', boxSizing: 'border-box', overflow: 'hidden', padding: '10px 10px 9px', borderBottom: '1px solid var(--cs-bord)', background: '#f3efe7', display: 'flex', flexDirection: 'column', gap: '3px' }}>
       <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a' }}>Traduction</span>
       {/* Auteur avec ses dates de vie complètes, puis la référence complète de l'édition
           présentée (ville, éditeur, date). La langue n'est pas indiquée ici. */}
-      <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', fontWeight: 500, color: '#2a3d30', lineHeight: 1.22 }}>
+      <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.22 }}>
         {trad.auteur || trad.label || '—'}
         {trad.auteurDates && <span style={{ fontWeight: 400, color: '#7c8a72' }}> ({trad.auteurDates})</span>}
       </span>
@@ -214,10 +214,10 @@ function EncartTraduction({ trad }: { trad: Traduction }) {
           on les borne à deux lignes ; la fiche « En savoir plus » donne le détail. */}
       {trad.editionRef && (
         <div>
-          <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontSize: '0.65rem', color: '#6b6560', lineHeight: 1.3 }}>{trad.editionRef}</span>
+          <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontSize: '0.65rem', color: 'var(--cs-texte-second)', lineHeight: 1.3 }}>{trad.editionRef}</span>
         </div>
       )}
-      <button onClick={() => setModaleOuverte(true)} style={{ marginTop: 'auto', paddingTop: '4px', fontSize: '0.6rem', color: '#b0a89e', textDecoration: 'underline', textUnderlineOffset: '2px', width: 'fit-content', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>En savoir plus sur cette traduction</button>
+      <button onClick={() => setModaleOuverte(true)} style={{ marginTop: 'auto', paddingTop: '4px', fontSize: '0.6rem', color: 'var(--cs-texte-faible)', textDecoration: 'underline', textUnderlineOffset: '2px', width: 'fit-content', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>En savoir plus sur cette traduction</button>
       {modaleOuverte && <ModaleTraduction code={trad.code} nomFallback={trad.label || ''} onFermer={() => setModaleOuverte(false)} />}
     </div>
   )
@@ -481,7 +481,7 @@ export default function NavLivres({
           padding: '2px 6px', borderRadius: '4px', fontSize: '0.85456rem',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           background: suggere ? 'rgba(var(--cs-vert-rgb),0.12)' : actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'transparent',
-          color: vide ? '#b3bdb0' : actif || suggere ? '#2a3d30' : '#4f5f52',
+          color: vide ? '#b3bdb0' : actif || suggere ? 'var(--cs-encre)' : '#4f5f52',
           fontWeight: actif || suggere ? 600 : 400,
           border: suggere ? '1px solid rgba(var(--cs-vert-rgb),0.30)' : '1px solid transparent',
           cursor: 'pointer', lineHeight: 1.4, boxSizing: 'border-box',
@@ -530,7 +530,7 @@ export default function NavLivres({
                   background: (actif && chapitreActifLocal === ch) ? 'var(--cs-vert)'
                     : estChapSuggere ? 'rgba(var(--cs-vert-rgb),0.15)' : '#f0f4ee',
                   color: (actif && chapitreActifLocal === ch) ? '#fff'
-                    : estChapSuggere ? '#2a3d30' : '#7c8676',
+                    : estChapSuggere ? 'var(--cs-encre)' : '#7c8676',
                   fontWeight: estChapSuggere ? 700 : 400,
                   lineHeight: 1, textAlign: 'center',
                 }}>
@@ -555,21 +555,21 @@ export default function NavLivres({
       // au tap, elle ouvre le tiroir des livres (branche dépliée ci-dessous).
       return (
         <button onClick={() => setOuvert(true)} title="Ouvrir le sommaire des livres"
-          style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#faf8f4', border: 'none', borderBottom: '1px solid #d6d0c4', boxShadow: '0 1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(90deg)', color: '#9a958d' }}>
+          style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderBottom: '1px solid var(--cs-bord)', boxShadow: '0 1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(90deg)', color: 'var(--cs-texte-doux)' }}>
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: '#6b6560' }}>{titre ?? 'Livres de la Bible'}</span>
+          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>{titre ?? 'Livres de la Bible'}</span>
         </button>
       )
     }
     return (
       <button onClick={() => setOuvert(true)} title="Ouvrir le sommaire des livres"
-        style={{ width: '22px', flexShrink: 0, background: '#faf8f4', border: 'none', borderRight: '1px solid #d6d0c4', cursor: 'pointer', color: '#9a958d', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '100%' }}>
+        style={{ width: '22px', flexShrink: 0, background: 'var(--cs-fond-clair)', border: 'none', borderRight: '1px solid var(--cs-bord)', cursor: 'pointer', color: 'var(--cs-texte-doux)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '100%' }}>
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '0.6215rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: '#b0a89e' }}>{titre ?? 'Livres de la Bible'}</span>
+        <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '0.6215rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-faible)' }}>{titre ?? 'Livres de la Bible'}</span>
       </button>
     )
   }
@@ -591,17 +591,17 @@ export default function NavLivres({
         se superpose au texte avec un fond assombri qui le referme au tap. */}
     {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
     <div ref={refPanel} style={mobile ? (presentation === 'inline' ? {
-      width: '100%', background: '#faf8f4', display: 'flex', flexDirection: 'column',
+      width: '100%', background: 'var(--cs-fond-clair)', display: 'flex', flexDirection: 'column',
       paddingTop: '2.875rem', minHeight: `calc(100dvh - ${HAUTEUR_NAVBAR})`,
       paddingBottom: `calc(0.75rem + 2.5rem)`,
     } : {
       position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 2401,
-      background: '#faf8f4', borderBottom: '1px solid #d6d0c4',
+      background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)',
       display: 'flex', flexDirection: 'column', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`,
       boxShadow: '0 10px 28px rgba(45,35,25,0.22)',
     }) : {
-      width: panelWidth == null ? 'clamp(200px, 14vw, 320px)' : panelWidth + 'px', flexShrink: 0, background: '#faf8f4',
-      borderRight: '1px solid #d6d0c4', display: 'flex', flexDirection: 'column', height: '100%',
+      width: panelWidth == null ? 'clamp(200px, 14vw, 320px)' : panelWidth + 'px', flexShrink: 0, background: 'var(--cs-fond-clair)',
+      borderRight: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', height: '100%',
       position: 'relative',
     }}>
       {!mobile && handleDrag && (
@@ -622,21 +622,21 @@ export default function NavLivres({
 
       {/* Barre de recherche. Elle ne défile JAMAIS : elle est hors du conteneur défilant,
           et `flexShrink: 0` l'empêche d'être comprimée quand la liste des livres est longue. */}
-      <div style={{ flexShrink: 0, padding: '8px 8px 6px', borderBottom: '1px solid #d6d0c4', display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div style={{ flexShrink: 0, padding: '8px 8px 6px', borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center', gap: '6px' }}>
         <input
           type="text"
           placeholder="Rechercher un livre biblique"
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && refParsee) appliquerRefParsee() }}
-          style={{ flex: 1, minWidth: 0, fontSize: '0.81572rem', padding: '4px 7px', border: '1px solid #d6d0c4', borderRadius: '4px', background: '#f0ede7', color: '#3a3530', outline: 'none', boxSizing: 'border-box' }}
+          style={{ flex: 1, minWidth: 0, fontSize: '0.81572rem', padding: '4px 7px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: '#f0ede7', color: 'var(--cs-texte)', outline: 'none', boxSizing: 'border-box' }}
         />
         {/* Flèche « réduire » inutile en mode onglets (mobile) : les onglets en haut
             font office de navigation. Conservée pour le repli desktop, sauf quand le
             parent gère lui-même le repli du volet entier (Polyglotte : `sansReduire`). */}
         {presentation !== 'inline' && !sansReduire && (
           <button onClick={() => setOuvert(false)} title="Réduire le volet"
-            style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#b0a89e', display: 'flex', alignItems: 'center' }}>
+            style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center' }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -651,7 +651,7 @@ export default function NavLivres({
             width: '100%', textAlign: 'left',
             fontSize: '0.85456rem', padding: '8px 9px', borderRadius: '5px',
             background: 'rgba(var(--cs-vert-rgb),0.10)', border: '1px solid rgba(var(--cs-vert-rgb),0.25)',
-            color: '#2a3d30', cursor: 'pointer', lineHeight: 1.5, boxSizing: 'border-box',
+            color: 'var(--cs-encre)', cursor: 'pointer', lineHeight: 1.5, boxSizing: 'border-box',
           }}>
             ↳ {livres.find(l => l.code === refParsee.code)?.nom ?? refParsee.code}
             {' · ch.'} {refParsee.chapitre} · v. {refParsee.verset}
@@ -674,7 +674,7 @@ export default function NavLivres({
               padding: '5px 6px 2px', textAlign: 'left',
             }}>
               <span style={{ fontSize: '0.73803rem', fontWeight: 800, letterSpacing: '0.10em', color: '#3a4a3e', textTransform: 'uppercase' }}>Ancien Testament</span>
-              <span style={{ fontSize: '0.54381rem', color: '#c0bab0' }}>{atOuvert ? '▲' : '▼'}</span>
+              <span style={{ fontSize: '0.54381rem', color: 'var(--cs-texte-faible)' }}>{atOuvert ? '▲' : '▼'}</span>
             </button>
             {atOuvert && AT.map(renderLivre)}
           </>
@@ -688,7 +688,7 @@ export default function NavLivres({
               padding: '7px 6px 2px', textAlign: 'left',
             }}>
               <span style={{ fontSize: '0.73803rem', fontWeight: 800, letterSpacing: '0.10em', color: '#3a4a3e', textTransform: 'uppercase' }}>Nouveau Testament</span>
-              <span style={{ fontSize: '0.54381rem', color: '#c0bab0' }}>{ntOuvert ? '▲' : '▼'}</span>
+              <span style={{ fontSize: '0.54381rem', color: 'var(--cs-texte-faible)' }}>{ntOuvert ? '▲' : '▼'}</span>
             </button>
             {ntOuvert && NT.map(renderLivre)}
           </>
@@ -702,14 +702,14 @@ export default function NavLivres({
               padding: '7px 6px 2px', textAlign: 'left',
             }}>
               <span style={{ fontSize: '0.73803rem', fontWeight: 800, letterSpacing: '0.10em', color: '#7a6f5e', textTransform: 'uppercase' }}>Écrits non canoniques</span>
-              <span style={{ fontSize: '0.54381rem', color: '#c0bab0' }}>{autresOuvert ? '▲' : '▼'}</span>
+              <span style={{ fontSize: '0.54381rem', color: 'var(--cs-texte-faible)' }}>{autresOuvert ? '▲' : '▼'}</span>
             </button>
             {autresOuvert && AUTRES.map(renderLivre)}
           </>
         )}
 
         {AT.length === 0 && NT.length === 0 && AUTRES.length === 0 && (
-          <p style={{ fontSize: '0.85456rem', color: '#9a958d', textAlign: 'center', padding: '16px 0' }}>Aucun résultat</p>
+          <p style={{ fontSize: '0.85456rem', color: 'var(--cs-texte-doux)', textAlign: 'center', padding: '16px 0' }}>Aucun résultat</p>
         )}
       </div>
       )}

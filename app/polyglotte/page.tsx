@@ -215,7 +215,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
 }) {
   const [valeur, setValeur] = useState(valeurInitiale);
   const ta = useRef<HTMLTextAreaElement>(null);
-  const outil: React.CSSProperties = { fontSize: '0.6875rem', padding: "4px 9px", borderRadius: 4, border: "1px solid #d6d0c4", background: "#fff", color: "#2a2520", cursor: "pointer", fontFamily: "inherit", lineHeight: 1 };
+  const outil: React.CSSProperties = { fontSize: '0.6875rem', padding: "4px 9px", borderRadius: 4, border: "1px solid var(--cs-bord)", background: "#fff", color: "var(--cs-texte-fort)", cursor: "pointer", fontFamily: "inherit", lineHeight: 1 };
   const entourer = (avant: string, apres: string = avant) => {
     const el = ta.current; if (!el) return;
     const d = el.selectionStart, f = el.selectionEnd, sel = valeur.slice(d, f) || "texte";
@@ -233,14 +233,14 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
       <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 9, padding: "18px 20px", width: 520, maxWidth: "100%", boxShadow: "0 12px 36px rgba(40,30,15,0.24)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
           <p style={{ margin: 0, fontSize: '0.78125rem', fontWeight: 600, color: VERT }}>Modifier — {reference}</p>
-          <button onClick={onFermer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: '0.9375rem', color: "#b0a89e", lineHeight: 1, padding: 0 }}>✕</button>
+          <button onClick={onFermer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: '0.9375rem', color: "var(--cs-texte-faible)", lineHeight: 1, padding: 0 }}>✕</button>
         </div>
         <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap", alignItems: "center" }}>
           <button onClick={() => entourer("**", "**")} title="Gras" style={{ ...outil, fontWeight: 700 }}>G</button>
           <button onClick={() => entourer("<i>", "</i>")} title="Italique — mots ajoutés par le traducteur" style={{ ...outil, fontStyle: "italic" }}>I</button>
           <button onClick={() => entourer("++", "++")} title="Petites capitales" style={{ ...outil, fontVariant: "small-caps", letterSpacing: "0.03em" }}>Pc</button>
           <button onClick={() => entourer("^^", "^^")} title="Exposant" style={outil}>x<sup style={{ fontSize: "0.7em" }}>2</sup></button>
-          <span style={{ width: 1, alignSelf: "stretch", background: "#e4dfd8" }} />
+          <span style={{ width: 1, alignSelf: "stretch", background: "var(--cs-bord-clair)" }} />
           <button onClick={() => inserer(" ")} title="Espace insécable" style={outil}>Esp. inséc.</button>
           <button onClick={() => inserer(" ")} title="Espace fine insécable" style={outil}>Esp. fine</button>
           <button onClick={() => entourer("« ", " »")} title="Guillemets français" style={outil}>« »</button>
@@ -249,12 +249,12 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
         <textarea ref={ta} autoFocus value={valeur} onChange={e => setValeur(e.target.value)}
           onKeyDown={e => { if (e.key === "Escape") onFermer(); if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) onEnregistrer(valeur); }}
           rows={5}
-          style={{ width: "100%", boxSizing: "border-box", fontSize: '0.84375rem', lineHeight: 1.5, fontFamily: "var(--font-source-serif), Georgia, serif", padding: "9px 11px", border: "1px solid #d6d0c4", borderRadius: 5, background: "#faf8f4", color: "#2a2520", outline: "none", resize: "vertical" }} />
+          style={{ width: "100%", boxSizing: "border-box", fontSize: '0.84375rem', lineHeight: 1.5, fontFamily: "var(--font-source-serif), Georgia, serif", padding: "9px 11px", border: "1px solid var(--cs-bord)", borderRadius: 5, background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", resize: "vertical" }} />
         {/* Aperçu en direct : l'apparence enrichie du verset, telle qu'elle s'affichera. */}
         <div style={{ marginTop: 8 }}>
-          <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: "#b0a89e" }}>Aperçu</span>
-          <div style={{ marginTop: 3, minHeight: "2.4em", fontSize: '0.84375rem', lineHeight: 1.55, fontFamily: "var(--font-source-serif), Georgia, serif", color: "#2a2520", padding: "8px 11px", border: "1px solid #ece7de", borderRadius: 5, background: "#fff" }}>
-            {valeur.trim() ? texteEnrichi(valeur) : <span style={{ color: "#c8c0b4", fontStyle: "italic" }}>—</span>}
+          <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: "var(--cs-texte-faible)" }}>Aperçu</span>
+          <div style={{ marginTop: 3, minHeight: "2.4em", fontSize: '0.84375rem', lineHeight: 1.55, fontFamily: "var(--font-source-serif), Georgia, serif", color: "var(--cs-texte-fort)", padding: "8px 11px", border: "1px solid var(--cs-fond-doux)", borderRadius: 5, background: "#fff" }}>
+            {valeur.trim() ? texteEnrichi(valeur) : <span style={{ color: "var(--cs-bord)", fontStyle: "italic" }}>—</span>}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
@@ -462,7 +462,7 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
       {ouvert && rect && createPortal(
         <div ref={panRef} role="listbox"
           style={{ position: "fixed", top: rect.top, left: rect.left, width: rect.width, zIndex: 3000,
-            background: "#fff", border: "1px solid #d6d0c4", borderRadius: 9, boxShadow: "0 12px 34px rgba(40,30,15,0.22)",
+            background: "#fff", border: "1px solid var(--cs-bord)", borderRadius: 9, boxShadow: "0 12px 34px rgba(40,30,15,0.22)",
             padding: 5, maxHeight: "62vh", overflowY: "auto" }}>
           {GROUPES_LANG.map(g => {
             const membres = trads.filter(t => t.lang === g.code);
@@ -470,7 +470,7 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
             return (
               <div key={g.code} role="group" aria-label={g.label}>
                 {/* En-tête de groupe de langue : Français / Latin / Grec. */}
-                <div style={{ padding: "6px 10px 3px", fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#a2988b" }}>{g.label}</div>
+                <div style={{ padding: "6px 10px 3px", fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--cs-texte-doux)" }}>{g.label}</div>
                 {membres.map(t => {
                   const actif = slots[index] === t.trad_id;
                   const ailleurs = slots.some((x, idx) => idx !== index && x === t.trad_id);
@@ -481,7 +481,7 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
                       onMouseLeave={e => { if (!actif) e.currentTarget.style.background = "transparent"; }}>
                       {coche(actif)}
                       <span style={{ minWidth: 0 }}>
-                        <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "#1e2a1c", lineHeight: 1.25 }}>{t.nom}</span>
+                        <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-encre-fonce)", lineHeight: 1.25 }}>{t.nom}</span>
                         <span style={{ display: "block", fontSize: "0.625rem", color: "#9a8f80", marginTop: 1 }}>
                           {t.edition ?? ""}
                           {ailleurs && courante && <span style={{ color: "#b07d1e" }}>{t.edition ? " · " : ""}Échange avec la position de {courante.nom}</span>}
@@ -1080,31 +1080,31 @@ export default function PolyglottePage() {
             // Volet rabattu : un mince rail cliquable pour le rouvrir, sur le modèle du
             // rail de la page Bible (fond clair, filet à droite, chevron discret).
             <button onClick={() => setVoletReduit(false)} title="Afficher le volet des livres" aria-label="Afficher le volet"
-              style={{ width: "30px", flex: 1, background: "#faf8f4", border: "none", borderRight: "1px solid #d6d0c4", cursor: "pointer", color: "#9a958d", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", paddingTop: "12px" }}>
+              style={{ width: "30px", flex: 1, background: "var(--cs-fond-clair)", border: "none", borderRight: "1px solid var(--cs-bord)", cursor: "pointer", color: "var(--cs-texte-doux)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", paddingTop: "12px" }}>
               <IconeChevron dir="right" size={14} strokeWidth={1.5} />
             </button>
           ) : (
             <>
           {/* Titre de la page, en tête du volet de gauche, avec le bouton de repli à sa droite. */}
-          <div style={{ flexShrink: 0, background: "#faf8f4", borderRight: "1px solid #d6d0c4", borderBottom: "1px solid #d6d0c4", padding: "12px 14px 11px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+          <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "12px 14px 11px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
             <h1 style={{ margin: 0, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', fontWeight: 600, color: VERT, letterSpacing: "0.01em", lineHeight: 1.2 }}>Bible polyglotte</h1>
             {/* Même bouton « réduire » que la page Bible et les pages d'œuvre : nu, sans
                 cadre, chevron discret. */}
             <button onClick={() => setVoletReduit(true)} title="Rabattre le volet" aria-label="Rabattre le volet"
-              style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: "3px", color: "#b0a89e", display: "flex", alignItems: "center" }}>
+              style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: "3px", color: "var(--cs-texte-faible)", display: "flex", alignItems: "center" }}>
               <IconeChevron dir="left" size={14} strokeWidth={1.5} />
             </button>
           </div>
           {/* Choix du nombre de traductions affichées (Auto = selon la largeur d'écran). */}
-          <div style={{ flexShrink: 0, background: "#faf8f4", borderRight: "1px solid #d6d0c4", borderBottom: "1px solid #d6d0c4", padding: "8px 14px 9px" }}>
-            <span style={{ display: "block", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a958d", marginBottom: "5px" }}>Traductions visibles</span>
+          <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
+            <span style={{ display: "block", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-doux)", marginBottom: "5px" }}>Traductions visibles</span>
             <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
               {([["Auto", null], ["2", 2], ["3", 3], ["4", 4], ["5", 5]] as const).map(([lbl, val]) => {
                 const actif = nbTradPref === val;
                 return (
                   <button key={lbl} onClick={() => setNbTradPref(val)}
                     style={{ fontSize: "0.62rem", fontWeight: actif ? 600 : 400, padding: "2px 9px", borderRadius: "999px", cursor: "pointer",
-                      border: `1px solid ${actif ? VERT : "#d6d0c4"}`, background: actif ? "rgba(var(--cs-vert-rgb),0.10)" : "#fff", color: actif ? VERT : "#6b6560",
+                      border: `1px solid ${actif ? VERT : "var(--cs-bord)"}`, background: actif ? "rgba(var(--cs-vert-rgb),0.10)" : "#fff", color: actif ? VERT : "var(--cs-texte-second)",
                       fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                     {lbl}
                   </button>
@@ -1146,7 +1146,7 @@ export default function PolyglottePage() {
                   de mix-blend-mode. */}
               <img src="/ornements/livre-miroir-detoure.png" alt="" aria-hidden="true"
                 style={{ width: "min(320px, 68%)", height: "auto", opacity: 0.92, marginBottom: "16px" }} />
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "#9a958d", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-texte-doux)", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
             </div>
           </div>
         )}
@@ -1382,12 +1382,12 @@ export default function PolyglottePage() {
                 return (
                   <Fragment key={r.id}>
                     <div className="poly-row" id={`poly-${l.code}-${r.ch_canon}-${r.v_canon}`}
-                      style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? "#fff3c4" : fond, borderTop: "1px solid #dfe8e0", fontSize: '0.875rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_TITRE + HAUT_ENTETE + 8}px)`, transition: "background .4s" }}>
-                      <div title={signaler ? desc : undefined} style={{ padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: '0.78125rem', lineHeight: 1.15, color: signaler ? ROUGE : ligneVide ? "#aeb4ae" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : "1px solid #dfe8e0" }}>
+                      style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? "#fff3c4" : fond, borderTop: "1px solid var(--cs-vert-pale)", fontSize: '0.875rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_TITRE + HAUT_ENTETE + 8}px)`, transition: "background .4s" }}>
+                      <div title={signaler ? desc : undefined} style={{ padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: '0.78125rem', lineHeight: 1.15, color: signaler ? ROUGE : ligneVide ? "#aeb4ae" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : "1px solid var(--cs-vert-pale)" }}>
                         <div style={{ whiteSpace: "nowrap" }}>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</div>
                       </div>
                       {slotCols.map((sc, i) => {
-                        if (!sc.trad) return <div key={i} style={{ borderLeft: "1px solid #dfe8e0" }} />;
+                        if (!sc.trad) return <div key={i} style={{ borderLeft: "1px solid var(--cs-vert-pale)" }} />;
                         const t = sc.trad;
                         const cs = cellule.get(`${r.id}|${t.trad_id}`) ?? [];
                         // Actions propres à CETTE cellule : citer / signaler la traduction qu'elle
@@ -1397,7 +1397,7 @@ export default function PolyglottePage() {
                         const cleCite = `${abr}|${r.ch_canon}|${r.v_canon}|${t.nom}`;
                         return (
                           <div key={i} className="poly-texte-cell" lang={t.lang} onCopy={copierSansCesuresGrecques}
-                            style={{ borderLeft: "1px solid #dfe8e0", color: signaler ? "#7a1d16" : "#2a302b" }}>
+                            style={{ borderLeft: "1px solid var(--cs-vert-pale)", color: signaler ? "#7a1d16" : "#2a302b" }}>
                             {/* La lettrine : référence(s) d'origine et crayon, en bloc flottant que
                                 le texte habille. Plusieurs versets de l'édition peuvent partager un
                                 créneau du canon — leurs numéros s'écrivent alors l'un sous l'autre,
@@ -1445,7 +1445,7 @@ export default function PolyglottePage() {
                         );
                       })}
                       {/* Colonne Notes : note personnelle du verset (enregistrée sur le compte). */}
-                      <div style={{ borderLeft: "1px solid #dfe8e0", padding: notesReduites ? 0 : "3px 5px", display: "flex" }} onClick={e => e.stopPropagation()}>
+                      <div style={{ borderLeft: "1px solid var(--cs-vert-pale)", padding: notesReduites ? 0 : "3px 5px", display: "flex" }} onClick={e => e.stopPropagation()}>
                         {notesReduites ? null : userId ? (
                           <CelluleNote valeur={notes.get(r.id) ?? ""} refLisible={refLisible} onChange={t => majNote(r.id, t)} />
                         ) : (

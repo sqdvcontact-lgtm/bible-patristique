@@ -81,13 +81,13 @@ export default function ConversationPage() {
   }
 
   if (connecte === false) return (
-    <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '3.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Connectez-vous pour accéder à votre messagerie.</p>
+    <main style={{ minHeight: '100vh', background: 'var(--cs-fond)', paddingTop: '3.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Connectez-vous pour accéder à votre messagerie.</p>
     </main>
   )
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f7f4ef', paddingTop: '3.5rem', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ minHeight: '100vh', background: 'var(--cs-fond)', paddingTop: '3.5rem', display: 'flex', flexDirection: 'column' }}>
       <style>{`
         .msg-bubble { transition: opacity 0.1s; }
         .msg-input:focus { outline: none; border-color: var(--cs-vert) !important; }
@@ -96,7 +96,7 @@ export default function ConversationPage() {
       `}</style>
 
       {/* En-tête */}
-      <div style={{ background: '#faf8f4', borderBottom: '1px solid #e4dfd8', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: '14px', position: 'sticky', top: '3.5rem', zIndex: 10 }}>
+      <div style={{ background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord-clair)', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: '14px', position: 'sticky', top: '3.5rem', zIndex: 10 }}>
         <button onClick={() => router.push('/messagerie')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8a8278', padding: '4px', lineHeight: 0 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -105,10 +105,10 @@ export default function ConversationPage() {
         </button>
         <div>
           <Link href={`/profil/${encodeURIComponent(pseudo)}`}
-            style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: '#1e2e24', textDecoration: 'none', fontWeight: 400 }}>
+            style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-encre-fonce)', textDecoration: 'none', fontWeight: 400 }}>
             {pseudo}
           </Link>
-          <p style={{ fontSize: '0.625rem', color: '#b0a89e', margin: '1px 0 0', letterSpacing: '0.04em' }}>
+          <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', margin: '1px 0 0', letterSpacing: '0.04em' }}>
             Conversation privée
           </p>
         </div>
@@ -119,9 +119,9 @@ export default function ConversationPage() {
         {erreur ? (
           <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#c87070', fontStyle: 'italic' }}>{erreur}</p>
         ) : messages === null ? (
-          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#9a958d', fontStyle: 'italic' }}>Chargement…</p>
+          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
         ) : messages.length === 0 ? (
-          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#b0a89e', fontStyle: 'italic', marginTop: '40px' }}>
+          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', marginTop: '40px' }}>
             Début de votre conversation avec {pseudo}.
           </p>
         ) : (
@@ -135,8 +135,8 @@ export default function ConversationPage() {
                   <div className="msg-bubble" style={{
                     maxWidth: '72%',
                     background: m.de_moi ? 'var(--cs-vert)' : '#fff',
-                    color: m.de_moi ? '#f0f7f2' : '#1e2e24',
-                    border: m.de_moi ? 'none' : '1px solid #e4dfd8',
+                    color: m.de_moi ? '#f0f7f2' : 'var(--cs-encre-fonce)',
+                    border: m.de_moi ? 'none' : '1px solid var(--cs-bord-clair)',
                     borderRadius: m.de_moi ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                     padding: '9px 13px',
                     fontSize: '0.84375rem',
@@ -147,10 +147,10 @@ export default function ConversationPage() {
                     {m.contenu}
                   </div>
                   {(!sameMinute || i === messages.length - 1) && (
-                    <span style={{ fontSize: '0.59375rem', color: '#b0a89e', margin: '2px 4px 0' }}>
+                    <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-faible)', margin: '2px 4px 0' }}>
                       {heure(m.created_at)}
                       {m.de_moi && (
-                        <span style={{ marginLeft: '4px', color: m.lu ? 'var(--cs-vert)' : '#c8c0b4' }}>
+                        <span style={{ marginLeft: '4px', color: m.lu ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
                           {m.lu ? '✓✓' : '✓'}
                         </span>
                       )}
@@ -166,7 +166,7 @@ export default function ConversationPage() {
 
       {/* Zone saisie */}
       {connecte && !erreur && (
-        <div style={{ background: '#faf8f4', borderTop: '1px solid #e4dfd8', padding: '12px 20px', maxWidth: '45rem', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
+        <div style={{ background: 'var(--cs-fond-clair)', borderTop: '1px solid var(--cs-bord-clair)', padding: '12px 20px', maxWidth: '45rem', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
             <textarea
               className="msg-input"
@@ -179,12 +179,12 @@ export default function ConversationPage() {
               style={{
                 flex: 1,
                 resize: 'none',
-                border: '1px solid #d6d0c4',
+                border: '1px solid var(--cs-bord)',
                 borderRadius: '10px',
                 padding: '9px 12px',
                 fontSize: '0.8125rem',
                 background: '#fff',
-                color: '#1e2e24',
+                color: 'var(--cs-encre-fonce)',
                 fontFamily: 'inherit',
                 lineHeight: 1.5,
                 transition: 'border-color 0.15s',
@@ -210,7 +210,7 @@ export default function ConversationPage() {
               {envoi ? '…' : 'Envoyer'}
             </button>
           </div>
-          <p style={{ fontSize: '0.59375rem', color: '#c8c0b4', margin: '5px 0 0', textAlign: 'right' }}>
+          <p style={{ fontSize: '0.59375rem', color: 'var(--cs-bord)', margin: '5px 0 0', textAlign: 'right' }}>
             {texte.length}/2000
           </p>
         </div>

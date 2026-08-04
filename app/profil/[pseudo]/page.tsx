@@ -27,7 +27,7 @@ type ProfilPublic = {
 type PhotoProfil = { id_auteur: string; nom: string; imageUrl: string; posX?: number; posY?: number; zoom?: number }
 
 // ── Filet ornemental ─────────────────────────────────────────────────────────
-function Filet({ couleur = '#c8b89e', symbole = '✦', maxWidth = '200px' }: { couleur?: string; symbole?: string; maxWidth?: string }) {
+function Filet({ couleur = 'var(--cs-or-doux)', symbole = '✦', maxWidth = '200px' }: { couleur?: string; symbole?: string; maxWidth?: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', maxWidth, margin: '0 auto' }}>
       <div style={{ flex: 1, height: '1px', background: `linear-gradient(to right, transparent, ${couleur})` }} />
@@ -104,7 +104,7 @@ export default function ProfilPublicPage() {
   if (erreur) return (
     <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#f3efe2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
-        <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', color: '#b0a89e', marginBottom: '8px' }}>Profil introuvable</p>
+        <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', color: 'var(--cs-texte-faible)', marginBottom: '8px' }}>Profil introuvable</p>
         <p style={{ fontSize: '0.78125rem', color: '#c8c0b8' }}>@{pseudo}</p>
         <Link href="/" style={{ fontSize: '0.75rem', color: '#3a5030', textDecoration: 'none', marginTop: '16px', display: 'inline-block' }}>← Accueil</Link>
       </div>
@@ -113,7 +113,7 @@ export default function ProfilPublicPage() {
 
   if (!profil) return (
     <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#f3efe2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ fontSize: '0.8125rem', color: '#9a8a72', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>Chargement…</p>
+      <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>Chargement…</p>
     </main>
   )
 
@@ -208,7 +208,7 @@ export default function ProfilPublicPage() {
           {/* Photo ou monogramme */}
           <div style={{ marginBottom: '12px' }}>
             {photoProfil ? (
-              <div title={photoProfil.nom} style={{ width: '72px', height: '72px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto', border: '2px solid #c8b89e', position: 'relative', cursor: 'default' }}>
+              <div title={photoProfil.nom} style={{ width: '72px', height: '72px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto', border: '2px solid var(--cs-or-doux)', position: 'relative', cursor: 'default' }}>
                 <Image
                   src={photoProfil.imageUrl}
                   alt={photoProfil.nom}
@@ -310,7 +310,7 @@ export default function ProfilPublicPage() {
               «&#8201;{(() => { const t = texteSansEnrichissement(citationPreferee.texte); return t.length > 220 ? t.slice(0, 220) + '…' : t })()}&#8201;»
             </p>
             {(citationPreferee.ref || citationPreferee.auteur) && (
-              <p style={{ fontSize: '0.625rem', color: '#9a7a38', margin: 0, letterSpacing: '0.10em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+              <p style={{ fontSize: '0.625rem', color: 'var(--cs-or)', margin: 0, letterSpacing: '0.10em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                 {citationPreferee.type === 'biblique'
                   ? citationPreferee.ref
                   : [citationPreferee.auteur, citationPreferee.titre_oeuvre].filter(Boolean).join(', ')}
@@ -381,7 +381,7 @@ export default function ProfilPublicPage() {
 
         {/* Rien de public */}
         {rienDePublic && (
-          <p style={{ fontSize: '0.78125rem', color: '#b0a89e', fontStyle: 'italic', textAlign: 'center', paddingTop: '32px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+          <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', textAlign: 'center', paddingTop: '32px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
             Ce profil ne partage pas encore d&apos;informations publiques.
           </p>
         )}

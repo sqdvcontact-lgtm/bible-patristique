@@ -266,7 +266,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
       <div style={{ position: 'relative', marginTop: '2px' }}>
         <input value={recherche} onChange={e => setRecherche(e.target.value)} type="text"
           placeholder="Rechercher un événement…" aria-label="Rechercher dans la frise"
-          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px 7px 28px', borderRadius: '6px', border: `1px solid ${BORD}`, background: '#fff', color: '#3a3530', outline: 'none' }} />
+          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px 7px 28px', borderRadius: '6px', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte)', outline: 'none' }} />
         <svg width="12" height="12" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
           <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2" />
           <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round" />
@@ -280,7 +280,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
       {/* Afficher/masquer les notices (et l'accès aux « Sources et détail »). */}
       <button onClick={() => setToutesNotes(o => !o)} aria-pressed={toutesNotes}
         style={{ marginTop: '10px', width: '100%', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px', borderRadius: '6px', cursor: 'pointer',
-          border: `1px solid ${toutesNotes ? VERT : BORD}`, background: toutesNotes ? 'rgba(var(--cs-vert-rgb),0.10)' : '#fff', color: toutesNotes ? VERT : '#6b6560' }}>
+          border: `1px solid ${toutesNotes ? VERT : BORD}`, background: toutesNotes ? 'rgba(var(--cs-vert-rgb),0.10)' : '#fff', color: toutesNotes ? VERT : 'var(--cs-texte-second)' }}>
         {toutesNotes ? 'Masquer toutes les notes' : 'Afficher toutes les notes'}
       </button>
 
@@ -291,7 +291,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
               style={{
                 flex: 1, fontSize: '0.68rem', padding: '5px 4px', border: 'none',
                 borderLeft: i > 0 ? `1px solid ${BORD}` : 'none', cursor: 'pointer',
-                background: vue === cle ? VERT : '#fff', color: vue === cle ? '#fff' : '#6b6560',
+                background: vue === cle ? VERT : '#fff', color: vue === cle ? '#fff' : 'var(--cs-texte-second)',
                 fontFamily: 'inherit', fontWeight: vue === cle ? 600 : 400, whiteSpace: 'nowrap',
               }}>
               {label}
@@ -307,7 +307,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
               style={{
                 flex: 1, fontSize: '0.68rem', padding: '5px 4px', border: 'none',
                 borderLeft: i > 0 ? `1px solid ${BORD}` : 'none', cursor: 'pointer',
-                background: densite === d.cle ? VERT : '#fff', color: densite === d.cle ? '#fff' : '#6b6560',
+                background: densite === d.cle ? VERT : '#fff', color: densite === d.cle ? '#fff' : 'var(--cs-texte-second)',
                 fontFamily: 'inherit', fontWeight: densite === d.cle ? 600 : 400, whiteSpace: 'nowrap',
               }}>
               {d.label}
@@ -361,7 +361,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
         <GroupeFiltre label="Pays actuel">
           <select value={f.pays} onChange={e => setF(p => ({ ...p, pays: e.target.value }))}
             aria-label="Filtrer par pays actuel"
-            style={{ width: '100%', fontFamily: 'inherit', fontSize: '0.72rem', padding: '4px 8px', borderRadius: '5px', border: `1px solid ${BORD}`, background: '#fff', color: '#3a3530' }}>
+            style={{ width: '100%', fontFamily: 'inherit', fontSize: '0.72rem', padding: '4px 8px', borderRadius: '5px', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte)' }}>
             <option value="">Tous les pays</option>
             {rep.pays.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
@@ -373,7 +373,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
 
       {filtresActifs && (
         <button onClick={reinitialiser}
-          style={{ marginTop: '14px', width: '100%', padding: '6px 9px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: '#fff', color: '#6b6560', fontFamily: SERIF, fontSize: '0.76rem' }}>
+          style={{ marginTop: '14px', width: '100%', padding: '6px 9px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.76rem' }}>
           Réinitialiser les filtres
         </button>
       )}
@@ -428,12 +428,12 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
 
             {visibles.length === 0 ? (
               <div style={{ textAlign: 'center', paddingTop: '20px' }}>
-                <p style={{ fontSize: '0.85rem', color: '#9a958d', fontStyle: 'italic', margin: 0 }}>
+                <p style={{ fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>
                   Aucun événement ne correspond aux filtres retenus.
                 </p>
                 {filtresActifs && (
                   <button onClick={reinitialiser}
-                    style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: '#fff', color: '#6b6560', fontFamily: SERIF, fontSize: '0.78rem' }}>
+                    style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.78rem' }}>
                     Réinitialiser les filtres
                   </button>
                 )}
@@ -467,7 +467,7 @@ function FriseEchelle({ echelle, recherche }: {
   recherche: string
 }) {
   if (!echelle) return (
-    <p style={{ fontSize: '0.85rem', color: '#9a958d', fontStyle: 'italic', textAlign: 'center', paddingTop: '20px' }}>
+    <p style={{ fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', paddingTop: '20px' }}>
       Aucun repère daté à placer sur l’échelle pour cette sélection.
     </p>
   )
@@ -603,7 +603,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche }: { e: RangFrise; m
       {titre}
 
       {afficheNotice && noticeCourte && (
-        <p style={{ fontFamily: SERIF, fontSize: '0.78rem', color: '#5a5450', lineHeight: 1.55, margin: '4px 0 0', textAlign: 'justify' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.78rem', color: 'var(--cs-texte)', lineHeight: 1.55, margin: '4px 0 0', textAlign: 'justify' }}>
           {rendreFrise(noticeCourte, recherche)}
         </p>
       )}
@@ -699,7 +699,7 @@ function Lien({ valeur }: { valeur: string }) {
 
 function LigneDetail({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <p style={{ margin: '0 0 3px', fontFamily: SANS, fontSize: '0.66rem', lineHeight: 1.5, color: '#6b6560' }}>
+    <p style={{ margin: '0 0 3px', fontFamily: SANS, fontSize: '0.66rem', lineHeight: 1.5, color: 'var(--cs-texte-second)' }}>
       <span style={{ color: '#a39a8e' }}>{label} : </span>{children}
     </p>
   )
@@ -711,7 +711,7 @@ function SelectSiecle({ id, valeur, siecles, tout, onChange }: {
 }) {
   return (
     <select id={id} value={valeur ?? ''} onChange={e => onChange(e.target.value ? Number(e.target.value) : null)}
-      style={{ flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.72rem', padding: '3px 5px', borderRadius: '5px', border: `1px solid ${BORD}`, background: '#fff', color: '#3a3530' }}>
+      style={{ flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.72rem', padding: '3px 5px', borderRadius: '5px', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte)' }}>
       <option value="">{tout}</option>
       {siecles.map(s => <option key={s} value={s}>{s > 0 ? `${s}e s.` : `${-s}e s. av. J.-C.`}</option>)}
     </select>
@@ -721,7 +721,7 @@ function SelectSiecle({ id, valeur, siecles, tout, onChange }: {
 function GroupeFiltre({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ marginTop: '13px', paddingTop: '13px', borderTop: `1px solid ${SEP}` }}>
-      <div style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#b7ad9e', marginBottom: '8px' }}>{label}</div>
+      <div style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', marginBottom: '8px' }}>{label}</div>
       {children}
     </div>
   )

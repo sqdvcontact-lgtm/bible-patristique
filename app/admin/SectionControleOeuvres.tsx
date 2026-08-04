@@ -838,10 +838,10 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
   return (
     <div className="controle-oeuvres">
       <style>{`
-        .controle-oeuvres h1{font-family:var(--font-source-serif), Georgia, serif;font-size:1.125rem;font-weight:normal;color:#1e2e24;margin:0;letter-spacing:.02em;}
+        .controle-oeuvres h1{font-family:var(--font-source-serif), Georgia, serif;font-size:1.125rem;font-weight:normal;color:var(--cs-encre-fonce);margin:0;letter-spacing:.02em;}
         .controle-oeuvres .toolbar{background:#fff;border:1px solid #d9e1dc;border-radius:8px;padding:8px 14px 9px;margin-bottom:12px;box-shadow:0 5px 16px rgba(30,46,38,.045);text-align:center;}
-        .controle-oeuvres .toolbar-regle{width:34px;height:1px;background:#c8b89e;margin:5px auto 7px;}
-        .controle-oeuvres .oeuvre-search{font-size:0.6875rem;border:1px solid #d6d0c4;border-radius:999px;background:#faf8f4;color:#2a2520;padding:5px 12px;width:min(440px,100%);text-align:center;outline:none;transition:border-color .14s,box-shadow .14s,background .14s;}
+        .controle-oeuvres .toolbar-regle{width:34px;height:1px;background:var(--cs-or-doux);margin:5px auto 7px;}
+        .controle-oeuvres .oeuvre-search{font-size:0.6875rem;border:1px solid var(--cs-bord);border-radius:999px;background:var(--cs-fond-clair);color:var(--cs-texte-fort);padding:5px 12px;width:min(440px,100%);text-align:center;outline:none;transition:border-color .14s,box-shadow .14s,background .14s;}
         .controle-oeuvres .oeuvre-search:focus{background:#fff;border-color:#8aa185;box-shadow:0 0 0 3px rgba(var(--cs-vert-rgb),.09);}
         .controle-oeuvres .toolbar > div:last-child{justify-content:center;margin-top:7px;}
         /* Le texte occupe tout ce qui reste ; le volet d'analyse a une largeur fixe et
@@ -858,62 +858,62 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         /* Le crayon vit DANS le bloc de texte : on corrige là où l'on lit. */
         .segment-crayon{position:absolute;top:1px;right:1px;opacity:0;border:1px solid #d9e1dc;background:rgba(255,255,255,.94);border-radius:4px;padding:1px 6px 2px;font-size:0.75rem;line-height:1.3;cursor:pointer;color:var(--cs-vert);transition:opacity .13s;z-index:2;}
         .segment-controle:hover .segment-crayon,.segment-controle.is-active .segment-crayon{opacity:1;}
-        .segment-crayon:hover{background:#f2f8f4;border-color:#8aa185;}
-        .segment-edition{width:100%;box-sizing:border-box;min-height:130px;border:1px solid #8aa185;border-radius:4px;background:#fffdf9;color:#2a2520;font-family:var(--font-source-sans), Arial, sans-serif;font-size:.82rem;line-height:1.52;padding:8px 10px;resize:vertical;outline:none;}
+        .segment-crayon:hover{background:var(--cs-vert-pale);border-color:#8aa185;}
+        .segment-edition{width:100%;box-sizing:border-box;min-height:130px;border:1px solid #8aa185;border-radius:4px;background:#fffdf9;color:var(--cs-texte-fort);font-family:var(--font-source-sans), Arial, sans-serif;font-size:.82rem;line-height:1.52;padding:8px 10px;resize:vertical;outline:none;}
         .segment-edition-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px;}
         /* Volet de droite : score, puis encarts rouge et vert. */
-        .score-bloc{display:flex;align-items:center;gap:15px;padding:0 0 13px;border-bottom:1px solid #ede9e2;margin-bottom:13px;}
-        .score-chiffre{font-family:var(--font-source-serif), Georgia, serif;font-size:2.25rem;line-height:.95;color:#1e2e24;}
-        .score-sur{font-size:0.6875rem;color:#9a958d;margin-left:2px;}
-        .score-legende{font-size:0.625rem;color:#9a958d;line-height:1.45;margin:3px 0 0;}
+        .score-bloc{display:flex;align-items:center;gap:15px;padding:0 0 13px;border-bottom:1px solid var(--cs-fond-doux);margin-bottom:13px;}
+        .score-chiffre{font-family:var(--font-source-serif), Georgia, serif;font-size:2.25rem;line-height:.95;color:var(--cs-encre-fonce);}
+        .score-sur{font-size:0.6875rem;color:var(--cs-texte-doux);margin-left:2px;}
+        .score-legende{font-size:0.625rem;color:var(--cs-texte-doux);line-height:1.45;margin:3px 0 0;}
         .encart{border-radius:6px;padding:9px 11px 10px;margin-bottom:9px;}
         .encart h4{margin:0 0 6px;font-family:var(--font-source-serif), Georgia, serif;font-size:0.75rem;font-weight:600;font-style:italic;letter-spacing:0;text-transform:none;}
         .encart ul{margin:0;padding-left:15px;display:flex;flex-direction:column;gap:6px;}
         .encart li{font-size:0.71875rem;line-height:1.5;}
         .encart-rouge{background:#fff4f1;border:1px solid #e6bfb2;}
-        .encart-rouge h4{color:#9a2a2a;}
+        .encart-rouge h4{color:var(--cs-danger-fonce);}
         .encart-rouge li{color:#6f2a19;}
-        .encart-vert{background:#f2f8f4;border:1px solid #b9d4c3;}
+        .encart-vert{background:var(--cs-vert-pale);border:1px solid #b9d4c3;}
         .encart-vert h4{color:#2f6046;}
         .encart-vert li{color:#24503a;}
         .badge-manuel{display:inline-block;background:#efe7f6;border:1px solid #c3aed6;color:#5b3a7a;border-radius:999px;padding:2px 8px;font-size:0.53125rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;}
-        .segment-texte{font-family:var(--font-source-sans), Arial, sans-serif;font-size:.82rem;line-height:1.52;text-align:justify;text-justify:inter-word;hyphens:auto;color:#1e1a16;margin:0;word-spacing:-.025em;letter-spacing:0;white-space:pre-line;}
-        .controle-groupe{font-family:var(--font-source-serif), Georgia, serif;font-size:1.12rem;font-weight:400;color:#2a3d30;text-align:center;line-height:1.35;margin:30px auto 17px;max-width:620px;}
-        .controle-groupe::after{content:"";display:block;width:38px;height:1px;background:#c8b89e;margin:11px auto 0;}
+        .segment-texte{font-family:var(--font-source-sans), Arial, sans-serif;font-size:.82rem;line-height:1.52;text-align:justify;text-justify:inter-word;hyphens:auto;color:var(--cs-texte-fort);margin:0;word-spacing:-.025em;letter-spacing:0;white-space:pre-line;}
+        .controle-groupe{font-family:var(--font-source-serif), Georgia, serif;font-size:1.12rem;font-weight:400;color:var(--cs-encre);text-align:center;line-height:1.35;margin:30px auto 17px;max-width:620px;}
+        .controle-groupe::after{content:"";display:block;width:38px;height:1px;background:var(--cs-or-doux);margin:11px auto 0;}
         .controle-droit{position:sticky;top:142px;max-height:calc(100vh - 160px);overflow-y:auto;background:#fff;border:1px solid #d9e1dc;border-radius:8px;padding:15px 16px;box-shadow:0 10px 28px rgba(30,46,38,.07);}
         .pill{display:inline-flex;align-items:center;border-radius:999px;padding:2px 8px;font-size:0.5625rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
-        .stat-btn{border:1px solid #d6d0c4;background:#fff;border-radius:999px;padding:3px 8px;font-size:0.625rem;cursor:pointer;color:#5a5450;}
+        .stat-btn{border:1px solid var(--cs-bord);background:#fff;border-radius:999px;padding:3px 8px;font-size:0.625rem;cursor:pointer;color:var(--cs-texte);}
         .stat-btn.active{background:#2f6046;color:#fff;border-color:#2f6046;}
-        .mode-btn{border:1px solid #d6d0c4;background:#fff;border-radius:999px;padding:3px 9px;font-size:0.625rem;color:#5a5450;cursor:pointer;}
-        .mode-btn.active{background:#f2f8f4;border-color:var(--cs-vert);color:#2f6046;font-weight:700;}
-        .niveau-btn{border:1px solid #d6d0c4;background:#fff;border-radius:999px;padding:4px 8px;font-size:0.625rem;cursor:pointer;color:#5a5450;transition:background .12s,border-color .12s,color .12s;}
+        .mode-btn{border:1px solid var(--cs-bord);background:#fff;border-radius:999px;padding:3px 9px;font-size:0.625rem;color:var(--cs-texte);cursor:pointer;}
+        .mode-btn.active{background:var(--cs-vert-pale);border-color:var(--cs-vert);color:#2f6046;font-weight:700;}
+        .niveau-btn{border:1px solid var(--cs-bord);background:#fff;border-radius:999px;padding:4px 8px;font-size:0.625rem;cursor:pointer;color:var(--cs-texte);transition:background .12s,border-color .12s,color .12s;}
         .niveau-btn.active{font-weight:700;}
         .controle-section{margin-top:16px;padding-top:14px;border-top:1px solid #d8cfbf;}
         .controle-section-title{font-family:var(--font-source-serif), Georgia, serif;font-style:italic;font-size:0.78125rem;font-weight:normal;letter-spacing:0;text-transform:none;color:var(--cs-vert);margin:0 0 8px;}
-        .controle-liste-simple{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px;color:#3a3530;}
+        .controle-liste-simple{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px;color:var(--cs-texte);}
         .controle-liste-simple li{font-size:0.71875rem;line-height:1.45;}
-        .controle-lien-card{border:1px solid #ede9e2;border-radius:7px;background:#fffdf9;padding:8px 9px;margin-bottom:8px;}
+        .controle-lien-card{border:1px solid var(--cs-fond-doux);border-radius:7px;background:#fffdf9;padding:8px 9px;margin-bottom:8px;}
         .controle-lien-ref{font-size:0.6875rem;font-weight:700;color:var(--cs-vert);margin:0 0 4px;}
         .controle-lien-texte{font-size:0.71875rem;line-height:1.5;color:#332d28;margin:0;white-space:normal;}
-        .controle-mini-btn{border:0;background:transparent;color:#9a2a2a;font-size:0.65625rem;padding:4px 0 0;cursor:pointer;}
-        .controle-edition{width:100%;min-height:150px;border:1px solid #d6d0c4;border-radius:6px;background:#fffdf9;color:#2a2520;font-size:0.75rem;line-height:1.55;padding:8px 9px;resize:vertical;}
-        .controle-action-btn{border:1px solid #d6d0c4;background:#fff;border-radius:999px;padding:5px 10px;font-size:0.65625rem;cursor:pointer;color:var(--cs-vert);}
-        .controle-action-btn.danger{color:#9a2a2a;border-color:#e2b9aa;background:#fff7f4;}
+        .controle-mini-btn{border:0;background:transparent;color:var(--cs-danger-fonce);font-size:0.65625rem;padding:4px 0 0;cursor:pointer;}
+        .controle-edition{width:100%;min-height:150px;border:1px solid var(--cs-bord);border-radius:6px;background:#fffdf9;color:var(--cs-texte-fort);font-size:0.75rem;line-height:1.55;padding:8px 9px;resize:vertical;}
+        .controle-action-btn{border:1px solid var(--cs-bord);background:#fff;border-radius:999px;padding:5px 10px;font-size:0.65625rem;cursor:pointer;color:var(--cs-vert);}
+        .controle-action-btn.danger{color:var(--cs-danger-fonce);border-color:#e2b9aa;background:#fff7f4;}
         .controle-action-btn:disabled{opacity:.55;cursor:default;}
         /* En-tête du volet : segment + référence sur une ligne, score/rang alignés à droite. */
         .controle-entete{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:11px;border-bottom:1px solid #d8cfbf;margin-bottom:12px;}
         .controle-entete-ref{min-width:0;font-size:0.75rem;color:#5f6f60;line-height:1.4;}
-        .controle-seg-num{font-family:var(--font-source-serif), Georgia, serif;font-size:0.9375rem;color:#1e2e24;}
+        .controle-seg-num{font-family:var(--font-source-serif), Georgia, serif;font-size:0.9375rem;color:var(--cs-encre-fonce);}
         .controle-seg-ref{color:#8a8278;}
         .controle-entete-score{display:flex;align-items:center;gap:9px;flex-shrink:0;}
-        .controle-score-inline{font-family:var(--font-source-serif), Georgia, serif;font-size:1.3125rem;color:#1e2e24;line-height:1;}
-        .controle-seuils{font-size:0.625rem;color:#b0a89e;margin:0 0 2px;}
-        .controle-nature-select{font-size:0.6875rem;border:1px solid #d6d0c4;border-radius:5px;background:#fff;color:#2a2520;padding:2px 6px;cursor:pointer;}
+        .controle-score-inline{font-family:var(--font-source-serif), Georgia, serif;font-size:1.3125rem;color:var(--cs-encre-fonce);line-height:1;}
+        .controle-seuils{font-size:0.625rem;color:var(--cs-texte-faible);margin:0 0 2px;}
+        .controle-nature-select{font-size:0.6875rem;border:1px solid var(--cs-bord);border-radius:5px;background:#fff;color:var(--cs-texte-fort);padding:2px 6px;cursor:pointer;}
         /* Page d'accueil : liste sobre des œuvres. */
         .controle-accueil{background:#fff;border:1px solid #e3ddd3;border-radius:8px;padding:10px 8px;box-shadow:0 6px 18px rgba(30,46,38,.05);max-width:720px;margin:0 auto;}
         .controle-accueil ul{list-style:none;margin:0;padding:0;}
-        .controle-accueil li + li{border-top:1px solid #f0ece6;}
-        .controle-accueil button{display:block;width:100%;text-align:left;background:transparent;border:0;cursor:pointer;padding:9px 12px;font-family:var(--font-source-serif), Georgia, serif;font-size:0.84375rem;color:#2a3d30;border-radius:5px;transition:background .12s;}
+        .controle-accueil li + li{border-top:1px solid var(--cs-fond-doux);}
+        .controle-accueil button{display:block;width:100%;text-align:left;background:transparent;border:0;cursor:pointer;padding:9px 12px;font-family:var(--font-source-serif), Georgia, serif;font-size:0.84375rem;color:var(--cs-encre);border-radius:5px;transition:background .12s;}
         .controle-accueil button:hover{background:rgba(var(--cs-vert-rgb),.06);}
         .controle-accueil .accueil-titre{display:block;}
         .controle-accueil .accueil-liens{display:block;font-family:var(--font-source-sans), Arial, sans-serif;font-size:0.625rem;color:#a8a094;margin-top:2px;letter-spacing:.02em;}
@@ -960,12 +960,12 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         </div>
       </div>
 
-      {erreur && <p style={{ color: '#9a2a2a', fontSize: '0.8625rem' }}>Erreur de chargement : {erreur}</p>}
+      {erreur && <p style={{ color: 'var(--cs-danger-fonce)', fontSize: '0.8625rem' }}>Erreur de chargement : {erreur}</p>}
       {!idOeuvre ? (
         <div className="controle-accueil">
           {modeControle === 'corpus' && (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap', margin: '0 0 8px', padding: '0 12px' }}>
-              <span style={{ fontSize: '0.6875rem', color: '#9a958d', fontStyle: 'italic' }}>
+              <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>
                 {chargementRangs ? 'Chargement de la qualité…'
                   : recalculEnCours ? 'Recalcul de la qualité en cours (~10 s)…'
                   : calculeLe ? `Qualité calculée le ${formaterDateLiens(calculeLe)}`
@@ -973,13 +973,13 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
               </span>
               <button type="button" onClick={recalculerRangs} disabled={recalculEnCours || chargementRangs}
                 title="Recalculer les couleurs de qualité (parcourt tous les segments)"
-                style={{ fontSize: '0.625rem', border: '1px solid #d6d0c4', background: '#fff', color: 'var(--cs-vert)', borderRadius: '999px', padding: '3px 10px', cursor: recalculEnCours || chargementRangs ? 'default' : 'pointer', opacity: recalculEnCours || chargementRangs ? 0.5 : 1, whiteSpace: 'nowrap' }}>
+                style={{ fontSize: '0.625rem', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-vert)', borderRadius: '999px', padding: '3px 10px', cursor: recalculEnCours || chargementRangs ? 'default' : 'pointer', opacity: recalculEnCours || chargementRangs ? 0.5 : 1, whiteSpace: 'nowrap' }}>
                 ↻ Recalculer
               </button>
             </div>
           )}
           {oeuvresRecherche.length === 0 ? (
-            <p style={{ color: '#9a958d', fontStyle: 'italic', fontSize: '0.93437rem', padding: '10px 12px', margin: 0 }}>Aucune œuvre à contrôler.</p>
+            <p style={{ color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontSize: '0.93437rem', padding: '10px 12px', margin: 0 }}>Aucune œuvre à contrôler.</p>
           ) : (
             <ul>
               {oeuvresRecherche.map(o => {
@@ -988,9 +988,9 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                 // critique), vert si ni l'un ni l'autre. Neutre tant que l'analyse tourne.
                 const rg = modeControle === 'corpus' ? rangsParOeuvre.get(o.id_oeuvre) : undefined
                 const coul = !rangsParOeuvre.size ? null
-                  : (rg?.critique ?? 0) > 0 ? { bord: '#c0562a', fond: '#fff0ed' }
+                  : (rg?.critique ?? 0) > 0 ? { bord: 'var(--cs-danger)', fond: '#fff0ed' }
                   : (rg?.moyen ?? 0) > 0 ? { bord: '#c7832f', fond: '#fff8ec' }
-                  : { bord: 'var(--cs-vert)', fond: '#f2f8f4' }
+                  : { bord: 'var(--cs-vert)', fond: 'var(--cs-vert-pale)' }
                 return (
                   <li key={o.id_oeuvre} style={coul ? { borderLeft: `3px solid ${coul.bord}`, background: coul.fond, borderRadius: '4px' } : undefined}>
                     <button type="button" onClick={() => setIdOeuvre(o.id_oeuvre)}>
@@ -1010,15 +1010,15 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
           )}
         </div>
       ) : chargement ? (
-        <div className="segments-panel"><p style={{ color: '#9a958d', fontStyle: 'italic', fontSize: '0.93437rem' }}>Chargement de l’œuvre…</p></div>
+        <div className="segments-panel"><p style={{ color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontSize: '0.93437rem' }}>Chargement de l’œuvre…</p></div>
       ) : (
         <div className="controle-layout">
           <div className="segments-panel">
             <div style={{ textAlign: 'center', marginBottom: '30px' }}>
               <button type="button" onClick={() => setIdOeuvre('')} style={{ display: 'block', margin: '0 auto 12px', background: 'transparent', border: 0, color: 'var(--cs-vert)', fontSize: '0.79062rem', cursor: 'pointer' }}>← Toutes les œuvres</button>
-              <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.7825rem', color: '#1e2e24', margin: 0, lineHeight: 1.28 }}>{titreCourtControle(auteurs, idOeuvre, modeControle, oeuvresPerso)}</p>
-              <div style={{ width: '42px', height: '1px', background: '#c8b89e', margin: '14px auto 8px' }} />
-              <p style={{ fontSize: '0.75469rem', color: '#9a958d', margin: '3px 0 0' }}>{segmentsAffiches.length} segment(s) affiché(s)</p>
+              <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.7825rem', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.28 }}>{titreCourtControle(auteurs, idOeuvre, modeControle, oeuvresPerso)}</p>
+              <div style={{ width: '42px', height: '1px', background: 'var(--cs-or-doux)', margin: '14px auto 8px' }} />
+              <p style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)', margin: '3px 0 0' }}>{segmentsAffiches.length} segment(s) affiché(s)</p>
             </div>
 
             {pagesControle.length > 1 && (
@@ -1046,7 +1046,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                     className={`segment-controle${segment.id === segmentActif ? ' is-active' : ''}`}
                     onClick={() => setSegmentActif(segment.id)}
                     style={{
-                      background: contexte ? '#fbfaf7' : couleurs.fond,
+                      background: contexte ? 'var(--cs-fond-clair)' : couleurs.fond,
                       opacity: contexte ? 0.78 : 1,
                     }}
                   >
@@ -1128,9 +1128,9 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                             borderColor: couleursChoix.bord,
                             color: couleursChoix.texte,
                           } : estActif ? {
-                            background: '#f0ece6',
-                            borderColor: '#c8c0b4',
-                            color: '#5a5450',
+                            background: 'var(--cs-fond-doux)',
+                            borderColor: 'var(--cs-bord)',
+                            color: 'var(--cs-texte)',
                           } : undefined}
                         >
                           {choix === 'auto' ? 'Auto' : COULEURS[choix].label}
@@ -1143,7 +1143,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                       Rang imposé — le score reste celui de l’analyse ({verdictActif.score}/20).
                     </p>
                   )}
-                  {statutAction === 'erreur' && <p style={{ fontSize: '0.79062rem', color: '#9a2a2a', margin: '8px 0 0' }}>Erreur lors de l’enregistrement.</p>}
+                  {statutAction === 'erreur' && <p style={{ fontSize: '0.79062rem', color: 'var(--cs-danger-fonce)', margin: '8px 0 0' }}>Erreur lors de l’enregistrement.</p>}
                 </div>
 
                 {/* ── Notes : ce qui justifie le score, sans complaisance ── */}
@@ -1162,7 +1162,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                     </div>
                   )}
                   {verdictActif.rouge.length === 0 && verdictActif.vert.length === 0 && (
-                    <p style={{ fontSize: '0.82656rem', color: '#9a958d', margin: 0, fontStyle: 'italic' }}>
+                    <p style={{ fontSize: '0.82656rem', color: 'var(--cs-texte-doux)', margin: 0, fontStyle: 'italic' }}>
                       Aucun défaut relevé. Pas de note : une boîte vide est une information.
                     </p>
                   )}
@@ -1181,7 +1181,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                       ))}
                     </ul>
                   ) : (
-                    <p style={{ fontSize: '0.82656rem', color: '#9a958d', margin: 0 }}>Aucune note.</p>
+                    <p style={{ fontSize: '0.82656rem', color: 'var(--cs-texte-doux)', margin: 0 }}>Aucune note.</p>
                   )}
                   <button className="controle-action-btn" style={{ marginTop: '7px' }} disabled={statutAction === 'envoi'} onClick={ajouterNote}>Ajouter une note</button>
                 </div>
@@ -1194,7 +1194,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                         const verset = versetsLies[lien.id]
                         return (
                           <div key={`${lien.champ}-${lien.id}-${i}`} className="controle-lien-card">
-                            <p className="controle-lien-ref">{verset?.ref ?? refBibliqueFr(lien.id)} <span style={{ color: '#9a958d', fontWeight: 400 }}>({lien.champ})</span></p>
+                            <p className="controle-lien-ref">{verset?.ref ?? refBibliqueFr(lien.id)} <span style={{ color: 'var(--cs-texte-doux)', fontWeight: 400 }}>({lien.champ})</span></p>
                             <p className="controle-lien-texte">{verset?.texte || 'Texte du verset non chargé.'}</p>
                             <button className="controle-mini-btn" disabled={statutAction === 'envoi'} onClick={() => supprimerLienBiblique(lien)}>Supprimer ce lien</button>
                           </div>
@@ -1202,14 +1202,14 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                       })}
                     </div>
                   ) : (
-                    <p style={{ fontSize: '0.82656rem', color: '#9a958d', margin: 0 }}>Aucun lien biblique.</p>
+                    <p style={{ fontSize: '0.82656rem', color: 'var(--cs-texte-doux)', margin: 0 }}>Aucun lien biblique.</p>
                   )}
                   <button className="controle-action-btn" style={{ marginTop: '7px' }} disabled={statutAction === 'envoi'} onClick={ajouterLienBiblique}>Ajouter un lien biblique</button>
                 </div>}
 
                 <div className="controle-section">
                   <p className="controle-section-title">Données</p>
-                  <div style={{ fontSize: '0.79062rem', color: '#5a5450', lineHeight: 1.9 }}>
+                  <div style={{ fontSize: '0.79062rem', color: 'var(--cs-texte)', lineHeight: 1.9 }}>
                     <div>Longueur : {(actif.segment_texte ?? '').trim().length} signes</div>
                     <div>Liens : {liensSegment(actif).length || 'aucun'}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1228,7 +1228,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
                 </div>
               </>
             ) : (
-              <p style={{ fontSize: '0.8625rem', color: '#9a958d', fontStyle: 'italic' }}>Sélectionnez un segment.</p>
+              <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Sélectionnez un segment.</p>
             )}
           </aside>
         </div>

@@ -33,7 +33,7 @@ export default function BandeauMobile() {
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
         <div style={{ flex: 1 }}>
-          <p style={{ fontSize: '0.8125rem', color: '#2a3d30', fontWeight: 700, margin: '0 0 4px', lineHeight: 1.4 }}>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-encre)', fontWeight: 700, margin: '0 0 4px', lineHeight: 1.4 }}>
             Site non optimisé pour mobile
           </p>
           <p style={{ fontSize: '0.71875rem', color: '#5f675b', margin: '0 0 10px', lineHeight: 1.55 }}>

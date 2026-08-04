@@ -90,7 +90,7 @@ export default function ActionsVerset({
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
       <button onClick={e => { e.stopPropagation(); setSignalOuvert(true) }}
         className="bouton-action-verset" title="Signaler une erreur" aria-label="Signaler"
-        style={{ ...BTN, opacity: 0, color: '#c8c0b4' }}>
+        style={{ ...BTN, opacity: 0, color: 'var(--cs-bord)' }}>
         <IconeDrapeau />
       </button>
 
@@ -99,13 +99,13 @@ export default function ActionsVerset({
           className="bouton-action-verset"
           title={preleve ? 'Retirer des prélèvements' : 'Enregistrer dans mes prélèvements'}
           aria-label={preleve ? 'Retirer des prélèvements' : 'Enregistrer'}
-          style={{ ...BTN, opacity: preleve ? 1 : 0, color: preleve ? 'var(--cs-vert)' : '#c8c0b4' }}>
+          style={{ ...BTN, opacity: preleve ? 1 : 0, color: preleve ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
           {chargement ? '…' : <IconeSignet plein={preleve} />}
         </button>
       )}
 
       <button onClick={copier} className="bouton-action-verset" title="Copier ce verset" aria-label="Copier"
-        style={{ ...BTN, opacity: 0, color: copie ? 'var(--cs-vert)' : '#c8c0b4' }}>
+        style={{ ...BTN, opacity: 0, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
         {copie ? '✓' : (
           <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display: 'block' }}>
             <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />

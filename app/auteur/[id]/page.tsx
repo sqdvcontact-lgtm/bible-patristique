@@ -14,7 +14,7 @@ export default function PageAuteur() {
   const id = params.id as string
   const fermer = () => { if (window.history.length > 1) router.back(); else router.push('/bibliotheque') }
   return (
-    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#f7f4ef' }}>
+    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)' }}>
       <ModaleAuteur id={id} onClose={fermer} />
     </main>
   )

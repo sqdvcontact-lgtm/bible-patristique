@@ -31,14 +31,14 @@ export default function SectionEssaisPublies({ essais: init, variante = 'publies
   }
 
   if (essais.length === 0) {
-    return <p style={{ fontSize: '0.93437rem', color: '#9a958d', fontStyle: 'italic' }}>{estBrouillons ? "Aucun brouillon pour l'instant." : "Aucun essai publié pour l'instant."}</p>
+    return <p style={{ fontSize: '0.93437rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{estBrouillons ? "Aucun brouillon pour l'instant." : "Aucun essai publié pour l'instant."}</p>
   }
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', overflowX: 'auto' }}>
+    <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '980px' }}>
         <thead>
-          <tr style={{ background: '#faf8f4', borderBottom: '1px solid #e4dfd8' }}>
+          <tr style={{ background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord-clair)' }}>
             <Th>Titre</Th>
             <Th>Auteur</Th>
             <Th>Dates</Th>
@@ -50,11 +50,11 @@ export default function SectionEssaisPublies({ essais: init, variante = 'publies
         </thead>
         <tbody>
           {essais.map(e => (
-            <tr key={e.id} style={{ borderBottom: '1px solid #f0ece6' }}>
+            <tr key={e.id} style={{ borderBottom: '1px solid var(--cs-fond-doux)' }}>
               <Td>
-                <Link href={estBrouillons ? `/essais/${e.id}/modifier` : `/essais/${e.id}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.89844rem', color: '#1e2e24', textDecoration: 'none', fontWeight: 600 }}>{e.titre} ↗</Link>
-                {e.sous_titre && <p style={{ fontSize: '0.75469rem', color: '#9a958d', fontStyle: 'italic', margin: '2px 0 0' }}>{e.sous_titre}</p>}
-                <p style={{ fontSize: '0.71875rem', color: '#b0a89e', margin: '3px 0 0' }}>#{e.id} · {e.nb_signes.toLocaleString('fr')} signes</p>
+                <Link href={estBrouillons ? `/essais/${e.id}/modifier` : `/essais/${e.id}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.89844rem', color: 'var(--cs-encre-fonce)', textDecoration: 'none', fontWeight: 600 }}>{e.titre} ↗</Link>
+                {e.sous_titre && <p style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '2px 0 0' }}>{e.sous_titre}</p>}
+                <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', margin: '3px 0 0' }}>#{e.id} · {e.nb_signes.toLocaleString('fr')} signes</p>
               </Td>
               <Td>{e.auteur}</Td>
               <Td>
@@ -73,13 +73,13 @@ export default function SectionEssaisPublies({ essais: init, variante = 'publies
                   <span style={{ fontSize: '0.79062rem', color: 'var(--cs-vert)', fontWeight: 600 }}>✓ Renvoyé</span>
                 ) : (
                   <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                    <Link href={`/essais/${e.id}/modifier`} style={petitBouton('var(--cs-vert)', '#d6d0c4')}>Modifier</Link>
+                    <Link href={`/essais/${e.id}/modifier`} style={petitBouton('var(--cs-vert)', 'var(--cs-bord)')}>Modifier</Link>
                     {!estBrouillons && (
                       <button onClick={() => demanderModification(e.id)} disabled={action[e.id] === 'loading'} style={petitBouton('#9a5a2a', '#e4d2bd')}>
                         Renvoyer
                       </button>
                     )}
-                    <button onClick={() => supprimer(e.id)} disabled={action[e.id] === 'loading'} style={petitBouton('#c0562a', '#e4c4b8')}>
+                    <button onClick={() => supprimer(e.id)} disabled={action[e.id] === 'loading'} style={petitBouton('var(--cs-danger)', 'var(--cs-danger-bord)')}>
                       Supprimer
                     </button>
                   </div>
@@ -102,9 +102,9 @@ function Td({ children, align = 'left' }: { children: React.ReactNode; align?: '
 }
 
 function DateInfo({ label, valeur, discret = false }: { label: string; valeur: string | null; discret?: boolean }) {
-  if (!valeur) return <p style={{ fontSize: '0.75469rem', color: '#b0a89e', margin: '0 0 2px' }}>{label} : —</p>
+  if (!valeur) return <p style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-faible)', margin: '0 0 2px' }}>{label} : —</p>
   return (
-    <p style={{ fontSize: '0.75469rem', color: discret ? '#b0a89e' : '#6b6560', margin: '0 0 2px', whiteSpace: 'nowrap' }}>
+    <p style={{ fontSize: '0.75469rem', color: discret ? 'var(--cs-texte-faible)' : 'var(--cs-texte-second)', margin: '0 0 2px', whiteSpace: 'nowrap' }}>
       {label} : {new Date(valeur).toLocaleDateString('fr-FR')}
     </p>
   )
@@ -112,8 +112,8 @@ function DateInfo({ label, valeur, discret = false }: { label: string; valeur: s
 
 function Info({ label, valeur, alerte = false }: { label: string; valeur: number; alerte?: boolean }) {
   return (
-    <span style={{ display: 'block', fontSize: '0.75469rem', color: alerte ? '#c0562a' : '#9a958d', whiteSpace: 'nowrap', marginBottom: '2px' }}>
-      <strong style={{ color: alerte ? '#c0562a' : '#6b6560', fontWeight: 600 }}>{Number(valeur ?? 0).toLocaleString('fr')}</strong> {label}
+    <span style={{ display: 'block', fontSize: '0.75469rem', color: alerte ? 'var(--cs-danger)' : 'var(--cs-texte-doux)', whiteSpace: 'nowrap', marginBottom: '2px' }}>
+      <strong style={{ color: alerte ? 'var(--cs-danger)' : 'var(--cs-texte-second)', fontWeight: 600 }}>{Number(valeur ?? 0).toLocaleString('fr')}</strong> {label}
     </span>
   )
 }

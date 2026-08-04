@@ -205,12 +205,12 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         : { position: 'relative', display: 'flex', height: HAUTEUR_SOUS_NAVBAR, overflow: 'hidden' }}>
       {/* Onglets mobiles, fixés sous la navbar : Sommaire / Texte / Commentaires. */}
       {mobile && (
-        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1300, height: '2.875rem', display: 'flex', alignItems: 'stretch', background: '#faf8f4', borderBottom: '1px solid #d6d0c4', boxShadow: '0 1px 4px rgba(45,35,25,0.06)' }}>
+        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1300, height: '2.875rem', display: 'flex', alignItems: 'stretch', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', boxShadow: '0 1px 4px rgba(45,35,25,0.06)' }}>
           {ONGLETS_MOBILE.map(o => {
             const actif = voletMobile === o.cle
             return (
               <button key={o.label} onClick={() => changerOnglet(o.cle)}
-                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: actif ? 'rgba(var(--cs-vert-rgb),0.05)' : 'none', border: 'none', borderBottom: actif ? '2px solid var(--cs-vert)' : '2px solid transparent', cursor: 'pointer', color: actif ? '#2a3d30' : '#8a8278', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: actif ? 600 : 500, transition: 'color 0.12s, background 0.12s' }}>
+                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: actif ? 'rgba(var(--cs-vert-rgb),0.05)' : 'none', border: 'none', borderBottom: actif ? '2px solid var(--cs-vert)' : '2px solid transparent', cursor: 'pointer', color: actif ? 'var(--cs-encre)' : '#8a8278', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: actif ? 600 : 500, transition: 'color 0.12s, background 0.12s' }}>
                 {o.label}
               </button>
             )
@@ -268,11 +268,11 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
       {/* Bandeau de navigation mobile — tout en bas, sous la barre « Commentaires ».
           Forme abrégée « Gn ❧ 1 » et flèches pour changer de chapitre. */}
       {mobile && (
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1250, height: BANDEAU_NAV_MOBILE, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', background: '#f2ede3', borderTop: '1px solid #d6d0c4', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)' }}>
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1250, height: BANDEAU_NAV_MOBILE, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', background: '#f2ede3', borderTop: '1px solid var(--cs-bord)', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)' }}>
           <button onClick={() => chapitreActif > 1 && router.push(`/?livre=${livreActif}&chapitre=${chapitreActif - 1}&trad=${traduction}`)}
-            aria-label="Chapitre précédent" style={{ background: 'none', border: 'none', cursor: chapitreActif > 1 ? 'pointer' : 'default', fontSize: '1.375rem', lineHeight: 1, color: chapitreActif > 1 ? '#8a8278' : '#d6d0c4', padding: '0 8px' }}>‹</button>
+            aria-label="Chapitre précédent" style={{ background: 'none', border: 'none', cursor: chapitreActif > 1 ? 'pointer' : 'default', fontSize: '1.375rem', lineHeight: 1, color: chapitreActif > 1 ? '#8a8278' : 'var(--cs-bord)', padding: '0 8px' }}>‹</button>
           <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', display: 'inline-flex', alignItems: 'baseline', gap: '8px', fontSize: '0.875rem' }}>
-            <span style={{ fontWeight: 500, color: '#2a3d30' }}>{ABREV_FR[livreActif] ?? livreActif}</span>
+            <span style={{ fontWeight: 500, color: 'var(--cs-encre)' }}>{ABREV_FR[livreActif] ?? livreActif}</span>
             <span style={{ color: '#b0a088' }}>❧</span>
             <span style={{ fontStyle: 'italic', color: '#5a7260' }}>{chapitreActif}</span>
           </span>

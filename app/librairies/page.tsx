@@ -50,13 +50,13 @@ const LIBRAIRIES: Librairie[] = [
 
 export default function LibrairiesPage() {
   return (
-    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 3.5rem)', paddingTop: '3.5rem' }}>
+    <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100vh - 3.5rem)', paddingTop: '3.5rem' }}>
       <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '18px' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(1.3125rem, 3.6vw, 1.8125rem)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.15, marginBottom: '8px' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(1.3125rem, 3.6vw, 1.8125rem)', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', lineHeight: 1.15, marginBottom: '8px' }}>
             Acheter des livres
           </h1>
-          <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 10px' }} />
+          <div style={{ width: '36px', height: '1px', background: 'var(--cs-bord)', margin: '0 auto 10px' }} />
           <p style={{ fontSize: '0.78125rem', color: '#8a8278', fontStyle: 'italic', margin: 0 }}>
             Où trouver les textes, en éditions neuves, anciennes ou critiques.
           </p>
@@ -72,11 +72,11 @@ export default function LibrairiesPage() {
             box-sizing: border-box;
             padding: 0;
             text-decoration: none;
-            border-bottom: 1px solid rgba(214,208,196,0.55);
+            border-bottom: 1px solid rgba(var(--cs-bord-rgb),0.55);
             position: relative;
             overflow: hidden;
           }
-          .lib-row:first-of-type { border-top: 1px solid rgba(214,208,196,0.55); }
+          .lib-row:first-of-type { border-top: 1px solid rgba(var(--cs-bord-rgb),0.55); }
           .lib-contenu {
             display: flex;
             align-items: center;

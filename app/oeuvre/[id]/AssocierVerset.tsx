@@ -58,7 +58,7 @@ export default function AssocierVerset({ segId, onAssocie }: {
       >
         + Ajouter un lien biblique
       </button>
-      {erreur && <p style={{ fontSize: '0.6875rem', color: '#c0562a', margin: '6px 0 0' }}>{erreur}</p>}
+      {erreur && <p style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', margin: '6px 0 0' }}>{erreur}</p>}
       {ouvert && (
         <ModalLienBiblique
           ouvert={ouvert}
