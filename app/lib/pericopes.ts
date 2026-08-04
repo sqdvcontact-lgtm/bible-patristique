@@ -98,9 +98,28 @@ export type PericopeCatalogueItem = {
   appellations: string[]
 }
 
-/** Charge le catalogue complet : chaque péricope avec l'occurrence PRINCIPALE (un
- *  seul livre représentatif) et ses autres appellations (pour élargir la recherche).
- *  Requêtes fusionnées en mémoire (pas de vue à créer). */
+type LignePericopeCat = { id: string; nom: string; categorie: string; est_collection: boolean }
+type LigneOccurrenceCat = { pericope_id: string; livre: string; canon_id_debut: string; canon_id_fin: string | null }
+type LigneNomCat = { pericope_id: string; nom: string }
+
+/** Fusion PURE des lignes brutes (péricopes + occurrence principale + noms) en items
+ *  de catalogue. Partagée par le chargement client et le chargement serveur (ISR). */
+export function assemblerCatalogue(pRows: LignePericopeCat[], oRows: LigneOccurrenceCat[], nRows: LigneNomCat[]): PericopeCatalogueItem[] {
+  const occParId = new Map<string, { livre: string; debut: string; fin: string | null }>()
+  for (const o of oRows) if (!occParId.has(o.pericope_id)) occParId.set(o.pericope_id, { livre: o.livre, debut: o.canon_id_debut, fin: o.canon_id_fin })
+  const nomsParId = new Map<string, string[]>()
+  for (const n of nRows) { const l = nomsParId.get(n.pericope_id) ?? []; l.push(n.nom); nomsParId.set(n.pericope_id, l) }
+  const items: PericopeCatalogueItem[] = []
+  for (const p of pRows) {
+    const occ = occParId.get(p.id)
+    if (!occ) continue
+    items.push({ id: p.id, nom: p.nom, categorie: p.categorie, est_collection: p.est_collection, livre: occ.livre, canon_debut: occ.debut, canon_fin: occ.fin, appellations: (nomsParId.get(p.id) ?? []).filter(n => n && n !== p.nom) })
+  }
+  return items
+}
+
+/** Charge le catalogue complet CÔTÉ CLIENT (session du visiteur). Le rendu ISR passe,
+ *  lui, par un fetch serveur + `assemblerCatalogue` (voir app/pericopes/page.tsx). */
 export async function chargerCataloguePericopes(signal?: AbortSignal): Promise<PericopeCatalogueItem[]> {
   const reqP = supabase.from('pericopes').select('id, nom, categorie, est_collection')
   const reqO = supabase.from('pericope_occurrences')
@@ -115,24 +134,7 @@ export async function chargerCataloguePericopes(signal?: AbortSignal): Promise<P
   if (rp.error) throw rp.error
   if (ro.error) throw ro.error
   if (rn.error) throw rn.error
-  const occParId = new Map<string, { livre: string; debut: string; fin: string | null }>()
-  for (const o of (ro.data ?? []) as { pericope_id: string; livre: string; canon_id_debut: string; canon_id_fin: string | null }[]) {
-    if (!occParId.has(o.pericope_id)) occParId.set(o.pericope_id, { livre: o.livre, debut: o.canon_id_debut, fin: o.canon_id_fin })
-  }
-  const nomsParId = new Map<string, string[]>()
-  for (const n of (rn.data ?? []) as { pericope_id: string; nom: string }[]) {
-    const liste = nomsParId.get(n.pericope_id) ?? []
-    liste.push(n.nom)
-    nomsParId.set(n.pericope_id, liste)
-  }
-  const items: PericopeCatalogueItem[] = []
-  for (const p of (rp.data ?? []) as { id: string; nom: string; categorie: string; est_collection: boolean }[]) {
-    const occ = occParId.get(p.id)
-    if (!occ) continue
-    const appellations = (nomsParId.get(p.id) ?? []).filter(n => n && n !== p.nom)
-    items.push({ id: p.id, nom: p.nom, categorie: p.categorie, est_collection: p.est_collection, livre: occ.livre, canon_debut: occ.debut, canon_fin: occ.fin, appellations })
-  }
-  return items
+  return assemblerCatalogue((rp.data ?? []) as LignePericopeCat[], (ro.data ?? []) as LigneOccurrenceCat[], (rn.data ?? []) as LigneNomCat[])
 }
 
 /** Notice d'une péricope, chargée à la demande (survol « Développer la notice » du
