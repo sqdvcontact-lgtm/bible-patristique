@@ -1,0 +1,30 @@
+BIBLE 899 — RAPPORT D’IMPORT DE LA v1.4
+
+Statut : RÉUSSI
+
+Garde préalable
+- TEI actif v1.3 avant import : 55e493355c5f95ce5b69bdfb547963c3127cf0250b9f0a36fe6c443f1294cff6
+- Sauvegarde persistante du TEI et du manifeste v1.3 : vérifiée.
+
+Import
+- TEI actif v1.4 : edfd700fdc31464e2c759f6d343a73fdd8d9d90f79e2ac3c3b0b92aa64a92993
+- Manifeste actif : 03587686b213dd834c54b9789cf26ec8e2ce0288a3bcfa058d7ab76769e7115d
+- Corps textuel actif identique au candidat corrigé : oui.
+- Promotion limitée aux métadonnées actives : édition 1.4, sans qualification candidate.
+- Images LOT_004 copiées et vérifiées : 100.
+- Images actives totales : 224.
+
+Contrôles éditoriaux et techniques
+- XML bien formé : réussi.
+- Relax NG : réussi.
+- xml:id uniques : réussi.
+- 112 faces de folios ; 224 colonnes ; 8 811 lignes ; 4 914 choice.
+- 8 gap ; 43 unclear ; 2 add ; 1 réclame selon le parseur.
+- Dernière colonne : f056v_b.
+- f24r_b_l21 : la chaiere del regne.
+- f49r_b_l01 : a qui me plera. Il dist derechief tu
+- Tests complets : 47 réussis sur 47.
+- Lint ciblé : réussi.
+- Build de production : réussi.
+
+Supabase n’a pas été modifié.
