@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar";
 import Consentement from "./components/Consentement";
 import { ProvisionAffichageAdmin } from "./lib/contexteAffichageAdmin";
 import { HAUTEUR_NAVBAR } from "./lib/mesures";
+import { JsonLd, donneesSite } from "./lib/donneesStructurees";
 import "./globals.css";
 
 const sourceSans = Source_Sans_3({
@@ -65,6 +66,9 @@ export default function RootLayout({
       className={`${sourceSans.variable} ${sourceSerif.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* Identité du site pour les moteurs (Organisation + WebSite). Inerte tant
+            que le site est fermé ; prête pour l'ouverture. */}
+        <JsonLd donnees={donneesSite()} />
         <ProvisionAffichageAdmin>
           <Navbar />
           {/* Décalage sous la navbar fixe — voir app/lib/mesures.ts */}

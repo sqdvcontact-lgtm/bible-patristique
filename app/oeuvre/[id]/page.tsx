@@ -5,6 +5,7 @@ import { ABREV_FR } from '@/app/lib/bible'
 import { parseNotes } from '@/app/lib/notes'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
+import { JsonLd, donneesLivre } from '@/app/lib/donneesStructurees'
 import OeuvreClient from './OeuvreClient'
 
 // Base fermée au rôle anonyme : chaque entrée serveur (métadonnées, page) crée
@@ -15,10 +16,25 @@ type Client = Awaited<ReturnType<typeof creerSupabaseServeur>>
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
   const supabase = await creerSupabaseServeur()
-  const { data } = await supabase.from('oeuvres').select('titre, auteurs(nom)').eq('id_oeuvre', id).maybeSingle()
+  const { data } = await supabase
+    .from('oeuvres')
+    .select('titre, titre_original, sous_titre, trad_auteur, auteurs(nom, nom_original)')
+    .eq('id_oeuvre', id).maybeSingle()
   if (!data) return { title: 'Corpus Scriptura' }
   const auteur = (data.auteurs as any)?.nom
-  return { title: auteur ? `${data.titre} — ${auteur} · Corpus Scriptura` : `${data.titre} · Corpus Scriptura` }
+  // Mots-clés = toutes les formes sous lesquelles on cherche l'œuvre et l'auteur.
+  const motsCles = [data.titre, data.titre_original, auteur, (data.auteurs as any)?.nom_original]
+    .filter((v): v is string => !!v)
+  const description = [
+    auteur ? `${data.titre}, ${auteur}` : data.titre,
+    data.sous_titre || null,
+    data.trad_auteur ? `traduction de ${data.trad_auteur}` : null,
+  ].filter(Boolean).join('. ') + '. Texte et notice sur Corpus Scriptura.'
+  return {
+    title: auteur ? `${data.titre} — ${auteur} · Corpus Scriptura` : `${data.titre} · Corpus Scriptura`,
+    description: description.slice(0, 300),
+    keywords: motsCles,
+  }
 }
 
 type Segment = {
@@ -343,6 +359,18 @@ export default async function OeuvrePage({
   }))
 
   return (
+    <>
+      {/* Book JSON-LD — seulement pour une œuvre publique (jamais un brouillon admin). */}
+      {estOeuvrePubliee(oeuvre as any) && (
+        <JsonLd donnees={donneesLivre({
+          id,
+          titre: oeuvre.titre,
+          titreOriginal: oeuvre.titre_original,
+          auteur, auteurId: auteurId || null,
+          traducteur: oeuvre.trad_auteur,
+          editeur: oeuvre.editeur,
+        })} />
+      )}
     <OeuvreClient
       auteur={auteur}
       auteurId={auteurId}
@@ -365,5 +393,6 @@ export default async function OeuvrePage({
       eligibleParagraphes={eligibleParagraphes}
       niv1InitialPartiel={niv1InitialPartiel}
     />
+    </>
   )
 }
