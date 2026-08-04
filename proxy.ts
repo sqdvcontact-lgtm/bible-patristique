@@ -10,6 +10,15 @@ import { NextResponse, type NextRequest } from 'next/server'
 // Laisser la variable vide désactive la redirection — utile en préproduction.
 const CANONIQUE = process.env.SITE_CANONIQUE?.trim()
 
+// ── Robots d'aspiration / d'entraînement d'IA ────────────────────────────────
+// Ceux qui S'ANNONCENT par leur User-Agent (GPTBot, ClaudeBot, CCBot…) sont
+// refusés en 403 : première couche, dont l'intérêt majeur est de MATÉRIALISER la
+// réservation « fouille de textes et de données » (opt-out TDM, art. L122-5-3 CPI).
+// N.B. un navigateur ordinaire (y compris un assistant pilotant le navigateur d'un
+// utilisateur connecté) a un UA de navigateur : il n'est jamais concerné. La
+// protection de fond reste le verrou d'authentification ci-dessous.
+const ROBOTS_IA = /(GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|anthropic-ai|Claude-Web|CCBot|Bytespider|PerplexityBot|Perplexity-User|Amazonbot|Meta-ExternalAgent|meta-externalfetcher|FacebookBot|Diffbot|Omgilibot|omgili|ImagesiftBot|YouBot|cohere-ai|Timpibot|DataForSeoBot|magpie-crawler|Scrapy)/i
+
 // ── Verrou de connexion ──────────────────────────────────────────────────────
 // Le site est en test : il n'est ouvert qu'à une seule adresse, et l'inscription
 // est fermée. Le contrôle se fait ICI, côté serveur, et non dans les pages :
@@ -45,7 +54,9 @@ const AUTORISES = [process.env.ADMIN_EMAIL, process.env.ACCES_INVITES]
 // `/contact` (+ son API) : point de contact du site, que les mentions légales
 // invoquent pour l'exercice des droits — donc joignable même site fermé.
 const LIBRES = ['/chantier', '/auth', '/api/auth', '/api/compte', '/api/attente', '/api/chiffres',
-                '/confidentialite', '/conditions-utilisation', '/contact', '/api/contact']
+                '/confidentialite', '/conditions-utilisation', '/contact', '/api/contact',
+                // Réservation TDM : doit rester lisible (y compris par les crawlers).
+                '/.well-known']
 
 function estLibre(chemin: string) {
   return LIBRES.some(p => chemin === p || chemin.startsWith(p + '/'))
@@ -53,6 +64,16 @@ function estLibre(chemin: string) {
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
+
+  // 0. Robots d'IA déclarés → 403. On laisse toutefois lire la réservation
+  //    elle-même (/.well-known/tdmrep.json), qui n'a de sens que si un robot peut la voir.
+  const ua = request.headers.get('user-agent') ?? ''
+  if (ROBOTS_IA.test(ua) && !pathname.startsWith('/.well-known')) {
+    return new NextResponse(
+      'Extraction automatisée non autorisée. Les droits de fouille de textes et de données (TDM) sont réservés (art. L122-5-3 CPI). Voir /conditions-utilisation.',
+      { status: 403, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Robots-Tag': 'noai, noindex' } },
+    )
+  }
 
   // 1. Domaine canonique, avant toute autre chose — inutile de vérifier une
   //    session sur une adresse qu'on s'apprête à quitter.
