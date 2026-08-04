@@ -102,7 +102,7 @@ export default function SectionEditeurs() {
     await charger()
   }
 
-  const champ: React.CSSProperties = { width: '100%', fontSize: '0.8625rem', padding: '6px 9px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: '#fff', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
+  const champ: React.CSSProperties = { width: '100%', fontSize: '0.8625rem', padding: '6px 9px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
   const label: React.CSSProperties = { display: 'block', fontSize: '0.71875rem', fontWeight: 700, letterSpacing: '0.04em', color: '#8a8278', textTransform: 'uppercase', margin: '0 0 3px' }
 
   return (
@@ -112,7 +112,7 @@ export default function SectionEditeurs() {
       </p>
 
       {/* Formulaire ajout / édition */}
-      <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '9px', padding: '16px 18px', marginBottom: '22px' }}>
+      <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '9px', padding: '16px 18px', marginBottom: '22px' }}>
         <p style={{ fontSize: '0.8625rem', fontWeight: 700, color: 'var(--cs-vert)', margin: '0 0 12px' }}>{brouillon.id ? 'Modifier un éditeur' : 'Ajouter un éditeur'}</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '11px', marginBottom: '11px' }}>
           <div style={{ gridColumn: '1 / -1' }}>
@@ -144,7 +144,7 @@ export default function SectionEditeurs() {
         </div>
         {statut === 'err' && <p style={{ fontSize: '0.79062rem', color: 'var(--cs-danger)', margin: '0 0 8px' }}>{erreur}</p>}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-          {brouillon.id && <button onClick={() => { setBrouillon(VIDE); setStatut('idle') }} style={{ fontSize: '0.82656rem', padding: '6px 13px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>}
+          {brouillon.id && <button onClick={() => { setBrouillon(VIDE); setStatut('idle') }} style={{ fontSize: '0.82656rem', padding: '6px 13px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>}
           <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '0.82656rem', padding: '6px 15px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
             {statut === 'envoi' ? 'Enregistrement…' : brouillon.id ? 'Enregistrer' : 'Ajouter'}
           </button>
@@ -176,7 +176,7 @@ export default function SectionEditeurs() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {editeurs.map(e => (
-            <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '7px', padding: '9px 13px' }}>
+            <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '7px', padding: '9px 13px' }}>
               <div style={{ minWidth: 0 }}>
                 <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.97031rem', color: 'var(--cs-encre-fonce)' }}>{e.nom_complet}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', marginTop: '2px' }}>

@@ -272,7 +272,7 @@ export default function ProgressionClient() {
         </p>
 
         <section style={{
-          background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px',
+          background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px',
           padding: '20px 22px', marginBottom: '24px', boxShadow: '0 8px 28px rgba(var(--cs-vert-rgb),0.06)',
           position: 'sticky', top: '56px', zIndex: 10,
         }}>
@@ -282,7 +282,7 @@ export default function ProgressionClient() {
               background: `conic-gradient(var(--cs-vert) ${pourcentTotalAnime}%, #ece8df 0)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto',
             }}>
-              <div style={{ width: '6.625rem', height: '106px', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+              <div style={{ width: '6.625rem', height: '106px', borderRadius: '50%', background: 'var(--cs-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                 <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.875rem', color: 'var(--cs-encre)', lineHeight: 1 }}>{Math.round(pourcentTotalAnime)}%</span>
                 <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', marginTop: '3px' }}>parcouru</span>
               </div>
@@ -302,7 +302,7 @@ export default function ProgressionClient() {
 
         {!userId && !chargement && (
           <div style={{
-            background: '#fff', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px',
+            background: 'var(--cs-surface)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px',
             padding: '12px 16px', marginBottom: '24px', fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', textAlign: 'center',
           }}>
             Connectez-vous pour enregistrer votre progression.

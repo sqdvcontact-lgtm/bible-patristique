@@ -97,7 +97,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', gap: '8px', alignItems: 'center' }}>
               {statut === 'err' && <span style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', marginRight: 'auto' }}>Erreur d’envoi.</span>}
-              <button onClick={onClose} style={{ fontSize: '0.71875rem', padding: '6px 13px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+              <button onClick={onClose} style={{ fontSize: '0.71875rem', padding: '6px 13px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
               <button onClick={envoyer} disabled={statut === 'sending' || !message.trim()}
                 style={{ fontSize: '0.71875rem', padding: '6px 15px', borderRadius: '5px', border: 'none', cursor: message.trim() ? 'pointer' : 'default', background: message.trim() ? 'var(--cs-danger)' : 'var(--cs-bord-clair)', color: message.trim() ? '#fff' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
                 {statut === 'sending' ? 'Envoi…' : 'Envoyer'}

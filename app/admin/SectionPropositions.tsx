@@ -91,7 +91,7 @@ export default function SectionPropositions() {
   if (erreur) return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '7px', maxWidth: '31.25rem' }}>
       <span style={{ fontSize: '0.8625rem', color: 'var(--cs-danger)' }}>{erreur}</span>
-      <button onClick={charger} style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-danger-bord)', background: '#fff', color: 'var(--cs-danger)', cursor: 'pointer', whiteSpace: 'nowrap' }}>Réessayer</button>
+      <button onClick={charger} style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-surface)', color: 'var(--cs-danger)', cursor: 'pointer', whiteSpace: 'nowrap' }}>Réessayer</button>
     </div>
   )
 
@@ -129,7 +129,7 @@ export default function SectionPropositions() {
             const s = STATUTS[p.statut] ?? { label: p.statut, couleur: 'var(--cs-texte-doux)', bg: '#f5f3ef' }
             const estOuverte = ouverte === p.id
             return (
-              <div key={p.id} style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
+              <div key={p.id} style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
                 {/* En-tête */}
                 <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
                   onClick={() => setOuverte(estOuverte ? null : p.id)}>

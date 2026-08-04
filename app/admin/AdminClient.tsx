@@ -82,11 +82,11 @@ export default function AdminClient({
       <style>{`
         .btn-vert { background: var(--cs-vert) !important; color: #fff !important; border: none !important; }
         .btn-vert:hover { background: var(--cs-vert-fonce) !important; }
-        .btn-rouge { background: #fff !important; color: var(--cs-danger) !important; border: 1px solid var(--cs-danger-bord) !important; }
+        .btn-rouge { background: var(--cs-surface) !important; color: var(--cs-danger) !important; border: 1px solid var(--cs-danger-bord) !important; }
         .btn-rouge:hover { background: var(--cs-danger-fond) !important; }
         /* Bouton secondaire neutre — réaccordé à la mise en page claire (l'ancienne
            version, pensée pour l'en-tête sombre, jurait sur fond clair). */
-        .btn-gris { background: #fff !important; color: var(--cs-texte-second) !important; border: 1px solid var(--cs-bord) !important; }
+        .btn-gris { background: var(--cs-surface) !important; color: var(--cs-texte-second) !important; border: 1px solid var(--cs-bord) !important; }
         .btn-gris:hover { background: #f4f2ee !important; border-color: var(--cs-bord) !important; }
         .btn-gris:disabled { opacity: 0.5 !important; cursor: default !important; }
         .adm-onglet:hover { color: #2f6046 !important; background: rgba(var(--cs-vert-rgb),0.05) !important; }
@@ -102,7 +102,7 @@ export default function AdminClient({
           + Déconnexion est retiré). Surface BLANCHE distincte du fond de la zone admin, pour
           se lire comme une vraie barre d'outils ; onglets clairs, grands, lisibles ; actif
           souligné de vert. */}
-      <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: '#fff', borderBottom: '1px solid #dfe4e1', display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', padding: '2px 20px 0', boxShadow: '0 2px 8px rgba(30,46,38,0.08)' }}>
+      <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid #dfe4e1', display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', padding: '2px 20px 0', boxShadow: '0 2px 8px rgba(30,46,38,0.08)' }}>
         {ONGLETS.map((o) => {
           const actif = onglet === o.key
           return (

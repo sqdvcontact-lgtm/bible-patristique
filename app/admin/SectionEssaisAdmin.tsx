@@ -112,7 +112,7 @@ function TableModeration({ essais: init, actionPublierEssai, actionRenvoyerBroui
   }
 
   return (
-    <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', overflowX: 'auto' }}>
+    <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
         <colgroup>
           <col style={{ width: '28%' }} />
@@ -228,7 +228,7 @@ function TableArchive({ essais: init }: { essais: EssaiArchive[] }) {
   }
 
   return (
-    <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', overflowX: 'auto' }}>
+    <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
         <colgroup>
           <col style={{ width: '25%' }} />
@@ -348,7 +348,7 @@ function petitBouton(couleur: string, bordure: string): React.CSSProperties {
   // « Modifier » se comporte comme les `<button>` (inline-flex).
   return {
     fontSize: '0.71875rem', padding: '3px 7px', borderRadius: '4px',
-    border: `1px solid ${bordure}`, background: '#fff', color: couleur,
+    border: `1px solid ${bordure}`, background: 'var(--cs-surface)', color: couleur,
     cursor: 'pointer', textDecoration: 'none', fontWeight: 600,
     minWidth: '5rem', boxSizing: 'border-box',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',

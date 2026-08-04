@@ -215,7 +215,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
 }) {
   const [valeur, setValeur] = useState(valeurInitiale);
   const ta = useRef<HTMLTextAreaElement>(null);
-  const outil: React.CSSProperties = { fontSize: '0.6875rem', padding: "4px 9px", borderRadius: 4, border: "1px solid var(--cs-bord)", background: "#fff", color: "var(--cs-texte-fort)", cursor: "pointer", fontFamily: "inherit", lineHeight: 1 };
+  const outil: React.CSSProperties = { fontSize: '0.6875rem', padding: "4px 9px", borderRadius: 4, border: "1px solid var(--cs-bord)", background: "var(--cs-surface)", color: "var(--cs-texte-fort)", cursor: "pointer", fontFamily: "inherit", lineHeight: 1 };
   const entourer = (avant: string, apres: string = avant) => {
     const el = ta.current; if (!el) return;
     const d = el.selectionStart, f = el.selectionEnd, sel = valeur.slice(d, f) || "texte";
@@ -230,7 +230,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
   };
   return (
     <div onClick={onFermer} style={{ position: "fixed", inset: 0, background: "rgba(30,25,20,0.4)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 9, padding: "18px 20px", width: 520, maxWidth: "100%", boxShadow: "0 12px 36px rgba(40,30,15,0.24)" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "var(--cs-surface)", borderRadius: 9, padding: "18px 20px", width: 520, maxWidth: "100%", boxShadow: "0 12px 36px rgba(40,30,15,0.24)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
           <p style={{ margin: 0, fontSize: '0.78125rem', fontWeight: 600, color: VERT }}>Modifier — {reference}</p>
           <button onClick={onFermer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: '0.9375rem', color: "var(--cs-texte-faible)", lineHeight: 1, padding: 0 }}>✕</button>
@@ -253,13 +253,13 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
         {/* Aperçu en direct : l'apparence enrichie du verset, telle qu'elle s'affichera. */}
         <div style={{ marginTop: 8 }}>
           <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: "var(--cs-texte-faible)" }}>Aperçu</span>
-          <div style={{ marginTop: 3, minHeight: "2.4em", fontSize: '0.84375rem', lineHeight: 1.55, fontFamily: "var(--font-source-serif), Georgia, serif", color: "var(--cs-texte-fort)", padding: "8px 11px", border: "1px solid var(--cs-fond-doux)", borderRadius: 5, background: "#fff" }}>
+          <div style={{ marginTop: 3, minHeight: "2.4em", fontSize: '0.84375rem', lineHeight: 1.55, fontFamily: "var(--font-source-serif), Georgia, serif", color: "var(--cs-texte-fort)", padding: "8px 11px", border: "1px solid var(--cs-fond-doux)", borderRadius: 5, background: "var(--cs-surface)" }}>
             {valeur.trim() ? texteEnrichi(valeur) : <span style={{ color: "var(--cs-bord)", fontStyle: "italic" }}>—</span>}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
           {statut === "erreur" && <span style={{ fontSize: '0.6875rem', color: ROUGE, marginRight: "auto" }}>échec de l’enregistrement</span>}
-          <button onClick={onFermer} style={{ padding: "5px 12px", fontSize: '0.71875rem', borderRadius: 4, border: "1px solid #d6cfc2", background: "#fff", color: "#8a8378", cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
+          <button onClick={onFermer} style={{ padding: "5px 12px", fontSize: '0.71875rem', borderRadius: 4, border: "1px solid #d6cfc2", background: "var(--cs-surface)", color: "#8a8378", cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
           <button onClick={() => onEnregistrer(valeur)} disabled={statut === "envoi"}
             style={{ padding: "5px 15px", fontSize: '0.71875rem', borderRadius: 4, border: "none", background: VERT, color: "#fff", cursor: statut === "envoi" ? "default" : "pointer", fontFamily: "inherit", fontWeight: 500 }}>
             {statut === "envoi" ? "Enregistrement…" : "Enregistrer"}
@@ -462,7 +462,7 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
       {ouvert && rect && createPortal(
         <div ref={panRef} role="listbox"
           style={{ position: "fixed", top: rect.top, left: rect.left, width: rect.width, zIndex: 3000,
-            background: "#fff", border: "1px solid var(--cs-bord)", borderRadius: 9, boxShadow: "0 12px 34px rgba(40,30,15,0.22)",
+            background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: 9, boxShadow: "0 12px 34px rgba(40,30,15,0.22)",
             padding: 5, maxHeight: "62vh", overflowY: "auto" }}>
           {GROUPES_LANG.map(g => {
             const membres = trads.filter(t => t.lang === g.code);
@@ -1253,7 +1253,7 @@ export default function PolyglottePage() {
             </div>
 
             {/* Corps : un bloc par livre, rendu paresseux (content-visibility) */}
-            <div style={{ border: "1px solid #e4ded3", borderTop: "none", borderRadius: "0 0 6px 6px", background: "#fff" }}>
+            <div style={{ border: "1px solid #e4ded3", borderTop: "none", borderRadius: "0 0 6px 6px", background: "var(--cs-surface)" }}>
               {colonnes.length === 0 && <div style={{ padding: 20, color: "#a49b8c" }}>Choisir au moins une traduction dans l’en-tête ci-dessus.</div>}
         {/* On NE démonte PAS le corps pendant un rechargement : changer de traduction ne
             fait que remplacer le texte des cellules, la structure (lignes du canon) reste

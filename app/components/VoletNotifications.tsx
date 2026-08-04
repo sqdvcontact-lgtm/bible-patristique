@@ -108,7 +108,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
           ) : (
             liste.map(n => (
               <article key={n.key}
-                style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderLeft: `3px solid ${onglet === 'nouvelles' ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, borderRadius: '7px', padding: '9px 11px' }}>
+                style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderLeft: `3px solid ${onglet === 'nouvelles' ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, borderRadius: '7px', padding: '9px 11px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '10px', marginBottom: '4px' }}>
                   <div style={{ minWidth: 0 }}>
                     <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 2px' }}>{n.titre}</p>

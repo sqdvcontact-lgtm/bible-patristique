@@ -175,7 +175,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
       <div style={{ position: 'relative', marginTop: '2px' }}>
         <input value={q} onChange={e => setQ(e.target.value)} type="text"
           placeholder="Rechercher une péricope…" aria-label="Rechercher une péricope"
-          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px 7px 28px', borderRadius: '6px', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte)', outline: 'none' }} />
+          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px 7px 28px', borderRadius: '6px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)', outline: 'none' }} />
         <svg width="12" height="12" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
           <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2" />
           <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round" />
@@ -234,7 +234,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
 
       {filtresActifs && (
         <button onClick={reinitialiser}
-          style={{ marginTop: '14px', width: '100%', padding: '6px 9px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.76rem' }}>
+          style={{ marginTop: '14px', width: '100%', padding: '6px 9px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.76rem' }}>
           Réinitialiser les filtres
         </button>
       )}
@@ -340,7 +340,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
                 <p style={{ fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Aucune péricope ne correspond aux filtres retenus.</p>
                 {filtresActifs && (
                   <button onClick={reinitialiser}
-                    style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.78rem' }}>
+                    style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.78rem' }}>
                     Réinitialiser les filtres
                   </button>
                 )}

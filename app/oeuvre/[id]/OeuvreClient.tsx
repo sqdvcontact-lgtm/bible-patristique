@@ -396,7 +396,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
       </button>
       {ouvert && (
         <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '8px', padding: '20px 22px', width: '22.5rem', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', width: '22.5rem', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Proposer un lien biblique</p>
               <button onClick={() => setOuvert(false)} style={{ fontSize: '0.875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
@@ -413,7 +413,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
                   style={{ width: '100%', fontSize: '0.6875rem', padding: '7px 9px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
                   {statut === 'err' && <span style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', alignSelf: 'center' }}>Erreur d'envoi.</span>}
-                  <button onClick={() => setOuvert(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+                  <button onClick={() => setOuvert(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                   <button onClick={envoyer} disabled={statut === 'envoi' || !texte.trim()}
                     style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: texte.trim() ? '#fff' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
                     {statut === 'envoi' ? 'Envoi…' : 'Envoyer'}
@@ -1424,7 +1424,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                           )}
                         </button>
                         {/* Deux moitiés révélées au survol. */}
-                        <div className="lec-split-menu" style={{ border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: '#fff' }}>
+                        <div className="lec-split-menu" style={{ border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: 'var(--cs-surface)' }}>
                           {(['paragraphes', 'segments'] as const).map(m => (
                             <button key={m} className={`lec-split-seg${actif && modeLecture === m ? ' lec-split-seg--actif' : ''}`}
                               onClick={() => { if (modeTexte !== 'fr') basculerTexte('fr'); basculerMode(m) }}>
@@ -1634,7 +1634,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   <span style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     Erreur de chargement.{' '}
                     <button onClick={() => changerNiv1(niv1Erreur, { forceRefresh: true })}
-                      style={{ fontSize: '0.6875rem', padding: '2px 8px', borderRadius: '3px', border: '1px solid var(--cs-danger-bord)', background: '#fff', color: 'var(--cs-danger)', cursor: 'pointer' }}>
+                      style={{ fontSize: '0.6875rem', padding: '2px 8px', borderRadius: '3px', border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-surface)', color: 'var(--cs-danger)', cursor: 'pointer' }}>
                       Réessayer
                     </button>
                   </span>
@@ -1685,7 +1685,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.74rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.6, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', cursor: 'pointer', borderRadius: '3px', padding: '2px 6px', margin: 0, background: segActif === s.id ? '#ddeee2' : 'transparent' } as React.CSSProperties}>
                     {rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
                   </div>
-                  <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: '0 2px 10px rgba(45,35,25,0.12)', padding: '2px 4px' }}>
+                  <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: '0 2px 10px rgba(45,35,25,0.12)', padding: '2px 4px' }}>
                     {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
                     <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} />
                     <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
@@ -1811,7 +1811,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                           {sid === premierSegmentId && normaliserEspaces(s.texte).length > 0 ? rendreAvecLettrine(s.texte, s.notes ?? {}) : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
                         </p>
                         <div className="seg-actions" style={mobile ? {
-                          position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6, opacity: 1, display: actionsSegMobileId === sid ? 'flex' : 'none', flexDirection: 'row', gap: '0.25rem', alignItems: 'center', background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
+                          position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6, opacity: 1, display: actionsSegMobileId === sid ? 'flex' : 'none', flexDirection: 'row', gap: '0.25rem', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
                         } : { display: 'flex', flexDirection: 'row', gap: '2px', flexShrink: 0, width: '68px', paddingTop: '2px', justifyContent: 'flex-end', marginRight: '-8px' }}>
                           {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
                           <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} className="seg-btn-action" />
@@ -1931,8 +1931,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         {/* Mobile : tiroir montant du bas, par-dessus le texte. */}
         {mobile && <div onClick={() => setPanneauOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
         <aside ref={refAside} style={mobile ? {
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: '#fff', boxShadow: '0 -10px 28px rgba(45,35,25,0.22)',
-        } : { width: pannWidth == null ? 'clamp(280px, 21vw, 480px)' : pannWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100vh - 3.5rem)', borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)', boxShadow: '0 -10px 28px rgba(45,35,25,0.22)',
+        } : { width: pannWidth == null ? 'clamp(280px, 21vw, 480px)' : pannWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100vh - 3.5rem)', borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)' }}>
           <div onMouseDown={e => {
             e.preventDefault()
             const startW = pannWidth ?? refAside.current?.getBoundingClientRect().width ?? 320
@@ -1988,12 +1988,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       pilule verte). Le vert ne sert plus qu'à l'option active et au focus. */}
                   <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 4px' }}>Traduction</p>
                   <button onClick={() => setTradOuverte(!tradOuverte)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '5px', border: `1px solid ${tradOuverte ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: '#fff', fontSize: '0.65625rem', color: 'var(--cs-encre)', cursor: 'pointer', transition: 'border-color 0.12s' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '5px', border: `1px solid ${tradOuverte ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: 'var(--cs-surface)', fontSize: '0.65625rem', color: 'var(--cs-encre)', cursor: 'pointer', transition: 'border-color 0.12s' }}>
                     <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{traductionsBible[tradIndex]?.label ?? trad}</span>
                     <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: 'var(--cs-texte-doux)', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </button>
                   {tradOuverte && (
-                    <div style={{ position: 'absolute', top: 'calc(100% - 2px)', left: 0, right: 0, background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '6px', zIndex: 50, boxShadow: '0 4px 20px rgba(0,0,0,0.10)', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', top: 'calc(100% - 2px)', left: 0, right: 0, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '6px', zIndex: 50, boxShadow: '0 4px 20px rgba(0,0,0,0.10)', overflow: 'hidden' }}>
                       {traductionsBible.map((t, i) => (
                         <button key={t.code} onClick={() => { setTradIndex(i); setTradOuverte(false) }} className="trad-option"
                           style={{ width: '100%', textAlign: 'left', padding: '6px 10px', fontSize: '0.65625rem', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: i < traductionsBible.length - 1 ? '1px solid var(--cs-fond-doux)' : 'none', background: tradIndex === i ? '#eef5f1' : '#fff', color: tradIndex === i ? 'var(--cs-vert)' : 'var(--cs-texte)', fontWeight: tradIndex === i ? 600 : 400, cursor: 'pointer' }}>
@@ -2220,13 +2220,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         </>
         ) : mobile ? (
           <button onClick={() => setPanneauOuvert(true)} title="Ouvrir le panneau de références"
-            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: '#fff', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-surface)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: 'rotate(-90deg)', color: 'var(--cs-texte-doux)' }}><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Références &amp; commentaires</span>
           </button>
         ) : (
           <button onClick={() => setPanneauOuvert(true)} title="Ouvrir le panneau de références"
-            style={{ position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', flexShrink: 0, height: 'calc(100vh - 3.5rem)', width: '22px', background: '#fff', border: 'none', borderLeft: '1px solid var(--cs-bord)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: 0 }}>
+            style={{ position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', flexShrink: 0, height: 'calc(100vh - 3.5rem)', width: '22px', background: 'var(--cs-surface)', border: 'none', borderLeft: '1px solid var(--cs-bord)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: 0 }}>
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}><path d="M7 1l-4 4 4 4" stroke="#9a958d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             <span style={{ writingMode: 'vertical-rl' as any, fontSize: '0.5rem', letterSpacing: '0.13em', textTransform: 'uppercase' as any, fontWeight: 600, color: 'var(--cs-texte-faible)', userSelect: 'none' }}>Commentaires et références bibliques</span>
           </button>
@@ -2240,7 +2240,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         return createPortal(
           <div onMouseEnter={() => { if (timerSurvolRef.current) clearTimeout(timerSurvolRef.current) }}
             onMouseLeave={() => masquerToolbar(segSurvol.id)}
-            style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.16)', padding: '2px 4px' }}>
+            style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.16)', padding: '2px 4px' }}>
             {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
             <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} />
             <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
@@ -2272,7 +2272,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       {infoEditionOuverte && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', top: 48, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}
           onClick={() => setInfoEditionOuverte(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#fff', borderRadius: '10px', padding: '18px 22px', width: '33.75rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: 'var(--cs-surface)', borderRadius: '10px', padding: '18px 22px', width: '33.75rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
               <div style={{ minWidth: 0 }}>
                 <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: '#6f9268', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette édition</p>
@@ -2345,7 +2345,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       {estAdmin && configOuverte && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
           onClick={() => setConfigOuverte(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '20px 22px', width: '25rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '10px', padding: '20px 22px', width: '25rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Niveaux d'affichage</p>
               <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
@@ -2416,7 +2416,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               </button>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '12px', borderTop: '1px solid var(--cs-fond-doux)' }}>
-              <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+              <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
               <button disabled={configEnvoi} onClick={async () => {
                 setConfigEnvoi(true)
                 const toStr = (b: boolean[]) => b.map(x => x ? '1' : '0').join(',')

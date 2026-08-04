@@ -56,14 +56,14 @@ export default function MessageriePage() {
         </div>
 
         {connecte === false ? (
-          <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '28px 24px', textAlign: 'center' }}>
+          <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '28px 24px', textAlign: 'center' }}>
             <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '0 0 14px' }}>Connectez-vous pour accéder à votre messagerie.</p>
             <Link href="/chantier" style={{ fontSize: '0.75rem', color: 'var(--cs-vert)', fontWeight: 600, textDecoration: 'none' }}>Se connecter</Link>
           </div>
         ) : conversations === null ? (
           <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
         ) : conversations.length === 0 ? (
-          <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '32px 24px', textAlign: 'center' }}>
+          <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '32px 24px', textAlign: 'center' }}>
             <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-texte-faible)', margin: '0 0 8px' }}>Aucun message</p>
             <p style={{ fontSize: '0.75rem', color: 'var(--cs-bord)', margin: 0 }}>
               Rendez-vous sur le{' '}

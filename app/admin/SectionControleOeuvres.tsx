@@ -839,15 +839,15 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     <div className="controle-oeuvres">
       <style>{`
         .controle-oeuvres h1{font-family:var(--font-source-serif), Georgia, serif;font-size:1.125rem;font-weight:normal;color:var(--cs-encre-fonce);margin:0;letter-spacing:.02em;}
-        .controle-oeuvres .toolbar{background:#fff;border:1px solid #d9e1dc;border-radius:8px;padding:8px 14px 9px;margin-bottom:12px;box-shadow:0 5px 16px rgba(30,46,38,.045);text-align:center;}
+        .controle-oeuvres .toolbar{background:var(--cs-surface);border:1px solid #d9e1dc;border-radius:8px;padding:8px 14px 9px;margin-bottom:12px;box-shadow:0 5px 16px rgba(30,46,38,.045);text-align:center;}
         .controle-oeuvres .toolbar-regle{width:34px;height:1px;background:var(--cs-or-doux);margin:5px auto 7px;}
         .controle-oeuvres .oeuvre-search{font-size:0.6875rem;border:1px solid var(--cs-bord);border-radius:999px;background:var(--cs-fond-clair);color:var(--cs-texte-fort);padding:5px 12px;width:min(440px,100%);text-align:center;outline:none;transition:border-color .14s,box-shadow .14s,background .14s;}
-        .controle-oeuvres .oeuvre-search:focus{background:#fff;border-color:#8aa185;box-shadow:0 0 0 3px rgba(var(--cs-vert-rgb),.09);}
+        .controle-oeuvres .oeuvre-search:focus{background:var(--cs-surface);border-color:#8aa185;box-shadow:0 0 0 3px rgba(var(--cs-vert-rgb),.09);}
         .controle-oeuvres .toolbar > div:last-child{justify-content:center;margin-top:7px;}
         /* Le texte occupe tout ce qui reste ; le volet d'analyse a une largeur fixe et
            généreuse. Plus de centrage : la colonne de lecture part de la gauche. */
         .controle-layout{display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:18px;align-items:start;}
-        .segments-panel{background:#fff;border:1px solid #e3ddd3;border-radius:2px;padding:30px 46px 38px;box-shadow:0 10px 28px rgba(30,46,38,.05);}
+        .segments-panel{background:var(--cs-surface);border:1px solid #e3ddd3;border-radius:2px;padding:30px 46px 38px;box-shadow:0 10px 28px rgba(30,46,38,.05);}
         .controle-pagination{display:flex;align-items:center;justify-content:center;gap:13px;margin:0 0 23px;color:#8a8278;font-size:0.75rem;}
         .controle-pagination.bas{margin:24px 0 0;}
         .controle-pagination button{border:0;background:transparent;color:var(--cs-vert);font-family:var(--font-source-serif), Georgia, serif;font-size:1.5rem;line-height:1;cursor:pointer;padding:0 6px;}
@@ -880,13 +880,13 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .segment-texte{font-family:var(--font-source-sans), Arial, sans-serif;font-size:.82rem;line-height:1.52;text-align:justify;text-justify:inter-word;hyphens:auto;color:var(--cs-texte-fort);margin:0;word-spacing:-.025em;letter-spacing:0;white-space:pre-line;}
         .controle-groupe{font-family:var(--font-source-serif), Georgia, serif;font-size:1.12rem;font-weight:400;color:var(--cs-encre);text-align:center;line-height:1.35;margin:30px auto 17px;max-width:620px;}
         .controle-groupe::after{content:"";display:block;width:38px;height:1px;background:var(--cs-or-doux);margin:11px auto 0;}
-        .controle-droit{position:sticky;top:142px;max-height:calc(100vh - 160px);overflow-y:auto;background:#fff;border:1px solid #d9e1dc;border-radius:8px;padding:15px 16px;box-shadow:0 10px 28px rgba(30,46,38,.07);}
+        .controle-droit{position:sticky;top:142px;max-height:calc(100vh - 160px);overflow-y:auto;background:var(--cs-surface);border:1px solid #d9e1dc;border-radius:8px;padding:15px 16px;box-shadow:0 10px 28px rgba(30,46,38,.07);}
         .pill{display:inline-flex;align-items:center;border-radius:999px;padding:2px 8px;font-size:0.5625rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
-        .stat-btn{border:1px solid var(--cs-bord);background:#fff;border-radius:999px;padding:3px 8px;font-size:0.625rem;cursor:pointer;color:var(--cs-texte);}
+        .stat-btn{border:1px solid var(--cs-bord);background:var(--cs-surface);border-radius:999px;padding:3px 8px;font-size:0.625rem;cursor:pointer;color:var(--cs-texte);}
         .stat-btn.active{background:#2f6046;color:#fff;border-color:#2f6046;}
-        .mode-btn{border:1px solid var(--cs-bord);background:#fff;border-radius:999px;padding:3px 9px;font-size:0.625rem;color:var(--cs-texte);cursor:pointer;}
+        .mode-btn{border:1px solid var(--cs-bord);background:var(--cs-surface);border-radius:999px;padding:3px 9px;font-size:0.625rem;color:var(--cs-texte);cursor:pointer;}
         .mode-btn.active{background:var(--cs-vert-pale);border-color:var(--cs-vert);color:#2f6046;font-weight:700;}
-        .niveau-btn{border:1px solid var(--cs-bord);background:#fff;border-radius:999px;padding:4px 8px;font-size:0.625rem;cursor:pointer;color:var(--cs-texte);transition:background .12s,border-color .12s,color .12s;}
+        .niveau-btn{border:1px solid var(--cs-bord);background:var(--cs-surface);border-radius:999px;padding:4px 8px;font-size:0.625rem;cursor:pointer;color:var(--cs-texte);transition:background .12s,border-color .12s,color .12s;}
         .niveau-btn.active{font-weight:700;}
         .controle-section{margin-top:16px;padding-top:14px;border-top:1px solid #d8cfbf;}
         .controle-section-title{font-family:var(--font-source-serif), Georgia, serif;font-style:italic;font-size:0.78125rem;font-weight:normal;letter-spacing:0;text-transform:none;color:var(--cs-vert);margin:0 0 8px;}
@@ -897,7 +897,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .controle-lien-texte{font-size:0.71875rem;line-height:1.5;color:#332d28;margin:0;white-space:normal;}
         .controle-mini-btn{border:0;background:transparent;color:var(--cs-danger-fonce);font-size:0.65625rem;padding:4px 0 0;cursor:pointer;}
         .controle-edition{width:100%;min-height:150px;border:1px solid var(--cs-bord);border-radius:6px;background:#fffdf9;color:var(--cs-texte-fort);font-size:0.75rem;line-height:1.55;padding:8px 9px;resize:vertical;}
-        .controle-action-btn{border:1px solid var(--cs-bord);background:#fff;border-radius:999px;padding:5px 10px;font-size:0.65625rem;cursor:pointer;color:var(--cs-vert);}
+        .controle-action-btn{border:1px solid var(--cs-bord);background:var(--cs-surface);border-radius:999px;padding:5px 10px;font-size:0.65625rem;cursor:pointer;color:var(--cs-vert);}
         .controle-action-btn.danger{color:var(--cs-danger-fonce);border-color:#e2b9aa;background:#fff7f4;}
         .controle-action-btn:disabled{opacity:.55;cursor:default;}
         /* En-tête du volet : segment + référence sur une ligne, score/rang alignés à droite. */
@@ -908,9 +908,9 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .controle-entete-score{display:flex;align-items:center;gap:9px;flex-shrink:0;}
         .controle-score-inline{font-family:var(--font-source-serif), Georgia, serif;font-size:1.3125rem;color:var(--cs-encre-fonce);line-height:1;}
         .controle-seuils{font-size:0.625rem;color:var(--cs-texte-faible);margin:0 0 2px;}
-        .controle-nature-select{font-size:0.6875rem;border:1px solid var(--cs-bord);border-radius:5px;background:#fff;color:var(--cs-texte-fort);padding:2px 6px;cursor:pointer;}
+        .controle-nature-select{font-size:0.6875rem;border:1px solid var(--cs-bord);border-radius:5px;background:var(--cs-surface);color:var(--cs-texte-fort);padding:2px 6px;cursor:pointer;}
         /* Page d'accueil : liste sobre des œuvres. */
-        .controle-accueil{background:#fff;border:1px solid #e3ddd3;border-radius:8px;padding:10px 8px;box-shadow:0 6px 18px rgba(30,46,38,.05);max-width:720px;margin:0 auto;}
+        .controle-accueil{background:var(--cs-surface);border:1px solid #e3ddd3;border-radius:8px;padding:10px 8px;box-shadow:0 6px 18px rgba(30,46,38,.05);max-width:720px;margin:0 auto;}
         .controle-accueil ul{list-style:none;margin:0;padding:0;}
         .controle-accueil li + li{border-top:1px solid var(--cs-fond-doux);}
         .controle-accueil button{display:block;width:100%;text-align:left;background:transparent;border:0;cursor:pointer;padding:9px 12px;font-family:var(--font-source-serif), Georgia, serif;font-size:0.84375rem;color:var(--cs-encre);border-radius:5px;transition:background .12s;}
@@ -973,7 +973,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
               </span>
               <button type="button" onClick={recalculerRangs} disabled={recalculEnCours || chargementRangs}
                 title="Recalculer les couleurs de qualité (parcourt tous les segments)"
-                style={{ fontSize: '0.625rem', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-vert)', borderRadius: '999px', padding: '3px 10px', cursor: recalculEnCours || chargementRangs ? 'default' : 'pointer', opacity: recalculEnCours || chargementRangs ? 0.5 : 1, whiteSpace: 'nowrap' }}>
+                style={{ fontSize: '0.625rem', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', borderRadius: '999px', padding: '3px 10px', cursor: recalculEnCours || chargementRangs ? 'default' : 'pointer', opacity: recalculEnCours || chargementRangs ? 0.5 : 1, whiteSpace: 'nowrap' }}>
                 ↻ Recalculer
               </button>
             </div>

@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react'
 import type { EditionCible } from './oeuvreTypes'
 
-const BTN_MODAL: React.CSSProperties = { fontSize: '0.6875rem', padding: '4px 9px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte)', cursor: 'pointer' }
+const BTN_MODAL: React.CSSProperties = { fontSize: '0.6875rem', padding: '4px 9px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }
 
 async function appelerAPI(chemin: string, corps: object): Promise<{ ok: boolean; error?: string }> {
   const res = await fetch(chemin, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corps) })
@@ -103,7 +103,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '8px', padding: '20px 24px', width: '42.5rem', maxWidth: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 24px', width: '42.5rem', maxWidth: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>
             {cible.type === 'segment' ? 'Modifier le segment' : cible.type === 'titre_oeuvre' ? (CHAMP_LABEL[cible.champ] ?? "Modifier le titre de l'œuvre") : `Modifier le titre de niveau ${cible.niveau}`}
@@ -140,7 +140,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
               </button>
             ) : <span />}
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={onClose} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+              <button onClick={onClose} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
               <button onClick={() => setEtape('confirmation')} disabled={!valeur.trim()}
                 style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: valeur.trim() ? 'pointer' : 'default', background: valeur.trim() ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: '#fff', fontWeight: 500 }}>
                 Modifier
@@ -158,7 +158,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             {valeur}
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <button onClick={() => setEtape('edition')} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Retour</button>
+            <button onClick={() => setEtape('edition')} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Retour</button>
             <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: 'var(--cs-vert)', color: '#fff', fontWeight: 500 }}>
               {statut === 'envoi' ? 'Envoi…' : 'Confirmer'}
             </button>
@@ -169,7 +169,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             {valeur}
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <button onClick={() => setEtape('edition')} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Retour</button>
+            <button onClick={() => setEtape('edition')} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Retour</button>
             <button onClick={supprimerSegment} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: 'var(--cs-danger)', color: '#fff', fontWeight: 500 }}>
               {statut === 'envoi' ? 'Suppression…' : 'Supprimer définitivement'}
             </button>

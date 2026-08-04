@@ -133,7 +133,7 @@ export default async function AdminPage() {
   if (!autorise) {
     return (
       <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '10px', padding: '36px 40px', width: '21.25rem', textAlign: 'center' }}>
+        <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '10px', padding: '36px 40px', width: '21.25rem', textAlign: 'center' }}>
           <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.4375rem', fontWeight: 'normal', color: 'var(--cs-encre)', marginBottom: '6px' }}>Administration</h1>
           <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte-doux)', marginBottom: '20px' }}>Corpus Scriptura</p>
           <p style={{ fontSize: '0.89844rem', color: 'var(--cs-texte-second)', lineHeight: 1.6, marginBottom: '22px' }}>

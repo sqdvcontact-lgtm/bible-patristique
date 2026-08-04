@@ -154,7 +154,7 @@ export default function SectionCharteAccentuation() {
         Règles et requêtes SQL pour la correction des majuscules non accentuées dans le corpus patristique.
       </p>
 
-      <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '16px 18px', marginBottom: '12px' }}>
+      <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '16px 18px', marginBottom: '12px' }}>
         {statut === 'loading' ? (
           <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', margin: 0 }}>Chargement…</p>
         ) : (

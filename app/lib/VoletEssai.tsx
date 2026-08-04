@@ -10,7 +10,7 @@ import { inlineVersHtml, htmlVersSyntaxe } from './serialisationEssai'
 // voit la mise en forme immédiatement — plus d'aperçu séparé ni de syntaxe brute.
 const BTN_NOTE: CSSProperties = {
   fontSize: '0.6875rem', width: 26, height: 24, display: 'inline-flex', alignItems: 'center',
-  justifyContent: 'center', border: '1px solid var(--cs-bord)', borderRadius: 4, background: '#fff',
+  justifyContent: 'center', border: '1px solid var(--cs-bord)', borderRadius: 4, background: 'var(--cs-surface)',
   color: 'var(--cs-texte-fort)', cursor: 'pointer', lineHeight: 1, fontFamily: 'inherit',
 }
 
@@ -58,7 +58,7 @@ function EditeurNoteWysiwyg({ valeur, mode, onChange, onEnregistrer }: {
       {/* Zone UNIQUE, éditable, WYSIWYG. */}
       <div ref={ref} className="note-zone" contentEditable suppressContentEditableWarning
         onInput={synchroniser} data-placeholder="Texte de la note…"
-        style={{ minHeight: '5.5em', fontSize: '0.8125rem', lineHeight: 1.55, color: 'var(--cs-texte-fort)', fontFamily: 'var(--font-source-serif), Georgia, serif', border: '1px solid var(--cs-bord)', borderRadius: '6px', background: '#fff', padding: '9px 10px', outline: 'none', overflowY: 'auto' }} />
+        style={{ minHeight: '5.5em', fontSize: '0.8125rem', lineHeight: 1.55, color: 'var(--cs-texte-fort)', fontFamily: 'var(--font-source-serif), Georgia, serif', border: '1px solid var(--cs-bord)', borderRadius: '6px', background: 'var(--cs-surface)', padding: '9px 10px', outline: 'none', overflowY: 'auto' }} />
       <button onClick={() => onEnregistrer(valeurCourante())}
         style={{ alignSelf: 'flex-end', fontSize: '0.71875rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
         {mode === 'creation' ? 'Insérer la note' : 'Enregistrer la note'}

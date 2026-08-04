@@ -23,7 +23,7 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
   const inchangees = lignes.length - modifiees.length
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(30,26,22,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ background: '#fff', borderRadius: '10px', width: '100%', maxWidth: '53.75rem', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}>
+      <div style={{ background: 'var(--cs-surface)', borderRadius: '10px', width: '100%', maxWidth: '53.75rem', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}>
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--cs-bord-clair)', flexShrink: 0 }}>
           <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.22187rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 6px' }}>Validation de l'import</h2>
           <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte-doux)', margin: 0 }}>
@@ -61,7 +61,7 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
           )}
         </div>
         <div style={{ padding: '16px 24px', borderTop: '1px solid var(--cs-bord-clair)', display: 'flex', justifyContent: 'flex-end', gap: '10px', flexShrink: 0 }}>
-          <button onClick={onAnnuler} disabled={importing} style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+          <button onClick={onAnnuler} disabled={importing} style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
           <button onClick={onConfirmer} disabled={importing || modifiees.length === 0}
             style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: 'none', cursor: modifiees.length > 0 ? 'pointer' : 'default', background: modifiees.length > 0 ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: modifiees.length > 0 ? '#fff' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
             {importing ? 'Import en cours…' : `Confirmer l'import (${modifiees.length} ligne${modifiees.length > 1 ? 's' : ''})`}
@@ -72,7 +72,7 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
   )
 }
 
-const inputStyleAuteur: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '0.8625rem', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: '#fff', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
+const inputStyleAuteur: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '0.8625rem', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
 const lbl: React.CSSProperties = { fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '2px' }
 const sepOeuvre: React.CSSProperties = { borderTop: '1px solid var(--cs-fond-doux)', gridColumn: '1 / -1', margin: '2px 0' }
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -216,7 +216,7 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
             stylePhotoAuteur) et mêmes styles de contenu, pour que le cadrage vu ici soit
             rigoureusement celui de la bibliothèque. */}
         <div onMouseMove={onMove} onMouseUp={endDrag} onMouseLeave={endDrag}
-          style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden', userSelect: 'none' }}>
+          style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden', userSelect: 'none' }}>
           <div style={{ display: 'flex' }}>
             <div ref={carteRef} style={{ width: '7.5rem', flexShrink: 0, position: 'relative', overflow: 'hidden', background: 'var(--cs-fond-doux)', minHeight: '170px' }}>
               <img src={photoUrl} alt="" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', ...stylePhotoAuteur(pos) }} />
@@ -247,16 +247,16 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
           </div>
         </div>
 
-        <div style={{ marginTop: '12px', padding: '12px', background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ marginTop: '12px', padding: '12px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', flex: 1 }}>Zoom</span>
-          <button onClick={() => zoomer(-0.1)} style={{ width: 27, height: 27, borderRadius: '50%', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>−</button>
+          <button onClick={() => zoomer(-0.1)} style={{ width: 27, height: 27, borderRadius: '50%', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>−</button>
           <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-second)', minWidth: '48px', textAlign: 'center' }}>{Math.round(pos.scale * 100)} %</span>
-          <button onClick={() => zoomer(0.1)} style={{ width: 27, height: 27, borderRadius: '50%', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>+</button>
-          <button onClick={reset} style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '5px', padding: '6px 12px', cursor: 'pointer', marginLeft: '6px' }}>Réinit.</button>
+          <button onClick={() => zoomer(0.1)} style={{ width: 27, height: 27, borderRadius: '50%', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>+</button>
+          <button onClick={reset} style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '5px', padding: '6px 12px', cursor: 'pointer', marginLeft: '6px' }}>Réinit.</button>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--cs-bord-clair)' }}>
-          <button onClick={onClose} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+          <button onClick={onClose} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
           <button onClick={sauvegarder} disabled={saving} style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: 'none', background: saving ? '#a0b8aa' : 'var(--cs-vert)', color: '#fff', cursor: saving ? 'default' : 'pointer', fontWeight: 500 }}>
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
@@ -376,7 +376,7 @@ function ChampCatalogue({ label, valeur, accent = false, transform, lien = false
               onChange={e => setSaisie(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') valider(); if (e.key === 'Escape') { setEnEdition(false); setErreur(null) } }}
               onBlur={valider}
-              style={{ fontSize: '0.8rem', padding: '2px 7px', border: '1px solid #b8ccc0', borderRadius: '4px', background: '#fff', color: '#2a322a', outline: 'none', width: '100%', boxSizing: 'border-box' }} />
+              style={{ fontSize: '0.8rem', padding: '2px 7px', border: '1px solid #b8ccc0', borderRadius: '4px', background: 'var(--cs-surface)', color: '#2a322a', outline: 'none', width: '100%', boxSizing: 'border-box' }} />
             {erreur && <span style={{ fontSize: '0.64687rem', color: '#b3261e', lineHeight: 1.25, marginTop: '1px', display: 'block' }}>{erreur}</span>}
           </>
         ) : estUrl ? (
@@ -398,7 +398,7 @@ function BoutonLienNotice({ href, label }: { href: string | null; label: string 
   const ok = !!href && /^https?:\/\//i.test(href)
   const base: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.7rem', fontWeight: 500, textDecoration: 'none', padding: '4px 13px', borderRadius: '999px', lineHeight: 1.3 }
   if (!ok) return <span style={{ ...base, color: 'var(--cs-bord)', border: '1px solid var(--cs-fond-doux)', background: '#faf7f1', cursor: 'default' }} title="Aucune URL renseignée">{label}<span aria-hidden="true"> —</span></span>
-  return <a href={href!} target="_blank" rel="noopener noreferrer" style={{ ...base, color: 'var(--cs-vert)', border: '1px solid #cfdccb', background: '#fff' }}>{label}<span aria-hidden="true" style={{ opacity: 0.7 }}>↗</span></a>
+  return <a href={href!} target="_blank" rel="noopener noreferrer" style={{ ...base, color: 'var(--cs-vert)', border: '1px solid #cfdccb', background: 'var(--cs-surface)' }}>{label}<span aria-hidden="true" style={{ opacity: 0.7 }}>↗</span></a>
 }
 
 // Petite flèche oblique nette (nord-est) pour les liens sortants.
@@ -524,7 +524,7 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
                 <span style={{
                   fontSize: '1.07813rem', fontWeight: 700, lineHeight: 1,
                   color: couleurScoreCatalogue(n.score_fiabilite),
-                  background: '#fff',
+                  background: 'var(--cs-surface)',
                   border: `1.5px solid ${couleurScoreCatalogue(n.score_fiabilite)}`,
                   padding: '3px 9px', borderRadius: '5px',
                   minWidth: '40px', textAlign: 'center',
@@ -685,7 +685,7 @@ function BlocCatalogueAuteurSeul({ nom, notices, onValiderAdmin, onRefuser }: {
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                <span title="Score" style={{ fontSize: '0.71875rem', fontWeight: 700, padding: '3px 7px', borderRadius: '4px', border: `1.5px solid ${couleurScoreCatalogue(n.score_fiabilite)}`, color: couleurScoreCatalogue(n.score_fiabilite), background: '#fff', minWidth: '30px', textAlign: 'center' }}>
+                <span title="Score" style={{ fontSize: '0.71875rem', fontWeight: 700, padding: '3px 7px', borderRadius: '4px', border: `1.5px solid ${couleurScoreCatalogue(n.score_fiabilite)}`, color: couleurScoreCatalogue(n.score_fiabilite), background: 'var(--cs-surface)', minWidth: '30px', textAlign: 'center' }}>
                   {n.score_fiabilite ?? '?'}
                 </span>
                 <BoutonsAdminNotice n={n} onValiderAdmin={onValiderAdmin} onRefuser={onRefuser} />
@@ -743,7 +743,7 @@ function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]
               onKeyDown={e => { if (e.key === 'Enter') ajouterCustom(); if (e.key === 'Escape') { setNouveau(false); setSaisie('') } }}
               autoFocus style={{ ...inputStyleAuteur, width: '10rem', fontSize: '0.79062rem', padding: '4px 8px' }} />
             <button onClick={ajouterCustom} style={{ fontSize: '0.75469rem', padding: '3px 10px', borderRadius: '3px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer' }}>Ajouter</button>
-            <button onClick={() => { setNouveau(false); setSaisie('') }} style={{ fontSize: '0.75469rem', padding: '3px 8px', borderRadius: '3px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-doux)', cursor: 'pointer' }}>Annuler</button>
+            <button onClick={() => { setNouveau(false); setSaisie('') }} style={{ fontSize: '0.75469rem', padding: '3px 8px', borderRadius: '3px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', cursor: 'pointer' }}>Annuler</button>
           </>
         ) : (
           <button onClick={() => setNouveau(true)} style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-second)', border: '1px dashed var(--cs-bord)', background: 'transparent', borderRadius: '3px', padding: '2px 10px', cursor: 'pointer' }}>
@@ -1474,7 +1474,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           <div onClick={() => setConfigOeuvre(null)}
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div onClick={e => e.stopPropagation()}
-              style={{ background: '#fff', borderRadius: '10px', padding: '24px 28px', width: '30rem', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
+              style={{ background: 'var(--cs-surface)', borderRadius: '10px', padding: '24px 28px', width: '30rem', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.00625rem', color: 'var(--cs-encre)', margin: 0 }}>{oeuvreNom}</p>
                 <button onClick={() => setConfigOeuvre(null)} style={{ fontSize: '1.00625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
@@ -1537,7 +1537,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
               </div>
 
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '8px' }}>
-                <button onClick={() => setConfigOeuvre(null)} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+                <button onClick={() => setConfigOeuvre(null)} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                 <button onClick={() => sauvegarderNiveaux(configOeuvre, niveauxConfig[configOeuvre] ?? cfg)}
                   style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
               </div>
@@ -1550,7 +1550,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
         <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
           placeholder="Rechercher un auteur ou une œuvre…"
-          style={{ flex: 1, fontSize: '0.8625rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: '#fff', color: 'var(--cs-texte-fort)', outline: 'none' }} />
+          style={{ flex: 1, fontSize: '0.8625rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none' }} />
         {recherche && <button onClick={() => setRecherche('')} style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>}
         <button onClick={() => { setAjoutAuteur(!ajoutAuteur); setMsgAjoutAuteur(null) }}
           style={{ width: '7.375rem', textAlign: 'center', fontSize: '0.8625rem', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutAuteur ? 'var(--cs-vert-fonce)' : 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
@@ -1571,7 +1571,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           {menuFiltreOuvert && (
             <>
               <div onClick={() => setMenuFiltreOuvert(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
-              <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 41, background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '6px', boxShadow: '0 6px 20px rgba(0,0,0,0.12)', overflow: 'hidden', minWidth: '190px' }}>
+              <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 41, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '6px', boxShadow: '0 6px 20px rgba(0,0,0,0.12)', overflow: 'hidden', minWidth: '190px' }}>
                 {FILTRES_AUTEURS.map(f => (
                   <button key={f.code} onClick={() => { setFiltreAuteurs(f.code); setMenuFiltreOuvert(false) }}
                     style={{ display: 'block', width: '100%', textAlign: 'left', fontSize: '0.8625rem', padding: '7px 12px', border: 'none', borderBottom: '1px solid var(--cs-fond-doux)', background: filtreAuteurs === f.code ? 'rgba(var(--cs-vert-rgb),0.08)' : '#fff', color: filtreAuteurs === f.code ? '#2f6046' : 'var(--cs-texte)', fontWeight: filtreAuteurs === f.code ? 600 : 400, cursor: 'pointer' }}>
@@ -1596,14 +1596,14 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       <>
 
       {ajoutOeuvre && (
-        <div style={{ background: '#fff', border: '2px solid var(--cs-vert)', borderRadius: '8px', padding: '18px 20px', marginBottom: '10px' }}>
+        <div style={{ background: 'var(--cs-surface)', border: '2px solid var(--cs-vert)', borderRadius: '8px', padding: '18px 20px', marginBottom: '10px' }}>
           <SectionAjouterOeuvre auteurs={auteurs} />
         </div>
       )}
 
       {/* Formulaire nouvel auteur */}
       {ajoutAuteur && (
-        <div style={{ background: '#fff', border: '2px solid var(--cs-vert)', borderRadius: '8px', padding: '16px 20px', marginBottom: '8px' }}>
+        <div style={{ background: 'var(--cs-surface)', border: '2px solid var(--cs-vert)', borderRadius: '8px', padding: '16px 20px', marginBottom: '8px' }}>
           <p style={{ fontSize: '0.8625rem', fontWeight: 600, color: 'var(--cs-vert)', marginBottom: '14px' }}>Nouvel auteur</p>
           <ChampsAuteur
             valeurs={nouvelAuteur}
@@ -1613,7 +1613,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           />
           {msgAjoutAuteur && <p style={{ fontSize: '0.82656rem', color: 'var(--cs-danger)', marginBottom: '8px' }}>{msgAjoutAuteur}</p>}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <button onClick={() => { setAjoutAuteur(false); setMsgAjoutAuteur(null) }} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+            <button onClick={() => { setAjoutAuteur(false); setMsgAjoutAuteur(null) }} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
             <button onClick={creerAuteur} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Créer</button>
           </div>
         </div>
@@ -1632,7 +1632,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           )
           const ouvert = auteurOuvert === auteur.id_auteur || oeuvreTrouvee
           return (
-          <div key={auteur.id_auteur} style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
+          <div key={auteur.id_auteur} style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: (ouvert || editionAuteur === auteur.id_auteur) ? '1px solid var(--cs-bord-clair)' : 'none' }}>
               <button onClick={() => setAuteurOuvert(auteurOuvert === auteur.id_auteur ? null : auteur.id_auteur)}
                 style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
@@ -1662,7 +1662,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                   <button
                     onClick={() => setPositionAuteur(auteur.id_auteur)}
                     title="Cadrer la photo"
-                    style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                     Cadrer
                   </button>
                 )}
@@ -1674,7 +1674,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     e.target.value = ''
                   }} />
                 <button onClick={() => editionAuteur === auteur.id_auteur ? fermerEditionAuteur() : ouvrirEditionAuteur(auteur)}
-                  style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer' }}>
+                  style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer' }}>
                   {editionAuteur === auteur.id_auteur ? 'Fermer' : 'Modifier'}
                 </button>
                 <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', cursor: 'pointer' }} onClick={() => setAuteurOuvert(auteurOuvert === auteur.id_auteur ? null : auteur.id_auteur)}>
@@ -1685,7 +1685,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
             {/* Formulaire d'édition de l'auteur */}
             {editionAuteur === auteur.id_auteur && (
-              <div style={{ padding: '16px 20px 18px', borderBottom: auteurOuvert === auteur.id_auteur ? '1px solid var(--cs-bord-clair)' : 'none', background: '#fff', borderLeft: '3px solid var(--cs-vert)' }}>
+              <div style={{ padding: '16px 20px 18px', borderBottom: auteurOuvert === auteur.id_auteur ? '1px solid var(--cs-bord-clair)' : 'none', background: 'var(--cs-surface)', borderLeft: '3px solid var(--cs-vert)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid var(--cs-fond-doux)' }}>
                   <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.97031rem', color: 'var(--cs-encre)' }}>
                     Modification — <em>{auteur.nom}</em>
@@ -1704,7 +1704,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                       {statutAuteur?.ok ? '✓' : '✗'} {statutAuteur?.msg}
                     </span>
                   )}
-                  <button onClick={fermerEditionAuteur} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+                  <button onClick={fermerEditionAuteur} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                   <button onClick={sauvegarderAuteur} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
                 </div>
               </div>
@@ -1860,7 +1860,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
                   {/* Formulaire d'édition de l'œuvre */}
                   {editionOeuvre === oeuvre.id_oeuvre && (
-                    <div style={{ padding: '16px 22px 18px', background: '#fff', borderTop: '1px solid var(--cs-fond-doux)', borderLeft: '3px solid var(--cs-vert)' }}>
+                    <div style={{ padding: '16px 22px 18px', background: 'var(--cs-surface)', borderTop: '1px solid var(--cs-fond-doux)', borderLeft: '3px solid var(--cs-vert)' }}>
                       {/* En-tête */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid var(--cs-fond-doux)' }}>
                         <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.97031rem', color: 'var(--cs-encre)' }}>
@@ -1925,7 +1925,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                             {statutOeuvre?.ok ? '✓' : '✗'} {statutOeuvre?.msg}
                           </span>
                         )}
-                        <button onClick={fermerEditionOeuvre} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+                        <button onClick={fermerEditionOeuvre} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                         <button onClick={() => sauvegarderOeuvre(oeuvre.id_oeuvre)} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
                       </div>
                     </div>

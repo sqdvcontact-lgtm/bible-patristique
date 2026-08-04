@@ -660,7 +660,7 @@ export default function RechercheClient() {
   return (
     <>
       <style>{`
-        .res-card { display:block; text-decoration:none; padding:6px 12px; background:#fff; border-radius:7px; border:1px solid var(--cs-bord-clair); transition:border-color 0.12s, box-shadow 0.12s; }
+        .res-card { display:block; text-decoration:none; padding:6px 12px; background:var(--cs-surface); border-radius:7px; border:1px solid var(--cs-bord-clair); transition:border-color 0.12s, box-shadow 0.12s; }
         .res-card:hover { border-color:var(--cs-vert); box-shadow:0 1px 6px rgba(var(--cs-vert-rgb),0.10); }
         .res-card--absent { background:#fff9f7; border-color:#f0c4b8; }
         .res-card--absent:hover { border-color:var(--cs-danger); }
@@ -676,12 +676,12 @@ export default function RechercheClient() {
         .ong-btn:not(.ong-btn--actif):hover { color:var(--cs-vert); border-bottom-color:#c0d8c8; }
         .ong-count { margin-left:5px; font-size:0.59375rem; color:var(--cs-texte-faible); font-weight:400; }
         .ong-btn--actif .ong-count { color:#6a9a7a; }
-        .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:20px; background:#fff; color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
+        .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:20px; background:var(--cs-surface); color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
         .pag-btn:hover:not(:disabled) { background:var(--cs-vert); color:#fff; border-color:var(--cs-vert); }
         .pag-btn:disabled { color:#c8c0b8; border-color:#ece8e2; cursor:default; }
         .mode-btn { padding:5px 14px; font-size:0.6875rem; border:none; cursor:pointer; transition:background 0.12s,color 0.12s; }
         .mode-btn--actif { background:var(--cs-vert); color:#fff; font-weight:500; }
-        .mode-btn--inactif { background:#fff; color:var(--cs-texte-second); }
+        .mode-btn--inactif { background:var(--cs-surface); color:var(--cs-texte-second); }
         .mode-btn--inactif:hover { background:var(--cs-fond-doux); }
         /* ── Polyglotte : palette de la page « Polyglotte » (vert), 3 colonnes ── */
         .poly-outer { border-radius:0 0 8px 8px; border:1px solid #cdd8cf; border-top:none; box-shadow:0 4px 14px rgba(30,46,38,0.10); overflow:hidden; }
@@ -706,12 +706,12 @@ export default function RechercheClient() {
         .poly-lettrine-item { position:relative; display:flex; align-items:center; justify-content:flex-end; height:1.26em; }
         .poly-lettrine-ref { display:block; white-space:nowrap; font-size:0.53125rem; line-height:1; }
         .poly-lettrine-ch { font-weight:400; color:#a9bcb0; }
-        .ctrl-sel { font-size:0.6875rem; padding:4px 8px; border:1px solid var(--cs-bord); border-radius:4px; background:#fff; color:var(--cs-encre); outline:none; cursor:pointer; }
+        .ctrl-sel { font-size:0.6875rem; padding:4px 8px; border:1px solid var(--cs-bord); border-radius:4px; background:var(--cs-surface); color:var(--cs-encre); outline:none; cursor:pointer; }
         .ctrl-sel:focus { border-color:var(--cs-vert); }
         /* Info-bulle « Explicitations » : au survol du « ? », les deux modes expliqués. */
         .expl-wrap { position:relative; display:inline-flex; }
         .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #b6ccbd; color:var(--cs-vert); background:var(--cs-vert-pale); font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
-        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:#fff; border:1px solid var(--cs-bord); border-radius:7px; box-shadow:0 10px 28px rgba(30,46,38,0.14); padding:9px 11px; font-size:0.65625rem; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
+        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:var(--cs-surface); border:1px solid var(--cs-bord); border-radius:7px; box-shadow:0 10px 28px rgba(30,46,38,0.14); padding:9px 11px; font-size:0.65625rem; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
         .expl-wrap:hover .expl-tip { opacity:1; visibility:visible; transform:translateY(0); }
         ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--cs-bord);border-radius:3px}
       `}</style>
@@ -758,7 +758,7 @@ export default function RechercheClient() {
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck={false}
-                style={{ width:'100%', fontSize:'0.84375rem', padding:'8px 38px 8px 14px', border:'1px solid var(--cs-bord)', borderRadius:'7px', background:'#fff', color:'var(--cs-texte-fort)', outline:'none', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }} />
+                style={{ width:'100%', fontSize:'0.84375rem', padding:'8px 38px 8px 14px', border:'1px solid var(--cs-bord)', borderRadius:'7px', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', outline:'none', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }} />
               {query ? (
                 <button onClick={() => { setQuery(''); setSugg([]); setDone(false); setVersetsRes([]); setSegmentsRes([]); setEssaisRes([]); setShowSugg(false) }}
                   style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--cs-texte-faible)', fontSize:'1rem', lineHeight:1, padding:0 }} title="Effacer">×</button>
@@ -769,7 +769,7 @@ export default function RechercheClient() {
                 </svg>
               )}
               {showSugg && sugg.length > 0 && (
-                <ul ref={suggRef} style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, background:'#fff', border:'1px solid var(--cs-bord)', borderRadius:'8px', boxShadow:'0 6px 20px rgba(0,0,0,0.09)', margin:0, padding:'5px 0 0', listStyle:'none', zIndex:100, maxHeight:'300px', overflowY:'auto' }}>
+                <ul ref={suggRef} style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, background:'var(--cs-surface)', border:'1px solid var(--cs-bord)', borderRadius:'8px', boxShadow:'0 6px 20px rgba(0,0,0,0.09)', margin:0, padding:'5px 0 0', listStyle:'none', zIndex:100, maxHeight:'300px', overflowY:'auto' }}>
                   {sugg.map(s => (
                     <li key={s.mot}
                       onMouseDown={e => { e.preventDefault(); setQuery(s.mot); setShowSugg(false); lancer(s.mot) }}
@@ -1222,7 +1222,7 @@ export default function RechercheClient() {
             </p>
             <div style={{ display:'flex', gap:'8px', justifyContent:'flex-end' }}>
               <button onClick={() => setConfirmEcrasement(false)}
-                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'1px solid var(--cs-bord)', borderRadius:'6px', background:'#fff', color:'var(--cs-texte-second)', cursor:'pointer' }}>Annuler</button>
+                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'1px solid var(--cs-bord)', borderRadius:'6px', background:'var(--cs-surface)', color:'var(--cs-texte-second)', cursor:'pointer' }}>Annuler</button>
               <button onClick={() => { ecrireRecherche(); setConfirmEcrasement(false) }}
                 style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'none', borderRadius:'6px', background:'var(--cs-vert)', color:'#fff', fontWeight:600, cursor:'pointer' }}>Écraser</button>
             </div>

@@ -35,7 +35,7 @@ export default function SectionEssaisPublies({ essais: init, variante = 'publies
   }
 
   return (
-    <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflowX: 'auto' }}>
+    <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '980px' }}>
         <thead>
           <tr style={{ background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord-clair)' }}>
@@ -120,5 +120,5 @@ function Info({ label, valeur, alerte = false }: { label: string; valeur: number
 
 function petitBouton(couleur: string, bordure: string): React.CSSProperties {
   // Largeur commune à tous les boutons d'action pour un alignement strict de la colonne.
-  return { display: 'inline-block', boxSizing: 'border-box', minWidth: '82px', textAlign: 'center', fontSize: '0.75469rem', padding: '4px 8px', borderRadius: '4px', border: `1px solid ${bordure}`, background: '#fff', color: couleur, cursor: 'pointer', textDecoration: 'none', fontWeight: 600 }
+  return { display: 'inline-block', boxSizing: 'border-box', minWidth: '82px', textAlign: 'center', fontSize: '0.75469rem', padding: '4px 8px', borderRadius: '4px', border: `1px solid ${bordure}`, background: 'var(--cs-surface)', color: couleur, cursor: 'pointer', textDecoration: 'none', fontWeight: 600 }
 }

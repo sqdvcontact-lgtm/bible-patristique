@@ -316,7 +316,7 @@ export default function SectionVerificationCatalogue() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {regrouperNotices(notices).map(groupe => (
-            <div key={groupe.cle} style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden', background: '#fff' }}>
+            <div key={groupe.cle} style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden', background: 'var(--cs-surface)' }}>
               <div style={{ padding: '9px 14px', background: '#f5f1e8', borderBottom: '1px solid var(--cs-bord-clair)', display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--cs-encre)', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>{groupe.titre}</span>
                 <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-second)', fontStyle: 'italic' }}>{groupe.auteur}</span>

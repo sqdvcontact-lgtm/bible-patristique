@@ -40,7 +40,7 @@ export default function MesEcritsPage() {
   if (connecte === false) {
     return (
       <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '10px', padding: '36px 40px', textAlign: 'center' }}>
+        <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '10px', padding: '36px 40px', textAlign: 'center' }}>
           <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', marginBottom: '16px' }}>Connectez-vous pour voir vos écrits.</p>
           <Link href="/chantier" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '0.8125rem', fontWeight: 500, background: 'var(--cs-vert)', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
             Se connecter
@@ -78,7 +78,7 @@ export default function MesEcritsPage() {
               const maj = new Date(e.updated_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
 
               return (
-                <div key={e.id} style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div key={e.id} style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                   {/* Lien principal */}
                   <Link
                     href={e.statut === 'publie' ? `/essais/${e.id}` : `/essais/${e.id}/modifier`}
@@ -94,7 +94,7 @@ export default function MesEcritsPage() {
 
                     {modifiable && (
                       <Link href={`/essais/${e.id}/modifier`}
-                        style={{ fontSize: '0.6875rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', color: 'var(--cs-texte)', textDecoration: 'none', background: '#fff' }}>
+                        style={{ fontSize: '0.6875rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', color: 'var(--cs-texte)', textDecoration: 'none', background: 'var(--cs-surface)' }}>
                         Modifier
                       </Link>
                     )}
@@ -102,7 +102,7 @@ export default function MesEcritsPage() {
                     {supprimable && (
                       <button
                         onClick={() => setSupprConfirm(e.id)}
-                        style={{ fontSize: '0.6875rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-danger-bord)', color: 'var(--cs-danger)', background: '#fff', cursor: 'pointer' }}>
+                        style={{ fontSize: '0.6875rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-danger-bord)', color: 'var(--cs-danger)', background: 'var(--cs-surface)', cursor: 'pointer' }}>
                         Supprimer
                       </button>
                     )}
@@ -117,7 +117,7 @@ export default function MesEcritsPage() {
       {/* Modale de confirmation suppression */}
       {supprConfirm !== null && (
         <div onClick={() => setSupprConfirm(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.32)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '28px 28px 24px', maxWidth: '22.5rem', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '10px', padding: '28px 28px 24px', maxWidth: '22.5rem', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
             <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 12px' }}>
               Supprimer ce brouillon ?
             </h3>
@@ -127,7 +127,7 @@ export default function MesEcritsPage() {
               <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)' }}>Cette action est irréversible.</span>
             </p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button onClick={() => setSupprConfirm(null)} style={{ fontSize: '0.78125rem', padding: '8px 18px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte)', cursor: 'pointer' }}>
+              <button onClick={() => setSupprConfirm(null)} style={{ fontSize: '0.78125rem', padding: '8px 18px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
                 Annuler
               </button>
               <button onClick={() => supprimer(supprConfirm)} style={{ fontSize: '0.78125rem', padding: '8px 18px', borderRadius: '5px', border: 'none', background: 'var(--cs-danger)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>

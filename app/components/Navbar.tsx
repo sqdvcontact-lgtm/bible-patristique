@@ -95,7 +95,7 @@ function OngletPatristique({ href, label, style }: { href: string; label: string
       <Link href={href} className="cs-onglet" style={style}>{label}</Link>
       {ouvert && recentes.length > 0 && (
         <div onMouseEnter={ouvrir} onMouseLeave={fermer}
-          style={{ position: "absolute", top: "100%", left: 0, marginTop: "6px", minWidth: "15rem", maxWidth: "20rem", background: "#fff", border: "1px solid var(--cs-bord-clair)", borderRadius: "8px", boxShadow: "0 10px 30px rgba(30,26,20,0.18)", padding: "7px", zIndex: 3000 }}>
+          style={{ position: "absolute", top: "100%", left: 0, marginTop: "6px", minWidth: "15rem", maxWidth: "20rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord-clair)", borderRadius: "8px", boxShadow: "0 10px 30px rgba(30,26,20,0.18)", padding: "7px", zIndex: 3000 }}>
           <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: "#a89f95", margin: "2px 8px 6px" }}>{"Derni\u00e8res \u0153uvres consult\u00e9es"}</p>
           {recentes.map(o => (
             <Link key={o.id} href={`/oeuvre/${o.id}`} onClick={() => setOuvert(false)}
@@ -563,7 +563,7 @@ export default function Navbar() {
       </div>
 
       {rechercheOuverte && qNorm && (
-        <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: "calc(100% + 8px)", left: 0, right: 0, width: mobile ? "100%" : "auto", background: "#fff", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: mobile ? "none" : "0 12px 36px rgba(0,0,0,0.16)", zIndex: 100, overflow: "hidden", maxHeight: mobile ? "70vh" : "min(72vh, 640px)", overflowY: "auto" }}>
+        <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: "calc(100% + 8px)", left: 0, right: 0, width: mobile ? "100%" : "auto", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: mobile ? "none" : "0 12px 36px rgba(0,0,0,0.16)", zIndex: 100, overflow: "hidden", maxHeight: mobile ? "70vh" : "min(72vh, 640px)", overflowY: "auto" }}>
 
           {/* Barre de statut : nb résultats + spinner/smiley */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px 4px", borderBottom: "1px solid var(--cs-fond-doux)", background: "#faf8f5" }}>
@@ -747,7 +747,7 @@ export default function Navbar() {
           <span style={{ fontSize: "0.63rem", opacity: 0.6 }}>▼</span>
         </button>
       )}
-      <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "8px", overflow: "hidden" } : { position: "absolute", top: "calc(100% + 6px)", right: 0, background: "#fff", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: "0 6px 24px rgba(0,0,0,0.10)", minWidth: "190px", zIndex: 3100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
+      <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "8px", overflow: "hidden" } : { position: "absolute", top: "calc(100% + 6px)", right: 0, background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: "0 6px 24px rgba(0,0,0,0.10)", minWidth: "190px", zIndex: 3100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
         {!mobile && (
           <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid var(--cs-fond-doux)" }}>
             <p style={{ fontSize: "0.735rem", color: "var(--cs-texte-doux)", margin: 0 }}>Connecté en tant que</p>
@@ -848,7 +848,7 @@ export default function Navbar() {
           /* « Aller plus loin » : petit menu déroulant au survol (CSS :hover, sans gap
              mort — le menu touche le déclencheur). */
           .cs-plus { position: relative; }
-          .cs-plus-menu { position: absolute; top: 100%; left: 0; min-width: 13rem; background: #fff; border: 1px solid var(--cs-bord); border-radius: 8px; box-shadow: 0 12px 30px rgba(0,0,0,0.16); overflow: hidden; z-index: 3000; padding: 4px; display: none; }
+          .cs-plus-menu { position: absolute; top: 100%; left: 0; min-width: 13rem; background: var(--cs-surface); border: 1px solid var(--cs-bord); border-radius: 8px; box-shadow: 0 12px 30px rgba(0,0,0,0.16); overflow: hidden; z-index: 3000; padding: 4px; display: none; }
           .cs-plus:hover .cs-plus-menu, .cs-plus:focus-within .cs-plus-menu { display: block; }
           .cs-plus-lien { display: block; padding: 7px 12px; font-size: 0.82rem; color: var(--cs-encre); text-decoration: none; border-radius: 5px; white-space: nowrap; }
           .cs-plus-lien:hover { background: rgba(var(--cs-vert-rgb),0.08); }
@@ -989,7 +989,7 @@ export default function Navbar() {
         )}
         {toastNotification && (
           <div role="button" tabIndex={0} onClick={() => { setToastNotification(null); setNotifsOuvertes(true); }}
-            style={{ position: "fixed", top: "calc(3.5rem + 0.75rem)", right: "18px", width: "17.5rem", background: "#fff", border: "1px solid var(--cs-bord)", borderLeft: "3px solid var(--cs-vert)", borderRadius: "8px", boxShadow: "0 12px 34px rgba(0,0,0,0.16)", padding: "11px 13px", zIndex: 4000, cursor: "pointer" }}>
+            style={{ position: "fixed", top: "calc(3.5rem + 0.75rem)", right: "18px", width: "17.5rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderLeft: "3px solid var(--cs-vert)", borderRadius: "8px", boxShadow: "0 12px 34px rgba(0,0,0,0.16)", padding: "11px 13px", zIndex: 4000, cursor: "pointer" }}>
             <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-vert)", margin: "0 0 4px" }}>Nouvelle notification</p>
             <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.98rem", color: "var(--cs-encre-fonce)", margin: "0 0 4px" }}>{toastNotification.titre}</p>
             <p style={{ fontSize: "0.805rem", color: "var(--cs-texte-second)", lineHeight: 1.35, margin: 0 }}>{toastNotification.message}</p>

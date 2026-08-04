@@ -105,7 +105,7 @@ export default function SectionAuteurs() {
       <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', alignItems: 'center' }}>
         <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
           placeholder="Rechercher un auteur…"
-          style={{ flex: 1, fontSize: '0.8625rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: '#fff', color: 'var(--cs-texte-fort)', outline: 'none' }} />
+          style={{ flex: 1, fontSize: '0.8625rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none' }} />
         {recherche && <button onClick={() => setRecherche('')} style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>}
       </div>
 
@@ -119,7 +119,7 @@ export default function SectionAuteurs() {
 
       {/* Formulaire nouvel auteur */}
       {ajout && (
-        <div style={{ background: '#fff', border: '2px solid var(--cs-vert)', borderRadius: '8px', padding: '16px 20px', marginBottom: '8px' }}>
+        <div style={{ background: 'var(--cs-surface)', border: '2px solid var(--cs-vert)', borderRadius: '8px', padding: '16px 20px', marginBottom: '8px' }}>
           <p style={{ fontSize: '0.8625rem', fontWeight: 600, color: 'var(--cs-vert)', marginBottom: '14px' }}>Nouvel auteur</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
             {CHAMPS.map(c => (
@@ -134,7 +134,7 @@ export default function SectionAuteurs() {
           </div>
           {msgAjout && <p style={{ fontSize: '0.82656rem', color: 'var(--cs-danger)', marginBottom: '8px' }}>{msgAjout}</p>}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <button onClick={() => { setAjout(false); setMsgAjout(null) }} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+            <button onClick={() => { setAjout(false); setMsgAjout(null) }} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
             <button onClick={creer} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Créer</button>
           </div>
         </div>
@@ -151,7 +151,7 @@ export default function SectionAuteurs() {
               <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '12px 0' }}>Aucun auteur trouvé.</p>
             )}
             {auteursFiltres.map((a: any) => (
-              <div key={a.id_auteur} style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
+              <div key={a.id_auteur} style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flex: 1, minWidth: 0 }}>
                       <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.00625rem', color: 'var(--cs-encre)' }}>{a.nom}</span>
@@ -174,7 +174,7 @@ export default function SectionAuteurs() {
                           e.target.value = ''
                         }} />
                       <button onClick={() => edition === a.id_auteur ? fermer() : ouvrir(a)}
-                        style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer' }}>
+                        style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer' }}>
                         {edition === a.id_auteur ? 'Fermer' : 'Modifier'}
                       </button>
                     </div>
@@ -198,7 +198,7 @@ export default function SectionAuteurs() {
                             {statut?.ok ? '✓' : '✗'} {statut?.msg}
                           </span>
                         )}
-                        <button onClick={fermer} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+                        <button onClick={fermer} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                         <button onClick={sauvegarder} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
                       </div>
                     </div>

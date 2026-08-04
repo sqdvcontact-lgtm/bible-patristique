@@ -508,7 +508,7 @@ function EssaiLigne({ essai: e, premier, plusLu, favorisEssais, toggleFavoriEssa
 function OngletEcrire({ connecte }: { connecte: boolean | null }) {
   if (connecte === false) {
     return (
-      <div style={{ textAlign: 'center', background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '28px 24px', maxWidth: '32.5rem', margin: '0 auto' }}>
+      <div style={{ textAlign: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '28px 24px', maxWidth: '32.5rem', margin: '0 auto' }}>
         <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', marginBottom: '14px' }}>Connectez-vous pour écrire un essai ou une méditation.</p>
         <Link href="/chantier" style={{ display: 'inline-block', padding: '8px 18px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert)', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
           Se connecter
@@ -518,7 +518,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
   }
   if (connecte === null) return <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
   return (
-    <div style={{ maxWidth: '38.75rem', margin: '0 auto', background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '30px 34px', textAlign: 'center' }}>
+    <div style={{ maxWidth: '38.75rem', margin: '0 auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '30px 34px', textAlign: 'center' }}>
       <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px' }}>
         Espace de rédaction
       </p>
@@ -664,7 +664,7 @@ function OngletMesEcrits({
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.625rem', color: e.statut === 'publie' ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.4 : 1, fontWeight: 600 }}>
                     {timer && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{timer}</span>}
                     <span style={{ width: '26px', height: '14px', borderRadius: '999px', background: e.statut === 'publie' ? 'var(--cs-vert)' : 'var(--cs-bord)', position: 'relative', display: 'inline-block', transition: 'background 0.15s' }}>
-                      <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '14px' : '2px', width: '10px', height: '10px', borderRadius: '50%', background: '#fff', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
+                      <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '14px' : '2px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
                     </span>
                   </button>
                   <Link href={`/essais/${e.id}/modifier`} style={{ fontSize: '0.65625rem', color: 'var(--cs-vert)', textDecoration: 'none', fontWeight: 600 }}>Modifier</Link>
@@ -751,7 +751,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
         </p>
       ) : (
         <>
-          <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '34px 36px 28px', marginBottom: '18px' }}>
+          <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '34px 36px 28px', marginBottom: '18px' }}>
             <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 20px' }}>
               Verset proposé à la méditation
             </p>

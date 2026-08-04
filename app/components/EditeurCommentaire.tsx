@@ -17,7 +17,7 @@ const boutonOutil: React.CSSProperties = {
   borderWidth: '1px',
   borderStyle: 'solid',
   borderColor: 'var(--cs-bord)',
-  background: '#fff',
+  background: 'var(--cs-surface)',
   color: 'var(--cs-texte-fort)',
   cursor: 'pointer',
   lineHeight: 1.35,
@@ -232,7 +232,7 @@ export default function EditeurCommentaire({ value, onChange, placeholder = 'Vot
         onKeyUp={majActifs}
         onMouseUp={majActifs}
         onFocus={majActifs}
-        style={{ minHeight, maxHeight: 180, overflowY: 'auto', width: '100%', fontSize: '0.70625rem', padding: '7px 8px', border: '1px solid #cfd8d0', borderRadius: '5px', background: '#fff', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box', lineHeight: 1.45, boxShadow: 'inset 3px 0 0 rgba(var(--cs-vert-rgb),0.12)', whiteSpace: 'pre-wrap' }}
+        style={{ minHeight, maxHeight: 180, overflowY: 'auto', width: '100%', fontSize: '0.70625rem', padding: '7px 8px', border: '1px solid #cfd8d0', borderRadius: '5px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box', lineHeight: 1.45, boxShadow: 'inset 3px 0 0 rgba(var(--cs-vert-rgb),0.12)', whiteSpace: 'pre-wrap' }}
       />
       <style>{`
         [contenteditable][data-placeholder]:empty::before {

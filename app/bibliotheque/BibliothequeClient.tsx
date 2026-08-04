@@ -148,7 +148,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
 
   return (
     <div
-      style={{ background: '#fff', borderRadius: '8px', border: '1px solid var(--cs-bord-clair)', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease' }}
+      style={{ background: 'var(--cs-surface)', borderRadius: '8px', border: '1px solid var(--cs-bord-clair)', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease' }}
       onMouseEnter={e => { e.currentTarget.style.borderColor = '#a9c9b6'; e.currentTarget.style.backgroundColor = '#f8fbf9'; e.currentTarget.style.transform = 'translateY(-2px)' }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--cs-bord-clair)'; e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.transform = 'none' }}>
 
@@ -640,14 +640,14 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
         <div onMouseDown={e => { e.stopPropagation(); setDemandeFermeture(false) }}
           style={{ position: 'fixed', inset: 0, zIndex: 110, background: 'rgba(30,26,20,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div onMouseDown={e => e.stopPropagation()}
-            style={{ background: '#fff', borderRadius: '10px', border: '1px solid #e4dcd0', width: '100%', maxWidth: '23.75rem', padding: '20px 22px', boxShadow: '0 12px 40px rgba(0,0,0,0.24)' }}>
+            style={{ background: 'var(--cs-surface)', borderRadius: '10px', border: '1px solid #e4dcd0', width: '100%', maxWidth: '23.75rem', padding: '20px 22px', boxShadow: '0 12px 40px rgba(0,0,0,0.24)' }}>
             <h4 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-texte)', margin: '0 0 8px' }}>Fermer sans enregistrer ?</h4>
             <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 18px' }}>
               Les informations que vous avez saisies seront perdues.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '9px' }}>
               <button onClick={() => setDemandeFermeture(false)}
-                style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte)', cursor: 'pointer' }}>
+                style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
                 Continuer l’édition
               </button>
               <button onClick={onClose}
@@ -813,7 +813,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
         <div style={{ position: 'relative', width: '100%', maxWidth: '21.25rem' }}>
           <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
             placeholder="Rechercher un auteur ou une œuvre"
-            style={{ width: '100%', fontSize: '0.8125rem', padding: '9px 14px 9px 38px', border: '1px solid var(--cs-bord)', borderRadius: '6px', background: '#fff', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
+            style={{ width: '100%', fontSize: '0.8125rem', padding: '9px 14px 9px 38px', border: '1px solid var(--cs-bord)', borderRadius: '6px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
             <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
             <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
@@ -851,7 +851,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
                 aria-label="Page précédente"
                 style={{ position: 'fixed', left: '18px', top: '50%', transform: 'translateY(-50%)', zIndex: 40,
                   width: '42px', height: '42px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
-                  background: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,0.08)', cursor: pageActive === 0 ? 'default' : 'pointer',
+                  background: 'var(--cs-surface)', boxShadow: '0 2px 10px rgba(0,0,0,0.08)', cursor: pageActive === 0 ? 'default' : 'pointer',
                   opacity: pageActive === 0 ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48' }}>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3l-5 5 5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
@@ -859,7 +859,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
                 aria-label="Page suivante"
                 style={{ position: 'fixed', right: '18px', top: '50%', transform: 'translateY(-50%)', zIndex: 40,
                   width: '42px', height: '42px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
-                  background: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,0.08)', cursor: pageActive >= nbPages - 1 ? 'default' : 'pointer',
+                  background: 'var(--cs-surface)', boxShadow: '0 2px 10px rgba(0,0,0,0.08)', cursor: pageActive >= nbPages - 1 ? 'default' : 'pointer',
                   opacity: pageActive >= nbPages - 1 ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48' }}>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
@@ -867,14 +867,14 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
               {/* Pagination en pied : flèches ‹ › encadrant l'indicateur de page. */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '22px' }}>
                 <button onClick={() => changerPage(-1)} disabled={pageActive === 0} aria-label="Page précédente"
-                  style={{ width: '30px', height: '30px', borderRadius: '50%', border: '1px solid var(--cs-bord)', background: '#fff', cursor: pageActive === 0 ? 'default' : 'pointer', opacity: pageActive === 0 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48', flexShrink: 0 }}>
+                  style={{ width: '30px', height: '30px', borderRadius: '50%', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', cursor: pageActive === 0 ? 'default' : 'pointer', opacity: pageActive === 0 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48', flexShrink: 0 }}>
                   <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3l-5 5 5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
                 <span style={{ fontSize: '0.6875rem', color: '#a09484', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
                   Page {pageActive + 1} sur {nbPages}
                 </span>
                 <button onClick={() => changerPage(1)} disabled={pageActive >= nbPages - 1} aria-label="Page suivante"
-                  style={{ width: '30px', height: '30px', borderRadius: '50%', border: '1px solid var(--cs-bord)', background: '#fff', cursor: pageActive >= nbPages - 1 ? 'default' : 'pointer', opacity: pageActive >= nbPages - 1 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48', flexShrink: 0 }}>
+                  style={{ width: '30px', height: '30px', borderRadius: '50%', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', cursor: pageActive >= nbPages - 1 ? 'default' : 'pointer', opacity: pageActive >= nbPages - 1 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48', flexShrink: 0 }}>
                   <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
               </div>
@@ -956,7 +956,7 @@ function ComboAuteur({ value, onChange, onAuteurId }: {
         onFocus={() => saisie.trim().length >= 2 && setOuvert(true)}
         placeholder="Commencez à taper…" style={CHAMP_STYLE} autoComplete="off" />
       {ouvert && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '5px', boxShadow: '0 4px 12px rgba(0,0,0,.1)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '5px', boxShadow: '0 4px 12px rgba(0,0,0,.1)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
           {suggestions.map(s => (
             <div key={s.id_auteur} onMouseDown={() => choisir(s.nom, s.id_auteur)}
               style={{ padding: '8px 12px', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif' }}
@@ -1034,7 +1034,7 @@ function ComboTitre({ value, onChange, auteurNom }: {
         onFocus={() => saisie.trim().length >= 2 && setOuvert(true)}
         placeholder="Commencez à taper…" style={CHAMP_STYLE} autoComplete="off" />
       {ouvert && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '5px', boxShadow: '0 4px 12px rgba(0,0,0,.1)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '5px', boxShadow: '0 4px 12px rgba(0,0,0,.1)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
           {suggestions.map((titre, i) => (
             <div key={i} onMouseDown={() => choisir(titre)}
               style={{ padding: '8px 12px', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif' }}
@@ -1354,7 +1354,7 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
 
   if (oeuvresFavorites.length === 0) {
     return (
-      <div style={{ maxWidth: '32.5rem', margin: '0 auto', textAlign: 'center', background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '22px 24px' }}>
+      <div style={{ maxWidth: '32.5rem', margin: '0 auto', textAlign: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '22px 24px' }}>
         <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-encre)', margin: '0 0 6px' }}>Aucune œuvre favorite</p>
         <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', lineHeight: 1.6, margin: 0 }}>
           Ajoutez une œuvre à vos favoris depuis sa ligne dans la bibliothèque ou depuis sa page de lecture.
@@ -1530,7 +1530,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
               <div style={{ position: 'relative', flex: 1, maxWidth: '21.25rem' }}>
                 <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
                   placeholder="Rechercher un auteur ou une œuvre"
-                  style={{ width: '100%', fontSize: '0.78125rem', padding: '7px 14px 7px 36px', border: '1px solid var(--cs-bord)', borderRadius: '6px', background: '#fff', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', fontSize: '0.78125rem', padding: '7px 14px 7px 36px', border: '1px solid var(--cs-bord)', borderRadius: '6px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
                   <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
                   <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
@@ -1548,7 +1548,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
 
             {/* Panneau de filtres à facettes (période · langue · tradition). */}
             {filtresOuverts && (
-              <div style={{ maxWidth: '52rem', margin: '0 auto 18px', padding: '16px 20px', background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div style={{ maxWidth: '52rem', margin: '0 auto 18px', padding: '16px 20px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <LigneFiltres label="Période">
                   {PERIODES.map((p, i) => (
                     <Chip key={i} theme="periode" actif={periodesActives.has(i)} onClick={() => basculer(setPeriodesActives, i)}>{p.jsx}</Chip>

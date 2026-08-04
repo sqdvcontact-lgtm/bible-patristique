@@ -278,7 +278,7 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
         {loading ? '…' : 'Oui'}
       </button>
       <button onClick={e => { e.stopPropagation(); setConfirme(false) }}
-        style={{ fontSize:'0.63562rem', padding:'1px 5px', borderRadius:'3px', border:'1px solid var(--cs-bord)', background:'#fff', color:'var(--cs-texte-second)', cursor:'pointer' }}>
+        style={{ fontSize:'0.63562rem', padding:'1px 5px', borderRadius:'3px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-second)', cursor:'pointer' }}>
         Non
       </button>
     </span>
@@ -733,9 +733,9 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
         {!userId && (
           <>
             <input type="text" value={nom} onChange={e => setNom(e.target.value)} placeholder="Nom *"
-              style={{ width:'100%', fontSize:'0.70625rem', padding:'4px 7px', borderRadius:'4px', border:`1px solid ${erreur && !nom.trim() ? 'var(--cs-danger)' : 'var(--cs-bord)'}`, background:'#fff', color:'var(--cs-texte-fort)', outline:'none', boxSizing:'border-box' }} />
+              style={{ width:'100%', fontSize:'0.70625rem', padding:'4px 7px', borderRadius:'4px', border:`1px solid ${erreur && !nom.trim() ? 'var(--cs-danger)' : 'var(--cs-bord)'}`, background:'var(--cs-surface)', color:'var(--cs-texte-fort)', outline:'none', boxSizing:'border-box' }} />
             <input type="email" value={mail} onChange={e => setMail(e.target.value)} placeholder="Adresse e-mail *"
-              style={{ width:'100%', fontSize:'0.70625rem', padding:'4px 7px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'#fff', color:'var(--cs-texte-fort)', outline:'none', boxSizing:'border-box' }} />
+              style={{ width:'100%', fontSize:'0.70625rem', padding:'4px 7px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', outline:'none', boxSizing:'border-box' }} />
             <p style={{ fontSize:'0.63562rem', color:'var(--cs-texte-faible)', margin:0 }}>* L'adresse e-mail ne sera pas publiée.</p>
           </>
         )}
@@ -1174,9 +1174,9 @@ export default function PanneauPatristique({
     {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
     <div ref={refPanel} style={mobile
       ? (presentation === 'inline'
-        ? { width:'100%', background:'#fff', display:'flex', flexDirection:'column', paddingTop:'2.875rem', minHeight:`calc(100dvh - ${HAUTEUR_NAVBAR})`, paddingBottom:BANDEAU_NAV_MOBILE }
-        : { position:'fixed', bottom:BANDEAU_NAV_MOBILE, left:0, right:0, zIndex:2401, background:'#fff', borderTop:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem - ${BANDEAU_NAV_MOBILE})`, minHeight:0, boxShadow:'0 -10px 28px rgba(45,35,25,0.22)' })
-      : { width: panelWidth == null ? 'clamp(260px, 20vw, 460px)' : panelWidth + 'px', flexShrink:0, background:'#fff', borderLeft:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
+        ? { width:'100%', background:'var(--cs-surface)', display:'flex', flexDirection:'column', paddingTop:'2.875rem', minHeight:`calc(100dvh - ${HAUTEUR_NAVBAR})`, paddingBottom:BANDEAU_NAV_MOBILE }
+        : { position:'fixed', bottom:BANDEAU_NAV_MOBILE, left:0, right:0, zIndex:2401, background:'var(--cs-surface)', borderTop:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem - ${BANDEAU_NAV_MOBILE})`, minHeight:0, boxShadow:'0 -10px 28px rgba(45,35,25,0.22)' })
+      : { width: panelWidth == null ? 'clamp(260px, 20vw, 460px)' : panelWidth + 'px', flexShrink:0, background:'var(--cs-surface)', borderLeft:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
       {/* Tag de filtre : un fantôme en gras (::after) fige la largeur, pour que la
           sélection (texte mis en gras) ne repousse pas les tags voisins. */}
       <style>{`
@@ -1481,7 +1481,7 @@ export default function PanneauPatristique({
 
           {/* Pagination — fixée en pied de panneau, hors zone scrollable */}
           {onglet !== 'commentaires' && !loading && nbPagesItems > 1 && (
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', padding:'8px 0 10px', borderTop:'1px solid var(--cs-bord-clair)', background:'#fff', flexShrink:0 }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', padding:'8px 0 10px', borderTop:'1px solid var(--cs-bord-clair)', background:'var(--cs-surface)', flexShrink:0 }}>
               <button onClick={() => setPageItems(Math.max(pageCouranteItems - 1, 0))} disabled={pageCouranteItems === 0}
                 title="Page précédente"
                 style={{ fontSize:'1.27125rem', lineHeight:1, padding:'0 6px', border:'none', background:'none', color: pageCouranteItems === 0 ? 'var(--cs-bord)' : 'var(--cs-texte-second)', cursor: pageCouranteItems === 0 ? 'default' : 'pointer' }}>

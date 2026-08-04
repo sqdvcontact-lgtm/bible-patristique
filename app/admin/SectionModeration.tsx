@@ -155,7 +155,7 @@ export default function SectionModeration(props: Props) {
         .mod-tab .n{font-size:0.625rem;font-family:var(--font-source-sans), Arial, sans-serif;border-radius:999px;padding:1px 7px;background:rgba(0,0,0,.06);}
         .mod-tab.active .n{background:rgba(255,255,255,.25);}
         .mod-liste{display:flex;flex-direction:column;gap:10px;max-width:680px;margin:0 auto;}
-        .mod-card{background:#fff;border:1px solid var(--cs-bord-clair);border-radius:9px;padding:13px 16px;}
+        .mod-card{background:var(--cs-surface);border:1px solid var(--cs-bord-clair);border-radius:9px;padding:13px 16px;}
         .mod-entete{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px;}
         .mod-ref{font-family:var(--font-source-serif), Georgia, serif;font-size:0.78125rem;color:var(--cs-vert);text-decoration:none;}
         .mod-ref:hover{text-decoration:underline;}
@@ -168,7 +168,7 @@ export default function SectionModeration(props: Props) {
         .mod-reponse .quoi{display:block;font-style:italic;color:#7a746c;max-height:70px;overflow:auto;}
         .mod-auteur{font-size:0.6875rem;color:var(--cs-texte-second);font-weight:500;margin:0 0 10px;}
         .mod-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;}
-        .mod-btn{font-size:0.6875rem;padding:5px 12px;border-radius:6px;cursor:pointer;border:1px solid var(--cs-bord);background:#fff;color:var(--cs-texte);transition:background .12s,border-color .12s;}
+        .mod-btn{font-size:0.6875rem;padding:5px 12px;border-radius:6px;cursor:pointer;border:1px solid var(--cs-bord);background:var(--cs-surface);color:var(--cs-texte);transition:background .12s,border-color .12s;}
         .mod-btn:hover{background:var(--cs-fond);}
         .mod-btn.vert{background:var(--cs-vert);color:#fff;border-color:var(--cs-vert);}
         .mod-btn.vert:hover{background:var(--cs-vert-fonce);}
@@ -259,7 +259,7 @@ export default function SectionModeration(props: Props) {
             return (
               <div key={key} className="mod-card" style={{ background: imp.fond, borderColor: imp.bord }}>
                 <div className="mod-entete">
-                  {imp.label && <span className="mod-badge" style={{ background: '#fff', color: imp.accent, border: `1px solid ${imp.bord}` }}>{imp.label}</span>}
+                  {imp.label && <span className="mod-badge" style={{ background: 'var(--cs-surface)', color: imp.accent, border: `1px solid ${imp.bord}` }}>{imp.label}</span>}
                   <BadgeLieu lieu={loc.lieu} />
                   {s.source === 'quiz_signalements' && <span className="mod-badge" style={{ background: '#ece9f6', color: '#6b5fa0' }}>Quiz</span>}
                   {loc.href ? <a className="mod-ref" href={loc.href} target="_blank" rel="noopener noreferrer">{loc.titre}</a> : <span className="mod-ref">{loc.titre}</span>}

@@ -230,7 +230,7 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
     <>
       {/* En-tête : portrait, nom, contexte */}
       <header style={{ display: 'flex', gap: '18px', alignItems: 'center', marginBottom: '16px' }}>
-        <div style={{ width: '6.5rem', height: '130px', flexShrink: 0, padding: '5px', background: '#fff', border: '1px solid var(--cs-bord)', boxShadow: '0 2px 10px rgba(60,50,30,0.10)' }}>
+        <div style={{ width: '6.5rem', height: '130px', flexShrink: 0, padding: '5px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', boxShadow: '0 2px 10px rgba(60,50,30,0.10)' }}>
           <div style={{ width: '100%', height: '100%', overflow: 'hidden', background: 'var(--cs-fond-doux)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {photoOk ? (
               <img src={photoUrl} alt={auteur.nom} onError={() => setPhotoOk(false)}
@@ -317,7 +317,7 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
       <div onClick={e => e.stopPropagation()} className="auteur-modale-inner"
         style={{ position: 'relative', width: '100%', maxWidth: '52rem', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', boxShadow: '0 20px 60px rgba(40,30,15,0.30)', padding: '30px 34px 28px', margin: 'auto' }}>
         <button onClick={onClose} aria-label="Fermer" title="Fermer"
-          style={{ position: 'absolute', top: '12px', right: '14px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: '#fff', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          style={{ position: 'absolute', top: '12px', right: '14px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
 
         {erreur ? (
           <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-texte-faible)', textAlign: 'center', margin: '30px 0' }}>Auteur introuvable</p>

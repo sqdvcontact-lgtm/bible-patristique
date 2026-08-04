@@ -25,7 +25,7 @@ type VersetCite = {
 
 const statLigne: React.CSSProperties = {
   display: 'flex', alignItems: 'baseline', gap: '12px', padding: '10px 14px',
-  background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', textDecoration: 'none',
+  background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', textDecoration: 'none',
 }
 const statRang: React.CSSProperties = { fontSize: '0.6875rem', color: 'var(--cs-texte-second)', fontWeight: 600, width: '20px', flexShrink: 0 }
 const statRef: React.CSSProperties = { fontSize: '0.71875rem', fontWeight: 600, color: 'var(--cs-encre)', margin: '0 0 2px' }

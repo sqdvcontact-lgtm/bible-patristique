@@ -120,7 +120,7 @@ function SelecteurTraduction({ trad, setTrad }: { trad: string; setTrad: (c: str
   return (
     <div style={{ position: 'relative' }}>
       <button onClick={() => setOuvert(o => !o)} aria-expanded={ouvert} aria-haspopup="listbox"
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%', fontFamily: SANS, fontSize: '0.76rem', color: 'var(--cs-texte)', background: '#fff', border: `1px solid ${BORD}`, borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}>
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%', fontFamily: SANS, fontSize: '0.76rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: `1px solid ${BORD}`, borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}>
         {active.nom}
         <svg width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ opacity: 0.5, flexShrink: 0, transform: ouvert ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
           <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
@@ -129,7 +129,7 @@ function SelecteurTraduction({ trad, setTrad }: { trad: string; setTrad: (c: str
       {ouvert && (
         <>
           <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
-          <div role="listbox" style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 50, background: '#fff', border: `1px solid ${BORD}`, borderRadius: '8px', boxShadow: '0 10px 28px rgba(45,35,25,0.14)', overflow: 'hidden', padding: '4px' }}>
+          <div role="listbox" style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 50, background: 'var(--cs-surface)', border: `1px solid ${BORD}`, borderRadius: '8px', boxShadow: '0 10px 28px rgba(45,35,25,0.14)', overflow: 'hidden', padding: '4px' }}>
             {TRADUCTIONS_BIBLE.map(t => {
               const actif = t.code === trad
               return (
@@ -448,7 +448,7 @@ export default function PericopePage() {
         <div style={{ maxWidth: '44rem', margin: '0 auto' }}>
           {centre}
           <div style={{ marginTop: '1.5rem', background: PANEL, border: `1px solid ${BORD}`, borderRadius: '10px' }}>{voletDroit}</div>
-          <div style={{ marginTop: '1.5rem', border: `1px solid ${BORD}`, borderRadius: '10px', overflow: 'hidden', background: '#fff' }}>{panneauPatristique}</div>
+          <div style={{ marginTop: '1.5rem', border: `1px solid ${BORD}`, borderRadius: '10px', overflow: 'hidden', background: 'var(--cs-surface)' }}>{panneauPatristique}</div>
         </div>
       </main>
     )

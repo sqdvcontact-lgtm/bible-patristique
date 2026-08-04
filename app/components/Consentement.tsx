@@ -79,7 +79,7 @@ export default function Consentement() {
               style={{
                 fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
                 padding: '9px 16px', borderRadius: '8px',
-                border: '1px solid var(--cs-bord)', background: '#fff', color: '#6f675f',
+                border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: '#6f675f',
               }}
             >
               Refuser

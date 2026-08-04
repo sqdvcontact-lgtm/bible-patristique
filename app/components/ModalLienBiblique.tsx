@@ -214,7 +214,7 @@ export default function ModalLienBiblique({
                 }
               }}
               placeholder="Rechercher un mot, une expression ou une référence..."
-              style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #d8d0c3', borderRadius: '999px', padding: '8px 13px', fontSize: '0.75rem', background: '#fff', color: 'var(--cs-texte-fort)', outline: 'none', marginBottom: '12px' }}
+              style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #d8d0c3', borderRadius: '999px', padding: '8px 13px', fontSize: '0.75rem', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', marginBottom: '12px' }}
             />
 
             {recherche.trim().length >= 2 ? (
@@ -278,7 +278,7 @@ export default function ModalLienBiblique({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 {selectionListe.map(v => (
                   <button key={v.id} onClick={() => basculerVerset(v)}
-                    style={{ border: '1px solid #d8d0c3', background: '#fff', color: '#2f6046', borderRadius: '999px', padding: '5px 8px', cursor: 'pointer', fontSize: '0.6875rem', textAlign: 'left' }}>
+                    style={{ border: '1px solid #d8d0c3', background: 'var(--cs-surface)', color: '#2f6046', borderRadius: '999px', padding: '5px 8px', cursor: 'pointer', fontSize: '0.6875rem', textAlign: 'left' }}>
                     {v.label} <span style={{ color: '#b07b65' }}>×</span>
                   </button>
                 ))}
@@ -292,7 +292,7 @@ export default function ModalLienBiblique({
             {selectionListe.length > 0 ? `${selectionListe.length} verset(s) sélectionné(s)` : 'Aucun verset sélectionné'}
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={onFermer} style={{ border: '1px solid #d8d0c3', background: '#fff', color: 'var(--cs-texte-second)', borderRadius: '999px', padding: '7px 14px', cursor: 'pointer', fontSize: '0.75rem' }}>Fermer</button>
+            <button onClick={onFermer} style={{ border: '1px solid #d8d0c3', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', borderRadius: '999px', padding: '7px 14px', cursor: 'pointer', fontSize: '0.75rem' }}>Fermer</button>
             <button onClick={valider} disabled={selectionListe.length === 0 || enregistrement}
               style={{ border: '1px solid var(--cs-vert)', background: selectionListe.length === 0 || enregistrement ? 'var(--cs-bord-clair)' : 'var(--cs-vert)', color: selectionListe.length === 0 || enregistrement ? 'var(--cs-texte-doux)' : '#fff', borderRadius: '999px', padding: '7px 15px', cursor: selectionListe.length === 0 || enregistrement ? 'default' : 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
               {enregistrement ? 'Enregistrement...' : 'Créer le lien biblique'}

@@ -221,7 +221,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
                     style={{
                       fontSize: '0.79062rem', padding: '5px 11px', borderRadius: '4px', fontWeight: 600,
                       border: opt.couleur ? `1px solid ${opt.couleur}` : '1px solid var(--cs-bord)',
-                      background: '#fff',
+                      background: 'var(--cs-surface)',
                       color: opt.couleur ?? 'var(--cs-vert)',
                       cursor: 'pointer',
                     }}>
@@ -272,13 +272,13 @@ function Pagination({ page, nbPages, onPage, bas = false }: {
 function flecheBtn(disabled: boolean): React.CSSProperties {
   return {
     width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
-    background: '#fff', color: disabled ? '#cfc7bb' : 'var(--cs-vert)', cursor: disabled ? 'default' : 'pointer',
+    background: 'var(--cs-surface)', color: disabled ? '#cfc7bb' : 'var(--cs-vert)', cursor: disabled ? 'default' : 'pointer',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: disabled ? 'none' : '0 1px 5px rgba(60,50,30,0.06)', transition: 'color 0.12s, box-shadow 0.12s',
   }
 }
 
-const carteStyle: React.CSSProperties = { background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '8px', overflow: 'hidden' }
+const carteStyle: React.CSSProperties = { background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', overflow: 'hidden' }
 const enteteColStyle: React.CSSProperties = { display: 'block', padding: '9px 16px', background: 'rgba(var(--cs-vert-rgb),0.06)', color: 'var(--cs-encre-fonce)', fontSize: '0.8625rem', fontWeight: 600, textDecoration: 'none', minWidth: 0, letterSpacing: '0.01em' }
 const texteBibleStyle: React.CSSProperties = { fontSize: '0.89844rem', color: 'var(--cs-texte)', lineHeight: 1.58, margin: 0, textAlign: 'justify' }
 const textePatristiqueStyle: React.CSSProperties = { fontSize: '0.89844rem', color: 'var(--cs-texte-fort)', lineHeight: 1.58, margin: 0, textAlign: 'justify', wordSpacing: '-0.02em' }

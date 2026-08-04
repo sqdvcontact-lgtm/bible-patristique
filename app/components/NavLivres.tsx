@@ -110,7 +110,7 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
 
   return createPortal(
     <div onClick={onFermer} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}>
-      <div role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#fff', borderRadius: '10px', padding: '20px 26px 22px', width: '40rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+      <div role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: 'var(--cs-surface)', borderRadius: '10px', padding: '20px 26px 22px', width: '40rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
         <style>{`
           .trad-notice h2 { font-family: ${SERIF}; font-size: 0.95rem; font-weight: 600; color: #3a4a34; margin: 13px 0 3px; }
           .trad-notice h2:first-child { margin-top: 0; }

@@ -101,7 +101,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
   const isDragging = !!dragRef.current
   const btnZ: React.CSSProperties = {
     width: '28px', height: '28px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
-    background: '#fff', color: 'var(--cs-texte)', fontSize: '1.22187rem', cursor: 'pointer',
+    background: 'var(--cs-surface)', color: 'var(--cs-texte)', fontSize: '1.22187rem', cursor: 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1,
   }
   const badgeStyle: React.CSSProperties = {
@@ -141,7 +141,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
           onMouseMove={onMove}
           onMouseUp={endDrag}
           onMouseLeave={endDrag}
-          style={{ border: '1px solid var(--cs-bord)', borderRadius: '8px', overflow: 'hidden', background: '#fff', userSelect: 'none' }}>
+          style={{ border: '1px solid var(--cs-bord)', borderRadius: '8px', overflow: 'hidden', background: 'var(--cs-surface)', userSelect: 'none' }}>
 
           {/* ── Bandeau (copie exacte de BandeauTraduction) ── */}
           <div
@@ -227,7 +227,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
 
         {/* ── Actions ── */}
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '14px', borderTop: '1px solid #e8e3dc', paddingTop: '14px' }}>
-          <button onClick={onClose} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+          <button onClick={onClose} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
           <button onClick={sauvegarder} disabled={saving} style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: 'none', background: saving ? '#a0b8aa' : 'var(--cs-vert)', color: '#fff', cursor: saving ? 'default' : 'pointer', fontWeight: 500 }}>
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
@@ -306,7 +306,7 @@ function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: s
 
   const btnStyle: React.CSSProperties = {
     padding: '4px 9px', fontSize: '0.82656rem', border: '1px solid var(--cs-bord)',
-    borderRadius: '3px', background: '#fff', color: 'var(--cs-texte)', cursor: 'pointer', lineHeight: 1,
+    borderRadius: '3px', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer', lineHeight: 1,
   }
 
   React.useEffect(() => {
@@ -349,7 +349,7 @@ function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: s
         style={{
           width: '100%', minHeight: '150px', padding: '12px 14px', fontSize: '0.93437rem',
           fontFamily: 'var(--font-source-serif), Georgia, serif', lineHeight: 1.7, color: 'var(--cs-texte-fort)', outline: 'none',
-          border: 'none', background: '#fff', boxSizing: 'border-box',
+          border: 'none', background: 'var(--cs-surface)', boxSizing: 'border-box',
         }}
       />
     </div>
@@ -376,7 +376,7 @@ function urlsDe(champ: string | null): string[] {
 // Lien vers une source : un bouton sobre si une seule URL, un menu déroulant si plusieurs.
 function BoutonSource({ label, urls }: { label: string; urls: string[] }) {
   const [ouvert, setOuvert] = React.useState(false)
-  const base: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.65rem', fontWeight: 500, color: 'var(--cs-vert)', textDecoration: 'none', padding: '3px 11px', border: '1px solid #cfdccb', borderRadius: '999px', background: '#fff', lineHeight: 1.3 }
+  const base: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.65rem', fontWeight: 500, color: 'var(--cs-vert)', textDecoration: 'none', padding: '3px 11px', border: '1px solid #cfdccb', borderRadius: '999px', background: 'var(--cs-surface)', lineHeight: 1.3 }
   if (urls.length === 1) {
     return <a href={urls[0]} target="_blank" rel="noopener noreferrer" style={base}>{label}<span aria-hidden="true" style={{ opacity: 0.7 }}>↗</span></a>
   }
@@ -388,7 +388,7 @@ function BoutonSource({ label, urls }: { label: string; urls: string[] }) {
       {ouvert && (
         <>
           <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, zIndex: 9 }} />
-          <div style={{ position: 'absolute', top: 'calc(100% + 3px)', left: 0, zIndex: 10, background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '7px', boxShadow: '0 6px 20px rgba(0,0,0,0.10)', minWidth: '8rem', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 'calc(100% + 3px)', left: 0, zIndex: 10, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '7px', boxShadow: '0 6px 20px rgba(0,0,0,0.10)', minWidth: '8rem', overflow: 'hidden' }}>
             {urls.map((u, i) => (
               <a key={i} href={u} target="_blank" rel="noopener noreferrer" onClick={() => setOuvert(false)}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '6px 12px', fontSize: '0.65rem', color: 'var(--cs-vert)', textDecoration: 'none', borderBottom: i < urls.length - 1 ? '1px solid var(--cs-fond-doux)' : 'none' }}>
@@ -411,8 +411,8 @@ function mentionEdition(n: number): string {
   return `${n}e édition`
 }
 const styleTag: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.68rem', background: '#f0ece3', color: 'var(--cs-texte)', border: '1px solid #e3ddcf', borderRadius: '999px', padding: '1px 9px', lineHeight: 1.45 }
-const styleInput: React.CSSProperties = { width: '100%', fontSize: '0.74rem', padding: '4px 8px', border: '1px solid var(--cs-or-doux)', borderRadius: '5px', background: '#fff', color: '#2a3530', outline: 'none', boxSizing: 'border-box' }
-const styleMini: React.CSSProperties = { fontSize: '0.62rem', padding: '3px 9px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', cursor: 'pointer', color: 'var(--cs-texte-second)' }
+const styleInput: React.CSSProperties = { width: '100%', fontSize: '0.74rem', padding: '4px 8px', border: '1px solid var(--cs-or-doux)', borderRadius: '5px', background: 'var(--cs-surface)', color: '#2a3530', outline: 'none', boxSizing: 'border-box' }
+const styleMini: React.CSSProperties = { fontSize: '0.62rem', padding: '3px 9px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', cursor: 'pointer', color: 'var(--cs-texte-second)' }
 
 // Éditeur de valeurs multiples sous forme de tags (add / remove), enregistré joint par « ; ».
 function EditeurTags({ initial, onValider, onAnnuler }: { initial: string[]; onValider: (v: string[]) => void; onAnnuler: () => void }) {
@@ -540,7 +540,7 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
   }
   const e = local
   const ongletBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.7rem', fontWeight: 600, padding: '5px 13px', borderRadius: '6px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.09)' : '#fff', color: actif ? 'var(--cs-vert)' : '#8a8278', cursor: 'pointer' })
-  const navBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.72rem', padding: '4px 12px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-bord)' : 'var(--cs-fond-doux)'}`, background: '#fff', color: actif ? 'var(--cs-vert)' : 'var(--cs-bord)', cursor: actif ? 'pointer' : 'default' })
+  const navBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.72rem', padding: '4px 12px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-bord)' : 'var(--cs-fond-doux)'}`, background: 'var(--cs-surface)', color: actif ? 'var(--cs-vert)' : 'var(--cs-bord)', cursor: actif ? 'pointer' : 'default' })
 
   return (
     <div style={{ padding: '16px 18px 20px', borderTop: '1px solid var(--cs-fond-doux)', background: 'var(--cs-fond-clair)' }}>
@@ -574,7 +574,7 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
                 <span style={{ fontSize: '0.72rem', color: '#8a8278' }}>{idx + 1} / {journal.length}</span>
                 <button disabled={idx >= journal.length - 1} onClick={() => setIdxJ(idx + 1)} style={navBtn(idx < journal.length - 1)}>Suivant ›</button>
               </div>
-              <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '7px', background: '#fff', padding: '12px 14px' }}>
+              <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '7px', background: 'var(--cs-surface)', padding: '12px 14px' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', marginBottom: '5px' }}>
                   <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--cs-encre)' }}>{j.sujet || 'Sans sujet'}</span>
                   {j.statut && <span style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.10)', borderRadius: '4px', padding: '2px 7px', flexShrink: 0 }}>{j.statut}</span>}
@@ -592,7 +592,7 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
       {e ? (
         <>
           {/* Première ligne — SEULE en colonnes : sources, licence, intégrité (tout éditable). */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px 16px', padding: '9px 12px', border: '1px solid #e7e1d6', borderRadius: '8px', background: '#fff', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px 16px', padding: '9px 12px', border: '1px solid #e7e1d6', borderRadius: '8px', background: 'var(--cs-surface)', marginBottom: '14px' }}>
             {champEdit === 'source_url' ? (
               <input autoFocus value={brouillon} onChange={ev => setBrouillon(ev.target.value)} onKeyDown={ev => { if (ev.key === 'Enter') validerSingle('source_url'); if (ev.key === 'Escape') setChampEdit(null) }} onBlur={() => validerSingle('source_url')} placeholder="URL notice (plusieurs séparées par un espace)…" style={{ ...styleInput, maxWidth: '20rem' }} />
             ) : (
@@ -658,7 +658,7 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
           {pieces.map(p => {
             const ouv = pieceOuverte === p.id
             return (
-              <div key={p.id} style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', background: '#fff', overflow: 'hidden' }}>
+              <div key={p.id} style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', background: 'var(--cs-surface)', overflow: 'hidden' }}>
                 <button onClick={() => setPieceOuverte(ouv ? null : p.id)}
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%', textAlign: 'left', padding: '8px 11px', background: ouv ? '#eef2ec' : '#f5f1e8', border: 'none', borderBottom: ouv ? '1px solid var(--cs-fond-doux)' : 'none', cursor: 'pointer' }}>
                   <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap', minWidth: 0 }}>
@@ -934,7 +934,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
 
       {/* Formulaire nouvelle traduction */}
       {ajout && (
-        <div style={{ background: '#fff', border: '2px solid var(--cs-vert)', borderRadius: '8px', padding: '18px 20px', marginBottom: '4px' }}>
+        <div style={{ background: 'var(--cs-surface)', border: '2px solid var(--cs-vert)', borderRadius: '8px', padding: '18px 20px', marginBottom: '4px' }}>
           <p style={{ fontSize: '0.8625rem', fontWeight: 600, color: 'var(--cs-vert)', marginBottom: '14px' }}>Nouvelle traduction</p>
 
           {/* Métadonnées */}
@@ -966,7 +966,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <button onClick={() => fileRef.current?.click()}
-                style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer', fontWeight: 500 }}>
+                style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer', fontWeight: 500 }}>
                 ↑ Choisir un CSV
               </button>
               <input ref={fileRef} type="file" accept=".csv" style={{ display: 'none' }}
@@ -984,7 +984,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
 
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <button onClick={() => { setAjout(false); setNouveau({}); setCsvLignes([]); setCsvNom(''); setImportMsg('') }}
-              style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>
+              style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>
               Annuler
             </button>
             <button onClick={importer} disabled={importStatut === 'loading'}
@@ -997,7 +997,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
 
       {/* Liste des traductions */}
       {lignes.map(t => (
-        <div key={t.trad_id} style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
+        <div key={t.trad_id} style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
           {/* En-tête */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
@@ -1035,7 +1035,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 onClick={() => t.photo && setPositionModal(t.trad_id)}
                 disabled={!t.photo}
                 title={t.photo ? "Cadrer et zoomer l'image" : 'Aucune photo à cadrer'}
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: t.photo ? 'var(--cs-texte-second)' : 'var(--cs-bord)', cursor: t.photo ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: t.photo ? 'var(--cs-texte-second)' : 'var(--cs-bord)', cursor: t.photo ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>
                 ⊹ Cadrer
               </button>
               <input ref={el => { photoRefs.current[t.trad_id] = el }} type="file" accept="image/*" style={{ display: 'none' }}
@@ -1061,13 +1061,13 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 onClick={() => exporterCSV(t.trad_id, t.nom)}
                 disabled={exportStatut[t.trad_id] === 'loading'}
                 title="Exporter cette traduction en CSV"
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: exportStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: exportStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
                 ↓ CSV
               </button>
               <button
                 onClick={() => ouvrirRemplacement(t.trad_id)}
                 title="Remplacer les versets de cette traduction via un CSV"
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: '#9a7e3d', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: '#9a7e3d', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 ↑ Remplacer
               </button>
               <button onClick={() => setPanneauInfos(panneauInfos === t.trad_id ? null : t.trad_id)}
@@ -1076,11 +1076,11 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 Édition &amp; apparat{apparats[t.trad_id]?.length ? ` (${apparats[t.trad_id].length})` : ''}
               </button>
               <button onClick={() => edition === t.trad_id ?fermer() : ouvrir(t)}
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer', minWidth: '4.5rem', textAlign: 'center' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer', minWidth: '4.5rem', textAlign: 'center' }}>
                 {edition === t.trad_id ?'Fermer' : 'Modifier'}
               </button>
               <button onClick={() => supprimer(t.trad_id)}
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-danger-bord)', background: '#fff', color: 'var(--cs-danger)', cursor: 'pointer' }}>
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-surface)', color: 'var(--cs-danger)', cursor: 'pointer' }}>
                 Supprimer
               </button>
             </div>
@@ -1118,7 +1118,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 {statut?.id === t.trad_id && (
                   <span style={{ fontSize: '0.82656rem', color: statut?.ok ? 'var(--cs-vert)' : 'var(--cs-danger)' }}>{statut?.ok ? '✓' : '✗'} {statut?.msg}</span>
                 )}
-                <button onClick={fermer} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+                <button onClick={fermer} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                 <button onClick={sauvegarder} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
               </div>
             </div>
@@ -1155,7 +1155,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 <button
                   onClick={() => replaceFileRef.current?.click()}
                   disabled={replaceStatut === 'loading'}
-                  style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer', fontWeight: 500, flexShrink: 0 }}>
+                  style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer', fontWeight: 500, flexShrink: 0 }}>
                   ↑ Choisir un CSV
                 </button>
                 {replaceNom && (
@@ -1168,7 +1168,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 </p>
               )}
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid #e8e3dc', paddingTop: '14px' }}>
-                <button onClick={() => setReplaceModal(null)} disabled={replaceStatut === 'loading'} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+                <button onClick={() => setReplaceModal(null)} disabled={replaceStatut === 'loading'} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                 <button
                   onClick={confirmerRemplacement}
                   disabled={replaceLignes.length === 0 || replaceStatut === 'loading' || replaceStatut === 'ok'}

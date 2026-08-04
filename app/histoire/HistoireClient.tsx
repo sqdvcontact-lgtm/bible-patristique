@@ -266,7 +266,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
       <div style={{ position: 'relative', marginTop: '2px' }}>
         <input value={recherche} onChange={e => setRecherche(e.target.value)} type="text"
           placeholder="Rechercher un événement…" aria-label="Rechercher dans la frise"
-          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px 7px 28px', borderRadius: '6px', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte)', outline: 'none' }} />
+          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px 7px 28px', borderRadius: '6px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)', outline: 'none' }} />
         <svg width="12" height="12" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
           <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2" />
           <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round" />
@@ -361,7 +361,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
         <GroupeFiltre label="Pays actuel">
           <select value={f.pays} onChange={e => setF(p => ({ ...p, pays: e.target.value }))}
             aria-label="Filtrer par pays actuel"
-            style={{ width: '100%', fontFamily: 'inherit', fontSize: '0.72rem', padding: '4px 8px', borderRadius: '5px', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte)' }}>
+            style={{ width: '100%', fontFamily: 'inherit', fontSize: '0.72rem', padding: '4px 8px', borderRadius: '5px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)' }}>
             <option value="">Tous les pays</option>
             {rep.pays.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
@@ -373,7 +373,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
 
       {filtresActifs && (
         <button onClick={reinitialiser}
-          style={{ marginTop: '14px', width: '100%', padding: '6px 9px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.76rem' }}>
+          style={{ marginTop: '14px', width: '100%', padding: '6px 9px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.76rem' }}>
           Réinitialiser les filtres
         </button>
       )}
@@ -433,7 +433,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
                 </p>
                 {filtresActifs && (
                   <button onClick={reinitialiser}
-                    style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.78rem' }}>
+                    style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.78rem' }}>
                     Réinitialiser les filtres
                   </button>
                 )}
@@ -711,7 +711,7 @@ function SelectSiecle({ id, valeur, siecles, tout, onChange }: {
 }) {
   return (
     <select id={id} value={valeur ?? ''} onChange={e => onChange(e.target.value ? Number(e.target.value) : null)}
-      style={{ flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.72rem', padding: '3px 5px', borderRadius: '5px', border: `1px solid ${BORD}`, background: '#fff', color: 'var(--cs-texte)' }}>
+      style={{ flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.72rem', padding: '3px 5px', borderRadius: '5px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)' }}>
       <option value="">{tout}</option>
       {siecles.map(s => <option key={s} value={s}>{s > 0 ? `${s}e s.` : `${-s}e s. av. J.-C.`}</option>)}
     </select>

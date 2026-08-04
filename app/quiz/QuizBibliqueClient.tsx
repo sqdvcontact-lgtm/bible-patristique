@@ -942,11 +942,11 @@ function BlocJeu({ titre, children }: { titre: string; children: React.ReactNode
 
 /* ── Styles partagés ─────────────────────────────────────────────────────── */
 const btnPrincipal = { fontSize: '0.75rem', padding: '8px 13px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 800, whiteSpace: 'nowrap' } as const
-const btnSecondaire = { fontSize: '0.75rem', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(var(--cs-vert-rgb),0.24)', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer', fontWeight: 800 } as const
-const inputStyle = { minWidth: 0, fontSize: '0.75rem', padding: '8px 10px', border: '1px solid #bdd2bf', borderRadius: '8px', background: '#fff', color: '#203528', outline: 'none', boxSizing: 'border-box' } as const
+const btnSecondaire = { fontSize: '0.75rem', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(var(--cs-vert-rgb),0.24)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer', fontWeight: 800 } as const
+const inputStyle = { minWidth: 0, fontSize: '0.75rem', padding: '8px 10px', border: '1px solid #bdd2bf', borderRadius: '8px', background: 'var(--cs-surface)', color: '#203528', outline: 'none', boxSizing: 'border-box' } as const
 const tagStyle = { fontSize: '0.6875rem', color: '#2f6a48', background: 'rgba(var(--cs-vert-rgb),0.10)', border: '1px solid rgba(var(--cs-vert-rgb),0.20)', borderRadius: '999px', padding: '4px 8px', fontWeight: 700 } as const
-const menuSuggestionsStyle = { position: 'absolute', left: 0, right: 0, top: 'calc(100% + 4px)', background: '#fff', border: '1px solid #bdd2bf', borderRadius: '9px', zIndex: 30, boxShadow: '0 10px 26px rgba(35,66,44,0.14)', overflow: 'hidden' } as const
-const suggestionStyle = { display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '0.75rem', color: '#203528', background: '#fff', border: 'none', borderBottom: '1px solid #eef3eb', cursor: 'pointer' } as const
+const menuSuggestionsStyle = { position: 'absolute', left: 0, right: 0, top: 'calc(100% + 4px)', background: 'var(--cs-surface)', border: '1px solid #bdd2bf', borderRadius: '9px', zIndex: 30, boxShadow: '0 10px 26px rgba(35,66,44,0.14)', overflow: 'hidden' } as const
+const suggestionStyle = { display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '0.75rem', color: '#203528', background: 'var(--cs-surface)', border: 'none', borderBottom: '1px solid #eef3eb', cursor: 'pointer' } as const
 const blocJeSaisStyle = { display: 'grid', gridTemplateColumns: 'minmax(150px,1fr) minmax(220px,1.25fr)', gap: '12px', alignItems: 'center', background: '#fffdf6', border: '1px solid rgba(190,154,73,0.28)', borderRadius: '12px', padding: '12px' } as const
 const aideStyle = { fontSize: '0.75rem', color: '#5d735f', margin: '0 0 10px', lineHeight: 1.45 } as const
 const messageChaudStyle = { marginTop: '10px', padding: '9px 11px', borderRadius: '9px', background: '#fff4df', border: '1px solid rgba(194,112,38,0.26)', color: '#9a5520', fontSize: '0.75rem', fontWeight: 700 } as const

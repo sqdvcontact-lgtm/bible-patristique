@@ -140,7 +140,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
           <span style={{ flex: 1, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-encre-fonce)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {pseudoActif ?? 'Messages'}
           </span>
-          <button onClick={onClose} aria-label="Fermer" style={{ width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: '#fff', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} aria-label="Fermer" style={{ width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
 
         {connecte === false ? (
@@ -176,7 +176,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                 onChange={e => setTexte(sansEmoticones(e.target.value))}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); envoyer() } }}
                 placeholder="Écrire un message… (Entrée pour envoyer)" rows={2} maxLength={2000}
-                style={{ flex: 1, resize: 'none', border: '1px solid var(--cs-bord)', borderRadius: '9px', padding: '8px 11px', fontSize: '0.78125rem', background: '#fff', color: 'var(--cs-encre-fonce)', fontFamily: 'inherit', lineHeight: 1.45, outline: 'none' }} />
+                style={{ flex: 1, resize: 'none', border: '1px solid var(--cs-bord)', borderRadius: '9px', padding: '8px 11px', fontSize: '0.78125rem', background: 'var(--cs-surface)', color: 'var(--cs-encre-fonce)', fontFamily: 'inherit', lineHeight: 1.45, outline: 'none' }} />
               <button onClick={envoyer} disabled={!sansEmoticones(texte).trim() || envoi}
                 style={{ flexShrink: 0, height: '38px', background: 'var(--cs-vert)', color: '#fff', border: 'none', borderRadius: '9px', padding: '0 15px', fontSize: '0.78125rem', fontWeight: 600, cursor: (!sansEmoticones(texte).trim() || envoi) ? 'default' : 'pointer', opacity: (!sansEmoticones(texte).trim() || envoi) ? 0.5 : 1 }}>
                 {envoi ? '…' : 'Envoyer'}
@@ -189,14 +189,14 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
             <div style={{ flexShrink: 0, padding: '10px 14px 8px', borderBottom: '1px solid var(--cs-fond-doux)', position: 'relative' }}>
               <input value={recherche} onChange={e => setRecherche(e.target.value)}
                 placeholder="Chercher un pseudonyme pour écrire…"
-                style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.78125rem', padding: '7px 11px', border: '1px solid var(--cs-bord)', borderRadius: '999px', background: '#fff', color: 'var(--cs-texte-fort)', outline: 'none' }} />
+                style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.78125rem', padding: '7px 11px', border: '1px solid var(--cs-bord)', borderRadius: '999px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none' }} />
               {recherche.trim().length >= 2 && (
-                <div style={{ position: 'absolute', left: '14px', right: '14px', top: 'calc(100% - 2px)', zIndex: 5, background: '#fff', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', left: '14px', right: '14px', top: 'calc(100% - 2px)', zIndex: 5, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', overflow: 'hidden' }}>
                   {resultats.length === 0 ? (
                     <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '8px 12px', margin: 0 }}>Aucun pseudonyme trouvé.</p>
                   ) : resultats.map(p => (
                     <button key={p} onClick={() => ouvrirConversation(p)}
-                      style={{ display: 'block', width: '100%', textAlign: 'left', fontSize: '0.78125rem', padding: '8px 12px', border: 'none', borderBottom: '1px solid var(--cs-fond-doux)', background: '#fff', color: 'var(--cs-encre)', cursor: 'pointer' }}>
+                      style={{ display: 'block', width: '100%', textAlign: 'left', fontSize: '0.78125rem', padding: '8px 12px', border: 'none', borderBottom: '1px solid var(--cs-fond-doux)', background: 'var(--cs-surface)', color: 'var(--cs-encre)', cursor: 'pointer' }}>
                       {p}
                     </button>
                   ))}

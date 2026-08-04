@@ -65,6 +65,76 @@
   /* Or — accent doré (références, fleurons, favoris) */
   --cs-or: #9a7a38;
   --cs-or-doux: #c8b89e;
+
+  /* Surface « papier » : cartes, menus, champs. Blanc en thème clair (identique à
+     l'existant) ; devient crème chaud en Sépia, brun sombre en Cuir. C'est ce token
+     qui permet aux fonds — jadis `#fff` en dur — de suivre le thème. */
+  --cs-surface: #fff;
+}
+
+/* ══ Confort de lecture — thèmes alternatifs (surcouches de tokens) ══
+   Sélection MANUELLE via l'attribut data-theme sur <html> (aucun basculement
+   automatique : le clair reste le défaut). Mêmes rôles, teintes transposées dans
+   la même famille (crème/brun · vert · or), jamais de blanc ni de noir purs. */
+
+/* ── Sépia : parchemin chaud, moins de bleu ── */
+:root[data-theme="sepia"] {
+  --cs-fond: #f3ead7;
+  --cs-fond-clair: #f8f1e0;
+  --cs-fond-doux: #ece0c9;
+  --cs-surface: #f8f1e0;
+  --cs-bord: #d0bf9d;
+  --cs-bord-rgb: 208, 191, 157;
+  --cs-bord-clair: #ddceb0;
+  --cs-texte-faible: #b4a482;
+  --cs-texte-doux: #9c8a6c;
+  --cs-texte-second: #6f5f45;
+  --cs-texte: #443723;
+  --cs-texte-fort: #332818;
+  --cs-encre: #40442a;
+  --cs-encre-fonce: #33371f;
+  --cs-vert: #556b3c;
+  --cs-vert-rgb: 85, 107, 60;
+  --cs-vert-fonce: #41542d;
+  --cs-vert-pale: #e2e2c4;
+  --cs-danger: #b0552a;
+  --cs-danger-rgb: 176, 85, 42;
+  --cs-danger-fonce: #8e2a1e;
+  --cs-danger-fond: #f6e6d6;
+  --cs-danger-bord: #dcc0a0;
+  --cs-or: #8f6f2c;
+  --cs-or-doux: #c4ab7e;
+}
+
+/* ── Cuir : brun chaud « vieux livre », texte crème, vert en accent (variante B) ── */
+:root[data-theme="sombre"] {
+  --cs-fond: #1c1813;
+  --cs-fond-clair: #241f18;
+  --cs-fond-doux: #2b251c;
+  --cs-surface: #241f18;
+  --cs-bord: #3a3227;
+  --cs-bord-rgb: 58, 50, 39;
+  --cs-bord-clair: #463c2e;
+  /* L'échelle de texte s'inverse (clair sur fond sombre) : « faible » = le plus
+     discret (sombre), « fort » = le plus lumineux. */
+  --cs-texte-faible: #756956;
+  --cs-texte-doux: #988a70;
+  --cs-texte-second: #b6ac96;
+  --cs-texte: #e6ded0;
+  --cs-texte-fort: #f2ebda;
+  --cs-encre: #9fc6a4;
+  --cs-encre-fonce: #8bb798;
+  --cs-vert: #7bb98e;
+  --cs-vert-rgb: 123, 185, 142;
+  --cs-vert-fonce: #6aa87d;
+  --cs-vert-pale: #26332a;
+  --cs-danger: #d9714a;
+  --cs-danger-rgb: 217, 113, 74;
+  --cs-danger-fonce: #c25738;
+  --cs-danger-fond: #2f211b;
+  --cs-danger-bord: #4a3a30;
+  --cs-or: #b89a5e;
+  --cs-or-doux: #8f7a52;
 }
 
 /* ── Agrandissement fluide sur grands écrans ──

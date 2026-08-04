@@ -30,7 +30,7 @@ const STATUTS = ['sourcé', 'à consolider']
 const NATURES = ['direct', 'biographique', 'bibliographique', 'doctrinal', 'géographique', 'institutionnel', 'politique', 'contextuel', 'réception']
 const PERTINENCES = ['indispensable', 'utile', 'secondaire']
 
-const champ: React.CSSProperties = { width: '100%', fontSize: '0.83rem', padding: '5px 8px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: '#fff', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }
+const champ: React.CSSProperties = { width: '100%', fontSize: '0.83rem', padding: '5px 8px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }
 const label: React.CSSProperties = { display: 'block', fontSize: '0.66rem', fontWeight: 700, letterSpacing: '0.04em', color: '#8a8278', textTransform: 'uppercase', margin: '0 0 3px' }
 const btn = (bg: string, fg: string, bd?: string): React.CSSProperties => ({ fontSize: '0.79rem', padding: '5px 12px', borderRadius: '5px', border: bd ? `1px solid ${bd}` : 'none', background: bg, color: fg, cursor: 'pointer', fontWeight: 600 })
 
@@ -134,7 +134,7 @@ export default function SectionEvenements({ auteurs }: { auteurs: Auteur[] }) {
 
       {/* ── File « à contrôler » ─────────────────────────────────────── */}
       {aControler.length > 0 && (
-        <div style={{ background: '#fff', border: '1px solid #e7d3b8', borderRadius: '9px', padding: '14px 16px', marginBottom: '22px' }}>
+        <div style={{ background: 'var(--cs-surface)', border: '1px solid #e7d3b8', borderRadius: '9px', padding: '14px 16px', marginBottom: '22px' }}>
           <p style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#9a5a2a', margin: '0 0 10px' }}>À contrôler ({aControler.length})</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
             {aControler.map(a => {
@@ -186,7 +186,7 @@ export default function SectionEvenements({ auteurs }: { auteurs: Auteur[] }) {
             const nControl = liens.filter(a => a.a_controler).length
             const estOuvert = ouvert === e.id
             return (
-              <div key={e.id} style={{ background: '#fff', border: `1px solid ${estOuvert ? '#cdd8d0' : 'var(--cs-bord-clair)'}`, borderRadius: '8px', overflow: 'hidden' }}>
+              <div key={e.id} style={{ background: 'var(--cs-surface)', border: `1px solid ${estOuvert ? '#cdd8d0' : 'var(--cs-bord-clair)'}`, borderRadius: '8px', overflow: 'hidden' }}>
                 <button onClick={() => setOuvert(estOuvert ? null : e.id)} style={{ display: 'grid', gridTemplateColumns: '5.5rem 1fr auto', gap: '12px', alignItems: 'center', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '9px 13px' }}>
                   <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8rem', color: '#b7a06a', whiteSpace: 'nowrap' }}>{annees(e)}</span>
                   <span style={{ minWidth: 0 }}>

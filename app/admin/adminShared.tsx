@@ -29,7 +29,7 @@ export function dateFormat(s: string) {
   return new Date(s).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 export function Carte({ children }: { children: React.ReactNode }) {
-  return <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '16px 20px' }}>{children}</div>
+  return <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '16px 20px' }}>{children}</div>
 }
 export function ContexteSegment({ segId, segMap }: { segId: number | null; segMap: Record<number, SegInfo> }) {
   if (!segId || !segMap[segId]) return null

@@ -121,7 +121,7 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
         <label style={{ fontSize: '0.71875rem', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', display: 'block', marginBottom: '4px' }}>FICHIER CSV (table segments complète)</label>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <button onClick={() => fileRef.current?.click()}
-            style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-vert)', cursor: 'pointer' }}>
+            style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer' }}>
             ↑ Choisir un CSV
           </button>
           <input ref={fileRef} type="file" accept=".csv" style={{ display: 'none' }}

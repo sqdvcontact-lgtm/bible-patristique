@@ -13,7 +13,7 @@ export default function GestionConsentement() {
       style={{
         fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
         padding: '9px 16px', borderRadius: '8px', marginTop: '4px',
-        border: '1px solid var(--cs-vert)', background: '#fff', color: 'var(--cs-vert)',
+        border: '1px solid var(--cs-vert)', background: 'var(--cs-surface)', color: 'var(--cs-vert)',
         alignSelf: 'flex-start',
       }}
     >

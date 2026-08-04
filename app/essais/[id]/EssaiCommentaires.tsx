@@ -123,7 +123,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
     const reponses = commentaires.filter(r => r.reponse_a === c.id)
     const cache = !c.supprime && !c.valide && !revelees.has(c.id)
     const styleCarte: React.CSSProperties = c.valide
-      ? { border: '1px solid var(--cs-bord-clair)', borderLeft: '4px solid var(--cs-bord)', background: '#fff' }
+      ? { border: '1px solid var(--cs-bord-clair)', borderLeft: '4px solid var(--cs-bord)', background: 'var(--cs-surface)' }
       : { border: '1px solid rgba(176,58,42,0.26)', borderLeft: '4px solid var(--cs-danger)', background: 'rgba(176,58,42,0.07)' }
     const rang = c.score !== null && c.score !== undefined ? calculerRang(c.score).rang : null
     const rangCouleur = rang ? couleurRang(rang) : null
@@ -251,7 +251,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
       {userId ? (
         <div style={{ flexShrink: 0, borderTop: '1px solid var(--cs-fond-doux)', background: 'var(--cs-fond-clair)', padding: '10px 14px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {cibleReponse && (
-            <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)', background: '#fff', padding: '4px 8px', borderRadius: '4px', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+            <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)', background: 'var(--cs-surface)', padding: '4px 8px', borderRadius: '4px', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
               <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
                 <path d="M7 4 3.5 7.5 7 11M3.5 7.5H10a2.5 2.5 0 0 1 2.5 2.5V12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -264,7 +264,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
             <button onClick={() => setAfficherPassage(true)} style={{ fontSize: '0.625rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', alignSelf: 'flex-start', padding: 0 }}>+ Citer un passage</button>
           ) : (
             <textarea value={passageCite} onChange={e => setPassageCite(e.target.value)} rows={2} placeholder="Passage exact à commenter…"
-              style={{ width: '100%', fontSize: '0.71875rem', fontStyle: 'italic', padding: '6px 8px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: '#fff', color: 'var(--cs-texte)', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
+              style={{ width: '100%', fontSize: '0.71875rem', fontStyle: 'italic', padding: '6px 8px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte)', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
           )}
           <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: texte.trim() ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: texte.trim() ? '#fff' : 'var(--cs-texte-doux)', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
             {envoi ? 'Envoi…' : 'Publier'}

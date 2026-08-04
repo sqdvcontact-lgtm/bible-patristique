@@ -213,7 +213,7 @@ export default function AllerPlusLoinClient() {
               <div key={t.trad_id} id={t.trad_id} style={{
                 scrollMarginTop: '60px',
                 border: '1px solid var(--cs-bord)', borderRadius: '8px',
-                overflow: 'hidden', background: '#fff',
+                overflow: 'hidden', background: 'var(--cs-surface)',
               }}>
                 <BandeauTraduction t={t} estOuvert={estOuvert} onToggle={() => setOuvert(prev => prev === t.trad_id ? null : t.trad_id)} />
 

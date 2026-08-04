@@ -18,7 +18,7 @@ const MIN_CARACTERES_PUBLICATION = 2000
 // Rouge sourd, terreux : signale un compte hors limite (insuffisant ou excédant)
 // sans crier — plus discret et élégant que le rouge-rouille vif des messages d'erreur.
 const ROUGE_COMPTE = '#a8564d'
-const BTN: React.CSSProperties = { fontSize: '0.65625rem', padding: '8px 6px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte-fort)', cursor: 'pointer', width: '100%', textAlign: 'center' }
+const BTN: React.CSSProperties = { fontSize: '0.65625rem', padding: '8px 6px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', cursor: 'pointer', width: '100%', textAlign: 'center' }
 
 type Props = {
   essaiExistant?: { id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean; publie_at?: string | null; verset_en_tete?: string | null }
@@ -545,7 +545,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
           <div style={{ display: 'flex', gap: '20px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--cs-texte-doux)', marginBottom: '8px' }}>VERSION D'ORIGINE</p>
-              <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', padding: '20px 22px', fontSize: '0.84375rem', lineHeight: 1.7, color: 'var(--cs-texte-fort)', whiteSpace: 'pre-wrap' }}>
+              <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', padding: '20px 22px', fontSize: '0.84375rem', lineHeight: 1.7, color: 'var(--cs-texte-fort)', whiteSpace: 'pre-wrap' }}>
                 {diff.gauche.map((s, i) => s.type === 'supprime'
                   ? <span key={i} style={{ color: 'var(--cs-danger)', textDecoration: 'line-through' }}>{s.texte}</span>
                   : <span key={i}>{s.texte}</span>)}
@@ -553,7 +553,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--cs-texte-doux)', marginBottom: '8px' }}>VERSION MODIFIÉE</p>
-              <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', padding: '20px 22px', fontSize: '0.84375rem', lineHeight: 1.7, color: 'var(--cs-texte-fort)', whiteSpace: 'pre-wrap' }}>
+              <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', padding: '20px 22px', fontSize: '0.84375rem', lineHeight: 1.7, color: 'var(--cs-texte-fort)', whiteSpace: 'pre-wrap' }}>
                 {diff.droite.map((s, i) => s.type === 'ajoute'
                   ? <span key={i} style={{ color: 'var(--cs-danger)', fontWeight: 600 }}>{s.texte}</span>
                   : <span key={i}>{s.texte}</span>)}
@@ -563,7 +563,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         ) : (
           <>
             <div style={{ paddingLeft: '128px', marginBottom: '14px' }}>
-              <div style={{ background: '#fff', border: '1px solid var(--cs-bord-clair)', borderRadius: '7px', padding: '16px 18px 18px' }}>
+              <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '7px', padding: '16px 18px 18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '18px', alignItems: 'flex-start', marginBottom: '14px' }}>
                   <div>
                     <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 4px' }}>
@@ -674,7 +674,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
               {/* Zone principale — en-tête fixe et zone éditable dans la même carte */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', background: '#fff', overflow: 'hidden' }}>
+                <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', background: 'var(--cs-surface)', overflow: 'hidden' }}>
                   {/* En-tête non modifiable — auteur, titre, sous-titre, catégories */}
                   <div style={{ textAlign: 'center', padding: '26px 24px 20px', borderBottom: '1px solid var(--cs-fond-doux)' }}>
                     <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 12px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
@@ -715,7 +715,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                     onClick={handleClickEditable}
                     style={{
                       minHeight: '420px', fontSize: '0.9375rem', lineHeight: 1.5, padding: '24px 30px',
-                      background: '#fff', color: 'var(--cs-texte-fort)',
+                      background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)',
                       outline: 'none', boxSizing: 'border-box',
                     }}
                   />
@@ -746,7 +746,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             {!(modeAdmin && essaiExistant?.statut === 'publie') && (
               <button
                 onClick={() => sauvegarder('brouillon')}
-                style={{ fontSize: '0.78125rem', padding: '7px 18px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte)', cursor: 'pointer' }}>
+                style={{ fontSize: '0.78125rem', padding: '7px 18px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
                 Enregistrer comme brouillon
               </button>
             )}
@@ -765,7 +765,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
           Resserrée et épurée. */}
       {confirmPublier && typeof document !== 'undefined' && createPortal(
         <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '10px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.20)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '10px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.20)' }}>
             <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
               Soumettre cette publication ?
             </h3>
@@ -788,7 +788,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '12px' }}>
               <button
                 onClick={() => { setConfirmPublier(false); setErreurConditions(null) }}
-                style={{ fontSize: '0.75rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: '#fff', color: 'var(--cs-texte)', cursor: 'pointer' }}>
+                style={{ fontSize: '0.75rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
                 Annuler
               </button>
               <button

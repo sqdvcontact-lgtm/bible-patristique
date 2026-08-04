@@ -183,7 +183,7 @@ export default function ConversationPage() {
                 borderRadius: '10px',
                 padding: '9px 12px',
                 fontSize: '0.8125rem',
-                background: '#fff',
+                background: 'var(--cs-surface)',
                 color: 'var(--cs-encre-fonce)',
                 fontFamily: 'inherit',
                 lineHeight: 1.5,
