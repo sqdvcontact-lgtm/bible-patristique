@@ -88,12 +88,7 @@ export default function ActionsVerset({
 
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-      <button onClick={e => { e.stopPropagation(); setSignalOuvert(true) }}
-        className="bouton-action-verset" title="Signaler une erreur" aria-label="Signaler"
-        style={{ ...BTN, opacity: 0, color: 'var(--cs-bord)' }}>
-        <IconeDrapeau />
-      </button>
-
+      {/* Même ordre que la page Bible (TexteBible) : prélever · copier · signaler. */}
       {userId && (
         <button onClick={basculerPrelevement} disabled={chargement}
           className="bouton-action-verset"
@@ -112,6 +107,12 @@ export default function ActionsVerset({
             <rect x="3" y="3" width="7" height="8.5" rx=".8" stroke="currentColor" strokeWidth="1.2" />
           </svg>
         )}
+      </button>
+
+      <button onClick={e => { e.stopPropagation(); setSignalOuvert(true) }}
+        className="bouton-action-verset" title="Signaler une erreur" aria-label="Signaler"
+        style={{ ...BTN, opacity: 0, color: 'var(--cs-bord)' }}>
+        <IconeDrapeau />
       </button>
 
       {signalOuvert && (

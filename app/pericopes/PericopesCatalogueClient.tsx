@@ -137,15 +137,6 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
       .map(([livre, list]) => ({ livre, list: list.sort((a, b) => cleTri(a) - cleTri(b)) }))
   }, [itemsFiltres])
 
-  // Étendue du catalogue (premier et dernier livre présents, en ordre canonique) : donne
-  // le sens de l'ampleur sans réafficher de compteur.
-  const etendue = useMemo(() => {
-    const present = new Set(items.map(i => i.livre))
-    const ordonnes = LIVRES.filter(l => present.has(l.code))
-    if (ordonnes.length < 2) return null
-    return { premier: ordonnes[0].nom, dernier: ordonnes[ordonnes.length - 1].nom }
-  }, [items])
-
   const toggle = (set: Set<string>, val: string, setter: (s: Set<string>) => void) => {
     const s = new Set(set)
     if (s.has(val)) s.delete(val); else s.add(val)
@@ -277,16 +268,20 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         .peri-ref { flex-shrink: 0; font-family: ${SERIF}; font-size: 0.73rem; color: #b08f48; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .peri-l2 { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 1px; min-height: 0.9rem; }
         .peri-reg { font-family: ${SANS}; font-size: 0.53rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cs-texte-second); }
+        /* « Notice » = une flèche descendante discrète (trait + triangle), révélée au
+           survol et retournée quand la notice est ouverte. */
         .peri-notice-lien {
-          flex-shrink: 0; font-family: ${SERIF}; font-style: italic; font-size: 0.68rem;
-          color: #9a8a5a; background: none; border: none; padding: 0; cursor: pointer;
-          opacity: 0; transition: opacity 0.15s ease, color 0.12s ease;
+          flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+          background: none; border: none; padding: 2px 3px; cursor: pointer; line-height: 0;
+          color: #b0975a; opacity: 0; transition: opacity 0.15s ease, color 0.12s ease;
         }
+        .peri-notice-lien svg { display: block; transition: transform 0.18s ease; }
         .peri-entree:hover .peri-notice-lien,
         .peri-notice-lien:focus-visible { opacity: 1; }
-        .peri-notice-lien:hover { color: #7a6030; text-decoration: underline; }
+        .peri-notice-lien:hover { color: #7a6030; }
         .peri-notice-lien[aria-expanded="true"] { opacity: 1; color: #7a6030; }
-        @media (hover: none) { .peri-notice-lien { opacity: 1; } }
+        .peri-notice-lien[aria-expanded="true"] svg { transform: rotate(180deg); }
+        @media (hover: none) { .peri-notice-lien { opacity: 0.55; } }
         .peri-via { display: block; margin-top: 2px; font-family: ${SERIF}; font-style: italic; font-size: 0.65rem; color: #a08f5f; }
         .peri-notice {
           font-family: ${SERIF}; font-size: 0.76rem; line-height: 1.5; color: #55504a;
@@ -309,15 +304,15 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
           <div style={{ flexShrink: 0, borderBottom: `1px solid ${BORD}`, padding: '13px 15px 13px' }}>
             <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#b0a088', margin: '0 0 4px' }}>Catalogue</p>
             <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: '1.05rem', fontWeight: 600, color: VERT, lineHeight: 1.15, letterSpacing: '0.01em' }}>Les péricopes</h1>
-            {/* Chapeau : situe le terme. Enumération par deux-points (pas d'incise entre tirets). */}
-            <p style={{ margin: '7px 0 0', fontFamily: SERIF, fontSize: '0.72rem', lineHeight: 1.5, color: '#7a746d' }}>
-              Une péricope est un passage biblique qui forme une unité de sens : un récit, une parabole, un discours, un psaume. Ce catalogue les rassemble, livre après livre.
+            {/* Chapeau : la définition, puis une ligne d'accroche en italique pour le
+                rythme. Énumération par deux-points (pas d'incise entre tirets). */}
+            <p style={{ margin: '8px 0 0', fontFamily: SERIF, fontSize: '0.72rem', lineHeight: 1.55, color: '#6f6a62' }}>
+              Une péricope est un passage biblique formant une unité de sens :{' '}
+              <span style={{ fontStyle: 'italic', color: '#8a7f70' }}>récit, parabole, discours ou psaume</span>.
             </p>
-            {etendue && (
-              <p style={{ margin: '6px 0 0', fontFamily: SERIF, fontStyle: 'italic', fontSize: '0.66rem', color: '#a99f92' }}>
-                De {etendue.premier} à {etendue.dernier}
-              </p>
-            )}
+            <p style={{ margin: '5px 0 0', fontFamily: SERIF, fontStyle: 'italic', fontSize: '0.68rem', lineHeight: 1.4, color: '#a99f92' }}>
+              Ce catalogue les rassemble, livre après livre.
+            </p>
           </div>
 
           {mobile ? (
@@ -338,7 +333,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
 
         {/* ── Liste ── */}
         <section style={{ flex: 1, minWidth: 0, padding: mobile ? '16px 14px 56px' : '16px 32px 64px' }}>
-          <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
+          <div style={{ maxWidth: '39rem', margin: '0 auto' }}>
 
             {groupes.length === 0 ? (
               <div style={{ textAlign: 'center', paddingTop: '20px' }}>
@@ -362,7 +357,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
                     </div>
                     {/* Deux colonnes par livre (une seule en mobile). Chaque entrée mène à sa
                         page ; « notice » déplie la notice en place. Blocs compacts, espacés. */}
-                    <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', columnGap: '34px', rowGap: '9px', alignItems: 'start' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', columnGap: '3.5rem', rowGap: '9px', alignItems: 'start' }}>
                       {g.list.map(it => {
                         const ouverte = ouvertes.has(it.id)
                         const notice = notices[it.id]
@@ -380,9 +375,12 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
                               <div className="peri-l2">
                                 <span className="peri-reg">{libelleCategoriePericope(it.categorie)}</span>
                                 <button type="button" className="peri-notice-lien" aria-expanded={ouverte}
-                                  aria-label={ouverte ? 'Masquer la notice' : 'Afficher la notice'}
+                                  aria-label={ouverte ? 'Masquer la notice' : 'Afficher la notice'} title={ouverte ? 'Masquer la notice' : 'Afficher la notice'}
                                   onClick={e => { e.preventDefault(); e.stopPropagation(); void basculerNotice(it.id) }}>
-                                  notice
+                                  <svg width="10" height="12" viewBox="0 0 10 12" fill="none" aria-hidden="true">
+                                    <path d="M5 1.4V6.6" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+                                    <path d="M5 10.4 1.9 6.4H8.1L5 10.4Z" fill="currentColor" />
+                                  </svg>
                                 </button>
                               </div>
                               {via && <span className="peri-via">trouvé via «&#8239;{via}&#8239;»</span>}

@@ -27,8 +27,16 @@ type Pericope = {
   id: string; nom: string; categorie: string | null; est_collection: boolean | null
   notice: string | null; notice_contexte: string | null
   notice_exegetique: string | null; notice_theologique: string | null; notice_tradition: string | null
-  source_notice: string | null; source_exegetique: string | null
-  source_theologique: string | null; source_tradition: string | null
+}
+
+// Référence bibliographique réelle (vue pericope_bibliographie_complete) : ce sont
+// de vrais ouvrages, à afficher en lieu et place des anciennes « notes » génériques.
+type RefBiblio = {
+  rubrique: string | null; importance: string | null
+  auteurs: string | null; titre: string | null; sous_titre: string | null
+  directeurs: string | null; collection: string | null; numero_collection: string | null
+  lieu: string | null; editeur: string | null; annee: number | null
+  pages: string | null; reference_passage: string | null
 }
 
 // Normalisation typographique d'affichage : apostrophe droite ' → apostrophe courbe ’
@@ -149,6 +157,7 @@ export default function PericopePage() {
   const [peri, setPeri] = useState<Pericope | null>(null)
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
   const [variantes, setVariantes] = useState<Variante[]>([])
+  const [biblio, setBiblio] = useState<RefBiblio[]>([])
   const [trad, setTrad] = useState<string>('TR0001')
   const [textes, setTextes] = useState<Record<number, VersetPericope[]>>({})
   const [texteLoading, setTexteLoading] = useState(false)
@@ -161,6 +170,28 @@ export default function PericopePage() {
     [occurrences],
   )
 
+  // Bibliographie groupée par rubrique (contexte, exégèse, théologie, tradition),
+  // ordonnée par importance (principale avant complémentaire) puis année descendante.
+  const groupesBiblio = useMemo(() => {
+    const ORDRE_RUB: Record<string, number> = { contexte: 0, exegese: 1, theologie: 2, tradition: 3 }
+    const LABEL_RUB: Record<string, string> = { contexte: 'Contexte', exegese: 'Exégèse', theologie: 'Théologie', tradition: 'Réception et tradition' }
+    const impRang = (v: string | null) => (v === 'principale' ? 0 : v === 'complementaire' ? 1 : 2)
+    const parRub = new Map<string, RefBiblio[]>()
+    for (const r of biblio) {
+      const cle = r.rubrique ?? ''
+      const groupe = parRub.get(cle) ?? []
+      groupe.push(r)
+      parRub.set(cle, groupe)
+    }
+    return [...parRub.entries()]
+      .sort((a, b) => (ORDRE_RUB[a[0]] ?? 9) - (ORDRE_RUB[b[0]] ?? 9))
+      .map(([cle, refs]) => ({
+        cle,
+        label: LABEL_RUB[cle] ?? '',
+        refs: [...refs].sort((x, y) => impRang(x.importance) - impRang(y.importance) || (y.annee ?? 0) - (x.annee ?? 0)),
+      }))
+  }, [biblio])
+
   useEffect(() => {
     if (!id) return
     let annule = false
@@ -168,14 +199,14 @@ export default function PericopePage() {
       try {
         const { data: p, error } = await supabase
           .from('pericopes')
-          .select('id, nom, categorie, est_collection, notice, notice_contexte, notice_exegetique, notice_theologique, notice_tradition, source_notice, source_exegetique, source_theologique, source_tradition')
+          .select('id, nom, categorie, est_collection, notice, notice_contexte, notice_exegetique, notice_theologique, notice_tradition')
           .eq('id', id).maybeSingle()
         if (annule) return
         // Distinguer une panne (error) d'une péricope réellement absente (data null) :
         // afficher « introuvable » sur une simple erreur réseau était trompeur.
         if (error) { setEtat('erreur'); return }
         if (!p) { setEtat('introuvable'); return }
-        const [{ data: occ }, { data: noms }] = await Promise.all([
+        const [{ data: occ }, { data: noms }, { data: refs }] = await Promise.all([
           supabase.from('pericope_occurrences')
             .select('id, livre, canon_id_debut, canon_id_fin, niveau, est_principale, fiabilite')
             .eq('pericope_id', id)
@@ -184,11 +215,15 @@ export default function PericopePage() {
             .select('id, nom, usage_recherche, est_principal, ordre')
             .eq('pericope_id', id).eq('visible_public', true).eq('est_principal', false)
             .order('ordre'),
+          supabase.from('pericope_bibliographie_complete')
+            .select('rubrique, importance, auteurs, titre, sous_titre, directeurs, collection, numero_collection, lieu, editeur, annee, pages, reference_passage')
+            .eq('pericope_id', id),
         ])
         if (annule) return
         setPeri(p as Pericope)
         setOccurrences((occ ?? []) as Occurrence[])
         setVariantes((noms ?? []) as Variante[])
+        setBiblio((refs ?? []) as RefBiblio[])
         setEtat('ok')
       } catch {
         if (!annule) setEtat('erreur')
@@ -339,7 +374,7 @@ export default function PericopePage() {
             <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 5px' }}>Occurrences</p>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {occurrences.map(o => (
-                <li key={o.id} style={{ fontFamily: SERIF, fontSize: '0.78rem', color: 'var(--cs-texte)', display: 'flex', alignItems: 'baseline', gap: '7px' }}>
+                <li key={o.id} style={{ fontFamily: SANS, fontSize: '0.76rem', color: 'var(--cs-texte)', display: 'flex', alignItems: 'baseline', gap: '7px' }}>
                   <span>{formaterPlageCanonique(o.canon_id_debut, o.canon_id_fin)}</span>
                   {o.est_principale && <span style={{ fontFamily: SANS, fontSize: '0.5rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-vert)' }}>princ.</span>}
                 </li>
@@ -361,7 +396,7 @@ export default function PericopePage() {
           <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 8px' }}>Notice</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {peri.notice && (
-              <p style={{ fontFamily: SERIF, fontSize: '0.8rem', color: 'var(--cs-texte)', lineHeight: 1.42, textAlign: 'justify', hyphens: 'auto', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(peri.notice))}</p>
+              <p style={{ fontFamily: SANS, fontSize: '0.8rem', color: 'var(--cs-texte)', lineHeight: 1.5, textAlign: 'justify', hyphens: 'auto', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(peri.notice))}</p>
             )}
             {([
               { label: 'Contexte', v: peri.notice_contexte },
@@ -371,29 +406,36 @@ export default function PericopePage() {
             ] as const).filter(b => b.v).map(b => (
               <div key={b.label}>
                 <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 3px' }}>{b.label}</p>
-                <p style={{ fontFamily: SERIF, fontSize: '0.78rem', color: '#4a4038', lineHeight: 1.42, textAlign: 'justify', hyphens: 'auto', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(b.v as string))}</p>
+                <p style={{ fontFamily: SANS, fontSize: '0.78rem', color: '#4a4038', lineHeight: 1.5, textAlign: 'justify', hyphens: 'auto', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(b.v as string))}</p>
               </div>
             ))}
           </div>
 
-          {(peri.source_notice || peri.source_exegetique || peri.source_theologique || peri.source_tradition) && (
-            <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: `1px solid ${SEP}` }}>
-              <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 4px' }}>Notes bibliographiques</p>
-              <dl style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                {([
-                  { label: 'Notice', v: peri.source_notice },
-                  { label: 'Exégèse', v: peri.source_exegetique },
-                  { label: 'Théologie', v: peri.source_theologique },
-                  { label: 'Tradition', v: peri.source_tradition },
-                ] as const).filter(s => s.v).map(s => (
-                  <div key={s.label} style={{ display: 'grid', gridTemplateColumns: '4.5rem 1fr', columnGap: '8px', alignItems: 'baseline' }}>
-                    <dt style={{ fontFamily: SANS, fontSize: '0.56rem', color: '#a89f92' }}>{s.label}</dt>
-                    <dd style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: '0.68rem', color: '#8a8278', lineHeight: 1.4, margin: 0 }}>{typo(s.v as string)}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          )}
+        </section>
+      )}
+
+      {/* Bibliographie : vraies références d'ouvrages (vue pericope_bibliographie_complete),
+          groupées par rubrique et ordonnées par importance. Remplace les anciennes
+          « notes » génériques (source_*), qui n'étaient pas de vraies références. */}
+      {groupesBiblio.length > 0 && (
+        <section style={{ borderTop: `1px solid ${SEP}`, paddingTop: '14px' }}>
+          <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 10px' }}>Bibliographie</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {groupesBiblio.map(g => (
+              <div key={g.cle || 'autres'}>
+                {g.label && (
+                  <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 5px' }}>{g.label}</p>
+                )}
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {g.refs.map((r, i) => (
+                    <li key={i} style={{ fontFamily: SANS, fontSize: '0.72rem', color: 'var(--cs-texte-second)', lineHeight: 1.45 }}>
+                      <ReferenceBiblio r={r} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </section>
       )}
     </div>
@@ -431,7 +473,29 @@ function LigneInfo({ label, children }: { label: string; children: React.ReactNo
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '5.5rem 1fr', columnGap: '10px', alignItems: 'baseline' }}>
       <dt style={{ fontFamily: SANS, fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.03em', color: '#a39a8e' }}>{label}</dt>
-      <dd style={{ fontFamily: SERIF, fontSize: '0.82rem', color: 'var(--cs-texte)', margin: 0, lineHeight: 1.35 }}>{children}</dd>
+      <dd style={{ fontFamily: SANS, fontSize: '0.8rem', color: 'var(--cs-texte)', margin: 0, lineHeight: 1.4 }}>{children}</dd>
     </div>
+  )
+}
+
+// Une référence bibliographique rendue « à la scientifique » : auteurs, titre en
+// italique, sous-titre, collection, lieu, éditeur, année ; le passage couvert en note.
+function ReferenceBiblio({ r }: { r: RefBiblio }) {
+  const gens = r.auteurs || (r.directeurs ? `${r.directeurs} (dir.)` : null)
+  const lieuEd = [r.lieu, r.editeur].filter(Boolean).join(', ')
+  return (
+    <>
+      {gens && <span>{typo(gens)}, </span>}
+      <em style={{ fontStyle: 'italic', color: 'var(--cs-texte)' }}>{typo(r.titre ?? '')}</em>
+      {r.sous_titre && <span>. {typo(r.sous_titre)}</span>}
+      {r.collection && <span>, coll. «&#8239;{typo(r.collection)}&#8239;»{r.numero_collection ? `, ${r.numero_collection}` : ''}</span>}
+      {lieuEd && <span>, {typo(lieuEd)}</span>}
+      {r.annee && <span>, {r.annee}</span>}
+      <span>.</span>
+      {r.pages && <span style={{ color: 'var(--cs-texte-faible)' }}> {typo(r.pages)}</span>}
+      {r.reference_passage && (
+        <span style={{ display: 'block', marginTop: '1px', fontStyle: 'italic', fontSize: '0.66rem', color: 'var(--cs-texte-faible)' }}>{typo(r.reference_passage)}</span>
+      )}
+    </>
   )
 }
