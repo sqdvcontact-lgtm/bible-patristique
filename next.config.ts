@@ -17,6 +17,9 @@ const ENTETES_SECURITE = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   // Le site n'a besoin ni de la caméra, ni du micro, ni de la position.
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  // Réservation « pas d'entraînement d'IA » : signal complémentaire du robots.txt
+  // et de /.well-known/tdmrep.json. N'affecte pas l'indexation (aucun `noindex`).
+  { key: "X-Robots-Tag", value: "noai, noimageai" },
 ];
 
 const nextConfig: NextConfig = {
