@@ -191,12 +191,12 @@ export default function AllerPlusLoinClient() {
   }, [traductions])
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '3.5rem' }}>
+    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 3.5rem)', paddingTop: '3.5rem' }}>
       <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '4px' }}>
           <h1 style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
-            fontSize: 'clamp(21px, 3.6vw, 29px)', fontWeight: 'normal',
+            fontSize: 'clamp(1.3125rem, 3.6vw, 1.8125rem)', fontWeight: 'normal',
             color: '#1e2e24', lineHeight: 1.15, marginBottom: '8px',
           }}>
             Les traductions

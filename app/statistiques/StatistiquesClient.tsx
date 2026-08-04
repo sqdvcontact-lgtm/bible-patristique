@@ -27,7 +27,7 @@ const statLigne: React.CSSProperties = {
   display: 'flex', alignItems: 'baseline', gap: '12px', padding: '10px 14px',
   background: '#fff', border: '1px solid #e4dfd8', borderRadius: '8px', textDecoration: 'none',
 }
-const statRang: React.CSSProperties = { fontSize: '0.6875rem', color: '#b0a89e', fontWeight: 600, width: '20px', flexShrink: 0 }
+const statRang: React.CSSProperties = { fontSize: '0.6875rem', color: '#7c7369', fontWeight: 600, width: '20px', flexShrink: 0 }
 const statRef: React.CSSProperties = { fontSize: '0.71875rem', fontWeight: 600, color: '#2a3d30', margin: '0 0 2px' }
 const statTexte: React.CSSProperties = { fontSize: '0.75rem', color: '#5a5450', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
 
@@ -81,10 +81,10 @@ export default function StatistiquesClient() {
   }
 
   return (
-    <main style={{ background: '#f7f4ef', minHeight: '100vh', paddingTop: '3.5rem' }}>
+    <main style={{ background: '#f7f4ef', minHeight: 'calc(100vh - 3.5rem)', paddingTop: '3.5rem' }}>
       <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '18px' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(21px, 3.6vw, 29px)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.15, marginBottom: '8px' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(1.3125rem, 3.6vw, 1.8125rem)', fontWeight: 'normal', color: '#1e2e24', lineHeight: 1.15, marginBottom: '8px' }}>
             Statistiques
           </h1>
           <div style={{ width: '36px', height: '1px', background: '#c8c0b4', margin: '0 auto 12px' }} />

@@ -34,7 +34,7 @@
 
 .shelfmark {
   margin: 0.5rem 0 0;
-  color: #3d6b4f;
+  color: var(--cs-vert);
   font-family: var(--font-source-serif), Georgia, serif;
   font-size: 1.05rem;
   font-style: italic;
@@ -117,12 +117,12 @@
 }
 
 .mode:hover {
-  background: rgba(61, 107, 79, 0.08);
+  background: rgba(var(--cs-vert-rgb), 0.08);
 }
 
 .modeActive {
-  border-color: #3d6b4f;
-  background: #3d6b4f;
+  border-color: var(--cs-vert);
+  background: var(--cs-vert);
   color: #fff;
 }
 
@@ -143,7 +143,7 @@
 }
 
 .lineToggle input {
-  accent-color: #3d6b4f;
+  accent-color: var(--cs-vert);
 }
 
 .lineToggleDisabled {
@@ -213,8 +213,8 @@
 }
 
 .columnNavigationActive {
-  border-color: #3d6b4f !important;
-  background: #3d6b4f !important;
+  border-color: var(--cs-vert) !important;
+  background: var(--cs-vert) !important;
   color: #fff !important;
 }
 

@@ -61,7 +61,7 @@ function refDansLivre(debut: string, fin: string | null): string {
 function GroupeFiltre({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ marginTop: '13px', paddingTop: '13px', borderTop: `1px solid ${SEP}` }}>
-      <div style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#b7ad9e', marginBottom: '8px' }}>{label}</div>
+      <div style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7c7369', marginBottom: '8px' }}>{label}</div>
       {children}
     </div>
   )
@@ -83,7 +83,7 @@ function LigneCompte({ actif, onClick, label, n }: { actif: boolean; onClick: ()
     <LigneCase actif={actif} onClick={onClick}>
       <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
-        <span style={{ fontFamily: SANS, fontSize: '0.62rem', color: actif ? VERT : '#b7ad9e' }}>{n}</span>
+        <span style={{ fontFamily: SANS, fontSize: '0.62rem', color: actif ? VERT : '#7c7369' }}>{n}</span>
       </span>
     </LigneCase>
   )
@@ -215,7 +215,7 @@ export default function CataloguePericopesPage() {
               if (livres.length === 0) return null
               return (
                 <div key={grp.code}>
-                  <p style={{ fontFamily: SANS, fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#a99f92', margin: '0 0 6px' }}>{grp.label}</p>
+                  <p style={{ fontFamily: SANS, fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#7c7369', margin: '0 0 6px' }}>{grp.label}</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px 8px' }}>
                     {livres.map(g => (
                       <button key={g.livre} onClick={() => allerAuLivre(g.livre)}
@@ -271,7 +271,7 @@ export default function CataloguePericopesPage() {
           margin: 0; white-space: nowrap; letter-spacing: 0.01em;
         }
         .peri-livre-tete .rule { flex: 1; height: 1px; align-self: center; background: linear-gradient(to right, #d8cfbf, transparent); }
-        .peri-livre-tete .n { font-family: ${SANS}; font-size: 0.6rem; color: #bcb2a2; flex-shrink: 0; }
+        .peri-livre-tete .n { font-family: ${SANS}; font-size: 0.6rem; color: #8a8272; flex-shrink: 0; }
 
         /* Entrée : titre serif à gauche, référence dorée à droite (comme la table d'un
            livre) ; en dessous, registre en petit gris et « notice » révélé au survol. Les
@@ -287,13 +287,14 @@ export default function CataloguePericopesPage() {
         .peri-ens { margin-left: 5px; font-family: ${SERIF}; font-style: italic; font-size: 0.66rem; font-weight: 400; color: #a99f92; }
         .peri-ref { flex-shrink: 0; font-family: ${SERIF}; font-size: 0.73rem; color: #b08f48; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .peri-l2 { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 1px; min-height: 0.9rem; }
-        .peri-reg { font-family: ${SANS}; font-size: 0.53rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #b3a998; }
+        .peri-reg { font-family: ${SANS}; font-size: 0.53rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #7c7369; }
         .peri-notice-lien {
           flex-shrink: 0; font-family: ${SERIF}; font-style: italic; font-size: 0.68rem;
           color: #9a8a5a; background: none; border: none; padding: 0; cursor: pointer;
           opacity: 0; transition: opacity 0.15s ease, color 0.12s ease;
         }
-        .peri-entree:hover .peri-notice-lien { opacity: 1; }
+        .peri-entree:hover .peri-notice-lien,
+        .peri-notice-lien:focus-visible { opacity: 1; }
         .peri-notice-lien:hover { color: #7a6030; text-decoration: underline; }
         .peri-notice-lien[aria-expanded="true"] { opacity: 1; color: #7a6030; }
         @media (hover: none) { .peri-notice-lien { opacity: 1; } }

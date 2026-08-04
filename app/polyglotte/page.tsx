@@ -1012,7 +1012,7 @@ export default function PolyglottePage() {
         /* Le numéro est petit, mais son étui fait EXACTEMENT une ligne de texte (1.26em,
            l'interligne de la cellule) : le flottant ne repousse donc qu'une seule ligne,
            et deux versets partageant un créneau en repoussent deux. */
-        .poly-lettrine-ref { display: block; white-space: nowrap; font-size: 12px; line-height: 1; }
+        .poly-lettrine-ref { display: block; white-space: nowrap; font-size: 0.75rem; line-height: 1; }
         /* Le chapitre s'efface derrière le verset : les deux sont là, mais l'œil qui
            parcourt la colonne accroche le numéro qui change. */
         .poly-lettrine-ch { font-weight: 400; color: #a9bcb0; }
