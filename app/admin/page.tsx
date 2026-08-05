@@ -20,7 +20,7 @@ async function actionValiderCommentaire(id: number) {
   if (!(await estAdmin())) return
   await supabaseAdmin.from('commentaires').update({
     valide: true,
-    message_admin: 'Votre commentaire a ete valide par la moderation.',
+    message_admin: 'Votre commentaire a été validé par la modération.',
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
 }
@@ -48,7 +48,7 @@ async function actionMarquerTraite(id: number | string) {
   }
   await supabaseAdmin.from('signalements').update({
     traite: true,
-    message_admin: 'Merci pour votre signalement. Il a ete transmis a la moderation et marque comme traite.',
+    message_admin: 'Merci pour votre signalement. Il a été transmis à la modération et marqué comme traité.',
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
 }
@@ -78,7 +78,7 @@ async function actionCertifierCommentaire(id: number) {
     certifie: true,
     valide: true,
     demande_validation: false,
-    message_admin: 'Votre commentaire a ete valide et certifie par la moderation.',
+    message_admin: 'Votre commentaire a été validé et certifié par la modération.',
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
 }
@@ -89,7 +89,7 @@ async function actionRetirerDemandeCertification(id: number) {
     certifie: false,
     valide: true,
     demande_validation: false,
-    message_admin: 'Votre commentaire a ete valide par la moderation, mais la demande de certification n a pas ete retenue.',
+    message_admin: 'Votre commentaire a été validé par la modération, mais la demande de certification n’a pas été retenue.',
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
 }
