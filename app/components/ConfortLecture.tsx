@@ -12,7 +12,8 @@ type Theme = 'clair' | 'sepia' | 'sombre'
 const THEMES: { id: Theme; nom: string; sw: [string, string, string] }[] = [
   { id: 'clair', nom: 'Clair', sw: ['#f7f4ef', '#2a3d30', '#9a7a38'] },
   { id: 'sepia', nom: 'Sépia', sw: ['#f3ead7', '#40442a', '#8f6f2c'] },
-  { id: 'sombre', nom: 'Cuir', sw: ['#1c1813', '#9fc6a4', '#b89a5e'] },
+  // « Cuir » (sombre) masqué le temps de finir la tokenisation des pages de
+  // lecture : { id: 'sombre', nom: 'Cuir', sw: ['#1c1813', '#9fc6a4', '#b89a5e'] },
 ]
 
 export default function ConfortLecture() {
@@ -66,9 +67,9 @@ export default function ConfortLecture() {
         </>
       )}
       <button onClick={() => setOuvert(o => !o)} aria-expanded={ouvert} aria-label="Confort de lecture — choisir un thème" title="Confort de lecture"
-        style={{ width: '42px', height: '42px', borderRadius: '50%', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer', boxShadow: '0 4px 14px rgba(0,0,0,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true">
-          <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeWidth="1.4" />
+        style={{ width: '46px', height: '46px', borderRadius: '50%', border: '1.5px solid var(--cs-vert)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer', boxShadow: '0 5px 18px rgba(0,0,0,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="21" height="21" viewBox="0 0 20 20" aria-hidden="true">
+          <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeWidth="1.5" />
           <path d="M10 2a8 8 0 000 16z" fill="currentColor" />
         </svg>
       </button>
