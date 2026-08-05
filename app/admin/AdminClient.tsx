@@ -14,6 +14,7 @@ import SectionPropositions from './SectionPropositions'
 import SectionTaches from './SectionTaches'
 import SectionControleOeuvres from './SectionControleOeuvres'
 import SectionEvenements from './SectionEvenements'
+import SectionFiabilite from './SectionFiabilite'
 import type { AdminProps as Props, Onglet } from './adminTypes'
 
 export default function AdminClient({
@@ -35,7 +36,7 @@ export default function AdminClient({
   useEffect(() => {
     const cle = new URLSearchParams(window.location.search).get('onglet') as Onglet | null
     const valides: Onglet[] = [
-      'bibliotheque', 'controle-oeuvres', 'traductions', 'editeurs', 'evenements', 'essais',
+      'bibliotheque', 'controle-oeuvres', 'traductions', 'editeurs', 'fiabilite', 'evenements', 'essais',
       'verifications', 'moderation', 'propositions', 'charte', 'charte-accentuation', 'taches',
     ]
     if (cle && valides.includes(cle)) setOnglet(cle)
@@ -67,6 +68,7 @@ export default function AdminClient({
     { key: 'controle-oeuvres',    label: 'Contrôle œuvres' },
     { key: 'traductions',         label: 'Traductions' },
     { key: 'editeurs',            label: 'Éditeurs' },
+    { key: 'fiabilite',           label: 'Valeur académique' },
     { key: 'evenements',          label: 'Chronologie' },
     { key: 'essais',              label: 'Essais', badge: nbEssais },
     { key: 'verifications',       label: 'Vérifications', badge: nbVerif, separateur: true },
@@ -144,6 +146,7 @@ export default function AdminClient({
         {onglet === 'verifications'  && <SectionVerifications onCountChange={setNbVerif} />}
         {onglet === 'traductions'    && <SectionTraductions traductions={traductions} />}
         {onglet === 'editeurs'       && <SectionEditeurs />}
+        {onglet === 'fiabilite'      && <SectionFiabilite />}
 
         {onglet === 'moderation' && (
           <SectionModeration

@@ -111,4 +111,4 @@ export type AdminProps = {
   actionRenvoyerBrouillonEssai: (id: number, note: string, refus?: boolean) => Promise<void>
 }
 
-export type Onglet = 'bibliotheque' | 'controle-oeuvres' | 'traductions' | 'editeurs' | 'evenements' | 'verifications' | 'moderation' | 'essais' | 'charte' | 'charte-accentuation' | 'propositions' | 'taches'
+export type Onglet = 'bibliotheque' | 'controle-oeuvres' | 'traductions' | 'editeurs' | 'fiabilite' | 'evenements' | 'verifications' | 'moderation' | 'essais' | 'charte' | 'charte-accentuation' | 'propositions' | 'taches'
