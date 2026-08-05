@@ -1,52 +1,48 @@
 'use client'
 
 // Page de contrôle de la VALEUR ACADÉMIQUE des éditeurs et des auteurs (chercheurs
-// modernes cités en bibliographie), fondée sur des critères objectifs. Le score va
-// de 1 (le plus fiable) à 5. Règle d'affichage (à câbler ensuite au rendu des
-// bibliographies) : ne pas montrer les scores faibles, ni un auteur en « réserve » ;
-// ne montrer les scores intermédiaires qu'à défaut de meilleurs.
-// La « réserve » n'est pas un jugement de la personne : elle protège un public
-// fragile d'une mise en avant susceptible de heurter (par ex. celle de bourreaux).
+// modernes cités en bibliographie), sur critères objectifs. Score de 1 (le plus
+// fiable) à 5. Les Pères de l'Église (sources primaires) ne figurent pas ici.
+// Règle d'affichage (à câbler au rendu des bibliographies) : masquer les scores
+// faibles et les auteurs en « réserve » ; score intermédiaire seulement à défaut de
+// meilleur. La « réserve » protège un public fragile, ce n'est pas un jugement.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 
-type Editeur = { id: number; nom: string; score: number }
-type Auteur = { id: number; nom: string; score: number; reserve: boolean; motif: string | null }
+type Editeur = { id: number; nom: string; score: number; note: string | null }
+type Auteur = { id: number; nom: string; score: number; motif: string | null; reserve: boolean }
 
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
-
 // 1 = le plus fiable (vert) … 5 = le moins (rouge).
-const COUL: Record<number, { fond: string; texte: string }> = {
-  1: { fond: 'rgba(var(--cs-vert-rgb),0.20)',   texte: 'var(--cs-vert-fonce)' },
-  2: { fond: 'rgba(var(--cs-vert-rgb),0.12)',   texte: 'var(--cs-vert)' },
-  3: { fond: 'rgba(154,122,56,0.16)',           texte: 'var(--cs-or)' },
-  4: { fond: 'rgba(var(--cs-danger-rgb),0.15)', texte: 'var(--cs-danger)' },
-  5: { fond: 'rgba(154,42,42,0.18)',            texte: 'var(--cs-danger-fonce)' },
-}
+const FORT: Record<number, string> = { 1: '#3d6b4f', 2: '#6f8a3e', 3: '#9a7a38', 4: '#c0562a', 5: '#9a2a2a' }
+const sansAccents = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
-function Pastille({ score }: { score: number }) {
-  const c = COUL[score] ?? COUL[3]
+function Score({ v, on }: { v: number; on: (n: number) => void }) {
   return (
-    <span title={`Score ${score} / 5`} style={{ fontFamily: SANS, fontSize: '0.78rem', fontWeight: 700, color: c.texte, background: c.fond, width: '26px', height: '26px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{score}</span>
+    <div style={{ display: 'inline-flex', border: '1px solid var(--cs-bord)', borderRadius: '7px', overflow: 'hidden', flexShrink: 0 }}>
+      {[1, 2, 3, 4, 5].map(n => {
+        const actif = v === n
+        return (
+          <button key={n} onClick={() => on(n)} aria-label={`Score ${n}`} aria-pressed={actif}
+            style={{ width: '23px', height: '24px', border: 'none', borderRight: n < 5 ? '1px solid var(--cs-bord)' : 'none', cursor: 'pointer', fontFamily: SANS, fontSize: '0.72rem', fontWeight: 700, background: actif ? FORT[n] : 'var(--cs-surface)', color: actif ? '#fff' : 'var(--cs-texte-faible)', transition: 'background 0.1s' }}>{n}</button>
+        )
+      })}
+    </div>
   )
-}
-
-const selStyle: React.CSSProperties = {
-  fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)',
-  border: '1px solid var(--cs-bord)', borderRadius: '6px', padding: '5px 8px', cursor: 'pointer',
 }
 
 export default function SectionFiabilite() {
   const [editeurs, setEditeurs] = useState<Editeur[]>([])
   const [auteurs, setAuteurs] = useState<Auteur[]>([])
   const [chargement, setChargement] = useState(true)
+  const [q, setQ] = useState('')
 
   useEffect(() => {
     Promise.all([
-      supabase.from('editeurs_valeur').select('id, nom, score').order('score').order('nom'),
-      supabase.from('auteurs_valeur').select('id, nom, score, reserve, motif').order('score').order('nom'),
+      supabase.from('editeurs_valeur').select('id, nom, score, note').order('score').order('nom'),
+      supabase.from('auteurs_valeur').select('id, nom, score, motif, reserve').order('score').order('nom'),
     ]).then(([e, a]) => {
       setEditeurs((e.data ?? []) as Editeur[])
       setAuteurs((a.data ?? []) as Auteur[])
@@ -63,50 +59,58 @@ export default function SectionFiabilite() {
     await supabase.from('auteurs_valeur').update({ ...champs, updated_at: new Date().toISOString() }).eq('id', id)
   }
 
+  const qn = sansAccents(q.trim())
+  const edFiltres = useMemo(() => editeurs.filter(e => !qn || sansAccents(e.nom).includes(qn)), [editeurs, qn])
+  const auFiltres = useMemo(() => auteurs.filter(a => !qn || sansAccents(a.nom).includes(qn)), [auteurs, qn])
+
   if (chargement) return <p style={{ fontFamily: SANS, fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
 
-  const Ligne = ({ children }: { children: React.ReactNode }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '9px 0', borderTop: '1px solid var(--cs-bord-clair)' }}>{children}</div>
-  )
-  const Select = ({ score, on }: { score: number; on: (n: number) => void }) => (
-    <select value={score} onChange={e => on(Number(e.target.value))} style={selStyle} aria-label="Score de valeur académique">
-      {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
-    </select>
+  const Bloc = ({ titre, n }: { titre: string; n: number }) => (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', margin: '0 0 4px' }}>
+      <span style={{ fontFamily: SANS, fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>{titre}</span>
+      <span style={{ fontFamily: SANS, fontSize: '0.6rem', color: 'var(--cs-texte-faible)' }}>{n}</span>
+    </div>
   )
 
   return (
-    <div>
+    <div style={{ maxWidth: '46rem' }}>
       <h2 style={{ fontFamily: SERIF, fontSize: '1.3rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 6px' }}>Valeur académique des sources</h2>
-      <p style={{ fontFamily: SANS, fontSize: '0.8rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 26px', maxWidth: '40rem' }}>
-        Score de <b>1</b> (le plus fiable) à <b>5</b>, par éditeur et par auteur, fondé sur des critères objectifs. À terme, les scores faibles ne seront pas affichés, et les scores intermédiaires seulement à défaut de meilleurs. La <b>réserve</b>, pour un auteur, écarte ses références afin de protéger un public fragile d'une mise en avant susceptible de heurter&nbsp;; ce n'est pas un jugement de la personne.
+      <p style={{ fontFamily: SANS, fontSize: '0.8rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 16px' }}>
+        Score de <b style={{ color: FORT[1] }}>1</b> (le plus fiable) à <b style={{ color: FORT[5] }}>5</b>, sur critères objectifs. Les Pères de l'Église, sources primaires, n'y figurent pas. La <b>réserve</b> écarte les références d'un auteur pour protéger un public fragile&nbsp;; ce n'est pas un jugement de la personne.
       </p>
 
+      <input value={q} onChange={e => setQ(e.target.value)} placeholder="Filtrer par nom…"
+        style={{ width: '100%', maxWidth: '20rem', fontFamily: SANS, fontSize: '0.82rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '7px', padding: '7px 11px', marginBottom: '22px' }} />
+
       {/* ── Éditeurs ── */}
-      <section style={{ marginBottom: '34px' }}>
-        <p style={{ fontFamily: SANS, fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 4px' }}>Éditeurs ({editeurs.length})</p>
-        {editeurs.map(e => (
-          <Ligne key={e.id}>
-            <Pastille score={e.score} />
-            <span style={{ flex: 1, fontFamily: SERIF, fontSize: '0.9rem', color: 'var(--cs-texte)' }}>{e.nom}</span>
-            <Select score={e.score} on={n => majEditeur(e.id, n)} />
-          </Ligne>
+      <section style={{ marginBottom: '30px' }}>
+        <Bloc titre="Éditeurs" n={edFiltres.length} />
+        {edFiltres.map(e => (
+          <div key={e.id} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '12px', alignItems: 'center', padding: '6px 0', borderTop: '1px solid var(--cs-bord-clair)' }}>
+            <Score v={e.score} on={n => majEditeur(e.id, n)} />
+            <div style={{ minWidth: 0 }}>
+              <span style={{ fontFamily: SERIF, fontSize: '0.88rem', color: 'var(--cs-texte)' }}>{e.nom}</span>
+              {e.note && <span style={{ fontFamily: SANS, fontSize: '0.68rem', color: 'var(--cs-texte-faible)', marginLeft: '8px' }}>{e.note}</span>}
+            </div>
+          </div>
         ))}
       </section>
 
       {/* ── Auteurs ── */}
       <section>
-        <p style={{ fontFamily: SANS, fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 4px' }}>Auteurs ({auteurs.length})</p>
-        {auteurs.map(a => (
-          <Ligne key={a.id}>
-            <Pastille score={a.score} />
-            <span style={{ flex: 1, fontFamily: SERIF, fontSize: '0.9rem', color: a.reserve ? 'var(--cs-texte-faible)' : 'var(--cs-texte)', textDecoration: a.reserve ? 'line-through' : 'none' }}>{a.nom}</span>
-            {a.reserve && <span style={{ fontFamily: SANS, fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#fff', background: 'var(--cs-danger-fonce)', padding: '3px 9px', borderRadius: '20px' }}>Réserve</span>}
-            <Select score={a.score} on={n => majAuteur(a.id, { score: n })} />
-            <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontFamily: SANS, fontSize: '0.72rem', color: 'var(--cs-texte-second)', cursor: 'pointer', whiteSpace: 'nowrap' }} title="Écarter ses références (protection d'un public fragile)">
-              <input type="checkbox" checked={a.reserve} onChange={ev => majAuteur(a.id, { reserve: ev.target.checked })} />
-              réserve
-            </label>
-          </Ligne>
+        <Bloc titre="Auteurs" n={auFiltres.length} />
+        {auFiltres.map(a => (
+          <div key={a.id} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '12px', alignItems: 'center', padding: '6px 0', borderTop: '1px solid var(--cs-bord-clair)' }}>
+            <Score v={a.score} on={n => majAuteur(a.id, { score: n })} />
+            <div style={{ minWidth: 0 }}>
+              <span style={{ fontFamily: SERIF, fontSize: '0.88rem', color: a.reserve ? 'var(--cs-texte-faible)' : 'var(--cs-texte)', textDecoration: a.reserve ? 'line-through' : 'none' }}>{a.nom}</span>
+              {a.motif && <span style={{ fontFamily: SANS, fontSize: '0.68rem', color: 'var(--cs-texte-faible)', marginLeft: '8px' }}>{a.motif}</span>}
+            </div>
+            <button onClick={() => majAuteur(a.id, { reserve: !a.reserve })} title="Écarter ses références (protection d'un public fragile)"
+              style={{ fontFamily: SANS, fontSize: '0.63rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', padding: '3px 9px', borderRadius: '20px', whiteSpace: 'nowrap', border: `1px solid ${a.reserve ? 'transparent' : 'var(--cs-bord)'}`, background: a.reserve ? 'var(--cs-danger-fonce)' : 'transparent', color: a.reserve ? '#fff' : 'var(--cs-texte-faible)' }}>
+              Réserve
+            </button>
+          </div>
         ))}
       </section>
     </div>
