@@ -70,6 +70,10 @@
      l'existant) ; devient crème chaud en Sépia, brun sombre en Cuir. C'est ce token
      qui permet aux fonds — jadis `#fff` en dur — de suivre le thème. */
   --cs-surface: #fff;
+  /* Libellé chaud en petites capitales (« RÉCIT », « Chapitre 3 ») : un tan discret
+     qui n'existait dans aucune famille — d'où son token dédié (valeur claire =
+     l'actuelle, pour que le Clair ne bouge pas). */
+  --cs-etiquette: #9e8e6a;
 }
 
 /* ══ Confort de lecture — thèmes alternatifs (surcouches de tokens) ══
@@ -104,6 +108,7 @@
   --cs-danger-bord: #dcc0a0;
   --cs-or: #8f6f2c;
   --cs-or-doux: #c4ab7e;
+  --cs-etiquette: #8a744a;
 }
 
 /* ── Cuir : brun chaud « vieux livre », texte crème, vert en accent (variante B) ── */
@@ -135,6 +140,7 @@
   --cs-danger-bord: #4a3a30;
   --cs-or: #b89a5e;
   --cs-or-doux: #8f7a52;
+  --cs-etiquette: #b09a72;
 }
 
 /* ── Agrandissement fluide sur grands écrans ──
