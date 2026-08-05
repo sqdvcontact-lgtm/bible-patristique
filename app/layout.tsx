@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Source_Sans_3, Source_Serif_4 } from "next/font/google";
 import Navbar from "./components/Navbar";
 import Consentement from "./components/Consentement";
-import ConfortLecture from "./components/ConfortLecture";
+// Confort de lecture (thèmes) mis en pause — à réactiver plus tard :
+// import ConfortLecture from "./components/ConfortLecture";
 import { ProvisionAffichageAdmin } from "./lib/contexteAffichageAdmin";
 import { HAUTEUR_NAVBAR } from "./lib/mesures";
 import { JsonLd, donneesSite } from "./lib/donneesStructurees";
@@ -67,9 +68,9 @@ export default function RootLayout({
       className={`${sourceSans.variable} ${sourceSerif.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {/* Confort de lecture : applique le thème mémorisé AVANT peinture (pas de
-            flash). Le clair est le défaut (aucun attribut). */}
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('cs-theme');if(t==='sepia'||t==='sombre'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();` }} />
+        {/* Confort de lecture (thèmes) mis en pause : le script d'application du thème
+            et le bouton sont désactivés, on reste en Clair. À réactiver plus tard.
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('cs-theme');if(t==='sepia'||t==='sombre'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();` }} /> */}
         {/* Identité du site pour les moteurs (Organisation + WebSite). Inerte tant
             que le site est fermé ; prête pour l'ouverture. */}
         <JsonLd donnees={donneesSite()} />
@@ -78,7 +79,7 @@ export default function RootLayout({
           {/* Décalage sous la navbar fixe — voir app/lib/mesures.ts */}
           <div id="cs-corps" className="flex flex-col flex-1" style={{ paddingTop: HAUTEUR_NAVBAR }}>{children}</div>
           <Consentement />
-          <ConfortLecture />
+          {/* <ConfortLecture /> — mis en pause */}
         </ProvisionAffichageAdmin>
       </body>
     </html>
