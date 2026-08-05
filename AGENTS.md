@@ -35,6 +35,14 @@ Sans quoi une correction « ne se voit pas » et l'on croit à tort qu'elle a é
 
 **Trouvaille de contexte (2026-08-05)** : la Bible de Sacy (`TR0001`) avait conservé le **numéro de verset imprimé en tête du texte** (« 1. MAis il faut… »), résidu d'un lot d'import — sur ~180 versets (2 Co 7-13, Galates 1, titres de psaumes). Corrigé dans `versets_v2` (retrait du seul préfixe `^\d+\.\s*`, sauvegarde `backup_tr0001_numerotation_20260805`), **puis refresh de la vue**. Segond et Crampon étaient propres : le défaut était propre à un import Sacy.
 
+# Valeur académique des éditeurs / auteurs (bibliographie)
+
+Notation éditoriale des sources bibliographiques — **doctrine : charte §29**. Tables `editeurs_valeur` (`nom`, `score` 1..5) et `auteurs_valeur` (`nom`, `score` 1..5, `reserve` booléen, `motif`), RLS **admin uniquement**. Score de **1 (le plus fiable) à 5**. Admin : onglet « Valeur académique » (`/admin?onglet=fiabilite`, `app/admin/SectionFiabilite.tsx`).
+
+⚠️ **Peupler depuis le RÉEL** : ces listes couvrent les éditeurs et auteurs effectivement cités dans `ouvrages_bibliographiques` (colonnes `editeur`, `auteurs`), à charger depuis leurs valeurs distinctes — **jamais une liste inventée**. Ne pas confondre avec la table `editeurs` (éditeurs des éditions **primaires** : François Guyot, Vivès, Bloud & Gay… — autre usage). Terminologie : « valeur académique » (critères objectifs), pas « fiabilité » ; la `reserve` protège un public fragile, ce n'est pas un jugement de la personne.
+
+**Règle d'affichage** (à câbler au rendu des bibliographies, `pericopes/[id]`) : masquer les scores bas et les auteurs en `reserve` ; ne montrer un score intermédiaire qu'à défaut de meilleur pour la même péricope.
+
 # Style rédactionnel (textes du site)
 
 Pour toute prose destinée au site (cartes, chapeaux, messages, mentions) : **ne pas employer d'incises entre tirets** (`— … —` ou `– … –`). Faire des phrases distinctes, ou introduire une énumération par deux-points. C'est le style de l'auteur (« dans mon style, toujours »). Vaut aussi pour retoucher les textes existants, pas seulement les nouveaux.
