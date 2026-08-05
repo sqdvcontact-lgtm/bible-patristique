@@ -63,20 +63,23 @@ export default function AdminClient({
 
   const decrMod = async (fn: () => Promise<void>) => { await fn(); setNbMod(n => Math.max(0, n - 1)) }
 
-  const ONGLETS: { key: Onglet; label: string; badge?: number; separateur?: boolean }[] = [
-    { key: 'bibliotheque',        label: 'Bibliothèque' },
-    { key: 'controle-oeuvres',    label: 'Contrôle œuvres' },
-    { key: 'traductions',         label: 'Traductions' },
-    { key: 'editeurs',            label: 'Éditeurs' },
-    { key: 'fiabilite',           label: 'Valeur académique' },
-    { key: 'evenements',          label: 'Chronologie' },
-    { key: 'essais',              label: 'Essais', badge: nbEssais },
-    { key: 'verifications',       label: 'Vérifications', badge: nbVerif, separateur: true },
-    { key: 'moderation',          label: 'Modération', badge: nbMod },
-    { key: 'propositions',         label: 'Propositions', separateur: true },
-    { key: 'charte',              label: 'Charte IA' },
-    { key: 'charte-accentuation', label: 'Accentuation' },
-    { key: 'taches',              label: 'À faire', separateur: true },
+  // Familles d'administration, chacune sa couleur (division visuelle) :
+  // Corpus & catalogue (vert), Communauté & modération (or), Système & doctrine (ardoise).
+  const COUL_FAMILLE: Record<string, string> = { corpus: '#3d6b4f', communaute: '#9a7a38', systeme: '#5f6b86' }
+  const ONGLETS: { key: Onglet; label: string; famille: 'corpus' | 'communaute' | 'systeme'; badge?: number; separateur?: boolean }[] = [
+    { key: 'bibliotheque',        label: 'Bibliothèque',      famille: 'corpus' },
+    { key: 'controle-oeuvres',    label: 'Contrôle œuvres',   famille: 'corpus' },
+    { key: 'traductions',         label: 'Traductions',       famille: 'corpus' },
+    { key: 'editeurs',            label: 'Éditeurs',          famille: 'corpus' },
+    { key: 'fiabilite',           label: 'Valeur académique', famille: 'corpus' },
+    { key: 'evenements',          label: 'Chronologie',       famille: 'corpus' },
+    { key: 'essais',              label: 'Essais',            famille: 'communaute', badge: nbEssais, separateur: true },
+    { key: 'verifications',       label: 'Vérifications',     famille: 'communaute', badge: nbVerif },
+    { key: 'moderation',          label: 'Modération',        famille: 'communaute', badge: nbMod },
+    { key: 'propositions',        label: 'Propositions',      famille: 'communaute' },
+    { key: 'charte',              label: 'Charte IA',         famille: 'systeme', separateur: true },
+    { key: 'charte-accentuation', label: 'Accentuation',      famille: 'systeme' },
+    { key: 'taches',              label: 'À faire',           famille: 'systeme' },
   ]
 
   return (
@@ -107,13 +110,16 @@ export default function AdminClient({
       <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid #dfe4e1', display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', padding: '2px 20px 0', boxShadow: '0 2px 8px rgba(30,46,38,0.08)' }}>
         {ONGLETS.map((o) => {
           const actif = onglet === o.key
+          const coul = COUL_FAMILLE[o.famille]
           return (
             <React.Fragment key={o.key}>
               {o.separateur && (
                 <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '18px', margin: '0 8px 10px', background: '#e2e6e3' }} />
               )}
               <button onClick={() => setOnglet(o.key)} className="adm-onglet"
-                style={{ padding: '12px 16px', fontSize: '0.97031rem', fontWeight: actif ? 600 : 500, color: actif ? '#2f6046' : '#6a8074', background: actif ? 'rgba(var(--cs-vert-rgb),0.06)' : 'transparent', border: 'none', borderBottom: actif ? '3px solid var(--cs-vert)' : '3px solid transparent', borderRadius: '5px 5px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', whiteSpace: 'nowrap', transition: 'color 0.12s, background 0.12s' }}>
+                style={{ padding: '12px 14px', fontSize: '0.97031rem', fontWeight: actif ? 600 : 500, color: actif ? coul : '#6a8074', background: actif ? `${coul}14` : 'transparent', border: 'none', borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent', borderRadius: '5px 5px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', transition: 'color 0.12s, background 0.12s' }}>
+                {/* Pastille de famille : division par couleur. */}
+                <span aria-hidden style={{ width: '7px', height: '7px', borderRadius: '50%', background: coul, flexShrink: 0, opacity: actif ? 1 : 0.55 }} />
                 {o.label}
                 {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger)', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
               </button>

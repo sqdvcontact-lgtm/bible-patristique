@@ -39,21 +39,31 @@ const LIENS_ALLER_PLUS_LOIN: { href: string; label: string }[] = [
 // Sections d'administration (menu déroulant « Administration », réservé aux admins) :
 // chaque entrée ouvre /admin sur la section voulue. Bible 899 est un outil d'atelier
 // rattaché à ce menu, ajouté après un séparateur.
-const LIENS_ADMIN: { href: string; label: string }[] = [
-  { href: "/admin?onglet=bibliotheque", label: "Bibliothèque" },
-  { href: "/admin?onglet=controle-oeuvres", label: "Contrôle œuvres" },
-  { href: "/admin?onglet=traductions", label: "Traductions" },
-  { href: "/admin?onglet=editeurs", label: "Éditeurs" },
-  { href: "/admin?onglet=evenements", label: "Chronologie" },
-  { href: "/admin?onglet=essais", label: "Essais" },
-  { href: "/admin?onglet=verifications", label: "Vérifications" },
-  { href: "/admin?onglet=moderation", label: "Modération" },
-  { href: "/admin?onglet=propositions", label: "Propositions" },
-  { href: "/admin?onglet=charte", label: "Charte IA" },
-  { href: "/admin?onglet=charte-accentuation", label: "Accentuation" },
-  { href: "/admin?onglet=taches", label: "À faire" },
+// Familles d'administration, chacune sa couleur (division visuelle du menu).
+const FAMILLES_ADMIN = [
+  // `couleur` : menu déroulant (fond clair). `couleurMobile` : variante claire,
+  // lisible sur le fond vert foncé du panneau mobile.
+  { cle: "corpus",     label: "Corpus & catalogue",  couleur: "#3d6b4f", couleurMobile: "#a7d3b6" },
+  { cle: "communaute", label: "Communauté",           couleur: "#9a7a38", couleurMobile: "#d8bd7e" },
+  { cle: "systeme",    label: "Système & doctrine",   couleur: "#5f6b86", couleurMobile: "#aab3cf" },
+] as const;
+const LIENS_ADMIN: { href: string; label: string; famille: string }[] = [
+  { href: "/admin?onglet=bibliotheque", label: "Bibliothèque", famille: "corpus" },
+  { href: "/admin?onglet=controle-oeuvres", label: "Contrôle œuvres", famille: "corpus" },
+  { href: "/admin?onglet=traductions", label: "Traductions", famille: "corpus" },
+  { href: "/admin?onglet=editeurs", label: "Éditeurs", famille: "corpus" },
+  { href: "/admin?onglet=fiabilite", label: "Valeur académique", famille: "corpus" },
+  { href: "/admin?onglet=evenements", label: "Chronologie", famille: "corpus" },
+  { href: "/admin?onglet=essais", label: "Essais", famille: "communaute" },
+  { href: "/admin?onglet=verifications", label: "Vérifications", famille: "communaute" },
+  { href: "/admin?onglet=moderation", label: "Modération", famille: "communaute" },
+  { href: "/admin?onglet=propositions", label: "Propositions", famille: "communaute" },
+  { href: "/admin?onglet=charte", label: "Charte IA", famille: "systeme" },
+  { href: "/admin?onglet=charte-accentuation", label: "Accentuation", famille: "systeme" },
+  { href: "/admin?onglet=taches", label: "À faire", famille: "systeme" },
 ];
-const LIEN_BIBLE_899 = { href: "/manuscrits/bible-899", label: "Bible 899" };
+// Bible 899 : outil d'atelier, rattaché à la famille « Système ».
+const LIEN_BIBLE_899 = { href: "/manuscrits/bible-899", label: "Bible 899", famille: "systeme" };
 
 // Couleurs de domaine pour la recherche rapide : chaque catégorie de résultats est
 // rattachée à un grand domaine par une couleur FORTE (filet gauche + libellé + fond
@@ -145,11 +155,19 @@ function OngletAdministration({ label, style }: { label: string; style: React.CS
         </svg>
       </Link>
       <div className="cs-plus-menu">
-        {LIENS_ADMIN.map(l => (
-          <Link key={l.href} href={l.href} className="cs-plus-lien">{l.label}</Link>
-        ))}
-        <div className="cs-plus-sep" />
-        <Link href={LIEN_BIBLE_899.href} className="cs-plus-lien">{LIEN_BIBLE_899.label}</Link>
+        {FAMILLES_ADMIN.map((fam, i) => {
+          const liens = LIENS_ADMIN.filter(l => l.famille === fam.cle)
+            .concat(fam.cle === "systeme" ? [LIEN_BIBLE_899] : []);
+          return (
+            <div key={fam.cle}>
+              {i > 0 && <div className="cs-plus-sep" />}
+              <div className="cs-admin-fam" style={{ color: fam.couleur }}>{fam.label}</div>
+              {liens.map(l => (
+                <Link key={l.href} href={l.href} className="cs-plus-lien cs-admin-lien" style={{ borderLeft: `2px solid ${fam.couleur}` }}>{l.label}</Link>
+              ))}
+            </div>
+          );
+        })}
       </div>
     </span>
   );
@@ -853,6 +871,10 @@ export default function Navbar() {
           .cs-plus-lien { display: block; padding: 7px 12px; font-size: 0.82rem; color: var(--cs-encre); text-decoration: none; border-radius: 5px; white-space: nowrap; }
           .cs-plus-lien:hover { background: rgba(var(--cs-vert-rgb),0.08); }
           .cs-plus-sep { height: 1px; background: var(--cs-fond-doux); margin: 4px 6px; }
+          /* Familles d'administration : intertitre coloré + filet coloré à gauche de
+             chaque entrée, pour différencier les catégories par domaine. */
+          .cs-admin-fam { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; padding: 7px 12px 3px; opacity: 0.9; }
+          .cs-admin-lien { margin-left: 4px; padding-left: 10px; border-radius: 0 5px 5px 0; }
           @media (prefers-reduced-motion: reduce) {
             .cs-onglet, .cs-bible, .cs-bible-face, .cs-bible-split { transition: none; }
           }
@@ -973,8 +995,16 @@ export default function Navbar() {
               {(estAdmin || estAdminEmail) && (
                 <>
                   <p style={styleSectionMobile}>Administration</p>
-                  {LIENS_ADMIN.map(({ href, label }) => lienMobile(href, label))}
-                  {lienMobile(LIEN_BIBLE_899.href, LIEN_BIBLE_899.label)}
+                  {FAMILLES_ADMIN.map(fam => {
+                    const liens = LIENS_ADMIN.filter(l => l.famille === fam.cle)
+                      .concat(fam.cle === "systeme" ? [LIEN_BIBLE_899] : []);
+                    return (
+                      <div key={fam.cle}>
+                        <p style={{ ...styleSectionMobile, color: fam.couleurMobile, fontSize: "0.5rem", marginTop: "9px" }}>{fam.label}</p>
+                        {liens.map(({ href, label }) => lienMobile(href, label))}
+                      </div>
+                    );
+                  })}
                 </>
               )}
             </div>
