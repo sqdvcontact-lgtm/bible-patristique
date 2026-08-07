@@ -247,27 +247,18 @@ function OngletCommunaute({
       </div>
 
       <style>{`
-        .publications-sommaire-tete {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          margin: 0 0 4px;
-        }
+        .publications-sommaire-tete { display: flex; align-items: center; gap: 14px; margin: 0 0 4px; }
         .publications-sommaire-tete::before,
         .publications-sommaire-tete::after {
-          content: "";
-          height: 1px;
-          flex: 1;
-          background: rgba(var(--cs-bord-rgb),0.55);
+          content: ""; height: 1px; flex: 1;
+          background: linear-gradient(90deg, rgba(154,122,56,0.04), rgba(154,122,56,0.34), rgba(154,122,56,0.04));
         }
         .publications-sommaire-tete span {
-          font-size: 0.59375rem;
-          font-weight: 700;
-          letter-spacing: 0.24em;
-          text-transform: uppercase;
-          color: #7a6030;
+          font-size: 0.59375rem; font-weight: 700; letter-spacing: 0.24em;
+          text-transform: uppercase; color: #7a6030;
         }
         .publications-index {
+          --pub-h: 7rem;
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
           column-gap: 30px;
@@ -275,166 +266,158 @@ function OngletCommunaute({
           align-items: start;
           margin-top: 4px;
         }
+        /* Entrée ordinaire : compacte au repos (titre, auteur, date, sous-titre, genres,
+           vues…). Le résumé et le bouton « Lire » ne paraissent qu'au survol, dans un volet
+           en absolu qui ne repousse pas la grille. Brillance dorée qui balaie au survol. */
         .publication-entree {
           position: relative;
-          display: block;
+          display: flex;
+          flex-direction: column;
+          min-height: var(--pub-h);
           text-decoration: none;
           color: inherit;
-          padding: 12px 6px 11px;
-          border-top: 1px solid rgba(var(--cs-bord-rgb),0.55);
-          transition: background 0.16s;
+          padding: 13px 12px 12px;
+          border-top: 1px solid rgba(154,122,56,0.20);
+          border-radius: 5px;
+          background-image: linear-gradient(108deg, transparent 40%, rgba(255,246,222,0.55) 50%, transparent 60%);
+          background-size: 230% 100%;
+          background-position: 165% 0;
+          background-repeat: no-repeat;
+          transition: background-position 0.7s ease, box-shadow 0.26s ease, transform 0.26s ease;
         }
-        .publication-entree:hover { background: rgba(255,255,255,0.5); }
-        .publication-entree-tete {
-          display: flex;
-          align-items: baseline;
-          gap: 8px;
-          margin-bottom: 4px;
+        .publication-entree:hover {
+          background-position: -48% 0;
+          box-shadow: 0 10px 26px -13px rgba(122,96,48,0.42);
+          transform: translateY(-1px);
+          z-index: 5;
         }
+        .publication-entree-tete { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
         .publication-auteur {
-          font-size: 0.59375rem;
-          font-weight: 700;
-          letter-spacing: 0.13em;
-          text-transform: uppercase;
-          color: #7a6030;
+          font-size: 0.59375rem; font-weight: 700; letter-spacing: 0.13em;
+          text-transform: uppercase; color: #7a6030;
         }
         .publication-date {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-style: italic;
-          font-size: 0.6875rem;
-          color: var(--cs-texte-doux);
+          font-style: italic; font-size: 0.6875rem; color: #a48d60;
         }
         .publication-plus-lu {
           margin-left: auto;
           font-family: var(--font-source-serif), Georgia, serif;
-          font-style: italic;
-          font-size: 0.65625rem;
-          color: var(--cs-or);
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          white-space: nowrap;
+          font-style: italic; font-size: 0.65625rem; color: var(--cs-or);
+          display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
         }
         .publication-plus-lu .losange { font-style: normal; }
         .publication-titre {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-weight: normal;
-          font-size: 1.03125rem;
-          line-height: 1.18;
-          color: var(--cs-encre-fonce);
-          margin: 0 0 4px;
-          letter-spacing: 0.005em;
-          transition: color 0.16s;
-          text-wrap: balance;
+          font-weight: normal; font-size: 1.03125rem; line-height: 1.18;
+          color: #3f3222; margin: 0 0 3px; letter-spacing: 0.005em;
+          transition: color 0.18s; text-wrap: balance;
+          display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
         }
-        .publication-entree:hover .publication-titre { color: var(--cs-vert); }
-        .publication-resume {
+        .publication-entree:hover .publication-titre { color: var(--cs-or); }
+        .publication-soustitre {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-style: italic;
-          font-size: 0.75rem;
-          line-height: 1.46;
-          color: #6a6258;
-          margin: 0 0 7px;
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 2;
-          line-clamp: 2;
-          overflow: hidden;
+          font-style: italic; font-size: 0.71875rem; line-height: 1.32;
+          color: #8a7856; margin: 0 0 6px;
+          display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; line-clamp: 1; overflow: hidden;
         }
         .publication-meta {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          font-size: 0.65625rem;
-          color: var(--cs-texte-doux);
-          font-variant-numeric: tabular-nums;
+          display: flex; align-items: center; gap: 11px; margin-top: auto;
+          font-size: 0.65625rem; color: #a48d60; font-variant-numeric: tabular-nums;
         }
-        .publication-cats {
-          display: flex;
-          gap: 6px;
-          flex-wrap: wrap;
-          margin-right: auto;
-        }
+        .publication-cats { display: flex; gap: 6px; flex-wrap: wrap; margin-right: auto; }
         .publication-cat {
-          font-size: 0.5625rem;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          color: #5a7060;
-          background: rgba(var(--cs-vert-rgb),0.08);
-          padding: 1.5px 7px;
-          border-radius: 3px;
+          font-size: 0.5625rem; letter-spacing: 0.06em; text-transform: uppercase;
+          color: #7a6030; background: rgba(154,122,56,0.10); padding: 1.5px 7px; border-radius: 3px;
         }
-        .publication-coeur { color: #c25b4e; }
+        .publication-coeur { color: #b06a4a; }
         .publication-etoile { display: inline-flex; align-items: center; }
 
-        /* À la une : première entrée, colonne de gauche, hauteur de deux cases. */
+        /* Au survol, le bloc se transforme SUR PLACE (ni au-dessus, ni au-dessous) : un calque en
+           absolu, au gabarit EXACT du bloc (inset:0), réaffiche l'auteur et le titre au même endroit
+           et remplace les détails par le résumé, précédé d'une flèche dorée à gauche. */
+        .publication-survol {
+          position: absolute; inset: 0; z-index: 4;
+          display: flex; flex-direction: column;
+          padding: 13px 12px 12px;
+          border-radius: 5px;
+          background-color: #fffdf7;
+          background-image: linear-gradient(108deg, transparent 40%, rgba(255,246,222,0.55) 50%, transparent 60%);
+          background-size: 230% 100%; background-position: 165% 0; background-repeat: no-repeat;
+          opacity: 0; pointer-events: none;
+          transition: opacity 0.2s ease, background-position 0.7s ease;
+        }
+        .publication-entree:hover .publication-survol { opacity: 1; pointer-events: auto; background-position: -48% 0; }
+        .publication-survol-corps {
+          flex: 1; min-height: 0; overflow: hidden;
+          display: flex; align-items: flex-start; gap: 9px; margin-top: 7px;
+        }
+        .publication-survol-fleche { flex-shrink: 0; color: var(--cs-or); margin-top: 2px; display: inline-flex; }
+        .publication-survol .publication-resume {
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-style: italic; font-size: 0.75rem; line-height: 1.5; color: #6a5c42; margin: 0;
+          display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden;
+        }
+
+        /* À la une : colonne de gauche, exactement DEUX blocs communs de haut (même court). */
         .publication-entree.une {
           grid-column: 1;
           grid-row: span 2;
-          border: 1px solid rgba(var(--cs-bord-rgb),0.9);
-          border-radius: 4px;
-          background: rgba(255,255,255,0.5);
-          padding: 14px 16px;
+          min-height: calc(var(--pub-h) * 2);
+          border: 1px solid rgba(154,122,56,0.36);
+          border-radius: 7px;
+          background: linear-gradient(158deg, rgba(255,250,238,0.92), rgba(250,243,227,0.55));
+          padding: 16px 18px;
+          overflow: hidden;
         }
+        .publication-entree.une::before {
+          content: ""; position: absolute; inset: 0; pointer-events: none;
+          background: linear-gradient(108deg, transparent 42%, rgba(255,248,226,0.5) 50%, transparent 58%);
+          background-size: 240% 100%; background-position: 165% 0;
+          transition: background-position 0.85s ease;
+        }
+        .publication-entree.une:hover::before { background-position: -50% 0; }
         .publication-entree.premier { border-top: none; }
         .une .une-label {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-style: italic;
-          font-size: 0.75rem;
-          color: var(--cs-or);
-          margin: 0 0 9px;
+          font-style: italic; font-size: 0.75rem; color: var(--cs-or); margin: 0 0 9px; letter-spacing: 0.02em;
         }
         .une .publication-auteur { display: block; margin-bottom: 6px; }
         .une .une-titre {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-weight: normal;
-          font-size: 1.4375rem;
-          line-height: 1.1;
-          color: var(--cs-encre-fonce);
-          margin: 0 0 5px;
-          letter-spacing: 0.01em;
-          transition: color 0.16s;
-          text-wrap: balance;
+          font-weight: normal; font-size: 1.4375rem; line-height: 1.1;
+          color: #3a2d1b; margin: 0 0 5px; letter-spacing: 0.01em; transition: color 0.18s; text-wrap: balance;
         }
-        .une:hover .une-titre { color: var(--cs-vert); }
+        .une:hover .une-titre { color: var(--cs-or); }
         .une .une-soustitre {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-style: italic;
-          font-size: 0.875rem;
-          color: #6a6258;
-          margin: 0 0 9px;
-          line-height: 1.35;
+          font-style: italic; font-size: 0.875rem; color: #8a7856; margin: 0 0 9px; line-height: 1.35;
         }
         .une .une-resume {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 0.8125rem;
-          line-height: 1.52;
-          color: #544c44;
-          text-align: left;
-          hyphens: auto;
-          -webkit-hyphens: auto;
-          word-spacing: -0.01em;
-          margin: 0 0 11px;
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 6;
-          line-clamp: 6;
-          overflow: hidden;
+          font-size: 0.8125rem; line-height: 1.5; color: #5a4c37; text-align: left;
+          hyphens: auto; -webkit-hyphens: auto; word-spacing: -0.01em; margin: 0 0 11px;
+          display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden;
         }
-        .une .une-resume::first-letter {
-          float: left;
-          font-size: 2.25rem;
-          line-height: 0.82;
-          padding: 3px 7px 0 0;
-          color: #7a6030;
-        }
-        .une .publication-meta { flex-wrap: wrap; gap: 10px; }
-        .une .une-lire { color: var(--cs-vert); font-weight: 600; font-size: 0.6875rem; }
+        .une .une-resume::first-letter { float: left; font-size: 2.25rem; line-height: 0.82; padding: 3px 7px 0 0; color: #7a6030; }
+        .une .publication-meta { flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+        .une .une-lire { color: var(--cs-or); font-weight: 700; font-size: 0.6875rem; }
 
         @media (max-width: 900px) {
           .publications-index { grid-template-columns: 1fr; }
-          .publication-entree.une { grid-row: auto; }
-          .publication-entree.premier { border-top: 1px solid rgba(var(--cs-bord-rgb),0.55); }
+          .publication-entree.une { grid-row: auto; min-height: 0; }
+          .publication-entree.premier { border-top: 1px solid rgba(154,122,56,0.20); }
+        }
+        /* Tactile (pas de survol) : le résumé s'affiche en flux sous les détails ; on masque
+           le titre/auteur dupliqués du calque (déjà présents au-dessus) pour éviter le doublon. */
+        @media (hover: none) {
+          .publication-survol {
+            position: static; opacity: 1; pointer-events: auto;
+            background: transparent; border-radius: 0; padding: 6px 0 0;
+          }
+          .publication-survol > .publication-entree-tete,
+          .publication-survol > .publication-titre { display: none; }
+          .publication-survol-corps { margin-top: 0; }
         }
       `}</style>
 
@@ -490,7 +473,7 @@ function EssaiLigne({ essai: e, premier, plusLu, favorisEssais, toggleFavoriEssa
         {plusLu && <span className="publication-plus-lu"><span className="losange" aria-hidden="true">◆</span> parmi les plus lus</span>}
       </div>
       <p className="publication-titre">{e.titre}</p>
-      {e.resume && <p className="publication-resume">{e.resume}</p>}
+      {e.sous_titre && <p className="publication-soustitre">{e.sous_titre}</p>}
       <div className="publication-meta">
         {e.categories.length > 0
           ? <span className="publication-cats">{e.categories.slice(0, 2).map(c => <span key={c} className="publication-cat">{c}</span>)}</span>
@@ -501,6 +484,27 @@ function EssaiLigne({ essai: e, premier, plusLu, favorisEssais, toggleFavoriEssa
           <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={12} />
         </span>
       </div>
+      {/* Au survol : calque au gabarit exact du bloc. Auteur + titre réaffichés au même endroit,
+          les détails cèdent la place au résumé, précédé d'une flèche dorée. `aria-hidden` : c'est
+          un doublon visuel du bloc, déjà accessible au-dessus. */}
+      {e.resume && (
+        <div className="publication-survol" aria-hidden="true">
+          <div className="publication-entree-tete">
+            <span className="publication-auteur">{e.auteur}</span>
+            {e.publie_at && <span className="publication-date">{formaterDateLongue(e.publie_at)}</span>}
+            {plusLu && <span className="publication-plus-lu"><span className="losange">◆</span> parmi les plus lus</span>}
+          </div>
+          <p className="publication-titre">{e.titre}</p>
+          <div className="publication-survol-corps">
+            <span className="publication-survol-fleche">
+              <svg width="17" height="11" viewBox="0 0 20 12" fill="none">
+                <path d="M0.6 6h16.8M12.8 1 18 6l-5.2 5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <p className="publication-resume">{e.resume}</p>
+          </div>
+        </div>
+      )}
     </Link>
   )
 }

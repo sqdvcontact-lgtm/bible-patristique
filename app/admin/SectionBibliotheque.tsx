@@ -666,30 +666,39 @@ function BlocCatalogueAuteurSeul({ nom, notices, onValiderAdmin, onRefuser }: {
       </button>
       {ouvert && (
         <div>
-          {notices.map((n, i) => (
-            <div key={n.id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', flexWrap: 'wrap', padding: '8px 14px', borderTop: '1px solid #f0ebdd' }}>
-              <div style={{ flex: 1, minWidth: '200px' }}>
-                <div style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.89844rem', fontStyle: 'italic', color: 'var(--cs-texte)', lineHeight: 1.3 }}>
-                  {n.titre_edition || n.titre_stable || n.titre_original || '(sans titre)'}
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginTop: '3px', fontSize: '0.75469rem', color: '#9a8f7e' }}>
-                  {n.annee_edition && <span>{n.annee_edition}</span>}
-                  {n.traducteur && <span style={{ fontStyle: 'italic' }}>trad. {n.traducteur}</span>}
-                  {n.editeur && <span>{n.editeur}</span>}
-                  {n.decision_import && (
-                    <span title={n.decision_import} style={{ fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '1px 4px', borderRadius: '3px', width: '5.75rem', textAlign: 'center', boxSizing: 'border-box', display: 'inline-block', ...decorDecision(n.decision_import) }}>
-                      {abregerDecision(n.decision_import)}
+          {/* Regroupement par TITRE STABLE : le titre de l'œuvre paraît une fois, en
+              en-tête ; en dessous, une ligne par édition portant SON titre propre. */}
+          {regrouperNoticesCatalogue(notices, '').map(groupe => (
+            <div key={groupe.cle}>
+              <div style={{ padding: '6px 14px 2px', borderTop: '1px solid #f0ebdd', background: '#faf6ec', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.86rem', fontWeight: 700, color: '#1a2820' }}>
+                {groupe.titre}
+              </div>
+              {groupe.notices.map(n => (
+                <div key={n.id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', flexWrap: 'wrap', padding: '8px 14px', borderTop: '1px solid #f4efe4' }}>
+                  <div style={{ flex: 1, minWidth: '200px' }}>
+                    <div style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.85rem', fontStyle: 'italic', color: 'var(--cs-texte)', lineHeight: 1.3 }}>
+                      {n.titre_edition || n.titre_original || n.titre_stable || '(sans titre)'}
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginTop: '3px', fontSize: '0.75469rem', color: '#9a8f7e' }}>
+                      {n.annee_edition && <span>{n.annee_edition}</span>}
+                      {n.traducteur && <span style={{ fontStyle: 'italic' }}>trad. {n.traducteur}</span>}
+                      {n.editeur && <span>{n.editeur}</span>}
+                      {n.decision_import && (
+                        <span title={n.decision_import} style={{ fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '1px 4px', borderRadius: '3px', width: '5.75rem', textAlign: 'center', boxSizing: 'border-box', display: 'inline-block', ...decorDecision(n.decision_import) }}>
+                          {abregerDecision(n.decision_import)}
+                        </span>
+                      )}
+                      <LiensUrlNotice urlTexte={n.url_texte_integral} urlNotice={n.url_source} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    <span title="Score" style={{ fontSize: '0.71875rem', fontWeight: 700, padding: '3px 7px', borderRadius: '4px', border: `1.5px solid ${couleurScoreCatalogue(n.score_fiabilite)}`, color: couleurScoreCatalogue(n.score_fiabilite), background: 'var(--cs-surface)', minWidth: '30px', textAlign: 'center' }}>
+                      {n.score_fiabilite ?? '?'}
                     </span>
-                  )}
-                  <LiensUrlNotice urlTexte={n.url_texte_integral} urlNotice={n.url_source} />
+                    <BoutonsAdminNotice n={n} onValiderAdmin={onValiderAdmin} onRefuser={onRefuser} />
+                  </div>
                 </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                <span title="Score" style={{ fontSize: '0.71875rem', fontWeight: 700, padding: '3px 7px', borderRadius: '4px', border: `1.5px solid ${couleurScoreCatalogue(n.score_fiabilite)}`, color: couleurScoreCatalogue(n.score_fiabilite), background: 'var(--cs-surface)', minWidth: '30px', textAlign: 'center' }}>
-                  {n.score_fiabilite ?? '?'}
-                </span>
-                <BoutonsAdminNotice n={n} onValiderAdmin={onValiderAdmin} onRefuser={onRefuser} />
-              </div>
+              ))}
             </div>
           ))}
         </div>
@@ -1809,7 +1818,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                       </button>
                       <span style={{ width: '1px', height: '16px', background: 'var(--cs-bord-clair)', display: 'inline-block', marginLeft: '2px' }} />
                       <span title="Score de la fiche catalogue"
-                        style={{ fontSize: '0.71875rem', padding: '3px 7px', borderRadius: '4px', border: '1px solid #ded8ce', background: 'var(--cs-fond-clair)', color: couleurScoreCatalogue(noticeCatalogue?.score_fiabilite), fontWeight: 700, width: '58px', boxSizing: 'border-box', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                        style={{ fontSize: '0.71875rem', padding: '3px 7px', borderRadius: '4px', border: '1px solid #ded8ce', background: 'var(--cs-fond-clair)', color: couleurScoreCatalogue(noticeCatalogue?.score_fiabilite), fontWeight: 700, minWidth: '58px', boxSizing: 'border-box', textAlign: 'center', whiteSpace: 'nowrap' }}>
                         Score {noticeCatalogue?.score_fiabilite ?? '?'}
                       </span>
                       <span title="Validation ADMIN de la fiche catalogue (distincte du score IA)"
@@ -1825,9 +1834,9 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                         const okF = !!urlFichier && /^https?:\/\//i.test(urlFichier)
                         const lien = (ok: boolean, href: string | null, label: string, titre: string) => ok
                           ? <a key={label} href={href!} target="_blank" rel="noopener noreferrer" title={titre}
-                              style={{ ...btnVert, width: '62px', textAlign: 'center', boxSizing: 'border-box' }}>{label} ↗</a>
+                              style={{ ...btnVert, minWidth: '72px', textAlign: 'center', boxSizing: 'border-box' }}>{label} ↗</a>
                           : <span key={label} title="Aucune URL renseignée"
-                              style={{ ...btnSobre, width: '62px', textAlign: 'center', boxSizing: 'border-box', color: '#c2bcb2', background: 'var(--cs-fond-clair)', cursor: 'default' }}>{label} —</span>
+                              style={{ ...btnSobre, minWidth: '72px', textAlign: 'center', boxSizing: 'border-box', color: '#c2bcb2', background: 'var(--cs-fond-clair)', cursor: 'default' }}>{label} —</span>
                         return <>{lien(okN, urlNotice, 'Notice', 'Ouvrir la notice source')}{lien(okF, urlFichier, 'Fichier', 'Ouvrir le fichier en ligne (PDF, TXT…)')}</>
                       })()}
                       <button onClick={() => setCatalogueDeploye(prev => ({ ...prev, [oeuvre.id_oeuvre]: !prev[oeuvre.id_oeuvre] }))}
@@ -1948,27 +1957,39 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     <div style={{ marginTop: auteur.oeuvres.length ? '6px' : '0' }}>
                       {/* Plus d'intitulé « Au catalogue… » : la couleur suffit à distinguer
                           (ocre-rouge = présent au catalogue mais non publié, vert = publié). */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                        {restantes.map(n => (
-                          <div key={n.id}
-                            style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap', padding: '6px 10px', borderLeft: '2px solid #c07a4a', background: '#fbf3ee', borderRadius: '0 4px 4px 0' }}>
-                            <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.89844rem', color: 'var(--cs-texte)' }}>
-                              {n.titre_stable || n.titre_original || '(sans titre)'}
-                            </span>
-                            {n.annee_edition && <span style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)' }}>{n.annee_edition}</span>}
-                            {n.traducteur && <span style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>trad. {n.traducteur}</span>}
-                            {/* Liens URL/Notice d'abord, puis la pastille de décision en dernier :
-                                sa case a une largeur fixe et se cale au bord droit, si bien que
-                                toutes les décisions (« Prioritaire », « Candidat »…) s'alignent. */}
-                            <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '11px' }}>
-                              <LiensUrlNotice urlTexte={n.url_texte_integral} urlNotice={n.url_source} />
-                              {n.decision_import && (
-                                <span title={n.decision_import}
-                                  style={{ fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '2px 4px', borderRadius: '3px', whiteSpace: 'nowrap', width: '5.75rem', textAlign: 'center', boxSizing: 'border-box', ...decorDecision(n.decision_import) }}>
-                                  {abregerDecision(n.decision_import)}
-                                </span>
-                              )}
-                            </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {/* Regroupement par TITRE STABLE : titre de l'œuvre une fois, en tête ;
+                            puis une ligne par édition portant SON titre propre (latin, ancien,
+                            moderne…), plutôt que le titre stable répété. */}
+                        {regrouperNoticesCatalogue(restantes, auteur.oeuvres[0]?.titre ?? '').map(groupe => (
+                          <div key={groupe.cle}>
+                            <div style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84rem', fontWeight: 600, color: 'var(--cs-encre-fonce)', margin: '0 0 3px 2px' }}>
+                              {groupe.titre}
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              {groupe.notices.map(n => (
+                                <div key={n.id}
+                                  style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap', padding: '6px 10px', borderLeft: '2px solid #c07a4a', background: '#fbf3ee', borderRadius: '0 4px 4px 0' }}>
+                                  <span style={{ fontSize: '0.82656rem', color: 'var(--cs-texte)', fontStyle: (n.titre_edition || n.titre_original) ? 'italic' : 'normal' }}>
+                                    {n.titre_edition || n.titre_original || n.titre_stable || '(sans titre)'}
+                                  </span>
+                                  {n.annee_edition && <span style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)' }}>{n.annee_edition}</span>}
+                                  {n.traducteur && <span style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>trad. {n.traducteur}</span>}
+                                  {/* Liens URL/Notice d'abord, puis la pastille de décision en dernier :
+                                      sa case a une largeur fixe et se cale au bord droit, si bien que
+                                      toutes les décisions (« Prioritaire », « Candidat »…) s'alignent. */}
+                                  <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '11px' }}>
+                                    <LiensUrlNotice urlTexte={n.url_texte_integral} urlNotice={n.url_source} />
+                                    {n.decision_import && (
+                                      <span title={n.decision_import}
+                                        style={{ fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '2px 4px', borderRadius: '3px', whiteSpace: 'nowrap', width: '5.75rem', textAlign: 'center', boxSizing: 'border-box', ...decorDecision(n.decision_import) }}>
+                                        {abregerDecision(n.decision_import)}
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         ))}
                       </div>

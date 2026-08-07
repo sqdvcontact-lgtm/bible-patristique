@@ -2,16 +2,22 @@
 
 // Page de contrôle de la VALEUR ACADÉMIQUE des éditeurs et des auteurs (chercheurs
 // modernes cités en bibliographie), sur critères objectifs. Score de 1 (le plus
-// fiable) à 5. Les Pères de l'Église (sources primaires) ne figurent pas ici.
-// Règle d'affichage (à câbler au rendu des bibliographies) : masquer les scores
-// faibles et les auteurs en « réserve » ; score intermédiaire seulement à défaut de
-// meilleur. La « réserve » protège un public fragile, ce n'est pas un jugement.
+// fiable) à 5, ou « non évalué ». Les Pères de l'Église (sources primaires) ne
+// figurent jamais ici.
+//
+// Le score commande un « statut d'usage » (contrainte de la base) : 1 → référence,
+// 2 → solide, 3 et 4 → secondaire, 5 → exclu, absence de score → à vérifier. La
+// décision finale sur un ouvrage est recalculée par Supabase à partir de ces valeurs ;
+// ce n'est pas le rôle du code. La « réserve » d'un auteur écarte ses références pour
+// protéger un public fragile : elle exige un motif (la base le refuse sans motif) et
+// n'est pas un jugement de la personne.
 
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
+import { statutUsagePourScore, messageErreurQualification } from './qualification'
 
-type Editeur = { id: number; nom: string; score: number; note: string | null }
-type Auteur = { id: number; nom: string; score: number; motif: string | null; reserve: boolean }
+type Editeur = { id: number; nom: string; score: number | null; note: string | null }
+type Auteur = { id: number; nom: string; score: number | null; motif: string | null; reserve: boolean }
 
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
@@ -19,16 +25,31 @@ const SERIF = 'var(--font-source-serif), Georgia, serif'
 const FORT: Record<number, string> = { 1: '#3d6b4f', 2: '#6f8a3e', 3: '#9a7a38', 4: '#c0562a', 5: '#9a2a2a' }
 const sansAccents = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
-function Score({ v, on }: { v: number; on: (n: number) => void }) {
+// En-tête d'une liste (Éditeurs / Auteurs) avec son décompte. Défini hors du composant
+// pour ne pas être recréé à chaque rendu.
+const Bloc = ({ titre, n }: { titre: string; n: number }) => (
+  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', margin: '0 0 4px' }}>
+    <span style={{ fontFamily: SANS, fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>{titre}</span>
+    <span style={{ fontFamily: SANS, fontSize: '0.6rem', color: 'var(--cs-texte-faible)' }}>{n}</span>
+  </div>
+)
+
+// Contrôle de rang : « — » (non évalué) puis 1 à 5. Rang académique, non une note
+// populaire : pas d'étoiles.
+function Score({ v, on }: { v: number | null; on: (n: number | null) => void }) {
+  const cell = (actif: boolean, couleur: string, bordDroit: boolean): React.CSSProperties => ({
+    width: '23px', height: '24px', border: 'none', borderRight: bordDroit ? '1px solid var(--cs-bord)' : 'none',
+    cursor: 'pointer', fontFamily: SANS, fontSize: '0.72rem', fontWeight: 700,
+    background: actif ? couleur : 'var(--cs-surface)', color: actif ? '#fff' : 'var(--cs-texte-faible)', transition: 'background 0.1s',
+  })
   return (
     <div style={{ display: 'inline-flex', border: '1px solid var(--cs-bord)', borderRadius: '7px', overflow: 'hidden', flexShrink: 0 }}>
-      {[1, 2, 3, 4, 5].map(n => {
-        const actif = v === n
-        return (
-          <button key={n} onClick={() => on(n)} aria-label={`Score ${n}`} aria-pressed={actif}
-            style={{ width: '23px', height: '24px', border: 'none', borderRight: n < 5 ? '1px solid var(--cs-bord)' : 'none', cursor: 'pointer', fontFamily: SANS, fontSize: '0.72rem', fontWeight: 700, background: actif ? FORT[n] : 'var(--cs-surface)', color: actif ? '#fff' : 'var(--cs-texte-faible)', transition: 'background 0.1s' }}>{n}</button>
-        )
-      })}
+      <button onClick={() => on(null)} aria-label="Non évalué" aria-pressed={v == null}
+        style={cell(v == null, 'var(--cs-texte-faible)', true)}>—</button>
+      {[1, 2, 3, 4, 5].map(n => (
+        <button key={n} onClick={() => on(n)} aria-label={`Score ${n}`} aria-pressed={v === n}
+          style={cell(v === n, FORT[n], n < 5)}>{n}</button>
+      ))}
     </div>
   )
 }
@@ -38,11 +59,14 @@ export default function SectionFiabilite() {
   const [auteurs, setAuteurs] = useState<Auteur[]>([])
   const [chargement, setChargement] = useState(true)
   const [q, setQ] = useState('')
+  const [erreur, setErreur] = useState('')
+  // Saisie du motif obligatoire au moment de mettre un auteur en réserve.
+  const [reserveEnCours, setReserveEnCours] = useState<{ id: number; motif: string } | null>(null)
 
   useEffect(() => {
     Promise.all([
-      supabase.from('editeurs_valeur').select('id, nom, score, note').order('score').order('nom'),
-      supabase.from('auteurs_valeur').select('id, nom, score, motif, reserve').order('score').order('nom'),
+      supabase.from('editeurs_valeur').select('id, nom, score, note').order('score', { nullsFirst: false }).order('nom'),
+      supabase.from('auteurs_valeur').select('id, nom, score, motif, reserve').order('score', { nullsFirst: false }).order('nom'),
     ]).then(([e, a]) => {
       setEditeurs((e.data ?? []) as Editeur[])
       setAuteurs((a.data ?? []) as Auteur[])
@@ -50,13 +74,32 @@ export default function SectionFiabilite() {
     })
   }, [])
 
-  const majEditeur = async (id: number, score: number) => {
+  // Écriture confirmée par la base avant de figer l'affichage : en cas de refus
+  // (contrainte score/statut, motif manquant…), on restaure la valeur et on explique.
+  const majEditeur = async (id: number, score: number | null) => {
+    const avant = editeurs
     setEditeurs(prev => prev.map(x => x.id === id ? { ...x, score } : x))
-    await supabase.from('editeurs_valeur').update({ score, updated_at: new Date().toISOString() }).eq('id', id)
+    const { error } = await supabase.from('editeurs_valeur').update({ score, statut_usage: statutUsagePourScore(score) }).eq('id', id)
+    if (error) { setEditeurs(avant); setErreur(messageErreurQualification(error.message)) } else setErreur('')
   }
+
   const majAuteur = async (id: number, champs: Partial<Auteur>) => {
+    const avant = auteurs
     setAuteurs(prev => prev.map(x => x.id === id ? { ...x, ...champs } : x))
-    await supabase.from('auteurs_valeur').update({ ...champs, updated_at: new Date().toISOString() }).eq('id', id)
+    const charge: Record<string, unknown> = { ...champs }
+    if ('score' in champs) charge.statut_usage = statutUsagePourScore(champs.score ?? null)
+    const { error } = await supabase.from('auteurs_valeur').update(charge).eq('id', id)
+    if (error) { setAuteurs(avant); setErreur(messageErreurQualification(error.message)); return false }
+    setErreur('')
+    return true
+  }
+
+  const confirmerReserve = async () => {
+    if (!reserveEnCours) return
+    const motif = reserveEnCours.motif.trim()
+    if (!motif) return
+    const ok = await majAuteur(reserveEnCours.id, { reserve: true, motif })
+    if (ok) setReserveEnCours(null)
   }
 
   const qn = sansAccents(q.trim())
@@ -65,19 +108,16 @@ export default function SectionFiabilite() {
 
   if (chargement) return <p style={{ fontFamily: SANS, fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
 
-  const Bloc = ({ titre, n }: { titre: string; n: number }) => (
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', margin: '0 0 4px' }}>
-      <span style={{ fontFamily: SANS, fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>{titre}</span>
-      <span style={{ fontFamily: SANS, fontSize: '0.6rem', color: 'var(--cs-texte-faible)' }}>{n}</span>
-    </div>
-  )
-
   return (
     <div style={{ maxWidth: '46rem' }}>
       <h2 style={{ fontFamily: SERIF, fontSize: '1.3rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 6px' }}>Valeur académique des sources</h2>
       <p style={{ fontFamily: SANS, fontSize: '0.8rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 16px' }}>
-        Score de <b style={{ color: FORT[1] }}>1</b> (le plus fiable) à <b style={{ color: FORT[5] }}>5</b>, sur critères objectifs. Les Pères de l'Église, sources primaires, n'y figurent pas. La <b>réserve</b> écarte les références d'un auteur pour protéger un public fragile&nbsp;; ce n'est pas un jugement de la personne.
+        Score de <b style={{ color: FORT[1] }}>1</b> (le plus fiable) à <b style={{ color: FORT[5] }}>5</b>, ou <b>—</b> pour non évalué, sur critères objectifs. Les Pères de l’Église, sources primaires, n’y figurent pas. La <b>réserve</b> écarte les références d’un auteur pour protéger un public fragile, avec un motif obligatoire&nbsp;; ce n’est pas un jugement de la personne.
       </p>
+
+      {erreur && (
+        <p role="alert" style={{ fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-danger-fonce)', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '7px', padding: '8px 11px', margin: '0 0 16px' }}>{erreur}</p>
+      )}
 
       <input value={q} onChange={e => setQ(e.target.value)} placeholder="Filtrer par nom…"
         style={{ width: '100%', maxWidth: '20rem', fontFamily: SANS, fontSize: '0.82rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '7px', padding: '7px 11px', marginBottom: '22px' }} />
@@ -99,19 +139,43 @@ export default function SectionFiabilite() {
       {/* ── Auteurs ── */}
       <section>
         <Bloc titre="Auteurs" n={auFiltres.length} />
-        {auFiltres.map(a => (
-          <div key={a.id} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '12px', alignItems: 'center', padding: '6px 0', borderTop: '1px solid var(--cs-bord-clair)' }}>
-            <Score v={a.score} on={n => majAuteur(a.id, { score: n })} />
-            <div style={{ minWidth: 0 }}>
-              <span style={{ fontFamily: SERIF, fontSize: '0.88rem', color: a.reserve ? 'var(--cs-texte-faible)' : 'var(--cs-texte)', textDecoration: a.reserve ? 'line-through' : 'none' }}>{a.nom}</span>
-              {a.motif && <span style={{ fontFamily: SANS, fontSize: '0.68rem', color: 'var(--cs-texte-faible)', marginLeft: '8px' }}>{a.motif}</span>}
+        {auFiltres.map(a => {
+          const enSaisie = reserveEnCours?.id === a.id
+          return (
+            <div key={a.id} style={{ padding: '6px 0', borderTop: '1px solid var(--cs-bord-clair)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '12px', alignItems: 'center' }}>
+                <Score v={a.score} on={n => majAuteur(a.id, { score: n })} />
+                <div style={{ minWidth: 0 }}>
+                  <span style={{ fontFamily: SERIF, fontSize: '0.88rem', color: a.reserve ? 'var(--cs-texte-faible)' : 'var(--cs-texte)', textDecoration: a.reserve ? 'line-through' : 'none' }}>{a.nom}</span>
+                  {a.motif && <span style={{ fontFamily: SANS, fontSize: '0.68rem', color: 'var(--cs-texte-faible)', marginLeft: '8px' }}>{a.motif}</span>}
+                </div>
+                <button
+                  onClick={() => a.reserve ? majAuteur(a.id, { reserve: false }) : setReserveEnCours(enSaisie ? null : { id: a.id, motif: a.motif ?? '' })}
+                  title="Écarter ses références (protection d'un public fragile) ; motif obligatoire"
+                  style={{ fontFamily: SANS, fontSize: '0.63rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', padding: '3px 9px', borderRadius: '20px', whiteSpace: 'nowrap', border: `1px solid ${a.reserve ? 'transparent' : 'var(--cs-bord)'}`, background: a.reserve ? 'var(--cs-danger-fonce)' : 'transparent', color: a.reserve ? '#fff' : 'var(--cs-texte-faible)' }}>
+                  Réserve
+                </button>
+              </div>
+              {enSaisie && (
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '7px', paddingLeft: '2px' }}>
+                  <input autoFocus value={reserveEnCours.motif}
+                    onChange={ev => setReserveEnCours({ id: a.id, motif: ev.target.value })}
+                    onKeyDown={ev => { if (ev.key === 'Enter') confirmerReserve(); if (ev.key === 'Escape') setReserveEnCours(null) }}
+                    placeholder="Motif de la réserve (obligatoire)…"
+                    style={{ flex: 1, fontFamily: SANS, fontSize: '0.76rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '6px', padding: '5px 9px' }} />
+                  <button onClick={confirmerReserve} disabled={!reserveEnCours.motif.trim()}
+                    style={{ fontFamily: SANS, fontSize: '0.7rem', fontWeight: 700, cursor: reserveEnCours.motif.trim() ? 'pointer' : 'not-allowed', padding: '5px 12px', borderRadius: '6px', border: 'none', background: reserveEnCours.motif.trim() ? 'var(--cs-danger-fonce)' : 'var(--cs-bord)', color: '#fff', opacity: reserveEnCours.motif.trim() ? 1 : 0.7 }}>
+                    Mettre en réserve
+                  </button>
+                  <button onClick={() => setReserveEnCours(null)}
+                    style={{ fontFamily: SANS, fontSize: '0.7rem', cursor: 'pointer', padding: '5px 10px', borderRadius: '6px', border: '1px solid var(--cs-bord)', background: 'transparent', color: 'var(--cs-texte-faible)' }}>
+                    Annuler
+                  </button>
+                </div>
+              )}
             </div>
-            <button onClick={() => majAuteur(a.id, { reserve: !a.reserve })} title="Écarter ses références (protection d'un public fragile)"
-              style={{ fontFamily: SANS, fontSize: '0.63rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', padding: '3px 9px', borderRadius: '20px', whiteSpace: 'nowrap', border: `1px solid ${a.reserve ? 'transparent' : 'var(--cs-bord)'}`, background: a.reserve ? 'var(--cs-danger-fonce)' : 'transparent', color: a.reserve ? '#fff' : 'var(--cs-texte-faible)' }}>
-              Réserve
-            </button>
-          </div>
-        ))}
+          )
+        })}
       </section>
     </div>
   )

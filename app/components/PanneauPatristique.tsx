@@ -11,11 +11,13 @@ import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import EditeurCommentaire from '@/app/components/EditeurCommentaire'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
-import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { segmentsLiesAuVerset, segmentsLiesAuChapitre, segmentsLiesAPlage, type TypeLien } from '@/app/lib/liens'
 import IconeSignet from '@/app/components/IconeSignet'
 import { HAUTEUR_NAVBAR, BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import ModalSignalement from '@/app/components/ModalSignalement'
+import { useCompte } from '@/app/lib/contexteCompte'
+import InvitationCompteInline from '@/app/components/InvitationCompteInline'
+import { citationPatristique, copierCitation } from '@/app/lib/citation'
 
 type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
 type Segment = {
@@ -91,16 +93,6 @@ function useIsAdmin(userId: string | null) {
   return isAdmin
 }
 
-// ── Construction citation complète ───────────────────────────────────────────
-// Si le texte cité contient déjà des guillemets français (citation de second
-// niveau — le Père cite lui-même l'Écriture, par exemple), on les convertit
-// en guillemets anglais pour ne pas doubler les guillemets français lors de
-// l'export via « Copier ».
-function convertirGuillemetsInternes(texte: string): string {
-  return texte
-    .replace(/«[\u202F\u00A0\s]*/g, '“')
-    .replace(/[\u202F\u00A0\s]*»/g, '”')
-}
 
 function siecleEnRomain(n: number): string {
   const r = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV']
@@ -152,24 +144,6 @@ function rendreSiecle(str: string): React.ReactNode {
   return parts
 }
 
-function construireCitationPatristique(
-  texte: string, auteur: string, titre: string,
-  sousTitre?: string, tradAuteur?: string | null, editeur?: string | null,
-  collection?: string, ville?: string | null, datePublication?: string | null
-): string {
-  const parts: string[] = []
-  if (auteur) parts.push(auteur)
-  let titreComplet = titre || ''
-  if (sousTitre) titreComplet += '. ' + sousTitre
-  if (titreComplet) parts.push(titreComplet)
-  if (editeur) parts.push(editeur)
-  if (tradAuteur) parts.push('trad. ' + tradAuteur)
-  if (collection) parts.push(collection)
-  if (ville) parts.push(ville)
-  if (datePublication) parts.push(formaterDateHistorique(datePublication))
-  parts.push('disponible sur le site Corpus Scriptura')
-  return parts.join(', ') + ' : « ' + convertirGuillemetsInternes(texte) + ' »'
-}
 
 // ── Bouton copie segment ──────────────────────────────────────────────────────
 function BoutonCopieSegment({ texte, auteur, titre, trad_auteur, editeur, collection, ville, date_publication }: {
@@ -179,8 +153,8 @@ function BoutonCopieSegment({ texte, auteur, titre, trad_auteur, editeur, collec
   const [copie, setCopie] = useState(false)
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const citation = construireCitationPatristique(texte, auteur, titre, undefined, trad_auteur, editeur, collection, ville, date_publication)
-    navigator.clipboard.writeText(citation).then(() => {
+    const citation = citationPatristique(texte, { auteur, titre, tradAuteur: trad_auteur, editeur, collection, ville, datePublication: date_publication })
+    copierCitation(citation).then(() => {
       setCopie(true); setTimeout(() => setCopie(false), 1400)
     })
   }
@@ -203,11 +177,13 @@ function BoutonEnregistrerSegment({ segment, info, userId }: {
 }) {
   const [loading, setLoading] = useState(false)
   const [idPrelev, setIdPrelev] = useState<string | null>(null)
+  const { exigerCompte } = useCompte()
   if (!userId) return null
 
   const enregistrer = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (idPrelev) return
+    if (!exigerCompte('prélever ce passage')) return
     setLoading(true)
     const { data } = await supabase.from('prelevements').insert({
       user_id: userId, type: 'patristique',
@@ -427,6 +403,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
   const [revelees, setRevelees] = useState<Set<number>>(new Set())
   const [cibleReponse, setCibleReponse] = useState<Commentaire2 | null>(null)
   const [commentaireSignale, setCommentaireSignale] = useState<Commentaire2 | null>(null)
+  const { aUnCompte, exigerCompte } = useCompte()
 
   useEffect(() => {
     if (userId) supabase.from('profils').select('pseudo').eq('id', userId).maybeSingle().then(({ data }) => setPseudoMoi(data?.pseudo ?? null))
@@ -500,7 +477,8 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
   }
 
   const basculerVote = async (c: { id: number; monVote: 1 | -1 | null }, valeur: 1 | -1) => {
-    if (!userId) { alert('Connectez-vous pour réagir à un commentaire.'); return }
+    if (!exigerCompte('réagir à un commentaire')) return
+    if (!userId) return
     const retire = c.monVote === valeur
     setCommentairesAvecTransition(prev => prev.map(x => {
       if (x.id !== c.id) return x
@@ -537,6 +515,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
 
   const envoyer = async () => {
     setErreur('')
+    if (!exigerCompte('commenter ce passage')) return
     if (!texte.trim()) { setErreur('Le commentaire est vide.'); return }
     if (REGEX_CAPS_ABUSIVES.test(texte)) { setErreur('Pas plus de cinq lettres capitales à la suite.'); return }
     if (!userId) {
@@ -645,7 +624,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
               Supprimer (admin)
             </button>
           )}
-          <button onClick={() => setCommentaireSignale(c)} title="Signaler ce commentaire"
+          <button onClick={() => { if (exigerCompte('signaler ce commentaire')) setCommentaireSignale(c) }} title="Signaler ce commentaire"
             style={{ color:'var(--cs-bord)', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft: userId === c.user_id || (isAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink:0, display:'inline-flex', alignItems:'center' }}>
             <IconeDrapeau />
           </button>
@@ -718,6 +697,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
         ))}
       </div>
       <div style={{ flexShrink:0, display:'flex', flexDirection:'column', gap:'5px', borderTop:'1px solid var(--cs-fond-doux)', marginTop:'4px', paddingTop:'10px' }}>
+        {!aUnCompte ? <InvitationCompteInline action="commenter ce passage" /> : <>
         {cibleReponse && (
           <div style={{ display:'flex', alignItems:'center', gap:'6px', background:'rgba(var(--cs-vert-rgb),0.07)', border:'1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius:'5px', padding:'5px 8px' }}>
             <span style={{ display:'inline-flex', alignItems:'center', gap:'5px', fontSize:'0.70625rem', color:'var(--cs-vert)' }}>
@@ -749,6 +729,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
           style={{ alignSelf:'flex-end', fontSize:'0.70625rem', padding:'4px 12px', borderRadius:'4px', border:'none', background:'var(--cs-vert)', color:'#fff', cursor:'pointer', fontWeight:500 }}>
           {envoi ? '…' : 'Envoyer'}
         </button>
+        </>}
       </div>
       {commentaireSignale && (
         <ModalSignalement
@@ -824,6 +805,7 @@ export default function PanneauPatristique({
   const isAdminReel = useIsAdmin(userId)
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const isAdmin = isAdminReel && !modeUtilisateurStandard
+  const { exigerCompte } = useCompte()
   const [segSignale, setSegSignale] = useState<{ seg: Segment; titreOeuvre?: string } | null>(null)
 
   // ── Compteurs onglets ────────────────────────────────────────────────────────
@@ -1470,7 +1452,7 @@ export default function PanneauPatristique({
                       key={groupe.map(g => g.seg.id).join('_')} s={segFusionne} info={oeuvres[premier.seg.id_oeuvre]}
                       userId={userId} isAdmin={isAdmin}
                       colonneLien={premier.col} natures={naturesUnion}
-                      onSignaler={(s, titreOeuvre) => setSegSignale({ seg: s, titreOeuvre })} onSupprimeLien={premier.onSupprime}
+                      onSignaler={(s, titreOeuvre) => { if (exigerCompte('signaler une erreur')) setSegSignale({ seg: s, titreOeuvre }) }} onSupprimeLien={premier.onSupprime}
                     />
                   )
                 })}

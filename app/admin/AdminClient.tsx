@@ -11,10 +11,12 @@ import SectionEssaisAdmin from './SectionEssaisAdmin'
 import SectionCharte from './SectionCharte'
 import SectionCharteAccentuation from './SectionCharteAccentuation'
 import SectionPropositions from './SectionPropositions'
-import SectionTaches from './SectionTaches'
 import SectionControleOeuvres from './SectionControleOeuvres'
 import SectionEvenements from './SectionEvenements'
 import SectionFiabilite from './SectionFiabilite'
+import SectionOuvrages from './SectionOuvrages'
+import SectionValidationNotices from './SectionValidationNotices'
+import SectionConstituerLiens from './SectionConstituerLiens'
 import type { AdminProps as Props, Onglet } from './adminTypes'
 
 export default function AdminClient({
@@ -36,8 +38,8 @@ export default function AdminClient({
   useEffect(() => {
     const cle = new URLSearchParams(window.location.search).get('onglet') as Onglet | null
     const valides: Onglet[] = [
-      'bibliotheque', 'controle-oeuvres', 'traductions', 'editeurs', 'fiabilite', 'evenements', 'essais',
-      'verifications', 'moderation', 'propositions', 'charte', 'charte-accentuation', 'taches',
+      'bibliotheque', 'controle-oeuvres', 'ouvrages', 'validation-notices', 'traductions', 'editeurs', 'fiabilite', 'evenements', 'essais',
+      'verifications', 'constituer-liens', 'moderation', 'propositions', 'charte', 'charte-accentuation',
     ]
     if (cle && valides.includes(cle)) setOnglet(cle)
   }, [])
@@ -69,17 +71,19 @@ export default function AdminClient({
   const ONGLETS: { key: Onglet; label: string; famille: 'corpus' | 'communaute' | 'systeme'; badge?: number; separateur?: boolean }[] = [
     { key: 'bibliotheque',        label: 'Bibliothèque',      famille: 'corpus' },
     { key: 'controle-oeuvres',    label: 'Contrôle œuvres',   famille: 'corpus' },
+    { key: 'ouvrages',            label: 'Ouvrages',          famille: 'corpus' },
+    { key: 'validation-notices',  label: 'Validation notices', famille: 'corpus' },
     { key: 'traductions',         label: 'Traductions',       famille: 'corpus' },
     { key: 'editeurs',            label: 'Éditeurs',          famille: 'corpus' },
     { key: 'fiabilite',           label: 'Valeur académique', famille: 'corpus' },
     { key: 'evenements',          label: 'Chronologie',       famille: 'corpus' },
     { key: 'essais',              label: 'Essais',            famille: 'communaute', badge: nbEssais, separateur: true },
     { key: 'verifications',       label: 'Vérifications',     famille: 'communaute', badge: nbVerif },
+    { key: 'constituer-liens',    label: 'Constituer liens',  famille: 'communaute' },
     { key: 'moderation',          label: 'Modération',        famille: 'communaute', badge: nbMod },
     { key: 'propositions',        label: 'Propositions',      famille: 'communaute' },
     { key: 'charte',              label: 'Charte IA',         famille: 'systeme', separateur: true },
     { key: 'charte-accentuation', label: 'Accentuation',      famille: 'systeme' },
-    { key: 'taches',              label: 'À faire',           famille: 'systeme' },
   ]
 
   return (
@@ -139,10 +143,12 @@ export default function AdminClient({
         // Bibliothèque : les lignes-œuvres publiées portent une longue rangée de
         // boutons (⚙, Modifier, Import/Export, Score, statut, URL/Notice/Fichier,
         // Détails, Contrôle, Dépublier, Supprimer) qui étouffaient à 60 rem.
-        : onglet === 'bibliotheque'
+        : onglet === 'bibliotheque' || onglet === 'ouvrages' || onglet === 'validation-notices'
         ? { maxWidth: '90rem', margin: '0 auto', padding: '28px 24px 64px' }
+        // Éditeurs : mise en page à deux colonnes (formulaire + liste), plus large.
+        : onglet === 'editeurs'
+        ? { maxWidth: '72rem', margin: '0 auto', padding: '28px 24px 64px' }
         : { maxWidth: '60rem', margin: '0 auto', padding: '28px 24px 64px' }}>
-        {onglet === 'taches'               && <SectionTaches />}
         {onglet === 'charte'               && <SectionCharte />}
         {onglet === 'charte-accentuation'  && <SectionCharteAccentuation />}
         {onglet === 'propositions'   && <SectionPropositions />}
@@ -150,9 +156,12 @@ export default function AdminClient({
         {onglet === 'controle-oeuvres' && <SectionControleOeuvres auteurs={auteurs} />}
         {onglet === 'evenements'     && <SectionEvenements auteurs={auteurs} />}
         {onglet === 'verifications'  && <SectionVerifications onCountChange={setNbVerif} />}
+        {onglet === 'constituer-liens' && <SectionConstituerLiens />}
         {onglet === 'traductions'    && <SectionTraductions traductions={traductions} />}
         {onglet === 'editeurs'       && <SectionEditeurs />}
         {onglet === 'fiabilite'      && <SectionFiabilite />}
+        {onglet === 'ouvrages'       && <SectionOuvrages />}
+        {onglet === 'validation-notices' && <SectionValidationNotices />}
 
         {onglet === 'moderation' && (
           <SectionModeration

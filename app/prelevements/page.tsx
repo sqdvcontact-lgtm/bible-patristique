@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
-import { formaterDateHistorique } from "@/app/lib/datesHistoriques";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
+import { citationPatristique, citationBiblique, copierCitation, preparerTexteCitation, type CitationRendue } from "@/app/lib/citation";
 
 // Les appels de note ([[A]], [[B1]]…) ne doivent pas paraître dans les citations.
 const sansAppelsNote = (t: string) => t.replace(/\[\[[A-Z0-9]+\]\]/g, "");
@@ -134,30 +134,22 @@ function grouper<T>(list: T[], key: (item: T) => string): { label: string; items
   return Array.from(map.entries()).map(([label, items]) => ({ label, items }));
 }
 
-function construireCitationPatristique(
-  texte: string, auteur: string, titre: string,
-  info?: OeuvreInfo
-): string {
-  const parts: string[] = [];
-  if (auteur) parts.push(auteur);
-  let titreComplet = titre || '';
-  if (info?.sous_titre) titreComplet += '. ' + info.sous_titre;
-  if (titreComplet) parts.push(titreComplet);
-  if (info?.trad_auteur) parts.push('trad. ' + info.trad_auteur);
-  if (info?.editeur) parts.push(info.editeur);
-  if (info?.collection) parts.push(info.collection);
-  if (info?.ville) parts.push(info.ville);
-  if (info?.date_publication) parts.push(formaterDateHistorique(info.date_publication));
-  parts.push('disponible sur le site Corpus Scriptura');
-  return parts.join(', ') + ' : « ' + texte + ' »';
+// Citation patristique complète (titre en italique pour le collage riche), construite
+// exactement comme sur la page de lecture (règles centralisées dans app/lib/citation.ts).
+function citationPatristiqueDepuisInfo(texte: string, auteur: string, titre: string, info?: OeuvreInfo): CitationRendue {
+  return citationPatristique(texte, {
+    auteur, titre,
+    sousTitre: info?.sous_titre, tradAuteur: info?.trad_auteur, editeur: info?.editeur,
+    collection: info?.collection, ville: info?.ville, datePublication: info?.date_publication,
+  });
 }
 
 // ── Micro-composants ──────────────────────────────────────────────────────────
 
-function BoutonCopie({ texte }: { texte: string }) {
+function BoutonCopie({ citation }: { citation: CitationRendue | string }) {
   const [ok, setOk] = useState(false);
   return (
-    <button onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(texte).then(() => { setOk(true); setTimeout(() => setOk(false), 1400); }); }}
+    <button onClick={e => { e.stopPropagation(); copierCitation(citation).then(() => { setOk(true); setTimeout(() => setOk(false), 1400); }); }}
       className="prel-action" title="Copier"
       style={{ color: ok ? "var(--cs-vert)" : undefined }}>
       {ok ? "✓" : (
@@ -520,7 +512,7 @@ export default function PrelevementsPage() {
                         <div key={i} className={`prel-item${estPref ? " prel-pref" : ""}`}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.8125rem", color: "#1e1a14", lineHeight: 1.45, margin: "0 0 3px" }}>
-                              «&#8201;{rendreTexteEnrichi(sansAppelsNote(texte))}&#8201;»
+                              «&#8201;{rendreTexteEnrichi(preparerTexteCitation(sansAppelsNote(texte)))}&#8201;»
                             </p>
                             <p style={{ fontSize: "0.5625rem", color: "var(--cs-texte-doux)", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
                               <span style={{ fontWeight: 600, color: estPref ? "var(--cs-or)" : "#6a7b6e" }}>{ref}</span>
@@ -534,7 +526,7 @@ export default function PrelevementsPage() {
                           </div>
                           <div className="prel-actions">
                             <BoutonCoeur active={estPref} onClick={e => { e.stopPropagation(); marquerPreferee({ id: g.ids[0], texte, type: "biblique", ref }); }} />
-                            <BoutonCopie texte={`« ${texteSansEnrichissement(texte).replace(/[.!?]$/, '')} » (${ref})`} />
+                            <BoutonCopie citation={citationBiblique(texteSansEnrichissement(texte), ref)} />
                             <BoutonLien href={`/?livre=${CODE_PAR_ABREV[g.ref_livre_abr] ?? g.ref_livre_abr}&chapitre=${g.ref_chapitre}&verset=${g.verset_debut}&trad=${traductionActive}`} />
                             <BoutonSuppr ids={g.ids} onSuppr={() => supprimerIds(g.ids)} />
                           </div>
@@ -581,7 +573,7 @@ export default function PrelevementsPage() {
                         <div key={p.id} className={`prel-item${estPref ? " prel-pref" : ""}`}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.8125rem", color: "#1e1a14", lineHeight: 1.45, margin: "0 0 3px" }}>
-                              «&#8201;{rendreTexteEnrichi(sansAppelsNote(p.texte))}&#8201;»
+                              «&#8201;{rendreTexteEnrichi(preparerTexteCitation(sansAppelsNote(p.texte)))}&#8201;»
                             </p>
                             {(p.ref_niv1 || p.ref_niv2) && (
                               <p style={{ fontSize: "0.5625rem", color: "var(--cs-texte-doux)", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
@@ -593,7 +585,7 @@ export default function PrelevementsPage() {
                           </div>
                           <div className="prel-actions">
                             <BoutonCoeur active={estPref} onClick={e => { e.stopPropagation(); marquerPreferee({ id: p.id, texte: p.texte, type: "patristique", auteur: p.auteur, titre_oeuvre: p.titre_oeuvre }); }} />
-                            <BoutonCopie texte={construireCitationPatristique(texteSansEnrichissement(p.texte), auteur, titre, p.id_oeuvre ? oeuvresInfo[p.id_oeuvre] : undefined)} />
+                            <BoutonCopie citation={citationPatristiqueDepuisInfo(texteSansEnrichissement(p.texte), auteur, titre, p.id_oeuvre ? oeuvresInfo[p.id_oeuvre] : undefined)} />
                             {p.id_oeuvre && (
                               <BoutonLien href={`/oeuvre/${p.id_oeuvre}${p.segment_numero ? `#s${p.segment_numero}` : ''}`} />
                             )}

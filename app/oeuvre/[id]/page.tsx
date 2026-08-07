@@ -1,4 +1,5 @@
 import { hydraterLiensHerites } from '@/app/lib/liens'
+import { codesTraductionsLecture } from '@/app/lib/traductions'
 import type { Metadata } from 'next'
 import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
 import { ABREV_FR } from '@/app/lib/bible'
@@ -122,10 +123,11 @@ function detailsRefBiblique(ref:string): { label: string; livre: string; chapitr
   return { label, livre: p[0], chapitre: cv[0] || '', verset: cv[1] || '' }
 }
 
+// N'expose que les traductions réellement matérialisées dans `versets_lecture` :
+// une colonne inexistante dans le select fait échouer toute la requête (voir
+// app/lib/traductions.ts).
 async function chargerCodesTraductions(supabase: Client) {
-  const { data } = await supabase.from('traductions').select('trad_id').order('ordre', { ascending: true })
-  const codes = (data ?? []).map((t: any) => t.trad_id).filter((code: string) => /^TR\d{4}$/.test(code))
-  return codes.length > 0 ? codes : ['TR0001', 'TR0002', 'TR0003', 'TR0004']
+  return codesTraductionsLecture(supabase)
 }
 
 async function enrichirAvecVersets(supabase: Client, segments: Segment[], codesTraductions: string[]) {

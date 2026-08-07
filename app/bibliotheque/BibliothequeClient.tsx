@@ -15,6 +15,7 @@ import { useEditeursCharges } from '@/app/lib/editeurs'
 import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
 import ModalSignalement from '@/app/components/ModalSignalement'
+import { useCompte } from '@/app/lib/contexteCompte'
 import HistoricalDate from '@/app/components/HistoricalDate'
 
 type Oeuvre = {
@@ -284,7 +285,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                         // Le texte original est placé EN TÊTE (avant la traduction). Sa cale à
                         // gauche reproduit EXACTEMENT la colonne du favori (retrait 20px + étoile
                         // de 16px de large) pour aligner « Texte… » sur « Traduction… ».
-                        <div className="bib-ligne" style={{ marginTop: '1px', alignItems: 'center' }}>
+                        <div className="bib-ligne" style={{ marginTop: '5px', alignItems: 'center' }}>
                           <div aria-hidden style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '20px' }}>
                             <span style={{ display: 'block', width: '16px', height: '12px' }} />
                           </div>
@@ -301,6 +302,9 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           </Link>
                         </div>
                       )}
+                      {/* Écart intra-paire resserré : la traduction se colle à son texte
+                          original (1px), tandis que la marge de 5px au-dessus de la ligne
+                          originale continue de séparer les œuvres entre elles. */}
                       <div className="bib-ligne" style={{ marginTop: '1px', alignItems: 'center' }}>
                         {/* Favori en tête de ligne, en guise de puce, à gauche de la traduction. */}
                         <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '20px' }}>
@@ -425,6 +429,7 @@ type GroupeCatalogue = { cle: string; titreStable: string; notices: NoticeCompac
 // message libre, atterrit dans l'onglet Modération (via /api/signalements + `reference`).
 function BoutonSignalerNotice({ reference, texte }: { reference: string; texte?: string }) {
   const [ouvert, setOuvert] = useState(false)
+  const { exigerCompte } = useCompte()
   const envoyer = async (message: string, importance?: string) => {
     const { data } = await supabase.auth.getSession()
     const token = data.session?.access_token
@@ -437,7 +442,7 @@ function BoutonSignalerNotice({ reference, texte }: { reference: string; texte?:
   }
   return (
     <>
-      <button onClick={e => { e.stopPropagation(); setOuvert(true) }} title="Signaler une erreur sur cette traduction"
+      <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setOuvert(true) }} title="Signaler une erreur sur cette traduction"
         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: '7px', color: '#c4b8a4', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}
         onMouseEnter={e => (e.currentTarget.style.color = '#b0442a')}
         onMouseLeave={e => (e.currentTarget.style.color = '#c4b8a4')}><IconeDrapeau /></button>

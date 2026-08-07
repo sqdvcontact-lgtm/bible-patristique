@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from "@/app/lib/supabase"
+import { useCompte } from '@/app/lib/contexteCompte'
 import type { VRef } from './oeuvreTypes'
 import { BTN_STYLE } from './BoutonsSegment'
 import ModalSignalement from './ModalSignalement'
@@ -9,20 +10,14 @@ import { insererSignalement } from './signalements'
 import { Bulle } from '@/app/components/Bulle'
 import IconeSignet from '@/app/components/IconeSignet'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
+import { citationBiblique, copierCitation } from '@/app/lib/citation'
 
-// Si le texte cité contient déjà des guillemets français, on les convertit
-// en guillemets anglais pour ne pas doubler les guillemets français.
-function convertirGuillemetsInternes(texte: string): string {
-  return texte
-    .replace(/«[\u202F\u00A0\s]*/g, '“')
-    .replace(/[\u202F\u00A0\s]*»/g, '”')
-}
 
 export function BoutonCopieVerset({ texte, label }: { texte: string; label: string }) {
   const [copie, setCopie] = useState(false)
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation()
-    navigator.clipboard.writeText(`« ${convertirGuillemetsInternes(texte)} » (${label})`).then(() => { setCopie(true); setTimeout(() => setCopie(false), 1400) })
+    copierCitation(citationBiblique(texte, label)).then(() => { setCopie(true); setTimeout(() => setCopie(false), 1400) })
   }
   return (
     <Bulle texte="Copier ce verset">
@@ -41,6 +36,7 @@ export function BoutonCopieVerset({ texte, label }: { texte: string; label: stri
 export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef; trad: string; userId: string | null }) {
   const [loading, setLoading] = useState(false)
   const [idPrelev, setIdPrelev] = useState<string | null>(null)
+  const { exigerCompte } = useCompte()
   if (!userId) return null
 
   const supprimer = async (e: React.MouseEvent) => {
@@ -61,6 +57,7 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
 
   const enregistrer = async (e: React.MouseEvent) => {
     e.stopPropagation()
+    if (!exigerCompte('prélever ce verset')) return
     setLoading(true)
     const texte = verset.textes[trad] || verset.textes['TR0001'] || ''
     const { data, error } = await supabase.from('prelevements').insert({
@@ -84,9 +81,10 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
 
 export function BoutonSignalerVerset({ versetId, label, texte, segmentId }: { versetId: string; label: string; texte?: string; segmentId: number }) {
   const [ouvert, setOuvert] = useState(false)
+  const { exigerCompte } = useCompte()
   return (
     <>
-      <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
+      <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setOuvert(true) }}
         title="Signaler une erreur" style={{ ...BTN_STYLE, color:'var(--cs-bord)' }}><IconeDrapeau /></button>
       {ouvert && (
         <ModalSignalement

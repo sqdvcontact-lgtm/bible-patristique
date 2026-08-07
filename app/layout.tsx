@@ -5,6 +5,7 @@ import Consentement from "./components/Consentement";
 // Confort de lecture (thèmes) mis en pause — à réactiver plus tard :
 // import ConfortLecture from "./components/ConfortLecture";
 import { ProvisionAffichageAdmin } from "./lib/contexteAffichageAdmin";
+import { ProvisionCompte } from "./lib/contexteCompte";
 import { HAUTEUR_NAVBAR } from "./lib/mesures";
 import { JsonLd, donneesSite } from "./lib/donneesStructurees";
 import "./globals.css";
@@ -75,11 +76,13 @@ export default function RootLayout({
             que le site est fermé ; prête pour l'ouverture. */}
         <JsonLd donnees={donneesSite()} />
         <ProvisionAffichageAdmin>
-          <Navbar />
-          {/* Décalage sous la navbar fixe — voir app/lib/mesures.ts */}
-          <div id="cs-corps" className="flex flex-col flex-1" style={{ paddingTop: HAUTEUR_NAVBAR }}>{children}</div>
-          <Consentement />
-          {/* <ConfortLecture /> — mis en pause */}
+          <ProvisionCompte>
+            <Navbar />
+            {/* Décalage sous la navbar fixe — voir app/lib/mesures.ts */}
+            <div id="cs-corps" className="flex flex-col flex-1" style={{ paddingTop: HAUTEUR_NAVBAR }}>{children}</div>
+            <Consentement />
+            {/* <ConfortLecture /> — mis en pause */}
+          </ProvisionCompte>
         </ProvisionAffichageAdmin>
       </body>
     </html>

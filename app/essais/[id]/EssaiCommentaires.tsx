@@ -5,6 +5,8 @@ import { supabase } from '@/app/lib/supabase'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import EditeurCommentaire from '@/app/components/EditeurCommentaire'
+import { useCompte } from '@/app/lib/contexteCompte'
+import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 
 type CommentaireEssai = {
   id: number; texte: string; passage_cite: string | null; reponse_a: number | null
@@ -23,6 +25,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [envoi, setEnvoi] = useState(false)
   const [revelees, setRevelees] = useState<Set<number>>(new Set())
+  const { aUnCompte, exigerCompte } = useCompte()
 
   useEffect(() => {
     supabase.from('essais_commentaires').select('id, texte, passage_cite, reponse_a, user_id, auteur_nom, valide, created_at, supprime').eq('id_essai', idEssai).order('created_at', { ascending: true })
@@ -65,6 +68,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   }
 
   const envoyer = async () => {
+    if (!exigerCompte('commenter cette publication')) return
     if (!texte.trim() || !userId) return
     setEnvoi(true)
     const { data, error } = await supabase.from('essais_commentaires').insert({
@@ -248,7 +252,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
       </div>
 
       {/* Outil de rédaction : ancré EN BAS du volet. */}
-      {userId ? (
+      {aUnCompte ? (
         <div style={{ flexShrink: 0, borderTop: '1px solid var(--cs-fond-doux)', background: 'var(--cs-fond-clair)', padding: '10px 14px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {cibleReponse && (
             <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)', background: 'var(--cs-surface)', padding: '4px 8px', borderRadius: '4px', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
@@ -271,7 +275,9 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
           </button>
         </div>
       ) : (
-        <p style={{ flexShrink: 0, borderTop: '1px solid var(--cs-fond-doux)', fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '10px 14px' }}>Connectez-vous pour commenter.</p>
+        <div style={{ flexShrink: 0, borderTop: '1px solid var(--cs-fond-doux)', background: 'var(--cs-fond-clair)', padding: '10px 14px 12px' }}>
+          <InvitationCompteInline action="commenter cette publication" />
+        </div>
       )}
     </div>
   )

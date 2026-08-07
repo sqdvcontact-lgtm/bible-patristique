@@ -5,27 +5,8 @@ import { Fragment, useMemo, useState } from "react";
 
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import type { Bible899Edition, FacsimileReference } from "./_lib/tei";
+import { availableReadingModes, type ReadingMode } from "./_lib/readingModes";
 import styles from "./bible899.module.css";
-
-type ReadingMode = "diplomatic" | "expanded" | "modernized";
-
-const MODES: { value: ReadingMode; label: string; description: string }[] = [
-  {
-    value: "diplomatic",
-    label: "Diplomatique",
-    description: "Abréviations et graphie du manuscrit",
-  },
-  {
-    value: "expanded",
-    label: "Abréviations développées",
-    description: "Développements encodés dans le TEI",
-  },
-  {
-    value: "modernized",
-    label: "Graphie modernisée",
-    description: "Version modernisée encodée dans le TEI",
-  },
-];
 
 const MARKER_PATTERN = /(\[lacune : [^\]]+\]|\[lecture incertaine : [^\]]*\]|\[ajout marginal : [^\]]*\])/gu;
 
@@ -127,8 +108,9 @@ export default function Bible899Reader({ edition }: { edition: Bible899Edition }
   const [mode, setMode] = useState<ReadingMode>("diplomatic");
   const [lineBreaks, setLineBreaks] = useState(true);
   const [selectedColumnKey, setSelectedColumnKey] = useState(initialColumnKey);
+  const modes = availableReadingModes(edition);
   const lineBasedMode = mode !== "modernized";
-  const currentMode = MODES.find((item) => item.value === mode) ?? MODES[0];
+  const currentMode = modes.find((item) => item.value === mode) ?? modes[0];
   const selectedColumn = useMemo(
     () => edition.columns.find((column) => column.key === selectedColumnKey) ?? edition.columns[0],
     [edition.columns, selectedColumnKey],
@@ -155,7 +137,7 @@ export default function Bible899Reader({ edition }: { edition: Bible899Edition }
           {edition.manuscript.repository}, {edition.manuscript.shelfmark}
         </p>
         <p className={styles.introduction}>
-          {edition.manuscript.sample}. Cette édition de travail présente les états textuels encodés dans le TEI maître. Les lacunes et les lectures incertaines restent explicitement signalées.
+          {edition.manuscript.sample}. Transcription intégrale du manuscrit. Le texte a fait l’objet d’une première campagne de relecture ; certaines lectures demeurent incertaines et sont signalées comme telles. La révision éditoriale pourra être poursuivie progressivement.
         </p>
         <dl className={styles.metadata}>
           <div>
@@ -179,7 +161,7 @@ export default function Bible899Reader({ edition }: { edition: Bible899Edition }
 
       <section className={styles.controls} style={{ top: HAUTEUR_NAVBAR }} aria-label="Réglages de lecture">
         <div className={styles.modes} role="group" aria-label="Mode de lecture">
-          {MODES.map((item) => (
+          {modes.map((item) => (
             <button
               key={item.value}
               type="button"

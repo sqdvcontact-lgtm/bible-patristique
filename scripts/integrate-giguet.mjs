@@ -6,6 +6,7 @@
 //   --do integrate,shift : + chapitres à décalage uniforme confirmé
 import { readFileSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
+throw new Error('BLOCKED_LEGACY_TR0009: historical Giguet mutator; TR0009 is reserved for Bible française du XIIIe siècle. Migrate this workflow to a distinct validated trad_id.')
 const env = Object.fromEntries(readFileSync('.env.local','utf8').split(/\r?\n/)
   .map(l=>l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/)).filter(Boolean).map(m=>[m[1],m[2].replace(/^["']|["']$/g,'')]))
 const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY)

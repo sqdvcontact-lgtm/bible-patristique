@@ -6,7 +6,7 @@ import { loadBible899Edition } from "./_lib/manifest";
 export const metadata: Metadata = {
   title: "Bible française du XIIIe siècle, BnF Français 899",
   description:
-    "Lecteur expérimental du manuscrit BnF Français 899 avec transcription diplomatique, abréviations développées et graphie modernisée.",
+    "Lecteur expérimental du manuscrit BnF Français 899 avec transcription diplomatique et abréviations développées.",
 };
 
 export const dynamic = "force-static";

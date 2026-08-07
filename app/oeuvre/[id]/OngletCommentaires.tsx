@@ -7,6 +7,8 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { insererSignalement } from './signalements'
 import EditeurCommentaire from '@/app/components/EditeurCommentaire'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
+import { useCompte } from '@/app/lib/contexteCompte'
+import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 
 // Pas plus de 5 majuscules consécutives (accentuées comprises).
 const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
@@ -80,6 +82,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   const [cibleReponse, setCibleReponse] = useState<CommentaireAvecAuteur | null>(null)
   const [commentaireSignale, setCommentaireSignale] = useState<CommentaireAvecAuteur | null>(null)
   const [demandeValidation, setDemandeValidation] = useState(false)
+  const { aUnCompte, exigerCompte } = useCompte()
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setUserId(data.session?.user.id ?? null))
@@ -155,7 +158,8 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   }
 
   const basculerVote = async (c: CommentaireAvecAuteur, valeur: 1 | -1) => {
-    if (!userId) { alert('Connectez-vous pour réagir à un commentaire.'); return }
+    if (!exigerCompte('réagir à un commentaire')) return
+    if (!userId) return
     const retire = c.monVote === valeur
     setCommentairesAvecTransition(prev => prev.map(x => {
       if (x.id !== c.id) return x
@@ -189,6 +193,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   }
 
   const soumettre = async () => {
+    if (!exigerCompte('commenter ce passage')) return
     if (!texte.trim() || segActif === null || !userId) return
     if (REGEX_CAPS_ABUSIVES.test(texte)) { setStatut('err'); return }
     setStatut('sending')
@@ -292,7 +297,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
               Supprimer (admin)
             </button>
           )}
-          <button onClick={() => setCommentaireSignale(c)} title="Signaler ce commentaire"
+          <button onClick={() => { if (exigerCompte('signaler ce commentaire')) setCommentaireSignale(c) }} title="Signaler ce commentaire"
             style={{ color: 'var(--cs-bord)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: userId === c.user_id || (estAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}>
             <IconeDrapeau />
           </button>
@@ -357,8 +362,8 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
         ))}
       </div>
       <div style={{ flexShrink: 0, marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--cs-bord)' }}>
-        {!userId ? (
-          <p style={{ fontSize: '0.71875rem', color: 'var(--cs-danger-fonce)', fontStyle: 'italic' }}>Connectez-vous pour commenter ce passage.</p>
+        {!aUnCompte ? (
+          <InvitationCompteInline action="commenter ce passage" />
         ) : (
           <>
             {cibleReponse && (

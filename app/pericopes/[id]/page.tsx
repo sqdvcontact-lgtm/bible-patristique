@@ -13,6 +13,7 @@ import { useEstMobile } from '@/app/lib/useEstMobile'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { formaterPlageCanonique, parsePointCanonique, nomLivreReference } from '@/app/lib/referencesBibliques'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
+import { normaliserEspacesOriginal } from '@/app/lib/typographie'
 import PanneauPatristique from '@/app/components/PanneauPatristique'
 import ActionsVerset from '@/app/components/ActionsVerset'
 import { ABREV_FR } from '@/app/lib/bible'
@@ -29,8 +30,12 @@ type Pericope = {
   notice_exegetique: string | null; notice_theologique: string | null; notice_tradition: string | null
 }
 
-// Référence bibliographique réelle (vue pericope_bibliographie_complete) : ce sont
-// de vrais ouvrages, à afficher en lieu et place des anciennes « notes » génériques.
+// Référence bibliographique réelle, servie par la vue « bibliographie_admissible ».
+// Cette vue écarte côté base tout ouvrage scientifiquement exclu ou « à vérifier » :
+// ne remontent que des liens non rejetés vers des ouvrages retenus ou secondaires.
+// Aucun indice interne (score, réserve, statut) n'est exposé au lecteur.
+// TODO qualification : rebasculer vers « bibliographie_publiable » (qui exige en plus
+// un lien vérifié et un ouvrage éditorialement validé) une fois les liens vérifiés.
 type RefBiblio = {
   rubrique: string | null; importance: string | null
   auteurs: string | null; titre: string | null; sous_titre: string | null
@@ -41,7 +46,10 @@ type RefBiblio = {
 
 // Normalisation typographique d'affichage : apostrophe droite ' → apostrophe courbe ’
 // (certaines données, notamment des titres/appellations, portent des apostrophes plates).
-function typo(s: string): string { return s.replace(/'/g, '’') }
+// Apostrophe typographique + règles d'espacement de la charte (§3.2) : fine insécable avant
+// : ; ! ? et autour des guillemets. `normaliserEspacesOriginal` AJOUTE l'espace (les notices,
+// texte éditorial saisi, ne l'ont pas), de façon idempotente.
+function typo(s: string): string { return normaliserEspacesOriginal(s.replace(/'/g, '’')) }
 type Occurrence = {
   id: number; livre: string; canon_id_debut: string; canon_id_fin: string | null
   niveau: number; est_principale: boolean; fiabilite: string | null
@@ -91,12 +99,15 @@ function BlocVersets({ vs, ctx }: { vs: VersetPericope[]; ctx: CtxActions }) {
                 <span style={{ flex: 1, height: '1px', background: 'var(--cs-bord)' }} />
               </div>
             )}
-            <div style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr) auto', columnGap: '10px', alignItems: 'baseline' }}>
-              <span style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 600, color: 'var(--cs-texte-faible)', textAlign: 'right', minWidth: '1.1rem', lineHeight: 1.55, whiteSpace: 'nowrap' }}>{v.verset}</span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr) auto', columnGap: '10px', alignItems: 'start' }}>
+              {/* Numéro centré verticalement sur la PREMIÈRE ligne du verset (boîte à la hauteur
+                  d'une ligne, contenu centré) — plutôt qu'aligné sur la ligne de base. */}
+              <span style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 600, color: 'var(--cs-texte-faible)', minWidth: '1.1rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: 'calc(0.875rem * 1.55)', lineHeight: 1 }}>{v.verset}</span>
               <p style={{ fontFamily: SANS, fontSize: '0.875rem', lineHeight: 1.55, color: TEXTE, margin: 0, textAlign: 'justify' }}>
                 {rendreTexteEnrichi(String(v.texte))}
               </p>
-              <span style={{ alignSelf: 'flex-start', paddingTop: '3px' }}>
+              {/* Boutons d'action centrés en face de cette même première ligne. */}
+              <span style={{ display: 'flex', alignItems: 'center', height: 'calc(0.875rem * 1.55)' }}>
                 <ActionsVerset
                   idVerset={v.id_verset} refAffichee={`${abr} ${v.chapitre}, ${v.verset}`}
                   nomLivre={nomLivreReference(ctx.livre)} refLivreAbr={abr}
@@ -215,7 +226,7 @@ export default function PericopePage() {
             .select('id, nom, usage_recherche, est_principal, ordre')
             .eq('pericope_id', id).eq('visible_public', true).eq('est_principal', false)
             .order('ordre'),
-          supabase.from('pericope_bibliographie_complete')
+          supabase.from('bibliographie_admissible')
             .select('rubrique, importance, auteurs, titre, sous_titre, directeurs, collection, numero_collection, lieu, editeur, annee, pages, reference_passage')
             .eq('pericope_id', id),
         ])
@@ -396,7 +407,7 @@ export default function PericopePage() {
           <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 8px' }}>Notice</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {peri.notice && (
-              <p style={{ fontFamily: SANS, fontSize: '0.8rem', color: 'var(--cs-texte)', lineHeight: 1.5, textAlign: 'justify', hyphens: 'auto', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(peri.notice))}</p>
+              <p style={{ fontFamily: SANS, fontSize: '0.8rem', color: 'var(--cs-texte)', lineHeight: 1.4, textAlign: 'justify', hyphens: 'auto', wordSpacing: '-0.03em', letterSpacing: '-0.01em', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(peri.notice))}</p>
             )}
             {([
               { label: 'Contexte', v: peri.notice_contexte },
@@ -406,7 +417,7 @@ export default function PericopePage() {
             ] as const).filter(b => b.v).map(b => (
               <div key={b.label}>
                 <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 3px' }}>{b.label}</p>
-                <p style={{ fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-texte)', lineHeight: 1.5, textAlign: 'justify', hyphens: 'auto', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(b.v as string))}</p>
+                <p style={{ fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-texte)', lineHeight: 1.4, textAlign: 'justify', hyphens: 'auto', wordSpacing: '-0.03em', letterSpacing: '-0.01em', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(b.v as string))}</p>
               </div>
             ))}
           </div>
@@ -414,28 +425,26 @@ export default function PericopePage() {
         </section>
       )}
 
-      {/* Bibliographie : vraies références d'ouvrages (vue pericope_bibliographie_complete),
-          groupées par rubrique et ordonnées par importance. Remplace les anciennes
-          « notes » génériques (source_*), qui n'étaient pas de vraies références. */}
+      {/* Bibliographie : liste SIMPLE et élégante des ouvrages (vue bibliographie_admissible,
+          qui écarte les exclus/à vérifier). Au plus bref : pas de regroupement par discipline,
+          pas de renvoi de passage. Les groupes sont aplatis puis dédupliqués. */}
       {groupesBiblio.length > 0 && (
         <section style={{ borderTop: `1px solid ${SEP}`, paddingTop: '14px' }}>
           <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 10px' }}>Bibliographie</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {groupesBiblio.map(g => (
-              <div key={g.cle || 'autres'}>
-                {g.label && (
-                  <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 5px' }}>{g.label}</p>
-                )}
-                <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {g.refs.map((r, i) => (
-                    <li key={i} style={{ fontFamily: SANS, fontSize: '0.72rem', color: 'var(--cs-texte-second)', lineHeight: 1.45 }}>
-                      <ReferenceBiblio r={r} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '9px' }}>
+            {(() => {
+              const vus = new Set<string>()
+              return groupesBiblio.flatMap(g => g.refs).filter(r => {
+                const cle = `${r.auteurs ?? r.directeurs ?? ''}|${r.titre ?? ''}|${r.annee ?? ''}`
+                if (vus.has(cle)) return false
+                vus.add(cle); return true
+              })
+            })().map((r, i) => (
+              <li key={i} style={{ fontFamily: SANS, fontSize: '0.72rem', color: 'var(--cs-texte-second)', lineHeight: 1.45 }}>
+                <ReferenceBiblio r={r} />
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       )}
     </div>
@@ -493,9 +502,6 @@ function ReferenceBiblio({ r }: { r: RefBiblio }) {
       {r.annee && <span>, {r.annee}</span>}
       <span>.</span>
       {r.pages && <span style={{ color: 'var(--cs-texte-faible)' }}> {typo(r.pages)}</span>}
-      {r.reference_passage && (
-        <span style={{ display: 'block', marginTop: '1px', fontStyle: 'italic', fontSize: '0.66rem', color: 'var(--cs-texte-faible)' }}>{typo(r.reference_passage)}</span>
-      )}
     </>
   )
 }

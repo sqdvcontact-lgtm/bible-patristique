@@ -69,3 +69,47 @@ export async function verifierLien(
 
   return { verifies: vv, segmentEntierementVerifie: (count ?? 0) === 0 }
 }
+
+/** Transforme un renvoi NON biblique (lien « à constituer ») en appel de note sur le
+ *  segment : on ajoute un marqueur `[[N]]` en fin de segment et le corps de la note dans
+ *  `segments.notes`, puis on supprime le lien biblique (ce n'en est pas un). Le marqueur
+ *  numérique suit le plus grand déjà présent dans le segment. */
+export async function ajouterNoteNonBiblique(lienId: number, noteTexte: string) {
+  if (!(await estAdmin())) throw new Error('Action réservée à l’administrateur.')
+  const texte = (noteTexte ?? '').trim()
+  if (!texte) throw new Error('Le texte de la note est vide.')
+
+  const { data: lien, error: eL } = await supabaseAdmin.from('liens_bibliques')
+    .select('id, segment_id').eq('id', lienId).maybeSingle()
+  if (eL) throw new Error(eL.message)
+  if (!lien) throw new Error('Lien introuvable.')
+
+  const { data: seg, error: eS } = await supabaseAdmin.from('segments')
+    .select('id, segment_texte, notes').eq('id', lien.segment_id).maybeSingle()
+  if (eS) throw new Error(eS.message)
+  if (!seg) throw new Error('Segment introuvable.')
+
+  // Prochain marqueur numérique : le plus grand [[n]] du texte ET des notes, + 1.
+  const nums: number[] = []
+  const re = /\[\[(\d+)\]\]/g
+  for (const src of [seg.segment_texte ?? '', seg.notes ?? '']) {
+    re.lastIndex = 0
+    let m: RegExpExecArray | null
+    while ((m = re.exec(src))) nums.push(Number(m[1]))
+  }
+  const n = (nums.length ? Math.max(...nums) : 0) + 1
+
+  const nouvTexte = (seg.segment_texte ?? '').replace(/\s+$/, '') + ` [[${n}]]`
+  const nouvNotes = (seg.notes ?? '').trim()
+    ? (seg.notes ?? '').replace(/\s+$/, '') + `\n[[${n}]] ${texte}`
+    : `[[${n}]] ${texte}`
+
+  const { error: eMaj } = await supabaseAdmin.from('segments')
+    .update({ segment_texte: nouvTexte, notes: nouvNotes }).eq('id', seg.id)
+  if (eMaj) throw new Error(eMaj.message)
+
+  const { error: eDel } = await supabaseAdmin.from('liens_bibliques').delete().eq('id', lienId)
+  if (eDel) throw new Error(eDel.message)
+
+  return { ok: true, marqueur: n }
+}

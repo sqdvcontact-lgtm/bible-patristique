@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
+import { useCompte } from '@/app/lib/contexteCompte'
 
 type Type = 'oeuvre' | 'essai'
 
@@ -25,6 +26,7 @@ export function useFavoris(type: Type) {
   const [favoris, setFavoris] = useState<Set<string>>(new Set())
   const [userId, setUserId] = useState<string | null>(null)
   const [pret, setPret] = useState(false)
+  const { exigerCompte } = useCompte()
 
   useEffect(() => {
     let annule = false
@@ -63,6 +65,10 @@ export function useFavoris(type: Type) {
   }, [type])
 
   const toggle = useCallback(async (refId: string) => {
+    // Un favori se range dans un compte personnel : le visiteur de démonstration
+    // (ou l'anonyme) est invité à créer le sien plutôt que d'écrire sous un compte
+    // partagé ou dans le seul stockage local.
+    if (!exigerCompte('ajouter aux favoris')) return
     const uid = userId
 
     if (uid) {
@@ -83,7 +89,7 @@ export function useFavoris(type: Type) {
         return n
       })
     }
-  }, [userId, favoris, type])
+  }, [userId, favoris, type, exigerCompte])
 
   return { favoris, pret, toggle }
 }

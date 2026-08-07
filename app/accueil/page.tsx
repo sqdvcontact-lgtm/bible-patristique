@@ -3,6 +3,7 @@ import AccueilCards from "../components/AccueilCards";
 import IconeChevron from "@/app/components/IconeChevron";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
 import { MARQUEUR_OEUVRE_DEPUBLIEE } from "@/app/lib/oeuvresPublication";
+import { codesTraductionsLecture } from "@/app/lib/traductions";
 
 export const metadata = {
   title: "Corpus Scriptura",
@@ -40,7 +41,7 @@ export default async function AccueilPage() {
   // (null compris). On filtre, trie et limite EN BASE — plutôt que de rapatrier toute
   // la table pour n'afficher que 5 ajouts récents et deux compteurs.
   const filtrePubliee = `note.is.null,note.neq.${MARQUEUR_OEUVRE_DEPUBLIEE}`;
-  const [recentesRes, nbTextesRes, nbAuteursRes] = await Promise.all([
+  const [recentesRes, nbTextesRes, nbAuteursRes, codesTraductions] = await Promise.all([
     supabase
       .from("oeuvres")
       .select("id_oeuvre, titre, date_mise_en_ligne, auteurs(nom)")
@@ -50,6 +51,11 @@ export default async function AccueilPage() {
       .limit(NB_AJOUTS),
     supabase.from("oeuvres").select("id_oeuvre", { count: "exact", head: true }).or(filtrePubliee),
     supabase.from("auteurs").select("id_auteur", { count: "exact", head: true }),
+    // « Traductions disponibles » : on ne compte QUE les traductions réellement lisibles
+    // (enregistrées ET matérialisées dans `versets_lecture`), pas celles encore en cours
+    // de transcription (ex. la Bible française du XIIIe siècle). Même source de vérité que
+    // l'apparat biblique, pour que le chiffre affiché corresponde à ce qu'on peut lire.
+    codesTraductionsLecture(supabase),
   ]);
 
   const recentesBrut: OeuvreRecente[] = (recentesRes.data ?? []).map((o: Record<string, unknown>) => ({
@@ -65,6 +71,7 @@ export default async function AccueilPage() {
     .sort((a, b) => (b.date_mise_en_ligne ?? "").localeCompare(a.date_mise_en_ligne ?? ""));
   const nbTextes = nbTextesRes.count ?? 0;
   const nbAuteurs = nbAuteursRes.count ?? 0;
+  const nbTraductions = codesTraductions.length;
 
   return (
     <div>
@@ -249,7 +256,7 @@ export default async function AccueilPage() {
           <VoletUnMot />
           <VoletAjouts recentes={recentes} />
         </div>
-        <BandeauStats nbTextes={nbTextes} nbAuteurs={nbAuteurs ?? 0} />
+        <BandeauStats nbTextes={nbTextes} nbAuteurs={nbAuteurs ?? 0} nbTraductions={nbTraductions} />
         </div>
       </main>
 
@@ -485,9 +492,10 @@ function VoletAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
   )
 }
 
-function BandeauStats({ nbTextes, nbAuteurs }: { nbTextes: number; nbAuteurs: number }) {
+function BandeauStats({ nbTextes, nbAuteurs, nbTraductions }: { nbTextes: number; nbAuteurs: number; nbTraductions: number }) {
   const stats = [
     { icon: <IconeLivre />, valeur: nbTextes.toLocaleString("fr-FR"), label: "Textes disponibles" },
+    { icon: <IconeTraductions />, valeur: nbTraductions.toLocaleString("fr-FR"), label: nbTraductions > 1 ? "Traductions bibliques" : "Traduction biblique" },
     { icon: <IconeAuteurs />, valeur: nbAuteurs.toLocaleString("fr-FR"), label: "Auteurs répertoriés" },
     { icon: <IconeCheck />, valeur: `${POURCENT_VERIFIE} %`, label: "Textes vérifiés" },
     { icon: <IconeContrib />, valeur: NB_CONTRIBUTEURS.toLocaleString("fr-FR"), label: NB_CONTRIBUTEURS > 1 ? "Contributeurs" : "Contributeur" },
@@ -512,6 +520,10 @@ function BandeauStats({ nbTextes, nbAuteurs }: { nbTextes: number; nbAuteurs: nu
 // Textes disponibles → un livre ouvert.
 function IconeLivre() {
   return (<svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 6.2C10.1 4.9 7.7 4.3 5 4.3c-.7 0-1.2.5-1.2 1.2v11.8c0 .7.5 1.1 1.2 1.1 2.7 0 5.1.6 7 2 1.9-1.4 4.3-2 7-2 .7 0 1.2-.4 1.2-1.1V5.5c0-.7-.5-1.2-1.2-1.2-2.7 0-5.1.6-7 1.9Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M12 6.2v12.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>)
+}
+// Traductions bibliques → un globe (équateur + méridien), pour les langues et les versions.
+function IconeTraductions() {
+  return (<svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.3" stroke="currentColor" strokeWidth="1.4"/><path d="M3.7 12h16.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><path d="M12 3.7c2.25 2.3 3.5 5.2 3.5 8.3s-1.25 6-3.5 8.3c-2.25-2.3-3.5-5.2-3.5-8.3s1.25-6 3.5-8.3Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg>)
 }
 // Auteurs répertoriés → une plume (calame), avec sa hampe et ses barbes.
 function IconeAuteurs() {

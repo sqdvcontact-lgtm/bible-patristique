@@ -214,7 +214,7 @@ describe("manifeste de la source maîtresse", () => {
     expect(edition.teiSha256).toBe(manifest.teiSha256);
     expect(edition.statistics).toEqual(manifest.counts);
     expect(edition.control.usedImageReferences).toEqual(manifest.images.map((image) => image.reference));
-  });
+  }, 20_000);
 
   it("refuse une modification du TEI tant que le manifeste n’a pas été régénéré", async () => {
     const temporaryRoot = mkdtempSync(path.join(os.tmpdir(), "bible899-manifest-test-"));

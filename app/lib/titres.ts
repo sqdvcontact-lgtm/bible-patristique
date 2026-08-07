@@ -6,3 +6,13 @@ export function sansPointFinal(titre: string | null | undefined): string {
   if (!titre) return ''
   return titre.replace(/([^.\s])\s*\.\s*$/, '$1')
 }
+
+// Clé de tri d'un titre : sans article/déterminant de tête, sans accents, pour un
+// classement alphabétique (« La Cité de Dieu » → à « C », « L'Évangile » → à « E »).
+// À utiliser avec localeCompare('fr'), avec le titre brut en départage.
+const ARTICLE_TETE = /^(l'|d'|le |la |les |un |une |des |du |de |au |aux )/
+export function cleTriTitre(titre: string | null | undefined): string {
+  if (!titre) return ''
+  const t = titre.trim().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’']/g, "'")
+  return t.replace(ARTICLE_TETE, '').trim()
+}

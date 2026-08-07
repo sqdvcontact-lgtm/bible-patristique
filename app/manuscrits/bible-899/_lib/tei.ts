@@ -125,6 +125,7 @@ export type Bible899Edition = {
     version: string;
     status: string;
     technicalStatus: string;
+    modernizedStatus: string;
   };
   conventions: {
     gap: string;
@@ -206,10 +207,16 @@ function attributes(node: XmlNode): XmlAttributes {
 
 function descendants(nodes: XmlNode[], wantedName?: string): XmlNode[] {
   const found: XmlNode[] = [];
-  for (const node of nodes) {
+  const pending = [...nodes].reverse();
+  while (pending.length > 0) {
+    const node = pending.pop();
+    if (!node) continue;
     const name = elementName(node);
     if (name && (!wantedName || name === wantedName)) found.push(node);
-    found.push(...descendants(children(node), wantedName));
+    const nested = children(node);
+    for (let index = nested.length - 1; index >= 0; index -= 1) {
+      pending.push(nested[index]);
+    }
   }
   return found;
 }
@@ -541,6 +548,7 @@ export function parseBible899Tei(
     "div",
     (node) => attributes(node)["@_type"] === "modernized",
   );
+  const modernizedStatus = modernizedDiv ? attributes(modernizedDiv)["@_status"] ?? "" : "absent";
   const modernized = new Map<string, string[]>();
   const unmatchedModernizedUnits: string[] = [];
   if (modernizedDiv) {
@@ -932,6 +940,7 @@ export function parseBible899Tei(
       version: editionAttrs["@_n"] ?? "",
       status: editionNode ? normalize(rawText(children(editionNode))) : "",
       technicalStatus,
+      modernizedStatus,
     },
     conventions: {
       gap: GAP_MARKER,

@@ -48,19 +48,22 @@ const FAMILLES_ADMIN = [
   { cle: "systeme",    label: "Système & doctrine",   couleur: "#5f6b86", couleurMobile: "#aab3cf" },
 ] as const;
 const LIENS_ADMIN: { href: string; label: string; famille: string }[] = [
+  { href: "/admin/controle", label: "Centre de contrôle", famille: "corpus" },
   { href: "/admin?onglet=bibliotheque", label: "Bibliothèque", famille: "corpus" },
   { href: "/admin?onglet=controle-oeuvres", label: "Contrôle œuvres", famille: "corpus" },
+  { href: "/admin?onglet=ouvrages", label: "Ouvrages", famille: "corpus" },
+  { href: "/admin?onglet=validation-notices", label: "Validation notices", famille: "corpus" },
   { href: "/admin?onglet=traductions", label: "Traductions", famille: "corpus" },
   { href: "/admin?onglet=editeurs", label: "Éditeurs", famille: "corpus" },
   { href: "/admin?onglet=fiabilite", label: "Valeur académique", famille: "corpus" },
   { href: "/admin?onglet=evenements", label: "Chronologie", famille: "corpus" },
   { href: "/admin?onglet=essais", label: "Essais", famille: "communaute" },
   { href: "/admin?onglet=verifications", label: "Vérifications", famille: "communaute" },
+  { href: "/admin?onglet=constituer-liens", label: "Constituer liens", famille: "communaute" },
   { href: "/admin?onglet=moderation", label: "Modération", famille: "communaute" },
   { href: "/admin?onglet=propositions", label: "Propositions", famille: "communaute" },
   { href: "/admin?onglet=charte", label: "Charte IA", famille: "systeme" },
   { href: "/admin?onglet=charte-accentuation", label: "Accentuation", famille: "systeme" },
-  { href: "/admin?onglet=taches", label: "À faire", famille: "systeme" },
 ];
 // Bible 899 : outil d'atelier, rattaché à la famille « Système ».
 const LIEN_BIBLE_899 = { href: "/manuscrits/bible-899", label: "Bible 899", famille: "systeme" };

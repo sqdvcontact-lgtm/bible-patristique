@@ -26,6 +26,7 @@ import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { ABREV_FR } from "@/app/lib/bible";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 import ModalSignalement from "@/app/components/ModalSignalement";
+import { useCompte } from "@/app/lib/contexteCompte";
 
 type Livre = { code: string; nom_fr: string; ordre: number };
 type Trad = { trad_id: string; nom: string; ordre: number | null; label: string; edition: string | null; lang: string };
@@ -326,6 +327,7 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
 
 function BoutonSignalerVerset({ refLisible, texte }: { refLisible: string; texte?: string }) {
   const [ouvert, setOuvert] = useState(false);
+  const { exigerCompte } = useCompte();
   const envoyer = async (message: string, importance?: string) => {
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
@@ -339,7 +341,7 @@ function BoutonSignalerVerset({ refLisible, texte }: { refLisible: string; texte
   };
   return (
     <>
-      <button onClick={e => { e.stopPropagation(); setOuvert(true); }} title="Signaler une erreur" className="poly-act"
+      <button onClick={e => { e.stopPropagation(); if (exigerCompte("signaler une erreur")) setOuvert(true); }} title="Signaler une erreur" className="poly-act"
         style={{ ...ACT_BTN, color: "#b7ad9a" }} aria-label="Signaler"><IconeDrapeau /></button>
       {ouvert && <ModalSignalement titre={refLisible} texteObjet={texte || undefined} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>

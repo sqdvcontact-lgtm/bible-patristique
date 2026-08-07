@@ -6,6 +6,7 @@ import { supabase } from '@/app/lib/supabase'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
+import { cleTriTitre } from '@/app/lib/titres'
 
 const NOM_FR: Record<string, string> = {
   GEN:'Genèse',EXO:'Exode',LEV:'Lévitique',NUM:'Nombres',DEU:'Deutéronome',JOS:'Josué',JDG:'Juges',RUT:'Ruth',
@@ -83,13 +84,8 @@ function labelVerset(livre: string, chapitre: number | string, verset: number | 
 // Livres du Nouveau Testament (pour la division AT / NT / PS du sélecteur biblique).
 const CODES_NT = new Set(['MAT','MRK','LUK','JHN','ACT','ROM','1CO','2CO','GAL','EPH','PHP','COL','1TH','2TH','1TI','2TI','TIT','PHM','HEB','JAS','1PE','2PE','1JN','2JN','3JN','JUD','REV'])
 
-// Clé de tri d'un titre : sans article/déterminant de tête, sans accents, pour un
-// classement alphabétique « La Cité de Dieu » → à « C ».
-const ARTICLE_TETE = /^(l'|d'|le |la |les |un |une |des |du |de |au |aux )/
-function cleTriTitre(titre: string): string {
-  const t = titre.trim().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’']/g, "'")
-  return t.replace(ARTICLE_TETE, '').trim()
-}
+// Clé de tri d'un titre (sans article de tête, sans accents) : centralisée dans
+// app/lib/titres.ts et réutilisée ici et sur la page œuvre (« Du même auteur »).
 
 // Surligne le terme recherché (tel que tapé, insensible à la casse) dans un texte.
 function surligner(texte: string, q: string): ReactNode {

@@ -10,6 +10,7 @@ import EssaiCommentaires from './EssaiCommentaires'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import ModalSignalement from '@/app/components/ModalSignalement'
+import { useCompte } from '@/app/lib/contexteCompte'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 
@@ -107,6 +108,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   }, [essai.id])
 
   const toggleApprecier = async () => {
+    if (!aApprecie && !exigerCompte('apprécier cette publication')) return
     if (!userId) return
     if (aApprecie) {
       await supabase.from('essais_appreciations').delete().eq('id_essai', essai.id).eq('user_id', userId)
@@ -119,6 +121,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
   const [pdfEnCours, setPdfEnCours] = useState(false)
   const [signalerOuvert, setSignalerOuvert] = useState(false)
+  const { exigerCompte } = useCompte()
 
   const envoyerSignalement = async (message: string, importance?: string) => {
     const { data } = await supabase.auth.getSession()
@@ -203,7 +206,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           <path d="M4.2 7.2l4.7 2.6M8.9 3.2 4.2 5.8"/>
         </svg>
       </BoutonPartage>
-      <BoutonPartage label="Signaler" onClick={() => setSignalerOuvert(true)}>
+      <BoutonPartage label="Signaler" onClick={() => { if (exigerCompte('signaler cette publication')) setSignalerOuvert(true) }}>
         <IconeDrapeau size={14} />
       </BoutonPartage>
     </>

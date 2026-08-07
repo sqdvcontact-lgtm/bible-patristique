@@ -6,6 +6,8 @@ import Image from 'next/image'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from "@/app/lib/supabase"
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin"
+import { useCompte } from "@/app/lib/contexteCompte"
+import { citationBiblique } from "@/app/lib/citation"
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 
@@ -22,15 +24,6 @@ const VERSET_ACTION_BTN: React.CSSProperties = {
   lineHeight:1, flexShrink:0, transition:'color 0.15s',
 }
 
-// Si le texte cité contient déjà des guillemets français (citation de second
-// niveau — le Père cite lui-même l'Écriture, par exemple), on les convertit
-// en guillemets anglais pour ne pas doubler les guillemets français lors de
-// l'export via « Copier ».
-function convertirGuillemetsInternes(texte: string): string {
-  return texte
-    .replace(/«[\u202F\u00A0\s]*/g, '“')
-    .replace(/[\u202F\u00A0\s]*»/g, '”')
-}
 
 type Verset = {
   id_verset: string; ref: string; livre: string
@@ -93,6 +86,7 @@ function refFrBible(ref: string): string {
 
 function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; versetRef?: string; texte?: string }) {
   const [ouvert, setOuvert] = useState(false)
+  const { exigerCompte } = useCompte()
   const envoyer = async (msg: string, importance?: string) => {
     const { data } = await supabase.auth.getSession()
     const headers: HeadersInit = { 'Content-Type': 'application/json' }
@@ -111,7 +105,7 @@ function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; vers
   const ref = versetRef ? refFrBible(versetRef) : versetId
   return (
     <>
-      <button onClick={e => { e.stopPropagation(); setOuvert(true) }}
+      <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setOuvert(true) }}
         className="bouton-action-verset"
         title="Signaler une erreur"
         style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
@@ -192,6 +186,7 @@ function BoutonEnregistrer({
   onSauvegarde: (id: string) => void; onSupprimer: () => void
 }) {
   const [loading, setLoading] = useState(false)
+  const { exigerCompte } = useCompte()
 
   if (dejaSauvegarde) {
     const supprimer = async (e: React.MouseEvent) => {
@@ -225,6 +220,7 @@ function BoutonEnregistrer({
 
   const enregistrer = async (e: React.MouseEvent) => {
     e.stopPropagation()
+    if (!exigerCompte('prélever ce verset')) return
     setLoading(true)
     const texte = String(verset[traduction] ?? '')
     const abr = ABREV_FR[livreActif] || livreActif
@@ -636,12 +632,10 @@ export default function TexteBible({
                       onSupprimer={() => retirerSauvegarde(v.verset)}
                     />
                   )}
-                  <BoutonCopie texte={(() => {
-                    const texteVerset = String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')
-                    const abr = ABREV_FR[livreActif] || nomLivre
-                    const textrePropre = convertirGuillemetsInternes(texteVerset).replace(/[.!?]$/, '')
-                    return `« ${textrePropre} » (${abr} ${chapitreActif}, ${v.verset})`
-                  })()} />
+                  <BoutonCopie texte={citationBiblique(
+                    String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? ''),
+                    `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`,
+                  )} />
                   <BoutonSignaler versetId={v.id_verset} versetRef={v.ref} texte={String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')} />
                   {estAdmin && !modeUtilisateurStandard && (
                     <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"

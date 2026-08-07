@@ -8,6 +8,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
+import { useCompte } from '@/app/lib/contexteCompte'
 import IconeSignet from '@/app/components/IconeSignet'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import ModalSignalement from '@/app/components/ModalSignalement'
@@ -42,6 +43,7 @@ export default function ActionsVerset({
   const [copie, setCopie] = useState(false)
   const [chargement, setChargement] = useState(false)
   const [signalOuvert, setSignalOuvert] = useState(false)
+  const { exigerCompte } = useCompte()
 
   const copier = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -69,7 +71,9 @@ export default function ActionsVerset({
 
   const basculerPrelevement = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!userId || chargement) return
+    if (chargement) return
+    if (!preleve && !exigerCompte('prélever ce verset')) return
+    if (!userId) return
     setChargement(true)
     if (preleve) {
       await supabase.from('prelevements').delete().eq('id', prelevementId)
@@ -109,7 +113,7 @@ export default function ActionsVerset({
         )}
       </button>
 
-      <button onClick={e => { e.stopPropagation(); setSignalOuvert(true) }}
+      <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setSignalOuvert(true) }}
         className="bouton-action-verset" title="Signaler une erreur" aria-label="Signaler"
         style={{ ...BTN, opacity: 0, color: 'var(--cs-bord)' }}>
         <IconeDrapeau />

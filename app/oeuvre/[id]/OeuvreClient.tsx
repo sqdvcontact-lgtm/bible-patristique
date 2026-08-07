@@ -1,6 +1,7 @@
 'use client'
 import { ABREV_FR } from '@/app/lib/bible'
 import { hydraterLiensHerites } from '@/app/lib/liens'
+import { codesTraductionsLecture } from '@/app/lib/traductions'
 
 import { useState, useEffect, useRef, useMemo, useCallback, Fragment } from 'react'
 import { useRouter } from 'next/navigation'
@@ -10,7 +11,7 @@ import { parseNotes } from '@/app/lib/notes'
 import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee } from './oeuvreTypes'
-import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces } from './texteEnrichi'
+import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
@@ -23,13 +24,14 @@ import { useFavoris } from '@/app/lib/useFavoris'
 import OngletCommentaires from './OngletCommentaires'
 import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import { useEstMobile } from '@/app/lib/useEstMobile'
-import { sansPointFinal } from '@/app/lib/titres'
+import { sansPointFinal, cleTriTitre } from '@/app/lib/titres'
 import { enregistrerOeuvreRecente } from '@/app/lib/oeuvresRecentes'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
 import AssocierVerset from './AssocierVerset'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import ModalSignalement from './ModalSignalement'
+import { useCompte } from '@/app/lib/contexteCompte'
 import { insererSignalement } from './signalements'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
@@ -144,14 +146,13 @@ function extraireNoteVerset(texte: string): { note: string | null; corps: string
 let _codesTraductionsCache: PromiseLike<string[]> | null = null
 function chargerCodesTraductions(): PromiseLike<string[]> {
   if (!_codesTraductionsCache) {
-    _codesTraductionsCache = supabase.from('traductions').select('trad_id').order('ordre', { ascending: true })
-      .then(
-        ({ data }) => {
-          const codes = (data ?? []).map((t: any) => t.trad_id).filter((code: string) => /^TR\d{4}$/.test(code))
-          return codes.length > 0 ? codes : TRADUCTIONS_FALLBACK.map(t => t.code)
-        },
-        () => TRADUCTIONS_FALLBACK.map(t => t.code)
-      )
+    // Ne garde que les traductions matérialisées dans `versets_lecture` : une colonne
+    // inexistante dans le select ferait échouer toute la requête et viderait l'apparat
+    // biblique (voir app/lib/traductions.ts).
+    _codesTraductionsCache = codesTraductionsLecture(supabase).then(
+      codes => codes.length > 0 ? codes : TRADUCTIONS_FALLBACK.map(t => t.code),
+      () => TRADUCTIONS_FALLBACK.map(t => t.code),
+    )
   }
   return _codesTraductionsCache
 }
@@ -377,6 +378,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
   const [ouvert, setOuvert] = useState(false)
   const [texte, setTexte] = useState('')
   const [statut, setStatut] = useState<'idle' | 'envoi' | 'ok' | 'err'>('idle')
+  const { exigerCompte } = useCompte()
 
   const envoyer = async () => {
     if (!texte.trim()) return
@@ -390,7 +392,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 
   return (
     <>
-      <button onClick={() => { setTexte(''); setStatut('idle'); setOuvert(true) }}
+      <button onClick={() => { if (!exigerCompte('proposer un lien biblique')) return; setTexte(''); setStatut('idle'); setOuvert(true) }}
         style={{ fontSize: '0.6875rem', color: '#6b8270', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed #b8cdc0', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px', width: '100%', textAlign: 'left' }}>
         + Proposer un lien biblique
       </button>
@@ -445,6 +447,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const [traductionsBible, setTraductionsBible] = useState(TRADUCTIONS_FALLBACK)
   const [tradOuverte, setTradOuverte] = useState(false)
   const [ongletDroit, setOngletDroit] = useState<'refs' | 'commentaires' | 'problemes'>('refs')
+  const { exigerCompte } = useCompte()
   const [userId, setUserId] = useState<string | null>(null)
   const [sauvegardesSegs, setSauvegardesSegs] = useState<Set<number>>(new Set())
   const [vue, setVue] = useState<'texte' | 'apparat'>(vueInitiale)
@@ -1166,8 +1169,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
     supabase.from('oeuvres').select('id_oeuvre, titre, note')
       .eq('id_auteur', auteurId)
       .neq('id_oeuvre', idOeuvre)
-      .order('titre')
-      .then(({ data }) => setOeuvresAuteur(((data ?? []) as any[]).filter(estOeuvrePubliee)))
+      .then(({ data }) => setOeuvresAuteur(
+        ((data ?? []) as any[]).filter(estOeuvrePubliee)
+          // Classement alphabétique en écartant l'article/déterminant de tête
+          // (« La Cité de Dieu » → à « C »), titre brut en départage.
+          .sort((a, b) => cleTriTitre(a.titre).localeCompare(cleTriTitre(b.titre), 'fr')
+            || String(a.titre).localeCompare(String(b.titre), 'fr'))
+      ))
   }, [auteurId, idOeuvre])
 
   // Charge les traductions sœurs (même auteur, même titre normalisé), œuvre courante
@@ -1765,8 +1773,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   {modeLecture === 'paragraphes' ? paragraphesDe(itemsReels).map((chunk) => {
                     const original = chunk.ids.map(sid => segMap.get(sid)).find(s => Boolean(s?.texteOriginal?.trim()))
                     return (
-                    <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? 'para-bilingue' : undefined}>
-                      <p lang="fr" style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line', paddingRight: estAdmin ? '8px' : 0 } as React.CSSProperties}>
+                    <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? 'para-bilingue' : undefined}
+                      /* Réserve la MÊME gouttière d'actions (~60px) que le mode segments, pour que
+                         la largeur du texte (et de la grille bilingue) s'aligne sur les titres et
+                         la page de titre. */
+                      style={{ paddingRight: gouttiereTitre }}>
+                      <p lang="fr" style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                         {chunk.ids.map((sid, i) => {
                           const s = segMap.get(sid)
                           if (!s) return null
@@ -1790,7 +1802,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         // En « Latin seul », l'original occupe seul la colonne, au gabarit du
                         // français (mêmes taille et teinte).
                         <p lang="la" className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, lineHeight: afficherOriginalSeul ? '1.62' : '1.58', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                          {rendreTexteAvecNotes(normaliserEspaces(original.texteOriginal), original.notes ?? {})}
+                          {rendreTexteAvecNotes(normaliserEspacesOriginal(original.texteOriginal), original.notes ?? {})}
                         </p>
                       )}
                     </div>
@@ -1874,8 +1886,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         </div>
                       )}
                       {modeLecture === 'paragraphes' ? paragraphesDe(groupe.itemIds, segMapApparat).map(chunk => (
-                        <div key={`apparat-para-${chunk.ids[0]}`}>
-                          <p lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line', paddingRight: estAdmin ? '8px' : 0 } as React.CSSProperties}>
+                        <div key={`apparat-para-${chunk.ids[0]}`} style={{ paddingRight: gouttiereTitre }}>
+                          <p lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                             {chunk.ids.map((sid, i) => {
                               const s = segMapApparat.get(sid)
                               if (!s) return null
@@ -2194,14 +2206,14 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                               <span style={{ width: '1px', height: '13px', background: 'var(--cs-bord-clair)', flexShrink: 0 }} />
                               {s.aConstituer ? (
                                 <>
-                                  <button onClick={() => setSuggestionSignalee({ ...s, nature: 'suggestion' })} title="Proposer une référence biblique pour ce passage"
+                                  <button onClick={() => { if (exigerCompte('suggérer une référence')) setSuggestionSignalee({ ...s, nature: 'suggestion' }) }} title="Proposer une référence biblique pour ce passage"
                                     style={{ ...pilleAction, color: '#9a5a2a', border: '1px solid #e3cdb0' }}>Suggérer une référence</button>
-                                  <button onClick={() => setSuggestionSignalee({ ...s, nature: 'pas_de_reference' })} title="Signaler que ce passage ne renvoie à aucun verset"
+                                  <button onClick={() => { if (exigerCompte('signaler ce passage')) setSuggestionSignalee({ ...s, nature: 'pas_de_reference' }) }} title="Signaler que ce passage ne renvoie à aucun verset"
                                     style={{ ...pilleAction, color: '#8a8278', border: '1px solid #ddd6cb' }}>Pas de référence</button>
                                 </>
                               ) : (
                                 ([['Citation','citation'],['Paraphrase','paraphrase'],['Commentaire','commentaire'],['Écho','echo']] as const).map(([label, nat]) => (
-                                  <button key={nat} onClick={() => setSuggestionSignalee({ ...s, nature: nat })} title={`Signaler ce lien comme « ${label} »`}
+                                  <button key={nat} onClick={() => { if (exigerCompte('signaler ce lien')) setSuggestionSignalee({ ...s, nature: nat }) }} title={`Signaler ce lien comme « ${label} »`}
                                     style={{ ...pilleAction, color: '#3d5a4f', border: '1px solid #cbd8cf' }}>{label}</button>
                                 ))
                               )}
