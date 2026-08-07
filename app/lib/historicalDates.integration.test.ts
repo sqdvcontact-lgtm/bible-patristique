@@ -41,15 +41,16 @@ describe('intégration des dates historiques', () => {
 
   it('emploie rechercher_frise_v2 et rend les précisions sans qualification visible', () => {
     const histoire = lire('../histoire/page.tsx')
-    const precision = histoire.indexOf('e.date_precision_affichage')
-    const note = histoire.indexOf('e.note_datation', precision)
+    const client = lire('../histoire/HistoireClient.tsx')
+    const precision = client.indexOf('e.date_precision_affichage')
+    const note = client.indexOf('e.note_datation', precision)
 
     expect(histoire).toContain("rpc('rechercher_frise_v2'")
-    expect(histoire).toContain('<HistoricalDate value={e.date_affichage} variant="short" />')
+    expect(client).toContain('<HistoricalDate value={e.date_affichage} variant="short" />')
     expect(precision).toBeGreaterThan(-1)
     expect(note).toBeGreaterThan(precision)
-    expect(histoire).not.toContain('e.qualification_date')
-    expect(histoire).not.toContain('e.date_exacte')
+    expect(client).not.toContain('e.qualification_date')
+    expect(client).not.toContain('e.date_exacte')
   })
 
   it('fusionne les champs v2 sans altérer le reste de la notice', () => {
