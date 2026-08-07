@@ -1,7 +1,9 @@
 # BIBLE 899 — Rapport de migration distante et d’import caché multimode
 
-Date du contrôle : 7 août 2026  
-Projet Supabase : `oucotpxcjalwgetylfbz`  
+Date du contrôle : 7 août 2026
+
+Projet Supabase : `oucotpxcjalwgetylfbz`
+
 État final : **migration réussie, TR0009 importé intégralement mais non publié**
 
 ## Gardes préalables

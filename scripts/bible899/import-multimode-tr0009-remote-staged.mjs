@@ -390,7 +390,7 @@ async function fetchAll(db, table, columns, filter) {
   }
 }
 
-async function validateRemote(db, dataset, rowsByTable, progress) {
+async function validateRemote(db, dataset, rowsByTable, progress, expectedState = "review") {
   const sourceId = progress.source_id;
   const counts = {
     sources: await countRows(db, "bible_text_sources", sourceId),
@@ -459,10 +459,27 @@ async function validateRemote(db, dataset, rowsByTable, progress) {
   const capabilities = await fetchAll(db, "v_bible_reading_capabilities", "trad_id,mode_code,is_available", (query) => query.eq("trad_id", "TR0009"));
   const { count: forbiddenVerses, error: verseError } = await db.from("versets_v2").select("id", { count: "exact", head: true }).eq("trad_id", "TR0009");
   if (verseError) throw new Error(`versets_v2 : ${verseError.message}`);
-  if (sources[0]?.status !== "review" || layers.some((row) => row.is_public) || divisions.some((row) => row.is_public)) {
-    throw new Error("État caché distant non respecté");
+  const expectedPublicModes = new Map([
+    ["diplomatic", true],
+    ["expanded", true],
+    ["native", true],
+    ["paragraph", false],
+    ["verse", false],
+    ["modernized", false],
+  ]);
+  if (expectedState === "published") {
+    if (sources[0]?.status !== "published" || layers.some((row) => !row.is_public) || divisions.some((row) => !row.is_public)) {
+      throw new Error("État publié distant incomplet");
+    }
+    if (capabilities.length !== 6 || capabilities.some((row) => expectedPublicModes.get(row.mode_code) !== row.is_available)) {
+      throw new Error(`Matrice des capacités publiques divergente : ${JSON.stringify(capabilities)}`);
+    }
+  } else {
+    if (sources[0]?.status !== "review" || layers.some((row) => row.is_public) || divisions.some((row) => row.is_public)) {
+      throw new Error("État caché distant non respecté");
+    }
+    if (capabilities.length !== 0) throw new Error("TR0009 exposé par les capacités publiques");
   }
-  if (capabilities.length !== 0) throw new Error("TR0009 exposé par les capacités publiques");
   if (forbiddenVerses !== 0) throw new Error("TR0009 présent dans versets_v2");
   if (layers.some((row) => row.layer_code === "modernized")) throw new Error("Couche modernized importée");
 
@@ -475,9 +492,9 @@ async function validateRemote(db, dataset, rowsByTable, progress) {
   }
 
   return {
-    mode: "staged_resumable_remote_import",
+    mode: expectedState === "published" ? "remote_multimode_publication_validation" : "staged_resumable_remote_import",
     remote_write_executed: true,
-    hidden_review_state: true,
+    hidden_review_state: expectedState === "review",
     counts,
     semantic,
     tei_unclear_elements: dataset.counts.unclear_elements,
@@ -514,7 +531,8 @@ async function main() {
   validateRemoteRows(dataset, rowsByTable);
   const progressPath = path.resolve(argument("--progress", DEFAULT_PROGRESS));
   const fresh = initialProgress(dataset, rowsByTable);
-  const validateOnly = process.argv.includes("--validate-only");
+  const publicationMode = process.argv.includes("--validate-publication");
+  const validateOnly = process.argv.includes("--validate-only") || publicationMode;
   const plan = {
     mode: "staged_resumable_remote_import",
     dry_run: !process.argv.includes("--apply-staged"),
@@ -541,11 +559,14 @@ async function main() {
   });
   const progress = await loadProgress(progressPath, fresh);
   if (!validateOnly) await importBatches(db, rowsByTable, progress, progressPath);
-  const validation = await validateRemote(db, dataset, rowsByTable, progress);
+  const validation = await validateRemote(db, dataset, rowsByTable, progress, publicationMode ? "published" : "review");
   progress.completed = true;
   progress.validation = validation;
   await saveProgress(progressPath, progress);
-  const resultPath = path.join(path.dirname(progressPath), "REMOTE_IMPORT_VALIDATION.json");
+  const resultPath = path.join(
+    path.dirname(progressPath),
+    publicationMode ? "REMOTE_PUBLICATION_VALIDATION.json" : "REMOTE_IMPORT_VALIDATION.json",
+  );
   await writeFile(resultPath, `${JSON.stringify(validation, null, 2)}\n`, "utf8");
   console.log(JSON.stringify(validation, null, 2));
 }

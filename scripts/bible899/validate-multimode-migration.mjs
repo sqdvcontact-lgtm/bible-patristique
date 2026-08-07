@@ -12,6 +12,10 @@ const pgliteModule = modulePath
 const { PGlite } = pgliteModule;
 
 const migration = await readFile(path.join(root, "sql", "20260807_bible_multimode_model.sql"), "utf8");
+const alignmentHardening = await readFile(
+  path.join(root, "sql", "20260807_bible_multimode_verified_alignments_only.sql"),
+  "utf8",
+);
 const verification = await readFile(
   path.join(root, "sql", "tests", "20260807_bible_multimode_model_verification.sql"),
   "utf8",
@@ -26,6 +30,7 @@ await db.exec(`
   create table public.versets_canon (id text primary key);
 `);
 await db.exec(migration);
+await db.exec(alignmentHardening);
 await db.exec(verification);
 
 await db.exec(`
@@ -75,6 +80,35 @@ await db.exec(`
      'book', 1, 1, 'book:1', 'Livre fictif',
      '00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000012',
      'high', 'validated', true);
+
+  insert into public.versets_canon (id) values ('GEN.1.1');
+  insert into public.bible_editorial_segmentations
+    (id, source_id, segmentation_code, segmentation_kind, version_label,
+     base_layer_id, status, is_public)
+  values
+    ('00000000-0000-0000-0000-000000000041', '00000000-0000-0000-0000-000000000001',
+     'fixture-alignment', 'reading_unit', '1', '00000000-0000-0000-0000-000000000021',
+     'validated', true);
+  insert into public.bible_editorial_segments
+    (id, source_id, segmentation_id, segment_key, editorial_sequence)
+  values
+    ('00000000-0000-0000-0000-000000000051', '00000000-0000-0000-0000-000000000001',
+     '00000000-0000-0000-0000-000000000041', 'segment-1', 1);
+  insert into public.bible_editorial_segment_sources
+    (source_id, segmentation_id, segment_id, unit_id, unit_sequence)
+  values
+    ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000041',
+     '00000000-0000-0000-0000-000000000051', '00000000-0000-0000-0000-000000000011', 1);
+  insert into public.bible_canonical_alignments
+    (id, source_id, segmentation_id, segment_id, alignment_order, canon_id,
+     alignment_status, confidence, verification_status)
+  values
+    ('00000000-0000-0000-0000-000000000061', '00000000-0000-0000-0000-000000000001',
+     '00000000-0000-0000-0000-000000000041', '00000000-0000-0000-0000-000000000051',
+     1, 'GEN.1.1', 'MATCH', 'medium', 'review'),
+    ('00000000-0000-0000-0000-000000000062', '00000000-0000-0000-0000-000000000001',
+     '00000000-0000-0000-0000-000000000041', '00000000-0000-0000-0000-000000000051',
+     2, 'GEN.1.1', 'MATCH', 'high', 'verified');
 `);
 
 const capabilityRows = await db.query(`
@@ -101,6 +135,13 @@ assert.deepEqual(textRows.rows, [
 ]);
 
 await db.exec("set role anon");
+const canonicalRows = await db.query(`
+  select verification_status
+  from public.v_bible_canonical_lookup
+  where trad_id = 'TRFIX'
+  order by alignment_order
+`);
+assert.deepEqual(canonicalRows.rows, [{ verification_status: "verified" }]);
 const anonymousRows = await db.query(
   "select count(*)::integer as count from public.v_bible_source_unit_texts where trad_id = 'TRFIX'",
 );
@@ -119,6 +160,7 @@ console.log(JSON.stringify({
     source_unit_text_rows: 4,
     anonymous_read: true,
     anonymous_write_blocked: true,
+    public_alignment_statuses: canonicalRows.rows.map((row) => row.verification_status),
   },
 }, null, 2));
 
