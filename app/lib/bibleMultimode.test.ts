@@ -4,6 +4,7 @@ import {
   canonicalTranslationIdsFromSample,
   composeContinuousSourceText,
   isMissingReadingCapabilitiesRelation,
+  manuscriptColumnUrl,
   nativeChapterChoices,
   preferredLayerForMode,
   readingCapabilitiesByTranslation,
@@ -70,6 +71,12 @@ describe('adaptateur multimode biblique', () => {
       { material_order: 2, native_folio_raw: '297r' },
     ] as SourceUnitTextRow[]
     expect(visibleNativeFolioSequence(units)).toEqual(['295v', '297r'])
+  })
+
+  it('relie le lecteur source à la cote de colonne publique', () => {
+    expect(manuscriptColumnUrl({ column_id: 'f297r_a' }))
+      .toBe('/manuscrits/bible-899?colonne=f297r_a')
+    expect(manuscriptColumnUrl({ column_id: null })).toBeNull()
   })
 
   it('contextualise un chapitre par son livre sans utiliser la séquence attendue', () => {

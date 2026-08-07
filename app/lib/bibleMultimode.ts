@@ -153,6 +153,13 @@ export function visibleNativeFolioSequence(units: readonly SourceUnitTextRow[]):
   return result
 }
 
+export function manuscriptColumnUrl(
+  unit: Pick<SourceUnitTextRow, 'column_id'> | null | undefined,
+): string | null {
+  const columnId = unit?.column_id?.trim()
+  return columnId ? `/manuscrits/bible-899?colonne=${encodeURIComponent(columnId)}` : null
+}
+
 function nativeBookLabel(division: NativeDivisionRow | undefined): string {
   return division?.label_diplomatic?.trim()
     || division?.proposed_book_code?.trim()

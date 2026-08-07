@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 
 import {
   composeContinuousSourceText,
+  manuscriptColumnUrl,
   nativeChapterChoices,
   nativeDivisionLabel,
   type NativeDivisionRow,
@@ -52,6 +53,7 @@ export default function BibleSourceReader({
     ? divisions.find((division) => division.id === selectedDivision.parent_id)
     : undefined
   const firstUnit = units[0]
+  const sourceColumnUrl = manuscriptColumnUrl(firstUnit)
 
   const changeMode = (nextMode: BibleReadingMode) => {
     localStorage.setItem(`cs_bible_mode:${translationId}`, nextMode)
@@ -123,8 +125,8 @@ export default function BibleSourceReader({
               Début au folio {firstUnit.native_folio_raw}
             </p>
           ) : null}
-          {firstUnit?.surface_key ? (
-            <Link href={`/manuscrits/bible-899?colonne=${encodeURIComponent(firstUnit.surface_key)}`} style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)' }}>
+          {sourceColumnUrl ? (
+            <Link href={sourceColumnUrl} style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)' }}>
               Voir le fac-similé et la colonne source
             </Link>
           ) : null}
