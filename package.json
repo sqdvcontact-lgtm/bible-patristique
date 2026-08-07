@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test": "vitest run",
     "bible899:manifest": "tsx scripts/bible899/generate-manifest.ts",
-    "bible899:import": "tsx scripts/bible899/import-tei.ts"
+    "bible899:import": "tsx scripts/bible899/import-tei.ts",
+    "bible899:multimode:build": "tsx scripts/bible899/build-multimode-import.mjs",
+    "bible899:multimode:dry-run": "tsx scripts/bible899/import-multimode-tr0009.mjs"
   },
   "dependencies": {
     "@next/third-parties": "^16.2.12",

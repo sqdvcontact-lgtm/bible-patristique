@@ -62,5 +62,8 @@ scripts/heptateuque/*.docx
 # Conservé localement, non versionné.
 work/bible899/source/BnF_Fr_899.pdf
 
+# Jeu d'import multimode Bible 899 (régénérable, environ 80 Mo hors archive).
+/work/bible899/multimode/
+
 # réglages Claude Code locaux (spécifiques à la machine)
 .claude/settings.local.json

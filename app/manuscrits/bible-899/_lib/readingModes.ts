@@ -33,3 +33,9 @@ export function availableReadingModes(edition: Bible899Edition): ReadingModeOpti
     ? [...CORE_MODES, MODERNIZED_MODE]
     : CORE_MODES;
 }
+
+export function initialColumnKey(edition: Bible899Edition, requested: string | undefined): string {
+  return edition.columns.some((column) => column.key === requested)
+    ? requested!
+    : edition.columns[0]?.key ?? "";
+}

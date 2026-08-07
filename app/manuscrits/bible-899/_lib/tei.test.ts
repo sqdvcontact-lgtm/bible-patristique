@@ -229,7 +229,10 @@ describe("manifeste de la source maîtresse", () => {
 
 describe("non-régression du prototype v0.4", () => {
   it("conserve l’empreinte du fichier éditorial historique", () => {
-    expect(sha256Text(prototypeXml)).toBe(
+    // L’empreinte éditoriale de référence a été calculée sur le fichier LF.
+    // Normaliser uniquement les fins de ligne rend ce garde-fou reproductible
+    // dans un worktree Windows sans masquer la moindre variation XML.
+    expect(sha256Text(prototypeXml.replace(/\r\n/g, "\n"))).toBe(
       "90b0fb0ab81ef5f36f9d1ae20e0786202dd4df3183314e1ce48d11066f996a84",
     );
   });

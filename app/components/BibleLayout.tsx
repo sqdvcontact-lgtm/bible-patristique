@@ -9,6 +9,7 @@ import { supabase } from '@/app/lib/supabase'
 import { ABREV_FR } from '@/app/lib/bible'
 import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE, HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { useEstMobile } from '@/app/lib/useEstMobile'
+import { selectableReadingModes, type TranslationReadingCapabilities } from '@/app/lib/bibleReadingModes'
 
 type Livre = { code: string; nom: string; testament: string }
 type Verset = {
@@ -26,6 +27,7 @@ type Props = {
   chapitreActif: number
   nomLivre: string
   tradInitiale: string
+  readingCapabilities: Record<string, TranslationReadingCapabilities>
 }
 
 // Les trois éditions du nouveau modèle, et elles seules. La Vulgate figurait ici en repli
@@ -38,11 +40,16 @@ const TRADUCTIONS_DEFAUT = [
 ]
 
 
-export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale }: Props) {
+export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities }: Props) {
   const listeTraductions = traductions.length > 0 ? traductions : TRADUCTIONS_DEFAUT
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
   const [versetSelectionne, setVersetSelectionne] = useState<Verset | null>(null)
+  const versetSelectionneCourant = versetSelectionne
+    && versetSelectionne.livre === livreActif
+    && versetSelectionne.chapitre === chapitreActif
+    ? versetSelectionne
+    : null
   const router = useRouter()
 
   // Mobile : un seul des trois volets ouvert à la fois (accordéon). Les barres
@@ -79,10 +86,6 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   // chapitre. On PRÉSERVE en revanche un verset qui appartient déjà au chapitre
   // courant — cas d'une navigation directe « ?verset=N » (aller à) : sans quoi
   // l'effet parent effacerait la sélection tout juste posée par TexteBible.
-  useEffect(() => {
-    setVersetSelectionne(prev => (prev && prev.livre === livreActif && prev.chapitre === chapitreActif ? prev : null))
-  }, [livreActif, chapitreActif])
-
   // `null` = largeur AUTO : le volet s'adapte à l'écran (clamp responsive défini
   // dans le volet lui-même), avec un plancher de lisibilité. Un nombre = largeur
   // fixée à la main par l'utilisateur (glisser-redimensionner), en px.
@@ -92,8 +95,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   const reset = () => { setNavWidth(null); setPannWidth(null); try { localStorage.removeItem('cs_volets_bible2') } catch {} }
 
   // Cache des livres vides par traduction : { TR0001: Set<'GEN'|'SIR'|...>, ... }
-  const livresVidesCache = useRef<Record<string, Set<string>>>({})
-  const [, setLivresVidesVersion] = useState(0)
+  const [livresVidesCache, setLivresVidesCache] = useState<Record<string, Set<string>>>({})
 
   const traduction = listeTraductions[traductionIndex]?.code ?? 'TR0001'
 
@@ -105,16 +107,6 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   // un chapitre sans sauter le livre). L'ancienne version en concluait le contraire et
   // grisait le livre qu'on était en train de lire — les Nombres se fermaient sous les
   // doigts. Seule `livres_par_traduction`, interrogée ci-dessous, fait foi pour l'absence.
-  useEffect(() => {
-    const trad = traduction
-    const livre = livreActif
-    const aDuTexte = versets.length > 0 && versets.some(v => v[trad])
-    if (!aDuTexte) return
-    const cache = livresVidesCache.current
-    if (!cache[trad]) cache[trad] = new Set()
-    if (cache[trad].delete(livre)) setLivresVidesVersion(v => v + 1)
-  }, [versets, traduction, livreActif])
-
   // Pré-remplit le cache dès que la traduction change :
   // interroge la DB pour obtenir la liste des livres qui ont au moins un verset
   // dans cette traduction, puis marque tous les autres comme vides.
@@ -130,47 +122,48 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
       .then(({ data }) => {
         if (!data) return
         const avecContenu = new Set(data.map((r: { livre: string }) => r.livre))
-        const cache = livresVidesCache.current
-        if (!cache[trad]) cache[trad] = new Set()
-        let changed = false
+        const vides = new Set<string>()
         for (const livre of livres) {
-          const estVide = !avecContenu.has(livre.code)
-          const enCache = cache[trad].has(livre.code)
-          if (estVide && !enCache) { cache[trad].add(livre.code); changed = true }
-          else if (!estVide && enCache) { cache[trad].delete(livre.code); changed = true }
+          if (!avecContenu.has(livre.code)) vides.add(livre.code)
         }
-        if (changed) setLivresVidesVersion(v => v + 1)
+        setLivresVidesCache((cache) => ({ ...cache, [trad]: vides }))
       })
-  }, [traduction])
+  }, [traduction, livres])
 
-  const livresVides = livresVidesCache.current[traduction] ?? new Set<string>()
+  const livresVides = new Set(livresVidesCache[traduction] ?? [])
+  if (versets.some((verset) => verset[traduction])) livresVides.delete(livreActif)
 
   // Persist widths
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('cs_volets_bible2') ?? 'null')
-      if (saved?.nav) setNavWidth(saved.nav)
-      if (saved?.pann) setPannWidth(saved.pann)
-    } catch {}
+    const frame = requestAnimationFrame(() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('cs_volets_bible2') ?? 'null')
+        if (saved?.nav) setNavWidth(saved.nav)
+        if (saved?.pann) setPannWidth(saved.pann)
+      } catch {}
+    })
+    return () => cancelAnimationFrame(frame)
   }, [])
   useEffect(() => {
     localStorage.setItem('cs_volets_bible2', JSON.stringify({ nav: navWidth, pann: pannWidth }))
   }, [navWidth, pannWidth])
 
   useEffect(() => {
-    // Priorité : traduction choisie manuellement sur cette page
-    const active = localStorage.getItem('cs_trad_bible_active')
-    if (active) {
-      const idx = listeTraductions.findIndex(t => t.code === active)
-      if (idx >= 0) { setTraductionIndex(idx); return }
+    let cancelled = false
+    const estCanonique = (code?: string | null) => {
+      if (!code) return false
+      const modes = selectableReadingModes(readingCapabilities[code] ?? { translationId: code, modes: [] })
+      return modes.some((mode) => mode.value === 'verse')
     }
-    // Sinon : traduction favorite du profil
     const appliquer = (code?: string | null) => {
-      if (!code) return
+      if (!code || cancelled || !estCanonique(code)) return
       const idx = listeTraductions.findIndex(t => t.code === code)
       if (idx >= 0) setTraductionIndex(idx)
     }
-    appliquer(localStorage.getItem('traduction_defaut'))
+    // Priorité : traduction choisie manuellement sur cette page
+    const active = localStorage.getItem('cs_trad_bible_active')
+    const preference = estCanonique(active) ? active : localStorage.getItem('traduction_defaut')
+    const frame = requestAnimationFrame(() => appliquer(preference))
     supabase.auth.getSession().then(async ({ data }) => {
       const uid = data.session?.user.id
       if (!uid) return
@@ -180,7 +173,11 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         appliquer(profil.traduction_defaut)
       }
     })
-  }, [listeTraductions])
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(frame)
+    }
+  }, [listeTraductions, readingCapabilities])
 
   useEffect(() => {
     const trad = listeTraductions[traductionIndex]?.code ?? 'TR0001'
@@ -190,7 +187,13 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   const handleSetTraductionIndex = (idx: number) => {
     setTraductionIndex(idx)
     const code = listeTraductions[idx]?.code
-    if (code) localStorage.setItem('cs_trad_bible_active', code)
+    if (code) {
+      localStorage.setItem('cs_trad_bible_active', code)
+      const modes = selectableReadingModes(readingCapabilities[code] ?? { translationId: code, modes: [] })
+      const saved = localStorage.getItem(`cs_bible_mode:${code}`)
+      const mode = modes.find((item) => item.value === saved)?.value ?? modes[0]?.value ?? 'verse'
+      router.push(`/?livre=${livreActif}&chapitre=${chapitreActif}&trad=${code}&mode=${mode}`)
+    }
   }
 
   return (
@@ -246,13 +249,13 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
           livreActif={livreActif}
           chapitreActif={chapitreActif}
           nomLivre={nomLivre}
-          versetSelectionne={versetSelectionne}
+          versetSelectionne={versetSelectionneCourant}
           setVersetSelectionne={setVersetSelectionne}
           mobile={mobile}
         />
       </div>
       <PanneauPatristique
-        verset={versetSelectionne}
+        verset={versetSelectionneCourant}
         livreActif={livreActif}
         nomLivre={nomLivre}
         chapitreActif={chapitreActif}

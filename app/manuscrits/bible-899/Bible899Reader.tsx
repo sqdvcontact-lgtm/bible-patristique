@@ -5,7 +5,7 @@ import { Fragment, useMemo, useState } from "react";
 
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import type { Bible899Edition, FacsimileReference } from "./_lib/tei";
-import { availableReadingModes, type ReadingMode } from "./_lib/readingModes";
+import { availableReadingModes, initialColumnKey, type ReadingMode } from "./_lib/readingModes";
 import styles from "./bible899.module.css";
 
 const MARKER_PATTERN = /(\[lacune : [^\]]+\]|\[lecture incertaine : [^\]]*\]|\[ajout marginal : [^\]]*\])/gu;
@@ -103,11 +103,11 @@ function Facsimile({
   );
 }
 
-export default function Bible899Reader({ edition }: { edition: Bible899Edition }) {
-  const initialColumnKey = edition.columns[0]?.key ?? "";
+export default function Bible899Reader({ edition, initialColumn }: { edition: Bible899Edition; initialColumn?: string }) {
+  const firstColumnKey = initialColumnKey(edition, initialColumn);
   const [mode, setMode] = useState<ReadingMode>("diplomatic");
   const [lineBreaks, setLineBreaks] = useState(true);
-  const [selectedColumnKey, setSelectedColumnKey] = useState(initialColumnKey);
+  const [selectedColumnKey, setSelectedColumnKey] = useState(firstColumnKey);
   const modes = availableReadingModes(edition);
   const lineBasedMode = mode !== "modernized";
   const currentMode = modes.find((item) => item.value === mode) ?? modes[0];
@@ -248,7 +248,7 @@ export default function Bible899Reader({ edition }: { edition: Bible899Edition }
                   facsimile={selectedColumn.facsimiles[0]}
                   folio={selectedColumn.folio}
                   column={selectedColumn.column}
-                  priority={selectedColumn.key === initialColumnKey}
+                  priority={selectedColumn.key === firstColumnKey}
                 />
 
                 <div className={styles.transcription} lang={mode === "modernized" ? "fr" : "fro"}>

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import { parseBible899Tei, type Bible899Edition } from "./tei";
-import { availableReadingModes } from "./readingModes";
+import { availableReadingModes, initialColumnKey } from "./readingModes";
 
 function editionWithModernizedStatus(status: string): Bible899Edition {
   return {
@@ -62,5 +62,12 @@ describe("modes publics du lecteur Bible 899", () => {
     expect(edition.columns.some((column) => column.modernizedParagraphs.length > 0)).toBe(true);
     expect(availableReadingModes(edition).map((mode) => mode.value))
       .toEqual(["diplomatic", "expanded"]);
+  });
+
+  it("ouvre une colonne demandée par le lien de provenance", () => {
+    const edition = editionWithModernizedStatus("legacy-unverified");
+    edition.columns.push({ ...edition.columns[0], key: "297r_a", folio: "297r" });
+    expect(initialColumnKey(edition, "297r_a")).toBe("297r_a");
+    expect(initialColumnKey(edition, "296r_a")).toBe("1r_a");
   });
 });

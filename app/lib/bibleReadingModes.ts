@@ -3,6 +3,7 @@ export const BIBLE_READING_MODE_ORDER = [
   'native',
   'diplomatic',
   'expanded',
+  'paragraph',
   'modernized',
 ] as const
 
@@ -46,6 +47,10 @@ const MODE_DEFINITIONS: Record<BibleReadingMode, Omit<BibleReadingModeOption, 'v
     label: 'Abréviations développées',
     description: 'Développements éditoriaux sans modernisation de la langue',
   },
+  paragraph: {
+    label: 'Paragraphes',
+    description: 'Paragraphes issus d’une segmentation éditoriale validée',
+  },
   modernized: {
     label: 'Graphie modernisée',
     description: 'Couche modernisée explicitement validée',
@@ -61,36 +66,8 @@ export const LEGACY_CANONICAL_CAPABILITIES: readonly BibleReadingModeCapability[
   },
 ]
 
-/**
- * Déclaration locale transitoire. Elle documente les capacités réelles, pas les
- * capacités souhaitées. Elle pourra être remplacée par des métadonnées de la Data
- * API sans changer le sélecteur.
- */
-export const DECLARED_TRANSLATION_READING_CAPABILITIES: Readonly<Record<string, TranslationReadingCapabilities>> = {
-  TR0001: { translationId: 'TR0001', modes: LEGACY_CANONICAL_CAPABILITIES },
-  TR0002: { translationId: 'TR0002', modes: LEGACY_CANONICAL_CAPABILITIES },
-  TR0003: { translationId: 'TR0003', modes: LEGACY_CANONICAL_CAPABILITIES },
-  TR0004: { translationId: 'TR0004', modes: LEGACY_CANONICAL_CAPABILITIES },
-  TR0005: { translationId: 'TR0005', modes: LEGACY_CANONICAL_CAPABILITIES },
-  TR0009: {
-    translationId: 'TR0009',
-    modes: [
-      { mode: 'verse', availability: 'planned', source: 'editorial-segments' },
-      { mode: 'native', availability: 'planned', source: 'native-divisions' },
-      { mode: 'diplomatic', availability: 'planned', source: 'source-units' },
-      { mode: 'expanded', availability: 'planned', source: 'source-units' },
-      {
-        mode: 'modernized',
-        availability: 'unavailable',
-        source: 'source-units',
-        validation: 'legacy-unverified',
-      },
-    ],
-  },
-}
-
-export function capabilitiesForTranslation(translationId: string): TranslationReadingCapabilities {
-  return DECLARED_TRANSLATION_READING_CAPABILITIES[translationId] ?? {
+export function canonicalCapabilities(translationId: string): TranslationReadingCapabilities {
+  return {
     translationId,
     modes: LEGACY_CANONICAL_CAPABILITIES,
   }
