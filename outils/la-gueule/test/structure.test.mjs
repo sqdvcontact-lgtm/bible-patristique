@@ -211,20 +211,56 @@ test('§6 : titre courant répété (même parité) → titre_courant ; tête un
   assert.ok(!m.get(3) || !m.get(3).get(0)) // la tête unique n'est pas un titre courant
 })
 
-// ── §7 réclames (mot en bas repris au début de la page suivante) ─────────────
-test('§7 : réclame si le mot du bas est repris au début de la page suivante ; sinon non', () => {
-  const avecReclame = [
-    { num: 1, largeur: 1250, hauteur: 2050, lignes: [L(100, 300, 800, 55, 'corps de la page une ici.'), L(900, 1850, 130, 50, 'Toutefois')] },
-    { num: 2, largeur: 1250, hauteur: 2050, lignes: [L(238, 38, 631, 69, 'de la Philosophie. Liure V.'), L(100, 350, 900, 55, 'Toutefois les bien-faits de sa douce bonté')] },
-  ]
-  const m = detecterReclames(avecReclame)
-  assert.equal(m.get(1)?.get(1)?.role_suggere, 'reclame')
+// ── §6.2 région de titre (page de titre p19, données réelles) ────────────────
+const P19FULL = { num: 19, largeur: 1250, hauteur: 2034, lignes: [
+  L(188, 141, 69, 66, 'Ri'),
+  L(348, 159, 9, 36, '8'),
+  L(915, 353, 47, 75, '(2'),
+  L(513, 446, 91, 51, 'LA'),
+  L(113, 515, 901, 105, 'CONSOLATION'),
+  L(438, 642, 231, 67, 'DE LA'),
+  L(189, 732, 721, 73, 'PHILOSOPHIE.'),
+  L(264, 832, 571, 70, 'LIVRE PREMIER.'),
+  L(361, 978, 381, 62, 'POESIE I.'),
+  L(352, 1087, 669, 61, 'OY dont les premiers Vers n’ont parlé'),
+  L(96, 1431, 879, 63, 'Les faueurs d’Appollon ne m’offrent que des'),
+] }
 
-  const sansReclame = [
-    { num: 1, largeur: 1250, hauteur: 2050, lignes: [L(100, 300, 800, 55, 'corps.'), L(900, 1850, 130, 50, 'Toutefois')] },
-    { num: 2, largeur: 1250, hauteur: 2050, lignes: [L(100, 350, 900, 55, 'Autre chose sans rapport aucun ici.')] },
-  ]
-  assert.ok(!detecterReclames(sansReclame).get(1)) // aucun report → pas de réclame
+test('§6.2 région de titre p19 : mots centrés → paratexte ; fragments de marge → ornement ; « 8 » jamais folio', () => {
+  const anns = analyserVolume([P19FULL]).get(19)
+  const a = (p) => anns[idx(P19FULL.lignes, p)]
+  for (const mot of ['LA', 'CONSOLATION', 'DE LA', 'PHILOSOPHIE.']) assert.equal(a(mot).role_suggere, 'paratexte_titre_candidate', mot)
+  for (const frag of ['Ri', '(2']) assert.equal(a(frag).role_suggere, 'ornement_candidate', frag)
+  assert.equal(a('8').role_suggere, 'ornement_candidate')     // fragment de la région
+  assert.notEqual(a('8').role_suggere, 'numero_page')         // JAMAIS folio (§3.2)
+  assert.equal(a('POESIE I.').role_suggere, 'titre')          // le titre de section n'est PAS absorbé
+  assert.equal(a('POESIE I.').niveau_suggere, 2)
+})
+
+// ── §6.3 réclame : coin bas-droite repris page suivante (fixture 2 pages sûres) ─
+test('§6.3 réclame : « d’artifice » bas-droit repris p21 → reclame ; signature plus basse ignorée', () => {
+  const p20 = { num: 20, largeur: 1250, hauteur: 2030, lignes: [
+    L(256, 1600, 916, 57, 'foible, pour la suiure. Ses habits n’auoient rien'),
+    L(1018, 1802, 156, 65, 'd’artifice'),   // réclame, coin bas-droit
+    L(706, 1955, 27, 58, 'B'),              // signature, plus basse
+  ] }
+  const p21 = { num: 21, largeur: 1250, hauteur: 2017, lignes: [
+    L(238, 40, 631, 69, 'de la Philosophie. Liure I.'),
+    L(90, 300, 920, 55, 'd’artifice, & sa robe estoit d’une matiere'),
+  ] }
+  const a20 = analyserVolume([p20, p21]).get(20)
+  const r = a20[idx(p20.lignes, 'd’artifice')]
+  assert.equal(r.role_suggere, 'reclame')
+  assert.ok(r.preuves.similarite >= 0.9)
+  assert.equal(r.preuves.page_cible, 21)
+  assert.notEqual(a20[idx(p20.lignes, 'B')].role_suggere, 'reclame') // pas la ligne la plus basse
+})
+
+test('§6.3 réclame : sans correspondance texte → reclame_candidate_geometrique (non confirmée)', () => {
+  const p1 = { num: 1, largeur: 1250, hauteur: 2050, lignes: [L(100, 300, 800, 55, 'corps.'), L(1000, 1900, 150, 50, 'Toutefois')] }
+  const p2 = { num: 2, largeur: 1250, hauteur: 2050, lignes: [L(100, 350, 900, 55, 'Autre chose sans rapport.')] }
+  const a1 = analyserVolume([p1, p2]).get(1)
+  assert.equal(a1[idx(p1.lignes, 'Toutefois')].role_suggere, 'reclame_candidate_geometrique')
 })
 
 // ── §9 orchestration : composition de toutes les suggestions sur la page 19 ───
@@ -262,6 +298,7 @@ test('correction : filigrane « Digitized by Google » → bruit (hors-corps)', 
   const a = detecterFiligrane({ bbox: [100, 1900, 300, 40], dip: 'Digitized by Google' })
   assert.ok(a); assert.equal(a.role_suggere, 'bruit'); assert.equal(a.export_corps, false)
   assert.equal(detecterFiligrane({ bbox: [0, 0, 10, 10], dip: 'texte normal' }), null)
+  assert.equal(detecterFiligrane({ bbox: [0, 0, 10, 10], dip: '00gl.' }), null) // §6.4 : « 00gl. » seul JAMAIS bruit auto
   // via l'orchestration : la ligne filigrane est hors-corps
   const page = { num: 26, largeur: 1250, hauteur: 2030, lignes: [
     L(100, 300, 900, 55, 'Corps de la prose ici présente.'),

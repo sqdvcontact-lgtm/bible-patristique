@@ -458,7 +458,7 @@ function rendre(){
     const s=l.suggestion
     const horsCorps=['numero_page','signature','reclame','titre_courant','paratexte_titre','ornement','bruit']
     if(s && s.role_confirme && horsCorps.includes(s.role_confirme)) row.classList.add('horscorps')
-    if(s && /candidate$/.test(s.role_suggere||'')){
+    if(s && /^(lettrine|artefact)_candidate$/.test(s.role_suggere||'')){
       // Lettrine / artefact : 3 décisions (absente / détachée / artefact) ; JAMAIS d'insertion auto.
       const sel=document.createElement('select'); sel.className='sugg lettr'
       sel.innerHTML='<option value="">'+s.role_suggere.replace('_candidate','')+' ⚠</option>'
@@ -472,13 +472,20 @@ function rendre(){
         planifierSave(); rendre() }
       row.appendChild(sel)
     } else if(s && s.role_suggere){
+      // Rôle « nu » (sans suffixe candidate/geometrique) qui fera foi une fois confirmé.
+      const brut=s.role_suggere.replace('_candidate','').replace('_geometrique','')
+      const libelle=(brut==='signature')?'marque de cahier':brut.replace(/_/g,' ')
       const chip=document.createElement('button')
       const extra=(s.niveau_suggere?(' T'+s.niveau_suggere):'')+(s.blanc_poesie?(' · '+s.blanc_poesie):'')
       chip.className='sugg'+(s.role_confirme?' ok':'')
-      chip.textContent=s.role_suggere.replace(/_/g,' ')+extra+(s.role_confirme?' ✓':'')
-      chip.title='Suggestion: '+s.role_suggere+' (score '+(s.score||0)+'). Clic → confirmer / re-clic → annuler.'+(s.role_suggere==='titre_courant'?' [confirme le motif EN LOT]':'')+(s.preuves?(' · '+JSON.stringify(s.preuves)):'')
+      chip.textContent=libelle+extra+(s.role_confirme?' ✓':'')
+      let aide='Suggestion : '+s.role_suggere+' (score '+(s.score||0)+'). Clic → confirmer / re-clic → annuler.'
+      if(brut==='signature') aide+=' — Marque de cahier (signature bibliographique) : lettre ou chiffre imprimé au bas du feuillet pour repérer le cahier et l’ordre des feuillets.'
+      if(s.role_suggere==='titre_courant') aide+=' [confirme le motif EN LOT]'
+      if(s.preuves) aide+=' · '+JSON.stringify(s.preuves)
+      chip.title=aide
       chip.onclick=()=>{
-        const confirmer=!s.role_confirme, role=s.niveau_suggere?'titre':s.role_suggere
+        const confirmer=!s.role_confirme, role=s.niveau_suggere?'titre':brut
         s.role_confirme=confirmer?role:null; s.statut=confirmer?'confirme':'suggere'
         // §6 : confirmer un titre courant vaut pour TOUTES les occurrences du même motif (en lot).
         if(s.role_suggere==='titre_courant' && s.preuves && s.preuves.cle){ const cle=s.preuves.cle

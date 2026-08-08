@@ -22,6 +22,7 @@ export function annotationVide() {
     role_confirme: null,     // posé par l'humain (fait foi)
     statut: 'suggere',       // 'suggere' | 'confirme'
     score: 0,
+    regle: null,             // règle appliquée (traçabilité)
     preuves: {},             // signaux ayant motivé la suggestion (traçabilité)
     export_corps: true,      // la ligne entre-t-elle dans le corps éditorial ?
     interdit_entrainement: false,
@@ -201,6 +202,55 @@ function margeGaucheRetour(L, k) {
   return Math.min(...suivantes)
 }
 
+// ── §2 (passe 2) Région de titre / paratexte / ornement (page de titre) ──────
+const RE_LEXIQUE_TITRE = /consolation|philosophie|livre|liure|trait[eé]|de la|po[ée]sie|prose/i
+/**
+ * Détecte une region_titre_candidate (groupe de lignes du haut) et classe ses lignes en
+ * paratexte_titre_candidate (mots centrés du titre) ou ornement_candidate (fragments de marge).
+ * La région s'arrête AVANT le 1er titre de section (POESIE I / PROSE I) ou 2 lignes consécutives
+ * de géométrie de corps. Score ≥ 4 requis. Renvoie Map i→annotation (vide si pas de région).
+ */
+export function detecterRegionTitre(page) {
+  const out = new Map()
+  const lignes = page.lignes || []
+  const W = page.largeur || 1000
+  const L = lignes.map((l, i) => ({ l, i })).filter((x) => x.l.bbox).sort((a, b) => y0(a.l) - y0(b.l))
+  if (L.length < 3) return out
+  const hMed = hauteurMediane(lignes) || 50
+  const estSectionTitre = (l) => RE_T2.test(texte(l).trim())
+  const estCorps = (l) => larg(l) > W * 0.5 && x0(l) < W * 0.28
+  // Borne de fin : avant le 1er titre de section, ou avant 2 lignes de corps consécutives.
+  let fin = L.length, corpsConsec = 0
+  for (let k = 0; k < L.length; k++) {
+    if (estSectionTitre(L[k].l)) { fin = k; break }
+    if (estCorps(L[k].l)) { corpsConsec++; if (corpsConsec >= 2) { fin = k - 1; break } } else corpsConsec = 0
+  }
+  const region = L.slice(0, Math.max(0, fin))
+  if (region.length < 3) return out
+  const centre = (l) => Math.abs((x0(l) + larg(l) / 2) - W / 2) < W * 0.20
+  // Score de région.
+  let score = 0; const preuves = {}
+  const nC = region.filter((x) => centre(x.l)).length
+  if (nC >= 3) { score += 2; preuves.centrees = nC }
+  if (region.some((x) => RE_LEXIQUE_TITRE.test(texte(x.l)))) { score += 2; preuves.motif_lexical = true }
+  if (region.filter((x) => larg(x.l) < W * 0.65).length > region.length / 2) { score += 1; preuves.majorite_courtes = true }
+  const hs = region.map((x) => haut(x.l)); if ((Math.max(...hs) - Math.min(...hs)) > hMed * 0.8) { score += 1; preuves.hauteurs_variables = true }
+  if (region.some((x) => [...texte(x.l).trim()].length <= 2)) { score += 1; preuves.fragments = true }
+  if (fin < L.length) { score += 1; preuves.aucun_paragraphe_avant_fin = true }
+  if (score < 4) return out
+  // Classement : mots CENTRÉS avec lettres → paratexte ; fragments de marge → ornement.
+  for (const { l, i } of region) {
+    const t = texte(l).trim()
+    const lettres = (t.match(/[A-Za-zÀ-ÿ]/g) || []).length
+    const a = annotationVide()
+    a.score = score; a.export_corps = false; a.preuves = { region_titre: true, ...preuves }
+    if (centre(l) && lettres >= 2) { a.role_suggere = 'paratexte_titre_candidate'; a.regle = 'region_titre/paratexte' }
+    else { a.role_suggere = 'ornement_candidate'; a.regle = 'region_titre/ornement' }
+    out.set(i, a)
+  }
+  return out
+}
+
 // ── §3 Continuations typographiques (jamais « rejet » dans la donnée) ─────────
 // Mots-outils qui terminent rarement un vers : leur présence en fin de ligne précédente signale
 // une continuation typographique (« changez par ma » → « douleur »). « parlé » n'en est pas un
@@ -331,37 +381,61 @@ export function detecterTitresCourants(pages) {
   return out
 }
 
-// ── §7 Réclames (mot en bas de page repris au début de la page suivante) ─────
-const premiereLigneCorps = (page) => {
-  const L = (page.lignes || []).filter((l) => l.bbox).sort((a, b) => y0(a) - y0(b))
+// ── §4 (passe 2) Réclames : ligne courte au coin BAS-DROITE reprise page suivante ─
+const ROLE_EXCLU_RECLAME = new Set(['numero_page', 'titre_courant', 'signature', 'bruit', 'ornement_candidate', 'paratexte_titre_candidate'])
+/** Première ligne de CORPS d'une page (hors folio / en-tête / rôles hors-corps). {l, i} ou null. */
+function premiereLigneCorps(page, anns = null) {
   const H = page.hauteur || 0
-  return L.find((l) => !EST_NOMBRE(texte(l)) && (!H || y0(l) > H * 0.15)) || L[0] || null
+  const L = (page.lignes || []).map((l, i) => ({ l, i })).filter((x) => x.l.bbox).sort((a, b) => y0(a.l) - y0(b.l))
+  return L.find((x) => !EST_NOMBRE(texte(x.l)) && (!H || y0(x.l) > H * 0.13) && !(anns && anns[x.i] && ROLE_EXCLU_RECLAME.has(anns[x.i].role_suggere))) || L[0] || null
 }
 /**
- * Détecte les réclames : un mot/court groupe isolé en bas de page dont le texte normalisé
- * correspond (≥ 0,90) au DÉBUT de la première ligne de corps de la page suivante. `pages` ordonnées.
- * Renvoie Map num→(Map i→annotation).
+ * Détecte les réclames (§4) : parmi les lignes courtes du coin BAS-DROITE (jamais « la plus basse »),
+ * après exclusion des folios/signatures/bruit/ornement/paratexte, celle qui correspond le mieux au
+ * début de corps de la page SUIVANTE. `annotations` = Map num→anns[] (rôles déjà posés) pour exclure.
+ * Renvoie Map num→(Map i→annotation). Ne confirme jamais sans page suivante sûre.
  */
-export function detecterReclames(pages) {
+export function detecterReclames(pages, annotations = null) {
   const out = new Map()
+  const exclu = (num, i) => { const r = annotations?.get(num)?.[i]?.role_suggere; return r && ROLE_EXCLU_RECLAME.has(r) }
   for (let p = 0; p < pages.length - 1; p++) {
     const page = pages[p], suiv = pages[p + 1]
-    const H = page.hauteur || 0
-    const enBas = (page.lignes || []).map((l, i) => ({ l, i })).filter((x) => x.l.bbox && H && bas(x.l) > H * 0.85)
-    if (!enBas.length) continue
-    const cand = enBas.sort((a, b) => bas(b.l) - bas(a.l))[0] // la plus basse
-    const mots = texte(cand.l).trim().split(/\s+/).filter(Boolean)
-    if (mots.length === 0 || mots.length > 4) continue
-    const debutSuiv = premiereLigneCorps(suiv)
-    if (!debutSuiv) continue
-    const debutMots = normaliserComparaison(texte(debutSuiv)).split(' ').slice(0, mots.length).join(' ')
-    if (similarite(normaliserComparaison(texte(cand.l)), debutMots) >= 0.90) {
-      if (!out.has(page.num)) out.set(page.num, new Map())
-      const a = annotationVide()
-      a.role_suggere = 'reclame'; a.score = 3; a.export_corps = false
-      a.preuves = { repris_page_suivante: debutMots }
-      out.get(page.num).set(cand.i, a)
+    const W = page.largeur || 1000, H = page.hauteur || 0
+    const L = (page.lignes || []).map((l, i) => ({ l, i })).filter((x) => x.l.bbox)
+    if (!L.length) continue
+    const hMed = hauteurMediane(page.lignes || []) || 40
+    const basCorps = Math.max(0, ...L.filter((x) => larg(x.l) > W * 0.4).map((x) => bas(x.l)))
+    const cand = L.filter(({ l, i }) => {
+      if (exclu(page.num, i)) return false
+      const t = texte(l).trim(); const car = [...t].length; const mots = t.split(/\s+/).filter(Boolean).length
+      if (mots < 1 || mots > 4 || car < 2 || car > 30) return false
+      if (/^\d+$/.test(t) || /^[IVXLC]+\.?$/i.test(t) || /^[A-Za-z0-9]{1,4}$/.test(t) || /\bgoogle\b/i.test(t)) return false
+      const enBas = (H && bas(l) > H * 0.80) || (basCorps && y0(l) > basCorps - hMed * 0.2)
+      const aDroite = droite(l) >= W * 0.82 || (x0(l) + larg(l) / 2) > W * 0.72
+      const etroite = larg(l) <= W * 0.35
+      return enBas && aDroite && etroite
+    })
+    if (!cand.length) continue
+    const debut = premiereLigneCorps(suiv, annotations?.get(suiv.num))
+    if (!debut) continue
+    const cibleNorm = normaliserComparaison(texte(debut.l))
+    const cibleLettrine = /lettrine/.test(annotations?.get(suiv.num)?.[debut.i]?.role_suggere || '')
+    let best = null
+    for (const c of cand) {
+      const src = normaliserComparaison(texte(c.l)); const n = Math.max(1, src.split(' ').length)
+      let sim = similarite(src, cibleNorm.split(' ').slice(0, n).join(' '))
+      if (cibleLettrine) sim = Math.max(sim, similarite(src, cibleNorm.replace(/^\S/, '').trim().split(' ').slice(0, n).join(' ')))
+      const geo = (droite(c.l) >= W * 0.82 ? 1 : 0) + (larg(c.l) <= W * 0.35 ? 1 : 0) + (H && bas(c.l) > H * 0.80 ? 1 : 0)
+      if (!best || sim > best.sim || (sim === best.sim && geo > best.geo)) best = { c, sim, geo }
     }
+    if (!best) continue
+    const a = annotationVide(); a.regle = 'reclame/bas-droite'; a.export_corps = false
+    a.preuves = { page_source: page.num, ligne_source: texte(best.c.l), page_cible: suiv.num, ligne_cible: texte(debut.l), similarite: Math.round(best.sim * 100) / 100, score_geometrie: best.geo, pages_consecutives_confirmees: true }
+    if (best.sim >= 0.90) { a.role_suggere = 'reclame'; a.score = 3 }
+    else if (best.sim >= 0.78 && best.geo >= 2) { a.role_suggere = 'reclame'; a.score = 2; a.preuves.confiance = 'moyenne'; a.preuves.a_revoir = true }
+    else { a.role_suggere = 'reclame_candidate_geometrique'; a.score = 1; a.preuves.confiance = 'geometrique_seule' }
+    if (!out.has(page.num)) out.set(page.num, new Map())
+    out.get(page.num).set(best.c.i, a)
   }
   return out
 }
@@ -397,50 +471,55 @@ export function delimiterBlocs(lignes) {
  */
 export function analyserVolume(pages) {
   const titresC = detecterTitresCourants(pages)
-  const reclames = detecterReclames(pages)
-  const parPage = new Map()
+  const etat = new Map() // num → { anns, horsCorps }
+
+  // ── PHASE 1 : hors-corps (ordre §1 : filigrane → région → folio → titre courant → signature) ──
   for (const page of pages) {
     const lignes = page.lignes || []
     const anns = lignes.map(() => annotationVide())
     const horsCorps = new Set()
-    // 1) hors-corps : filigrane, numéro de page, signature, titre courant, réclame.
-    lignes.forEach((l, i) => {
-      const fg = detecterFiligrane(l); if (fg) { anns[i] = fg; horsCorps.add(i); return }
-      const np = detecterNumeroPage(l, page); if (np) { anns[i] = np; horsCorps.add(i); return }
-      const sg = detecterSignature(l, page, { lignes }); if (sg) { anns[i] = sg; horsCorps.add(i) }
-    })
-    for (const [i, a] of (titresC.get(page.num) || [])) { anns[i] = a; horsCorps.add(i) }
-    for (const [i, a] of (reclames.get(page.num) || [])) { anns[i] = a; horsCorps.add(i) }
-    // 2) titres de structure T1/T2 (hors lignes déjà hors-corps).
-    lignes.forEach((l, i) => {
-      if (horsCorps.has(i)) return
-      const ti = suggererNiveauTitre(l, page, { horsCorps: false, lignes })
-      if (ti) anns[i] = ti
-    })
-    // 2.5) NUMÉRAL de titre détaché : la ligne courte (romain/chiffre) juste au-dessus d'un titre
-    //      est le numéral du titre (« I. » avant « PROSE. ») — NI lettrine, NI artefact.
+    const poser = (i, a) => { anns[i] = a; horsCorps.add(i) }
+    lignes.forEach((l, i) => { const fg = detecterFiligrane(l); if (fg) poser(i, fg) })                         // 2
+    for (const [i, a] of detecterRegionTitre(page)) if (!horsCorps.has(i)) poser(i, a)                          // 3
+    lignes.forEach((l, i) => { if (horsCorps.has(i)) return; const np = detecterNumeroPage(l, page); if (np) poser(i, np) }) // 4 (garde région : un nombre en région n'est pas un folio)
+    for (const [i, a] of (titresC.get(page.num) || [])) if (!horsCorps.has(i)) poser(i, a)                       // 5
+    lignes.forEach((l, i) => { if (horsCorps.has(i)) return; const sg = detecterSignature(l, page, { lignes }); if (sg) poser(i, sg) }) // 6
+    etat.set(page.num, { anns, horsCorps })
+  }
+
+  // 7) réclames : après les rôles hors-corps (exclusions), en comparant à la page suivante.
+  const annsSeules = new Map(); for (const [n, v] of etat) annsSeules.set(n, v.anns)
+  const reclames = detecterReclames(pages, annsSeules)
+  for (const page of pages) {
+    const { anns, horsCorps } = etat.get(page.num)
+    for (const [i, a] of (reclames.get(page.num) || [])) if (!horsCorps.has(i)) { anns[i] = a; horsCorps.add(i) }
+  }
+
+  // ── PHASE 2 : corps (titres T1/T2 → numéral → lettrines → poésie) ──
+  for (const page of pages) {
+    const lignes = page.lignes || []
+    const { anns, horsCorps } = etat.get(page.num)
+    // 8) titres de structure T1/T2 (hors hors-corps).
+    lignes.forEach((l, i) => { if (horsCorps.has(i)) return; const ti = suggererNiveauTitre(l, page, { lignes }); if (ti) anns[i] = ti })
+    // 8.5) numéral de titre détaché (« I. » avant « PROSE. ») → titre, ni lettrine ni artefact.
     const parYt = lignes.map((l, i) => ({ l, i })).filter((x) => x.l.bbox).sort((a, b) => y0(a.l) - y0(b.l))
     for (let k = 1; k < parYt.length; k++) {
       const cur = parYt[k], prev = parYt[k - 1]
       if (anns[cur.i].role_suggere === 'titre' && !horsCorps.has(prev.i)) {
         const t = texte(prev.l).trim()
         if (/^[IVXLC]{1,4}\.?$/i.test(t) || /^\d{1,3}\.?$/.test(t)) {
-          const a = annotationVide()
-          a.role_suggere = 'titre'; a.niveau_suggere = anns[cur.i].niveau_suggere; a.preuves = { numeral_de_titre: true }
+          const a = annotationVide(); a.role_suggere = 'titre'; a.niveau_suggere = anns[cur.i].niveau_suggere; a.regle = 'numeral_de_titre'; a.preuves = { numeral_de_titre: true }
           anns[prev.i] = a
         }
       }
     }
-    // 3) lettrines / artefacts (peuvent coexister avec un vers → on garde le flag lettrine).
-    //    JAMAIS sur une ligne déjà hors-corps ou déjà titrée (T1/T2) — ordre §9 : titres AVANT lettrines.
-    const lettr = detecterLettrines(lignes)
-    for (const [i, a] of lettr) if (!horsCorps.has(i) && anns[i].role_suggere !== 'titre') { a.blanc_poesie = anns[i].blanc_poesie ?? null; anns[i] = { ...anns[i], ...a } }
-    // 4) poésie : blocs 'poesie' → continuations + blancs (hors lignes hors-corps/titre).
+    // 9) lettrines / artefacts (jamais sur hors-corps ni titre).
+    for (const [i, a] of detecterLettrines(lignes)) if (!horsCorps.has(i) && anns[i].role_suggere !== 'titre') { a.blanc_poesie = anns[i].blanc_poesie ?? null; anns[i] = { ...anns[i], ...a } }
+    // 10) poésie : blocs 'poesie' → continuations + blancs (hors hors-corps/titre).
     for (const bloc of delimiterBlocs(lignes)) {
       if (bloc.type !== 'poesie') continue
       const idx = bloc.idx.filter((i) => !horsCorps.has(i))
-      const sousBloc = idx.map((i) => lignes[i])
-      const res = analyserBlocPoesie(sousBloc)
+      const res = analyserBlocPoesie(idx.map((i) => lignes[i]))
       res.forEach((a, k) => {
         const i = idx[k]
         if (anns[i].role_suggere === 'lettrine_candidate' || anns[i].role_suggere === 'artefact_candidate') {
@@ -451,9 +530,8 @@ export function analyserVolume(pages) {
         }
       })
     }
-    parPage.set(page.num, anns)
   }
-  return parPage
+  const out = new Map(); for (const [n, v] of etat) out.set(n, v.anns); return out
 }
 
 // ── §8 Propagation : rattacher les suggestions au projet, exclure le hors-corps ─
