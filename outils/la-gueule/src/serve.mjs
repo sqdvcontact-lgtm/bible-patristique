@@ -7,7 +7,7 @@ import { createWriteStream } from 'node:fs'
 import { readFile, mkdir } from 'node:fs/promises'
 import { pipeline } from 'node:stream/promises'
 import { fileURLToPath } from 'node:url'
-import { dirname, join, extname, basename } from 'node:path'
+import { dirname, join, extname, basename, resolve, sep } from 'node:path'
 
 import { executer } from './runner.mjs'
 import { ocrPage, pdfNbPages, pdfInfo, choisirFichier, runBash, annulerTaches } from './wsl.mjs'
@@ -26,12 +26,39 @@ const MIME = {
 const IMG_SERVIES = new Set(['.png', '.jpg', '.jpeg', '.webp', '.tif', '.tiff'])
 const EXT_DOC = new Set(['.pdf', ...IMG_EXT]) // documents téléversables (PDF + images)
 
-/** Nom de fichier sûr, extension préservée même si le tronc est long. */
+/** Nom de fichier sûr, extension préservée même si le tronc est long. `basename` retire tout
+ *  chemin (pas de « ../ »), on n'autorise que [\w.-], et on ôte les points de tête (pas de nom caché). */
 function nomFichierSur(nom) {
   const ext = extname(nom || '').toLowerCase()
-  const base = (basename(nom || 'document', extname(nom || '')).replace(/[^\w.-]+/g, '_').slice(0, 80)) || 'document'
+  const base = (basename(nom || 'document', extname(nom || '')).replace(/[^\w.-]+/g, '_').replace(/^\.+/, '').slice(0, 80)) || 'document'
   return base + ext
 }
+
+// Sécurité (outil LOCAL) : on ne sert et on ne lit QUE sous le dossier de travail (RACINE).
+// Empêche la traversée de chemin (../, chemin absolu arbitraire) et impose « copier avant
+// traitement » (charte §2.3). Compare des chemins absolus normalisés.
+const RACINE_ABS = resolve(RACINE)
+function sousRacine(p) {
+  if (!p) return false
+  const abs = resolve(String(p))
+  return abs === RACINE_ABS || abs.startsWith(RACINE_ABS + sep)
+}
+
+// Anti DNS-rebinding / cross-origin : le serveur n'écoute que 127.0.0.1, mais une page web
+// distante pourrait viser http://127.0.0.1:port. On exige un Host local et, si présent, un
+// Origin local. Toute autre valeur est refusée.
+const HOTES_OK = new Set(['127.0.0.1', 'localhost', '::1', '[::1]'])
+function hoteLocal(req) {
+  const host = (req.headers.host || '').replace(/:\d+$/, '').toLowerCase()
+  if (host && !HOTES_OK.has(host)) return false
+  const origin = req.headers.origin
+  if (origin && origin !== 'null') {
+    try { if (!HOTES_OK.has(new URL(origin).hostname.toLowerCase())) return false } catch { return false }
+  }
+  return true
+}
+
+const MAX_TELEVERSEMENT = 400 * 1024 * 1024 // plafond d'upload : 400 Mo (gros scans tolérés)
 
 function json(res, code, data) {
   res.writeHead(code, { 'content-type': 'application/json; charset=utf-8' })
@@ -70,6 +97,9 @@ export function demarrer({ port = 4599 } = {}) {
       const url = new URL(req.url, 'http://localhost')
       const p = url.pathname
 
+      // Garde-fou réseau : refuse tout Host/Origin non local (anti DNS-rebinding, anti cross-site).
+      if (!hoteLocal(req)) return json(res, 403, { erreur: 'hôte non autorisé' })
+
       if (p === '/api/doctor') return json(res, 200, await diagnostic())
 
       // « Arrêter » : tue les OCR WSL en cours (l'appel await côté OCR rejette alors avec « annulé »).
@@ -80,6 +110,8 @@ export function demarrer({ port = 4599 } = {}) {
       // Atelier de relecture — OCR d'UNE page (manuscrit → Kraken ; imprimé → PDF+Tesseract).
       if (p === '/api/atelier/ocr' && req.method === 'POST') {
         const b = await corps(req)
+        const entrant = b.pdfWin || b.imageWin
+        if (entrant && !sousRacine(entrant)) return json(res, 403, { erreur: 'fichier hors du dossier de travail (copier dans incoming/ d’abord, §2.3)' })
         const servedDirWin = join(RACINE, 'sorties', 'atelier')
         await mkdir(servedDirWin, { recursive: true })
         const { alto, pngWin, ocr } = await ocrPage({ ...b, servedDirWin })
@@ -94,6 +126,7 @@ export function demarrer({ port = 4599 } = {}) {
       // (texte + confiance moyenne + image) pour juger si le prétraitement améliore vraiment.
       if (p === '/api/atelier/comparer' && req.method === 'POST') {
         const b = await corps(req)
+        if (b.pdfWin && !sousRacine(b.pdfWin)) return json(res, 403, { erreur: 'fichier hors du dossier de travail (§2.3)' })
         const servedDirWin = join(RACINE, 'sorties', 'atelier')
         await mkdir(servedDirWin, { recursive: true })
         const commun = { kind: 'imprime', pdfWin: b.pdfWin, page: b.page, dpi: b.dpi || 300, lang: b.lang || 'fra', moteur: b.moteur, servedDirWin }
@@ -115,6 +148,7 @@ export function demarrer({ port = 4599 } = {}) {
       // en vis-à-vis (lat), regroupement en paragraphes, appariement → colonnes alignées.
       if (p === '/api/atelier/ocr-bilingue' && req.method === 'POST') {
         const b = await corps(req)
+        if (b.pdfWin && !sousRacine(b.pdfWin)) return json(res, 403, { erreur: 'fichier hors du dossier de travail (§2.3)' })
         const servedDirWin = join(RACINE, 'sorties', 'atelier')
         await mkdir(servedDirWin, { recursive: true })
         const dpi = b.dpi || 300
@@ -138,6 +172,7 @@ export function demarrer({ port = 4599 } = {}) {
       if (p === '/api/pdf-info') {
         const chemin = url.searchParams.get('path')
         if (!chemin) return json(res, 400, { erreur: 'préciser ?path=' })
+        if (!sousRacine(chemin)) return json(res, 403, { erreur: 'hors du dossier de travail' })
         return json(res, 200, { pages: await pdfNbPages(chemin) })
       }
 
@@ -154,16 +189,22 @@ export function demarrer({ port = 4599 } = {}) {
         const nom = nomFichierSur(url.searchParams.get('nom') || 'document')
         const ext = extname(nom).toLowerCase()
         if (!EXT_DOC.has(ext)) return json(res, 400, { erreur: `type non accepté : ${ext || '(sans extension)'}` })
+        // Plafond de taille : refus précoce sur Content-Length, ET coupe-circuit en cours de flux.
+        if (Number(req.headers['content-length'] || 0) > MAX_TELEVERSEMENT) return json(res, 413, { erreur: 'fichier trop volumineux (max 400 Mo)' })
         const dir = join(RACINE, 'incoming')
         await mkdir(dir, { recursive: true })
         const dest = join(dir, nom)
-        await pipeline(req, createWriteStream(dest))
+        let recu = 0, trop = false
+        req.on('data', (c) => { recu += c.length; if (recu > MAX_TELEVERSEMENT && !trop) { trop = true; req.destroy(new Error('upload trop volumineux')) } })
+        try { await pipeline(req, createWriteStream(dest)) }
+        catch (e) { if (trop) return json(res, 413, { erreur: 'fichier trop volumineux (max 400 Mo)' }); throw e }
         return json(res, 200, { chemin: dest, nom })
       }
 
       // Métadonnées : pdfinfo + OCR de la page de titre → titre, date d'édition, auteur…
       if (p === '/api/metadonnees' && req.method === 'POST') {
         const b = await corps(req)
+        if (b.path && !sousRacine(b.path)) return json(res, 403, { erreur: 'hors du dossier de travail (copier dans incoming/ d’abord, §2.3)' })
         const info = await pdfInfo(b.path)
         // La page de titre n'est pas toujours en 3/5 (couverture, faux-titre, planches…) :
         // on balaie les 7 premières pages utiles pour la capter. Les pages hors bornes sont ignorées.
@@ -199,6 +240,7 @@ export function demarrer({ port = 4599 } = {}) {
         const chemin = url.searchParams.get('path')
         if (!chemin) return json(res, 400, { erreur: 'préciser ?path=' })
         if (!IMG_SERVIES.has(extname(chemin).toLowerCase())) return json(res, 403, { erreur: 'type non servi' })
+        if (!sousRacine(chemin)) return json(res, 403, { erreur: 'hors du dossier de travail' }) // anti-traversée
         const data = await readFile(chemin)
         res.writeHead(200, { 'content-type': MIME[extname(chemin).toLowerCase()] || 'application/octet-stream' })
         res.end(data)

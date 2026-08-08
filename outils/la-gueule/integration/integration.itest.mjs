@@ -11,6 +11,7 @@
 
 import { test, before, after } from 'node:test'
 import assert from 'node:assert/strict'
+import http from 'node:http'
 import { spawnSync } from 'node:child_process'
 import { readFile, writeFile, mkdir, rm, readdir, stat } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
@@ -64,6 +65,11 @@ after(async () => {
   await rm(join(RACINE, 'exports', 'entrainement', NOM), { recursive: true, force: true }).catch(() => {})
 })
 
+// Requête HTTP brute (pour poser des en-têtes que fetch interdit, ex. Host).
+const brut = (opts, body = '') => new Promise((resolve, reject) => {
+  const r = http.request({ host: '127.0.0.1', port: PORT, ...opts }, (res) => { let d = ''; res.on('data', (c) => (d += c)); res.on('end', () => resolve({ code: res.statusCode, corps: d })) })
+  r.on('error', reject); if (body) r.write(body); r.end()
+})
 const jget = async (p) => { const r = await fetch(base + p); return { code: r.status, corps: await r.json().catch(() => null) } }
 const jpost = async (p, body) => { const r = await fetch(base + p, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }); return { code: r.status, corps: await r.json().catch(() => null) } }
 
@@ -149,6 +155,40 @@ test('doctrine : aucun code ne parle à une base active (pas de client SQL/DB da
     if (suspects.test(src)) coupables.push(f)
   }
   assert.deepEqual(coupables, []) // le SQL est CONSTRUIT en chaîne (candidat), jamais EXÉCUTÉ
+})
+
+// ── SÉCURITÉ (P15) : gardes réseau et traversée de chemin (sans WSL) ─────────
+
+test('sécurité : Host non local refusé (anti DNS-rebinding)', async () => {
+  const r = await brut({ path: '/api/doctor', headers: { Host: 'evil.example.com' } })
+  assert.equal(r.code, 403)
+})
+
+test('sécurité : Host local accepté', async () => {
+  const r = await brut({ path: '/api/projet/list', headers: { Host: '127.0.0.1:' + PORT } })
+  assert.equal(r.code, 200)
+})
+
+test('sécurité : /api/fichier hors du dossier de travail refusé (traversée)', async () => {
+  const dehors = 'C:/Windows/System32/x.png' // image, mais hors RACINE
+  const r = await jget('/api/fichier?path=' + encodeURIComponent(dehors))
+  assert.equal(r.code, 403)
+  assert.match(r.corps.erreur, /hors du dossier/)
+})
+
+test('sécurité : /api/fichier type non-image refusé', async () => {
+  const r = await jget('/api/fichier?path=' + encodeURIComponent(join(RACINE, 'package.json')))
+  assert.equal(r.code, 403) // .json n'est pas une image servie
+})
+
+test('sécurité : téléversement d’un type non accepté refusé (400)', async () => {
+  const r = await brut({ method: 'POST', path: '/api/televerser?nom=malveillant.exe', headers: { 'content-type': 'application/octet-stream' } }, 'MZ')
+  assert.equal(r.code, 400)
+})
+
+test('sécurité : OCR d’un fichier hors du dossier de travail refusé (§2.3)', async () => {
+  const r = await jpost('/api/atelier/ocr', { kind: 'imprime', pdfWin: 'C:/Windows/System32/x.pdf', page: 1 })
+  assert.equal(r.code, 403)
 })
 
 // ── TIER 2 : WSL / moteurs (sautés avec cause si absents) ────────────────────
