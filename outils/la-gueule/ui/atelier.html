@@ -106,6 +106,32 @@
   .comp-grille{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .comp-tete{font-size:12px;color:var(--second);margin-bottom:6px;font-weight:600}
   .comp-texte{white-space:pre-wrap;font-family:"Cascadia Code",Consolas,monospace;font-size:12px;background:#fff;border:1px solid var(--bord);border-radius:6px;padding:10px;max-height:60vh;overflow:auto}
+  /* Bouton de bascule de thème */
+  #theme{border:1px solid var(--bord);background:var(--surface);color:var(--second);border-radius:6px;padding:4px 9px;cursor:pointer;font-size:14px;line-height:1;font-weight:400}
+
+  /* ── MODE SOMBRE ─────────────────────────────────────────────────────────── */
+  :root[data-theme="dark"]{
+    --fond:#1b1916;--surface:#232019;--encre:#e7e1d5;--second:#a89e8f;--bord:#3a352d;
+    --vert:#8fb89b;--vertf:rgba(143,184,155,.16);--ambre:#d68a4a;--surlig:rgba(214,138,74,.34)}
+  /* Champs, boutons discrets, listes, zones de texte : fond sombre, texte clair. */
+  [data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{background:#2a2620;color:var(--encre);border-color:var(--bord)}
+  [data-theme="dark"] button.discret,[data-theme="dark"] .meta-toggle,[data-theme="dark"] .lg .inc,[data-theme="dark"] .lg .sugg,[data-theme="dark"] .comp-texte{background:#2a2620;color:var(--second)}
+  [data-theme="dark"] .lg input{background:#211e19;color:var(--encre)}
+  [data-theme="dark"] .lg .num{color:#8a8474}
+  /* Image du fac-similé : cadre sombre (le scan reste clair, c'est voulu). */
+  [data-theme="dark"] #voletImage{background:#12100d}
+  [data-theme="dark"] .navflip{background:rgba(35,32,25,.9)}
+  [data-theme="dark"] #chargement{background:rgba(18,16,13,.75)}
+  [data-theme="dark"] .onglets button.actif{color:#12100d}
+  /* Teintes d'état des lignes, en sombre. */
+  [data-theme="dark"] .lg.actif input{background:#332c1f}
+  [data-theme="dark"] .lg.titre input{background:#2c2517;color:#e8c98a}
+  [data-theme="dark"] .lg.incertain input{background:#2e2716}
+  [data-theme="dark"] .lg.valide input{background:#1f2a1f}
+  [data-theme="dark"] .lg.horscorps input,[data-theme="dark"] .lg.entete input{background:#262320}
+  [data-theme="dark"] .lg .inc.on,[data-theme="dark"] .lg .sugg.lettr{background:#3a2b18;color:#e0a860;border-color:#6a4a24}
+  [data-theme="dark"] .lg .sugg.ok{background:var(--vertf);color:var(--vert);border-color:var(--vert)}
+  [data-theme="dark"] .paire .pla{background:#20221d}
 </style>
 </head>
 <body>
@@ -123,6 +149,7 @@
   <input type="file" id="fichierLocal" accept=".pdf,.png,.jpg,.jpeg,.tif,.tiff" style="display:none">
   <button class="discret" id="btnAnalyser">Analyser</button>
   <span class="sep"></span>
+  <button id="theme" title="Basculer clair / sombre">🌙</button>
   <a href="/index.html" style="font-size:12px;color:var(--second)">panneau ⚙</a>
   <span id="etat">—</span>
 </header>
@@ -251,6 +278,14 @@
 <script>
 const $=id=>document.getElementById(id)
 const api=async(u,o)=>{const r=await fetch(u,o);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.erreur||r.statusText);return j}
+// Thème clair/sombre : préférence enregistrée, sinon celle du système.
+function appliquerTheme(t){ document.documentElement.setAttribute('data-theme',t); const b=$('theme'); if(b) b.textContent = t==='dark'?'☀️':'🌙' }
+(function(){ const stored=localStorage.getItem('lg-theme')
+  const dark = stored ? stored==='dark' : (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches)
+  appliquerTheme(dark?'dark':'light') })()
+window.addEventListener('DOMContentLoaded',()=>{ const b=$('theme'); if(!b) return
+  appliquerTheme(document.documentElement.getAttribute('data-theme')||'light')
+  b.onclick=()=>{ const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'; localStorage.setItem('lg-theme',t); appliquerTheme(t) } })
 const etat=t=>$('etat').textContent=t
 
 // Modèle en mémoire : pages[n] = { pngUrl, largeur, hauteur, lignes:[{bbox,dip,dev,mod}] }
