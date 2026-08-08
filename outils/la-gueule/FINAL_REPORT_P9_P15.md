@@ -47,8 +47,9 @@ modernisée fabriquée, **aucun entraînement lancé**.
 
 ## 4. Tests unitaires
 
-**80 / 80 réussis** (`npm test`, fonctions pures). +1 depuis P8 : garde
-`exporterEntrainement` refuse un projet `interdit_entrainement`.
+**82 / 82 réussis** (`npm test`, fonctions pures). +3 depuis P8 : garde
+`exporterEntrainement` (refus `interdit_entrainement`), `construireManifesteBanc`
+(ne compte que `valide_humain`), `exporterBanc` (refus si non validé).
 
 ## 5. Tests d'intégration
 
@@ -85,8 +86,13 @@ tôt. **[non vérifié en automatisation]**.
   arrière-plan → projet `banc-boece-ceriziers-1646-test-v1` (`_garde.valide_humain=false`).
   Au moment de la rédaction : pages 19, 20, 45 faites (~45 s/page). **[à confirmer à la fin]**.
 - **État 2 (corrigé)** et **État 3 (valide_humain)** : **NON FAITS — travail humain requis.**
-  Aucune donnée `valide_humain` n'existe. Le dossier final `bancs/…/` (images + ALTO corrigé
-  + manifeste + SHA + états) sera constitué **après** validation humaine.
+  Aucune donnée `valide_humain` n'existe. Le dossier final `bancs/…/` sera constitué **après**
+  validation humaine.
+- **Outillage prêt et vérifié** : parcours de validation dans l'atelier (marqueur « lecture
+  incertaine » par ligne + « Valider (humain) » par page/ligne), et **`exporterBanc`** (endpoint
+  `/api/export/banc` + bouton) qui produit `bancs/<nom>/` (images + ALTO corrigé + manifeste
+  SHA-256 + états + moteur/modèle/date) et **REFUSE** un banc non `valide_humain`. Vérifié en
+  navigateur : refus sans production ni validation. `projetActuel()` préserve `_garde`.
 
 ## 8. Validations humaines encore nécessaires (bloquantes)
 
