@@ -286,6 +286,151 @@ export function analyserBlocPoesie(bloc) {
   return out
 }
 
+// ── §6 Titres courants (par RÉPÉTITION inter-pages ; parité prise en compte) ──
+/** Lignes candidates au titre courant : dans les 15 % supérieurs de la page. */
+function candidatsTitreCourant(page) {
+  const H = page.hauteur || 0
+  return (page.lignes || []).map((l, i) => ({ l, i })).filter((x) => x.l.bbox && H && y0(x.l) < H * 0.15 && normaliserComparaison(texte(x.l)))
+}
+
+/**
+ * Détecte les titres courants par répétition. `pages` = [{ num, largeur, hauteur, lignes }] ordonnées.
+ * Propose titre_courant si le même texte (similarité ≥ 0,90) revient ≥3 fois sur des pages de MÊME
+ * parité (fenêtre de 8 pages), ou ≥4 fois dans le volume, en tête de page. Renvoie Map num→(Map i→annotation).
+ */
+export function detecterTitresCourants(pages) {
+  const occ = [] // { num, i, parite, cle, l }
+  for (const p of pages) for (const { l, i } of candidatsTitreCourant(p)) occ.push({ num: p.num, i, parite: p.num % 2, cle: normaliserComparaison(texte(l)), l })
+  const out = new Map()
+  const marque = (o, preuves) => {
+    if (!out.has(o.num)) out.set(o.num, new Map())
+    const a = annotationVide()
+    a.role_suggere = 'titre_courant'; a.score = 3; a.export_corps = false
+    a.preuves = preuves
+    out.get(o.num).set(o.i, a)
+  }
+  for (const o of occ) {
+    // occurrences « semblables » (similarité ≥ 0,90) hors la ligne courante
+    const semblables = occ.filter((q) => q !== o && similarite(q.cle, o.cle) >= 0.90)
+    const memeParite = semblables.filter((q) => q.parite === o.parite && Math.abs(q.num - o.num) <= 8)
+    const total = semblables.length
+    if (memeParite.length >= 2 || total >= 3) { // +la ligne courante → ≥3 même parité, ou ≥4 total
+      marque(o, { repetition: total + 1, meme_parite: memeParite.length + 1, cle: o.cle })
+    }
+  }
+  return out
+}
+
+// ── §7 Réclames (mot en bas de page repris au début de la page suivante) ─────
+const premiereLigneCorps = (page) => {
+  const L = (page.lignes || []).filter((l) => l.bbox).sort((a, b) => y0(a) - y0(b))
+  const H = page.hauteur || 0
+  return L.find((l) => !EST_NOMBRE(texte(l)) && (!H || y0(l) > H * 0.15)) || L[0] || null
+}
+/**
+ * Détecte les réclames : un mot/court groupe isolé en bas de page dont le texte normalisé
+ * correspond (≥ 0,90) au DÉBUT de la première ligne de corps de la page suivante. `pages` ordonnées.
+ * Renvoie Map num→(Map i→annotation).
+ */
+export function detecterReclames(pages) {
+  const out = new Map()
+  for (let p = 0; p < pages.length - 1; p++) {
+    const page = pages[p], suiv = pages[p + 1]
+    const H = page.hauteur || 0
+    const enBas = (page.lignes || []).map((l, i) => ({ l, i })).filter((x) => x.l.bbox && H && bas(x.l) > H * 0.85)
+    if (!enBas.length) continue
+    const cand = enBas.sort((a, b) => bas(b.l) - bas(a.l))[0] // la plus basse
+    const mots = texte(cand.l).trim().split(/\s+/).filter(Boolean)
+    if (mots.length === 0 || mots.length > 4) continue
+    const debutSuiv = premiereLigneCorps(suiv)
+    if (!debutSuiv) continue
+    const debutMots = normaliserComparaison(texte(debutSuiv)).split(' ').slice(0, mots.length).join(' ')
+    if (similarite(normaliserComparaison(texte(cand.l)), debutMots) >= 0.90) {
+      if (!out.has(page.num)) out.set(page.num, new Map())
+      const a = annotationVide()
+      a.role_suggere = 'reclame'; a.score = 3; a.export_corps = false
+      a.preuves = { repris_page_suivante: debutMots }
+      out.get(page.num).set(cand.i, a)
+    }
+  }
+  return out
+}
+
+// ── §5 Délimitation des blocs (poésie / prose) + §9 orchestration ────────────
+const RE_TITRE_POESIE = /\bPO[ÉE]SIE\b/i
+const RE_TITRE_PROSE = /\bPROSE\b/i
+const estLigneTitre = (l) => RE_T1.test(texte(l).trim()) || RE_T2.test(texte(l).trim())
+
+/** Découpe une page en blocs { type:'poesie'|'prose'|'autre', idx:[…] } délimités par les titres. */
+export function delimiterBlocs(lignes) {
+  const L = lignes.map((l, i) => ({ l, i })).filter((x) => x.l.bbox).sort((a, b) => y0(a.l) - y0(b.l))
+  const blocs = []
+  let courant = null
+  for (const { l, i } of L) {
+    const t = texte(l).trim()
+    if (estLigneTitre(l)) {
+      courant = { type: RE_TITRE_POESIE.test(t) ? 'poesie' : RE_TITRE_PROSE.test(t) ? 'prose' : 'autre', idx: [], titre: i }
+      blocs.push(courant)
+      continue
+    }
+    if (!courant) { courant = { type: 'autre', idx: [] }; blocs.push(courant) }
+    courant.idx.push(i)
+  }
+  return blocs
+}
+
+/**
+ * Orchestration §9 : compose toutes les suggestions par ligne, dans l'ordre de priorité
+ * (hors-corps → titres T1/T2 → lettrines → poésie). Renvoie, par page, un tableau d'annotations
+ * aligné sur page.lignes. `pages` = [{ num, largeur, hauteur, lignes }] ordonnées.
+ * NE MODIFIE RIEN de la source ; ne produit que des SUGGESTIONS (statut 'suggere').
+ */
+export function analyserVolume(pages) {
+  const titresC = detecterTitresCourants(pages)
+  const reclames = detecterReclames(pages)
+  const parPage = new Map()
+  for (const page of pages) {
+    const lignes = page.lignes || []
+    const anns = lignes.map(() => annotationVide())
+    const horsCorps = new Set()
+    // 1) hors-corps : numéro de page, signature, titre courant, réclame.
+    lignes.forEach((l, i) => {
+      const np = detecterNumeroPage(l, page); if (np) { anns[i] = np; horsCorps.add(i); return }
+      const sg = detecterSignature(l, page, { lignes }); if (sg) { anns[i] = sg; horsCorps.add(i) }
+    })
+    for (const [i, a] of (titresC.get(page.num) || [])) { anns[i] = a; horsCorps.add(i) }
+    for (const [i, a] of (reclames.get(page.num) || [])) { anns[i] = a; horsCorps.add(i) }
+    // 2) titres de structure T1/T2 (hors lignes déjà hors-corps).
+    lignes.forEach((l, i) => {
+      if (horsCorps.has(i)) return
+      const ti = suggererNiveauTitre(l, page, { horsCorps: false, lignes })
+      if (ti) anns[i] = ti
+    })
+    // 3) lettrines / artefacts (peuvent coexister avec un vers → on garde le flag lettrine).
+    //    JAMAIS sur une ligne déjà hors-corps ou déjà titrée (T1/T2) — ordre §9 : titres AVANT lettrines.
+    const lettr = detecterLettrines(lignes)
+    for (const [i, a] of lettr) if (!horsCorps.has(i) && anns[i].role_suggere !== 'titre') { a.blanc_poesie = anns[i].blanc_poesie ?? null; anns[i] = { ...anns[i], ...a } }
+    // 4) poésie : blocs 'poesie' → continuations + blancs (hors lignes hors-corps/titre).
+    for (const bloc of delimiterBlocs(lignes)) {
+      if (bloc.type !== 'poesie') continue
+      const idx = bloc.idx.filter((i) => !horsCorps.has(i))
+      const sousBloc = idx.map((i) => lignes[i])
+      const res = analyserBlocPoesie(sousBloc)
+      res.forEach((a, k) => {
+        const i = idx[k]
+        if (anns[i].role_suggere === 'lettrine_candidate' || anns[i].role_suggere === 'artefact_candidate') {
+          anns[i].type_ligne = a.type_ligne; anns[i].blanc_poesie = a.blanc_poesie
+          anns[i].retrait_source_normalise = a.retrait_source_normalise; anns[i].continuation_de = a.continuation_de
+        } else if (anns[i].role_suggere == null || anns[i].role_suggere === 'corps') {
+          anns[i] = { ...anns[i], ...a }
+        }
+      })
+    }
+    parPage.set(page.num, anns)
+  }
+  return parPage
+}
+
 // ── §8 Suggestions de niveaux de titre (T1/T2), propres à Ceriziers ──────────
 const RE_T1 = /^\s*(LE\s+PREMIER\s+LIVRE|LIVRE|LIURE)\b.*\b([IVXLC]+|PREMIER|SECOND|TROISI[EÈ]ME|QUATRI[EÈ]ME|CINQUI[EÈ]ME)\.?\s*$/i
 // « POESIE I. », « PROSE I », mais aussi « II. POESIE. », « III. PROSE. » (numéral avant ou après).

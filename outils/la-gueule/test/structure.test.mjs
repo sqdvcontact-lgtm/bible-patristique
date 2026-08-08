@@ -5,6 +5,7 @@ import {
   annotationVide, ROLES, normaliserComparaison, similarite,
   detecterNumeroPage, detecterSignature, detecterLettrines, suggererNiveauTitre,
   detecterContinuations, classerBlancsPoesie, analyserBlocPoesie,
+  detecterTitresCourants, detecterReclames, analyserVolume,
 } from '../src/structure.mjs'
 
 const L = (x, y, w, h, t) => ({ bbox: [x, y, w, h], dip: t })
@@ -158,6 +159,54 @@ test('§4 blancs : jamais de seuil px codé en dur — calcul par bloc (retrait 
   assert.equal(a.get(idx(decale, 'Les faueurs')).blanc_poesie, 'petit')
   assert.equal(a.get(idx(decale, 'Ie ne puis')).blanc_poesie, 'moyen')
   assert.equal(a.get(idx(decale, 'que de ioye,')).blanc_poesie, 'large')
+})
+
+// ── §6 titres courants par répétition (parité) ───────────────────────────────
+test('§6 : titre courant répété (même parité) → titre_courant ; tête unique → non', () => {
+  const tete = (t) => ({ largeur: 1250, hauteur: 2050, lignes: [L(238, 38, 631, 69, t), L(100, 350, 900, 55, 'Corps de la page qui remplit la mesure ordinaire ici.')] })
+  const pages = [
+    { num: 2, ...tete('de la Philosophie. Liure V.') },
+    { num: 4, ...tete('de la Philoſophie. Liure V.') }, // variante ſ
+    { num: 6, ...tete('de la Philosophie. Liure V.') },
+    { num: 8, ...tete('de la Philosophie. Liure V.') },
+    { num: 3, ...tete('DISCOURS PARTICVLIER ET VNIQVE') }, // tête unique
+  ]
+  const m = detecterTitresCourants(pages)
+  assert.equal(m.get(2)?.get(0)?.role_suggere, 'titre_courant')
+  assert.equal(m.get(6)?.get(0)?.role_suggere, 'titre_courant')
+  assert.equal(m.get(2).get(0).export_corps, false)
+  assert.ok(!m.get(3) || !m.get(3).get(0)) // la tête unique n'est pas un titre courant
+})
+
+// ── §7 réclames (mot en bas repris au début de la page suivante) ─────────────
+test('§7 : réclame si le mot du bas est repris au début de la page suivante ; sinon non', () => {
+  const avecReclame = [
+    { num: 1, largeur: 1250, hauteur: 2050, lignes: [L(100, 300, 800, 55, 'corps de la page une ici.'), L(900, 1850, 130, 50, 'Toutefois')] },
+    { num: 2, largeur: 1250, hauteur: 2050, lignes: [L(238, 38, 631, 69, 'de la Philosophie. Liure V.'), L(100, 350, 900, 55, 'Toutefois les bien-faits de sa douce bonté')] },
+  ]
+  const m = detecterReclames(avecReclame)
+  assert.equal(m.get(1)?.get(1)?.role_suggere, 'reclame')
+
+  const sansReclame = [
+    { num: 1, largeur: 1250, hauteur: 2050, lignes: [L(100, 300, 800, 55, 'corps.'), L(900, 1850, 130, 50, 'Toutefois')] },
+    { num: 2, largeur: 1250, hauteur: 2050, lignes: [L(100, 350, 900, 55, 'Autre chose sans rapport aucun ici.')] },
+  ]
+  assert.ok(!detecterReclames(sansReclame).get(1)) // aucun report → pas de réclame
+})
+
+// ── §9 orchestration : composition de toutes les suggestions sur la page 19 ───
+test('§9 analyserVolume p19 : chaque ligne reçoit la bonne suggestion composée', () => {
+  const anns = analyserVolume([{ num: 19, ...P19 }]).get(19)
+  const a = (p) => anns[idx(P19.lignes, p)]
+  assert.equal(a('8').role_suggere, 'numero_page')
+  assert.equal(a('POESIE I.').role_suggere, 'titre'); assert.equal(a('POESIE I.').niveau_suggere, 2)
+  assert.equal(a('OY dont').role_suggere, 'lettrine_candidate')
+  assert.equal(a('OY dont').blanc_poesie, 'moyen')          // lettrine ET vers
+  assert.equal(a('Les faueurs').role_suggere, 'vers'); assert.equal(a('Les faueurs').blanc_poesie, 'petit')
+  assert.equal(a('que de ioye,').blanc_poesie, 'large')
+  assert.equal(a('douleur,').role_suggere, 'continuation_typographique')
+  assert.equal(a('B').role_suggere, 'signature'); assert.equal(a('B').export_corps, false)
+  assert.equal(a('2').role_suggere, 'signature')
 })
 
 test('§10 : « de la Philosophie. Liure I. » (titre courant, ligne longue) → AUCUNE suggestion', () => {
