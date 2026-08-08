@@ -92,14 +92,30 @@ production ni activée par défaut.
   annuler ; lignes hors-corps confirmées grisées ; lettrine → route vers « incertain ». Vérifié en
   navigateur (pilote p22 : 109 suggestions, confirmation d'un titre courant → hors-corps).
 
-## À FAIRE (reste)
+## FAIT (raffinements)
 
-1. **Rendu des blancs poétiques côté site** : classes CSS `blanc-poesie-petit/moyen/large`
-   (retrait par CSS, jamais de caractères ajoutés) ; export JSON portant les annotations par ligne.
-2. **ALTO/PAGE** : porter le rôle des régions dans les exports d'échange.
-3. **Décisions fines** : menu lettrine à 3 choix (absente/détachée/artefact) ; confirmation en LOT
-   d'un motif de titre courant ; classement de région (paratexte/ornement/bruit) — §5 à compléter.
-4. **Jeu annoté** de plusieurs pages pour mesurer FP/FN au-delà des cas d'acceptation.
+1. **JSON** : `extraireStructure` inclut les annotations par ligne (rôle, `blanc_poesie`, classe CSS
+   `blanc-poesie-*`, retrait, niveau, continuation) dans l'export — le site rend les blancs par CSS,
+   jamais de caractères ajoutés.
+2. **ALTO/PAGE** : rôles portés (ALTO `<Tags>`+`TAGREFS` ; PAGE `custom="structure {role;blanc}"`).
+3. **Décisions fines** (atelier) : menu lettrine à 3 choix (absente/détachée/artefact) ; confirmation
+   d'un titre courant **EN LOT** (toutes les occurrences du motif) ; classement manuel de région
+   (paratexte/ornement/bruit/indéterminé) sur les lignes sans suggestion. Vérifié en navigateur.
+
+## FP / FN
+
+- **Cas d'acceptation §10** : 0 FP / 0 FN (16 tests verts).
+- **Au-delà** : rapport `bancs/suggestions-pilote-boece.txt` (généré par
+  `bancs/rapport-suggestions-structure.mjs`) — les verdicts (✓ / faux positif) et les faux négatifs
+  sont **à remplir à la main**, page par page. Faux positifs déjà repérés à l'œil : page 19, L2/L3
+  (fragments de page de titre « (2 » pris pour des lettrines) — la page de titre reste le cas le plus
+  bruité ; le classement manuel de région (paratexte/ornement) est là pour les trancher.
+
+## Reste éventuel
+
+- Détection automatique de région **paratexte/ornement/bruit** (§5) : encore manuelle ; à outiller
+  et évaluer sur plusieurs pages de titre avant toute activation.
+- Constitution d'un **jeu annoté** (verdicts remplis) pour un taux FP/FN chiffré.
 
 ## Points nécessitant une validation humaine
 
