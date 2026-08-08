@@ -1,0 +1,227 @@
+========================================================================
+COMPTE RENDU — LA GUEULE (atelier OCR/HTR de Corpus Scriptura)
+Consolidation P1 → P8 — état au 2026-08-08
+Destinataire : GPT / Codex (reprise de travail)
+========================================================================
+
+0. OBJET ET DOCTRINE
+--------------------
+La Gueule est un orchestrateur MAISON, sans dépendance npm, en Node.js pur
+(node:http, child_process, crypto…). Elle mobilise des moteurs installés sous
+WSL2/Ubuntu (Kraken 7.1 HTR, Tesseract 5.3.4, poppler, ImageMagick, ketos) pour
+transformer des fac-similés en BROUILLONS de transcription.
+
+Doctrine charte §14, NON NÉGOCIABLE : elle ne produit que des CANDIDATS, jamais
+du texte éditorial validé. Elle n'écrit jamais dans les tables actives
+(oeuvres/segments/versets_*). Le fac-similé fait autorité. Aucune graphie
+modernisée par concaténation (§14.6). Ne jamais toucher au chantier Bible 899
+ni à versets_canon / versets_v2 / TR0001–TR0005.
+
+Emplacement : C:\Corpus Scriptura\bible-patristique\outils\la-gueule
+Le travail sur La Gueule reste CANTONNÉ à ce dossier (ne pas toucher app/ du site).
+
+
+1. ÉTAT GÉNÉRAL
+---------------
+Les 8 priorités du plan de consolidation sont traitées :
+  P1 Fiabiliser l'OCR de livres entiers (reprise, état par page)   FAIT
+  P2 GPU Kraken (benchmark réel)                                    FAIT
+  P3 Pipeline unique (fin des deux implémentations divergentes)     FAIT
+  P4 Fichiers temporaires sûrs (mktemp unique)                      FAIT
+  P5 Prétraitement d'image expérimental + comparaison A/B           FAIT
+  P6 Données d'entraînement Kraken (export ALTO + manifeste)        FAIT
+  P7 Fine-tuning documenté + registre de modèles versionné         FAIT
+  P8 Structure éditoriale : a/b/c/d FAIT ; notes/marginalia RESTE
+
+Tests : 79/79 verts (`npm test`, node --test, fonctions pures).
+
+
+2. ARCHITECTURE (src/)
+----------------------
+  wsl.mjs        Pont Node→WSL. runBash (spawn async, annulable, timeout),
+                 passage des chemins Windows en variables WSLENV /p (robuste
+                 aux espaces). ocrPage() = LE pipeline OCR unique (imprimé
+                 moderne → Tesseract ; imprimé ancien → Kraken CATMuS-Print ;
+                 manuscrit → Kraken CATMuS Medieval). krakenAvecRepli = GPU
+                 cuda:0 puis repli CPU. dansTmp = dossier /tmp/lg.XXXXXX unique
+                 (trap rm). argsPretraitement = drapeaux ImageMagick (P5, OFF
+                 par défaut). MODELE_CATMUS / MODELE_CATMUS_PRINT.
+  serve.mjs      Serveur HTTP (port 4599) + diagnostic() (doctor WSL-aware).
+                 Voir §7 pour les endpoints.
+  projet.mjs     Persistance des relectures (projets/) + construction des
+                 segments + exports. construireSegments (structure ref_niv +
+                 colonnes), exporterTout (quintuple), exporterEntrainement (P6),
+                 exporterPagesXml (P8c), altoEntrainement.
+  metadonnees.mjs Extraction des champs (colonnes oeuvres) + typographie
+                 probable (ancien/moderne, détection du s long).
+  notes.mjs      Recensement des références → appels [[N]] + champ notes.
+  bilingue.mjs   Resynchronisation latin/français par n° de section (§12.2).
+  alto.mjs       parseAlto : ALTO (Kraken/Tesseract) → lignes + coordonnées.
+  texte.mjs      P8a — rendu TXT et Markdown structurés (ref_niv, notes).
+  colonnes.mjs   P8d — détection de colonnes + ordre de lecture (double col.).
+  echange.mjs    P8c — altoPage (ALTO v4) + pageXml (PAGE PRImA 2019).
+  modeles.mjs    P7 — métriques CER/WER (Levenshtein), évaluation, décision
+                 d'adoption (comparerQualite), registre versionné.
+  docx.mjs       DOCX OOXML sans dépendance (styles + niveaux de titre).
+  sql.mjs        SQL Supabase candidat (upsert oeuvres + insert segments,
+                 colonnes ref_niv1..5 gérées par union).
+  zip.mjs        ZIP maison (STORE) pour DOCX.
+  runner.mjs     Petit wrapper spawn.
+  bin/gueule.mjs CLI : `serve` et `doctor` seulement (le batch a été supprimé).
+
+Interface : ui/index.html (accueil + doctor) et ui/atelier.html (relecture).
+
+
+3. MOTEURS ET MODÈLES (WSL)
+---------------------------
+  Tesseract 5.3.4 : fra/lat/eng… (imprimé moderne, rapide). ATTENTION : lit le
+    s long ſ comme un « f » sur les imprimés d'Ancien Régime (voir §6, P7).
+  Kraken 7.1 :
+    - CATMuS-Print-fondue-large : imprimé ancien, lit correctement ſ, ligatures,
+      abréviations. Chemin dans wsl.mjs (MODELE_CATMUS_PRINT).
+    - CATMuS Medieval 1.0.0 : manuscrit.
+  GPU : PyTorch 2.13 + cu130, CUDA True, RTX 2060 SUPER 8 Go. kraken -d cuda:0
+    avec repli CPU automatique.
+  ketos : entraînement Kraken (NON utilisé pour l'instant — voir P7).
+
+
+4. DÉTAIL PAR PRIORITÉ
+----------------------
+P1 : état par page (à faire/en cours/terminé/erreur), sauvegarde après chaque
+     page, reprise (pagesATraiter saute les pages 'termine'), relance des seules
+     pages en erreur, barre de progression, journal d'erreurs, arrêt propre
+     (annulerTaches tue les process WSL). Reprise prouvée (correction conservée).
+P2 : benchmark réel CPU vs GPU sur les mêmes pages : ~36,9 s → ~31,6 s (~14 %),
+     texte identique. Le coût par page est surtout le démarrage du process + la
+     segmentation, pas la reconnaissance (d'où le gain modéré).
+P3 : suppression des 6 modules du batch divergent (pipeline/engines/control/
+     trace/draft/config). ocrPage (wsl.mjs) est l'unique moteur ; CLI doctor
+     inspecte les outils WSL.
+P4 : plus aucun /tmp/pg.png fixe ; chaque OCR a son dossier mktemp nettoyé
+     (0 dossier résiduel avant/après).
+P5 : chaîne de prétraitement (deskew, gris, contraste, débruitage, binarisation
+     locale, rognage, demi-page) OFF PAR DÉFAUT ; mode comparaison A/B
+     (/api/atelier/comparer). Constat : binariser+gris DÉGRADENT un bon scan
+     (0,885 → 0,289 de confiance). Ne jamais activer par défaut.
+P6 : bouton « Valider la page » + « Export entraînement » → exports/entrainement/
+     <nom>/ avec, par page validée : image + ALTO corrigé (ground truth, format
+     ketos -f alto) + manifeste.jsonl (ocr_original, corrige, bbox, source, page,
+     moteur, modele, date, confiance) + README. AUCUN entraînement lancé.
+P7 : ENTRAINEMENT.md documente toute la boucle CATMuS-Print → corpus corrigé →
+     train/ + banc d'essai → ketos train -i socle → évaluation → adoption SI
+     meilleur → registre → itérer. modeles.mjs : CER/WER + comparerQualite
+     (n'adopte que si CER plus bas d'une marge nette). modeles/registre.json
+     (VERSIONNÉ ; les .mlmodel sont gitignorés) amorcé avec les 2 socles.
+P8 : voir §5.
+
+
+5. P8 — STRUCTURE ÉDITORIALE (état détaillé)
+--------------------------------------------
+FAIT :
+  a) Rendu TXT + Markdown (texte.mjs) : honore ref_niv1..5 (titres émis quand la
+     valeur change) et rassemble les notes. Branché dans l'export.
+  b) Capture de la structure ref_niv dans l'atelier : chaque ligne a un sélecteur
+     « — / T1..T5 » qui pose l.titre={niveau,texte}. construireSegments est
+     désormais conscient de la structure : un titre pilote les ref_nivK_texte des
+     segments suivants (ferme le bloc, réinitialise les sous-niveaux, persiste
+     entre pages). Traverse DOCX/TXT/MD/SQL.
+  c) Export ALTO v4 + PAGE XML (echange.mjs, endpoint /api/export/xml, bouton
+     « ALTO / PAGE ») : une paire par page + image dans exports/<nom>-xml/.
+     Ouvrable dans eScriptorium / Transkribus / Aletheia.
+  d) Lecture en double colonne (colonnes.mjs) : détection de la gouttière +
+     ordre de lecture (bande → colonne gauche puis droite). Intégré à
+     construireSegments (groupe DANS chaque colonne). SÛR : mono-colonne = 1
+     piste, ordre identique (142 pages Boèce = 0 faux positif).
+
+RESTE (à calibrer sur un VRAI échantillon, pas à l'aveugle — cf. leçon P5) :
+  - Détection des NOTES DE BAS DE PAGE (bandeau en pied, taille de police
+    réduite) → nature 'note' / champ notes.
+  - MARGINALIA (notes marginales).
+  Recommandation : régler ces heuristiques géométriques sur une édition qui en
+  contient réellement (une Migne à notes, ou les Homélies de Basile) afin de ne
+  pas dégrader les bonnes pages.
+
+Autres reliquats connus (hors P8) :
+  - Prétraitement câblé pour l'imprimé seulement (pas le manuscrit).
+  - Mode batch Kraken (amortir le démarrage du process) pour accélérer.
+
+
+6. DÉCOUVERTE IMPORTANTE (P7) — DONNÉE CONTAMINÉE
+-------------------------------------------------
+Test réel du 2026-08-08 sur Boèce Ceriziers 1646, page 143 (35 lignes) :
+la transcription stockée dans le projet
+  projets/boece-ceriziers-1646-candidat.json
+lit SYSTÉMATIQUEMENT le s long ſ comme un « f » (fous/sous, eft/est,
+fcience/science, éclipfe/éclipse, noftre/nostre, Phileféphie/Philosophie…).
+C'est le défaut d'origine du dossier : le projet a été océrisé avec TESSERACT
+fra (et/ou la couche texte du PDF Internet Archive), qui a ce bug.
+
+Le socle Kraken CATMuS-Print corrige TOUS ces ſ (vérifié ligne à ligne). Son
+« CER de 14 % » sur cette page est mesuré contre une RÉFÉRENCE FAUSSE : dans les
+faits, Kraken a raison et la référence a tort.
+
+Conséquences pour la reprise :
+  - Le candidat Boèce Ceriziers est À REFAIRE en Kraken CATMuS-Print
+    (« Typo : ancien »), PAS en Tesseract ni via la couche texte du PDF.
+  - On ne dispose PAS encore d'un banc d'essai propre : le cer des socles reste
+    null dans modeles/registre.json (ne jamais inscrire un CER issu d'une
+    référence fausse). Il faut d'abord des corrections humaines réelles sur des
+    pages ré-océrisées au bon moteur.
+  - Sorties du test conservées : sorties/atelier/p143-{reference,kraken,
+    tesseract,resultat}.* (dossier sorties/ gitignoré).
+
+
+7. ENDPOINTS HTTP (serve.mjs, port 4599)
+----------------------------------------
+  GET  /api/doctor              état des outils WSL (kraken/tesseract/…)
+  POST /api/atelier/ocr         OCR d'une page (pipeline unique ocrPage)
+  POST /api/atelier/ocr-bilingue OCR bilingue (paires latin/français)
+  POST /api/atelier/comparer    comparaison A/B original vs prétraité (P5)
+  POST /api/atelier/stop        annule les tâches WSL en cours
+  POST /api/metadonnees         extrait les champs oeuvres + typographie
+  POST /api/pdf-info            pdfinfo (poppler)
+  GET  /api/choisir-fichier     boîte « Ouvrir » Windows (session interactive)
+  POST /api/televerser          upload d'un PDF/image
+  GET  /api/fichier?path=…      sert une image de page
+  POST /api/projet/{save,load,list}   persistance des relectures
+  POST /api/export              QUINTUPLE : .json .docx .supabase.sql .txt .md
+  POST /api/export/segments     JSON segments seul
+  POST /api/export/entrainement jeu d'entraînement Kraken (P6)
+  POST /api/export/xml          ALTO v4 + PAGE XML par page (P8c)
+
+
+8. REGISTRE DE MODÈLES (P7)
+---------------------------
+modeles/registre.json — une entrée par modèle :
+  version | chemin | base | corpus | cer | wer | nbLignesEval | banc | date |
+  notes | statut (socle|candidat|adopte|ecarte)
+Fonctions (src/modeles.mjs) : distanceEdition, tauxErreur, evaluerModele,
+comparerQualite (adopte SEULEMENT si CER plus bas > marge), entreeModele,
+chargerRegistre, enregistrerModele, meilleurModele.
+État : 2 socles (catmus-print-fondue-large, catmus-medieval-1.0.0), cer=null
+(banc d'essai propre à constituer — voir §6). AUCUN entraînement lancé.
+
+
+9. COMMENT LANCER
+-----------------
+  cd outils/la-gueule
+  npm test                      # 79 tests (fonctions pures)
+  node bin/gueule.mjs serve     # http://127.0.0.1:4599  (atelier.html)
+  node bin/gueule.mjs doctor    # état des outils WSL
+Prérequis WSL : voir scripts/installer-wsl.sh. Node 24 LTS.
+
+
+10. GARDE-FOUS (rappel)
+-----------------------
+  - CANDIDAT uniquement, jamais l'actif (§14).
+  - Ne pas toucher Bible 899 ni versets_canon / versets_v2 / TR0001–TR0005.
+  - Pas de graphie modernisée par concaténation (§14.6).
+  - Copier un fichier du bureau (D:\OneDrive\Bureau) DANS le dépôt avant
+    traitement (§2.3).
+  - Aucun entraînement de modèle automatique ; chaque fine-tuning est manuel,
+    évalué sur banc d'essai, décidé par un humain, consigné au registre.
+  - Ne jamais évaluer un modèle sur des pages ayant servi à l'entraîner.
+
+========================================================================
+FIN DU COMPTE RENDU
+========================================================================

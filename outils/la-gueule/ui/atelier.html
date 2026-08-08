@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>La Gueule — Atelier de relecture</title>
+<link rel="icon" type="image/png" href="/logo.png?v=901e6fd6" />
+<style>
+  :root{--fond:#f7f3ea;--surface:#fffdf8;--encre:#2b2620;--second:#6b6155;--bord:#d9ccb4;
+    --vert:#5a7260;--vertf:rgba(90,114,96,.12);--ambre:#9a5a2a;--surlig:rgba(154,90,42,.28)}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--fond);color:var(--encre);font-family:"Segoe UI",system-ui,sans-serif;font-size:14px;display:flex;flex-direction:column}
+  header{padding:10px 18px;border-bottom:1px solid var(--bord);background:var(--surface);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  header h1{margin:0;font-family:Georgia,serif;font-weight:500;font-size:17px}
+  header .logo{height:36px;width:36px;display:block;flex:none}
+  header .sep{flex:1}
+  label{font-size:12px;color:var(--second)}
+  input,select{padding:5px 7px;border:1px solid var(--bord);border-radius:5px;background:#fff;color:var(--encre);font:inherit}
+  input[type=number]{width:64px}
+  #chemin{width:min(46vw,560px)}
+  button{cursor:pointer;border:1px solid var(--vert);border-radius:6px;background:var(--vertf);color:var(--vert);padding:6px 12px;font:inherit;font-weight:600}
+  button.discret{border-color:var(--bord);color:var(--second);background:#fff;font-weight:400}
+  button:disabled{opacity:.5;cursor:default}
+  #etat{font-size:12px;color:var(--second)}
+  main{flex:1;display:grid;grid-template-columns:262px 1fr 1fr;gap:0;min-height:0}
+  main.meta-replie{grid-template-columns:32px 1fr 1fr}
+  .volet{min-height:0;overflow:auto;padding:12px}
+  /* Colonne « Métadonnées » (gauche), repliable */
+  .volet-meta{min-height:0;overflow:auto;border-right:1px solid var(--bord);background:var(--surface);display:flex;flex-direction:column}
+  .meta-tete{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--bord);position:sticky;top:0;background:var(--surface);z-index:1}
+  .meta-titre{font-family:Georgia,serif;font-size:14px;color:var(--encre);flex:1}
+  .meta-toggle{border:1px solid var(--bord);background:#fff;color:var(--second);border-radius:5px;padding:2px 8px;cursor:pointer;font-weight:700;line-height:1}
+  .meta-corps{padding:10px;display:flex;flex-direction:column;gap:8px}
+  .meta-corps label{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--second)}
+  .meta-corps input{width:100%;font-size:13px}
+  .meta-etat{font-size:11px;color:var(--second);min-height:1em;margin-top:2px}
+  main.meta-replie .meta-titre,main.meta-replie .meta-extraire,main.meta-replie .meta-corps{display:none}
+  main.meta-replie .meta-tete{flex-direction:column;padding:8px 3px;border-bottom:none}
+  /* Zone image : l'image tient dans la hauteur du volet (pas de défilement) ; chevrons de nav. */
+  #voletImage{background:#efe8da;border-right:1px solid var(--bord);position:relative;overflow:hidden;
+    display:flex;align-items:flex-start;justify-content:center;padding:12px}
+  #imgHolder{max-width:100%;max-height:100%;display:flex;align-items:flex-start;justify-content:center}
+  .scene{position:relative;display:inline-block;box-shadow:0 2px 12px rgba(0,0,0,.15);background:#fff}
+  .scene img{display:block;max-width:100%;height:auto}
+  .navflip{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:34px;height:46px;
+    border:1px solid var(--bord);background:rgba(255,253,248,.9);color:var(--vert);border-radius:8px;
+    font-size:22px;line-height:1;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.12)}
+  .navflip:hover{background:#fff}
+  .navflip-g{left:8px}
+  .navflip-d{right:8px}
+  .box{position:absolute;border:1px solid rgba(90,114,96,.35);border-radius:2px;cursor:pointer}
+  .box:hover{background:rgba(90,114,96,.12)}
+  .box.actif{background:var(--surlig);border-color:var(--ambre)}
+  .onglets{display:flex;gap:6px;margin-bottom:10px}
+  .onglets button{padding:4px 10px;border-radius:999px;font-size:12px}
+  .onglets button.actif{background:var(--vert);color:#fff;border-color:var(--vert)}
+  .lignes{display:flex;flex-direction:column;gap:3px;font-family:"Cascadia Code",Consolas,monospace}
+  .lg{display:grid;grid-template-columns:2.2rem 1fr auto auto;gap:6px;align-items:baseline}
+  .lg .num{font-size:10px;color:#b0a488;text-align:right;padding-top:6px}
+  .lg input{width:100%;font-family:inherit;font-size:13px;border-color:transparent;background:#fff}
+  .lg input:focus{border-color:var(--ambre);outline:none}
+  .lg.actif input{background:#fbf4ea}
+  .lg.doute input{border-left:2px solid var(--ambre)}
+  .lg.doute .num{color:var(--ambre);font-weight:700}
+  /* Titre de structure éditoriale (Livre, Prose, Mètre…) → alimente ref_niv1..5. */
+  .lg select.niv{font-size:10px;color:var(--second);border:1px solid var(--bord);border-radius:4px;background:#fff;align-self:center;padding:1px 2px}
+  .lg.titre input{border-left:3px solid var(--ambre);font-weight:700;color:#5a4a2a;background:#fdf9f0}
+  /* Titre courant / n° de page détecté : exclu de l'export, signalé ici. */
+  .lg.entete input{color:var(--second);font-style:italic;text-decoration:line-through;opacity:.65;background:#f3efe6}
+  .lg .tagtc{font-size:9px;color:var(--second);align-self:center;white-space:nowrap;padding-right:4px}
+  .paire{display:grid;grid-template-columns:2.4rem 1fr 1fr;gap:8px;align-items:start;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--bord)}
+  .paire .pnum{font-size:11px;color:var(--ambre);font-weight:700;text-align:right;padding-top:6px}
+  .paire textarea{width:100%;min-height:3.4em;border:1px solid var(--bord);border-radius:5px;padding:6px;font:inherit;font-size:13px;background:#fff;resize:vertical;box-sizing:border-box}
+  .paire .pla{font-style:italic;color:#3a4a3f;background:#fbfaf4}
+  .bihead{font-size:12px;color:var(--second);margin-bottom:10px}
+  .vide{color:var(--second);font-style:italic;padding:20px}
+  .barre2{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 18px;border-bottom:1px solid var(--bord);background:var(--surface)}
+  #drop{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;
+    background:rgba(90,114,96,.14);border:3px dashed var(--vert);color:var(--vert);
+    font-family:Georgia,serif;font-size:22px;pointer-events:none}
+  /* Voile de chargement : fige l'écran pendant l'analyse (capte les clics). */
+  #chargement{position:fixed;inset:0;z-index:10000;display:none;flex-direction:column;
+    align-items:center;justify-content:center;gap:14px;background:rgba(247,243,234,.72)}
+  .spin{width:44px;height:44px;border:4px solid var(--bord);border-top-color:var(--vert);
+    border-radius:50%;animation:tourne .8s linear infinite}
+  @keyframes tourne{to{transform:rotate(360deg)}}
+  #chargeTexte{font-family:Georgia,serif;color:var(--second);font-size:15px}
+  .pchk{display:flex;gap:4px;align-items:center;font-size:12px;color:var(--second)}
+  #comparateur{position:fixed;inset:0;z-index:10001;display:none;background:rgba(43,38,32,.55);padding:24px;overflow:auto}
+  .comp-boite{max-width:1100px;margin:0 auto;background:var(--fond);border-radius:10px;padding:18px}
+  .comp-barre{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .comp-grille{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .comp-tete{font-size:12px;color:var(--second);margin-bottom:6px;font-weight:600}
+  .comp-texte{white-space:pre-wrap;font-family:"Cascadia Code",Consolas,monospace;font-size:12px;background:#fff;border:1px solid var(--bord);border-radius:6px;padding:10px;max-height:60vh;overflow:auto}
+</style>
+</head>
+<body>
+<header>
+  <img class="logo" src="/logo.png?v=901e6fd6" alt="La Gueule" />
+  <h1>La Gueule · atelier de relecture</h1>
+  <label>Nature
+    <select id="kind">
+      <option value="imprime">imprimé (PDF)</option>
+      <option value="manuscrit">manuscrit (image → Kraken)</option>
+    </select>
+  </label>
+  <label>Chemin <input id="chemin" placeholder="D:\\OneDrive\\Bureau\\mon_document.pdf  (ou une image .png)" /></label>
+  <button class="discret" id="btnParcourir">Parcourir…</button>
+  <input type="file" id="fichierLocal" accept=".pdf,.png,.jpg,.jpeg,.tif,.tiff" style="display:none">
+  <button class="discret" id="btnAnalyser">Analyser</button>
+  <span class="sep"></span>
+  <a href="/index.html" style="font-size:12px;color:var(--second)">panneau ⚙</a>
+  <span id="etat">—</span>
+</header>
+
+<div class="barre2" id="diag" style="display:none;color:var(--ambre)"></div>
+
+<div class="barre2">
+  <button class="discret" id="prec">‹ page</button>
+  <label>Page <input type="number" id="page" min="1" value="1" /></label>
+  <span id="total" style="color:var(--second);font-size:12px"></span>
+  <button class="discret" id="suiv">page ›</button>
+  <span style="width:12px"></span>
+  <label id="lblTypo" style="display:flex;gap:4px;align-items:center">Typo
+    <select id="typo" title="Typographie : « ancien » lit le s long (ſ) des imprimés d'Ancien Régime">
+      <option value="moderne">moderne · Tesseract</option>
+      <option value="ancien">ancien · ſ long — Kraken</option>
+    </select>
+  </label>
+  <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="bilingue"> bilingue (en regard)</label>
+  <select id="offset"><option value="-1">latin = page préc.</option><option value="1">latin = page suiv.</option></select>
+  <button id="ocrPage">OCR cette page</button>
+  <span style="width:16px"></span>
+  <label>Document de <input type="number" id="de" min="1" value="1" /> à <input type="number" id="a" min="1" value="1" /></label>
+  <button id="ocrDoc">OCR document</button>
+  <button class="discret" id="stop" disabled>arrêter</button>
+</div>
+
+<div class="barre2" id="progression" style="display:none;gap:14px;align-items:center">
+  <div style="flex:0 0 220px;height:10px;background:var(--fond);border:1px solid var(--bord);border-radius:6px;overflow:hidden">
+    <div id="barreProgFill" style="height:100%;width:0;background:var(--vert);transition:width .25s"></div>
+  </div>
+  <span id="progTexte" style="font-size:12px;color:var(--second)"></span>
+  <span id="progErreurs" style="font-size:12px;color:var(--ambre)"></span>
+  <button class="discret" id="btnRelancerErr" style="display:none">Relancer les pages en erreur</button>
+</div>
+
+<div class="barre2" id="barrePre" style="gap:10px;flex-wrap:wrap">
+  <span style="font-size:12px;color:var(--second);font-weight:600" title="OFF par défaut. À valider par comparaison : un prétraitement n'est utile que s'il améliore l'OCR.">Prétraitement (exp.)</span>
+  <label class="pchk"><input type="checkbox" id="p_gris"> gris</label>
+  <label class="pchk"><input type="checkbox" id="p_contraste"> contraste</label>
+  <label class="pchk"><input type="checkbox" id="p_deskew"> redresser</label>
+  <label class="pchk"><input type="checkbox" id="p_binariser"> binariser</label>
+  <label class="pchk"><input type="checkbox" id="p_debruiter"> débruiter</label>
+  <label class="pchk"><input type="checkbox" id="p_rogner"> rogner marges</label>
+  <label class="pchk">demi-page <select id="p_demi"><option value="">—</option><option value="gauche">gauche</option><option value="droite">droite</option></select></label>
+  <button class="discret" id="btnComparer">Comparer cette page</button>
+  <label class="pchk" title="Si coché, l'OCR utilise le prétraitement choisi"><input type="checkbox" id="p_utiliser"> utiliser pour l'OCR</label>
+</div>
+
+<div id="comparateur">
+  <div class="comp-boite">
+    <div class="comp-barre">
+      <b style="font-family:Georgia,serif">Comparaison — original ↔ prétraité</b>
+      <span id="compHint" style="font-size:12px;color:var(--second)"></span>
+      <span style="flex:1"></span>
+      <button class="discret" id="compFermer">Fermer</button>
+    </div>
+    <div class="comp-grille">
+      <div><div class="comp-tete" id="compTeteA"></div><div class="comp-texte" id="compTexteA"></div></div>
+      <div><div class="comp-tete" id="compTeteB"></div><div class="comp-texte" id="compTexteB"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="barre2">
+  <label>Projet <input id="projet" placeholder="cyprien-de-lapsis" style="width:170px" /></label>
+  <button class="discret" id="btnSave">Enregistrer</button>
+  <span id="etatSave" style="font-size:12px;color:var(--second)"></span>
+  <label>Charger <select id="listeProjets"><option value="">—</option></select></label>
+  <span style="width:14px"></span>
+  <label>id_oeuvre <input id="idoeuvre" placeholder="A0091O0001" style="width:110px" /></label>
+  <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="chkNotes" checked> recenser les notes [[N]]</label>
+  <button id="btnExport">Exporter (DOCX + SQL + JSON + TXT + MD)</button>
+  <button class="discret" id="btnExportXml" title="Exporte chaque page océrisée aux formats d'échange ALTO v4 + PAGE XML (coordonnées + texte + image), pour eScriptorium / Transkribus / Aletheia">ALTO / PAGE</button>
+  <span id="etatExport" style="font-size:12px;color:var(--second)"></span>
+  <span style="flex:1"></span>
+  <button class="discret" id="btnValider" title="Marque cette page comme relue et correcte : bonne pour l'entraînement Kraken">✓ Valider la page</button>
+  <span id="nbValidees" style="font-size:12px;color:var(--second)"></span>
+  <button class="discret" id="btnExportEntr" title="Exporte les corrections des pages validées en jeu d'entraînement Kraken (ALTO + images + JSONL)">Export entraînement</button>
+</div>
+
+<main id="main">
+  <div class="volet-meta" id="voletMeta">
+    <div class="meta-tete">
+      <button class="meta-toggle" id="metaToggle" title="Replier les métadonnées">‹</button>
+      <span class="meta-titre">Métadonnées</span>
+      <button class="discret meta-extraire" id="btnMeta" title="Extraire de la page de titre">Extraire</button>
+    </div>
+    <div class="meta-corps" id="metaCorps">
+      <label>Auteur <input id="m_auteur" placeholder="Saint Basile le Grand"></label>
+      <label>Titre <input id="m_titre"></label>
+      <label>Sous-titre <input id="m_sous_titre"></label>
+      <label>Titre original <input id="m_titre_original"></label>
+      <label>Langue originale <input id="m_langue_originale" placeholder="latin / grec"></label>
+      <label>Langue de traduction <input id="m_langue_trad" placeholder="français"></label>
+      <label>Traducteur <input id="m_trad_auteur"></label>
+      <label>Éditeur <input id="m_editeur"></label>
+      <label>Collection <input id="m_collection"></label>
+      <label>Ville <input id="m_ville"></label>
+      <label>Date de publication <input id="m_date_publication" placeholder="1858"></label>
+      <label>Date de composition <input id="m_date_composition" placeholder="ive s."></label>
+      <label>Genre <input id="m_genre"></label>
+      <div id="etatMeta" class="meta-etat"></div>
+    </div>
+  </div>
+  <div class="volet" id="voletImage">
+    <div id="imgHolder"><div class="vide">Indique un chemin, puis « OCR cette page ».</div></div>
+    <button class="navflip navflip-g" id="navPrec" title="Page précédente">‹</button>
+    <button class="navflip navflip-d" id="navSuiv" title="Page suivante">›</button>
+  </div>
+  <div class="volet" id="voletTexte">
+    <div class="onglets" id="onglets" style="display:none">
+      <button data-c="dip" class="actif">diplomatique</button>
+      <button data-c="dev">développée</button>
+      <button data-c="mod">modernisée</button>
+    </div>
+    <div class="lignes" id="lignes"><div class="vide">Le texte reconnu apparaîtra ici, ligne à ligne, en regard de l'image.</div></div>
+  </div>
+</main>
+
+<div id="drop">Déposez le PDF ou l'image ici…</div>
+<div id="chargement"><div class="spin"></div><div id="chargeTexte">Analyse…</div></div>
+
+<script>
+const $=id=>document.getElementById(id)
+const api=async(u,o)=>{const r=await fetch(u,o);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.erreur||r.statusText);return j}
+const etat=t=>$('etat').textContent=t
+
+// Modèle en mémoire : pages[n] = { pngUrl, largeur, hauteur, lignes:[{bbox,dip,dev,mod}] }
+const S={ kind:'imprime', pages:{}, page:1, total:null, couche:'dip', arret:false, journal:[] }
+const SEUIL_DOUTE=0.80 // en dessous, la ligne est signalée « à revoir »
+
+// ── Fiabilité des lots : état par page (à faire / terminé / erreur), progression, journal ────
+function marquerEtat(n, etat, msg){ if(!S.pages[n]) S.pages[n]={}; S.pages[n].etat=etat
+  if(etat==='erreur') S.pages[n].erreur=String(msg||'').slice(0,300); else delete S.pages[n].erreur }
+function journaliser(n, msg){ (S.journal||(S.journal=[])).push({page:n, message:String(msg).slice(0,200), at:new Date().toISOString()})
+  if(S.journal.length>1000) S.journal=S.journal.slice(-1000) }
+function pagesEnErreur(){ return Object.keys(S.pages).map(Number).filter(n=>S.pages[n]?.etat==='erreur').sort((a,b)=>a-b) }
+function pagesATraiter(de,a){ const l=[]; for(let n=de;n<=a;n++) if(S.pages[n]?.etat!=='termine') l.push(n); return l } // saute les faites → reprise
+function compterEtats(de,a){ let fait=0,err=0,tot=0; for(let n=de;n<=a;n++){ tot++; const e=S.pages[n]?.etat; if(e==='termine')fait++; else if(e==='erreur')err++ } return {fait,err,tot} }
+function majProgres(de,a){ const {fait,err,tot}=compterEtats(de,a); $('progression').style.display='flex'
+  $('barreProgFill').style.width=(tot?Math.round(fait/tot*100):0)+'%'
+  $('progTexte').textContent=`${fait}/${tot} pages · ${err} erreur${err>1?'s':''}`
+  const pe=pagesEnErreur(); $('btnRelancerErr').style.display=pe.length?'inline-block':'none'
+  $('progErreurs').textContent=pe.length?('en erreur : '+pe.slice(0,25).join(', ')+(pe.length>25?'…':'')):'' }
+function assurerNomProjet(){ if($('projet').value.trim())return // un lot est TOUJOURS persisté : on nomme d'office
+  const c=$('chemin').value.trim(); const b=(c.split(/[\\/]/).pop()||'ouvrage').replace(/\.[^.]+$/,'').replace(/[^\w.-]+/g,'_').slice(0,60)
+  $('projet').value=b||'ouvrage' }
+
+$('kind').onchange=()=>{ S.kind=$('kind').value; document.querySelector('.barre2').style.opacity=1
+  $('onglets').style.display=(S.kind==='manuscrit')?'flex':'none'
+  $('lblTypo').style.display=(S.kind==='imprime')?'flex':'none' // choix du moteur : imprimé seulement
+  // imprimé = un seul texte ; on force l'onglet diplomatique (= le texte OCR)
+  if(S.kind!=='manuscrit'){S.couche='dip'} rendre() }
+
+// Voile de chargement : fige l'écran (le voile capte les clics) pendant une opération longue.
+const chargeOn=(t)=>{ $('chargeTexte').textContent=t||'Analyse…'; $('chargement').style.display='flex' }
+const chargeOff=()=>{ $('chargement').style.display='none' }
+
+async function analyser(){
+  const chemin=$('chemin').value.trim(); if(!chemin)return
+  chargeOn('Analyse du document…')
+  try{
+    if(S.kind==='imprime'){
+      const {pages}=await api('/api/pdf-info?path='+encodeURIComponent(chemin)); S.total=pages
+      $('total').textContent=pages?`/ ${pages}`:''; $('a').value=Math.min(pages||1,($('de').valueAsNumber||1)+9)
+      // Extraction AUTOMATIQUE des métadonnées (pdfinfo + OCR de la page de titre).
+      chargeOn('Lecture de la page de titre…')
+      const r=await api('/api/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin})})
+      remplirMeta(r.meta); $('main').classList.remove('meta-replie'); $('metaToggle').textContent='‹'; planifierSave()
+      // Choix AUTOMATIQUE du moteur adapté à ce livre (imprimé ancien à s long → Kraken).
+      const anc=r.typographie?.ancien; $('typo').value=anc?'ancien':'moderne'
+      etat(`PDF : ${pages} pages — métadonnées extraites. Moteur : ${anc?'imprimé ANCIEN (s long → Kraken)':'moderne (Tesseract)'} — ${r.typographie?.raison||''}. Lance « OCR cette page ».`)
+    } else {
+      S.total=1; $('total').textContent=''; etat('image prête — « OCR cette page ».')
+    }
+  }catch(e){ etat('erreur : '+e.message) }
+  finally{ chargeOff() }
+}
+
+async function ocr(n){
+  const chemin=$('chemin').value.trim(); if(!chemin)throw new Error('chemin manquant')
+  if(S.kind==='imprime' && $('bilingue').checked){
+    const r=await api('/api/atelier/ocr-bilingue',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({pdfWin:chemin,page:n,offset:Number($('offset').value),dpi:300})})
+    S.pages[n]={ pngUrl:r.pngUrl, largeur:r.largeur, hauteur:r.hauteur, bilingue:true, ocr:r.ocr,
+      langueFr:r.langueFr, langueLa:r.langueLa,
+      lignes:(r.lignesFr||[]).map(l=>({bbox:l.bbox, dip:l.texte})),
+      paires:(r.paires||[]).map(p=>({paragraphe:p.paragraphe, fr:p.fr, la:p.la})) }
+    return S.pages[n]
+  }
+  const ancien=$('typo') && $('typo').value==='ancien' // imprimé d'Ancien Régime → Kraken CATMuS-Print
+  const pre=$('p_utiliser')&&$('p_utiliser').checked ? collecterPretraitement() : null // OFF par défaut
+  const corps=S.kind==='imprime'
+    ? {kind:'imprime',pdfWin:chemin,page:n,dpi:300,lang:'fra',moteur:ancien?'kraken-print':'tesseract',pretraitement:pre}
+    : {kind:'manuscrit',imageWin:chemin}
+  const r=await api('/api/atelier/ocr',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(corps)})
+  S.pages[n]={ pngUrl:r.pngUrl, largeur:r.largeur, hauteur:r.hauteur, ocr:r.ocr,
+    lignes:(r.lignes||[]).map(l=>({bbox:l.bbox, confiance:l.confiance, ocr0:l.texte, dip:l.texte, dev:l.texte, mod:''})) }
+  return S.pages[n]
+}
+
+// Titre courant / n° de page — mêmes règles qu'à l'export (projet.mjs::estEntete). Conservateur.
+function estEnteteC(t){ const s=(t||'').trim()
+  if(!s) return true
+  if(/^[_—–\-\s.]*\d{1,4}[_—–\-\s.]*$/.test(s)) return true
+  if(/^\d{0,4}\s*[A-ZÀ-Þ][A-ZÀ-Þ'’ .-]{2,24}\d{0,4}$/.test(s)) return true
+  if(/digitized by google/i.test(s)) return true
+  return false
+}
+
+function rendre(){
+  const pg=S.pages[S.page]
+  const holder=$('imgHolder'), vl=$('lignes')
+  const multiPages=(S.kind==='imprime')||((S.total||1)>1) // un PDF a toujours des pages
+  $('navPrec').style.display=$('navSuiv').style.display=multiPages?'block':'none'
+  if(!pg){ holder.innerHTML='<div class="vide">Pas encore d\'OCR pour cette page.</div>'; vl.innerHTML='<div class="vide">—</div>'; return }
+  // Image + boîtes. L'image est mise à l'échelle pour TENIR dans la hauteur du volet (pas de défilement).
+  holder.innerHTML=''
+  const scene=document.createElement('div'); scene.className='scene'
+  const img=document.createElement('img'); img.src=pg.pngUrl
+  scene.appendChild(img); holder.appendChild(scene)
+  img.onload=()=>{ const dispo=$('voletImage').clientHeight-24; if(dispo>120) img.style.maxHeight=dispo+'px'
+    const sx=img.clientWidth/pg.largeur, sy=img.clientHeight/pg.hauteur
+    pg.lignes.forEach((l,i)=>{ if(!l.bbox)return; const [x,y,w,h]=l.bbox
+      const b=document.createElement('div'); b.className='box'; b.dataset.i=i
+      b.style.left=(x*sx)+'px'; b.style.top=(y*sy)+'px'; b.style.width=(w*sx)+'px'; b.style.height=(h*sy)+'px'
+      b.onclick=()=>{ const inp=vl.querySelector(`input[data-i="${i}"]`); if(inp){inp.focus();} }
+      scene.appendChild(b) }) }
+  // Bilingue : paragraphes appariés (n° | français | latin), éditables.
+  if(pg.bilingue){
+    vl.innerHTML=''
+    const h=document.createElement('div'); h.className='bihead'
+    h.textContent=`Bilingue — page: ${pg.langueFr}, en regard: ${pg.langueLa} · ${pg.paires.length} paragraphes appariés`
+    vl.appendChild(h)
+    pg.paires.forEach((pr,i)=>{
+      const row=document.createElement('div'); row.className='paire'
+      const num=document.createElement('div'); num.className='pnum'; num.textContent=(pr.paragraphe!=null)?pr.paragraphe:('¶'+(i+1))
+      const fr=document.createElement('textarea'); fr.className='pfr'; fr.value=pr.fr||''; fr.oninput=()=>{pr.fr=fr.value; planifierSave()}
+      const la=document.createElement('textarea'); la.className='pla'; la.value=pr.la||''; la.oninput=()=>{pr.la=la.value; planifierSave()}
+      row.appendChild(num); row.appendChild(fr); row.appendChild(la); vl.appendChild(row)
+    })
+    return
+  }
+  // Repérage des titres courants : ligne du HAUT et du BAS (mêmes règles qu'à l'export).
+  const avec=pg.lignes.map((l,i)=>({l,i})).filter(x=>Array.isArray(x.l.bbox))
+  let topI=-1, botI=-1
+  if(avec.length){
+    topI=avec.reduce((a,b)=> b.l.bbox[1]<a.l.bbox[1]?b:a).i
+    botI=avec.reduce((a,b)=> (b.l.bbox[1]+b.l.bbox[3])>(a.l.bbox[1]+a.l.bbox[3])?b:a).i
+  }
+  // Texte de la couche courante, éditable
+  vl.innerHTML=''
+  pg.lignes.forEach((l,i)=>{ const row=document.createElement('div'); row.className='lg'; row.dataset.i=i
+    const txt=l[S.couche]||''
+    const doute=(l.confiance!=null && l.confiance<SEUIL_DOUTE)
+    const estTitre=!!(l.titre && l.titre.niveau)
+    const entete=!estTitre && (i===topI||i===botI) && estEnteteC(txt)
+    if(doute) row.classList.add('doute')
+    if(entete) row.classList.add('entete')
+    if(estTitre) row.classList.add('titre')
+    const num=document.createElement('div'); num.className='num'; num.textContent=i+1
+    if(doute) num.title='à revoir (confiance '+Math.round(l.confiance*100)+' %)'
+    const inp=document.createElement('input'); inp.dataset.i=i; inp.value=txt
+    inp.oninput=()=>{ l[S.couche]=inp.value; if(l.titre) l.titre.texte=inp.value; planifierSave() }
+    inp.onfocus=()=>{ document.querySelectorAll('.box.actif,.lg.actif').forEach(e=>e.classList.remove('actif'))
+      row.classList.add('actif'); const box=$('voletImage').querySelector(`.box[data-i="${i}"]`)
+      if(box){box.classList.add('actif'); box.scrollIntoView({block:'center',behavior:'smooth'})} }
+    row.appendChild(num); row.appendChild(inp)
+    if(entete){ const tag=document.createElement('div'); tag.className='tagtc'; tag.textContent='titre courant'
+      tag.title='Titre courant / n° de page — exclu de l\'export'; row.appendChild(tag) }
+    // Sélecteur de niveau de titre : « — » (texte courant) ou Titre 1..5 (Livre, Prose…).
+    const niv=document.createElement('select'); niv.className='niv'; niv.title='Marquer cette ligne comme titre de structure (ref_niv). « — » = texte normal.'
+    niv.innerHTML='<option value="0">—</option>'+[1,2,3,4,5].map(k=>`<option value="${k}">T${k}</option>`).join('')
+    niv.value=String(estTitre?l.titre.niveau:0)
+    niv.onchange=()=>{ const k=+niv.value; if(k){ l.titre={niveau:k, texte:inp.value} } else { delete l.titre } planifierSave(); rendre() }
+    row.appendChild(niv)
+    vl.appendChild(row) })
+}
+
+$('onglets').onclick=e=>{ const b=e.target.closest('button'); if(!b)return
+  S.couche=b.dataset.c; $('onglets').querySelectorAll('button').forEach(x=>x.classList.toggle('actif',x===b)); rendre() }
+
+$('btnAnalyser').onclick=analyser
+$('ocrPage').onclick=async()=>{ assurerNomProjet(); S.arret=false; S.page=$('page').valueAsNumber||1; etat('OCR page '+S.page+'…'); $('stop').disabled=false; chargeOn('OCR page '+S.page+'…')
+  try{ await ocr(S.page); marquerEtat(S.page,'termine'); rendre(); etat('page '+S.page+' : '+S.pages[S.page].lignes.length+' lignes'); await sauver(true) }
+  catch(e){ if(!S.arret){ marquerEtat(S.page,'erreur',e.message); journaliser(S.page,e.message); await sauver(true) } rendre(); etat(S.arret?'Arrêté.':'échec : '+e.message) }
+  finally{ $('stop').disabled=true; chargeOff() } }
+// Naviguer d'une page à l'autre (scan + texte). Si la page n'est pas encore océrisée, on l'OCRise.
+async function allerPage(n){
+  if(n<1 || (S.total && n>S.total)) return
+  S.page=n; $('page').value=n
+  if(S.pages[n] && S.pages[n].lignes){ rendre(); etat('page '+n); return } // déjà océrisée → simple affichage
+  assurerNomProjet(); S.arret=false; $('stop').disabled=false; chargeOn('OCR page '+n+'…')
+  try{ await ocr(n); marquerEtat(n,'termine'); rendre(); etat('page '+n+' : '+S.pages[n].lignes.length+' lignes'); await sauver(true) }
+  catch(e){ if(!S.arret){ marquerEtat(n,'erreur',e.message); journaliser(n,e.message); await sauver(true) } rendre(); etat(S.arret?'Arrêté.':'échec : '+e.message) }
+  finally{ $('stop').disabled=true; chargeOff() }
+}
+$('prec').onclick=()=>allerPage(S.page-1)
+$('suiv').onclick=()=>allerPage(S.page+1)
+$('navPrec').onclick=()=>allerPage(S.page-1)
+$('navSuiv').onclick=()=>allerPage(S.page+1)
+$('page').onchange=()=>allerPage($('page').valueAsNumber||1)
+
+// OCR d'un lot. Persistance APRÈS CHAQUE page → reprise garantie (au pire, une page perdue).
+// `cibles` = liste explicite (relancer les erreurs) ; sinon on prend la plage en SAUTANT les faites.
+async function ocrDocument(cibles){
+  assurerNomProjet()
+  const de=$('de').valueAsNumber||1, a=$('a').valueAsNumber||de
+  const liste = cibles || pagesATraiter(de,a) // reprise automatique : on saute les pages « terminé »
+  if(!liste.length){ etat('Rien à traiter : toutes les pages de la plage sont déjà faites.'); majProgres(de,a); return }
+  S.arret=false; $('stop').disabled=false; $('ocrDoc').disabled=true; $('ocrPage').disabled=true; $('btnRelancerErr').disabled=true
+  majProgres(de,a); let ok=0, ko=0, i=0
+  try{
+    for(const n of liste){ if(S.arret) break; i++
+      etat(`OCR document — page ${n} (${i}/${liste.length})…`); chargeOn(`OCR document — page ${n} (${i}/${liste.length})…`)
+      try{ await ocr(n); marquerEtat(n,'termine'); ok++ }
+      catch(e){ if(S.arret) break; marquerEtat(n,'erreur',e.message); journaliser(n,e.message); ko++ }
+      S.page=n; $('page').value=n; rendre()
+      await sauver(true)          // ← persistance immédiate
+      majProgres(de,a)
+    }
+  } finally {
+    $('stop').disabled=true; $('ocrDoc').disabled=false; $('ocrPage').disabled=false; $('btnRelancerErr').disabled=false; chargeOff(); majProgres(de,a)
+  }
+  etat(S.arret ? `Arrêté — ${ok} page(s) faite(s) ; « OCR document » reprend là où on s'est arrêté.` : `Terminé — ${ok} page(s), ${ko} erreur(s).`)
+}
+$('ocrDoc').onclick=()=>ocrDocument(null)
+$('btnRelancerErr').onclick=()=>ocrDocument(pagesEnErreur())
+
+// ── Prétraitement expérimental + comparaison A/B ─────────────────────────────
+function collecterPretraitement(){
+  const p={ gris:$('p_gris').checked, contraste:$('p_contraste').checked, deskew:$('p_deskew').checked,
+    binariser:$('p_binariser').checked, debruiter:$('p_debruiter').checked, rogner:$('p_rogner').checked, demiPage:$('p_demi').value||undefined }
+  return (p.gris||p.contraste||p.deskew||p.binariser||p.debruiter||p.rogner||p.demiPage) ? p : null
+}
+async function comparer(){
+  const chemin=$('chemin').value.trim(); if(!chemin){ etat('choisis d\'abord un fichier'); return }
+  if(S.kind!=='imprime'){ etat('la comparaison est prévue pour l\'imprimé (PDF)'); return }
+  const pre=collecterPretraitement(); if(!pre){ etat('coche au moins une option de prétraitement à comparer'); return }
+  const n=$('page').valueAsNumber||1
+  const moteur=($('typo')&&$('typo').value==='ancien')?'kraken-print':'tesseract'
+  chargeOn('Comparaison page '+n+' (2 OCR)…')
+  try{
+    const r=await api('/api/atelier/comparer',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({pdfWin:chemin,page:n,dpi:300,lang:'fra',moteur,pretraitement:pre})})
+    const o=r.original, p=r.pretraite
+    const verdict=(p.confMoy!=null&&o.confMoy!=null)?(p.confMoy>o.confMoy?'✅ AMÉLIORE':(p.confMoy<o.confMoy?'⚠ DÉGRADE':'≈ égal')):''
+    $('compHint').textContent=`confiance moy : original ${o.confMoy} · prétraité ${p.confMoy} — ${verdict} (indice ; vérifie à l'œil)`
+    $('compTeteA').textContent=`ORIGINAL — ${o.nbLignes} lignes, confiance ${o.confMoy}`
+    $('compTeteB').textContent=`PRÉTRAITÉ — ${p.nbLignes} lignes, confiance ${p.confMoy}`
+    $('compTexteA').textContent=o.texte; $('compTexteB').textContent=p.texte
+    $('comparateur').style.display='block'; etat('comparaison affichée')
+  }catch(e){ etat('comparaison échouée : '+e.message) }
+  finally{ chargeOff() }
+}
+$('btnComparer').onclick=comparer
+$('compFermer').onclick=()=>{ $('comparateur').style.display='none' }
+// Redimensionnement de la fenêtre : on recalcule l'échelle de l'image et des boîtes.
+let tResize; window.addEventListener('resize',()=>{ clearTimeout(tResize); tResize=setTimeout(()=>{ if(S.pages[S.page]) rendre() },150) })
+// « Arrêter » : marque l'arrêt côté client ET tue l'OCR WSL en cours côté serveur.
+$('stop').onclick=async()=>{ S.arret=true; try{ await api('/api/atelier/stop',{method:'POST'}) }catch{} }
+
+// ── Persistance & export ────────────────────────────────────────────────────
+function projetActuel(){ return { kind:S.kind, chemin:$('chemin').value.trim(), page:S.page, total:S.total, pages:S.pages, meta:collecterMeta(), journal:S.journal||[] } }
+// Champs = colonnes de la table `oeuvres` du site (correspondance exacte).
+const CHAMPS_META=['auteur','titre','sous_titre','titre_original','langue_originale','langue_trad','trad_auteur','editeur','collection','ville','date_publication','date_composition','genre']
+const vMeta=c=>$('m_'+c).value.trim()||null
+function collecterMeta(){ const o={}; CHAMPS_META.forEach(c=>o[c]=vMeta(c)); return o }
+function remplirMeta(m){ if(!m)return
+  // Compat. anciens projets : traducteur→trad_auteur, lieu→ville, date_edition→date_publication.
+  const compat={ ...m, trad_auteur:m.trad_auteur??m.traducteur, ville:m.ville??m.lieu,
+    date_publication:m.date_publication??m.date_edition,
+    langue_originale:m.langue_originale??((m.langues||[]).find(l=>/lat|grec/i.test(l))||null) }
+  CHAMPS_META.forEach(c=>{ $('m_'+c).value=compat[c]||'' }) }
+// Parcourir = sélecteur NATIF du navigateur (fiable, dans la session de l'utilisateur),
+// puis téléversement des octets. Le glisser-déposer emprunte le même chemin.
+function parcourir(){ $('fichierLocal').click() }
+async function televerser(file){
+  if(!file) return
+  etat('téléversement de '+file.name+'…')
+  try{
+    const r=await fetch('/api/televerser?nom='+encodeURIComponent(file.name),{method:'POST',body:file})
+    const j=await r.json(); if(!r.ok) throw new Error(j.erreur||r.statusText)
+    $('chemin').value=j.chemin
+    // Nature devinée : image → manuscrit (Kraken) ; PDF → imprimé (Tesseract). Modifiable.
+    const estImg=/\.(png|jpe?g|tiff?|webp)$/i.test(j.nom||file.name)
+    $('kind').value=estImg?'manuscrit':'imprime'; $('kind').onchange()
+    etat('fichier reçu : '+j.nom); analyser()
+  }catch(e){ etat('échec du téléversement : '+e.message) }
+}
+$('fichierLocal').onchange=e=>{ televerser(e.target.files[0]); e.target.value='' };
+// Glisser-déposer (fenêtre entière) : surbrillance via un compteur, dépôt → téléversement.
+let dragN=0;
+function aDesFichiers(e){ return e.dataTransfer && Array.from(e.dataTransfer.types||[]).includes('Files') }
+window.addEventListener('dragenter',e=>{ if(aDesFichiers(e)){ e.preventDefault(); dragN++; $('drop').style.display='flex' } });
+window.addEventListener('dragover',e=>{ if(aDesFichiers(e)) e.preventDefault() });
+window.addEventListener('dragleave',()=>{ dragN=Math.max(0,dragN-1); if(!dragN) $('drop').style.display='none' });
+window.addEventListener('drop',e=>{ dragN=0; $('drop').style.display='none';
+  if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files.length){ e.preventDefault(); televerser(e.dataTransfer.files[0]) } });
+async function extraireMeta(){ const chemin=$('chemin').value.trim(); if(!chemin){ $('etatMeta').textContent='choisis d\'abord un fichier'; return }
+  $('main').classList.remove('meta-replie'); $('metaToggle').textContent='‹' // déplier si besoin
+  $('etatMeta').textContent='extraction (pdfinfo + page de titre)…'; chargeOn('Lecture de la page de titre…')
+  try{ const r=await api('/api/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin})})
+    remplirMeta(r.meta); $('etatMeta').textContent='✓ à relire/compléter'; planifierSave() }
+  catch(e){ $('etatMeta').textContent='échec : '+e.message }
+  finally{ chargeOff() } }
+// Replier / déplier la colonne des métadonnées.
+$('metaToggle').onclick=()=>{ const replie=$('main').classList.toggle('meta-replie')
+  $('metaToggle').textContent=replie?'›':'‹'; $('metaToggle').title=replie?'Afficher les métadonnées':'Replier les métadonnées' }
+$('btnParcourir').onclick=parcourir
+$('btnMeta').onclick=extraireMeta
+;[...document.querySelectorAll('#metaCorps input')].forEach(i=>i.oninput=planifierSave)
+let tSave
+function planifierSave(){ if(!$('projet').value.trim())return; clearTimeout(tSave); tSave=setTimeout(()=>sauver(true),1200) }
+async function sauver(auto){
+  const nom=$('projet').value.trim(); if(!nom){ if(!auto)$('etatSave').textContent='donne un nom de projet'; return }
+  try{ await api('/api/projet/save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel()})})
+    $('etatSave').textContent='enregistré '+new Date().toLocaleTimeString() }
+  catch(e){ $('etatSave').textContent='échec : '+e.message }
+}
+async function listerProjets(){ try{ const {projets}=await api('/api/projet/list')
+  $('listeProjets').innerHTML='<option value="">—</option>'+projets.map(p=>`<option>${p}</option>`).join('') }catch{} }
+async function ouvrirProjet(nom){
+  const {projet}=await api('/api/projet/load?nom='+encodeURIComponent(nom))
+  S.kind=projet.kind||'imprime'; $('kind').value=S.kind; $('chemin').value=projet.chemin||''
+  S.pages=projet.pages||{}; S.total=projet.total||null; S.journal=projet.journal||[]
+  S.page=projet.page||Object.keys(S.pages).map(Number).sort((a,b)=>a-b)[0]||1
+  $('page').value=S.page; $('projet').value=nom; $('onglets').style.display=(S.kind==='manuscrit')?'flex':'none'
+  $('lblTypo').style.display=(S.kind==='imprime')?'flex':'none'
+  remplirMeta(projet.meta)
+  // Reprise : la plage couvre tout l'ouvrage connu ; la progression reflète l'état réel sur disque.
+  const maxP=Math.max(S.total||0, ...Object.keys(S.pages).map(Number), 1)
+  $('de').value=1; $('a').value=maxP; majProgres(1,maxP); majValidees()
+  rendre(); const {fait,err}=compterEtats(1,maxP); etat(`projet « ${nom} » chargé — ${fait} page(s) faite(s), ${err} en erreur. « OCR document » reprend.`)
+}
+$('btnSave').onclick=()=>sauver(false)
+$('listeProjets').onchange=()=>{ const n=$('listeProjets').value; if(n)ouvrirProjet(n) }
+$('btnExport').onclick=async()=>{
+  const nom=$('projet').value.trim()||'export'; $('etatExport').textContent='export (DOCX + SQL + JSON + TXT + Markdown)…'
+  try{ const r=await api('/api/export',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({nom,projet:projetActuel(),id_oeuvre:$('idoeuvre').value.trim()||null,recenserNotes:$('chkNotes').checked})})
+    const f=r.fichiers||{}; $('etatExport').textContent=`✓ ${r.nbSegments} segments → ${nom} .docx + .supabase.sql + .json + .txt + .md (dossier exports/)` }
+  catch(e){ $('etatExport').textContent='échec : '+e.message }
+}
+$('btnExportXml').onclick=async()=>{
+  const nom=$('projet').value.trim()||'export'; $('etatExport').textContent='export ALTO / PAGE…'
+  try{ const r=await api('/api/export/xml',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel(),couche:S.couche})})
+    $('etatExport').textContent=r.nbPages?`✓ ALTO + PAGE : ${r.nbPages} page(s), ${r.nbLignes} ligne(s) → exports/${nom}-xml/`:'aucune page océrisée à exporter' }
+  catch(e){ $('etatExport').textContent='échec : '+e.message }
+}
+// ── Données d'entraînement Kraken : valider une page relue + exporter les corrections ─────────
+function majValidees(){ const n=Object.keys(S.pages).filter(k=>S.pages[k]?.valide).length; $('nbValidees').textContent=n?`${n} validée(s)`:'' }
+$('btnValider').onclick=()=>{ const n=S.page, pg=S.pages[n]
+  if(!pg||!pg.lignes||!pg.lignes.length){ etat('rien à valider : page pas encore océrisée'); return }
+  pg.valide=true; majValidees(); sauver(true); etat(`page ${n} validée — bonne pour l'entraînement`) }
+$('btnExportEntr').onclick=async()=>{ const nom=$('projet').value.trim()||'entrainement'; $('etatExport').textContent='export entraînement…'
+  try{ const r=await api('/api/export/entrainement',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel()})})
+    $('etatExport').textContent=r.nbPages?`✓ entraînement : ${r.nbPages} page(s), ${r.nbLignes} ligne(s) (${r.nbCorrigees} corrigées) → exports/entrainement/${nom}/`:'aucune page validée — clique « ✓ Valider la page » d\'abord' }
+  catch(e){ $('etatExport').textContent='échec : '+e.message } }
+listerProjets()
+
+// Pré-vol : vérifier que les moteurs sont là, sinon prévenir clairement (plutôt qu'un
+// stderr brut au premier OCR). WSL est requis ; Tesseract sert l'imprimé, Kraken le manuscrit.
+async function preVol(){
+  try{ const d=await api('/api/doctor'); const o=d.outils||{}
+    const manques=[]
+    if(!o.wsl?.present) manques.push('WSL (indispensable)')
+    if(!o.tesseract?.present) manques.push('Tesseract (imprimé)')
+    if(!o.kraken?.present) manques.push('Kraken (manuscrit)')
+    if(manques.length){ const g=$('diag'); g.style.display='flex'
+      g.textContent='⚠ Outils manquants : '+manques.join(' · ')+' — installe-les (scripts/installer-wsl.sh) avant d’océriser.' }
+  }catch{ /* doctor indisponible : on n’empêche rien */ }
+}
+preVol()
+</script>
+</body>
+</html>

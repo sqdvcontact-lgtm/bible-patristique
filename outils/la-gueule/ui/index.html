@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>La Gueule</title>
+<link rel="icon" type="image/png" href="/logo.png" />
+<style>
+  :root{--fond:#f7f3ea;--surface:#fffdf8;--encre:#2b2620;--second:#6b6155;--bord:#d9ccb4;--vert:#5a7260;--rouge:#a8382c}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fond);color:var(--encre);font-family:"Segoe UI",system-ui,sans-serif;font-size:14px}
+  header .logo{height:44px;width:44px;display:block}
+  header{padding:18px 24px;border-bottom:1px solid var(--bord);background:var(--surface);display:flex;align-items:center;gap:14px}
+  header h1{margin:0;font-family:Georgia,serif;font-weight:500;font-size:20px}
+  header .sous{color:var(--second);font-style:italic;font-size:12.5px}
+  main{max-width:760px;margin:0 auto;padding:24px}
+  .carte{background:var(--surface);border:1px solid var(--bord);border-radius:8px;padding:16px 18px;margin-bottom:18px}
+  .carte h2{margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--second);font-weight:700}
+  .doctor{display:flex;gap:8px 16px;flex-wrap:wrap;font-size:12.5px}
+  .puce{display:inline-flex;align-items:center;gap:6px}
+  .ok{color:var(--vert)} .absent{color:#b09a76}
+  .note{color:var(--second);font-size:12px;font-style:italic}
+  .cta{display:inline-block;margin-top:4px;background:var(--vert);color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600}
+  .alerte{color:var(--rouge);font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <img class="logo" src="/logo.png" alt="La Gueule" />
+  <h1>La Gueule</h1>
+  <span class="sous">atelier d'océrisation local — brouillons candidats, jamais du texte validé (charte §14)</span>
+</header>
+<main>
+  <div class="carte">
+    <h2>Environnement</h2>
+    <div id="doctor" class="doctor"><span class="note">diagnostic…</span></div>
+  </div>
+  <div class="carte">
+    <h2>Atelier</h2>
+    <p class="note" style="margin:0 0 8px">Dépose un PDF ou une image, océrise, corrige ligne à ligne, exporte (DOCX + SQL Supabase + JSON candidat).</p>
+    <a class="cta" href="/atelier.html">→ Ouvrir l'atelier de relecture</a>
+  </div>
+</main>
+<script>
+const $=id=>document.getElementById(id)
+async function doctor(){
+  try{ const r=await fetch('/api/doctor'); const d=await r.json()
+    const puce=(n,o)=>`<span class="puce ${o.present?'ok':'absent'}">${o.present?'✓':'○'} ${n}${o.detail?' ('+o.detail+')':''}</span>`
+    $('doctor').innerHTML=`<span class="puce ok">✓ node ${d.node}</span>`+Object.entries(d.outils).map(([n,o])=>puce(n,o)).join('')
+  }catch(e){ $('doctor').innerHTML=`<span class="alerte">diagnostic impossible : ${e.message}</span>` }
+}
+doctor()
+</script>
+</body>
+</html>
