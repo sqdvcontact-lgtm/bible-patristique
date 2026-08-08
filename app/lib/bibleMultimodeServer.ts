@@ -7,6 +7,7 @@ import {
   isMissingReadingCapabilitiesRelation,
   preferredLayerForMode,
   readingCapabilitiesByTranslation,
+  withEditorialVerseCapability,
   type NativeDivisionRow,
   type ReadingCapabilityRow,
   type SourceUnitTextRow,
@@ -27,9 +28,12 @@ export type SourceReadingPayload = {
 }
 
 export async function loadBibleReadingCatalog(client: SupabaseClient): Promise<BibleReadingCatalog> {
-  const [capabilitiesResult, sampleResult] = await Promise.all([
+  const [capabilitiesResult, sampleResult, editorialVerseResult] = await Promise.all([
     client.from('v_bible_reading_capabilities').select('*').order('display_order'),
     client.from('versets_lecture').select('*').limit(1),
+    // Traductions dont les versets canoniques sont recomposés hors `versets_lecture`
+    // (TR0009, Bible 899). Site privé : lues telles quelles, sans filtre is_public.
+    client.from('v_bible899_verse_recomposed').select('trad_id').not('canon_id', 'is', null),
   ])
   if (capabilitiesResult.error && !isMissingReadingCapabilitiesRelation(capabilitiesResult.error)) {
     throw new Error(`Capacités de lecture illisibles: ${capabilitiesResult.error.message}`)
@@ -41,9 +45,15 @@ export async function loadBibleReadingCatalog(client: SupabaseClient): Promise<B
   const canonicalIds = canonicalTranslationIdsFromSample(
     ((sampleResult.data ?? [])[0] as Record<string, unknown> | undefined) ?? null,
   )
+  const editorialVerseIds = editorialVerseResult.error
+    ? []
+    : [...new Set(((editorialVerseResult.data ?? []) as { trad_id: string }[]).map((row) => row.trad_id))]
   return {
     rows,
-    capabilities: readingCapabilitiesByTranslation(rows, canonicalIds),
+    capabilities: withEditorialVerseCapability(
+      readingCapabilitiesByTranslation(rows, canonicalIds),
+      editorialVerseIds,
+    ),
   }
 }
 

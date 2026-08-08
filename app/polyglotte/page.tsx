@@ -27,6 +27,7 @@ import { ABREV_FR } from "@/app/lib/bible";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 import ModalSignalement from "@/app/components/ModalSignalement";
 import { useCompte } from "@/app/lib/contexteCompte";
+import { aRevoir899, chargerVersets899, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
 
 type Livre = { code: string; nom_fr: string; ordre: number };
 type Trad = { trad_id: string; nom: string; ordre: number | null; label: string; edition: string | null; lang: string };
@@ -58,7 +59,7 @@ function editionTrad(t: { source_edition?: string | null; publication_fin_annee?
 }
 type Point = { livre: string | null; reference: string | null; type: string | null; description: string | null; statut: string | null; notes: string | null };
 type CanonRow = { id: string; livre: string; ch_canon: number; v_canon: number; est_suscription: boolean };
-type V2Row = { id: string; canon_id: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null };
+type V2Row = { id: string; canon_id: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null; estLacune899?: boolean };
 
 // ── Passages que toutes les traditions ne reçoivent pas ────────────────────────────────
 // Une case vide n'a pas toujours le même sens. Le plus souvent elle signale un travail en
@@ -510,6 +511,9 @@ export default function PolyglottePage() {
   const [points, setPoints] = useState<Point[]>([]);
   const [onglet, setOnglet] = useState<Onglet | null>(null);   // la page s'ouvre vide : on choisit un ensemble
   const [slots, setSlots] = useState<string[]>([]);
+  // Couche textuelle de TR0009 (Bible 899) recomposée dans sa colonne : abréviations
+  // développées (défaut) ou transcription diplomatique du manuscrit.
+  const [couche899, setCouche899] = useState<Couche899>("expanded");
   // Nombre de colonnes tenant à l'écran (mesuré), et conteneur du tableau observé.
   const [maxSlots, setMaxSlots] = useState(NB_SLOTS);
   // Préférence utilisateur du nombre de traductions visibles (null = automatique, selon
@@ -709,6 +713,13 @@ export default function PolyglottePage() {
       liste.forEach((t, i) => {
         if (comptes[i] > 0) migres.push({ trad_id: t.trad_id, nom: t.nom, ordre: t.ordre, label: libelleTrad(t), edition: editionTrad(t), lang: codeLangue((t as { langue?: string | null }).langue) });
       });
+      // TR0009 (Bible 899) n'est pas migrée dans `versets_v2` : son texte est recomposé
+      // à la volée depuis les tables éditoriales (colonne synthétique). On l'ajoute donc
+      // explicitement, comme n'importe quelle autre traduction comparable.
+      const t899 = liste.find(t => t.trad_id === TRAD_ID_BIBLE899);
+      if (t899 && !migres.some(m => m.trad_id === TRAD_ID_BIBLE899)) {
+        migres.push({ trad_id: TRAD_ID_BIBLE899, nom: t899.nom, ordre: t899.ordre, label: libelleTrad(t899), edition: editionTrad(t899), lang: codeLangue((t899 as { langue?: string | null }).langue) });
+      }
       setTrads(migres);
       // Choix des colonnes : celui que l'utilisateur a laissé la dernière fois (localStorage),
       // sinon par défaut les quatre premières traductions distinctes. On ne retient d'un choix
@@ -799,8 +810,32 @@ export default function PolyglottePage() {
         q => { const x = q.in("livre", codes).in("trad_id", tradIds); return chScope != null ? x.like("canon_id", `${codes[0]}.${chScope}.%`) : x; }),
     ]);
     c.sort((a, b) => (ordreDe.get(a.livre)! - ordreDe.get(b.livre)!) || (a.ch_canon - b.ch_canon) || (a.v_canon - b.v_canon));
-    setCanon(c); setV2(vv);
-  }, [livresAffiches, slots, ordreDe, chapitreChoisi, toutAfficher, sensiblesOnly, surnumOnly]);
+    // Colonne synthétique TR0009 (Bible 899) : texte recomposé en direct des tables
+    // éditoriales, aligné sur canon_id, sans copie vers versets_v2. Les lacunes du
+    // manuscrit (CANONICAL_GAP) sont conservées ; les matières hors canon (MANUSCRIPT_EXTRA)
+    // n'ont pas de canon_id et sont naturellement écartées par `chargerVersets899`.
+    let toutesLignes = vv;
+    if (tradIds.includes(TRAD_ID_BIBLE899)) {
+      const parLivre899 = await Promise.all(codes.map(code => chargerVersets899(supabase, { livre: code, chapitre: chScope })));
+      const rows899: V2Row[] = parLivre899.flat().map(l => {
+        const lacune = rendu899(l) === "lacune";
+        return {
+          id: `899:${l.canon_id}`,
+          canon_id: l.canon_id,
+          livre: l.livre ?? "",
+          trad_id: TRAD_ID_BIBLE899,
+          ch_orig: l.chapitre ?? 0,
+          v_orig: l.verset ?? 0,
+          v_orig_suffixe: null,
+          texte: lacune ? null : texteCouche899(l, couche899),
+          notes: aRevoir899(l) ? "Alignement à revoir" : null,
+          estLacune899: lacune,
+        };
+      });
+      toutesLignes = [...vv, ...rows899];
+    }
+    setCanon(c); setV2(toutesLignes);
+  }, [livresAffiches, slots, ordreDe, chapitreChoisi, toutAfficher, sensiblesOnly, surnumOnly, couche899]);
   useEffect(() => { charger(); }, [charger]);
 
   // Charge les citations déjà enregistrées par l'utilisateur pour le(s) livre(s) affiché(s),
@@ -1114,6 +1149,26 @@ export default function PolyglottePage() {
               })}
             </div>
           </div>
+          {/* TR0009 (Bible 899) : choix de la couche textuelle, seulement si la colonne est affichée. */}
+          {slots.includes(TRAD_ID_BIBLE899) && (
+            <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
+              <span style={{ display: "block", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-doux)", marginBottom: "5px" }}>Bible 899 · texte</span>
+              <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                {([["Développée", "expanded"], ["Diplomatique", "diplomatic"]] as [string, Couche899][]).map(([lbl, val]) => {
+                  const actif = couche899 === val;
+                  return (
+                    <button key={val} onClick={() => setCouche899(val)}
+                      title={val === "expanded" ? "Abréviations développées" : "Transcription diplomatique du manuscrit"}
+                      style={{ fontSize: "0.62rem", fontWeight: actif ? 600 : 400, padding: "2px 9px", borderRadius: "999px", cursor: "pointer",
+                        border: `1px solid ${actif ? VERT : "var(--cs-bord)"}`, background: actif ? "rgba(var(--cs-vert-rgb),0.10)" : "#fff", color: actif ? VERT : "var(--cs-texte-second)",
+                        fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+                      {lbl}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
             <NavLivres
               livres={livresNav}
@@ -1396,6 +1451,9 @@ export default function PolyglottePage() {
                         // porte. Clé de citation étendue au nom d'édition pour que chaque colonne
                         // ait son propre état « enregistré ».
                         const texteCell = cs.map(c => c.texte).filter(Boolean).join(" ");
+                        // TR0009 : une lacune du manuscrit se rend « [lacune du manuscrit] », sans
+                        // lettrine ni actions (rien à citer), et non par la case « absente » générique.
+                        const lacuneCell = cs.length > 0 && cs[0]?.estLacune899 === true;
                         const cleCite = `${abr}|${r.ch_canon}|${r.v_canon}|${t.nom}`;
                         return (
                           <div key={i} className="poly-texte-cell" lang={t.lang} onCopy={copierSansCesuresGrecques}
@@ -1404,7 +1462,7 @@ export default function PolyglottePage() {
                                 le texte habille. Plusieurs versets de l'édition peuvent partager un
                                 créneau du canon — leurs numéros s'écrivent alors l'un sous l'autre,
                                 en tête du texte réuni. */}
-                            {cs.length > 0 && (
+                            {cs.length > 0 && !lacuneCell && (
                               <span className="poly-lettrine">
                                 {cs.map((c, k) => (
                                   <span key={k} className="poly-lettrine-item">
@@ -1418,7 +1476,7 @@ export default function PolyglottePage() {
                                           survol lui dit LAQUELLE. Rien n'est corrigé en silence. */}
                                       {c.notes ? <span title={c.notes} style={{ marginLeft: 3, color: "#7a6fae", cursor: "help", display: "inline-flex", verticalAlign: "middle" }}><IconeCrayon size={9} /></span> : null}
                                     </span>
-                                    {estAdmin && (
+                                    {estAdmin && t.trad_id !== TRAD_ID_BIBLE899 && (
                                       <button title="Modifier ce verset" aria-label="Modifier ce verset" className="poly-edit"
                                         onClick={() => { setCibleEdition({ id: c.id, texte: c.texte ?? "", reference: `${l.nom_fr} ${c.ch_orig}, ${c.v_orig}` }); setEnregistre("idle"); }}
                                         style={{ border: "none", cursor: "pointer", color: "#7a8f80", fontSize: '0.65625rem', lineHeight: 1, background: fond, transition: "color .15s" }}
@@ -1432,7 +1490,7 @@ export default function PolyglottePage() {
                               </span>
                             )}
                             {/* Citer / signaler cette traduction — au survol de la cellule. */}
-                            {cs.length > 0 && (
+                            {cs.length > 0 && !lacuneCell && (
                               <span className="poly-cellact" onClick={e => e.stopPropagation()}>
                                 <BoutonCiterVerset userId={userId} saved={prelevs.get(cleCite) ?? null} cle={cleCite} refLivre={l.nom_fr} refAbr={abr} chapitre={r.ch_canon} verset={r.v_canon} texte={texteCell} traductionLabel={t.nom} onSaved={marquerCite} onRemoved={retirerCite} />
                                 <BoutonSignalerVerset refLisible={refLisible} texte={texteCell} />
@@ -1440,6 +1498,8 @@ export default function PolyglottePage() {
                             )}
                             {cs.length === 0 ? (
                               <CelluleAbsente deutero={deuterocanonique(r.id)} />
+                            ) : lacuneCell ? (
+                              <span style={{ display: "block", textAlign: "center", fontStyle: "italic", color: "#9a958d", fontSize: "0.72rem", lineHeight: 1.35, padding: "3px 6px" }}>[lacune du manuscrit]</span>
                             ) : cs.map((c, k) => (
                               <span key={k}>{k > 0 ? " " : ""}{texteCesure(c.texte, t.lang)}</span>
                             ))}

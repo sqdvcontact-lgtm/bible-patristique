@@ -4,7 +4,9 @@ import BibleLayout from './components/BibleLayout'
 import BibleSourceReader from './components/BibleSourceReader'
 import { LIVRES } from '@/app/lib/bible'
 import { loadBibleReadingCatalog, loadSourceReading } from '@/app/lib/bibleMultimodeServer'
+import { estVerseEditorial } from '@/app/lib/bibleMultimode'
 import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleReadingModes'
+import { chargerVersets899, normaliserCouche899, texteCouche899 } from '@/app/lib/bible899'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
 // La base est désormais fermée au rôle anonyme : une page serveur doit
@@ -33,7 +35,7 @@ export async function generateMetadata({
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ livre?: string; chapitre?: string; trad?: string; mode?: string; division?: string }>
+  searchParams: Promise<{ livre?: string; chapitre?: string; trad?: string; mode?: string; division?: string; couche?: string }>
 }) {
   const params = await searchParams
   if (!params.livre && !params.chapitre && !params.trad) redirect('/accueil')
@@ -91,26 +93,49 @@ export default async function Home({
     )
   }
 
-  const { data: versets } = await supabase
-    // Vue de compatibilité canonique. Elle reste le chemin exclusif des éditions
-    // historiques et n'est jamais utilisée pour simuler un mode source.
-    .from('versets_lecture')
-    .select('*')
-    .eq('livre', livre)
-    .eq('chapitre', chapitre)
-    .order('verset')
+  // Deux origines pour le mode « verset », même contrat de données pour BibleLayout :
+  //   - éditions historiques (TR0001–TR0005) : vue large `versets_lecture` ;
+  //   - segmentation éditoriale (TR0009, Bible 899) : texte recomposé et aligné sur
+  //     canon_id, lu en direct des tables éditoriales (aucune copie vers versets_v2).
+  const couche = normaliserCouche899(params.couche)
+  let versets: any[]
+  if (estVerseEditorial(catalog.capabilities[trad])) {
+    const lignes = await chargerVersets899(supabase, { livre, chapitre })
+    versets = lignes.map((ligne) => ({
+      id_verset: `899:${ligne.canon_id}`,
+      ref: ligne.canon_id ?? '',
+      livre,
+      chapitre: ligne.chapitre ?? chapitre,
+      verset: ligne.verset ?? 0,
+      [trad]: texteCouche899(ligne, couche),
+      _statutAlignement: ligne.alignment_status,
+      _statutVerification: ligne.verification_status,
+    }))
+  } else {
+    const { data } = await supabase
+      // Vue de compatibilité canonique. Elle reste le chemin exclusif des éditions
+      // historiques et n'est jamais utilisée pour simuler un mode source.
+      .from('versets_lecture')
+      .select('*')
+      .eq('livre', livre)
+      .eq('chapitre', chapitre)
+      .order('verset')
+    versets = data || []
+  }
 
   return (
     <Suspense fallback={null}>
       <BibleLayout
         livres={LIVRES}
-        versets={versets || []}
+        versets={versets}
         traductions={translations}
         livreActif={livre}
         chapitreActif={chapitre}
         nomLivre={NOMS_LIVRES[livre] || livre}
         tradInitiale={trad}
         readingCapabilities={catalog.capabilities}
+        couche={couche}
+        tradExplicite={!!params.trad}
       />
     </Suspense>
   )
