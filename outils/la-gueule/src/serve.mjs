@@ -13,7 +13,7 @@ import { executer } from './runner.mjs'
 import { ocrPage, pdfNbPages, pdfInfo, choisirFichier, runBash, annulerTaches } from './wsl.mjs'
 import { parserMetadonnees, typographieProbable } from './metadonnees.mjs'
 import { parseAlto } from './alto.mjs'
-import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterEntrainement, exporterPagesXml, grouperParagraphes, joindreLignes } from './projet.mjs'
+import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes } from './projet.mjs'
 import { detecterLangue, apparierParagraphes } from './bilingue.mjs'
 
 const ICI = dirname(fileURLToPath(import.meta.url))
@@ -282,6 +282,12 @@ export function demarrer({ port = 4599 } = {}) {
       if (p === '/api/export/xml' && req.method === 'POST') {
         const b = await corps(req)
         return json(res, 200, await exporterPagesXml(b.nom, b.projet || {}, { couche: b.couche || 'dip' }))
+      }
+      // Export du BANC d'essai (évaluation seulement). Refuse un banc non valide_humain → 400.
+      if (p === '/api/export/banc' && req.method === 'POST') {
+        const b = await corps(req)
+        try { return json(res, 200, await exporterBanc(b.nom, b.projet || {})) }
+        catch (e) { return json(res, 400, { erreur: String(e?.message ?? e) }) }
       }
 
       // Statique : l'interface.

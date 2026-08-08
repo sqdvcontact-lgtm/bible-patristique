@@ -196,6 +196,7 @@
   <button class="discret" id="btnValider" title="Validation HUMAINE de la page : marque valide_humain (par page et par ligne, hors lignes incertaines). Re-cliquer retire la validation.">✓ Valider (humain)</button>
   <span id="nbValidees" style="font-size:12px;color:var(--second)"></span>
   <button class="discret" id="btnExportEntr" title="Exporte les corrections des pages validées en jeu d'entraînement Kraken (ALTO + images + JSONL)">Export entraînement</button>
+  <button class="discret" id="btnExportBanc" title="Constitue le banc d'essai (évaluation seulement) : images + ALTO corrigé + manifeste + SHA-256. Exige valide_humain.">Exporter le banc</button>
 </div>
 
 <main id="main">
@@ -592,6 +593,10 @@ $('btnExportEntr').onclick=async()=>{ const nom=$('projet').value.trim()||'entra
   try{ const r=await api('/api/export/entrainement',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel()})})
     $('etatExport').textContent=r.nbPages?`✓ entraînement : ${r.nbPages} page(s), ${r.nbLignes} ligne(s) (${r.nbCorrigees} corrigées) → exports/entrainement/${nom}/`:'aucune page validée — clique « ✓ Valider la page » d\'abord' }
   catch(e){ $('etatExport').textContent='échec : '+e.message } }
+$('btnExportBanc').onclick=async()=>{ const nom=$('projet').value.trim()||'banc'; $('etatExport').textContent='export du banc…'
+  try{ const r=await api('/api/export/banc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel()})})
+    $('etatExport').textContent=`✓ banc : ${r.nbPages} page(s), ${r.nbLignes} ligne(s), ${r.nbCaracteres} caractères → bancs/${nom}/` }
+  catch(e){ $('etatExport').textContent='banc refusé : '+e.message+' (valide les pages à la main d\'abord)' } }
 listerProjets()
 
 // Pré-vol : vérifier que les moteurs sont là, sinon prévenir clairement (plutôt qu'un

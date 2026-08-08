@@ -21,6 +21,7 @@ import { segmenterColonnes } from './colonnes.mjs'
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
 const DIR_PROJETS = join(RACINE, 'projets')
 const DIR_EXPORTS = join(RACINE, 'exports')
+const DIR_BANCS = join(RACINE, 'bancs')
 
 const nomSur = (n) => String(n || 'sans-nom').replace(/[^\w.-]+/g, '_').slice(0, 80)
 
@@ -321,6 +322,56 @@ export async function exporterEntrainement(nom, projet, { date = null } = {}) {
     `Doctrine §14 : ces données servent à AMÉLIORER le modèle, jamais à publier du texte non relu.\n`, 'utf8')
 
   return { dossier: base, nbPages, nbLignes, nbCorrigees }
+}
+
+// ── Banc d'essai (ÉVALUATION seulement, jamais entraînement) ─────────────────
+/** Manifeste PUR d'un banc : ne compte QUE les lignes valide_humain (hors incertaines). Testable. */
+export function construireManifesteBanc(projet) {
+  const pages = projet?.pages || {}
+  const nums = Object.keys(pages).map(Number).sort((a, b) => a - b)
+  const out = { valide_humain: !!projet?._garde?.valide_humain, pages: [], nbLignesTotal: 0, nbCaracteresTotal: 0 }
+  for (const n of nums) {
+    const pg = pages[n]
+    if (!pg || !pg.valide_humain || !Array.isArray(pg.lignes)) continue
+    const lignes = pg.lignes.filter((l) => l.valide_humain && !l.incertain && Array.isArray(l.bbox) && String(l.dip ?? '').trim())
+    if (!lignes.length) continue
+    const nbCar = lignes.reduce((s, l) => s + [...String(l.dip)].length, 0)
+    out.pages.push({ page: n, nbLignes: lignes.length, nbCaracteres: nbCar, moteur: pg.ocr?.moteur ?? null, modele: pg.ocr?.modele ?? null })
+    out.nbLignesTotal += lignes.length
+    out.nbCaracteresTotal += nbCar
+  }
+  return out
+}
+
+/**
+ * Constitue le dossier de banc `bancs/<nom>/` : par page VALIDÉE HUMAINEMENT, l'image + un ALTO
+ * corrigé (seules les lignes valide_humain, hors incertaines) + un manifeste (pages, nb lignes,
+ * nb caractères, empreintes SHA-256, état de validation, moteur/modèle, date). RÉSERVÉ à
+ * l'évaluation (jamais l'entraînement). REFUSE un banc non valide_humain.
+ */
+export async function exporterBanc(nom, projet, { date = null } = {}) {
+  if (!projet?._garde?.valide_humain) throw new Error(`banc « ${nom} » non valide_humain — validation humaine requise avant export`)
+  const man = construireManifesteBanc(projet)
+  if (!man.pages.length) throw new Error(`banc « ${nom} » : aucune page valide_humain à exporter`)
+  const base = join(DIR_BANCS, nomSur(nom))
+  await mkdir(base, { recursive: true })
+  const dateISO = date || new Date().toISOString()
+  const empreintes = {}
+  for (const info of man.pages) {
+    const pg = projet.pages[info.page]
+    const pad = String(info.page).padStart(4, '0')
+    const imgNom = `p${pad}.png`
+    const imgWin = cheminImageDepuisUrl(pg.pngUrl)
+    if (imgWin) { try { await copyFile(imgWin, join(base, imgNom)); empreintes[imgNom] = await empreinteFichier(join(base, imgNom)) } catch { /* image absente */ } }
+    const lignes = pg.lignes.filter((l) => l.valide_humain && !l.incertain)
+    const alto = altoEntrainement(imgNom, pg.largeur, pg.hauteur, lignes)
+    const altoNom = `p${pad}.alto.xml`
+    await writeFile(join(base, altoNom), alto, 'utf8')
+    empreintes[altoNom] = { sha256: createHash('sha256').update(alto).digest('hex'), octets: Buffer.byteLength(alto) }
+  }
+  const manifeste = { banc: nom, usage: 'evaluation_seulement', interdit_entrainement: true, valide_le: dateISO, ...man, empreintes }
+  await writeFile(join(base, 'manifeste.json'), JSON.stringify(manifeste, null, 2), 'utf8')
+  return { dossier: base, nbPages: man.pages.length, nbLignes: man.nbLignesTotal, nbCaracteres: man.nbCaracteresTotal }
 }
 
 /**

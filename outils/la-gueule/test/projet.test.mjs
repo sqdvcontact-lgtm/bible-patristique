@@ -4,11 +4,33 @@ import { writeFile, unlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { estEntete, joindreLignes, grouperParagraphes, metaPagesOcr, empreinteFichier, altoEntrainement, construireSegments, exporterEntrainement } from '../src/projet.mjs'
+import { estEntete, joindreLignes, grouperParagraphes, metaPagesOcr, empreinteFichier, altoEntrainement, construireSegments, exporterEntrainement, construireManifesteBanc, exporterBanc } from '../src/projet.mjs'
 
 test('exporterEntrainement : refuse un projet marqué interdit_entrainement (donnée contaminée)', async () => {
   const projet = { _garde: { interdit_entrainement: true, motif: 'origine Tesseract, confusions ſ→f' }, pages: {} }
   await assert.rejects(() => exporterEntrainement('__contamine__', projet), /interdit_entrainement/)
+})
+
+test('construireManifesteBanc : ne compte que les lignes valide_humain (hors incertaines)', () => {
+  const projet = { _garde: { valide_humain: true }, pages: {
+    19: { valide_humain: true, ocr: { moteur: 'kraken', modele: 'catmus-print' }, lignes: [
+      { bbox: [0, 0, 10, 10], dip: 'abcd', valide_humain: true },              // comptée (4 car)
+      { bbox: [0, 0, 10, 10], dip: 'xy', valide_humain: true, incertain: true }, // exclue (incertaine)
+      { bbox: [0, 0, 10, 10], dip: 'ef', valide_humain: false },                // exclue (non validée)
+    ] },
+    20: { valide_humain: false, lignes: [{ bbox: [0, 0, 10, 10], dip: 'zzz', valide_humain: true }] }, // page non validée → exclue
+  } }
+  const m = construireManifesteBanc(projet)
+  assert.equal(m.valide_humain, true)
+  assert.equal(m.pages.length, 1)
+  assert.equal(m.pages[0].page, 19)
+  assert.equal(m.pages[0].nbLignes, 1)
+  assert.equal(m.pages[0].nbCaracteres, 4)
+  assert.equal(m.nbLignesTotal, 1)
+})
+
+test('exporterBanc : refuse un banc non valide_humain (validation humaine requise)', async () => {
+  await assert.rejects(() => exporterBanc('__banc__', { _garde: { valide_humain: false }, pages: {} }), /valide_humain/)
 })
 
 // Lignes de corps (avec texte) et lignes-titres (avec `titre:{niveau,texte}`).
