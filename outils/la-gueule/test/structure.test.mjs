@@ -6,8 +6,19 @@ import {
   detecterNumeroPage, detecterSignature, detecterLettrines, suggererNiveauTitre,
   detecterContinuations, classerBlancsPoesie, analyserBlocPoesie,
   detecterTitresCourants, detecterReclames, analyserVolume,
-  annoterProjet, estHorsCorpsConfirme,
+  annoterProjet, estHorsCorpsConfirme, extraireStructure,
 } from '../src/structure.mjs'
+
+test('§8 extraireStructure : annotations par page/ligne pour l’export JSON (classe CSS des blancs)', () => {
+  const projet = { pages: { 19: { largeur: 1250, hauteur: 2050, lignes: [
+    { bbox: [96, 400, 800, 55], dip: 'Un vers ici.', suggestion: { role_suggere: 'vers', blanc_poesie: 'petit', retrait_source_normalise: 0.0, statut: 'suggere' } },
+    { bbox: [100, 500, 800, 55], dip: 'Sans suggestion.' },
+  ] } } }
+  const s = extraireStructure(projet)
+  assert.equal(s['19'].length, 1) // seule la ligne annotée
+  assert.equal(s['19'][0].role_suggere, 'vers')
+  assert.equal(s['19'][0].classe_css, 'blanc-poesie-petit') // classe CSS, jamais de caractères ajoutés
+})
 
 test('§8 annoterProjet : attache la suggestion par ligne et préserve la confirmation humaine', () => {
   const projet = { pages: { 2: { largeur: 1250, hauteur: 2050, lignes: [

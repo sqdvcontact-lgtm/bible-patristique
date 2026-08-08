@@ -17,7 +17,7 @@ import { construireSqlSupabase } from './sql.mjs'
 import { construireTexte, construireMarkdown } from './texte.mjs'
 import { altoPage, pageXml } from './echange.mjs'
 import { segmenterColonnes } from './colonnes.mjs'
-import { estHorsCorpsConfirme } from './structure.mjs'
+import { estHorsCorpsConfirme, extraireStructure } from './structure.mjs'
 
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
 const DIR_PROJETS = join(RACINE, 'projets')
@@ -216,7 +216,7 @@ export async function exporterSegments(nom, projet, opts = {}) {
   const provenance = await construireProvenance(projet)
   await mkdir(DIR_EXPORTS, { recursive: true })
   const chemin = join(DIR_EXPORTS, nomSur(nom) + '.segments.json')
-  await writeFile(chemin, JSON.stringify({ id_oeuvre: opts.id_oeuvre ?? null, meta: projet.meta || null, provenance, statut: 'CANDIDAT', segments }, null, 2), 'utf8')
+  await writeFile(chemin, JSON.stringify({ id_oeuvre: opts.id_oeuvre ?? null, meta: projet.meta || null, provenance, statut: 'CANDIDAT', segments, structure: extraireStructure(projet) }, null, 2), 'utf8')
   return { chemin, nbSegments: segments.length, apercu: segments.slice(0, 3), provenance }
 }
 
@@ -232,7 +232,7 @@ export async function exporterTout(nom, projet, opts = {}) {
   await mkdir(DIR_EXPORTS, { recursive: true })
 
   const cheminJson = join(DIR_EXPORTS, base + '.segments.json')
-  await writeFile(cheminJson, JSON.stringify({ id_oeuvre: opts.id_oeuvre ?? null, meta: meta || null, provenance, statut: 'CANDIDAT', segments }, null, 2), 'utf8')
+  await writeFile(cheminJson, JSON.stringify({ id_oeuvre: opts.id_oeuvre ?? null, meta: meta || null, provenance, statut: 'CANDIDAT', segments, structure: extraireStructure(projet) }, null, 2), 'utf8')
 
   const cheminDocx = join(DIR_EXPORTS, base + '.docx')
   await writeFile(cheminDocx, construireDocx({ meta, segments }))

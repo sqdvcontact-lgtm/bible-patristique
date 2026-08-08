@@ -12,13 +12,23 @@ const texteLigne = (l, couche) => String(l[couche] ?? l.dip ?? l.texte ?? '').tr
 const lignesUtiles = (lignes, couche) =>
   (lignes || []).filter((l) => Array.isArray(l.bbox) && l.bbox.length === 4 && texteLigne(l, couche))
 
-/** ALTO v4 d'une page : TextBlock unique, une String par ligne (WC = confiance si connue). */
+// Rôle de structure d'une ligne (confirmé prioritaire), pour tagger les exports d'échange.
+const roleDe = (l) => l?.suggestion?.role_confirme || l?.suggestion?.role_suggere || null
+const blancDe = (l) => l?.suggestion?.blanc_poesie || null
+
+/** ALTO v4 d'une page : TextBlock unique, une String par ligne (WC = confiance si connue).
+ *  Les rôles de structure (§ GPT) sont portés par <Tags> + TAGREFS (régions conservées). */
 export function altoPage({ image = 'page.png', largeur = 0, hauteur = 0, lignes = [], couche = 'dip' } = {}) {
   const util = lignesUtiles(lignes, couche)
+  const roles = [...new Set(util.map(roleDe).filter(Boolean))]
+  const tags = roles.length
+    ? `  <Tags>\n${roles.map((r) => `    <OtherTag ID="role_${esc(r)}" TYPE="structure" LABEL="${esc(r)}"/>`).join('\n')}\n  </Tags>\n`
+    : ''
   const tls = util.map((l, i) => {
     const [x, y, w, h] = l.bbox.map((n) => Math.round(n))
     const wc = (l.confiance != null && Number.isFinite(l.confiance)) ? ` WC="${l.confiance.toFixed(3)}"` : ''
-    return `        <TextLine ID="line_${i + 1}" HPOS="${x}" VPOS="${y}" WIDTH="${w}" HEIGHT="${h}">` +
+    const r = roleDe(l), tagref = r ? ` TAGREFS="role_${esc(r)}"` : ''
+    return `        <TextLine ID="line_${i + 1}"${tagref} HPOS="${x}" VPOS="${y}" WIDTH="${w}" HEIGHT="${h}">` +
       `<String ID="s_${i + 1}" CONTENT="${esc(texteLigne(l, couche))}" HPOS="${x}" VPOS="${y}" WIDTH="${w}" HEIGHT="${h}"${wc}/>` +
       `</TextLine>`
   }).join('\n')
@@ -30,7 +40,7 @@ export function altoPage({ image = 'page.png', largeur = 0, hauteur = 0, lignes 
     <sourceImageInformation><fileName>${esc(image)}</fileName></sourceImageInformation>
     <OCRProcessing ID="ocr_1"><ocrProcessingStep><processingSoftware><softwareName>La Gueule</softwareName></processingSoftware></ocrProcessingStep></OCRProcessing>
   </Description>
-  <Layout>
+${tags}  <Layout>
     <Page ID="page_1" PHYSICAL_IMG_NR="1" WIDTH="${W}" HEIGHT="${H}">
       <PrintSpace HPOS="0" VPOS="0" WIDTH="${W}" HEIGHT="${H}">
         <TextBlock ID="block_1">
@@ -61,11 +71,14 @@ export function pageXml({ image = 'page.png', largeur = 0, hauteur = 0, lignes =
   const W = Math.round(largeur) || 0, H = Math.round(hauteur) || 0
   const regionBbox = util.length ? [minX, minY, maxX - minX, maxY - minY] : [0, 0, W, H]
   const quand = date || '1970-01-01T00:00:00'
-  const tls = util.map((l, i) =>
-    `      <TextLine id="line_${i + 1}">
+  const tls = util.map((l, i) => {
+    const r = roleDe(l), b = blancDe(l)
+    const cust = (r || b) ? ` custom="structure {${r ? `role:${esc(r)};` : ''}${b ? `blanc:${esc(b)};` : ''}}"` : ''
+    return `      <TextLine id="line_${i + 1}"${cust}>
         <Coords points="${polygone(l.bbox)}"/>
         <TextEquiv><Unicode>${esc(texteLigne(l, couche))}</Unicode></TextEquiv>
-      </TextLine>`).join('\n')
+      </TextLine>`
+  }).join('\n')
   return `<?xml version="1.0" encoding="UTF-8"?>
 <PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2019-07-15">
   <Metadata>

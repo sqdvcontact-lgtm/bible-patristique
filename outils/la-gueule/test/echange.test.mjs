@@ -38,6 +38,19 @@ test('altoPage : couche choisie (ocr0) plutôt que dip', () => {
   assert.match(x, /CONTENT="brut"/)
 })
 
+test('§8 rôles de structure portés : ALTO (Tags/TAGREFS) et PAGE (custom)', () => {
+  const lignes = [
+    { bbox: [100, 50, 900, 40], dip: 'de la Philosophie. Liure V.', suggestion: { role_confirme: 'titre_courant' } },
+    { bbox: [100, 200, 300, 40], dip: 'Un vers ici.', suggestion: { role_suggere: 'vers', blanc_poesie: 'petit' } },
+  ]
+  const alto = altoPage({ image: 'p.png', largeur: 1250, hauteur: 2050, lignes })
+  assert.match(alto, /<OtherTag ID="role_titre_courant" TYPE="structure" LABEL="titre_courant"\/>/)
+  assert.match(alto, /<TextLine ID="line_1" TAGREFS="role_titre_courant"/)
+  const page = pageXml({ image: 'p.png', largeur: 1250, hauteur: 2050, lignes })
+  assert.match(page, /custom="structure \{role:titre_courant;\}"/)
+  assert.match(page, /custom="structure \{role:vers;blanc:petit;\}"/)
+})
+
 test('altoPage : page sans ligne utile reste un ALTO bien formé', () => {
   const x = altoPage({ image: 'vide.png', largeur: 100, hauteur: 100, lignes: [] })
   assert.match(x, /<TextBlock ID="block_1">/)

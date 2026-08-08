@@ -441,6 +441,30 @@ export function estHorsCorpsConfirme(ligne) {
   return !!r && ROLES_HORS_CORPS.includes(r)
 }
 
+/** Extrait les annotations de structure par page/ligne pour l'export JSON (le site rend les blancs
+ *  poétiques par CSS via ces classes, sans jamais ajouter de caractères au texte). */
+export function extraireStructure(projet) {
+  const out = {}
+  for (const num of Object.keys(projet?.pages || {})) {
+    const lignes = projet.pages[num].lignes || []
+    const arr = []
+    lignes.forEach((l, i) => {
+      const s = l.suggestion
+      if (!s || !s.role_suggere) return
+      arr.push({
+        ligne: i, bbox: l.bbox || null,
+        role_suggere: s.role_suggere, role_confirme: s.role_confirme ?? null, statut: s.statut || 'suggere',
+        blanc_poesie: s.blanc_poesie ?? null, classe_css: s.blanc_poesie ? 'blanc-poesie-' + s.blanc_poesie : null,
+        retrait_source_normalise: s.retrait_source_normalise ?? null,
+        niveau_suggere: s.niveau_suggere ?? null, continuation_de: s.continuation_de ?? null,
+        export_corps: s.export_corps !== false, interdit_entrainement: !!s.interdit_entrainement,
+      })
+    })
+    if (arr.length) out[num] = arr
+  }
+  return out
+}
+
 /**
  * Attache à chaque ligne du projet sa SUGGESTION de structure (`l.suggestion`), en préservant une
  * éventuelle confirmation humaine antérieure (`role_confirme`). Ne modifie NI le texte, NI les
