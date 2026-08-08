@@ -4,7 +4,12 @@ import { writeFile, unlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { estEntete, joindreLignes, grouperParagraphes, metaPagesOcr, empreinteFichier, altoEntrainement, construireSegments } from '../src/projet.mjs'
+import { estEntete, joindreLignes, grouperParagraphes, metaPagesOcr, empreinteFichier, altoEntrainement, construireSegments, exporterEntrainement } from '../src/projet.mjs'
+
+test('exporterEntrainement : refuse un projet marqué interdit_entrainement (donnée contaminée)', async () => {
+  const projet = { _garde: { interdit_entrainement: true, motif: 'origine Tesseract, confusions ſ→f' }, pages: {} }
+  await assert.rejects(() => exporterEntrainement('__contamine__', projet), /interdit_entrainement/)
+})
 
 // Lignes de corps (avec texte) et lignes-titres (avec `titre:{niveau,texte}`).
 const corps = (y, texte, h = 40) => ({ bbox: [100, y, 280, h], texte })

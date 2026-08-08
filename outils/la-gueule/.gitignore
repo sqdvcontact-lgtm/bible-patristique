@@ -9,3 +9,6 @@ incoming/
 modeles/*.mlmodel
 modeles/*.pt
 modeles/*.bak
+bancs/**/*.png
+bancs/**/*.pdf
+bancs/**/*.jpg

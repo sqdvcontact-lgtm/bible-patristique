@@ -276,6 +276,11 @@ function cheminImageDepuisUrl(pngUrl) {
  * source, page, moteur, modèle, date, confiance). NE lance AUCUN entraînement.
  */
 export async function exporterEntrainement(nom, projet, { date = null } = {}) {
+  // Garde-fou données : un projet marqué comme référence contaminée ne peut JAMAIS
+  // servir de jeu d'entraînement (ex. Boèce Tesseract, confusions ſ→f). Refus explicite.
+  if (projet?._garde?.interdit_entrainement) {
+    throw new Error(`projet « ${nom} » marqué interdit_entrainement (${projet._garde.motif || 'référence invalide'}) — export refusé`)
+  }
   const base = join(DIR_EXPORTS, 'entrainement', nomSur(nom))
   await mkdir(base, { recursive: true })
   const pages = projet.pages || {}

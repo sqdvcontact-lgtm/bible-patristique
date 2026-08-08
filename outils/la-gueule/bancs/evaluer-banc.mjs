@@ -1,0 +1,81 @@
+// P11 — Évaluation reproductible des SOCLES sur un banc VALIDÉ HUMAINEMENT.
+// N'ENTRAÎNE RIEN. N'écrit PAS modeles/registre.json (l'inscription reste une décision
+// explicite, séparée, une fois la procédure jugée fiable). Refuse un banc non validé.
+//
+// Usage : node bancs/evaluer-banc.mjs <nom-du-projet-banc>
+//   Le projet doit porter _garde.valide_humain === true et, par ligne, valide_humain === true.
+//   Référence = la transcription corrigée (dip) des SEULES lignes valide_humain.
+//   Hypothèses = OCR live de chaque socle (tesseract fra, kraken-print) sur la même page.
+
+import { readFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+import { chargerProjet } from '../src/projet.mjs'
+import { ocrPage } from '../src/wsl.mjs'
+import { parseAlto } from '../src/alto.mjs'
+import { evaluerModele } from '../src/modeles.mjs'
+
+const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
+const nom = process.argv[2]
+if (!nom) { console.error('Usage : node bancs/evaluer-banc.mjs <nom-du-projet-banc>'); process.exit(2) }
+
+const projet = await chargerProjet(nom)
+
+// ── GARDE : refuser tout banc non validé humainement ────────────────────────
+if (!projet?._garde?.valide_humain) {
+  console.error(`REFUS : le banc « ${nom} » n'est pas marqué valide_humain dans _garde.`)
+  console.error('Corrige et VALIDE les pages à la main dans l\'atelier avant d\'évaluer.')
+  console.error('Une correction automatique (Codex) N\'EST PAS une validation humaine.')
+  process.exit(1)
+}
+const PDF = projet.chemin
+const SERVED = join(RACINE, 'sorties', 'atelier')
+
+const joindre = (alto) => parseAlto(alto).lignes.filter((l) => l.bbox).sort((a, b) => a.bbox[1] - b.bbox[1]).map((l) => l.texte).filter(Boolean).join('\n')
+
+const socles = [
+  { cle: 'tesseract-fra', moteur: undefined, lang: 'fra' },
+  { cle: 'kraken-catmus-print', moteur: 'kraken-print' },
+]
+
+const global = {}
+for (const s of socles) global[s.cle] = { distC: 0, longC: 0, distM: 0, longM: 0, secondes: 0, pages: [] }
+
+for (const [n, pg] of Object.entries(projet.pages)) {
+  if (!pg || pg.etat !== 'termine' || !Array.isArray(pg.lignes)) continue
+  // Référence = SEULES les lignes validées humainement.
+  const refLignes = pg.lignes.filter((l) => l.valide_humain && String(l.dip ?? '').trim()).map((l) => l.dip.trim())
+  if (!refLignes.length) { console.log(`page ${n} : aucune ligne valide_humain — ignorée`); continue }
+  const reference = refLignes.join('\n')
+  for (const s of socles) {
+    const t0 = process.hrtime.bigint()
+    let hyp = ''
+    try {
+      const r = await ocrPage({ kind: 'imprime', pdfWin: PDF, page: Number(n), dpi: 300, moteur: s.moteur, lang: s.lang, servedDirWin: SERVED })
+      hyp = joindre(r.alto)
+    } catch (e) { console.log(`page ${n} [${s.cle}] : ERREUR ${e?.message || e}`); continue }
+    const secs = Number(process.hrtime.bigint() - t0) / 1e9
+    const ev = evaluerModele([{ reference, hypothese: hyp }])
+    const g = global[s.cle]
+    g.distC += ev.cer * [...reference].length; g.longC += [...reference].length
+    g.distM += ev.wer * reference.split(/\s+/).filter(Boolean).length; g.longM += reference.split(/\s+/).filter(Boolean).length
+    g.secondes += secs
+    g.pages.push({ page: Number(n), cer: ev.cer, wer: ev.wer, secondes: Math.round(secs) })
+  }
+}
+
+const pc = (x) => (x * 100).toFixed(2) + ' %'
+console.log(`\n===== ÉVALUATION DU BANC « ${nom} » (valide_humain) =====`)
+for (const s of socles) {
+  const g = global[s.cle]
+  const cer = g.longC ? g.distC / g.longC : null
+  const wer = g.longM ? g.distM / g.longM : null
+  console.log(`\n${s.cle} :`)
+  console.log(`  CER global : ${cer == null ? 'n/a' : pc(cer)}  |  WER global : ${wer == null ? 'n/a' : pc(wer)}`)
+  console.log(`  ${g.pages.length} page(s), ${g.longC} caractères, ${Math.round(g.secondes)} s au total`)
+  for (const p of g.pages) console.log(`    page ${p.page} : CER ${pc(p.cer)}  (${p.secondes}s)`)
+}
+console.log('\nRappel : ces mesures ne sont PAS inscrites au registre automatiquement.')
+console.log('Catégoriser les erreurs (reconnaissance / segmentation / ſ / césure / ponctuation /')
+console.log('ligatures / différence diplomatique légitime / erreur de la référence) AVANT toute')
+console.log('inscription dans modeles/registre.json, et seulement si la procédure est reproductible.')
