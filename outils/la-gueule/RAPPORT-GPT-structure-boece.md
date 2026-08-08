@@ -21,8 +21,9 @@ source (seulement du corps éditorial), rien activé par défaut, aucun entraîn
 | 4 | Blancs poétiques 3 niveaux | ✅ fait | structure.mjs | §10 (petit/moyen/large) |
 | 8 | Suggestions T1/T2 | ✅ fait | structure.mjs | §10 (POESIE→T2, LIVRE→T1) |
 | 9 | Orchestration (ordre §9) | ✅ fait | structure.mjs (analyserVolume) | §9 (compo p19) |
-| 8 | Propagation aux exports | ⛔ à faire | — | — |
-| — | Interface de confirmation (atelier) | ⛔ à faire | — | — |
+| 8 | Propagation : annotations + exclusion du corps confirmé | ✅ fait | structure.mjs (annoterProjet), projet.mjs | §8 |
+| 8 | Interface de confirmation (atelier) | ✅ fait | serve.mjs, ui/atelier.html | navigateur (p22) |
+| 8 | Classes CSS blancs-poésie côté site / ALTO-PAGE rôles | ⚠️ à finir | — | — |
 
 ## Seuils employés (jamais de px absolu pour toute une œuvre)
 
@@ -82,16 +83,22 @@ Toutes. `analyserVolume` produit des **suggestions** (`statut: 'suggere'`) ; rie
 exclu ni titré sans `role_confirme` humain. Aucune détection n'est branchée dans le pipeline de
 production ni activée par défaut.
 
-## À FAIRE (prochaines étapes)
+## FAIT depuis (mise à jour)
 
-1. **§8 Propagation aux exports** : attacher les annotations au projet ; le corps (JSON/TXT/MD/DOCX)
-   exclut les rôles hors-corps CONFIRMÉS ; classes CSS `blanc-poesie-*` (retrait par CSS) ; les
-   régions et rôles conservés dans ALTO/PAGE ; ne toucher AUCUNE table active.
-2. **Interface de confirmation** (atelier) : afficher les suggestions (⚠, rôle, score, preuves),
-   permettre les décisions (lettrine absente/détachée/artefact ; confirmer un motif de titre courant
-   en lot ; poser/retirer un niveau de titre ; classer une région). `role_confirme` fait foi.
-3. **Paratexte / ornement / bruit** (§5) : détection de région de page de titre (≥ 3 signaux) —
-   partielle ; à compléter et à évaluer sur plusieurs exemples avant activation.
+- **§8 Propagation** : `annoterProjet` attache `l.suggestion` (préserve `role_confirme`) ;
+  `construireSegments` exclut du corps les lignes hors-corps CONFIRMÉES (jamais de la source).
+- **Interface** : bouton « Analyser la structure » (`/api/atelier/analyser`) ; puce de suggestion
+  par ligne (rôle + niveau/blanc + score, preuves en infobulle) ; clic = confirmer, re-clic =
+  annuler ; lignes hors-corps confirmées grisées ; lettrine → route vers « incertain ». Vérifié en
+  navigateur (pilote p22 : 109 suggestions, confirmation d'un titre courant → hors-corps).
+
+## À FAIRE (reste)
+
+1. **Rendu des blancs poétiques côté site** : classes CSS `blanc-poesie-petit/moyen/large`
+   (retrait par CSS, jamais de caractères ajoutés) ; export JSON portant les annotations par ligne.
+2. **ALTO/PAGE** : porter le rôle des régions dans les exports d'échange.
+3. **Décisions fines** : menu lettrine à 3 choix (absente/détachée/artefact) ; confirmation en LOT
+   d'un motif de titre courant ; classement de région (paratexte/ornement/bruit) — §5 à compléter.
 4. **Jeu annoté** de plusieurs pages pour mesurer FP/FN au-delà des cas d'acceptation.
 
 ## Points nécessitant une validation humaine
