@@ -9,6 +9,7 @@
   },
   "scripts": {
     "test": "node --test",
+    "test:integration": "node --test integration/integration.itest.mjs",
     "serve": "node bin/gueule.mjs serve",
     "doctor": "node bin/gueule.mjs doctor"
   },
