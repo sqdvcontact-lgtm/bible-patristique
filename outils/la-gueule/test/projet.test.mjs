@@ -80,6 +80,20 @@ test('construireSegments : double colonne → ordre de lecture gauche puis droit
   assert.ok(segs[1].segment_texte.startsWith('Droite')) // puis colonne droite
 })
 
+test('construireSegments : lignes émises en désordre (n° de page en dernier) → ordre de lecture haut→bas', () => {
+  // Kraken émet parfois le numéro de page EN DERNIER alors qu'il est en HAUT de page.
+  const projet = { pages: { 1: { lignes: [
+    { bbox: [100, 200, 300, 40], texte: 'Premiere ligne du corps ici.' },
+    { bbox: [100, 250, 300, 40], texte: 'qui se poursuit juste apres.' },
+    { bbox: [100, 500, 300, 40], texte: 'Un second paragraphe plus bas.' },
+    { bbox: [100, 58, 40, 30], texte: '25' }, // n° de page, émis en dernier, situé en haut
+  ] } } }
+  const segs = construireSegments(projet, { couche: 'texte', recenserNotes: false })
+  assert.ok(segs[0].segment_texte.startsWith('Premiere ligne')) // corps d'abord, dans l'ordre
+  assert.ok(segs[segs.length - 1].segment_texte.startsWith('Un second')) // puis le paragraphe du bas
+  assert.ok(!segs.some((s) => s.segment_texte.trim() === '25')) // le n° de page est évacué
+})
+
 test('construireSegments : sans aucun titre, ref_niv restent nuls (texte plat)', () => {
   const projet = { pages: { 1: { lignes: [corps(100, 'Une phrase de prose simple ici.')] } } }
   const segs = construireSegments(projet, { couche: 'texte', recenserNotes: false })

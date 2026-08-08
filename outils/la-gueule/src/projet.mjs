@@ -169,7 +169,10 @@ export function construireSegments(projet, { id_oeuvre = null, couche = 'dip', r
     }
     // On groupe DANS chaque piste (jamais à cheval sur deux colonnes) : flush entre pistes.
     for (const piste of segmenterColonnes(page.lignes || [], page.largeur)) {
-      for (const l of piste.lignes) {
+      // Ordre de lecture garanti haut→bas : Kraken émet parfois le n° de page en dernier
+      // (bas index, haut de page). Un tri par VPOS le remet en place → filtré comme en-tête.
+      const parY = [...piste.lignes].sort((a, b) => (a.bbox ? a.bbox[1] : 1e9) - (b.bbox ? b.bbox[1] : 1e9))
+      for (const l of parY) {
         if (estTitre(l)) { vider(); majStructure(l.titre.niveau, l.titre.texte) }
         else bloc.push(l)
       }
