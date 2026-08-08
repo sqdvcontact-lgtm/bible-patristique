@@ -111,10 +111,27 @@ valides **quand** le banc sera validé, et **n'écrit pas** le registre automati
 
 ## 10. Benchmark du mode Kraken par lot (P13)
 
-**NON EXÉCUTÉ.** Seule la **base A** (pipeline actuel, un processus par page) est mesurée en
-passant, via l'OCR du banc : **~41–45 s/page** (Kraken CATMuS-Print, 300 DPI, GPU+repli).
-Les variantes **B** (processus persistant / lot) et **C** (segmentation groupée) restent à
-implémenter et à mesurer sur les mêmes 10 pages. **[non vérifié]** — à faire, avec temps réels.
+**EXÉCUTÉ** sur les mêmes 10 pages (19, 20, 45, 66, 88, 100, 120, 140, 142, 143), Kraken
+CATMuS-Print, 300 DPI, GPU (script `sorties/bench-p13.sh`, journal `sorties/bench-p13.log`) :
+
+| Variante | Total (10 pages) | Par page | Texte |
+|---|---|---|---|
+| **A** — un processus Kraken PAR page (pipeline actuel) | **416,9 s** | 41,7 s | référence |
+| **B** — UN SEUL processus pour les 10 pages | **242,1 s** | 24,2 s | **identique (0/10 diffèrent)** |
+
+**Gain B ≈ 42 %**, sortie **byte-identique** (comparaison des `CONTENT` par md5, 0 page
+différente). Le coût dominant de A est le **démarrage répété** (~17 s/page : import PyTorch +
+chargement du modèle), amorti une seule fois en B. La segmentation baseline reste le gros du
+coût par page résiduel (~20 s), pas la reconnaissance (~3–4 s).
+
+**Conclusion — NE PAS adopter la variante B testée telle quelle.** L'invocation multi-pages est
+**atomique** : elle **viole les garanties de P1** (sauvegarde après chaque page, arrêt propre en
+cours de lot, reprise après interruption, relance des seules pages en erreur). La règle du plan
+exige que toute nouvelle architecture respecte SIMULTANÉMENT ces garanties. Le gain de 42 % ne
+peut donc être capté qu'avec un **processus Kraken PERSISTANT** (API Python de Kraken maintenue
+chaude, nourrie **page par page**, renvoyant chaque résultat incrémentalement), à écrire et
+tester séparément — pas avec le lot atomique. Variante **C** (segmentation groupée puis
+reconnaissance) non mesurée. **[gain mesuré et vérifié ; architecture d'adoption non écrite]**
 
 ## 11. État des notes et marginalia (P14)
 
@@ -150,7 +167,8 @@ Implémentés **et testés** (6 tests d'intégration) :
 ## 13. Défauts encore ouverts
 
 - Pas de banc validé → pas de CER/WER valides ni de comparaison de socles (§7–9).
-- Benchmark Kraken par lot non fait (§10).
+- Batch Kraken **mesuré** (42 % de gain, texte identique) mais **non adoptable tel quel** :
+  l'invocation atomique casse les garanties P1 ; un worker persistant reste à écrire (§10).
 - Double colonne non éprouvée sur un vrai échantillon ; notes/marginalia non détectées (§11).
 - Refus d'upload par taille réelle non testé de bout en bout (§12).
 - Boucle client reprise/relance non couverte par l'automatisation (§5).
@@ -166,7 +184,8 @@ Implémentés **et testés** (6 tests d'intégration) :
    catégoriser les erreurs ; décider (humain) de l'inscription au registre.
 3. Constituer **Boèce kraken-v2** (P12) : pilote 10 pages, bilan, puis volume complet si pas
    de régression.
-4. Mesurer le **mode Kraken par lot** (P13, variantes B/C) avec temps réels.
+4. **Écrire un worker Kraken persistant** (nourri page par page, résultats incrémentaux) pour
+   capter le gain de **42 %** mesuré (P13) SANS perdre les garanties P1 ; mesurer la variante C.
 5. Fournir une page **Migne** (double colonne) et une source à **marginalia** pour éprouver
    P8d et construire le jeu annoté P14.
 
@@ -177,6 +196,7 @@ Implémentés **et testés** (6 tests d'intégration) :
 Fait et vérifié : **P9** (gel Git + suite d'intégration réelle, 20/20) et **P15** (sécurité,
 6 tests). **P10** : fichier contaminé neutralisé (marqueurs + garde de code testée) et banc
 échafaudé. **P14** : échantillon de notes trouvé, architecture posée, rien activé à l'aveugle.
-**P11** : harnais prêt, en attente d'un banc validé. **P12/P13** et la **validation humaine
-du banc** : à faire — ils exigent des runs dédiés et une relecture humaine, non simulables.
-Aucun entraînement n'a été lancé ; aucun CER non valide n'a été inscrit.
+**P11** : harnais prêt, en attente d'un banc validé. **P13** : benchmark mesuré (42 % de gain,
+texte identique) mais lot atomique non adoptable — worker persistant à écrire. **P12** et la
+**validation humaine du banc** : à faire — ils exigent des runs dédiés et une relecture humaine,
+non simulables. Aucun entraînement n'a été lancé ; aucun CER non valide n'a été inscrit.
