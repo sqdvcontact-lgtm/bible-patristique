@@ -6,7 +6,7 @@ import {
   detecterNumeroPage, detecterSignature, detecterLettrines, suggererNiveauTitre,
   detecterContinuations, classerBlancsPoesie, analyserBlocPoesie,
   detecterTitresCourants, detecterReclames, analyserVolume,
-  annoterProjet, estHorsCorpsConfirme, extraireStructure,
+  annoterProjet, estHorsCorpsConfirme, extraireStructure, detecterFiligrane,
 } from '../src/structure.mjs'
 
 test('§8 extraireStructure : annotations par page/ligne pour l’export JSON (classe CSS des blancs)', () => {
@@ -240,6 +240,34 @@ test('§9 analyserVolume p19 : chaque ligne reçoit la bonne suggestion composé
   assert.equal(a('douleur,').role_suggere, 'continuation_typographique')
   assert.equal(a('B').role_suggere, 'signature'); assert.equal(a('B').export_corps, false)
   assert.equal(a('2').role_suggere, 'signature')
+})
+
+// ── Corrections (retour de relecture) ────────────────────────────────────────
+test('correction : le NUMÉRAL d’un titre (« I. » avant « PROSE. ») → titre, pas lettrine', () => {
+  const page = { num: 20, largeur: 1250, hauteur: 2030, lignes: [
+    L(600, 60, 60, 50, '20'),
+    L(560, 300, 44, 55, 'I.'),           // numéral détaché, juste au-dessus du titre
+    L(479, 362, 300, 63, 'PROSE.'),      // titre de section
+    L(100, 440, 900, 55, 'Omme ie discourois ainsi à part moy, & que'),
+  ] }
+  const anns = analyserVolume([page]).get(20)
+  const a = (p) => anns[idx(page.lignes, p)]
+  assert.equal(a('I.').role_suggere, 'titre')     // rattaché au titre
+  assert.equal(a('I.').niveau_suggere, 2)         // hérite du niveau de « PROSE. »
+  assert.notEqual(a('I.').role_suggere, 'lettrine_candidate')
+  assert.equal(a('PROSE.').role_suggere, 'titre')
+})
+
+test('correction : filigrane « Digitized by Google » → bruit (hors-corps)', () => {
+  const a = detecterFiligrane({ bbox: [100, 1900, 300, 40], dip: 'Digitized by Google' })
+  assert.ok(a); assert.equal(a.role_suggere, 'bruit'); assert.equal(a.export_corps, false)
+  assert.equal(detecterFiligrane({ bbox: [0, 0, 10, 10], dip: 'texte normal' }), null)
+  // via l'orchestration : la ligne filigrane est hors-corps
+  const page = { num: 26, largeur: 1250, hauteur: 2030, lignes: [
+    L(100, 300, 900, 55, 'Corps de la prose ici présente.'),
+    L(500, 1980, 260, 40, 'Digitized by Google'),
+  ] }
+  assert.equal(analyserVolume([page]).get(26)[1].role_suggere, 'bruit')
 })
 
 test('§10 : « de la Philosophie. Liure I. » (titre courant, ligne longue) → AUCUNE suggestion', () => {

@@ -108,6 +108,16 @@ export function detecterSignature(l, page, { lignes = [] } = {}) {
   return a
 }
 
+// ── Filigrane de numérisation (« Digitized by Google ») → bruit (hors-corps) ──
+export function detecterFiligrane(l) {
+  const n = normaliserComparaison(texte(l))
+  if (!/\bgoogle\b/.test(n) && !/digitized by google/.test(n)) return null
+  const a = annotationVide()
+  a.role_suggere = 'bruit'; a.score = 3; a.export_corps = false
+  a.preuves = { filigrane: 'google' }
+  return a
+}
+
 // ── §4 Lettrines et artefacts ────────────────────────────────────────────────
 // Fragment suspect en tête : 1-2 capitales (éventuellement + ponctuation) formant un non-mot.
 const MOTS_COURTS_OK = new Set(['a', 'à', 'ô', 'y', 'o', 'i', 'e', 'en', 'un', 'la', 'le', 'du', 'de', 'ce', 'il', 'et', 'ne', 'où', 'on', 'sa', 'ses', 'les', 'des'])
@@ -393,8 +403,9 @@ export function analyserVolume(pages) {
     const lignes = page.lignes || []
     const anns = lignes.map(() => annotationVide())
     const horsCorps = new Set()
-    // 1) hors-corps : numéro de page, signature, titre courant, réclame.
+    // 1) hors-corps : filigrane, numéro de page, signature, titre courant, réclame.
     lignes.forEach((l, i) => {
+      const fg = detecterFiligrane(l); if (fg) { anns[i] = fg; horsCorps.add(i); return }
       const np = detecterNumeroPage(l, page); if (np) { anns[i] = np; horsCorps.add(i); return }
       const sg = detecterSignature(l, page, { lignes }); if (sg) { anns[i] = sg; horsCorps.add(i) }
     })
@@ -406,6 +417,20 @@ export function analyserVolume(pages) {
       const ti = suggererNiveauTitre(l, page, { horsCorps: false, lignes })
       if (ti) anns[i] = ti
     })
+    // 2.5) NUMÉRAL de titre détaché : la ligne courte (romain/chiffre) juste au-dessus d'un titre
+    //      est le numéral du titre (« I. » avant « PROSE. ») — NI lettrine, NI artefact.
+    const parYt = lignes.map((l, i) => ({ l, i })).filter((x) => x.l.bbox).sort((a, b) => y0(a.l) - y0(b.l))
+    for (let k = 1; k < parYt.length; k++) {
+      const cur = parYt[k], prev = parYt[k - 1]
+      if (anns[cur.i].role_suggere === 'titre' && !horsCorps.has(prev.i)) {
+        const t = texte(prev.l).trim()
+        if (/^[IVXLC]{1,4}\.?$/i.test(t) || /^\d{1,3}\.?$/.test(t)) {
+          const a = annotationVide()
+          a.role_suggere = 'titre'; a.niveau_suggere = anns[cur.i].niveau_suggere; a.preuves = { numeral_de_titre: true }
+          anns[prev.i] = a
+        }
+      }
+    }
     // 3) lettrines / artefacts (peuvent coexister avec un vers → on garde le flag lettrine).
     //    JAMAIS sur une ligne déjà hors-corps ou déjà titrée (T1/T2) — ordre §9 : titres AVANT lettrines.
     const lettr = detecterLettrines(lignes)

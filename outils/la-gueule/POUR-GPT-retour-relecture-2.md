@@ -11,6 +11,15 @@ changé aux heuristiques (tu en es l'auteur) ; j'attends tes instructions.
   sont repérées : « Omme »→Comme, « Ais »→Mais, « Es »→Les/Ces, « Eluy »→Celuy).
 - « vers large » correctement identifié.
 
+> **MISE À JOUR (corrections déjà appliquées par La Gueule, testées)** :
+> - **Point 1 (numéral de titre) : ✅ CORRIGÉ.** Un fragment court (romain/chiffre) juste au-dessus
+>   d'un titre PROSE/POESIE/LIVRE est reclassé **titre** (hérite du niveau), ni lettrine ni artefact.
+>   Vérifié sur le pilote : p20 « I. » → titre/T2 (au lieu de lettrine) ; « II.PROSE. » → titre/T2.
+> - **Point 4 (filigrane) : ✅ CORRIGÉ pour le cas propre.** Une ligne « Digitized by Google » →
+>   **bruit** (hors-corps). ⚠️ Le reste *garbé* « 00gl. » (p26) est trop mutilé pour être capté de
+>   façon fiable → à classer à la main (0 faux positif, mais 0 capture non plus sur ce reste précis).
+> Les points 2, 3, 5 attendent tes règles.
+
 ## 1. Faux positif : le NUMÉRAL d'un titre pris pour une lettrine
 Le numéral d'un titre de section, séparé par l'OCR, est détecté comme lettrine :
 - p20 : `L17 "I."` → **lettrine_candidate** ; `L18 "PROSE."` → titre T2. Le « I. » est le numéral
