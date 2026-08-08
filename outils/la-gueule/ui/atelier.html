@@ -56,7 +56,7 @@
   .onglets button{padding:4px 10px;border-radius:999px;font-size:12px}
   .onglets button.actif{background:var(--vert);color:#fff;border-color:var(--vert)}
   .lignes{display:flex;flex-direction:column;gap:3px;font-family:"Cascadia Code",Consolas,monospace}
-  .lg{display:grid;grid-template-columns:2.2rem 1fr auto auto auto;gap:6px;align-items:baseline}
+  .lg{display:grid;grid-template-columns:2.2rem 1fr auto auto auto auto;gap:6px;align-items:baseline}
   .lg .num{font-size:10px;color:#b0a488;text-align:right;padding-top:6px}
   .lg input{width:100%;font-family:inherit;font-size:13px;border-color:transparent;background:#fff}
   .lg input:focus{border-color:var(--ambre);outline:none}
@@ -73,6 +73,12 @@
   /* Ligne validée humainement (bonne pour le banc / l'entraînement). */
   .lg.valide .num{color:var(--vert);font-weight:700}
   .lg.valide input{background:#f3f8f3}
+  /* Suggestion de structure (§ GPT) : rôle proposé, à confirmer. */
+  .lg .sugg{font-size:9px;line-height:1.1;border:1px solid var(--bord);border-radius:4px;background:#fff;color:var(--second);align-self:center;cursor:pointer;padding:1px 5px;white-space:nowrap;max-width:11rem;overflow:hidden;text-overflow:ellipsis}
+  .lg .sugg.ok{background:var(--vertf);color:var(--vert);border-color:var(--vert);font-weight:700}
+  .lg .sugg.lettr{background:#fbeee0;color:#b26a1a;border-color:#e0b57a}
+  /* Ligne hors-corps CONFIRMÉE : exclue du corps éditorial (jamais de la source). */
+  .lg.horscorps input{opacity:.5;text-decoration:line-through;background:#f3efe6}
   /* Titre courant / n° de page détecté : exclu de l'export, signalé ici. */
   .lg.entete input{color:var(--second);font-style:italic;text-decoration:line-through;opacity:.65;background:#f3efe6}
   .lg .tagtc{font-size:9px;color:var(--second);align-self:center;white-space:nowrap;padding-right:4px}
@@ -197,6 +203,7 @@
   <span id="nbValidees" style="font-size:12px;color:var(--second)"></span>
   <button class="discret" id="btnExportEntr" title="Exporte les corrections des pages validées en jeu d'entraînement Kraken (ALTO + images + JSONL)">Export entraînement</button>
   <button class="discret" id="btnExportBanc" title="Constitue le banc d'essai (évaluation seulement) : images + ALTO corrigé + manifeste + SHA-256. Exige valide_humain.">Exporter le banc</button>
+  <button class="discret" id="btnAnalyseStruct" title="Analyse la structure éditoriale (lettrines, titres courants, signatures, poésie, niveaux de titre) → SUGGESTIONS par ligne, à confirmer. Ne modifie rien.">Analyser la structure</button>
 </div>
 
 <main id="main">
@@ -402,6 +409,26 @@ function rendre(){
     inc.title='Lecture incertaine : à trancher. Exclue du banc et de l\'entraînement tant qu\'elle est marquée.'
     inc.onclick=()=>{ l.incertain=!l.incertain; if(l.incertain) l.valide_humain=false; inc.classList.toggle('on',l.incertain); row.classList.toggle('incertain',l.incertain); row.classList.toggle('valide',!!l.valide_humain&&!l.incertain); planifierSave() }
     row.appendChild(inc)
+    // Suggestion de structure (§ GPT) : rôle proposé + confirmation (role_confirme fait foi).
+    const s=l.suggestion
+    if(s && s.role_suggere){
+      const horsCorps=['numero_page','signature','reclame','titre_courant','paratexte_titre','ornement','bruit']
+      const lettr=/candidate$/.test(s.role_suggere)
+      if(s.role_confirme && horsCorps.includes(s.role_confirme)) row.classList.add('horscorps')
+      const chip=document.createElement('button')
+      const bas=s.role_suggere.replace('_candidate','').replace(/_/g,' ')
+      const extra=(s.niveau_suggere?(' T'+s.niveau_suggere):'')+(s.blanc_poesie?(' · '+s.blanc_poesie):'')
+      chip.className='sugg'+(s.role_confirme?' ok':'')+(lettr?' lettr':'')
+      chip.textContent=bas+extra+(s.role_confirme?' ✓':'')
+      chip.title='Suggestion: '+s.role_suggere+' (score '+(s.score||0)+'). '+(lettr?'Clic → marque « incertain » à corriger.':'Clic → confirmer / re-clic → annuler.')+(s.preuves?(' · preuves: '+JSON.stringify(s.preuves)):'')
+      chip.onclick=()=>{
+        if(lettr){ l.incertain=true; l.valide_humain=false; planifierSave(); rendre(); return }
+        s.role_confirme = s.role_confirme ? null : (s.niveau_suggere ? 'titre' : s.role_suggere)
+        s.statut = s.role_confirme?'confirme':'suggere'
+        planifierSave(); rendre()
+      }
+      row.appendChild(chip)
+    }
     vl.appendChild(row) })
 }
 
@@ -593,6 +620,13 @@ $('btnExportEntr').onclick=async()=>{ const nom=$('projet').value.trim()||'entra
   try{ const r=await api('/api/export/entrainement',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel()})})
     $('etatExport').textContent=r.nbPages?`✓ entraînement : ${r.nbPages} page(s), ${r.nbLignes} ligne(s) (${r.nbCorrigees} corrigées) → exports/entrainement/${nom}/`:'aucune page validée — clique « ✓ Valider la page » d\'abord' }
   catch(e){ $('etatExport').textContent='échec : '+e.message } }
+$('btnAnalyseStruct').onclick=async()=>{ $('etatExport').textContent='analyse de la structure…'
+  try{ const r=await api('/api/atelier/analyser',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({projet:projetActuel()})})
+    let n=0
+    for(const k of Object.keys(r.pages||{})){ const src=r.pages[k].lignes||[], dst=(S.pages[k]&&S.pages[k].lignes)||[]
+      src.forEach((l,i)=>{ if(dst[i]&&l.suggestion){ dst[i].suggestion=l.suggestion; if(l.suggestion.role_suggere)n++ } }) }
+    rendre(); planifierSave(); $('etatExport').textContent=`✓ structure analysée : ${n} suggestion(s) (à confirmer ligne par ligne)` }
+  catch(e){ $('etatExport').textContent='analyse échouée : '+e.message } }
 $('btnExportBanc').onclick=async()=>{ const nom=$('projet').value.trim()||'banc'; $('etatExport').textContent='export du banc…'
   try{ const r=await api('/api/export/banc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel()})})
     $('etatExport').textContent=`✓ banc : ${r.nbPages} page(s), ${r.nbLignes} ligne(s), ${r.nbCaracteres} caractères → bancs/${nom}/` }

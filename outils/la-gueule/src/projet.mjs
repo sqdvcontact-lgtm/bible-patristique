@@ -17,6 +17,7 @@ import { construireSqlSupabase } from './sql.mjs'
 import { construireTexte, construireMarkdown } from './texte.mjs'
 import { altoPage, pageXml } from './echange.mjs'
 import { segmenterColonnes } from './colonnes.mjs'
+import { estHorsCorpsConfirme } from './structure.mjs'
 
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
 const DIR_PROJETS = join(RACINE, 'projets')
@@ -173,6 +174,7 @@ export function construireSegments(projet, { id_oeuvre = null, couche = 'dip', r
       // (bas index, haut de page). Un tri par VPOS le remet en place → filtré comme en-tête.
       const parY = [...piste.lignes].sort((a, b) => (a.bbox ? a.bbox[1] : 1e9) - (b.bbox ? b.bbox[1] : 1e9))
       for (const l of parY) {
+        if (estHorsCorpsConfirme(l)) continue // §8 : hors-corps CONFIRMÉ (n° page, titre courant, signature…) exclu du corps, jamais de la source
         if (estTitre(l)) { vider(); majStructure(l.titre.niveau, l.titre.texte) }
         else bloc.push(l)
       }

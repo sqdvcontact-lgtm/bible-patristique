@@ -6,7 +6,29 @@ import {
   detecterNumeroPage, detecterSignature, detecterLettrines, suggererNiveauTitre,
   detecterContinuations, classerBlancsPoesie, analyserBlocPoesie,
   detecterTitresCourants, detecterReclames, analyserVolume,
+  annoterProjet, estHorsCorpsConfirme,
 } from '../src/structure.mjs'
+
+test('§8 annoterProjet : attache la suggestion par ligne et préserve la confirmation humaine', () => {
+  const projet = { pages: { 2: { largeur: 1250, hauteur: 2050, lignes: [
+    L(600, 60, 60, 50, '2'), // n° de page centré en haut
+    L(100, 400, 900, 55, 'Corps de la prose ordinaire ici présente.'),
+  ] } } }
+  annoterProjet(projet)
+  assert.equal(projet.pages[2].lignes[0].suggestion.role_suggere, 'numero_page')
+  assert.equal(projet.pages[2].lignes[0].suggestion.role_confirme, null)
+  // décision humaine simulée → doit survivre à une nouvelle analyse
+  projet.pages[2].lignes[0].suggestion.role_confirme = 'numero_page'
+  annoterProjet(projet)
+  assert.equal(projet.pages[2].lignes[0].suggestion.role_confirme, 'numero_page')
+  assert.equal(projet.pages[2].lignes[0].suggestion.statut, 'confirme')
+})
+
+test('§8 estHorsCorpsConfirme : seul un rôle hors-corps CONFIRMÉ compte', () => {
+  assert.equal(estHorsCorpsConfirme({ suggestion: { role_confirme: 'titre_courant' } }), true)
+  assert.equal(estHorsCorpsConfirme({ suggestion: { role_suggere: 'titre_courant', role_confirme: null } }), false)
+  assert.equal(estHorsCorpsConfirme({ suggestion: { role_confirme: 'corps' } }), false)
+})
 
 const L = (x, y, w, h, t) => ({ bbox: [x, y, w, h], dip: t })
 const idx = (lignes, prefixe) => lignes.findIndex((l) => (l.dip || '').startsWith(prefixe))

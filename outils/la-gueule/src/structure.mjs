@@ -431,6 +431,37 @@ export function analyserVolume(pages) {
   return parPage
 }
 
+// ── §8 Propagation : rattacher les suggestions au projet, exclure le hors-corps ─
+/** Rôles qui, une fois CONFIRMÉS par l'humain, sortent du corps éditorial (jamais de la source). */
+export const ROLES_HORS_CORPS = ['numero_page', 'signature', 'reclame', 'titre_courant', 'paratexte_titre', 'ornement', 'bruit']
+
+/** Une ligne est-elle hors-corps CONFIRMÉ ? (la suggestion seule ne suffit pas — décision humaine). */
+export function estHorsCorpsConfirme(ligne) {
+  const r = ligne?.suggestion?.role_confirme
+  return !!r && ROLES_HORS_CORPS.includes(r)
+}
+
+/**
+ * Attache à chaque ligne du projet sa SUGGESTION de structure (`l.suggestion`), en préservant une
+ * éventuelle confirmation humaine antérieure (`role_confirme`). Ne modifie NI le texte, NI les
+ * coordonnées. Renvoie le projet (muté en place pour `l.suggestion` seulement).
+ */
+export function annoterProjet(projet) {
+  const nums = Object.keys(projet?.pages || {}).map(Number).sort((a, b) => a - b)
+  const pages = nums.map((num) => ({ num, largeur: projet.pages[num].largeur, hauteur: projet.pages[num].hauteur, lignes: projet.pages[num].lignes || [] }))
+  const parPage = analyserVolume(pages)
+  for (const num of nums) {
+    const anns = parPage.get(num) || []
+    const lignes = projet.pages[num].lignes || []
+    lignes.forEach((l, i) => {
+      const a = anns[i]; if (!a) return
+      const confirme = l.suggestion?.role_confirme ?? null // on ne perd JAMAIS une décision humaine
+      l.suggestion = { ...a, role_confirme: confirme, statut: confirme ? 'confirme' : 'suggere' }
+    })
+  }
+  return projet
+}
+
 // ── §8 Suggestions de niveaux de titre (T1/T2), propres à Ceriziers ──────────
 const RE_T1 = /^\s*(LE\s+PREMIER\s+LIVRE|LIVRE|LIURE)\b.*\b([IVXLC]+|PREMIER|SECOND|TROISI[EÈ]ME|QUATRI[EÈ]ME|CINQUI[EÈ]ME)\.?\s*$/i
 // « POESIE I. », « PROSE I », mais aussi « II. POESIE. », « III. PROSE. » (numéral avant ou après).

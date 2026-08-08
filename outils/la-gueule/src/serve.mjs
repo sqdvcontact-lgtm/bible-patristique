@@ -15,6 +15,7 @@ import { parserMetadonnees, typographieProbable } from './metadonnees.mjs'
 import { parseAlto } from './alto.mjs'
 import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes } from './projet.mjs'
 import { detecterLangue, apparierParagraphes } from './bilingue.mjs'
+import { annoterProjet } from './structure.mjs'
 
 const ICI = dirname(fileURLToPath(import.meta.url))
 const RACINE = join(ICI, '..')
@@ -282,6 +283,13 @@ export function demarrer({ port = 4599 } = {}) {
       if (p === '/api/export/xml' && req.method === 'POST') {
         const b = await corps(req)
         return json(res, 200, await exporterPagesXml(b.nom, b.projet || {}, { couche: b.couche || 'dip' }))
+      }
+      // Analyse de structure éditoriale : attache les SUGGESTIONS par ligne (préserve les
+      // confirmations humaines). Ne modifie ni le texte ni les coordonnées (§8, suggestions seules).
+      if (p === '/api/atelier/analyser' && req.method === 'POST') {
+        const b = await corps(req)
+        const projet = annoterProjet(b.projet || {})
+        return json(res, 200, { pages: projet.pages })
       }
       // Export du BANC d'essai (évaluation seulement). Refuse un banc non valide_humain → 400.
       if (p === '/api/export/banc' && req.method === 'POST') {

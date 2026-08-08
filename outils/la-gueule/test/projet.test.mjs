@@ -94,6 +94,24 @@ test('construireSegments : lignes émises en désordre (n° de page en dernier) 
   assert.ok(!segs.some((s) => s.segment_texte.trim() === '25')) // le n° de page est évacué
 })
 
+test('construireSegments : ligne hors-corps CONFIRMÉE exclue du corps (source intacte) ; suggestion non confirmée conservée', () => {
+  const projet = { pages: { 1: { largeur: 1250, hauteur: 2050, lignes: [
+    { bbox: [238, 38, 631, 69], texte: 'de la Philosophie. Liure V.', suggestion: { role_confirme: 'titre_courant' } },
+    { bbox: [100, 300, 900, 55], texte: 'Le vrai corps du texte ici présent.' },
+  ] } } }
+  const segs = construireSegments(projet, { couche: 'texte', recenserNotes: false })
+  assert.ok(!segs.some((s) => /Philosophie/.test(s.segment_texte))) // titre courant confirmé → hors corps
+  assert.ok(segs.some((s) => s.segment_texte.startsWith('Le vrai corps')))
+  assert.equal(projet.pages[1].lignes[0].texte, 'de la Philosophie. Liure V.') // source jamais modifiée
+
+  // Non confirmée → PAS exclue (rien d'automatique).
+  const projet2 = { pages: { 1: { largeur: 1250, hauteur: 2050, lignes: [
+    { bbox: [238, 38, 631, 69], texte: 'de la Philosophie. Liure V.', suggestion: { role_suggere: 'titre_courant', role_confirme: null } },
+    { bbox: [100, 300, 900, 55], texte: 'Le vrai corps ici.' },
+  ] } } }
+  assert.ok(construireSegments(projet2, { couche: 'texte', recenserNotes: false }).some((s) => /Philosophie/.test(s.segment_texte)))
+})
+
 test('construireSegments : sans aucun titre, ref_niv restent nuls (texte plat)', () => {
   const projet = { pages: { 1: { lignes: [corps(100, 'Une phrase de prose simple ici.')] } } }
   const segs = construireSegments(projet, { couche: 'texte', recenserNotes: false })
