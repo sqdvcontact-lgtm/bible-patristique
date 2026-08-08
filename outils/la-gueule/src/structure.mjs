@@ -191,6 +191,101 @@ function margeGaucheRetour(L, k) {
   return Math.min(...suivantes)
 }
 
+// ── §3 Continuations typographiques (jamais « rejet » dans la donnée) ─────────
+// Mots-outils qui terminent rarement un vers : leur présence en fin de ligne précédente signale
+// une continuation typographique (« changez par ma » → « douleur »). « parlé » n'en est pas un
+// → « que de ioye » reste un vers à part entière (et NON une continuation).
+const MOTS_INCOMPLETS = new Set('ma mon ton son sa au aux le la les des du de un une mes tes ses nos vos leur leurs cet cette ce et ne en par pour sur dans sous sans qui que qu où dont si ni ou mais car a à d l n s'.split(' '))
+const dernierMot = (t) => { const m = normaliserComparaison(t).split(' '); return m[m.length - 1] || '' }
+const finitIncomplet = (t) => /[-¬]$/.test(String(t).trim()) || MOTS_INCOMPLETS.has(dernierMot(t))
+const medianeGaps = (B) => { const g = []; for (let k = 1; k < B.length; k++) g.push(y0(B[k].l) - bas(B[k - 1].l)); return mediane(g.filter((x) => x >= 0)) || 20 }
+
+/** Détecte les continuations typographiques d'un BLOC poétique. Jamais de fusion automatique.
+ *  Renvoie Map i→annotation {type_ligne:'continuation_typographique', continuation_de, blanc_poesie:null}. */
+export function detecterContinuations(bloc) {
+  const B = bloc.map((l, i) => ({ l, i })).filter((x) => x.l.bbox).sort((a, b) => y0(a.l) - y0(b.l))
+  if (B.length < 2) return new Map()
+  const margeD = Math.max(...B.map((x) => droite(x.l)))
+  const largVerseMed = mediane(B.map((x) => larg(x.l))) || 1
+  const interligne = medianeGaps(B)
+  const out = new Map()
+  for (let k = 1; k < B.length; k++) {
+    const { l, i } = B[k], prev = B[k - 1].l
+    let score = 0; const preuves = {}
+    if (droite(prev) >= margeD - 2.5 * largCar(prev)) { score += 1; preuves.prec_pleine = true }
+    if (larg(l) < largVerseMed * 0.45) { score += 1; preuves.courte = true }
+    if (texte(l).trim().split(/\s+/).filter(Boolean).length <= 3) { score += 1; preuves.peu_de_mots = true }
+    const gap = y0(l) - bas(prev)
+    if (gap >= -5 && gap < interligne * 1.6) { score += 1; preuves.interligne_normal = true }
+    const relation = finitIncomplet(texte(prev))
+    if (relation) { score += 2; preuves.prec_finit_incomplet = dernierMot(texte(prev)) }
+    // La RELATION avec la ligne précédente est décisive : sans elle, on ne déclasse pas un vers.
+    if (score >= 3 && relation) {
+      const a = annotationVide()
+      a.role_suggere = 'continuation_typographique'; a.score = score; a.preuves = preuves
+      a.type_ligne = 'continuation_typographique'; a.continuation_de = B[k - 1].i; a.blanc_poesie = null
+      a.retrait_source_normalise = 0.0
+      out.set(i, a)
+    }
+  }
+  return out
+}
+
+// ── §4 Blancs poétiques à trois niveaux (par BLOC, jamais en px absolus) ──────
+/** Regroupe des valeurs 1D en 1 à `maxAmas` amas (coupures aux plus grands écarts ≥ sepMin). */
+export function grouper1D(vals, maxAmas = 3, sepMin = 0.08) {
+  const n = vals.length
+  if (!n) return { clusters: [], centres: [] }
+  const ordre = vals.map((v, i) => ({ v, i })).sort((a, b) => a.v - b.v)
+  const gaps = []
+  for (let k = 1; k < n; k++) gaps.push({ pos: k, g: ordre[k].v - ordre[k - 1].v })
+  const coupures = gaps.filter((x) => x.g >= sepMin).sort((a, b) => b.g - a.g).slice(0, maxAmas - 1).map((x) => x.pos).sort((a, b) => a - b)
+  const idSorted = new Array(n); let c = 0
+  for (let k = 0; k < n; k++) { if (coupures.includes(k)) c++; idSorted[k] = c }
+  const nC = c + 1, sommes = new Array(nC).fill(0), comptes = new Array(nC).fill(0)
+  for (let k = 0; k < n; k++) { sommes[idSorted[k]] += ordre[k].v; comptes[idSorted[k]]++ }
+  const centres = sommes.map((s, ci) => s / comptes[ci])
+  const clusters = new Array(n)
+  for (let k = 0; k < n; k++) clusters[ordre[k].i] = idSorted[k]
+  return { clusters, centres }
+}
+
+/** Classe les blancs poétiques (petit/moyen/large) d'un bloc, APRÈS exclusion des continuations.
+ *  retrait_normalise = (HPOS - marge_gauche_bloc) / largeur_bloc. Renvoie Map i→annotation vers. */
+export function classerBlancsPoesie(bloc, continuations = new Map()) {
+  const B = bloc.map((l, i) => ({ l, i })).filter((x) => x.l.bbox && !continuations.has(x.i))
+  if (!B.length) return new Map()
+  const marge = Math.min(...B.map((x) => x0(x.l)))
+  const droiteMax = Math.max(...B.map((x) => droite(x.l)))
+  const largeurBloc = (droiteMax - marge) || 1
+  const retraits = B.map((x) => Math.max(0, (x0(x.l) - marge) / largeurBloc))
+  const { clusters, centres } = grouper1D(retraits, 3, 0.08)
+  const noms = centres.length <= 1 ? ['petit'] : centres.length === 2 ? ['petit', 'moyen'] : ['petit', 'moyen', 'large']
+  const tailleAmas = centres.map((_, ci) => clusters.filter((cc) => cc === ci).length)
+  const out = new Map()
+  B.forEach((x, k) => {
+    const c = clusters[k]
+    const a = annotationVide()
+    a.role_suggere = 'vers'; a.type_ligne = 'vers'
+    a.blanc_poesie = noms[c] || 'petit'
+    a.retrait_source_normalise = Math.round(retraits[k] * 1000) / 1000
+    a.preuves = { cluster: c, centre: Math.round(centres[c] * 1000) / 1000, amas_isole: tailleAmas[c] === 1 }
+    a.score = tailleAmas[c] === 1 ? 1 : 3 // un amas d'une seule ligne = faible confiance (§4)
+    out.set(x.i, a)
+  })
+  return out
+}
+
+/** Analyse complète d'un bloc poétique : continuations PUIS blancs. Map i→annotation. */
+export function analyserBlocPoesie(bloc) {
+  const cont = detecterContinuations(bloc)
+  const blancs = classerBlancsPoesie(bloc, cont)
+  const out = new Map()
+  for (const [i, a] of cont) out.set(i, a)
+  for (const [i, a] of blancs) if (!out.has(i)) out.set(i, a)
+  return out
+}
+
 // ── §8 Suggestions de niveaux de titre (T1/T2), propres à Ceriziers ──────────
 const RE_T1 = /^\s*(LE\s+PREMIER\s+LIVRE|LIVRE|LIURE)\b.*\b([IVXLC]+|PREMIER|SECOND|TROISI[EÈ]ME|QUATRI[EÈ]ME|CINQUI[EÈ]ME)\.?\s*$/i
 // « POESIE I. », « PROSE I », mais aussi « II. POESIE. », « III. PROSE. » (numéral avant ou après).

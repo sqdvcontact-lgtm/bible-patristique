@@ -4,6 +4,7 @@ import assert from 'node:assert/strict'
 import {
   annotationVide, ROLES, normaliserComparaison, similarite,
   detecterNumeroPage, detecterSignature, detecterLettrines, suggererNiveauTitre,
+  detecterContinuations, classerBlancsPoesie, analyserBlocPoesie,
 } from '../src/structure.mjs'
 
 const L = (x, y, w, h, t) => ({ bbox: [x, y, w, h], dip: t })
@@ -108,6 +109,55 @@ test('§10 : « LIVRE I. » (vrai titre, ligne courte) → suggestion T1', () =>
   ] }
   const a = suggererNiveauTitre(page.lignes[0], page, { lignes: page.lignes })
   assert.ok(a); assert.equal(a.niveau_suggere, 1)
+})
+
+// ── §3/§4 poésie : continuations + blancs à 3 niveaux (tests d'acceptation §10) ──
+// Poème réel de la page 19 (vers + deux continuations typographiques).
+const POEME = [
+  L(352, 1087, 669, 61, 'OY dont les premiers Vers n’ont parlé'),
+  L(454, 1144, 194, 53, 'que de ioye,'),
+  L(358, 1189, 660, 57, 'Ie ne puis éuiter les pleurs, où ie me noy'),
+  L(357, 1241, 665, 56, 'Ie vois tous mes plaisirs changez par ma'),
+  L(447, 1289, 145, 53, 'douleur,'),
+  L(350, 1336, 672, 58, 'Et si i’escris des Vers, ie les dois au'),
+  L(194, 1385, 163, 52, 'malheur;'),
+  L(96, 1431, 879, 63, 'Les faueurs d’Appollon ne m’offrent que des'),
+  L(97, 1484, 921, 57, 'Dans les eaux de mes yeux, mes graces sont'),
+  L(101, 1580, 734, 56, 'Touchez de mes ennuys m’ont tousiours'),
+  L(96, 1630, 755, 55, 'L’honneur dont autrefois il cherit mon'),
+  L(94, 1680, 760, 56, 'Adoucit le chagrin, qui choque ma'),
+  L(100, 1726, 869, 71, 'Quoy que tant de malheurs conduisent'),
+]
+
+test('§10 poésie p19 : « douleur, » et « malheur; » → continuation_typographique (blanc null)', () => {
+  const cont = detecterContinuations(POEME)
+  const d = cont.get(idx(POEME, 'douleur,'))
+  const m = cont.get(idx(POEME, 'malheur;'))
+  assert.equal(d?.role_suggere, 'continuation_typographique'); assert.equal(d.blanc_poesie, null)
+  assert.equal(m?.role_suggere, 'continuation_typographique'); assert.equal(m.blanc_poesie, null)
+  // « que de ioye, » (précédée d'un vers COMPLET « …parlé ») n'est PAS une continuation.
+  assert.equal(cont.has(idx(POEME, 'que de ioye,')), false)
+})
+
+test('§10 poésie p19 : blancs petit/moyen/large aux bons vers', () => {
+  const a = analyserBlocPoesie(POEME)
+  assert.equal(a.get(idx(POEME, 'Les faueurs')).blanc_poesie, 'petit')   // x=96
+  assert.equal(a.get(idx(POEME, 'Touchez')).blanc_poesie, 'petit')       // x=101
+  assert.equal(a.get(idx(POEME, 'Ie ne puis')).blanc_poesie, 'moyen')    // x=358
+  assert.equal(a.get(idx(POEME, 'Et si i’escris')).blanc_poesie, 'moyen')// x=350
+  assert.equal(a.get(idx(POEME, 'que de ioye,')).blanc_poesie, 'large')  // x=454 (amas isolé, faible confiance)
+  // les continuations n'ont pas de niveau de blanc
+  assert.equal(a.get(idx(POEME, 'douleur,')).blanc_poesie, null)
+  assert.equal(a.get(idx(POEME, 'malheur;')).blanc_poesie, null)
+})
+
+test('§4 blancs : jamais de seuil px codé en dur — calcul par bloc (retrait normalisé)', () => {
+  // Le même poème décalé de +500 px en x doit donner les MÊMES classes (aucune constante absolue).
+  const decale = POEME.map((l) => L(l.bbox[0] + 500, l.bbox[1], l.bbox[2], l.bbox[3], l.dip))
+  const a = analyserBlocPoesie(decale)
+  assert.equal(a.get(idx(decale, 'Les faueurs')).blanc_poesie, 'petit')
+  assert.equal(a.get(idx(decale, 'Ie ne puis')).blanc_poesie, 'moyen')
+  assert.equal(a.get(idx(decale, 'que de ioye,')).blanc_poesie, 'large')
 })
 
 test('§10 : « de la Philosophie. Liure I. » (titre courant, ligne longue) → AUCUNE suggestion', () => {
