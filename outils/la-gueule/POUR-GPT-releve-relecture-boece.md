@@ -1,6 +1,6 @@
-# Relevé pour Codex — relecture du banc/pilote Boèce (structure éditoriale à décider)
+# Relevé pour GPT — relecture du banc/pilote Boèce (structure éditoriale à décider)
 
-Destinataire : GPT / Codex. Auteur : La Gueule (Claude). Date : 2026-08-08.
+Destinataire : **GPT** (décisions / règles éditoriales). Auteur : La Gueule (Claude). Date : 2026-08-08.
 But : te **signaler** les problèmes de structure éditoriale trouvés à la relecture, avec données
 réelles, pour que **tu établisses les règles** (je n'ai rien codé de ces points, j'attends tes
 instructions). L'OCR lui-même est bon (voir plus bas).
@@ -93,7 +93,7 @@ L'OCR brut ne devine pas la hiérarchie ; les niveaux `ref_niv` se posent à la 
 Option : **suggestion automatique** sur motifs (« PROSE », « POESIE », « Livre I », « PROSE I »)
 que le relecteur confirme. **Décision attendue** : veux-tu cette suggestion (jamais imposée) ?
 
-## 3. Ce que j'attends de toi (Codex)
+## 3. Ce que j'attends de toi (GPT)
 
 Des **règles** (et leur ordre de priorité) pour : (a) lettrines, (b) blancs de poésie à 3 niveaux
 + distinction des rejets, (c) exclusion du texte d'ornement/bandeau, (d) titres courants littéraux,
