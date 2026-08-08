@@ -301,6 +301,7 @@ export async function exporterEntrainement(nom, projet, { date = null } = {}) {
     await writeFile(join(base, `p${String(n).padStart(4, '0')}.alto.xml`), altoEntrainement(imgNom, pg.largeur, pg.hauteur, pg.lignes), 'utf8')
     nbPages++
     for (const l of pg.lignes) {
+      if (l.incertain) continue // lecture incertaine → jamais en ground-truth
       const corrige = String(l.dip ?? '').trim()
       if (!Array.isArray(l.bbox) || !corrige) continue
       const original = l.ocr0 != null ? l.ocr0 : corrige

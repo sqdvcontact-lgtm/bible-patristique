@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>La Gueule — Atelier de relecture</title>
-<link rel="icon" type="image/png" href="/logo.png?v=901e6fd6" />
+<link rel="icon" type="image/png" href="/logo-vert.png?v=20260808" />
 <style>
   :root{--fond:#f7f3ea;--surface:#fffdf8;--encre:#2b2620;--second:#6b6155;--bord:#d9ccb4;
     --vert:#5a7260;--vertf:rgba(90,114,96,.12);--ambre:#9a5a2a;--surlig:rgba(154,90,42,.28)}
@@ -13,7 +13,7 @@
   body{margin:0;background:var(--fond);color:var(--encre);font-family:"Segoe UI",system-ui,sans-serif;font-size:14px;display:flex;flex-direction:column}
   header{padding:10px 18px;border-bottom:1px solid var(--bord);background:var(--surface);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
   header h1{margin:0;font-family:Georgia,serif;font-weight:500;font-size:17px}
-  header .logo{height:36px;width:36px;display:block;flex:none}
+  header .logo{height:30px;width:58px;display:block;object-fit:contain;flex:none}
   header .sep{flex:1}
   label{font-size:12px;color:var(--second)}
   input,select{padding:5px 7px;border:1px solid var(--bord);border-radius:5px;background:#fff;color:var(--encre);font:inherit}
@@ -56,7 +56,7 @@
   .onglets button{padding:4px 10px;border-radius:999px;font-size:12px}
   .onglets button.actif{background:var(--vert);color:#fff;border-color:var(--vert)}
   .lignes{display:flex;flex-direction:column;gap:3px;font-family:"Cascadia Code",Consolas,monospace}
-  .lg{display:grid;grid-template-columns:2.2rem 1fr auto auto;gap:6px;align-items:baseline}
+  .lg{display:grid;grid-template-columns:2.2rem 1fr auto auto auto;gap:6px;align-items:baseline}
   .lg .num{font-size:10px;color:#b0a488;text-align:right;padding-top:6px}
   .lg input{width:100%;font-family:inherit;font-size:13px;border-color:transparent;background:#fff}
   .lg input:focus{border-color:var(--ambre);outline:none}
@@ -66,6 +66,13 @@
   /* Titre de structure éditoriale (Livre, Prose, Mètre…) → alimente ref_niv1..5. */
   .lg select.niv{font-size:10px;color:var(--second);border:1px solid var(--bord);border-radius:4px;background:#fff;align-self:center;padding:1px 2px}
   .lg.titre input{border-left:3px solid var(--ambre);font-weight:700;color:#5a4a2a;background:#fdf9f0}
+  /* Lecture incertaine : exclue du banc / ground-truth tant qu'elle n'est pas tranchée. */
+  .lg .inc{font-size:11px;line-height:1;border:1px solid var(--bord);border-radius:4px;background:#fff;color:#c8b8a0;align-self:center;cursor:pointer;padding:1px 4px}
+  .lg .inc.on{background:#fbeee0;color:#b26a1a;border-color:#e0b57a}
+  .lg.incertain input{border-left:2px dashed #c8862a;background:#fdf6ec}
+  /* Ligne validée humainement (bonne pour le banc / l'entraînement). */
+  .lg.valide .num{color:var(--vert);font-weight:700}
+  .lg.valide input{background:#f3f8f3}
   /* Titre courant / n° de page détecté : exclu de l'export, signalé ici. */
   .lg.entete input{color:var(--second);font-style:italic;text-decoration:line-through;opacity:.65;background:#f3efe6}
   .lg .tagtc{font-size:9px;color:var(--second);align-self:center;white-space:nowrap;padding-right:4px}
@@ -97,7 +104,7 @@
 </head>
 <body>
 <header>
-  <img class="logo" src="/logo.png?v=901e6fd6" alt="La Gueule" />
+  <img class="logo" src="/logo-vert-marque.png?v=20260808" alt="La Gueule" />
   <h1>La Gueule · atelier de relecture</h1>
   <label>Nature
     <select id="kind">
@@ -186,7 +193,7 @@
   <button class="discret" id="btnExportXml" title="Exporte chaque page océrisée aux formats d'échange ALTO v4 + PAGE XML (coordonnées + texte + image), pour eScriptorium / Transkribus / Aletheia">ALTO / PAGE</button>
   <span id="etatExport" style="font-size:12px;color:var(--second)"></span>
   <span style="flex:1"></span>
-  <button class="discret" id="btnValider" title="Marque cette page comme relue et correcte : bonne pour l'entraînement Kraken">✓ Valider la page</button>
+  <button class="discret" id="btnValider" title="Validation HUMAINE de la page : marque valide_humain (par page et par ligne, hors lignes incertaines). Re-cliquer retire la validation.">✓ Valider (humain)</button>
   <span id="nbValidees" style="font-size:12px;color:var(--second)"></span>
   <button class="discret" id="btnExportEntr" title="Exporte les corrections des pages validées en jeu d'entraînement Kraken (ALTO + images + JSONL)">Export entraînement</button>
 </div>
@@ -239,7 +246,7 @@ const api=async(u,o)=>{const r=await fetch(u,o);const j=await r.json().catch(()=
 const etat=t=>$('etat').textContent=t
 
 // Modèle en mémoire : pages[n] = { pngUrl, largeur, hauteur, lignes:[{bbox,dip,dev,mod}] }
-const S={ kind:'imprime', pages:{}, page:1, total:null, couche:'dip', arret:false, journal:[] }
+const S={ kind:'imprime', pages:{}, page:1, total:null, couche:'dip', arret:false, journal:[], garde:null }
 const SEUIL_DOUTE=0.80 // en dessous, la ligne est signalée « à revoir »
 
 // ── Fiabilité des lots : état par page (à faire / terminé / erreur), progression, journal ────
@@ -371,6 +378,8 @@ function rendre(){
     if(doute) row.classList.add('doute')
     if(entete) row.classList.add('entete')
     if(estTitre) row.classList.add('titre')
+    if(l.incertain) row.classList.add('incertain')
+    if(l.valide_humain && !l.incertain) row.classList.add('valide')
     const num=document.createElement('div'); num.className='num'; num.textContent=i+1
     if(doute) num.title='à revoir (confiance '+Math.round(l.confiance*100)+' %)'
     const inp=document.createElement('input'); inp.dataset.i=i; inp.value=txt
@@ -387,6 +396,11 @@ function rendre(){
     niv.value=String(estTitre?l.titre.niveau:0)
     niv.onchange=()=>{ const k=+niv.value; if(k){ l.titre={niveau:k, texte:inp.value} } else { delete l.titre } planifierSave(); rendre() }
     row.appendChild(niv)
+    // Marqueur « lecture incertaine » : exclut la ligne du banc / ground-truth tant qu'elle n'est pas tranchée.
+    const inc=document.createElement('button'); inc.type='button'; inc.className='inc'+(l.incertain?' on':''); inc.textContent='⚠'
+    inc.title='Lecture incertaine : à trancher. Exclue du banc et de l\'entraînement tant qu\'elle est marquée.'
+    inc.onclick=()=>{ l.incertain=!l.incertain; if(l.incertain) l.valide_humain=false; inc.classList.toggle('on',l.incertain); row.classList.toggle('incertain',l.incertain); row.classList.toggle('valide',!!l.valide_humain&&!l.incertain); planifierSave() }
+    row.appendChild(inc)
     vl.appendChild(row) })
 }
 
@@ -474,7 +488,7 @@ let tResize; window.addEventListener('resize',()=>{ clearTimeout(tResize); tResi
 $('stop').onclick=async()=>{ S.arret=true; try{ await api('/api/atelier/stop',{method:'POST'}) }catch{} }
 
 // ── Persistance & export ────────────────────────────────────────────────────
-function projetActuel(){ return { kind:S.kind, chemin:$('chemin').value.trim(), page:S.page, total:S.total, pages:S.pages, meta:collecterMeta(), journal:S.journal||[] } }
+function projetActuel(){ const p={ kind:S.kind, chemin:$('chemin').value.trim(), page:S.page, total:S.total, pages:S.pages, meta:collecterMeta(), journal:S.journal||[] }; if(S.garde) p._garde=S.garde; return p }
 // Champs = colonnes de la table `oeuvres` du site (correspondance exacte).
 const CHAMPS_META=['auteur','titre','sous_titre','titre_original','langue_originale','langue_trad','trad_auteur','editeur','collection','ville','date_publication','date_composition','genre']
 const vMeta=c=>$('m_'+c).value.trim()||null
@@ -536,7 +550,7 @@ async function listerProjets(){ try{ const {projets}=await api('/api/projet/list
 async function ouvrirProjet(nom){
   const {projet}=await api('/api/projet/load?nom='+encodeURIComponent(nom))
   S.kind=projet.kind||'imprime'; $('kind').value=S.kind; $('chemin').value=projet.chemin||''
-  S.pages=projet.pages||{}; S.total=projet.total||null; S.journal=projet.journal||[]
+  S.pages=projet.pages||{}; S.total=projet.total||null; S.journal=projet.journal||[]; S.garde=projet._garde||null
   S.page=projet.page||Object.keys(S.pages).map(Number).sort((a,b)=>a-b)[0]||1
   $('page').value=S.page; $('projet').value=nom; $('onglets').style.display=(S.kind==='manuscrit')?'flex':'none'
   $('lblTypo').style.display=(S.kind==='imprime')?'flex':'none'
@@ -562,10 +576,18 @@ $('btnExportXml').onclick=async()=>{
   catch(e){ $('etatExport').textContent='échec : '+e.message }
 }
 // ── Données d'entraînement Kraken : valider une page relue + exporter les corrections ─────────
-function majValidees(){ const n=Object.keys(S.pages).filter(k=>S.pages[k]?.valide).length; $('nbValidees').textContent=n?`${n} validée(s)`:'' }
+function majValidees(){ const n=Object.keys(S.pages).filter(k=>S.pages[k]?.valide_humain).length; $('nbValidees').textContent=n?`${n} validée(s) humain`:'' }
 $('btnValider').onclick=()=>{ const n=S.page, pg=S.pages[n]
   if(!pg||!pg.lignes||!pg.lignes.length){ etat('rien à valider : page pas encore océrisée'); return }
-  pg.valide=true; majValidees(); sauver(true); etat(`page ${n} validée — bonne pour l'entraînement`) }
+  if(pg.valide_humain){ // dé-valider (bascule)
+    pg.valide_humain=false; pg.valide=false; pg.lignes.forEach(l=>l.valide_humain=false)
+    majValidees(); rendre(); sauver(true); etat(`page ${n} : validation humaine retirée`); return }
+  let ok=0, incert=0
+  pg.lignes.forEach(l=>{ if(l.incertain){ l.valide_humain=false; incert++ }
+    else if(String(l.dip??'').trim()){ l.valide_humain=true; ok++ } else l.valide_humain=false })
+  pg.valide_humain=true; pg.valide=true // compat export entraînement
+  majValidees(); rendre(); sauver(true)
+  etat(`page ${n} validée (humain) : ${ok} ligne(s)${incert?`, ${incert} incertaine(s) exclue(s)`:''}`) }
 $('btnExportEntr').onclick=async()=>{ const nom=$('projet').value.trim()||'entrainement'; $('etatExport').textContent='export entraînement…'
   try{ const r=await api('/api/export/entrainement',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel()})})
     $('etatExport').textContent=r.nbPages?`✓ entraînement : ${r.nbPages} page(s), ${r.nbLignes} ligne(s) (${r.nbCorrigees} corrigées) → exports/entrainement/${nom}/`:'aucune page validée — clique « ✓ Valider la page » d\'abord' }
