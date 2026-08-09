@@ -80,6 +80,13 @@
   /* Ligne validée humainement (bonne pour le banc / l'entraînement). */
   .lg.valide .num{color:var(--vert);font-weight:700}
   .lg.valide input{background:#f3f8f3}
+  /* Ligne AJOUTÉE à la main (texte que l'OCR n'a pas capté) : sans image, hors entraînement. */
+  .lg.ajout input{border-left:3px solid var(--vert);background:#f4f9f4}
+  .lg .inc.sup{color:#b5482a;opacity:1}
+  .lg .inc.sup:hover{border-color:#e0a890;background:#fbeee8}
+  .ajout-barre{display:flex;justify-content:flex-end;padding:1px 5px 5px}
+  .ajout-barre button{font-size:11px;opacity:.6;transition:opacity .12s}
+  .ajout-barre:hover button,.ajout-barre button:focus{opacity:1}
   /* Suggestion de structure (§ GPT) : rôle proposé, à confirmer. Pastille lisible. */
   .lg .sugg{font-size:9px;line-height:1.25;border:1px solid var(--bord);border-radius:999px;background:var(--surface);color:var(--second);align-self:center;cursor:pointer;padding:2px 8px;white-space:nowrap;max-width:12rem;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em}
   .lg .sugg:hover{border-color:var(--second)}
@@ -431,6 +438,12 @@ function rendre(){
   }
   // Texte de la couche courante, éditable
   vl.innerHTML=''
+  // Ajout manuel d'une ligne que l'OCR a ratée (folio, réclame, ligne de corps oubliée).
+  const barreAjout=document.createElement('div'); barreAjout.className='ajout-barre'
+  const bAjout=document.createElement('button'); bAjout.type='button'; bAjout.className='discret'; bAjout.textContent='＋ ligne manquante'
+  bAjout.title='Ajoute une ligne que l\'OCR n\'a pas captée. Insérée après la ligne sélectionnée (sinon en tête). À corriger, classer (numéro de page…) et valider. Sans image associée : comptée dans l\'évaluation du banc, mais hors entraînement.'
+  bAjout.onclick=()=>{ const act=vl.querySelector('.lg.actif'); insererLigne(act?(+act.dataset.i+1):0) }
+  barreAjout.appendChild(bAjout); vl.appendChild(barreAjout)
   pg.lignes.forEach((l,i)=>{ const row=document.createElement('div'); row.className='lg'; row.dataset.i=i
     const txt=l[S.couche]||''
     const doute=(l.confiance!=null && l.confiance<SEUIL_DOUTE)
@@ -441,6 +454,7 @@ function rendre(){
     if(estTitre) row.classList.add('titre')
     if(l.incertain) row.classList.add('incertain')
     if(l.valide_humain && !l.incertain) row.classList.add('valide')
+    if(l.ajout_humain) row.classList.add('ajout')
     const num=document.createElement('div'); num.className='num'; num.textContent=i+1
     if(doute) num.title='à revoir (confiance '+Math.round(l.confiance*100)+' %)'
     const inp=document.createElement('input'); inp.dataset.i=i; inp.value=txt
@@ -457,11 +471,19 @@ function rendre(){
     niv.value=String(estTitre?l.titre.niveau:0)
     niv.onchange=()=>{ const k=+niv.value; if(k){ l.titre={niveau:k, texte:inp.value} } else { delete l.titre } planifierSave(); rendre() }
     row.appendChild(niv)
-    // Marqueur « lecture incertaine » : exclut la ligne du banc / ground-truth tant qu'elle n'est pas tranchée.
-    const inc=document.createElement('button'); inc.type='button'; inc.className='inc'+(l.incertain?' on':''); inc.textContent='⚠'
-    inc.title='Lecture incertaine : à trancher. Exclue du banc et de l\'entraînement tant qu\'elle est marquée.'
-    inc.onclick=()=>{ l.incertain=!l.incertain; if(l.incertain) l.valide_humain=false; inc.classList.toggle('on',l.incertain); row.classList.toggle('incertain',l.incertain); row.classList.toggle('valide',!!l.valide_humain&&!l.incertain); planifierSave() }
-    row.appendChild(inc)
+    if(l.ajout_humain){
+      // Ligne ajoutée à la main : bouton SUPPRIMER (jamais « incertain » — une ligne humaine n'est pas douteuse).
+      const del=document.createElement('button'); del.type='button'; del.className='inc sup'; del.textContent='✕'
+      del.title='Supprimer cette ligne ajoutée à la main. (Ne touche jamais aux lignes issues de l\'OCR.)'
+      del.onclick=()=>supprimerLigne(i)
+      row.appendChild(del)
+    } else {
+      // Marqueur « lecture incertaine » : exclut la ligne du banc / ground-truth tant qu'elle n'est pas tranchée.
+      const inc=document.createElement('button'); inc.type='button'; inc.className='inc'+(l.incertain?' on':''); inc.textContent='⚠'
+      inc.title='Lecture incertaine : à trancher. Exclue du banc et de l\'entraînement tant qu\'elle est marquée.'
+      inc.onclick=()=>{ l.incertain=!l.incertain; if(l.incertain) l.valide_humain=false; inc.classList.toggle('on',l.incertain); row.classList.toggle('incertain',l.incertain); row.classList.toggle('valide',!!l.valide_humain&&!l.incertain); planifierSave() }
+      row.appendChild(inc)
+    }
     // Suggestion de structure (§ GPT) : rôle proposé + décision humaine (role_confirme fait foi).
     const s=l.suggestion
     const horsCorps=['numero_page','signature','reclame','titre_courant','paratexte_titre','ornement','bruit']
@@ -518,6 +540,18 @@ function rendre(){
     }
     vl.appendChild(row) })
 }
+
+// Ajout / suppression d'une ligne saisie à la main (texte que l'OCR n'a pas capté : folio, réclame…).
+// Provenance : ajout_humain=true, ocr0='' (la machine n'a rien lu là), bbox=null (aucune région image)
+// → jamais versée à l'entraînement (filtre bbox en aval), mais comptée dans l'évaluation du banc.
+function insererLigne(i){ const pg=S.pages[S.page]; if(!pg||!Array.isArray(pg.lignes)) return
+  const pos=Math.max(0, Math.min(pg.lignes.length, i|0))
+  pg.lignes.splice(pos, 0, { bbox:null, ocr0:'', dip:'', dev:'', mod:'', confiance:null, ajout_humain:true })
+  planifierSave(); rendre()
+  const inp=$('lignes').querySelector(`.lg[data-i="${pos}"] input`); if(inp) inp.focus() }
+function supprimerLigne(i){ const pg=S.pages[S.page]; const l=pg&&pg.lignes&&pg.lignes[i]
+  if(!l||!l.ajout_humain) return // sécurité : on ne supprime JAMAIS une ligne issue de l'OCR
+  pg.lignes.splice(i, 1); planifierSave(); rendre() }
 
 $('onglets').onclick=e=>{ const b=e.target.closest('button'); if(!b)return
   S.couche=b.dataset.c; $('onglets').querySelectorAll('button').forEach(x=>x.classList.toggle('actif',x===b)); rendre() }
