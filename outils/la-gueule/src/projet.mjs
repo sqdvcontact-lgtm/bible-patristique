@@ -55,17 +55,38 @@ export function estEntete(texte) {
   return false
 }
 
-/** Réunit les lignes d'un paragraphe en un texte : mot coupé en fin de ligne recollé (§14.3). */
+/**
+ * Réunit les lignes d'un paragraphe en un texte (§14.3, passe 3 Q2). Convention CATMuS-Print :
+ *  - « ¬ » en fin de ligne = césure typographique → SUPPRIMÉE et fragments recollés sans blanc ;
+ *  - « - » / « ‐ » = trait LEXICAL → CONSERVÉ, fragments recollés sans blanc (arc-/en-ciel → arc-en-ciel) ;
+ *  - une ligne dont la césure est marquée ambiguë (`l.cesure.ambigu`) n'est PAS jointe (blanc, on ne
+ *    décide rien) ;
+ *  - sinon, jonction par une espace.
+ */
 export function joindreLignes(lignes, champ) {
-  let out = ''
+  let out = '', prevAmbigu = false
   for (let i = 0; i < lignes.length; i++) {
-    const t = String(lignes[i]?.[champ] ?? '').trim()
+    const l = lignes[i]
+    const t = String(l?.[champ] ?? '').trim()
     if (!t) continue
-    if (out === '') { out = t; continue }
-    if (/[-‐¬]\s*$/.test(out)) out = out.replace(/[-‐¬]\s*$/, '') + t // trait d'union de coupure → recollé
-    else out += ' ' + t
+    if (out === '') { out = t; prevAmbigu = !!(l?.cesure?.ambigu); continue }
+    if (!prevAmbigu && /¬\s*$/.test(out)) out = out.replace(/¬\s*$/, '') + t        // césure typographique → recollée sans trait
+    else if (!prevAmbigu && /[-‐]\s*$/.test(out)) out = out.replace(/\s*$/, '') + t  // trait lexical conservé
+    else out += ' ' + t                                                             // ligne normale ou césure ambiguë
+    prevAmbigu = !!(l?.cesure?.ambigu)
   }
   return out.replace(/\s+/g, ' ').trim()
+}
+
+/**
+ * Passe 3 Q2 — suggestion (jamais de conversion silencieuse) : la fin de `ligne` porte « - » et la
+ * `suivante` continue manifestement le même mot (commence par une minuscule) → proposer de classer
+ * en césure typographique « ¬ ». Fonction PURE, pour l'atelier ; ne modifie rien.
+ */
+export function suggererCesure(ligne, suivante) {
+  const a = String(ligne ?? '').trim(), b = String(suivante ?? '').trim()
+  if (!/[-‐]$/.test(a)) return false
+  return /^[a-zà-öø-ÿ]/.test(b) // la suite commence par une minuscule → coupure de mot probable
 }
 
 const texteLigne = (l) => String(l.texte ?? l.dip ?? l.fr ?? '')

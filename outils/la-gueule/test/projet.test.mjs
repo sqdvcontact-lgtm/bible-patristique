@@ -4,7 +4,7 @@ import { writeFile, unlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { estEntete, joindreLignes, grouperParagraphes, metaPagesOcr, empreinteFichier, altoEntrainement, construireSegments, exporterEntrainement, construireManifesteBanc, exporterBanc } from '../src/projet.mjs'
+import { estEntete, joindreLignes, suggererCesure, grouperParagraphes, metaPagesOcr, empreinteFichier, altoEntrainement, construireSegments, exporterEntrainement, construireManifesteBanc, exporterBanc } from '../src/projet.mjs'
 
 test('exporterEntrainement : refuse un projet marqué interdit_entrainement (donnée contaminée)', async () => {
   const projet = { _garde: { interdit_entrainement: true, motif: 'origine Tesseract, confusions ſ→f' }, pages: {} }
@@ -145,14 +145,31 @@ test('estEntete : une vraie phrase n’est pas un en-tête', () => {
   assert.equal(estEntete('soleil. Vous souhaitez la paix.'), false)
 })
 
-test('joindreLignes : mot coupé en fin de ligne recollé (§14.3)', () => {
-  const lignes = [{ texte: 'souhai-' }, { texte: 'tez' }, { texte: 'bien' }]
-  assert.equal(joindreLignes(lignes, 'texte'), 'souhaitez bien')
+test('joindreLignes (Q2) : césure « ¬ » supprimée et mot recollé (§14.3)', () => {
+  const lignes = [{ texte: 'ser¬' }, { texte: 'uante' }, { texte: 'de' }]
+  assert.equal(joindreLignes(lignes, 'texte'), 'seruante de') // « ser¬ »+« uante » → « seruante »
+  assert.equal(joindreLignes([{ texte: 'souhai¬' }, { texte: 'tez' }, { texte: 'bien' }], 'texte'), 'souhaitez bien')
+})
+
+test('joindreLignes (Q2) : trait LEXICAL « - » conservé au recollage', () => {
+  const lignes = [{ texte: 'arc-' }, { texte: 'en-ciel' }]
+  assert.equal(joindreLignes(lignes, 'texte'), 'arc-en-ciel') // le tiret lexical subsiste
+})
+
+test('joindreLignes (Q2) : césure marquée ambiguë → NON jointe (on ne décide rien)', () => {
+  const lignes = [{ texte: 'ser¬', cesure: { ambigu: true } }, { texte: 'uante' }]
+  assert.equal(joindreLignes(lignes, 'texte'), 'ser¬ uante') // laissé tel quel, jonction par espace
 })
 
 test('joindreLignes : lignes simples jointes par une espace', () => {
   const lignes = [{ texte: 'Bonjour' }, { texte: 'le' }, { texte: 'monde' }]
   assert.equal(joindreLignes(lignes, 'texte'), 'Bonjour le monde')
+})
+
+test('suggererCesure (Q2) : « - » en fin de ligne + suite en minuscule → suggère « ¬ »', () => {
+  assert.equal(suggererCesure('ser-', 'uante'), true)
+  assert.equal(suggererCesure('arc-', 'En-ciel'), false) // suite en capitale → pas une coupure de mot
+  assert.equal(suggererCesure('fin.', 'Autre'), false)   // pas de trait en fin
 })
 
 // Lignes avec coordonnées : y croissant, hauteur 40 (seuil de saut = 36).
