@@ -39,6 +39,7 @@
   .meta-corps input{width:100%;font-size:13px}
   .meta-corps input.meta-auto{background:#e7e5df;color:#1f1f1f} /* deviné par le parseur (remplaçable par l'IA) */
   .meta-corps input.meta-ia{background:#fbeecb;border-color:#c9971f;color:#1a1a1a;font-weight:500} /* proposé par l'IA (lecture d'image), à vérifier */
+  .meta-corps input.meta-ia-enrichi{background:#e3eefb;border-color:#5b8fd6;color:#12314f;font-weight:500} /* IA — connaissance externe (hors page), à vérifier */
   .meta-etat{font-size:11px;color:var(--second);min-height:1em;margin-top:2px}
   main.meta-replie .meta-titre,main.meta-replie .meta-extraire,main.meta-replie .meta-corps{display:none}
   main.meta-replie .meta-tete{flex-direction:column;padding:8px 3px;border-bottom:none}
@@ -542,7 +543,8 @@ async function analyser(){
       // Analyse LÉGÈRE au dépôt (rapide) : page de titre + sonde de typographie, PAS d'OCR du document.
       chargeOn('Analyse rapide (page de titre + typographie)…')
       const r=await api('/api/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin, rapide:true})})
-      remplirMeta(r.meta, true); $('main').classList.remove('meta-replie'); $('metaToggle').textContent='‹'; planifierSave()
+      // Métadonnées : plus de pré-remplissage mécanique au dépôt — « IA titre » (Opus) fait la lecture.
+      $('main').classList.remove('meta-replie'); $('metaToggle').textContent='‹'
       // Choix AUTOMATIQUE du moteur adapté à ce livre (imprimé ancien à s long → Kraken).
       const anc=r.typographie?.ancien; $('typo').value=anc?'ancien':'moderne'
       await finaliserDiagnostic({ nbPages:pages, meta:r.meta, typographie:r.typographie }) // Phase B : profil + avance du workflow
@@ -970,14 +972,20 @@ async function completerMetaIA(){ const chemin=$('chemin').value.trim(); if(!che
   try{ const r=await api('/api/ia/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin,page,texteTitre})})
     console.log('IA titre — réponse:', r) // diagnostic (visible dans la console F12)
     if(!r.ia_active){ $('etatMeta').textContent='IA non active ('+(r.motif||'—')+')'; return }
-    const m=r.meta_ia||{}; let n=0
-    // On remplace les champs VIDES et ceux devinés par le parseur (meta-auto) ; jamais ce que tu as tapé.
+    const m=r.meta_ia||{}, enr=r.enrichissement||{}; let n=0, e=0
+    // Lu sur l'image : remplace les champs VIDES ou devinés par le parseur (meta-auto) ; jamais une saisie.
     CHAMPS_META.forEach(c=>{ const el=$('m_'+c); if(!el)return
       const remplacable=!el.value.trim()||el.classList.contains('meta-auto')
-      if(m[c]!=null&&String(m[c]).trim()&&remplacable){ el.value=String(m[c]).trim(); el.classList.add('meta-ia'); el.classList.remove('meta-auto'); el.title='proposé par l\'IA — à vérifier'; n++ } })
-    if(r.abstention&&!n){ $('etatMeta').textContent='IA ('+(r.fournisseur||'?')+') s\'est abstenue'+(r.erreur?(' : '+r.erreur):' (page non lisible / pas une page de titre)')+' — rien ajouté.' }
-    else $('etatMeta').textContent='✓ IA : '+n+' champ(s) renseigné(s) par lecture d\'image — à vérifier'+(r.confiance!=null?(' (confiance '+r.confiance+')'):'')
-    if(n){ planifierSave() }
+      if(m[c]!=null&&String(m[c]).trim()&&remplacable){ el.value=String(m[c]).trim(); el.classList.add('meta-ia'); el.classList.remove('meta-auto'); el.title='proposé par l\'IA (lecture d\'image) — à vérifier'; n++ } })
+    // Enrichissement (connaissance externe, hors page) : titre original + noms complets. Prime sur la
+    // forme lue (sauf saisie manuelle), et se marque distinctement « à vérifier ».
+    const mapEnr={ titre_original:enr.titre_original, auteur:enr.auteur_complet, trad_auteur:enr.trad_auteur_complet, editeur:enr.editeur_complet }
+    Object.keys(mapEnr).forEach(c=>{ const el=$('m_'+c); if(!el)return; const v=mapEnr[c]
+      const remplacable=!el.value.trim()||el.classList.contains('meta-auto')||el.classList.contains('meta-ia')
+      if(v!=null&&String(v).trim()&&remplacable){ el.value=String(v).trim(); el.classList.remove('meta-auto'); el.classList.remove('meta-ia'); el.classList.add('meta-ia-enrichi'); el.title='IA — connaissance externe (hors page), à vérifier'; e++ } })
+    if(r.abstention&&!n&&!e){ $('etatMeta').textContent='IA ('+(r.fournisseur||'?')+') s\'est abstenue'+(r.erreur?(' : '+r.erreur):' (page non lisible / pas une page de titre)')+' — rien ajouté.' }
+    else $('etatMeta').textContent='✓ IA : '+n+' champ(s) lu(s)'+(e?(' + '+e+' enrichi(s) hors page'):'')+' — à vérifier'+(r.confiance!=null?(' (confiance '+r.confiance+')'):'')
+    if(n||e){ planifierSave() }
   }catch(e){ $('etatMeta').textContent='échec IA : '+e.message }
   finally{ chargeOff() } }
 // Replier / déplier la colonne des métadonnées.
@@ -986,7 +994,7 @@ $('metaToggle').onclick=()=>{ const replie=$('main').classList.toggle('meta-repl
 $('btnParcourir').onclick=parcourir
 $('btnMeta').onclick=extraireMeta
 $('btnMetaIA').onclick=completerMetaIA
-;[...document.querySelectorAll('#metaCorps input')].forEach(i=>i.oninput=()=>{ i.classList.remove('meta-ia'); i.classList.remove('meta-auto'); planifierSave() })
+;[...document.querySelectorAll('#metaCorps input')].forEach(i=>i.oninput=()=>{ i.classList.remove('meta-ia'); i.classList.remove('meta-auto'); i.classList.remove('meta-ia-enrichi'); planifierSave() })
 let tSave
 function planifierSave(){ if(!$('projet').value.trim())return; clearTimeout(tSave); tSave=setTimeout(()=>sauver(true),1200) }
 async function sauver(auto){

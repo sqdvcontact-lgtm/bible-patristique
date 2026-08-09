@@ -282,7 +282,11 @@ export function demarrer({ port = 4599 } = {}) {
         const CH = ['titre', 'sous_titre', 'titre_original', 'auteur', 'trad_auteur', 'editeur', 'collection', 'ville', 'date_publication', 'date_composition', 'genre', 'langue_originale', 'langue_trad']
         const meta_ia = {}
         if (!sortie.abstention) for (const c of CH) { const v = sortie[c]; if (v != null && String(v).trim()) meta_ia[c] = String(v).trim() }
-        return json(res, 200, { ia_active: true, meta_ia, abstention: !!sortie.abstention, confiance: sortie.confiance ?? null, modele: sortie.modele || null, fournisseur: etat.nom, erreur: sortie.erreur || null })
+        // Enrichissement (connaissance externe, séparé du lu) : titre original + noms complets.
+        const enr = sortie.enrichissement || {}
+        const enrichissement = {}
+        if (!sortie.abstention) for (const c of ['titre_original', 'auteur_complet', 'trad_auteur_complet', 'editeur_complet']) { const v = enr[c]; if (v != null && String(v).trim()) enrichissement[c] = String(v).trim() }
+        return json(res, 200, { ia_active: true, meta_ia, enrichissement, abstention: !!sortie.abstention, confiance: sortie.confiance ?? null, modele: sortie.modele || null, fournisseur: etat.nom, erreur: sortie.erreur || null })
       }
 
       // Phase B — écrit le profil de traitement du diagnostic (profils-traitement/<nom>-profil-v1.json).

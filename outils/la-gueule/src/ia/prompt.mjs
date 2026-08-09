@@ -75,11 +75,18 @@ export function consigneMetadonnees(texte_ocr = '') {
     '- genre : la nature de l\'œuvre si explicite (traité, commentaire, sermons, lettres, poème, dialogue…), sinon null.\n' +
     '- langue_originale : latin ou grec si l\'original est cité, sinon null. langue_trad : « français ».\n' +
     '- collection : le nom d\'une collection éditoriale si mentionné, sinon null.\n' +
+    'ENRICHISSEMENT (connaissance externe, séparé de la lecture) : si tu identifies l\'œuvre et son auteur ' +
+    'avec CERTITUDE (œuvre connue), remplis l\'objet "enrichissement" depuis ta CONNAISSANCE — jamais deviné, ' +
+    'jamais lu sur la page : titre_original (le titre dans la langue d\'origine, ex. « De consolatione ' +
+    'philosophiae »), et les noms COMPLETS et modernes (auteur_complet ex. « Boèce » ; trad_auteur_complet ' +
+    'ex. « René de Ceriziers » ; editeur_complet). En cas de doute, mets null : ces champs seront signalés ' +
+    '« à vérifier ». Ne mélange jamais l\'enrichissement avec ce qui est lu sur l\'image.\n' +
     'Réponds en JSON STRICT, une seule ligne :\n' +
     '{"type":"metadonnees_titre","titre":null,"sous_titre":null,"titre_original":null,"auteur":null,' +
     '"trad_auteur":null,"editeur":null,"collection":null,"ville":null,"date_publication":null,' +
     '"genre":null,"langue_originale":null,"langue_trad":null,' +
-    '"lecture_fondee_sur_image":true,"confiance":0.0,"abstention":false,"statut":"candidat"}'
+    '"lecture_fondee_sur_image":true,"confiance":0.0,"abstention":false,"statut":"candidat",' +
+    '"enrichissement":{"titre_original":null,"auteur_complet":null,"trad_auteur_complet":null,"editeur_complet":null}}'
   )
 }
 
