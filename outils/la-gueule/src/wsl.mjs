@@ -57,7 +57,8 @@ const dansTmp = (corps) => `D=$(mktemp -d /tmp/lg.XXXXXX); trap 'rm -rf "$D"' EX
 // options ImageMagick fixes → aucune valeur libre interpolée, donc pas d'injection. Ordre pensé :
 // demi-page → gris → contraste → débruitage → redressement → binarisation locale → rognage.
 // Renvoie une chaîne d'options `convert` (vide si rien n'est demandé = aucun prétraitement).
-export function argsPretraitement(pre = {}) {
+export function argsPretraitement(pre) {
+  pre = pre || {} // ⚠️ défaut `= {}` ne couvre QUE undefined ; l'atelier envoie `pretraitement:null`
   const a = []
   if (pre.demiPage === 'gauche') a.push('-gravity West -crop 50%x100%+0+0 +repage')
   else if (pre.demiPage === 'droite') a.push('-gravity East -crop 50%x100%+0+0 +repage')

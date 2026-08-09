@@ -8,6 +8,12 @@ test('argsPretraitement : vide par défaut (aucun prétraitement = bon scan inta
   assert.equal(argsPretraitement({}), '')
 })
 
+test('argsPretraitement : null ne plante pas (l’atelier envoie pretraitement:null)', () => {
+  // Régression « Cannot read properties of null (reading 'demiPage') » : le défaut = {} ne couvre
+  // que undefined, pas null. La page échouait à l’OCR pour ce seul motif.
+  assert.equal(argsPretraitement(null), '')
+})
+
 test('argsPretraitement : drapeaux connus → options ImageMagick, dans l’ordre', () => {
   const s = argsPretraitement({ gris: true, binariser: true, deskew: true, rogner: true })
   assert.match(s, /-colorspace Gray/); assert.match(s, /-deskew/); assert.match(s, /-lat/); assert.match(s, /-trim/)
