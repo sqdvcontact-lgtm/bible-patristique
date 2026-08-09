@@ -59,9 +59,14 @@ export function consigneMetadonnees(texte_ocr = '') {
   return (
     'Page de titre d\'un imprimé français ancien (traduction d\'un Père de l\'Église, en général).\n' +
     'OCR de la page (donnée d\'appui, faillible) : ' + JSON.stringify(String(texte_ocr).slice(0, 1500)) + '\n' +
-    'Lis l\'IMAGE et renseigne chaque champ D\'APRÈS CE QUI EST IMPRIMÉ, mais en forme NORMALISÉE (casse ' +
-    'française standard, jamais tout en capitales ; u/v et i/j régularisés). Mets null pour tout champ ' +
+    'Lis l\'IMAGE et renseigne chaque champ D\'APRÈS CE QUI EST IMPRIMÉ. Mets null pour tout champ ' +
     'absent ou illisible : n\'invente rien, ne déduis pas du sens.\n' +
+    'RÈGLE DE CASSE — IMPÉRATIVE, MÊME SI LA PAGE EST IMPRIMÉE ENTIÈREMENT EN CAPITALES. Tu ne recopies ' +
+    'JAMAIS un champ en majuscules. Titre et sous-titre : casse de phrase (une seule capitale initiale + ' +
+    'les noms propres), ex. « LA CONSOLATION DE LA PHILOSOPHIE » → « La Consolation de la philosophie ». ' +
+    'Noms de personnes (auteur, traducteur, éditeur) : casse nominale, ex. « BOECE » → « Boèce », ' +
+    '« IEAN VIRET » → « Jean Viret », « P. DE CERIZIERS » → « le P. de Ceriziers ». Régularise u/v et i/j. ' +
+    'Cette règle vaut pour TOUS les champs, lecture ET enrichissement.\n' +
     'Consignes par champ :\n' +
     '- titre : le titre de l\'œuvre, SANS le nom de l\'auteur ni les mentions d\'édition ; casse standard, ' +
     'SANS point final (ex. « La Consolation de la philosophie »).\n' +
