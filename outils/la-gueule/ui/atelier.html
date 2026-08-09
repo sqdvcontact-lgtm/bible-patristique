@@ -49,6 +49,22 @@
   /* Passe 3 : zoom sur la région d'une lettrine (clic n'importe où pour fermer). */
   #zoomOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:10001;cursor:zoom-out}
   .zoombox{background-repeat:no-repeat;background-color:#fff;box-shadow:0 8px 40px rgba(0,0,0,.5);border:3px solid #fff;border-radius:4px}
+  /* Pipeline 5 étapes (Phase A) : représentation persistante de l'état du parcours. */
+  #barreEtapes{display:flex;gap:6px;align-items:stretch;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--bord)}
+  .etape{flex:1;display:flex;flex-direction:column;gap:2px;padding:5px 9px;border:1px solid var(--bord);border-radius:7px;background:var(--fond);min-width:0}
+  .etape .num{font-size:9px;color:var(--second);letter-spacing:.05em}
+  .etape .lib{font-size:12px;font-weight:600;color:var(--texte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .etape .badge{font-size:10px;padding:1px 7px;border-radius:999px;align-self:flex-start;margin-top:1px}
+  .etape.active{border-color:var(--vert);box-shadow:0 0 0 1px var(--vert) inset}
+  .badge.non_commence{background:#ececec;color:#888}
+  .badge.pret{background:#e6f0e6;color:#3d6b4f}
+  .badge.en_cours{background:#fef3d8;color:#b26a1a}
+  .badge.termine{background:#e2f0e2;color:#2e5440}
+  .badge.a_verifier{background:#fdf0d8;color:#a8720f}
+  .badge.perime{background:#fbe6de;color:#b5482a}
+  .badge.bloque,.badge.erreur{background:#fadbd0;color:#9a2a2a}
+  [data-theme="dark"] #barreEtapes{background:#241f1a}
+  [data-theme="dark"] .etape{background:#2a2520;border-color:#3a332b}
   .navflip{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:34px;height:46px;
     border:1px solid var(--bord);background:rgba(255,253,248,.9);color:var(--vert);border-radius:8px;
     font-size:22px;line-height:1;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.12)}
@@ -173,6 +189,9 @@
   <a href="/index.html" style="font-size:12px;color:var(--second)">panneau ⚙</a>
   <span id="etat">—</span>
 </header>
+
+<!-- Pipeline 5 étapes (consignes 2026-08-09) — Phase A : représentation de l'état du parcours. -->
+<div id="barreEtapes" title="Parcours : Diagnostic IA → OCR local → Contrôle IA → Validation ciblée → Génération locale"></div>
 
 <div class="barre2" id="diag" style="display:none;color:var(--ambre)"></div>
 
@@ -309,7 +328,19 @@ window.addEventListener('DOMContentLoaded',()=>{ const b=$('theme'); if(!b) retu
 const etat=t=>$('etat').textContent=t
 
 // Modèle en mémoire : pages[n] = { pngUrl, largeur, hauteur, lignes:[{bbox,dip,dev,mod}] }
-const S={ kind:'imprime', pages:{}, page:1, total:null, couche:'dip', arret:false, journal:[], garde:null }
+const S={ kind:'imprime', pages:{}, page:1, total:null, couche:'dip', arret:false, journal:[], garde:null, workflow:null }
+
+// ── Pipeline 5 étapes (Phase A) : barre visuelle persistante de l'état du parcours ──
+const ETAPES_UI=[['diagnostic_ia','1','Diagnostic IA'],['ocr_local','2','OCR local'],['controle_ia','3','Contrôle IA'],['validation_ciblee','4','Validation ciblée'],['generation_locale','5','Génération locale']]
+const LIB_ETAT={non_commence:'non commencé',pret:'prêt',en_cours:'en cours',termine:'terminé',a_verifier:'à vérifier',bloque:'bloqué',erreur:'erreur',perime:'périmé'}
+function rendreBarreEtapes(){ const bar=$('barreEtapes'); if(!bar)return; const wf=S.workflow; bar.innerHTML=''
+  for(const [cle,num,lib] of ETAPES_UI){ const et=(wf&&wf.etapes&&wf.etapes[cle]&&wf.etapes[cle].etat)||'non_commence'
+    const d=document.createElement('div'); d.className='etape'+(wf&&wf.etape_active===cle?' active':'')
+    const n=document.createElement('span'); n.className='num'; n.textContent='ÉTAPE '+num
+    const l=document.createElement('span'); l.className='lib'; l.textContent=lib
+    const b=document.createElement('span'); b.className='badge '+et; b.textContent=LIB_ETAT[et]||et
+    d.appendChild(n); d.appendChild(l); d.appendChild(b); bar.appendChild(d) } }
+rendreBarreEtapes()
 const SEUIL_DOUTE=0.80 // en dessous, la ligne est signalée « à revoir »
 
 // ── Fiabilité des lots : état par page (à faire / terminé / erreur), progression, journal ────
@@ -707,7 +738,7 @@ let tResize; window.addEventListener('resize',()=>{ clearTimeout(tResize); tResi
 $('stop').onclick=async()=>{ S.arret=true; try{ await api('/api/atelier/stop',{method:'POST'}) }catch{} }
 
 // ── Persistance & export ────────────────────────────────────────────────────
-function projetActuel(){ const p={ kind:S.kind, chemin:$('chemin').value.trim(), page:S.page, total:S.total, pages:S.pages, meta:collecterMeta(), journal:S.journal||[] }; if(S.garde) p._garde=S.garde; return p }
+function projetActuel(){ const p={ kind:S.kind, chemin:$('chemin').value.trim(), page:S.page, total:S.total, pages:S.pages, meta:collecterMeta(), journal:S.journal||[] }; if(S.garde) p._garde=S.garde; if(S.workflow) p.workflow=S.workflow; return p }
 // Champs = colonnes de la table `oeuvres` du site (correspondance exacte).
 const CHAMPS_META=['auteur','titre','sous_titre','titre_original','langue_originale','langue_trad','trad_auteur','editeur','collection','ville','date_publication','date_composition','genre']
 const vMeta=c=>$('m_'+c).value.trim()||null
@@ -770,6 +801,7 @@ async function ouvrirProjet(nom){
   const {projet}=await api('/api/projet/load?nom='+encodeURIComponent(nom))
   S.kind=projet.kind||'imprime'; $('kind').value=S.kind; $('chemin').value=projet.chemin||''
   S.pages=projet.pages||{}; S.total=projet.total||null; S.journal=projet.journal||[]; S.garde=projet._garde||null
+  S.workflow=projet.workflow||null; rendreBarreEtapes() // Phase A : parcours 5 étapes (le serveur infère l'état)
   // Ouvre sur une page RÉELLE : la page enregistrée si elle a du contenu, sinon la 1re page avec
   // image (évite d'atterrir sur une page en erreur, ex. banc où projet.page pointe une page ratée).
   { const avecImg=Object.keys(S.pages).map(Number).filter(n=>S.pages[n]?.pngUrl&&S.pages[n]?.lignes?.length).sort((a,b)=>a-b)

@@ -19,6 +19,7 @@ import { altoPage, pageXml } from './echange.mjs'
 import { segmenterColonnes } from './colonnes.mjs'
 import { estHorsCorpsConfirme, extraireStructure, metadonneesPagesProjet, registrePoemesProjet } from './structure.mjs'
 import { espacementDiplomatique } from './typographie.mjs'
+import { assurerWorkflow } from './workflow.mjs'
 
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
 const DIR_PROJETS = join(RACINE, 'projets')
@@ -36,7 +37,8 @@ export async function sauvegarderProjet(nom, projet) {
 
 export async function chargerProjet(nom) {
   const chemin = join(DIR_PROJETS, nomSur(nom) + '.json')
-  return JSON.parse(await readFile(chemin, 'utf8'))
+  const projet = JSON.parse(await readFile(chemin, 'utf8'))
+  return assurerWorkflow(projet) // Phase A : ajoute le workflow (états inférés) sans rien détruire
 }
 
 export async function listerProjets() {
