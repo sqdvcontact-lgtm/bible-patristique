@@ -26,6 +26,8 @@ export function annotationVide() {
     preuves: {},             // signaux ayant motivé la suggestion (traçabilité)
     export_corps: true,      // la ligne entre-t-elle dans le corps éditorial ?
     interdit_entrainement: false,
+    poeme_id: null,          // passe 4 : identifiant technique stable du poème (null = prose / hors poème)
+    poeme_ref: null,         // référence lisible (« livre-1-poesie-1 »), recalculable
   }
 }
 
@@ -625,6 +627,7 @@ export function extraireStructure(projet) {
         blanc_poesie: s.blanc_poesie ?? null, classe_css: s.blanc_poesie ? 'blanc-poesie-' + s.blanc_poesie : null,
         retrait_source_normalise: s.retrait_source_normalise ?? null,
         niveau_suggere: s.niveau_suggere ?? null, continuation_de: s.continuation_de ?? null,
+        poeme_id: s.poeme_id ?? null, poeme_ref: s.poeme_ref ?? null,
         export_corps: s.export_corps !== false, interdit_entrainement: !!s.interdit_entrainement,
       })
     })
@@ -638,10 +641,72 @@ export function extraireStructure(projet) {
  * éventuelle confirmation humaine antérieure (`role_confirme`). Ne modifie NI le texte, NI les
  * coordonnées. Renvoie le projet (muté en place pour `l.suggestion` seulement).
  */
+const ROLES_HORS_CORPS_POEME = new Set(['numero_page', 'titre_courant', 'signature', 'reclame', 'paratexte_titre', 'ornement', 'bruit', 'indetermine'])
+
+/**
+ * Passe 4 — fil-conducteur `poeme_id`. Parcourt le volume EN ORDRE : un titre T2 POESIE ouvre un
+ * poème, qui reste actif (vers, continuations, changements de page) jusqu'au prochain titre T2
+ * (PROSE ou POESIE) ou à un titre T1 (LIVRE). Prose et hors-corps → `poeme_id=null`. `poeme_id` est
+ * STABLE (fondé sur la position du titre → survit à une correction du libellé). Ne réattribue JAMAIS
+ * silencieusement : une ligne qui perd son poème (titre supprimé/reclassé) est signalée ORPHELINE et
+ * son ancienne attribution conservée. Mute les annotations de `parPage`. Renvoie {poemes, orphelins}.
+ */
+export function annoterPoemes(pagesOrdonnees, parPage) {
+  const poemes = {}, orphelins = []
+  let active = null, livre = 0, poesieDansLivre = 0
+  for (const page of pagesOrdonnees) {
+    const anns = parPage.get(page.num) || []
+    ;(page.lignes || []).forEach((l, i) => {
+      const ann = anns[i]; if (!ann) return
+      const ancien = l.suggestion?.poeme_id ?? null
+      const roleEff = ann.role_confirme || ann.role_suggere
+      const estTitre = roleEff === 'titre'
+      const niv = estTitre ? (ann.niveau_suggere ?? null) : null
+      const t = texte(l).trim()
+      if (estTitre && niv === 2 && RE_TITRE_POESIE.test(t)) {
+        poesieDansLivre++
+        const id = `poeme-${page.num}-${i}` // stable : position du titre, indépendant du libellé
+        active = { poeme_id: id, poeme_ref: `livre-${livre || 1}-poesie-${poesieDansLivre}`, poeme_titre: t, niveau_source: 2, statut: ann.role_confirme === 'titre' ? 'confirme' : 'suggere', titre_ligne_id: `p${page.num}-l${i}` }
+        poemes[id] = active
+        ann.poeme_id = id; ann.poeme_ref = active.poeme_ref; ann.poeme_titre = t
+      } else if (estTitre && niv === 2 && RE_TITRE_PROSE.test(t)) {
+        active = null; ann.poeme_id = null; ann.poeme_ref = null // un titre PROSE ferme le poème
+      } else if (estTitre && niv === 1) {
+        active = null; livre++; poesieDansLivre = 0; ann.poeme_id = null; ann.poeme_ref = null // LIVRE ferme la section
+      } else if (active && !ROLES_HORS_CORPS_POEME.has(roleEff)) {
+        ann.poeme_id = active.poeme_id; ann.poeme_ref = active.poeme_ref // vers, continuation… → hérite
+      } else {
+        ann.poeme_id = null; ann.poeme_ref = null
+      }
+      if (ancien && !ann.poeme_id) { // avait un poème, l'a perdu → orphelin (jamais réattribué en silence)
+        ann.poeme_orphelin = true; ann.poeme_id_ancien = ancien
+        orphelins.push({ page: page.num, ligne: i, ancien_poeme_id: ancien })
+      }
+    })
+  }
+  return { poemes, orphelins }
+}
+
+/** Reconstruit le registre des poèmes depuis les lignes annotées (pour l'export JSON). */
+export function registrePoemesProjet(projet) {
+  const poemes = {}
+  for (const num of Object.keys(projet?.pages || {})) {
+    const lignes = projet.pages[num].lignes || []
+    lignes.forEach((l, i) => {
+      const s = l.suggestion
+      if (s && s.poeme_id && s.poeme_titre) { // ligne d'ouverture (titre POESIE)
+        poemes[s.poeme_id] = { poeme_id: s.poeme_id, poeme_ref: s.poeme_ref, poeme_titre: s.poeme_titre, niveau_source: 2, statut: s.statut || 'suggere', titre_ligne_id: `p${num}-l${i}` }
+      }
+    })
+  }
+  return poemes
+}
+
 export function annoterProjet(projet) {
   const nums = Object.keys(projet?.pages || {}).map(Number).sort((a, b) => a - b)
   const pages = nums.map((num) => ({ num, largeur: projet.pages[num].largeur, hauteur: projet.pages[num].hauteur, lignes: projet.pages[num].lignes || [] }))
   const parPage = analyserVolume(pages)
+  const { poemes, orphelins } = annoterPoemes(pages, parPage) // passe 4 : fil poeme_id (avant l'attache)
   for (const num of nums) {
     const anns = parPage.get(num) || []
     const lignes = projet.pages[num].lignes || []
@@ -651,6 +716,7 @@ export function annoterProjet(projet) {
       l.suggestion = { ...a, role_confirme: confirme, statut: confirme ? 'confirme' : 'suggere' }
     })
   }
+  projet.poemes = poemes; projet.orphelins_poeme = orphelins // passe 4 : registre + orphelins signalés
   return projet
 }
 

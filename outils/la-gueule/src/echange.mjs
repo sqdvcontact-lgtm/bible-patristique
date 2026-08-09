@@ -15,19 +15,26 @@ const lignesUtiles = (lignes, couche) =>
 // Rôle de structure d'une ligne (confirmé prioritaire), pour tagger les exports d'échange.
 const roleDe = (l) => l?.suggestion?.role_confirme || l?.suggestion?.role_suggere || null
 const blancDe = (l) => l?.suggestion?.blanc_poesie || null
+const poemeDe = (l) => l?.suggestion?.poeme_id || null // passe 4 : unité logique du poème
 
 /** ALTO v4 d'une page : TextBlock unique, une String par ligne (WC = confiance si connue).
  *  Les rôles de structure (§ GPT) sont portés par <Tags> + TAGREFS (régions conservées). */
 export function altoPage({ image = 'page.png', largeur = 0, hauteur = 0, lignes = [], couche = 'dip' } = {}) {
   const util = lignesUtiles(lignes, couche)
   const roles = [...new Set(util.map(roleDe).filter(Boolean))]
-  const tags = roles.length
-    ? `  <Tags>\n${roles.map((r) => `    <OtherTag ID="role_${esc(r)}" TYPE="structure" LABEL="${esc(r)}"/>`).join('\n')}\n  </Tags>\n`
+  const poemes = [...new Set(util.map(poemeDe).filter(Boolean))]
+  const tags = (roles.length || poemes.length)
+    ? `  <Tags>\n${[
+        ...roles.map((r) => `    <OtherTag ID="role_${esc(r)}" TYPE="structure" LABEL="${esc(r)}"/>`),
+        ...poemes.map((p) => `    <OtherTag ID="poeme_${esc(p)}" TYPE="poeme" LABEL="${esc(p)}"/>`),
+      ].join('\n')}\n  </Tags>\n`
     : ''
   const tls = util.map((l, i) => {
     const [x, y, w, h] = l.bbox.map((n) => Math.round(n))
     const wc = (l.confiance != null && Number.isFinite(l.confiance)) ? ` WC="${l.confiance.toFixed(3)}"` : ''
-    const r = roleDe(l), tagref = r ? ` TAGREFS="role_${esc(r)}"` : ''
+    const r = roleDe(l), pm = poemeDe(l)
+    const refs = [r ? `role_${esc(r)}` : null, pm ? `poeme_${esc(pm)}` : null].filter(Boolean)
+    const tagref = refs.length ? ` TAGREFS="${refs.join(' ')}"` : ''
     return `        <TextLine ID="line_${i + 1}"${tagref} HPOS="${x}" VPOS="${y}" WIDTH="${w}" HEIGHT="${h}">` +
       `<String ID="s_${i + 1}" CONTENT="${esc(texteLigne(l, couche))}" HPOS="${x}" VPOS="${y}" WIDTH="${w}" HEIGHT="${h}"${wc}/>` +
       `</TextLine>`
@@ -72,8 +79,8 @@ export function pageXml({ image = 'page.png', largeur = 0, hauteur = 0, lignes =
   const regionBbox = util.length ? [minX, minY, maxX - minX, maxY - minY] : [0, 0, W, H]
   const quand = date || '1970-01-01T00:00:00'
   const tls = util.map((l, i) => {
-    const r = roleDe(l), b = blancDe(l)
-    const cust = (r || b) ? ` custom="structure {${r ? `role:${esc(r)};` : ''}${b ? `blanc:${esc(b)};` : ''}}"` : ''
+    const r = roleDe(l), b = blancDe(l), pm = poemeDe(l)
+    const cust = (r || b || pm) ? ` custom="structure {${r ? `role:${esc(r)};` : ''}${b ? `blanc:${esc(b)};` : ''}${pm ? `poeme:${esc(pm)};` : ''}}"` : ''
     return `      <TextLine id="line_${i + 1}"${cust}>
         <Coords points="${polygone(l.bbox)}"/>
         <TextEquiv><Unicode>${esc(texteLigne(l, couche))}</Unicode></TextEquiv>

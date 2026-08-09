@@ -17,7 +17,7 @@ import { construireSqlSupabase } from './sql.mjs'
 import { construireTexte, construireMarkdown } from './texte.mjs'
 import { altoPage, pageXml } from './echange.mjs'
 import { segmenterColonnes } from './colonnes.mjs'
-import { estHorsCorpsConfirme, extraireStructure, metadonneesPagesProjet } from './structure.mjs'
+import { estHorsCorpsConfirme, extraireStructure, metadonneesPagesProjet, registrePoemesProjet } from './structure.mjs'
 import { espacementDiplomatique } from './typographie.mjs'
 
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -88,6 +88,45 @@ export function suggererCesure(ligne, suivante) {
   const a = String(ligne ?? '').trim(), b = String(suivante ?? '').trim()
   if (!/[-‐]$/.test(a)) return false
   return /^[a-zà-öø-ÿ]/.test(b) // la suite commence par une minuscule → coupure de mot probable
+}
+
+/**
+ * Passe 4 §4 — césure dépendante de la PROVENANCE du moteur. Pour Kraken CATMuS-Print, « - » reste
+ * lexical (« ¬ » est la marque de césure) → aucune suggestion auto. Pour Tesseract ou un moteur
+ * INCONNU, un « - » final n'est PAS présumé lexical : on propose un `cesure_candidate` si les signaux
+ * (fin lettre+« - » unique, suite minuscule même colonne, interligne normal, marge droite atteinte,
+ * pas de blanc de paragraphe) sont réunis. JAMAIS de conversion ni de jointure sans validation humaine ;
+ * confiance réduite si le moteur est inconnu. Renvoie l'objet suggestion ou null.
+ */
+export function detecterCesureCandidate(ligne, suivante, { moteur_source = 'inconnu', largeur = 0, ligne_suivante_id = null } = {}) {
+  const a = String(ligne?.dip ?? ligne?.texte ?? '').trim()
+  const b = String(suivante?.dip ?? suivante?.texte ?? '').trim()
+  if (/kraken/i.test(moteur_source)) return null          // Kraken : « - » lexical par défaut
+  if (!/[A-Za-zÀ-ÿ]-$/.test(a)) return null               // finit par lettre + un seul « - »
+  if (/--$/.test(a) || /—-?$/.test(a)) return null        // double trait / tiret de dialogue exclus
+  if (!/^[a-zà-öø-ÿ]/.test(b)) return null                // capitale en tête → aucune suggestion
+  const preuves = ['fin lettre + « - »', 'suite en minuscule']
+  if (Array.isArray(ligne?.bbox) && Array.isArray(suivante?.bbox) && largeur) {
+    const [x1, y1, w1, h1] = ligne.bbox, [x2, y2] = suivante.bbox, W = largeur
+    if ((x1 + w1) < W * 0.82) return null                 // n'atteint pas la marge droite
+    if (Math.abs(x2 - x1) > W * 0.15) return null         // colonne différente / alinéa de paragraphe
+    const gap = y2 - (y1 + h1)
+    if (gap > h1 * 1.2) return null                       // blanc de paragraphe → pas de césure
+    if (gap < -h1 * 0.6) return null                      // chevauchement anormal
+    preuves.push('marge droite', 'même colonne', 'interligne normal')
+  }
+  const inconnu = !/tesseract/i.test(moteur_source)
+  return {
+    role_suggere: 'cesure_typographique',
+    glyphe_source: '-',
+    marque_ground_truth_proposee: '¬',
+    moteur_source: inconnu ? 'inconnu' : 'tesseract',
+    ligne_suivante_id,
+    preuves,
+    statut: 'suggere',
+    jointure_confirmee: false,
+    confiance: inconnu ? 0.55 : 0.75, // confiance réduite si le moteur est inconnu
+  }
 }
 
 const texteLigne = (l) => String(l.texte ?? l.dip ?? l.fr ?? '')
@@ -238,7 +277,7 @@ export async function exporterSegments(nom, projet, opts = {}) {
   const provenance = await construireProvenance(projet)
   await mkdir(DIR_EXPORTS, { recursive: true })
   const chemin = join(DIR_EXPORTS, nomSur(nom) + '.segments.json')
-  await writeFile(chemin, JSON.stringify({ id_oeuvre: opts.id_oeuvre ?? null, meta: projet.meta || null, provenance, statut: 'CANDIDAT', segments, structure: extraireStructure(projet), metadonnees_pages: metadonneesPagesProjet(projet) }, null, 2), 'utf8')
+  await writeFile(chemin, JSON.stringify({ id_oeuvre: opts.id_oeuvre ?? null, meta: projet.meta || null, provenance, statut: 'CANDIDAT', segments, structure: extraireStructure(projet), metadonnees_pages: metadonneesPagesProjet(projet), poemes: registrePoemesProjet(projet) }, null, 2), 'utf8')
   return { chemin, nbSegments: segments.length, apercu: segments.slice(0, 3), provenance }
 }
 
@@ -254,7 +293,7 @@ export async function exporterTout(nom, projet, opts = {}) {
   await mkdir(DIR_EXPORTS, { recursive: true })
 
   const cheminJson = join(DIR_EXPORTS, base + '.segments.json')
-  await writeFile(cheminJson, JSON.stringify({ id_oeuvre: opts.id_oeuvre ?? null, meta: meta || null, provenance, statut: 'CANDIDAT', segments, structure: extraireStructure(projet), metadonnees_pages: metadonneesPagesProjet(projet) }, null, 2), 'utf8')
+  await writeFile(cheminJson, JSON.stringify({ id_oeuvre: opts.id_oeuvre ?? null, meta: meta || null, provenance, statut: 'CANDIDAT', segments, structure: extraireStructure(projet), metadonnees_pages: metadonneesPagesProjet(projet), poemes: registrePoemesProjet(projet) }, null, 2), 'utf8')
 
   const cheminDocx = join(DIR_EXPORTS, base + '.docx')
   await writeFile(cheminDocx, construireDocx({ meta, segments }))

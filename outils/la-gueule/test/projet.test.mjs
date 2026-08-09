@@ -4,7 +4,7 @@ import { writeFile, unlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { estEntete, joindreLignes, suggererCesure, grouperParagraphes, metaPagesOcr, empreinteFichier, altoEntrainement, construireSegments, exporterEntrainement, construireManifesteBanc, exporterBanc } from '../src/projet.mjs'
+import { estEntete, joindreLignes, suggererCesure, detecterCesureCandidate, grouperParagraphes, metaPagesOcr, empreinteFichier, altoEntrainement, construireSegments, exporterEntrainement, construireManifesteBanc, exporterBanc } from '../src/projet.mjs'
 
 test('exporterEntrainement : refuse un projet marqué interdit_entrainement (donnée contaminée)', async () => {
   const projet = { _garde: { interdit_entrainement: true, motif: 'origine Tesseract, confusions ſ→f' }, pages: {} }
@@ -170,6 +170,43 @@ test('suggererCesure (Q2) : « - » en fin de ligne + suite en minuscule → sug
   assert.equal(suggererCesure('ser-', 'uante'), true)
   assert.equal(suggererCesure('arc-', 'En-ciel'), false) // suite en capitale → pas une coupure de mot
   assert.equal(suggererCesure('fin.', 'Autre'), false)   // pas de trait en fin
+})
+
+// ── Passe 4 §4.4 : césure dépendante de la provenance du moteur ──
+const geoOK = { largeur: 1000 }
+const lgD = (dip, bbox) => ({ dip, bbox })
+test('césure §4 : Kraken + « mot- » → pas de candidate (le trait reste lexical par défaut)', () => {
+  assert.equal(detecterCesureCandidate(lgD('mot-', [100, 100, 800, 50]), lgD('suite', [100, 160, 300, 50]), { ...geoOK, moteur_source: 'kraken-catmus-print' }), null)
+})
+test('césure §4 : Tesseract + « ser- » puis « uante » → cesure_candidate', () => {
+  const c = detecterCesureCandidate(lgD('faire vne ser-', [100, 100, 800, 50]), lgD('uante de la', [100, 160, 300, 50]), { ...geoOK, moteur_source: 'tesseract', ligne_suivante_id: 'p1-l4' })
+  assert.ok(c)
+  assert.equal(c.role_suggere, 'cesure_typographique')
+  assert.equal(c.glyphe_source, '-')
+  assert.equal(c.marque_ground_truth_proposee, '¬')
+  assert.equal(c.moteur_source, 'tesseract')
+  assert.equal(c.jointure_confirmee, false)
+})
+test('césure §4 : après confirmation → « seruante » ; avant → aucune jointure de mot', () => {
+  // avant confirmation : « - » lexical → le mot n'est PAS recomposé
+  assert.notEqual(joindreLignes([{ dip: 'ser-' }, { dip: 'uante' }], 'dip'), 'seruante')
+  // après confirmation (- → ¬), la jointure recompose
+  assert.equal(joindreLignes([{ dip: 'ser¬' }, { dip: 'uante' }], 'dip'), 'seruante')
+})
+test('césure §4 : mot composé réel → trait conservé après refus de la suggestion', () => {
+  assert.equal(joindreLignes([{ dip: 'arc-' }, { dip: 'en-ciel' }], 'dip'), 'arc-en-ciel')
+})
+test('césure §4 : moteur inconnu → suggestion de confiance réduite', () => {
+  const inc = detecterCesureCandidate(lgD('ser-', [100, 100, 800, 50]), lgD('uante', [100, 160, 300, 50]), { ...geoOK, moteur_source: 'inconnu' })
+  const tes = detecterCesureCandidate(lgD('ser-', [100, 100, 800, 50]), lgD('uante', [100, 160, 300, 50]), { ...geoOK, moteur_source: 'tesseract' })
+  assert.equal(inc.moteur_source, 'inconnu')
+  assert.ok(inc.confiance < tes.confiance)
+})
+test('césure §4 : capitale en tête de la ligne suivante → aucune suggestion', () => {
+  assert.equal(detecterCesureCandidate(lgD('ser-', [100, 100, 800, 50]), lgD('Uante', [100, 160, 300, 50]), { ...geoOK, moteur_source: 'tesseract' }), null)
+})
+test('césure §4 : blanc de paragraphe → aucune suggestion', () => {
+  assert.equal(detecterCesureCandidate(lgD('ser-', [100, 100, 800, 50]), lgD('uante', [100, 300, 300, 50]), { ...geoOK, moteur_source: 'tesseract' }), null)
 })
 
 // Lignes avec coordonnées : y croissant, hauteur 40 (seuil de saut = 36).
