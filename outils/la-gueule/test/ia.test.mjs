@@ -4,6 +4,25 @@ import { choisirFournisseur, validerSortieIA, cleCache, enregistrerConsentement,
 import { fournisseurMock } from '../src/ia/mock.mjs'
 import { fournisseurClaude } from '../src/ia/claude.mjs'
 import { pagesEchantillon, construireProfil, regimePourPage, pageAnormale } from '../src/ia/diagnostic.mjs'
+import { etatFournisseur, consentementActif } from '../src/ia/consentement.mjs'
+
+test('IA §14.6 : etatFournisseur — dispo selon la clé, sans jamais révéler la clé', () => {
+  const local = etatFournisseur({})
+  assert.equal(local.cloud, false); assert.equal(local.dispo, true) // mock : dispo, hors-ligne
+  const sansCle = etatFournisseur({ LG_AI_PROVIDER: 'anthropic' })
+  assert.equal(sansCle.cloud, true); assert.equal(sansCle.dispo, false) // clé absente
+  const avecCle = etatFournisseur({ LG_AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'sk-FACTICE' })
+  assert.equal(avecCle.dispo, true)
+  assert.equal(JSON.stringify(avecCle).includes('sk-FACTICE'), false) // la clé n'apparaît jamais
+})
+
+test('IA §14.6 : consentementActif — lié au fournisseur, révocable', () => {
+  const rec = { fournisseur: 'anthropic', date: '2026-08-09', actif: true }
+  assert.equal(consentementActif(rec, 'anthropic'), true)
+  assert.equal(consentementActif(rec, 'openai'), false) // fournisseur changé → caduc
+  assert.equal(consentementActif({ ...rec, actif: false }, 'anthropic'), false) // révoqué
+  assert.equal(consentementActif(null, 'anthropic'), false)
+})
 
 test('IA : choisirFournisseur — mock par défaut, anthropic si configuré', () => {
   assert.equal(choisirFournisseur({}).nom, 'mock')

@@ -18,6 +18,7 @@ import { controlerDeterministe, controlerIA } from './ia/controle.mjs'
 import { choisirFournisseur } from './ia/fournisseur.mjs'
 import { classerValidation } from './ia/validation.mjs'
 import { rapportGeneration, etatLivraison } from './ia/generation.mjs'
+import { etatFournisseur, lireConsentement, ecrireConsentement, consentementActif } from './ia/consentement.mjs'
 import { detecterLangue, apparierParagraphes } from './bilingue.mjs'
 import { annoterProjet } from './structure.mjs'
 
@@ -255,8 +256,22 @@ export function demarrer({ port = 4599 } = {}) {
         const b = await corps(req)
         const { findings, compteurs } = controlerDeterministe(b.projet || {})
         const fournisseur = choisirFournisseur(process.env)
-        const { interventions } = await controlerIA(b.projet || {}, { fournisseur, consentement: !!b.consentement })
-        return json(res, 200, { findings: [...findings, ...interventions], compteurs: { ...compteurs, ia: interventions.length } })
+        // Consentement vérifié CÔTÉ SERVEUR (jamais sur simple confiance du client) : le cloud ne part
+        // que si un consentement actif couvre le fournisseur courant.
+        const consentement = consentementActif(await lireConsentement(), etatFournisseur(process.env).nom)
+        const { interventions } = await controlerIA(b.projet || {}, { fournisseur, consentement })
+        return json(res, 200, { findings: [...findings, ...interventions], compteurs: { ...compteurs, ia: interventions.length }, ia_active: fournisseur.cloud && consentement })
+      }
+
+      // §14.6 — état du fournisseur IA (sans révéler la clé) + consentement enregistré.
+      if (p === '/api/ia/etat') {
+        return json(res, 200, { fournisseur: etatFournisseur(process.env), consentement: await lireConsentement() })
+      }
+      // §14.6 — pose / révoque le consentement cloud (lié au fournisseur courant).
+      if (p === '/api/ia/consentement' && req.method === 'POST') {
+        const b = await corps(req)
+        const record = await ecrireConsentement({ fournisseur: etatFournisseur(process.env).nom, date: new Date().toISOString(), actif: b.actif !== false })
+        return json(res, 200, { ok: true, consentement: record })
       }
 
       // Phase E — répartition des findings pour la validation ciblée (familles / critiques / blocages).

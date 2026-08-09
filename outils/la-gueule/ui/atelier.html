@@ -78,6 +78,10 @@
   #panneauValidation .val-avapr .apr{color:#2e5440;font-weight:600}
   #panneauValidation .val-crit-act{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}
   [data-theme="dark"] #panneauValidation .val-crit{background:#3a2b18;border-color:#6a4a24}
+  /* §14.6 — panneau de consentement cloud. */
+  #panneauConsentement{padding:10px 12px;background:#fdf6ec;border-bottom:1px solid #e0b57a;font-size:13px;line-height:1.5}
+  #panneauConsentement .cons-act{display:flex;gap:8px;margin-top:8px}
+  [data-theme="dark"] #panneauConsentement{background:#3a2b18;border-color:#6a4a24}
   .navflip{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:34px;height:46px;
     border:1px solid var(--bord);background:rgba(255,253,248,.9);color:var(--vert);border-radius:8px;
     font-size:22px;line-height:1;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.12)}
@@ -206,6 +210,7 @@
 <!-- Pipeline 5 étapes (consignes 2026-08-09) — Phase A : représentation de l'état du parcours. -->
 <div id="barreEtapes" title="Parcours : Diagnostic IA → OCR local → Contrôle IA → Validation ciblée → Génération locale"></div>
 <div id="panneauValidation" style="display:none"></div>
+<div id="panneauConsentement" style="display:none"></div>
 
 <div class="barre2" id="diag" style="display:none;color:var(--ambre)"></div>
 
@@ -359,7 +364,7 @@ function rendreBarreEtapes(){ const bar=$('barreEtapes'); if(!bar)return; const 
     if(cle==='validation_ciblee'){ d.style.cursor='pointer'; d.title='Validation ciblée : familles à échantillonner, cas critiques, blocages'; d.onclick=()=>lancerValidation() }
     if(cle==='generation_locale'){ d.style.cursor='pointer'; d.title='Générer les livrables (JSON/DOCX/TXT/MD/SQL/ALTO/PAGE) + rapport de provenance'; d.onclick=()=>lancerGeneration() }
     bar.appendChild(d) } }
-rendreBarreEtapes()
+rendreBarreEtapes(); setTimeout(()=>{ try{ chargerEtatIA() }catch{} }, 0) // §14.6 : état du fournisseur au démarrage
 
 // Phase B — met à jour une étape du workflow côté client (miroir de workflow.mjs).
 function majEtapeClient(cle, patch, active){ if(!S.workflow) S.workflow={version_schema:1, etape_active:'diagnostic_ia', etapes:{}}
@@ -396,15 +401,32 @@ function apresOcrWorkflow(){ majEtapeClient('ocr_local',{etat:'termine'})
   for(const e of ['validation_ciblee','generation_locale']){ const s=S.workflow&&S.workflow.etapes[e]; if(s&&s.etat!=='non_commence'&&s.etat!=='perime') s.etat='perime' }
   rendreBarreEtapes() }
 
-// Phase D — contrôle DÉTERMINISTE (sans IA/réseau) : compteurs + avance du workflow. Le contrôle IA
-// visuel (lettrines, régions, corrections) s'ajoutera derrière clé + consentement.
+// §14.6 — état du fournisseur IA (sans clé) et consentement.
+async function chargerEtatIA(){ try{ S.ia=await api('/api/ia/etat') }catch{ S.ia=null } }
+function consentementValideClient(){ const i=S.ia; return !!(i&&i.consentement&&i.consentement.actif&&i.fournisseur&&i.consentement.fournisseur===i.fournisseur.nom&&i.consentement.date) }
+function demanderConsentement(){ return new Promise((resolve)=>{ const p=$('panneauConsentement'); if(!p){ resolve(false); return }
+  const f=S.ia&&S.ia.fournisseur
+  p.style.display='block'; p.innerHTML=''
+  const txt=document.createElement('div'); txt.innerHTML=`<b>Contrôle IA cloud (${f?f.nom:'?'})</b> — pour lire les lettrines et les régions douteuses, La Gueule enverrait au fournisseur des <b>crops</b> (petites images) des zones concernées et leurs lignes voisines, <b>jamais le livre entier ni aucun secret du dépôt</b>. La sortie reste un <b>candidat</b>, jamais une validation ; tu peux désactiver à tout moment.`
+  p.appendChild(txt)
+  const act=document.createElement('div'); act.className='cons-act'
+  const oui=document.createElement('button'); oui.textContent='J\'accepte l\'envoi au cloud'
+  oui.onclick=async()=>{ try{ await api('/api/ia/consentement',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({actif:true})}) }catch{} await chargerEtatIA(); p.style.display='none'; resolve(true) }
+  const non=document.createElement('button'); non.className='discret'; non.textContent='Rester en local (mock)'
+  non.onclick=()=>{ p.style.display='none'; resolve(false) }
+  act.appendChild(oui); act.appendChild(non); p.appendChild(act) }) }
+
+// Phase D — contrôle : déterministe (toujours) + IA visuel si fournisseur cloud configuré ET consenti.
 async function lancerControle(){ if(!Object.keys(S.pages).length){ etat('rien à contrôler : océrise d\'abord'); return }
-  majEtapeClient('controle_ia',{etat:'en_cours'},'controle_ia'); chargeOn('Contrôle déterministe…')
+  await chargerEtatIA()
+  if(S.ia && S.ia.fournisseur && S.ia.fournisseur.cloud && S.ia.fournisseur.dispo && !consentementValideClient()){ await demanderConsentement() } // §14.6 : consentement avant tout envoi cloud
+  majEtapeClient('controle_ia',{etat:'en_cours'},'controle_ia'); chargeOn('Contrôle…')
   try{ const r=await api('/api/ia/controle',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({projet:projetActuel()})})
     S.controle=r; const c=r.compteurs||{}
     majEtapeClient('controle_ia',{etat:'a_verifier'})
     if(S.workflow&&S.workflow.etapes.validation_ciblee&&S.workflow.etapes.validation_ciblee.etat==='non_commence') majEtapeClient('validation_ciblee',{etat:'pret'})
-    etat(`Contrôle : ${c.pages||0} page(s), ${c.lignes||0} ligne(s) — confiance faible ${c.confiance_faible||0}, vides ${c.lignes_vides||0}, doublons ${c.doublons||0}, pages anormales ${c.pages_anormales||0}. (Contrôle IA visuel : à activer avec ta clé Anthropic + consentement.)`)
+    const ia=(c.ia||0); const noteIA = ia?(' · '+ia+' avis IA'):((S.ia&&S.ia.fournisseur&&S.ia.fournisseur.cloud)?(consentementValideClient()?' · IA cloud active (aucun avis)':' · IA cloud non consentie'):' · IA locale (mock, abstention)')
+    etat(`Contrôle : ${c.pages||0} page(s), ${c.lignes||0} ligne(s) — confiance faible ${c.confiance_faible||0}, vides ${c.lignes_vides||0}, doublons ${c.doublons||0}, pages anormales ${c.pages_anormales||0}${noteIA}.`)
   }catch(e){ majEtapeClient('controle_ia',{etat:'erreur'}); etat('contrôle : '+e.message) }
   finally{ chargeOff() } }
 
