@@ -16,17 +16,28 @@ import { parseAlto } from '../src/alto.mjs'
 import { evaluerModele, normaliserTypographie } from '../src/modeles.mjs'
 
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
-const nom = process.argv[2]
-if (!nom) { console.error('Usage : node bancs/evaluer-banc.mjs <nom-du-projet-banc>'); process.exit(2) }
+const args = process.argv.slice(2)
+const APERCU = args.includes('--apercu') // aperçu : évalue les pages validées sans exiger _garde
+const nom = args.find((a) => !a.startsWith('--'))
+if (!nom) { console.error('Usage : node bancs/evaluer-banc.mjs <nom-du-projet-banc> [--apercu]'); process.exit(2) }
 
 const projet = await chargerProjet(nom)
 
 // ── GARDE : refuser tout banc non validé humainement ────────────────────────
-if (!projet?._garde?.valide_humain) {
+// Le mode --apercu autorise une mesure PROVISOIRE sur les pages déjà validées à la main, sans
+// exiger la déclaration « banc prêt » (_garde.valide_humain). Les lignes non validées restent
+// exclues (le filtre valide_humain par ligne demeure) : on ne fabrique aucune vérité terrain.
+if (!projet?._garde?.valide_humain && !APERCU) {
   console.error(`REFUS : le banc « ${nom} » n'est pas marqué valide_humain dans _garde.`)
   console.error('Corrige et VALIDE les pages à la main dans l\'atelier avant d\'évaluer.')
   console.error('Une correction automatique (Codex) N\'EST PAS une validation humaine.')
+  console.error('(Pour une mesure provisoire sur les pages déjà validées : ajoute --apercu.)')
   process.exit(1)
+}
+if (APERCU && !projet?._garde?.valide_humain) {
+  console.log('⚠ APERÇU — banc non déclaré prêt (_garde.valide_humain=false).')
+  console.log('  Mesure sur les SEULES pages/lignes déjà validées à la main : chiffre indicatif,')
+  console.log('  PAS le résultat officiel du banc. Ne pas inscrire au registre.\n')
 }
 const PDF = projet.chemin
 const SERVED = join(RACINE, 'sorties', 'atelier')
