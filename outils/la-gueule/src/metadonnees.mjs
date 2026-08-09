@@ -106,7 +106,9 @@ export function parserMetadonnees({ pdfTitle = '', pdfAuthor = '', producer = ''
     // éditions), « chez X » (le libraire), « Librairie/Imprimerie/Éditions X » (19ᵉ), ou « — X »
     // (« PARIS. — LIBRAIRIE VICTOR PALMÉ »).
     const apres = String(texteTitre).slice(m.index + m[0].length, m.index + m[0].length + 300).replace(/\n+/g, ' ')
-    let e = /([A-ZÀ-Þ][A-Za-zÀ-ÿ'’.\s-]{2,40}?)\s*,?\s+Imprimeur/i.exec(apres)
+    // Noms d'imprimeur souvent bruités par l'OCR (« IEAN VIRET » → « TEAN V1RET ») : on tolère un
+    // chiffre parasite dans les jetons pour capter le nom ENTIER plutôt qu'un fragment (« RET »).
+    let e = /([A-ZÀ-Þ][A-Za-z0-9À-ÿ'’.-]+(?:\s+[A-ZÀ-Þ][A-Za-z0-9À-ÿ'’.-]+){0,3})\s*,?\s+Imprimeur/i.exec(apres)
     if (!e) e = /\bchez\s+([A-ZÀ-Þ][^\n,]{2,40})/i.exec(apres)
     if (!e) e = /\b((?:Librairie|Imprimerie|Éditions?|Édit\.|Vve|Veuve)\s+[^\n,;.]{2,50})/i.exec(apres)
     if (!e) e = /^[\s.,;—–-]+([A-ZÀ-Þ][^\n,;]{2,50})/.exec(apres) // « … — Nom de l'éditeur »
