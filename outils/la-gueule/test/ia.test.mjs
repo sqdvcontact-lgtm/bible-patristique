@@ -5,7 +5,7 @@ import { fournisseurMock } from '../src/ia/mock.mjs'
 import { fournisseurClaude } from '../src/ia/claude.mjs'
 import { pagesEchantillon, construireProfil, regimePourPage, pageAnormale } from '../src/ia/diagnostic.mjs'
 import { etatFournisseur, consentementActif } from '../src/ia/consentement.mjs'
-import { inviteMetadonnees, argvClaude, extraireJson, fournisseurClaudeLocal } from '../src/ia/claude-local.mjs'
+import { inviteMetadonnees, argvClaude, extraireJson, fournisseurClaudeLocal, envSansCleApi } from '../src/ia/claude-local.mjs'
 import { messagesLettrine, messagesCorrection, messagesMetadonnees } from '../src/ia/prompt.mjs'
 import { cheminPngDepuisUrl } from '../src/ia/crop.mjs'
 
@@ -45,6 +45,13 @@ test('IA local : inviteMetadonnees — système §14.5 + chemin image + consigne
   assert.match(inv, /C:\/x\/titre\.png/)                 // le CLI lit l'image par son CHEMIN
   assert.match(inv, /outil Read/)                        // consigne d'ouvrir l'image
   assert.match(inv, /"editeur":null/)                    // même schéma que l'API
+})
+
+test('IA local : envSansCleApi — retire ANTHROPIC_API_KEY/AUTH_TOKEN (sinon le CLI ignore l’abonnement)', () => {
+  const e = envSansCleApi({ ANTHROPIC_API_KEY: 'sk-x', ANTHROPIC_AUTH_TOKEN: 'tok', PATH: '/bin', AUTRE: '1' })
+  assert.equal(e.ANTHROPIC_API_KEY, undefined)
+  assert.equal(e.ANTHROPIC_AUTH_TOKEN, undefined)
+  assert.equal(e.PATH, '/bin'); assert.equal(e.AUTRE, '1') // le reste de l'environnement est conservé
 })
 
 test('IA local : argvClaude — headless JSON, Read seul, modèle/dossier optionnels', () => {

@@ -44,6 +44,18 @@ export function argvClaude({ modele = null, addDir = null } = {}) {
   return a
 }
 
+/**
+ * Copie de l'environnement SANS les clés d'API Anthropic. Indispensable : si `ANTHROPIC_API_KEY` (ou
+ * `ANTHROPIC_AUTH_TOKEN`) est présent, le CLI l'utilise EN PRIORITÉ sur la connexion d'abonnement — et
+ * bascule sur la facturation API (crédits console). On les retire pour forcer l'usage de l'ABONNEMENT.
+ */
+export function envSansCleApi(env = process.env) {
+  const c = { ...env }
+  delete c.ANTHROPIC_API_KEY
+  delete c.ANTHROPIC_AUTH_TOKEN
+  return c
+}
+
 /** Extrait le premier objet JSON équilibré d'un texte (tolère un préambule / des ```json). */
 export function extraireJson(txt) {
   const s = String(txt || '')
@@ -63,7 +75,7 @@ function lancer(bin, argv, invite, { cwd = undefined, timeoutMs = 180000 } = {})
     const estWin = process.platform === 'win32'
     const exe = estWin ? (process.env.ComSpec || 'cmd.exe') : bin
     const args = estWin ? ['/c', bin, ...argv] : argv
-    try { child = spawn(exe, args, { cwd, windowsHide: true }) }
+    try { child = spawn(exe, args, { cwd, windowsHide: true, env: envSansCleApi() }) }
     catch (e) { finir({ ok: false, erreur: 'CLI illançable : ' + (e?.message || e) }); return }
     t = setTimeout(() => { try { child.kill() } catch {} finir({ ok: false, erreur: 'délai dépassé' }) }, timeoutMs)
     child.on('error', (e) => finir({ ok: false, erreur: 'CLI introuvable : ' + (e?.message || e) }))
