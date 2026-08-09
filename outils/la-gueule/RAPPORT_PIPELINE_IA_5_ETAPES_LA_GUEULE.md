@@ -51,10 +51,15 @@ Chaque étape est persistée et versionnée ; une modification en amont périme 
   `apresOcrWorkflow` fait avancer la barre (OCR local terminé → Contrôle IA prêt) et périme l'aval ;
   pages anormales marquées. Réutilise `wsl.mjs` (reprise/états/arrêt inchangés) — aucun second
   pipeline. 2 tests.
-- **Phase D — Contrôle IA** : registres `controles/charte-ocr.json`, `controles/catalogue-erreurs-ocr.jsonl`,
-  `controles/profils-editions.json` (rechercher d'abord les chartes/règles déjà présentes) ; contrôles
-  déterministes ; lettrines ; titres ; corrections OCR (couche candidate, OCR brut immuable) ; structure
-  et revue globale ; provenance complète par correction.
+- **Phase D — Contrôle IA — CŒUR FAIT (`c5f726e`)** : registres versionnés (extraits de la doctrine
+  existante, provenance conservée) `controles/charte-ocr.json`, `catalogue-erreurs-ocr.jsonl`
+  (24 erreurs types), `profils-editions.json` (Ceriziers 1646). `src/ia/controle.mjs` :
+  `intervention` (provenance §15, original jamais écrasé), `niveauRisque` (R0-R4, §10),
+  `chargerCatalogue`, `controlerDeterministe` (sans IA : confiance faible / lignes vides / doublons /
+  pages anormales → findings + compteurs, ne modifie pas le projet). Endpoint `/api/ia/controle` +
+  étape 3 câblée (compteurs, avance du workflow). 4 tests. **RESTE Phase D** : contrôles IA VISUELS
+  (lettrines, titres, corrections OCR par crop) derrière clé + consentement (mock s'abstient) ; revue
+  globale du livre ; écriture des corrections retenues dans la couche candidate.
 - **Phase E — Validation ciblée** : classification de risque **R0–R4** ; familles ; échantillonnage
   (0/5 → proposer d'accepter ; 1 → 15 ; ≥2 → contrôle détaillé, configurables) ; cas critiques
   individuels ; blocages ; acceptation en lot ; annulation ; statuts (dont `confirme_humain`/
