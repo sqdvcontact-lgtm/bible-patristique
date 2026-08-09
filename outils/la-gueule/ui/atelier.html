@@ -65,6 +65,12 @@
   .badge.bloque,.badge.erreur{background:#fadbd0;color:#9a2a2a}
   [data-theme="dark"] #barreEtapes{background:#241f1a}
   [data-theme="dark"] .etape{background:#2a2520;border-color:#3a332b}
+  /* Phase E — panneau de validation ciblée (familles + critiques + blocages). */
+  #panneauValidation{padding:8px 12px;background:var(--fond-clair,#faf8f4);border-bottom:1px solid var(--bord);font-size:13px}
+  #panneauValidation .val-tete{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:6px}
+  #panneauValidation .val-fam{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:3px 0;border-top:1px solid var(--bord-clair,#e4dfd8)}
+  #panneauValidation .val-fam span{color:var(--second)}
+  #panneauValidation .val-bloc{margin-top:6px;color:#9a2a2a;font-weight:600}
   .navflip{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:34px;height:46px;
     border:1px solid var(--bord);background:rgba(255,253,248,.9);color:var(--vert);border-radius:8px;
     font-size:22px;line-height:1;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.12)}
@@ -192,6 +198,7 @@
 
 <!-- Pipeline 5 étapes (consignes 2026-08-09) — Phase A : représentation de l'état du parcours. -->
 <div id="barreEtapes" title="Parcours : Diagnostic IA → OCR local → Contrôle IA → Validation ciblée → Génération locale"></div>
+<div id="panneauValidation" style="display:none"></div>
 
 <div class="barre2" id="diag" style="display:none;color:var(--ambre)"></div>
 
@@ -342,6 +349,7 @@ function rendreBarreEtapes(){ const bar=$('barreEtapes'); if(!bar)return; const 
     d.appendChild(n); d.appendChild(l); d.appendChild(b)
     if(cle==='diagnostic_ia'){ d.style.cursor='pointer'; d.title='Refaire le diagnostic (page de titre + typographie → profil de traitement)'; d.onclick=()=>{ if($('chemin').value.trim()) analyser() } }
     if(cle==='controle_ia'){ d.style.cursor='pointer'; d.title='Lancer le contrôle déterministe (confiance, lignes vides, doublons, pages anormales)'; d.onclick=()=>lancerControle() }
+    if(cle==='validation_ciblee'){ d.style.cursor='pointer'; d.title='Validation ciblée : familles à échantillonner, cas critiques, blocages'; d.onclick=()=>lancerValidation() }
     bar.appendChild(d) } }
 rendreBarreEtapes()
 
@@ -391,6 +399,33 @@ async function lancerControle(){ if(!Object.keys(S.pages).length){ etat('rien à
     etat(`Contrôle : ${c.pages||0} page(s), ${c.lignes||0} ligne(s) — confiance faible ${c.confiance_faible||0}, vides ${c.lignes_vides||0}, doublons ${c.doublons||0}, pages anormales ${c.pages_anormales||0}. (Contrôle IA visuel : à activer avec ta clé Anthropic + consentement.)`)
   }catch(e){ majEtapeClient('controle_ia',{etat:'erreur'}); etat('contrôle : '+e.message) }
   finally{ chargeOff() } }
+
+// Phase E — validation CIBLÉE : familles + cas critiques + blocages (tu ne valides pas tout).
+async function lancerValidation(){ if(!S.controle||!S.controle.findings){ etat('lance d\'abord le contrôle (étape 3)'); return }
+  majEtapeClient('validation_ciblee',{etat:'en_cours'},'validation_ciblee'); chargeOn('Validation ciblée…')
+  try{ const r=await api('/api/ia/validation',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({findings:S.controle.findings})})
+    S.validation=r; rendrePanneauValidation()
+    const bloque=r.blocages.length>0
+    majEtapeClient('validation_ciblee',{etat: bloque?'bloque':'a_verifier'})
+    if(!bloque && S.workflow&&S.workflow.etapes.generation_locale&&S.workflow.etapes.generation_locale.etat==='non_commence') majEtapeClient('generation_locale',{etat:'pret'})
+    etat(`Validation : ${r.compteurs.critiques} critique(s), ${r.compteurs.blocages} blocage(s), ${r.compteurs.familles} famille(s), ${r.compteurs.automatiques} auto — ${bloque?'export « complet » bloqué (provisoire possible avec avertissement)':'prêt pour la génération'}.`)
+  }catch(e){ majEtapeClient('validation_ciblee',{etat:'erreur'}); etat('validation : '+e.message) }
+  finally{ chargeOff() } }
+function rendrePanneauValidation(){ const p=$('panneauValidation'); if(!p)return; const v=S.validation; if(!v){ p.style.display='none'; return }
+  p.style.display='block'; p.innerHTML=''; const c=v.compteurs
+  const tete=document.createElement('div'); tete.className='val-tete'
+  const info=document.createElement('span'); info.innerHTML=`<b>Validation ciblée</b> — critiques ${c.critiques} · blocages ${c.blocages} · familles ${c.familles} · auto ${c.automatiques} · non résolus ${c.non_resolus}`
+  const fermer=document.createElement('button'); fermer.className='discret'; fermer.textContent='fermer'; fermer.onclick=()=>{ p.style.display='none' }
+  tete.appendChild(info); tete.appendChild(fermer); p.appendChild(tete)
+  for(const fam of v.familles){ const d=document.createElement('div'); d.className='val-fam'
+    const s=document.createElement('span'); s.textContent=`${fam.cle} — ${fam.nb} occurrence(s), risque ${fam.risque}`
+    const b=document.createElement('button'); b.className='discret'; b.textContent='Accepter la famille'
+    b.title='Applique la famille dans la couche candidate (statut accepté par échantillonnage ; PAS du ground-truth).'
+    b.onclick=()=>accepterFamille(fam.cle)
+    d.appendChild(s); d.appendChild(b); p.appendChild(d) }
+  if(v.blocages.length){ const bl=document.createElement('div'); bl.className='val-bloc'; bl.textContent='⛔ '+v.blocages.length+' blocage(s) — export « complet » impossible tant qu\'ils ne sont pas levés.'; p.appendChild(bl) } }
+function accepterFamille(cle){ if(S.controle&&S.controle.findings) S.controle.findings.forEach(f=>{ if((f.regle||f.id||f.type)===cle && f.statut==='propose_ia') f.statut='accepte_echantillonnage' })
+  lancerValidation() } // recompte : la famille passe des « familles » aux « automatiques »
 const SEUIL_DOUTE=0.80 // en dessous, la ligne est signalée « à revoir »
 
 // ── Fiabilité des lots : état par page (à faire / terminé / erreur), progression, journal ────

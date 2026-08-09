@@ -15,6 +15,7 @@ import { parserMetadonnees, typographieProbable } from './metadonnees.mjs'
 import { parseAlto } from './alto.mjs'
 import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes, sauverProfil } from './projet.mjs'
 import { controlerDeterministe } from './ia/controle.mjs'
+import { classerValidation } from './ia/validation.mjs'
 import { detecterLangue, apparierParagraphes } from './bilingue.mjs'
 import { annoterProjet } from './structure.mjs'
 
@@ -251,6 +252,12 @@ export function demarrer({ port = 4599 } = {}) {
         const b = await corps(req)
         const { findings, compteurs } = controlerDeterministe(b.projet || {})
         return json(res, 200, { findings, compteurs })
+      }
+
+      // Phase E — répartition des findings pour la validation ciblée (familles / critiques / blocages).
+      if (p === '/api/ia/validation' && req.method === 'POST') {
+        const b = await corps(req)
+        return json(res, 200, classerValidation(b.findings || []))
       }
 
       // Sert une image locale par chemin absolu (outil local, écoute 127.0.0.1 seulement).
