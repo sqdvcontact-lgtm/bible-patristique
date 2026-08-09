@@ -41,6 +41,11 @@
   .meta-corps input.meta-ia{background:#fbeecb;border-color:#c9971f;color:#1a1a1a;font-weight:500} /* proposé par l'IA (lecture d'image), à vérifier */
   .meta-corps input.meta-ia-enrichi{background:#e3eefb;border-color:#5b8fd6;color:#12314f;font-weight:500} /* IA — connaissance externe (hors page), à vérifier */
   .meta-etat{font-size:11px;color:var(--second);min-height:1em;margin-top:2px}
+  .meta-diag{font-size:11px;color:var(--second);margin-top:4px}
+  .meta-diag summary{cursor:pointer;color:var(--second)}
+  .meta-diag .dg-sec{margin:4px 0 2px;font-weight:600;color:var(--fg)}
+  .meta-diag code{background:#eee;padding:0 3px;border-radius:2px}
+  .meta-diag .dg-vide{color:#b06a2a}
   main.meta-replie .meta-titre,main.meta-replie .meta-extraire,main.meta-replie .meta-corps{display:none}
   main.meta-replie .meta-tete{flex-direction:column;padding:8px 3px;border-bottom:none}
   /* Zone image : l'image tient dans la hauteur du volet (pas de défilement) ; chevrons de nav. */
@@ -319,6 +324,7 @@
       <label>Date de composition <input id="m_date_composition" placeholder="ive s."></label>
       <label>Genre <input id="m_genre"></label>
       <div id="etatMeta" class="meta-etat"></div>
+      <details id="metaDiag" class="meta-diag" style="display:none"><summary>détails de la lecture IA</summary><div id="metaDiagCorps"></div></details>
     </div>
   </div>
   <div class="volet" id="voletImage">
@@ -958,6 +964,21 @@ async function extraireMeta(){ const chemin=$('chemin').value.trim(); if(!chemin
   finally{ chargeOff() } }
 // Diagnostic IA — complète les métadonnées VIDES en lisant la page de titre par vision (cloud, avec
 // consentement). Ne remplace jamais un champ déjà rempli à la main ; marque les champs proposés par l'IA.
+// Panneau « détails de la lecture IA » : moteur, ce qui a été LU sur l'image, et ce qui vient du
+// CATALOGUE (auteur/œuvre trouvés, ou « aucune correspondance »). Rend visible ce qui se passe.
+function rendreDiagIA(r){ const d=$('metaDiag'), c=$('metaDiagCorps'); if(!d||!c)return
+  const esc=s=>String(s==null?'':s).replace(/[&<>]/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[x]))
+  const m=(r&&r.meta_ia)||{}, enr=(r&&r.enrichissement)||{}, dg=enr.diagnostic||{}
+  let h='<div class="dg-sec">Moteur</div>'+esc(r.fournisseur||'?')+' · modèle '+esc(r.modele||'?')+' · confiance '+(r.confiance==null?'—':esc(r.confiance))
+  if(r.motif) h+='<br><span class="dg-vide">'+esc(r.motif)+'</span>'
+  if(r.erreur) h+='<br><span class="dg-vide">erreur : '+esc(r.erreur)+'</span>'
+  h+='<div class="dg-sec">Lu sur l’image</div>'
+  const lus=Object.keys(m); h+=lus.length?lus.map(k=>esc(k)+' = <code>'+esc(m[k])+'</code>').join('<br>'):'<span class="dg-vide">rien</span>'
+  h+='<div class="dg-sec">Catalogue (ta base)</div>'
+  if(dg.base===false){ h+='<span class="dg-vide">base non interrogée</span>' }
+  else{ h+=dg.auteur?('auteur → <code>'+esc(dg.auteur.nom)+'</code> ('+esc(dg.auteur.id_auteur)+')'):'<span class="dg-vide">auteur : aucune correspondance</span>'
+    h+='<br>'+(dg.oeuvre?('œuvre → titre original <code>'+esc(dg.oeuvre.titre_original)+'</code> <small>('+esc(dg.oeuvre.source)+')</small>'):'<span class="dg-vide">œuvre : aucune correspondance</span>') }
+  c.innerHTML=h; d.style.display='block' }
 async function completerMetaIA(){ const chemin=$('chemin').value.trim(); if(!chemin){ $('etatMeta').textContent='choisis d\'abord un fichier'; return }
   await chargerEtatIA()
   const f=S.ia&&S.ia.fournisseur
@@ -971,7 +992,7 @@ async function completerMetaIA(){ const chemin=$('chemin').value.trim(); if(!che
   $('etatMeta').textContent='lecture IA de la page de titre…'; chargeOn('Lecture IA de la page de titre…')
   try{ const r=await api('/api/ia/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin,page,texteTitre})})
     console.log('IA titre — réponse:', r) // diagnostic (visible dans la console F12)
-    if(!r.ia_active){ $('etatMeta').textContent='IA non active ('+(r.motif||'—')+')'; return }
+    if(!r.ia_active){ $('etatMeta').textContent='IA non active ('+(r.motif||'—')+')'; rendreDiagIA(r); return }
     const m=r.meta_ia||{}, enr=r.enrichissement||{}; let n=0, e=0
     // Lu sur l'image : remplace les champs VIDES ou devinés par le parseur (meta-auto) ; jamais une saisie.
     CHAMPS_META.forEach(c=>{ const el=$('m_'+c); if(!el)return
@@ -986,6 +1007,7 @@ async function completerMetaIA(){ const chemin=$('chemin').value.trim(); if(!che
         el.title='catalogue (ta base)'+(c==='auteur'&&enr.auteur_id?(' — id_auteur '+enr.auteur_id):'')+' — à vérifier'; e++ } })
     if(r.abstention&&!n&&!e){ $('etatMeta').textContent='IA ('+(r.fournisseur||'?')+') s\'est abstenue'+(r.erreur?(' : '+r.erreur):' (page non lisible / pas une page de titre)')+' — rien ajouté.' }
     else $('etatMeta').textContent='✓ IA : '+n+' champ(s) lu(s)'+(e?(' + '+e+' du catalogue'):'')+(enr.auteur_id?(' · auteur : '+enr.auteur_id):'')+' — à vérifier'+(r.confiance!=null?(' (confiance '+r.confiance+')'):'')
+    rendreDiagIA(r)
     if(n||e){ planifierSave() }
   }catch(e){ $('etatMeta').textContent='échec IA : '+e.message }
   finally{ chargeOff() } }

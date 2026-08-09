@@ -53,6 +53,48 @@ export function titreSansAuteur(titre, auteur) {
   return t || null
 }
 
+// ── Normalisation de casse (filet de sécurité charte, indépendant de l'IA) ───────────────────────────
+const PARTICULES = new Set(['de', 'du', 'des', 'la', 'le', 'les', 'l', 'd', 'et', 'en', 'à', 'au', 'aux', 'sur', 'dans', 'un', 'une', 'the', 'of', 'von', 'van', 'di', 'da', 'y'])
+
+/** Vrai si la chaîne porte des lettres et AUCUNE minuscule (tout en capitales) — donc à recaser. */
+export function estToutCapitales(s) {
+  const t = String(s || '')
+  return /[A-ZÀ-Þ]/.test(t) && !/[a-zà-ÿ]/.test(t)
+}
+
+/** Retire un point final d'un TITRE, en préservant « … » et « ... ». (Charte : jamais de point à un titre.) */
+export function sansPointFinal(s) {
+  const t = String(s || '').replace(/\s+$/, '')
+  if (/(\.\.\.|…)$/.test(t)) return t
+  return t.replace(/\.+$/, '')
+}
+
+/** Casse nominale : capitale à chaque mot, particules en minuscule (sauf en tête). « JEAN VARET » → « Jean Varet ». */
+export function casseNominale(s) {
+  let premier = true
+  return String(s || '').toLowerCase().split(/(\s+|-)/).map((m) => {
+    if (/^\s+$/.test(m) || m === '-') return m
+    const estPart = PARTICULES.has(m.replace(/\.$/, ''))
+    const mot = (premier || !estPart) ? m.replace(/^[a-zà-ÿ]/, (c) => c.toUpperCase()) : m
+    premier = false
+    return mot
+  }).join('')
+}
+
+/** Casse de phrase : capitale initiale seulement. « LA CONSOLATION… » → « La consolation… ». */
+export function casseTitre(s) {
+  return String(s || '').toLowerCase().replace(/^([^\p{L}]*)(\p{L})/u, (m, p, c) => p + c.toUpperCase())
+}
+
+/** Applique la casse charte à un champ SEULEMENT s'il est tout en capitales ; ôte le point final des titres. */
+export function normaliserCasseChamp(s, type) {
+  let v = String(s ?? '').trim()
+  if (!v) return v
+  if (estToutCapitales(v)) v = (type === 'nom') ? casseNominale(v) : casseTitre(v)
+  if (type === 'titre') v = sansPointFinal(v)
+  return v
+}
+
 export function parserMetadonnees({ pdfTitle = '', pdfAuthor = '', producer = '', creationDate = '', texteTitre = '', nomFichier = '' } = {}) {
   const meta = {
     auteur: null, titre: null, sous_titre: null, titre_original: null,

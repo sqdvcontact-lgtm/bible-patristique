@@ -11,7 +11,7 @@ import { dirname, join, extname, basename, resolve, sep } from 'node:path'
 
 import { executer } from './runner.mjs'
 import { ocrPage, pdfNbPages, pdfInfo, choisirFichier, runBash, annulerTaches } from './wsl.mjs'
-import { parserMetadonnees, typographieProbable } from './metadonnees.mjs'
+import { parserMetadonnees, typographieProbable, normaliserCasseChamp } from './metadonnees.mjs'
 import { parseAlto } from './alto.mjs'
 import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes, sauverProfil, sauverRapportGeneration } from './projet.mjs'
 import { controlerDeterministe, controlerIA } from './ia/controle.mjs'
@@ -280,9 +280,12 @@ export function demarrer({ port = 4599 } = {}) {
           sortie = await appelerIA(fournisseur, 'diagnostic', charge, { consentement })
         }
         // Ne conserve QUE les champs métadonnées connus, non vides ; jamais la clé, jamais d'écriture active.
+        // Casse charte (filet de sécurité, même si le modèle dérape) : titres → casse de phrase + sans
+        // point final ; noms/lieux → casse nominale ; le reste inchangé. Ne s'active que sur du tout-capitales.
+        const TYPE_CASSE = { titre: 'titre', sous_titre: 'titre', titre_original: 'titre', auteur: 'nom', trad_auteur: 'nom', editeur: 'nom', collection: 'nom', ville: 'nom' }
         const CH = ['titre', 'sous_titre', 'titre_original', 'auteur', 'trad_auteur', 'editeur', 'collection', 'ville', 'date_publication', 'date_composition', 'genre', 'langue_originale', 'langue_trad']
         const meta_ia = {}
-        if (!sortie.abstention) for (const c of CH) { const v = sortie[c]; if (v != null && String(v).trim()) meta_ia[c] = String(v).trim() }
+        if (!sortie.abstention) for (const c of CH) { const v = sortie[c]; if (v != null && String(v).trim()) meta_ia[c] = normaliserCasseChamp(String(v).trim(), TYPE_CASSE[c] || null) }
         // Enrichissement DEPUIS LA BASE (lecture seule) : nom canonique + id_auteur (auteurs), et
         // titre_original si l'œuvre est déjà cataloguée (oeuvres). « Sinon vide » — jamais inventé.
         let enrichissement = {}

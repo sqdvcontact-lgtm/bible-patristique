@@ -1,7 +1,32 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { parserMetadonnees, titreSansAuteur, typographieProbable, anneeRomaine } from '../src/metadonnees.mjs'
+import { parserMetadonnees, titreSansAuteur, typographieProbable, anneeRomaine, estToutCapitales, sansPointFinal, casseNominale, casseTitre, normaliserCasseChamp } from '../src/metadonnees.mjs'
+
+test('casse : estToutCapitales — repère un champ à recaser', () => {
+  assert.equal(estToutCapitales('LA CONSOLATION'), true)
+  assert.equal(estToutCapitales('La Consolation'), false)
+  assert.equal(estToutCapitales('1646'), false) // pas de lettre → pas « tout capitales »
+})
+
+test('casse : sansPointFinal — ôte le point, préserve … et ...', () => {
+  assert.equal(sansPointFinal('La Consolation de la philosophie.'), 'La Consolation de la philosophie')
+  assert.equal(sansPointFinal('Sur l’espérance…'), 'Sur l’espérance…')
+  assert.equal(sansPointFinal('Suite...'), 'Suite...')
+})
+
+test('casse : casseNominale — capitale par mot, particules en minuscule', () => {
+  assert.equal(casseNominale('JEAN VARET'), 'Jean Varet')
+  assert.equal(casseNominale('P. DE CERIZIERS'), 'P. de Ceriziers')
+  assert.equal(casseNominale('BAR-LE-DUC'), 'Bar-le-Duc')
+})
+
+test('casse : normaliserCasseChamp — n’agit que sur du tout-capitales ; titre sans point final', () => {
+  assert.equal(normaliserCasseChamp('LA CONSOLATION DE LA PHILOSOPHIE.', 'titre'), 'La consolation de la philosophie')
+  assert.equal(normaliserCasseChamp('JEAN VARET', 'nom'), 'Jean Varet')
+  assert.equal(normaliserCasseChamp('La Consolation de la philosophie', 'titre'), 'La Consolation de la philosophie') // déjà bien → intact
+  assert.equal(normaliserCasseChamp('Boèce', 'nom'), 'Boèce') // intact
+})
 
 // Texte OCR (fidèle) de la page de titre de Boèce, Ceriziers, Rouen 1646 — cas de test réel.
 const TITRE_BOECE = [

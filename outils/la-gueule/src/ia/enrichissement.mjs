@@ -96,21 +96,31 @@ async function pg(cfg, chemin, { timeoutMs = 8000 } = {}) {
  */
 export async function enrichirDepuisBase({ auteur = '', titre = '' } = {}, { cheminEnv = null } = {}) {
   const cfg = await lireConfig(cheminEnv)
-  if (!cfg) return {}
-  const out = {}
+  if (!cfg) return { diagnostic: { base: false } }
+  const out = {}, diag = { base: true, auteur: null, oeuvre: null }
+  // Auteur : table `auteurs` (nom canonique + id_auteur + nom original).
   const ja = jetonsRequete(auteur, 3)
   if (ja.length && jetonsAuteur(auteur).length) {
     const tok = encodeURIComponent(ja[ja.length - 1]) // dernier jeton (accents gardés) = le plus souvent le nom
-    const lignes = await pg(cfg, `auteurs?select=id_auteur,nom,nom_original,dates&or=(nom.ilike.*${tok}*,nom_original.ilike.*${tok}*)&limit=20`)
-    const a = choisirAuteur(lignes, auteur)
-    if (a) { out.auteur_complet = a.nom; out.auteur_id = a.id_auteur; if (a.nom_original) out.auteur_original = a.nom_original }
+    const a = choisirAuteur(await pg(cfg, `auteurs?select=id_auteur,nom,nom_original,dates&or=(nom.ilike.*${tok}*,nom_original.ilike.*${tok}*)&limit=20`), auteur)
+    if (a) {
+      out.auteur_complet = a.nom; out.auteur_id = a.id_auteur; if (a.nom_original) out.auteur_original = a.nom_original
+      diag.auteur = { nom: a.nom, id_auteur: a.id_auteur, source: 'auteurs' }
+    }
   }
+  // Œuvre : `oeuvres` d'abord (œuvre importée), puis `catalogue_notices` (œuvre seulement cataloguée).
   const jt = jetonsRequete(titre, 5)
   if (jt.length) {
     const tok = encodeURIComponent([...jt].sort((x, y) => y.length - x.length)[0]) // jeton le plus long
-    const lignes = await pg(cfg, `oeuvres?select=titre,titre_original&titre=ilike.*${tok}*&limit=20`)
-    const o = choisirOeuvre(lignes, titre)
-    if (o && o.titre_original) out.titre_original = o.titre_original
+    let o = choisirOeuvre(await pg(cfg, `oeuvres?select=titre,titre_original&titre=ilike.*${tok}*&limit=20`), titre)
+    let source = 'oeuvres'
+    if (!o || !o.titre_original) {
+      const cn = await pg(cfg, `catalogue_notices?select=titre_stable,titre_edition,titre_original&or=(titre_stable.ilike.*${tok}*,titre_edition.ilike.*${tok}*)&limit=20`)
+      const oc = choisirOeuvre((Array.isArray(cn) ? cn : []).map((x) => ({ titre: x.titre_stable || x.titre_edition, titre_original: x.titre_original })), titre)
+      if (oc && oc.titre_original) { o = oc; source = 'catalogue_notices' }
+    }
+    if (o && o.titre_original) { out.titre_original = o.titre_original; diag.oeuvre = { titre: o.titre, titre_original: o.titre_original, source } }
   }
+  out.diagnostic = diag
   return out
 }
