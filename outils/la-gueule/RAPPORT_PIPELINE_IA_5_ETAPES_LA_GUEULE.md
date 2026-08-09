@@ -1,0 +1,69 @@
+# RAPPORT_PIPELINE_IA_5_ETAPES_LA_GUEULE (évolutif)
+
+Auteur : La Gueule (Claude). Début : 2026-08-09. Chantier **phasé** (Phases A→G des consignes).
+Ce rapport est **construit au fil des phases** ; les sections non encore réalisées sont marquées
+**NON VÉRIFIÉ**. Doctrine réaffirmée : candidats seulement ; fac-similé et OCR brut **immuables** ;
+IA jamais autorité ; aucune écriture dans les tables actives ; aucun entraînement automatique ;
+aucun appel cloud sans consentement ; aucun secret dans le dépôt ; les tests n'appellent jamais le
+cloud (mock). Réutilise le pipeline local existant — **aucun second pipeline**.
+
+## 1. État Git
+
+- Repère de départ : tag **`la-gueule-avant-pipeline-ia`** (`09212de`).
+- Phase A : `b8bd2ca`.
+- État final : **NON VÉRIFIÉ** (chantier en cours).
+
+## 2. Architecture — parcours fixe en 5 étapes
+
+`1 Diagnostic IA → 2 OCR local → 3 Contrôle IA → 4 Validation ciblée → 5 Génération locale`.
+Chaque étape est persistée et versionnée ; une modification en amont périme les étapes dépendantes.
+
+## Phase A — FAITE (modèle d'état + barre visuelle + invalidation)
+
+- `src/workflow.mjs` (pur, testé) : `ETAPES`, `ETATS`, `nouveauWorkflow`, `assurerWorkflow`
+  (compat anciens projets, états **inférés**, **non destructif**), `majEtape` (archive le run
+  précédent → jamais d'écrasement silencieux), `invaliderDependances` (§5 : diagnostic/ocr_modele →
+  toutes les suivantes ; ocr_page/charte/ia_modele → contrôle+validation+génération ; edition_texte →
+  validation+génération ; validation → génération).
+- `src/projet.mjs` : `chargerProjet` appelle `assurerWorkflow` ; l'export/persistance porte `workflow`.
+- `ui/atelier.html` : barre `#barreEtapes` persistante (5 étapes, badges d'état, étape active),
+  rendue au chargement d'un projet ; `projetActuel` inclut `workflow`.
+- Tests : `test/workflow.test.mjs` (5) — structure, inférence non destructive, non-écrasement,
+  invalidation, protection des étapes non commencées. **151 tests verts.** Barre vérifiée au navigateur.
+
+## Phases suivantes — PLANIFIÉES (NON VÉRIFIÉ)
+
+- **Phase B — Diagnostic IA** : `src/ia/fournisseur.mjs` (abstraction : `diagnostiquerDocument`,
+  `analyserLettrine`, `analyserTitre`, `controlerLigne/Page/Section/Lot`) ; **fournisseur mock**
+  (tests) ; **fournisseur Claude** configurable par variables d'environnement (`LG_AI_*`, clé jamais
+  dans le dépôt, `fetch` natif, pas d'ID de modèle en dur) ; échantillonnage local représentatif ;
+  profil de traitement `profils-traitement/<projet>-profil-v1.json` ; écran Diagnostic ; **consentement
+  cloud** explicite avant tout envoi ; cache par hash ; sorties JSON validées par schéma, abstention
+  possible ; les tests n'appellent jamais le cloud.
+- **Phase C — OCR local dans le workflow** : relier le profil (régimes par pages) au pipeline
+  `wsl.mjs` existant ; progression, reprise, erreurs conservées.
+- **Phase D — Contrôle IA** : registres `controles/charte-ocr.json`, `controles/catalogue-erreurs-ocr.jsonl`,
+  `controles/profils-editions.json` (rechercher d'abord les chartes/règles déjà présentes) ; contrôles
+  déterministes ; lettrines ; titres ; corrections OCR (couche candidate, OCR brut immuable) ; structure
+  et revue globale ; provenance complète par correction.
+- **Phase E — Validation ciblée** : classification de risque **R0–R4** ; familles ; échantillonnage
+  (0/5 → proposer d'accepter ; 1 → 15 ; ≥2 → contrôle détaillé, configurables) ; cas critiques
+  individuels ; blocages ; acceptation en lot ; annulation ; statuts (dont `confirme_humain`/
+  `modifie_humain` seuls admissibles au ground-truth).
+- **Phase F — Génération locale** : relier les exports existants ; rapports ; versions ; états de
+  livraison (`FINAL_CANDIDAT` / `…_AVEC_RESERVES` / `CANDIDAT_INCOMPLET`) ; SHA256SUMS ; aucune IA à
+  cette étape.
+- **Phase G — Pilote Boèce** : exécuter le parcours ; mesurer erreurs, faux positifs, nombre de
+  décisions humaines ; ne pas lancer le volume complet avant validation du pilote.
+
+## Garde-fous déjà en place (rappel)
+
+OCR brut / `texte_ocr_original` / ALTO brut immuables ; corrections en couche candidate distincte
+(passe 3) ; provenance des corrections (lettrines, césure) ; `src/vision.mjs` = architecture sans
+appel ; banc d'évaluation séparé du ground-truth ; consentement cloud requis (`autoriserAppel`).
+
+## Limites et prochaine étape recommandée
+
+Chantier volumineux mené **par phases**. Prochaine étape : **Phase B** (abstraction fournisseur + mock
++ Claude configurable + diagnostic), en gardant les tests hors-cloud. Rien n'est appliqué au volume
+complet avant validation humaine du pilote. Toute section « NON VÉRIFIÉ » ci-dessus reste à réaliser.
