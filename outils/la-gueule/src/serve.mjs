@@ -14,6 +14,7 @@ import { ocrPage, pdfNbPages, pdfInfo, choisirFichier, runBash, annulerTaches } 
 import { parserMetadonnees, typographieProbable } from './metadonnees.mjs'
 import { parseAlto } from './alto.mjs'
 import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes, sauverProfil } from './projet.mjs'
+import { controlerDeterministe } from './ia/controle.mjs'
 import { detecterLangue, apparierParagraphes } from './bilingue.mjs'
 import { annoterProjet } from './structure.mjs'
 
@@ -243,6 +244,13 @@ export function demarrer({ port = 4599 } = {}) {
         const b = await corps(req)
         const chemin = await sauverProfil(b.nom || 'projet', b.profil || {})
         return json(res, 200, { ok: true, chemin })
+      }
+
+      // Phase D — passe de contrôle DÉTERMINISTE (sans IA, sans réseau) : findings + compteurs.
+      if (p === '/api/ia/controle' && req.method === 'POST') {
+        const b = await corps(req)
+        const { findings, compteurs } = controlerDeterministe(b.projet || {})
+        return json(res, 200, { findings, compteurs })
       }
 
       // Sert une image locale par chemin absolu (outil local, écoute 127.0.0.1 seulement).

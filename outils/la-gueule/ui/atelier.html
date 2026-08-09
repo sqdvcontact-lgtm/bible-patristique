@@ -341,6 +341,7 @@ function rendreBarreEtapes(){ const bar=$('barreEtapes'); if(!bar)return; const 
     const b=document.createElement('span'); b.className='badge '+et; b.textContent=LIB_ETAT[et]||et
     d.appendChild(n); d.appendChild(l); d.appendChild(b)
     if(cle==='diagnostic_ia'){ d.style.cursor='pointer'; d.title='Refaire le diagnostic (page de titre + typographie → profil de traitement)'; d.onclick=()=>{ if($('chemin').value.trim()) analyser() } }
+    if(cle==='controle_ia'){ d.style.cursor='pointer'; d.title='Lancer le contrôle déterministe (confiance, lignes vides, doublons, pages anormales)'; d.onclick=()=>lancerControle() }
     bar.appendChild(d) } }
 rendreBarreEtapes()
 
@@ -378,6 +379,18 @@ function apresOcrWorkflow(){ majEtapeClient('ocr_local',{etat:'termine'})
   if(S.workflow&&S.workflow.etapes.controle_ia&&S.workflow.etapes.controle_ia.etat==='non_commence') S.workflow.etapes.controle_ia.etat='pret'
   for(const e of ['validation_ciblee','generation_locale']){ const s=S.workflow&&S.workflow.etapes[e]; if(s&&s.etat!=='non_commence'&&s.etat!=='perime') s.etat='perime' }
   rendreBarreEtapes() }
+
+// Phase D — contrôle DÉTERMINISTE (sans IA/réseau) : compteurs + avance du workflow. Le contrôle IA
+// visuel (lettrines, régions, corrections) s'ajoutera derrière clé + consentement.
+async function lancerControle(){ if(!Object.keys(S.pages).length){ etat('rien à contrôler : océrise d\'abord'); return }
+  majEtapeClient('controle_ia',{etat:'en_cours'},'controle_ia'); chargeOn('Contrôle déterministe…')
+  try{ const r=await api('/api/ia/controle',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({projet:projetActuel()})})
+    S.controle=r; const c=r.compteurs||{}
+    majEtapeClient('controle_ia',{etat:'a_verifier'})
+    if(S.workflow&&S.workflow.etapes.validation_ciblee&&S.workflow.etapes.validation_ciblee.etat==='non_commence') majEtapeClient('validation_ciblee',{etat:'pret'})
+    etat(`Contrôle : ${c.pages||0} page(s), ${c.lignes||0} ligne(s) — confiance faible ${c.confiance_faible||0}, vides ${c.lignes_vides||0}, doublons ${c.doublons||0}, pages anormales ${c.pages_anormales||0}. (Contrôle IA visuel : à activer avec ta clé Anthropic + consentement.)`)
+  }catch(e){ majEtapeClient('controle_ia',{etat:'erreur'}); etat('contrôle : '+e.message) }
+  finally{ chargeOff() } }
 const SEUIL_DOUTE=0.80 // en dessous, la ligne est signalée « à revoir »
 
 // ── Fiabilité des lots : état par page (à faire / terminé / erreur), progression, journal ────
