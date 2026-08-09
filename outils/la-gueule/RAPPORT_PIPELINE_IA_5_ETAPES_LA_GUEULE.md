@@ -33,13 +33,15 @@ Chaque étape est persistée et versionnée ; une modification en amont périme 
 
 ## Phases suivantes — PLANIFIÉES (NON VÉRIFIÉ)
 
-- **Phase B — Diagnostic IA** : `src/ia/fournisseur.mjs` (abstraction : `diagnostiquerDocument`,
-  `analyserLettrine`, `analyserTitre`, `controlerLigne/Page/Section/Lot`) ; **fournisseur mock**
-  (tests) ; **fournisseur Claude** configurable par variables d'environnement (`LG_AI_*`, clé jamais
-  dans le dépôt, `fetch` natif, pas d'ID de modèle en dur) ; échantillonnage local représentatif ;
-  profil de traitement `profils-traitement/<projet>-profil-v1.json` ; écran Diagnostic ; **consentement
-  cloud** explicite avant tout envoi ; cache par hash ; sorties JSON validées par schéma, abstention
-  possible ; les tests n'appellent jamais le cloud.
+- **Phase B — Diagnostic IA — CŒUR FAIT** (`99bd6e5`) : `src/ia/fournisseur.mjs` (abstraction +
+  `choisirFournisseur` par env + `validerSortieIA` [rejette la prose] + `cleCache` + consentement +
+  `appelerIA` [cache, validation, ne lève jamais]) ; `src/ia/mock.mjs` (hors-ligne, s'abstient) ;
+  `src/ia/claude.mjs` (squelette `fetch` natif, `LG_AI_MODEL_*`, clé `ANTHROPIC_API_KEY` jamais au
+  dépôt ni dans les sorties ; s'abstient sans clé/consentement/modèle ; jamais d'appel en test) ;
+  `src/ia/diagnostic.mjs` (`pagesEchantillon`, `construireProfil`, prétraitement inactif par défaut).
+  11 tests. **RESTE Phase B** : écran Diagnostic dans l'UI + câblage de l'étape (échantillon local →
+  profil proposé → avance le workflow) ; consentement cloud à l'écran ; écriture
+  `profils-traitement/<projet>-profil-v1.json`.
 - **Phase C — OCR local dans le workflow** : relier le profil (régimes par pages) au pipeline
   `wsl.mjs` existant ; progression, reprise, erreurs conservées.
 - **Phase D — Contrôle IA** : registres `controles/charte-ocr.json`, `controles/catalogue-erreurs-ocr.jsonl`,
