@@ -95,7 +95,10 @@ export function fournisseurClaudeLocal(env = {}) {
     const ab = (erreur) => ({ type: 'metadonnees_titre', statut: 'candidat', abstention: true, erreur, fournisseur: 'claude-local' })
     if (!image_path) return ab('image absente')
     const invite = inviteMetadonnees({ image_path, texte_ocr })
-    const argv = argvClaude({ modele: modele.diagnostic, addDir: cwd })
+    // Lire une page de titre est une tâche de VISION : on prend le modèle vision (le plus capable, ex.
+    // Opus), pas le modèle « diagnostic » léger — sinon la lecture et la normalisation sont médiocres.
+    const modeleLecture = modele.vision || modele.diagnostic
+    const argv = argvClaude({ modele: modeleLecture, addDir: cwd })
     const r = await lancer(bin, argv, invite, { cwd, timeoutMs })
     // L'enveloppe JSON existe même quand le CLI sort en erreur (ex. « Not logged in ») : on la lit
     // d'abord pour remonter un message CLAIR à l'utilisateur (connexion requise, etc.).
@@ -104,7 +107,7 @@ export function fournisseurClaudeLocal(env = {}) {
     if (!enveloppe) return ab(r.ok ? 'sortie CLI illisible' : (r.erreur || ('CLI code ' + r.code + (r.err ? ' — ' + String(r.err).slice(0, 200) : ''))))
     const meta = extraireJson(enveloppe.result)
     if (!meta || typeof meta !== 'object') return ab('JSON métadonnées absent de la réponse')
-    return { ...meta, type: 'metadonnees_titre', statut: 'candidat', abstention: !!meta.abstention, fournisseur: 'claude-local', modele: modele.diagnostic || 'abonnement' }
+    return { ...meta, type: 'metadonnees_titre', statut: 'candidat', abstention: !!meta.abstention, fournisseur: 'claude-local', modele: modeleLecture || 'abonnement' }
   }
 
   // Passes non encore câblées en local (lettrines, lignes…) : abstention prudente, jamais d'invention.
