@@ -218,7 +218,9 @@ export async function rendrePage(params) {
   if (kind !== 'imprime') return { pngWin: params.imageWin } // manuscrit : l'image est déjà là
   const { pdfWin } = params
   const page = entier(params.page, { min: 1, max: 100000, nom: 'page' })
-  const dpi = entier(params.dpi ?? 150, { min: 72, max: 400, nom: 'dpi' })
+  // Aperçu = affichage seulement (jamais océrisé) → basse résolution pour un rendu RAPIDE. L'OCR, lui,
+  // reste à 300 DPI. 100 DPI suffit largement pour naviguer et identifier une page de titre.
+  const dpi = entier(params.dpi ?? 100, { min: 60, max: 400, nom: 'dpi' })
   const nom = nomPng(pdfWin + '|apercu', page)
   const script = dansTmp(
     `pdftoppm -f ${page} -l ${page} -r ${dpi} -png -singlefile "$PDF" "$D/pg" && cp "$D/pg.png" "$SERVED/${nom}"`)
