@@ -31,10 +31,11 @@
   .volet{min-height:0;overflow:auto;padding:12px}
   /* Colonne « Métadonnées » (gauche), repliable */
   .volet-meta{min-height:0;overflow:auto;border-right:1px solid var(--bord);background:var(--surface);display:flex;flex-direction:column}
-  .meta-tete{display:flex;align-items:flex-end;gap:6px;padding:6px 8px 0;position:sticky;top:0;background:var(--surface);z-index:1}
+  .meta-tete{display:flex;padding:8px 8px 0;position:sticky;top:0;background:var(--surface);z-index:1}
+  [data-theme="dark"] .vtabs button.actif{color:#12100d}
   .meta-titre{font-family:Georgia,serif;font-size:14px;color:var(--encre);flex:1}
   .meta-toggle{border:1px solid var(--bord);background:#fff;color:var(--second);border-radius:5px;padding:2px 8px;cursor:pointer;font-weight:700;line-height:1}
-  .meta-corps{padding:12px;display:flex;flex-direction:column;gap:11px}
+  .meta-corps{padding:10px;display:flex;flex-direction:column;gap:7px}
   .meta-corps label{display:flex;flex-direction:column;gap:3px;font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--second)}
   .meta-corps input{width:100%;font-size:13px;box-sizing:border-box}
   .meta-corps input.meta-auto{background:#e7e5df;color:#1f1f1f} /* deviné par le parseur (remplaçable par l'IA) */
@@ -48,13 +49,13 @@
   .meta-diag .dg-vide{color:#b06a2a}
   main.meta-replie .vtabs,main.meta-replie .vpanel{display:none}
   main.meta-replie .meta-tete{flex-direction:column;padding:8px 3px;border-bottom:none}
-  .vtabs{display:flex;flex:1;align-items:stretch;gap:0;border-bottom:1px solid var(--bord)}
-  .vtabs button{flex:1;min-width:0;padding:9px 2px;border:none;background:none;font-size:10.5px;color:var(--second);border-bottom:2px solid transparent;border-radius:0;font-weight:500;cursor:pointer;white-space:nowrap;transition:color .12s,border-color .12s;margin-bottom:-1px}
-  .vtabs button:hover{color:var(--encre)}
-  .vtabs button.actif{color:var(--vert);border-bottom-color:var(--vert);font-weight:700}
-  .vpanel-actions{display:flex;gap:8px;padding:12px 12px 2px}
-  .vpanel-actions button{flex:1;padding:7px 4px;font-weight:600}
-  .vpanel-corps,.vpanel .barre2{display:flex;flex-direction:column;align-items:stretch;gap:12px;padding:14px 12px;background:transparent;border:none}
+  .vtabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:5px;flex:1}
+  .vtabs button{padding:7px 4px;border:1px solid var(--bord);border-radius:6px;font-size:10.5px;background:var(--fond);color:var(--second);font-weight:500;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .12s,color .12s,border-color .12s}
+  .vtabs button:hover{border-color:var(--vert);color:var(--encre)}
+  .vtabs button.actif{background:var(--vert);color:#fff;border-color:var(--vert);font-weight:700}
+  .vpanel-actions{display:flex;gap:7px;padding:9px 10px 2px}
+  .vpanel-actions button{flex:1;padding:6px 4px;font-weight:600}
+  .vpanel-corps,.vpanel .barre2{display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:10px;background:transparent;border:none}
   .vpanel .barre2 button{align-self:stretch;padding:7px 4px}
   .vpanel .barre2 input:not([type=checkbox]),.vpanel .barre2 select{width:100%!important;box-sizing:border-box}
   .vpanel .barre2 > label{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--second);display:flex;flex-direction:column;gap:3px}
@@ -71,16 +72,17 @@
   #zoomOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:10001;cursor:zoom-out}
   .zoombox{background-repeat:no-repeat;background-color:#fff;box-shadow:0 8px 40px rgba(0,0,0,.5);border:3px solid #fff;border-radius:4px}
   /* Pipeline 5 étapes (Phase A) : représentation persistante de l'état du parcours. */
-  #barreEtapes{display:flex;gap:5px;padding:5px 12px;background:var(--surface);border-bottom:1px solid var(--bord)}
-  .etape{flex:1;min-width:0;display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:7px;font-size:11.5px;background:#efeadf;color:#7d7259;transition:filter .12s}
-  .etape .num{flex:none;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-size:9.5px;font-weight:700;background:rgba(0,0,0,.07)}
+  #barreEtapes{display:flex;background:var(--surface);border-bottom:1px solid var(--bord)}
+  .etape{flex:1;min-width:0;display:flex;align-items:center;gap:7px;padding:6px 13px;font-size:11.5px;background:#efeadf;color:#7d7259;border-right:1px solid var(--bord);transition:filter .12s}
+  .etape:last-child{border-right:none}
+  .etape .num{flex:none;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-size:9.5px;font-weight:700;background:rgba(0,0,0,.09)}
   .etape .lib{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .etape .badge{margin-left:auto;font-size:10px;font-weight:500;white-space:nowrap;opacity:.92}
   .etape.fait{background:#e1efe3;color:#2f6a47} .etape.fait .num{background:#bfe0c6;color:#215838}
   .etape.encours{background:#fdeccb;color:#8a5a12} .etape.encours .num{background:#f1cf8d;color:#6b430a}
   .etape.afaire{background:#f2ecdf;color:#8a7c5e} .etape.afaire .num{background:#e2d6bd;color:#6f6242}
   .etape.souci{background:#f7ddd4;color:#9a2f24} .etape.souci .num{background:#e9b5aa;color:#7a231a}
-  .etape.active{box-shadow:0 0 0 1.5px var(--vert)}
+  .etape.active{box-shadow:inset 0 2px 0 var(--vert)}
   .etape.clic{cursor:pointer} .etape.clic:hover{filter:brightness(.965)}
   .badge.non_commence{background:#ececec;color:#888}
   .badge.pret{background:#e6f0e6;color:#3d6b4f}
@@ -184,6 +186,9 @@
     border-radius:50%;animation:tourne .8s linear infinite}
   @keyframes tourne{to{transform:rotate(360deg)}}
   #chargeTexte{font-family:Georgia,serif;color:var(--second);font-size:15px}
+  #chargeStop{margin-top:16px;padding:7px 20px;border:1px solid var(--ambre);color:var(--ambre);background:var(--surface);border-radius:6px;cursor:pointer;font-weight:600}
+  #chargeStop:hover:not(:disabled){background:var(--ambre);color:#fff}
+  #chargeStop:disabled{opacity:.5;cursor:default}
   .pchk{display:flex;gap:4px;align-items:center;font-size:12px;color:var(--second)}
   #comparateur{position:fixed;inset:0;z-index:10001;display:none;background:rgba(43,38,32,.55);padding:24px;overflow:auto}
   .comp-boite{max-width:1100px;margin:0 auto;background:var(--fond);border-radius:10px;padding:18px}
@@ -267,7 +272,6 @@
   <span style="width:16px"></span>
   <label>Document de <input type="number" id="de" min="1" value="1" /> à <input type="number" id="a" min="1" value="1" /></label>
   <button id="ocrDoc">OCR document</button>
-  <button class="discret" id="stop" disabled>arrêter</button>
 </div>
 
 <div class="barre2" id="progression" style="display:none;gap:14px;align-items:center">
@@ -331,7 +335,6 @@
 <main id="main">
   <div class="volet-meta" id="voletMeta">
     <div class="meta-tete">
-      <button class="meta-toggle" id="metaToggle" title="Replier le volet">‹</button>
       <div class="vtabs" id="vtabs">
         <button data-t="meta" class="actif">Métadonnées</button>
         <button data-t="pre">Prétraitement</button>
@@ -383,7 +386,7 @@
 </main>
 
 <div id="drop">Déposez le PDF ou l'image ici…</div>
-<div id="chargement"><div class="spin"></div><div id="chargeTexte">Analyse…</div></div>
+<div id="chargement"><div class="spin"></div><div id="chargeTexte">Analyse…</div><button id="chargeStop">Arrêter</button></div>
 
 <script>
 const $=id=>document.getElementById(id)
@@ -577,7 +580,7 @@ $('kind').onchange=()=>{ S.kind=$('kind').value; document.querySelector('.barre2
   if(S.kind!=='manuscrit'){S.couche='dip'} rendre() }
 
 // Voile de chargement : fige l'écran (le voile capte les clics) pendant une opération longue.
-const chargeOn=(t)=>{ $('chargeTexte').textContent=t||'Analyse…'; $('chargement').style.display='flex' }
+const chargeOn=(t)=>{ $('chargeTexte').textContent=t||'Analyse…'; $('chargeStop').disabled=false; $('chargement').style.display='flex' }
 const chargeOff=()=>{ $('chargement').style.display='none' }
 
 async function analyser(){
@@ -591,7 +594,7 @@ async function analyser(){
       chargeOn('Analyse rapide (page de titre + typographie)…')
       const r=await api('/api/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin, rapide:true})})
       // Métadonnées : plus de pré-remplissage mécanique au dépôt — « IA titre » (Opus) fait la lecture.
-      $('main').classList.remove('meta-replie'); $('metaToggle').textContent='‹'
+      $('main').classList.remove('meta-replie')
       // Choix AUTOMATIQUE du moteur adapté à ce livre (imprimé ancien à s long → Kraken).
       const anc=r.typographie?.ancien; $('typo').value=anc?'ancien':'moderne'
       await finaliserDiagnostic({ nbPages:pages, meta:r.meta, typographie:r.typographie }) // Phase B : profil + avance du workflow
@@ -867,19 +870,19 @@ $('onglets').onclick=e=>{ const b=e.target.closest('button'); if(!b)return
   S.couche=b.dataset.c; $('onglets').querySelectorAll('button').forEach(x=>x.classList.toggle('actif',x===b)); rendre() }
 
 $('btnAnalyser').onclick=analyser
-$('ocrPage').onclick=async()=>{ assurerNomProjet(); S.arret=false; S.page=$('page').valueAsNumber||1; etat('OCR page '+S.page+'…'); $('stop').disabled=false; chargeOn('OCR page '+S.page+'…')
+$('ocrPage').onclick=async()=>{ assurerNomProjet(); S.arret=false; S.page=$('page').valueAsNumber||1; etat('OCR page '+S.page+'…'); chargeOn('OCR page '+S.page+'…')
   try{ await ocr(S.page); marquerEtat(S.page,'termine'); rendre(); etat('page '+S.page+' : '+S.pages[S.page].lignes.length+' lignes'); await sauver(true) }
   catch(e){ if(!S.arret){ marquerEtat(S.page,'erreur',e.message); journaliser(S.page,e.message); await sauver(true) } rendre(); etat(S.arret?'Arrêté.':'échec : '+e.message) }
-  finally{ $('stop').disabled=true; chargeOff() } }
+  finally{ chargeOff() } }
 // Naviguer d'une page à l'autre (scan + texte). Si la page n'est pas encore océrisée, on l'OCRise.
 async function allerPage(n){
   if(n<1 || (S.total && n>S.total)) return
   S.page=n; $('page').value=n
   if(S.pages[n] && S.pages[n].lignes){ rendre(); etat('page '+n); return } // déjà océrisée → simple affichage
-  assurerNomProjet(); S.arret=false; $('stop').disabled=false; chargeOn('OCR page '+n+'…')
+  assurerNomProjet(); S.arret=false; chargeOn('OCR page '+n+'…')
   try{ await ocr(n); marquerEtat(n,'termine'); rendre(); etat('page '+n+' : '+S.pages[n].lignes.length+' lignes'); await sauver(true) }
   catch(e){ if(!S.arret){ marquerEtat(n,'erreur',e.message); journaliser(n,e.message); await sauver(true) } rendre(); etat(S.arret?'Arrêté.':'échec : '+e.message) }
-  finally{ $('stop').disabled=true; chargeOff() }
+  finally{ chargeOff() }
 }
 $('prec').onclick=()=>allerPage(S.page-1)
 $('suiv').onclick=()=>allerPage(S.page+1)
@@ -904,7 +907,7 @@ async function ocrDocument(cibles){
   const de=$('de').valueAsNumber||1, a=$('a').valueAsNumber||de
   const liste = cibles || pagesATraiter(de,a) // reprise automatique : on saute les pages « terminé »
   if(!liste.length){ etat('Rien à traiter : toutes les pages de la plage sont déjà faites.'); majProgres(de,a); return }
-  S.arret=false; $('stop').disabled=false; $('ocrDoc').disabled=true; $('ocrPage').disabled=true; $('btnRelancerErr').disabled=true
+  S.arret=false; $('ocrDoc').disabled=true; $('ocrPage').disabled=true; $('btnRelancerErr').disabled=true
   majProgres(de,a); let ok=0, ko=0, i=0
   try{
     for(const n of liste){ if(S.arret) break; i++
@@ -916,7 +919,7 @@ async function ocrDocument(cibles){
       majProgres(de,a)
     }
   } finally {
-    $('stop').disabled=true; $('ocrDoc').disabled=false; $('ocrPage').disabled=false; $('btnRelancerErr').disabled=false; chargeOff(); majProgres(de,a)
+    $('ocrDoc').disabled=false; $('ocrPage').disabled=false; $('btnRelancerErr').disabled=false; chargeOff(); majProgres(de,a)
   }
   etat(S.arret ? `Arrêté — ${ok} page(s) faite(s) ; « OCR document » reprend là où on s'est arrêté.` : `Terminé — ${ok} page(s), ${ko} erreur(s).`)
 }
@@ -954,7 +957,7 @@ $('compFermer').onclick=()=>{ $('comparateur').style.display='none' }
 // Redimensionnement de la fenêtre : on recalcule l'échelle de l'image et des boîtes.
 let tResize; window.addEventListener('resize',()=>{ clearTimeout(tResize); tResize=setTimeout(()=>{ if(S.pages[S.page]) rendre() },150) })
 // « Arrêter » : marque l'arrêt côté client ET tue l'OCR WSL en cours côté serveur.
-$('stop').onclick=async()=>{ S.arret=true; try{ await api('/api/atelier/stop',{method:'POST'}) }catch{} }
+$('chargeStop').onclick=async()=>{ S.arret=true; $('chargeStop').disabled=true; $('chargeTexte').textContent='Arrêt en cours…'; try{ await api('/api/atelier/stop',{method:'POST'}) }catch{} }
 
 // ── Persistance & export ────────────────────────────────────────────────────
 function projetActuel(){ const p={ kind:S.kind, chemin:$('chemin').value.trim(), page:S.page, total:S.total, pages:S.pages, meta:collecterMeta(), journal:S.journal||[] }; if(S.garde) p._garde=S.garde; if(S.workflow) p.workflow=S.workflow; if(S.profil) p.profil=S.profil; return p }
@@ -997,7 +1000,7 @@ window.addEventListener('dragleave',()=>{ dragN=Math.max(0,dragN-1); if(!dragN) 
 window.addEventListener('drop',e=>{ dragN=0; $('drop').style.display='none';
   if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files.length){ e.preventDefault(); televerser(e.dataTransfer.files[0]) } });
 async function extraireMeta(){ const chemin=$('chemin').value.trim(); if(!chemin){ $('etatMeta').textContent='choisis d\'abord un fichier'; return }
-  $('main').classList.remove('meta-replie'); $('metaToggle').textContent='‹' // déplier si besoin
+  $('main').classList.remove('meta-replie') // déplier si besoin
   $('etatMeta').textContent='extraction (pdfinfo + page de titre)…'; chargeOn('Lecture de la page de titre…')
   try{ const r=await api('/api/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin})})
     remplirMeta(r.meta, true); $('etatMeta').textContent='✓ à relire/compléter'; planifierSave() }
@@ -1026,7 +1029,7 @@ async function completerMetaIA(){ const chemin=$('chemin').value.trim(); if(!che
   if(!f||!f.cloud){ $('etatMeta').textContent='IA locale (mock) : pas de lecture cloud. Configure un fournisseur pour l\'utiliser.'; return }
   if(!f.dispo){ $('etatMeta').textContent='fournisseur cloud sans clé : rien n\'est envoyé.'; return }
   if(!consentementValideClient()){ const ok=await demanderConsentement(); if(!ok){ $('etatMeta').textContent='resté en local : aucune lecture cloud.'; return } }
-  $('main').classList.remove('meta-replie'); $('metaToggle').textContent='‹'
+  $('main').classList.remove('meta-replie')
   const page=(S.page&&S.page<=7)?S.page:3
   const lignesCour=(S.pages&&S.pages[S.page]&&S.pages[S.page].lignes)||[]
   const texteTitre=lignesCour.map(l=>l.dip||l.texte||'').join('\n')
@@ -1053,8 +1056,6 @@ async function completerMetaIA(){ const chemin=$('chemin').value.trim(); if(!che
   }catch(e){ $('etatMeta').textContent='échec IA : '+e.message }
   finally{ chargeOff() } }
 // Replier / déplier la colonne des métadonnées.
-$('metaToggle').onclick=()=>{ const replie=$('main').classList.toggle('meta-replie')
-  $('metaToggle').textContent=replie?'›':'‹'; $('metaToggle').title=replie?'Afficher les métadonnées':'Replier les métadonnées' }
 $('btnParcourir').onclick=parcourir
 $('btnMeta').onclick=extraireMeta
 $('btnMetaIA').onclick=completerMetaIA
