@@ -38,3 +38,32 @@ export function construireProfil({ document = {}, regimes = [], pretraitement = 
     controles_requis: controles_requis || [],
   }
 }
+
+/**
+ * Phase C — régime de traitement d'une page selon le profil : le premier régime dont `pages_pdf`
+ * [a, b] contient la page. Renvoie {moteur, modele, colonnes, nature} ou null (pas de profil / hors
+ * plage). Ne crée pas de pipeline : sert juste à CHOISIR moteur/modèle par page.
+ */
+export function regimePourPage(profil, page) {
+  const p = Math.floor(page || 0)
+  for (const r of (profil?.regimes || [])) {
+    const [a, b] = r.pages_pdf || []
+    if (a != null && b != null && p >= a && p <= b) {
+      return { moteur: r.moteur || 'kraken', modele: r.modele || null, colonnes: r.colonnes || 1, nature: r.nature || 'corps' }
+    }
+  }
+  return null
+}
+
+/**
+ * Phase C — signale une page au résultat vide ou anormalement court (à contrôler). Renvoie une
+ * raison lisible ou null. Seuils configurables.
+ */
+export function pageAnormale(lignes, { minLignes = 1, minCaracteres = 8 } = {}) {
+  const arr = Array.isArray(lignes) ? lignes : []
+  const nbCar = arr.reduce((s, l) => s + String(l?.dip ?? l?.texte ?? '').trim().length, 0)
+  if (arr.length < minLignes) return 'page vide (aucune ligne)'
+  if (nbCar < minCaracteres) return 'page anormalement courte (' + nbCar + ' caractères)'
+  return null
+}
+

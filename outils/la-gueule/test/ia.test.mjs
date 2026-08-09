@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { choisirFournisseur, validerSortieIA, cleCache, enregistrerConsentement, consentementValide, appelerIA, TACHES } from '../src/ia/fournisseur.mjs'
 import { fournisseurMock } from '../src/ia/mock.mjs'
 import { fournisseurClaude } from '../src/ia/claude.mjs'
-import { pagesEchantillon, construireProfil } from '../src/ia/diagnostic.mjs'
+import { pagesEchantillon, construireProfil, regimePourPage, pageAnormale } from '../src/ia/diagnostic.mjs'
 
 test('IA : choisirFournisseur — mock par défaut, anthropic si configuré', () => {
   assert.equal(choisirFournisseur({}).nom, 'mock')
@@ -82,6 +82,23 @@ test('IA : échantillon représentatif — couverture, corps, quarts, milieu, fi
   assert.ok(e.includes(143)) // page atypique
   assert.ok(e.every((p) => p >= 1 && p <= 586))
   assert.deepEqual(e, [...e].sort((a, b) => a - b)) // trié
+})
+
+test('Phase C : regimePourPage — choisit le régime dont la plage contient la page', () => {
+  const profil = { regimes: [
+    { pages_pdf: [1, 18], nature: 'paratexte', moteur: 'kraken', modele: 'CATMuS-Print' },
+    { pages_pdf: [19, 586], nature: 'corps', moteur: 'kraken', modele: 'CATMuS-Print' },
+  ] }
+  assert.equal(regimePourPage(profil, 5).nature, 'paratexte')
+  assert.equal(regimePourPage(profil, 300).nature, 'corps')
+  assert.equal(regimePourPage(profil, 999), null) // hors plage
+  assert.equal(regimePourPage(null, 5), null)     // pas de profil
+})
+
+test('Phase C : pageAnormale — vide ou anormalement courte est signalée', () => {
+  assert.match(pageAnormale([]), /vide/)
+  assert.match(pageAnormale([{ dip: 'ab' }]), /courte/)     // 2 caractères < seuil
+  assert.equal(pageAnormale([{ dip: 'de la Philosophie. Liure V.' }]), null) // page normale
 })
 
 test('IA : profil de traitement — prétraitement inactif par défaut, structure complète', () => {

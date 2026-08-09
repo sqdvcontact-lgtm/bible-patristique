@@ -365,6 +365,19 @@ async function finaliserDiagnostic({ nbPages, meta, typographie, manuscrit }){
   S.profil=profil
   const nom=$('projet').value.trim(); if(nom){ try{ await api('/api/ia/profil/save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom, profil})}) }catch{} }
   majEtapeClient('diagnostic_ia',{etat:'termine'}); majEtapeClient('ocr_local',{etat:'pret'},'ocr_local'); planifierSave() }
+
+// Phase C — régime (moteur/modèle) de la page selon le profil, sinon null (→ sélecteur Typo).
+function regimePourPageClient(n){ if(!S.profil||!Array.isArray(S.profil.regimes))return null
+  for(const r of S.profil.regimes){ const a=r.pages_pdf&&r.pages_pdf[0], b=r.pages_pdf&&r.pages_pdf[1]
+    if(a!=null&&b!=null&&n>=a&&n<=b) return {moteur:r.moteur||'kraken',modele:r.modele||null,nature:r.nature||'corps'} }
+  return null }
+function pageAnormaleClient(lignes){ const arr=Array.isArray(lignes)?lignes:[]; const nb=arr.reduce((s,l)=>s+String((l&&(l.dip||l.texte))||'').trim().length,0)
+  if(arr.length<1) return 'page vide'; if(nb<8) return 'page anormalement courte ('+nb+' car.)'; return null }
+// OCR d'une page → avance le workflow (OCR local terminé, Contrôle IA prêt) et périme l'aval.
+function apresOcrWorkflow(){ majEtapeClient('ocr_local',{etat:'termine'})
+  if(S.workflow&&S.workflow.etapes.controle_ia&&S.workflow.etapes.controle_ia.etat==='non_commence') S.workflow.etapes.controle_ia.etat='pret'
+  for(const e of ['validation_ciblee','generation_locale']){ const s=S.workflow&&S.workflow.etapes[e]; if(s&&s.etat!=='non_commence'&&s.etat!=='perime') s.etat='perime' }
+  rendreBarreEtapes() }
 const SEUIL_DOUTE=0.80 // en dessous, la ligne est signalée « à revoir »
 
 // ── Fiabilité des lots : état par page (à faire / terminé / erreur), progression, journal ────
@@ -425,9 +438,12 @@ async function ocr(n){
       langueFr:r.langueFr, langueLa:r.langueLa,
       lignes:(r.lignesFr||[]).map(l=>({bbox:l.bbox, dip:l.texte})),
       paires:(r.paires||[]).map(p=>({paragraphe:p.paragraphe, fr:p.fr, la:p.la})) }
+    apresOcrWorkflow() // Phase C : OCR local → workflow
     return S.pages[n]
   }
-  const ancien=$('typo') && $('typo').value==='ancien' // imprimé d'Ancien Régime → Kraken CATMuS-Print
+  // Phase C — moteur/modèle selon le RÉGIME de la page (profil du diagnostic), sinon le sélecteur Typo.
+  const reg=regimePourPageClient(n)
+  const ancien = reg ? (reg.moteur==='kraken') : ($('typo') && $('typo').value==='ancien') // imprimé ancien → Kraken CATMuS-Print
   const pre=$('p_utiliser')&&$('p_utiliser').checked ? collecterPretraitement() : null // OFF par défaut
   const corps=S.kind==='imprime'
     ? {kind:'imprime',pdfWin:chemin,page:n,dpi:300,lang:'fra',moteur:ancien?'kraken-print':'tesseract',pretraitement:pre}
@@ -435,6 +451,8 @@ async function ocr(n){
   const r=await api('/api/atelier/ocr',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(corps)})
   S.pages[n]={ pngUrl:r.pngUrl, largeur:r.largeur, hauteur:r.hauteur, ocr:r.ocr,
     lignes:(r.lignes||[]).map(l=>({bbox:l.bbox, confiance:l.confiance, ocr0:l.texte, dip:l.texte, dev:l.texte, mod:''})) }
+  const anom=pageAnormaleClient(S.pages[n].lignes); if(anom){ S.pages[n].anomalie=anom } else { delete S.pages[n].anomalie } // §7.2 : signaler page vide/courte
+  apresOcrWorkflow() // Phase C : OCR local → workflow
   return S.pages[n]
 }
 
