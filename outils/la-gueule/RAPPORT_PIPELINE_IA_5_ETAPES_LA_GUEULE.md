@@ -77,10 +77,13 @@ Chaque étape est persistée et versionnée ; une modification en amont périme 
 
 ## Bilan
 
-**Pipeline 5 étapes BÂTI de bout en bout** (Phases A→F), **175 tests verts**. Reste, hors construction :
-Phase G (pilote) ; le **contrôle IA VISUEL** (lettrines/régions/corrections par crop) derrière clé +
-consentement (le mock s'abstient) ; l'écran de validation détaillé par onglets (§13.4) ; l'écran de
-consentement cloud dédié. Aucune règle appliquée au volume avant validation humaine du pilote.
+**Pipeline 5 étapes BÂTI de bout en bout** (Phases A→F), **178 tests verts**. Le **contrôle IA visuel**
+est aussi bâti (`interventionDepuisSortieIA` + `controlerIA` : lettrines/lignes → avis fournisseur →
+interventions §15 avec risque ; abstention → rien ; conjecture → R3 + interdit_entrainement ; `/api/ia/controle`
+exécute la passe IA, mock s'abstient, cloud jamais sans consentement). Reste, hors construction :
+Phase G (pilote, activité de relecture) ; l'**activation d'un vrai fournisseur** (clé Anthropic +
+consentement + modèles) ; l'écran de validation détaillé par onglets (§13.4) ; l'écran de consentement
+cloud dédié. Aucune règle appliquée au volume avant validation humaine du pilote.
 
 ## Garde-fous déjà en place (rappel)
 
