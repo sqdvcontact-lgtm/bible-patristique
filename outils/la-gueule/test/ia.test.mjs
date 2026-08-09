@@ -37,8 +37,7 @@ test('IA prompt : messagesMetadonnees — image de la page de titre + schéma oe
   assert.match(consigne, /"sous_titre":null/)
   assert.match(consigne, /null pour tout champ absent/)                    // n'invente rien
   assert.match(consigne, /BOECE/)                                          // OCR présent comme appui (donnée)
-  assert.match(consigne, /enrichissement/)                                 // bloc enrichissement (connaissance externe)
-  assert.match(consigne, /auteur_complet/)                                 // noms complets demandés
+  assert.match(consigne, /RÈGLE DE CASSE/)                                 // normalisation impérative de la casse
 })
 
 test('IA local : inviteMetadonnees — système §14.5 + chemin image + consigne Read, sans base64', () => {

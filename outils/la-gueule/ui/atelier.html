@@ -977,14 +977,15 @@ async function completerMetaIA(){ const chemin=$('chemin').value.trim(); if(!che
     CHAMPS_META.forEach(c=>{ const el=$('m_'+c); if(!el)return
       const remplacable=!el.value.trim()||el.classList.contains('meta-auto')
       if(m[c]!=null&&String(m[c]).trim()&&remplacable){ el.value=String(m[c]).trim(); el.classList.add('meta-ia'); el.classList.remove('meta-auto'); el.title='proposé par l\'IA (lecture d\'image) — à vérifier'; n++ } })
-    // Enrichissement (connaissance externe, hors page) : titre original + noms complets. Prime sur la
-    // forme lue (sauf saisie manuelle), et se marque distinctement « à vérifier ».
-    const mapEnr={ titre_original:enr.titre_original, auteur:enr.auteur_complet, trad_auteur:enr.trad_auteur_complet, editeur:enr.editeur_complet }
+    // Enrichissement DEPUIS LE CATALOGUE (ta base) : nom canonique d'auteur (+ id_auteur) et titre
+    // original si l'œuvre y figure. Prime sur la forme lue (sauf saisie manuelle), marqué « catalogue ».
+    const mapEnr={ auteur:enr.auteur_complet, titre_original:enr.titre_original }
     Object.keys(mapEnr).forEach(c=>{ const el=$('m_'+c); if(!el)return; const v=mapEnr[c]
       const remplacable=!el.value.trim()||el.classList.contains('meta-auto')||el.classList.contains('meta-ia')
-      if(v!=null&&String(v).trim()&&remplacable){ el.value=String(v).trim(); el.classList.remove('meta-auto'); el.classList.remove('meta-ia'); el.classList.add('meta-ia-enrichi'); el.title='IA — connaissance externe (hors page), à vérifier'; e++ } })
+      if(v!=null&&String(v).trim()&&remplacable){ el.value=String(v).trim(); el.classList.remove('meta-auto'); el.classList.remove('meta-ia'); el.classList.add('meta-ia-enrichi')
+        el.title='catalogue (ta base)'+(c==='auteur'&&enr.auteur_id?(' — id_auteur '+enr.auteur_id):'')+' — à vérifier'; e++ } })
     if(r.abstention&&!n&&!e){ $('etatMeta').textContent='IA ('+(r.fournisseur||'?')+') s\'est abstenue'+(r.erreur?(' : '+r.erreur):' (page non lisible / pas une page de titre)')+' — rien ajouté.' }
-    else $('etatMeta').textContent='✓ IA : '+n+' champ(s) lu(s)'+(e?(' + '+e+' enrichi(s) hors page'):'')+' — à vérifier'+(r.confiance!=null?(' (confiance '+r.confiance+')'):'')
+    else $('etatMeta').textContent='✓ IA : '+n+' champ(s) lu(s)'+(e?(' + '+e+' du catalogue'):'')+(enr.auteur_id?(' · auteur : '+enr.auteur_id):'')+' — à vérifier'+(r.confiance!=null?(' (confiance '+r.confiance+')'):'')
     if(n||e){ planifierSave() }
   }catch(e){ $('etatMeta').textContent='échec IA : '+e.message }
   finally{ chargeOff() } }
