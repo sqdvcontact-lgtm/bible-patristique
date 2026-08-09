@@ -229,3 +229,35 @@ export async function rendrePage(params) {
   if (!r.ok) throw new Error(`aperçu page ${page} : ${r.stderr.slice(0, 300)}`)
   return { pngWin: join(servedDirWin, nom) }
 }
+
+/**
+ * TRI DE STRUCTURE : rend TOUTES les pages en vignettes basse résolution, montées en PLANCHES
+ * numérotées (contact sheets). Une seule rasterisation pdftoppm pour tout le document, puis un montage
+ * par lot. Chaque vignette porte son numéro de page (label) pour que l'IA classe sans se tromper de
+ * cellule. Renvoie [{pages:[...], pngWin}]. Léger (40 DPI) : sert à classer, jamais à océriser.
+ */
+export async function rendrePlanches(params) {
+  const { pdfWin, servedDirWin } = params
+  const total = entier(params.total, { min: 1, max: 100000, nom: 'total' })
+  const lot = entier(params.parLot ?? 12, { min: 1, max: 40, nom: 'parLot' })
+  const cols = entier(params.colonnes ?? 4, { min: 1, max: 8, nom: 'colonnes' })
+  const dpi = entier(params.dpi ?? 40, { min: 25, max: 150, nom: 'dpi' })
+  const emp = createHash('sha1').update(pdfWin + '|planches').digest('hex').slice(0, 10)
+  const planches = []
+  // pdftoppm pade le n° de page de façon peu prévisible → on renomme en p<page>.png (sans zéros) pour
+  // que la montage retrouve chaque vignette par un nom simple (10# force la base 10, évite l'octal).
+  const renomme = 'for f in "$D"/v-*.png; do b=$(basename "$f" .png); n=$((10#${b#v-})); mv "$f" "$D/p$n.png"; done'
+  let cmds = `pdftoppm -r ${dpi} -png "$PDF" "$D/v" && ${renomme} && `
+  for (let start = 1; start <= total; start += lot) {
+    const end = Math.min(start + lot - 1, total)
+    const pages = []; let args = ''
+    for (let p = start; p <= end; p++) { args += ` -label ${p} "$D/p${p}.png"`; pages.push(p) }
+    const nom = `planche-${emp}-${start}.png`
+    cmds += `montage${args} -tile ${cols}x -geometry 190x250+4+4 -background white -fill black -pointsize 20 "$SERVED/${nom}" && `
+    planches.push({ pages, nom })
+  }
+  const r = await runBash(dansTmp(cmds + 'true'), { PDF: pdfWin, SERVED: servedDirWin }, { timeoutMs: 300000 })
+  if (r.annule) throw new Error('planches annulées')
+  if (!r.ok) throw new Error('rendu des planches : ' + r.stderr.slice(0, 300))
+  return planches.map((pl) => ({ ...pl, pngWin: join(servedDirWin, pl.nom) }))
+}
