@@ -132,7 +132,9 @@
   .lg.horscorps input{opacity:.5;text-decoration:line-through;background:#f3efe6}
   /* Titre courant / n° de page détecté : exclu de l'export, signalé ici. */
   .lg.entete input{color:var(--second);font-style:italic;text-decoration:line-through;opacity:.65;background:#f3efe6}
-  .lg .tagtc{font-size:9px;color:var(--second);align-self:center;white-space:nowrap;padding-right:4px}
+  .lg .tagtc{font-size:9px;color:var(--second);align-self:center;white-space:nowrap;padding:1px 5px;border:1px solid transparent;border-radius:4px;background:transparent;cursor:pointer}
+  .lg:hover .tagtc{border-color:var(--bord)}
+  .lg .tagtc:hover{background:var(--surface);color:var(--vert)}
   .paire{display:grid;grid-template-columns:2.4rem 1fr 1fr;gap:8px;align-items:start;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--bord)}
   .paire .pnum{font-size:11px;color:var(--ambre);font-weight:700;text-align:right;padding-top:6px}
   .paire textarea{width:100%;min-height:3.4em;border:1px solid var(--bord);border-radius:5px;padding:6px;font:inherit;font-size:13px;background:#fff;resize:vertical;box-sizing:border-box}
@@ -357,7 +359,9 @@ function rendreBarreEtapes(){ const bar=$('barreEtapes'); if(!bar)return; const 
     const d=document.createElement('div'); d.className='etape'+(wf&&wf.etape_active===cle?' active':'')
     const n=document.createElement('span'); n.className='num'; n.textContent='ÉTAPE '+num
     const l=document.createElement('span'); l.className='lib'; l.textContent=lib
-    const b=document.createElement('span'); b.className='badge '+et; b.textContent=LIB_ETAT[et]||et
+    const b=document.createElement('span'); b.className='badge '+et; let libEt=LIB_ETAT[et]||et
+    if(cle==='ocr_local'&&wf&&wf.etapes.ocr_local&&wf.etapes.ocr_local.resume){ const rz=wf.etapes.ocr_local.resume; if(rz.manquantes>0) libEt+=' · '+rz.manquantes+' manquante(s)'; else if(rz.total) libEt+=' · '+rz.faites+'/'+rz.total }
+    b.textContent=libEt
     d.appendChild(n); d.appendChild(l); d.appendChild(b)
     if(cle==='diagnostic_ia'){ d.style.cursor='pointer'; d.title='Refaire le diagnostic (page de titre + typographie → profil de traitement)'; d.onclick=()=>{ if($('chemin').value.trim()) analyser() } }
     if(cle==='controle_ia'){ d.style.cursor='pointer'; d.title='Lancer le contrôle déterministe (confiance, lignes vides, doublons, pages anormales)'; d.onclick=()=>lancerControle() }
@@ -395,9 +399,14 @@ function regimePourPageClient(n){ if(!S.profil||!Array.isArray(S.profil.regimes)
   return null }
 function pageAnormaleClient(lignes){ const arr=Array.isArray(lignes)?lignes:[]; const nb=arr.reduce((s,l)=>s+String((l&&(l.dip||l.texte))||'').trim().length,0)
   if(arr.length<1) return 'page vide'; if(nb<8) return 'page anormalement courte ('+nb+' car.)'; return null }
-// OCR d'une page → avance le workflow (OCR local terminé, Contrôle IA prêt) et périme l'aval.
-function apresOcrWorkflow(){ majEtapeClient('ocr_local',{etat:'termine'})
-  if(S.workflow&&S.workflow.etapes.controle_ia&&S.workflow.etapes.controle_ia.etat==='non_commence') S.workflow.etapes.controle_ia.etat='pret'
+// OCR d'une page → avance le workflow. « OCR local » n'est TERMINÉ que si TOUTES les pages sont
+// océrisées ; sinon « en cours » + nombre de pages manquantes (retour utilisateur 2026-08-09).
+function apresOcrWorkflow(){
+  const total = S.total || Math.max(0, ...Object.keys(S.pages).map(Number).filter(Number.isFinite), 0)
+  const faites = Object.keys(S.pages).filter(k=>Array.isArray(S.pages[k].lignes)&&S.pages[k].lignes.length).length
+  const manquantes = Math.max(0, (total||0) - faites)
+  majEtapeClient('ocr_local',{ etat: manquantes>0?'en_cours':'termine', resume:{ faites, total, manquantes } })
+  if(manquantes===0 && S.workflow&&S.workflow.etapes.controle_ia&&S.workflow.etapes.controle_ia.etat==='non_commence') S.workflow.etapes.controle_ia.etat='pret'
   for(const e of ['validation_ciblee','generation_locale']){ const s=S.workflow&&S.workflow.etapes[e]; if(s&&s.etat!=='non_commence'&&s.etat!=='perime') s.etat='perime' }
   rendreBarreEtapes() }
 
@@ -685,7 +694,7 @@ function rendre(){
     const txt=l[S.couche]||''
     const doute=(l.confiance!=null && l.confiance<SEUIL_DOUTE)
     const estTitre=!!(l.titre && l.titre.niveau)
-    const entete=!estTitre && (i===topI||i===botI) && estEnteteC(txt)
+    const entete=!estTitre && (i===topI||i===botI) && !l.force_corps && estEnteteC(txt) // force_corps = restauré à la main
     if(doute) row.classList.add('doute')
     if(entete) row.classList.add('entete')
     if(estTitre) row.classList.add('titre')
@@ -700,8 +709,10 @@ function rendre(){
       row.classList.add('actif'); const box=$('voletImage').querySelector(`.box[data-i="${i}"]`)
       if(box){box.classList.add('actif'); box.scrollIntoView({block:'center',behavior:'smooth'})} }
     row.appendChild(num); row.appendChild(inp)
-    if(entete){ const tag=document.createElement('div'); tag.className='tagtc'; tag.textContent='titre courant'
-      tag.title='Titre courant / n° de page — exclu de l\'export'; row.appendChild(tag) }
+    if(entete){ const tag=document.createElement('button'); tag.type='button'; tag.className='tagtc'; tag.textContent='titre courant ↩'
+      tag.title='Barré comme titre courant / n° de page (exclu de l\'export). Clic = RESTAURER en corps (par ex. une ligne du titre de la page de titre prise à tort pour un titre courant).'
+      tag.onclick=()=>{ l.force_corps=true; if(l.suggestion&&(l.suggestion.role_confirme==='titre_courant'||l.suggestion.role_confirme==='numero_page')){ l.suggestion.role_confirme=null; l.suggestion.statut='suggere'; l.suggestion.export_corps=true } planifierSave(); rendre() }
+      row.appendChild(tag) }
     // Sélecteur de niveau de titre : « — » (texte courant) ou Titre 1..5 (Livre, Prose…).
     const niv=document.createElement('select'); niv.className='niv'; niv.title='Marquer cette ligne comme titre de structure (ref_niv). « — » = texte normal.'
     niv.innerHTML='<option value="0">—</option>'+[1,2,3,4,5].map(k=>`<option value="${k}">T${k}</option>`).join('')

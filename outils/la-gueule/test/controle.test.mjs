@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { intervention, niveauRisque, chargerCatalogue, controlerDeterministe, interventionDepuisSortieIA, controlerIA } from '../src/ia/controle.mjs'
+import { intervention, niveauRisque, chargerCatalogue, controlerDeterministe, interventionDepuisSortieIA, controlerIA, ligneCharabia, pageIgnorable } from '../src/ia/controle.mjs'
 import { fournisseurMock } from '../src/ia/mock.mjs'
 
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -50,6 +50,31 @@ test('contrôle déterministe : confiance faible, ligne vide, doublon, page anor
   assert.equal(compteurs.pages_anormales, 1)
   assert.ok(findings.some((f) => f.statut === 'bloquant'))  // page anormale = bloquant
   assert.equal(JSON.stringify(projet), avant)               // OCR brut immuable : le projet n'est pas modifié
+})
+
+test('contrôle : ligneCharabia repère l’OCR d’un bandeau ornemental, sans faux positif sur du texte', () => {
+  assert.ok(ligneCharabia('Cocc oc sc coc oiccccccscsc'))          // le cas signalé
+  assert.ok(ligneCharabia('llllllll mmmm'))                        // répétition de caractère
+  assert.ok(ligneCharabia('a b c de fg'))                          // fragments ultra-courts
+  assert.equal(ligneCharabia('OY dont les premiers Vers n’ont parlé'), null) // vrai vers → rien
+  assert.equal(ligneCharabia('de la Philosophie. Livre I.'), null)         // vrai titre → rien
+})
+
+test('contrôle déterministe : une ligne charabia est comptée et signalée (R2)', () => {
+  const projet = { pages: { 1: { lignes: [
+    { dip: 'Ligne de vrai texte bien formée.', bbox: [1, 2, 3, 4], confiance: 0.95 },
+    { dip: 'Cocc oc sc coc oiccccccscsc', bbox: [1, 60, 3, 4], confiance: 0.9 },
+  ] } } }
+  const { compteurs, findings } = controlerDeterministe(projet)
+  assert.equal(compteurs.charabia, 1)
+  assert.ok(findings.some((f) => f.regle === 'charabia_ornement' && f.niveau_risque === 'R2'))
+})
+
+test('contrôle : pageIgnorable — garde blanche, page Google, page d’ornement ; pas une page de texte', () => {
+  assert.match(pageIgnorable([]), /garde/)                                        // page vide
+  assert.match(pageIgnorable([{ dip: 'Digitized by Google' }]), /Google/)         // page Google
+  assert.match(pageIgnorable([{ dip: 'Cocc oc sc coc oiccccccscsc' }]), /ornement/) // page de gravure
+  assert.equal(pageIgnorable([{ dip: 'OY dont les premiers Vers n’ont parlé' }]), null) // vraie page → null
 })
 
 test('contrôle IA : abstention → aucune intervention ; conjecture → R3 + interdit_entrainement', () => {

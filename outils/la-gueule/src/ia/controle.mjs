@@ -38,12 +38,44 @@ export function chargerCatalogue(texte) {
 }
 
 /**
+ * Détecte une ligne CHARABIA — typiquement l'OCR d'un bandeau ornemental ou d'une gravure (« Cocc oc
+ * sc coc oiccccccscsc »). Signaux : répétition d'un même caractère (≥4), longue suite de consonnes
+ * (≥5), ou majorité de jetons ultra-courts (≤2 lettres) sur une ligne d'au moins 3 jetons. Prudent :
+ * ne vise que des non-mots manifestes ; renvoie une raison ou null.
+ */
+export function ligneCharabia(texte) {
+  const t = String(texte ?? '').trim()
+  if (t.length < 4) return null
+  if (/(.)\1{3,}/.test(t)) return 'répétition d’un même caractère (bandeau ornemental probable)'
+  if (/[bcdfghjklmnpqrstvwxzçñ]{5,}/i.test(t)) return 'longue suite de consonnes (gravure probable)'
+  const jetons = t.split(/\s+/).filter(Boolean)
+  if (jetons.length >= 3) {
+    const courts = jetons.filter((j) => j.replace(/[^\p{L}]/gu, '').length <= 2).length
+    if (courts / jetons.length > 0.6) return 'majorité de fragments ultra-courts (ornement probable)'
+  }
+  return null
+}
+
+/**
+ * Page INUTILE à conserver dans le corps (retour utilisateur) : garde / feuillet blanc, page de
+ * mention « Google », ou page d'ornement (toutes les lignes sont du charabia). Renvoie une raison ou
+ * null. À signaler pour exclusion du corps ; ne supprime jamais la source.
+ */
+export function pageIgnorable(lignes) {
+  const textes = (Array.isArray(lignes) ? lignes : []).map((l) => String(l?.dip ?? l?.texte ?? '').trim()).filter(Boolean)
+  if (textes.length === 0) return 'page vide (garde / feuillet blanc)'
+  if (textes.every((t) => /google|digitized/i.test(t))) return 'page de mention Google'
+  if (textes.every((t) => ligneCharabia(t))) return 'page d’ornement (OCR de gravure)'
+  return null
+}
+
+/**
  * Passe de contrôle DÉTERMINISTE (§8.2-A) : sans IA, sans réseau. Produit des findings (interventions)
  * et des compteurs. Ne modifie PAS le projet. La couche candidate est alimentée ailleurs, après revue.
  */
 export function controlerDeterministe(projet, { seuilConfiance = 0.8 } = {}) {
   const findings = []
-  const compteurs = { pages: 0, lignes: 0, confiance_faible: 0, lignes_vides: 0, doublons: 0, pages_anormales: 0 }
+  const compteurs = { pages: 0, lignes: 0, confiance_faible: 0, lignes_vides: 0, doublons: 0, pages_anormales: 0, charabia: 0, pages_ignorables: 0 }
   const nums = Object.keys(projet?.pages || {}).map(Number).sort((a, b) => a - b)
   for (const n of nums) {
     const lignes = projet.pages[n].lignes || []
@@ -52,6 +84,11 @@ export function controlerDeterministe(projet, { seuilConfiance = 0.8 } = {}) {
     if (anom) {
       compteurs.pages_anormales++
       findings.push(intervention({ id: 'deter-page-vide', type: 'controle_page', page: n, regle: 'page_anormale', preuves: [anom], niveau_risque: niveauRisque({ bloquant: true }), statut: 'bloquant' }))
+    }
+    const ign = pageIgnorable(lignes)
+    if (ign) {
+      compteurs.pages_ignorables++
+      findings.push(intervention({ id: 'page-ignorable', type: 'controle_page', page: n, regle: 'page_ignorable', preuves: [ign], niveau_risque: 'R1', statut: 'propose_ia' }))
     }
     let prev = null
     lignes.forEach((l, i) => {
@@ -68,6 +105,11 @@ export function controlerDeterministe(projet, { seuilConfiance = 0.8 } = {}) {
       if (t && prev != null && t === prev) {
         compteurs.doublons++
         findings.push(intervention({ id: 'struct-ligne-dupliquee', type: 'structure', page: n, ligne_ids: [i - 1, i], regle: 'doublon', niveau_risque: 'R1', statut: 'propose_ia' }))
+      }
+      const cha = t && ligneCharabia(t)
+      if (cha) {
+        compteurs.charabia++
+        findings.push(intervention({ id: 'bruit-ornement', type: 'structure', page: n, ligne_ids: [i], regle: 'charabia_ornement', preuves: [cha], texte_original: t, texte_candidat: '', niveau_risque: 'R2', statut: 'propose_ia' }))
       }
       prev = t
     })
