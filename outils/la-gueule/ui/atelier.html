@@ -254,7 +254,8 @@
   <button class="discret" id="btnRelancerErr" style="display:none">Relancer les pages en erreur</button>
 </div>
 
-<div class="barre2" id="barrePre" style="gap:10px;flex-wrap:wrap">
+<button class="discret" id="btnTogglePre" title="Prétraitement d'image expérimental (OFF par défaut) : gris, contraste, binariser… à comparer" style="align-self:flex-start;margin:2px 0">⚙ Prétraitement…</button>
+<div class="barre2" id="barrePre" style="gap:10px;flex-wrap:wrap;display:none">
   <span style="font-size:12px;color:var(--second);font-weight:600" title="OFF par défaut. À valider par comparaison : un prétraitement n'est utile que s'il améliore l'OCR.">Prétraitement (exp.)</span>
   <label class="pchk"><input type="checkbox" id="p_gris"> gris</label>
   <label class="pchk"><input type="checkbox" id="p_contraste"> contraste</label>
@@ -291,9 +292,13 @@
   <label>id_oeuvre <input id="idoeuvre" placeholder="A0091O0001" style="width:110px" /></label>
   <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="chkNotes" checked> recenser les notes [[N]]</label>
   <button id="btnExport">Exporter (DOCX + SQL + JSON + TXT + MD)</button>
-  <button class="discret" id="btnExportXml" title="Exporte chaque page océrisée aux formats d'échange ALTO v4 + PAGE XML (coordonnées + texte + image), pour eScriptorium / Transkribus / Aletheia">ALTO / PAGE</button>
   <span id="etatExport" style="font-size:12px;color:var(--second)"></span>
   <span style="flex:1"></span>
+  <button class="discret" id="btnToggleAvance" title="Formats d'échange, validation humaine, entraînement, banc d'essai, analyse de structure">Avancé ▾</button>
+</div>
+
+<div class="barre2" id="barreAvance" style="display:none">
+  <button class="discret" id="btnExportXml" title="Exporte chaque page océrisée aux formats d'échange ALTO v4 + PAGE XML (coordonnées + texte + image), pour eScriptorium / Transkribus / Aletheia">ALTO / PAGE</button>
   <button class="discret" id="btnValider" title="Validation HUMAINE de la page : marque valide_humain (par page et par ligne, hors lignes incertaines). Re-cliquer retire la validation.">✓ Valider (humain)</button>
   <span id="nbValidees" style="font-size:12px;color:var(--second)"></span>
   <button class="discret" id="btnExportEntr" title="Exporte les corrections des pages validées en jeu d'entraînement Kraken (ALTO + images + JSONL)">Export entraînement</button>
@@ -1017,6 +1022,9 @@ $('metaToggle').onclick=()=>{ const replie=$('main').classList.toggle('meta-repl
 $('btnParcourir').onclick=parcourir
 $('btnMeta').onclick=extraireMeta
 $('btnMetaIA').onclick=completerMetaIA
+// Replis d'ergonomie : prétraitement expérimental et exports avancés masqués par défaut.
+$('btnTogglePre').onclick=()=>{ const b=$('barrePre'); b.style.display = b.style.display==='none' ? 'flex' : 'none' }
+$('btnToggleAvance').onclick=()=>{ const b=$('barreAvance'); const ferme=b.style.display==='none'; b.style.display=ferme?'flex':'none'; $('btnToggleAvance').textContent=ferme?'Avancé ▴':'Avancé ▾' }
 ;[...document.querySelectorAll('#metaCorps input')].forEach(i=>i.oninput=()=>{ i.classList.remove('meta-ia'); i.classList.remove('meta-auto'); i.classList.remove('meta-ia-enrichi'); planifierSave() })
 let tSave
 function planifierSave(){ if(!$('projet').value.trim())return; clearTimeout(tSave); tSave=setTimeout(()=>sauver(true),1200) }
