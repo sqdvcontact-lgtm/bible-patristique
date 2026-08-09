@@ -21,10 +21,12 @@ test('§8 extraireStructure : annotations par page/ligne pour l’export JSON (c
 })
 
 test('§8 annoterProjet : attache la suggestion par ligne et préserve la confirmation humaine', () => {
-  const projet = { pages: { 2: { largeur: 1250, hauteur: 2050, lignes: [
-    L(600, 60, 60, 50, '2'), // n° de page centré en haut
+  // §3.1 : un folio n'est confirmé que par cohérence multi-pages (séquence 2-3-4, même position).
+  const page = (n) => ({ largeur: 1250, hauteur: 2050, lignes: [
+    L(600, 60, 60, 50, String(n)), // n° de page centré en haut
     L(100, 400, 900, 55, 'Corps de la prose ordinaire ici présente.'),
-  ] } } }
+  ] })
+  const projet = { pages: { 2: page(2), 3: page(3), 4: page(4) } }
   annoterProjet(projet)
   assert.equal(projet.pages[2].lignes[0].suggestion.role_suggere, 'numero_page')
   assert.equal(projet.pages[2].lignes[0].suggestion.role_confirme, null)
@@ -263,11 +265,26 @@ test('§6.3 réclame : sans correspondance texte → reclame_candidate_geometriq
   assert.equal(a1[idx(p1.lignes, 'Toutefois')].role_suggere, 'reclame_candidate_geometrique')
 })
 
+// ── §3.1 folio : cohérence séquentielle / répétition multi-pages ──────────────
+test('§3.1 folio : une séquence de numéros (même position) confirme numero_page ; un nombre isolé est rejeté', () => {
+  const corps = () => L(100, 400, 900, 55, 'Corps du texte courant sur cette page.')
+  const foliotee = (n) => ({ num: n, largeur: 1250, hauteur: 2050, lignes: [L(1100, 1850, 40, 45, String(n)), corps()] })
+  const pages = [foliotee(40), foliotee(41), foliotee(42)]
+  const p40 = analyserVolume(pages).get(40)
+  assert.equal(p40[0].role_suggere, 'numero_page')     // confirmé par la suite 40-41-42
+  assert.equal(p40[0].export_corps, false)
+  assert.ok(/folio\/geometrie/.test(p40[0].regle))
+  assert.ok(p40[0].preuves.familles.includes('sequence'))
+  // le même nombre, SEUL sur une page, ne devient pas un folio
+  const solo = analyserVolume([foliotee(40)]).get(40)
+  assert.notEqual(solo[0].role_suggere, 'numero_page')
+})
+
 // ── §9 orchestration : composition de toutes les suggestions sur la page 19 ───
 test('§9 analyserVolume p19 : chaque ligne reçoit la bonne suggestion composée', () => {
   const anns = analyserVolume([{ num: 19, ...P19 }]).get(19)
   const a = (p) => anns[idx(P19.lignes, p)]
-  assert.equal(a('8').role_suggere, 'numero_page')
+  assert.notEqual(a('8').role_suggere, 'numero_page') // §3.1 : un nombre isolé (1 page) n'est jamais promu folio
   assert.equal(a('POESIE I.').role_suggere, 'titre'); assert.equal(a('POESIE I.').niveau_suggere, 2)
   assert.equal(a('OY dont').role_suggere, 'lettrine_candidate')
   assert.equal(a('OY dont').blanc_poesie, 'moyen')          // lettrine ET vers

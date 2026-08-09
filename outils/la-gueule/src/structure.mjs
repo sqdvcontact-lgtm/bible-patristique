@@ -463,6 +463,60 @@ export function delimiterBlocs(lignes) {
   return blocs
 }
 
+// ── §3.1 Folios robustes : géométrie + (répétition de position OU séquence) ──
+/**
+ * Détecte les numéros de page CONFIRMÉS au niveau du VOLUME. Un nombre isolé (géométrie seule,
+ * famille A) ne suffit plus : il faut au moins une 2ᵉ famille — répétition de position sur ≥2 pages
+ * de même parité (C), ou séquence numérique croissante sur ≥3 pages (B). `regionSet` = Map num→Set(i)
+ * des lignes déjà en région de titre (exclues). Renvoie Map num→(Map i→annotation numero_page).
+ */
+export function detecterFoliosVolume(pages, regionSet = null) {
+  const cands = []
+  for (const page of pages) {
+    const W = page.largeur || 1000, H = page.hauteur || 0
+    const region = regionSet?.get(page.num) || new Set()
+    ;(page.lignes || []).forEach((l, i) => {
+      if (!l.bbox || region.has(i)) return
+      const t = texte(l).trim()
+      if (!/^\d{1,4}$/.test(t)) return
+      const enHaut = H && y0(l) < H * 0.10
+      const enBas = H && bas(l) > H * 0.88
+      if (!enHaut && !enBas) return                                   // famille A : géométrie de folio
+      const zone = Math.max(0, Math.min(5, Math.round(((x0(l) + larg(l) / 2) / W) * 5)))
+      cands.push({ num: page.num, i, val: +t, parity: page.num % 2, hb: enHaut ? 'H' : 'B', zone })
+    })
+  }
+  const familles = new Map() // "num:i" → { c, fam:Set }
+  const marquer = (c, fam) => { const k = c.num + ':' + c.i; const p = familles.get(k) || { c, fam: new Set() }; p.fam.add(fam); familles.set(k, p) }
+  // C) répétition de position (même parité, zone, haut/bas) sur ≥2 autres pages (fenêtre 16).
+  for (const c of cands) {
+    if (cands.filter((q) => q !== c && q.parity === c.parity && q.hb === c.hb && q.zone === c.zone && Math.abs(q.num - c.num) <= 16).length >= 2) marquer(c, 'repetition')
+  }
+  // B) séquence croissante (val +1..4 quand num +1..3) sur ≥3 pages, même zone/haut-bas.
+  const grp = {}
+  for (const c of cands) { const k = c.hb + ':' + c.zone; (grp[k] = grp[k] || []).push(c) }
+  for (const k of Object.keys(grp)) {
+    const arr = grp[k].sort((a, b) => a.num - b.num)
+    for (let s = 0; s < arr.length; s++) {
+      const run = [arr[s]]
+      for (let t = s + 1; t < arr.length; t++) {
+        const prev = run[run.length - 1], cur = arr[t], dn = cur.num - prev.num, dv = cur.val - prev.val
+        if (dn >= 1 && dn <= 3 && dv >= 1 && dv <= 4) run.push(cur); else break
+      }
+      if (run.length >= 3) run.forEach((c) => marquer(c, 'sequence'))
+    }
+  }
+  const out = new Map()
+  for (const { c, fam } of familles.values()) {
+    const a = annotationVide()
+    a.role_suggere = 'numero_page'; a.regle = 'folio/geometrie+' + [...fam].join('+'); a.score = fam.size + 1; a.export_corps = false
+    a.preuves = { folio: true, familles: ['geometrie', ...fam], zone: c.zone, position: c.hb === 'H' ? 'haut' : 'bas' }
+    if (!out.has(c.num)) out.set(c.num, new Map())
+    out.get(c.num).set(c.i, a)
+  }
+  return out
+}
+
 /**
  * Orchestration §9 : compose toutes les suggestions par ligne, dans l'ordre de priorité
  * (hors-corps → titres T1/T2 → lettrines → poésie). Renvoie, par page, un tableau d'annotations
@@ -473,18 +527,29 @@ export function analyserVolume(pages) {
   const titresC = detecterTitresCourants(pages)
   const etat = new Map() // num → { anns, horsCorps }
 
-  // ── PHASE 1 : hors-corps (ordre §1 : filigrane → région → folio → titre courant → signature) ──
+  // ── PHASE 1 : hors-corps (ordre §1) ──
+  // 1a) filigrane + région de titre (on note les lignes de région pour exclure leurs nombres des folios).
+  const regionSet = new Map()
   for (const page of pages) {
     const lignes = page.lignes || []
     const anns = lignes.map(() => annotationVide())
     const horsCorps = new Set()
     const poser = (i, a) => { anns[i] = a; horsCorps.add(i) }
-    lignes.forEach((l, i) => { const fg = detecterFiligrane(l); if (fg) poser(i, fg) })                         // 2
-    for (const [i, a] of detecterRegionTitre(page)) if (!horsCorps.has(i)) poser(i, a)                          // 3
-    lignes.forEach((l, i) => { if (horsCorps.has(i)) return; const np = detecterNumeroPage(l, page); if (np) poser(i, np) }) // 4 (garde région : un nombre en région n'est pas un folio)
-    for (const [i, a] of (titresC.get(page.num) || [])) if (!horsCorps.has(i)) poser(i, a)                       // 5
-    lignes.forEach((l, i) => { if (horsCorps.has(i)) return; const sg = detecterSignature(l, page, { lignes }); if (sg) poser(i, sg) }) // 6
+    lignes.forEach((l, i) => { const fg = detecterFiligrane(l); if (fg) poser(i, fg) })            // 2 filigrane
+    const reg = detecterRegionTitre(page)                                                          // 3 région
+    for (const [i, a] of reg) if (!horsCorps.has(i)) poser(i, a)
+    regionSet.set(page.num, new Set(reg.keys()))
     etat.set(page.num, { anns, horsCorps })
+  }
+  // 1b) folios robustes (§3.1 : géométrie + répétition/séquence), puis titres courants et signatures.
+  const folios = detecterFoliosVolume(pages, regionSet)
+  for (const page of pages) {
+    const lignes = page.lignes || []
+    const { anns, horsCorps } = etat.get(page.num)
+    const poser = (i, a) => { anns[i] = a; horsCorps.add(i) }
+    for (const [i, a] of (folios.get(page.num) || [])) if (!horsCorps.has(i)) poser(i, a)          // 4 folios
+    for (const [i, a] of (titresC.get(page.num) || [])) if (!horsCorps.has(i)) poser(i, a)         // 5 titres courants
+    lignes.forEach((l, i) => { if (horsCorps.has(i)) return; const sg = detecterSignature(l, page, { lignes }); if (sg) poser(i, sg) }) // 6 signatures
   }
 
   // 7) réclames : après les rôles hors-corps (exclusions), en comparant à la page suivante.

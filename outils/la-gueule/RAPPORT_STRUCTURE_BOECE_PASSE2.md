@@ -8,7 +8,8 @@ rien activé pour le reste du volume avant validation humaine du pilote.
 - `src/structure.mjs` : champ `regle` au modèle ; `detecterRegionTitre` (région/paratexte/ornement) ;
   `detecterReclames` réécrit (coin bas-droite, exclusions, comparaison page suivante, tolérance
   lettrine, scores de confiance) ; `analyserVolume` réordonné en 2 phases selon l'ordre §1 ;
-  garde-région sur les numéros de page.
+  garde-région sur les numéros de page ; `detecterFoliosVolume` (§3.1 : cohérence séquentielle /
+  répétition multi-pages, remplace la détection géométrique page-à-page).
 - `test/structure.test.mjs` : tests de non-régression + acceptation §6.
 - `ui/atelier.html` : libellé « marque de cahier » pour les signatures + infobulle ; menu 3 choix
   réservé aux lettrines/artefacts ; confirmation des `_candidate` (paratexte/ornement/réclame) par
@@ -16,11 +17,12 @@ rien activé pour le reste du volume avant validation humaine du pilote.
 
 ## Tests ajoutés et résultats
 
-**108 tests verts** (23 dans `structure.test.mjs`). Ajouts de cette passe :
+**109 tests verts** (24 dans `structure.test.mjs`). Ajouts de cette passe :
 - §6.1 non-régression numéral de titre (« I. » avant « PROSE. » → titre T2, jamais lettrine).
 - §6.2 région de titre p19 (données réelles).
 - §6.3 réclame bas-droite (fixture 2 pages sûres) + cas géométrique non confirmé.
 - §6.4 filigrane (« Digitized by Google » → bruit ; « 00gl. » seul → jamais bruit auto).
+- §3.1 folio multi-pages (séquence 40-41-42 → numero_page ; nombre isolé → rejeté).
 
 ## Seuils effectivement employés
 
@@ -30,9 +32,12 @@ rien activé pour le reste du volume avant validation humaine du pilote.
   avant la fin). Fin de région : avant le 1ᵉʳ titre de section (POESIE/PROSE + numéral) ou 2 lignes
   de corps consécutives. Classement interne : **centré + lettres → paratexte_titre_candidate**,
   sinon **ornement_candidate**.
-- **Numéro de page** : garde-région (un nombre dans une région de titre n'est jamais promu folio) ;
-  géométrie haut/bas conservée pour les folios hors région. *(La cohérence séquentielle multi-pages
-  §3.1 reste une amélioration ultérieure — voir « fonctions désactivées ».)*
+- **Numéro de page (§3.1, durci)** : géométrie (haut < 10 % H / bas > 88 % H, nombre seul 1–4 chiffres)
+  **plus** garde-région (un nombre dans une région de titre n'est jamais promu folio) **plus** une
+  cohérence multi-pages — un candidat n'est confirmé folio que si sa position (haut/bas, zone
+  horizontale en 6 bandes, parité recto/verso) **se répète** sur ≥ 2 autres pages voisines (fenêtre
+  16), **ou** si sa valeur forme une **suite** croissante de 1 à 4 sur ≥ 3 pages. Un nombre **isolé**
+  sur une seule page n'est donc jamais promu numero_page (il reste indéterminé / traité par le corps).
 - **Réclame** : bas > 80 % H ou sous la dernière ligne de corps ; bord droit ≥ 82 % W ou centre
   > 72 % W ; largeur ≤ 35 % W ; 1–4 mots ; 2–30 caractères. Exclus : chiffres seuls, romains isolés,
   1–4 alphanumériques (signature), motifs Google. Similarité (comparaison normalisée, ſ→s) : ≥ 0,90
@@ -90,6 +95,6 @@ vrai folio sur cette page de titre.
 
 Toutes les suggestions restent des **propositions** (`statut: 'suggere'`) ; rien n'est appliqué sans
 `role_confirme` humain, et **aucune règle n'est appliquée au reste du volume** avant validation du
-pilote. Amélioration différée : **cohérence séquentielle multi-pages des folios (§3.1)** — la
-garde-région et la géométrie sont en place ; la vérification de séquence/répétition inter-pages
-reste à ajouter pour durcir encore `numero_page` hors région.
+pilote. La **cohérence séquentielle multi-pages des folios (§3.1)** est désormais **en place**
+(fonction `detecterFoliosVolume`, test d'acceptation §3.1 vert) : garde-région + géométrie +
+répétition de position **ou** suite numérique inter-pages ; un nombre isolé n'est plus promu folio.
