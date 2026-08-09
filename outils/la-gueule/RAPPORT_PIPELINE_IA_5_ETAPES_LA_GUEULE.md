@@ -67,11 +67,20 @@ Chaque étape est persistée et versionnée ; une modification en amont périme 
   auto). Endpoint `/api/ia/validation` + étape 4 (panneau familles/critiques/blocages, « Accepter la
   famille », blocage → export « complet » interdit). 5 tests, vérifié au navigateur. **RESTE** : écran
   détaillé par onglets (§13.4), présentation crop/avant/après des occurrences, annulation fine.
-- **Phase F — Génération locale** : relier les exports existants ; rapports ; versions ; états de
-  livraison (`FINAL_CANDIDAT` / `…_AVEC_RESERVES` / `CANDIDAT_INCOMPLET`) ; SHA256SUMS ; aucune IA à
-  cette étape.
-- **Phase G — Pilote Boèce** : exécuter le parcours ; mesurer erreurs, faux positifs, nombre de
-  décisions humaines ; ne pas lancer le volume complet avant validation du pilote.
+- **Phase F — Génération locale — FAITE (`eae281d`)** : `src/ia/generation.mjs` — `etatLivraison`
+  (§12.4 : blocage→`CANDIDAT_INCOMPLET` ; réserves→`FINAL_CANDIDAT_AVEC_RESERVES` ; sinon
+  `FINAL_CANDIDAT` ; jamais « validé humainement »), `rapportGeneration` (§12.5). `sauverRapportGeneration`
+  (versionné par run_id). Endpoint `/api/ia/generation` (aucune IA) + étape 5 (réutilise les exports
+  existants JSON/DOCX/TXT/MD/SQL/ALTO/PAGE, écrit le rapport, avance le workflow). 2 tests.
+- **Phase G — Pilote Boèce** : à exécuter (activité de validation, pas de code) — dérouler le parcours,
+  mesurer erreurs/faux positifs/nombre de décisions humaines ; ne pas lancer le volume avant validation.
+
+## Bilan
+
+**Pipeline 5 étapes BÂTI de bout en bout** (Phases A→F), **175 tests verts**. Reste, hors construction :
+Phase G (pilote) ; le **contrôle IA VISUEL** (lettrines/régions/corrections par crop) derrière clé +
+consentement (le mock s'abstient) ; l'écran de validation détaillé par onglets (§13.4) ; l'écran de
+consentement cloud dédié. Aucune règle appliquée au volume avant validation humaine du pilote.
 
 ## Garde-fous déjà en place (rappel)
 
