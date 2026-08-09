@@ -40,7 +40,8 @@
   .meta-corps input{width:100%;font-size:13px;box-sizing:border-box}
   .meta-corps input.meta-auto{background:#e7e5df;color:#1f1f1f} /* deviné par le parseur (remplaçable par l'IA) */
   .meta-corps input.meta-ia{background:#fbeecb;border-color:#c9971f;color:#1a1a1a;font-weight:500} /* proposé par l'IA (lecture d'image), à vérifier */
-  .meta-corps input.meta-ia-enrichi{background:#e3eefb;border-color:#5b8fd6;color:#12314f;font-weight:500} /* IA — connaissance externe (hors page), à vérifier */
+  .meta-corps input.meta-ia-enrichi{background:#e3eefb;border-color:#5b8fd6;color:#12314f;font-weight:500} /* niveau 2 : catalogue (ta base), à vérifier */
+  .meta-corps input.meta-ia-conn{background:#efe6fb;border-color:#8a6fc9;color:#2e1f4a;font-weight:500} /* niveau 3 : connaissance de l'IA (hors page/base), à vérifier */
   .meta-etat{font-size:11px;color:var(--second);min-height:1em;margin-top:2px}
   .meta-diag{font-size:11px;color:var(--second);margin-top:4px}
   .meta-diag summary{cursor:pointer;color:var(--second)}
@@ -1094,17 +1095,24 @@ async function completerMetaIA(){ const chemin=$('chemin').value.trim(); if(!che
     CHAMPS_META.forEach(c=>{ const el=$('m_'+c); if(!el)return
       const remplacable=!el.value.trim()||el.classList.contains('meta-auto')
       if(m[c]!=null&&String(m[c]).trim()&&remplacable){ el.value=String(m[c]).trim(); el.classList.add('meta-ia'); el.classList.remove('meta-auto'); el.title='proposé par l\'IA (lecture d\'image) — à vérifier'; n++ } })
-    // Enrichissement DEPUIS LE CATALOGUE (ta base) : nom canonique d'auteur (+ id_auteur) et titre
-    // original si l'œuvre y figure. Prime sur la forme lue (sauf saisie manuelle), marqué « catalogue ».
-    const mapEnr={ auteur:enr.auteur_complet, titre_original:enr.titre_original }
+    // Niveau 2 — CATALOGUE (ta base) : AMÉLIORE et normalise les champs de l'œuvre (auteur canonique +
+    // id_auteur, titre original, langue, date de composition, sous-titre, genre). Écrase le LU et le
+    // parseur — jamais une saisie manuelle : la base est la référence normalisée.
+    const conn=r.connaissance||{}
+    const mapEnr={ auteur:enr.auteur_complet, titre_original:enr.titre_original, langue_originale:enr.langue_originale, date_composition:enr.date_composition, sous_titre:enr.sous_titre, genre:enr.genre }
     Object.keys(mapEnr).forEach(c=>{ const el=$('m_'+c); if(!el)return; const v=mapEnr[c]
       const remplacable=!el.value.trim()||el.classList.contains('meta-auto')||el.classList.contains('meta-ia')
       if(v!=null&&String(v).trim()&&remplacable){ el.value=String(v).trim(); el.classList.remove('meta-auto'); el.classList.remove('meta-ia'); el.classList.add('meta-ia-enrichi')
         el.title='catalogue (ta base)'+(c==='auteur'&&enr.auteur_id?(' — id_auteur '+enr.auteur_id):'')+' — à vérifier'; e++ } })
-    if(r.abstention&&!n&&!e){ $('etatMeta').textContent='IA ('+(r.fournisseur||'?')+') s\'est abstenue'+(r.erreur?(' : '+r.erreur):' (page non lisible / pas une page de titre)')+' — rien ajouté.' }
-    else $('etatMeta').textContent='✓ IA : '+n+' champ(s) lu(s)'+(e?(' + '+e+' du catalogue'):'')+(enr.auteur_id?(' · auteur : '+enr.auteur_id):'')+' — à vérifier'+(r.confiance!=null?(' (confiance '+r.confiance+')'):'')
+    // Niveau 3 — CONNAISSANCE de l'IA (« internet ») : comble ce que la PAGE et le CATALOGUE n'ont pas donné.
+    const mapConn={ titre_original:conn.titre_original, langue_originale:conn.langue_originale, date_composition:conn.date_composition, auteur:conn.auteur_complet, genre:conn.genre }; let k=0
+    Object.keys(mapConn).forEach(c=>{ const el=$('m_'+c); if(!el)return; const v=mapConn[c]
+      const vide=!el.value.trim()||el.classList.contains('meta-auto') // seulement si page/base n'ont rien mis
+      if(v!=null&&String(v).trim()&&vide){ el.value=String(v).trim(); el.classList.remove('meta-auto'); el.classList.add('meta-ia-conn'); el.title='connaissance de l\'IA (hors page et base) — à vérifier'; k++ } })
+    if(r.abstention&&!n&&!e&&!k){ $('etatMeta').textContent='IA ('+(r.fournisseur||'?')+') s\'est abstenue'+(r.erreur?(' : '+r.erreur):' (page non lisible / pas une page de titre)')+' — rien ajouté.' }
+    else $('etatMeta').textContent='✓ IA : '+n+' lu(s)'+(e?(' · '+e+' catalogue'):'')+(k?(' · '+k+' connaissance'):'')+(enr.auteur_id?(' · auteur '+enr.auteur_id):'')+' — à vérifier'+(r.confiance!=null?(' (conf. '+r.confiance+')'):'')
     rendreDiagIA(r)
-    if(n||e){ planifierSave() }
+    if(n||e||k){ planifierSave() }
   }catch(e){ $('etatMeta').textContent='échec IA : '+e.message }
   finally{ chargeOff() } }
 // Replier / déplier la colonne des métadonnées.
@@ -1130,7 +1138,7 @@ document.querySelectorAll('#vtabs button').forEach(b=>b.onclick=()=>{
   const t=b.dataset.t
   ;[['meta','panelMeta'],['pre','panelPre'],['ocr','panelOcr'],['exp','panelExport']].forEach(([k,id])=>{ $(id).style.display=(k===t)?'':'none' })
 })
-;[...document.querySelectorAll('#metaCorps input')].forEach(i=>i.oninput=()=>{ i.classList.remove('meta-ia'); i.classList.remove('meta-auto'); i.classList.remove('meta-ia-enrichi'); planifierSave() })
+;[...document.querySelectorAll('#metaCorps input')].forEach(i=>i.oninput=()=>{ i.classList.remove('meta-ia'); i.classList.remove('meta-auto'); i.classList.remove('meta-ia-enrichi'); i.classList.remove('meta-ia-conn'); planifierSave() })
 let tSave
 function planifierSave(){ if(!$('projet').value.trim())return; clearTimeout(tSave); tSave=setTimeout(()=>sauver(true),1200) }
 async function sauver(auto){

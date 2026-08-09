@@ -1,6 +1,12 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parserEnv, normaliser, jetonsAuteur, choisirAuteur, choisirOeuvre } from '../src/ia/enrichissement.mjs'
+import { parserEnv, normaliser, jetonsAuteur, choisirAuteur, choisirOeuvre, langueDeTitre } from '../src/ia/enrichissement.mjs'
+
+test('enrichissement : langueDeTitre — script grec → grec ; latin/français → null', () => {
+  assert.equal(langueDeTitre('Ὁμιλίαι θʹ εἰς τὴν Ἑξαήμερον'), 'grec')
+  assert.equal(langueDeTitre('De consolatione philosophiae'), null)
+  assert.equal(langueDeTitre(''), null)
+})
 
 test('enrichissement : parserEnv — KEY=VALUE, commentaires et guillemets', () => {
   const e = parserEnv('# commentaire\nNEXT_PUBLIC_SUPABASE_URL=https://x.supabase.co\nSUPABASE_SERVICE_ROLE_KEY="sk-abc"\n\nVIDE=')

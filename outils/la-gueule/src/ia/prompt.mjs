@@ -92,7 +92,8 @@ export function consigneMetadonnees(texte_ocr = '') {
     'Consignes par champ :\n' +
     '- titre : le titre de l\'œuvre, SANS le nom de l\'auteur ni les mentions d\'édition ; casse standard, ' +
     'SANS point final (ex. « La Consolation de la philosophie »).\n' +
-    '- sous_titre : complément ou précision du titre s\'il en existe un, même forme.\n' +
+    '- sous_titre : complément ou précision du titre, OU une mention d\'édition si présente sur la page ' +
+    '(« Nouvelle édition, revue et corrigée », « Cinquième édition »…), même forme.\n' +
     '- titre_original : le titre latin ou grec de l\'œuvre traduite s\'il figure, sinon null.\n' +
     '- auteur : l\'auteur ancien en forme moderne usuelle (« Boèce », « saint Basile »), pas le traducteur ni l\'éditeur.\n' +
     '- trad_auteur : le traducteur, forme moderne (« le P. de Ceriziers », « M. … »).\n' +
@@ -102,13 +103,18 @@ export function consigneMetadonnees(texte_ocr = '') {
     '- genre : la nature de l\'œuvre si explicite (traité, commentaire, sermons, lettres, poème, dialogue…), sinon null.\n' +
     '- langue_originale : latin ou grec si l\'original est cité, sinon null. langue_trad : « français ».\n' +
     '- collection : le nom d\'une collection éditoriale si mentionné, sinon null.\n' +
-    'Ne renseigne QUE ce qui est lisible sur la page (titre_original reste null s\'il n\'est pas imprimé : ' +
-    'il sera complété séparément depuis le catalogue).\n' +
+    'Ne renseigne les champs ci-dessus QUE d\'après ce qui est LISIBLE sur la page.\n' +
+    'ENRICHISSEMENT PAR CONNAISSANCE (objet "connaissance", séparé) : si tu identifies l\'œuvre et son ' +
+    'auteur avec CERTITUDE (œuvre connue), remplis-le depuis ton SAVOIR (jamais lu sur la page) — ' +
+    'titre_original (dans la langue d\'origine), langue_originale (« latin »/« grec »), date_composition ' +
+    '(ex. « vers 378 »), auteur_complet, genre. En cas de doute, mets null. Ces valeurs seront signalées ' +
+    '« à vérifier » et ne servent qu\'à combler ce que la PAGE et le CATALOGUE ne donnent pas.\n' +
     'Réponds en JSON STRICT, une seule ligne :\n' +
     '{"type":"metadonnees_titre","titre":null,"sous_titre":null,"titre_original":null,"auteur":null,' +
     '"trad_auteur":null,"editeur":null,"collection":null,"ville":null,"date_publication":null,' +
     '"genre":null,"langue_originale":null,"langue_trad":null,' +
-    '"lecture_fondee_sur_image":true,"confiance":0.0,"abstention":false,"statut":"candidat"}'
+    '"lecture_fondee_sur_image":true,"confiance":0.0,"abstention":false,"statut":"candidat",' +
+    '"connaissance":{"titre_original":null,"langue_originale":null,"date_composition":null,"auteur_complet":null,"genre":null}}'
   )
 }
 

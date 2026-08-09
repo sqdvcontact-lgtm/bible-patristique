@@ -334,7 +334,11 @@ export function demarrer({ port = 4599 } = {}) {
         // titre_original si l'œuvre est déjà cataloguée (oeuvres). « Sinon vide » — jamais inventé.
         let enrichissement = {}
         if (!sortie.abstention) { try { enrichissement = await enrichirDepuisBase({ auteur: meta_ia.auteur, titre: meta_ia.titre }) } catch { enrichissement = {} } }
-        return json(res, 200, { ia_active: true, meta_ia, enrichissement, abstention: !!sortie.abstention, confiance: sortie.confiance ?? null, modele: sortie.modele || null, fournisseur: etat.nom, erreur: sortie.erreur || null })
+        // 3e niveau (hiérarchie page > base > CONNAISSANCE du modèle) : comble ce que page + base ne donnent pas.
+        const connaissance = {}
+        const cn = sortie.connaissance || {}
+        if (!sortie.abstention) for (const c of ['titre_original', 'langue_originale', 'date_composition', 'auteur_complet', 'genre']) { const v = cn[c]; if (v != null && String(v).trim()) connaissance[c] = String(v).trim() }
+        return json(res, 200, { ia_active: true, meta_ia, enrichissement, connaissance, abstention: !!sortie.abstention, confiance: sortie.confiance ?? null, modele: sortie.modele || null, fournisseur: etat.nom, erreur: sortie.erreur || null })
       }
 
       // Phase B — écrit le profil de traitement du diagnostic (profils-traitement/<nom>-profil-v1.json).

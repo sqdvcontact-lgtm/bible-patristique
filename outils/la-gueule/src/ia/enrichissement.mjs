@@ -22,6 +22,12 @@ export function parserEnv(texte) {
   return o
 }
 
+/** Déduit la langue d'origine d'un titre original d'après son ÉCRITURE : le grec est repérable au script
+ *  (le latin, lui, ne se distingue pas fiablement du français). Renvoie 'grec' ou null. Pur / testable. */
+export function langueDeTitre(s) {
+  return /[Ͱ-Ͽἀ-῿]/.test(String(s || '')) ? 'grec' : null
+}
+
 /** Normalise pour comparaison : minuscules, sans accents, sans ponctuation. Pur / testable. */
 export function normaliser(s) {
   return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -98,29 +104,44 @@ export async function enrichirDepuisBase({ auteur = '', titre = '' } = {}, { che
   const cfg = await lireConfig(cheminEnv)
   if (!cfg) return { diagnostic: { base: false } }
   const out = {}, diag = { base: true, auteur: null, oeuvre: null }
-  // Auteur : table `auteurs` (nom canonique + id_auteur + nom original).
-  const ja = jetonsRequete(auteur, 3)
-  if (ja.length && jetonsAuteur(auteur).length) {
-    const tok = encodeURIComponent(ja[ja.length - 1]) // dernier jeton (accents gardés) = le plus souvent le nom
-    const a = choisirAuteur(await pg(cfg, `auteurs?select=id_auteur,nom,nom_original,dates&or=(nom.ilike.*${tok}*,nom_original.ilike.*${tok}*)&limit=20`), auteur)
-    if (a) {
-      out.auteur_complet = a.nom; out.auteur_id = a.id_auteur; if (a.nom_original) out.auteur_original = a.nom_original
-      diag.auteur = { nom: a.nom, id_auteur: a.id_auteur, source: 'auteurs' }
-    }
-  }
-  // Œuvre : `oeuvres` d'abord (œuvre importée), puis `catalogue_notices` (œuvre seulement cataloguée).
+  // 1) ŒUVRE : `oeuvres` (œuvre importée) puis `catalogue_notices` (œuvre seulement cataloguée). On garde
+  //    l'id_auteur de l'œuvre trouvée pour en déduire l'auteur SANS ambiguïté (plusieurs « Basile »…).
+  let idAuteurOeuvre = null
   const jt = jetonsRequete(titre, 5)
   if (jt.length) {
     const tok = encodeURIComponent([...jt].sort((x, y) => y.length - x.length)[0]) // jeton le plus long
-    let o = choisirOeuvre(await pg(cfg, `oeuvres?select=titre,titre_original&titre=ilike.*${tok}*&limit=20`), titre)
+    let o = choisirOeuvre(await pg(cfg, `oeuvres?select=titre,sous_titre,titre_original,langue_originale,date_composition,date_approx,genre,id_auteur&titre=ilike.*${tok}*&limit=20`), titre)
     let source = 'oeuvres'
-    if (!o || !o.titre_original) {
-      const cn = await pg(cfg, `catalogue_notices?select=titre_stable,titre_edition,titre_original&or=(titre_stable.ilike.*${tok}*,titre_edition.ilike.*${tok}*)&limit=20`)
-      const oc = choisirOeuvre((Array.isArray(cn) ? cn : []).map((x) => ({ titre: x.titre_stable || x.titre_edition, titre_original: x.titre_original })), titre)
-      if (oc && oc.titre_original) { o = oc; source = 'catalogue_notices' }
+    if (!o) {
+      const cn = await pg(cfg, `catalogue_notices?select=titre_stable,titre_edition,titre_original,langue_originale,id_auteur&or=(titre_stable.ilike.*${tok}*,titre_edition.ilike.*${tok}*)&limit=20`)
+      o = choisirOeuvre((Array.isArray(cn) ? cn : []).map((x) => ({ titre: x.titre_stable || x.titre_edition, titre_original: x.titre_original, langue_originale: x.langue_originale, id_auteur: x.id_auteur })), titre)
+      if (o) source = 'catalogue_notices'
     }
-    if (o && o.titre_original) { out.titre_original = o.titre_original; diag.oeuvre = { titre: o.titre, titre_original: o.titre_original, source } }
+    if (o) {
+      if (o.titre_original) out.titre_original = o.titre_original
+      if (o.langue_originale) out.langue_originale = o.langue_originale
+      if (o.sous_titre) out.sous_titre = o.sous_titre
+      if (o.date_composition || o.date_approx) out.date_composition = o.date_composition || o.date_approx
+      if (o.genre) out.genre = o.genre
+      idAuteurOeuvre = o.id_auteur || null
+      diag.oeuvre = { titre: o.titre, titre_original: o.titre_original || null, source }
+    }
   }
+  // 2) AUTEUR : d'abord celui de l'ŒUVRE trouvée (fiable, sans homonyme) ; sinon recherche par nom.
+  if (idAuteurOeuvre) {
+    const a = (await pg(cfg, `auteurs?select=id_auteur,nom,nom_original&id_auteur=eq.${encodeURIComponent(idAuteurOeuvre)}&limit=1`) || [])[0]
+    if (a) { out.auteur_complet = a.nom; out.auteur_id = a.id_auteur; if (a.nom_original) out.auteur_original = a.nom_original; diag.auteur = { nom: a.nom, id_auteur: a.id_auteur, source: 'œuvre' } }
+  }
+  if (!out.auteur_id) {
+    const ja = jetonsRequete(auteur, 3)
+    if (ja.length && jetonsAuteur(auteur).length) {
+      const tok = encodeURIComponent(ja[ja.length - 1])
+      const a = choisirAuteur(await pg(cfg, `auteurs?select=id_auteur,nom,nom_original,dates&or=(nom.ilike.*${tok}*,nom_original.ilike.*${tok}*)&limit=20`), auteur)
+      if (a) { out.auteur_complet = a.nom; out.auteur_id = a.id_auteur; if (a.nom_original) out.auteur_original = a.nom_original; diag.auteur = { nom: a.nom, id_auteur: a.id_auteur, source: 'auteurs' } }
+    }
+  }
+  // Langue d'origine déductible du script du titre original (grec) si la base ne l'a pas fournie.
+  if (!out.langue_originale && out.titre_original) { const l = langueDeTitre(out.titre_original); if (l) out.langue_originale = l }
   out.diagnostic = diag
   return out
 }
