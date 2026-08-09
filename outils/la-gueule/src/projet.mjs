@@ -37,6 +37,15 @@ export async function sauverProfil(nom, profil) {
   return chemin
 }
 
+/** Phase F — écrit le rapport de génération (versionné par run_id → n'écrase JAMAIS une livraison). */
+export async function sauverRapportGeneration(nom, rapport) {
+  await mkdir(DIR_EXPORTS, { recursive: true })
+  const rid = String(rapport?.run_id || 'run').replace(/[^\w.-]+/g, '_').slice(0, 40)
+  const chemin = join(DIR_EXPORTS, nomSur(nom) + '-generation-' + rid + '.json')
+  await writeFile(chemin, JSON.stringify(rapport, null, 2), 'utf8')
+  return chemin
+}
+
 export async function sauvegarderProjet(nom, projet) {
   await mkdir(DIR_PROJETS, { recursive: true })
   const chemin = join(DIR_PROJETS, nomSur(nom) + '.json')

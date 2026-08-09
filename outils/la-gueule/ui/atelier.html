@@ -350,6 +350,7 @@ function rendreBarreEtapes(){ const bar=$('barreEtapes'); if(!bar)return; const 
     if(cle==='diagnostic_ia'){ d.style.cursor='pointer'; d.title='Refaire le diagnostic (page de titre + typographie → profil de traitement)'; d.onclick=()=>{ if($('chemin').value.trim()) analyser() } }
     if(cle==='controle_ia'){ d.style.cursor='pointer'; d.title='Lancer le contrôle déterministe (confiance, lignes vides, doublons, pages anormales)'; d.onclick=()=>lancerControle() }
     if(cle==='validation_ciblee'){ d.style.cursor='pointer'; d.title='Validation ciblée : familles à échantillonner, cas critiques, blocages'; d.onclick=()=>lancerValidation() }
+    if(cle==='generation_locale'){ d.style.cursor='pointer'; d.title='Générer les livrables (JSON/DOCX/TXT/MD/SQL/ALTO/PAGE) + rapport de provenance'; d.onclick=()=>lancerGeneration() }
     bar.appendChild(d) } }
 rendreBarreEtapes()
 
@@ -426,6 +427,20 @@ function rendrePanneauValidation(){ const p=$('panneauValidation'); if(!p)return
   if(v.blocages.length){ const bl=document.createElement('div'); bl.className='val-bloc'; bl.textContent='⛔ '+v.blocages.length+' blocage(s) — export « complet » impossible tant qu\'ils ne sont pas levés.'; p.appendChild(bl) } }
 function accepterFamille(cle){ if(S.controle&&S.controle.findings) S.controle.findings.forEach(f=>{ if((f.regle||f.id||f.type)===cle && f.statut==='propose_ia') f.statut='accepte_echantillonnage' })
   lancerValidation() } // recompte : la famille passe des « familles » aux « automatiques »
+
+// Phase F — génération LOCALE : livrables (exports existants) + état de livraison + rapport. AUCUNE IA.
+async function lancerGeneration(){ const nom=$('projet').value.trim(); if(!nom){ etat('nomme le projet d\'abord'); return }
+  if(!Object.keys(S.pages).length){ etat('rien à générer : océrise d\'abord'); return }
+  majEtapeClient('generation_locale',{etat:'en_cours'},'generation_locale'); chargeOn('Génération locale…')
+  try{ const fichiers=[]
+    try{ await api('/api/export',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel(),id_oeuvre:($('idoeuvre')&&$('idoeuvre').value.trim())||null,recenserNotes:$('chkNotes')&&$('chkNotes').checked})}); fichiers.push('json','docx','sql','txt','md') }catch(e){}
+    try{ const rx=await api('/api/export/xml',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel(),couche:S.couche})}); if(rx&&rx.nbPages) fichiers.push('alto','page') }catch(e){}
+    const run_id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():('run-'+Date.now()); const date=new Date().toISOString()
+    const g=await api('/api/ia/generation',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel(),validation:S.validation||{},profil:S.profil||null,run_id,date,fichiers})})
+    majEtapeClient('generation_locale',{etat:'termine',run_id})
+    etat(`Génération : ${g.etat} — ${fichiers.length} type(s) de fichier dans exports/. Rapport : ${(g.chemin||'').split(/[\\/]/).pop()}.${g.etat!=='FINAL_CANDIDAT'?' Livraison PROVISOIRE (voir réserves / blocages).':''}`)
+  }catch(e){ majEtapeClient('generation_locale',{etat:'erreur'}); etat('génération : '+e.message) }
+  finally{ chargeOff() } }
 const SEUIL_DOUTE=0.80 // en dessous, la ligne est signalée « à revoir »
 
 // ── Fiabilité des lots : état par page (à faire / terminé / erreur), progression, journal ────

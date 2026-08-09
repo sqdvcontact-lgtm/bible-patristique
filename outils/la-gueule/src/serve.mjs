@@ -13,9 +13,10 @@ import { executer } from './runner.mjs'
 import { ocrPage, pdfNbPages, pdfInfo, choisirFichier, runBash, annulerTaches } from './wsl.mjs'
 import { parserMetadonnees, typographieProbable } from './metadonnees.mjs'
 import { parseAlto } from './alto.mjs'
-import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes, sauverProfil } from './projet.mjs'
+import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes, sauverProfil, sauverRapportGeneration } from './projet.mjs'
 import { controlerDeterministe } from './ia/controle.mjs'
 import { classerValidation } from './ia/validation.mjs'
+import { rapportGeneration, etatLivraison } from './ia/generation.mjs'
 import { detecterLangue, apparierParagraphes } from './bilingue.mjs'
 import { annoterProjet } from './structure.mjs'
 
@@ -258,6 +259,14 @@ export function demarrer({ port = 4599 } = {}) {
       if (p === '/api/ia/validation' && req.method === 'POST') {
         const b = await corps(req)
         return json(res, 200, classerValidation(b.findings || []))
+      }
+
+      // Phase F — génération : état de livraison + rapport de provenance (AUCUNE IA à cette étape).
+      if (p === '/api/ia/generation' && req.method === 'POST') {
+        const b = await corps(req)
+        const rapport = rapportGeneration({ projet: b.projet || {}, validation: b.validation || {}, profil: b.profil || null, run_id: b.run_id || null, date: b.date || null, fichiers: b.fichiers || [] })
+        const chemin = await sauverRapportGeneration(b.nom || 'projet', rapport)
+        return json(res, 200, { etat: etatLivraison(b.validation || {}), rapport, chemin })
       }
 
       // Sert une image locale par chemin absolu (outil local, écoute 127.0.0.1 seulement).
