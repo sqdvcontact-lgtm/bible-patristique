@@ -272,6 +272,7 @@
   <span style="width:16px"></span>
   <label>Document de <input type="number" id="de" min="1" value="1" /> à <input type="number" id="a" min="1" value="1" /></label>
   <button id="ocrDoc">OCR document</button>
+  <button class="discret" id="btnTrier" title="Analyse IA de la structure : classe toutes les pages (corps, titre, garde, page de numérisation, reliure, ornement…) pour exclure les pages inutiles de l'OCR. Passe de fond (quelques minutes).">Trier les pages (IA)</button>
 </div>
 
 <div class="barre2" id="progression" style="display:none;gap:14px;align-items:center">
@@ -562,7 +563,8 @@ function marquerEtat(n, etat, msg){ if(!S.pages[n]) S.pages[n]={}; S.pages[n].et
 function journaliser(n, msg){ (S.journal||(S.journal=[])).push({page:n, message:String(msg).slice(0,200), at:new Date().toISOString()})
   if(S.journal.length>1000) S.journal=S.journal.slice(-1000) }
 function pagesEnErreur(){ return Object.keys(S.pages).map(Number).filter(n=>S.pages[n]?.etat==='erreur').sort((a,b)=>a-b) }
-function pagesATraiter(de,a){ const l=[]; for(let n=de;n<=a;n++) if(S.pages[n]?.etat!=='termine') l.push(n); return l } // saute les faites → reprise
+function estExclueOcr(n){ const t=S.pages[n]&&S.pages[n].triage; return !!(t && t.a_ocriser===false) } // tri IA : garde/numérisation/reliure/ornement
+function pagesATraiter(de,a){ const l=[]; for(let n=de;n<=a;n++) if(S.pages[n]?.etat!=='termine' && !estExclueOcr(n)) l.push(n); return l } // saute les faites ET les pages exclues par le tri
 function compterEtats(de,a){ let fait=0,err=0,tot=0; for(let n=de;n<=a;n++){ tot++; const e=S.pages[n]?.etat; if(e==='termine')fait++; else if(e==='erreur')err++ } return {fait,err,tot} }
 function majProgres(de,a){ const {fait,err,tot}=compterEtats(de,a); $('progression').style.display='flex'
   $('barreProgFill').style.width=(tot?Math.round(fait/tot*100):0)+'%'
@@ -697,7 +699,8 @@ async function afficherApercu(n){
   if(!chemin){ holder.innerHTML='<div class="vide">Indique un chemin, puis « OCR cette page ».</div>'; vl.innerHTML='<div class="vide">—</div>'; return }
   if(!S.pages[n]) S.pages[n]={}
   holder.innerHTML='<div class="vide">chargement de la page '+n+'…</div>'
-  vl.innerHTML='<div class="vide">Page non océrisée. Clique « OCR cette page » pour la traiter.</div>'
+  const tri=S.pages[n].triage
+  vl.innerHTML='<div class="vide">'+(tri?('Classée « '+tri.type+' »'+(tri.a_ocriser===false?' — <b>exclue de l\'OCR</b>.':' — à océriser.')):'Page non océrisée. Clique « OCR cette page » pour la traiter.')+'</div>'
   try{
     let url=S.pages[n].apercuUrl
     if(!url){ const r=await api('/api/apercu',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin,page:n,kind:S.kind})}); url=r.pngUrl; S.pages[n].apercuUrl=url }
@@ -943,6 +946,36 @@ async function ocrDocument(cibles){
 }
 $('ocrDoc').onclick=()=>ocrDocument(null)
 $('btnRelancerErr').onclick=()=>ocrDocument(pagesEnErreur())
+// TRI DE STRUCTURE (IA) : passe de fond qui classe TOUTES les pages du document (planches de vignettes
+// envoyées à l'IA) pour exclure les pages inutiles de l'OCR (gardes, page de numérisation, reliures,
+// ornements). Le résultat est stocké par page (S.pages[n].triage) et « OCR document » saute les exclues.
+async function trierPagesIA(){
+  const chemin=$('chemin').value.trim(); if(!chemin){ etat('choisis d\'abord un document'); return }
+  await chargerEtatIA(); const f=S.ia&&S.ia.fournisseur
+  if(!f||!f.cloud){ etat('IA locale (mock) : pas de tri. Configure le CLI d\'abord.'); return }
+  if(!f.dispo){ etat('fournisseur IA indisponible.'); return }
+  if(!consentementValideClient()){ const ok=await demanderConsentement(); if(!ok){ etat('resté en local : pas de tri IA.'); return } }
+  S.arret=false; assurerNomProjet()
+  chargeOn('Rendu des vignettes du document…')
+  try{
+    const rp=await api('/api/ia/planches',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin,total:S.total||1,kind:S.kind})})
+    const planches=rp.planches||[]; let classees=0, exclues=0
+    for(let i=0;i<planches.length;i++){
+      if(S.arret) break
+      chargeOn('Analyse IA de la structure — planche '+(i+1)+'/'+planches.length+'…')
+      const pl=planches[i]
+      const r=await api('/api/ia/triage-planche',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chemin:pl.chemin,pages:pl.pages})})
+      if(!r.ia_active){ etat('tri IA non actif ('+(r.motif||'—')+') — rien changé.'); return }
+      for(const pg of (r.pages||[])){ const n=Number(pg.n); if(!n)continue; if(!S.pages[n])S.pages[n]={}
+        S.pages[n].triage={type:pg.type||'?',a_ocriser:pg.a_ocriser!==false}; classees++; if(pg.a_ocriser===false)exclues++ }
+      await sauver(true)
+    }
+    etat(S.arret?('Tri interrompu : '+classees+' pages classées, '+exclues+' exclues.'):('✓ Tri terminé : '+classees+' pages classées, '+exclues+' exclues de l\'OCR (gardes, numérisation, reliures, ornements). « OCR document » les saute désormais.'))
+    rendre()
+  }catch(e){ etat('tri : '+e.message) }
+  finally{ chargeOff() }
+}
+$('btnTrier').onclick=trierPagesIA
 
 // ── Prétraitement expérimental + comparaison A/B ─────────────────────────────
 function collecterPretraitement(){

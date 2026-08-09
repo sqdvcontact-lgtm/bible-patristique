@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join, extname, basename, resolve, sep } from 'node:path'
 
 import { executer } from './runner.mjs'
-import { ocrPage, rendrePage, pdfNbPages, pdfInfo, choisirFichier, runBash, annulerTaches } from './wsl.mjs'
+import { ocrPage, rendrePage, rendrePlanches, pdfNbPages, pdfInfo, choisirFichier, runBash, annulerTaches } from './wsl.mjs'
 import { parserMetadonnees, typographieProbable, normaliserCasseChamp } from './metadonnees.mjs'
 import { parseAlto } from './alto.mjs'
 import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes, sauverProfil, sauverRapportGeneration } from './projet.mjs'
@@ -20,7 +20,7 @@ import { classerValidation } from './ia/validation.mjs'
 import { rapportGeneration, etatLivraison } from './ia/generation.mjs'
 import { etatFournisseur, lireConsentement, ecrireConsentement, consentementActif } from './ia/consentement.mjs'
 import { cropBase64, cheminPngDepuisUrl, pdfPageBase64, imageFichierBase64 } from './ia/crop.mjs'
-import { messagesLettrine, messagesCorrection, messagesMetadonnees } from './ia/prompt.mjs'
+import { messagesLettrine, messagesCorrection, messagesMetadonnees, consigneTriage } from './ia/prompt.mjs'
 import { enrichirDepuisBase } from './ia/enrichissement.mjs'
 import { detecterLangue, apparierParagraphes } from './bilingue.mjs'
 import { annoterProjet } from './structure.mjs'
@@ -221,6 +221,37 @@ export function demarrer({ port = 4599 } = {}) {
           const r = kind === 'manuscrit' ? { pngWin: b.path } : await rendrePage({ kind, pdfWin: b.path, page: Number(b.page) || 1, servedDirWin })
           return json(res, 200, { pngUrl: '/api/fichier?path=' + encodeURIComponent(r.pngWin) })
         } catch (e) { return json(res, 500, { erreur: String(e?.message || e) }) }
+      }
+
+      // TRI DE STRUCTURE — 1) rendre le document en PLANCHES de vignettes numérotées (sans OCR).
+      if (p === '/api/ia/planches' && req.method === 'POST') {
+        const b = await corps(req)
+        if (b.path && !sousRacine(b.path)) return json(res, 403, { erreur: 'hors du dossier de travail (§2.3)' })
+        const servedDirWin = join(RACINE, 'sorties', 'atelier')
+        await mkdir(servedDirWin, { recursive: true })
+        try {
+          if ((b.kind === 'manuscrit') || IMG_EXT.has(extname(b.path || '').toLowerCase())) {
+            return json(res, 200, { planches: [{ pages: [1], chemin: b.path, pngUrl: '/api/fichier?path=' + encodeURIComponent(b.path) }] })
+          }
+          const total = Math.max(1, Number(b.total) || 1)
+          const pl = await rendrePlanches({ pdfWin: b.path, servedDirWin, total })
+          return json(res, 200, { planches: pl.map((x) => ({ pages: x.pages, chemin: x.pngWin, pngUrl: '/api/fichier?path=' + encodeURIComponent(x.pngWin) })) })
+        } catch (e) { return json(res, 500, { erreur: String(e?.message || e) }) }
+      }
+
+      // TRI DE STRUCTURE — 2) classer UNE planche par l'IA (cloud, avec consentement). Renvoie les
+      // pages classées {n, type, a_ocriser}. Appelé en boucle par l'atelier (progression par planche).
+      if (p === '/api/ia/triage-planche' && req.method === 'POST') {
+        const b = await corps(req)
+        if (b.chemin && !sousRacine(b.chemin)) return json(res, 403, { erreur: 'hors du dossier de travail (§2.3)' })
+        const fournisseur = choisirFournisseur(process.env)
+        const etat = etatFournisseur(process.env)
+        const consentement = consentementActif(await lireConsentement(), etat.nom)
+        if (!fournisseur.cloud || !consentement || !fournisseur.dispo) return json(res, 200, { ia_active: false, pages: [], motif: !consentement ? 'consentement requis' : 'fournisseur indisponible' })
+        if (typeof fournisseur.triage !== 'function') return json(res, 200, { ia_active: false, pages: [], motif: 'ce fournisseur ne sait pas trier' })
+        const servedDirWin = join(RACINE, 'sorties', 'atelier')
+        const sortie = await fournisseur.triage({ image_path: b.chemin, consigne: consigneTriage(b.pages || []), cwd: servedDirWin }, {})
+        return json(res, 200, { ia_active: true, pages: Array.isArray(sortie.pages) ? sortie.pages : [], abstention: !!sortie.abstention, erreur: sortie.erreur || null, modele: sortie.modele || null, fournisseur: etat.nom })
       }
 
       // Métadonnées : pdfinfo + OCR de la page de titre → titre, date d'édition, auteur…

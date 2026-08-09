@@ -247,7 +247,7 @@ export async function rendrePlanches(params) {
   // pdftoppm pade le n° de page de façon peu prévisible → on renomme en p<page>.png (sans zéros) pour
   // que la montage retrouve chaque vignette par un nom simple (10# force la base 10, évite l'octal).
   const renomme = 'for f in "$D"/v-*.png; do b=$(basename "$f" .png); n=$((10#${b#v-})); mv "$f" "$D/p$n.png"; done'
-  let cmds = `pdftoppm -r ${dpi} -png "$PDF" "$D/v" && ${renomme} && `
+  let cmds = `pdftoppm -f 1 -l ${total} -r ${dpi} -png "$PDF" "$D/v" && ${renomme} && `
   for (let start = 1; start <= total; start += lot) {
     const end = Math.min(start + lot - 1, total)
     const pages = []; let args = ''
