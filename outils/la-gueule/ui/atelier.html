@@ -26,7 +26,7 @@
   button.discret:hover:not(:disabled){border-color:var(--vert);color:var(--vert);background:var(--surface)}
   button:disabled{opacity:.5;cursor:default}
   #etat{font-size:12px;color:var(--second)}
-  main{flex:1;display:grid;grid-template-columns:262px 1fr 1fr;gap:0;min-height:0}
+  main{flex:1;display:grid;grid-template-columns:320px 1fr 1fr;gap:0;min-height:0}
   main.meta-replie{grid-template-columns:32px 1fr 1fr}
   .volet{min-height:0;overflow:auto;padding:12px}
   /* Colonne « Métadonnées » (gauche), repliable */
@@ -46,8 +46,15 @@
   .meta-diag .dg-sec{margin:4px 0 2px;font-weight:600;color:var(--fg)}
   .meta-diag code{background:#eee;padding:0 3px;border-radius:2px}
   .meta-diag .dg-vide{color:#b06a2a}
-  main.meta-replie .meta-titre,main.meta-replie .meta-extraire,main.meta-replie .meta-corps{display:none}
+  main.meta-replie .vtabs,main.meta-replie .vpanel{display:none}
   main.meta-replie .meta-tete{flex-direction:column;padding:8px 3px;border-bottom:none}
+  .vtabs{display:flex;gap:2px;flex-wrap:wrap;flex:1}
+  .vtabs button{padding:4px 8px;border:1px solid var(--bord);border-bottom:none;border-radius:6px 6px 0 0;font-size:11.5px;background:var(--fond);color:var(--second);font-weight:400}
+  .vtabs button.actif{background:var(--surface);color:var(--encre);font-weight:600}
+  .vpanel-actions{display:flex;gap:6px;padding:8px 10px 2px;flex-wrap:wrap}
+  .vpanel-corps{display:flex;flex-direction:column;gap:8px;padding:10px}
+  .vpanel .barre2{border-bottom:none;padding:8px 10px;background:transparent}
+  .vpanel .barre2 label{font-size:12px}
   /* Zone image : l'image tient dans la hauteur du volet (pas de défilement) ; chevrons de nav. */
   #voletImage{background:#efe8da;border-right:1px solid var(--bord);position:relative;overflow:hidden;
     display:flex;align-items:flex-start;justify-content:center;padding:12px}
@@ -58,12 +65,16 @@
   #zoomOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:10001;cursor:zoom-out}
   .zoombox{background-repeat:no-repeat;background-color:#fff;box-shadow:0 8px 40px rgba(0,0,0,.5);border:3px solid #fff;border-radius:4px}
   /* Pipeline 5 étapes (Phase A) : représentation persistante de l'état du parcours. */
-  #barreEtapes{display:flex;gap:6px;align-items:stretch;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--bord)}
-  .etape{flex:1;display:flex;flex-direction:column;gap:2px;padding:5px 9px;border:1px solid var(--bord);border-radius:7px;background:var(--fond);min-width:0}
-  .etape .num{font-size:9px;color:var(--second);letter-spacing:.05em}
-  .etape .lib{font-size:12px;font-weight:600;color:var(--texte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .etape .badge{font-size:10px;padding:1px 7px;border-radius:999px;align-self:flex-start;margin-top:1px}
-  .etape.active{border-color:var(--vert);box-shadow:0 0 0 1px var(--vert) inset}
+  #barreEtapes{display:flex;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--bord);padding:3px 0}
+  .etape{display:flex;align-items:baseline;gap:10px;padding:4px 16px;font-size:12.5px;border-left:3px solid transparent;transition:background .12s}
+  .etape .num{color:var(--second);font-size:11px;min-width:52px}
+  .etape .lib{font-weight:600;color:var(--encre)}
+  .etape .badge{margin-left:auto;font-size:11px;font-weight:600;letter-spacing:.01em}
+  .etape.fait{border-left-color:var(--vert)} .etape.fait .badge{color:var(--vert)}
+  .etape.afaire{border-left-color:#b0842a} .etape.afaire .badge{color:#a8720f}
+  .etape.souci{border-left-color:#a83232} .etape.souci .badge{color:#a83232}
+  .etape.active{background:var(--vertf)}
+  .etape.clic{cursor:pointer} .etape.clic:hover{background:var(--vertf)}
   .badge.non_commence{background:#ececec;color:#888}
   .badge.pret{background:#e6f0e6;color:#3d6b4f}
   .badge.en_cours{background:#fef3d8;color:#b26a1a}
@@ -72,7 +83,7 @@
   .badge.perime{background:#fbe6de;color:#b5482a}
   .badge.bloque,.badge.erreur{background:#fadbd0;color:#9a2a2a}
   [data-theme="dark"] #barreEtapes{background:#241f1a}
-  [data-theme="dark"] .etape{background:#2a2520;border-color:#3a332b}
+  [data-theme="dark"] .etape.afaire .badge{color:#d69a3a}
   /* Phase E — panneau de validation ciblée (familles + critiques + blocages). */
   #panneauValidation{padding:8px 12px;background:var(--fond-clair,#faf8f4);border-bottom:1px solid var(--bord);font-size:13px}
   #panneauValidation .val-tete{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:6px}
@@ -225,11 +236,12 @@
 <div class="barre2" id="diag" style="display:none;color:var(--ambre)"></div>
 
 <div class="barre2">
-  <button class="discret" id="prec">‹ page</button>
-  <label>Page <input type="number" id="page" min="1" value="1" /></label>
-  <span id="total" style="color:var(--second);font-size:12px"></span>
-  <button class="discret" id="suiv">page ›</button>
-  <span style="width:12px"></span>
+  <span id="grpPage" style="display:none">
+    <button class="discret" id="prec">‹ page</button>
+    <input type="number" id="page" min="1" value="1" />
+    <span id="total"></span>
+    <button class="discret" id="suiv">page ›</button>
+  </span>
   <label id="lblTypo" style="display:flex;gap:4px;align-items:center">Typo
     <select id="typo" title="Typographie : « ancien » lit le s long (ſ) des imprimés d'Ancien Régime">
       <option value="moderne">moderne · Tesseract</option>
@@ -254,7 +266,6 @@
   <button class="discret" id="btnRelancerErr" style="display:none">Relancer les pages en erreur</button>
 </div>
 
-<button class="discret" id="btnTogglePre" title="Prétraitement d'image expérimental (OFF par défaut) : gris, contraste, binariser… à comparer" style="align-self:flex-start;margin:2px 0">⚙ Prétraitement…</button>
 <div class="barre2" id="barrePre" style="gap:10px;flex-wrap:wrap;display:none">
   <span style="font-size:12px;color:var(--second);font-weight:600" title="OFF par défaut. À valider par comparaison : un prétraitement n'est utile que s'il améliore l'OCR.">Prétraitement (exp.)</span>
   <label class="pchk"><input type="checkbox" id="p_gris"> gris</label>
@@ -283,7 +294,7 @@
   </div>
 </div>
 
-<div class="barre2">
+<div class="barre2" id="barreExport">
   <label>Projet <input id="projet" placeholder="cyprien-de-lapsis" style="width:170px" /></label>
   <button class="discret" id="btnSave">Enregistrer</button>
   <span id="etatSave" style="font-size:12px;color:var(--second)"></span>
@@ -293,8 +304,6 @@
   <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="chkNotes" checked> recenser les notes [[N]]</label>
   <button id="btnExport">Exporter (DOCX + SQL + JSON + TXT + MD)</button>
   <span id="etatExport" style="font-size:12px;color:var(--second)"></span>
-  <span style="flex:1"></span>
-  <button class="discret" id="btnToggleAvance" title="Formats d'échange, validation humaine, entraînement, banc d'essai, analyse de structure">Avancé ▾</button>
 </div>
 
 <div class="barre2" id="barreAvance" style="display:none">
@@ -309,28 +318,41 @@
 <main id="main">
   <div class="volet-meta" id="voletMeta">
     <div class="meta-tete">
-      <button class="meta-toggle" id="metaToggle" title="Replier les métadonnées">‹</button>
-      <span class="meta-titre">Métadonnées</span>
-      <button class="discret meta-extraire" id="btnMeta" title="Extraire de la page de titre">Extraire</button>
-      <button class="discret meta-extraire" id="btnMetaIA" title="Compléter les champs vides en lisant la page de titre par l'IA (appel cloud facturé, avec consentement)">IA titre</button>
+      <button class="meta-toggle" id="metaToggle" title="Replier le volet">‹</button>
+      <div class="vtabs" id="vtabs">
+        <button data-t="meta" class="actif">Métadonnées</button>
+        <button data-t="pre">Prétraitement</button>
+        <button data-t="ocr">Réglage OCR</button>
+        <button data-t="exp">Export</button>
+      </div>
     </div>
-    <div class="meta-corps" id="metaCorps">
-      <label>Auteur <input id="m_auteur" placeholder="Saint Basile le Grand"></label>
-      <label>Titre <input id="m_titre"></label>
-      <label>Sous-titre <input id="m_sous_titre"></label>
-      <label>Titre original <input id="m_titre_original"></label>
-      <label>Langue originale <input id="m_langue_originale" placeholder="latin / grec"></label>
-      <label>Langue de traduction <input id="m_langue_trad" placeholder="français"></label>
-      <label>Traducteur <input id="m_trad_auteur"></label>
-      <label>Éditeur <input id="m_editeur"></label>
-      <label>Collection <input id="m_collection"></label>
-      <label>Ville <input id="m_ville"></label>
-      <label>Date de publication <input id="m_date_publication" placeholder="1858"></label>
-      <label>Date de composition <input id="m_date_composition" placeholder="ive s."></label>
-      <label>Genre <input id="m_genre"></label>
-      <div id="etatMeta" class="meta-etat"></div>
-      <details id="metaDiag" class="meta-diag" style="display:none"><summary>détails de la lecture IA</summary><div id="metaDiagCorps"></div></details>
+
+    <div class="vpanel" id="panelMeta">
+      <div class="vpanel-actions">
+        <button class="discret" id="btnMeta" title="Extraire les métadonnées de la page de titre (parseur hors-ligne)">Extraire</button>
+        <button class="discret" id="btnMetaIA" title="Lire la page de titre par l'IA (Opus, sur l'abonnement) et enrichir depuis le catalogue">Convoquer l'IA</button>
+      </div>
+      <div class="meta-corps" id="metaCorps">
+        <label>Auteur <input id="m_auteur" placeholder="Saint Basile le Grand"></label>
+        <label>Titre <input id="m_titre"></label>
+        <label>Sous-titre <input id="m_sous_titre"></label>
+        <label>Titre original <input id="m_titre_original"></label>
+        <label>Langue originale <input id="m_langue_originale" placeholder="latin / grec"></label>
+        <label>Langue de traduction <input id="m_langue_trad" placeholder="français"></label>
+        <label>Traducteur <input id="m_trad_auteur"></label>
+        <label>Éditeur <input id="m_editeur"></label>
+        <label>Collection <input id="m_collection"></label>
+        <label>Ville <input id="m_ville"></label>
+        <label>Date de publication <input id="m_date_publication" placeholder="1858"></label>
+        <label>Date de composition <input id="m_date_composition" placeholder="ive s."></label>
+        <label>Genre <input id="m_genre"></label>
+        <div id="etatMeta" class="meta-etat"></div>
+        <details id="metaDiag" class="meta-diag" style="display:none"><summary>détails de la lecture IA</summary><div id="metaDiagCorps"></div></details>
+      </div>
     </div>
+    <div class="vpanel" id="panelPre" style="display:none"><div id="panelPreCorps" class="vpanel-corps"></div></div>
+    <div class="vpanel" id="panelOcr" style="display:none"><div id="panelOcrCorps" class="vpanel-corps"></div></div>
+    <div class="vpanel" id="panelExport" style="display:none"><div id="panelExportCorps" class="vpanel-corps"></div></div>
   </div>
   <div class="volet" id="voletImage">
     <div id="imgHolder"><div class="vide">Indique un chemin, puis « OCR cette page ».</div></div>
@@ -369,19 +391,20 @@ const S={ kind:'imprime', pages:{}, page:1, total:null, couche:'dip', arret:fals
 // ── Pipeline 5 étapes (Phase A) : barre visuelle persistante de l'état du parcours ──
 const ETAPES_UI=[['diagnostic_ia','1','Diagnostic IA'],['ocr_local','2','OCR local'],['controle_ia','3','Contrôle IA'],['validation_ciblee','4','Validation ciblée'],['generation_locale','5','Génération locale']]
 const LIB_ETAT={non_commence:'non commencé',pret:'prêt',en_cours:'en cours',termine:'terminé',a_verifier:'à vérifier',bloque:'bloqué',erreur:'erreur',perime:'périmé'}
+function classeEtatEtape(et){ return (et==='termine'||et==='a_verifier') ? 'fait' : (et==='erreur'||et==='bloque') ? 'souci' : 'afaire' }
 function rendreBarreEtapes(){ const bar=$('barreEtapes'); if(!bar)return; const wf=S.workflow; bar.innerHTML=''
   for(const [cle,num,lib] of ETAPES_UI){ const et=(wf&&wf.etapes&&wf.etapes[cle]&&wf.etapes[cle].etat)||'non_commence'
-    const d=document.createElement('div'); d.className='etape'+(wf&&wf.etape_active===cle?' active':'')
-    const n=document.createElement('span'); n.className='num'; n.textContent='ÉTAPE '+num
+    const d=document.createElement('div'); d.className='etape '+classeEtatEtape(et)+(wf&&wf.etape_active===cle?' active':'')
+    const n=document.createElement('span'); n.className='num'; n.textContent='Étape '+num
     const l=document.createElement('span'); l.className='lib'; l.textContent=lib
-    const b=document.createElement('span'); b.className='badge '+et; let libEt=LIB_ETAT[et]||et
+    const b=document.createElement('span'); b.className='badge'; let libEt=LIB_ETAT[et]||et
     if(cle==='ocr_local'&&wf&&wf.etapes.ocr_local&&wf.etapes.ocr_local.resume){ const rz=wf.etapes.ocr_local.resume; if(rz.manquantes>0) libEt+=' · '+rz.manquantes+' manquante(s)'; else if(rz.total) libEt+=' · '+rz.faites+'/'+rz.total }
     b.textContent=libEt
     d.appendChild(n); d.appendChild(l); d.appendChild(b)
-    if(cle==='diagnostic_ia'){ d.style.cursor='pointer'; d.title='Refaire le diagnostic (page de titre + typographie → profil de traitement)'; d.onclick=()=>{ if($('chemin').value.trim()) analyser() } }
-    if(cle==='controle_ia'){ d.style.cursor='pointer'; d.title='Lancer le contrôle déterministe (confiance, lignes vides, doublons, pages anormales)'; d.onclick=()=>lancerControle() }
-    if(cle==='validation_ciblee'){ d.style.cursor='pointer'; d.title='Validation ciblée : familles à échantillonner, cas critiques, blocages'; d.onclick=()=>lancerValidation() }
-    if(cle==='generation_locale'){ d.style.cursor='pointer'; d.title='Générer les livrables (JSON/DOCX/TXT/MD/SQL/ALTO/PAGE) + rapport de provenance'; d.onclick=()=>lancerGeneration() }
+    if(cle==='diagnostic_ia'){ d.classList.add('clic'); d.title='Refaire le diagnostic (page de titre + typographie → profil de traitement)'; d.onclick=()=>{ if($('chemin').value.trim()) analyser() } }
+    if(cle==='controle_ia'){ d.classList.add('clic'); d.title='Lancer le contrôle déterministe (confiance, lignes vides, doublons, pages anormales)'; d.onclick=()=>lancerControle() }
+    if(cle==='validation_ciblee'){ d.classList.add('clic'); d.title='Validation ciblée : familles à échantillonner, cas critiques, blocages'; d.onclick=()=>lancerValidation() }
+    if(cle==='generation_locale'){ d.classList.add('clic'); d.title='Générer les livrables (JSON/DOCX/TXT/MD/SQL/ALTO/PAGE) + rapport de provenance'; d.onclick=()=>lancerGeneration() }
     bar.appendChild(d) } }
 rendreBarreEtapes(); setTimeout(()=>{ try{ chargerEtatIA() }catch{} }, 0) // §14.6 : état du fournisseur au démarrage
 
@@ -1022,9 +1045,25 @@ $('metaToggle').onclick=()=>{ const replie=$('main').classList.toggle('meta-repl
 $('btnParcourir').onclick=parcourir
 $('btnMeta').onclick=extraireMeta
 $('btnMetaIA').onclick=completerMetaIA
-// Replis d'ergonomie : prétraitement expérimental et exports avancés masqués par défaut.
-$('btnTogglePre').onclick=()=>{ const b=$('barrePre'); b.style.display = b.style.display==='none' ? 'flex' : 'none' }
-$('btnToggleAvance').onclick=()=>{ const b=$('barreAvance'); const ferme=b.style.display==='none'; b.style.display=ferme?'flex':'none'; $('btnToggleAvance').textContent=ferme?'Avancé ▴':'Avancé ▾' }
+// Onglets du volet gauche : on DÉPLACE les contrôles existants dans les panneaux (id conservés).
+;(function(){
+  const pOcr=$('panelOcrCorps'), pPre=$('panelPreCorps'), pExp=$('panelExportCorps')
+  // Réglage OCR : Typo, bilingue (en regard), latin = page…
+  if($('lblTypo')) pOcr.append($('lblTypo'))
+  if($('bilingue')) pOcr.append($('bilingue').closest('label'))
+  if($('offset')) pOcr.append($('offset'))
+  // Prétraitement : la barre entière (rendue visible dans le panneau)
+  if($('barrePre')){ $('barrePre').style.display='flex'; pPre.append($('barrePre')) }
+  // Export : barre projet/export + exports avancés
+  if($('barreExport')) pExp.append($('barreExport'))
+  if($('barreAvance')){ $('barreAvance').style.display='flex'; pExp.append($('barreAvance')) }
+})()
+// Bascule d'onglets du volet gauche.
+document.querySelectorAll('#vtabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#vtabs button').forEach(x=>x.classList.toggle('actif', x===b))
+  const t=b.dataset.t
+  ;[['meta','panelMeta'],['pre','panelPre'],['ocr','panelOcr'],['exp','panelExport']].forEach(([k,id])=>{ $(id).style.display=(k===t)?'':'none' })
+})
 ;[...document.querySelectorAll('#metaCorps input')].forEach(i=>i.oninput=()=>{ i.classList.remove('meta-ia'); i.classList.remove('meta-auto'); i.classList.remove('meta-ia-enrichi'); planifierSave() })
 let tSave
 function planifierSave(){ if(!$('projet').value.trim())return; clearTimeout(tSave); tSave=setTimeout(()=>sauver(true),1200) }
