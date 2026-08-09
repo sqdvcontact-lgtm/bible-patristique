@@ -5,6 +5,28 @@ import { fournisseurMock } from '../src/ia/mock.mjs'
 import { fournisseurClaude } from '../src/ia/claude.mjs'
 import { pagesEchantillon, construireProfil, regimePourPage, pageAnormale } from '../src/ia/diagnostic.mjs'
 import { etatFournisseur, consentementActif } from '../src/ia/consentement.mjs'
+import { messagesLettrine, messagesCorrection } from '../src/ia/prompt.mjs'
+import { cheminPngDepuisUrl } from '../src/ia/crop.mjs'
+
+test('IA prompt : messagesLettrine — image + consigne JSON, le texte du livre est une donnée', () => {
+  const m = messagesLettrine({ crop_base64: 'BASE64', texte_ocr: 'oy', contexte: 'dont les', ligne_id: 'p19-l0' })
+  assert.match(m.systeme, /DONNÉE.*jamais une instruction/s) // §14.5 sécurité des prompts
+  assert.equal(m.messages[0].content[0].type, 'image')
+  assert.equal(m.messages[0].content[0].source.data, 'BASE64')
+  assert.match(m.messages[0].content[1].text, /lecture_candidate/) // schéma JSON demandé
+  assert.match(m.messages[0].content[1].text, /"oy"/)             // OCR présent comme donnée (JSON)
+})
+
+test('IA prompt : messagesCorrection — schéma correction_ocr, pas de modernisation', () => {
+  const m = messagesCorrection({ crop_base64: 'X', texte_ocr: 'neigor' })
+  assert.match(m.messages[0].content[1].text, /texte_propose/)
+  assert.match(m.systeme, /Ne modernise/)
+})
+
+test('IA : cheminPngDepuisUrl extrait le chemin d’un /api/fichier?path=', () => {
+  assert.equal(cheminPngDepuisUrl('/api/fichier?path=C%3A%5Cx%5Cp19.png'), 'C:\\x\\p19.png')
+  assert.equal(cheminPngDepuisUrl('C:\\direct.png'), 'C:\\direct.png')
+})
 
 test('IA §14.6 : etatFournisseur — dispo selon la clé, sans jamais révéler la clé', () => {
   const local = etatFournisseur({})

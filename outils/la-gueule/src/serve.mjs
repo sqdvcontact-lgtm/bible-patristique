@@ -19,6 +19,8 @@ import { choisirFournisseur } from './ia/fournisseur.mjs'
 import { classerValidation } from './ia/validation.mjs'
 import { rapportGeneration, etatLivraison } from './ia/generation.mjs'
 import { etatFournisseur, lireConsentement, ecrireConsentement, consentementActif } from './ia/consentement.mjs'
+import { cropBase64, cheminPngDepuisUrl } from './ia/crop.mjs'
+import { messagesLettrine, messagesCorrection } from './ia/prompt.mjs'
 import { detecterLangue, apparierParagraphes } from './bilingue.mjs'
 import { annoterProjet } from './structure.mjs'
 
@@ -259,7 +261,21 @@ export function demarrer({ port = 4599 } = {}) {
         // Consentement vérifié CÔTÉ SERVEUR (jamais sur simple confiance du client) : le cloud ne part
         // que si un consentement actif couvre le fournisseur courant.
         const consentement = consentementActif(await lireConsentement(), etatFournisseur(process.env).nom)
-        const { interventions } = await controlerIA(b.projet || {}, { fournisseur, consentement })
+        // Requête de vision (crop + prompt) seulement si cloud ET consentement — sinon aucun envoi.
+        const preparerCharge = (fournisseur.cloud && consentement)
+          ? async (tache, { page, ligne, ligne_obj }) => {
+            const pngWin = cheminPngDepuisUrl(b.projet?.pages?.[page]?.pngUrl)
+            const crop = pngWin ? await cropBase64(pngWin, ligne_obj.bbox) : null
+            if (!crop) return { texte: ligne_obj.dip } // pas d'image → l'IA s'abstiendra
+            const lg = b.projet?.pages?.[page]?.lignes || []
+            const contexte = lg.slice(ligne + 1, ligne + 3).map((l) => l.dip).join(' ')
+            const id = 'p' + page + '-l' + ligne
+            return tache === 'lettrine'
+              ? messagesLettrine({ crop_base64: crop, texte_ocr: ligne_obj.dip, contexte, ligne_id: id })
+              : messagesCorrection({ crop_base64: crop, texte_ocr: ligne_obj.dip, ligne_id: id })
+          }
+          : null
+        const { interventions } = await controlerIA(b.projet || {}, { fournisseur, consentement, preparerCharge })
         return json(res, 200, { findings: [...findings, ...interventions], compteurs: { ...compteurs, ia: interventions.length }, ia_active: fournisseur.cloud && consentement })
       }
 

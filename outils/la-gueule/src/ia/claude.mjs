@@ -24,15 +24,22 @@ export function fournisseurClaude(env = {}) {
     if (!mdl) return { type: tache, statut: 'candidat', abstention: true, erreur: 'modèle non configuré (LG_AI_MODEL_*)', fournisseur: 'anthropic' }
     const ctrl = signal || (typeof AbortController !== 'undefined' ? new AbortController().signal : undefined)
     try {
+      const corps = { model: mdl, max_tokens: 1024, messages: charge?.messages || [] }
+      if (charge?.systeme) corps.system = charge.systeme
       const rep = await fetch(ENDPOINT, {
         method: 'POST',
         signal: ctrl,
         headers: { 'x-api-key': cle, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        body: JSON.stringify({ model: mdl, max_tokens: 1024, messages: charge?.messages || [] }),
+        body: JSON.stringify(corps),
       })
       if (!rep.ok) return { type: tache, statut: 'candidat', abstention: true, erreur: 'HTTP ' + rep.status, fournisseur: 'anthropic', modele: mdl }
       const data = await rep.json()
-      return { type: tache, statut: 'candidat', abstention: false, brut: data, fournisseur: 'anthropic', modele: mdl }
+      // Sortie STRICTE : on n'accepte que du JSON (jamais de prose libre prise pour une correction).
+      const texte = (Array.isArray(data?.content) ? data.content.find((c) => c.type === 'text')?.text : '') || ''
+      const brut = texte.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim()
+      let obj = null; try { obj = JSON.parse(brut) } catch { /* non JSON */ }
+      if (!obj || typeof obj !== 'object') return { type: tache, statut: 'candidat', abstention: true, erreur: 'réponse IA non conforme (JSON attendu)', fournisseur: 'anthropic', modele: mdl }
+      return { ...obj, type: obj.type || tache, statut: 'candidat', abstention: !!obj.abstention, fournisseur: 'anthropic', modele: mdl }
     } catch (e) {
       // Panne / timeout : ne bloque jamais le projet ; l'IA est simplement « indisponible ».
       return { type: tache, statut: 'candidat', abstention: true, erreur: 'IA indisponible : ' + (e?.message || e), fournisseur: 'anthropic', modele: mdl }

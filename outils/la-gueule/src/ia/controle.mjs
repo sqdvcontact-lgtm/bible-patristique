@@ -105,7 +105,7 @@ export function interventionDepuisSortieIA(sortie, ctx = {}) {
  * fournisseur n'agit que derrière clé + consentement). Ne modifie JAMAIS le projet ; renvoie des
  * interventions candidates traçables.
  */
-export async function controlerIA(projet, { fournisseur, consentement = false, cache = null, seuilConfiance = 0.8 } = {}) {
+export async function controlerIA(projet, { fournisseur, consentement = false, cache = null, seuilConfiance = 0.8, preparerCharge = null } = {}) {
   const interventions = []
   if (!fournisseur) return { interventions }
   const nums = Object.keys(projet?.pages || {}).map(Number).sort((a, b) => a - b)
@@ -114,13 +114,14 @@ export async function controlerIA(projet, { fournisseur, consentement = false, c
     for (let i = 0; i < lignes.length; i++) {
       const l = lignes[i], s = l.suggestion
       const ctx = { page: n, ligne_ids: [i], bbox: l.bbox, texte_original: l.dip }
-      if (s && /^lettrine_candidate$/.test(s.role_suggere || '')) {
-        const out = await appelerIA(fournisseur, 'lettrine', { page: n, ligne: i, texte: l.dip }, { consentement, cache })
-        const iv = interventionDepuisSortieIA(out, { ...ctx, regle: 'lettrine' }); if (iv) interventions.push(iv)
-      } else if (l.confiance != null && l.confiance < seuilConfiance) {
-        const out = await appelerIA(fournisseur, 'ligne', { page: n, ligne: i, texte: l.dip }, { consentement, cache })
-        const iv = interventionDepuisSortieIA(out, { ...ctx, regle: 'correction_ocr' }); if (iv) interventions.push(iv)
-      }
+      const estLettrine = s && /^lettrine_candidate$/.test(s.role_suggere || '')
+      const faibleConf = l.confiance != null && l.confiance < seuilConfiance
+      if (!estLettrine && !faibleConf) continue
+      const tache = estLettrine ? 'lettrine' : 'ligne'
+      // preparerCharge (serveur) construit le crop + les messages ; sinon charge texte simple (mock).
+      const charge = preparerCharge ? await preparerCharge(tache, { page: n, ligne: i, ligne_obj: l, projet }) : { page: n, ligne: i, texte: l.dip }
+      const out = await appelerIA(fournisseur, tache, charge, { consentement, cache })
+      const iv = interventionDepuisSortieIA(out, { ...ctx, regle: estLettrine ? 'lettrine' : 'correction_ocr' }); if (iv) interventions.push(iv)
     }
   }
   return { interventions }
