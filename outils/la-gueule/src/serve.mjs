@@ -14,7 +14,8 @@ import { ocrPage, pdfNbPages, pdfInfo, choisirFichier, runBash, annulerTaches } 
 import { parserMetadonnees, typographieProbable } from './metadonnees.mjs'
 import { parseAlto } from './alto.mjs'
 import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes, sauverProfil, sauverRapportGeneration } from './projet.mjs'
-import { controlerDeterministe } from './ia/controle.mjs'
+import { controlerDeterministe, controlerIA } from './ia/controle.mjs'
+import { choisirFournisseur } from './ia/fournisseur.mjs'
 import { classerValidation } from './ia/validation.mjs'
 import { rapportGeneration, etatLivraison } from './ia/generation.mjs'
 import { detecterLangue, apparierParagraphes } from './bilingue.mjs'
@@ -248,11 +249,14 @@ export function demarrer({ port = 4599 } = {}) {
         return json(res, 200, { ok: true, chemin })
       }
 
-      // Phase D — passe de contrôle DÉTERMINISTE (sans IA, sans réseau) : findings + compteurs.
+      // Phase D — contrôle : passe DÉTERMINISTE + passe IA (fournisseur configuré ; mock par défaut
+      // s'abstient ; le cloud ne part JAMAIS sans consentement explicite dans la requête).
       if (p === '/api/ia/controle' && req.method === 'POST') {
         const b = await corps(req)
         const { findings, compteurs } = controlerDeterministe(b.projet || {})
-        return json(res, 200, { findings, compteurs })
+        const fournisseur = choisirFournisseur(process.env)
+        const { interventions } = await controlerIA(b.projet || {}, { fournisseur, consentement: !!b.consentement })
+        return json(res, 200, { findings: [...findings, ...interventions], compteurs: { ...compteurs, ia: interventions.length } })
       }
 
       // Phase E — répartition des findings pour la validation ciblée (familles / critiques / blocages).

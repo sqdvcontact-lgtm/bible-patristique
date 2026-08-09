@@ -4,6 +4,7 @@
 // brut reste immuable ; rien n'est validé sans l'humain.
 
 import { pageAnormale } from './diagnostic.mjs'
+import { appelerIA } from './fournisseur.mjs'
 
 /** Intervention normalisée (provenance complète, §15). Statut par défaut : propose_ia. */
 export function intervention(c = {}) {
@@ -72,4 +73,55 @@ export function controlerDeterministe(projet, { seuilConfiance = 0.8 } = {}) {
     })
   }
   return { findings, compteurs }
+}
+
+/**
+ * Mappe une sortie IA (lettrine / titre / correction) en INTERVENTION §15, avec provenance et risque.
+ * Une abstention → aucune intervention (null). Une lecture CONJECTURALE (inférée du contexte, non
+ * fondée sur l'image) → R3 ET interdit_entrainement (jamais au ground-truth).
+ */
+export function interventionDepuisSortieIA(sortie, ctx = {}) {
+  if (!sortie || sortie.abstention) return null
+  const contextuel = !!sortie.inference_contextuelle
+  const fondeeImage = sortie.lecture_fondee_sur_image !== false && !contextuel
+  let risque = 'R2'
+  if (contextuel || sortie.presence === 'probable' || sortie.lecture_partielle || sortie.restitution_editoriale) risque = 'R3'
+  return intervention({
+    id: ctx.id || sortie.type, type: sortie.type || 'correction_ocr', page: ctx.page ?? null,
+    ligne_ids: ctx.ligne_ids || [], bbox: ctx.bbox || [],
+    texte_original: ctx.texte_original ?? sortie.texte_ocr ?? '',
+    texte_candidat: sortie.lecture_candidate ?? sortie.texte_propose ?? sortie.texte_reconstruit ?? '',
+    modele: sortie.modele ?? null, fournisseur: sortie.fournisseur ?? null,
+    regle: ctx.regle || sortie.type, preuves: sortie.preuves || [],
+    lecture_fondee_sur_image: fondeeImage, inference_contextuelle: contextuel,
+    confiance_modele: sortie.confiance ?? 0, niveau_risque: risque,
+    statut: 'propose_ia', interdit_entrainement: contextuel || !!sortie.restitution_editoriale,
+  })
+}
+
+/**
+ * Passe de contrôle IA (§8.3-8.5) : sur les lettrines candidates et les lignes à faible confiance,
+ * demande un avis au fournisseur (mock → s'abstient, donc AUCUNE intervention par défaut ; un vrai
+ * fournisseur n'agit que derrière clé + consentement). Ne modifie JAMAIS le projet ; renvoie des
+ * interventions candidates traçables.
+ */
+export async function controlerIA(projet, { fournisseur, consentement = false, cache = null, seuilConfiance = 0.8 } = {}) {
+  const interventions = []
+  if (!fournisseur) return { interventions }
+  const nums = Object.keys(projet?.pages || {}).map(Number).sort((a, b) => a - b)
+  for (const n of nums) {
+    const lignes = projet.pages[n].lignes || []
+    for (let i = 0; i < lignes.length; i++) {
+      const l = lignes[i], s = l.suggestion
+      const ctx = { page: n, ligne_ids: [i], bbox: l.bbox, texte_original: l.dip }
+      if (s && /^lettrine_candidate$/.test(s.role_suggere || '')) {
+        const out = await appelerIA(fournisseur, 'lettrine', { page: n, ligne: i, texte: l.dip }, { consentement, cache })
+        const iv = interventionDepuisSortieIA(out, { ...ctx, regle: 'lettrine' }); if (iv) interventions.push(iv)
+      } else if (l.confiance != null && l.confiance < seuilConfiance) {
+        const out = await appelerIA(fournisseur, 'ligne', { page: n, ligne: i, texte: l.dip }, { consentement, cache })
+        const iv = interventionDepuisSortieIA(out, { ...ctx, regle: 'correction_ocr' }); if (iv) interventions.push(iv)
+      }
+    }
+  }
+  return { interventions }
 }
