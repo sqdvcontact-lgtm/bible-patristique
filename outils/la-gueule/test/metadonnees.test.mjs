@@ -1,7 +1,38 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { parserMetadonnees, titreSansAuteur, typographieProbable } from '../src/metadonnees.mjs'
+import { parserMetadonnees, titreSansAuteur, typographieProbable, anneeRomaine } from '../src/metadonnees.mjs'
+
+// Texte OCR (fidèle) de la page de titre de Boèce, Ceriziers, Rouen 1646 — cas de test réel.
+const TITRE_BOECE = [
+  'LA CONSOLATION DE LA PHILOSOPHIE.',
+  'Traduicte du latin de BOECE, en François.',
+  'Par le P. DE CERIZIERS, de la Compagnie de IESVS.',
+  'Edition Cinquiesme.', 'Reueuë par le Traducteur.',
+  'A ROVEN,',
+  'Iean Viret, Imprimeur ordinaire du Roy, au haut des degrez du Palais.',
+  'Chez Iacques Besongne, dans la court du Palais.',
+  'ET Clem. Malassis, dans l’Estre N. Dame.',
+  'M.DC.XXXXVI.', 'Auec Approbation.',
+].join('\n')
+
+test('anneeRomaine : millésime romain, forme additive ancienne (XXXX=40) et soustractive', () => {
+  assert.equal(anneeRomaine('M.DC.XXXXVI.'), 1646)   // additif (page de titre de Boèce)
+  assert.equal(anneeRomaine('MDCXLVI'), 1646)        // soustractif
+  assert.equal(anneeRomaine('chapitre XI, vers III'), null) // fragments trop courts → pas de faux positif
+  assert.equal(anneeRomaine('LA CONSOLATION'), null) // un mot n'est pas une date
+})
+
+test('parserMetadonnees : page de titre de Boèce (Rouen 1646) — ville, date romaine, imprimeur, traducteur', () => {
+  const m = parserMetadonnees({ texteTitre: TITRE_BOECE })
+  assert.equal(m.ville, 'Rouen')                         // « A ROVEN » (u↔v) → Rouen
+  assert.equal(m.date_publication, '1646')               // M.DC.XXXXVI lu en romain
+  assert.match(m.editeur, /Viret/)                       // « Iean Viret, Imprimeur… »
+  assert.match(m.trad_auteur, /Ceriziers/i)              // « Par le P. de Ceriziers »
+  assert.equal(m.langue_originale, 'latin')              // « du latin de… »
+  assert.ok(m.titre)                                     // un titre est proposé (le titre TOUT EN
+  // CAPITALES « LA CONSOLATION… » reste une limite d'heuristique — cas typique où lire l'image tranche).
+})
 
 test('typographieProbable : date ancienne → ancien ; postérieure → moderne', () => {
   assert.equal(typographieProbable({ date_publication: '1636' }).ancien, true)
