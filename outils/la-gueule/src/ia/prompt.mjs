@@ -13,6 +13,28 @@ const SYSTEME =
   'Ne modernise JAMAIS une graphie ancienne : conserve le s long ſ, l\'équivalence u/v et i/j telles qu\'imprimées. ' +
   'Ta sortie est un CANDIDAT, jamais une validation.'
 
+/**
+ * TRI DE STRUCTURE : consigne pour classer chaque page d'une PLANCHE de vignettes numérotées. Chaque
+ * page reçoit un type et `a_ocriser` (true = texte d'œuvre/paratexte à transcrire ; false = garde,
+ * numérisation, reliure, ornement). Sert à exclure les pages inutiles de l'OCR.
+ */
+export function consigneTriage(pages = []) {
+  return (
+    'Voici une PLANCHE de vignettes d\'un imprimé ancien numérisé. Chaque vignette porte SON NUMÉRO DE ' +
+    'PAGE (inscrit dessous). Regarde chaque vignette et classe la page correspondante.\n' +
+    'Types possibles : "corps" (texte de l\'œuvre), "titre" (page de titre / frontispice), "table", ' +
+    '"index", "preface", "dedicace", "approbation" (paratexte textuel à garder) ; "garde" (page blanche ' +
+    'ou quasi vide), "numerisation" (mention de numérisation, ex. « Digitized by Google »), "reliure" ' +
+    '(couverture, plat, tranche, page cornée), "ornement" (gravure/bandeau/planche SANS texte d\'œuvre), ' +
+    '"autre".\n' +
+    'Pour chaque page, "a_ocriser" = true si elle porte du TEXTE à transcrire (corps ou paratexte ' +
+    'textuel) ; false pour garde, numerisation, reliure, ornement.\n' +
+    'Numéros présents sur cette planche : ' + JSON.stringify(pages) + '.\n' +
+    'Réponds en JSON STRICT, une seule ligne :\n' +
+    '{"type":"triage_pages","pages":[{"n":0,"type":"","a_ocriser":true}],"abstention":false,"statut":"candidat"}'
+  )
+}
+
 /** Messages Anthropic pour lire une LETTRINE (initiale ornée) à partir d'un crop. */
 export function messagesLettrine({ crop_base64, media_type = 'image/png', texte_ocr = '', contexte = '', ligne_id = null } = {}) {
   const consigne =
