@@ -968,13 +968,14 @@ async function completerMetaIA(){ const chemin=$('chemin').value.trim(); if(!che
   const texteTitre=lignesCour.map(l=>l.dip||l.texte||'').join('\n')
   $('etatMeta').textContent='lecture IA de la page de titre…'; chargeOn('Lecture IA de la page de titre…')
   try{ const r=await api('/api/ia/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin,page,texteTitre})})
+    console.log('IA titre — réponse:', r) // diagnostic (visible dans la console F12)
     if(!r.ia_active){ $('etatMeta').textContent='IA non active ('+(r.motif||'—')+')'; return }
     const m=r.meta_ia||{}; let n=0
     // On remplace les champs VIDES et ceux devinés par le parseur (meta-auto) ; jamais ce que tu as tapé.
     CHAMPS_META.forEach(c=>{ const el=$('m_'+c); if(!el)return
       const remplacable=!el.value.trim()||el.classList.contains('meta-auto')
       if(m[c]!=null&&String(m[c]).trim()&&remplacable){ el.value=String(m[c]).trim(); el.classList.add('meta-ia'); el.classList.remove('meta-auto'); el.title='proposé par l\'IA — à vérifier'; n++ } })
-    if(r.abstention&&!n){ $('etatMeta').textContent='l\'IA s\'est abstenue (page peu lisible) — rien ajouté.' }
+    if(r.abstention&&!n){ $('etatMeta').textContent='IA ('+(r.fournisseur||'?')+') s\'est abstenue'+(r.erreur?(' : '+r.erreur):' (page non lisible / pas une page de titre)')+' — rien ajouté.' }
     else $('etatMeta').textContent='✓ IA : '+n+' champ(s) renseigné(s) par lecture d\'image — à vérifier'+(r.confiance!=null?(' (confiance '+r.confiance+')'):'')
     if(n){ planifierSave() }
   }catch(e){ $('etatMeta').textContent='échec IA : '+e.message }
