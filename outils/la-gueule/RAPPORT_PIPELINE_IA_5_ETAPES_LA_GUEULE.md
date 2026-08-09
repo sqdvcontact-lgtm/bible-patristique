@@ -60,10 +60,13 @@ Chaque étape est persistée et versionnée ; une modification en amont périme 
   étape 3 câblée (compteurs, avance du workflow). 4 tests. **RESTE Phase D** : contrôles IA VISUELS
   (lettrines, titres, corrections OCR par crop) derrière clé + consentement (mock s'abstient) ; revue
   globale du livre ; écriture des corrections retenues dans la couche candidate.
-- **Phase E — Validation ciblée** : classification de risque **R0–R4** ; familles ; échantillonnage
-  (0/5 → proposer d'accepter ; 1 → 15 ; ≥2 → contrôle détaillé, configurables) ; cas critiques
-  individuels ; blocages ; acceptation en lot ; annulation ; statuts (dont `confirme_humain`/
-  `modifie_humain` seuls admissibles au ground-truth).
+- **Phase E — Validation ciblée — FAITE (`e91ad93`)** : `src/ia/validation.mjs` — `STATUTS`,
+  `admissibleGroundTruth` (§11.7), `grouperFamilles` (risque = max), `echantillonner` (moins sûrs
+  d'abord, étalé, déterministe), `regleEchantillonnage` (0→accepter / 1→étendre 15 / ≥2→détaillé),
+  `classerValidation` (R4→blocage, R3→critique, indéterminé→non résolu, R0-R2→familles, déterministe→
+  auto). Endpoint `/api/ia/validation` + étape 4 (panneau familles/critiques/blocages, « Accepter la
+  famille », blocage → export « complet » interdit). 5 tests, vérifié au navigateur. **RESTE** : écran
+  détaillé par onglets (§13.4), présentation crop/avant/après des occurrences, annulation fine.
 - **Phase F — Génération locale** : relier les exports existants ; rapports ; versions ; états de
   livraison (`FINAL_CANDIDAT` / `…_AVEC_RESERVES` / `CANDIDAT_INCOMPLET`) ; SHA256SUMS ; aucune IA à
   cette étape.
