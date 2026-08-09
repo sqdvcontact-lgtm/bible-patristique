@@ -71,6 +71,13 @@
   #panneauValidation .val-fam{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:3px 0;border-top:1px solid var(--bord-clair,#e4dfd8)}
   #panneauValidation .val-fam span{color:var(--second)}
   #panneauValidation .val-bloc{margin-top:6px;color:#9a2a2a;font-weight:600}
+  #panneauValidation .val-crit{margin-top:6px;padding:6px 8px;border:1px solid #e0b57a;border-radius:6px;background:#fdf6ec}
+  #panneauValidation .val-crit-tete{font-weight:600;color:#8a5a1a;font-size:12px}
+  #panneauValidation .val-avapr{margin:3px 0;font-size:13px}
+  #panneauValidation .val-avapr .av{color:#9a2a2a;text-decoration:line-through}
+  #panneauValidation .val-avapr .apr{color:#2e5440;font-weight:600}
+  #panneauValidation .val-crit-act{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}
+  [data-theme="dark"] #panneauValidation .val-crit{background:#3a2b18;border-color:#6a4a24}
   .navflip{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:34px;height:46px;
     border:1px solid var(--bord);background:rgba(255,253,248,.9);color:var(--vert);border-radius:8px;
     font-size:22px;line-height:1;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.12)}
@@ -424,7 +431,28 @@ function rendrePanneauValidation(){ const p=$('panneauValidation'); if(!p)return
     b.title='Applique la famille dans la couche candidate (statut accepté par échantillonnage ; PAS du ground-truth).'
     b.onclick=()=>accepterFamille(fam.cle)
     d.appendChild(s); d.appendChild(b); p.appendChild(d) }
+  // §11.4/§13.6 — cas CRITIQUES présentés individuellement (avant → après, règle, risque, décision).
+  for(const f of v.critiques){ const d=document.createElement('div'); d.className='val-crit'
+    const t=document.createElement('div'); t.className='val-crit-tete'
+    t.textContent=`⚠ ${f.regle||f.id||'cas'} · ${f.niveau_risque} · page ${f.page??'?'}${(f.ligne_ids&&f.ligne_ids.length)?' l'+f.ligne_ids.join(','):''}`
+    d.appendChild(t)
+    if(f.texte_original!=null||f.texte_candidat!=null){ const av=document.createElement('div'); av.className='val-avapr'
+      av.innerHTML=`<span class="av">${(f.texte_original||'∅').replace(/</g,'&lt;')}</span> → <span class="apr">${(f.texte_candidat||'∅').replace(/</g,'&lt;')}</span>`; d.appendChild(av) }
+    const act=document.createElement('div'); act.className='val-crit-act'
+    for(const [lib,st] of [['Accepter','confirme_humain'],['Modifier','modifie_humain'],['Refuser','refuse'],['Indéterminé','indetermine']]){
+      const bt=document.createElement('button'); bt.className='discret'; bt.textContent=lib
+      bt.onclick=()=>decisionCritique(f, st); act.appendChild(bt) }
+    // voir le crop (image de la page + bbox) si disponible
+    if(Array.isArray(f.bbox)&&f.page!=null&&S.pages[f.page]&&S.pages[f.page].pngUrl){ const z=document.createElement('button'); z.className='discret'; z.textContent='🔍 voir'
+      z.onclick=()=>{ const pg=S.pages[f.page]; const save=S.page; S.page=f.page; zoomRegion(f.bbox); S.page=save }; act.appendChild(z) }
+    d.appendChild(act); p.appendChild(d) }
   if(v.blocages.length){ const bl=document.createElement('div'); bl.className='val-bloc'; bl.textContent='⛔ '+v.blocages.length+' blocage(s) — export « complet » impossible tant qu\'ils ne sont pas levés.'; p.appendChild(bl) } }
+// Décision humaine sur un cas critique : met à jour le finding source + recompte. Seuls confirme/modifie
+// humain ouvrent le ground-truth (§11.7) — appliqué ailleurs à l'écriture ; ici on trace la décision.
+function decisionCritique(f, statut){ if(!S.controle||!S.controle.findings)return
+  const memeFinding=(g)=>((g.regle||g.id)===(f.regle||f.id))&&g.page===f.page&&JSON.stringify(g.ligne_ids||[])===JSON.stringify(f.ligne_ids||[])
+  S.controle.findings.forEach(g=>{ if(memeFinding(g)){ g.statut=statut; if(statut==='modifie_humain'){ const m=window.prompt('Texte corrigé :', g.texte_candidat||g.texte_original||''); if(m!=null) g.texte_candidat=m } } })
+  lancerValidation() }
 function accepterFamille(cle){ if(S.controle&&S.controle.findings) S.controle.findings.forEach(f=>{ if((f.regle||f.id||f.type)===cle && f.statut==='propose_ia') f.statut='accepte_echantillonnage' })
   lancerValidation() } // recompte : la famille passe des « familles » aux « automatiques »
 

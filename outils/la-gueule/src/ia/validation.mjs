@@ -59,6 +59,8 @@ export function classerValidation(findings) {
   const automatiques = [], critiques = [], non_resolus = [], blocages = [], resteFamille = []
   for (const f of (findings || [])) {
     const st = f.statut, r = f.niveau_risque
+    if (st === 'confirme_humain' || st === 'modifie_humain') { automatiques.push(f); continue } // décidé humain
+    if (st === 'refuse' || st === 'annule') continue // refusé / annulé : hors flux
     if (st === 'bloquant' || r === 'R4') blocages.push(f)
     else if (st === 'indetermine') non_resolus.push(f)
     else if (r === 'R3') critiques.push(f)

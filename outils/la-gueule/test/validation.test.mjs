@@ -53,3 +53,12 @@ test('validation §11.1 : R4→blocage, R3→critique, indéterminé→non réso
   assert.equal(c.familles.length, 1) // R0 + R1 « long_s » regroupés en une famille
   assert.equal(c.familles[0].nb, 2)
 })
+
+test('validation : un cas critique DÉCIDÉ par l’humain sort des « critiques »', () => {
+  const accepte = classerValidation([f({ niveau_risque: 'R3', statut: 'confirme_humain' })])
+  assert.equal(accepte.critiques.length, 0)
+  assert.equal(accepte.automatiques.length, 1) // décidé → compté ailleurs, plus « à décider »
+  const refuse = classerValidation([f({ niveau_risque: 'R3', statut: 'refuse' })])
+  assert.equal(refuse.critiques.length, 0)     // refusé → hors flux
+  assert.equal(refuse.automatiques.length, 0)
+})
