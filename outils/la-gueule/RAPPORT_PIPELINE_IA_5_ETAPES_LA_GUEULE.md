@@ -45,8 +45,12 @@ Chaque étape est persistée et versionnée ; une modification en amont périme 
   (diagnostic → terminé, OCR local → prêt) ; la barre 5 étapes le reflète ; étape 1 cliquable. Vérifié.
   **Phase B complète.** *(À enrichir plus tard : appel IA `diagnostiquer` réel derrière consentement,
   écran de consentement dédié.)*
-- **Phase C — OCR local dans le workflow** : relier le profil (régimes par pages) au pipeline
-  `wsl.mjs` existant ; progression, reprise, erreurs conservées.
+- **Phase C — OCR local dans le workflow — FAITE (`20423a2`)** : `regimePourPage(profil, page)`
+  (moteur/modèle selon le régime dont la plage contient la page) et `pageAnormale(lignes)` (signale
+  vide/court, §7.2). `ocr()` consulte le régime (kraken-print vs tesseract) ; après chaque OCR,
+  `apresOcrWorkflow` fait avancer la barre (OCR local terminé → Contrôle IA prêt) et périme l'aval ;
+  pages anormales marquées. Réutilise `wsl.mjs` (reprise/états/arrêt inchangés) — aucun second
+  pipeline. 2 tests.
 - **Phase D — Contrôle IA** : registres `controles/charte-ocr.json`, `controles/catalogue-erreurs-ocr.jsonl`,
   `controles/profils-editions.json` (rechercher d'abord les chartes/règles déjà présentes) ; contrôles
   déterministes ; lettrines ; titres ; corrections OCR (couche candidate, OCR brut immuable) ; structure
