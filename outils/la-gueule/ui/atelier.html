@@ -346,13 +346,13 @@ async function analyser(){
     if(S.kind==='imprime'){
       const {pages}=await api('/api/pdf-info?path='+encodeURIComponent(chemin)); S.total=pages
       $('total').textContent=pages?`/ ${pages}`:''; $('a').value=Math.min(pages||1,($('de').valueAsNumber||1)+9)
-      // Extraction AUTOMATIQUE des métadonnées (pdfinfo + OCR de la page de titre).
-      chargeOn('Lecture de la page de titre…')
-      const r=await api('/api/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin})})
+      // Analyse LÉGÈRE au dépôt (rapide) : page de titre + sonde de typographie, PAS d'OCR du document.
+      chargeOn('Analyse rapide (page de titre + typographie)…')
+      const r=await api('/api/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin, rapide:true})})
       remplirMeta(r.meta); $('main').classList.remove('meta-replie'); $('metaToggle').textContent='‹'; planifierSave()
       // Choix AUTOMATIQUE du moteur adapté à ce livre (imprimé ancien à s long → Kraken).
       const anc=r.typographie?.ancien; $('typo').value=anc?'ancien':'moderne'
-      etat(`PDF : ${pages} pages — métadonnées extraites. Moteur : ${anc?'imprimé ANCIEN (s long → Kraken)':'moderne (Tesseract)'} — ${r.typographie?.raison||''}. Lance « OCR cette page ».`)
+      etat(`PDF : ${pages} pages — analyse rapide faite. Moteur conseillé : ${anc?'imprimé ANCIEN (s long → Kraken)':'moderne (Tesseract)'} — ${r.typographie?.raison||''}. « Extraire » pour un balayage complet des métadonnées ; « OCR cette page » pour océriser.`)
     } else {
       S.total=1; $('total').textContent=''; etat('image prête — « OCR cette page ».')
     }

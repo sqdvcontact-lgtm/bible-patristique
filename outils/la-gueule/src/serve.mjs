@@ -209,20 +209,22 @@ export function demarrer({ port = 4599 } = {}) {
         const info = await pdfInfo(b.path)
         // La page de titre n'est pas toujours en 3/5 (couverture, faux-titre, planches…) :
         // on balaie les 7 premières pages utiles pour la capter. Les pages hors bornes sont ignorées.
-        const pagesTitre = Array.isArray(b.pagesTitre) && b.pagesTitre.length ? b.pagesTitre : [1, 2, 3, 5, 7]
+        // Analyse LÉGÈRE au dépôt (`rapide`) : peu de pages de titre + arrêt dès qu'un titre est capté.
+        // Balayage complet [1,2,3,5,7] réservé au bouton « Extraire » (b.pagesTitre absent, rapide=false).
+        const rapide = !!b.rapide
+        const pagesTitre = Array.isArray(b.pagesTitre) && b.pagesTitre.length ? b.pagesTitre : (rapide ? [1, 3] : [1, 2, 3, 5, 7])
         const servedDirWin = join(RACINE, 'sorties', 'atelier')
         await mkdir(servedDirWin, { recursive: true })
-        let texteTitre = ''
+        const infosTitre = { pdfTitle: info.title, pdfAuthor: info.author, producer: info.producer, creationDate: info.creationDate, nomFichier: basename(b.path || '') }
+        let texteTitre = '', meta = parserMetadonnees({ ...infosTitre, texteTitre })
         for (const pg of pagesTitre) {
           try {
             const r = await ocrPage({ kind: 'imprime', pdfWin: b.path, page: pg, dpi: 200, lang: 'fra', servedDirWin })
             texteTitre += '\n' + parseAlto(r.alto).lignes.map((l) => l.texte).join('\n')
           } catch { /* page hors bornes : ignorée */ }
+          meta = parserMetadonnees({ ...infosTitre, texteTitre })
+          if (String(meta.titre || '').trim().length >= 6) break // titre capté → on arrête le balayage
         }
-        const meta = parserMetadonnees({
-          pdfTitle: info.title, pdfAuthor: info.author, producer: info.producer, creationDate: info.creationDate,
-          texteTitre, nomFichier: basename(b.path || ''),
-        })
         // Choix du moteur OCR le mieux adapté à CE livre : le signal du s long est dans le CORPS
         // (minuscules), pas sur la page de titre (capitales). On sonde une page de corps à bas DPI.
         let texteCorps = ''
