@@ -504,8 +504,13 @@ function rendre(){
       row.appendChild(chip)
     } else {
       // §5 : classement MANUEL d'une région hors-corps (aucune suggestion sur cette ligne).
-      const cls=document.createElement('select'); cls.className='niv'; cls.title='Classer cette ligne hors du corps (paratexte, ornement, bruit…). « — » = corps.'
-      cls.innerHTML='<option value="">—</option>'+['paratexte_titre','ornement','bruit','indetermine'].map(r=>`<option value="${r}">${r.replace(/_/g,' ')}</option>`).join('')
+      // Jeu complet des rôles hors-corps (cf. liste horsCorps ci-dessus) — libellés lisibles.
+      const cls=document.createElement('select'); cls.className='niv'; cls.title='Classer cette ligne hors du corps (pagination, titre courant, réclame, paratexte, ornement, bruit…). « — » = corps.'
+      cls.innerHTML='<option value="">— (corps)</option>'+[
+        ['numero_page','numéro de page'],['titre_courant','titre courant'],['signature','marque de cahier'],
+        ['reclame','réclame'],['paratexte_titre','paratexte (titre)'],['ornement','ornement'],
+        ['bruit','bruit / artefact'],['indetermine','indéterminé'],
+      ].map(([v,t])=>`<option value="${v}">${t}</option>`).join('')
       cls.value=(s&&s.role_confirme)||''
       cls.onchange=()=>{ if(!l.suggestion) l.suggestion={role_suggere:null,role_confirme:null,statut:'suggere',export_corps:true,preuves:{}}
         l.suggestion.role_confirme=cls.value||null; l.suggestion.statut=cls.value?'confirme':'suggere'; l.suggestion.export_corps=!cls.value; planifierSave(); rendre() }
