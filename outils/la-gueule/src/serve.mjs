@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join, extname, basename, resolve, sep } from 'node:path'
 
 import { executer } from './runner.mjs'
-import { ocrPage, pdfNbPages, pdfInfo, choisirFichier, runBash, annulerTaches } from './wsl.mjs'
+import { ocrPage, rendrePage, pdfNbPages, pdfInfo, choisirFichier, runBash, annulerTaches } from './wsl.mjs'
 import { parserMetadonnees, typographieProbable, normaliserCasseChamp } from './metadonnees.mjs'
 import { parseAlto } from './alto.mjs'
 import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes, sauverProfil, sauverRapportGeneration } from './projet.mjs'
@@ -208,6 +208,19 @@ export function demarrer({ port = 4599 } = {}) {
         try { await pipeline(req, createWriteStream(dest)) }
         catch (e) { if (trop) return json(res, 413, { erreur: 'fichier trop volumineux (max 400 Mo)' }); throw e }
         return json(res, 200, { chemin: dest, nom })
+      }
+
+      // APERÇU : rend une page en image SANS OCR (affichage immédiat au dépôt / à la navigation).
+      if (p === '/api/apercu' && req.method === 'POST') {
+        const b = await corps(req)
+        if (b.path && !sousRacine(b.path)) return json(res, 403, { erreur: 'hors du dossier de travail (§2.3)' })
+        const kind = b.kind === 'manuscrit' ? 'manuscrit' : 'imprime'
+        const servedDirWin = join(RACINE, 'sorties', 'atelier')
+        await mkdir(servedDirWin, { recursive: true })
+        try {
+          const r = kind === 'manuscrit' ? { pngWin: b.path } : await rendrePage({ kind, pdfWin: b.path, page: Number(b.page) || 1, servedDirWin })
+          return json(res, 200, { pngUrl: '/api/fichier?path=' + encodeURIComponent(r.pngWin) })
+        } catch (e) { return json(res, 500, { erreur: String(e?.message || e) }) }
       }
 
       // Métadonnées : pdfinfo + OCR de la page de titre → titre, date d'édition, auteur…

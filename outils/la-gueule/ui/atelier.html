@@ -49,10 +49,10 @@
   .meta-diag .dg-vide{color:#b06a2a}
   main.meta-replie .vtabs,main.meta-replie .vpanel{display:none}
   main.meta-replie .meta-tete{flex-direction:column;padding:8px 3px;border-bottom:none}
-  .vtabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:5px;flex:1}
-  .vtabs button{padding:7px 4px;border:1px solid var(--bord);border-radius:6px;font-size:10.5px;background:var(--fond);color:var(--second);font-weight:500;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .12s,color .12s,border-color .12s}
-  .vtabs button:hover{border-color:var(--vert);color:var(--encre)}
-  .vtabs button.actif{background:var(--vert);color:#fff;border-color:var(--vert);font-weight:700}
+  .vtabs{display:flex;flex:1;border-bottom:1px solid var(--bord)}
+  .vtabs button{flex:1;min-width:0;padding:9px 4px;border:none;background:none;font-size:11px;color:var(--second);border-bottom:2px solid transparent;border-radius:0;font-weight:500;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:-1px;transition:color .12s,border-color .12s}
+  .vtabs button:hover{color:var(--encre)}
+  .vtabs button.actif{color:var(--vert);border-bottom-color:var(--vert);font-weight:700}
   .vpanel-actions{display:flex;gap:7px;padding:9px 10px 2px}
   .vpanel-actions button{flex:1;padding:6px 4px;font-weight:600}
   .vpanel-corps,.vpanel .barre2{display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:10px;background:transparent;border:none}
@@ -602,6 +602,7 @@ async function analyser(){
     } else {
       S.total=1; $('total').textContent=''; await finaliserDiagnostic({ nbPages:1, manuscrit:true }); etat('image (manuscrit) prête — moteur Kraken CATMuS Medieval. Étape suivante : « OCR cette page ».')
     }
+    S.page=1; $('page').value=1; rendre() // affiche la 1re page (aperçu du PDF/image) dès le dépôt, sans OCR
   }catch(e){ etat('erreur : '+e.message) }
   finally{ chargeOff() }
 }
@@ -689,6 +690,24 @@ function zoomRegion(bbox){ const pg=S.pages[S.page]; if(!pg||!pg.pngUrl||!Array.
   ov.appendChild(box)
 }
 
+// Aperçu d'une page NON océrisée : on rend l'image du PDF (sans OCR, sans boîtes) pour la voir tout
+// de suite. L'URL est mise en cache par page (S.pages[n].apercuUrl).
+async function afficherApercu(n){
+  const holder=$('imgHolder'), vl=$('lignes'), chemin=$('chemin').value.trim()
+  if(!chemin){ holder.innerHTML='<div class="vide">Indique un chemin, puis « OCR cette page ».</div>'; vl.innerHTML='<div class="vide">—</div>'; return }
+  if(!S.pages[n]) S.pages[n]={}
+  holder.innerHTML='<div class="vide">chargement de la page '+n+'…</div>'
+  vl.innerHTML='<div class="vide">Page non océrisée. Clique « OCR cette page » pour la traiter.</div>'
+  try{
+    let url=S.pages[n].apercuUrl
+    if(!url){ const r=await api('/api/apercu',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin,page:n,kind:S.kind})}); url=r.pngUrl; S.pages[n].apercuUrl=url }
+    if(S.page!==n) return // l'utilisateur a déjà tourné la page
+    holder.innerHTML=''
+    const scene=document.createElement('div'); scene.className='scene'
+    const img=document.createElement('img'); img.src=url; scene.appendChild(img); holder.appendChild(scene)
+    img.onload=()=>{ const dispo=$('voletImage').clientHeight-24; if(dispo>120) img.style.maxHeight=dispo+'px' }
+  }catch(e){ if(S.page===n){ holder.innerHTML='<div class="vide">aperçu indisponible : '+(e.message||e)+'</div>' } }
+}
 function rendre(){
   const pg=S.pages[S.page]
   const holder=$('imgHolder'), vl=$('lignes')
@@ -697,11 +716,12 @@ function rendre(){
   // Page sans image ni lignes exploitables (jamais océrisée, ou OCR en erreur) : message propre,
   // pas d'image cassée ni de plantage (pg.lignes serait undefined plus bas).
   if(!pg || !pg.pngUrl || !Array.isArray(pg.lignes)){
-    const d=document.createElement('div'); d.className='vide'
-    d.textContent=(pg && pg.etat==='erreur')
-      ? ('Page en échec d\'OCR : '+(pg.erreur||'cause inconnue')+' — relance « OCR cette page » pour réessayer.')
-      : 'Pas encore d\'OCR pour cette page.'
-    holder.innerHTML=''; holder.appendChild(d); vl.innerHTML='<div class="vide">—</div>'; return
+    if(pg && pg.etat==='erreur'){
+      const d=document.createElement('div'); d.className='vide'
+      d.textContent='Page en échec d\'OCR : '+(pg.erreur||'cause inconnue')+' — relance « OCR cette page » pour réessayer.'
+      holder.innerHTML=''; holder.appendChild(d); vl.innerHTML='<div class="vide">—</div>'; return
+    }
+    afficherApercu(S.page); return // page non océrisée → on affiche l'IMAGE du PDF (aperçu, sans OCR)
   }
   // Image + boîtes. L'image est mise à l'échelle pour TENIR dans la hauteur du volet (pas de défilement).
   holder.innerHTML=''
@@ -892,10 +912,8 @@ $('suiv').onclick=()=>allerPage(S.page+1)
 function pagesAvecImage(){ return Object.keys(S.pages).map(Number)
   .filter(n=>S.pages[n]&&S.pages[n].pngUrl&&Array.isArray(S.pages[n].lignes)&&S.pages[n].lignes.length)
   .sort((a,b)=>a-b) }
-function feuilleter(sens){ const L=pagesAvecImage(); if(!L.length) return
-  const cible = sens>0 ? L.find(n=>n>S.page) : [...L].reverse().find(n=>n<S.page)
-  if(cible==null) return // déjà à la première/dernière page avec image
-  S.page=cible; $('page').value=cible; rendre(); etat('page '+cible) }
+function feuilleter(sens){ const n=S.page+sens; if(n<1||(S.total&&n>S.total)) return
+  S.page=n; $('page').value=n; rendre(); etat('page '+n) } // affiche l'OCR si fait, sinon l'aperçu
 $('navPrec').onclick=()=>feuilleter(-1)
 $('navSuiv').onclick=()=>feuilleter(1)
 $('page').onchange=()=>allerPage($('page').valueAsNumber||1)

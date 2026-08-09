@@ -208,3 +208,22 @@ export async function ocrPage(params) {
   if (!r.ok) throw new Error(`HTR manuscrit : ${r.stderr.slice(0, 400)}`)
   return { alto: r.stdout, pngWin: imageWin, ocr: { moteur: 'kraken', modele } }
 }
+
+/**
+ * APERÇU : rend UNE page de PDF en PNG servi, SANS OCR (pour l'affichage immédiat au dépôt et à la
+ * navigation). Le manuscrit est déjà une image → on la sert telle quelle. Léger (150 DPI par défaut).
+ */
+export async function rendrePage(params) {
+  const { kind, servedDirWin } = params
+  if (kind !== 'imprime') return { pngWin: params.imageWin } // manuscrit : l'image est déjà là
+  const { pdfWin } = params
+  const page = entier(params.page, { min: 1, max: 100000, nom: 'page' })
+  const dpi = entier(params.dpi ?? 150, { min: 72, max: 400, nom: 'dpi' })
+  const nom = nomPng(pdfWin + '|apercu', page)
+  const script = dansTmp(
+    `pdftoppm -f ${page} -l ${page} -r ${dpi} -png -singlefile "$PDF" "$D/pg" && cp "$D/pg.png" "$SERVED/${nom}"`)
+  const r = await runBash(script, { PDF: pdfWin, SERVED: servedDirWin }, { timeoutMs: 60000 })
+  if (r.annule) throw new Error('aperçu annulé')
+  if (!r.ok) throw new Error(`aperçu page ${page} : ${r.stderr.slice(0, 300)}`)
+  return { pngWin: join(servedDirWin, nom) }
+}
