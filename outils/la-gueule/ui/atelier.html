@@ -37,7 +37,8 @@
   .meta-corps{padding:10px;display:flex;flex-direction:column;gap:8px}
   .meta-corps label{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--second)}
   .meta-corps input{width:100%;font-size:13px}
-  .meta-corps input.meta-ia{background:#fff7e6;border-color:#e0b050} /* champ proposé par l'IA, à vérifier */
+  .meta-corps input.meta-auto{background:#f2f2f0;color:#555} /* deviné par le parseur (remplaçable par l'IA) */
+  .meta-corps input.meta-ia{background:#fff7e6;border-color:#e0b050} /* proposé par l'IA (lecture d'image), à vérifier */
   .meta-etat{font-size:11px;color:var(--second);min-height:1em;margin-top:2px}
   main.meta-replie .meta-titre,main.meta-replie .meta-extraire,main.meta-replie .meta-corps{display:none}
   main.meta-replie .meta-tete{flex-direction:column;padding:8px 3px;border-bottom:none}
@@ -541,7 +542,7 @@ async function analyser(){
       // Analyse LÉGÈRE au dépôt (rapide) : page de titre + sonde de typographie, PAS d'OCR du document.
       chargeOn('Analyse rapide (page de titre + typographie)…')
       const r=await api('/api/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin, rapide:true})})
-      remplirMeta(r.meta); $('main').classList.remove('meta-replie'); $('metaToggle').textContent='‹'; planifierSave()
+      remplirMeta(r.meta, true); $('main').classList.remove('meta-replie'); $('metaToggle').textContent='‹'; planifierSave()
       // Choix AUTOMATIQUE du moteur adapté à ce livre (imprimé ancien à s long → Kraken).
       const anc=r.typographie?.ancien; $('typo').value=anc?'ancien':'moderne'
       await finaliserDiagnostic({ nbPages:pages, meta:r.meta, typographie:r.typographie }) // Phase B : profil + avance du workflow
@@ -912,12 +913,15 @@ function projetActuel(){ const p={ kind:S.kind, chemin:$('chemin').value.trim(),
 const CHAMPS_META=['auteur','titre','sous_titre','titre_original','langue_originale','langue_trad','trad_auteur','editeur','collection','ville','date_publication','date_composition','genre']
 const vMeta=c=>$('m_'+c).value.trim()||null
 function collecterMeta(){ const o={}; CHAMPS_META.forEach(c=>o[c]=vMeta(c)); return o }
-function remplirMeta(m){ if(!m)return
+function remplirMeta(m, auto){ if(!m)return
   // Compat. anciens projets : traducteur→trad_auteur, lieu→ville, date_edition→date_publication.
   const compat={ ...m, trad_auteur:m.trad_auteur??m.traducteur, ville:m.ville??m.lieu,
     date_publication:m.date_publication??m.date_edition,
     langue_originale:m.langue_originale??((m.langues||[]).find(l=>/lat|grec/i.test(l))||null) }
-  CHAMPS_META.forEach(c=>{ const el=$('m_'+c); el.value=compat[c]||''; el.classList.remove('meta-ia') }) }
+  // `auto` (dépôt / bouton Extraire) marque le champ comme deviné par le PARSEUR : « IA titre » pourra
+  // le remplacer. Sans `auto` (réouverture de projet), les valeurs sont établies et non remplaçables.
+  CHAMPS_META.forEach(c=>{ const el=$('m_'+c); el.value=compat[c]||''; el.classList.remove('meta-ia')
+    if(auto && el.value.trim()) el.classList.add('meta-auto'); else el.classList.remove('meta-auto') }) }
 // Parcourir = sélecteur NATIF du navigateur (fiable, dans la session de l'utilisateur),
 // puis téléversement des octets. Le glisser-déposer emprunte le même chemin.
 function parcourir(){ $('fichierLocal').click() }
@@ -947,7 +951,7 @@ async function extraireMeta(){ const chemin=$('chemin').value.trim(); if(!chemin
   $('main').classList.remove('meta-replie'); $('metaToggle').textContent='‹' // déplier si besoin
   $('etatMeta').textContent='extraction (pdfinfo + page de titre)…'; chargeOn('Lecture de la page de titre…')
   try{ const r=await api('/api/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin})})
-    remplirMeta(r.meta); $('etatMeta').textContent='✓ à relire/compléter'; planifierSave() }
+    remplirMeta(r.meta, true); $('etatMeta').textContent='✓ à relire/compléter'; planifierSave() }
   catch(e){ $('etatMeta').textContent='échec : '+e.message }
   finally{ chargeOff() } }
 // Diagnostic IA — complète les métadonnées VIDES en lisant la page de titre par vision (cloud, avec
@@ -966,9 +970,12 @@ async function completerMetaIA(){ const chemin=$('chemin').value.trim(); if(!che
   try{ const r=await api('/api/ia/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin,page,texteTitre})})
     if(!r.ia_active){ $('etatMeta').textContent='IA non active ('+(r.motif||'—')+')'; return }
     const m=r.meta_ia||{}; let n=0
-    CHAMPS_META.forEach(c=>{ const el=$('m_'+c); if(!el)return; if(m[c]!=null&&String(m[c]).trim()&&!el.value.trim()){ el.value=String(m[c]).trim(); el.classList.add('meta-ia'); el.title='proposé par l\'IA — à vérifier'; n++ } })
+    // On remplace les champs VIDES et ceux devinés par le parseur (meta-auto) ; jamais ce que tu as tapé.
+    CHAMPS_META.forEach(c=>{ const el=$('m_'+c); if(!el)return
+      const remplacable=!el.value.trim()||el.classList.contains('meta-auto')
+      if(m[c]!=null&&String(m[c]).trim()&&remplacable){ el.value=String(m[c]).trim(); el.classList.add('meta-ia'); el.classList.remove('meta-auto'); el.title='proposé par l\'IA — à vérifier'; n++ } })
     if(r.abstention&&!n){ $('etatMeta').textContent='l\'IA s\'est abstenue (page peu lisible) — rien ajouté.' }
-    else $('etatMeta').textContent='✓ IA : '+n+' champ(s) vide(s) complété(s) — à vérifier'+(r.confiance!=null?(' (confiance '+r.confiance+')'):'')
+    else $('etatMeta').textContent='✓ IA : '+n+' champ(s) renseigné(s) par lecture d\'image — à vérifier'+(r.confiance!=null?(' (confiance '+r.confiance+')'):'')
     if(n){ planifierSave() }
   }catch(e){ $('etatMeta').textContent='échec IA : '+e.message }
   finally{ chargeOff() } }
@@ -978,7 +985,7 @@ $('metaToggle').onclick=()=>{ const replie=$('main').classList.toggle('meta-repl
 $('btnParcourir').onclick=parcourir
 $('btnMeta').onclick=extraireMeta
 $('btnMetaIA').onclick=completerMetaIA
-;[...document.querySelectorAll('#metaCorps input')].forEach(i=>i.oninput=()=>{ i.classList.remove('meta-ia'); planifierSave() })
+;[...document.querySelectorAll('#metaCorps input')].forEach(i=>i.oninput=()=>{ i.classList.remove('meta-ia'); i.classList.remove('meta-auto'); planifierSave() })
 let tSave
 function planifierSave(){ if(!$('projet').value.trim())return; clearTimeout(tSave); tSave=setTimeout(()=>sauver(true),1200) }
 async function sauver(auto){
