@@ -1048,7 +1048,8 @@ async function completerMetaIA(){ const chemin=$('chemin').value.trim(); if(!che
   if(!f.dispo){ $('etatMeta').textContent='fournisseur cloud sans clé : rien n\'est envoyé.'; return }
   if(!consentementValideClient()){ const ok=await demanderConsentement(); if(!ok){ $('etatMeta').textContent='resté en local : aucune lecture cloud.'; return } }
   $('main').classList.remove('meta-replie')
-  const page=(S.page&&S.page<=7)?S.page:3
+  const page=S.page||1 // on lit LA PAGE AFFICHÉE (navigue jusqu'à la vraie page de titre, puis convoque l'IA)
+  $('etatMeta').textContent='lecture IA de la page '+page+'…'
   const lignesCour=(S.pages&&S.pages[S.page]&&S.pages[S.page].lignes)||[]
   const texteTitre=lignesCour.map(l=>l.dip||l.texte||'').join('\n')
   $('etatMeta').textContent='lecture IA de la page de titre…'; chargeOn('Lecture IA de la page de titre…')
