@@ -26,17 +26,17 @@
   button.discret:hover:not(:disabled){border-color:var(--vert);color:var(--vert);background:var(--surface)}
   button:disabled{opacity:.5;cursor:default}
   #etat{font-size:12px;color:var(--second)}
-  main{flex:1;display:grid;grid-template-columns:320px 1fr 1fr;gap:0;min-height:0}
+  main{flex:1;display:grid;grid-template-columns:340px 1fr 1fr;gap:0;min-height:0}
   main.meta-replie{grid-template-columns:32px 1fr 1fr}
   .volet{min-height:0;overflow:auto;padding:12px}
   /* Colonne « Métadonnées » (gauche), repliable */
   .volet-meta{min-height:0;overflow:auto;border-right:1px solid var(--bord);background:var(--surface);display:flex;flex-direction:column}
-  .meta-tete{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--bord);position:sticky;top:0;background:var(--surface);z-index:1}
+  .meta-tete{display:flex;align-items:flex-end;gap:6px;padding:6px 8px 0;position:sticky;top:0;background:var(--surface);z-index:1}
   .meta-titre{font-family:Georgia,serif;font-size:14px;color:var(--encre);flex:1}
   .meta-toggle{border:1px solid var(--bord);background:#fff;color:var(--second);border-radius:5px;padding:2px 8px;cursor:pointer;font-weight:700;line-height:1}
-  .meta-corps{padding:10px;display:flex;flex-direction:column;gap:8px}
-  .meta-corps label{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--second)}
-  .meta-corps input{width:100%;font-size:13px}
+  .meta-corps{padding:12px;display:flex;flex-direction:column;gap:11px}
+  .meta-corps label{display:flex;flex-direction:column;gap:3px;font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--second)}
+  .meta-corps input{width:100%;font-size:13px;box-sizing:border-box}
   .meta-corps input.meta-auto{background:#e7e5df;color:#1f1f1f} /* deviné par le parseur (remplaçable par l'IA) */
   .meta-corps input.meta-ia{background:#fbeecb;border-color:#c9971f;color:#1a1a1a;font-weight:500} /* proposé par l'IA (lecture d'image), à vérifier */
   .meta-corps input.meta-ia-enrichi{background:#e3eefb;border-color:#5b8fd6;color:#12314f;font-weight:500} /* IA — connaissance externe (hors page), à vérifier */
@@ -48,13 +48,19 @@
   .meta-diag .dg-vide{color:#b06a2a}
   main.meta-replie .vtabs,main.meta-replie .vpanel{display:none}
   main.meta-replie .meta-tete{flex-direction:column;padding:8px 3px;border-bottom:none}
-  .vtabs{display:flex;gap:2px;flex-wrap:wrap;flex:1}
-  .vtabs button{padding:4px 8px;border:1px solid var(--bord);border-bottom:none;border-radius:6px 6px 0 0;font-size:11.5px;background:var(--fond);color:var(--second);font-weight:400}
-  .vtabs button.actif{background:var(--surface);color:var(--encre);font-weight:600}
-  .vpanel-actions{display:flex;gap:6px;padding:8px 10px 2px;flex-wrap:wrap}
-  .vpanel-corps{display:flex;flex-direction:column;gap:8px;padding:10px}
-  .vpanel .barre2{border-bottom:none;padding:8px 10px;background:transparent}
-  .vpanel .barre2 label{font-size:12px}
+  .vtabs{display:flex;flex:1;align-items:stretch;gap:0;border-bottom:1px solid var(--bord)}
+  .vtabs button{flex:1;min-width:0;padding:9px 2px;border:none;background:none;font-size:10.5px;color:var(--second);border-bottom:2px solid transparent;border-radius:0;font-weight:500;cursor:pointer;white-space:nowrap;transition:color .12s,border-color .12s;margin-bottom:-1px}
+  .vtabs button:hover{color:var(--encre)}
+  .vtabs button.actif{color:var(--vert);border-bottom-color:var(--vert);font-weight:700}
+  .vpanel-actions{display:flex;gap:8px;padding:12px 12px 2px}
+  .vpanel-actions button{flex:1;padding:7px 4px;font-weight:600}
+  .vpanel-corps,.vpanel .barre2{display:flex;flex-direction:column;align-items:stretch;gap:12px;padding:14px 12px;background:transparent;border:none}
+  .vpanel .barre2 button{align-self:stretch;padding:7px 4px}
+  .vpanel .barre2 input:not([type=checkbox]),.vpanel .barre2 select{width:100%!important;box-sizing:border-box}
+  .vpanel .barre2 > label{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--second);display:flex;flex-direction:column;gap:3px}
+  .vpanel .barre2 .pchk{flex-direction:row;align-items:center;gap:6px;font-size:12px;text-transform:none;letter-spacing:0;font-weight:400;color:var(--encre)}
+  .vpanel .barre2 #etatSave,.vpanel .barre2 #etatExport,.vpanel .barre2 #nbValidees{font-size:11px;color:var(--second)}
+  .vpanel-titre{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--second);padding:12px 12px 0}
   /* Zone image : l'image tient dans la hauteur du volet (pas de défilement) ; chevrons de nav. */
   #voletImage{background:#efe8da;border-right:1px solid var(--bord);position:relative;overflow:hidden;
     display:flex;align-items:flex-start;justify-content:center;padding:12px}
@@ -65,16 +71,17 @@
   #zoomOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:10001;cursor:zoom-out}
   .zoombox{background-repeat:no-repeat;background-color:#fff;box-shadow:0 8px 40px rgba(0,0,0,.5);border:3px solid #fff;border-radius:4px}
   /* Pipeline 5 étapes (Phase A) : représentation persistante de l'état du parcours. */
-  #barreEtapes{display:flex;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--bord);padding:3px 0}
-  .etape{display:flex;align-items:baseline;gap:10px;padding:4px 16px;font-size:12.5px;border-left:3px solid transparent;transition:background .12s}
-  .etape .num{color:var(--second);font-size:11px;min-width:52px}
-  .etape .lib{font-weight:600;color:var(--encre)}
-  .etape .badge{margin-left:auto;font-size:11px;font-weight:600;letter-spacing:.01em}
-  .etape.fait{border-left-color:var(--vert)} .etape.fait .badge{color:var(--vert)}
-  .etape.afaire{border-left-color:#b0842a} .etape.afaire .badge{color:#a8720f}
-  .etape.souci{border-left-color:#a83232} .etape.souci .badge{color:#a83232}
-  .etape.active{background:var(--vertf)}
-  .etape.clic{cursor:pointer} .etape.clic:hover{background:var(--vertf)}
+  #barreEtapes{display:flex;gap:5px;padding:5px 12px;background:var(--surface);border-bottom:1px solid var(--bord)}
+  .etape{flex:1;min-width:0;display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:7px;font-size:11.5px;background:#efeadf;color:#7d7259;transition:filter .12s}
+  .etape .num{flex:none;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-size:9.5px;font-weight:700;background:rgba(0,0,0,.07)}
+  .etape .lib{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .etape .badge{margin-left:auto;font-size:10px;font-weight:500;white-space:nowrap;opacity:.92}
+  .etape.fait{background:#e1efe3;color:#2f6a47} .etape.fait .num{background:#bfe0c6;color:#215838}
+  .etape.encours{background:#fdeccb;color:#8a5a12} .etape.encours .num{background:#f1cf8d;color:#6b430a}
+  .etape.afaire{background:#f2ecdf;color:#8a7c5e} .etape.afaire .num{background:#e2d6bd;color:#6f6242}
+  .etape.souci{background:#f7ddd4;color:#9a2f24} .etape.souci .num{background:#e9b5aa;color:#7a231a}
+  .etape.active{box-shadow:0 0 0 1.5px var(--vert)}
+  .etape.clic{cursor:pointer} .etape.clic:hover{filter:brightness(.965)}
   .badge.non_commence{background:#ececec;color:#888}
   .badge.pret{background:#e6f0e6;color:#3d6b4f}
   .badge.en_cours{background:#fef3d8;color:#b26a1a}
@@ -83,7 +90,13 @@
   .badge.perime{background:#fbe6de;color:#b5482a}
   .badge.bloque,.badge.erreur{background:#fadbd0;color:#9a2a2a}
   [data-theme="dark"] #barreEtapes{background:#241f1a}
-  [data-theme="dark"] .etape.afaire .badge{color:#d69a3a}
+  [data-theme="dark"] .etape{background:#2c2720;color:#b7ab97}
+  [data-theme="dark"] .etape .num{background:rgba(255,255,255,.09)}
+  [data-theme="dark"] .etape.fait{background:#243528;color:#9fceb0}
+  [data-theme="dark"] .etape.fait .num{background:#2f5a3d;color:#bfe0c6}
+  [data-theme="dark"] .etape.encours{background:#3a2f1c;color:#e2b871}
+  [data-theme="dark"] .etape.afaire{background:#2f2a20;color:#bcae8c}
+  [data-theme="dark"] .etape.souci{background:#3a2420;color:#e2a397}
   /* Phase E — panneau de validation ciblée (familles + critiques + blocages). */
   #panneauValidation{padding:8px 12px;background:var(--fond-clair,#faf8f4);border-bottom:1px solid var(--bord);font-size:13px}
   #panneauValidation .val-tete{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:6px}
@@ -391,11 +404,11 @@ const S={ kind:'imprime', pages:{}, page:1, total:null, couche:'dip', arret:fals
 // ── Pipeline 5 étapes (Phase A) : barre visuelle persistante de l'état du parcours ──
 const ETAPES_UI=[['diagnostic_ia','1','Diagnostic IA'],['ocr_local','2','OCR local'],['controle_ia','3','Contrôle IA'],['validation_ciblee','4','Validation ciblée'],['generation_locale','5','Génération locale']]
 const LIB_ETAT={non_commence:'non commencé',pret:'prêt',en_cours:'en cours',termine:'terminé',a_verifier:'à vérifier',bloque:'bloqué',erreur:'erreur',perime:'périmé'}
-function classeEtatEtape(et){ return (et==='termine'||et==='a_verifier') ? 'fait' : (et==='erreur'||et==='bloque') ? 'souci' : 'afaire' }
+function classeEtatEtape(et){ return (et==='termine'||et==='a_verifier') ? 'fait' : (et==='erreur'||et==='bloque') ? 'souci' : (et==='en_cours') ? 'encours' : 'afaire' }
 function rendreBarreEtapes(){ const bar=$('barreEtapes'); if(!bar)return; const wf=S.workflow; bar.innerHTML=''
   for(const [cle,num,lib] of ETAPES_UI){ const et=(wf&&wf.etapes&&wf.etapes[cle]&&wf.etapes[cle].etat)||'non_commence'
     const d=document.createElement('div'); d.className='etape '+classeEtatEtape(et)+(wf&&wf.etape_active===cle?' active':'')
-    const n=document.createElement('span'); n.className='num'; n.textContent='Étape '+num
+    const n=document.createElement('span'); n.className='num'; n.textContent=num
     const l=document.createElement('span'); l.className='lib'; l.textContent=lib
     const b=document.createElement('span'); b.className='badge'; let libEt=LIB_ETAT[et]||et
     if(cle==='ocr_local'&&wf&&wf.etapes.ocr_local&&wf.etapes.ocr_local.resume){ const rz=wf.etapes.ocr_local.resume; if(rz.manquantes>0) libEt+=' · '+rz.manquantes+' manquante(s)'; else if(rz.total) libEt+=' · '+rz.faites+'/'+rz.total }
