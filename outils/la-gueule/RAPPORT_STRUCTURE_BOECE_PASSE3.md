@@ -132,12 +132,23 @@ jamais mêlé au GT du texte).
 s'abstenir. **Aucune dépendance, aucun réseau, aucun fournisseur branché** (conforme au point 11 :
 préparer l'architecture seulement).
 
+## Interface atelier — CÂBLÉE (2026-08-09)
+
+- Menu lettrine à **4 choix** (lettre visible à saisir / illisible restitution / artefact / faux
+  positif) : « visible » → `omission_ocr` (initiale intégrée en tête, sans crochets, hors marque) ;
+  « restitution » → `restitution_editoriale` (marque critique, ligne hors ground-truth) ; miroirs
+  client `corrigerLettrineClient` / `appliquerCorrectionLettrine`. Aucune lettre proposée
+  automatiquement (saisie humaine via prompt).
+- **Zoom** 🔍 sur la région de la lettrine (overlay agrandi, marge + lignes voisines dessous).
+- **Suggestion de césure** : chip « césure ¬ ? » sur une ligne finissant par « - » quand la suivante
+  continue le mot (minuscule) ; clic = conversion en « ¬ » + métadonnée `cesure` ; jamais silencieuse.
+- Vérifié dans le navigateur (page factice, banc non touché) : 4 options, zoom, chip césure ; « oy »+« M »
+  → « Moy » (omission_ocr) ; conjecture → restitution + hors GT ; « ser- » → « ser¬ ».
+
 ## Encore désactivé / en attente (honnête)
 
-- **Interface atelier** : le menu lettrine à **4 choix** (visible à saisir / conjecture / artefact /
-  faux positif), le **zoom** sur la région de lettrine, le **bouton de suggestion de césure**, et le
-  **bouton « demander un second avis visuel »** ne sont pas encore posés dans `ui/atelier.html`. La
-  logique et les schémas sont prêts ; il reste le câblage.
+- **Bouton « demander un second avis visuel »** (lecteur IA) : non posé dans l'UI (architecture prête,
+  aucun fournisseur — conforme au point 11).
 - **Propagation aux exports** de la nouvelle structure `metadonneesPage` (folios en marge, titres
   courants/réclames en métadonnées ALTO/PAGE/JSON) : structures prêtes, écriture dans les exports à câbler.
 - **Rendu site** (`app/`) : `ui/poesie.css` et `appliquerTypographieLecture` sont des **références** ;

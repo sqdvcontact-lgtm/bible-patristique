@@ -46,6 +46,9 @@
   #imgHolder{max-width:100%;max-height:100%;display:flex;align-items:flex-start;justify-content:center}
   .scene{position:relative;display:inline-block;box-shadow:0 2px 12px rgba(0,0,0,.15);background:#fff}
   .scene img{display:block;max-width:100%;height:auto}
+  /* Passe 3 : zoom sur la région d'une lettrine (clic n'importe où pour fermer). */
+  #zoomOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:10001;cursor:zoom-out}
+  .zoombox{background-repeat:no-repeat;background-color:#fff;box-shadow:0 8px 40px rgba(0,0,0,.5);border:3px solid #fff;border-radius:4px}
   .navflip{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:34px;height:46px;
     border:1px solid var(--bord);background:rgba(255,253,248,.9);color:var(--vert);border-radius:8px;
     font-size:22px;line-height:1;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.12)}
@@ -388,6 +391,53 @@ function estEnteteC(t){ const s=(t||'').trim()
   return false
 }
 
+// ── Passe 3 : miroirs CLIENT des fonctions pures (structure.mjs / projet.mjs) ──
+// Q1 — provenance d'une correction de lettrine (omission_ocr vs restitution_editoriale).
+function corrigerLettrineClient({ texte_ocr='', texte_valide, visible }){
+  const restitution = visible===false
+  const a={ type_correction: restitution?'restitution_editoriale':'omission_ocr', nature:'lettrine',
+    texte_ocr:String(texte_ocr||''), texte_valide:String(texte_valide||''), visible_dans_source:!restitution,
+    origine_lecture: restitution?'conjecture':'image', validation:'humaine', certitude: restitution?'probable':'certaine',
+    bbox_source:null, restitution_editoriale:restitution, afficher_marque_critique:restitution }
+  if(restitution) a.interdit_entrainement=true
+  return a
+}
+function appliquerCorrectionLettrine(l, s, texte_valide, visible){
+  const actuel=String(l.dip||'')
+  s.correction = corrigerLettrineClient({ texte_ocr: l.ocr0!=null?l.ocr0:actuel, texte_valide, visible })
+  l.dip = String(texte_valide||'') + actuel  // initiale intégrée en tête, SANS crochets
+  s.role_confirme='lettrine'; s.statut='confirme'; l.incertain=false
+  if(!visible) l.interdit_entrainement=true   // restitution conjecturale → hors ground-truth
+}
+function saisirInitiale(l, s, visible){
+  const init = window.prompt(visible ? 'Initiale VISIBLE dans l’image, à saisir (ex. M, L’) :'
+                                     : 'Initiale ILLISIBLE, restitution conjecturale (ex. M) :', '')
+  if(init==null){ rendre(); return }        // annulé → aucune modification
+  appliquerCorrectionLettrine(l, s, init, visible); planifierSave(); rendre()
+}
+// Q2 — suggestion de césure (jamais de conversion silencieuse).
+function suggererCesureClient(a, b){ a=String(a||'').trim(); b=String(b||'').trim()
+  if(!/[-‐]$/.test(a)) return false; return /^[a-zà-öø-ÿ]/.test(b) }
+function appliquerCesure(l){ l.dip=String(l.dip||'').replace(/[-‐]\s*$/, '¬')
+  l.cesure={ type:'coupure_typographique_fin_ligne', marque_ground_truth:'¬', glyphe_source:'-', jointure_confirmee:true, validation:'humaine', ambigu:false }
+  planifierSave(); rendre() }
+// Q1 — zoom sur la région probable d'une lettrine (bbox + marge + lignes voisines dessous).
+function zoomRegion(bbox){ const pg=S.pages[S.page]; if(!pg||!pg.pngUrl||!Array.isArray(bbox))return
+  const [x,y,w,h]=bbox, W=pg.largeur||1, H=pg.hauteur||1
+  let ov=document.getElementById('zoomOverlay')
+  if(!ov){ ov=document.createElement('div'); ov.id='zoomOverlay'; ov.onclick=()=>ov.remove(); document.body.appendChild(ov) }
+  ov.innerHTML=''
+  const mx=w*0.6, my=h*2.4
+  const zx=Math.max(0,x-mx), zy=Math.max(0,y-h*0.3), zw=Math.min(W-zx,w+2*mx), zh=Math.min(H-zy,h+my)
+  const ech=Math.min(560/zw, 460/zh)
+  const box=document.createElement('div'); box.className='zoombox'
+  box.style.width=Math.round(zw*ech)+'px'; box.style.height=Math.round(zh*ech)+'px'
+  box.style.backgroundImage='url("'+pg.pngUrl+'")'
+  box.style.backgroundSize=Math.round(W*ech)+'px '+Math.round(H*ech)+'px'
+  box.style.backgroundPosition='-'+Math.round(zx*ech)+'px -'+Math.round(zy*ech)+'px'
+  ov.appendChild(box)
+}
+
 function rendre(){
   const pg=S.pages[S.page]
   const holder=$('imgHolder'), vl=$('lignes')
@@ -489,18 +539,22 @@ function rendre(){
     const horsCorps=['numero_page','signature','reclame','titre_courant','paratexte_titre','ornement','bruit']
     if(s && s.role_confirme && horsCorps.includes(s.role_confirme)) row.classList.add('horscorps')
     if(s && /^(lettrine|artefact)_candidate$/.test(s.role_suggere||'')){
-      // Lettrine / artefact : 3 décisions (absente / détachée / artefact) ; JAMAIS d'insertion auto.
+      // Passe 3 Q1 — 4 décisions ; JAMAIS de lettre proposée automatiquement.
       const sel=document.createElement('select'); sel.className='sugg lettr'
-      sel.innerHTML='<option value="">'+s.role_suggere.replace('_candidate','')+' ⚠</option>'
-        +'<option value="absente">lettre absente (saisir)</option>'
-        +'<option value="detachee">détachée (fusionner)</option>'
-        +'<option value="artefact">artefact (bruit)</option>'
-      sel.title='Lettrine/artefact — score '+(s.score||0)+'. Choisir la décision (aucune lettre n\'est ajoutée automatiquement).'
+      const marque=s.correction ? (s.correction.restitution_editoriale?' ⟨restit.⟩':' ✓') : ' ⚠'
+      sel.innerHTML='<option value="">'+s.role_suggere.replace('_candidate','')+marque+'</option>'
+        +'<option value="visible">lettre visible (saisir)</option>'
+        +'<option value="conjecture">illisible (restitution)</option>'
+        +'<option value="artefact">artefact / ornement</option>'
+        +'<option value="faux">faux positif (texte)</option>'
+      sel.title='Lettrine — score '+(s.score||0)+'. Décision humaine ; aucune lettre n\'est proposée automatiquement.'
       sel.onchange=()=>{ const v=sel.value
-        if(v==='artefact'){ s.role_confirme='bruit'; s.statut='confirme' }
-        else if(v==='absente'||v==='detachee'){ s.decision=v; l.incertain=true; l.valide_humain=false }
-        planifierSave(); rendre() }
+        if(v==='artefact'){ s.role_confirme='bruit'; s.statut='confirme'; delete s.correction; l.incertain=false; planifierSave(); rendre() }
+        else if(v==='faux'){ s.role_confirme='corps'; s.statut='confirme'; delete s.correction; l.incertain=false; planifierSave(); rendre() }
+        else if(v==='visible'||v==='conjecture'){ saisirInitiale(l, s, v==='visible') } }
       row.appendChild(sel)
+      if(Array.isArray(l.bbox)){ const z=document.createElement('button'); z.type='button'; z.className='inc'; z.textContent='🔍'
+        z.title='Zoom sur la région de la lettrine'; z.onclick=()=>zoomRegion(l.bbox); row.appendChild(z) }
     } else if(s && s.role_suggere){
       // Rôle « nu » (sans suffixe candidate/geometrique) qui fera foi une fois confirmé.
       const brut=s.role_suggere.replace('_candidate','').replace('_geometrique','')
@@ -538,6 +592,12 @@ function rendre(){
         l.suggestion.role_confirme=cls.value||null; l.suggestion.statut=cls.value?'confirme':'suggere'; l.suggestion.export_corps=!cls.value; planifierSave(); rendre() }
       row.appendChild(cls)
     }
+    // Passe 3 Q2 — suggestion de césure (jamais silencieuse) : « - » en fin de ligne + suite en minuscule.
+    { const suiv=pg.lignes[i+1]
+      if(!l.cesure && !estTitre && !entete && suiv && suggererCesureClient(l[S.couche], suiv[S.couche])){
+        const cc=document.createElement('button'); cc.type='button'; cc.className='sugg'; cc.textContent='césure ¬ ?'
+        cc.title='Fin de ligne « - » et la suite continue le mot → classer en césure typographique « ¬ » (recollée à l\'affichage). Clic = confirmer, jamais automatique.'
+        cc.onclick=()=>appliquerCesure(l); row.appendChild(cc) } }
     vl.appendChild(row) })
 }
 
