@@ -7,7 +7,44 @@ import {
   detecterContinuations, classerBlancsPoesie, analyserBlocPoesie,
   detecterTitresCourants, detecterReclames, analyserVolume,
   annoterProjet, estHorsCorpsConfirme, extraireStructure, detecterFiligrane,
+  corrigerLettrine, integrerInitiale,
 } from '../src/structure.mjs'
+
+// ── Passe 3 Q1 : provenance des corrections de lettrine ──
+test('Q1 : « oy » + validation humaine « M » → « Moy », omission_ocr, aucune marque publique', () => {
+  const a = corrigerLettrine({ texte_ocr: '', texte_valide: 'M', visible_dans_source: true, crop_contient_lettrine: true })
+  assert.equal(a.type_correction, 'omission_ocr')
+  assert.equal(a.restitution_editoriale, false)
+  assert.equal(a.afficher_marque_critique, false)
+  assert.equal(a.interdit_entrainement, undefined) // crop montre la lettrine → éligible
+  assert.equal(integrerInitiale('oy', a.texte_valide), 'Moy') // sans crochets
+})
+
+test('Q1 : « Euripe » + « L’ » → « L’Euripe », omission_ocr', () => {
+  const a = corrigerLettrine({ texte_valide: 'L’', visible_dans_source: true, crop_contient_lettrine: true })
+  assert.equal(a.type_correction, 'omission_ocr')
+  assert.equal(integrerInitiale('Euripe', a.texte_valide), 'L’Euripe')
+})
+
+test('Q1 : crop sans lettrine → interdit_entrainement = true (omission mais non éligible)', () => {
+  const a = corrigerLettrine({ texte_valide: 'M', visible_dans_source: true, crop_contient_lettrine: false })
+  assert.equal(a.type_correction, 'omission_ocr')
+  assert.equal(a.interdit_entrainement, true)
+})
+
+test('Q1 : caractère conjecturé sans lecture image → restitution_editoriale + interdit_entrainement', () => {
+  const a = corrigerLettrine({ texte_valide: 'M', visible_dans_source: false })
+  assert.equal(a.type_correction, 'restitution_editoriale')
+  assert.equal(a.restitution_editoriale, true)
+  assert.equal(a.afficher_marque_critique, true)
+  assert.equal(a.interdit_entrainement, true)
+  assert.equal(a.origine_lecture, 'conjecture')
+})
+
+test('Q1 : aucune lettre n’est proposée automatiquement (texte_valide = saisie humaine seule)', () => {
+  const a = corrigerLettrine({ texte_valide: '', visible_dans_source: true })
+  assert.equal(a.texte_valide, '') // rien n'est inventé à partir du sens du mot
+})
 
 test('§8 extraireStructure : annotations par page/ligne pour l’export JSON (classe CSS des blancs)', () => {
   const projet = { pages: { 19: { largeur: 1250, hauteur: 2050, lignes: [

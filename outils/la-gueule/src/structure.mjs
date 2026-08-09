@@ -654,6 +654,80 @@ export function annoterProjet(projet) {
   return projet
 }
 
+// ── Passe 3 Q1 — provenance d'une correction de lettrine ─────────────────────
+// Distingue DEUX cas, jamais confondus :
+//  - CAS A « omission_ocr » : la lettre est VISIBLE dans le fac-similé mais l'OCR l'a omise. Ce
+//    n'est pas une restitution critique : on intègre la lettre au texte corrigé, sans marque dans
+//    la lecture publique. Éligible au ground-truth SEULEMENT si le crop montre réellement la lettrine.
+//  - CAS B « restitution_editoriale » : la lettre n'est PAS lisible sur l'image, restituée par
+//    conjecture. Marque critique à l'affichage, JAMAIS versée au ground-truth OCR.
+// Ne propose JAMAIS la lettre automatiquement (ni dictionnaire ni modèle de langue) : `texte_valide`
+// vient toujours de la saisie humaine.
+export function corrigerLettrine({ texte_ocr = '', texte_valide, visible_dans_source, certitude, bbox_source = null, crop_contient_lettrine = null } = {}) {
+  const restitution = visible_dans_source === false
+  const a = {
+    type_correction: restitution ? 'restitution_editoriale' : 'omission_ocr',
+    nature: 'lettrine',
+    texte_ocr: String(texte_ocr ?? ''),
+    texte_valide: String(texte_valide ?? ''),
+    visible_dans_source: !restitution,
+    origine_lecture: restitution ? 'conjecture' : 'image',
+    validation: 'humaine',
+    certitude: certitude || (restitution ? 'probable' : 'certaine'),
+    bbox_source: bbox_source ?? null,
+    restitution_editoriale: restitution,
+    afficher_marque_critique: restitution, // marque critique réservée à la conjecture (CAS B)
+  }
+  // Éligibilité ground-truth : CAS B jamais ; CAS A interdit si le crop ne montre pas la lettrine
+  // (ne jamais associer une transcription contenant « M » / « L' » à une image qui ne les montre pas).
+  if (restitution || crop_contient_lettrine === false) a.interdit_entrainement = true
+  return a
+}
+
+/** Intègre l'initiale validée au texte de ligne (CAS A/B) : « oy » + « M » → « Moy ». Sans crochets. */
+export function integrerInitiale(texteLigne, texteValide) {
+  return String(texteValide ?? '') + String(texteLigne ?? '')
+}
+
+// ── Passe 3 Q4 — métadonnées de page (folios, titres courants, marques de cahier, réclames) ──
+// Distinguer IMPÉRATIVEMENT, sans jamais substituer l'un à l'autre :
+//  1. `page_pdf`            : index de l'image / page du PDF ;
+//  2. `pagination_source`   : pagination IMPRIMÉE, visible dans le fac-similé (lue ou ajoutée main) ;
+//  3. `pagination_inferree` : valeur DÉDUITE par la séquence, aucun chiffre lisible → jamais un folio
+//                             réellement imprimé, jamais de ground-truth, jamais de ligne source fictive.
+// Tous ces éléments restent HORS corps (`export_corps:false`) mais sont conservés comme données de page.
+
+/** Un folio imprimé visible (lu par l'OCR ou ajouté à la main). export_corps=false, affiché en marge. */
+export function paginationSource({ valeur, origine = 'ocr', bbox = null, certitude = 'certaine', visible_dans_source = true } = {}) {
+  return {
+    valeur: String(valeur ?? ''),
+    visible_dans_source: !!visible_dans_source,
+    origine, // 'ocr' | 'ajout_humain'
+    bbox: bbox ?? null,
+    certitude,
+    export_corps: false,
+    affichage_public: 'marge',
+  }
+}
+
+/** Une pagination SEULEMENT inférée par la séquence (aucun chiffre lisible). Jamais un vrai folio. */
+export function paginationInferree({ valeur, source_regle = 'sequence' } = {}) {
+  return {
+    valeur: String(valeur ?? ''),
+    visible_dans_source: false,
+    origine: 'inference',
+    source_regle,
+    export_corps: false,
+    ground_truth: false, // ne JAMAIS exporter comme vérité terrain
+    affichage_public: 'interface_editoriale', // « pagination inférée », jamais présentée comme imprimée
+  }
+}
+
+/** Structure de page : chaque famille hors-corps est conservée, jamais fondue dans le corps. */
+export function metadonneesPage({ page_pdf = null, pagination_source = null, pagination_inferree = null, titre_courant = [], marques_cahier = [], reclames = [] } = {}) {
+  return { page_pdf, pagination_source, pagination_inferree, titre_courant, marques_cahier, reclames }
+}
+
 // ── §8 Suggestions de niveaux de titre (T1/T2), propres à Ceriziers ──────────
 const RE_T1 = /^\s*(LE\s+PREMIER\s+LIVRE|LIVRE|LIURE)\b.*\b([IVXLC]+|PREMIER|SECOND|TROISI[EÈ]ME|QUATRI[EÈ]ME|CINQUI[EÈ]ME)\.?\s*$/i
 // « POESIE I. », « PROSE I », mais aussi « II. POESIE. », « III. PROSE. » (numéral avant ou après).

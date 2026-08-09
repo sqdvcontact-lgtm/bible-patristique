@@ -66,10 +66,12 @@ for (const [n, pg] of Object.entries(projet.pages)) {
       hyp = joindre(r.alto)
     } catch (e) { console.log(`page ${n} [${s.cle}] : ERREUR ${e?.message || e}`); continue }
     const secs = Number(process.hrtime.bigint() - t0) / 1e9
-    const ev = evaluerModele([{ reference, hypothese: hyp }])
-    // CER « normalisé » : on neutralise l'espacement de la ponctuation haute (convention de
-    // rendu, posée par code) sur la référence ET l'hypothèse, pour mesurer la RECONNAISSANCE.
-    const refN = normaliserTypographie(reference), hypN = normaliserTypographie(hyp)
+    const ev = evaluerModele([{ reference, hypothese: hyp }]) // CER STRICT (¬ et espacement comptent)
+    // CER SECONDAIRE : neutralise les seules conventions de RENDU — espacement de la ponctuation
+    // haute (Q3) ET marque de césure ¬/- (Q2) — sur la référence ET l'hypothèse. Complémentaire,
+    // ne remplace jamais le CER strict.
+    const neutre = (s) => normaliserTypographie(String(s).replace(/¬/g, '').replace(/‐/g, '-'))
+    const refN = neutre(reference), hypN = neutre(hyp)
     const evN = evaluerModele([{ reference: refN, hypothese: hypN }])
     const g = global[s.cle]
     g.distC += ev.cer * [...reference].length; g.longC += [...reference].length
@@ -88,13 +90,13 @@ for (const s of socles) {
   const cerN = g.longCn ? g.distCn / g.longCn : null
   const wer = g.longM ? g.distM / g.longM : null
   console.log(`\n${s.cle} :`)
-  console.log(`  CER brut : ${cer == null ? 'n/a' : pc(cer)}  |  CER normalisé : ${cerN == null ? 'n/a' : pc(cerN)}  |  WER : ${wer == null ? 'n/a' : pc(wer)}`)
+  console.log(`  CER strict : ${cer == null ? 'n/a' : pc(cer)}  |  CER secondaire : ${cerN == null ? 'n/a' : pc(cerN)}  |  WER : ${wer == null ? 'n/a' : pc(wer)}`)
   console.log(`  ${g.pages.length} page(s), ${g.longC} caractères, ${Math.round(g.secondes)} s au total`)
   for (const p of g.pages) console.log(`    page ${p.page} : CER ${pc(p.cer)} (norm. ${pc(p.cerNorm)})  (${p.secondes}s)`)
 }
-console.log('\n« brut » = fidélité diplomatique (tout compte). « normalisé » = reconnaissance seule :')
-console.log('l\'espacement de la ponctuation haute (« ; : ! ? » et guillemets), posé par le rendu, est')
-console.log('neutralisé des deux côtés — il ne pénalise pas le socle et n\'est pas à corriger à la main.')
+console.log('\n« strict » = fidélité diplomatique, ¬ et espacement compris (mesure de référence).')
+console.log('« secondaire » = reconnaissance seule : espacement de la ponctuation haute et césure ¬/-,')
+console.log('conventions de rendu posées par code, neutralisés des deux côtés. Il NE REMPLACE JAMAIS le strict.')
 console.log('\nRappel : ces mesures ne sont PAS inscrites au registre automatiquement.')
 console.log('Catégoriser les erreurs (reconnaissance / segmentation / ſ / césure / ponctuation /')
 console.log('ligatures / différence diplomatique légitime / erreur de la référence) AVANT toute')

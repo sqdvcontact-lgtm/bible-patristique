@@ -18,6 +18,7 @@ import { construireTexte, construireMarkdown } from './texte.mjs'
 import { altoPage, pageXml } from './echange.mjs'
 import { segmenterColonnes } from './colonnes.mjs'
 import { estHorsCorpsConfirme, extraireStructure } from './structure.mjs'
+import { espacementDiplomatique } from './typographie.mjs'
 
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
 const DIR_PROJETS = join(RACINE, 'projets')
@@ -278,7 +279,8 @@ const escXml = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;
 export function altoEntrainement(imageFichier, largeur, hauteur, lignes = []) {
   const tls = lignes.filter((l) => Array.isArray(l.bbox) && String(l.dip ?? '').trim()).map((l, i) => {
     const [x, y, w, h] = l.bbox
-    return `    <TextLine ID="line_${i}" HPOS="${x}" VPOS="${y}" WIDTH="${w}" HEIGHT="${h}"><String CONTENT="${escXml(l.dip)}" HPOS="${x}" VPOS="${y}" WIDTH="${w}" HEIGHT="${h}"/></TextLine>`
+    // Q3 : jamais de fine U+202F dans le ground-truth (convention de rendu, pas de vérité terrain).
+    return `    <TextLine ID="line_${i}" HPOS="${x}" VPOS="${y}" WIDTH="${w}" HEIGHT="${h}"><String CONTENT="${escXml(espacementDiplomatique(l.dip))}" HPOS="${x}" VPOS="${y}" WIDTH="${w}" HEIGHT="${h}"/></TextLine>`
   }).join('\n')
   const L = largeur || 0, H = hauteur || 0
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -329,7 +331,7 @@ export async function exporterEntrainement(nom, projet, { date = null } = {}) {
     nbPages++
     for (const l of pg.lignes) {
       if (l.incertain) continue // lecture incertaine → jamais en ground-truth
-      const corrige = String(l.dip ?? '').trim()
+      const corrige = espacementDiplomatique(String(l.dip ?? '').trim()) // Q3 : pas de fine U+202F en GT
       if (!Array.isArray(l.bbox) || !corrige) continue
       const original = l.ocr0 != null ? l.ocr0 : corrige
       nbLignes++; if (corrige !== original) nbCorrigees++
