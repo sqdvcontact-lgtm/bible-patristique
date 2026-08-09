@@ -25,8 +25,17 @@ const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
 const DIR_PROJETS = join(RACINE, 'projets')
 const DIR_EXPORTS = join(RACINE, 'exports')
 const DIR_BANCS = join(RACINE, 'bancs')
+const DIR_PROFILS = join(RACINE, 'profils-traitement')
 
 const nomSur = (n) => String(n || 'sans-nom').replace(/[^\w.-]+/g, '_').slice(0, 80)
+
+/** Phase B — écrit le profil de traitement du diagnostic (jamais destructif : nom versionné). */
+export async function sauverProfil(nom, profil) {
+  await mkdir(DIR_PROFILS, { recursive: true })
+  const chemin = join(DIR_PROFILS, nomSur(nom) + '-profil-v1.json')
+  await writeFile(chemin, JSON.stringify({ ...profil, projet: nom, genere_le: new Date().toISOString() }, null, 2), 'utf8')
+  return chemin
+}
 
 export async function sauvegarderProjet(nom, projet) {
   await mkdir(DIR_PROJETS, { recursive: true })

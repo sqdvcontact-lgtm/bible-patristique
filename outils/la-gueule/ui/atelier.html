@@ -339,8 +339,32 @@ function rendreBarreEtapes(){ const bar=$('barreEtapes'); if(!bar)return; const 
     const n=document.createElement('span'); n.className='num'; n.textContent='ÉTAPE '+num
     const l=document.createElement('span'); l.className='lib'; l.textContent=lib
     const b=document.createElement('span'); b.className='badge '+et; b.textContent=LIB_ETAT[et]||et
-    d.appendChild(n); d.appendChild(l); d.appendChild(b); bar.appendChild(d) } }
+    d.appendChild(n); d.appendChild(l); d.appendChild(b)
+    if(cle==='diagnostic_ia'){ d.style.cursor='pointer'; d.title='Refaire le diagnostic (page de titre + typographie → profil de traitement)'; d.onclick=()=>{ if($('chemin').value.trim()) analyser() } }
+    bar.appendChild(d) } }
 rendreBarreEtapes()
+
+// Phase B — met à jour une étape du workflow côté client (miroir de workflow.mjs).
+function majEtapeClient(cle, patch, active){ if(!S.workflow) S.workflow={version_schema:1, etape_active:'diagnostic_ia', etapes:{}}
+  for(const [c] of ETAPES_UI) if(!S.workflow.etapes[c]) S.workflow.etapes[c]={etat:'non_commence'}
+  Object.assign(S.workflow.etapes[cle], patch||{}); if(active) S.workflow.etape_active=active; rendreBarreEtapes() }
+
+// Profil de traitement proposé par le diagnostic (l'IA propose, n'impose pas ; prétraitement inactif).
+function construireProfilClient(meta, typo, nbPages){ const anc=!!(typo&&typo.ancien)
+  const lg=meta&&meta.langue_trad?[String(meta.langue_trad).toLowerCase().slice(0,2)]:[]
+  return { document:{ type:anc?'imprime_ancien':'imprime_moderne', langues:lg, periode_probable:null, qualite_scan:'inconnue' },
+    regimes:[{ pages_pdf:[1, nbPages||1], nature:'corps', moteur:anc?'kraken':'tesseract', modele:anc?'CATMuS-Print':null, colonnes:1 }],
+    pretraitement:{ actif:false, tests_recommandes:[] },
+    phenomenes:{ lettrines:true, poesie:true, notes:false, titres_courants:true, reclames:true, marques_cahier:true },
+    controles_requis:[] } }
+
+async function finaliserDiagnostic({ nbPages, meta, typographie, manuscrit }){
+  const profil = manuscrit
+    ? { document:{type:'manuscrit',langues:[],periode_probable:null,qualite_scan:'inconnue'}, regimes:[{pages_pdf:[1,1],nature:'corps',moteur:'kraken',modele:'CATMuS Medieval',colonnes:1}], pretraitement:{actif:false,tests_recommandes:[]}, phenomenes:{}, controles_requis:[] }
+    : construireProfilClient(meta, typographie, nbPages)
+  S.profil=profil
+  const nom=$('projet').value.trim(); if(nom){ try{ await api('/api/ia/profil/save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom, profil})}) }catch{} }
+  majEtapeClient('diagnostic_ia',{etat:'termine'}); majEtapeClient('ocr_local',{etat:'pret'},'ocr_local'); planifierSave() }
 const SEUIL_DOUTE=0.80 // en dessous, la ligne est signalée « à revoir »
 
 // ── Fiabilité des lots : état par page (à faire / terminé / erreur), progression, journal ────
@@ -383,9 +407,10 @@ async function analyser(){
       remplirMeta(r.meta); $('main').classList.remove('meta-replie'); $('metaToggle').textContent='‹'; planifierSave()
       // Choix AUTOMATIQUE du moteur adapté à ce livre (imprimé ancien à s long → Kraken).
       const anc=r.typographie?.ancien; $('typo').value=anc?'ancien':'moderne'
-      etat(`PDF : ${pages} pages — analyse rapide faite. Moteur conseillé : ${anc?'imprimé ANCIEN (s long → Kraken)':'moderne (Tesseract)'} — ${r.typographie?.raison||''}. « Extraire » pour un balayage complet des métadonnées ; « OCR cette page » pour océriser.`)
+      await finaliserDiagnostic({ nbPages:pages, meta:r.meta, typographie:r.typographie }) // Phase B : profil + avance du workflow
+      etat(`PDF : ${pages} pages — diagnostic fait. Moteur conseillé : ${anc?'imprimé ANCIEN (s long → Kraken)':'moderne (Tesseract)'} — ${r.typographie?.raison||''}. Étape suivante : « OCR local » (« OCR cette page » / « OCR document »).`)
     } else {
-      S.total=1; $('total').textContent=''; etat('image prête — « OCR cette page ».')
+      S.total=1; $('total').textContent=''; await finaliserDiagnostic({ nbPages:1, manuscrit:true }); etat('image (manuscrit) prête — moteur Kraken CATMuS Medieval. Étape suivante : « OCR cette page ».')
     }
   }catch(e){ etat('erreur : '+e.message) }
   finally{ chargeOff() }
@@ -738,7 +763,7 @@ let tResize; window.addEventListener('resize',()=>{ clearTimeout(tResize); tResi
 $('stop').onclick=async()=>{ S.arret=true; try{ await api('/api/atelier/stop',{method:'POST'}) }catch{} }
 
 // ── Persistance & export ────────────────────────────────────────────────────
-function projetActuel(){ const p={ kind:S.kind, chemin:$('chemin').value.trim(), page:S.page, total:S.total, pages:S.pages, meta:collecterMeta(), journal:S.journal||[] }; if(S.garde) p._garde=S.garde; if(S.workflow) p.workflow=S.workflow; return p }
+function projetActuel(){ const p={ kind:S.kind, chemin:$('chemin').value.trim(), page:S.page, total:S.total, pages:S.pages, meta:collecterMeta(), journal:S.journal||[] }; if(S.garde) p._garde=S.garde; if(S.workflow) p.workflow=S.workflow; if(S.profil) p.profil=S.profil; return p }
 // Champs = colonnes de la table `oeuvres` du site (correspondance exacte).
 const CHAMPS_META=['auteur','titre','sous_titre','titre_original','langue_originale','langue_trad','trad_auteur','editeur','collection','ville','date_publication','date_composition','genre']
 const vMeta=c=>$('m_'+c).value.trim()||null
