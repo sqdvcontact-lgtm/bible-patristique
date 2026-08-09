@@ -8,7 +8,26 @@ import {
   comparerQualite,
   entreeModele,
   meilleurModele,
+  normaliserTypographie,
 } from '../src/modeles.mjs'
+
+test('normaliserTypographie : neutralise l’espacement de la ponctuation haute (comparaison)', () => {
+  const N = normaliserTypographie
+  // espace simple / fine (U+202F) / insecable (U+00A0) avant ; : ! ? -> supprimee
+  assert.equal(N('pleurs ;'), 'pleurs;')
+  assert.equal(N('pleurs\u202F;'), 'pleurs;')
+  assert.equal(N('pleurs\u00A0;'), 'pleurs;')
+  assert.equal(N('quoi ?'), 'quoi?')
+  assert.equal(N('Dieu !'), 'Dieu!')
+  assert.equal(N('ceci : cela'), 'ceci: cela')
+  // guillemets francais : espace interieure neutralisee
+  assert.equal(N('\u00AB\u202Fmot\u202F\u00BB'), '\u00ABmot\u00BB')
+  // idempotence + ne touche a rien d’autre
+  assert.equal(N(N('pleurs\u202F;')), 'pleurs;')
+  assert.equal(N('un mot, deux mots.'), 'un mot, deux mots.')
+  // cle de la mesure : identiques avec/sans espace -> 0 erreur
+  assert.equal(N('mot\u202F;'), N('mot;'))
+})
 
 test('distanceEdition : cas connus', () => {
   assert.equal(distanceEdition(Array.from('kitten'), Array.from('sitting')), 3)

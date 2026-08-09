@@ -13,7 +13,7 @@ import { dirname, join } from 'node:path'
 import { chargerProjet } from '../src/projet.mjs'
 import { ocrPage } from '../src/wsl.mjs'
 import { parseAlto } from '../src/alto.mjs'
-import { evaluerModele } from '../src/modeles.mjs'
+import { evaluerModele, normaliserTypographie } from '../src/modeles.mjs'
 
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
 const nom = process.argv[2]
@@ -39,7 +39,7 @@ const socles = [
 ]
 
 const global = {}
-for (const s of socles) global[s.cle] = { distC: 0, longC: 0, distM: 0, longM: 0, secondes: 0, pages: [] }
+for (const s of socles) global[s.cle] = { distC: 0, longC: 0, distCn: 0, longCn: 0, distM: 0, longM: 0, secondes: 0, pages: [] }
 
 for (const [n, pg] of Object.entries(projet.pages)) {
   if (!pg || pg.etat !== 'termine' || !Array.isArray(pg.lignes)) continue
@@ -56,11 +56,16 @@ for (const [n, pg] of Object.entries(projet.pages)) {
     } catch (e) { console.log(`page ${n} [${s.cle}] : ERREUR ${e?.message || e}`); continue }
     const secs = Number(process.hrtime.bigint() - t0) / 1e9
     const ev = evaluerModele([{ reference, hypothese: hyp }])
+    // CER « normalisé » : on neutralise l'espacement de la ponctuation haute (convention de
+    // rendu, posée par code) sur la référence ET l'hypothèse, pour mesurer la RECONNAISSANCE.
+    const refN = normaliserTypographie(reference), hypN = normaliserTypographie(hyp)
+    const evN = evaluerModele([{ reference: refN, hypothese: hypN }])
     const g = global[s.cle]
     g.distC += ev.cer * [...reference].length; g.longC += [...reference].length
+    g.distCn += evN.cer * [...refN].length; g.longCn += [...refN].length
     g.distM += ev.wer * reference.split(/\s+/).filter(Boolean).length; g.longM += reference.split(/\s+/).filter(Boolean).length
     g.secondes += secs
-    g.pages.push({ page: Number(n), cer: ev.cer, wer: ev.wer, secondes: Math.round(secs) })
+    g.pages.push({ page: Number(n), cer: ev.cer, cerNorm: evN.cer, wer: ev.wer, secondes: Math.round(secs) })
   }
 }
 
@@ -69,12 +74,16 @@ console.log(`\n===== ÉVALUATION DU BANC « ${nom} » (valide_humain) =====`)
 for (const s of socles) {
   const g = global[s.cle]
   const cer = g.longC ? g.distC / g.longC : null
+  const cerN = g.longCn ? g.distCn / g.longCn : null
   const wer = g.longM ? g.distM / g.longM : null
   console.log(`\n${s.cle} :`)
-  console.log(`  CER global : ${cer == null ? 'n/a' : pc(cer)}  |  WER global : ${wer == null ? 'n/a' : pc(wer)}`)
+  console.log(`  CER brut : ${cer == null ? 'n/a' : pc(cer)}  |  CER normalisé : ${cerN == null ? 'n/a' : pc(cerN)}  |  WER : ${wer == null ? 'n/a' : pc(wer)}`)
   console.log(`  ${g.pages.length} page(s), ${g.longC} caractères, ${Math.round(g.secondes)} s au total`)
-  for (const p of g.pages) console.log(`    page ${p.page} : CER ${pc(p.cer)}  (${p.secondes}s)`)
+  for (const p of g.pages) console.log(`    page ${p.page} : CER ${pc(p.cer)} (norm. ${pc(p.cerNorm)})  (${p.secondes}s)`)
 }
+console.log('\n« brut » = fidélité diplomatique (tout compte). « normalisé » = reconnaissance seule :')
+console.log('l\'espacement de la ponctuation haute (« ; : ! ? » et guillemets), posé par le rendu, est')
+console.log('neutralisé des deux côtés — il ne pénalise pas le socle et n\'est pas à corriger à la main.')
 console.log('\nRappel : ces mesures ne sont PAS inscrites au registre automatiquement.')
 console.log('Catégoriser les erreurs (reconnaissance / segmentation / ſ / césure / ponctuation /')
 console.log('ligatures / différence diplomatique légitime / erreur de la référence) AVANT toute')

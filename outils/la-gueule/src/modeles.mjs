@@ -83,6 +83,19 @@ export function evaluerModele(paires = []) {
   }
 }
 
+// Normalisation TYPOGRAPHIQUE pour la comparaison OCR. La convention française (espace fine
+// avant « ; : ! ? » et autour des guillemets) relève du RENDU, pas de la reconnaissance : le
+// site la pose par code. On la neutralise donc au moment de comparer — appliquée À L'IDENTIQUE
+// sur la référence ET l'hypothèse — pour qu'un espace avant une ponctuation haute (présent d'un
+// côté, absent de l'autre) ne soit pas compté comme une erreur du socle. On unifie aussi les
+// espaces insécables / fines avec l'espace simple. Ne touche à RIEN d'autre (lettres, mots).
+export function normaliserTypographie(s) {
+  return String(s ?? '')
+    .replace(/[       ]/g, ' ') // insécable / fine / cadratins → espace simple
+    .replace(/ +([;:!?»])/g, '$1')                                   // pas d'espace avant ; : ! ? »
+    .replace(/(«) +/g, '$1')                                         // ni après «
+}
+
 // --- Décision d'adoption (pure) -----------------------------------------
 
 // N'adopte un candidat que s'il est MEILLEUR que la référence d'une marge
