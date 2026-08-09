@@ -39,9 +39,12 @@ Chaque étape est persistée et versionnée ; une modification en amont périme 
   `src/ia/claude.mjs` (squelette `fetch` natif, `LG_AI_MODEL_*`, clé `ANTHROPIC_API_KEY` jamais au
   dépôt ni dans les sorties ; s'abstient sans clé/consentement/modèle ; jamais d'appel en test) ;
   `src/ia/diagnostic.mjs` (`pagesEchantillon`, `construireProfil`, prétraitement inactif par défaut).
-  11 tests. **RESTE Phase B** : écran Diagnostic dans l'UI + câblage de l'étape (échantillon local →
-  profil proposé → avance le workflow) ; consentement cloud à l'écran ; écriture
-  `profils-traitement/<projet>-profil-v1.json`.
+  11 tests. **Fin de Phase B (`21495e1`)** : le diagnostic est l'**étape 1** câblée — `analyser()`
+  construit un profil (moteur conseillé, régimes, phénomènes, prétraitement inactif), l'écrit
+  (`profils-traitement/<nom>-profil-v1.json` via `/api/ia/profil/save`) et fait **avancer le workflow**
+  (diagnostic → terminé, OCR local → prêt) ; la barre 5 étapes le reflète ; étape 1 cliquable. Vérifié.
+  **Phase B complète.** *(À enrichir plus tard : appel IA `diagnostiquer` réel derrière consentement,
+  écran de consentement dédié.)*
 - **Phase C — OCR local dans le workflow** : relier le profil (régimes par pages) au pipeline
   `wsl.mjs` existant ; progression, reprise, erreurs conservées.
 - **Phase D — Contrôle IA** : registres `controles/charte-ocr.json`, `controles/catalogue-erreurs-ocr.jsonl`,
