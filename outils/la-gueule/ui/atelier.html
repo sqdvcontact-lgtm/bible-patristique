@@ -386,7 +386,15 @@ function rendre(){
   const holder=$('imgHolder'), vl=$('lignes')
   const multiPages=(S.kind==='imprime')||((S.total||1)>1) // un PDF a toujours des pages
   $('navPrec').style.display=$('navSuiv').style.display=multiPages?'block':'none'
-  if(!pg){ holder.innerHTML='<div class="vide">Pas encore d\'OCR pour cette page.</div>'; vl.innerHTML='<div class="vide">—</div>'; return }
+  // Page sans image ni lignes exploitables (jamais océrisée, ou OCR en erreur) : message propre,
+  // pas d'image cassée ni de plantage (pg.lignes serait undefined plus bas).
+  if(!pg || !pg.pngUrl || !Array.isArray(pg.lignes)){
+    const d=document.createElement('div'); d.className='vide'
+    d.textContent=(pg && pg.etat==='erreur')
+      ? ('Page en échec d\'OCR : '+(pg.erreur||'cause inconnue')+' — relance « OCR cette page » pour réessayer.')
+      : 'Pas encore d\'OCR pour cette page.'
+    holder.innerHTML=''; holder.appendChild(d); vl.innerHTML='<div class="vide">—</div>'; return
+  }
   // Image + boîtes. L'image est mise à l'échelle pour TENIR dans la hauteur du volet (pas de défilement).
   holder.innerHTML=''
   const scene=document.createElement('div'); scene.className='scene'
@@ -526,8 +534,18 @@ async function allerPage(n){
 }
 $('prec').onclick=()=>allerPage(S.page-1)
 $('suiv').onclick=()=>allerPage(S.page+1)
-$('navPrec').onclick=()=>allerPage(S.page-1)
-$('navSuiv').onclick=()=>allerPage(S.page+1)
+// Feuilletage (flèches sur l'image) : va à la page précédente/suivante QUI A UNE IMAGE, en
+// sautant les pages jamais océrisées ou en erreur, et sans relancer d'OCR (revue seulement).
+// L'OCR séquentiel reste sur « ‹ page / page › » et « OCR cette page » de la barre du haut.
+function pagesAvecImage(){ return Object.keys(S.pages).map(Number)
+  .filter(n=>S.pages[n]&&S.pages[n].pngUrl&&Array.isArray(S.pages[n].lignes)&&S.pages[n].lignes.length)
+  .sort((a,b)=>a-b) }
+function feuilleter(sens){ const L=pagesAvecImage(); if(!L.length) return
+  const cible = sens>0 ? L.find(n=>n>S.page) : [...L].reverse().find(n=>n<S.page)
+  if(cible==null) return // déjà à la première/dernière page avec image
+  S.page=cible; $('page').value=cible; rendre(); etat('page '+cible) }
+$('navPrec').onclick=()=>feuilleter(-1)
+$('navSuiv').onclick=()=>feuilleter(1)
 $('page').onchange=()=>allerPage($('page').valueAsNumber||1)
 
 // OCR d'un lot. Persistance APRÈS CHAQUE page → reprise garantie (au pire, une page perdue).
@@ -653,7 +671,11 @@ async function ouvrirProjet(nom){
   const {projet}=await api('/api/projet/load?nom='+encodeURIComponent(nom))
   S.kind=projet.kind||'imprime'; $('kind').value=S.kind; $('chemin').value=projet.chemin||''
   S.pages=projet.pages||{}; S.total=projet.total||null; S.journal=projet.journal||[]; S.garde=projet._garde||null
-  S.page=projet.page||Object.keys(S.pages).map(Number).sort((a,b)=>a-b)[0]||1
+  // Ouvre sur une page RÉELLE : la page enregistrée si elle a du contenu, sinon la 1re page avec
+  // image (évite d'atterrir sur une page en erreur, ex. banc où projet.page pointe une page ratée).
+  { const avecImg=Object.keys(S.pages).map(Number).filter(n=>S.pages[n]?.pngUrl&&S.pages[n]?.lignes?.length).sort((a,b)=>a-b)
+    const toutes=Object.keys(S.pages).map(Number).sort((a,b)=>a-b)
+    S.page=(projet.page&&S.pages[projet.page]?.lignes?.length)?projet.page:(avecImg[0]||toutes[0]||1) }
   $('page').value=S.page; $('projet').value=nom; $('onglets').style.display=(S.kind==='manuscrit')?'flex':'none'
   $('lblTypo').style.display=(S.kind==='imprime')?'flex':'none'
   remplirMeta(projet.meta)
