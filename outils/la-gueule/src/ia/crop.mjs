@@ -26,3 +26,33 @@ export async function cropBase64(pngWin, bbox, { marge = 0.25 } = {}) {
   if (!r.ok || !r.stdout) return null
   return r.stdout.replace(/\s+/g, '')
 }
+
+/**
+ * Rend UNE page d'un PDF en PNG et renvoie son base64, réduite à `largeurMax` (pour borner le coût en
+ * jetons). Sert à envoyer la PAGE DE TITRE ENTIÈRE à l'IA de diagnostic (métadonnées), à la différence
+ * du crop d'une ligne. Valeurs entières bornées (pas d'injection) ; dossier temporaire nettoyé ; null
+ * en cas d'échec (ne bloque rien).
+ */
+export async function pdfPageBase64(pdfWin, page, { dpi = 200, largeurMax = 1600 } = {}) {
+  if (!pdfWin) return null
+  const pg = Math.max(1, Math.round(Number(page) || 1))
+  const d = Math.max(72, Math.min(400, Math.round(Number(dpi) || 200)))
+  const w = Math.max(400, Math.min(3000, Math.round(Number(largeurMax) || 1600)))
+  const script =
+    'T=$(mktemp -d) && ' +
+    `pdftoppm -f ${pg} -l ${pg} -r ${d} -png -singlefile "$PDF" "$T/p" && ` +
+    `convert "$T/p.png" -resize '${w}x>' png:- | base64 -w0; ` +
+    'rm -rf "$T"'
+  const r = await runBash(script, { PDF: pdfWin }, { timeoutMs: 60000 })
+  if (!r.ok || !r.stdout) return null
+  return r.stdout.replace(/\s+/g, '')
+}
+
+/** Encode un FICHIER image entier (manuscrit déposé) en base64 PNG, réduit à `largeurMax`. */
+export async function imageFichierBase64(imgWin, { largeurMax = 1600 } = {}) {
+  if (!imgWin) return null
+  const w = Math.max(400, Math.min(3000, Math.round(Number(largeurMax) || 1600)))
+  const r = await runBash(`convert "$IMG" -resize '${w}x>' png:- | base64 -w0`, { IMG: imgWin }, { timeoutMs: 45000 })
+  if (!r.ok || !r.stdout) return null
+  return r.stdout.replace(/\s+/g, '')
+}

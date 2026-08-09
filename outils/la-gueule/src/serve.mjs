@@ -15,12 +15,12 @@ import { parserMetadonnees, typographieProbable } from './metadonnees.mjs'
 import { parseAlto } from './alto.mjs'
 import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes, sauverProfil, sauverRapportGeneration } from './projet.mjs'
 import { controlerDeterministe, controlerIA } from './ia/controle.mjs'
-import { choisirFournisseur } from './ia/fournisseur.mjs'
+import { choisirFournisseur, appelerIA } from './ia/fournisseur.mjs'
 import { classerValidation } from './ia/validation.mjs'
 import { rapportGeneration, etatLivraison } from './ia/generation.mjs'
 import { etatFournisseur, lireConsentement, ecrireConsentement, consentementActif } from './ia/consentement.mjs'
-import { cropBase64, cheminPngDepuisUrl } from './ia/crop.mjs'
-import { messagesLettrine, messagesCorrection } from './ia/prompt.mjs'
+import { cropBase64, cheminPngDepuisUrl, pdfPageBase64, imageFichierBase64 } from './ia/crop.mjs'
+import { messagesLettrine, messagesCorrection, messagesMetadonnees } from './ia/prompt.mjs'
 import { detecterLangue, apparierParagraphes } from './bilingue.mjs'
 import { annoterProjet } from './structure.mjs'
 
@@ -243,6 +243,31 @@ export function demarrer({ port = 4599 } = {}) {
         } catch { /* page hors bornes : ignorée */ }
         const typographie = typographieProbable({ texteTitre, texteCorps, date_publication: meta.date_publication })
         return json(res, 200, { meta, pdf: info, brut: texteTitre.slice(0, 1500), typographie })
+      }
+
+      // Diagnostic IA — MÉTADONNÉES de la page de titre par vision (§8.1). Complète les champs que le
+      // parseur déterministe rate (éditeur, ville, genre, sous-titre, titre original). Appel cloud
+      // FACTURÉ : ne part que si fournisseur cloud ET consentement actif (vérifié côté serveur). Sortie
+      // = CANDIDAT (jamais d'écriture active) ; l'utilisateur relit. La clé n'apparaît jamais.
+      if (p === '/api/ia/metadonnees' && req.method === 'POST') {
+        const b = await corps(req)
+        if (b.path && !sousRacine(b.path)) return json(res, 403, { erreur: 'hors du dossier de travail (copier dans incoming/ d’abord, §2.3)' })
+        const fournisseur = choisirFournisseur(process.env)
+        const consentement = consentementActif(await lireConsentement(), etatFournisseur(process.env).nom)
+        if (!fournisseur.cloud || !consentement) {
+          return json(res, 200, { ia_active: false, meta_ia: {}, motif: !fournisseur.cloud ? 'fournisseur local (mock) : pas d’envoi cloud' : 'consentement cloud requis' })
+        }
+        const page = Math.max(1, Number(b.page) || 3)
+        const estImg = IMG_EXT.has(extname(b.path || '').toLowerCase())
+        const image_base64 = estImg ? await imageFichierBase64(b.path) : await pdfPageBase64(b.path, page)
+        if (!image_base64) return json(res, 200, { ia_active: true, meta_ia: {}, erreur: 'image de la page de titre indisponible (rendu échoué)' })
+        const charge = messagesMetadonnees({ image_base64, texte_ocr: b.texteTitre || '' })
+        const sortie = await appelerIA(fournisseur, 'diagnostic', charge, { consentement })
+        // Ne conserve QUE les champs métadonnées connus, non vides ; jamais la clé, jamais d'écriture active.
+        const CH = ['titre', 'sous_titre', 'titre_original', 'auteur', 'trad_auteur', 'editeur', 'collection', 'ville', 'date_publication', 'date_composition', 'genre', 'langue_originale', 'langue_trad']
+        const meta_ia = {}
+        if (!sortie.abstention) for (const c of CH) { const v = sortie[c]; if (v != null && String(v).trim()) meta_ia[c] = String(v).trim() }
+        return json(res, 200, { ia_active: true, meta_ia, abstention: !!sortie.abstention, confiance: sortie.confiance ?? null, modele: sortie.modele || null, erreur: sortie.erreur || null })
       }
 
       // Phase B — écrit le profil de traitement du diagnostic (profils-traitement/<nom>-profil-v1.json).

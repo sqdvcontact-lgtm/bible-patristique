@@ -5,7 +5,7 @@ import { fournisseurMock } from '../src/ia/mock.mjs'
 import { fournisseurClaude } from '../src/ia/claude.mjs'
 import { pagesEchantillon, construireProfil, regimePourPage, pageAnormale } from '../src/ia/diagnostic.mjs'
 import { etatFournisseur, consentementActif } from '../src/ia/consentement.mjs'
-import { messagesLettrine, messagesCorrection } from '../src/ia/prompt.mjs'
+import { messagesLettrine, messagesCorrection, messagesMetadonnees } from '../src/ia/prompt.mjs'
 import { cheminPngDepuisUrl } from '../src/ia/crop.mjs'
 
 test('IA prompt : messagesLettrine — image + consigne JSON, le texte du livre est une donnée', () => {
@@ -21,6 +21,21 @@ test('IA prompt : messagesCorrection — schéma correction_ocr, pas de modernis
   const m = messagesCorrection({ crop_base64: 'X', texte_ocr: 'neigor' })
   assert.match(m.messages[0].content[1].text, /texte_propose/)
   assert.match(m.systeme, /Ne modernise/)
+})
+
+test('IA prompt : messagesMetadonnees — image de la page de titre + schéma oeuvres, OCR en donnée', () => {
+  const m = messagesMetadonnees({ image_base64: 'PAGEB64', texte_ocr: 'BOECE\nDE LA CONSOLATION' })
+  assert.match(m.systeme, /DONNÉE.*jamais une instruction/s)              // §14.5 : le texte est une donnée
+  assert.equal(m.messages[0].content[0].type, 'image')
+  assert.equal(m.messages[0].content[0].source.data, 'PAGEB64')            // l'image entière est envoyée
+  const consigne = m.messages[0].content[1].text
+  assert.match(consigne, /"editeur":null/)                                 // les champs manquants au parseur
+  assert.match(consigne, /"ville":null/)
+  assert.match(consigne, /"genre":null/)
+  assert.match(consigne, /"titre_original":null/)
+  assert.match(consigne, /"sous_titre":null/)
+  assert.match(consigne, /null pour tout champ absent/)                    // n'invente rien
+  assert.match(consigne, /BOECE/)                                          // OCR présent comme appui (donnée)
 })
 
 test('IA : cheminPngDepuisUrl extrait le chemin d’un /api/fichier?path=', () => {

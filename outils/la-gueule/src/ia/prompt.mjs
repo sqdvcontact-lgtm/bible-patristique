@@ -3,6 +3,7 @@
 // l'abstention est explicitement autorisée ; on n'accepte jamais de modernisation de graphie.
 
 export const VERSION_PROMPT = 'lettrine-v1'
+export const VERSION_PROMPT_META = 'metadonnees-titre-v1'
 
 const SYSTEME =
   'Tu es un lecteur paléographe PRUDENT d\'imprimés français d\'Ancien Régime. ' +
@@ -28,6 +29,44 @@ export function messagesLettrine({ crop_base64, media_type = 'image/png', texte_
     systeme: SYSTEME,
     messages: [{ role: 'user', content: [
       { type: 'image', source: { type: 'base64', media_type, data: String(crop_base64 || '') } },
+      { type: 'text', text: consigne },
+    ] }],
+  }
+}
+
+/**
+ * Messages Anthropic pour lire les MÉTADONNÉES bibliographiques d'une PAGE DE TITRE (image entière).
+ * Vocabulaire aligné sur les colonnes de la table `oeuvres` du site. L'IA lit CE QUI EST IMPRIMÉ,
+ * champ par champ, et met `null` (jamais d'invention) pour tout ce qui n'est pas lisible. La sortie
+ * reste un CANDIDAT : l'utilisateur relit et valide. Le texte OCR est fourni comme DONNÉE d'appui.
+ */
+export function messagesMetadonnees({ image_base64, media_type = 'image/png', texte_ocr = '' } = {}) {
+  const consigne =
+    'Page de titre d\'un imprimé français ancien (traduction d\'un Père de l\'Église, en général).\n' +
+    'OCR de la page (donnée d\'appui, faillible) : ' + JSON.stringify(String(texte_ocr).slice(0, 1500)) + '\n' +
+    'Lis l\'IMAGE et renseigne chaque champ D\'APRÈS CE QUI EST IMPRIMÉ. Mets null pour tout champ absent ' +
+    'ou illisible : n\'invente rien, ne déduis pas du sens.\n' +
+    'Consignes par champ :\n' +
+    '- titre : le titre de l\'œuvre, SANS le nom de l\'auteur ni les mentions d\'édition ; graphie conservée.\n' +
+    '- sous_titre : complément ou précision du titre s\'il en existe un.\n' +
+    '- titre_original : le titre latin ou grec de l\'œuvre traduite s\'il figure, sinon null.\n' +
+    '- auteur : l\'auteur ancien (« Saint Basile », « Boèce »…), pas le traducteur ni l\'éditeur.\n' +
+    '- trad_auteur : le traducteur (« traduit par… », « par M. … »).\n' +
+    '- editeur : l\'imprimeur ou le libraire (« chez… », « Imprimerie… », « Librairie… »), jamais l\'auteur.\n' +
+    '- ville : le lieu d\'impression.\n' +
+    '- date_publication : le millésime IMPRIMÉ (chiffres arabes ou romains convertis) ; jamais une date de numérisation.\n' +
+    '- genre : la nature de l\'œuvre si explicite (traité, commentaire, sermons, lettres, poème, dialogue…), sinon null.\n' +
+    '- langue_originale : latin ou grec si l\'original est cité, sinon null. langue_trad : « français ».\n' +
+    '- collection : le nom d\'une collection éditoriale si mentionné, sinon null.\n' +
+    'Réponds en JSON STRICT, une seule ligne :\n' +
+    '{"type":"metadonnees_titre","titre":null,"sous_titre":null,"titre_original":null,"auteur":null,' +
+    '"trad_auteur":null,"editeur":null,"collection":null,"ville":null,"date_publication":null,' +
+    '"genre":null,"langue_originale":null,"langue_trad":null,' +
+    '"lecture_fondee_sur_image":true,"confiance":0.0,"abstention":false,"statut":"candidat"}'
+  return {
+    systeme: SYSTEME,
+    messages: [{ role: 'user', content: [
+      { type: 'image', source: { type: 'base64', media_type, data: String(image_base64 || '') } },
       { type: 'text', text: consigne },
     ] }],
   }

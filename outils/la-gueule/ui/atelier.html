@@ -37,6 +37,7 @@
   .meta-corps{padding:10px;display:flex;flex-direction:column;gap:8px}
   .meta-corps label{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--second)}
   .meta-corps input{width:100%;font-size:13px}
+  .meta-corps input.meta-ia{background:#fff7e6;border-color:#e0b050} /* champ proposé par l'IA, à vérifier */
   .meta-etat{font-size:11px;color:var(--second);min-height:1em;margin-top:2px}
   main.meta-replie .meta-titre,main.meta-replie .meta-extraire,main.meta-replie .meta-corps{display:none}
   main.meta-replie .meta-tete{flex-direction:column;padding:8px 3px;border-bottom:none}
@@ -299,6 +300,7 @@
       <button class="meta-toggle" id="metaToggle" title="Replier les métadonnées">‹</button>
       <span class="meta-titre">Métadonnées</span>
       <button class="discret meta-extraire" id="btnMeta" title="Extraire de la page de titre">Extraire</button>
+      <button class="discret meta-extraire" id="btnMetaIA" title="Compléter les champs vides en lisant la page de titre par l'IA (appel cloud facturé, avec consentement)">IA titre</button>
     </div>
     <div class="meta-corps" id="metaCorps">
       <label>Auteur <input id="m_auteur" placeholder="Saint Basile le Grand"></label>
@@ -915,7 +917,7 @@ function remplirMeta(m){ if(!m)return
   const compat={ ...m, trad_auteur:m.trad_auteur??m.traducteur, ville:m.ville??m.lieu,
     date_publication:m.date_publication??m.date_edition,
     langue_originale:m.langue_originale??((m.langues||[]).find(l=>/lat|grec/i.test(l))||null) }
-  CHAMPS_META.forEach(c=>{ $('m_'+c).value=compat[c]||'' }) }
+  CHAMPS_META.forEach(c=>{ const el=$('m_'+c); el.value=compat[c]||''; el.classList.remove('meta-ia') }) }
 // Parcourir = sélecteur NATIF du navigateur (fiable, dans la session de l'utilisateur),
 // puis téléversement des octets. Le glisser-déposer emprunte le même chemin.
 function parcourir(){ $('fichierLocal').click() }
@@ -948,12 +950,35 @@ async function extraireMeta(){ const chemin=$('chemin').value.trim(); if(!chemin
     remplirMeta(r.meta); $('etatMeta').textContent='✓ à relire/compléter'; planifierSave() }
   catch(e){ $('etatMeta').textContent='échec : '+e.message }
   finally{ chargeOff() } }
+// Diagnostic IA — complète les métadonnées VIDES en lisant la page de titre par vision (cloud, avec
+// consentement). Ne remplace jamais un champ déjà rempli à la main ; marque les champs proposés par l'IA.
+async function completerMetaIA(){ const chemin=$('chemin').value.trim(); if(!chemin){ $('etatMeta').textContent='choisis d\'abord un fichier'; return }
+  await chargerEtatIA()
+  const f=S.ia&&S.ia.fournisseur
+  if(!f||!f.cloud){ $('etatMeta').textContent='IA locale (mock) : pas de lecture cloud. Configure un fournisseur pour l\'utiliser.'; return }
+  if(!f.dispo){ $('etatMeta').textContent='fournisseur cloud sans clé : rien n\'est envoyé.'; return }
+  if(!consentementValideClient()){ const ok=await demanderConsentement(); if(!ok){ $('etatMeta').textContent='resté en local : aucune lecture cloud.'; return } }
+  $('main').classList.remove('meta-replie'); $('metaToggle').textContent='‹'
+  const page=(S.page&&S.page<=7)?S.page:3
+  const lignesCour=(S.pages&&S.pages[S.page]&&S.pages[S.page].lignes)||[]
+  const texteTitre=lignesCour.map(l=>l.dip||l.texte||'').join('\n')
+  $('etatMeta').textContent='lecture IA de la page de titre…'; chargeOn('Lecture IA de la page de titre…')
+  try{ const r=await api('/api/ia/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin,page,texteTitre})})
+    if(!r.ia_active){ $('etatMeta').textContent='IA non active ('+(r.motif||'—')+')'; return }
+    const m=r.meta_ia||{}; let n=0
+    CHAMPS_META.forEach(c=>{ const el=$('m_'+c); if(!el)return; if(m[c]!=null&&String(m[c]).trim()&&!el.value.trim()){ el.value=String(m[c]).trim(); el.classList.add('meta-ia'); el.title='proposé par l\'IA — à vérifier'; n++ } })
+    if(r.abstention&&!n){ $('etatMeta').textContent='l\'IA s\'est abstenue (page peu lisible) — rien ajouté.' }
+    else $('etatMeta').textContent='✓ IA : '+n+' champ(s) vide(s) complété(s) — à vérifier'+(r.confiance!=null?(' (confiance '+r.confiance+')'):'')
+    if(n){ planifierSave() }
+  }catch(e){ $('etatMeta').textContent='échec IA : '+e.message }
+  finally{ chargeOff() } }
 // Replier / déplier la colonne des métadonnées.
 $('metaToggle').onclick=()=>{ const replie=$('main').classList.toggle('meta-replie')
   $('metaToggle').textContent=replie?'›':'‹'; $('metaToggle').title=replie?'Afficher les métadonnées':'Replier les métadonnées' }
 $('btnParcourir').onclick=parcourir
 $('btnMeta').onclick=extraireMeta
-;[...document.querySelectorAll('#metaCorps input')].forEach(i=>i.oninput=planifierSave)
+$('btnMetaIA').onclick=completerMetaIA
+;[...document.querySelectorAll('#metaCorps input')].forEach(i=>i.oninput=()=>{ i.classList.remove('meta-ia'); planifierSave() })
 let tSave
 function planifierSave(){ if(!$('projet').value.trim())return; clearTimeout(tSave); tSave=setTimeout(()=>sauver(true),1200) }
 async function sauver(auto){
