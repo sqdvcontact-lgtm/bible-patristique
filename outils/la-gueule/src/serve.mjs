@@ -4,7 +4,7 @@
 
 import { createServer } from 'node:http'
 import { createWriteStream } from 'node:fs'
-import { readFile, mkdir } from 'node:fs/promises'
+import { readFile, mkdir, writeFile } from 'node:fs/promises'
 import { pipeline } from 'node:stream/promises'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, extname, basename, resolve, sep } from 'node:path'
@@ -253,21 +253,36 @@ export function demarrer({ port = 4599 } = {}) {
         const b = await corps(req)
         if (b.path && !sousRacine(b.path)) return json(res, 403, { erreur: 'hors du dossier de travail (copier dans incoming/ d’abord, §2.3)' })
         const fournisseur = choisirFournisseur(process.env)
-        const consentement = consentementActif(await lireConsentement(), etatFournisseur(process.env).nom)
+        const etat = etatFournisseur(process.env)
+        const consentement = consentementActif(await lireConsentement(), etat.nom)
         if (!fournisseur.cloud || !consentement) {
-          return json(res, 200, { ia_active: false, meta_ia: {}, motif: !fournisseur.cloud ? 'fournisseur local (mock) : pas d’envoi cloud' : 'consentement cloud requis' })
+          return json(res, 200, { ia_active: false, meta_ia: {}, motif: !fournisseur.cloud ? 'fournisseur local (mock) : pas d’envoi cloud' : 'consentement requis' })
         }
+        if (!fournisseur.dispo) return json(res, 200, { ia_active: false, meta_ia: {}, motif: 'fournisseur indisponible (clé ou CLI absent)' })
         const page = Math.max(1, Number(b.page) || 3)
         const estImg = IMG_EXT.has(extname(b.path || '').toLowerCase())
-        const image_base64 = estImg ? await imageFichierBase64(b.path) : await pdfPageBase64(b.path, page)
-        if (!image_base64) return json(res, 200, { ia_active: true, meta_ia: {}, erreur: 'image de la page de titre indisponible (rendu échoué)' })
-        const charge = messagesMetadonnees({ image_base64, texte_ocr: b.texteTitre || '' })
-        const sortie = await appelerIA(fournisseur, 'diagnostic', charge, { consentement })
+        let sortie
+        if (fournisseur.local) {
+          // CLI local : il lit l'image par son CHEMIN → on rend la page de titre dans un fichier servi.
+          const dir = join(RACINE, 'sorties', 'atelier')
+          await mkdir(dir, { recursive: true })
+          const dest = join(dir, 'titre-ia-' + Date.now() + '.png')
+          const b64 = estImg ? await imageFichierBase64(b.path) : await pdfPageBase64(b.path, page)
+          if (!b64) return json(res, 200, { ia_active: true, meta_ia: {}, erreur: 'image de la page de titre indisponible (rendu échoué)' })
+          await writeFile(dest, Buffer.from(b64, 'base64'))
+          sortie = await appelerIA(fournisseur, 'diagnostic', { image_path: dest, texte_ocr: b.texteTitre || '', cwd: dir }, { consentement })
+        } else {
+          // API : image en base64 dans le message.
+          const image_base64 = estImg ? await imageFichierBase64(b.path) : await pdfPageBase64(b.path, page)
+          if (!image_base64) return json(res, 200, { ia_active: true, meta_ia: {}, erreur: 'image de la page de titre indisponible (rendu échoué)' })
+          const charge = messagesMetadonnees({ image_base64, texte_ocr: b.texteTitre || '' })
+          sortie = await appelerIA(fournisseur, 'diagnostic', charge, { consentement })
+        }
         // Ne conserve QUE les champs métadonnées connus, non vides ; jamais la clé, jamais d'écriture active.
         const CH = ['titre', 'sous_titre', 'titre_original', 'auteur', 'trad_auteur', 'editeur', 'collection', 'ville', 'date_publication', 'date_composition', 'genre', 'langue_originale', 'langue_trad']
         const meta_ia = {}
         if (!sortie.abstention) for (const c of CH) { const v = sortie[c]; if (v != null && String(v).trim()) meta_ia[c] = String(v).trim() }
-        return json(res, 200, { ia_active: true, meta_ia, abstention: !!sortie.abstention, confiance: sortie.confiance ?? null, modele: sortie.modele || null, erreur: sortie.erreur || null })
+        return json(res, 200, { ia_active: true, meta_ia, abstention: !!sortie.abstention, confiance: sortie.confiance ?? null, modele: sortie.modele || null, fournisseur: etat.nom, erreur: sortie.erreur || null })
       }
 
       // Phase B — écrit le profil de traitement du diagnostic (profils-traitement/<nom>-profil-v1.json).

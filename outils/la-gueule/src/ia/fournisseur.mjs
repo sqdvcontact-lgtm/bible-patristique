@@ -6,12 +6,15 @@
 import { createHash } from 'node:crypto'
 import { fournisseurMock } from './mock.mjs'
 import { fournisseurClaude } from './claude.mjs'
+import { fournisseurClaudeLocal } from './claude-local.mjs'
 
 export const TACHES = ['diagnostic', 'lettrine', 'titre', 'ligne', 'page', 'section', 'lot']
 
-/** Choisit le fournisseur selon l'environnement. `anthropic`/`claude` → Claude ; sinon mock. */
+/** Choisit le fournisseur selon l'environnement. `claude-local`/`local` → CLI local (abonnement, sans
+ *  clé API) ; `anthropic`/`claude` → API (clé + crédits console) ; sinon mock (hors-ligne). */
 export function choisirFournisseur(env = {}) {
   const nom = String(env.LG_AI_PROVIDER || 'mock').toLowerCase()
+  if (nom === 'claude-local' || nom === 'local') return fournisseurClaudeLocal(env)
   if (nom === 'anthropic' || nom === 'claude') return fournisseurClaude(env)
   return fournisseurMock()
 }

@@ -40,8 +40,12 @@ export function messagesLettrine({ crop_base64, media_type = 'image/png', texte_
  * champ par champ, et met `null` (jamais d'invention) pour tout ce qui n'est pas lisible. La sortie
  * reste un CANDIDAT : l'utilisateur relit et valide. Le texte OCR est fourni comme DONNÉE d'appui.
  */
-export function messagesMetadonnees({ image_base64, media_type = 'image/png', texte_ocr = '' } = {}) {
-  const consigne =
+export const SYSTEME_META = SYSTEME
+
+/** Consigne TEXTE (sans image) de lecture des métadonnées — partagée par le provider API (image en
+ *  base64) et le provider local (le CLI lit l'image par son chemin). Voir messagesMetadonnees. */
+export function consigneMetadonnees(texte_ocr = '') {
+  return (
     'Page de titre d\'un imprimé français ancien (traduction d\'un Père de l\'Église, en général).\n' +
     'OCR de la page (donnée d\'appui, faillible) : ' + JSON.stringify(String(texte_ocr).slice(0, 1500)) + '\n' +
     'Lis l\'IMAGE et renseigne chaque champ D\'APRÈS CE QUI EST IMPRIMÉ. Mets null pour tout champ absent ' +
@@ -63,11 +67,15 @@ export function messagesMetadonnees({ image_base64, media_type = 'image/png', te
     '"trad_auteur":null,"editeur":null,"collection":null,"ville":null,"date_publication":null,' +
     '"genre":null,"langue_originale":null,"langue_trad":null,' +
     '"lecture_fondee_sur_image":true,"confiance":0.0,"abstention":false,"statut":"candidat"}'
+  )
+}
+
+export function messagesMetadonnees({ image_base64, media_type = 'image/png', texte_ocr = '' } = {}) {
   return {
     systeme: SYSTEME,
     messages: [{ role: 'user', content: [
       { type: 'image', source: { type: 'base64', media_type, data: String(image_base64 || '') } },
-      { type: 'text', text: consigne },
+      { type: 'text', text: consigneMetadonnees(texte_ocr) },
     ] }],
   }
 }

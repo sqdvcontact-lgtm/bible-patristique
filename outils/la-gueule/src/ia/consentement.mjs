@@ -10,17 +10,22 @@ import { dirname, join } from 'node:path'
 const DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'controles')
 const FICHIER = join(DIR, 'ia-consentement.json')
 
-/** État du fournisseur SANS révéler la clé : `dispo` = une clé est présente (booléen). */
+/** État du fournisseur SANS révéler la clé : `dispo` = utilisable (clé présente / CLI supposé prêt).
+ *  `cloud` = les données partent chez Anthropic (donc consentement requis), y compris pour le CLI local
+ *  qui, lui, est facturé sur l'abonnement (`local:true`) et non sur les crédits console. */
 export function etatFournisseur(env = {}) {
   const nom = String(env.LG_AI_PROVIDER || 'mock').toLowerCase()
-  const cloud = nom === 'anthropic' || nom === 'claude'
-  const dispo = cloud ? !!env.ANTHROPIC_API_KEY : true
   const modeles = {
     diagnostic: env.LG_AI_MODEL_DIAGNOSTIC || null,
     vision: env.LG_AI_MODEL_VISION || null,
     controle: env.LG_AI_MODEL_CONTROLE || null,
   }
-  return { nom: cloud ? 'anthropic' : 'mock', cloud, dispo, modeles }
+  if (nom === 'claude-local' || nom === 'local') {
+    return { nom: 'claude-local', cloud: true, local: true, dispo: true, modeles }
+  }
+  const cloud = nom === 'anthropic' || nom === 'claude'
+  const dispo = cloud ? !!env.ANTHROPIC_API_KEY : true
+  return { nom: cloud ? 'anthropic' : 'mock', cloud, local: false, dispo, modeles }
 }
 
 export async function lireConsentement() {

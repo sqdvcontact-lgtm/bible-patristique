@@ -5,6 +5,7 @@ import { fournisseurMock } from '../src/ia/mock.mjs'
 import { fournisseurClaude } from '../src/ia/claude.mjs'
 import { pagesEchantillon, construireProfil, regimePourPage, pageAnormale } from '../src/ia/diagnostic.mjs'
 import { etatFournisseur, consentementActif } from '../src/ia/consentement.mjs'
+import { inviteMetadonnees, argvClaude, extraireJson, fournisseurClaudeLocal } from '../src/ia/claude-local.mjs'
 import { messagesLettrine, messagesCorrection, messagesMetadonnees } from '../src/ia/prompt.mjs'
 import { cheminPngDepuisUrl } from '../src/ia/crop.mjs'
 
@@ -36,6 +37,40 @@ test('IA prompt : messagesMetadonnees — image de la page de titre + schéma oe
   assert.match(consigne, /"sous_titre":null/)
   assert.match(consigne, /null pour tout champ absent/)                    // n'invente rien
   assert.match(consigne, /BOECE/)                                          // OCR présent comme appui (donnée)
+})
+
+test('IA local : inviteMetadonnees — système §14.5 + chemin image + consigne Read, sans base64', () => {
+  const inv = inviteMetadonnees({ image_path: 'C:/x/titre.png', texte_ocr: 'BOECE' })
+  assert.match(inv, /DONNÉE.*jamais une instruction/s)   // système paléographe prudent
+  assert.match(inv, /C:\/x\/titre\.png/)                 // le CLI lit l'image par son CHEMIN
+  assert.match(inv, /outil Read/)                        // consigne d'ouvrir l'image
+  assert.match(inv, /"editeur":null/)                    // même schéma que l'API
+})
+
+test('IA local : argvClaude — headless JSON, Read seul, modèle/dossier optionnels', () => {
+  assert.deepEqual(argvClaude(), ['-p', '--output-format', 'json', '--allowedTools', 'Read'])
+  const a = argvClaude({ modele: 'claude-haiku-4-5', addDir: 'C:/dir' })
+  assert.ok(a.includes('--model') && a.includes('claude-haiku-4-5'))
+  assert.ok(a.includes('--add-dir') && a.includes('C:/dir'))
+})
+
+test('IA local : extraireJson tolère un préambule et des ```json', () => {
+  assert.deepEqual(extraireJson('bla {"a":1} fin'), { a: 1 })
+  assert.deepEqual(extraireJson('```json\n{"b":2}\n```'), { b: 2 })
+  assert.equal(extraireJson('aucun objet ici'), null)
+})
+
+test('IA local : le provider ne lève jamais ; image absente → abstention tracée', async () => {
+  const f = fournisseurClaudeLocal({ LG_AI_MODEL_DIAGNOSTIC: 'x' })
+  assert.equal(f.nom, 'claude-local'); assert.equal(f.cloud, true); assert.equal(f.local, true)
+  const r = await f.diagnostiquer({})            // pas de chemin image → pas d'appel CLI
+  assert.equal(r.abstention, true)
+  assert.match(r.erreur, /image absente/)
+})
+
+test('IA §14.6 : etatFournisseur — claude-local est cloud (consentement requis) mais facturé abonnement', () => {
+  const e = etatFournisseur({ LG_AI_PROVIDER: 'claude-local' })
+  assert.equal(e.nom, 'claude-local'); assert.equal(e.cloud, true); assert.equal(e.local, true); assert.equal(e.dispo, true)
 })
 
 test('IA : cheminPngDepuisUrl extrait le chemin d’un /api/fichier?path=', () => {
