@@ -110,6 +110,14 @@ détails de page ; conservés dans les exports structurés. Rôle interne `signa
 vs **structure/segmentation** (régions validées éligibles via un futur `eligible_entrainement_layout`,
 jamais mêlé au GT du texte).
 
+### Propagation (2026-08-09)
+`metadonneesPagesProjet(projet)` construit, par page, les métadonnées Q4 à partir des rôles hors-corps
+**confirmés** (folio → `pagination_source` avec `origine` ocr/ajout_humain ; titres courants ; marques
+de cahier ; réclames), `page_pdf` distinct de `pagination_source`. Émise dans l'export JSON candidat
+sous la clé **`metadonnees_pages`** (à côté de `structure`). ALTO et PAGE portent déjà le **rôle** de
+chaque ligne hors-corps (passes 1-2, `<Tags>`/TAGREFS et `custom`). Le corps reste nettoyé par
+`estHorsCorpsConfirme`. Reste au site (`app/`) l'affichage en marge / vue diplomatique.
+
 ## Q5 — trois niveaux de blanc en poésie
 
 - Données conservées : `blanc_poesie` (petit|moyen|large), `retrait_source_normalise`, `type_ligne`,
@@ -149,8 +157,6 @@ préparer l'architecture seulement).
 
 - **Bouton « demander un second avis visuel »** (lecteur IA) : non posé dans l'UI (architecture prête,
   aucun fournisseur — conforme au point 11).
-- **Propagation aux exports** de la nouvelle structure `metadonneesPage` (folios en marge, titres
-  courants/réclames en métadonnées ALTO/PAGE/JSON) : structures prêtes, écriture dans les exports à câbler.
 - **Rendu site** (`app/`) : `ui/poesie.css` et `appliquerTypographieLecture` sont des **références** ;
   leur intégration au site est un chantier `app/` distinct, non traité ici.
 - **`poeme_id`** : recommandé par GPT ; non encore fil-conducté dans l'analyse de bloc.

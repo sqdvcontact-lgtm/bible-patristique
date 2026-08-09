@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { paginationSource, paginationInferree, metadonneesPage } from '../src/structure.mjs'
+import { paginationSource, paginationInferree, metadonneesPage, metadonneesPagesProjet } from '../src/structure.mjs'
 import { sortieVision, autoriserAppel, demanderAvisVisuel, MODES_VISION } from '../src/vision.mjs'
 
 // ── Passe 3 Q4 : métadonnées de page ──
@@ -26,6 +26,30 @@ test('Q4 : une pagination inférée ne crée aucune ligne OCR ni ground-truth', 
   assert.equal(inf.ground_truth, false)
   assert.equal(inf.export_corps, false)
   assert.equal(inf.affichage_public, 'interface_editoriale') // jamais présentée comme un folio imprimé
+})
+
+test('Q4 : propagation — métadonnées de page construites depuis les rôles confirmés', () => {
+  const projet = { pages: { 45: { lignes: [
+    { dip: 'de la Philosophie. Livre I.', bbox: [200, 40, 600, 60], suggestion: { role_confirme: 'titre_courant' } },
+    { dip: 'corps du texte', bbox: [100, 300, 800, 55], suggestion: null },
+    { dip: 'B', bbox: [700, 1950, 30, 50], suggestion: { role_confirme: 'signature' } },
+    { dip: 'd’artifice', bbox: [1000, 1900, 150, 50], suggestion: { role_confirme: 'reclame' } },
+    { dip: '45', bbox: [1100, 60, 40, 45], ajout_humain: true, suggestion: { role_confirme: 'numero_page' } },
+  ] } } }
+  const m = metadonneesPagesProjet(projet)['45']
+  assert.equal(m.page_pdf, 45)
+  assert.equal(m.pagination_source.valeur, '45')
+  assert.equal(m.pagination_source.origine, 'ajout_humain') // folio ajouté à la main
+  assert.equal(m.pagination_source.export_corps, false)
+  assert.equal(m.titre_courant.length, 1)
+  assert.equal(m.marques_cahier.length, 1)
+  assert.equal(m.marques_cahier[0].texte, 'B') // rôle interne signature → marque de cahier
+  assert.equal(m.reclames.length, 1)
+})
+
+test('Q4 : une page sans hors-corps confirmé n’émet aucune métadonnée', () => {
+  const projet = { pages: { 3: { lignes: [{ dip: 'que du corps', bbox: [1, 2, 3, 4], suggestion: null }] } } }
+  assert.deepEqual(metadonneesPagesProjet(projet), {})
 })
 
 // ── Passe 3 Q-IA : architecture du lecteur de vision (aucun appel réel) ──

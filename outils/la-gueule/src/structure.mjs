@@ -728,6 +728,35 @@ export function metadonneesPage({ page_pdf = null, pagination_source = null, pag
   return { page_pdf, pagination_source, pagination_inferree, titre_courant, marques_cahier, reclames }
 }
 
+/**
+ * Construit, par page, les métadonnées Q4 à partir des rôles hors-corps CONFIRMÉS (role_confirme).
+ * N'émet une page que si elle porte au moins un élément hors-corps. Ne touche NI au corps NI à la
+ * source ; `page_pdf` (index) reste distinct de `pagination_source` (folio imprimé). Réservé aux
+ * exports STRUCTURÉS (le corps, lui, est déjà nettoyé par estHorsCorpsConfirme).
+ */
+export function metadonneesPagesProjet(projet) {
+  const out = {}
+  for (const num of Object.keys(projet?.pages || {})) {
+    const lignes = projet.pages[num].lignes || []
+    let pagination_source = null
+    const titre_courant = [], marques_cahier = [], reclames = []
+    lignes.forEach((l, i) => {
+      const r = l.suggestion?.role_confirme
+      if (!r) return
+      const t = String(l.dip ?? '').trim()
+      const entree = { ligne: i, texte: t, bbox: l.bbox || null }
+      if (r === 'numero_page') { if (!pagination_source) pagination_source = paginationSource({ valeur: t, origine: l.ajout_humain ? 'ajout_humain' : 'ocr', bbox: l.bbox || null, visible_dans_source: true }) }
+      else if (r === 'titre_courant') titre_courant.push(entree)
+      else if (r === 'signature') marques_cahier.push(entree) // rôle interne « signature », libellé « marque de cahier »
+      else if (r === 'reclame') reclames.push(entree)
+    })
+    if (pagination_source || titre_courant.length || marques_cahier.length || reclames.length) {
+      out[num] = metadonneesPage({ page_pdf: Number(num), pagination_source, titre_courant, marques_cahier, reclames })
+    }
+  }
+  return out
+}
+
 // ── §8 Suggestions de niveaux de titre (T1/T2), propres à Ceriziers ──────────
 const RE_T1 = /^\s*(LE\s+PREMIER\s+LIVRE|LIVRE|LIURE)\b.*\b([IVXLC]+|PREMIER|SECOND|TROISI[EÈ]ME|QUATRI[EÈ]ME|CINQUI[EÈ]ME)\.?\s*$/i
 // « POESIE I. », « PROSE I », mais aussi « II. POESIE. », « III. PROSE. » (numéral avant ou après).
