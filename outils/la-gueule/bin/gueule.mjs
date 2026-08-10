@@ -13,6 +13,7 @@ import { dirname, join } from 'node:path'
 import { demarrer, diagnostic } from '../src/serve.mjs'
 import { runBash } from '../src/wsl.mjs'
 import { chargerProjet, exporterComparaison } from '../src/projet.mjs'
+import { qualiteIA, qualiteMarkdown } from '../src/qualite-ia.mjs'
 
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -23,6 +24,9 @@ Usage :
   gueule doctor                      Diagnostique l'environnement (WSL, Kraken, Tesseract)
   gueule extraire <projet>           Rapport de CONTRÔLE pour GPT : OCR IA (dip) vs OCR
                                      mécanique (ocr0), ligne à ligne → exports/<projet>.comparaison-ocr.md
+  gueule qualite <projet>            Taux d'accord avec les propositions de l'IA, par règle :
+                                     ce que tu as accepté, amendé, refusé. Se calcule sur les
+                                     décisions déjà prises, sans travail supplémentaire.
   gueule nettoyer [--incoming] [--exports]
                                      Purge contrôlée : images servies (sorties/atelier)
                                      + dossiers temporaires WSL /tmp/lg.*. Ajoute
@@ -116,6 +120,27 @@ async function cmdExtraire(nom) {
   console.log(`  → ${r.fichiers.json}`)
 }
 
+// Taux d'accord avec les propositions de l'IA — calculé sur les décisions déjà prises.
+async function cmdQualite(nom) {
+  if (!nom) { console.error('Usage : gueule qualite <nom-de-projet>'); process.exitCode = 1; return }
+  let projet
+  try { projet = await chargerProjet(nom) }
+  catch { console.error(`Projet introuvable : « ${nom} » (voir le dossier projets/).`); process.exitCode = 1; return }
+  const q = qualiteIA(projet)
+  const t = q.total
+  console.log(`Qualité des propositions IA — « ${nom} »`)
+  if (!t.proposees) { console.log('  aucune proposition IA dans ce projet.'); return }
+  console.log(`  proposées ${t.proposees} · jugées ${t.jugees} · en attente ${t.en_attente}`)
+  if (!t.jugees) { console.log('  aucune n’a encore été tranchée : rien à mesurer.'); return }
+  console.log(`  acceptées ${t.acceptees} · amendées ${t.amendees} · refusées ${t.refusees} · annulées ${t.annulees}`)
+  console.log(`  TAUX D'ACCORD : ${t.taux_accord} %` + (t.jugees < 20 ? `  (sur ${t.jugees} décisions : indicatif)` : ''))
+  const jugees = q.regles.filter((r) => r.jugees > 0)
+  if (jugees.length) {
+    console.log('\n  par règle :')
+    for (const r of jugees) console.log(`    ${String(r.regle).padEnd(22)} ${String(r.jugees).padStart(4)} jugée(s)  ${String(r.taux_accord).padStart(5)} %`)
+  }
+}
+
 async function main() {
   const { values, positionals } = opts()
   const cmd = positionals[0]
@@ -124,6 +149,7 @@ async function main() {
   if (cmd === 'doctor') return cmdDoctor()
   if (cmd === 'nettoyer') return cmdNettoyer(values)
   if (cmd === 'extraire') return cmdExtraire(positionals[1])
+  if (cmd === 'qualite') return cmdQualite(positionals[1])
   throw new Error(`commande inconnue : « ${cmd} ». Voir : gueule --help`)
 }
 
