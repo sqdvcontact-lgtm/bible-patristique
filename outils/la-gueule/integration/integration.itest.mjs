@@ -147,7 +147,8 @@ test('export ALTO v4 + PAGE XML : fichiers bien formés', async () => {
 })
 
 test('doctrine : aucun code ne parle à une base active (pas de client SQL/DB dans src/)', async () => {
-  const fichiers = await readdir(join(RACINE, 'src'))
+  // Récursif : scanne AUSSI src/ia/ (sinon readFile bute sur le sous-dossier → EISDIR). On ne lit que les .mjs.
+  const fichiers = (await readdir(join(RACINE, 'src'), { recursive: true })).filter((f) => String(f).endsWith('.mjs'))
   const suspects = /@supabase|createClient\s*\(|from ['"]pg['"]|require\(['"]pg['"]\)|mysql|mongodb|\.execute\(|pg\.Pool/
   const coupables = []
   for (const f of fichiers) {

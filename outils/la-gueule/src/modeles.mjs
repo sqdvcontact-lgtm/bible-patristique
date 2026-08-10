@@ -7,7 +7,7 @@
 //
 // Ce module NE LANCE AUCUN entraînement : il ne fait que mesurer, décider et
 // consigner. L'entraînement (ketos) reste une opération manuelle, documentée
-// dans ENTRAINEMENT.md.
+// dans docs/guides/ENTRAINEMENT.md.
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
