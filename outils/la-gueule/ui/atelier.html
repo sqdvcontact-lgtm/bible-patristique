@@ -559,19 +559,34 @@ async function lancerControle(){ if(!Object.keys(S.pages).length){ etat('rien à
   const projet=projetActuel()
   chargeOn(`Relecture IA — page 1/${nb} · 00:00`)
   try{
-    let r=null, premier=true
-    for(let k=0;k<nb;k++){
-      if(S.arret){ etat(`Contrôle interrompu à la page ${k}/${nb} (${duree()}) — les pages déjà relues sont conservées.`); break }
-      const p=pagesOcr[k]
-      chargeOn(`Relecture IA — page ${k+1}/${nb} (p. ${p}) · ${duree()} écoulé`)
-      const rp=await api('/api/ia/controle',{method:'POST',headers:{'content-type':'application/json'},
-        body:JSON.stringify({projet,pages:[p],deterministe:premier})})
-      premier=false
+    let r=null, faites=0
+    // Un appel de relecture est de l'ATTENTE : le modèle lit la page, la machine ne fait rien.
+    // On en mène donc PLUSIEURS de front. Le parallélisme reste modeste (3) pour ne pas saturer
+    // l'abonnement ni lancer trois CLI lourds à la fois ; c'est déjà ~3× moins d'attente.
+    const FRONT=3
+    const fusionner=(rp)=>{
       if(!r) r=rp
       else { r.findings=[...(r.findings||[]),...(rp.findings||[])]
         for(const cle of Object.keys(rp.compteurs||{})) r.compteurs[cle]=(r.compteurs[cle]||0)+(rp.compteurs[cle]||0)
         r.ia_active=r.ia_active||rp.ia_active; r.ia_erreur=r.ia_erreur||rp.ia_erreur }
     }
+    // La passe DÉTERMINISTE porte sur tout le projet : on la fait UNE fois, seule, avant de
+    // paralléliser — sinon trois pages simultanées la répéteraient trois fois.
+    const premier=await api('/api/ia/controle',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({projet,pages:[pagesOcr[0]],deterministe:true})})
+    fusionner(premier); faites=1; S.controle=r; await sauver(true)
+    for(let k=1;k<nb && !S.arret;k+=FRONT){
+      const paquet=pagesOcr.slice(k,k+FRONT)
+      chargeOn(`Relecture IA — page ${faites+1}-${Math.min(faites+paquet.length,nb)}/${nb} (p. ${paquet.join(', ')}) · ${duree()} écoulé`)
+      const rs=await Promise.all(paquet.map(p=>
+        api('/api/ia/controle',{method:'POST',headers:{'content-type':'application/json'},
+          body:JSON.stringify({projet,pages:[p],deterministe:false})}).catch(e=>({findings:[],compteurs:{},ia_erreur:String(e&&e.message||e)}))))
+      for(const rp of rs) fusionner(rp)
+      faites+=paquet.length
+      // Sauvegarde après chaque PAQUET : au pire trois pages reperdues, jamais la passe entière.
+      S.controle=r; await sauver(true)
+    }
+    if(S.arret) etat(`Contrôle interrompu à ${faites}/${nb} page(s) (${duree()}) — les pages déjà relues sont conservées.`)
     if(!r) return null
     S.controle=r; const c=r.compteurs||{}
     r._duree=duree()
@@ -1374,7 +1389,16 @@ let tResize; window.addEventListener('resize',()=>{ clearTimeout(tResize); tResi
 $('chargeStop').onclick=async()=>{ S.arret=true; $('chargeStop').disabled=true; $('chargeTexte').textContent='Arrêt en cours…'; try{ await api('/api/atelier/stop',{method:'POST'}) }catch{} }
 
 // ── Persistance & export ────────────────────────────────────────────────────
-function projetActuel(){ const p={ kind:S.kind, chemin:$('chemin').value.trim(), page:S.page, total:S.total, pages:S.pages, meta:collecterMeta(), journal:S.journal||[] }; if(S.garde) p._garde=S.garde; if(S.workflow) p.workflow=S.workflow; if(S.profil) p.profil=S.profil; if(S.perimetre&&S.perimetre.pages&&S.perimetre.pages.length) p.perimetre=S.perimetre; return p }
+function projetActuel(){ const p={ kind:S.kind, chemin:$('chemin').value.trim(), page:S.page, total:S.total, pages:S.pages, meta:collecterMeta(), journal:S.journal||[] }; if(S.garde) p._garde=S.garde; if(S.workflow) p.workflow=S.workflow; if(S.profil) p.profil=S.profil; if(S.perimetre&&S.perimetre.pages&&S.perimetre.pages.length) p.perimetre=S.perimetre
+  // Le CONTRÔLE IA coûte ~30-45 s par page : une passe de trente pages, c'est vingt minutes de
+  // relecture par le modèle. Elle n'était gardée qu'en mémoire — fermer la fenêtre la perdait, et
+  // il fallait tout repayer. On la persiste avec le projet (sans les findings déjà tranchés, qui
+  // ne servent plus à rien : seuls restent ceux qui attendent encore une décision).
+  if(S.controle&&Array.isArray(S.controle.findings)){
+    const enAttente=S.controle.findings.filter(f=>!['confirme_humain','modifie_humain','refuse'].includes(f.statut))
+    p.controle={ ...S.controle, findings:enAttente, garde_le:new Date().toISOString() }
+  }
+  return p }
 // Champs = colonnes de la table `oeuvres` du site (correspondance exacte).
 const CHAMPS_META=['auteur','titre','sous_titre','titre_original','langue_originale','langue_trad','trad_auteur','editeur','collection','ville','date_publication','date_composition','genre']
 const vMeta=c=>$('m_'+c).value.trim()||null
@@ -1547,6 +1571,10 @@ async function ouvrirProjet(nom){
   S.pages=projet.pages||{}; S.total=projet.total||null; S.journal=projet.journal||[]; S.garde=projet._garde||null
   S.perimetre=projet.perimetre||{pages:[]}; S.chemin=projet.chemin||$('chemin').value.trim()||null // Phase 2 : périmètre de travail restauré
   S.workflow=projet.workflow||null
+  // Contrôle IA repris là où on l'avait laissé : sans cela, rouvrir un projet effaçait des dizaines
+  // de minutes de relecture par le modèle et il fallait tout repayer.
+  S.controle=projet.controle&&Array.isArray(projet.controle.findings)?projet.controle:null
+  S.validation=null
   // Phase 2 : recalcule l'étape OCR selon le périmètre/lot (corrige les vieux projets restés « en cours
   // · 579 manquantes »), SANS périmer l'aval au simple chargement. Sinon simple rendu.
   if(S.workflow&&Object.keys(S.pages).some(k=>pageFaite(Number(k)))) apresOcrWorkflow(false); else rendreBarreEtapes()
@@ -1561,7 +1589,14 @@ async function ouvrirProjet(nom){
   // Reprise : la plage couvre tout l'ouvrage connu ; la progression reflète l'état réel sur disque.
   const maxP=Math.max(S.total||0, ...Object.keys(S.pages).map(Number), 1)
   $('de').value=1; $('a').value=maxP; majProgres(1,maxP); majValidees()
-  rendre(); const {fait,err}=compterEtats(1,maxP); etat(`projet « ${nom} » chargé — ${fait} page(s) faite(s), ${err} en erreur. « OCR document » reprend.`)
+  rendre(); const {fait,err}=compterEtats(1,maxP)
+  let noteCtrl=''
+  if(S.controle&&S.controle.findings.length){
+    // On reclasse sans rappeler l'IA : la validation est un calcul local sur des findings déjà payés.
+    lancerValidation()
+    noteCtrl=` — contrôle IA repris : ${S.controle.findings.length} proposition(s) encore à trancher`
+  }
+  etat(`projet « ${nom} » chargé — ${fait} page(s) faite(s), ${err} en erreur. « OCR document » reprend.${noteCtrl}`)
 }
 $('btnSave').onclick=()=>sauver(false)
 $('btnSaveHeader').onclick=()=>sauver(false)
