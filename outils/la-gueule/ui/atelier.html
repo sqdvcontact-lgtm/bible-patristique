@@ -1325,12 +1325,31 @@ async function ocrDocument(cibles){
   S.arret=false; $('ocrDoc').disabled=true; $('ocrPage').disabled=true; $('btnRelancerErr').disabled=true
   majProgres(de,a); let ok=0, ko=0, i=0
   try{
-    for(const n of liste){ if(S.arret) break; i++
-      etat(`OCR document — page ${n} (${i}/${liste.length})…`); chargeOn(`OCR document — page ${n} (${i}/${liste.length})…`)
-      try{ await ocr(n); marquerEtat(n,'termine'); ok++ }
-      catch(e){ if(S.arret) break; marquerEtat(n,'erreur',e.message); journaliser(n,e.message); ko++ }
-      S.page=n; $('page').value=n; rendre()
-      await sauver(true)          // ← persistance immédiate
+    // OCR par PAQUETS. Contrairement à la relecture IA (attente pure), Kraken et Tesseract
+    // CALCULENT sur cette machine : le gain vient du recouvrement entre le démarrage d'un
+    // processus (import PyTorch + chargement du modèle, ~17 s mesurés en P13) et le calcul du
+    // précédent. Il est donc réel mais borné, et le parallélisme reste modeste pour ne pas
+    // épuiser la VRAM (repli CPU automatique déjà en place) ni noyer la machine.
+    // Tout ce qui faisait la robustesse est préservé : état PAR PAGE, journal, reprise,
+    // sauvegarde après chaque paquet, arrêt entre deux paquets.
+    // 3 : MESURÉ sur 3 pages Kraken d'un imprimé de 1604 — séquentiel 108 s, 2 de front 78 s
+    // (×1,38), 3 de front 41 s (×2,63). Réglable si la machine change (`cs_ocr_front`).
+    const FRONT_OCR = Math.max(1, Number(localStorage.getItem('cs_ocr_front')) || 3)
+    const t0 = Date.now()
+    const ecoule = () => { const s=Math.round((Date.now()-t0)/1000); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0') }
+    for(let k=0; k<liste.length && !S.arret; k+=FRONT_OCR){
+      const paquet = liste.slice(k, k+FRONT_OCR)
+      const msg = `OCR — page${paquet.length>1?'s':''} ${paquet.join(', ')} (${i+1}-${i+paquet.length}/${liste.length}) · ${ecoule()} écoulé`
+      etat(msg); chargeOn(msg)
+      // `ocr(n)` écrit dans S.pages[n] : chaque page a sa clé, aucune collision. Une page en
+      // erreur n'emporte pas le paquet — son état et son journal restent les siens.
+      await Promise.all(paquet.map(n =>
+        ocr(n).then(() => { marquerEtat(n,'termine'); ok++ })
+              .catch(e => { if(!S.arret){ marquerEtat(n,'erreur',e.message); journaliser(n,e.message); ko++ } })))
+      i += paquet.length
+      const dernier = paquet[paquet.length-1]
+      S.page=dernier; $('page').value=dernier; rendre()
+      await sauver(true)          // ← persistance après chaque paquet
       majProgres(de,a)
     }
   } finally {
