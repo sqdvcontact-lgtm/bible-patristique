@@ -15,12 +15,13 @@ import { parserMetadonnees, typographieProbable, normaliserCasseChamp } from './
 import { parseAlto } from './alto.mjs'
 import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterComparaison, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes, sauverProfil, sauverRapportGeneration } from './projet.mjs'
 import { controlerDeterministe, controlerPageIA, ancrerNotesIA } from './ia/controle.mjs'
-import { choisirFournisseur, appelerIA } from './ia/fournisseur.mjs'
+import { choisirFournisseur, appelerIA, cleCache } from './ia/fournisseur.mjs'
+import { creerCacheIA, empreinteImage, viderCacheIA } from './ia/cache.mjs'
 import { classerValidation } from './ia/validation.mjs'
 import { rapportGeneration, etatLivraison } from './ia/generation.mjs'
 import { etatFournisseur, lireConsentement, ecrireConsentement, consentementActif } from './ia/consentement.mjs'
 import { cheminPngDepuisUrl, pdfPageBase64, imageFichierBase64 } from './ia/crop.mjs'
-import { messagesMetadonnees, consigneRelecturePage, messagesRelecturePage, consigneAncrageNotes, messagesAncrageNotes } from './ia/prompt.mjs'
+import { messagesMetadonnees, consigneRelecturePage, messagesRelecturePage, consigneAncrageNotes, messagesAncrageNotes, VERSION_PROMPT_RELECTURE } from './ia/prompt.mjs'
 import { enrichirDepuisBase } from './ia/enrichissement.mjs'
 import { detecterLangue, apparierParagraphes } from './bilingue.mjs'
 import { annoterProjet } from './structure.mjs'
@@ -69,6 +70,11 @@ function hoteLocal(req) {
 }
 
 const MAX_TELEVERSEMENT = 400 * 1024 * 1024 // plafond d'upload : 400 Mo (gros scans tolérés)
+
+// Cache des réponses IA (~80 s par page relue). Sur DISQUE : le serveur est relancé souvent, un
+// cache en mémoire serait perdu à chaque fois. `LG_AI_CACHE=0` le désactive.
+export const DIR_CACHE_IA = join(RACINE, 'controles', 'cache-ia')
+const cacheIA = creerCacheIA({ dir: DIR_CACHE_IA, actif: process.env.LG_AI_CACHE !== '0' })
 
 function json(res, code, data) {
   res.writeHead(code, { 'content-type': 'application/json; charset=utf-8' })
@@ -363,7 +369,21 @@ export function demarrer({ port = 4599 } = {}) {
             const b64 = await imageFichierBase64(pngWin)
             return b64 ? messagesRelecturePage({ image_base64: b64, lignes: items, kind }) : null
           }
-          const r = await controlerPageIA(b.projet || {}, { fournisseur, consentement, preparerCharge, pages: Array.isArray(b.pages) ? b.pages : null })
+          // Clé de cache : tout ce qui, s'il change, doit invalider la réponse — l'IMAGE (empreinte),
+          // le PROMPT (qui contient l'OCR des lignes, donc les corrections déjà appliquées), la
+          // version du prompt et le MODÈLE. Une page déjà relue à l'identique n'est pas repayée.
+          const cleDe = async (n, charge) => {
+            const pngWin = cheminPngDepuisUrl(b.projet?.pages?.[n]?.pngUrl)
+            const sha = pngWin ? empreinteImage(pngWin) : null
+            if (!sha) return null // sans empreinte d'image, on ne risque pas un faux positif de cache
+            const prompt = charge?.consigne || JSON.stringify(charge?.messages || '')
+            return cleCache({
+              tache: 'page', sha256_image: sha, prompt,
+              version_prompt: VERSION_PROMPT_RELECTURE,
+              modele: fournisseur.modele?.controle || fournisseur.modele?.vision || '',
+            })
+          }
+          const r = await controlerPageIA(b.projet || {}, { fournisseur, consentement, preparerCharge, pages: Array.isArray(b.pages) ? b.pages : null, cache: cacheIA, cleDe })
           interventions = r.interventions; metaIA = r.meta
           // Passe SÉMANTIQUE des notes (§13) : rattache chaque note au passage qu'elle annote.
           // N'appelle le modèle que pour les notes SANS appel imprimé (les autres sont appariées
@@ -382,7 +402,7 @@ export function demarrer({ port = 4599 } = {}) {
         }
         return json(res, 200, {
           findings: [...findings, ...interventions],
-          compteurs: { ...compteurs, ia: interventions.length, pages_relues: metaIA.pages_relues || 0 },
+          compteurs: { ...compteurs, ia: interventions.length, pages_relues: metaIA.pages_relues || 0, depuis_cache: metaIA.depuis_cache || 0 },
           ia_active: fournisseur.cloud && consentement, ia_erreur: metaIA.erreur || null,
         })
       }

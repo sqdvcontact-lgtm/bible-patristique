@@ -369,9 +369,9 @@ export async function ancrerNotesIA(projet, { fournisseur, consentement = false,
   return { interventions, meta }
 }
 
-export async function controlerPageIA(projet, { fournisseur, consentement = false, preparerCharge = null, pages = null } = {}) {
+export async function controlerPageIA(projet, { fournisseur, consentement = false, preparerCharge = null, pages = null, cache = null, cleDe = null } = {}) {
   const interventions = []
-  const meta = { pages_relues: 0, erreur: null }
+  const meta = { pages_relues: 0, erreur: null, depuis_cache: 0 }
   if (!fournisseur || !preparerCharge) return { interventions, meta }
   const kind = projet?.kind === 'manuscrit' ? 'manuscrit' : 'imprime'
   const dispo = Object.keys(projet?.pages || {}).map(Number)
@@ -381,8 +381,13 @@ export async function controlerPageIA(projet, { fournisseur, consentement = fals
     if (!lignes.length) continue
     const charge = await preparerCharge(n, lignes)
     if (!charge) continue
-    const out = await appelerIA(fournisseur, 'page', charge, { consentement })
+    // Clé de cache calculée par l'appelant (il seul connaît l'image et le prompt réellement
+    // envoyés). Sans clé, l'appel se fait normalement : le cache est un confort, jamais un passage
+    // obligé.
+    const cacheCle = cleDe ? await cleDe(n, charge) : null
+    const out = await appelerIA(fournisseur, 'page', charge, { consentement, cache, cacheCle })
     meta.pages_relues++
+    if (out?._cache) meta.depuis_cache++
     if (out?.erreur && !meta.erreur) meta.erreur = out.erreur
     const ctx = { page: n, lignes, modele: out?.modele || null, fournisseur: out?.fournisseur || null }
     // Page entière hors œuvre : une seule décision, on ne descend pas au détail des lignes.

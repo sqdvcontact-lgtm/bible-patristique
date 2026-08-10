@@ -14,3 +14,6 @@ bancs/**/*.pdf
 bancs/**/*.jpg
 profils-traitement/
 controles/ia-consentement.json
+
+# Cache des réponses IA : reconstructible, propre à cette machine.
+controles/cache-ia/

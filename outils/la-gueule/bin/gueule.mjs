@@ -61,6 +61,9 @@ async function cmdNettoyer(values) {
   // Dossiers temporaires WSL (sans effet si WSL absent).
   const r = await runBash('rm -rf /tmp/lg.* 2>/dev/null; echo ok', {}, { timeoutMs: 15000 })
   console.log(`  temporaires WSL /tmp/lg.*        : ${r.ok ? 'nettoyés' : '(WSL indisponible)'}`)
+  // Cache des réponses IA : le vider force une relecture complète au prochain contrôle.
+  const c = await viderDossier(join(RACINE, 'controles', 'cache-ia'))
+  console.log(`  cache des réponses IA            : ${c.n} entrée(s), ${mo(c.octets)}`)
   if (values.incoming) { const i = await viderDossier(join(RACINE, 'incoming')); console.log(`  PDF téléversés (incoming)        : ${i.n} fichier(s), ${mo(i.octets)}`) }
   if (values.exports) { const e = await viderDossier(join(RACINE, 'exports')); console.log(`  exports                          : ${e.n} fichier(s), ${mo(e.octets)}`) }
   console.log('projets/ jamais touché (relectures préservées).')
