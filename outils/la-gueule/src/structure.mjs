@@ -9,10 +9,17 @@
 // Fonctions pures et testables. Étapes 1-4 du plan GPT (modèle, hors-corps partiel, T1/T2,
 // lettrines). Poésie (blocs, continuations, blancs) et propagation aux exports : étapes suivantes.
 
+import { analyserZones } from './zones.mjs' // P14 : notes en marge / de bas de page, par la géométrie
+
 // ── §1 Modèle commun d'annotation ────────────────────────────────────────────
+// `note_marginale` / `note_bas_page` (2026-08-10) : les notes de l'édition sont CONSERVÉES
+// (charte §13.1). Elles sortent du flux de prose — une glose de marge ne doit jamais être fondue
+// dans un paragraphe — mais restent dans la source et les formats d'échange (§31.4). Leur
+// rattachement au corps par un appel « [[n]] » (§13.2-13.3) reste un chantier ouvert.
 export const ROLES = [
   'corps', 'titre', 'vers', 'continuation_typographique', 'titre_courant',
   'numero_page', 'signature', 'reclame', 'paratexte_titre', 'ornement', 'bruit', 'indetermine',
+  'note_marginale', 'note_bas_page',
 ]
 
 /** Annotation vierge : distingue la suggestion automatique de la décision humaine. */
@@ -603,7 +610,7 @@ export function analyserVolume(pages) {
 
 // ── §8 Propagation : rattacher les suggestions au projet, exclure le hors-corps ─
 /** Rôles qui, une fois CONFIRMÉS par l'humain, sortent du corps éditorial (jamais de la source). */
-export const ROLES_HORS_CORPS = ['numero_page', 'signature', 'reclame', 'titre_courant', 'paratexte_titre', 'ornement', 'bruit']
+export const ROLES_HORS_CORPS = ['numero_page', 'signature', 'reclame', 'titre_courant', 'paratexte_titre', 'ornement', 'bruit', 'note_marginale', 'note_bas_page']
 
 /** Une ligne est-elle hors-corps CONFIRMÉ ? (la suggestion seule ne suffit pas — décision humaine). */
 export function estHorsCorpsConfirme(ligne) {
@@ -715,6 +722,22 @@ export function annoterProjet(projet) {
       const confirme = l.suggestion?.role_confirme ?? null // on ne perd JAMAIS une décision humaine
       l.suggestion = { ...a, role_confirme: confirme, statut: confirme ? 'confirme' : 'suggere' }
     })
+    // Zones de page (P14) : notes EN MARGE et de BAS DE PAGE, détectées par la géométrie. Posées
+    // après l'analyse générale, elles ne priment que sur une ligne restée « corps » — jamais sur un
+    // rôle déjà suggéré (titre courant, folio…) ni sur une décision humaine. Suggestions seules.
+    const z = analyserZones(lignes)
+    for (const s of [...z.marginalia, ...z.notes_bas_page]) {
+      const l = lignes[s.i]; if (!l) continue
+      if (l.suggestion?.role_confirme) continue
+      const dejaSuggere = l.suggestion?.role_suggere
+      if (dejaSuggere && dejaSuggere !== 'corps' && dejaSuggere !== 'indetermine') continue
+      l.suggestion = {
+        ...(l.suggestion || annotationVide()),
+        role_suggere: s.role, statut: 'suggere', score: s.score, regle: s.regle,
+        preuves: { ...(l.suggestion?.preuves || {}), ...s.preuves },
+        export_corps: false,
+      }
+    }
   }
   projet.poemes = poemes; projet.orphelins_poeme = orphelins // passe 4 : registre + orphelins signalés
   return projet

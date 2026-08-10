@@ -10,20 +10,21 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join, extname, basename, resolve, sep } from 'node:path'
 
 import { executer } from './runner.mjs'
-import { ocrPage, rendrePage, rendrePlanches, pdfNbPages, pdfInfo, choisirFichier, runBash, annulerTaches } from './wsl.mjs'
+import { ocrPage, rendrePage, pdfNbPages, pdfInfo, choisirFichier, runBash, annulerTaches } from './wsl.mjs'
 import { parserMetadonnees, typographieProbable, normaliserCasseChamp } from './metadonnees.mjs'
 import { parseAlto } from './alto.mjs'
-import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes, sauverProfil, sauverRapportGeneration } from './projet.mjs'
-import { controlerDeterministe, controlerIA } from './ia/controle.mjs'
+import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterComparaison, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes, sauverProfil, sauverRapportGeneration } from './projet.mjs'
+import { controlerDeterministe, controlerPageIA, ancrerNotesIA } from './ia/controle.mjs'
 import { choisirFournisseur, appelerIA } from './ia/fournisseur.mjs'
 import { classerValidation } from './ia/validation.mjs'
 import { rapportGeneration, etatLivraison } from './ia/generation.mjs'
 import { etatFournisseur, lireConsentement, ecrireConsentement, consentementActif } from './ia/consentement.mjs'
-import { cropBase64, cheminPngDepuisUrl, pdfPageBase64, imageFichierBase64 } from './ia/crop.mjs'
-import { messagesLettrine, messagesCorrection, messagesMetadonnees, consigneTriage } from './ia/prompt.mjs'
+import { cheminPngDepuisUrl, pdfPageBase64, imageFichierBase64 } from './ia/crop.mjs'
+import { messagesMetadonnees, consigneRelecturePage, messagesRelecturePage, consigneAncrageNotes, messagesAncrageNotes } from './ia/prompt.mjs'
 import { enrichirDepuisBase } from './ia/enrichissement.mjs'
 import { detecterLangue, apparierParagraphes } from './bilingue.mjs'
 import { annoterProjet } from './structure.mjs'
+import { situerLignes } from './zones.mjs' // position MESURÉE de chaque ligne, transmise au modèle
 
 const ICI = dirname(fileURLToPath(import.meta.url))
 const RACINE = join(ICI, '..')
@@ -96,6 +97,13 @@ export async function diagnostic() {
     const m = new RegExp('^' + nom + '\\t(.*)$', 'm').exec(r.stdout || '')
     const chemin = m ? m[1].trim() : ''
     out.outils[nom] = { present: !!chemin, detail: chemin || (r.timeout ? 'délai WSL dépassé' : 'introuvable dans WSL') }
+  }
+  // Distingue « WSL en panne » de « outil réellement manquant » : une sonde qui ÉCHOUE ou TIMEOUTE
+  // (vs. une commande qui s'exécute mais ne trouve pas l'outil) signale que WSL ne répond pas — souvent
+  // après une veille ou une pression mémoire. Kraken/Tesseract sont installés ; ce n'est pas un vrai manque.
+  if (r.timeout || !r.ok) {
+    out.wsl_incident = 'WSL ne répond pas (souvent après une mise en veille ou une pression mémoire). '
+      + 'Dans PowerShell : « wsl --shutdown », puis recharge la page. Les outils sont installés — ce n’est pas un vrai manque.'
   }
   return out
 }
@@ -223,36 +231,9 @@ export function demarrer({ port = 4599 } = {}) {
         } catch (e) { return json(res, 500, { erreur: String(e?.message || e) }) }
       }
 
-      // TRI DE STRUCTURE — 1) rendre le document en PLANCHES de vignettes numérotées (sans OCR).
-      if (p === '/api/ia/planches' && req.method === 'POST') {
-        const b = await corps(req)
-        if (b.path && !sousRacine(b.path)) return json(res, 403, { erreur: 'hors du dossier de travail (§2.3)' })
-        const servedDirWin = join(RACINE, 'sorties', 'atelier')
-        await mkdir(servedDirWin, { recursive: true })
-        try {
-          if ((b.kind === 'manuscrit') || IMG_EXT.has(extname(b.path || '').toLowerCase())) {
-            return json(res, 200, { planches: [{ pages: [1], chemin: b.path, pngUrl: '/api/fichier?path=' + encodeURIComponent(b.path) }] })
-          }
-          const total = Math.max(1, Number(b.total) || 1)
-          const pl = await rendrePlanches({ pdfWin: b.path, servedDirWin, total })
-          return json(res, 200, { planches: pl.map((x) => ({ pages: x.pages, chemin: x.pngWin, pngUrl: '/api/fichier?path=' + encodeURIComponent(x.pngWin) })) })
-        } catch (e) { return json(res, 500, { erreur: String(e?.message || e) }) }
-      }
-
-      // TRI DE STRUCTURE — 2) classer UNE planche par l'IA (cloud, avec consentement). Renvoie les
-      // pages classées {n, type, a_ocriser}. Appelé en boucle par l'atelier (progression par planche).
-      if (p === '/api/ia/triage-planche' && req.method === 'POST') {
-        const b = await corps(req)
-        if (b.chemin && !sousRacine(b.chemin)) return json(res, 403, { erreur: 'hors du dossier de travail (§2.3)' })
-        const fournisseur = choisirFournisseur(process.env)
-        const etat = etatFournisseur(process.env)
-        const consentement = consentementActif(await lireConsentement(), etat.nom)
-        if (!fournisseur.cloud || !consentement || !fournisseur.dispo) return json(res, 200, { ia_active: false, pages: [], motif: !consentement ? 'consentement requis' : 'fournisseur indisponible' })
-        if (typeof fournisseur.triage !== 'function') return json(res, 200, { ia_active: false, pages: [], motif: 'ce fournisseur ne sait pas trier' })
-        const servedDirWin = join(RACINE, 'sorties', 'atelier')
-        const sortie = await fournisseur.triage({ image_path: b.chemin, consigne: consigneTriage(b.pages || []), cwd: servedDirWin }, {})
-        return json(res, 200, { ia_active: true, pages: Array.isArray(sortie.pages) ? sortie.pages : [], abstention: !!sortie.abstention, erreur: sortie.erreur || null, modele: sortie.modele || null, fournisseur: etat.nom })
-      }
+      // (Le « Tri des pages par IA » a été retiré du parcours — trop lent et redondant avec la détection
+      //  déterministe des pages inutiles après OCR. Endpoints /api/ia/planches et /api/ia/triage-planche
+      //  supprimés le 2026-08-10.)
 
       // Métadonnées : pdfinfo + OCR de la page de titre → titre, date d'édition, auteur…
       if (p === '/api/metadonnees' && req.method === 'POST') {
@@ -348,31 +329,62 @@ export function demarrer({ port = 4599 } = {}) {
         return json(res, 200, { ok: true, chemin })
       }
 
-      // Phase D — contrôle : passe DÉTERMINISTE + passe IA (fournisseur configuré ; mock par défaut
-      // s'abstient ; le cloud ne part JAMAIS sans consentement explicite dans la requête).
+      // Phase D — contrôle : passe DÉTERMINISTE (toujours, sans réseau) + RELECTURE IA par PAGE (§8.3-A).
+      // La relecture ne concerne QUE les pages déjà océrisées (celles de projet.pages). Le cloud ne part
+      // JAMAIS sans consentement actif, vérifié CÔTÉ SERVEUR. Sortie = candidats, jamais de validation.
       if (p === '/api/ia/controle' && req.method === 'POST') {
         const b = await corps(req)
-        const { findings, compteurs } = controlerDeterministe(b.projet || {})
+        // La passe DÉTERMINISTE porte sur tout le projet : quand l'atelier relit page par page (pour
+        // afficher l'avancement), il ne la demande qu'au premier appel — sinon ses signalements
+        // seraient répétés à chaque page.
+        const { findings, compteurs } = b.deterministe === false
+          ? { findings: [], compteurs: {} }
+          : controlerDeterministe(b.projet || {})
         const fournisseur = choisirFournisseur(process.env)
-        // Consentement vérifié CÔTÉ SERVEUR (jamais sur simple confiance du client) : le cloud ne part
-        // que si un consentement actif couvre le fournisseur courant.
         const consentement = consentementActif(await lireConsentement(), etatFournisseur(process.env).nom)
-        // Requête de vision (crop + prompt) seulement si cloud ET consentement — sinon aucun envoi.
-        const preparerCharge = (fournisseur.cloud && consentement)
-          ? async (tache, { page, ligne, ligne_obj }) => {
-            const pngWin = cheminPngDepuisUrl(b.projet?.pages?.[page]?.pngUrl)
-            const crop = pngWin ? await cropBase64(pngWin, ligne_obj.bbox) : null
-            if (!crop) return { texte: ligne_obj.dip } // pas d'image → l'IA s'abstiendra
-            const lg = b.projet?.pages?.[page]?.lignes || []
-            const contexte = lg.slice(ligne + 1, ligne + 3).map((l) => l.dip).join(' ')
-            const id = 'p' + page + '-l' + ligne
-            return tache === 'lettrine'
-              ? messagesLettrine({ crop_base64: crop, texte_ocr: ligne_obj.dip, contexte, ligne_id: id })
-              : messagesCorrection({ crop_base64: crop, texte_ocr: ligne_obj.dip, ligne_id: id })
+        let interventions = [], metaIA = { pages_relues: 0, erreur: null }
+        if (fournisseur.cloud && consentement) {
+          // Une relecture par page : le CLI local lit l'IMAGE de la page par son CHEMIN ; l'API reçoit
+          // l'image entière en base64 (messages). La consigne porte l'OCR ligne par ligne à comparer.
+          const preparerCharge = async (n, lignes) => {
+            const pngWin = cheminPngDepuisUrl(b.projet?.pages?.[n]?.pngUrl)
+            if (!pngWin) return null
+            // On JOINT la position mesurée de chaque ligne : le modèle voit la page, mais sans ces
+            // repères il ne peut pas relier une glose aperçue dans la marge à un numéro de ligne.
+            const situations = situerLignes(lignes)
+            const items = lignes.map((l, i) => {
+              const s = situations.get(i)
+              return { i, t: String(l.dip ?? l.texte ?? ''), ...(s ? { z: s.zone, c: s.corps } : {}) }
+            })
+            // Le RÉGIME de graphie dépend de la nature du document : imprimé → modernisation
+            // glyphique (§14.3) ; manuscrit → transcription diplomatique (§14.4).
+            const kind = b.projet?.kind === 'manuscrit' ? 'manuscrit' : 'imprime'
+            if (fournisseur.local) return { image_path: pngWin, consigne: consigneRelecturePage(items, { kind }), cwd: dirname(pngWin) }
+            const b64 = await imageFichierBase64(pngWin)
+            return b64 ? messagesRelecturePage({ image_base64: b64, lignes: items, kind }) : null
           }
-          : null
-        const { interventions } = await controlerIA(b.projet || {}, { fournisseur, consentement, preparerCharge })
-        return json(res, 200, { findings: [...findings, ...interventions], compteurs: { ...compteurs, ia: interventions.length }, ia_active: fournisseur.cloud && consentement })
+          const r = await controlerPageIA(b.projet || {}, { fournisseur, consentement, preparerCharge, pages: Array.isArray(b.pages) ? b.pages : null })
+          interventions = r.interventions; metaIA = r.meta
+          // Passe SÉMANTIQUE des notes (§13) : rattache chaque note au passage qu'elle annote.
+          // N'appelle le modèle que pour les notes SANS appel imprimé (les autres sont appariées
+          // mécaniquement) et seulement sur les pages qui portent des notes.
+          const chargeNotes = async (n, corps, notes) => {
+            const pngWin = cheminPngDepuisUrl(b.projet?.pages?.[n]?.pngUrl)
+            if (!pngWin) return null
+            if (fournisseur.local) return { image_path: pngWin, consigne: consigneAncrageNotes({ corps, notes }), cwd: dirname(pngWin) }
+            const b64 = await imageFichierBase64(pngWin)
+            return b64 ? messagesAncrageNotes({ image_base64: b64, corps, notes }) : null
+          }
+          const rn = await ancrerNotesIA(b.projet || {}, { fournisseur, consentement, preparerCharge: chargeNotes, pages: Array.isArray(b.pages) ? b.pages : null })
+          interventions = [...interventions, ...rn.interventions]
+          metaIA = { ...metaIA, notes: rn.meta }
+          if (rn.meta.erreur && !metaIA.erreur) metaIA.erreur = rn.meta.erreur
+        }
+        return json(res, 200, {
+          findings: [...findings, ...interventions],
+          compteurs: { ...compteurs, ia: interventions.length, pages_relues: metaIA.pages_relues || 0 },
+          ia_active: fournisseur.cloud && consentement, ia_erreur: metaIA.erreur || null,
+        })
       }
 
       // §14.6 — état du fournisseur IA (sans révéler la clé) + consentement enregistré.
@@ -395,9 +407,9 @@ export function demarrer({ port = 4599 } = {}) {
       // Phase F — génération : état de livraison + rapport de provenance (AUCUNE IA à cette étape).
       if (p === '/api/ia/generation' && req.method === 'POST') {
         const b = await corps(req)
-        const rapport = rapportGeneration({ projet: b.projet || {}, validation: b.validation || {}, profil: b.profil || null, run_id: b.run_id || null, date: b.date || null, fichiers: b.fichiers || [] })
+        const rapport = rapportGeneration({ projet: b.projet || {}, validation: b.validation || {}, profil: b.profil || null, run_id: b.run_id || null, date: b.date || null, fichiers: b.fichiers || [], lot: b.lot || {} })
         const chemin = await sauverRapportGeneration(b.nom || 'projet', rapport)
-        return json(res, 200, { etat: etatLivraison(b.validation || {}), rapport, chemin })
+        return json(res, 200, { etat: etatLivraison(b.validation || {}, b.lot || {}), rapport, chemin })
       }
 
       // Sert une image locale par chemin absolu (outil local, écoute 127.0.0.1 seulement).
@@ -437,6 +449,11 @@ export function demarrer({ port = 4599 } = {}) {
         const b = await corps(req)
         const r = await exporterTout(b.nom, b.projet || {}, { id_oeuvre: b.id_oeuvre || null, couche: b.couche || 'dip', recenserNotes: b.recenserNotes !== false })
         return json(res, 200, r)
+      }
+      // Extraction de CONTRÔLE pour GPT : OCR IA (dip) vs OCR mécanique (ocr0), ligne à ligne.
+      if (p === '/api/export/comparaison' && req.method === 'POST') {
+        const b = await corps(req)
+        return json(res, 200, await exporterComparaison(b.nom, b.projet || {}, { date: b.date || null }))
       }
       // Export des CORRECTIONS des pages validées en jeu d'entraînement Kraken (ALTO + images + JSONL).
       if (p === '/api/export/entrainement' && req.method === 'POST') {

@@ -5,6 +5,8 @@
 
 import { pageAnormale } from './diagnostic.mjs'
 import { appelerIA } from './fournisseur.mjs'
+import { moderniserGlyphes, contientGlyphesAnciens } from '../typographie.mjs'
+import { notesDeLaPage, apparierNotesImprimees, numeroterAncrages } from '../notes-ancrage.mjs'
 
 /** Intervention normalisée (provenance complète, §15). Statut par défaut : propose_ia. */
 export function intervention(c = {}) {
@@ -13,6 +15,7 @@ export function intervention(c = {}) {
     bbox: c.bbox || [], texte_original: c.texte_original ?? '', texte_candidat: c.texte_candidat ?? '',
     modele: c.modele ?? null, fournisseur: c.fournisseur ?? null, version_modele: c.version_modele ?? null,
     version_prompt: c.version_prompt ?? null, sha256_image: c.sha256_image ?? null, regle: c.regle ?? null,
+    severite: c.severite ?? null, // Phase 5 : information | avertissement | critique | bloquant
     preuves: c.preuves || [], lecture_fondee_sur_image: !!c.lecture_fondee_sur_image,
     inference_contextuelle: !!c.inference_contextuelle, confiance_modele: c.confiance_modele ?? 0,
     niveau_risque: c.niveau_risque || 'R0', statut: c.statut || 'propose_ia', validation_humaine: false,
@@ -78,12 +81,18 @@ export function controlerDeterministe(projet, { seuilConfiance = 0.8 } = {}) {
   const compteurs = { pages: 0, lignes: 0, confiance_faible: 0, lignes_vides: 0, doublons: 0, pages_anormales: 0, charabia: 0, pages_ignorables: 0 }
   const nums = Object.keys(projet?.pages || {}).map(Number).sort((a, b) => a - b)
   for (const n of nums) {
-    const lignes = projet.pages[n].lignes || []
+    // Règle n°1 : ne contrôler QUE les pages océrisées. Une entrée sans tableau `lignes` est une simple
+    // coquille (vignette du tri IA, aperçu du PDF) — jamais océrisée : on la saute (sinon on la compterait
+    // et `pageAnormale([])` la signalerait à tort comme page anormale bloquante).
+    const lignes = projet.pages[n]?.lignes
+    if (!Array.isArray(lignes)) continue
     compteurs.pages++
     const anom = pageAnormale(lignes)
     if (anom) {
       compteurs.pages_anormales++
-      findings.push(intervention({ id: 'deter-page-vide', type: 'controle_page', page: n, regle: 'page_anormale', preuves: [anom], niveau_risque: niveauRisque({ bloquant: true }), statut: 'bloquant' }))
+      // Phase 5 : une page COURTE / peu remplie (page de titre, faux-titre, fin de chapitre, garde…) est
+      // légitime — c'est un AVERTISSEMENT, pas un blocage. Ne bloque plus l'export « complet ».
+      findings.push(intervention({ id: 'page-courte-' + n, type: 'controle_page', page: n, regle: 'page_courte', preuves: [anom], niveau_risque: 'R2', statut: 'avertissement', severite: 'avertissement' }))
     }
     const ign = pageIgnorable(lignes)
     if (ign) {
@@ -94,22 +103,45 @@ export function controlerDeterministe(projet, { seuilConfiance = 0.8 } = {}) {
     lignes.forEach((l, i) => {
       compteurs.lignes++
       const t = String(l.dip ?? l.texte ?? '').trim()
+      // Toute intervention porte le TEXTE et la BOÎTE de sa ligne : sans eux, l'atelier affiche une
+      // citation vide (« indications pas assez précises ») et ne peut ni zoomer sur le fac-similé
+      // ni pointer la ligne. L'information est ici, elle doit voyager avec le signalement.
+      const situe = { texte_original: t, bbox: Array.isArray(l.bbox) ? l.bbox : [] }
       if (Array.isArray(l.bbox) && !t) {
         compteurs.lignes_vides++
-        findings.push(intervention({ id: 'deter-ligne-vide', page: n, ligne_ids: [i], regle: 'ligne_vide', niveau_risque: 'R0', statut: 'applique_deterministe' }))
+        findings.push(intervention({ id: 'deter-ligne-vide', page: n, ligne_ids: [i], ...situe, regle: 'ligne_vide', niveau_risque: 'R0', statut: 'applique_deterministe' }))
       }
       if (l.confiance != null && l.confiance < seuilConfiance) {
         compteurs.confiance_faible++
-        findings.push(intervention({ id: 'deter-confiance-faible', page: n, ligne_ids: [i], regle: 'confiance_faible', confiance_modele: l.confiance, lecture_fondee_sur_image: true, niveau_risque: 'R2', statut: 'propose_ia' }))
+        findings.push(intervention({
+          id: 'deter-confiance-faible', page: n, ligne_ids: [i], ...situe, regle: 'confiance_faible',
+          confiance_modele: l.confiance, lecture_fondee_sur_image: true, niveau_risque: 'R2', statut: 'propose_ia',
+          preuves: ['reconnaissance à ' + Math.round(l.confiance * 100) + ' % sur cette ligne'],
+        }))
       }
       if (t && prev != null && t === prev) {
         compteurs.doublons++
-        findings.push(intervention({ id: 'struct-ligne-dupliquee', type: 'structure', page: n, ligne_ids: [i - 1, i], regle: 'doublon', niveau_risque: 'R1', statut: 'propose_ia' }))
+        findings.push(intervention({
+          id: 'struct-ligne-dupliquee', type: 'structure', page: n, ligne_ids: [i - 1, i], ...situe,
+          regle: 'doublon', niveau_risque: 'R1', statut: 'propose_ia',
+          preuves: ['ligne identique à la précédente'],
+        }))
       }
       const cha = t && ligneCharabia(t)
       if (cha) {
         compteurs.charabia++
-        findings.push(intervention({ id: 'bruit-ornement', type: 'structure', page: n, ligne_ids: [i], regle: 'charabia_ornement', preuves: [cha], texte_original: t, texte_candidat: '', niveau_risque: 'R2', statut: 'propose_ia' }))
+        // §31.4 : un bandeau gravé lu en charabia se RECLASSE (« ornement »), il ne se vide pas.
+        // Proposer « texte_candidat: '' » revenait à demander une suppression — interdite (§23.8) —
+        // et la ligne doit rester dans la source, seulement écartée du corps.
+        const iv = intervention({
+          id: 'bruit-ornement', type: 'reclassement_role', page: n, ligne_ids: [i],
+          regle: 'charabia_ornement', preuves: [cha], texte_original: t,
+          texte_candidat: '[ornement]', bbox: Array.isArray(l.bbox) ? l.bbox : [],
+          niveau_risque: 'R2', statut: 'propose_ia', interdit_entrainement: true,
+        })
+        iv.role_avant = l?.suggestion?.role_confirme ?? l?.suggestion?.role_suggere ?? 'corps'
+        iv.role_apres = 'ornement'
+        findings.push(iv)
       }
       prev = t
     })
@@ -139,6 +171,228 @@ export function interventionDepuisSortieIA(sortie, ctx = {}) {
     confiance_modele: sortie.confiance ?? 0, niveau_risque: risque,
     statut: 'propose_ia', interdit_entrainement: contextuel || !!sortie.restitution_editoriale,
   })
+}
+
+/**
+ * Convertit la sortie d'une RELECTURE de page (corrections ligne à ligne) en interventions §15. Ne garde
+ * qu'une correction qui CHANGE réellement le texte d'une ligne existante (indice valide, texte non vide,
+ * différent de l'OCR) : on écarte le bruit et les « corrections » identiques. Pur / testable.
+ */
+export function interventionsDepuisRelecture(sortie, { page, lignes = [], modele = null, fournisseur = null, kind = 'imprime' } = {}) {
+  if (!sortie || sortie.abstention || !Array.isArray(sortie.corrections)) return []
+  const manuscrit = kind === 'manuscrit'
+  const out = []
+  for (const c of sortie.corrections) {
+    const i = Number(c?.i)
+    if (!Number.isInteger(i) || i < 0 || i >= lignes.length) continue
+    const orig = String(lignes[i]?.dip ?? lignes[i]?.texte ?? '')
+    // GARDE-FOU §14.3 — sur un IMPRIMÉ, la couche candidate ne porte pas de caractère purement
+    // glyphique : si le modèle archaïse (« estre » → « eſtre »), on modernise sa proposition au lieu
+    // de la refuser — la correction utile (lettre, accent) est conservée, l'archaïsme neutralisé.
+    // Sur un MANUSCRIT (§14.4, transcription diplomatique), on ne touche à rien.
+    const brut = String(c?.texte_corrige ?? '')
+    const corr = manuscrit ? brut : moderniserGlyphes(brut)
+    // §14.2 / §23.8 : jamais de suppression d'une ligne imprimée par une « correction » vide.
+    if (!corr.trim() || corr === orig) continue
+    const iv = intervention({
+      id: 'relecture-p' + page + '-l' + i, type: 'correction_ocr', page, ligne_ids: [i],
+      bbox: lignes[i]?.bbox || [], texte_original: orig, texte_candidat: corr,
+      modele, fournisseur, regle: 'relecture_page', preuves: c?.motif ? [String(c.motif)] : [],
+      lecture_fondee_sur_image: true, inference_contextuelle: false,
+      confiance_modele: Number(c?.confiance) || 0, niveau_risque: 'R2', statut: 'propose_ia',
+    })
+    // Verdict de l'IA : « certaine » (auto-applicable) / « incertaine » (soumise à l'humain) — sinon null.
+    iv.certitude = (c?.certitude === 'certaine' || c?.certitude === 'incertaine') ? c.certitude : null
+    // Une proposition qui archaïsait est neutralisée mais reste tracée : jamais appliquée en aveugle.
+    if (!manuscrit && contientGlyphesAnciens(brut)) {
+      iv.certitude = 'incertaine'
+      iv.preuves = [...(iv.preuves || []), 'archaïsme proposé par le modèle, modernisé (charte §14.3)']
+    }
+    out.push(iv)
+  }
+  return out
+}
+
+/**
+ * LIGNES OMISES (§1.2 « les endroits où l'OCR saute facilement une ligne ») : une ligne visible sur
+ * l'image mais absente de la reconnaissance. Proposée en AJOUT, jamais silencieusement : la ligne
+ * ajoutée n'a ni bbox ni `ocr0`, donc elle est écartée du ground-truth (interdit_entrainement) tout
+ * en étant comptée dans le texte. R3 : ajoute du contenu, donc jamais appliquée en aveugle.
+ */
+export function interventionsLignesOmises(sortie, { page, lignes = [], modele = null, fournisseur = null } = {}) {
+  if (!sortie || sortie.abstention || !Array.isArray(sortie.lignes_omises)) return []
+  const out = []
+  for (const o of sortie.lignes_omises) {
+    const texte = String(o?.texte ?? '').trim()
+    if (!texte) continue
+    const apres = Number(o?.apres_i)
+    if (!Number.isInteger(apres) || apres < -1 || apres >= lignes.length) continue
+    const iv = intervention({
+      id: 'omise-p' + page + '-a' + apres, type: 'ligne_omise', page, ligne_ids: [apres],
+      texte_original: '', texte_candidat: texte, modele, fournisseur, regle: 'ligne_omise',
+      preuves: o?.motif ? [String(o.motif)] : ['ligne visible sur l’image, absente de la reconnaissance'],
+      lecture_fondee_sur_image: true, confiance_modele: Number(o?.confiance) || 0,
+      niveau_risque: 'R3', statut: 'propose_ia', interdit_entrainement: true,
+    })
+    iv.certitude = 'incertaine' // un ajout de contenu passe toujours par l'humain
+    iv.apres_i = apres
+    out.push(iv)
+  }
+  return out
+}
+
+// Rôles de reclassement que la relecture peut proposer (vocabulaire UNIQUE de structure.mjs).
+// `note_marginale` / `note_bas_page` : les notes sont CONSERVÉES (§13.1) — sorties du flux de prose,
+// jamais supprimées. `paratexte_titre` : mentions de page de titre (imprimeur, lieu, millésime, §5.1).
+const ROLES_RECLASSEMENT = new Set([
+  'ornement', 'titre_courant', 'numero_page', 'signature', 'reclame', 'bruit',
+  'note_marginale', 'note_bas_page', 'paratexte_titre',
+])
+
+/**
+ * Convertit les CLASSIFICATIONS d'une relecture (lignes non textuelles) en interventions de reclassement
+ * de rôle (§8.3-A, Phase 3). Ne garde qu'un rôle connu, pour une ligne existante, différent du rôle
+ * courant. Ne touche pas le texte : la ligne sera écartée du corps mais conservée en source. Pur.
+ */
+export function interventionsReclassement(sortie, { page, lignes = [], modele = null, fournisseur = null } = {}) {
+  if (!sortie || sortie.abstention || !Array.isArray(sortie.classifications)) return []
+  const out = []
+  for (const c of sortie.classifications) {
+    const i = Number(c?.i)
+    if (!Number.isInteger(i) || i < 0 || i >= lignes.length) continue
+    const role = String(c?.role ?? '')
+    if (!ROLES_RECLASSEMENT.has(role)) continue
+    const l = lignes[i]
+    const roleActuel = l?.suggestion?.role_confirme ?? l?.suggestion?.role_suggere ?? 'corps'
+    if (roleActuel === role) continue
+    const iv = intervention({
+      id: 'reclass-p' + page + '-l' + i, type: 'reclassement_role', page, ligne_ids: [i],
+      bbox: l?.bbox || [], texte_original: String(l?.dip ?? l?.texte ?? ''), texte_candidat: '[' + role + ']',
+      modele, fournisseur, regle: 'relecture_role', preuves: c?.motif ? [String(c.motif)] : [],
+      lecture_fondee_sur_image: true, confiance_modele: Number(c?.confiance) || 0,
+      niveau_risque: 'R2', statut: 'propose_ia', interdit_entrainement: true,
+    })
+    iv.role_avant = roleActuel; iv.role_apres = role
+    out.push(iv)
+  }
+  return out
+}
+
+/**
+ * Passe de contrôle IA PAR PAGE (§8.3-A, retour 2026-08-09) : relit l'IMAGE de CHAQUE page océrisée et
+ * en récolte les corrections (une requête / page). C'est la seule façon d'attraper les erreurs que l'OCR
+ * commet avec assurance (bonne confiance mais faux), invisibles à la passe déterministe. `preparerCharge`
+ * (fourni par le serveur) construit la charge — image + consigne — adaptée au fournisseur (chemin pour le
+ * CLI local, messages pour l'API). Ne modifie JAMAIS le projet ; renvoie des interventions candidates.
+ */
+/**
+ * Une PAGE ENTIÈRE hors œuvre (feuillet blanc, planche gravée, page de bibliothèque numérique…) :
+ * §31.6 — une particularité éditoriale ne se traite pas en cinquante décisions ligne à ligne. Le
+ * modèle la signale d'un bloc ; on en fait UNE intervention de page. Renvoie null sinon.
+ */
+export function interventionPageExclue(sortie, { page, modele = null, fournisseur = null } = {}) {
+  const p = sortie?.page
+  if (!p || p.exclure !== true) return null
+  return intervention({
+    id: 'page-exclure-' + page, type: 'controle_page', page, regle: 'page_exclure',
+    preuves: p.motif ? [String(p.motif)] : ['page hors œuvre'], modele, fournisseur,
+    lecture_fondee_sur_image: true, niveau_risque: 'R2', statut: 'propose_ia', severite: 'avertissement',
+  })
+}
+
+/** Une intervention d'ANCRAGE : rattache une note au passage annoté. Jamais de numéro ici. */
+function interventionAncrage(a, { page, lignes, modele = null, fournisseur = null, methode }) {
+  const iNote = Array.isArray(a.lignes_note) ? a.lignes_note[0] : a.note_i
+  const texteNote = String(lignes?.[iNote]?.dip ?? lignes?.[iNote]?.texte ?? '')
+  const iv = intervention({
+    id: 'ancrage-p' + page + '-n' + iNote, type: 'ancrage_note', page,
+    ligne_ids: Array.isArray(a.lignes_note) ? a.lignes_note : [iNote],
+    texte_original: texteNote, texte_candidat: '→ ligne ' + a.corps_i,
+    modele, fournisseur, regle: methode, preuves: a.motif ? [String(a.motif)] : [],
+    lecture_fondee_sur_image: methode !== 'appel_imprime',
+    confiance_modele: Number(a.confiance) || (methode === 'appel_imprime' ? 1 : 0),
+    // Un rattachement change la STRUCTURE du texte : R3, jamais appliqué en aveugle (sauf appel imprimé).
+    niveau_risque: methode === 'appel_imprime' ? 'R1' : 'R3', statut: 'propose_ia',
+  })
+  iv.certitude = a.certitude === 'certaine' ? 'certaine' : 'incertaine'
+  iv.corps_i = a.corps_i ?? null
+  iv.lignes_note = Array.isArray(a.lignes_note) ? a.lignes_note : [iNote]
+  iv.apres = a.apres ?? null
+  return iv
+}
+
+/**
+ * Passe d'ANCRAGE des notes (§13) — une passe SÉMANTIQUE de plus dans le Contrôle IA, appelée
+ * seulement là où il y a des notes. Économe par construction :
+ *   1. le MÉCANIQUE d'abord — une note à appel imprimé (« (1) ») est appariée sans aucun appel IA ;
+ *   2. l'IA ENSUITE, sur les seules notes restantes (gloses de marge, sans marque).
+ * La numérotation « [[n]] » n'est jamais demandée au modèle : elle est posée ici, globale à l'œuvre.
+ * Ne modifie pas le projet ; renvoie des interventions candidates.
+ */
+export async function ancrerNotesIA(projet, { fournisseur, consentement = false, preparerCharge = null, pages = null } = {}) {
+  const interventions = []
+  const meta = { pages_avec_notes: 0, ancrages_mecaniques: 0, ancrages_ia: 0, erreur: null }
+  const dispo = Object.keys(projet?.pages || {}).map(Number)
+  const nums = (Array.isArray(pages) && pages.length ? pages.map(Number).filter((n) => dispo.includes(n)) : dispo).sort((a, b) => a - b)
+  const bruts = []
+  for (const n of nums) {
+    const lignes = projet?.pages?.[n]?.lignes || []
+    if (!lignes.length) continue
+    const { corps, notes } = notesDeLaPage(lignes)
+    if (!notes.length) continue
+    meta.pages_avec_notes++
+    // 1. Appariement mécanique par appel imprimé — gratuit, certain.
+    const { ancrages, restantes } = apparierNotesImprimees(corps, notes)
+    for (const a of ancrages) { bruts.push({ page: n, lignes, a: { ...a, lignes_note: [a.note_i], certitude: 'certaine' }, methode: 'appel_imprime' }); meta.ancrages_mecaniques++ }
+    // 2. Passe sémantique, sur ce qui reste seulement.
+    if (!restantes.length || !fournisseur || !preparerCharge) continue
+    const charge = await preparerCharge(n, corps, restantes)
+    if (!charge) continue
+    const out = await appelerIA(fournisseur, 'notes', charge, { consentement })
+    if (out?.erreur && !meta.erreur) meta.erreur = out.erreur
+    if (out?.abstention || !Array.isArray(out?.ancrages)) continue
+    for (const a of out.ancrages) {
+      if (a?.corps_i == null) continue // « rien de sûr » : on ne rattache pas au hasard (§25.0)
+      bruts.push({ page: n, lignes, a, methode: 'ancrage_semantique', modele: out.modele, fournisseur: out.fournisseur })
+      meta.ancrages_ia++
+    }
+  }
+  // Numérotation globale, dans l'ordre de lecture (§13.2) — jamais celle du fac-similé.
+  const numerotes = numeroterAncrages(bruts.map((b, k) => ({ ...b.a, page: b.page, note_i: Array.isArray(b.a.lignes_note) ? b.a.lignes_note[0] : b.a.note_i, _k: k })))
+  for (const nu of numerotes) {
+    const b = bruts[nu._k]
+    const iv = interventionAncrage(nu, { page: b.page, lignes: b.lignes, modele: b.modele, fournisseur: b.fournisseur, methode: b.methode })
+    iv.numero_note = nu.numero
+    iv.texte_candidat = '[[' + nu.numero + ']] → ligne ' + nu.corps_i
+    interventions.push(iv)
+  }
+  return { interventions, meta }
+}
+
+export async function controlerPageIA(projet, { fournisseur, consentement = false, preparerCharge = null, pages = null } = {}) {
+  const interventions = []
+  const meta = { pages_relues: 0, erreur: null }
+  if (!fournisseur || !preparerCharge) return { interventions, meta }
+  const kind = projet?.kind === 'manuscrit' ? 'manuscrit' : 'imprime'
+  const dispo = Object.keys(projet?.pages || {}).map(Number)
+  const nums = (Array.isArray(pages) && pages.length ? pages.map(Number).filter((n) => dispo.includes(n)) : dispo).sort((a, b) => a - b)
+  for (const n of nums) {
+    const lignes = projet?.pages?.[n]?.lignes || []
+    if (!lignes.length) continue
+    const charge = await preparerCharge(n, lignes)
+    if (!charge) continue
+    const out = await appelerIA(fournisseur, 'page', charge, { consentement })
+    meta.pages_relues++
+    if (out?.erreur && !meta.erreur) meta.erreur = out.erreur
+    const ctx = { page: n, lignes, modele: out?.modele || null, fournisseur: out?.fournisseur || null }
+    // Page entière hors œuvre : une seule décision, on ne descend pas au détail des lignes.
+    const pageExclue = interventionPageExclue(out, ctx)
+    if (pageExclue) { interventions.push(pageExclue); continue }
+    interventions.push(...interventionsDepuisRelecture(out, { ...ctx, kind }))
+    interventions.push(...interventionsReclassement(out, ctx))
+    interventions.push(...interventionsLignesOmises(out, ctx))
+  }
+  return { interventions, meta }
 }
 
 /**

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { intervention, niveauRisque, chargerCatalogue, controlerDeterministe, interventionDepuisSortieIA, controlerIA, ligneCharabia, pageIgnorable } from '../src/ia/controle.mjs'
+import { intervention, niveauRisque, chargerCatalogue, controlerDeterministe, interventionDepuisSortieIA, controlerIA, controlerPageIA, interventionsDepuisRelecture, interventionsReclassement, ligneCharabia, pageIgnorable } from '../src/ia/controle.mjs'
 import { fournisseurMock } from '../src/ia/mock.mjs'
 
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -48,8 +48,21 @@ test('contrôle déterministe : confiance faible, ligne vide, doublon, page anor
   assert.equal(compteurs.confiance_faible, 1)
   assert.equal(compteurs.doublons, 1)
   assert.equal(compteurs.pages_anormales, 1)
-  assert.ok(findings.some((f) => f.statut === 'bloquant'))  // page anormale = bloquant
+  assert.ok(findings.some((f) => f.regle === 'page_courte' && f.statut === 'avertissement')) // Phase 5 : page courte = avertissement, PAS blocage
+  assert.ok(!findings.some((f) => f.statut === 'bloquant'))  // plus aucun blocage sur une simple page courte
   assert.equal(JSON.stringify(projet), avant)               // OCR brut immuable : le projet n'est pas modifié
+})
+
+test('contrôle déterministe : les coquilles non océrisées (tri IA / aperçu) sont hors contrôle', () => {
+  const projet = { pages: {
+    1: { lignes: [{ dip: 'Une vraie page océrisée avec du texte.', bbox: [1, 2, 3, 4], confiance: 0.95 }] },
+    2: { triage: { type: 'garde', a_ocriser: false } },   // vignette du tri IA : pas de `lignes`
+    3: { apercuUrl: '/x.png', pngUrl: '/x.png' },          // aperçu du PDF : pas de `lignes`
+  } }
+  const { compteurs, findings } = controlerDeterministe(projet)
+  assert.equal(compteurs.pages, 1)                          // seule la page 1 est océrisée
+  assert.equal(compteurs.pages_anormales, 0)                // les coquilles NE sont PAS signalées « page anormale »
+  assert.ok(!findings.some((f) => f.page === 2 || f.page === 3))
 })
 
 test('contrôle : ligneCharabia repère l’OCR d’un bandeau ornemental, sans faux positif sur du texte', () => {
@@ -105,4 +118,60 @@ test('contrôle IA : un fournisseur qui lit produit une intervention candidate t
   assert.equal(r.interventions.length, 1)
   assert.equal(r.interventions[0].texte_candidat, 'M')
   assert.equal(r.interventions[0].statut, 'propose_ia')
+})
+
+test('contrôle : interventionsDepuisRelecture — ne garde que les vraies corrections', () => {
+  const lignes = [{ dip: 'Au commencement' }, { dip: 'Dicu créa' }, { dip: 'le ciel' }]
+  const sortie = { abstention: false, corrections: [
+    { i: 1, texte_ocr: 'Dicu créa', texte_corrige: 'Dieu créa', motif: 'lettre mal lue', confiance: 0.9 }, // vraie correction
+    { i: 0, texte_ocr: 'Au commencement', texte_corrige: 'Au commencement' },                              // identique → écartée
+    { i: 2, texte_corrige: '' },                                                                            // vide → écartée
+    { i: 9, texte_corrige: 'hors page' },                                                                   // indice hors bornes → écartée
+  ] }
+  const ivs = interventionsDepuisRelecture(sortie, { page: 4, lignes, modele: 'sonnet', fournisseur: 'claude-local' })
+  assert.equal(ivs.length, 1)
+  assert.equal(ivs[0].texte_original, 'Dicu créa')
+  assert.equal(ivs[0].texte_candidat, 'Dieu créa')
+  assert.equal(ivs[0].ligne_ids[0], 1)
+  assert.equal(ivs[0].regle, 'relecture_page')
+  assert.equal(ivs[0].statut, 'propose_ia')
+  assert.equal(ivs[0].lecture_fondee_sur_image, true)
+})
+
+test('contrôle : interventionsDepuisRelecture — abstention → aucune intervention', () => {
+  assert.deepEqual(interventionsDepuisRelecture({ abstention: true, corrections: [{ i: 0, texte_corrige: 'x' }] }, { page: 1, lignes: [{ dip: 'a' }] }), [])
+  assert.deepEqual(interventionsDepuisRelecture(null, { page: 1, lignes: [] }), [])
+})
+
+test('contrôle : controlerPageIA — une relecture par page océrisée, corrections récoltées', async () => {
+  const projet = { pages: { 1: { lignes: [{ dip: 'Dicu' }] }, 2: { lignes: [{ dip: 'bon' }] } } }
+  const vus = []
+  const faux = { page: async (charge) => { vus.push(charge.n); return { abstention: false, corrections: charge.corr, statut: 'candidat', modele: 'sonnet', fournisseur: 'faux' } } }
+  // preparerCharge fabrique une charge portant les corrections attendues (test déterministe, sans réseau).
+  const preparerCharge = async (n, lignes) => ({ n, corr: n === 1 ? [{ i: 0, texte_ocr: 'Dicu', texte_corrige: 'Dieu' }] : [] })
+  const r = await controlerPageIA(projet, { fournisseur: faux, consentement: true, preparerCharge })
+  assert.equal(r.meta.pages_relues, 2)
+  assert.equal(r.interventions.length, 1)
+  assert.equal(r.interventions[0].texte_candidat, 'Dieu')
+  assert.equal(r.interventions[0].page, 1)
+})
+
+test('contrôle : interventionsReclassement — classe une ligne non-textuelle, ignore rôle inconnu / abstention', () => {
+  const lignes = [
+    { dip: 'SARA AE ASIA', suggestion: { role_suggere: 'corps', role_confirme: null } }, // ornement lu en charabia
+    { dip: 'Vrai texte de corps' },
+  ]
+  const sortie = { abstention: false, classifications: [
+    { i: 0, role: 'ornement', motif: 'filet gravé' }, // valide
+    { i: 1, role: 'zorglub' },                         // rôle inconnu → ignoré
+    { i: 9, role: 'ornement' },                        // hors bornes → ignoré
+  ] }
+  const ivs = interventionsReclassement(sortie, { page: 7, lignes, modele: 'sonnet', fournisseur: 'claude-local' })
+  assert.equal(ivs.length, 1)
+  assert.equal(ivs[0].type, 'reclassement_role')
+  assert.equal(ivs[0].role_avant, 'corps')
+  assert.equal(ivs[0].role_apres, 'ornement')
+  assert.equal(ivs[0].ligne_ids[0], 0)
+  assert.equal(ivs[0].interdit_entrainement, true)
+  assert.deepEqual(interventionsReclassement({ abstention: true, classifications: [{ i: 0, role: 'ornement' }] }, { page: 1, lignes }), [])
 })

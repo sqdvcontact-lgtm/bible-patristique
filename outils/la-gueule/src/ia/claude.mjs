@@ -56,6 +56,7 @@ export function fournisseurClaude(env = {}) {
     titre: (c, o) => appel('niveau_titre', c, { ...o, modeleTache: 'vision' }),
     ligne: (c, o) => appel('correction_ocr', c, { ...o, modeleTache: 'controle' }),
     page: (c, o) => appel('controle_page', c, { ...o, modeleTache: 'controle' }),
+    notes: (c, o) => appel('ancrage_notes', c, { ...o, modeleTache: 'controle' }),
     section: (c, o) => appel('controle_section', c, { ...o, modeleTache: 'controle' }),
     lot: (c, o) => appel('controle_lot', c, { ...o, modeleTache: 'controle' }),
   }

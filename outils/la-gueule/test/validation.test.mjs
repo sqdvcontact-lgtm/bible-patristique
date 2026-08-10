@@ -62,3 +62,101 @@ test('validation : un cas critique DÉCIDÉ par l’humain sort des « critiques
   assert.equal(refuse.critiques.length, 0)     // refusé → hors flux
   assert.equal(refuse.automatiques.length, 0)
 })
+
+test('validation Phase 4 : aPayloadConcret — texte changé ou reclassement = décision individuelle', async () => {
+  const { aPayloadConcret } = await import('../src/ia/validation.mjs')
+  assert.equal(aPayloadConcret({ type: 'correction_ocr', texte_original: 'bommes', texte_candidat: 'hommes' }), true)
+  assert.equal(aPayloadConcret({ type: 'correction_ocr', texte_original: 'ok', texte_candidat: 'ok' }), false) // identique
+  assert.equal(aPayloadConcret({ type: 'reclassement_role', role_apres: 'ornement' }), true)
+  assert.equal(aPayloadConcret({ regle: 'confiance_faible' }), false) // simple flag
+})
+
+test('validation Phase 4 : 41 corrections de relecture → 41 objets individuels, AUCUNE fausse famille', () => {
+  const findings = Array.from({ length: 41 }, (_, i) => f({ type: 'correction_ocr', regle: 'relecture_page', niveau_risque: 'R2', page: 1 + (i % 6), ligne_ids: [i], texte_original: 'err' + i, texte_candidat: 'fix' + i }))
+  const c = classerValidation(findings)
+  assert.equal(c.corrections.length, 41)                 // chacune est un objet distinct
+  assert.equal(c.familles.length, 0)                     // plus de famille « relecture_page »
+  assert.ok(!c.familles.some((x) => x.cle === 'relecture_page'))
+  assert.equal(c.compteurs.corrections, 41)
+})
+
+test('validation Phase 4 : reclassements = individuels ; flags déterministes = familles ; les deux coexistent', () => {
+  const c = classerValidation([
+    f({ type: 'reclassement_role', regle: 'relecture_role', niveau_risque: 'R2', role_apres: 'ornement', ligne_ids: [0] }),
+    f({ regle: 'confiance_faible', niveau_risque: 'R2' }),
+    f({ regle: 'confiance_faible', niveau_risque: 'R2' }),
+    f({ regle: 'page_ignorable', niveau_risque: 'R1' }),
+  ])
+  assert.equal(c.corrections.length, 1)                  // le reclassement est individuel
+  assert.equal(c.familles.length, 2)                     // confiance_faible (×2) + page_ignorable
+  const cf = c.familles.find((x) => x.cle === 'confiance_faible')
+  assert.equal(cf.nb, 2)
+})
+
+test('validation Phase 4 : une correction concrète en R3 reste un CRITIQUE individuel (pas une correction douce)', () => {
+  const c = classerValidation([f({ type: 'correction_ocr', regle: 'relecture_page', niveau_risque: 'R3', texte_original: 'a', texte_candidat: 'b' })])
+  assert.equal(c.critiques.length, 1)
+  assert.equal(c.corrections.length, 0)
+})
+
+test('validation Phase 5 : un avertissement (page courte) ne bloque pas — bac dédié, hors décision', () => {
+  const c = classerValidation([
+    f({ regle: 'page_courte', statut: 'avertissement', severite: 'avertissement', niveau_risque: 'R2', page: 1 }),
+    f({ regle: 'page_courte', statut: 'avertissement', severite: 'avertissement', niveau_risque: 'R2', page: 3 }),
+  ])
+  assert.equal(c.blocages.length, 0)          // ne bloque plus l'export
+  assert.equal(c.avertissements.length, 2)
+  assert.equal(c.familles.length, 0)          // ni fondu dans une famille
+  assert.equal(c.corrections.length, 0)
+  assert.equal(c.compteurs.avertissements, 2)
+})
+
+test('validation Phase 4.3 : distanceEdition — Levenshtein', async () => {
+  const { distanceEdition } = await import('../src/ia/validation.mjs')
+  assert.equal(distanceEdition('bommes', 'hommes'), 1)
+  assert.equal(distanceEdition('seulemeni', 'seulement'), 1)
+  assert.equal(distanceEdition('abc', 'abc'), 0)
+  assert.equal(distanceEdition('chat', 'chien'), 3)
+})
+
+test('validation Phase 4.3 : estCorrectionSimple — petit changement = auto ; gros = humain', async () => {
+  const { estCorrectionSimple } = await import('../src/ia/validation.mjs')
+  assert.equal(estCorrectionSimple({ texte_original: 'bommes', texte_candidat: 'hommes' }), true)   // 1 car.
+  assert.equal(estCorrectionSimple({ texte_original: 'Dicu créa', texte_candidat: 'Dieu créa' }), true) // 1 car.
+  assert.equal(estCorrectionSimple({ texte_original: 'le ciel', texte_candidat: 'la terre et le ciel' }), false) // réécriture
+  assert.equal(estCorrectionSimple({ type: 'reclassement_role', role_apres: 'ornement' }), false)   // structurel = jamais simple
+})
+
+test('validation Phase 4.3 : classement — simples en auto_texte, gros/reclassement à valider', () => {
+  const c = classerValidation([
+    f({ type: 'correction_ocr', regle: 'relecture_page', niveau_risque: 'R2', page: 1, ligne_ids: [0], texte_original: 'bommes', texte_candidat: 'hommes' }),         // simple → auto
+    f({ type: 'correction_ocr', regle: 'relecture_page', niveau_risque: 'R2', page: 1, ligne_ids: [1], texte_original: 'x', texte_candidat: 'phrase entièrement réécrite' }), // gros → humain
+    f({ type: 'reclassement_role', regle: 'relecture_role', niveau_risque: 'R2', page: 1, ligne_ids: [2], role_avant: 'corps', role_apres: 'ornement' }),                 // structurel → humain
+  ])
+  assert.equal(c.auto_texte.length, 1)
+  assert.equal(c.corrections.length, 2)   // le gros changement + le reclassement
+  assert.equal(c.compteurs.auto_texte, 1)
+})
+
+test('validation : estAutoApplicable — verdict IA prioritaire, garde-fou sur les grosses réécritures', async () => {
+  const { estAutoApplicable } = await import('../src/ia/validation.mjs')
+  // « certaine » → auto même sur un changement moyen (≤ 12 caractères)
+  assert.equal(estAutoApplicable({ certitude: 'certaine', texte_original: 'Philofophie', texte_candidat: 'Philosophie' }), true)
+  // « incertaine » → jamais auto, même pour 1 caractère
+  assert.equal(estAutoApplicable({ certitude: 'incertaine', texte_original: 'bommes', texte_candidat: 'hommes' }), false)
+  // « certaine » mais réécriture massive (> 12) → garde-fou, reste à l'humain
+  assert.equal(estAutoApplicable({ certitude: 'certaine', texte_original: 'x', texte_candidat: 'une très longue phrase entièrement reconstruite' }), false)
+  // sans verdict → repli déterministe (petit = auto, gros = non)
+  assert.equal(estAutoApplicable({ texte_original: 'Dicu', texte_candidat: 'Dieu' }), true)
+  assert.equal(estAutoApplicable({ texte_original: 'le ciel', texte_candidat: 'la terre entière et le ciel' }), false)
+})
+
+test('validation : classement — l’IA fait la part des choses (certaine→auto, incertaine→humain)', () => {
+  const c = classerValidation([
+    f({ type: 'correction_ocr', regle: 'relecture_page', niveau_risque: 'R2', page: 1, ligne_ids: [0], certitude: 'certaine', texte_original: 'Philofophie', texte_candidat: 'Philosophie' }),
+    f({ type: 'correction_ocr', regle: 'relecture_page', niveau_risque: 'R2', page: 1, ligne_ids: [1], certitude: 'incertaine', texte_original: 'bommes', texte_candidat: 'hommes' }),
+  ])
+  assert.equal(c.auto_texte.length, 1)     // la « certaine » est appliquée seule
+  assert.equal(c.corrections.length, 1)    // l’« incertaine » est soumise, malgré 1 seul caractère
+  assert.equal(c.corrections[0].certitude, 'incertaine')
+})

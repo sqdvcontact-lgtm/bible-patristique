@@ -24,6 +24,8 @@ export function fournisseurMock() {
       return base('correction_ocr', { texte_propose: null, categorie_erreur: null, abstention: true, confiance: 0, preuves: [] })
     },
     async page() { return base('controle_page', { anomalies: [], abstention: true }) },
+    // Ancrage des notes (§13) : sans lecture réelle de la page, aucun rattachement n'est proposé.
+    async notes() { return base('ancrage_notes', { ancrages: [], abstention: true }) },
     async section() { return base('controle_section', { anomalies: [], abstention: true }) },
     async lot() { return base('controle_lot', { anomalies: [], abstention: true }) },
   }

@@ -20,3 +20,10 @@ test('génération §12.5 : rapport de provenance — jamais « validé humainem
   assert.match(r.avertissement, /PROVISOIRE/)
   assert.equal(/valid[ée] humainement/i.test(JSON.stringify(r)), false) // ne prétend jamais la validation humaine
 })
+
+test('génération Phase 5 : lot incomplet → INCOMPLET ; avertissements / erreurs → AVEC_RESERVES', () => {
+  assert.equal(etatLivraison({ compteurs: {} }, { manquantes: 5 }), 'CANDIDAT_INCOMPLET')            // pages du périmètre non traitées
+  assert.equal(etatLivraison({ compteurs: { avertissements: 3 } }), 'FINAL_CANDIDAT_AVEC_RESERVES')  // pages courtes = réserve, plus un blocage
+  assert.equal(etatLivraison({ compteurs: {} }, { erreurs: 1 }), 'FINAL_CANDIDAT_AVEC_RESERVES')
+  assert.equal(etatLivraison({ compteurs: {} }, { manquantes: 0, erreurs: 0 }), 'FINAL_CANDIDAT')
+})

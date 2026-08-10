@@ -12,6 +12,7 @@ import { dirname, join } from 'node:path'
 
 import { demarrer, diagnostic } from '../src/serve.mjs'
 import { runBash } from '../src/wsl.mjs'
+import { chargerProjet, exporterComparaison } from '../src/projet.mjs'
 
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -20,6 +21,8 @@ const AIDE = `La Gueule — atelier d'océrisation local (charte §14). Candidat
 Usage :
   gueule serve [--open] [--port N]   Lance l'atelier de relecture (fenêtre d'application)
   gueule doctor                      Diagnostique l'environnement (WSL, Kraken, Tesseract)
+  gueule extraire <projet>           Rapport de CONTRÔLE pour GPT : OCR IA (dip) vs OCR
+                                     mécanique (ocr0), ligne à ligne → exports/<projet>.comparaison-ocr.md
   gueule nettoyer [--incoming] [--exports]
                                      Purge contrôlée : images servies (sorties/atelier)
                                      + dossiers temporaires WSL /tmp/lg.*. Ajoute
@@ -95,6 +98,21 @@ async function cmdDoctor() {
   console.log(manque.length ? `\n⚠ Manquant(s) : ${manque.join(', ')} — voir scripts/installer-wsl.sh` : '\nTout est prêt pour océriser.')
 }
 
+// Extraction de contrôle pour GPT : compare l'OCR IA (dip) à l'OCR mécanique (ocr0).
+async function cmdExtraire(nom) {
+  if (!nom) { console.error('Usage : gueule extraire <nom-de-projet>'); process.exitCode = 1; return }
+  let projet
+  try { projet = await chargerProjet(nom) }
+  catch { console.error(`Projet introuvable : « ${nom} » (voir le dossier projets/).`); process.exitCode = 1; return }
+  const r = await exporterComparaison(nom, projet, { date: new Date().toLocaleString('fr-FR') })
+  const u = r.resume
+  console.log(`Contrôle OCR — IA vs mécanique — « ${nom} »`)
+  console.log(`  pages ${u.pages} · lignes ${u.lignes} · modifiées ${u.modifiees} (auto ${u.auto}, validées humain ${u.validees})`)
+  console.log(`  « ſ » ajoutés par l'IA : ${u.avec_s_long}   ·   reclassements hors-corps : ${u.reclassements}`)
+  console.log(`  → ${r.fichiers.md}`)
+  console.log(`  → ${r.fichiers.json}`)
+}
+
 async function main() {
   const { values, positionals } = opts()
   const cmd = positionals[0]
@@ -102,6 +120,7 @@ async function main() {
   if (cmd === 'serve') return cmdServe(values)
   if (cmd === 'doctor') return cmdDoctor()
   if (cmd === 'nettoyer') return cmdNettoyer(values)
+  if (cmd === 'extraire') return cmdExtraire(positionals[1])
   throw new Error(`commande inconnue : « ${cmd} ». Voir : gueule --help`)
 }
 

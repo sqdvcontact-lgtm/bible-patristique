@@ -62,16 +62,39 @@ export function choisirAuteur(lignes, nomLu) {
   return bestScore > 0 ? best : null
 }
 
-/** Meilleure œuvre du catalogue pour le titre lu (chevauchement de jetons ≥ 5 lettres). Pur / testable. */
+/**
+ * Jetons SIGNIFIANTS d'un titre : les mots longs (≥5 lettres) ET les NOMBRES. Un nombre est très
+ * discriminant — « Discours 38-41 » ne se distingue des autres discours que par « 38 » et « 41 » —
+ * et les jeter revenait à ne garder qu'un seul jeton, donc à rendre le rapprochement impossible.
+ */
+export function jetonsTitre(titre) {
+  return new Set(normaliser(titre).split(' ').filter((t) => t.length >= 5 || /^\d+$/.test(t)))
+}
+
+/**
+ * Meilleure œuvre du catalogue pour le titre lu. Rapprochement volontairement STRICT (un faux
+ * rattachement coûte plus cher qu'une absence de rattachement) :
+ *   - soit 2 jetons communs et un recouvrement ≥ 50 % ;
+ *   - soit un SEUL jeton commun, mais un recouvrement ≥ 80 % — c'est le cas d'un titre court ou
+ *     d'une correspondance exacte (« Confessions » ↔ « Confessions »), que la règle des 2 jetons
+ *     rendait mécaniquement impossible.
+ * « Homélies, discours et lettres choisis » ne matche toujours PAS « Homélies sur l'Hexaéméron »
+ * (un seul mot commun, recouvrement 25 %). Pur / testable.
+ */
 export function choisirOeuvre(lignes, titreLu) {
-  const jl = new Set(normaliser(titreLu).split(' ').filter((t) => t.length >= 5)); if (!jl.size) return null
-  let best = null, bestScore = 0
+  const jl = jetonsTitre(titreLu); if (!jl.size) return null
+  let best = null, bestScore = 0, bestRec = 0
   for (const o of (Array.isArray(lignes) ? lignes : [])) {
-    const jo = new Set(normaliser(o?.titre).split(' ').filter((t) => t.length >= 5))
+    const jo = jetonsTitre(o?.titre); if (!jo.size) continue
     let s = 0; for (const t of jl) if (jo.has(t)) s++
-    if (s > bestScore) { bestScore = s; best = o }
+    if (!s) continue
+    const recouvrement = s / Math.max(jl.size, jo.size)
+    const admissible = (s >= 2 && recouvrement >= 0.5) || (s >= 1 && recouvrement >= 0.8)
+    if (!admissible) continue
+    // À égalité de jetons communs, le meilleur recouvrement l'emporte (titre le plus proche).
+    if (s > bestScore || (s === bestScore && recouvrement > bestRec)) { bestScore = s; bestRec = recouvrement; best = o }
   }
-  return bestScore > 0 ? best : null
+  return best
 }
 
 async function lireConfig(cheminEnv) {
@@ -120,7 +143,9 @@ export async function enrichirDepuisBase({ auteur = '', titre = '' } = {}, { che
     if (o) {
       if (o.titre_original) out.titre_original = o.titre_original
       if (o.langue_originale) out.langue_originale = o.langue_originale
-      if (o.sous_titre) out.sous_titre = o.sous_titre
+      // NB : on n'écrase JAMAIS le sous_titre depuis le catalogue — le sous-titre de la fiche est une
+      // caractéristique de l'ÉDITION (« Nouvelle édition revue et corrigée »), lue sur la page ; le
+      // sous-titre canonique de l'œuvre (« ou L'Ouvrage des six jours ») ne s'applique pas à cet exemplaire.
       if (o.date_composition || o.date_approx) out.date_composition = o.date_composition || o.date_approx
       if (o.genre) out.genre = o.genre
       idAuteurOeuvre = o.id_auteur || null

@@ -1,80 +1,54 @@
 # La Gueule
 
-Petit orchestrateur **maison** d'OCR/HTR de Corpus Scriptura. Il *mobilise* Kraken (et Tesseract, poppler, ImageMagick…) pour transformer des **fac-similés** en **brouillons** de transcription — jamais en texte validé. Il applique la doctrine de la charte, section **§14 « OCR, HTR et transcription patrimoniale »**, à chaque étape.
+Atelier **local** d'OCR/HTR de Corpus Scriptura. Il océrise des **fac-similés** (imprimés anciens, manuscrits) et les transforme en **brouillons candidats** de transcription — jamais en texte validé. Il applique la doctrine de la charte, **§14 « OCR, HTR et transcription patrimoniale »** et **§31 « Atelier La Gueule »**, à chaque étape. **Aucune dépendance npm** (Node natif ≥ 20).
 
 > Un moteur d'OCR ou de HTR produit un brouillon. Il ne produit jamais, à lui seul, un texte éditorial validé. Le fac-similé fait autorité. — *charte §14*
 
-## Ce que fait (et ne fait pas) La Gueule
+## Ce que fait (et ne fait pas)
 
-- **Fait** : enrôler une source avec sa traçabilité (empreinte SHA-256, dimensions réelles, cote, bornes) ; lancer un moteur ; assembler un brouillon structuré (feuillet / face / colonne / ligne) ; appliquer les **contrôles** de la doctrine ; empaqueter un **candidat**.
-- **Ne fait pas** : décider de la lecture, corriger d'après une autre Bible ou le sens attendu, inventer une ligne ou une coordonnée, écrire dans le TEI **actif**, fabriquer une graphie modernisée. Ces interdits sont inscrits dans le code (`src/config.mjs`) et rappelés à l'exécution.
+- **Fait** : enrôler une source avec sa traçabilité (SHA-256, dimensions réelles) ; océriser par page ou par plage (Kraken/Tesseract via WSL) ; lire les métadonnées de la page de titre par IA et enrichir depuis le catalogue ; **relire chaque page par IA** et proposer des corrections + reclassements ; laisser l'humain valider les seuls cas ambigus ; exporter des **candidats** (JSON, DOCX, SQL, TXT, Markdown, ALTO, PAGE XML) + un jeu d'entraînement Kraken.
+- **Ne fait pas** : décider de la lecture à ta place, corriger d'après une autre source ou le sens attendu, inventer une ligne ou une coordonnée, écrire dans les **tables actives** du site, moderniser une graphie. La sortie est toujours un **candidat** : l'OCR brut (`ocr0`) et le fac-similé restent immuables ; l'état éditorial courant (`dip`) est réversible et tracé.
 
-## Pipeline
+## Le produit : l'atelier
+
+Le cœur est **l'atelier de relecture** (`ui/atelier.html`), servi par `src/serve.mjs` sur `http://127.0.0.1:4599`, ouvert en fenêtre d'application. Volet gauche à onglets (Métadonnées / Prétraitement / Réglage OCR / **Contrôle** / Export), image cible au centre (boîtes ALTO), texte éditable à droite. Le pilotage du contrôle se fait dans l'onglet **Contrôle**.
+
+**Lancement** : double-clic sur `redemarrer-la-gueule.bat` (tue le serveur sur 4599 et relance avec le bon fournisseur IA), ou le raccourci bureau, ou `npm run serve`. ⚠️ Recharger la page ≠ redémarrer le serveur (node détaché) : après une modif de code, redémarre le serveur PUIS recharge à fond (Ctrl+Maj+R). **Ctrl+S** enregistre le projet.
+
+## Pipeline en 5 étapes
 
 ```
-ingest → segment → recognize → assemble → control → package
+Diagnostic IA → OCR local → Contrôle IA → Validation ciblée → Génération locale
 ```
 
-1. **ingest** — empreinte + dimensions + cote/URL + bornes (§14.2).
-2. **segment** — Kraken repère régions et lignes → coordonnées **réelles** du témoin.
-3. **recognize** — Kraken/Tesseract → brouillon ligne à ligne.
-4. **assemble** — brouillon structuré, avec `unclear`/`gap` là où le moteur doute (§14.5).
-5. **control** — comptages réconciliés (feuillets ≠ faces ≠ colonnes ≠ lignes), compteurs `unclear`/`gap`, sondages répartis, alerte « relecture invraisemblable » (§14.8-14.10).
-6. **package** — **candidat** + manifeste + empreintes ; jamais l'actif (§14.9).
+1. **Diagnostic IA** — métadonnées de la page de titre (Opus) + enrichissement catalogue (lecture seule) + choix du moteur (Tesseract vs Kraken-print, auto-détecté) + périmètre proposé.
+2. **OCR local** — Kraken/Tesseract par page ou par plage ; sauvegarde après chaque page, reprise, relance des erreurs. Complétude mesurée sur le **lot** de travail, pas sur le document entier.
+3. **Contrôle IA** — passe déterministe (confiance, doublons, pages inutiles) + **relecture IA par page** (corrections de texte + reclassements de rôle). Ne traite que les pages océrisées.
+4. **Validation ciblée** — les corrections que l'IA juge « certaines » sont appliquées automatiquement ; seuls les cas ambigus (réécriture, reclassement, risque élevé) sont soumis ; familles de flags par échantillonnage. Page courte = avertissement, pas blocage.
+5. **Génération locale** — exports déterministes de l'état candidat ; aucune IA. État de livraison : `FINAL_CANDIDAT` / `…AVEC_RÉSERVES` / `CANDIDAT_INCOMPLET`.
 
-## Architecture
+## Architecture (modules `src/`)
 
-- `bin/gueule.mjs` — la CLI (`run`, `control`, `ingest`, `doctor`).
-- `src/pipeline.mjs` — l'enchaînement des étapes ; sortie en candidat.
-- `src/engines.mjs` — les moteurs derrière une même interface : `mock` (simulation), `kraken`, `tesseract`.
-- `src/runner.mjs` — exécute le moteur là où il vit : `local`, `wsl` (Windows → Linux), `docker`.
-- `src/trace.mjs` — empreintes, dimensions d'image (PNG/JPEG, sans dépendance), manifestes.
-- `src/control.mjs` — les contrôles de la doctrine.
-- `src/draft.mjs` — le modèle de brouillon (calqué sur `bible_source_*`).
+- **OCR & données** : `wsl.mjs` (pont Node→WSL, OCR), `alto.mjs` (parse ALTO), `projet.mjs` (segments, exports, persistance), `metadonnees.mjs` (parseur + typographie), `notes.mjs`, `bilingue.mjs`, `colonnes.mjs`, `typographie.mjs`.
+- **Structure éditoriale** : `structure.mjs` (rôles, lettrines, titres courants, folios, signatures, réclames, poésie, hors-corps).
+- **Exports** : `zip.mjs`, `docx.mjs`, `sql.mjs`, `texte.mjs` (TXT/MD), `echange.mjs` (ALTO/PAGE).
+- **Correction & workflow** : `corrections.mjs` (appliquer/annuler/reclasser, conflits), `perimetre.mjs`, `workflow.mjs`.
+- **IA** (`src/ia/`) : `fournisseur.mjs` (abstraction), `claude-local.mjs` (CLI abonnement), `claude.mjs` (API, squelette), `mock.mjs`, `prompt.mjs`, `controle.mjs` (contrôle + relecture par page), `validation.mjs` (validation ciblée), `generation.mjs`, `enrichissement.mjs` (catalogue Supabase, lecture seule), `diagnostic.mjs`, `crop.mjs`, `consentement.mjs`.
+- **Serveur & CLI** : `serve.mjs` (HTTP, endpoints ; écoute **127.0.0.1 seulement** + garde Host/Origin), `bin/gueule.mjs` (`serve` / `doctor` / `nettoyer`), `runner.mjs` (sondes hôte du doctor).
+- **Évaluation** : `modeles.mjs` (CER/WER, registre versionné) + `bancs/`.
 
-Aucune dépendance : Node ≥ 20 suffit (Node 24 présent). Les moteurs, eux, sont externes.
+## Moteurs & IA
 
-## Prérequis pour les moteurs réels (tout est gratuit)
+- **WSL2 + Ubuntu** héberge **Kraken** (manuscrits : CATMuS Medieval ; imprimés anciens à ſ long : CATMuS-Print) et **Tesseract** (imprimé moderne), + poppler + ImageMagick. Installation : `scripts/installer-wsl.sh`. Sans WSL, La Gueule tourne en fournisseur **mock** (le pipeline et les contrôles s'exécutent à vide).
+- **IA sur ABONNEMENT** : le fournisseur `claude-local` pilote le **CLI Claude Code local** (`claude -p`) authentifié par abonnement — **jamais l'API payante**. ⚠️ `ANTHROPIC_API_KEY` doit rester **hors** de l'environnement du CLI (sinon « Credit balance is too low ») ; La Gueule la retire (`envSansCleApi`). Modèles : Opus (lecture), Sonnet (relecture/contrôle), Haiku (diagnostic léger — jamais pour lire).
 
-Kraken est écrit en Python et vise Linux/macOS. Sous Windows, on l'héberge dans **WSL2 + Ubuntu** (gratuit) :
+## Doctrine & sécurité
 
-```bash
-# Côté Windows (PowerShell admin, une fois — nécessite un redémarrage) :
-wsl --install
+Couche **candidate** uniquement ; jamais d'écriture dans les tables actives (`oeuvres`, `segments`, `versets_*`). Le ground-truth exige une validation humaine explicite. Graphie diplomatique conservée (ſ, u/v, i/j). Serveur local (127.0.0.1) + garde Host/Origin (anti DNS-rebinding). Aucun appel cloud sans consentement enregistré. `SUPABASE_SERVICE_ROLE_KEY` lue du `.env.local` en lecture seule, jamais journalisée ni exportée.
 
-# Puis dans Ubuntu :
-pipx install kraken        # ou : python -m venv .venv && . .venv/bin/activate && pip install kraken
-sudo apt install -y tesseract-ocr tesseract-ocr-fra poppler-utils imagemagick
-# Récupérer un modèle de reconnaissance (.mlmodel) adapté au témoin.
-```
+## Tests
 
-Sans rien installer, La Gueule tourne en moteur **`mock`** : le pipeline, la traçabilité et les contrôles s'exécutent à vide.
-
-## Usage
-
-```bash
-cd outils/la-gueule
-
-# Diagnostiquer l'environnement :
-node bin/gueule.mjs doctor
-
-# Démo à vide (moteur mock) :
-npm run demo
-
-# Traçabilité seule d'un lot d'images :
-node bin/gueule.mjs ingest ../../public/manuscrits/bible-899/f057r_a.png
-
-# Pipeline réel (une fois Kraken installé dans WSL) :
-node bin/gueule.mjs run f057r_a.png \
-  --kind manuscrit --source bible-899 --feuillet 57 --face r \
-  --engine kraken --runner wsl --model modele.mlmodel --out sorties/bible-899
-```
-
-## Feuille de route
-
-- **v0 (ici)** : charpente, moteur `mock`, traçabilité, contrôles, sortie candidate.
-- **v1** : brancher Kraken via WSL (segmentation + reconnaissance), parseur ALTO/PageXML complet.
-- **v2** : atelier de relecture (image ⇄ brouillon, encodage `unclear`/`gap`/`abbr`), passerelle vers les couches candidates du modèle éditorial.
-- **v3** : entraînement de modèles (`ketos`) sur les mains d'écriture du corpus.
+- **`npm test`** = `node --test` : suites unitaires (`test/*.test.mjs`) sur la logique pure — OCR/ALTO, structure, corrections/annulation/reclassement, périmètre, validation, génération, exports, fournisseurs IA (mock), plus **`test/integration-pipeline.test.mjs`** (pipeline **en processus**, avec un faux fournisseur : contrôle → classement → application → export corrigé, source intacte). Rapide, sans réseau ni WSL.
+- **`npm run test:integration`** = `integration/integration.itest.mjs` : test d'intégration **du serveur** (démarre `serve`, exerce les endpoints, vérifie les gardes réseau et la doctrine « aucun client de base active dans `src/` »). Les deux suites sont **complémentaires** : l'une valide la logique du pipeline en isolation, l'autre le serveur réel et ses invariants de sécurité.
 
 Rien de ce qui est produit ici n'entre dans l'actif sans relecture humaine.

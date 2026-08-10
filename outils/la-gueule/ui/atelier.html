@@ -54,6 +54,21 @@
   .vtabs button{flex:1;min-width:0;padding:9px 4px;border:none;background:none;font-size:11px;color:var(--second);border-bottom:2px solid transparent;border-radius:0;font-weight:500;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:-1px;transition:color .12s,border-color .12s}
   .vtabs button:hover{color:var(--encre)}
   .vtabs button.actif{color:var(--vert);border-bottom-color:var(--vert);font-weight:700}
+  /* Onglet Contrôle : badge + cartes de proposition IA (Phase — retour 2026-08-10). */
+  .badge-ctrl{display:inline-block;min-width:15px;padding:0 4px;margin-left:3px;border-radius:8px;background:var(--ambre,#c9971f);color:#fff;font-size:10px;font-weight:700;text-align:center;line-height:15px}
+  .ctrl-tete{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:2px 0 8px}
+  .ctrl-item{border:1px solid var(--bord);border-radius:6px;padding:6px 8px;margin-bottom:7px;background:var(--fond-clair,#faf8f4);cursor:pointer}
+  .ctrl-item:hover{border-color:var(--vert)}
+  .ctrl-item .ct-tete{font-size:10.5px;color:var(--second);margin-bottom:3px;display:flex;justify-content:space-between;gap:6px}
+  .ctrl-item .ct-avapr{font-size:12.5px;margin:2px 0;word-break:break-word}
+  .ctrl-item .ct-avapr .av{color:#9a2a2a;text-decoration:line-through}
+  .ctrl-item .ct-avapr .apr{color:#2e5440;font-weight:600}
+  .ctrl-item .ct-act{display:flex;gap:6px;margin-top:5px}
+  .ctrl-item .ct-act button{font-size:11px}
+  .ct-vld{background:var(--vert);color:#fff;border-color:var(--vert)}
+  .ctrl-fam{border:1px dashed var(--bord);border-radius:6px;padding:5px 8px;margin-bottom:7px;font-size:12px;color:var(--second);display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .ctrl-vide{font-size:12px;color:var(--second);padding:8px 0;line-height:1.5}
+  .lg.cible input{background:#fff4d6;box-shadow:0 0 0 2px var(--ambre,#c9971f)}
   .vpanel-actions{display:flex;gap:7px;padding:9px 10px 2px}
   .vpanel-actions button{flex:1;padding:6px 4px;font-weight:600}
   .vpanel-corps,.vpanel .barre2{display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:10px;background:transparent;border:none}
@@ -126,6 +141,13 @@
   .box{position:absolute;border:1px solid rgba(90,114,96,.35);border-radius:2px;cursor:pointer}
   .box:hover{background:rgba(90,114,96,.12)}
   .box.actif{background:var(--surlig);border-color:var(--ambre)}
+  /* Réglages du volet gauche : un intitulé au-dessus, un contrôle pleine largeur — même forme pour
+     tous, pour qu'on lise la question avant la réponse. */
+  .vpanel-corps .reglage{display:flex;flex-direction:column;gap:3px;align-items:stretch;width:100%;margin-bottom:9px;font-size:11px;color:var(--second)}
+  .vpanel-corps .reglage select{width:100%}
+  .vpanel-corps label.reglage:has(input[type=checkbox]){flex-direction:row;align-items:center;gap:6px}
+  /* Ligne pointée depuis l'onglet Contrôle : visible sur le fac-similé, pas seulement dans le texte. */
+  .box.cible{background:rgba(201,151,31,.28);border:2px solid var(--ambre,#c9971f);box-shadow:0 0 0 2px rgba(201,151,31,.35)}
   .onglets{display:flex;gap:6px;margin-bottom:10px}
   .onglets button{padding:4px 10px;border-radius:999px;font-size:12px}
   .onglets button.actif{background:var(--vert);color:#fff;border-color:var(--vert)}
@@ -243,6 +265,8 @@
   <button class="discret" id="btnAnalyser">Analyser</button>
   <span class="sep"></span>
   <button id="theme" title="Basculer clair / sombre">🌙</button>
+  <button class="discret" id="btnSaveHeader" title="Enregistrer le projet (Ctrl+S)">💾 Enregistrer</button>
+  <span id="etatSaveHeader" style="font-size:12px;color:var(--second)"></span>
   <a href="/index.html" style="font-size:12px;color:var(--second)">panneau ⚙</a>
   <span id="etat">—</span>
 </header>
@@ -261,19 +285,29 @@
     <span id="total"></span>
     <button class="discret" id="suiv">page ›</button>
   </span>
-  <label id="lblTypo" style="display:flex;gap:4px;align-items:center">Typo
-    <select id="typo" title="Typographie : « ancien » lit le s long (ſ) des imprimés d'Ancien Régime">
-      <option value="moderne">moderne · Tesseract</option>
-      <option value="ancien">ancien · ſ long — Kraken</option>
+  <label id="lblTypo" class="reglage" title="Choisit le MOTEUR de reconnaissance. « Ancienne » emploie Kraken CATMuS-Print, seul capable de lire le s long (ſ) des imprimés d'Ancien Régime ; Tesseract le confond avec un f.">Typographie
+    <select id="typo">
+      <option value="moderne">moderne — Tesseract</option>
+      <option value="ancien">ancienne, ſ long — Kraken</option>
     </select>
   </label>
-  <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="bilingue"> bilingue (en regard)</label>
-  <select id="offset"><option value="-1">latin = page préc.</option><option value="1">latin = page suiv.</option></select>
+  <label id="lblLangOcr" class="reglage" title="Langue du texte à reconnaître. N'agit que sur Tesseract : Kraken lit d'après son modèle, sans réglage de langue.">Langue du texte
+    <select id="langOcr">
+      <option value="fra">français</option>
+      <option value="lat">latin</option>
+      <option value="fra+lat">français + latin</option>
+    </select>
+  </label>
+  <label id="lblBilingue" class="reglage" title="Édition dont l'original et la traduction se font face, une langue par page."><input type="checkbox" id="bilingue"> Pages en regard</label>
+  <label id="lblOffset" class="reglage" style="display:none" title="De quel côté se trouve la page en langue originale.">Original
+    <select id="offset"><option value="-1">page précédente</option><option value="1">page suivante</option></select>
+  </label>
   <button id="ocrPage">OCR cette page</button>
   <span style="width:16px"></span>
   <label>Document de <input type="number" id="de" min="1" value="1" /> à <input type="number" id="a" min="1" value="1" /></label>
   <button id="ocrDoc">OCR document</button>
-  <button class="discret" id="btnTrier" title="Analyse IA de la structure : classe toutes les pages (corps, titre, garde, page de numérisation, reliure, ornement…) pour exclure les pages inutiles de l'OCR. Passe de fond (quelques minutes).">Trier les pages (IA)</button>
+  <button id="ocrTout" title="Océrise TOUTES les pages du document, de la première à la dernière, sans avoir à saisir la plage. Reprend là où l'on s'est arrêté (les pages déjà faites sont sautées) ; « arrêter » interrompt proprement.">Tout océriser</button>
+  <button class="discret" id="btnControleIA" title="Relit par IA CHAQUE page déjà océrisée (une passe par page) et propose des corrections des erreurs de l'OCR — même celles où Kraken est sûr de lui (ſ long, accents, ligatures). Couche candidate : rien n'est validé sans toi.">Contrôler l'OCR (IA)</button>
 </div>
 
 <div class="barre2" id="progression" style="display:none;gap:14px;align-items:center">
@@ -331,6 +365,7 @@
   <span id="nbValidees" style="font-size:12px;color:var(--second)"></span>
   <button class="discret" id="btnExportEntr" title="Exporte les corrections des pages validées en jeu d'entraînement Kraken (ALTO + images + JSONL)">Export entraînement</button>
   <button class="discret" id="btnExportBanc" title="Constitue le banc d'essai (évaluation seulement) : images + ALTO corrigé + manifeste + SHA-256. Exige valide_humain.">Exporter le banc</button>
+  <button class="discret" id="btnExportComparaison" title="Extrait un rapport de CONTRÔLE pour GPT : OCR IA (dip, après contrôle) vs OCR mécanique (ocr0), ligne à ligne. Repère les « ſ » ajoutés par l'IA. → exports/<nom>.comparaison-ocr.md + .json">Comparer OCR (IA vs méca)</button>
   <button class="discret" id="btnAnalyseStruct" title="Analyse la structure éditoriale (lettrines, titres courants, signatures, poésie, niveaux de titre) → SUGGESTIONS par ligne, à confirmer. Ne modifie rien.">Analyser la structure</button>
 </div>
 
@@ -341,6 +376,7 @@
         <button data-t="meta" class="actif">Métadonnées</button>
         <button data-t="pre">Prétraitement</button>
         <button data-t="ocr">Réglage OCR</button>
+        <button data-t="ctrl">Contrôle <span id="badgeCtrl" class="badge-ctrl" style="display:none">0</span></button>
         <button data-t="exp">Export</button>
       </div>
     </div>
@@ -370,6 +406,7 @@
     </div>
     <div class="vpanel" id="panelPre" style="display:none"><div id="panelPreCorps" class="vpanel-corps"></div></div>
     <div class="vpanel" id="panelOcr" style="display:none"><div id="panelOcrCorps" class="vpanel-corps"></div></div>
+    <div class="vpanel" id="panelControle" style="display:none"><div id="panelControleCorps" class="vpanel-corps"></div></div>
     <div class="vpanel" id="panelExport" style="display:none"><div id="panelExportCorps" class="vpanel-corps"></div></div>
   </div>
   <div class="volet" id="voletImage">
@@ -404,7 +441,7 @@ window.addEventListener('DOMContentLoaded',()=>{ const b=$('theme'); if(!b) retu
 const etat=t=>$('etat').textContent=t
 
 // Modèle en mémoire : pages[n] = { pngUrl, largeur, hauteur, lignes:[{bbox,dip,dev,mod}] }
-const S={ kind:'imprime', pages:{}, page:1, total:null, couche:'dip', arret:false, journal:[], garde:null, workflow:null }
+const S={ kind:'imprime', pages:{}, page:1, total:null, couche:'dip', arret:false, journal:[], garde:null, workflow:null, perimetre:{pages:[]}, chemin:null }
 
 // ── Pipeline 5 étapes (Phase A) : barre visuelle persistante de l'état du parcours ──
 const ETAPES_UI=[['diagnostic_ia','1','Diagnostic IA'],['ocr_local','2','OCR local'],['controle_ia','3','Contrôle IA'],['validation_ciblee','4','Validation ciblée'],['generation_locale','5','Génération locale']]
@@ -416,7 +453,10 @@ function rendreBarreEtapes(){ const bar=$('barreEtapes'); if(!bar)return; const 
     const n=document.createElement('span'); n.className='num'; n.textContent=num
     const l=document.createElement('span'); l.className='lib'; l.textContent=lib
     const b=document.createElement('span'); b.className='badge'; let libEt=LIB_ETAT[et]||et
-    if(cle==='ocr_local'&&wf&&wf.etapes.ocr_local&&wf.etapes.ocr_local.resume){ const rz=wf.etapes.ocr_local.resume; if(rz.manquantes>0) libEt+=' · '+rz.manquantes+' manquante(s)'; else if(rz.total) libEt+=' · '+rz.faites+'/'+rz.total }
+    if(cle==='ocr_local'&&wf&&wf.etapes.ocr_local&&wf.etapes.ocr_local.resume){ const rz=wf.etapes.ocr_local.resume
+      if(rz.manquantes>0) libEt+=' · lot '+rz.faites+'/'+rz.total+' ('+rz.manquantes+' à faire)'
+      else if(rz.total) libEt+=' · lot '+rz.faites+'/'+rz.total+(rz.erreurs?' · '+rz.erreurs+' err.':'')
+      if(rz.docTotal&&rz.docTotal!==rz.total) libEt+=' · doc '+(rz.docFaites||0)+'/'+rz.docTotal }
     b.textContent=libEt
     d.appendChild(n); d.appendChild(l); d.appendChild(b)
     if(cle==='diagnostic_ia'){ d.classList.add('clic'); d.title='Refaire le diagnostic (page de titre + typographie → profil de traitement)'; d.onclick=()=>{ if($('chemin').value.trim()) analyser() } }
@@ -455,15 +495,37 @@ function regimePourPageClient(n){ if(!S.profil||!Array.isArray(S.profil.regimes)
   return null }
 function pageAnormaleClient(lignes){ const arr=Array.isArray(lignes)?lignes:[]; const nb=arr.reduce((s,l)=>s+String((l&&(l.dip||l.texte))||'').trim().length,0)
   if(arr.length<1) return 'page vide'; if(nb<8) return 'page anormalement courte ('+nb+' car.)'; return null }
-// OCR d'une page → avance le workflow. « OCR local » n'est TERMINÉ que si TOUTES les pages sont
-// océrisées ; sinon « en cours » + nombre de pages manquantes (retour utilisateur 2026-08-09).
-function apresOcrWorkflow(){
-  const total = S.total || Math.max(0, ...Object.keys(S.pages).map(Number).filter(Number.isFinite), 0)
-  const faites = Object.keys(S.pages).filter(k=>Array.isArray(S.pages[k].lignes)&&S.pages[k].lignes.length).length
-  const manquantes = Math.max(0, (total||0) - faites)
-  majEtapeClient('ocr_local',{ etat: manquantes>0?'en_cours':'termine', resume:{ faites, total, manquantes } })
+// ── Phase 2 — PÉRIMÈTRE DE TRAVAIL (plan 2026-08-09) ─────────────────────────────────────────────
+// La complétude de l'OCR se mesure sur le LOT que l'utilisateur a choisi de traiter, PAS sur les 589
+// pages du PDF. Le périmètre = les pages engagées (plage « OCR document » + pages « OCR cette page »).
+function perimetreAjouter(pages){ if(!S.perimetre) S.perimetre={pages:[]}
+  const set=new Set((S.perimetre.pages||[]).map(Number))
+  for(const n of (pages||[])) if(Number.isFinite(Number(n))&&Number(n)>=1) set.add(Number(n))
+  S.perimetre.pages=[...set].sort((a,b)=>a-b) }
+function rangeInclus(de,a){ const l=[],lo=Math.min(de,a),hi=Math.max(de,a); for(let n=lo;n<=hi;n++) l.push(n); return l }
+const pageFaite=n=>Array.isArray(S.pages[n]?.lignes)&&S.pages[n].lignes.length>0
+// Le LOT = périmètre explicite ∪ pages réellement engagées (océrisées ou en erreur). Ainsi les vieux
+// projets sans périmètre explicite ne restent pas « en cours » sur 589 pages.
+function lotPages(){ const P=new Set((S.perimetre&&Array.isArray(S.perimetre.pages)?S.perimetre.pages:[]).map(Number))
+  for(const k of Object.keys(S.pages)){ const n=Number(k); if(pageFaite(n)||S.pages[k]?.etat==='erreur') P.add(n) }
+  return [...P].filter(Number.isFinite).sort((a,b)=>a-b) }
+
+// OCR d'une page → avance le workflow. « OCR local » est TERMINÉ quand toutes les pages DU LOT sont
+// océrisées, en erreur, ou exclues (tri) ; sinon « en cours » + nombre restant. L'état du DOCUMENT
+// (X/total pages du PDF) est affiché à part et ne bloque jamais le lot (plan Phase 2, 2026-08-09).
+// `perimer` : au terme d'un OCR on périme l'aval (contrôle/validation/génération devenus caducs) ; au
+// simple RECHARGEMENT d'un projet on rafraîchit juste l'état OCR sans rien périmer (rien n'a changé).
+function apresOcrWorkflow(perimer=true){
+  const lot=lotPages()
+  const faites=lot.filter(pageFaite).length
+  const erreurs=lot.filter(n=>S.pages[n]?.etat==='erreur').length
+  const exclues=lot.filter(n=>estExclueOcr(n)&&!pageFaite(n)&&S.pages[n]?.etat!=='erreur').length
+  const manquantes=Math.max(0, lot.length - faites - erreurs - exclues)
+  const docFaites=Object.keys(S.pages).filter(pageFaite).length
+  const docTotal=S.total||(lot.length?Math.max(...lot):0)
+  majEtapeClient('ocr_local',{ etat: manquantes>0?'en_cours':'termine', resume:{ faites, total:lot.length, manquantes, erreurs, exclues, docFaites, docTotal } })
   if(manquantes===0 && S.workflow&&S.workflow.etapes.controle_ia&&S.workflow.etapes.controle_ia.etat==='non_commence') S.workflow.etapes.controle_ia.etat='pret'
-  for(const e of ['validation_ciblee','generation_locale']){ const s=S.workflow&&S.workflow.etapes[e]; if(s&&s.etat!=='non_commence'&&s.etat!=='perime') s.etat='perime' }
+  if(perimer) for(const e of ['validation_ciblee','generation_locale']){ const s=S.workflow&&S.workflow.etapes[e]; if(s&&s.etat!=='non_commence'&&s.etat!=='perime') s.etat='perime' }
   rendreBarreEtapes() }
 
 // §14.6 — état du fournisseur IA (sans clé) et consentement.
@@ -472,7 +534,7 @@ function consentementValideClient(){ const i=S.ia; return !!(i&&i.consentement&&
 function demanderConsentement(){ return new Promise((resolve)=>{ const p=$('panneauConsentement'); if(!p){ resolve(false); return }
   const f=S.ia&&S.ia.fournisseur
   p.style.display='block'; p.innerHTML=''
-  const txt=document.createElement('div'); txt.innerHTML=`<b>Contrôle IA cloud (${f?f.nom:'?'})</b> — pour lire les lettrines et les régions douteuses, La Gueule enverrait au fournisseur des <b>crops</b> (petites images) des zones concernées et leurs lignes voisines, <b>jamais le livre entier ni aucun secret du dépôt</b>. La sortie reste un <b>candidat</b>, jamais une validation ; tu peux désactiver à tout moment.`
+  const txt=document.createElement('div'); txt.innerHTML=`<b>Contrôle IA (${f?f.nom:'?'})</b> — pour relire l'OCR, La Gueule enverrait au fournisseur <b>l'image des pages déjà océrisées</b> (une par une) avec leur texte OCR, afin d'en corriger les erreurs. <b>Jamais le livre entier d'un coup, ni aucun secret du dépôt</b> (clé, configuration). La sortie reste un <b>candidat</b>, jamais une validation ; tu peux désactiver à tout moment.`
   p.appendChild(txt)
   const act=document.createElement('div'); act.className='cons-act'
   const oui=document.createElement('button'); oui.textContent='J\'accepte l\'envoi au cloud'
@@ -482,24 +544,64 @@ function demanderConsentement(){ return new Promise((resolve)=>{ const p=$('pann
   act.appendChild(oui); act.appendChild(non); p.appendChild(act) }) }
 
 // Phase D — contrôle : déterministe (toujours) + IA visuel si fournisseur cloud configuré ET consenti.
-async function lancerControle(){ if(!Object.keys(S.pages).length){ etat('rien à contrôler : océrise d\'abord'); return }
+async function lancerControle(){ if(!Object.keys(S.pages).length){ etat('rien à contrôler : océrise d\'abord'); return null }
   await chargerEtatIA()
   if(S.ia && S.ia.fournisseur && S.ia.fournisseur.cloud && S.ia.fournisseur.dispo && !consentementValideClient()){ await demanderConsentement() } // §14.6 : consentement avant tout envoi cloud
-  majEtapeClient('controle_ia',{etat:'en_cours'},'controle_ia'); chargeOn('Contrôle…')
-  try{ const r=await api('/api/ia/controle',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({projet:projetActuel()})})
+  // Relecture PAGE PAR PAGE, pour pouvoir dire où l'on en est et depuis combien de temps (une seule
+  // requête pour tout le lot ne laissait qu'un voile muet pendant plusieurs minutes). La passe
+  // déterministe n'est demandée qu'au premier appel. « Arrêter » interrompt entre deux pages.
+  const pagesOcr=Object.keys(S.pages).filter(k=>Array.isArray(S.pages[k].lignes)&&S.pages[k].lignes.length).map(Number).sort((a,b)=>a-b)
+  const nb=pagesOcr.length
+  if(!nb){ etat('rien à contrôler : aucune page océrisée'); return null }
+  majEtapeClient('controle_ia',{etat:'en_cours'},'controle_ia')
+  const t0=Date.now(), S_arret_avant=S.arret; S.arret=false
+  const duree=()=>{ const s=Math.round((Date.now()-t0)/1000); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0') }
+  const projet=projetActuel()
+  chargeOn(`Relecture IA — page 1/${nb} · 00:00`)
+  try{
+    let r=null, premier=true
+    for(let k=0;k<nb;k++){
+      if(S.arret){ etat(`Contrôle interrompu à la page ${k}/${nb} (${duree()}) — les pages déjà relues sont conservées.`); break }
+      const p=pagesOcr[k]
+      chargeOn(`Relecture IA — page ${k+1}/${nb} (p. ${p}) · ${duree()} écoulé`)
+      const rp=await api('/api/ia/controle',{method:'POST',headers:{'content-type':'application/json'},
+        body:JSON.stringify({projet,pages:[p],deterministe:premier})})
+      premier=false
+      if(!r) r=rp
+      else { r.findings=[...(r.findings||[]),...(rp.findings||[])]
+        for(const cle of Object.keys(rp.compteurs||{})) r.compteurs[cle]=(r.compteurs[cle]||0)+(rp.compteurs[cle]||0)
+        r.ia_active=r.ia_active||rp.ia_active; r.ia_erreur=r.ia_erreur||rp.ia_erreur }
+    }
+    if(!r) return null
     S.controle=r; const c=r.compteurs||{}
+    r._duree=duree()
     majEtapeClient('controle_ia',{etat:'a_verifier'})
     if(S.workflow&&S.workflow.etapes.validation_ciblee&&S.workflow.etapes.validation_ciblee.etat==='non_commence') majEtapeClient('validation_ciblee',{etat:'pret'})
-    const ia=(c.ia||0); const noteIA = ia?(' · '+ia+' avis IA'):((S.ia&&S.ia.fournisseur&&S.ia.fournisseur.cloud)?(consentementValideClient()?' · IA cloud active (aucun avis)':' · IA cloud non consentie'):' · IA locale (mock, abstention)')
-    etat(`Contrôle : ${c.pages||0} page(s), ${c.lignes||0} ligne(s) — confiance faible ${c.confiance_faible||0}, vides ${c.lignes_vides||0}, doublons ${c.doublons||0}, pages anormales ${c.pages_anormales||0}${noteIA}.`)
-  }catch(e){ majEtapeClient('controle_ia',{etat:'erreur'}); etat('contrôle : '+e.message) }
-  finally{ chargeOff() } }
+    const noteIA = r.ia_active
+      ? ` · IA : ${c.pages_relues||0} page(s) relue(s), ${c.ia||0} correction(s) proposée(s)`+(r.ia_erreur?` (⚠ ${r.ia_erreur})`:'')
+      : ((S.ia&&S.ia.fournisseur&&S.ia.fournisseur.cloud)?' · IA cloud non consentie':' · IA locale (mock, abstention)')
+    etat(`Contrôle en ${r._duree} : ${c.pages||0} page(s) — confiance faible ${c.confiance_faible||0}, vides ${c.lignes_vides||0}, doublons ${c.doublons||0}, charabia ${c.charabia||0}${noteIA}.`)
+    return r
+  }catch(e){ majEtapeClient('controle_ia',{etat:'erreur'}); etat('contrôle : '+e.message); return null }
+  finally{ S.arret=S_arret_avant; chargeOff() } }
+
+// Bouton « Contrôler l'OCR (IA) » : relit les pages océrisées PUIS ouvre la validation des corrections
+// (les diffs avant→après s'affichent dans le panneau de validation, où tu acceptes / modifies / refuses).
+async function controlerOcrIA(){ const r=await lancerControle(); if(r){ await lancerValidation(); const b=document.querySelector('#vtabs button[data-t="ctrl"]'); if(b) b.click() } }
 
 // Phase E — validation CIBLÉE : familles + cas critiques + blocages (tu ne valides pas tout).
 async function lancerValidation(){ if(!S.controle||!S.controle.findings){ etat('lance d\'abord le contrôle (étape 3)'); return }
   majEtapeClient('validation_ciblee',{etat:'en_cours'},'validation_ciblee'); chargeOn('Validation ciblée…')
   try{ const r=await api('/api/ia/validation',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({findings:S.controle.findings})})
-    S.validation=r; rendrePanneauValidation()
+    S.validation=r
+    // Phase 4.3 : appliquer AUTOMATIQUEMENT les corrections simples (peu de caractères changés) — aucun
+    // clic. Elles restent des candidats (réversibles) ; seuls les cas ambigus/structurels restent à valider.
+    if(Array.isArray(r.auto_texte)&&r.auto_texte.length){ let n=0; for(const f of r.auto_texte){ const x=appliquerFinding(f,false); if(x&&x.ok&&x.statut!=='deja_applique') n++ } if(n){ planifierSave(); rendre() } }
+    // Tout le contrôle se pilote depuis l'onglet « Contrôle » du volet GAUCHE — le grand bandeau du haut
+    // est masqué (la pleine page n'était pas pratique). On ouvre l'onglet et on y rend les propositions.
+    if($('panneauValidation')) $('panneauValidation').style.display='none'
+    rendreVoletControle(); majBadgeControle()
+    { const _bc=document.querySelector('#vtabs button[data-t="ctrl"]'); if(_bc&&!_bc.classList.contains('actif')) _bc.click() }
     const bloque=r.blocages.length>0
     majEtapeClient('validation_ciblee',{etat: bloque?'bloque':'a_verifier'})
     if(!bloque && S.workflow&&S.workflow.etapes.generation_locale&&S.workflow.etapes.generation_locale.etat==='non_commence') majEtapeClient('generation_locale',{etat:'pret'})
@@ -509,38 +611,310 @@ async function lancerValidation(){ if(!S.controle||!S.controle.findings){ etat('
 function rendrePanneauValidation(){ const p=$('panneauValidation'); if(!p)return; const v=S.validation; if(!v){ p.style.display='none'; return }
   p.style.display='block'; p.innerHTML=''; const c=v.compteurs
   const tete=document.createElement('div'); tete.className='val-tete'
-  const info=document.createElement('span'); info.innerHTML=`<b>Validation ciblée</b> — critiques ${c.critiques} · blocages ${c.blocages} · familles ${c.familles} · auto ${c.automatiques} · non résolus ${c.non_resolus}`
+  const info=document.createElement('span'); info.innerHTML=`<b>Validation ciblée</b> — corrections ${c.corrections||0} · critiques ${c.critiques} · familles ${c.familles} · avertissements ${c.avertissements||0} · blocages ${c.blocages} · auto ${c.automatiques} · non résolus ${c.non_resolus}`
   const fermer=document.createElement('button'); fermer.className='discret'; fermer.textContent='fermer'; fermer.onclick=()=>{ p.style.display='none' }
   tete.appendChild(info); tete.appendChild(fermer); p.appendChild(tete)
+  // Phase 4 — CORRECTIONS INDIVIDUELLES : chaque changement de texte/rôle est un OBJET distinct, relu
+  // un à un (plus de fausse famille « relecture_page »). « Tout accepter » les applique comme objets.
+  if(v.corrections&&v.corrections.length){ const h=document.createElement('div'); h.className='val-tete'
+    const s=document.createElement('span'); s.innerHTML=`<b>Corrections proposées</b> — ${v.corrections.length} à relire (chacune individuelle)`
+    const tout=document.createElement('button'); tout.className='discret'; tout.textContent='Tout accepter'
+    tout.title='Applique CHAQUE correction dans la couche candidate (objets distincts ; les conflits sont signalés, jamais écrasés).'
+    tout.onclick=()=>accepterCorrections(v.corrections)
+    h.appendChild(s); h.appendChild(tout); p.appendChild(h)
+    for(const f of v.corrections) p.appendChild(rendreItemDecision(f)) }
+  // Cas CRITIQUES (R3) présentés individuellement — même rendu que les corrections.
+  for(const f of v.critiques) p.appendChild(rendreItemDecision(f))
+  // Familles de FLAGS répétitifs (confiance faible, doublon, page ignorable…) : échantillonnage.
   for(const fam of v.familles){ const d=document.createElement('div'); d.className='val-fam'
     const s=document.createElement('span'); s.textContent=`${fam.cle} — ${fam.nb} occurrence(s), risque ${fam.risque}`
     const b=document.createElement('button'); b.className='discret'; b.textContent='Accepter la famille'
     b.title='Applique la famille dans la couche candidate (statut accepté par échantillonnage ; PAS du ground-truth).'
     b.onclick=()=>accepterFamille(fam.cle)
     d.appendChild(s); d.appendChild(b); p.appendChild(d) }
-  // §11.4/§13.6 — cas CRITIQUES présentés individuellement (avant → après, règle, risque, décision).
-  for(const f of v.critiques){ const d=document.createElement('div'); d.className='val-crit'
-    const t=document.createElement('div'); t.className='val-crit-tete'
-    t.textContent=`⚠ ${f.regle||f.id||'cas'} · ${f.niveau_risque} · page ${f.page??'?'}${(f.ligne_ids&&f.ligne_ids.length)?' l'+f.ligne_ids.join(','):''}`
-    d.appendChild(t)
-    if(f.texte_original!=null||f.texte_candidat!=null){ const av=document.createElement('div'); av.className='val-avapr'
-      av.innerHTML=`<span class="av">${(f.texte_original||'∅').replace(/</g,'&lt;')}</span> → <span class="apr">${(f.texte_candidat||'∅').replace(/</g,'&lt;')}</span>`; d.appendChild(av) }
-    const act=document.createElement('div'); act.className='val-crit-act'
-    for(const [lib,st] of [['Accepter','confirme_humain'],['Modifier','modifie_humain'],['Refuser','refuse'],['Indéterminé','indetermine']]){
-      const bt=document.createElement('button'); bt.className='discret'; bt.textContent=lib
-      bt.onclick=()=>decisionCritique(f, st); act.appendChild(bt) }
-    // voir le crop (image de la page + bbox) si disponible
-    if(Array.isArray(f.bbox)&&f.page!=null&&S.pages[f.page]&&S.pages[f.page].pngUrl){ const z=document.createElement('button'); z.className='discret'; z.textContent='🔍 voir'
-      z.onclick=()=>{ const pg=S.pages[f.page]; const save=S.page; S.page=f.page; zoomRegion(f.bbox); S.page=save }; act.appendChild(z) }
-    d.appendChild(act); p.appendChild(d) }
+  // Phase 5 — avertissements (pages courtes / réserves) : informatifs, n'empêchent JAMAIS l'export.
+  if(v.avertissements&&v.avertissements.length){ const aw=document.createElement('div'); aw.className='val-fam'; aw.style.color='var(--second)'
+    const pages=[...new Set(v.avertissements.map(x=>x.page).filter(x=>x!=null))].sort((a,b)=>a-b)
+    aw.textContent='ⓘ '+v.avertissements.length+' avertissement(s) — pages courtes / réserves'+(pages.length?' (p. '+pages.slice(0,20).join(', ')+')':'')+' — n\'empêchent pas l\'export.'; p.appendChild(aw) }
   if(v.blocages.length){ const bl=document.createElement('div'); bl.className='val-bloc'; bl.textContent='⛔ '+v.blocages.length+' blocage(s) — export « complet » impossible tant qu\'ils ne sont pas levés.'; p.appendChild(bl) } }
-// Décision humaine sur un cas critique : met à jour le finding source + recompte. Seuls confirme/modifie
-// humain ouvrent le ground-truth (§11.7) — appliqué ailleurs à l'écriture ; ici on trace la décision.
+// Rendu PARTAGÉ d'une décision individuelle (correction de texte OU reclassement de rôle) : en-tête,
+// avant → après, boutons Accepter / Modifier / Refuser / Indéterminé, et « voir » la région sur l'image.
+const ECH=(s)=>String(s??'').replace(/</g,'&lt;')
+function rendreItemDecision(f){ const d=document.createElement('div'); d.className='val-crit'
+  const estRe=f.type==='reclassement_role', estAnc=f.type==='ancrage_note', estOmi=f.type==='ligne_omise'
+  const icone = estRe?'⤳ reclasser' : estAnc?'❡ rattacher la note' : estOmi?'＋ ligne omise' : '✎ '+(f.regle||f.id||'correction')
+  const t=document.createElement('div'); t.className='val-crit-tete'
+  t.textContent=`${icone} · ${f.niveau_risque} · page ${f.page??'?'}${(f.ligne_ids&&f.ligne_ids.length)?' l'+f.ligne_ids.join(','):''}`
+  d.appendChild(t)
+  const av=document.createElement('div'); av.className='val-avapr'
+  if(estRe) av.innerHTML=`rôle : <span class="av">${f.role_avant||'corps'}</span> → <span class="apr">${f.role_apres||'?'}</span> <span style="color:var(--second)">« ${ECH((f.texte_original||'').slice(0,48))} »</span>`
+  else if(estAnc){
+    // On montre CE QUI SE PASSE : la note, la ligne annotée, et où l'appel ira.
+    const pg=S.pages[f.page]||{}; const corps=(pg.lignes&&pg.lignes[f.corps_i])?String(pg.lignes[f.corps_i].dip||''):''
+    av.innerHTML=`note <span class="av">« ${ECH((f.texte_original||'').slice(0,44))} »</span><br>`
+      +`→ appel <b>[[${f.numero_note??'?'}]]</b> dans <span class="apr">« ${ECH(corps.slice(0,60))} »</span>`
+      +(f.apres?` <span style="color:var(--second)">après « ${ECH(f.apres)} »</span>`:'')
+      +`<br><span style="color:var(--second)">${f.regle==='appel_imprime'?'appel imprimé retrouvé dans le texte (mécanique)':'rattachement par lecture (à contrôler)'}</span>`
+  }
+  else if(estOmi) av.innerHTML=`ligne absente de l’OCR, visible sur l’image :<br><span class="apr">« ${ECH(f.texte_candidat||'')} »</span> <span style="color:var(--second)">(à insérer après la ligne ${f.apres_i})</span>`
+  else av.innerHTML=`<span class="av">${ECH(f.texte_original||'∅')}</span> → <span class="apr">${ECH(f.texte_candidat||'∅')}</span>`
+  d.appendChild(av)
+  const act=document.createElement('div'); act.className='val-crit-act'
+  for(const [lib,st] of [['Accepter','confirme_humain'],['Modifier','modifie_humain'],['Refuser','refuse'],['Indéterminé','indetermine']]){
+    if((estRe||estAnc)&&st==='modifie_humain') continue // ni un reclassement ni un ancrage n'éditent de texte
+    const bt=document.createElement('button'); bt.className='discret'; bt.textContent=lib
+    bt.onclick=()=>decisionCritique(f, st); act.appendChild(bt) }
+  if(Array.isArray(f.bbox)&&f.page!=null&&S.pages[f.page]&&S.pages[f.page].pngUrl){ const z=document.createElement('button'); z.className='discret'; z.textContent='🔍 voir'
+    z.onclick=()=>{ const save=S.page; S.page=f.page; zoomRegion(f.bbox); S.page=save }; act.appendChild(z) }
+  d.appendChild(act); return d }
+// « Tout accepter » les corrections proposées : applique chacune comme objet distinct, signale les conflits.
+function accepterCorrections(list){ let ok=0,conf=0
+  for(const f of (list||[])){ const r=appliquerFinding(f, true); if(r&&r.ok&&r.statut!=='deja_applique'){ f.statut='confirme_humain'; ok++ } else if(r&&r.conflit) conf++ }
+  planifierSave(); rendre(); etat(`Corrections : ${ok} appliquée(s)${conf?`, ${conf} conflit(s) non appliqué(s)`:''}.`); lancerValidation() }
+
+// ── Onglet « Contrôle » du volet de gauche (retour 2026-08-10) : propositions IA lisibles, navigation au
+// clic vers la bonne page/ligne, et Valider / Refuser (réutilise decisionCritique). Badge = nb à faire.
+function nbControles(v){ return v?((v.corrections?.length||0)+(v.critiques?.length||0)+(v.non_resolus?.length||0)+(v.familles?.length||0)):0 }
+function majBadgeControle(){ const b=$('badgeCtrl'); if(!b)return; const n=nbControles(S.validation)
+  b.textContent=n; b.style.display=n>0?'inline-block':'none' }
+// Va sur la page ET pointe la ligne. La ligne peut n'être pas encore dans le DOM au moment du clic
+// (rendu de la page, chargement de l'image) : on RÉESSAIE quelques frames au lieu d'échouer en
+// silence — c'était la cause du « le clic ne renvoie sur aucune ligne ». Surligne aussi la boîte
+// correspondante sur le fac-similé, pour qu'on voie tout de suite de quoi il s'agit.
+function allerLigneControle(f){ if(!f||f.page==null)return
+  const changePage = Number(f.page)!==Number(S.page)
+  S.page=Number(f.page); if($('page'))$('page').value=S.page
+  if(changePage) rendre()
+  const i=(f.ligne_ids&&f.ligne_ids.length)?f.ligne_ids[0]:null
+  if(i==null){ etat('page '+S.page); return }
+  let essais=0
+  const viser=()=>{
+    const row=document.querySelector('.lg[data-i="'+i+'"]')
+    if(!row){ if(essais++<20){ requestAnimationFrame(viser); return } etat('page '+S.page+' — ligne '+i+' introuvable (page pas encore rendue ?)'); return }
+    row.classList.add('cible'); row.scrollIntoView({block:'center',behavior:'smooth'})
+    const box=$('voletImage')&&$('voletImage').querySelector('.box[data-i="'+i+'"]')
+    if(box){ box.classList.add('cible'); box.scrollIntoView({block:'center',behavior:'smooth'}) }
+    setTimeout(()=>{ row.classList.remove('cible'); if(box) box.classList.remove('cible') },2600)
+    etat('page '+S.page+' — ligne '+i)
+  }
+  requestAnimationFrame(viser) }
+function rendreVoletControle(){ const box=$('panelControleCorps'); if(!box)return; box.innerHTML=''; const v=S.validation
+  const tete=document.createElement('div'); tete.className='ctrl-tete'
+  const nb=nbControles(v); const t=document.createElement('span'); t.innerHTML='<b>Contrôle IA</b>'+(v?` — ${nb} à faire`:'')
+  const btn=document.createElement('button'); btn.className='discret'; btn.textContent=v?'Relancer':'Contrôler l\'OCR (IA)'; btn.onclick=()=>controlerOcrIA()
+  tete.appendChild(t); tete.appendChild(btn); box.appendChild(tete)
+  if(!v){ const d=document.createElement('div'); d.className='ctrl-vide'; d.textContent='Aucun contrôle lancé. Océrise des pages, puis clique « Contrôler l\'OCR (IA) » : seules les corrections ambiguës te seront soumises, les corrections simples sont appliquées automatiquement.'; box.appendChild(d); return }
+  // Récapitulatif des corrections SIMPLES déjà appliquées automatiquement (contrôle par sondage possible).
+  if((v.auto_texte||[]).length){ const s=document.createElement('div'); s.className='ctrl-vide'
+    s.innerHTML='✓ <b>'+v.auto_texte.length+'</b> correction(s) simple(s) appliquée(s) automatiquement — <a href="#" id="ctrlRevoir" style="color:var(--vert)">revoir</a>'
+    box.appendChild(s)
+    const liste=document.createElement('div'); liste.style.display='none'; liste.style.marginBottom='8px'; box.appendChild(liste)
+    s.querySelector('#ctrlRevoir').onclick=(e)=>{ e.preventDefault(); if(liste.style.display!=='none'){ liste.style.display='none'; return }
+      liste.innerHTML=''; for(const f of v.auto_texte){ const it=document.createElement('div'); it.className='ctrl-item'
+        it.innerHTML='<div class="ct-tete"><span>p.'+(f.page??'?')+(f.ligne_ids&&f.ligne_ids.length?' l'+f.ligne_ids.join(','):'')+'</span></div><div class="ct-avapr"><span class="av">'+String(f.texte_original||'').replace(/</g,'&lt;')+'</span> → <span class="apr">'+String(f.texte_candidat||'').replace(/</g,'&lt;')+'</span></div>'
+        it.onclick=()=>allerLigneControle(f); liste.appendChild(it) }
+      liste.style.display='' } }
+  const tous=[...(v.corrections||[]),...(v.critiques||[])]
+  if(!tous.length && !(v.familles||[]).length){ const d=document.createElement('div'); d.className='ctrl-vide'; d.textContent='Rien en attente : toutes les propositions ont été traitées. 🎉'; box.appendChild(d) }
+  // Les RECLASSEMENTS RÉPÉTITIFS (titres courants, folios, réclames…) se traitent EN LOT : valider
+  // trente fois « ceci est un titre courant » n'apprend rien et use la relecture (retour utilisateur).
+  // Le détail reste consultable et chaque ligne demeure décidable une à une.
+  const parRole=new Map()
+  for(const f of tous){ if(f.type!=='reclassement_role'||!f.role_apres) continue
+    if(!parRole.has(f.role_apres)) parRole.set(f.role_apres,[])
+    parRole.get(f.role_apres).push(f) }
+  const enLot=new Set()
+  const LIB_ROLE={titre_courant:'titre courant',numero_page:'numéro de page',signature:'marque de cahier',reclame:'réclame',ornement:'ornement',bruit:'bruit',note_marginale:'note en marge',note_bas_page:'note de bas de page',paratexte_titre:'mention de page de titre'}
+  for(const [role,liste] of parRole){
+    if(liste.length<3) continue                       // en dessous, le détail suffit
+    liste.forEach(f=>enLot.add(f))
+    const pages=[...new Set(liste.map(f=>f.page).filter(p=>p!=null))].sort((a,b)=>a-b)
+    const d=document.createElement('div'); d.className='ctrl-fam'
+    const s=document.createElement('span')
+    s.innerHTML='⤳ <b>'+liste.length+'</b> ligne(s) à reclasser en « <b>'+(LIB_ROLE[role]||role)+'</b> »'
+      +(pages.length?'<br><span style="font-size:11px;color:var(--second)">p. '+pages.slice(0,14).join(', ')+(pages.length>14?'…':'')+'</span>':'')
+    const tout=document.createElement('button'); tout.className='ct-vld'; tout.textContent='Tout accepter ('+liste.length+')'
+    tout.title='Reclasse ces lignes hors du corps. Elles restent dans la source ; chaque décision reste annulable.'
+    tout.onclick=()=>accepterLot(liste, LIB_ROLE[role]||role)
+    const det=document.createElement('button'); det.className='discret'; det.textContent='détail'
+    const panneau=document.createElement('div'); panneau.style.marginTop='6px'; panneau.style.display='none'
+    det.onclick=()=>{ if(panneau.style.display==='none'){ panneau.innerHTML=''; for(const f of liste) panneau.appendChild(rendreItemControle(f)); panneau.style.display='' } else panneau.style.display='none' }
+    d.appendChild(s); d.appendChild(tout); d.appendChild(det); box.appendChild(d); box.appendChild(panneau)
+  }
+  const items=tous.filter(f=>!enLot.has(f))
+  for(const f of items){ box.appendChild(rendreItemControle(f)) }
+  for(const fam of (v.familles||[])){ const d=document.createElement('div'); d.className='ctrl-fam'
+    const s=document.createElement('span'); s.textContent=fam.cle+' — '+fam.nb+' occ. · risque '+(fam.risque||'')
+    const b=document.createElement('button'); b.className='discret'; b.textContent='Contrôler un échantillon'
+    const panneau=document.createElement('div'); panneau.style.marginTop='6px'; panneau.style.display='none'
+    b.onclick=()=>{ if(panneau.style.display==='none'){ controlerFamille(fam, panneau, 5); panneau.style.display='' } else { panneau.style.display='none' } }
+    d.appendChild(s); d.appendChild(b); box.appendChild(d); box.appendChild(panneau) }
+  if((v.avertissements||[]).length){ const a=document.createElement('div'); a.className='ctrl-vide'; a.textContent='ⓘ '+v.avertissements.length+' avertissement(s) — pages courtes / réserves (non bloquants).'; box.appendChild(a) } }
+
+// Accepte un LOT de reclassements de même rôle : chacun est appliqué comme objet distinct (donc
+// tracé et annulable un à un), les conflits sont signalés et jamais écrasés.
+function accepterLot(liste, libelle){ let ok=0, conf=0
+  for(const f of (liste||[])){ const r=appliquerFinding(f, true)
+    if(r&&r.ok&&r.statut!=='deja_applique'){ f.statut='confirme_humain'; ok++ }
+    else if(r&&r.conflit) conf++ }
+  planifierSave(); rendre()
+  etat(`${ok} ligne(s) reclassée(s) en « ${libelle} »${conf?`, ${conf} conflit(s) non appliqué(s)`:''} — annulable ligne par ligne.`)
+  lancerValidation() }
+
+// Rendu d'UNE proposition dans l'onglet Contrôle (extrait pour être réutilisé dans les lots).
+function rendreItemControle(f){ const estRe=f.type==='reclassement_role'
+    const d=document.createElement('div'); d.className='ctrl-item'
+    d.onclick=(e)=>{ if(e.target.tagName!=='BUTTON') allerLigneControle(f) }
+    const h=document.createElement('div'); h.className='ct-tete'
+    h.innerHTML='<span>'+(estRe?'⤳ reclasser':'✎ correction')+' · p.'+(f.page??'?')+(f.ligne_ids&&f.ligne_ids.length?' l'+f.ligne_ids.join(','):'')+'</span><span>'+(f.niveau_risque||'')+'</span>'
+    d.appendChild(h)
+    const av=document.createElement('div'); av.className='ct-avapr'
+    if(estRe){ av.innerHTML='rôle : <span class="av">'+(f.role_avant||'corps')+'</span> → <span class="apr">'+(f.role_apres||'?')+'</span>'
+      const ctx=document.createElement('div'); ctx.style.cssText='font-size:11px;color:var(--second);margin-top:2px'; ctx.textContent='« '+String(f.texte_original||'').slice(0,60)+' »'; av.appendChild(ctx) }
+    else av.innerHTML='<span class="av">'+String(f.texte_original||'∅').replace(/</g,'&lt;')+'</span> → <span class="apr">'+String(f.texte_candidat||'∅').replace(/</g,'&lt;')+'</span>'
+    d.appendChild(av)
+    const act=document.createElement('div'); act.className='ct-act'
+    const ok=document.createElement('button'); ok.className='ct-vld'; ok.textContent='Valider'; ok.onclick=()=>decisionCritique(f,'confirme_humain')
+    const no=document.createElement('button'); no.className='discret'; no.textContent='Refuser'; no.onclick=()=>decisionCritique(f,'refuse')
+    const vo=document.createElement('button'); vo.className='discret'; vo.textContent='Voir'; vo.onclick=()=>allerLigneControle(f)
+    act.appendChild(ok); act.appendChild(no); act.appendChild(vo); d.appendChild(act)
+    return d }
+// ── Échantillonnage auto-extensible (miroir de validation.mjs::echantillonner) : les occurrences les
+// MOINS sûres d'abord (confiance basse = plus probable erreur), étalées sur les pages, au plus n. ──
+function echantillonnerClient(occ, n){ n=n||5; const arr=[...(occ||[])].sort((a,b)=>(a.confiance_modele??1)-(b.confiance_modele??1))
+  const choisi=[], vues=new Set()
+  for(const o of arr){ if(choisi.length>=n)break; if(!vues.has(o.page)){ choisi.push(o); vues.add(o.page) } }
+  for(const o of arr){ if(choisi.length>=n)break; if(!choisi.includes(o)) choisi.push(o) }
+  return choisi }
+function texteOccurrence(f){ const pg=S.pages[f.page]; const i=(f.ligne_ids&&f.ligne_ids.length)?f.ligne_ids[0]:null
+  const l=pg&&Array.isArray(pg.lignes)&&i!=null?pg.lignes[i]:null; return l?String(l.dip??l.texte??''):('page '+f.page) }
+// Contrôle d'une famille par échantillon : 0 erreur → accepter la famille ; 1 → étendre à 15 ; ≥2 → détaillé.
+function controlerFamille(fam, conteneur, taille){ taille=taille||5; conteneur.innerHTML=''
+  const ech=echantillonnerClient(fam.occurrences||[], taille); const faux=new Set()
+  const info=document.createElement('div'); info.className='ctrl-vide'
+  info.textContent='Échantillon de '+ech.length+' sur '+fam.nb+' — clique « ✗ faux » si une occurrence est une fausse alerte :'
+  conteneur.appendChild(info)
+  ech.forEach((f,idx)=>{ const it=document.createElement('div'); it.className='ctrl-item'
+    // Indication PRÉCISE : le texte réel de la ligne, la raison, et la confiance mesurée — sans
+    // quoi l'échantillon n'affichait qu'une citation vide et rien à juger.
+    const txt=String(texteOccurrence(f)).slice(0,70)
+    const raison=(f.preuves&&f.preuves.length)?String(f.preuves[0]):(f.regle||'')
+    const conf=(f.confiance_modele!=null&&f.confiance_modele>0)?' · conf '+String(Math.round(f.confiance_modele*100))+' %':''
+    const t=document.createElement('div'); t.className='ct-avapr'
+    t.innerHTML='<b>p.'+f.page+((f.ligne_ids&&f.ligne_ids.length)?' l'+f.ligne_ids.join(','):'')+'</b>'+conf
+      +'<br>« '+(txt?ECH(txt):'<i style="color:var(--second)">ligne vide</i>')+' »'
+      +(raison?'<br><span style="color:var(--second)">'+ECH(raison)+'</span>':'')
+    it.appendChild(t)
+    const act=document.createElement('div'); act.className='ct-act'
+    const vo=document.createElement('button'); vo.className='discret'; vo.textContent='Voir'; vo.onclick=()=>allerLigneControle(f)
+    if(Array.isArray(f.bbox)&&f.bbox.length===4){ const z=document.createElement('button'); z.className='discret'; z.textContent='🔍'
+      z.title='Agrandir cette ligne sur le fac-similé'
+      z.onclick=()=>{ const save=S.page; S.page=Number(f.page); zoomRegion(f.bbox); S.page=save }; act.appendChild(z) }
+    const fx=document.createElement('button'); fx.className='discret'; fx.textContent='✗ faux'
+    fx.onclick=()=>{ if(faux.has(idx)){ faux.delete(idx); fx.classList.remove('ct-vld'); fx.textContent='✗ faux' } else { faux.add(idx); fx.classList.add('ct-vld'); fx.textContent='✓ faux' } maj() }
+    act.appendChild(vo); act.appendChild(fx); it.appendChild(act); conteneur.appendChild(it) })
+  const pied=document.createElement('div'); pied.className='ctrl-vide'; conteneur.appendChild(pied)
+  const boutons=document.createElement('div'); boutons.className='ct-act'; conteneur.appendChild(boutons)
+  function maj(){ const n=faux.size
+    pied.textContent = n===0 ? '✓ Aucune erreur dans l\'échantillon — tu peux accepter la famille.'
+      : (n===1 ? '1 erreur — élargis l\'échantillon (15) avant d\'accepter.' : n+' erreurs — contrôle détaillé conseillé (traite les occurrences une à une).')
+    boutons.innerHTML=''
+    if(n===0){ const ok=document.createElement('button'); ok.className='ct-vld'; ok.textContent='Accepter la famille ('+fam.nb+')'; ok.onclick=()=>accepterFamille(fam.cle); boutons.appendChild(ok) }
+    if(n===1 && taille<15){ const ext=document.createElement('button'); ext.className='discret'; ext.textContent='Étendre à 15'; ext.onclick=()=>controlerFamille(fam, conteneur, 15); boutons.appendChild(ext) } }
+  maj() }
+// ── Phase 1 — matérialiser les corrections dans le TEXTE candidat (miroir de src/corrections.mjs) ──
+// L'atelier est un monofichier sans import : on reproduit ici, à l'identique, les règles testées côté
+// serveur. Écrit `dip`, préserve `ocr0`, journalise l'historique, détecte le CONFLIT (jamais d'écrasement
+// silencieux d'une modification humaine ou d'une correction plus récente). Ne touche jamais l'OCR brut.
+function appliquerCorrectionClient(l, corr){ if(!l||typeof l!=='object') return {ok:false,erreur:'ligne'}
+  const avant=String(corr.avant??''), apres=String(corr.apres??''), actuel=String(l.dip??'')
+  if(apres===''&&!corr.autoriserVide) return {ok:false,erreur:'vide'}
+  if(actuel===apres) return {ok:true,statut:'deja_applique'}
+  if(actuel!==avant) return {ok:false,conflit:true,attendu:avant,actuel}
+  if(l.ocr0==null) l.ocr0=actuel
+  if(!Array.isArray(l.corrections)) l.corrections=[]
+  l.corrections.push({ id:corr.id||null, type:corr.type||'correction_ocr', avant, apres, origine:corr.origine||'ia',
+    modele:corr.modele||null, regle:corr.regle||null, statut:corr.statut||'applique_candidate',
+    validation_humaine:!!corr.validation_humaine, annulee:false, date:new Date().toISOString() })
+  l.dip=apres; return {ok:true}
+}
+// Phase 3 — miroir client de appliquerReclassement : pose role_confirme (fait foi), recalcule export_corps,
+// journalise. Ne touche NI le texte, NI l'OCR : la ligne reste en source, écartée du seul corps exporté.
+const ROLES_HORS_CORPS_CLIENT=['numero_page','signature','reclame','titre_courant','paratexte_titre','ornement','bruit']
+function appliquerReclassementClient(l, corr){ if(!l||typeof l!=='object') return {ok:false,erreur:'ligne'}
+  const apres=String(corr.role_apres??''); if(!apres) return {ok:false,erreur:'role'}
+  const avant=corr.role_avant??null
+  if(!l.suggestion||typeof l.suggestion!=='object') l.suggestion={}
+  const actuel=l.suggestion.role_confirme??null
+  if(actuel===apres) return {ok:true,statut:'deja_applique'}
+  if(actuel!=null&&avant!=null&&actuel!==avant) return {ok:false,conflit:true,attendu:avant,actuel}
+  if(!Array.isArray(l.corrections)) l.corrections=[]
+  l.corrections.push({ id:corr.id||null, type:'reclassement_role', avant:String(avant??''), apres, role_avant:avant, role_apres:apres,
+    _role_precedent:actuel, origine:corr.origine||'ia', modele:corr.modele||null, regle:corr.regle||null,
+    statut:'applique_candidate', validation_humaine:!!corr.validation_humaine, annulee:false, date:new Date().toISOString() })
+  l.suggestion.role_confirme=apres; l.suggestion.export_corps=!ROLES_HORS_CORPS_CLIENT.includes(apres)
+  return {ok:true}
+}
+// Applique un finding à sa ligne : reclassement de rôle (Phase 3) OU correction de texte (Phase 1).
+function appliquerFinding(f, humaine){ if(f==null||!Array.isArray(f.ligne_ids)||!f.ligne_ids.length||f.page==null) return {ok:false,erreur:'non-correction'}
+  const pg=S.pages[f.page]; if(!pg||!Array.isArray(pg.lignes)) return {ok:false,erreur:'page'}
+  const l=pg.lignes[f.ligne_ids[0]]; if(!l) return {ok:false,erreur:'ligne'}
+  if(f.type==='reclassement_role') return appliquerReclassementClient(l, { id:f.id, role_avant:f.role_avant, role_apres:f.role_apres, origine:'ia', modele:f.modele, regle:f.regle, validation_humaine:!!humaine })
+  // ANCRAGE D'UNE NOTE (§13) : pose l'appel [[n]] dans la ligne de CORPS annotée (pas dans la note),
+  // et estampille les lignes de la note avec ce numéro. Miroir client de corrections.mjs::appliquerAncrage.
+  if(f.type==='ancrage_note') return appliquerAncrageClient(pg, f, !!humaine)
+  // LIGNE OMISE (§1.2) : insère la ligne manquante APRÈS f.apres_i, sans bbox ni ocr0 (donc hors GT).
+  if(f.type==='ligne_omise') return appliquerLigneOmiseClient(pg, f, !!humaine)
+  if(f.texte_candidat==null) return {ok:false,erreur:'non-correction'}
+  return appliquerCorrectionClient(l, { id:f.id, avant:f.texte_original, apres:f.texte_candidat, origine:'ia', modele:f.modele, regle:f.regle, validation_humaine:!!humaine })
+}
+// Pose l'appel [[n]] dans la ligne de corps, collé au mot annoté, À L'INTÉRIEUR d'un guillemet fermant
+// (§13.3). Passe par appliquerCorrectionClient → ocr0 préservé, historique, conflit détecté, annulable.
+function poserAppelClient(t, numero, apres){ const appel='[['+numero+']]'; const s=String(t||'')
+  if(apres){ const i=s.indexOf(String(apres)); if(i>=0){ const p=i+String(apres).length; return { texte:s.slice(0,p)+appel+s.slice(p), place:'apres_groupe' } } }
+  const m=/[\s]*[»”"’)\]]+[.,;:!?]*\s*$/u.exec(s)
+  if(m&&m.index>0) return { texte:s.slice(0,m.index)+appel+s.slice(m.index), place:'avant_fermant' }
+  return { texte:s.replace(/\s*$/,'')+appel, place:'fin_de_ligne' } }
+function appliquerAncrageClient(pg, f, humaine){
+  const numero=Number(f.numero_note); if(!Number.isInteger(numero)||numero<1) return {ok:false,erreur:'numéro absent'}
+  const cible=pg.lignes[f.corps_i]; if(!cible) return {ok:false,erreur:'ligne de corps introuvable'}
+  const avant=String(cible.dip??cible.texte??'')
+  if(avant.includes('[['+numero+']]')) return {ok:true,statut:'deja_applique'}
+  const { texte, place }=poserAppelClient(avant, numero, f.apres)
+  const r=appliquerCorrectionClient(cible, { id:f.id, avant, apres:texte, origine:'ia', modele:f.modele, regle:'ancrage_note', validation_humaine:!!humaine })
+  if(!r||!r.ok) return r
+  for(const i of (f.lignes_note||[])) if(pg.lignes[i]) pg.lignes[i].note_numero=numero
+  return { ok:true, statut:r.statut, numero, place } }
+function appliquerLigneOmiseClient(pg, f, humaine){
+  const texte=String(f.texte_candidat||'').trim(); if(!texte) return {ok:false,erreur:'texte vide'}
+  const pos=Number(f.apres_i)
+  if(pg.lignes.some(l=>l&&l.ajout_humain&&String(l.dip||'')===texte)) return {ok:true,statut:'deja_applique'}
+  // Sans bbox ni ocr0 : comptée dans le texte, écartée du ground-truth (comme « ＋ ligne manquante »).
+  pg.lignes.splice(pos+1, 0, { bbox:null, ocr0:'', dip:texte, ajout_humain:true, origine_ajout:'ia', validation_humaine:!!humaine })
+  return { ok:true, statut:'applique_candidate' } }
+// Décision humaine sur un cas critique : met à jour le finding source ET applique/rétracte réellement le
+// texte candidat (Phase 1). Accepter/Modifier → écrit dip ; Refuser/Indéterminé → ne touche pas au texte.
 function decisionCritique(f, statut){ if(!S.controle||!S.controle.findings)return
   const memeFinding=(g)=>((g.regle||g.id)===(f.regle||f.id))&&g.page===f.page&&JSON.stringify(g.ligne_ids||[])===JSON.stringify(f.ligne_ids||[])
-  S.controle.findings.forEach(g=>{ if(memeFinding(g)){ g.statut=statut; if(statut==='modifie_humain'){ const m=window.prompt('Texte corrigé :', g.texte_candidat||g.texte_original||''); if(m!=null) g.texte_candidat=m } } })
+  let conflit=false
+  S.controle.findings.forEach(g=>{ if(!memeFinding(g))return
+    g.statut=statut
+    if(statut==='modifie_humain'){ const m=window.prompt('Texte corrigé :', g.texte_candidat||g.texte_original||''); if(m!=null) g.texte_candidat=m }
+    if(statut==='confirme_humain'||statut==='modifie_humain'){ const r=appliquerFinding(g, true); if(r&&r.conflit) conflit=true }
+  })
+  planifierSave(); rendre()
+  if(conflit) etat('⚠ conflit : le texte de cette ligne a changé depuis le contrôle — correction NON appliquée (relance le contrôle).')
   lancerValidation() }
-function accepterFamille(cle){ if(S.controle&&S.controle.findings) S.controle.findings.forEach(f=>{ if((f.regle||f.id||f.type)===cle && f.statut==='propose_ia') f.statut='accepte_echantillonnage' })
+// Accepter une famille : applique RÉELLEMENT chaque correction du lot (statut accepté par échantillonnage),
+// et recense les conflits restants (jamais d'écrasement silencieux). Les familles sans texte (pages
+// ignorables, etc.) ne font que changer de statut.
+function accepterFamille(cle){ if(!S.controle||!S.controle.findings){ return }
+  let applic=0, conflits=0
+  S.controle.findings.forEach(f=>{ if((f.regle||f.id||f.type)!==cle || f.statut!=='propose_ia') return
+    f.statut='accepte_echantillonnage'
+    if(f.texte_candidat!=null){ const r=appliquerFinding(f, false); if(r&&r.ok&&r.statut!=='deja_applique') applic++; else if(r&&r.conflit) conflits++ } })
+  planifierSave(); rendre()
+  if(applic||conflits) etat(`Famille « ${cle} » : ${applic} correction(s) appliquée(s)${conflits?`, ${conflits} conflit(s) non appliqué(s)`:''}.`)
   lancerValidation() } // recompte : la famille passe des « familles » aux « automatiques »
 
 // Phase F — génération LOCALE : livrables (exports existants) + état de livraison + rapport. AUCUNE IA.
@@ -551,7 +925,8 @@ async function lancerGeneration(){ const nom=$('projet').value.trim(); if(!nom){
     try{ await api('/api/export',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel(),id_oeuvre:($('idoeuvre')&&$('idoeuvre').value.trim())||null,recenserNotes:$('chkNotes')&&$('chkNotes').checked})}); fichiers.push('json','docx','sql','txt','md') }catch(e){}
     try{ const rx=await api('/api/export/xml',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel(),couche:S.couche})}); if(rx&&rx.nbPages) fichiers.push('alto','page') }catch(e){}
     const run_id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():('run-'+Date.now()); const date=new Date().toISOString()
-    const g=await api('/api/ia/generation',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel(),validation:S.validation||{},profil:S.profil||null,run_id,date,fichiers})})
+    const lot=(S.workflow&&S.workflow.etapes&&S.workflow.etapes.ocr_local&&S.workflow.etapes.ocr_local.resume)||{} // Phase 7 : complétude du lot → état de livraison
+    const g=await api('/api/ia/generation',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel(),validation:S.validation||{},profil:S.profil||null,run_id,date,fichiers,lot})})
     majEtapeClient('generation_locale',{etat:'termine',run_id})
     etat(`Génération : ${g.etat} — ${fichiers.length} type(s) de fichier dans exports/. Rapport : ${(g.chemin||'').split(/[\\/]/).pop()}.${g.etat!=='FINAL_CANDIDAT'?' Livraison PROVISOIRE (voir réserves / blocages).':''}`)
   }catch(e){ majEtapeClient('generation_locale',{etat:'erreur'}); etat('génération : '+e.message) }
@@ -588,6 +963,7 @@ const chargeOff=()=>{ $('chargement').style.display='none' }
 
 async function analyser(){
   const chemin=$('chemin').value.trim(); if(!chemin)return
+  if(S.chemin!==chemin){ S.perimetre={pages:[]}; S.chemin=chemin } // nouveau document → nouveau lot de travail (Phase 2)
   chargeOn('Analyse du document…')
   try{
     if(S.kind==='imprime'){
@@ -611,6 +987,7 @@ async function analyser(){
 }
 
 async function ocr(n){
+  perimetreAjouter([n]) // Phase 2 : toute page océrisée entre dans le lot de travail
   const chemin=$('chemin').value.trim(); if(!chemin)throw new Error('chemin manquant')
   if(S.kind==='imprime' && $('bilingue').checked){
     const r=await api('/api/atelier/ocr-bilingue',{method:'POST',headers:{'content-type':'application/json'},
@@ -627,7 +1004,7 @@ async function ocr(n){
   const ancien = reg ? (reg.moteur==='kraken') : ($('typo') && $('typo').value==='ancien') // imprimé ancien → Kraken CATMuS-Print
   const pre=$('p_utiliser')&&$('p_utiliser').checked ? collecterPretraitement() : null // OFF par défaut
   const corps=S.kind==='imprime'
-    ? {kind:'imprime',pdfWin:chemin,page:n,dpi:300,lang:'fra',moteur:ancien?'kraken-print':'tesseract',pretraitement:pre}
+    ? {kind:'imprime',pdfWin:chemin,page:n,dpi:300,lang:langueOcr(),moteur:ancien?'kraken-print':'tesseract',pretraitement:pre}
     : {kind:'manuscrit',imageWin:chemin}
   const r=await api('/api/atelier/ocr',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(corps)})
   S.pages[n]={ pngUrl:r.pngUrl, largeur:r.largeur, hauteur:r.hauteur, ocr:r.ocr,
@@ -927,6 +1304,7 @@ $('page').onchange=()=>allerPage($('page').valueAsNumber||1)
 async function ocrDocument(cibles){
   assurerNomProjet()
   const de=$('de').valueAsNumber||1, a=$('a').valueAsNumber||de
+  if(!cibles) perimetreAjouter(rangeInclus(de,a)) // Phase 2 : la plage demandée définit le lot (même les pages déjà faites)
   const liste = cibles || pagesATraiter(de,a) // reprise automatique : on saute les pages « terminé »
   if(!liste.length){ etat('Rien à traiter : toutes les pages de la plage sont déjà faites.'); majProgres(de,a); return }
   S.arret=false; $('ocrDoc').disabled=true; $('ocrPage').disabled=true; $('btnRelancerErr').disabled=true
@@ -946,37 +1324,21 @@ async function ocrDocument(cibles){
   etat(S.arret ? `Arrêté — ${ok} page(s) faite(s) ; « OCR document » reprend là où on s'est arrêté.` : `Terminé — ${ok} page(s), ${ko} erreur(s).`)
 }
 $('ocrDoc').onclick=()=>ocrDocument(null)
+// « Tout océriser » : la plage entière du document, sans saisie. Cale les champs « de/à » sur le
+// document réel puis réutilise ocrDocument — donc la reprise (pages déjà faites sautées), la
+// sauvegarde après chaque page et l'arrêt propre restent acquis.
+$('ocrTout').onclick=()=>{
+  const total=Number(S.total)||Number($('a').value)||1
+  if(total<1){ etat('aucune page à océriser : analyse d\'abord un document'); return }
+  $('de').value=1; $('a').value=total
+  const reste=pagesATraiter(1,total)
+  if(!reste.length){ etat(`Rien à faire : les ${total} page(s) sont déjà océrisées (ou exclues).`); return }
+  etat(`Tout océriser : ${reste.length} page(s) restante(s) sur ${total}.`)
+  ocrDocument(reste) }
 $('btnRelancerErr').onclick=()=>ocrDocument(pagesEnErreur())
-// TRI DE STRUCTURE (IA) : passe de fond qui classe TOUTES les pages du document (planches de vignettes
-// envoyées à l'IA) pour exclure les pages inutiles de l'OCR (gardes, page de numérisation, reliures,
-// ornements). Le résultat est stocké par page (S.pages[n].triage) et « OCR document » saute les exclues.
-async function trierPagesIA(){
-  const chemin=$('chemin').value.trim(); if(!chemin){ etat('choisis d\'abord un document'); return }
-  await chargerEtatIA(); const f=S.ia&&S.ia.fournisseur
-  if(!f||!f.cloud){ etat('IA locale (mock) : pas de tri. Configure le CLI d\'abord.'); return }
-  if(!f.dispo){ etat('fournisseur IA indisponible.'); return }
-  if(!consentementValideClient()){ const ok=await demanderConsentement(); if(!ok){ etat('resté en local : pas de tri IA.'); return } }
-  S.arret=false; assurerNomProjet()
-  chargeOn('Rendu des vignettes du document…')
-  try{
-    const rp=await api('/api/ia/planches',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin,total:S.total||1,kind:S.kind})})
-    const planches=rp.planches||[]; let classees=0, exclues=0
-    for(let i=0;i<planches.length;i++){
-      if(S.arret) break
-      chargeOn('Analyse IA de la structure — planche '+(i+1)+'/'+planches.length+'…')
-      const pl=planches[i]
-      const r=await api('/api/ia/triage-planche',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chemin:pl.chemin,pages:pl.pages})})
-      if(!r.ia_active){ etat('tri IA non actif ('+(r.motif||'—')+') — rien changé.'); return }
-      for(const pg of (r.pages||[])){ const n=Number(pg.n); if(!n)continue; if(!S.pages[n])S.pages[n]={}
-        S.pages[n].triage={type:pg.type||'?',a_ocriser:pg.a_ocriser!==false}; classees++; if(pg.a_ocriser===false)exclues++ }
-      await sauver(true)
-    }
-    etat(S.arret?('Tri interrompu : '+classees+' pages classées, '+exclues+' exclues.'):('✓ Tri terminé : '+classees+' pages classées, '+exclues+' exclues de l\'OCR (gardes, numérisation, reliures, ornements). « OCR document » les saute désormais.'))
-    rendre()
-  }catch(e){ etat('tri : '+e.message) }
-  finally{ chargeOff() }
-}
-$('btnTrier').onclick=trierPagesIA
+// « Trier les pages (IA) » (classement des pages en planches par l'IA) : fonction et endpoints RETIRÉS
+// le 2026-08-10 — trop lents et redondants avec la détection déterministe des pages inutiles après OCR.
+$('btnControleIA').onclick=controlerOcrIA
 
 // ── Prétraitement expérimental + comparaison A/B ─────────────────────────────
 function collecterPretraitement(){
@@ -993,7 +1355,7 @@ async function comparer(){
   chargeOn('Comparaison page '+n+' (2 OCR)…')
   try{
     const r=await api('/api/atelier/comparer',{method:'POST',headers:{'content-type':'application/json'},
-      body:JSON.stringify({pdfWin:chemin,page:n,dpi:300,lang:'fra',moteur,pretraitement:pre})})
+      body:JSON.stringify({pdfWin:chemin,page:n,dpi:300,lang:langueOcr(),moteur,pretraitement:pre})})
     const o=r.original, p=r.pretraite
     const verdict=(p.confMoy!=null&&o.confMoy!=null)?(p.confMoy>o.confMoy?'✅ AMÉLIORE':(p.confMoy<o.confMoy?'⚠ DÉGRADE':'≈ égal')):''
     $('compHint').textContent=`confiance moy : original ${o.confMoy} · prétraité ${p.confMoy} — ${verdict} (indice ; vérifie à l'œil)`
@@ -1012,7 +1374,7 @@ let tResize; window.addEventListener('resize',()=>{ clearTimeout(tResize); tResi
 $('chargeStop').onclick=async()=>{ S.arret=true; $('chargeStop').disabled=true; $('chargeTexte').textContent='Arrêt en cours…'; try{ await api('/api/atelier/stop',{method:'POST'}) }catch{} }
 
 // ── Persistance & export ────────────────────────────────────────────────────
-function projetActuel(){ const p={ kind:S.kind, chemin:$('chemin').value.trim(), page:S.page, total:S.total, pages:S.pages, meta:collecterMeta(), journal:S.journal||[] }; if(S.garde) p._garde=S.garde; if(S.workflow) p.workflow=S.workflow; if(S.profil) p.profil=S.profil; return p }
+function projetActuel(){ const p={ kind:S.kind, chemin:$('chemin').value.trim(), page:S.page, total:S.total, pages:S.pages, meta:collecterMeta(), journal:S.journal||[] }; if(S.garde) p._garde=S.garde; if(S.workflow) p.workflow=S.workflow; if(S.profil) p.profil=S.profil; if(S.perimetre&&S.perimetre.pages&&S.perimetre.pages.length) p.perimetre=S.perimetre; return p }
 // Champs = colonnes de la table `oeuvres` du site (correspondance exacte).
 const CHAMPS_META=['auteur','titre','sous_titre','titre_original','langue_originale','langue_trad','trad_auteur','editeur','collection','ville','date_publication','date_composition','genre']
 const vMeta=c=>$('m_'+c).value.trim()||null
@@ -1099,7 +1461,9 @@ async function completerMetaIA(){ const chemin=$('chemin').value.trim(); if(!che
     // id_auteur, titre original, langue, date de composition, sous-titre, genre). Écrase le LU et le
     // parseur — jamais une saisie manuelle : la base est la référence normalisée.
     const conn=r.connaissance||{}
-    const mapEnr={ auteur:enr.auteur_complet, titre_original:enr.titre_original, langue_originale:enr.langue_originale, date_composition:enr.date_composition, sous_titre:enr.sous_titre, genre:enr.genre }
+    // NB : pas de sous_titre ici — le sous-titre est une donnée d'ÉDITION (« Nouvelle édition revue et
+    // corrigée »), lue sur la page ; on ne le remplace jamais par le sous-titre canonique du catalogue.
+    const mapEnr={ auteur:enr.auteur_complet, titre_original:enr.titre_original, langue_originale:enr.langue_originale, date_composition:enr.date_composition, genre:enr.genre }
     Object.keys(mapEnr).forEach(c=>{ const el=$('m_'+c); if(!el)return; const v=mapEnr[c]
       const remplacable=!el.value.trim()||el.classList.contains('meta-auto')||el.classList.contains('meta-ia')
       if(v!=null&&String(v).trim()&&remplacable){ el.value=String(v).trim(); el.classList.remove('meta-auto'); el.classList.remove('meta-ia'); el.classList.add('meta-ia-enrichi')
@@ -1123,29 +1487,57 @@ $('btnMetaIA').onclick=completerMetaIA
 ;(function(){
   const pOcr=$('panelOcrCorps'), pPre=$('panelPreCorps'), pExp=$('panelExportCorps')
   // Réglage OCR : Typo, bilingue (en regard), latin = page…
-  if($('lblTypo')) pOcr.append($('lblTypo'))
-  if($('bilingue')) pOcr.append($('bilingue').closest('label'))
-  if($('offset')) pOcr.append($('offset'))
+  // Réglages OCR, dans un ordre qui suit la décision : quel moteur, quelle langue, quelle mise en
+  // page. Chacun porte son intitulé (classe « reglage »), aucun contrôle nu.
+  for(const id of ['lblTypo','lblLangOcr','lblBilingue','lblOffset']) if($(id)) pOcr.append($(id))
   // Prétraitement : la barre entière (rendue visible dans le panneau)
   if($('barrePre')){ $('barrePre').style.display='flex'; pPre.append($('barrePre')) }
   // Export : barre projet/export + exports avancés
   if($('barreExport')) pExp.append($('barreExport'))
   if($('barreAvance')){ $('barreAvance').style.display='flex'; pExp.append($('barreAvance')) }
 })()
+// ── Réglages OCR : trois notions distinctes, rendues cohérentes ───────────────────────────────
+// La langue était CODÉE EN DUR à « fra » : un texte latin était donc reconnu en français, sans
+// aucun moyen de le dire. Elle est désormais réglable — mais elle ne concerne QUE Tesseract :
+// Kraken lit d'après son modèle (CATMuS-Print), la langue n'y a aucun effet. On le montre plutôt
+// que de laisser un réglage qui ne fait rien. Seules les langues réellement installées dans WSL
+// (fra, lat) sont proposées.
+function langueOcr(){ const v=$('langOcr')&&$('langOcr').value; return v||'fra' }
+function majReglagesOcr(){
+  const ancien = $('typo') && $('typo').value === 'ancien'
+  const lbl = $('lblLangOcr'), sel = $('langOcr')
+  if(lbl && sel){
+    sel.disabled = ancien
+    lbl.style.opacity = ancien ? '0.5' : ''
+    lbl.title = ancien
+      ? 'Sans effet ici : Kraken reconnaît d’après son modèle CATMuS-Print, qui ne se règle pas par langue.'
+      : 'Langue du texte à reconnaître (Tesseract). Seules celles installées sont proposées.'
+  }
+  // L'« original en regard » n'a de sens que si les pages en regard sont déclarées.
+  const bil = $('bilingue') && $('bilingue').checked
+  if($('lblOffset')) $('lblOffset').style.display = bil ? '' : 'none'
+}
+if($('typo')) $('typo').addEventListener('change', majReglagesOcr)
+if($('bilingue')) $('bilingue').addEventListener('change', majReglagesOcr)
+majReglagesOcr()
+
 // Bascule d'onglets du volet gauche.
 document.querySelectorAll('#vtabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#vtabs button').forEach(x=>x.classList.toggle('actif', x===b))
   const t=b.dataset.t
-  ;[['meta','panelMeta'],['pre','panelPre'],['ocr','panelOcr'],['exp','panelExport']].forEach(([k,id])=>{ $(id).style.display=(k===t)?'':'none' })
+  ;[['meta','panelMeta'],['pre','panelPre'],['ocr','panelOcr'],['ctrl','panelControle'],['exp','panelExport']].forEach(([k,id])=>{ $(id).style.display=(k===t)?'':'none' })
+  if(t==='ctrl') rendreVoletControle()
 })
 ;[...document.querySelectorAll('#metaCorps input')].forEach(i=>i.oninput=()=>{ i.classList.remove('meta-ia'); i.classList.remove('meta-auto'); i.classList.remove('meta-ia-enrichi'); i.classList.remove('meta-ia-conn'); planifierSave() })
 let tSave
 function planifierSave(){ if(!$('projet').value.trim())return; clearTimeout(tSave); tSave=setTimeout(()=>sauver(true),1200) }
+function majEtatSave(t){ const a=$('etatSave'), b=$('etatSaveHeader'); if(a)a.textContent=t; if(b)b.textContent=t }
 async function sauver(auto){
-  const nom=$('projet').value.trim(); if(!nom){ if(!auto)$('etatSave').textContent='donne un nom de projet'; return }
+  const nom=$('projet').value.trim(); if(!nom){ if(!auto)majEtatSave('donne un nom de projet'); return }
+  if(!auto)majEtatSave('enregistrement…')
   try{ await api('/api/projet/save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel()})})
-    $('etatSave').textContent='enregistré '+new Date().toLocaleTimeString() }
-  catch(e){ $('etatSave').textContent='échec : '+e.message }
+    majEtatSave('enregistré '+new Date().toLocaleTimeString()) }
+  catch(e){ majEtatSave('échec : '+e.message) }
 }
 async function listerProjets(){ try{ const {projets}=await api('/api/projet/list')
   $('listeProjets').innerHTML='<option value="">—</option>'+projets.map(p=>`<option>${p}</option>`).join('') }catch{} }
@@ -1153,7 +1545,11 @@ async function ouvrirProjet(nom){
   const {projet}=await api('/api/projet/load?nom='+encodeURIComponent(nom))
   S.kind=projet.kind||'imprime'; $('kind').value=S.kind; $('chemin').value=projet.chemin||''
   S.pages=projet.pages||{}; S.total=projet.total||null; S.journal=projet.journal||[]; S.garde=projet._garde||null
-  S.workflow=projet.workflow||null; rendreBarreEtapes() // Phase A : parcours 5 étapes (le serveur infère l'état)
+  S.perimetre=projet.perimetre||{pages:[]}; S.chemin=projet.chemin||$('chemin').value.trim()||null // Phase 2 : périmètre de travail restauré
+  S.workflow=projet.workflow||null
+  // Phase 2 : recalcule l'étape OCR selon le périmètre/lot (corrige les vieux projets restés « en cours
+  // · 579 manquantes »), SANS périmer l'aval au simple chargement. Sinon simple rendu.
+  if(S.workflow&&Object.keys(S.pages).some(k=>pageFaite(Number(k)))) apresOcrWorkflow(false); else rendreBarreEtapes()
   // Ouvre sur une page RÉELLE : la page enregistrée si elle a du contenu, sinon la 1re page avec
   // image (évite d'atterrir sur une page en erreur, ex. banc où projet.page pointe une page ratée).
   { const avecImg=Object.keys(S.pages).map(Number).filter(n=>S.pages[n]?.pngUrl&&S.pages[n]?.lignes?.length).sort((a,b)=>a-b)
@@ -1168,6 +1564,9 @@ async function ouvrirProjet(nom){
   rendre(); const {fait,err}=compterEtats(1,maxP); etat(`projet « ${nom} » chargé — ${fait} page(s) faite(s), ${err} en erreur. « OCR document » reprend.`)
 }
 $('btnSave').onclick=()=>sauver(false)
+$('btnSaveHeader').onclick=()=>sauver(false)
+// Ctrl+S (ou Cmd+S) = Enregistrer, partout dans l'atelier.
+window.addEventListener('keydown',(e)=>{ if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&(e.key==='s'||e.key==='S')){ e.preventDefault(); sauver(false) } })
 $('listeProjets').onchange=()=>{ const n=$('listeProjets').value; if(n)ouvrirProjet(n) }
 $('btnExport').onclick=async()=>{
   const nom=$('projet').value.trim()||'export'; $('etatExport').textContent='export (DOCX + SQL + JSON + TXT + Markdown)…'
@@ -1210,17 +1609,42 @@ $('btnExportBanc').onclick=async()=>{ const nom=$('projet').value.trim()||'banc'
   try{ const r=await api('/api/export/banc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel()})})
     $('etatExport').textContent=`✓ banc : ${r.nbPages} page(s), ${r.nbLignes} ligne(s), ${r.nbCaracteres} caractères → bancs/${nom}/` }
   catch(e){ $('etatExport').textContent='banc refusé : '+e.message+' (valide les pages à la main d\'abord)' } }
+// Enregistre un contenu où l'utilisateur veut : ouvre le sélecteur natif « Enregistrer
+// sous » (File System Access API, dispo en contexte 127.0.0.1) ; repli = téléchargement
+// classique (dossier Téléchargements) si l'API manque. Renvoie 'enregistre'|'annule'|'telecharge'.
+async function enregistrerFichier(nomSuggere, contenu, mime){
+  const ext='.'+((nomSuggere.split('.').pop())||'txt')
+  if(window.showSaveFilePicker){
+    let handle
+    try{ handle=await window.showSaveFilePicker({ suggestedName:nomSuggere, types:[{description:'Fichier', accept:{[mime||'text/plain']:[ext]}}] }) }
+    catch(e){ if(e&&e.name==='AbortError') return 'annule'; throw e }
+    const w=await handle.createWritable(); await w.write(contenu); await w.close(); return 'enregistre'
+  }
+  const blob=new Blob([contenu],{type:mime||'text/plain'}); const url=URL.createObjectURL(blob)
+  const a=document.createElement('a'); a.href=url; a.download=nomSuggere; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); return 'telecharge'
+}
+$('btnExportComparaison').onclick=async()=>{ const nom=$('projet').value.trim()||'export'; $('etatExport').textContent='extraction OCR IA vs mécanique…'
+  try{ const r=await api('/api/export/comparaison',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel(),date:new Date().toLocaleString('fr-FR')})})
+    const u=r.resume||{}, resume=`${u.modifiees||0} ligne(s) modifiée(s) (dont ${u.avec_s_long||0} « ſ »)`
+    const sort=await enregistrerFichier(r.nomFichier||(nom+'.comparaison-ocr.md'), r.md||'', 'text/markdown')
+    if(sort==='annule') $('etatExport').textContent='enregistrement annulé (une copie reste dans exports/)'
+    else if(sort==='telecharge') $('etatExport').textContent=`✓ comparaison : ${resume} — téléchargée`
+    else $('etatExport').textContent=`✓ comparaison : ${resume} — enregistrée` }
+  catch(e){ $('etatExport').textContent='échec : '+(e&&e.message||e) } }
 listerProjets()
 
 // Pré-vol : vérifier que les moteurs sont là, sinon prévenir clairement (plutôt qu'un
 // stderr brut au premier OCR). WSL est requis ; Tesseract sert l'imprimé, Kraken le manuscrit.
 async function preVol(){
   try{ const d=await api('/api/doctor'); const o=d.outils||{}
+    const g=$('diag')
+    // WSL en panne (sonde échouée/timeout) : ce n'est PAS un vrai manque d'outils → message dédié + remède.
+    if(d.wsl_incident){ g.style.display='flex'; g.textContent='⚠ '+d.wsl_incident; return }
     const manques=[]
     if(!o.wsl?.present) manques.push('WSL (indispensable)')
     if(!o.tesseract?.present) manques.push('Tesseract (imprimé)')
     if(!o.kraken?.present) manques.push('Kraken (manuscrit)')
-    if(manques.length){ const g=$('diag'); g.style.display='flex'
+    if(manques.length){ g.style.display='flex'
       g.textContent='⚠ Outils manquants : '+manques.join(' · ')+' — installe-les (scripts/installer-wsl.sh) avant d’océriser.' }
   }catch{ /* doctor indisponible : on n’empêche rien */ }
 }

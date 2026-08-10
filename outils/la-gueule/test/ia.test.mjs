@@ -18,10 +18,17 @@ test('IA prompt : messagesLettrine — image + consigne JSON, le texte du livre 
   assert.match(m.messages[0].content[1].text, /"oy"/)             // OCR présent comme donnée (JSON)
 })
 
-test('IA prompt : messagesCorrection — schéma correction_ocr, pas de modernisation', () => {
+// Charte §14.3 : sur un imprimé on modernise les caractères purement GLYPHIQUES (s long,
+// ligatures) et RIEN d'autre. Le système garantit par ailleurs qu'on ne supprime jamais une
+// ligne imprimée (§14.2/§23.8) et qu'on lit l'image, pas le sens.
+test('IA prompt : messagesCorrection — schéma correction_ocr, modernisation glyphique seule', () => {
   const m = messagesCorrection({ crop_base64: 'X', texte_ocr: 'neigor' })
-  assert.match(m.messages[0].content[1].text, /texte_propose/)
-  assert.match(m.systeme, /Ne modernise/)
+  const consigne = m.messages[0].content[1].text
+  assert.match(consigne, /texte_propose/)
+  assert.match(consigne, /n'introduis JAMAIS un « ſ »/)
+  assert.match(consigne, /Ne modernise ni l'orthographe/)
+  assert.match(m.systeme, /Le FAC-SIMILÉ fait autorité/)
+  assert.match(m.systeme, /ne SUPPRIMES jamais un texte réellement imprimé/)
 })
 
 test('IA prompt : messagesMetadonnees — image de la page de titre + schéma oeuvres, OCR en donnée', () => {

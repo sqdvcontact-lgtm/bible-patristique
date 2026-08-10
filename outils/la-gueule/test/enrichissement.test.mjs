@@ -44,3 +44,13 @@ test('enrichissement : choisirOeuvre — match sur jetons longs du titre', () =>
   assert.equal(choisirOeuvre(lignes, 'La Consolation de la philosophie').titre_original, 'De consolatione philosophiae')
   assert.equal(choisirOeuvre(lignes, 'Homélies sur l’Hexaéméron'), null) // rien de commun → null
 })
+
+test('enrichissement : choisirOeuvre — un seul mot commun ne suffit PAS (faux positif écarté)', () => {
+  // Cas réel : « BASILE - Homélies… » ne doit PAS matcher « Homélies sur l'Hexaéméron » sur « homélies ».
+  const lignes = [
+    { titre: 'Homélies sur l’Hexaéméron', titre_original: 'Ὁμιλίαι θʹ εἰς τὴν Ἑξαήμερον' },
+  ]
+  assert.equal(choisirOeuvre(lignes, 'Homélies, discours et lettres choisis'), null)
+  // Le vrai titre, lui, matche (≥ 2 jetons communs + fort recouvrement).
+  assert.equal(choisirOeuvre(lignes, 'Homélies sur l’Hexaéméron').titre_original, 'Ὁμιλίαι θʹ εἰς τὴν Ἑξαήμερον')
+})
