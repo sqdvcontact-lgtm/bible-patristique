@@ -207,6 +207,13 @@ export function consigneRelecturePage(lignes = [], { kind = 'imprime' } = {}) {
     'signale-la dans « lignes_omises » : « apres_i » = la ligne après laquelle elle vient, « texte » = ce que ' +
     'tu lis. Ne complète JAMAIS un passage illisible ou manquant par un texte vraisemblable : si tu ne lis ' +
     'pas, abstiens-toi.\n' +
+    'LIGNE MIXTE — CORPS + MARGE : quand la manchette est proche de la justification, la ' +
+    'reconnaissance la FOND dans la ligne de corps (« …non com-Solemi¬ », où « Solemi¬ » est la ' +
+    'glose, pas la phrase). **Ne retranche pas le fragment** : la note serait perdue. Déclare-la ' +
+    'dans « scissions » : « corps » = la ligne SANS le fragment (corrigée s\'il y a lieu), ' +
+    '« marge » = le fragment, RECOPIÉ ENTIER. La ligne de la note doit rester entière — ne la ' +
+    'coupe pas, ne l\'abrège pas, ne la réécris pas. Ne déclare une scission que si tu VOIS, sur ' +
+    'l\'image, que ce morceau est imprimé dans la marge ; dans le doute, laisse la ligne telle quelle.\n' +
     'NE JAMAIS SUPPRIMER — une ligne réellement imprimée et lisible ne se supprime JAMAIS. ' +
     'Ne renvoie jamais un « texte_corrige » vide pour faire disparaître une ligne. Si une ligne ' +
     'n\'appartient pas au corps de l\'œuvre, ne la corrige pas : CLASSE-la (voir plus bas). Elle sera ' +
@@ -257,6 +264,7 @@ export function consigneRelecturePage(lignes = [], { kind = 'imprime' } = {}) {
     '"corrections":[{"i":0,"texte_ocr":"","texte_corrige":"","motif":"","certitude":"certaine","confiance":0.0}],' +
     '"classifications":[{"i":0,"role":"ornement","motif":""}],' +
     '"lignes_omises":[{"apres_i":0,"texte":"","confiance":0.0}],' +
+    '"scissions":[{"i":0,"corps":"","marge":"","motif":"","confiance":0.0}],' +
     '"abstention":false,"statut":"candidat"}'
   )
 }

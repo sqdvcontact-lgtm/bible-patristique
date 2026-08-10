@@ -699,7 +699,9 @@ const ROLE_ALIAS={lettrine:'corps',artefact:'bruit',paratexte:'paratexte_titre',
 function roleBase(r){ const b=String(r||'').replace(/_candidate.*$/,''); return ROLE_ALIAS[b]||b||'corps' }
 function rendreItemDecision(f){ const d=document.createElement('div'); d.className='val-crit'
   const estRe=f.type==='reclassement_role', estAnc=f.type==='ancrage_note', estOmi=f.type==='ligne_omise'
-  const icone = estRe?'⤳ reclasser' : estAnc?'❡ rattacher la note' : estOmi?'＋ ligne omise' : '✎ '+(f.regle||f.id||'correction')
+  const estSci=f.type==='scission_marge'
+  const icone = estRe?'⤳ reclasser' : estAnc?'❡ rattacher la note' : estOmi?'＋ ligne omise'
+    : estSci?'⇥ séparer corps et marge' : '✎ '+(f.regle||f.id||'correction')
   const t=document.createElement('div'); t.className='val-crit-tete'
   t.textContent=`${icone} · ${f.niveau_risque} · page ${f.page??'?'}${(f.ligne_ids&&f.ligne_ids.length)?' l'+f.ligne_ids.join(','):''}`
   d.appendChild(t)
@@ -714,6 +716,13 @@ function rendreItemDecision(f){ const d=document.createElement('div'); d.classNa
       +`<br><span style="color:var(--second)">${f.regle==='appel_imprime'?'appel imprimé retrouvé dans le texte (mécanique)':'rattachement par lecture (à contrôler)'}</span>`
   }
   else if(estOmi) av.innerHTML=`ligne absente de l’OCR, visible sur l’image :<br><span class="apr">« ${ECH(f.texte_candidat||'')} »</span> <span style="color:var(--second)">(à insérer après la ligne ${f.apres_i})</span>`
+  else if(estSci){
+    // On montre les DEUX lignes qui vont naître : la note ne se tronque pas, elle se sépare entière.
+    const pg=S.pages[f.page]||{}; const orig=(pg.lignes&&pg.lignes[f.ligne_ids[0]])?String(pg.lignes[f.ligne_ids[0]].dip||''):''
+    av.innerHTML=`<span class="av">${ECH(orig)}</span><br>`
+      +`→ corps : <span class="apr">« ${ECH(f.corps||'')} »</span><br>`
+      +`→ note en marge (ligne entière) : <span class="apr" style="background:#f2e2d0">« ${ECH(f.marge||'')} »</span>`
+  }
   else av.innerHTML=`<span class="av">${ECH(f.texte_original||'∅')}</span> → <span class="apr">${ECH(f.texte_candidat||'∅')}</span>`
   d.appendChild(av)
   const act=document.createElement('div'); act.className='val-crit-act'
@@ -921,6 +930,8 @@ function appliquerFinding(f, humaine){ if(f==null||!Array.isArray(f.ligne_ids)||
   if(f.type==='ancrage_note') return appliquerAncrageClient(pg, f, !!humaine)
   // LIGNE OMISE (§1.2) : insère la ligne manquante APRÈS f.apres_i, sans bbox ni ocr0 (donc hors GT).
   if(f.type==='ligne_omise') return appliquerLigneOmiseClient(pg, f, !!humaine)
+  // SCISSION : la ligne mixte devient corps + note ENTIÈRE. Miroir de src/scission.mjs.
+  if(f.type==='scission_marge') return appliquerScissionClient(pg, f.ligne_ids[0], f, !!humaine)
   if(f.texte_candidat==null) return {ok:false,erreur:'non-correction'}
   return appliquerCorrectionClient(l, { id:f.id, avant:f.texte_original, apres:f.texte_candidat, origine:'ia', modele:f.modele, regle:f.regle, validation_humaine:!!humaine })
 }
@@ -941,6 +952,22 @@ function appliquerAncrageClient(pg, f, humaine){
   if(!r||!r.ok) return r
   for(const i of (f.lignes_note||[])) if(pg.lignes[i]) pg.lignes[i].note_numero=numero
   return { ok:true, statut:r.statut, numero, place } }
+// Scinde une ligne qui mêle corps et marge : le corps reste, la note devient une LIGNE ENTIÈRE
+// juste après, classée « note en marge ». `ocr0` de la ligne d'origine n'est jamais réécrit.
+function appliquerScissionClient(pg, i, f, humaine){
+  const l=pg.lignes[i]; if(!l) return {ok:false,erreur:'ligne introuvable'}
+  const corps=String(f.corps||'').trim(), marge=String(f.marge||'').trim()
+  if(!corps||!marge) return {ok:false,erreur:'scission incomplète'}
+  if(pg.lignes[i+1]&&pg.lignes[i+1].scinde_de===i) return {ok:true,statut:'deja_applique'}
+  const avant=String(l.dip??l.texte??'')
+  if(l.ocr0==null) l.ocr0=avant
+  if(!Array.isArray(l.corrections)) l.corrections=[]
+  l.corrections.push({type:'scission_marge',avant,apres:corps,origine:'ia',modele:f.modele||null,regle:'scission_marge',
+    statut:'applique_candidate',validation_humaine:!!humaine,annulee:false,fragment:marge})
+  l.dip=corps
+  pg.lignes.splice(i+1,0,{bbox:null,ocr0:'',dip:marge,texte:marge,scinde_de:i,origine_ajout:'ia',
+    suggestion:{role_suggere:'note_marginale',role_confirme:null,statut:'suggere',regle:'scission_marge',export_corps:false,preuves:{issue_de_la_ligne:i}}})
+  return {ok:true,statut:'applique_candidate'} }
 function appliquerLigneOmiseClient(pg, f, humaine){
   const texte=String(f.texte_candidat||'').trim(); if(!texte) return {ok:false,erreur:'texte vide'}
   const pos=Number(f.apres_i)

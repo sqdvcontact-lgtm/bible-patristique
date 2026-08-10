@@ -7,6 +7,7 @@ import { pageAnormale } from './diagnostic.mjs'
 import { appelerIA } from './fournisseur.mjs'
 import { moderniserGlyphes, contientGlyphesAnciens, reparerDerives } from '../typographie.mjs'
 import { notesDeLaPage, apparierNotesImprimees, numeroterAncrages } from '../notes-ancrage.mjs'
+import { detecterScission } from '../scission.mjs'
 
 /** Intervention normalisée (provenance complète, §15). Statut par défaut : propose_ia. */
 export function intervention(c = {}) {
@@ -205,13 +206,16 @@ export function interventionDepuisSortieIA(sortie, ctx = {}) {
  * qu'une correction qui CHANGE réellement le texte d'une ligne existante (indice valide, texte non vide,
  * différent de l'OCR) : on écarte le bruit et les « corrections » identiques. Pur / testable.
  */
-export function interventionsDepuisRelecture(sortie, { page, lignes = [], modele = null, fournisseur = null, kind = 'imprime' } = {}) {
+export function interventionsDepuisRelecture(sortie, { page, lignes = [], modele = null, fournisseur = null, kind = 'imprime', ignorer = null } = {}) {
   if (!sortie || sortie.abstention || !Array.isArray(sortie.corrections)) return []
   const manuscrit = kind === 'manuscrit'
   const out = []
   for (const c of sortie.corrections) {
     const i = Number(c?.i)
     if (!Number.isInteger(i) || i < 0 || i >= lignes.length) continue
+    // Ligne déjà traitée en SCISSION : sa « correction » n'était que l'amputation de la manchette.
+    // La scission porte le corps ET la note ; appliquer les deux effacerait la note à nouveau.
+    if (ignorer && ignorer.has(i)) continue
     const orig = String(lignes[i]?.dip ?? lignes[i]?.texte ?? '')
     // GARDE-FOU §14.3 — sur un IMPRIMÉ, la couche candidate ne porte pas de caractère purement
     // glyphique : si le modèle archaïse (« estre » → « eſtre »), on modernise sa proposition au lieu
@@ -247,6 +251,51 @@ export function interventionsDepuisRelecture(sortie, { page, lignes = [], modele
     out.push(iv)
   }
   return out
+}
+
+/** Intervention de SCISSION : la ligne mixte devient corps + note ENTIÈRE (jamais une amputation). */
+function interventionScission({ page, i, corps, marge, motif, confiance, modele, fournisseur, deduite }) {
+  const iv = intervention({
+    id: 'scission-p' + page + '-l' + i, type: 'scission_marge', page, ligne_ids: [i],
+    texte_original: '', texte_candidat: corps, modele, fournisseur, regle: 'scission_marge',
+    preuves: [motif || (deduite ? 'fin de ligne retranchée par le modèle : reprise comme note de marge' : 'manchette fondue dans la ligne de corps')],
+    lecture_fondee_sur_image: !deduite, confiance_modele: Number(confiance) || 0,
+    // Découper une ligne change la structure : R3, jamais appliqué en aveugle.
+    niveau_risque: 'R3', statut: 'propose_ia', interdit_entrainement: true,
+  })
+  iv.certitude = 'incertaine'
+  iv.corps = corps
+  iv.marge = marge
+  return iv
+}
+
+/**
+ * SCISSIONS déclarées par le modèle, PLUS celles qu'il a faites sans le dire. Une correction qui se
+ * borne à retrancher une fin de ligne est presque toujours une manchette fondue dans le corps : on
+ * la reprend en scission — la note redevient une ligne entière — au lieu de la laisser disparaître.
+ * `dejaVues` reçoit les index déjà traités, pour ne pas produire deux interventions sur une ligne.
+ */
+export function interventionsScission(sortie, { page, lignes = [], modele = null, fournisseur = null } = {}) {
+  const out = [], vues = new Set()
+  for (const s of (Array.isArray(sortie?.scissions) ? sortie.scissions : [])) {
+    const i = Number(s?.i)
+    if (!Number.isInteger(i) || i < 0 || i >= lignes.length) continue
+    const corps = String(s?.corps ?? '').trim(), marge = String(s?.marge ?? '').trim()
+    if (!corps || !marge) continue
+    vues.add(i)
+    out.push(interventionScission({ page, i, corps, marge, motif: s?.motif, confiance: s?.confiance, modele, fournisseur, deduite: false }))
+  }
+  // Filet : amputation non déclarée → scission déduite.
+  for (const c of (Array.isArray(sortie?.corrections) ? sortie.corrections : [])) {
+    const i = Number(c?.i)
+    if (!Number.isInteger(i) || i < 0 || i >= lignes.length || vues.has(i)) continue
+    const avant = String(lignes[i]?.dip ?? lignes[i]?.texte ?? '')
+    const sc = detecterScission(avant, String(c?.texte_corrige ?? ''))
+    if (!sc) continue
+    vues.add(i)
+    out.push(interventionScission({ page, i, corps: sc.corps, marge: sc.marge, motif: null, confiance: c?.confiance, modele, fournisseur, deduite: true }))
+  }
+  return { interventions: out, lignesScindees: vues }
 }
 
 /**
@@ -429,7 +478,10 @@ export async function controlerPageIA(projet, { fournisseur, consentement = fals
     // Page entière hors œuvre : une seule décision, on ne descend pas au détail des lignes.
     const pageExclue = interventionPageExclue(out, ctx)
     if (pageExclue) { interventions.push(pageExclue); continue }
-    interventions.push(...interventionsDepuisRelecture(out, { ...ctx, kind }))
+    // Les SCISSIONS d'abord : elles décident quelles « corrections » n'étaient que des amputations.
+    const sc = interventionsScission(out, ctx)
+    interventions.push(...sc.interventions)
+    interventions.push(...interventionsDepuisRelecture(out, { ...ctx, kind, ignorer: sc.lignesScindees }))
     interventions.push(...interventionsReclassement(out, ctx))
     interventions.push(...interventionsLignesOmises(out, ctx))
   }
