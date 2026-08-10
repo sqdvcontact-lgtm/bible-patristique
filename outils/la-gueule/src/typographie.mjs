@@ -63,6 +63,47 @@ const GLYPHES_ANCIENS = Object.freeze({
   'ﬄ': 'ffl',  // ﬄ
 })
 
+// ── Garde-fous de PONCTUATION et de graphie sur une proposition de correction ────────────────
+//
+// Mesuré sur une passe réelle (35 pages) : le modèle transforme parfois une virgule en POINT
+// devant une minuscule (« de sa plenitude. quelle opulence » — un point suivi d'une minuscule
+// n'est pas une phrase), insère une ESPACE avant un point (« auec luy . c'est »), dégrade
+// l'apostrophe typographique « ’ » en apostrophe droite, ou convertit la césure « ¬ » en trait
+// « - » — ce dernier cas corrompt le texte à l'export, puisque `joindreLignes` supprime le ¬ mais
+// CONSERVE le trait : « mi¬ » + « serables » donnait « miserables », « mi- » donne « mi-serables ».
+//
+// Ces quatre altérations ne sont jamais des lectures de l'image : ce sont des glissements. On les
+// répare sur la proposition, sans rejeter la correction utile qui l'accompagne — exactement comme
+// pour le « ſ ». Fonction PURE, testée.
+const APO_TYPO = '’'
+
+export function reparerDerives(avant, apres) {
+  const a = String(avant ?? '')
+  let b = String(apres ?? '')
+  const reparees = []
+  // 1. Césure « ¬ » convertie en trait d'union : rétablie (sinon le mot est coupé à l'export).
+  if (/¬\s*$/.test(a) && /-\s*$/.test(b) && !/¬\s*$/.test(b)) {
+    b = b.replace(/-(\s*)$/, '¬$1'); reparees.push('césure ¬ rétablie')
+  }
+  // 2. Apostrophe typographique dégradée en apostrophe droite (charte §3.2).
+  if (a.includes(APO_TYPO) && b.includes("'")) {
+    const avantTypo = [...b]
+    b = b.replace(/'/g, APO_TYPO)
+    if (b !== avantTypo.join('')) reparees.push('apostrophe ’ rétablie')
+  }
+  // 3. Espace insérée avant un point ou une virgule (jamais correct en français).
+  if (/\s+[.,]/.test(b) && !/\s+[.,]/.test(a)) {
+    b = b.replace(/\s+([.,])/g, '$1'); reparees.push('espace avant ponctuation retirée')
+  }
+  // 4. Virgule / point-virgule changés en POINT devant une minuscule : incohérent, on rétablit.
+  b = b.replace(/([^\s.])\.(\s*)([a-zà-öø-ÿ])/gu, (tout, av, esp, min, pos) => {
+    const src = a.slice(Math.max(0, pos - 2), pos + tout.length + 2)
+    if (/[,;]/.test(src) && !/\./.test(src)) { reparees.push('point ramené à la virgule'); return av + ',' + esp + min }
+    return tout
+  })
+  return { texte: b, reparees }
+}
+
 /** Les caracteres purement glyphiques presents dans le texte (ordre d'apparition, sans doublon). */
 export function glyphesAnciens(texte) {
   const vus = []

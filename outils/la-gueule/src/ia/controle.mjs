@@ -5,7 +5,7 @@
 
 import { pageAnormale } from './diagnostic.mjs'
 import { appelerIA } from './fournisseur.mjs'
-import { moderniserGlyphes, contientGlyphesAnciens } from '../typographie.mjs'
+import { moderniserGlyphes, contientGlyphesAnciens, reparerDerives } from '../typographie.mjs'
 import { notesDeLaPage, apparierNotesImprimees, numeroterAncrages } from '../notes-ancrage.mjs'
 
 /** Intervention normalisée (provenance complète, §15). Statut par défaut : propose_ia. */
@@ -46,16 +46,27 @@ export function chargerCatalogue(texte) {
  * (≥5), ou majorité de jetons ultra-courts (≤2 lettres) sur une ligne d'au moins 3 jetons. Prudent :
  * ne vise que des non-mots manifestes ; renvoie une raison ou null.
  */
+const VOYELLE = /[aeiouyàâäéèêëîïôöùûüœæ]/i
+const ROMAIN = /^[IVXLCDM]+$/i
+
 export function ligneCharabia(texte) {
   const t = String(texte ?? '').trim()
   if (t.length < 4) return null
   if (/(.)\1{3,}/.test(t)) return 'répétition d’un même caractère (bandeau ornemental probable)'
   if (/[bcdfghjklmnpqrstvwxzçñ]{5,}/i.test(t)) return 'longue suite de consonnes (gravure probable)'
-  const jetons = t.split(/\s+/).filter(Boolean)
-  if (jetons.length >= 3) {
-    const courts = jetons.filter((j) => j.replace(/[^\p{L}]/gu, '').length <= 2).length
-    if (courts / jetons.length > 0.6) return 'majorité de fragments ultra-courts (ornement probable)'
-  }
+  const jetons = t.split(/\s+/).map((j) => j.replace(/[^\p{L}\p{N}]/gu, '')).filter(Boolean)
+  if (jetons.length < 3) return null
+  // UN SEUL mot plausible suffit à disqualifier le charabia. Une gravure n'en produit pas ; du
+  // texte, si. C'est le garde-fou décisif : sans lui, la règle prenait « la coagmentation du Ciel
+  // & de la terre » pour un ornement.
+  if (jetons.some((j) => j.length >= 4 && VOYELLE.test(j))) return null
+  // ⚠️ L'ancienne règle comptait les jetons « ultra-courts » (≤2 lettres) : elle mesurait donc la
+  // présence de MOTS-OUTILS (la, du, de, &, en…) et concluait l'inverse — elle condamnait le
+  // français le plus ordinaire, la page de titre, les titres courants et jusqu'à la date
+  // « M. DC. IV. ». On compte désormais les fragments SANS VOYELLE, qui, eux, ne sont pas des mots
+  // — en épargnant chiffres et chiffres romains, qui en sont.
+  const nonMots = jetons.filter((j) => !VOYELLE.test(j) && !/^\d+$/.test(j) && !ROMAIN.test(j))
+  if (nonMots.length / jetons.length > 0.6) return 'majorité de fragments sans voyelle (ornement probable)'
   return null
 }
 
@@ -64,10 +75,26 @@ export function ligneCharabia(texte) {
  * mention « Google », ou page d'ornement (toutes les lignes sont du charabia). Renvoie une raison ou
  * null. À signaler pour exclusion du corps ; ne supprime jamais la source.
  */
+// Formules propres aux avertissements de numériseur (Google Livres et assimilés). Aucune n'a de
+// raison de figurer dans une œuvre du XVIIᵉ siècle.
+const AVIS_NUMERISEUR = [
+  /\bgoogle\b/i, /\bdigitized\b/i, /à propos de ce livre/i, /consignes d.utilisation/i,
+  /domaine public/i, /recherche de livres/i, /filigrane/i, /^https?:\/\//i, /\bbooks\.google\b/i,
+]
+
 export function pageIgnorable(lignes) {
   const textes = (Array.isArray(lignes) ? lignes : []).map((l) => String(l?.dip ?? l?.texte ?? '').trim()).filter(Boolean)
   if (textes.length === 0) return 'page vide (garde / feuillet blanc)'
-  if (textes.every((t) => /google|digitized/i.test(t))) return 'page de mention Google'
+  // ⚠️ L'ancienne règle exigeait que TOUTES les lignes mentionnent le numériseur : une page de
+  // garde Google en compte une dizaine sur quarante, le reste étant de la prose juridique — elle
+  // n'était donc jamais reconnue. On juge sur un FAISCEAU : plusieurs formules caractéristiques,
+  // ou une proportion notable de lignes concernées.
+  const marquees = textes.filter((t) => AVIS_NUMERISEUR.some((re) => re.test(t))).length
+  // Trois cas : un faisceau de formules ; une proportion notable ; ou une page entièrement faite
+  // de ces mentions (le cas d'une simple estampille « Digitized by Google » sur une page nue).
+  if (marquees >= 3 || (marquees >= 2 && marquees / textes.length >= 0.1) || marquees === textes.length) {
+    return `page d’avertissement du numériseur (${marquees} ligne(s) caractéristique(s) sur ${textes.length})`
+  }
   if (textes.every((t) => ligneCharabia(t))) return 'page d’ornement (OCR de gravure)'
   return null
 }
@@ -191,7 +218,11 @@ export function interventionsDepuisRelecture(sortie, { page, lignes = [], modele
     // de la refuser — la correction utile (lettre, accent) est conservée, l'archaïsme neutralisé.
     // Sur un MANUSCRIT (§14.4, transcription diplomatique), on ne touche à rien.
     const brut = String(c?.texte_corrige ?? '')
-    const corr = manuscrit ? brut : moderniserGlyphes(brut)
+    // Glissements de ponctuation et de graphie réparés avant tout : ils ne viennent jamais d'une
+    // lecture de l'image (césure ¬ perdue, apostrophe dégradée, espace avant un point, virgule
+    // changée en point devant une minuscule).
+    const { texte: redresse, reparees } = reparerDerives(String(lignes[i]?.dip ?? lignes[i]?.texte ?? ''), brut)
+    const corr = manuscrit ? redresse : moderniserGlyphes(redresse)
     // §14.2 / §23.8 : jamais de suppression d'une ligne imprimée par une « correction » vide.
     if (!corr.trim() || corr === orig) continue
     const iv = intervention({
@@ -207,6 +238,11 @@ export function interventionsDepuisRelecture(sortie, { page, lignes = [], modele
     if (!manuscrit && contientGlyphesAnciens(brut)) {
       iv.certitude = 'incertaine'
       iv.preuves = [...(iv.preuves || []), 'archaïsme proposé par le modèle, modernisé (charte §14.3)']
+    }
+    // Une proposition qu'il a fallu redresser n'est plus « certaine » : elle passe sous les yeux.
+    if (reparees.length) {
+      iv.certitude = 'incertaine'
+      iv.preuves = [...(iv.preuves || []), ...reparees]
     }
     out.push(iv)
   }

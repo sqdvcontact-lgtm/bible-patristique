@@ -68,9 +68,14 @@ test('contrôle déterministe : les coquilles non océrisées (tri IA / aperçu)
 test('contrôle : ligneCharabia repère l’OCR d’un bandeau ornemental, sans faux positif sur du texte', () => {
   assert.ok(ligneCharabia('Cocc oc sc coc oiccccccscsc'))          // le cas signalé
   assert.ok(ligneCharabia('llllllll mmmm'))                        // répétition de caractère
-  assert.ok(ligneCharabia('a b c de fg'))                          // fragments ultra-courts
+  assert.ok(ligneCharabia('xz bd fgh kl mn'))                      // fragments SANS VOYELLE
   assert.equal(ligneCharabia('OY dont les premiers Vers n’ont parlé'), null) // vrai vers → rien
   assert.equal(ligneCharabia('de la Philosophie. Livre I.'), null)         // vrai titre → rien
+  // ⚠️ Ce test affirmait qu'« a b c de fg » était du charabia, au nom des « fragments ultra-courts ».
+  // C'était la règle FAUTIVE : elle comptait les mots-outils (la, du, de, &) et condamnait donc le
+  // français ordinaire — « la coagmentation du Ciel & de la terre » passait pour un ornement.
+  assert.equal(ligneCharabia('la coagmentation du Ciel & de la terre'), null)
+  assert.equal(ligneCharabia('M. DC. IV.'), null)                          // une date n'est pas un ornement
 })
 
 test('contrôle déterministe : une ligne charabia est comptée et signalée (R2)', () => {
@@ -85,7 +90,7 @@ test('contrôle déterministe : une ligne charabia est comptée et signalée (R2
 
 test('contrôle : pageIgnorable — garde blanche, page Google, page d’ornement ; pas une page de texte', () => {
   assert.match(pageIgnorable([]), /garde/)                                        // page vide
-  assert.match(pageIgnorable([{ dip: 'Digitized by Google' }]), /Google/)         // page Google
+  assert.match(pageIgnorable([{ dip: 'Digitized by Google' }]), /numériseur/)     // estampille de numérisation
   assert.match(pageIgnorable([{ dip: 'Cocc oc sc coc oiccccccscsc' }]), /ornement/) // page de gravure
   assert.equal(pageIgnorable([{ dip: 'OY dont les premiers Vers n’ont parlé' }]), null) // vraie page → null
 })

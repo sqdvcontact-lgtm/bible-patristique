@@ -111,6 +111,15 @@ export function analyserComparaison(projet, { seuilConfiance = 0.8 } = {}) {
 
 const nb = (x) => (x == null ? '—' : (Math.round(x * 100) / 100).toString().replace('.', ','))
 
+// Vocabulaire d'AFFICHAGE des rôles. Le rôle interne reste celui de structure.mjs ; ce qu'on
+// montre est en français d'éditeur — « signature » se dit « marque de cahier ».
+const LIB_ROLE = {
+  titre_courant: 'titre courant', numero_page: 'numéro de page', signature: 'marque de cahier',
+  reclame: 'réclame', ornement: 'ornement', bruit: 'bruit', note_marginale: 'note en marge',
+  note_bas_page: 'note de bas de page', paratexte_titre: 'mention de page de titre',
+}
+export const libelleRole = (r) => LIB_ROLE[r] || String(r || '').replace(/_/g, ' ')
+
 function etiquette(c) {
   const t = []
   if (c.origine) t.push(c.origine === 'ia' ? 'IA' + (c.modele ? ' (' + c.modele + ')' : '') : c.origine)
@@ -154,11 +163,11 @@ export function comparaisonMarkdown(projet, { nom = 'projet', date = null, seuil
     for (const c of pg.lignes) {
       const et = etiquette(c)
       if (c.reclasseVers && !c.modifieTexte) {
-        out.push('- L' + c.i + ' · reclassement → **' + c.reclasseVers + '** (hors-corps)' + (et ? ' · ' + et : ''))
+        out.push('- L' + c.i + ' · reclassement → **' + libelleRole(c.reclasseVers) + '** (hors-corps)' + (et ? ' · ' + et : ''))
         out.push('  - méca : ' + (c.meca || '∅'))
         out.push('  - IA   : _écartée du corps_')
       } else {
-        out.push('- L' + c.i + (et ? ' · ' + et : '') + (c.reclasseVers ? ' · → **' + c.reclasseVers + '**' : ''))
+        out.push('- L' + c.i + (et ? ' · ' + et : '') + (c.reclasseVers ? ' · → **' + libelleRole(c.reclasseVers) + '**' : ''))
         out.push('  - méca : ' + (c.meca || '∅'))
         out.push('  - IA   : ' + (c.ia || '∅'))
       }

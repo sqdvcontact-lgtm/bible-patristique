@@ -148,6 +148,33 @@
   .vpanel-corps label.reglage:has(input[type=checkbox]){flex-direction:row;align-items:center;gap:6px}
   /* Ligne pointée depuis l'onglet Contrôle : visible sur le fac-similé, pas seulement dans le texte. */
   .box.cible{background:rgba(201,151,31,.28);border:2px solid var(--ambre,#c9971f);box-shadow:0 0 0 2px rgba(201,151,31,.35)}
+  /* ── Mode COULEUR : chaque rôle a sa teinte, dans le texte ET sur le fac-similé, pour vérifier
+     les classements d'un coup d'œil au lieu de lire ligne à ligne. Teintes franches mais pâles :
+     elles doivent situer, pas crier. Le corps reste presque blanc — c'est la masse. */
+  .roles .lg[data-role="corps"] input{background:#fdfaf3}
+  .roles .lg[data-role="note_marginale"] input{background:#f2e2d0;border-color:#b07a45}
+  .roles .lg[data-role="note_bas_page"] input{background:#eadcc8;border-color:#9a6a3a}
+  .roles .lg[data-role="titre"] input{background:#e5eef7;border-color:#5b86ad}
+  .roles .lg[data-role="paratexte_titre"] input{background:#e0e8f5;border-color:#6b7fb5}
+  .roles .lg[data-role="titre_courant"] input{background:#ece7f5;border-color:#8b7ab5}
+  .roles .lg[data-role="numero_page"] input{background:#eef0f2;border-color:#8d97a1;font-style:italic}
+  .roles .lg[data-role="signature"] input{background:#eef0f2;border-color:#8d97a1;font-style:italic}
+  .roles .lg[data-role="reclame"] input{background:#e8f0ea;border-color:#6f9a7c;font-style:italic}
+  .roles .lg[data-role="ornement"] input{background:#f0e9e9;border-color:#a98a8a;text-decoration:line-through}
+  .roles .lg[data-role="bruit"] input{background:#eeeaea;border-color:#a09595;text-decoration:line-through;opacity:.7}
+  .roles .lg[data-role="vers"] input{background:#f6f1e4}
+  /* Suggestion NON confirmée : même teinte, mais en pointillé — on distingue proposé et décidé. */
+  .roles .lg[data-suggere="1"] input{border-style:dashed}
+  .roles .box[data-role="note_marginale"]{background:rgba(176,122,69,.22);border-color:#b07a45}
+  .roles .box[data-role="note_bas_page"]{background:rgba(154,106,58,.22);border-color:#9a6a3a}
+  .roles .box[data-role="titre"],.roles .box[data-role="paratexte_titre"]{background:rgba(91,134,173,.20);border-color:#5b86ad}
+  .roles .box[data-role="titre_courant"]{background:rgba(139,122,181,.20);border-color:#8b7ab5}
+  .roles .box[data-role="numero_page"],.roles .box[data-role="signature"]{background:rgba(141,151,161,.20);border-color:#8d97a1}
+  .roles .box[data-role="reclame"]{background:rgba(111,154,124,.20);border-color:#6f9a7c}
+  .roles .box[data-role="ornement"],.roles .box[data-role="bruit"]{background:rgba(169,138,138,.22);border-color:#a98a8a}
+  #legendeRoles{display:none;flex-wrap:wrap;gap:5px 12px;align-items:center;font-size:11px;color:var(--second);padding:4px 0}
+  .roles-on #legendeRoles{display:flex}
+  #legendeRoles i{display:inline-block;width:11px;height:11px;border-radius:2px;border:1px solid;margin-right:4px;vertical-align:-1px}
   .onglets{display:flex;gap:6px;margin-bottom:10px}
   .onglets button{padding:4px 10px;border-radius:999px;font-size:12px}
   .onglets button.actif{background:var(--vert);color:#fff;border-color:var(--vert)}
@@ -359,7 +386,10 @@
   <span id="etatExport" style="font-size:12px;color:var(--second)"></span>
 </div>
 
+<div class="barre2" id="legendeRoles"></div>
+
 <div class="barre2" id="barreAvance" style="display:none">
+  <label class="reglage" style="flex-direction:row;align-items:center;gap:6px" title="Colore chaque ligne selon son rôle, dans le texte ET sur le fac-similé : on vérifie les classements d'un coup d'œil au lieu de les lire un à un. Bordure en pointillé = simple suggestion, pas encore confirmée."><input type="checkbox" id="chkRoles"> Couleurs des rôles</label>
   <button class="discret" id="btnExportXml" title="Exporte chaque page océrisée aux formats d'échange ALTO v4 + PAGE XML (coordonnées + texte + image), pour eScriptorium / Transkribus / Aletheia">ALTO / PAGE</button>
   <button class="discret" id="btnValider" title="Validation HUMAINE de la page : marque valide_humain (par page et par ligne, hors lignes incertaines). Re-cliquer retire la validation.">✓ Valider (humain)</button>
   <span id="nbValidees" style="font-size:12px;color:var(--second)"></span>
@@ -655,6 +685,18 @@ function rendrePanneauValidation(){ const p=$('panneauValidation'); if(!p)return
 // Rendu PARTAGÉ d'une décision individuelle (correction de texte OU reclassement de rôle) : en-tête,
 // avant → après, boutons Accepter / Modifier / Refuser / Indéterminé, et « voir » la région sur l'image.
 const ECH=(s)=>String(s??'').replace(/</g,'&lt;')
+// Vocabulaire d'AFFICHAGE des rôles, partagé par tout l'atelier. Le rôle interne reste celui de
+// structure.mjs ; ce qu'on montre est en français d'éditeur — « signature » se dit « marque de
+// cahier », et ne doit plus paraître autrement.
+const LIB_ROLE={corps:'corps',titre:'titre',vers:'vers',titre_courant:'titre courant',numero_page:'numéro de page',
+  signature:'marque de cahier',reclame:'réclame',ornement:'ornement',bruit:'bruit',note_marginale:'note en marge',
+  note_bas_page:'note de bas de page',paratexte_titre:'mention de page de titre',indetermine:'indéterminé'}
+const libRole=(r)=>LIB_ROLE[roleBase(r)]||String(r||'').replace(/_/g,' ')
+// L'analyse de structure émet des rôles PROVISOIRES suffixés (« lettrine_candidate »,
+// « reclame_candidate_geometrique »…). Pour la couleur et le libellé, seule la famille compte —
+// le suffixe dit l'état de la décision, pas la nature de la ligne.
+const ROLE_ALIAS={lettrine:'corps',artefact:'bruit',paratexte:'paratexte_titre',ornement:'ornement'}
+function roleBase(r){ const b=String(r||'').replace(/_candidate.*$/,''); return ROLE_ALIAS[b]||b||'corps' }
 function rendreItemDecision(f){ const d=document.createElement('div'); d.className='val-crit'
   const estRe=f.type==='reclassement_role', estAnc=f.type==='ancrage_note', estOmi=f.type==='ligne_omise'
   const icone = estRe?'⤳ reclasser' : estAnc?'❡ rattacher la note' : estOmi?'＋ ligne omise' : '✎ '+(f.regle||f.id||'correction')
@@ -739,7 +781,6 @@ function rendreVoletControle(){ const box=$('panelControleCorps'); if(!box)retur
     if(!parRole.has(f.role_apres)) parRole.set(f.role_apres,[])
     parRole.get(f.role_apres).push(f) }
   const enLot=new Set()
-  const LIB_ROLE={titre_courant:'titre courant',numero_page:'numéro de page',signature:'marque de cahier',reclame:'réclame',ornement:'ornement',bruit:'bruit',note_marginale:'note en marge',note_bas_page:'note de bas de page',paratexte_titre:'mention de page de titre'}
   for(const [role,liste] of parRole){
     if(liste.length<3) continue                       // en dessous, le détail suffit
     liste.forEach(f=>enLot.add(f))
@@ -784,7 +825,7 @@ function rendreItemControle(f){ const estRe=f.type==='reclassement_role'
     h.innerHTML='<span>'+(estRe?'⤳ reclasser':'✎ correction')+' · p.'+(f.page??'?')+(f.ligne_ids&&f.ligne_ids.length?' l'+f.ligne_ids.join(','):'')+'</span><span>'+(f.niveau_risque||'')+'</span>'
     d.appendChild(h)
     const av=document.createElement('div'); av.className='ct-avapr'
-    if(estRe){ av.innerHTML='rôle : <span class="av">'+(f.role_avant||'corps')+'</span> → <span class="apr">'+(f.role_apres||'?')+'</span>'
+    if(estRe){ av.innerHTML='rôle : <span class="av">'+libRole(f.role_avant||'corps')+'</span> → <span class="apr">'+libRole(f.role_apres||'?')+'</span>'
       const ctx=document.createElement('div'); ctx.style.cssText='font-size:11px;color:var(--second);margin-top:2px'; ctx.textContent='« '+String(f.texte_original||'').slice(0,60)+' »'; av.appendChild(ctx) }
     else av.innerHTML='<span class="av">'+String(f.texte_original||'∅').replace(/</g,'&lt;')+'</span> → <span class="apr">'+String(f.texte_candidat||'∅').replace(/</g,'&lt;')+'</span>'
     d.appendChild(av)
@@ -1128,6 +1169,8 @@ function rendre(){
     const sx=img.clientWidth/pg.largeur, sy=img.clientHeight/pg.hauteur
     pg.lignes.forEach((l,i)=>{ if(!l.bbox)return; const [x,y,w,h]=l.bbox
       const b=document.createElement('div'); b.className='box'; b.dataset.i=i
+      { const l=pg.lignes[i], conf=l&&l.suggestion&&l.suggestion.role_confirme, sug=l&&l.suggestion&&l.suggestion.role_suggere
+        b.dataset.role=conf||sug||(l&&l.titre&&l.titre.niveau?'titre':'corps') } // même code couleur sur le fac-similé
       b.style.left=(x*sx)+'px'; b.style.top=(y*sy)+'px'; b.style.width=(w*sx)+'px'; b.style.height=(h*sy)+'px'
       b.onclick=()=>{ const inp=vl.querySelector(`input[data-i="${i}"]`); if(inp){inp.focus();} }
       scene.appendChild(b) }) }
@@ -1162,6 +1205,12 @@ function rendre(){
   bAjout.onclick=()=>{ const act=vl.querySelector('.lg.actif'); insererLigne(act?(+act.dataset.i+1):0) }
   barreAjout.appendChild(bAjout); vl.appendChild(barreAjout)
   pg.lignes.forEach((l,i)=>{ const row=document.createElement('div'); row.className='lg'; row.dataset.i=i
+    // Rôle porté sur la ligne : c'est lui que le MODE COULEUR lit. Le rôle CONFIRMÉ prime ; à
+    // défaut on montre la suggestion, signalée en pointillé pour qu'on ne confonde jamais une
+    // proposition avec une décision.
+    { const conf=l.suggestion&&l.suggestion.role_confirme, sug=l.suggestion&&l.suggestion.role_suggere
+      const r=conf||sug||(l.titre&&l.titre.niveau?'titre':'corps')
+      row.dataset.role=roleBase(r); if(!conf&&sug) row.dataset.suggere='1' }
     const txt=l[S.couche]||''
     const doute=(l.confiance!=null && l.confiance<SEUIL_DOUTE)
     const estTitre=!!(l.titre && l.titre.niveau)
@@ -1563,6 +1612,33 @@ function majReglagesOcr(){
 if($('typo')) $('typo').addEventListener('change', majReglagesOcr)
 if($('bilingue')) $('bilingue').addEventListener('change', majReglagesOcr)
 majReglagesOcr()
+
+// ── Mode COULEUR des rôles ────────────────────────────────────────────────────────────────────
+// Vérifier des centaines de classements en lisant ligne à ligne est impraticable ; en couleur,
+// une manchette prise pour du corps, ou un titre courant oublié, saute aux yeux.
+const COULEURS_ROLES=[['corps','#fdfaf3','#d9cfc0'],['note_marginale','#f2e2d0','#b07a45'],['note_bas_page','#eadcc8','#9a6a3a'],
+  ['titre','#e5eef7','#5b86ad'],['paratexte_titre','#e0e8f5','#6b7fb5'],['titre_courant','#ece7f5','#8b7ab5'],
+  ['numero_page','#eef0f2','#8d97a1'],['signature','#eef0f2','#8d97a1'],['reclame','#e8f0ea','#6f9a7c'],
+  ['ornement','#f0e9e9','#a98a8a'],['bruit','#eeeaea','#a09595']]
+function rendreLegendeRoles(){ const l=$('legendeRoles'); if(!l)return; l.innerHTML=''
+  const vus=new Set()
+  for(const [role,fond,bord] of COULEURS_ROLES){
+    const lib=LIB_ROLE[role]||role; if(vus.has(lib))continue; vus.add(lib)   // n° de page et marque de cahier partagent la teinte
+    const s=document.createElement('span'); s.innerHTML='<i style="background:'+fond+';border-color:'+bord+'"></i>'+lib
+    l.appendChild(s) }
+  const n=document.createElement('span'); n.style.color='var(--second)'; n.textContent='— bordure en pointillé : suggestion non confirmée'
+  l.appendChild(n) }
+function majModeRoles(){ const on=$('chkRoles')&&$('chkRoles').checked
+  document.body.classList.toggle('roles-on', !!on)
+  const vl=$('lignes'), vi=$('voletImage')
+  if(vl) vl.classList.toggle('roles', !!on)
+  if(vi) vi.classList.toggle('roles', !!on)
+  try{ localStorage.setItem('cs_roles_couleur', on?'1':'0') }catch{} }
+if($('chkRoles')){
+  try{ $('chkRoles').checked = localStorage.getItem('cs_roles_couleur')==='1' }catch{}
+  $('chkRoles').addEventListener('change', majModeRoles)
+  rendreLegendeRoles(); majModeRoles()
+}
 
 // Bascule d'onglets du volet gauche.
 document.querySelectorAll('#vtabs button').forEach(b=>b.onclick=()=>{
