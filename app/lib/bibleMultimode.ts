@@ -121,10 +121,16 @@ export function canonicalTranslationIdsFromSample(row: Record<string, unknown> |
 }
 
 /**
- * Ajoute le mode « verse » (source : segmentation éditoriale) aux traductions dont
- * le texte des versets canoniques est recomposé hors de `versets_lecture` — TR0009
- * (Bible 899). Site privé : cette capacité est reconnue même pour des segmentations
- * non publiques, la vue publique `v_bible_reading_capabilities` ne pouvant l'annoncer.
+ * Fixe le mode « verse » (source : segmentation éditoriale) comme SEUL mode de la page
+ * Bible pour les traductions dont le texte des versets canoniques est recomposé hors de
+ * `versets_lecture` — TR0009 (Bible 899). Site privé : cette capacité est reconnue même
+ * pour des segmentations non publiques, la vue publique `v_bible_reading_capabilities`
+ * ne pouvant l'annoncer.
+ *
+ * On REMPLACE les modes source (native/diplomatic/expanded) par le seul « verse » : la
+ * page Bible doit lire TR0009 comme une traduction ordinaire, sans sélecteur de mode ni
+ * graphie diplomatique. Le lecteur dédié `/manuscrits/bible-899` (indépendant de ce
+ * catalogue) reste la surface d'étude des modes source.
  */
 export function withEditorialVerseCapability(
   capabilities: Record<string, TranslationReadingCapabilities>,
@@ -132,16 +138,12 @@ export function withEditorialVerseCapability(
 ): Record<string, TranslationReadingCapabilities> {
   const result = { ...capabilities }
   for (const translationId of editorialVerseTranslationIds) {
-    const current = result[translationId] ?? { translationId, modes: [] }
     const capability: BibleReadingModeCapability = {
       mode: 'verse',
       availability: 'available',
       source: 'editorial-segments',
     }
-    result[translationId] = {
-      ...current,
-      modes: [...current.modes.filter((item) => item.mode !== 'verse'), capability],
-    }
+    result[translationId] = { translationId, modes: [capability] }
   }
   return result
 }

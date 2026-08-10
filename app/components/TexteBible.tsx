@@ -16,10 +16,8 @@ import IconeCrayon from '@/app/components/IconeCrayon'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
-import { selectableReadingModes, type BibleReadingMode, type TranslationReadingCapabilities } from '@/app/lib/bibleReadingModes'
-import { estVerseEditorial } from '@/app/lib/bibleMultimode'
-import { aRevoir899, type Couche899 } from '@/app/lib/bible899'
-import BibleReadingModeSelector from '@/app/components/BibleReadingModeSelector'
+import { type Couche899 } from '@/app/lib/bible899'
+import { rendreMarqueurs899 } from '@/app/lib/marqueurs899'
 
 const VERSET_ACTION_BTN: React.CSSProperties = {
   background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
@@ -32,10 +30,10 @@ const VERSET_ACTION_BTN: React.CSSProperties = {
 type Verset = {
   id_verset: string; ref: string; livre: string
   chapitre: number; verset: number
-  [traduction: string]: string | number | null | undefined
   chapitre_alternatif?: number | null; verset_alternatif?: number | null
-  // TR0009 (Bible 899) : statut d'alignement du verset, pour rendre lacunes et relectures.
-  _statutAlignement?: string; _statutVerification?: string
+  // TR0009 (Bible 899) : marqueurs de l'adaptateur (ligne recomposée, lacune du manuscrit).
+  _est899?: boolean; _estLacune?: boolean
+  [traduction: string]: string | number | boolean | null | undefined
 }
 
 type Traduction = { code: string; label: string }
@@ -52,8 +50,8 @@ type Props = {
   versetSelectionne: Verset | null
   setVersetSelectionne: (v: Verset | null) => void
   mobile?: boolean
-  readingCapabilities?: Record<string, TranslationReadingCapabilities>
   couche?: Couche899
+  couchesDisponibles?: Couche899[]
 }
 
 // ── Bouton copie ──────────────────────────────────────────────────────────────
@@ -384,7 +382,7 @@ export default function TexteBible({
   versets, traduction, traductionIndex, setTraductionIndex, traductions,
   livreActif, chapitreActif, nomLivre,
   versetSelectionne, setVersetSelectionne, mobile = false,
-  readingCapabilities, couche
+  couche, couchesDisponibles
 }: Props) {
   const [userId, setUserId] = useState<string | null>(null)
   const [estAdmin, setEstAdmin] = useState(false)
@@ -465,16 +463,14 @@ export default function TexteBible({
   // client : largeurs, verset sélectionné) restent en place.
   const allerAuChapitre = (n: number) => router.push(`/?livre=${livreActif}&chapitre=${n}&trad=${tradCode}`)
 
-  // TR0009 (Bible 899) : modes lisibles et couche textuelle. Une ligne « 899 » porte
-  // toujours `_statutAlignement`. Le choix de version textuelle (diplomatique /
-  // développée) et le passage à un autre mode se font par rechargement serveur.
-  const modesTrad = selectableReadingModes(readingCapabilities?.[tradCode] ?? { translationId: tradCode, modes: [] })
-  const estVerse899 = estVerseEditorial(readingCapabilities?.[tradCode])
+  // TR0009 (Bible 899) : une ligne « 899 » est marquée par l'adaptateur (`_est899`). Le
+  // contrôle « Graphie » n'apparaît QUE si la couche « modernized » est disponible
+  // (piloté par les données) ; le changement se fait par rechargement serveur.
   const coucheActive: Couche899 = couche ?? 'expanded'
-  const estLigne899 = (v: Verset) => v._statutAlignement != null
-  const estLacune899 = (v: Verset) => v._statutAlignement === 'CANONICAL_GAP'
-  const changerMode = (m: BibleReadingMode) => router.push(`/?livre=${livreActif}&chapitre=${chapitreActif}&trad=${tradCode}&mode=${m}`)
-  const changerCouche = (c: Couche899) => router.push(`/?livre=${livreActif}&chapitre=${chapitreActif}&trad=${tradCode}&mode=verse&couche=${c}`)
+  const graphieModerniseeDispo = (couchesDisponibles ?? []).includes('modernized')
+  const estLigne899 = (v: Verset) => v._est899 === true
+  const estLacune899 = (v: Verset) => v._estLacune === true
+  const changerGraphie = (c: Couche899) => router.push(`/?livre=${livreActif}&chapitre=${chapitreActif}&trad=${tradCode}&mode=verse&couche=${c}`)
 
   return (
     <div className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'} style={{ background: 'var(--cs-fond)', ...(mobile ? { width: '100%', paddingTop: '2.875rem', paddingBottom: `calc(0.75rem + ${BANDEAU_NAV_MOBILE})` } : {}) }}>
@@ -553,28 +549,27 @@ export default function TexteBible({
           <div />
         </div>
 
-        {/* Choix de la version textuelle : mode de lecture (quand la traduction en
-            propose plusieurs : TR0009) et, en mode Versets, la couche du manuscrit
-            (abréviations développées / graphie diplomatique). */}
-        {(modesTrad.length >= 2 || estVerse899) && (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.75rem 1rem', marginTop: '0.625rem', flexWrap: 'wrap' }}>
-            <BibleReadingModeSelector value="verse" modes={modesTrad} onChange={changerMode} />
-            {estVerse899 && (
-              <div role="group" aria-label="État du texte" style={{ display: 'flex', gap: '0.375rem' }}>
-                {([['expanded', 'Développée'], ['diplomatic', 'Diplomatique']] as [Couche899, string][]).map(([val, lab]) => (
-                  <button key={val} type="button" aria-pressed={coucheActive === val} onClick={() => changerCouche(val)}
-                    title={val === 'expanded' ? 'Abréviations développées' : 'Transcription diplomatique du manuscrit'}
-                    style={{
-                      border: '1px solid var(--cs-bord)', borderRadius: '999px',
-                      background: coucheActive === val ? 'rgba(var(--cs-vert-rgb),0.10)' : 'var(--cs-surface)',
-                      color: coucheActive === val ? 'var(--cs-vert)' : 'var(--cs-texte-second)',
-                      cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.6875rem', padding: '0.25rem 0.625rem',
-                    }}>
-                    {lab}
-                  </button>
-                ))}
-              </div>
-            )}
+        {/* Seule particularité visuelle de TR0009 : le choix de graphie. Il n'apparaît
+            QUE lorsque la couche modernisée est disponible (piloté par les données).
+            Tant qu'elle n'existe pas, aucun contrôle : la graphie du manuscrit s'affiche
+            directement et TR0009 se lit comme une traduction ordinaire. */}
+        {graphieModerniseeDispo && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '0.625rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>Graphie</span>
+            <div role="group" aria-label="Graphie" style={{ display: 'flex', gap: '0.375rem' }}>
+              {([['modernized', 'Modernisée'], ['expanded', 'Manuscrit']] as [Couche899, string][]).map(([val, lab]) => (
+                <button key={val} type="button" aria-pressed={coucheActive === val} onClick={() => changerGraphie(val)}
+                  title={val === 'modernized' ? 'Graphie modernisée' : 'Graphie du manuscrit (abréviations développées)'}
+                  style={{
+                    border: '1px solid var(--cs-bord)', borderRadius: '999px',
+                    background: coucheActive === val ? 'rgba(var(--cs-vert-rgb),0.10)' : 'var(--cs-surface)',
+                    color: coucheActive === val ? 'var(--cs-vert)' : 'var(--cs-texte-second)',
+                    cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.6875rem', padding: '0.25rem 0.625rem',
+                  }}>
+                  {lab}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -618,7 +613,6 @@ export default function TexteBible({
             const actif = versetSelectionne?.id_verset === v.id_verset
             const ligne899 = estLigne899(v)
             const lacune = estLacune899(v)
-            const aRevoir = ligne899 && aRevoir899({ alignment_status: v._statutAlignement ?? '', verification_status: v._statutVerification ?? '' })
             return (
             <div key={v.id_verset}
               id={`verset-${v.verset}`}
@@ -654,18 +648,16 @@ export default function TexteBible({
                   </span>
 
                   {/* Texte — colonne fixe et stable, alignée quel que soit l'état des boutons.
-                      TR0009 : lacune du manuscrit rendue explicitement ; relecture non close
-                      signalée discrètement « à revoir ». */}
+                      TR0009 : lacune du manuscrit rendue explicitement ; marqueurs éditoriaux
+                      inline (lecture incertaine, ajout marginal) rendus discrètement. Aucun
+                      statut technique d'alignement n'est montré au lecteur. */}
                   <p data-verse-text lang={ligne899 ? 'fro' : undefined} style={{ fontSize: '0.84rem', lineHeight: mobile ? 1.3 : 1.42, color: 'var(--cs-texte-fort)', margin: 0, textAlign: 'justify', wordSpacing: '-0.02em', letterSpacing: '-0.003em' }}>
                     {lacune ? (
                       <span style={{ color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>[lacune du manuscrit]</span>
                     ) : (overrides[v.id_verset]?.[traduction] ?? v[traduction]) ? (
-                      <>
-                        {rendreTexteEnrichi(String(overrides[v.id_verset]?.[traduction] ?? v[traduction]))}
-                        {aRevoir && (
-                          <span title="Alignement à revoir" style={{ marginLeft: '0.35rem', fontSize: '0.6875rem', fontStyle: 'italic', color: 'var(--cs-texte-faible)', whiteSpace: 'nowrap' }}>· à revoir</span>
-                        )}
-                      </>
+                      ligne899
+                        ? rendreMarqueurs899(String(v[traduction] ?? ''))
+                        : rendreTexteEnrichi(String(overrides[v.id_verset]?.[traduction] ?? v[traduction]))
                     ) : (
                       <span style={{ color:'var(--cs-bord)', fontStyle:'italic' }}>—</span>
                     )}

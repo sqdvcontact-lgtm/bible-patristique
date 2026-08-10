@@ -17,9 +17,10 @@ type Livre = { code: string; nom: string; testament: string }
 type Verset = {
   id_verset: string; ref: string; livre: string
   chapitre: number; verset: number
-  // Métadonnées d'alignement (TR0009 uniquement) : rendu des lacunes / relectures.
-  _statutAlignement?: string; _statutVerification?: string
-  [traduction: string]: string | number | null | undefined
+  // TR0009 (Bible 899) : marqueurs de l'adaptateur — ligne recomposée et lacune du
+  // manuscrit. Aucun statut technique d'alignement n'est exposé au rendu public.
+  _est899?: boolean; _estLacune?: boolean
+  [traduction: string]: string | number | boolean | null | undefined
 }
 type Traduction = { code: string; label: string; auteur?: string | null; auteurDates?: string | null; editionRef?: string | null; datePublication?: string | null; confession?: string | null; langue?: string | null }
 
@@ -33,6 +34,9 @@ type Props = {
   tradInitiale: string
   readingCapabilities: Record<string, TranslationReadingCapabilities>
   couche?: Couche899
+  /** Couches réellement disponibles pour la page Bible (TR0009). Pilote l'affichage du
+   *  contrôle « Graphie » : présent seulement si « modernized » y figure. */
+  couchesDisponibles?: Couche899[]
   /** L'URL a explicitement fixé `?trad=` : on l'honore, sans lui substituer la préférence. */
   tradExplicite?: boolean
 }
@@ -47,7 +51,7 @@ const TRADUCTIONS_DEFAUT = [
 ]
 
 
-export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, tradExplicite }: Props) {
+export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, tradExplicite }: Props) {
   const listeTraductions = traductions.length > 0 ? traductions : TRADUCTIONS_DEFAUT
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
@@ -279,8 +283,8 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
           versetSelectionne={versetSelectionneCourant}
           setVersetSelectionne={setVersetSelectionne}
           mobile={mobile}
-          readingCapabilities={readingCapabilities}
           couche={couche}
+          couchesDisponibles={couchesDisponibles}
         />
       </div>
       <PanneauPatristique

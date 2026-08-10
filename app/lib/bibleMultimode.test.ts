@@ -9,6 +9,7 @@ import {
   preferredLayerForMode,
   readingCapabilitiesByTranslation,
   visibleNativeFolioSequence,
+  withEditorialVerseCapability,
   type NativeDivisionRow,
   type ReadingCapabilityRow,
   type SourceUnitTextRow,
@@ -44,6 +45,18 @@ describe('adaptateur multimode biblique', () => {
   it('ignore un mode inconnu au lieu de fabriquer une capacité', () => {
     const catalog = readingCapabilitiesByTranslation([row('WITNESS', 'future-mode', true)], [])
     expect(catalog.WITNESS).toBeUndefined()
+  })
+
+  it('impose le mode « verse » SEUL aux traductions éditoriales (page Bible)', () => {
+    // Même quand la vue annonce des modes source, la page Bible ne doit exposer que
+    // « verse » pour TR0009 : plus de sélecteur de mode ni de graphie diplomatique.
+    const base = readingCapabilitiesByTranslation([
+      row('TR0009', 'diplomatic', true),
+      row('TR0009', 'expanded', true),
+      row('TR0009', 'native', true),
+    ], [])
+    const avec = withEditorialVerseCapability(base, ['TR0009'])
+    expect(selectableReadingModes(avec.TR0009).map((mode) => mode.value)).toEqual(['verse'])
   })
 
   it('découvre les traductions canoniques depuis les colonnes réelles', () => {

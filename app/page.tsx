@@ -6,7 +6,7 @@ import { LIVRES } from '@/app/lib/bible'
 import { loadBibleReadingCatalog, loadSourceReading } from '@/app/lib/bibleMultimodeServer'
 import { estVerseEditorial } from '@/app/lib/bibleMultimode'
 import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleReadingModes'
-import { chargerVersets899, normaliserCouche899, texteCouche899 } from '@/app/lib/bible899'
+import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899 } from '@/app/lib/bible899'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
 // La base est désormais fermée au rôle anonyme : une page serveur doit
@@ -96,21 +96,20 @@ export default async function Home({
   // Deux origines pour le mode « verset », même contrat de données pour BibleLayout :
   //   - éditions historiques (TR0001–TR0005) : vue large `versets_lecture` ;
   //   - segmentation éditoriale (TR0009, Bible 899) : texte recomposé et aligné sur
-  //     canon_id, lu en direct des tables éditoriales (aucune copie vers versets_v2).
-  const couche = normaliserCouche899(params.couche)
+  //     canon_id, ADAPTÉ au contrat ordinaire (aucune copie vers versets_v2). La
+  //     mécanique (offsets, unités-source, folios…) reste derrière l'adaptateur.
+  const editorial = estVerseEditorial(catalog.capabilities[trad])
+  // Couches réellement disponibles pour la page Bible, lues sur les DONNÉES. La graphie
+  // « diplomatique » n'est pas destinée à la page Bible (charte) : on l'écarte, ne
+  // laissant que « Manuscrit » (expanded) et, quand elle existera, « Modernisée ».
+  const couchesBible = editorial
+    ? (await couchesDisponibles899(supabase)).filter((c) => c !== 'diplomatic')
+    : []
+  const couche = normaliserCouche899(params.couche, couchesBible)
   let versets: any[]
-  if (estVerseEditorial(catalog.capabilities[trad])) {
-    const lignes = await chargerVersets899(supabase, { livre, chapitre })
-    versets = lignes.map((ligne) => ({
-      id_verset: `899:${ligne.canon_id}`,
-      ref: ligne.canon_id ?? '',
-      livre,
-      chapitre: ligne.chapitre ?? chapitre,
-      verset: ligne.verset ?? 0,
-      [trad]: texteCouche899(ligne, couche),
-      _statutAlignement: ligne.alignment_status,
-      _statutVerification: ligne.verification_status,
-    }))
+  if (editorial) {
+    const lignes = await chargerVersets899(supabase, { livre, chapitre }, [couche])
+    versets = adapterVersets899(lignes, trad, livre, chapitre, couche)
   } else {
     const { data } = await supabase
       // Vue de compatibilité canonique. Elle reste le chemin exclusif des éditions
@@ -134,7 +133,8 @@ export default async function Home({
         nomLivre={NOMS_LIVRES[livre] || livre}
         tradInitiale={trad}
         readingCapabilities={catalog.capabilities}
-        couche={couche}
+        couche={editorial ? couche : undefined}
+        couchesDisponibles={couchesBible}
         tradExplicite={!!params.trad}
       />
     </Suspense>
