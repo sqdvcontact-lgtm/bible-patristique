@@ -11,7 +11,7 @@
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { SYSTEME, SYSTEME_META, consigneMetadonnees } from './prompt.mjs'
+import { SYSTEME, SYSTEME_META, SYSTEME_VERIF, consigneMetadonnees } from './prompt.mjs'
 
 /**
  * Résout le binaire du CLI. `LG_AI_CLI` gagne toujours ; sinon, sur Windows, on tente l'emplacement
@@ -154,12 +154,33 @@ export function fournisseurClaudeLocal(env = {}) {
     return { ...data, type: 'ancrage_notes', statut: 'candidat', abstention: !!data.abstention, ancrages: data.ancrages, fournisseur: 'claude-local', modele: modeleCorr || 'défaut (abonnement)' }
   }
 
+  // VÉRIFICATION VISUELLE : le CLI lit l'image (page entière ou crop d'une ligne) et dit laquelle des
+  // deux lectures est imprimée. Modèle de VISION en priorité : c'est une tâche d'œil, pas de langue —
+  // on y lit des chiffres, des accents et des signes de ponctuation, là où un modèle léger invente.
+  async function verificationVisuelle(charge = {}, { timeoutMs } = {}) {
+    const { image_path, consigne = '', cwd = undefined } = charge
+    const ab = (erreur) => ({ type: 'verification_visuelle', statut: 'candidat', abstention: true, verifications: [], erreur, fournisseur: 'claude-local' })
+    if (!image_path) return ab('image absente')
+    if (!consigne) return ab('consigne absente')
+    const modeleVerif = modele.vision || modele.controle || null
+    const invite = SYSTEME_VERIF + '\n\n' + consigne + '\n\nL’image est le fichier :\n' + String(image_path) +
+      '\nUtilise l’outil Read sur ce fichier pour l’examiner, puis réponds UNIQUEMENT par l’objet JSON demandé, sans aucun texte autour.'
+    const r = await lancer(bin, argvClaude({ modele: modeleVerif, addDir: cwd }), invite, { cwd, timeoutMs })
+    const env0 = extraireJson(r.out)
+    if (env0 && env0.is_error) return ab(String(env0.result || 'erreur CLI'))
+    if (!env0) return ab(r.ok ? 'sortie CLI illisible' : (r.erreur || ('CLI code ' + r.code)))
+    const data = extraireJson(env0.result)
+    if (!data || !Array.isArray(data.verifications)) return ab('JSON de vérification absent de la réponse')
+    return { ...data, type: 'verification_visuelle', statut: 'candidat', abstention: !!data.abstention, verifications: data.verifications, fournisseur: 'claude-local', modele: modeleVerif || 'défaut (abonnement)' }
+  }
+
   // Passes non encore câblées en local (lettrines, lignes isolées…) : abstention prudente, jamais d'invention.
   const abstenir = (type) => async () => ({ type, statut: 'candidat', abstention: true, erreur: 'non câblé en local', fournisseur: 'claude-local' })
   return {
     nom: 'claude-local', cloud: true, local: true, dispo: true, modele,
     diagnostiquer: metadonnees,
     lettrine: abstenir('lettrine'), titre: abstenir('niveau_titre'), ligne: abstenir('correction_ocr'),
-    page: relecturePage, notes: ancrageNotes, section: abstenir('controle_section'), lot: abstenir('controle_lot'),
+    page: relecturePage, notes: ancrageNotes, verification: verificationVisuelle,
+    section: abstenir('controle_section'), lot: abstenir('controle_lot'),
   }
 }

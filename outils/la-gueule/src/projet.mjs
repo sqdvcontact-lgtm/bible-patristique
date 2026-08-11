@@ -16,6 +16,8 @@ import { construireDocx } from './docx.mjs'
 import { construireSqlSupabase } from './sql.mjs'
 import { construireTexte, construireMarkdown } from './texte.mjs'
 import { analyserComparaison, comparaisonMarkdown } from './comparaison.mjs'
+import { rapportTriageMarkdown } from './ia/rapport-triage.mjs'
+import { mesurerTriage } from './ia/triage.mjs'
 import { noteTypee, ancrageNote, noteEstEnVers } from './notes-typage.mjs' // §13.4 : notes typées + ancrées
 import { construireSqlNotes, identifiantTexte } from './sql-notes.mjs'
 import { altoPage, pageXml } from './echange.mjs'
@@ -465,6 +467,33 @@ export async function exporterComparaison(nom, projet, { date = null, seuilConfi
   // On renvoie AUSSI le contenu (md + json) et un nom de fichier suggéré : l'atelier
   // ouvre un sélecteur « Enregistrer sous » pour que l'utilisateur choisisse son dossier.
   return { resume, fichiers: { md: cheminMd, json: cheminJson }, md, json: jsonTexte, nomFichier: base + '.comparaison-ocr.md' }
+}
+
+/**
+ * RAPPORT DE CONTRÔLE après triage (§10) : la file de relecture d'abord, l'audit replié ensuite.
+ * `findings` sont les interventions du contrôle, chacune portant sa décision de triage. Comme pour la
+ * comparaison, on écrit dans `exports/` ET on renvoie le contenu, pour que l'atelier propose
+ * « Enregistrer sous » et que l'utilisateur choisisse son dossier.
+ */
+export async function exporterRapportTriage(nom, projet, findings = [], { date = null, mode = 'file', lignesFaiblesConfirmees = 0 } = {}) {
+  const base = nomSur(nom)
+  await mkdir(DIR_EXPORTS, { recursive: true })
+  const md = rapportTriageMarkdown(projet, findings, { nom, date, mode, lignesFaiblesConfirmees })
+  const mesures = mesurerTriage((findings || []).map((f) => f?.triage).filter(Boolean))
+  const jsonTexte = JSON.stringify({
+    nom, meta: projet?.meta || null, genere_le: date, statut: 'CANDIDAT', mesures,
+    lignes_faibles_confirmees: lignesFaiblesConfirmees,
+    // On exporte les décisions AVEC leur trace : c'est ce qui rend l'automatisation auditable.
+    decisions: (findings || []).filter((f) => f?.triage).map((f) => ({
+      page: f.page, ligne_ids: f.ligne_ids, type: f.type, regle: f.regle,
+      ocr0: f.texte_original, candidat: f.texte_candidat, triage: f.triage,
+    })),
+  }, null, 2)
+  const cheminMd = join(DIR_EXPORTS, base + '.controle-triage.md')
+  await writeFile(cheminMd, md, 'utf8')
+  const cheminJson = join(DIR_EXPORTS, base + '.controle-triage.json')
+  await writeFile(cheminJson, jsonTexte, 'utf8')
+  return { mesures, fichiers: { md: cheminMd, json: cheminJson }, md, json: jsonTexte, nomFichier: base + '.controle-triage.md' }
 }
 
 // ── Données d'entraînement Kraken/ketos ──────────────────────────────────────

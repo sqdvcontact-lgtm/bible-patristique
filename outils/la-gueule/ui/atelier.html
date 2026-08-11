@@ -77,6 +77,15 @@
   .ctrl-item .ct-act{display:flex;gap:6px;margin-top:5px}
   .ctrl-item .ct-act button{font-size:11px}
   .ct-vld{background:var(--vert);color:#fff;border-color:var(--vert)}
+  /* Filtres du volet Contrôle : « À vérifier » est le défaut, les autres servent à l'audit. */
+  .ctrl-filtres{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 9px}
+  .ctrl-filtres button{padding:3px 8px;border-radius:999px;font-size:10.5px;border:1px solid var(--bord);background:var(--surface);color:var(--second);cursor:pointer}
+  .ctrl-filtres button:hover{border-color:var(--vert);color:var(--vert)}
+  .ctrl-filtres button.actif{background:var(--vert);color:#fff;border-color:var(--vert);font-weight:600}
+  /* Ce que les vérificateurs ont vu : la matière de la décision, pas un badge décoratif. */
+  .ct-triage{font-size:10.5px;color:var(--second);line-height:1.45;margin-top:4px;padding-top:4px;border-top:1px dotted var(--bord)}
+  .ct-auto{font-size:9.5px;padding:1px 5px;border-radius:999px;background:var(--vertf,rgba(61,107,79,.14));color:var(--vert)}
+  .ct-auto.ko{background:rgba(154,90,42,.14);color:#9a5a2a}
   .ctrl-fam{border:1px dashed var(--bord);border-radius:6px;padding:5px 8px;margin-bottom:7px;font-size:12px;color:var(--second);display:flex;justify-content:space-between;gap:8px;align-items:center}
   .ctrl-vide{font-size:12px;color:var(--second);padding:8px 0;line-height:1.5}
   .lg.cible input{background:#fff4d6;box-shadow:0 0 0 2px var(--ambre,#c9971f)}
@@ -409,6 +418,8 @@
   <button class="discret" id="btnExportEntr" title="Exporte les corrections des pages validées en jeu d'entraînement Kraken (ALTO + images + JSONL)">Export entraînement</button>
   <button class="discret" id="btnExportBanc" title="Constitue le banc d'essai (évaluation seulement) : images + ALTO corrigé + manifeste + SHA-256. Exige valide_humain.">Exporter le banc</button>
   <button class="discret" id="btnExportComparaison" title="Extrait un rapport de CONTRÔLE pour GPT : OCR IA (dip, après contrôle) vs OCR mécanique (ocr0), ligne à ligne. Repère les « ſ » ajoutés par l'IA. → exports/<nom>.comparaison-ocr.md + .json">Comparer OCR (IA vs méca)</button>
+  <button class="discret" id="btnExportTriage" title="Rapport de CONTRÔLE après triage : ce qu'il reste à vérifier humainement, du plus difficile au plus simple ; les décisions automatiques restent consultables, repliées. → exports/<nom>.controle-triage.md + .json">Rapport de contrôle</button>
+  <label class="pchk" title="Déplie toutes les décisions automatiques dans le rapport, au lieu de les replier."><input type="checkbox" id="triageAudit"> mode audit</label>
   <button class="discret" id="btnAnalyseStruct" title="Analyse la structure éditoriale (lettrines, titres courants, signatures, poésie, niveaux de titre) → SUGGESTIONS par ligne, à confirmer. Ne modifie rien.">Analyser la structure</button>
 </div>
 
@@ -607,12 +618,24 @@ async function lancerControle(){ if(!Object.keys(S.pages).length){ etat('rien à
     // On en mène donc PLUSIEURS de front. Le parallélisme reste modeste (3) pour ne pas saturer
     // l'abonnement ni lancer trois CLI lourds à la fois ; c'est déjà ~3× moins d'attente.
     const FRONT=3
+    // Les taux de triage ne se cumulent pas comme des compteurs : on additionne les EFFECTIFS, puis on
+    // recalcule les taux à la fin. Additionner deux pourcentages ne veut rien dire.
+    const CUMULS=['total_candidats','auto_accept','auto_keep_ocr0','human_review','risques_resolus_auto',
+      'structurels','caracteres_speciaux','references_nombres','lignes_faibles_confirmees',
+      'lignes_faibles_douteuses','appels_page','appels_crop','depuis_cache']
     const fusionner=(rp)=>{
-      if(!r) r=rp
-      else { r.findings=[...(r.findings||[]),...(rp.findings||[])]
-        for(const cle of Object.keys(rp.compteurs||{})) r.compteurs[cle]=(r.compteurs[cle]||0)+(rp.compteurs[cle]||0)
-        r.ia_active=r.ia_active||rp.ia_active; r.ia_erreur=r.ia_erreur||rp.ia_erreur }
+      if(!r){ r=rp; r.triage=rp.triage||{}; r.lignes_confirmees=rp.lignes_confirmees||[]; return }
+      r.findings=[...(r.findings||[]),...(rp.findings||[])]
+      for(const cle of Object.keys(rp.compteurs||{})) r.compteurs[cle]=(r.compteurs[cle]||0)+(rp.compteurs[cle]||0)
+      for(const cle of CUMULS) if(rp.triage&&rp.triage[cle]!=null) r.triage[cle]=(r.triage[cle]||0)+rp.triage[cle]
+      r.lignes_confirmees=[...(r.lignes_confirmees||[]),...(rp.lignes_confirmees||[])]
+      if(rp.triage&&rp.triage.erreur&&!r.triage.erreur) r.triage.erreur=rp.triage.erreur
+      r.ia_active=r.ia_active||rp.ia_active; r.ia_erreur=r.ia_erreur||rp.ia_erreur
     }
+    // Taux recalculés sur les effectifs cumulés — jamais une moyenne de pourcentages.
+    const recalculerTaux=()=>{ const t=r&&r.triage; if(!t)return; const n=t.total_candidats||0
+      t.human_review_rate = n?Math.round((t.human_review||0)/n*1000)/1000 : 0
+      t.automation_resolution_rate = n?Math.round(((t.auto_accept||0)+(t.auto_keep_ocr0||0))/n*1000)/1000 : 0 }
     // La passe DÉTERMINISTE porte sur tout le projet : on la fait UNE fois, seule, avant de
     // paralléliser — sinon trois pages simultanées la répéteraient trois fois.
     const premier=await api('/api/ia/controle',{method:'POST',headers:{'content-type':'application/json'},
@@ -631,6 +654,12 @@ async function lancerControle(){ if(!Object.keys(S.pages).length){ etat('rien à
     }
     if(S.arret) etat(`Contrôle interrompu à ${faites}/${nb} page(s) (${duree()}) — les pages déjà relues sont conservées.`)
     if(!r) return null
+    recalculerTaux()
+    // §8 — les lignes de faible confiance que l'image a CONFIRMÉES n'ont plus rien à dire : leur
+    // signalement sort de la file. Elles restent comptées dans le rapport, jamais dans le travail.
+    if(r.lignes_confirmees&&r.lignes_confirmees.length){
+      const vues=new Set(r.lignes_confirmees.map(c=>c.page+':'+c.ligne))
+      r.findings=(r.findings||[]).filter(f=>f.regle!=='confiance_faible'||!vues.has(f.page+':'+(f.ligne_ids&&f.ligne_ids[0]))) }
     S.controle=r; const c=r.compteurs||{}
     r._duree=duree()
     majEtapeClient('controle_ia',{etat:'a_verifier'})
@@ -783,17 +812,38 @@ function rendreVoletControle(){ const box=$('panelControleCorps'); if(!box)retur
   const nb=nbControles(v); const t=document.createElement('span'); t.innerHTML='<b>Contrôle IA</b>'+(v?` — ${nb} à faire`:'')
   const btn=document.createElement('button'); btn.className='discret'; btn.textContent=v?'Relancer':'Contrôler l\'OCR (IA)'; btn.onclick=()=>controlerOcrIA()
   tete.appendChild(t); tete.appendChild(btn); box.appendChild(tete)
-  if(!v){ const d=document.createElement('div'); d.className='ctrl-vide'; d.textContent='Aucun contrôle lancé. Océrise des pages, puis clique « Contrôler l\'OCR (IA) » : seules les corrections ambiguës te seront soumises, les corrections simples sont appliquées automatiquement.'; box.appendChild(d); return }
-  // Récapitulatif des corrections SIMPLES déjà appliquées automatiquement (contrôle par sondage possible).
-  if((v.auto_texte||[]).length){ const s=document.createElement('div'); s.className='ctrl-vide'
-    s.innerHTML='✓ <b>'+v.auto_texte.length+'</b> correction(s) simple(s) appliquée(s) automatiquement — <a href="#" id="ctrlRevoir" style="color:var(--vert)">revoir</a>'
-    box.appendChild(s)
-    const liste=document.createElement('div'); liste.style.display='none'; liste.style.marginBottom='8px'; box.appendChild(liste)
-    s.querySelector('#ctrlRevoir').onclick=(e)=>{ e.preventDefault(); if(liste.style.display!=='none'){ liste.style.display='none'; return }
-      liste.innerHTML=''; for(const f of v.auto_texte){ const it=document.createElement('div'); it.className='ctrl-item'
-        it.innerHTML='<div class="ct-tete"><span>p.'+(f.page??'?')+(f.ligne_ids&&f.ligne_ids.length?' l'+f.ligne_ids.join(','):'')+'</span></div><div class="ct-avapr"><span class="av">'+String(f.texte_original||'').replace(/</g,'&lt;')+'</span> → <span class="apr">'+String(f.texte_candidat||'').replace(/</g,'&lt;')+'</span></div>'
-        it.onclick=()=>allerLigneControle(f); liste.appendChild(it) }
-      liste.style.display='' } }
+  if(!v){ const d=document.createElement('div'); d.className='ctrl-vide'; d.textContent='Aucun contrôle lancé. Océrise des pages, puis clique « Contrôler l\'OCR (IA) » : chaque proposition est d\'abord confrontée à l\'image, et seules celles que l\'image ne tranche pas te sont soumises.'; box.appendChild(d); return }
+  // ── Bilan du TRIAGE ────────────────────────────────────────────────────────────────────────
+  // Ce que l'outil a résolu seul, et ce qu'il reste à faire. Le chiffre qui compte est le dernier.
+  const T=(S.controle&&S.controle.triage)||{}
+  if(T.total_candidats!=null){ const s=document.createElement('div'); s.className='ctrl-vide'
+    const tx=(x)=>x==null?'—':Math.round(x*100)+' %'
+    s.innerHTML='Sur <b>'+(T.total_candidats||0)+'</b> proposition(s) : <b>'+(T.auto_accept||0)+'</b> auto-acceptée(s), <b>'
+      +(T.auto_keep_ocr0||0)+'</b> rendue(s) à l\'OCR, <b>'+(T.human_review||0)+'</b> à vérifier.'
+      +'<br><span style="font-size:11px;color:var(--second)">Relecture humaine '+tx(T.human_review_rate)+' · résolu automatiquement '+tx(T.automation_resolution_rate)
+      +(T.lignes_faibles_confirmees?' · '+T.lignes_faibles_confirmees+' ligne(s) douteuse(s) confirmée(s) sans changement':'')
+      +(T.appels_page||T.appels_crop?' · '+(T.appels_page||0)+' vérif. de page, '+(T.appels_crop||0)+' sur crop':'')+'</span>'
+    box.appendChild(s) }
+  // ── Filtres ────────────────────────────────────────────────────────────────────────────────
+  // « À vérifier » est le défaut : c'est la seule vue qui décrit du travail. Les autres servent à
+  // l'audit — voir ce que la machine a décidé sans nous, et pouvoir la contredire.
+  const FILTRES_CTRL=[['a-verifier','À vérifier'],['auto-acceptees','Auto-acceptées'],['ocr-conserve','OCR conservé'],
+    ['references-nombres','Réf. / nombres'],['structure','Structure'],['caracteres-speciaux','Car. spéciaux'],['toutes','Toutes']]
+  if(!S.filtreControle) S.filtreControle='a-verifier'
+  const barre=document.createElement('div'); barre.className='ctrl-filtres'
+  for(const [cle,lib] of FILTRES_CTRL){ const b=document.createElement('button')
+    b.type='button'; b.textContent=lib; b.className=(S.filtreControle===cle?'actif':'')
+    b.onclick=()=>{ S.filtreControle=cle; rendreVoletControle() }
+    barre.appendChild(b) }
+  box.appendChild(barre)
+  // Vue d'AUDIT : les décisions prises sans nous, consultables et annulables une à une.
+  if(S.filtreControle!=='a-verifier'){
+    const pool=[...(v.auto_texte||[]),...(v.auto_ocr0||[]),...(v.corrections||[]),...(v.critiques||[])]
+    const vus=pool.filter(f=>passeFiltreControle(f,S.filtreControle))
+    if(!vus.length){ const d=document.createElement('div'); d.className='ctrl-vide'; d.textContent='Aucun cas dans ce filtre.'; box.appendChild(d); return }
+    for(const f of vus) box.appendChild(rendreItemAudit(f))
+    return
+  }
   const tous=[...(v.corrections||[]),...(v.critiques||[])]
   if(!tous.length && !(v.familles||[]).length){ const d=document.createElement('div'); d.className='ctrl-vide'; d.textContent='Rien en attente : toutes les propositions ont été traitées. 🎉'; box.appendChild(d) }
   // Les RECLASSEMENTS RÉPÉTITIFS (titres courants, folios, réclames…) se traitent EN LOT : valider
@@ -841,20 +891,61 @@ function accepterLot(liste, libelle){ let ok=0, conf=0
   lancerValidation() }
 
 // Rendu d'UNE proposition dans l'onglet Contrôle (extrait pour être réutilisé dans les lots).
-function rendreItemControle(f){ const estRe=f.type==='reclassement_role'
+// Miroir client de rapport-triage.mjs::passeFiltre — mêmes familles, mêmes noms.
+function passeFiltreControle(f, filtre){ const t=(f&&f.triage)||{}, fl=t.risk_flags||[]
+  if(filtre==='a-verifier') return t.auto_decision==='HUMAN_REVIEW'||!t.auto_decision
+  if(filtre==='auto-acceptees') return t.auto_decision==='AUTO_ACCEPT'
+  if(filtre==='ocr-conserve') return t.auto_decision==='AUTO_KEEP_OCR0'
+  if(filtre==='references-nombres') return fl.some(x=>x==='chiffre'||x==='chiffre_modifie'||x==='chiffre_romain'||x==='reference')
+  if(filtre==='structure') return t.classe==='STRUCTURAL'
+  if(filtre==='caracteres-speciaux') return fl.some(x=>x==='diacritique'||x==='abreviatif'||x==='ligature'||x==='glyphe_ancien_introduit'||x==='caractere_hors_jeu')
+  return true }
+// Motif de revue, en français : l'humain doit savoir POURQUOI on le dérange, sinon il relit tout.
+const MOTIFS_CTRL={desaccord:'les deux vérifications se contredisent',lecture_tierce:'une troisième lecture est apparue',
+  image_ambigue:'l’image ne tranche pas',confirmation_manquante:'cas à risque : une seule vérification concluante',
+  confiance_insuffisante:'aucune vérification n’atteint le seuil',sans_verification:'aucune vérification visuelle menée',
+  politique_couche:'graphie ancienne réintroduite (contraire à la règle de couche)'}
+function motifCtrl(raison){ const c=String(raison||'').split(' — ')[0]; return MOTIFS_CTRL[c]||c }
+// Ce que les vérificateurs ont LU, mot pour mot : c'est la seule chose qui aide vraiment à trancher.
+function rendreVerdicts(f){ const t=(f&&f.triage)||{}; const vs=t.verdicts||[]
+  if(!vs.length&&!t.auto_decision) return null
+  const d=document.createElement('div'); d.className='ct-triage'
+  const bits=[]
+  if(t.auto_decision==='HUMAN_REVIEW'&&t.auto_decision_reason) bits.push('<b>'+motifCtrl(t.auto_decision_reason)+'</b>')
+  for(const v of vs) bits.push('œil '+(v.verdict==='CANDIDATE'?'→ correction':v.verdict==='OCR0'?'→ machine':v.verdict==='OTHER'?'→ autre lecture':'illisible')
+    +(v.exact_reading?' « '+String(v.exact_reading).replace(/</g,'&lt;')+' »':'')
+    +' ('+Math.round((v.confidence||0)*100)+' %, image '+({GOOD:'nette',MEDIUM:'moyenne',BAD:'mauvaise'}[v.crop_quality]||'?')+')')
+  if((t.risk_flags||[]).length) bits.push('drapeaux : '+t.risk_flags.join(', '))
+  d.innerHTML=bits.join('<br>')
+  return d }
+function rendreItemAudit(f){ const d=rendreItemControle(f, true); return d }
+function rendreItemControle(f, audit){ const estRe=f.type==='reclassement_role'
     const d=document.createElement('div'); d.className='ctrl-item'
     d.onclick=(e)=>{ if(e.target.tagName!=='BUTTON') allerLigneControle(f) }
     const h=document.createElement('div'); h.className='ct-tete'
-    h.innerHTML='<span>'+(estRe?'⤳ reclasser':'✎ correction')+' · p.'+(f.page??'?')+(f.ligne_ids&&f.ligne_ids.length?' l'+f.ligne_ids.join(','):'')+'</span><span>'+(f.niveau_risque||'')+'</span>'
+    const t=f.triage||{}
+    const dec=t.auto_decision==='AUTO_ACCEPT'?'<span class="ct-auto">appliquée d’office</span>'
+      :t.auto_decision==='AUTO_KEEP_OCR0'?'<span class="ct-auto ko">rendue à l’OCR</span>':''
+    h.innerHTML='<span>'+(estRe?'⤳ reclasser':'✎ correction')+' · p.'+(f.page??'?')+(f.ligne_ids&&f.ligne_ids.length?' l'+f.ligne_ids.join(','):'')+'</span><span>'+dec+(t.review_priority?' <span title="difficulté du cas">▲'+t.review_priority+'</span>':'')+'</span>'
     d.appendChild(h)
     const av=document.createElement('div'); av.className='ct-avapr'
     if(estRe){ av.innerHTML='rôle : <span class="av">'+libRole(f.role_avant||'corps')+'</span> → <span class="apr">'+libRole(f.role_apres||'?')+'</span>'
       const ctx=document.createElement('div'); ctx.style.cssText='font-size:11px;color:var(--second);margin-top:2px'; ctx.textContent='« '+String(f.texte_original||'').slice(0,60)+' »'; av.appendChild(ctx) }
     else av.innerHTML='<span class="av">'+String(f.texte_original||'∅').replace(/</g,'&lt;')+'</span> → <span class="apr">'+String(f.texte_candidat||'∅').replace(/</g,'&lt;')+'</span>'
     d.appendChild(av)
+    const tri=rendreVerdicts(f); if(tri) d.appendChild(tri)
     const act=document.createElement('div'); act.className='ct-act'
-    const ok=document.createElement('button'); ok.className='ct-vld'; ok.textContent='Valider'; ok.onclick=()=>decisionCritique(f,'confirme_humain')
-    const no=document.createElement('button'); no.className='discret'; no.textContent='Refuser'; no.onclick=()=>decisionCritique(f,'refuse')
+    // En vue d'audit, la décision est DÉJÀ prise : les boutons servent à la contredire, pas à la
+    // confirmer. « Garder l'OCR » annule une auto-acceptation ; « Accepter » applique une proposition
+    // que l'image avait écartée. Rien n'est figé (§14 : on peut toujours revenir à ocr0).
+    const auto=audit&&String(t.auto_decision||'').startsWith('AUTO_')
+    const ok=document.createElement('button'); ok.className='ct-vld'
+    ok.textContent=auto?(t.auto_decision==='AUTO_ACCEPT'?'Confirmer':'Accepter quand même')
+      : 'Valider'
+    ok.onclick=()=>decisionCritique(f,'confirme_humain')
+    const no=document.createElement('button'); no.className='discret'
+    no.textContent=auto&&t.auto_decision==='AUTO_ACCEPT'?'Revenir à l’OCR':'Refuser'
+    no.onclick=()=>decisionCritique(f,'refuse')
     const vo=document.createElement('button'); vo.className='discret'; vo.textContent='Voir'; vo.onclick=()=>allerLigneControle(f)
     act.appendChild(ok); act.appendChild(no); act.appendChild(vo); d.appendChild(act)
     return d }
@@ -912,11 +1003,25 @@ function appliquerCorrectionClient(l, corr){ if(!l||typeof l!=='object') return 
   if(actuel!==avant) return {ok:false,conflit:true,attendu:avant,actuel}
   if(l.ocr0==null) l.ocr0=actuel
   if(!Array.isArray(l.corrections)) l.corrections=[]
-  l.corrections.push({ id:corr.id||null, type:corr.type||'correction_ocr', avant, apres, origine:corr.origine||'ia',
+  l.corrections.push(traceCorr({ id:corr.id||null, type:corr.type||'correction_ocr', avant, apres, origine:corr.origine||'ia',
     modele:corr.modele||null, regle:corr.regle||null, statut:corr.statut||'applique_candidate',
-    validation_humaine:!!corr.validation_humaine, annulee:false, date:new Date().toISOString() })
+    validation_humaine:!!corr.validation_humaine, annulee:false, date:new Date().toISOString() }, corr.triage))
   l.dip=apres; return {ok:true}
 }
+// Trace d'AUDIT du triage, attachée à la correction (miroir de corrections.mjs::traceTriage). Elle dit
+// comment la décision a été prise : classe, drapeaux, verdicts visuels, scores séparés, motif. Et elle
+// REFORCE la règle cardinale : une décision automatique n'est jamais une validation humaine.
+function traceCorr(e, t){ if(!t||typeof t!=='object') return e
+  e.triage={ auto_decision:t.auto_decision??null, auto_decision_reason:t.auto_decision_reason??null,
+    classe:t.classe??null, risk_flags:Array.isArray(t.risk_flags)?[...t.risk_flags]:[],
+    generator_confidence:t.generator_confidence??null, visual_verifier_confidence:t.visual_verifier_confidence??null,
+    distance_edition:t.distance_edition??null, review_priority:t.review_priority??0,
+    verdicts:(Array.isArray(t.verdicts)?t.verdicts:[]).map(v=>({verdict:v.verdict,exact_reading:v.exact_reading,
+      confidence:v.confidence,visual_evidence:v.visual_evidence,crop_quality:v.crop_quality,
+      editorial_change_detected:!!v.editorial_change_detected,modele:v.modele??null,fournisseur:v.fournisseur??null})),
+    regime:t.regime??null, date:t.date??null }
+  if(String(t.auto_decision||'').startsWith('AUTO_')) e.validation_humaine=false
+  return e }
 // Phase 3 — miroir client de appliquerReclassement : pose role_confirme (fait foi), recalcule export_corps,
 // journalise. Ne touche NI le texte, NI l'OCR : la ligne reste en source, écartée du seul corps exporté.
 const ROLES_HORS_CORPS_CLIENT=['numero_page','signature','reclame','titre_courant','paratexte_titre','ornement','bruit']
@@ -928,9 +1033,9 @@ function appliquerReclassementClient(l, corr){ if(!l||typeof l!=='object') retur
   if(actuel===apres) return {ok:true,statut:'deja_applique'}
   if(actuel!=null&&avant!=null&&actuel!==avant) return {ok:false,conflit:true,attendu:avant,actuel}
   if(!Array.isArray(l.corrections)) l.corrections=[]
-  l.corrections.push({ id:corr.id||null, type:'reclassement_role', avant:String(avant??''), apres, role_avant:avant, role_apres:apres,
+  l.corrections.push(traceCorr({ id:corr.id||null, type:'reclassement_role', avant:String(avant??''), apres, role_avant:avant, role_apres:apres,
     _role_precedent:actuel, origine:corr.origine||'ia', modele:corr.modele||null, regle:corr.regle||null,
-    statut:'applique_candidate', validation_humaine:!!corr.validation_humaine, annulee:false, date:new Date().toISOString() })
+    statut:'applique_candidate', validation_humaine:!!corr.validation_humaine, annulee:false, date:new Date().toISOString() }, corr.triage))
   l.suggestion.role_confirme=apres; l.suggestion.export_corps=!ROLES_HORS_CORPS_CLIENT.includes(apres)
   return {ok:true}
 }
@@ -938,7 +1043,7 @@ function appliquerReclassementClient(l, corr){ if(!l||typeof l!=='object') retur
 function appliquerFinding(f, humaine){ if(f==null||!Array.isArray(f.ligne_ids)||!f.ligne_ids.length||f.page==null) return {ok:false,erreur:'non-correction'}
   const pg=S.pages[f.page]; if(!pg||!Array.isArray(pg.lignes)) return {ok:false,erreur:'page'}
   const l=pg.lignes[f.ligne_ids[0]]; if(!l) return {ok:false,erreur:'ligne'}
-  if(f.type==='reclassement_role') return appliquerReclassementClient(l, { id:f.id, role_avant:f.role_avant, role_apres:f.role_apres, origine:'ia', modele:f.modele, regle:f.regle, validation_humaine:!!humaine })
+  if(f.type==='reclassement_role') return appliquerReclassementClient(l, { id:f.id, role_avant:f.role_avant, role_apres:f.role_apres, origine:'ia', modele:f.modele, regle:f.regle, validation_humaine:!!humaine, triage:f.triage })
   // ANCRAGE D'UNE NOTE (§13) : pose l'appel [[n]] dans la ligne de CORPS annotée (pas dans la note),
   // et estampille les lignes de la note avec ce numéro. Miroir client de corrections.mjs::appliquerAncrage.
   if(f.type==='ancrage_note') return appliquerAncrageClient(pg, f, !!humaine)
@@ -947,7 +1052,7 @@ function appliquerFinding(f, humaine){ if(f==null||!Array.isArray(f.ligne_ids)||
   // SCISSION : la ligne mixte devient corps + note ENTIÈRE. Miroir de src/scission.mjs.
   if(f.type==='scission_marge') return appliquerScissionClient(pg, f.ligne_ids[0], f, !!humaine)
   if(f.texte_candidat==null) return {ok:false,erreur:'non-correction'}
-  return appliquerCorrectionClient(l, { id:f.id, avant:f.texte_original, apres:f.texte_candidat, origine:'ia', modele:f.modele, regle:f.regle, validation_humaine:!!humaine })
+  return appliquerCorrectionClient(l, { id:f.id, avant:f.texte_original, apres:f.texte_candidat, origine:'ia', modele:f.modele, regle:f.regle, validation_humaine:!!humaine, triage:f.triage })
 }
 // Pose l'appel [[n]] dans la ligne de corps, collé au mot annoté, À L'INTÉRIEUR d'un guillemet fermant
 // (§13.3). Passe par appliquerCorrectionClient → ocr0 préservé, historique, conflit détecté, annulable.
@@ -1877,6 +1982,21 @@ $('btnExportComparaison').onclick=async()=>{ const nom=$('projet').value.trim()|
     if(sort==='annule') $('etatExport').textContent='enregistrement annulé (une copie reste dans exports/)'
     else if(sort==='telecharge') $('etatExport').textContent=`✓ comparaison : ${resume} — téléchargée`
     else $('etatExport').textContent=`✓ comparaison : ${resume} — enregistrée` }
+  catch(e){ $('etatExport').textContent='échec : '+(e&&e.message||e) } }
+// §10 — rapport de contrôle après triage. Il se lit à l'envers du précédent : d'abord ce qu'il reste
+// à faire, ensuite seulement ce que la machine a décidé sans nous.
+$('btnExportTriage').onclick=async()=>{ const nom=$('projet').value.trim()||'export'
+  if(!S.controle||!Array.isArray(S.controle.findings)){ $('etatExport').textContent='lance d’abord le contrôle IA (étape 3)'; return }
+  $('etatExport').textContent='rapport de contrôle…'
+  try{ const T=S.controle.triage||{}
+    const r=await api('/api/export/triage',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({nom,projet:projetActuel(),findings:S.controle.findings,date:new Date().toLocaleString('fr-FR'),
+        mode:$('triageAudit')&&$('triageAudit').checked?'audit':'file',
+        lignes_faibles_confirmees:T.lignes_faibles_confirmees||0})})
+    const m=r.mesures||{}, resume=`${m.human_review||0} à vérifier sur ${m.total_candidats||0} proposition(s)`
+    const sort=await enregistrerFichier(r.nomFichier||(nom+'.controle-triage.md'), r.md||'', 'text/markdown')
+    if(sort==='annule') $('etatExport').textContent='enregistrement annulé (une copie reste dans exports/)'
+    else $('etatExport').textContent=`✓ rapport de contrôle : ${resume} — ${sort==='telecharge'?'téléchargé':'enregistré'}` }
   catch(e){ $('etatExport').textContent='échec : '+(e&&e.message||e) } }
 listerProjets()
 

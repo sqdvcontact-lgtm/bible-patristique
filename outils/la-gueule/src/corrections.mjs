@@ -13,9 +13,41 @@ import { poserAppel } from './notes-ancrage.mjs'   // §13.3 : l'appel se colle 
 // compte-rendu, sans I/O ni réseau. Le client (atelier) et le serveur peuvent s'en servir de la même
 // manière ; l'atelier en garde un miroir minimal (comme corrigerLettrineClient / pageAnormaleClient).
 
+/**
+ * Trace d'AUDIT d'une décision de triage, attachée à la correction (§3, §9, §14 de la consigne de
+ * triage). On garde SÉPARÉS le score brut du générateur et celui du vérificateur visuel : le premier
+ * n'est qu'un indice de debug, jamais une « probabilité de vérité », et il ne doit pas pouvoir se
+ * faire passer pour une preuve. Sans triage, l'objet vaut null : les corrections humaines et les
+ * corrections déterministes n'en portent pas.
+ */
+export function traceTriage(t) {
+  if (!t || typeof t !== 'object') return null
+  return {
+    auto_decision: t.auto_decision ?? null,
+    auto_decision_reason: t.auto_decision_reason ?? null,
+    classe: t.classe ?? null,
+    risk_flags: Array.isArray(t.risk_flags) ? [...t.risk_flags] : [],
+    generator_confidence: t.generator_confidence ?? null,
+    visual_verifier_confidence: t.visual_verifier_confidence ?? null,
+    distance_edition: t.distance_edition ?? null,
+    review_priority: t.review_priority ?? 0,
+    // Un verdict par vérification menée : lecture rendue, indice, qualité de l'image, modèle.
+    verdicts: (Array.isArray(t.verdicts) ? t.verdicts : []).map((v) => ({
+      verdict: v.verdict, exact_reading: v.exact_reading, confidence: v.confidence,
+      visual_evidence: v.visual_evidence, crop_quality: v.crop_quality,
+      editorial_change_detected: !!v.editorial_change_detected,
+      modele: v.modele ?? null, fournisseur: v.fournisseur ?? null,
+    })),
+    regime: t.regime ?? null,
+    sha256_image: t.sha256_image ?? null,
+    sha256_crop: t.sha256_crop ?? null,
+    date: t.date ?? null,
+  }
+}
+
 /** Entrée de correction normalisée — provenance complète (§15). Statut par défaut : appliquée candidate. */
 export function entreeCorrection(c = {}) {
-  return {
+  const e = {
     id: c.id ?? null,
     type: c.type || 'correction_ocr',
     avant: String(c.avant ?? ''),
@@ -28,6 +60,12 @@ export function entreeCorrection(c = {}) {
     annulee: false,
     date: c.date ?? null,                    // horodatage passé par l'appelant (jamais Date.now() ici)
   }
+  const t = traceTriage(c.triage)
+  // ⚠️ Une décision AUTOMATIQUE n'est JAMAIS une validation humaine (§9 de la consigne, charte
+  // §11.7) : elle alimente la couche candidate, elle n'ouvre pas le ground-truth. On le REFORCE ici,
+  // au point d'écriture, pour qu'aucun appelant distrait ne puisse contourner la règle.
+  if (t) { e.triage = t; if (t.auto_decision && t.auto_decision.startsWith('AUTO_')) e.validation_humaine = false }
+  return e
 }
 
 /**

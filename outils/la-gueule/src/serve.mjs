@@ -13,15 +13,17 @@ import { executer } from './runner.mjs'
 import { ocrPage, rendrePage, pdfNbPages, pdfInfo, choisirFichier, runBash, annulerTaches } from './wsl.mjs'
 import { parserMetadonnees, typographieProbable, normaliserCasseChamp } from './metadonnees.mjs'
 import { parseAlto } from './alto.mjs'
-import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterComparaison, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes, sauverProfil, sauverRapportGeneration } from './projet.mjs'
+import { sauvegarderProjet, chargerProjet, listerProjets, exporterSegments, exporterTout, exporterComparaison, exporterRapportTriage, exporterEntrainement, exporterPagesXml, exporterBanc, grouperParagraphes, joindreLignes, sauverProfil, sauverRapportGeneration } from './projet.mjs'
 import { controlerDeterministe, controlerPageIA, ancrerNotesIA } from './ia/controle.mjs'
 import { choisirFournisseur, appelerIA, cleCache } from './ia/fournisseur.mjs'
 import { creerCacheIA, empreinteImage, viderCacheIA } from './ia/cache.mjs'
 import { classerValidation } from './ia/validation.mjs'
 import { rapportGeneration, etatLivraison } from './ia/generation.mjs'
 import { etatFournisseur, lireConsentement, ecrireConsentement, consentementActif } from './ia/consentement.mjs'
-import { cheminPngDepuisUrl, pdfPageBase64, imageFichierBase64 } from './ia/crop.mjs'
-import { messagesMetadonnees, consigneRelecturePage, messagesRelecturePage, consigneAncrageNotes, messagesAncrageNotes, VERSION_PROMPT_RELECTURE } from './ia/prompt.mjs'
+import { cheminPngDepuisUrl, pdfPageBase64, imageFichierBase64, cropBase64, cropFichier } from './ia/crop.mjs'
+import { messagesMetadonnees, consigneRelecturePage, messagesRelecturePage, consigneAncrageNotes, messagesAncrageNotes, VERSION_PROMPT_RELECTURE, consigneVerificationPage, messagesVerificationPage, consigneArbitrageCrop, messagesArbitrageCrop, consigneLectureCrop, messagesLectureCrop, VERSION_PROMPT_VERIF } from './ia/prompt.mjs'
+import { trierInterventions, candidatsDepuisLignesFaibles, retirerFlagsConfirmes, verdictDepuisReponse } from './ia/verificateur.mjs'
+import { mesurerTriage } from './ia/triage.mjs'
 import { enrichirDepuisBase } from './ia/enrichissement.mjs'
 import { detecterLangue, apparierParagraphes } from './bilingue.mjs'
 import { annoterProjet } from './structure.mjs'
@@ -74,6 +76,12 @@ const MAX_TELEVERSEMENT = 400 * 1024 * 1024 // plafond d'upload : 400 Mo (gros s
 // Cache des réponses IA (~80 s par page relue). Sur DISQUE : le serveur est relancé souvent, un
 // cache en mémoire serait perdu à chaque fois. `LG_AI_CACHE=0` le désactive.
 export const DIR_CACHE_IA = join(RACINE, 'controles', 'cache-ia')
+// Crops découpés pour l'arbitrage visuel. Nécessaires au fournisseur LOCAL, qui lit une image par
+// son chemin. Noms déterministes (page, ligne, boîte) : deux passes réutilisent le même fichier.
+export const DIR_CROPS = join(RACINE, 'controles', 'crops')
+// Sous ce seuil, la reconnaissance se dit elle-même peu sûre. Même valeur que la passe déterministe
+// (`controlerDeterministe`) : les deux parlent des mêmes lignes.
+const SEUIL_CONFIANCE_OCR = 0.8
 const cacheIA = creerCacheIA({ dir: DIR_CACHE_IA, actif: process.env.LG_AI_CACHE !== '0' })
 
 function json(res, code, data) {
@@ -343,12 +351,17 @@ export function demarrer({ port = 4599 } = {}) {
         // La passe DÉTERMINISTE porte sur tout le projet : quand l'atelier relit page par page (pour
         // afficher l'avancement), il ne la demande qu'au premier appel — sinon ses signalements
         // seraient répétés à chaque page.
-        const { findings, compteurs } = b.deterministe === false
+        const det = b.deterministe === false
           ? { findings: [], compteurs: {} }
           : controlerDeterministe(b.projet || {})
+        let findings = det.findings
+        const compteurs = det.compteurs
         const fournisseur = choisirFournisseur(process.env)
         const consentement = consentementActif(await lireConsentement(), etatFournisseur(process.env).nom)
         let interventions = [], metaIA = { pages_relues: 0, erreur: null }
+        // Résultats du triage automatique (vides tant que l'IA n'est pas active : sans image relue,
+        // aucune décision automatique n'est possible, et c'est bien ainsi).
+        let decisionsTriage = [], lignesConfirmees = [], lignesDouteuses = []
         if (fournisseur.cloud && consentement) {
           // Une relecture par page : le CLI local lit l'IMAGE de la page par son CHEMIN ; l'API reçoit
           // l'image entière en base64 (messages). La consigne porte l'OCR ligne par ligne à comparer.
@@ -399,10 +412,111 @@ export function demarrer({ port = 4599 } = {}) {
           interventions = [...interventions, ...rn.interventions]
           metaIA = { ...metaIA, notes: rn.meta }
           if (rn.meta.erreur && !metaIA.erreur) metaIA.erreur = rn.meta.erreur
+
+          // ── TRIAGE AUTOMATIQUE ────────────────────────────────────────────────────────────
+          // Une proposition n'est plus soumise à l'humain du seul fait qu'elle existe : elle est
+          // d'abord CONFRONTÉE À L'IMAGE, une fois sur la page, une seconde fois sur le crop quand
+          // le cas est à risque. L'humain n'arrive qu'en dernier, sur ce que l'image n'a pas tranché.
+          const pagesLot = Array.isArray(b.pages) && b.pages.length
+            ? b.pages.map(Number)
+            : Object.keys(b.projet?.pages || {}).map(Number)
+          const zones = new Map()
+          for (const n of pagesLot) {
+            const lg = b.projet?.pages?.[n]?.lignes
+            if (Array.isArray(lg)) zones.set(n, situerLignes(lg))
+          }
+          const modeleVerif = fournisseur.modele?.vision || fournisseur.modele?.controle || ''
+
+          // Passe 1 — l'image de la PAGE, toutes ses corrections d'un coup.
+          const chargeVerifPage = async (n, items) => {
+            const pngWin = cheminPngDepuisUrl(b.projet?.pages?.[n]?.pngUrl)
+            if (!pngWin) return null
+            if (fournisseur.local) return { image_path: pngWin, consigne: consigneVerificationPage(items), cwd: dirname(pngWin), items }
+            const b64 = await imageFichierBase64(pngWin)
+            return b64 ? { ...messagesVerificationPage({ image_base64: b64, items }), items } : null
+          }
+          // Passe 2 — le CROP de la ligne, avec son voisinage. Le fournisseur local lit un fichier,
+          // l'API reçoit du base64 : deux découpes, une seule question.
+          const chargeVerifCrop = async (iv, o) => {
+            const pngWin = cheminPngDepuisUrl(b.projet?.pages?.[iv.page]?.pngUrl)
+            const bbox = Array.isArray(iv.bbox) && iv.bbox.length >= 4
+              ? iv.bbox
+              : b.projet?.pages?.[iv.page]?.lignes?.[iv.ligne_ids?.[0]]?.bbox
+            if (!pngWin || !Array.isArray(bbox)) return null
+            const opts = { a: o.a, b: o.b, avant: o.avant, apres: o.apres, zone: o.zone, structurel: o.structurel }
+            if (fournisseur.local) {
+              const chemin = await cropFichier(pngWin, bbox, { marge: 0.6, dossier: DIR_CROPS, nom: `p${iv.page}-l${iv.ligne_ids?.[0]}-${bbox.join('_')}` })
+              return chemin ? { image_path: chemin, consigne: consigneArbitrageCrop(opts), cwd: DIR_CROPS } : null
+            }
+            const b64 = await cropBase64(pngWin, bbox, { marge: 0.6 })
+            return b64 ? messagesArbitrageCrop({ crop_base64: b64, ...opts }) : null
+          }
+          const cleVerif = (tache) => async (ref, charge) => {
+            const page = typeof ref === 'object' ? ref.page : ref
+            const pngWin = cheminPngDepuisUrl(b.projet?.pages?.[page]?.pngUrl)
+            const sha = pngWin ? empreinteImage(pngWin) : null
+            if (!sha) return null
+            const prompt = charge?.consigne || JSON.stringify(charge?.messages || '')
+            return cleCache({ tache, sha256_image: sha, prompt, version_prompt: VERSION_PROMPT_VERIF, modele: modeleVerif })
+          }
+          const tri = await trierInterventions(b.projet || {}, interventions, {
+            fournisseur, consentement, chargePage: chargeVerifPage, chargeCrop: chargeVerifCrop,
+            cache: cacheIA, cleDe: cleVerif('verification'), cleCrop: cleVerif('verification'),
+            zones, date: new Date().toISOString(),
+          })
+          metaIA.triage = tri.meta
+          if (tri.meta.erreur && !metaIA.erreur) metaIA.erreur = tri.meta.erreur
+
+          // ── §8 — LIGNES FAIBLES QUE PERSONNE N'A CORRIGÉES ────────────────────────────────
+          // Elles ne disaient rien d'autre que « cette ligne est douteuse ». On les relit sur
+          // l'image : confirmées, elles disparaissent ; relues autrement, elles deviennent un
+          // candidat qui repasse au même triage.
+          const dejaTraitees = new Set(interventions.filter((x) => x.ligne_ids?.length === 1).map((x) => x.page + ':' + x.ligne_ids[0]))
+          const verdictsFaibles = new Map()
+          for (const n of pagesLot) {
+            const lg = b.projet?.pages?.[n]?.lignes
+            if (!Array.isArray(lg)) continue
+            for (let i = 0; i < lg.length; i++) {
+              const l = lg[i]
+              if (l?.confiance == null || l.confiance >= SEUIL_CONFIANCE_OCR) continue
+              if (dejaTraitees.has(n + ':' + i)) continue
+              const charge = await chargeVerifCrop(
+                { page: n, ligne_ids: [i], bbox: l.bbox },
+                { a: '', b: '', avant: String(lg[i - 1]?.dip ?? ''), apres: String(lg[i + 1]?.dip ?? ''), zone: zones.get(n)?.get(i)?.zone ?? null },
+              )
+              if (!charge) continue
+              // Lecture NUE : on ne soumet aucune proposition, on demande ce qui est imprimé.
+              const nue = fournisseur.local
+                ? { ...charge, consigne: consigneLectureCrop({ avant: String(lg[i - 1]?.dip ?? ''), apres: String(lg[i + 1]?.dip ?? ''), zone: zones.get(n)?.get(i)?.zone ?? null }) }
+                : charge
+              const out = await appelerIA(fournisseur, 'verification', nue, { consentement, cache: cacheIA, cacheCle: await cleVerif('lecture')({ page: n }, nue) })
+              metaIA.triage.appels_crop++
+              if (!out || out.abstention || !Array.isArray(out.verifications) || !out.verifications.length) continue
+              verdictsFaibles.set(n + ':' + i, verdictDepuisReponse(out.verifications[0], { candidatEnA: false, modele: out.modele, fournisseur: out.fournisseur }))
+            }
+          }
+          const faibles = candidatsDepuisLignesFaibles(b.projet || {}, verdictsFaibles, { seuilConfiance: 0.9, date: new Date().toISOString() })
+          if (faibles.nouveaux.length) {
+            // Les candidats nés d'une ligne faible passent par le MÊME triage que les autres :
+            // aucun raccourci, aucune application sans preuve.
+            const tri2 = await trierInterventions(b.projet || {}, faibles.nouveaux, {
+              fournisseur, consentement, chargePage: chargeVerifPage, chargeCrop: chargeVerifCrop,
+              cache: cacheIA, cleDe: cleVerif('verification'), cleCrop: cleVerif('verification'),
+              zones, date: new Date().toISOString(),
+            })
+            interventions = [...interventions, ...tri2.interventions]
+            tri.decisions.push(...tri2.decisions)
+          }
+          lignesConfirmees = faibles.confirmees
+          lignesDouteuses = faibles.douteuses
+          findings = retirerFlagsConfirmes(findings, faibles.confirmees)
+          decisionsTriage = tri.decisions
         }
         return json(res, 200, {
           findings: [...findings, ...interventions],
           compteurs: { ...compteurs, ia: interventions.length, pages_relues: metaIA.pages_relues || 0, depuis_cache: metaIA.depuis_cache || 0 },
+          triage: { ...mesurerTriage(decisionsTriage), ...(metaIA.triage || {}), lignes_faibles_confirmees: lignesConfirmees.length, lignes_faibles_douteuses: lignesDouteuses.length },
+          lignes_confirmees: lignesConfirmees,
           ia_active: fournisseur.cloud && consentement, ia_erreur: metaIA.erreur || null,
         })
       }
@@ -474,6 +588,14 @@ export function demarrer({ port = 4599 } = {}) {
       if (p === '/api/export/comparaison' && req.method === 'POST') {
         const b = await corps(req)
         return json(res, 200, await exporterComparaison(b.nom, b.projet || {}, { date: b.date || null }))
+      }
+      // §10 — rapport de CONTRÔLE après triage : la file de relecture d'abord, l'audit replié.
+      if (p === '/api/export/triage' && req.method === 'POST') {
+        const b = await corps(req)
+        return json(res, 200, await exporterRapportTriage(b.nom, b.projet || {}, b.findings || [], {
+          date: b.date || null, mode: b.mode === 'audit' ? 'audit' : 'file',
+          lignesFaiblesConfirmees: Number(b.lignes_faibles_confirmees) || 0,
+        }))
       }
       // Export des CORRECTIONS des pages validées en jeu d'entraînement Kraken (ALTO + images + JSONL).
       if (p === '/api/export/entrainement' && req.method === 'POST') {

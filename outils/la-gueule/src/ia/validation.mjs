@@ -131,10 +131,21 @@ export function estAutoApplicable(f, { plafondGros = 12, ...opts } = {}) {
  * Plus aucune fausse famille : 41 corrections de relecture donnent 41 objets, jamais un lot « aveugle ».
  */
 export function classerValidation(findings, { seuilSimple = 2 } = {}) {
-  const automatiques = [], auto_texte = [], corrections = [], critiques = [], non_resolus = [], blocages = [], avertissements = [], resteFlags = []
+  const automatiques = [], auto_texte = [], auto_ocr0 = [], corrections = [], critiques = [], non_resolus = [], blocages = [], avertissements = [], resteFlags = []
   for (const f of (findings || [])) {
     const st = f.statut, r = f.niveau_risque
     if (st === 'confirme_humain' || st === 'modifie_humain') { automatiques.push(f); continue } // décidé humain
+    // TRIAGE AUTOMATIQUE — quand la décision a été prise en confrontant la proposition à l'IMAGE,
+    // c'est ELLE qui commande, avant tout autre critère. C'est le sens de la refonte : une
+    // proposition ne va plus à l'humain du seul fait d'exister, mais parce que l'image n'a pas
+    // tranché. Les deux voies automatiques restent consultables en mode audit, jamais dans la file.
+    const decideParTriage = !!(f.triage && f.triage.auto_decision)
+    if (decideParTriage) {
+      if (f.triage.auto_decision === 'AUTO_ACCEPT') { auto_texte.push(f); continue }
+      if (f.triage.auto_decision === 'AUTO_KEEP_OCR0') { auto_ocr0.push(f); continue }
+      // HUMAN_REVIEW : on continue le classement ordinaire (critique, correction, famille…) — mais
+      // l'ancienne heuristique « correction simple » ne doit plus s'appliquer (voir plus bas).
+    }
     if (st === 'refuse' || st === 'annule') continue // refusé / annulé : hors flux
     if (st === 'applique_deterministe' || st === 'accepte_regle_validee' || st === 'accepte_echantillonnage') { automatiques.push(f); continue }
     // Phase 5 : avertissements (page courte, réserve informative) — NON bloquants, hors flux de décision.
@@ -145,17 +156,26 @@ export function classerValidation(findings, { seuilSimple = 2 } = {}) {
       if (r === 'R3') { critiques.push(f); continue }                           // risque élevé → humain
       // Phase 4.3 : correction de TEXTE auto-applicable (verdict IA « certaine », sinon petit changement)
       // → appliquée en candidat, aucun clic. Le reste (verdict « incertaine », grosse réécriture) → humain.
-      if (f.type !== 'reclassement_role' && estAutoApplicable(f, { seuil: seuilSimple })) { auto_texte.push(f); continue }
+      // ⚠️ Le TRIAGE fait autorité. Sans cette garde, un cas que l'image n'a PAS tranché repartait
+      // en application automatique par la vieille règle du « petit changement » : « Deut.23. » →
+      // « Deut.22. » ne coûte qu'un caractère, et c'est précisément le genre d'erreur qu'aucune
+      // distance d'édition ne peut juger. Une décision prise en regardant la page ne se laisse pas
+      // contredire par une décision prise en comptant les lettres.
+      if (!decideParTriage && f.type !== 'reclassement_role' && estAutoApplicable(f, { seuil: seuilSimple })) { auto_texte.push(f); continue }
       corrections.push(f); continue                                             // reclassement / gros changement → humain
     }
     if (r === 'R3') { critiques.push(f); continue }
     resteFlags.push(f) // flags répétitifs SANS charge concrète → familles / échantillonnage
   }
   const familles = grouperFamilles(resteFlags)
+  // La file humaine se lit du plus difficile au plus simple : c'est là que l'attention sert le plus.
+  const parDifficulte = (a, b) => (b?.triage?.review_priority ?? 0) - (a?.triage?.review_priority ?? 0)
+  corrections.sort(parDifficulte); critiques.sort(parDifficulte)
   return {
-    automatiques, auto_texte, corrections, familles, critiques, non_resolus, blocages, avertissements,
+    automatiques, auto_texte, auto_ocr0, corrections, familles, critiques, non_resolus, blocages, avertissements,
     compteurs: {
-      automatiques: automatiques.length, auto_texte: auto_texte.length, corrections: corrections.length,
+      automatiques: automatiques.length, auto_texte: auto_texte.length, auto_ocr0: auto_ocr0.length,
+      corrections: corrections.length,
       familles: familles.length, critiques: critiques.length, non_resolus: non_resolus.length,
       blocages: blocages.length, avertissements: avertissements.length, corrections_totales: (findings || []).length,
     },

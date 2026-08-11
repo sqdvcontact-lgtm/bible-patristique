@@ -2,6 +2,7 @@
 // dans WSL (déjà installé), via runBash (chemin Windows traduit par WSLENV). N'envoie JAMAIS l'image
 // entière : seulement la région + une marge. Résout toujours (null en cas d'échec ; ne bloque rien).
 
+import { join } from 'node:path'
 import { runBash } from '../wsl.mjs'
 
 /** Chemin Windows du PNG à partir d'un pngUrl « /api/fichier?path=<abs> » (ou d'un chemin direct). */
@@ -25,6 +26,26 @@ export async function cropBase64(pngWin, bbox, { marge = 0.25 } = {}) {
   const r = await runBash('convert "$IMG" -crop ' + geo + ' +repage png:- | base64 -w0', { IMG: pngWin }, { timeoutMs: 30000 })
   if (!r.ok || !r.stdout) return null
   return r.stdout.replace(/\s+/g, '')
+}
+
+/**
+ * Même découpe, mais ÉCRITE dans un fichier PNG dont on renvoie le chemin Windows. Nécessaire pour le
+ * fournisseur LOCAL : le CLI Claude lit une image par son CHEMIN (outil Read), il ne sait rien faire
+ * d'un base64. Le nom est DÉTERMINISTE (page, ligne, boîte) : deux passes sur le même cas réutilisent
+ * le même fichier au lieu d'en semer un par appel. Renvoie null en cas d'échec (ne bloque rien).
+ */
+export async function cropFichier(pngWin, bbox, { marge = 0.25, dossier, nom } = {}) {
+  if (!pngWin || !dossier || !Array.isArray(bbox) || bbox.length < 4) return null
+  let [x, y, w, h] = bbox.map((n) => Math.round(Number(n) || 0))
+  const mx = Math.round(w * marge), my = Math.round(h * marge)
+  x = Math.max(0, x - mx); y = Math.max(0, y - my); w = Math.max(1, w + 2 * mx); h = Math.max(1, h + 2 * my)
+  const geo = `${w}x${h}+${x}+${y}`
+  // Nom assaini : ce chemin est interpolé côté Windows, jamais dans le script bash (variable OUT).
+  const base = String(nom || `${x}-${y}-${w}-${h}`).replace(/[^a-zA-Z0-9_.-]/g, '_')
+  const sortie = join(dossier, base + '.png')
+  const r = await runBash('mkdir -p "$(dirname "$OUT")" && convert "$IMG" -crop ' + geo + ' +repage "$OUT"',
+    { IMG: pngWin, OUT: sortie }, { timeoutMs: 30000 })
+  return r.ok ? sortie : null
 }
 
 /**

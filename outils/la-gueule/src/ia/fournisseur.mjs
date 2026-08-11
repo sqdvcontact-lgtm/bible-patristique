@@ -8,7 +8,9 @@ import { fournisseurMock } from './mock.mjs'
 import { fournisseurClaude } from './claude.mjs'
 import { fournisseurClaudeLocal } from './claude-local.mjs'
 
-export const TACHES = ['diagnostic', 'lettrine', 'titre', 'ligne', 'page', 'section', 'lot', 'notes']
+// `verification` : seconde passe VISUELLE, distincte de celle qui propose les corrections. Elle ne
+// répond qu'à « quelle lecture est imprimée ? », sur la page ou sur un crop.
+export const TACHES = ['diagnostic', 'lettrine', 'titre', 'ligne', 'page', 'section', 'lot', 'notes', 'verification']
 
 /** Choisit le fournisseur selon l'environnement. `claude-local`/`local` → CLI local (abonnement, sans
  *  clé API) ; `anthropic`/`claude` → API (clé + crédits console) ; sinon mock (hors-ligne). */
@@ -52,7 +54,7 @@ export function consentementValide(record, fournisseur) {
 export async function appelerIA(fournisseur, tache, charge, { cache = null, cacheCle = null, ...opts } = {}) {
   if (!TACHES.includes(tache)) return { type: tache, statut: 'candidat', abstention: true, erreur: 'tâche inconnue' }
   if (cache && cacheCle && cache.has(cacheCle)) return cache.get(cacheCle)
-  const methode = { diagnostic: 'diagnostiquer', lettrine: 'lettrine', titre: 'titre', ligne: 'ligne', page: 'page', section: 'section', lot: 'lot', notes: 'notes' }[tache]
+  const methode = { diagnostic: 'diagnostiquer', lettrine: 'lettrine', titre: 'titre', ligne: 'ligne', page: 'page', section: 'section', lot: 'lot', notes: 'notes', verification: 'verification' }[tache]
   let sortie
   try {
     sortie = await fournisseur[methode](charge, opts)
