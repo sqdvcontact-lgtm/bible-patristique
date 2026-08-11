@@ -149,7 +149,10 @@
   .navflip:hover{background:#fff}
   .navflip-g{left:8px}
   .navflip-d{right:8px}
-  .box{position:absolute;border:1px solid rgba(90,114,96,.35);border-radius:2px;cursor:pointer}
+  /* La teinte de rôle passe par des VARIABLES, jamais par une règle plus spécifique : ainsi les
+     états (survol, ligne active, ligne pointée) la recouvrent naturellement, sans surenchère de
+     sélecteurs. Sans couleurs, les valeurs de repli redonnent l'aspect d'origine. */
+  .box{position:absolute;background:var(--voile,transparent);border:1px solid var(--voile-bord,rgba(90,114,96,.35));border-radius:2px;cursor:pointer}
   .box:hover{background:rgba(90,114,96,.12)}
   .box.actif{background:var(--surlig);border-color:var(--ambre)}
   /* Réglages du volet gauche : un intitulé au-dessus, un contrôle pleine largeur — même forme pour
@@ -160,29 +163,19 @@
   /* Ligne pointée depuis l'onglet Contrôle : visible sur le fac-similé, pas seulement dans le texte. */
   .box.cible{background:rgba(201,151,31,.28);border:2px solid var(--ambre,#c9971f);box-shadow:0 0 0 2px rgba(201,151,31,.35)}
   /* ── Mode COULEUR : chaque rôle a sa teinte, dans le texte ET sur le fac-similé, pour vérifier
-     les classements d'un coup d'œil au lieu de lire ligne à ligne. Teintes franches mais pâles :
-     elles doivent situer, pas crier. Le corps reste presque blanc — c'est la masse. */
-  .roles .lg[data-role="corps"] input{background:#fdfaf3}
-  .roles .lg[data-role="note_marginale"] input{background:#f2e2d0;border-color:#b07a45}
-  .roles .lg[data-role="note_bas_page"] input{background:#eadcc8;border-color:#9a6a3a}
-  .roles .lg[data-role="titre"] input{background:#e5eef7;border-color:#5b86ad}
-  .roles .lg[data-role="paratexte_titre"] input{background:#e0e8f5;border-color:#6b7fb5}
-  .roles .lg[data-role="titre_courant"] input{background:#ece7f5;border-color:#8b7ab5}
-  .roles .lg[data-role="numero_page"] input{background:#eef0f2;border-color:#8d97a1;font-style:italic}
-  .roles .lg[data-role="signature"] input{background:#eef0f2;border-color:#8d97a1;font-style:italic}
-  .roles .lg[data-role="reclame"] input{background:#e8f0ea;border-color:#6f9a7c;font-style:italic}
-  .roles .lg[data-role="ornement"] input{background:#f0e9e9;border-color:#a98a8a;text-decoration:line-through}
-  .roles .lg[data-role="bruit"] input{background:#eeeaea;border-color:#a09595;text-decoration:line-through;opacity:.7}
-  .roles .lg[data-role="vers"] input{background:#f6f1e4}
-  /* Suggestion NON confirmée : même teinte, mais en pointillé — on distingue proposé et décidé. */
-  .roles .lg[data-suggere="1"] input{border-style:dashed}
-  .roles .box[data-role="note_marginale"]{background:rgba(176,122,69,.22);border-color:#b07a45}
-  .roles .box[data-role="note_bas_page"]{background:rgba(154,106,58,.22);border-color:#9a6a3a}
-  .roles .box[data-role="titre"],.roles .box[data-role="paratexte_titre"]{background:rgba(91,134,173,.20);border-color:#5b86ad}
-  .roles .box[data-role="titre_courant"]{background:rgba(139,122,181,.20);border-color:#8b7ab5}
-  .roles .box[data-role="numero_page"],.roles .box[data-role="signature"]{background:rgba(141,151,161,.20);border-color:#8d97a1}
-  .roles .box[data-role="reclame"]{background:rgba(111,154,124,.20);border-color:#6f9a7c}
-  .roles .box[data-role="ornement"],.roles .box[data-role="bruit"]{background:rgba(169,138,138,.22);border-color:#a98a8a}
+     les classements d'un coup d'œil au lieu de lire ligne à ligne.
+     ⚠️ Les TEINTES ne sont pas écrites ici : elles sont engendrées depuis la table `COULEURS_ROLES`
+     (une seule source pour le texte, le fac-similé et la légende). Deux listes parallèles avaient
+     déjà divergé — `vers` colorié ici mais absent de la table, `corps` colorié dans le texte mais
+     sans règle sur l'image. Ne pas réécrire de `background` de rôle dans ce bloc.
+     Ici ne restent que les marques NON colorées, qui disent autre chose que la nature de la ligne. */
+  .roles .lg[data-role="numero_page"] input,.roles .lg[data-role="signature"] input,
+  .roles .lg[data-role="reclame"] input{font-style:italic}
+  .roles .lg[data-role="ornement"] input,.roles .lg[data-role="bruit"] input{text-decoration:line-through}
+  .roles .lg[data-role="bruit"] input{opacity:.7}
+  /* Suggestion NON confirmée : même teinte, mais en pointillé — on distingue proposé et décidé.
+     Vaut des DEUX côtés : la boîte du fac-similé porte le même signal que la ligne de texte. */
+  .roles .lg[data-suggere="1"] input,.roles .box[data-suggere="1"]{border-style:dashed}
   /* Bouton d'en-tête : son état se voit, pour qu'on sache toujours si les couleurs sont mises. */
   #btnRoles.actif{background:var(--vert,#3d6b4f);color:#fff;border-color:var(--vert,#3d6b4f)}
   #legendeRoles{display:none;flex-wrap:wrap;gap:5px 12px;align-items:center;font-size:11px;color:var(--second);padding:4px 0}
@@ -195,7 +188,7 @@
   .lg{display:grid;grid-template-columns:2.1rem 1fr auto auto auto auto;gap:6px;align-items:center;padding:1px 5px;border-radius:6px;transition:background .12s}
   .lg:hover{background:rgba(154,90,42,.055)}
   .lg .num{font-size:10px;color:#b0a488;text-align:right}
-  .lg input{width:100%;font-family:inherit;font-size:13px;line-height:1.5;border:1px solid transparent;border-radius:5px;background:#fff;padding:4px 7px;transition:border-color .12s,background .12s}
+  .lg input{width:100%;font-family:inherit;font-size:13px;line-height:1.5;border:1px solid var(--tinte-bord,transparent);border-radius:5px;background:var(--tinte,#fff);padding:4px 7px;transition:border-color .12s,background .12s}
   .lg input:focus{border-color:var(--ambre);outline:none;background:var(--surface)}
   .lg.actif input{background:#fbf4ea}
   .lg.doute input{border-left:2px solid var(--ambre)}
@@ -203,7 +196,12 @@
   /* Titre de structure éditoriale (Livre, Prose, Mètre…) → alimente ref_niv1..5. */
   .lg select.niv{font-size:10px;color:var(--second);border:1px solid transparent;border-radius:4px;background:transparent;align-self:center;padding:2px 3px;opacity:.5;transition:opacity .12s,border-color .12s,background .12s}
   .lg:hover select.niv,.lg select.niv:focus{opacity:1;border-color:var(--bord);background:var(--surface)}
-  .lg.titre input{border-left:3px solid var(--ambre);font-weight:700;color:#5a4a2a;background:#fdf9f0}
+  /* Titre, hors-corps, en-tête : ces trois-là disent la NATURE de la ligne, comme le rôle. Leur fond
+     passe donc par `--tinte`, que la teinte de rôle recouvre en mode couleur (un titre de page de
+     titre doit rester bleu, une note confirmée rester brune). Les états — ligne pointée, active,
+     validée, ajoutée, incertaine — posent au contraire un `background` franc, qui prime toujours. */
+  .lg.titre{--tinte:#fdf9f0}
+  .lg.titre input{border-left:3px solid var(--ambre);font-weight:700;color:#5a4a2a}
   /* Lecture incertaine : exclue du banc / ground-truth tant qu'elle n'est pas tranchée. */
   .lg .inc{font-size:11px;line-height:1;border:1px solid transparent;border-radius:4px;background:transparent;color:#c8b8a0;align-self:center;cursor:pointer;padding:2px 5px;opacity:.5;transition:opacity .12s,border-color .12s,background .12s}
   .lg:hover .inc{opacity:1}
@@ -226,9 +224,10 @@
   .lg .sugg.ok{background:var(--vertf);color:var(--vert);border-color:var(--vert);font-weight:700}
   select.sugg.lettr,.lg .sugg.lettr{background:#fbeee0;color:#b26a1a;border-color:#e0b57a}
   /* Ligne hors-corps CONFIRMÉE : exclue du corps éditorial (jamais de la source). */
-  .lg.horscorps input{opacity:.5;text-decoration:line-through;background:#f3efe6}
+  .lg.horscorps,.lg.entete{--tinte:#f3efe6}
+  .lg.horscorps input{opacity:.5;text-decoration:line-through}
   /* Titre courant / n° de page détecté : exclu de l'export, signalé ici. */
-  .lg.entete input{color:var(--second);font-style:italic;text-decoration:line-through;opacity:.65;background:#f3efe6}
+  .lg.entete input{color:var(--second);font-style:italic;text-decoration:line-through;opacity:.65}
   .lg .tagtc{font-size:9px;color:var(--second);align-self:center;white-space:nowrap;padding:1px 5px;border:1px solid transparent;border-radius:4px;background:transparent;cursor:pointer}
   .lg:hover .tagtc{border-color:var(--bord)}
   .lg .tagtc:hover{background:var(--surface);color:var(--vert)}
@@ -271,7 +270,7 @@
   [data-theme="dark"] button.discret,[data-theme="dark"] .meta-toggle,[data-theme="dark"] .comp-texte{background:#2a2620;color:var(--second)}
   [data-theme="dark"] .lg select.niv,[data-theme="dark"] .lg .inc{background:transparent}
   [data-theme="dark"] .lg:hover select.niv,[data-theme="dark"] .lg select.niv:focus,[data-theme="dark"] .lg .inc:hover{background:#2a2620}
-  [data-theme="dark"] .lg input{background:#211e19;color:var(--encre)}
+  [data-theme="dark"] .lg input{background:var(--tinte,#211e19);border-color:var(--tinte-bord,var(--bord));color:var(--encre)}
   [data-theme="dark"] .lg .num{color:#8a8474}
   /* Image du fac-similé : cadre sombre (le scan reste clair, c'est voulu). */
   [data-theme="dark"] #voletImage{background:#12100d}
@@ -280,10 +279,11 @@
   [data-theme="dark"] .onglets button.actif{color:#12100d}
   /* Teintes d'état des lignes, en sombre. */
   [data-theme="dark"] .lg.actif input{background:#332c1f}
-  [data-theme="dark"] .lg.titre input{background:#2c2517;color:#e8c98a}
+  [data-theme="dark"] .lg.titre{--tinte:#2c2517}
+  [data-theme="dark"] .lg.titre input{color:#e8c98a}
   [data-theme="dark"] .lg.incertain input{background:#2e2716}
   [data-theme="dark"] .lg.valide input{background:#1f2a1f}
-  [data-theme="dark"] .lg.horscorps input,[data-theme="dark"] .lg.entete input{background:#262320}
+  [data-theme="dark"] .lg.horscorps,[data-theme="dark"] .lg.entete{--tinte:#262320}
   [data-theme="dark"] .lg .inc.on,[data-theme="dark"] .lg .sugg.lettr{background:#3a2b18;color:#e0a860;border-color:#6a4a24}
   [data-theme="dark"] .lg .sugg.ok{background:var(--vertf);color:var(--vert);border-color:var(--vert)}
   [data-theme="dark"] .paire .pla{background:#20221d}
@@ -703,7 +703,8 @@ const ECH=(s)=>String(s??'').replace(/</g,'&lt;')
 // cahier », et ne doit plus paraître autrement.
 const LIB_ROLE={corps:'corps',titre:'titre',vers:'vers',titre_courant:'titre courant',numero_page:'numéro de page',
   signature:'marque de cahier',reclame:'réclame',ornement:'ornement',bruit:'bruit',note_marginale:'note en marge',
-  note_bas_page:'note de bas de page',paratexte_titre:'mention de page de titre',indetermine:'indéterminé'}
+  note_bas_page:'note de bas de page',paratexte_titre:'mention de page de titre',indetermine:'indéterminé',
+  continuation_typographique:'suite de vers'}
 const libRole=(r)=>LIB_ROLE[roleBase(r)]||String(r||'').replace(/_/g,' ')
 // L'analyse de structure émet des rôles PROVISOIRES suffixés (« lettrine_candidate »,
 // « reclame_candidate_geometrique »…). Pour la couleur et le libellé, seule la famille compte —
@@ -1209,8 +1210,13 @@ function rendre(){
     const sx=img.clientWidth/pg.largeur, sy=img.clientHeight/pg.hauteur
     pg.lignes.forEach((l,i)=>{ if(!l.bbox)return; const [x,y,w,h]=l.bbox
       const b=document.createElement('div'); b.className='box'; b.dataset.i=i
+      // Même code couleur que la ligne de texte — donc même calcul, `roleBase` compris. La boîte
+      // recevait jadis le rôle BRUT (« paratexte_titre_candidate », « ornement_candidate »…), qui
+      // ne correspondait à aucune teinte : 722 boîtes restaient incolores sur le fac-similé alors
+      // que leur ligne, elle, était bien coloriée. Le pointillé de suggestion est repris aussi.
       { const l=pg.lignes[i], conf=l&&l.suggestion&&l.suggestion.role_confirme, sug=l&&l.suggestion&&l.suggestion.role_suggere
-        b.dataset.role=conf||sug||(l&&l.titre&&l.titre.niveau?'titre':'corps') } // même code couleur sur le fac-similé
+        b.dataset.role=roleBase(conf||sug||(l&&l.titre&&l.titre.niveau?'titre':'corps'))
+        if(!conf&&sug) b.dataset.suggere='1' }
       b.style.left=(x*sx)+'px'; b.style.top=(y*sy)+'px'; b.style.width=(w*sx)+'px'; b.style.height=(h*sy)+'px'
       b.onclick=()=>{ const inp=vl.querySelector(`input[data-i="${i}"]`); if(inp){inp.focus();} }
       scene.appendChild(b) }) }
@@ -1656,10 +1662,38 @@ majReglagesOcr()
 // ── Mode COULEUR des rôles ────────────────────────────────────────────────────────────────────
 // Vérifier des centaines de classements en lisant ligne à ligne est impraticable ; en couleur,
 // une manchette prise pour du corps, ou un titre courant oublié, saute aux yeux.
-const COULEURS_ROLES=[['corps','#fdfaf3','#d9cfc0'],['note_marginale','#f2e2d0','#b07a45'],['note_bas_page','#eadcc8','#9a6a3a'],
-  ['titre','#e5eef7','#5b86ad'],['paratexte_titre','#e0e8f5','#6b7fb5'],['titre_courant','#ece7f5','#8b7ab5'],
-  ['numero_page','#eef0f2','#8d97a1'],['signature','#eef0f2','#8d97a1'],['reclame','#e8f0ea','#6f9a7c'],
-  ['ornement','#f0e9e9','#a98a8a'],['bruit','#eeeaea','#a09595']]
+// Table UNIQUE : [rôle, fond de la ligne de texte, bordure, opacité du voile sur le fac-similé].
+// Elle couvre tout le vocabulaire de `structure.mjs::ROLES` — un rôle oublié ici serait un rôle
+// invisible, donc invérifiable. L'opacité du voile est plus basse pour le corps, les vers et leurs
+// suites : ce sont la MASSE de la page, et le fac-similé doit rester lisible dessous ; les rôles
+// d'exception, eux, doivent sauter aux yeux.
+const COULEURS_ROLES=[['corps','#fdfaf3','#d9cfc0',.13],['vers','#f6f1e4','#cfc4a8',.13],
+  ['continuation_typographique','#f6f1e4','#cfc4a8',.13],
+  ['note_marginale','#f2e2d0','#b07a45',.22],['note_bas_page','#eadcc8','#9a6a3a',.22],
+  ['titre','#e5eef7','#5b86ad',.20],['paratexte_titre','#e0e8f5','#6b7fb5',.20],['titre_courant','#ece7f5','#8b7ab5',.20],
+  ['numero_page','#eef0f2','#8d97a1',.20],['signature','#eef0f2','#8d97a1',.20],['reclame','#e8f0ea','#6f9a7c',.20],
+  ['ornement','#f0e9e9','#a98a8a',.22],['bruit','#eeeaea','#a09595',.22],['indetermine','#f4f0ea','#b8ada0',.18]]
+// Engendre les teintes pour les DEUX surfaces d'un même coup : la ligne de texte et la boîte posée
+// sur le fac-similé. C'est ce qui garantit qu'elles ne peuvent plus diverger.
+// On ne pose que des VARIABLES, jamais un `background` : une règle de teinte est plus spécifique
+// que les règles d'état (`.lg.cible input`, `.box.actif`…) et les écrasait donc toutes — en mode
+// couleur, le surlignage ambre du saut depuis l'onglet Contrôle ne se voyait plus. En passant par
+// une variable, le rôle donne le fond PAR DÉFAUT et tout état le recouvre sans surenchère.
+const rgbDe=(h)=>{ let s=String(h).replace('#',''); if(s.length===3) s=s.split('').map(c=>c+c).join('')
+  return parseInt(s.slice(0,2),16)+','+parseInt(s.slice(2,4),16)+','+parseInt(s.slice(4,6),16) }
+function injecterCouleursRoles(){
+  const regles=[]
+  for(const [role,fond,bord,voile] of COULEURS_ROLES){
+    const rgb=rgbDe(bord)
+    regles.push(`.roles .lg[data-role="${role}"]{--tinte:${fond};--tinte-bord:${bord}}`)
+    regles.push(`.roles .box[data-role="${role}"]{--voile:rgba(${rgb},${voile});--voile-bord:${bord}}`)
+    // En thème sombre, le pastel clair rendrait le texte (clair lui aussi) illisible : on garde la
+    // teinte, mais en VOILE translucide posé sur le fond sombre. Même hue, même lecture d'un coup
+    // d'œil, contraste préservé.
+    regles.push(`:root[data-theme="dark"] .roles .lg[data-role="${role}"]{--tinte:rgba(${rgb},.17);--tinte-bord:rgba(${rgb},.5)}`)
+  }
+  const s=document.createElement('style'); s.id='couleursRoles'; s.textContent=regles.join('\n')
+  document.head.appendChild(s) }
 function rendreLegendeRoles(){ const l=$('legendeRoles'); if(!l)return; l.innerHTML=''
   const vus=new Set()
   for(const [role,fond,bord] of COULEURS_ROLES){
@@ -1688,7 +1722,7 @@ if($('btnRoles')){
   try{ rolesActifs = localStorage.getItem('cs_roles_couleur')==='1' }catch{}
   $('btnRoles').onclick=()=>basculerRoles()
   window.addEventListener('keydown',(e)=>{ if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='C'||e.key==='c')){ e.preventDefault(); basculerRoles() } })
-  rendreLegendeRoles(); majModeRoles()
+  injecterCouleursRoles(); rendreLegendeRoles(); majModeRoles()
 }
 
 // Bascule d'onglets du volet gauche.
