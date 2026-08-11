@@ -172,6 +172,8 @@
   .roles .box[data-role="numero_page"],.roles .box[data-role="signature"]{background:rgba(141,151,161,.20);border-color:#8d97a1}
   .roles .box[data-role="reclame"]{background:rgba(111,154,124,.20);border-color:#6f9a7c}
   .roles .box[data-role="ornement"],.roles .box[data-role="bruit"]{background:rgba(169,138,138,.22);border-color:#a98a8a}
+  /* Bouton d'en-tête : son état se voit, pour qu'on sache toujours si les couleurs sont mises. */
+  #btnRoles.actif{background:var(--vert,#3d6b4f);color:#fff;border-color:var(--vert,#3d6b4f)}
   #legendeRoles{display:none;flex-wrap:wrap;gap:5px 12px;align-items:center;font-size:11px;color:var(--second);padding:4px 0}
   .roles-on #legendeRoles{display:flex}
   #legendeRoles i{display:inline-block;width:11px;height:11px;border-radius:2px;border:1px solid;margin-right:4px;vertical-align:-1px}
@@ -292,6 +294,7 @@
   <button class="discret" id="btnAnalyser">Analyser</button>
   <span class="sep"></span>
   <button id="theme" title="Basculer clair / sombre">🌙</button>
+  <button class="discret" id="btnRoles" aria-pressed="false" title="Colorer les lignes selon leur rôle — corps, note en marge, titre, hors-corps — dans le texte et sur le fac-similé. Se met et s'enlève à tout moment (Ctrl+Maj+C).">🎨 Rôles</button>
   <button class="discret" id="btnSaveHeader" title="Enregistrer le projet (Ctrl+S)">💾 Enregistrer</button>
   <span id="etatSaveHeader" style="font-size:12px;color:var(--second)"></span>
   <a href="/index.html" style="font-size:12px;color:var(--second)">panneau ⚙</a>
@@ -389,7 +392,6 @@
 <div class="barre2" id="legendeRoles"></div>
 
 <div class="barre2" id="barreAvance" style="display:none">
-  <label class="reglage" style="flex-direction:row;align-items:center;gap:6px" title="Colore chaque ligne selon son rôle, dans le texte ET sur le fac-similé : on vérifie les classements d'un coup d'œil au lieu de les lire un à un. Bordure en pointillé = simple suggestion, pas encore confirmée."><input type="checkbox" id="chkRoles"> Couleurs des rôles</label>
   <button class="discret" id="btnExportXml" title="Exporte chaque page océrisée aux formats d'échange ALTO v4 + PAGE XML (coordonnées + texte + image), pour eScriptorium / Transkribus / Aletheia">ALTO / PAGE</button>
   <button class="discret" id="btnValider" title="Validation HUMAINE de la page : marque valide_humain (par page et par ligne, hors lignes incertaines). Re-cliquer retire la validation.">✓ Valider (humain)</button>
   <span id="nbValidees" style="font-size:12px;color:var(--second)"></span>
@@ -1655,15 +1657,26 @@ function rendreLegendeRoles(){ const l=$('legendeRoles'); if(!l)return; l.innerH
     l.appendChild(s) }
   const n=document.createElement('span'); n.style.color='var(--second)'; n.textContent='— bordure en pointillé : suggestion non confirmée'
   l.appendChild(n) }
-function majModeRoles(){ const on=$('chkRoles')&&$('chkRoles').checked
-  document.body.classList.toggle('roles-on', !!on)
+// Mise et retrait à volonté : un bouton dans l'EN-TÊTE (toujours visible, quel que soit l'onglet
+// ouvert) et un raccourci. L'état est retenu d'une session à l'autre, mais rien n'est figé : les
+// couleurs s'enlèvent d'un clic quand on veut lire le texte nu.
+let rolesActifs = false
+function majModeRoles(){
+  document.body.classList.toggle('roles-on', rolesActifs)
   const vl=$('lignes'), vi=$('voletImage')
-  if(vl) vl.classList.toggle('roles', !!on)
-  if(vi) vi.classList.toggle('roles', !!on)
-  try{ localStorage.setItem('cs_roles_couleur', on?'1':'0') }catch{} }
-if($('chkRoles')){
-  try{ $('chkRoles').checked = localStorage.getItem('cs_roles_couleur')==='1' }catch{}
-  $('chkRoles').addEventListener('change', majModeRoles)
+  if(vl) vl.classList.toggle('roles', rolesActifs)
+  if(vi) vi.classList.toggle('roles', rolesActifs)
+  const b=$('btnRoles')
+  if(b){ b.setAttribute('aria-pressed', rolesActifs?'true':'false')
+    b.classList.toggle('actif', rolesActifs)
+    b.title = (rolesActifs?'Retirer les couleurs de rôle':'Colorer les lignes selon leur rôle — corps, note en marge, titre, hors-corps')+' (Ctrl+Maj+C)' }
+  try{ localStorage.setItem('cs_roles_couleur', rolesActifs?'1':'0') }catch{} }
+function basculerRoles(v){ rolesActifs = (v===undefined) ? !rolesActifs : !!v; majModeRoles()
+  etat(rolesActifs?'Couleurs des rôles activées — pointillé = suggestion non confirmée.':'Couleurs des rôles retirées.') }
+if($('btnRoles')){
+  try{ rolesActifs = localStorage.getItem('cs_roles_couleur')==='1' }catch{}
+  $('btnRoles').onclick=()=>basculerRoles()
+  window.addEventListener('keydown',(e)=>{ if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='C'||e.key==='c')){ e.preventDefault(); basculerRoles() } })
   rendreLegendeRoles(); majModeRoles()
 }
 
