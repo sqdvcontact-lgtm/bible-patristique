@@ -50,8 +50,19 @@
   .meta-diag .dg-vide{color:#b06a2a}
   main.meta-replie .vtabs,main.meta-replie .vpanel{display:none}
   main.meta-replie .meta-tete{flex-direction:column;padding:8px 3px;border-bottom:none}
-  .vtabs{display:flex;flex:1;border-bottom:1px solid var(--bord)}
-  .vtabs button{flex:1;min-width:0;padding:9px 4px;border:none;background:none;font-size:11px;color:var(--second);border-bottom:2px solid transparent;border-radius:0;font-weight:500;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:-1px;transition:color .12s,border-color .12s}
+  /* Les onglets se sont multipliés : plutôt que de les comprimer jusqu'à tronquer les libellés
+     (« Métadonn… »), on les laisse à leur largeur naturelle et la bande DÉFILE. Barre de défilement
+     masquée — le signal, c'est le voile de bord, plus discret qu'une barre grise. */
+  .vtabs{display:flex;flex:1;min-width:0;border-bottom:1px solid var(--bord);
+    overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth;overscroll-behavior-x:contain;
+    scrollbar-width:none;-ms-overflow-style:none}
+  .vtabs::-webkit-scrollbar{display:none}
+  /* Voile de bord : le côté où il reste des onglets s'estompe. Rien ne recouvre le contenu, aucun
+     bouton n'encombre la bande — on comprend qu'on peut faire défiler, et c'est tout. */
+  .vtabs.deb{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 20px);mask-image:linear-gradient(to right,transparent 0,#000 20px)}
+  .vtabs.fin{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent 100%);mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent 100%)}
+  .vtabs.deb.fin{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 20px,#000 calc(100% - 20px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 20px,#000 calc(100% - 20px),transparent 100%)}
+  .vtabs button{flex:0 0 auto;padding:9px 9px;border:none;background:none;font-size:11px;color:var(--second);border-bottom:2px solid transparent;border-radius:0;font-weight:500;cursor:pointer;white-space:nowrap;margin-bottom:-1px;transition:color .12s,border-color .12s}
   .vtabs button:hover{color:var(--encre)}
   .vtabs button.actif{color:var(--vert);border-bottom-color:var(--vert);font-weight:700}
   /* Onglet Contrôle : badge + cartes de proposition IA (Phase — retour 2026-08-10). */
@@ -1681,8 +1692,40 @@ if($('btnRoles')){
 }
 
 // Bascule d'onglets du volet gauche.
+// ── Bande d'onglets défilante ─────────────────────────────────────────────────────────────────
+// Le voile ne s'affiche que du côté où il RESTE quelque chose à voir : à gauche si l'on a déjà
+// défilé, à droite s'il reste des onglets. Recalculé au défilement et au redimensionnement du volet.
+function majVoilesOnglets(){ const t=$('vtabs'); if(!t)return
+  const debordement = t.scrollWidth - t.clientWidth
+  if(debordement<=2){ t.classList.remove('deb','fin'); return }
+  t.classList.toggle('deb', t.scrollLeft>2)
+  t.classList.toggle('fin', t.scrollLeft < debordement-2) }
+// Amène un onglet à l'écran sans brusquerie : utile quand le code active « Contrôle » tout seul
+// après une passe, alors qu'il est hors de vue.
+function montrerOnglet(b){ if(b&&b.scrollIntoView) b.scrollIntoView({inline:'nearest',block:'nearest',behavior:'smooth'}) }
+if($('vtabs')){
+  const t=$('vtabs')
+  t.addEventListener('scroll', majVoilesOnglets, { passive:true })
+  // Sur une bande horizontale, la molette VERTICALE est le geste naturel : on la convertit.
+  // `behavior:'instant'` est ici DÉLIBÉRÉ. Attention au piège : `'auto'` ne signifie PAS
+  // « instantané », il DÉFÈRE au `scroll-behavior` du CSS — donc au `smooth` du conteneur. Chaque
+  // cran relancerait alors une animation et la bande traînerait derrière la main. Seul `'instant'`
+  // neutralise le smooth. La molette suit le geste ; seul le glissement programmatique glisse.
+  t.addEventListener('wheel',(e)=>{ if(Math.abs(e.deltaY)<=Math.abs(e.deltaX))return
+    const d=t.scrollWidth-t.clientWidth; if(d<=2)return
+    e.preventDefault(); t.scrollBy({ left:e.deltaY, behavior:'instant' }) }, { passive:false })
+  try{ new ResizeObserver(majVoilesOnglets).observe(t) }catch{}
+  // Le premier calcul doit attendre que la mise en page soit posée : mesuré trop tôt, le
+  // débordement n'existe pas encore et le voile de droite manquait au chargement. On repasse donc
+  // après le rendu, après le chargement complet, et quand les polices arrivent (elles changent la
+  // largeur des libellés).
+  requestAnimationFrame(()=>requestAnimationFrame(majVoilesOnglets))
+  window.addEventListener('load', majVoilesOnglets)
+  try{ document.fonts && document.fonts.ready.then(majVoilesOnglets) }catch{}
+}
 document.querySelectorAll('#vtabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#vtabs button').forEach(x=>x.classList.toggle('actif', x===b))
+  montrerOnglet(b)
   const t=b.dataset.t
   ;[['meta','panelMeta'],['pre','panelPre'],['ocr','panelOcr'],['ctrl','panelControle'],['exp','panelExport']].forEach(([k,id])=>{ $(id).style.display=(k===t)?'':'none' })
   if(t==='ctrl') rendreVoletControle()
