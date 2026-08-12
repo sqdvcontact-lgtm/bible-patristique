@@ -40,8 +40,8 @@ describe('HistoricalDate', () => {
 
     expect(html).toContain('font-variant-caps:all-small-caps')
     expect(html).toContain('font-feature-settings:&quot;smcp&quot; 1, &quot;c2sc&quot; 1')
-    expect(html).toContain('<sup style="vertical-align:super;font-size:0.68em;line-height:0">er</sup>')
-    expect(html).toContain('<sup style="vertical-align:super;font-size:0.68em;line-height:0">e</sup>')
+    expect(html).toContain('<sup style="font-size:0.68em;line-height:0;vertical-align:baseline;position:relative;top:-0.5em">er</sup>')
+    expect(html).toContain('<sup style="font-size:0.68em;line-height:0;vertical-align:baseline;position:relative;top:-0.5em">e</sup>')
   })
 
   it('ne crée aucun contenu pour une date absente', () => {

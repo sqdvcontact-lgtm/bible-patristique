@@ -159,7 +159,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
         {!compact && (
           <div className="bib-photo" style={{ width: '7.5rem', flexShrink: 0, background: 'var(--cs-fond-doux)', position: 'relative', minHeight: '170px', overflow: 'hidden' }}>
             {!imgErreur && (
-              <Image src={auteur.imageUrl} alt={auteur.nom} fill sizes="240px" unoptimized
+              <Image src={auteur.imageUrl} alt={auteur.nom} fill sizes="120px" unoptimized
                 onError={() => setImgErreur(true)}
                 style={{ ...stylePhotoAuteur(photoPos), imageRendering: 'auto' }} />
             )}

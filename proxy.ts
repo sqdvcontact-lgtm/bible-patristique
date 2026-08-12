@@ -105,24 +105,28 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  // 2. Rafraîchit le jeton si besoin — indispensable avec @supabase/ssr, sans
-  //    quoi une session expirée resterait invisible côté serveur.
-  const { data: { user } } = await supabase.auth.getUser()
+  // 2. Vérifie le jeton et le rafraîchit si besoin. `getClaims()` valide le JWT
+  //    localement quand le projet utilise les clés asymétriques Supabase, au lieu
+  //    d'imposer un aller-retour vers Auth à chaque navigation comme `getUser()`.
+  const { data: claimsData } = await supabase.auth.getClaims()
+  const claims = claimsData?.claims
+  const userId = typeof claims?.sub === 'string' ? claims.sub : null
+  const userEmail = typeof claims?.email === 'string' ? claims.email : null
 
   // 3. Verrou. Tant que `ADMIN_EMAIL` n'est pas renseigné, le site reste ouvert :
   //    on ne veut pas qu'un déploiement mal configuré se verrouille tout seul.
   if (AUTORISES.length > 0 && !estLibre(pathname)) {
-    const courriel = user?.email?.trim().toLowerCase()
+    const courriel = userEmail?.trim().toLowerCase()
     let autorise = !!courriel && AUTORISES.includes(courriel)
 
     // Invité en base : `profils.acces_beta = true` ouvre l'accès en LECTURE SEULE
     // (jamais l'admin — celui-ci reste `est_admin` / égalité exacte avec ADMIN_EMAIL).
     // Avantage : inviter quelqu'un ne demande qu'un booléen en base, sans toucher aux
     // variables d'environnement de l'hébergeur ni exposer d'adresse dans le dépôt public.
-    if (!autorise && user) {
+    if (!autorise && userId) {
       try {
         const { data: profil } = await supabase
-          .from('profils').select('acces_beta').eq('id', user.id).maybeSingle()
+          .from('profils').select('acces_beta').eq('id', userId).maybeSingle()
         autorise = profil?.acces_beta === true
       } catch {
         // En cas d'erreur de lecture, on s'en tient au comportement par défaut (non autorisé).

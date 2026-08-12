@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import AccueilCards from "../components/AccueilCards";
 import IconeChevron from "@/app/components/IconeChevron";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
@@ -194,8 +195,11 @@ export default async function AccueilPage() {
           padding: "clamp(22px, 3.5vh, 52px) 0 0",
         }}>
         <header style={{ textAlign: "center", marginBottom: "24px" }}>
-          <img
+          <Image
             src="/icons/home-title-ornament.png"
+            width={2062}
+            height={131}
+            sizes="min(720px, 92vw)"
             alt=""
             aria-hidden="true"
             className="hero-title-ornament"

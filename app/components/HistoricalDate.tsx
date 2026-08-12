@@ -15,10 +15,14 @@ export const STYLE_DATE_ROMAIN: CSSProperties = {
   fontFeatureSettings: '"smcp" 1, "c2sc" 1',
 }
 
+// Décalage maîtrisé plutôt que `vertical-align: super` (qui montait le « e » beaucoup
+// trop haut, au-dessus de la casse du chiffre). Accordé au module `siecles.tsx`.
 export const STYLE_DATE_ORDINAL: CSSProperties = {
-  verticalAlign: 'super',
   fontSize: '0.68em',
   lineHeight: 0,
+  verticalAlign: 'baseline',
+  position: 'relative',
+  top: '-0.5em',
 }
 
 /** Harmonise seulement l'espacement typographique d'une chaîne établie en base. */

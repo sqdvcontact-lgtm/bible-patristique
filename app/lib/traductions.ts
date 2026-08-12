@@ -14,8 +14,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 const REPLI = ['TR0001', 'TR0002', 'TR0003', 'TR0004']
+const CACHE_MS = 5 * 60_000
+let cacheCodes: { expiresAt: number; promise: Promise<string[]> } | null = null
 
-export async function codesTraductionsLecture(client: SupabaseClient): Promise<string[]> {
+async function chargerCodesTraductionsLecture(client: SupabaseClient): Promise<string[]> {
   const { data: trads } = await client
     .from('traductions').select('trad_id').order('ordre', { ascending: true })
   const demandes = ((trads ?? []) as { trad_id: string }[])
@@ -30,4 +32,18 @@ export async function codesTraductionsLecture(client: SupabaseClient): Promise<s
   const colonnes = new Set(Object.keys(ligne))
   const filtres = demandes.filter((code: string) => colonnes.has(code))
   return filtres.length ? filtres : REPLI
+}
+
+export async function codesTraductionsLecture(client: SupabaseClient): Promise<string[]> {
+  const now = Date.now()
+  if (cacheCodes && cacheCodes.expiresAt > now) return cacheCodes.promise
+
+  const promise = chargerCodesTraductionsLecture(client)
+  cacheCodes = { expiresAt: now + CACHE_MS, promise }
+  try {
+    return await promise
+  } catch (error) {
+    if (cacheCodes?.promise === promise) cacheCodes = null
+    throw error
+  }
 }

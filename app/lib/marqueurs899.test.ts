@@ -49,8 +49,21 @@ describe('rendreMarqueurs899', () => {
     const out = reduireTout(rendreMarqueurs899('a [lacune : trou de vélin] b')) as ReturnType<typeof reduire>[]
     expect(out).toEqual([
       { t: 'texte', v: 'a ' },
-      { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: '[lacune]' },
+      { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: '⟨ Lacune ⟩' },
       { t: 'texte', v: ' b' },
+    ])
+  })
+
+  it('insère une ESPACE FINE (U+202F) quand la lacune coupe un mot', () => {
+    // « por[lacune : déchirure]er » → le marqueur ne se colle pas au fragment resté, mais
+    // n'en est pas non plus séparé par une espace pleine : une fine de chaque côté.
+    const out = reduireTout(rendreMarqueurs899('por[lacune : déchirure]er')) as ReturnType<typeof reduire>[]
+    expect(out).toEqual([
+      { t: 'texte', v: 'por' },
+      { t: 'texte', v: ' ' },
+      { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: '⟨ Lacune ⟩' },
+      { t: 'texte', v: ' ' },
+      { t: 'texte', v: 'er' },
     ])
   })
 })

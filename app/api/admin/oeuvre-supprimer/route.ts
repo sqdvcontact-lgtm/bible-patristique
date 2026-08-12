@@ -16,6 +16,7 @@ export async function POST(request: Request) {
 
   // Supprimer les segments d'abord (si pas de CASCADE en DB)
   await supabaseAdmin.from('segments').delete().eq('id_oeuvre', id_oeuvre)
+  await supabaseAdmin.from('oeuvre_textes').delete().eq('id_oeuvre', id_oeuvre)
 
   const { error } = await supabaseAdmin.from('oeuvres').delete().eq('id_oeuvre', id_oeuvre)
   if (error) return erreur500(error)

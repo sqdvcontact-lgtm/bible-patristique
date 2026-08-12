@@ -12,14 +12,27 @@ import type { ReactNode } from 'react'
 // donc verset par verset avec un petit automate tolérant aux marqueurs non fermés ou
 // non ouverts — jamais de crochet brut laissé à l'écran.
 
+// Lecture incertaine : le fait éditorial se dit par la seule teinte grise — le mot
+// s'efface d'un ton sous le texte établi, sans jamais le concurrencer. Plus de
+// soulignement pointillé (jugé disgracieux) : la couleur suffit, l'infobulle porte
+// le sens savant.
 const STYLE_INCERTAINE: React.CSSProperties = {
   color: 'var(--cs-texte-second)',
-  borderBottom: '1px dotted var(--cs-texte-faible)',
 }
+// Lacune inline (au milieu d'un verset par ailleurs porté) : le manque se dit « ⟨ Lacune ⟩ »,
+// entre chevrons, en romain effacé, d'un cran plus petit que le texte. Une ESPACE FINE
+// insécable (U+202F) sépare le chevron du mot — jamais le chevron collé, jamais une espace
+// pleine. Le motif exact reste à l'infobulle.
 const STYLE_LACUNE: React.CSSProperties = {
-  color: 'var(--cs-texte-doux)',
-  fontStyle: 'italic',
+  color: 'var(--cs-lacune)',
+  fontFamily: 'var(--font-source-serif), Georgia, serif',
+  fontSize: '0.85em',
 }
+// Espace fine insécable (« espace fine » de la typographie française). Sert DEUX rôles :
+// entre le chevron et « Lacune », et — quand la lacune coupe un mot — entre le marqueur et
+// le fragment resté collé, pour ne l'attacher ni le détacher comme un mot entier.
+const FINE = ' '
+const MARQUEUR_LACUNE = `⟨${FINE}Lacune${FINE}⟩`   // ⟨ Lacune ⟩
 
 // Un token = soit une ouverture « [<type> : », soit une fermeture « ] ».
 const RE_TOKEN = /\[(lecture incertaine|lacune|ajout marginal)\s*:\s*|\]/gu
@@ -66,10 +79,18 @@ export function rendreMarqueurs899(texte: string): ReactNode {
   while ((m = RE_TOKEN.exec(texte)) !== null) {
     pousser(texte.slice(dernier, m.index), mode)
     if (m[0] === ']') {
+      // Fermeture d'une lacune collée à la suite (« …]er ») : une fine, pas un mot recollé.
+      if (mode === 'lacune') {
+        const apres = texte[m.index + 1]
+        if (apres && !/\s/.test(apres)) noeuds.push(FINE)
+      }
       mode = 'normal'
     } else if (m[1] === 'lacune') {
+      // Ouverture collée au texte précédent (« por[… ») : une fine avant le marqueur.
+      const avant = texte[m.index - 1]
+      if (avant && !/\s/.test(avant)) noeuds.push(FINE)
       noeuds.push(
-        <span key={`m${cle++}`} title="Lacune matérielle du manuscrit" style={STYLE_LACUNE}>[lacune]</span>,
+        <span key={`m${cle++}`} title="Lacune matérielle du manuscrit" style={STYLE_LACUNE}>{MARQUEUR_LACUNE}</span>,
       )
       mode = 'lacune'
     } else {

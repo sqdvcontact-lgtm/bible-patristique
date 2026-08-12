@@ -25,9 +25,11 @@ export default function Consentement() {
   // rendu serveur ni au premier rendu client → pas de désaccord d'hydratation.
   const [monte, setMonte] = useState(false)
   const [choix, setChoix] = useState<Choix>(null)
+  const [estLocal, setEstLocal] = useState(false)
 
   useEffect(() => {
     setMonte(true)
+    setEstLocal(['localhost', '127.0.0.1', '::1'].includes(window.location.hostname))
     const stocke = typeof window !== 'undefined' ? window.localStorage.getItem(CLE) : null
     setChoix(stocke === 'accepte' || stocke === 'refuse' ? stocke : null)
     // Permettre de rouvrir le bandeau depuis un lien « Gérer les cookies ».
@@ -42,7 +44,7 @@ export default function Consentement() {
   }
 
   // Pas d'identifiant configuré : on ne charge rien et on n'affiche rien.
-  if (!GA_ID) return null
+  if (!GA_ID || estLocal) return null
 
   const bandeauVisible = monte && choix === null
 

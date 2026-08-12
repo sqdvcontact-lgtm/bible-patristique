@@ -65,6 +65,11 @@
   /* Or — accent doré (références, fleurons, favoris) */
   --cs-or: #9a7a38;
   --cs-or-doux: #c8b89e;
+  /* Ocre « apparat » : les états d'ABSENCE du témoin (lacune du manuscrit). Plus
+     profond que --cs-etiquette (trop pâle pour un petit marqueur) : assez de contraste
+     sur les fonds clairs, tout en se lisant comme une annotation d'éditeur, non comme du
+     texte fané. Distinct du gris des lectures incertaines (présent mais douteux). */
+  --cs-lacune: #8a6a2c;
 
   /* Surface « papier » : cartes, menus, champs. Blanc en thème clair (identique à
      l'existant) ; devient crème chaud en Sépia, brun sombre en Cuir. C'est ce token

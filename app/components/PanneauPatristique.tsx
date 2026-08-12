@@ -137,7 +137,7 @@ function rendreSiecle(str: string): React.ReactNode {
   while ((m = re.exec(str)) !== null) {
     if (m.index > last) parts.push(str.slice(last, m.index))
     parts.push(<span key={k++} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{m[1].toLowerCase()}</span>)
-    if (m[2]) parts.push(<sup key={k++} style={{ fontSize: '0.68em' }}>{m[2]}</sup>)
+    if (m[2]) parts.push(<sup key={k++} style={{ fontSize: '0.68em', lineHeight: 0, verticalAlign: 'baseline', position: 'relative', top: '-0.5em' }}>{m[2]}</sup>)
     last = re.lastIndex
   }
   if (last < str.length) parts.push(str.slice(last))

@@ -27,13 +27,14 @@ export type SourceReadingPayload = {
   units: SourceUnitTextRow[]
 }
 
-export async function loadBibleReadingCatalog(client: SupabaseClient): Promise<BibleReadingCatalog> {
-  const [capabilitiesResult, sampleResult, editorialVerseResult] = await Promise.all([
+const BIBLE_CATALOG_CACHE_MS = 60_000
+const PRIVATE_EDITORIAL_VERSE_TRANSLATION_IDS = ['TR0009'] as const
+let bibleCatalogCache: { expiresAt: number; promise: Promise<BibleReadingCatalog> } | null = null
+
+async function fetchBibleReadingCatalog(client: SupabaseClient): Promise<BibleReadingCatalog> {
+  const [capabilitiesResult, sampleResult] = await Promise.all([
     client.from('v_bible_reading_capabilities').select('*').order('display_order'),
     client.from('versets_lecture').select('*').limit(1),
-    // Traductions dont les versets canoniques sont recomposés hors `versets_lecture`
-    // (TR0009, Bible 899). Site privé : lues telles quelles, sans filtre is_public.
-    client.from('v_bible899_verse_recomposed').select('trad_id').not('canon_id', 'is', null),
   ])
   if (capabilitiesResult.error && !isMissingReadingCapabilitiesRelation(capabilitiesResult.error)) {
     throw new Error(`Capacités de lecture illisibles: ${capabilitiesResult.error.message}`)
@@ -45,15 +46,26 @@ export async function loadBibleReadingCatalog(client: SupabaseClient): Promise<B
   const canonicalIds = canonicalTranslationIdsFromSample(
     ((sampleResult.data ?? [])[0] as Record<string, unknown> | undefined) ?? null,
   )
-  const editorialVerseIds = editorialVerseResult.error
-    ? []
-    : [...new Set(((editorialVerseResult.data ?? []) as { trad_id: string }[]).map((row) => row.trad_id))]
   return {
     rows,
     capabilities: withEditorialVerseCapability(
       readingCapabilitiesByTranslation(rows, canonicalIds),
-      editorialVerseIds,
+      PRIVATE_EDITORIAL_VERSE_TRANSLATION_IDS,
     ),
+  }
+}
+
+export async function loadBibleReadingCatalog(client: SupabaseClient): Promise<BibleReadingCatalog> {
+  const now = Date.now()
+  if (bibleCatalogCache && bibleCatalogCache.expiresAt > now) return bibleCatalogCache.promise
+
+  const promise = fetchBibleReadingCatalog(client)
+  bibleCatalogCache = { expiresAt: now + BIBLE_CATALOG_CACHE_MS, promise }
+  try {
+    return await promise
+  } catch (error) {
+    if (bibleCatalogCache?.promise === promise) bibleCatalogCache = null
+    throw error
   }
 }
 

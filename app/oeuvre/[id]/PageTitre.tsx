@@ -1,4 +1,4 @@
-import type { Props, ChampOeuvre } from './oeuvreTypes'
+import type { Props, ChampOeuvre, VersionTextuelle } from './oeuvreTypes'
 import { rendreTexteEnrichi } from './texteEnrichi'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { resoudreEditeur } from '@/app/lib/editeurs'
@@ -106,15 +106,24 @@ const BTN: React.CSSProperties = {
 }
 
 // ── Page de titre ─────────────────────────────────────────────────────────────
-export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier, mobile = false }: {
+export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdmin, onModifier, mobile = false }: {
   auteur: string
   oeuvre: Props['oeuvre']
+  versionActive?: VersionTextuelle | null
   titre: string
   estAdmin: boolean
   onModifier: (champ: ChampOeuvre, valeurActuelle: string) => void
   mobile?: boolean
 }) {
   const SERIF = "var(--font-source-serif), Georgia, serif"
+  const traducteur = versionActive?.traducteur ?? oeuvre.trad_auteur
+  const traducteurLabel = versionActive?.traducteurLabel ?? libelleTrad(traducteur)
+  const commentaireTraduction = versionActive && !versionActive.isDefault
+    ? null
+    : oeuvre.commentaire_traduction
+  const editeur = versionActive?.editeurEdition ?? oeuvre.editeur
+  const ville = versionActive?.villeEdition ?? oeuvre.ville
+  const datePublication = versionActive?.dateEdition ?? oeuvre.date_publication
   // Millésime de l'édition en ligne (colophon), estampillé en base à la première
   // publication de l'œuvre (colonne `date_mise_en_ligne`). Absent → ligne masquée.
   const anneeEnLigne = oeuvre.date_mise_en_ligne
@@ -177,22 +186,28 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
       )}
 
       {/* Traducteur — vient AVANT la marque d'imprimeur */}
-      {(oeuvre.trad_auteur || estAdmin) && (
+      {(traducteur || estAdmin) && (
         <div style={{ position: 'relative' }}>
           <p style={{ fontFamily: SERIF, fontSize: '0.875rem', color: '#655d54', marginBottom: '6px' }}>
-            {oeuvre.trad_auteur ? <>{libelleTrad(oeuvre.trad_auteur)}</> : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.75rem' }}>Traduction de…</span> : null}
+            {traducteur ? <>{traducteurLabel}</> : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.75rem' }}>Traduction de…</span> : null}
           </p>
-          {estAdmin && (
+          {estAdmin && !versionActive && (
             <button onClick={() => onModifier('trad_auteur', oeuvre.trad_auteur ?? '')} title="Modifier le traducteur"
               style={{ ...BTN, right: '-18px', top: 0 }}><IconeCrayon size={12} /></button>
           )}
         </div>
       )}
 
+      {versionActive?.editionDescription && (
+        <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', color: '#655d54', margin: '2px 0 0' }}>
+          {versionActive.editionDescription}
+        </p>
+      )}
+
       {/* Commentaire sur la traduction (ex. attribution discutée) — note discrète. */}
-      {oeuvre.commentaire_traduction?.trim() && (
+      {commentaireTraduction?.trim() && (
         <p style={{ fontFamily: SERIF, fontSize: '0.75rem', fontStyle: 'italic', color: '#8a8278', maxWidth: '30rem', lineHeight: 1.4, margin: '0 0 2px' }}>
-          {sansPointFinal(oeuvre.commentaire_traduction)}
+          {sansPointFinal(commentaireTraduction)}
         </p>
       )}
 
@@ -206,9 +221,11 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
       <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--cs-vert)', marginBottom: '6px' }}>
         Corpus Scriptura
       </p>
-      {(oeuvre.editeur || oeuvre.ville || oeuvre.date_publication) && (
+      {(editeur || ville || datePublication) && (
         <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: '#a89f95', marginBottom: '3px' }}>
-          {formulerProvenance(oeuvre.editeur, oeuvre.ville, formaterDateHistorique(oeuvre.date_publication))}
+          {versionActive?.editionDescription && versionActive.publicationLabel
+            ? versionActive.publicationLabel
+            : formulerProvenance(editeur, ville, formaterDateHistorique(datePublication))}
         </p>
       )}
       {anneeEnLigne && (

@@ -36,7 +36,17 @@ const UN_SIECLE = new RegExp(`\\b([IVXLCDM]+)(${ORDINAL})\\b`, 'g')
 
 /** Petites capitales : `all-small-caps` et non `small-caps` — voir en tête. */
 export const STYLE_ROMAIN: React.CSSProperties = { fontVariantCaps: 'all-small-caps' }
-export const STYLE_ORDINAL: React.CSSProperties = { fontSize: '0.6em', lineHeight: 1 }
+// L'ordinal en exposant. ⚠️ On NE laisse PAS le `vertical-align: super` par défaut du
+// `<sup>` : il monte l'ordinal beaucoup trop haut (au-dessus de la casse du chiffre). On
+// le cale par un décalage relatif modéré (`top`), qui place le « e » dans le haut du
+// chiffre sans toucher à l'interligne (contrairement à `super`, qui peut l'écarter).
+export const STYLE_ORDINAL: React.CSSProperties = {
+  fontSize: '0.62em',
+  lineHeight: 1,
+  verticalAlign: 'baseline',
+  position: 'relative',
+  top: '-0.5em',
+}
 
 export function enChiffresRomains(n: number): string {
   const table: [number, string][] = [
@@ -121,7 +131,7 @@ export function rendreSiecles(texte: string | null | undefined): React.ReactNode
 export function sieclesEnHtml(html: string): string {
   return html.replace(
     new RegExp(`\\b([IVXLCDM]+)(?:<sup>)?(${ORDINAL})(?:</sup>)?(\\s*(?:siècles?|s\\.))`, 'g'),
-    '<span style="font-variant-caps:all-small-caps">$1</span><sup style="font-size:0.6em !important;line-height:1">$2</sup>$3',
+    '<span style="font-variant-caps:all-small-caps">$1</span><sup style="font-size:0.62em !important;line-height:1;vertical-align:baseline;position:relative;top:-0.5em">$2</sup>$3',
   )
 }
 

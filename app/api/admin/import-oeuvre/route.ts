@@ -3,6 +3,7 @@ import { erreur500 } from '@/app/lib/apiErreur'
 import { createClient } from '@supabase/supabase-js'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
 import { colonnesPeriodeHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
+import { NATURE_VALIDES as NATURES_SEGMENTS_IMPORT, normaliserNatureSegment } from '@/app/lib/naturesSegments'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,7 +30,7 @@ type MetaOeuvre = {
 type SegmentCsv = Record<string, string | number | null | undefined>
 
 const COLONNES_SEGMENTS = [
-  'id_oeuvre', 'segment_numero', 'segment_texte',
+  'id_oeuvre', 'id_texte', 'segment_numero', 'segment_texte',
   'ref_niv1', 'ref_niv2', 'ref_niv3', 'ref_niv4', 'ref_niv5',
   'lien_1', 'lien_2', 'lien_3', 'lien_4', 'fiabilite', 'nature', 'notes',
 ] as const
@@ -44,11 +45,12 @@ function nulSiVide(v: unknown): string | null {
 // « à_vérifier » ont disparu le 20 juillet 2026 : les accepter faisait passer des
 // valeurs mortes, les refuser en silence faisait perdre les valeurs vivantes.
 const FIABILITE_VALIDES = ['à constituer', 'douteux', 'probable', 'vérifié']
-const NATURE_VALIDES = ['texte', 'separateur', 'apparat_critique', 'citation', 'texte absent']
+export const NATURE_VALIDES = [...NATURES_SEGMENTS_IMPORT]
 
-function normaliserSegment(s: SegmentCsv, idOeuvre: string, index: number) {
+function normaliserSegment(s: SegmentCsv, idOeuvre: string, idTexte: string, index: number) {
   const row: Record<string, string | number | null> = {
     id_oeuvre: idOeuvre,
+    id_texte: idTexte,
     segment_numero: Number.parseInt(String(s.segment_numero ?? ''), 10) || index + 1,
     segment_texte: String(s.segment_texte ?? ''),
     ref_niv1: nulSiVide(s.ref_niv1), ref_niv2: nulSiVide(s.ref_niv2),
@@ -57,7 +59,7 @@ function normaliserSegment(s: SegmentCsv, idOeuvre: string, index: number) {
     lien_1: nulSiVide(s.lien_1), lien_2: nulSiVide(s.lien_2),
     lien_3: nulSiVide(s.lien_3), lien_4: nulSiVide(s.lien_4),
     fiabilite: FIABILITE_VALIDES.includes(String(s.fiabilite ?? '')) ? String(s.fiabilite) : null,
-    nature: NATURE_VALIDES.includes(String(s.nature ?? '')) ? String(s.nature) : 'texte',
+    nature: normaliserNatureSegment(s.nature),
   }
   return Object.fromEntries(COLONNES_SEGMENTS.map(c => [c, row[c]]))
 }
@@ -72,6 +74,7 @@ function segmentUtile(row: Record<string, string | number | null>) {
 
 async function rollback(idOeuvre: string) {
   await supabaseAdmin.from('segments').delete().eq('id_oeuvre', idOeuvre)
+  await supabaseAdmin.from('oeuvre_textes').delete().eq('id_oeuvre', idOeuvre)
   await supabaseAdmin.from('oeuvres').delete().eq('id_oeuvre', idOeuvre)
 }
 
@@ -102,6 +105,7 @@ export async function POST(request: Request) {
   }
 
   const idOeuvre = meta.id_oeuvre?.trim() || await prochainIdOeuvre(meta.id_auteur)
+  const idTexte = `TXT_${idOeuvre}_LEGACY`
 
   const { data: existante } = await supabaseAdmin
     .from('oeuvres').select('id_oeuvre').eq('id_oeuvre', idOeuvre).maybeSingle()
@@ -142,9 +146,26 @@ export async function POST(request: Request) {
     return erreur500(errOeuvre, "Erreur création œuvre : ")
   }
 
+  const { error: errTexte } = await supabaseAdmin.from('oeuvre_textes').insert({
+    id_texte: idTexte,
+    id_oeuvre: idOeuvre,
+    titre_version: meta.titre.trim(),
+    langue: nulSiVide(meta.langue),
+    traducteur: nulSiVide(meta.trad_auteur),
+    edition_label: [nulSiVide(meta.editeur), datePublication].filter(Boolean).join(', ') || null,
+    statut: 'published',
+    is_default: true,
+    is_public: true,
+    metadata: { legacy: true, origin: 'admin_import_after_multiversion_migration' },
+  })
+  if (errTexte) {
+    await rollback(idOeuvre)
+    return erreur500(errTexte, "Erreur création texte : ")
+  }
+
   try {
     const rows = segments
-      .map((s, i) => normaliserSegment(s, idOeuvre, i))
+      .map((s, i) => normaliserSegment(s, idOeuvre, idTexte, i))
       .filter(segmentUtile)
       .map((row, i) => ({ ...row, segment_numero: i + 1 }))
     if (rows.length === 0) {
@@ -154,7 +175,7 @@ export async function POST(request: Request) {
       const { error } = await supabaseAdmin.from('segments').insert(rows.slice(i, i + 500))
       if (error) throw error
     }
-    return NextResponse.json({ ok: true, idOeuvre, count: rows.length })
+    return NextResponse.json({ ok: true, idOeuvre, idTexte, count: rows.length })
   } catch (error: any) {
     await rollback(idOeuvre)
     const msg = error?.message ?? error?.code ?? String(error)

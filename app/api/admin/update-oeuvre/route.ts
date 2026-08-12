@@ -31,6 +31,9 @@ export async function POST(req: NextRequest) {
     // ils étaient rejetés (400) et n'étaient donc PAS enregistrés en base. La RPC
     // admin_update_oeuvre_champ les prend en charge.
     'titre_original', 'trad_auteur', 'editeur', 'collection', 'ville', 'url_source', 'genres',
+    // « Commentaires » du formulaire (colonne `commentaire_traduction`) : jusqu'ici la
+    // note ne se lisait qu'en pastille, sans moyen de la corriger.
+    'commentaire_traduction',
   ])
   if (!CHAMPS_AUTORISES.has(champ)) {
     return NextResponse.json({ error: 'Champ non autorisé.' }, { status: 400 })

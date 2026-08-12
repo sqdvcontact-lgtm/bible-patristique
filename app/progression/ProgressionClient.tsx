@@ -143,6 +143,7 @@ function CarteLivre({ livre, lu, onToggle }: { livre: LivreBible; lu: boolean; o
       <span style={{
         fontSize: '0.8125rem', color: lu ? 'var(--cs-encre)' : 'var(--cs-texte)',
         fontWeight: lu ? 600 : 400, fontFamily: "var(--font-source-serif), Georgia, serif",
+        minWidth: 0, overflowWrap: 'break-word',
       }}>
         {livre.nom}
       </span>
@@ -319,7 +320,7 @@ export default function ProgressionClient() {
             }}>
               Ancien Testament
             </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '32px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px', marginBottom: '32px' }}>
               {livresAT.map(l => (
                 <CarteLivre key={l.code} livre={l} lu={lus.has(l.code)} onToggle={(e) => toggleLivre(l.code, e)} />
               ))}
@@ -331,7 +332,7 @@ export default function ProgressionClient() {
             }}>
               Nouveau Testament
             </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
               {livresNT.map(l => (
                 <CarteLivre key={l.code} livre={l} lu={lus.has(l.code)} onToggle={(e) => toggleLivre(l.code, e)} />
               ))}

@@ -10,7 +10,8 @@ import { createPortal } from 'react-dom'
 import { parseNotes } from '@/app/lib/notes'
 import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { supabase } from "@/app/lib/supabase"
-import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee } from './oeuvreTypes'
+import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee } from './oeuvreTypes'
+import { ContenuNoteStructuree } from './ContenuNoteStructuree'
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
@@ -35,6 +36,8 @@ import { useCompte } from '@/app/lib/contexteCompte'
 import { insererSignalement } from './signalements'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
+import ComparaisonTraductions from './ComparaisonTraductions'
+import { choisirAlignement, comparaisonDisponible } from './comparaisonTraductionsUtils'
 
 const CHARS_PAR_PAGE = 15000
 
@@ -158,7 +161,7 @@ function chargerCodesTraductions(): PromiseLike<string[]> {
 }
 
 // ── Info-bulle de note ────────────────────────────────────────────────────────
-function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
+function NoteTooltip({ numeroVisible, contenu }: { numeroVisible: number; contenu: NoteAffichee }) {
   const [visible, setVisible] = useState(false)
   const [figee, setFigee] = useState(false)
   const [rect, setRect] = useState<{ left: number; top: number; bottom: number } | null>(null)
@@ -266,7 +269,7 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
         <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>
-          Note {lettre}
+          Note {numeroVisible}
         </span>
         {figee && (
           <button
@@ -277,7 +280,9 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
         )}
       </div>
       <div style={{ whiteSpace: 'pre-line' }}>
-        {contenu || <em style={{ color: '#b0a08a' }}>Note indisponible</em>}
+        {typeof contenu === 'string'
+          ? (contenu || <em style={{ color: '#b0a08a' }}>Note indisponible</em>)
+          : <ContenuNoteStructuree note={contenu} />}
       </div>
     </div>
   ) : null
@@ -292,7 +297,7 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') basculerTooltip(e) }}
         role="button"
         tabIndex={0}
-        aria-label={`Consulter la note ${lettre}`}
+        aria-label={`Consulter la note ${numeroVisible}`}
         style={{
           cursor: 'help',
           color: '#8a6a3e',
@@ -307,7 +312,7 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
           borderBottom: '1px dotted #c8a87a',
         }}
       >
-        {lettre}
+        {numeroVisible}
       </sup>
       {visible && typeof document !== 'undefined' && createPortal(tooltip, document.body)}
     </>
@@ -315,7 +320,7 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
 }
 
 // Variante de rendreTexteEnrichi qui gère aussi les marqueurs [[A]] de notes.
-function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): React.ReactNode {
+function rendreTexteAvecNotes(texte: string, notes: Record<string, NoteAffichee>): React.ReactNode {
   const noeuds: React.ReactNode[] = []
   // Le marqueur stocké ([[A]], [[B]]…) reste la clé de la note en base : c'est
   // lui qui donne accès au texte. Seul l'appel AFFICHÉ change — un numéro, selon
@@ -346,7 +351,9 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
     )
     else if (m[6] !== undefined) {
       const marqueur = m[6]
-      noeuds.push(<NoteTooltip key={k++} lettre={String(numeroDe(marqueur))} contenu={notes[marqueur] ?? ''} />)
+      const contenu = notes[marqueur] ?? ''
+      const numeroVisible = typeof contenu === 'string' ? numeroDe(marqueur) : contenu.noteNumber
+      noeuds.push(<NoteTooltip key={k++} numeroVisible={numeroVisible} contenu={contenu} />)
     }
     else if (m[7] !== undefined) {
       noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)
@@ -362,10 +369,10 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
   return noeuds
 }
 
-// Les titres utilisent le mÃªme systÃ¨me de notes que le corps. Lorsqu'un appel
-// est prÃ©sent, on privilÃ©gie son rendu interactif ; les autres titres gardent
-// la composition en colophon Ã©ventuellement appliquÃ©e aux intitulÃ©s longs.
-function rendreTitreColophonAvecNotes(texte: string, notes: Record<string, string>, estTitre = false): React.ReactNode {
+// Les titres utilisent le même système de notes que le corps. Lorsqu'un appel
+// est présent, on privilégie son rendu interactif ; les autres titres gardent
+// la composition en colophon éventuellement appliquée aux intitulés longs.
+function rendreTitreColophonAvecNotes(texte: string, notes: Record<string, NoteAffichee>, estTitre = false): React.ReactNode {
   // Rendu simple : le titre s'enroule naturellement (centré par ses conteneurs).
   // On a renoncé à la composition « colophon » (pavé à lignes décroissantes).
   // `estTitre` : retire le point final (règle éditoriale) ; pas pour les _texte,
@@ -435,8 +442,9 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 // listes verticales pleine largeur, de même gabarit, pour un alignement parfait.
 const LABEL_VOLET: React.CSSProperties = { fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block' }
 const BTN_VOLET = (actif: boolean): React.CSSProperties => ({ width: '100%', textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' })
+const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
-export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false }: Props) {
+export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -454,6 +462,18 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const [editionCible, setEditionCible] = useState<EditionCible | null>(null)
   const [titreAffiche, setTitreAffiche] = useState(oeuvre.titre)
   const [oeuvreLocale, setOeuvreLocale] = useState<Props['oeuvre']>(oeuvre)
+  const versionActive = versionsTextuelles.find(version => version.idTexte === idTexte) ?? null
+  const oeuvreAffichee = useMemo<Props['oeuvre']>(() => ({
+    ...oeuvreLocale,
+    trad_auteur: versionActive?.traducteur ?? oeuvreLocale.trad_auteur,
+    editeur: versionActive?.editeurEdition ?? oeuvreLocale.editeur,
+    ville: versionActive?.villeEdition ?? oeuvreLocale.ville,
+    date_publication: versionActive?.dateEdition ?? oeuvreLocale.date_publication,
+    url_source: versionActive?.sourceUrl ?? oeuvreLocale.url_source,
+    commentaire_traduction: versionActive && !versionActive.isDefault
+      ? null
+      : oeuvreLocale.commentaire_traduction,
+  }), [oeuvreLocale, versionActive])
   const [navOuverte, setNavOuverte] = useState(true)
   const [panneauOuvert, setPanneauOuvert] = useState(true)
   // ≤ 900px : nav et apparat en barres fixes + tiroirs (voir AGENTS § mobile).
@@ -483,6 +503,24 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   )
   // Mode d'affichage du texte : français seul, bilingue (français + latin), latin seul.
   const [modeTexte, setModeTexte] = useState<'fr' | 'bilingue' | 'la'>('fr')
+  const comparaisonEstDisponible = comparaisonDisponible(alignementsDisponibles)
+  const [alignmentSetId, setAlignmentSetId] = useState<string | null>(alignmentSetIdInitial)
+  const alignementActif = choisirAlignement(alignementsDisponibles, alignmentSetId)
+  const [modeComparaison, setModeComparaison] = useState(comparaisonInitiale)
+  const modeComparaisonActif = comparaisonEstDisponible && modeComparaison && Boolean(alignementActif)
+  const fermerComparaison = () => {
+    setModeComparaison(false)
+    const params = new URLSearchParams(window.location.search)
+    params.delete('compare')
+    params.delete('book')
+    params.delete('division')
+    router.replace(`${window.location.pathname}${params.size ? `?${params.toString()}` : ''}`, { scroll: false })
+  }
+  const ouvrirLectureParallele = (alignmentSetId: string) => {
+    setVue('texte')
+    setAlignmentSetId(alignmentSetId)
+    setModeComparaison(true)
+  }
   useEffect(() => {
     try {
       const v = localStorage.getItem('cs_mode_lecture_oeuvre')
@@ -509,10 +547,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const labelBilingue = estGrec ? 'Français & Grec' : 'Français & Latin'
   const modeLecture: 'paragraphes' | 'segments' = eligibleParagraphes ? modeLecturePref : 'segments'
   const basculerMode = (m: 'paragraphes' | 'segments') => {
+    if (modeComparaisonActif) fermerComparaison()
     setModeLecturePref(m)
     try { localStorage.setItem('cs_mode_lecture_oeuvre', m) } catch {}
   }
   const basculerTexte = (mode: 'fr' | 'bilingue' | 'la') => {
+    if (modeComparaisonActif) fermerComparaison()
     setModeTexte(mode)
     // L'original est aligné sur le paragraphe source (rang 1) : les vues qui le montrent
     // (bilingue, latin seul) imposent donc le mode paragraphes.
@@ -579,7 +619,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
     ;(async () => {
       const { data: segsOeuvre } = await supabase.from('segments')
         .select('id, segment_numero, segment_texte, reference_manuelle, ref_niv1')
-        .eq('id_oeuvre', idOeuvre).order('segment_numero')
+        .eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte).order('segment_numero')
       const parId = new Map((segsOeuvre ?? []).map(s => [s.id, s]))
 
       // Deux familles, conformes au vocabulaire du §24.3 :
@@ -624,7 +664,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         setVersetsAltMap(map)
       }
     })()
-  }, [ongletDroit, idOeuvre, problemesCharges])
+  }, [ongletDroit, idOeuvre, idTexte, problemesCharges])
   useEffect(() => {
     try {
       const s = JSON.parse(localStorage.getItem('cs_volets_oeuvre2') ?? 'null')
@@ -893,20 +933,24 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   }
 
   const chargerNiv1Data = async (n1: string): Promise<{ groupes: GroupeData[]; segments: SegData[] }> => {
-    const SELECT = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original'
-    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent']
+    const SELECT = 'id,id_texte,segment_key,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original,espace_textuel,join_before'
+    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique']
     // Chargement par lots de 1000 mais EN PARALLÈLE (les grosses divisions, ex.
     // Somme théologique ~6500 segments/niv1, se chargeaient en séquentiel) : on
     // récupère le total avec le 1er lot, puis on tire le reste d'un coup.
     const lotNiv1 = (from: number) => {
-      let q = supabase.from('segments').select(SELECT).eq('id_oeuvre', idOeuvre)
+      let q = supabase.from('segments').select(SELECT).eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte)
         .in('nature', NATURES_TEXTE).order('segment_numero').range(from, from + 999)
-      if (!lectureTexteEntier && !texteSansNiveaux && n1) q = q.eq('ref_niv1', n1)
+      if (!lectureTexteEntier && !texteSansNiveaux && n1) {
+        q = n1 === NIV1_LIMINAIRES ? q.is('ref_niv1', null) : q.eq('ref_niv1', n1)
+      }
       return q
     }
-    let premierReq = supabase.from('segments').select(SELECT, { count: 'exact' }).eq('id_oeuvre', idOeuvre)
+    let premierReq = supabase.from('segments').select(SELECT, { count: 'exact' }).eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte)
       .in('nature', NATURES_TEXTE).order('segment_numero').range(0, 999)
-    if (!lectureTexteEntier && !texteSansNiveaux && n1) premierReq = premierReq.eq('ref_niv1', n1)
+    if (!lectureTexteEntier && !texteSansNiveaux && n1) {
+      premierReq = n1 === NIV1_LIMINAIRES ? premierReq.is('ref_niv1', null) : premierReq.eq('ref_niv1', n1)
+    }
     const premier = await premierReq
     const segs: any[] = [...((premier.data as any[]) ?? [])]
     const total = premier.count ?? segs.length
@@ -949,7 +993,14 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       if (!estIntro) c++
       const versets = extraireVersetsAvecNature(s)
         .map(({ id: vid, natures }) => ({ id: vid, natures, ...(versetMap[vid] || { label: vid, textes: {}, livre: '', chapitre: '', verset: '' }) }))
-      return { id: s.id, numero: estIntro ? s.segment_numero : c, texte: s.segment_texte, versets, notes: parseNotes(s.notes), paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original, nature: s.nature }
+      return {
+        id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
+        numero: estIntro ? s.segment_numero : c, numeroSource: s.segment_numero,
+        texte: s.segment_texte, versets,
+        notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes(s.notes),
+        paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
+        nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
+      }
     })
 
     const newGroupes: GroupeData[] = []
@@ -985,8 +1036,9 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const chargerApparatData = async () => {
     const { data } = await supabase
       .from('segments')
-      .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original')
+      .select('id,id_texte,segment_key,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original,espace_textuel,join_before')
       .eq('id_oeuvre', idOeuvre)
+      .eq('id_texte', idTexte)
       .eq('nature', 'apparat_critique')
       .order('segment_numero')
     const segs = ((data ?? []) as any[]).filter(segmentAffichable)
@@ -996,7 +1048,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       const n1v = s.ref_niv1 || ''
       if (n1v !== n1c) { c = 0; n1c = n1v }
       c++
-      return { id: s.id, numero: c, texte: s.segment_texte, versets: [], notes: parseNotes(s.notes), paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original, nature: s.nature }
+      return {
+        id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
+        numero: c, numeroSource: s.segment_numero, texte: s.segment_texte, versets: [],
+        notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes(s.notes),
+        paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
+        nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
+      }
     })
 
     const newGroupes: GroupeData[] = []
@@ -1145,18 +1203,18 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
     supabase.auth.getSession().then(({ data }) => {
       const uid = data.session?.user.id ?? null
       setUserId(uid)
-      if (uid && idOeuvre) chargerSauvegardesSegs(uid, idOeuvre)
+      if (uid && idOeuvre) chargerSauvegardesSegs(uid, idOeuvre, idTexte)
       if (uid) chargerTraductionDefaut(uid)
     })
     const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
       const uid = session?.user.id ?? null
       setUserId(uid)
-      if (uid && idOeuvre) chargerSauvegardesSegs(uid, idOeuvre)
+      if (uid && idOeuvre) chargerSauvegardesSegs(uid, idOeuvre, idTexte)
       else setSauvegardesSegs(new Set())
       if (uid) chargerTraductionDefaut(uid)
     })
     return () => listener.subscription.unsubscribe()
-  }, [idOeuvre])
+  }, [idOeuvre, idTexte])
 
   useEffect(() => {
     if (idOeuvre && oeuvre?.titre) {
@@ -1193,18 +1251,21 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       })
   }, [auteurId, oeuvre?.titre])
 
-  const chargerSauvegardesSegs = async (uid: string, oeuvreId: string) => {
+  const chargerSauvegardesSegs = async (uid: string, oeuvreId: string, texteId: string) => {
     const { data } = await supabase
       .from('prelevements')
-      .select('segment_numero')
+      .select('segment_id')
       .eq('user_id', uid)
       .eq('type', 'patristique')
       .eq('id_oeuvre', oeuvreId)
-    setSauvegardesSegs(new Set((data ?? []).map((r: any) => r.segment_numero)))
+      .eq('id_texte', texteId)
+    setSauvegardesSegs(new Set(
+      (data ?? []).map(row => row.segment_id).filter((value): value is number => typeof value === 'number'),
+    ))
   }
 
-  const marquerSauvegardeSeg = (num: number) => {
-    setSauvegardesSegs(prev => new Set([...prev, num]))
+  const marquerSauvegardeSeg = (segmentId: number) => {
+    setSauvegardesSegs(prev => new Set([...prev, segmentId]))
   }
 
   // Met à jour l'affichage immédiatement après l'association d'un verset,
@@ -1235,14 +1296,17 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
   // Lettrine (drop cap) du tout premier segment, réutilisée par les deux modes.
   const DROPCAP: React.CSSProperties = { float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: 'var(--cs-encre)', fontWeight: 'normal', userSelect: 'none' }
+  const preparerTexteSegment = (texte: string) => idTexte.endsWith('_LEGACY')
+    ? nettoyerFin(normaliserEspaces(texte))
+    : texte
 
   // Rend un texte de segment avec sa lettrine (drop cap) sur la première LETTRE.
   // Si le paragraphe s'ouvre sur une ponctuation (guillemet «, tiret…), celle-ci
   // doit rester SOLIDAIRE de la lettrine flottante : rendue à part, un « float »
   // la rejetterait à droite de la lettrine (« [V] « ous… » au lieu de « «V ous… »).
   // On la glisse donc dans le même flottant, en petit corps calé sur le haut.
-  const rendreAvecLettrine = (texte: string, notes: Record<string, string>): React.ReactNode => {
-    const t = nettoyerFin(normaliserEspaces(texte))
+  const rendreAvecLettrine = (texte: string, notes: Record<string, NoteAffichee>): React.ReactNode => {
+    const t = preparerTexteSegment(texte)
     const chars = [...t]
     const li = chars.findIndex(ch => /\p{L}/u.test(ch))
     if (li < 0) return rendreTexteAvecNotes(t, notes)
@@ -1315,6 +1379,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         .para-bilingue > p { margin-bottom: 0.85rem !important; }
         .texte-original { color: #575048; font-family: var(--font-source-serif), Georgia, serif; }
         @media(max-width: 980px){
+          .seg-wrapper::after { display: none !important; width: 0 !important; right: 0 !important; }
           .titre-colophon{max-width:100%!important;line-height:1.32!important;word-spacing:normal!important;letter-spacing:0!important;}
           .titre-colophon > span{display:inline!important;width:auto!important;max-width:100%!important;}
           .titre-colophon > span:not(:last-child)::after{content:" ";}
@@ -1336,10 +1401,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         <>
         {/* Mobile : tiroir par-dessus le texte, sous la navbar. */}
         {mobile && <div onClick={() => setNavOuverte(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
-        <nav ref={refNav} style={mobile ? {
-          position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, overflowY: 'auto', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: '0 10px 28px rgba(45,35,25,0.22)',
-        } : { width: navWidth == null ? 'clamp(240px, 16vw, 380px)' : navWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100vh - 3.5rem)', overflowY: 'auto', borderRight: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          <div onMouseDown={e => {
+        <nav ref={refNav} data-sommaire-panneau style={mobile ? {
+          position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, overflowY: 'auto', overflowX: 'hidden', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: '0 10px 28px rgba(45,35,25,0.22)',
+        } : { width: navWidth == null ? 'clamp(240px, 16vw, 380px)' : navWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100vh - 3.5rem)', overflowY: 'auto', overflowX: 'hidden', borderRight: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          {!mobile && <div data-sommaire-poignee onMouseDown={e => {
             e.preventDefault()
             const startW = navWidth ?? refNav.current?.getBoundingClientRect().width ?? 240
             const startX = e.clientX
@@ -1347,7 +1412,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             const onUp = () => document.removeEventListener('mousemove', onMove)
             document.addEventListener('mousemove', onMove)
             document.addEventListener('mouseup', onUp, { once: true })
-          }} style={{ position: 'absolute', right: '-4px', top: 0, bottom: 0, width: '9px', cursor: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex: 10, background: 'transparent', transition: 'background 0.14s, box-shadow 0.14s' }}
+          }} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '5px', cursor: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex: 10, background: 'transparent', transition: 'background 0.14s, box-shadow 0.14s' }}
             onMouseEnter={e => {
               e.currentTarget.style.background = 'rgba(198,184,158,0.08)'
               e.currentTarget.style.boxShadow = 'inset -1px 0 rgba(122,96,64,0.08)'
@@ -1356,7 +1421,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               e.currentTarget.style.background = 'transparent'
               e.currentTarget.style.boxShadow = 'none'
             }}
-          />
+          />}
           <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               <ApercuAuteur auteurId={auteurId ?? null} onOuvrirFiche={() => { if (auteurId) setAuteurModalOuvert(true) }}>{auteur}</ApercuAuteur>
@@ -1380,7 +1445,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', color: 'var(--cs-encre)', lineHeight: 1.35, margin: 0, whiteSpace: 'pre-line' }}>
               {rendreTexteEnrichi(oeuvreLocale.titre_affichage || titreAffiche)}
             </p>
-            {(oeuvreLocale.sous_titre || oeuvreLocale.titre_original || oeuvreLocale.trad_auteur || oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication || oeuvreLocale.collection) && (
+            {(oeuvreAffichee.sous_titre || oeuvreAffichee.titre_original || oeuvreAffichee.trad_auteur || oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication || oeuvreAffichee.collection) && (
               <button onClick={() => setInfoEditionOuverte(true)}
                 style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: '6px', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
                 En savoir plus sur cette édition
@@ -1409,7 +1474,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 <span style={LABEL_VOLET}>Lecture</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
                   {(([['fr', 'Français'], ['bilingue', labelBilingue], ['la', labelOriginal]]) as ['fr' | 'bilingue' | 'la', string][]).map(([mode, label]) => {
-                    const actif = modeTexte === mode
+                    const actif = !modeComparaisonActif && modeTexte === mode
                     // Seul le français d'une œuvre segmentée peut se lire en paragraphes OU
                     // en segments ; l'original (bilingue, latin) impose les paragraphes.
                     const peutSegmenter = mode === 'fr' && eligibleParagraphes
@@ -1443,6 +1508,16 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       </div>
                     )
                   })}
+                  {comparaisonEstDisponible && alignementsDisponibles.map(alignement => {
+                    const actif = modeComparaisonActif && alignementActif?.alignmentSetId === alignement.alignmentSetId
+                    return (
+                      <button key={alignement.alignmentSetId} onClick={() => ouvrirLectureParallele(alignement.alignmentSetId)}
+                        aria-pressed={actif} title={`${alignement.referenceLabel} et ${alignement.alignedLabel}`}
+                        style={{ ...BTN_VOLET(actif), cursor: actif ? 'default' : 'pointer' }}>
+                        Traductions parallèles
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             ) : eligibleParagraphes ? (
@@ -1451,13 +1526,57 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 <span style={LABEL_VOLET}>Lecture</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
                   {(['paragraphes', 'segments'] as const).map(m => (
-                    <button key={m} onClick={() => basculerMode(m)} style={{ ...BTN_VOLET(modeLecture === m) }}>
+                    <button key={m} onClick={() => basculerMode(m)} style={{ ...BTN_VOLET(!modeComparaisonActif && modeLecture === m) }}>
                       {m === 'paragraphes' ? 'Paragraphes' : 'Segments'}
                     </button>
                   ))}
+                  {comparaisonEstDisponible && alignementsDisponibles.map(alignement => {
+                    const actif = modeComparaisonActif && alignementActif?.alignmentSetId === alignement.alignmentSetId
+                    return (
+                      <button key={alignement.alignmentSetId} onClick={() => ouvrirLectureParallele(alignement.alignmentSetId)}
+                        aria-pressed={actif} title={`${alignement.referenceLabel} et ${alignement.alignedLabel}`}
+                        style={{ ...BTN_VOLET(actif), cursor: actif ? 'default' : 'pointer' }}>
+                        Traductions parallèles
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : comparaisonEstDisponible ? (
+              <div style={{ marginTop: '10px' }}>
+                <span style={LABEL_VOLET}>Lecture</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
+                  {alignementsDisponibles.map(alignement => {
+                    const actif = modeComparaisonActif && alignementActif?.alignmentSetId === alignement.alignmentSetId
+                    return (
+                      <button key={alignement.alignmentSetId} onClick={() => ouvrirLectureParallele(alignement.alignmentSetId)}
+                        aria-pressed={actif} title={`${alignement.referenceLabel} et ${alignement.alignedLabel}`}
+                        style={{ ...BTN_VOLET(actif), cursor: actif ? 'default' : 'pointer' }}>
+                        Traductions parallèles
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             ) : null}
+            {versionsTextuelles.length > 1 && (
+              <div style={{ marginTop: '7px' }}>
+                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Version textuelle</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  {versionsTextuelles.map(version => {
+                    const actif = version.idTexte === idTexte
+                    return (
+                      <button key={version.idTexte} disabled={actif}
+                        onClick={() => { if (!actif) router.push(`/oeuvre/${idOeuvre}?texte=${encodeURIComponent(version.idTexte)}`) }}
+                        title={actif ? 'Version affichée' : 'Afficher cette version'}
+                        style={{ ...BTN_VOLET(actif), cursor: actif ? 'default' : 'pointer' }}>
+                        {version.labelCourt}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
             {versions.length > 1 && (
               <div style={{ marginTop: '7px' }}>
                 <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Traduction</span>
@@ -1552,8 +1671,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   {/* Niv1 */}
                   <button onClick={() => changerNiv1(n1)}
                     style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35, whiteSpace: 'pre-line' }}>
-                    {n1}
-                    {niv1TexteMap[n1] && configNiveaux.txtSommaire[0] && (
+                    {n1 === NIV1_LIMINAIRES ? (niv1TexteMap[n1] || 'LIMINAIRES') : n1}
+                    {n1 !== NIV1_LIMINAIRES && niv1TexteMap[n1] && configNiveaux.txtSommaire[0] && (
                       <span style={{ fontSize: '0.59375rem', color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{titreSansAppelsDeNote(niv1TexteMap[n1])}</span>
                     )}
                   </button>
@@ -1620,9 +1739,17 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         )}
 
         {/* ── TEXTE CENTRAL ── */}
-        <main lang="fr" style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: '35rem', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
-          <PageTitre auteur={auteur} oeuvre={oeuvreLocale} titre={titreAffiche} estAdmin={estAdmin} mobile={mobile}
-            onModifier={(champ, va) => setEditionCible({ type: 'titre_oeuvre', champ, texteActuel: va })} />
+        <main lang="fr" style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: modeComparaisonActif ? '72rem' : '35rem', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
+          {modeComparaisonActif && alignementActif ? (
+            <div style={{ minHeight: mobile ? '18rem' : '24rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: mobile ? '48px 20px 24px' : '72px 70px 36px' }}>
+              <p style={{ margin: '0 0 18px', fontSize: '0.9rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#345c44', fontWeight: 600 }}>{auteur}</p>
+              <h1 style={{ margin: '0 0 16px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(30px, 4.2vw, 46px)', fontWeight: 400, color: '#141f18' }}>Traductions parallèles</h1>
+              <p style={{ margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-texte-second)' }}>{alignementActif.referenceLabel} et {alignementActif.alignedLabel}</p>
+            </div>
+          ) : (
+            <PageTitre auteur={auteur} oeuvre={oeuvreLocale} versionActive={versionActive} titre={titreAffiche} estAdmin={estAdmin} mobile={mobile}
+              onModifier={(champ, va) => setEditionCible({ type: 'titre_oeuvre', champ, texteActuel: va })} />
+          )}
 
           {/* Fleuron (feuille de vigne) séparant la page de titre du niveau 1,
               à la place du long filet. */}
@@ -1631,7 +1758,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           </div>
 
           {/* Navigation précédent/suivant — toujours au niveau 1 */}
-          {vue === 'texte' && !texteSansNiveaux && !lectureTexteEntier && (
+          {vue === 'texte' && !modeComparaisonActif && !texteSansNiveaux && !lectureTexteEntier && (
             <div id="barre-nav-niv1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', paddingRight: gouttiereTitre, borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: '60px' }}>
               <button onClick={() => niv1Prev && changerNiv1(niv1Prev, { conserverPosition: true })} disabled={!niv1Prev}
                 style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Prev ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
@@ -1648,7 +1775,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   </span>
                 ) : niv1Loading ? <span style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)' }}>Chargement…</span> : (
                   <>
-                    {rendreTitreColophonAvecNotes(niv1Actif, segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes ?? {}, true)}
+                    {rendreTitreColophonAvecNotes(
+                      niv1Actif === NIV1_LIMINAIRES ? (niv1TexteMap[niv1Actif] || 'LIMINAIRES') : niv1Actif,
+                      segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes ?? {},
+                      true,
+                    )}
                     {(() => {
                       const txt = groupes[0]?.niv1_texte || niv1TexteMap[niv1Actif] || ''
                       const notesTitre = segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes ?? {}
@@ -1656,7 +1787,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         ? <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{rendreTexteAvecNotes(preparerTitreColophon(txt), notesTitre)}</span>
                         : null
                     })()}
-                    {estAdmin && (() => { const g = groupes[0] ?? { niv1: niv1Actif, niv2: '', niv3: '', niv4: '', anchor: '', itemIds: [] }; return (
+                    {estAdmin && niv1Actif !== NIV1_LIMINAIRES && (() => { const g = groupes[0] ?? { niv1: niv1Actif, niv2: '', niv3: '', niv4: '', anchor: '', itemIds: [] }; return (
                       <div style={{ position: 'absolute', right: '-52px', top: '2px', display: 'flex', gap: '3px', alignItems: 'center' }}>
                         <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe: g, texteActuel: niv1Actif, schemaTexte: false })}
                           title="Modifier le titre" style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}><IconeCrayon size={12} /></button>
@@ -1675,7 +1806,9 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           )}
 
           {/* Vue texte principal */}
-          {vue === 'texte' && (() => {
+          {vue === 'texte' && modeComparaisonActif && alignementActif ? (
+            <ComparaisonTraductions alignement={alignementActif} estAdmin={estAdmin} onFermer={fermerComparaison} livreInitial={comparaisonLivreInitial} divisionInitiale={comparaisonDivisionInitiale} />
+          ) : vue === 'texte' && (() => {
             let dniv1 = pageActuelle > 0 ? (pages[pageActuelle - 1]?.at(-1)?.niv1 ?? '') : ''
             let dniv2 = '', dniv3 = '', dniv4 = ''
             let isFirstGroupe = true
@@ -1691,11 +1824,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: `0 0 ${memeParagraphe ? '0.18rem' : '0.55rem'}` }}>
                   <div lang="fr" onClick={() => setSegActif(segActif === s.id ? null : s.id)} className="seg-p"
                     style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.74rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.6, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', cursor: 'pointer', borderRadius: '3px', padding: '2px 6px', margin: 0, background: segActif === s.id ? '#ddeee2' : 'transparent' } as React.CSSProperties}>
-                    {rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
+                    {rendreTexteAvecNotes(preparerTexteSegment(s.texte), s.notes ?? {})}
                   </div>
                   <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: '0 2px 10px rgba(45,35,25,0.12)', padding: '2px 4px' }}>
-                    {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
-                    <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} />
+                    {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onSauvegarde={() => marquerSauvegardeSeg(s.id)} />}
+                    <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} />
                     <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
                   </div>
                 </div>
@@ -1778,7 +1911,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                          la largeur du texte (et de la grille bilingue) s'aligne sur les titres et
                          la page de titre. */
                       style={{ paddingRight: gouttiereTitre }}>
-                      <p lang="fr" style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                      <p lang="fr" style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique') ? 'center' : 'justify', textJustify: 'inter-word', fontStyle: chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique') ? 'italic' : undefined, margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                         {chunk.ids.map((sid, i) => {
                           const s = segMap.get(sid)
                           if (!s) return null
@@ -1786,14 +1919,14 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                           const estPremier = sid === premierSegmentId
                           return (
                             <Fragment key={sid}>
+                              {i > 0 ? (s.joinBefore ?? ' ') : null}
                               <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: '60px' }}
                                 onClick={(e) => { setSegActif(actif ? null : sid); positionnerToolbar(e.currentTarget as HTMLElement, sid) }}
                                 onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                 onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                 {configNiveaux.afficherNumeros && !estPremier && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                                {estPremier && normaliserEspaces(s.texte).length > 0 ? rendreAvecLettrine(s.texte, s.notes ?? {}) : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
+                                {estPremier && preparerTexteSegment(s.texte).length > 0 ? rendreAvecLettrine(s.texte, s.notes ?? {}) : rendreTexteAvecNotes(preparerTexteSegment(s.texte), s.notes ?? {})}
                               </span>
-                              {i < chunk.ids.length - 1 ? ' ' : ''}
                             </Fragment>
                           )
                         })}
@@ -1820,13 +1953,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         <p id={`s${s.numero}`} onClick={() => { if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return } if (mobile) setActionsSegMobileId(null); setSegActif(actif ? null : sid) }} className="seg-p"
                           lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {configNiveaux.afficherNumeros && sid !== premierSegmentId && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                          {sid === premierSegmentId && normaliserEspaces(s.texte).length > 0 ? rendreAvecLettrine(s.texte, s.notes ?? {}) : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
+                          {sid === premierSegmentId && preparerTexteSegment(s.texte).length > 0 ? rendreAvecLettrine(s.texte, s.notes ?? {}) : rendreTexteAvecNotes(preparerTexteSegment(s.texte), s.notes ?? {})}
                         </p>
                         <div className="seg-actions" style={mobile ? {
                           position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6, opacity: 1, display: actionsSegMobileId === sid ? 'flex' : 'none', flexDirection: 'row', gap: '0.25rem', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
                         } : { display: 'flex', flexDirection: 'row', gap: '2px', flexShrink: 0, width: '68px', paddingTop: '2px', justifyContent: 'flex-end', marginRight: '-8px' }}>
-                          {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
-                          <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} className="seg-btn-action" />
+                          {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onSauvegarde={() => marquerSauvegardeSeg(s.id)} />}
+                          <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} className="seg-btn-action" />
                           <BoutonSignalerSegment segId={sid} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} className="seg-btn-action" />
                           {estAdmin && (
                             <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" aria-label="Modifier ce segment"
@@ -1846,7 +1979,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           })()}
 
           {/* Navigation de pages — bas de page */}
-          {vue === 'texte' && pages.length > 1 && (
+          {vue === 'texte' && !modeComparaisonActif && pages.length > 1 && (
             <NavPages pages={pages} pageActuelle={pageActuelle} setPageActuelle={setPageActuelle} bas />
           )}
 
@@ -1894,14 +2027,14 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                               const actif = segActif === sid
                               return (
                                 <Fragment key={sid}>
+                                  {i > 0 ? (s.joinBefore ?? ' ') : null}
                                   <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: '60px' }}
                                     onClick={(e) => { setSegActif(actif ? null : sid); positionnerToolbar(e.currentTarget as HTMLElement, sid) }}
                                     onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                     onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                     {configNiveaux.afficherNumeros && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                                    {rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
+                                    {rendreTexteAvecNotes(preparerTexteSegment(s.texte), s.notes ?? {})}
                                   </span>
-                                  {i < chunk.ids.length - 1 ? ' ' : ''}
                                 </Fragment>
                               )
                             })}
@@ -1916,7 +2049,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                             <p id={`a${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
                               lang="fr" style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', paddingRight: estAdmin ? '72px' : '4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                               {configNiveaux.afficherNumeros && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                              {rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
+                              {rendreTexteAvecNotes(preparerTexteSegment(s.texte), s.notes ?? {})}
                             </p>
                             {estAdmin && (
                               <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)"
@@ -2253,8 +2386,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           <div onMouseEnter={() => { if (timerSurvolRef.current) clearTimeout(timerSurvolRef.current) }}
             onMouseLeave={() => masquerToolbar(segSurvol.id)}
             style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.16)', padding: '2px 4px' }}>
-            {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.numero)} onSauvegarde={() => marquerSauvegardeSeg(s.numero)} />}
-            <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvre.titre} sousTitre={oeuvre.sous_titre} tradAuteur={oeuvre.trad_auteur} editeur={oeuvre.editeur} collection={oeuvre.collection} ville={oeuvre.ville} datePublication={oeuvre.date_publication} />
+            {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onSauvegarde={() => marquerSauvegardeSeg(s.id)} />}
+            <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} />
             <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
             {estAdmin && (
               <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" aria-label="Modifier ce segment"
@@ -2309,7 +2442,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
             {/* Deux colonnes distinctes : texte original / édition de référence. */}
             {(() => {
               const aOriginal = !!(oeuvreLocale.titre_original || oeuvreLocale.date_composition || oeuvreLocale.langue_originale || (oeuvreLocale.genres && oeuvreLocale.genres.length))
-              const aEdition = !!(oeuvreLocale.trad_auteur || oeuvreLocale.trad_date || oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication || oeuvreLocale.collection || oeuvreLocale.commentaire_traduction?.trim())
+              const aEdition = !!(oeuvreAffichee.trad_auteur || oeuvreAffichee.trad_date || oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication || oeuvreAffichee.collection || oeuvreAffichee.commentaire_traduction?.trim() || versionActive?.editionDescription || versionActive?.sourceUrl)
               if (!aOriginal && !aEdition) return null
               const carte: React.CSSProperties = { background: '#f6f8f3', border: '1px solid #e2ebdc', borderLeft: '2.5px solid #a7c4a0', borderRadius: '8px', padding: '11px 13px' }
               const legende: React.CSSProperties = { fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.10em', color: '#6f9268', margin: '0 0 8px', textTransform: 'uppercase' }
@@ -2331,14 +2464,16 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   {aEdition && (
                     <div style={carte}>
                       <p style={legende}>Édition de référence</p>
-                      {oeuvreLocale.trad_auteur && <div style={{ marginBottom: '6px' }}><span style={cle}>Traducteur</span><span style={val}>{libelleTrad(oeuvreLocale.trad_auteur)}{oeuvreLocale.trad_date ? ` (${formaterDateHistorique(oeuvreLocale.trad_date)})` : ''}</span></div>}
-                      {(oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication) && <div style={{ marginBottom: '6px' }}><span style={cle}>Publication</span><span style={val}>{[formaterEditeur(oeuvreLocale.editeur), oeuvreLocale.ville, formaterDateHistorique(oeuvreLocale.date_publication)].filter(Boolean).join(', ')}</span></div>}
-                      {oeuvreLocale.collection && <div><span style={cle}>Collection</span><span style={val}>{oeuvreLocale.collection}</span></div>}
+                      {oeuvreAffichee.trad_auteur && <div style={{ marginBottom: '6px' }}><span style={cle}>Traducteur</span><span style={val}>{versionActive?.traducteurLabel ?? libelleTrad(oeuvreAffichee.trad_auteur)}{oeuvreAffichee.trad_date ? ` (${formaterDateHistorique(oeuvreAffichee.trad_date)})` : ''}</span></div>}
+                      {versionActive?.editionDescription && <div style={{ marginBottom: '6px' }}><span style={cle}>Édition</span><span style={val}>{versionActive.editionDescription}</span></div>}
+                      {(oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication) && <div style={{ marginBottom: '6px' }}><span style={cle}>Publication</span><span style={val}>{versionActive?.editionDescription && versionActive.publicationLabel ? versionActive.publicationLabel : [formaterEditeur(oeuvreAffichee.editeur), oeuvreAffichee.ville, formaterDateHistorique(oeuvreAffichee.date_publication)].filter(Boolean).join(', ')}</span></div>}
+                      {oeuvreAffichee.collection && <div><span style={cle}>Collection</span><span style={val}>{oeuvreAffichee.collection}</span></div>}
+                      {versionActive?.sourceUrl && <div style={{ marginTop: '6px' }}><span style={cle}>Source</span><a href={versionActive.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ ...val, color: 'var(--cs-vert)' }}>Consulter la source</a></div>}
                       {/* Commentaire éventuel destiné au public, dans la carte « Édition de référence ». */}
-                      {oeuvreLocale.commentaire_traduction?.trim() && (
+                      {oeuvreAffichee.commentaire_traduction?.trim() && (
                         <div style={{ marginTop: '9px', paddingTop: '8px', borderTop: '1px solid #e2ebdc' }}>
                           <span style={{ ...cle, marginBottom: '2px' }}>Commentaire</span>
-                          <span style={{ ...val, display: 'block', lineHeight: 1.55, fontStyle: 'italic', color: 'var(--cs-texte)', marginTop: '1px' }}>{sansPointFinal(oeuvreLocale.commentaire_traduction)}</span>
+                          <span style={{ ...val, display: 'block', lineHeight: 1.55, fontStyle: 'italic', color: 'var(--cs-texte)', marginTop: '1px' }}>{sansPointFinal(oeuvreAffichee.commentaire_traduction)}</span>
                         </div>
                       )}
                     </div>

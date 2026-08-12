@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type React from "react";
 import { useEffect, useState } from "react";
 
@@ -15,7 +16,7 @@ function abregerTexte(texte?: string, max = 30) {
 }
 
 function IconBible() {
-  return <img className="ac-icon-img ac-icon-bible" src="/icons/home-bible-book.png" alt="" aria-hidden="true" />;
+  return <Image className="ac-icon-img ac-icon-bible" src="/icons/home-bible-book.png" width={1201} height={1310} sizes="160px" alt="" aria-hidden="true" />;
 }
 
 function IconPere() {
@@ -47,11 +48,11 @@ function IconCrayon() {
 }
 
 function IconPereImage() {
-  return <img className="ac-icon-img ac-icon-pere" src="/icons/home-patristique-buste.png" alt="" aria-hidden="true" />;
+  return <Image className="ac-icon-img ac-icon-pere" src="/icons/home-patristique-buste.png" width={1145} height={1374} sizes="160px" alt="" aria-hidden="true" />;
 }
 
 function IconPublicationsImage() {
-  return <img className="ac-icon-img ac-icon-publications" src="/icons/home-publications-writing.png" alt="" aria-hidden="true" />;
+  return <Image className="ac-icon-img ac-icon-publications" src="/icons/home-publications-writing.png" width={1254} height={1254} sizes="160px" alt="" aria-hidden="true" />;
 }
 
 function IconDon() {

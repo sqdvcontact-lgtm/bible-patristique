@@ -470,6 +470,11 @@ export default function TexteBible({
   const graphieModerniseeDispo = (couchesDisponibles ?? []).includes('modernized')
   const estLigne899 = (v: Verset) => v._est899 === true
   const estLacune899 = (v: Verset) => v._estLacune === true
+  // Chapitre entièrement absent du témoin (ex. 1 Samuel 1 dans la Bible 899) : au lieu
+  // d'aligner autant de « [Lacune du manuscrit] » que de versets attendus, on donne UNE
+  // mention de chapitre. On ne le fait qu'en contexte 899 (toutes les lignes en sont) et
+  // seulement si au moins une ligne existe.
+  const chapitreToutLacune = versets.length > 0 && versets.every(v => estLigne899(v) && estLacune899(v))
   const changerGraphie = (c: Couche899) => router.push(`/?livre=${livreActif}&chapitre=${chapitreActif}&trad=${tradCode}&mode=verse&couche=${c}`)
 
   return (
@@ -606,10 +611,31 @@ export default function TexteBible({
             </div>
           )}
 
+          {/* Chapitre entièrement absent du témoin : une mention unique, sobre, au lieu
+              d'un mur de « [Lacune du manuscrit] ». La dimension savante est préservée —
+              on nomme le manuscrit et l'étendue exacte non conservée. */}
+          {chapitreToutLacune && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '50vh', padding: '11vh 16px 0', textAlign: 'center' }}>
+              {/* Un filet interrompu en son milieu : figure typographique de la lacune,
+                  préférée à une suite de points. */}
+              <span aria-hidden style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.125rem', color: 'var(--cs-texte-faible)' }}>
+                <span style={{ width: '2.75rem', height: '1px', background: 'currentColor', opacity: 0.6 }} />
+                <span style={{ fontSize: '0.9rem', letterSpacing: '0.25em' }}>◦◦◦</span>
+                <span style={{ width: '2.75rem', height: '1px', background: 'currentColor', opacity: 0.6 }} />
+              </span>
+              <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontStyle: 'italic', color: 'var(--cs-lacune)', margin: 0 }}>
+                Lacune du manuscrit
+              </p>
+              <p style={{ fontSize: '0.76rem', color: 'var(--cs-texte-doux)', margin: '0.5rem 0 0', maxWidth: '22rem', lineHeight: 1.5 }}>
+                Ce chapitre — {nomLivre} {chapitreActif} — n’est pas conservé dans ce témoin.
+              </p>
+            </div>
+          )}
+
           {/* On n'affiche QUE les versets réellement portés par cette traduction : une
               édition qui compte moins de versets qu'une autre (Job 25 s'arrête au v. 6
               chez Sacy) ne doit pas laisser des lignes vides à numéro. */}
-          {versets.filter(v => estLigne899(v) || v[traduction]).map(v => {
+          {!chapitreToutLacune && versets.filter(v => estLigne899(v) || v[traduction]).map(v => {
             const actif = versetSelectionne?.id_verset === v.id_verset
             const ligne899 = estLigne899(v)
             const lacune = estLacune899(v)
@@ -653,7 +679,9 @@ export default function TexteBible({
                       statut technique d'alignement n'est montré au lecteur. */}
                   <p data-verse-text lang={ligne899 ? 'fro' : undefined} style={{ fontSize: '0.84rem', lineHeight: mobile ? 1.3 : 1.42, color: 'var(--cs-texte-fort)', margin: 0, textAlign: 'justify', wordSpacing: '-0.02em', letterSpacing: '-0.003em' }}>
                     {lacune ? (
-                      <span style={{ color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>[lacune du manuscrit]</span>
+                      // Verset isolé absent du témoin (chapitre par ailleurs porté). Italique
+                      // de labeur, capitale initiale, teinte effacée : signalé sans peser.
+                      <span title="Lacune matérielle du manuscrit" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', color: 'var(--cs-lacune)', fontStyle: 'italic' }}>Lacune du manuscrit</span>
                     ) : (overrides[v.id_verset]?.[traduction] ?? v[traduction]) ? (
                       ligne899
                         ? rendreMarqueurs899(String(v[traduction] ?? ''))

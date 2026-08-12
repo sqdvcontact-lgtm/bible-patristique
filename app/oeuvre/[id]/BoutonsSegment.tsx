@@ -45,7 +45,7 @@ export function BoutonEnregistrerSegment({
     } else {
       // Chercher l'id en base
       const { data } = await supabase.from('prelevements')
-        .select('id').eq('user_id', userId).eq('id_oeuvre', idOeuvre).eq('segment_numero', seg.numero).limit(1).single()
+        .select('id').eq('user_id', userId).eq('segment_id', seg.id).limit(1).single()
       if (data) await supabase.from('prelevements').delete().eq('id', data.id)
     }
     setLoading(false)
@@ -74,7 +74,8 @@ export function BoutonEnregistrerSegment({
     const { data, error } = await supabase.from('prelevements').insert({
       user_id: userId, type: 'patristique',
       auteur, titre_oeuvre: titreOeuvre, id_oeuvre: idOeuvre,
-      segment_numero: seg.numero, texte: texteSansEnrichissement(seg.texte),
+      segment_id: seg.id, id_texte: seg.idTexte,
+      segment_numero: seg.numeroSource, texte: texteSansEnrichissement(seg.texte),
     }).select('id').single()
     setLoading(false)
     if (!error && data) { setIdPrelev(data.id); onSauvegarde() }

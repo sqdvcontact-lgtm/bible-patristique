@@ -60,7 +60,7 @@ function formaterProse(html: string): string {
     .replace(/[\s  ]*»/g, FINE + "»")
   // Siecles : petites capitales + exposant, uniquement devant « siecle ».
   s = s.replace(/\b([IVXLCDM]+)(er|re|es|e)\b(?=\s+siècles?\b)/g,
-    (_m, rom, ord) => `<span style="font-variant:all-small-caps;letter-spacing:0.02em">${rom}</span><sup style="font-size:0.62em;line-height:0">${ord}</sup>`)
+    (_m, rom, ord) => `<span style="font-variant:all-small-caps;letter-spacing:0.02em">${rom}</span><sup style="font-size:0.62em;line-height:0;vertical-align:baseline;position:relative;top:-0.5em">${ord}</sup>`)
   return s
 }
 

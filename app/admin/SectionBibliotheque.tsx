@@ -968,6 +968,8 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   // id_auteur absent) : regroupés par nom, ils n'avaient jusqu'ici aucun bloc où paraître.
   const [catalogueAutres, setCatalogueAutres] = useState<Record<string, NoticeCatalogueAdmin[]> | null>(null)
   const [chargementCatalogue, setChargementCatalogue] = useState(false)
+  // Message de panne du chargement du catalogue, affiché en clair au lieu d'une liste vide.
+  const [erreurCatalogue, setErreurCatalogue] = useState<string | null>(null)
   const [auteurOuvert, setAuteurOuvert] = useState<string | null>(null)
   const [exporting, setExporting] = useState<string | null>(null)
   const [preview, setPreview] = useState<{ lignes: LignePreview[]; nomFichier: string; idOeuvre: string } | null>(null)
@@ -1054,7 +1056,19 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
         for (let page = 0; page < 40; page += 1) {
           const params = new URLSearchParams({ limit: '1000', page: String(page) })
           const res = await fetch(`/api/admin/catalogue?${params}`, { headers })
-          if (!res.ok) break
+          // Un échec ne doit plus être avalé en silence : sans catalogue, les filtres
+          // « candidates », « critiques » et « non publiées » se vident sans un mot,
+          // et l'on croit à tort que la base ne contient rien.
+          if (!res.ok) {
+            const detail = await res.text().catch(() => '')
+            throw new Error(`HTTP ${res.status} — ${detail.slice(0, 300) || res.statusText}`)
+          }
+          // Le verrou du site (proxy.ts) répond par une REDIRECTION vers /chantier quand la
+          // session n'est pas reconnue. `fetch` la suit, si bien que la réponse est un 200
+          // porteur de HTML : sans ce contrôle, seul un « Unexpected token < » sortait.
+          if (res.redirected || !(res.headers.get('content-type') ?? '').includes('application/json')) {
+            throw new Error(`réponse inattendue (${res.headers.get('content-type') || 'sans type'}) depuis ${res.url} — session expirée ou verrou du site ?`)
+          }
           const json = await res.json()
           const lot: NoticeCatalogueAdmin[] = json.data ?? []
           lot.forEach(notice => {
@@ -1072,9 +1086,11 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           liste.sort((a, b) => (a.titre_stable ?? '').localeCompare(b.titre_stable ?? '', 'fr')))
         Object.values(autres).forEach(liste =>
           liste.sort((a, b) => (a.titre_stable ?? '').localeCompare(b.titre_stable ?? '', 'fr')))
-        if (!annule) { setCatalogueParAuteur(groupes); setCatalogueAutres(autres) }
-      } catch {
-        if (!annule) { setCatalogueParAuteur({}); setCatalogueAutres({}) }
+        if (!annule) { setCatalogueParAuteur(groupes); setCatalogueAutres(autres); setErreurCatalogue(null) }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e)
+        console.error('[admin/bibliothèque] chargement du catalogue :', e)
+        if (!annule) { setCatalogueParAuteur({}); setCatalogueAutres({}); setErreurCatalogue(msg) }
       } finally {
         if (!annule) setChargementCatalogue(false)
       }
@@ -1183,6 +1199,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     { key: 'date_publication', label: 'Date de publication' },
     { key: 'date_composition', label: 'Date de composition originale' },
     { key: 'url_source', label: 'URL source' },
+    { key: 'commentaire_traduction', label: 'Commentaires' },
   ]
 
   const ouvrirEditionOeuvre = (o: Oeuvre) => {
@@ -1193,6 +1210,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       ville: o.ville ?? '', date_publication: o.date_publication ?? '',
       date_composition: o.date_composition ?? '', url_source: o.url_source ?? '',
       langue_originale: o.langue_originale ?? '',
+      commentaire_traduction: o.commentaire_traduction ?? '',
     })
     setFormOeuvreGenres(Array.isArray(o.genres) ? o.genres : [])
     setStatutOeuvre(null)
@@ -1628,7 +1646,20 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
         </div>
       )}
 
-      {auteursFiltres.length === 0 && (
+      {erreurCatalogue && (
+        <div style={{ background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '6px', padding: '10px 14px', marginBottom: '8px' }}>
+          <p style={{ fontSize: '0.8625rem', fontWeight: 600, color: 'var(--cs-danger-fonce)', marginBottom: '4px' }}>Le catalogue n’a pas pu être chargé.</p>
+          <p style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-second)', marginBottom: '8px' }}>
+            Les filtres « candidates », « non candidates », « critiques » et « non publiées » restent vides tant que la panne dure. Détail renvoyé par <code>/api/admin/catalogue</code> : {erreurCatalogue}
+          </p>
+          <button onClick={() => { setErreurCatalogue(null); setCatalogueParAuteur(null); setCatalogueAutres(null) }}
+            style={{ fontSize: '0.8625rem', padding: '5px 12px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>
+            Réessayer
+          </button>
+        </div>
+      )}
+
+      {auteursFiltres.length === 0 && !erreurCatalogue && (
         <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '12px 0' }}>Aucun auteur trouvé.</p>
       )}
 
@@ -1781,14 +1812,9 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                           Trad. {oeuvre.trad_auteur}
                         </span>
                       )}
-                      {oeuvre.commentaire_traduction && (
-                        // Commentaire sur la traduction (ex. attribution discutée) — consultation
-                        // seule ; tronqué, texte complet en infobulle.
-                        <span title={oeuvre.commentaire_traduction}
-                          style={{ fontSize: '0.70312rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', background: '#f2efe8', border: '1px solid var(--cs-bord-clair)', borderRadius: '3px', padding: '1px 6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '12rem', flexShrink: 0 }}>
-                          🗨 {oeuvre.commentaire_traduction}
-                        </span>
-                      )}
+                      {/* Le commentaire sur l'édition ne paraît plus ici : il a rejoint le
+                          formulaire de modification, sous le nom « Commentaires », où il
+                          se corrige au lieu de se lire seulement. */}
                       {!publiee && (
                         <span title="Œuvre conservée au catalogue mais retirée de la lecture"
                           style={{ fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9a6a3e', background: '#f6ece1', border: '1px solid #e0cdbe', borderRadius: '3px', padding: '1px 6px', flexShrink: 0 }}>
@@ -1920,6 +1946,17 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                         <div><label style={lbl}>URL source</label><input type="text" value={formOeuvre.url_source ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, url_source: e.target.value }))} style={inputStyleAuteur} /></div>
 
                         <hr style={sepOeuvre} />
+
+                        {/* Commentaires (colonne `commentaire_traduction`) : une note en
+                            clair sur l'édition ou la traduction, du genre « Traduction de
+                            Louis Judicis de Mirandol, édition de 1861 ». Une phrase, donc
+                            une zone de texte et non une ligne. */}
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <label style={lbl}>Commentaires</label>
+                          <textarea value={formOeuvre.commentaire_traduction ?? ''}
+                            onChange={e => setFormOeuvre(p => ({ ...p, commentaire_traduction: e.target.value }))}
+                            rows={2} style={{ ...inputStyleAuteur, resize: 'vertical' }} />
+                        </div>
 
                         {/* Genre */}
                         <div style={{ gridColumn: '1 / -1' }}>
