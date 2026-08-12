@@ -49,6 +49,10 @@ scripts/giguet-revue.md
 # Heptateuque : fac-similés (103 Mo), node_modules locaux, DOCX régénérables
 scripts/heptateuque/img/
 scripts/heptateuque/node_modules/
+# Sous-projets de scripts (ex. segmentation-candidate) : leurs node_modules
+# imbriqués n'étaient pas couverts par la règle ci-dessus et se sont retrouvés
+# versionnés par erreur (7000+ fichiers). Le double astérisque les rattrape tous.
+scripts/heptateuque/**/node_modules/
 scripts/heptateuque/package-lock.json
 scripts/heptateuque/*.docx
 
