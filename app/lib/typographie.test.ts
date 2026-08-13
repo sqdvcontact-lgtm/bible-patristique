@@ -43,6 +43,10 @@ describe('normaliserEspaces (français, couche d’affichage)', () => {
   it('espace les guillemets français internes', () => {
     expect(normaliserEspaces('Il dit «mot».')).toBe(`Il dit «${FINE}mot${FINE}».`)
   })
+  it('supprime les espaces immédiatement à l’intérieur des parenthèses', () => {
+    expect(normaliserEspaces('( repris-ie)')).toBe('(repris-ie)')
+    expect(normaliserEspaces(`(${NBSP}ma chere Maistresse${FINE})`)).toBe('(ma chere Maistresse)')
+  })
   it('préserve heures, références numériques et URL', () => {
     const texte = 'Rendez-vous 10:30; Jn 3:16; https://exemple.fr/a:b?x=1; fin.'
     expect(normaliserEspaces(texte)).toBe(
@@ -55,7 +59,7 @@ describe('normaliserEspaces (français, couche d’affichage)', () => {
     )
   })
   it('reste idempotent', () => {
-    const texte = `Pourquoi${FINE}? parce que${FINE}: oui${FINE}; vraiment${FINE}!`
+    const texte = `(Pourquoi${FINE}? parce que${FINE}: oui${FINE}; vraiment${FINE}!)`
     expect(normaliserEspaces(normaliserEspaces(texte))).toBe(texte)
   })
   it('ne touche pas la virgule, le point ni les points de suspension', () => {
