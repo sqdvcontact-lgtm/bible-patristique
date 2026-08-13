@@ -2,7 +2,10 @@
 // U+00A0 = espace insécable ; U+202F = espace fine insécable.
 
 const FINE = '\u202F'
-const URL_OU_MAIL = /(https?:\/\/[^\s)]+|mailto:[^\s)]+)/g
+// Le point-virgule est exclu de la destination protégée : dans le texte courant,
+// il sert très majoritairement de ponctuation après un lien et doit donc rester
+// disponible pour la normalisation française.
+const URL_OU_MAIL = /(https?:\/\/[^\s);]+|mailto:[^\s);]+)/g
 
 /**
  * Applique une transformation au texte courant sans modifier les destinations d'URL.
