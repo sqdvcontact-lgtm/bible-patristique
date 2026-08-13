@@ -25,14 +25,17 @@ function horsUrls(texte: string, transformer: (fragment: string) => string): str
 // ou précédées d'une espace simple / insécable. Le deux-points n'est traité que
 // lorsqu'il fonctionne comme ponctuation (suivi d'une espace, d'une fermeture ou de
 // la fin) : les heures et références numériques de type 10:30 / Jn 3:16 restent donc
-// intactes. Les apostrophes ASCII internes aux mots sont rendues en apostrophes
-// typographiques, sans modifier la transcription stockée en base.
+// intactes. Les espaces immédiatement à l'intérieur des parenthèses sont supprimées.
+// Les apostrophes ASCII internes aux mots sont rendues en apostrophes typographiques,
+// sans modifier la transcription stockée en base.
 export function normaliserEspaces(texte: string): string {
   return horsUrls(texte, fragment => fragment
     .replace(/[ \u00A0\u202F]*([;!?])(?=[\s)\]»”"'….,;:]|$)/g, `${FINE}$1`)
     .replace(/[ \u00A0\u202F]*:(?=[\s)\]»”"'….,;!?]|$)/g, `${FINE}:`)
     .replace(/«[ \u00A0\u202F]*/g, `«${FINE}`)
     .replace(/[ \u00A0\u202F]*»/g, `${FINE}»`)
+    .replace(/\([ \u00A0\u202F]+/g, '(')
+    .replace(/[ \u00A0\u202F]+\)/g, ')')
     .replace(/(\p{L})'(\p{L})/gu, '$1’$2')
   )
 }
