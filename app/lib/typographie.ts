@@ -1,14 +1,40 @@
 // Espaces typographiques (charte §3.2). Fonctions PURES, testées dans typographie.test.ts.
 // U+00A0 = espace insécable ; U+202F = espace fine insécable.
 
-// Texte FRANÇAIS déjà espacé par le corpus (l'édition source porte les insécables) :
-// on se contente d'harmoniser le TYPE d'espace — fine insécable avant ; ! ? et autour
-// des guillemets. Le « : » conserve l'espace déjà présente (le corpus rend une fine).
-export function normaliserEspaces(texte: string): string {
+const FINE = '\u202F'
+// Le point-virgule est exclu de la destination protégée : dans le texte courant,
+// il sert très majoritairement de ponctuation après un lien et doit donc rester
+// disponible pour la normalisation française.
+const URL_OU_MAIL = /(https?:\/\/[^\s);]+|mailto:[^\s);]+)/g
+
+/**
+ * Applique une transformation au texte courant sans modifier les destinations d'URL.
+ * `normaliserEspaces` est appelé avant l'interprétation des liens Markdown : une
+ * normalisation à l'intérieur de `https://…` pourrait donc casser le lien.
+ */
+function horsUrls(texte: string, transformer: (fragment: string) => string): string {
   return texte
-    .replace(/ ([?!;])/g, ' $1')
-    .replace(/« /g, '« ')
-    .replace(/ »/g, ' »')
+    .split(URL_OU_MAIL)
+    .map(fragment => /^(?:https?:\/\/|mailto:)/.test(fragment) ? fragment : transformer(fragment))
+    .join('')
+}
+
+// Texte FRANÇAIS : la couche source reste diplomatique ; l'affichage, lui, suit la
+// charte typographique du site. Une fine insécable U+202F est imposée avant les
+// ponctuations hautes françaises (: ; ! ?), qu'elles soient collées dans la source
+// ou précédées d'une espace simple / insécable. Le deux-points n'est traité que
+// lorsqu'il fonctionne comme ponctuation (suivi d'une espace, d'une fermeture ou de
+// la fin) : les heures et références numériques de type 10:30 / Jn 3:16 restent donc
+// intactes. Les apostrophes ASCII internes aux mots sont rendues en apostrophes
+// typographiques, sans modifier la transcription stockée en base.
+export function normaliserEspaces(texte: string): string {
+  return horsUrls(texte, fragment => fragment
+    .replace(/[ \u00A0\u202F]*([;!?])(?=[\s)\]»”"'….,;:]|$)/g, `${FINE}$1`)
+    .replace(/[ \u00A0\u202F]*:(?=[\s)\]»”"'….,;!?]|$)/g, `${FINE}:`)
+    .replace(/«[ \u00A0\u202F]*/g, `«${FINE}`)
+    .replace(/[ \u00A0\u202F]*»/g, `${FINE}»`)
+    .replace(/(\p{L})'(\p{L})/gu, '$1’$2')
+  )
 }
 
 // Texte en LANGUE ORIGINALE (latin, grec) : l'édition source porte la ponctuation
@@ -20,7 +46,7 @@ export function normaliserEspaces(texte: string): string {
 // ramenée à la fine unique ; rien n'est ajouté avant , . … .
 export function normaliserEspacesOriginal(texte: string): string {
   return texte
-    .replace(/[   ]*([:;!?])/g, ' $1')
-    .replace(/«[   ]*/g, '« ')
-    .replace(/[   ]*»/g, ' »')
+    .replace(/[ \u00A0\u202F]*([:;!?])/g, `${FINE}$1`)
+    .replace(/«[ \u00A0\u202F]*/g, `«${FINE}`)
+    .replace(/[ \u00A0\u202F]*»/g, `${FINE}»`)
 }
