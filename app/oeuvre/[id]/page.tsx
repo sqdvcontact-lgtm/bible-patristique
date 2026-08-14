@@ -174,7 +174,7 @@ export default async function OeuvrePage({
   // bp_admin_session, qui n'est plus jamais posé depuis la suppression de la
   // page de connexion par mot de passe.
   const SELECT_SEG = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original'
-  const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent']
+  const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'lemme', 'dialogue', 'texte absent']
 
   async function chargerTousSegments(filtre: Record<string, string>) {
     // Applique le filtre à une requête (nature « texte » embarque les introductions).
@@ -215,7 +215,8 @@ export default async function OeuvrePage({
   // chargeur client `chargerNiv1Data`, pour que la tranche soit un vrai préfixe du
   // chargement complet), plus l'indication qu'il reste des segments. Sert à peindre
   // vite les grosses divisions (ex. Somme théologique, ~9000 segments dans un seul
-  // niv1) sans tout charger d'un coup : le reste est complété en tâche de fond côté
+  // niv1) sans tout charger d'un coup : seule la 1re tranche
+  // (~1000 segments) part du serveur ; le reste est complété en tâche de fond côté
   // client, pendant que le lecteur lit déjà la première page.
   const PLAFOND_TRANCHE = 1000
   async function chargerTrancheTexte(filtre: Record<string, string>): Promise<{ segments: Segment[]; partiel: boolean }> {
@@ -281,7 +282,8 @@ export default async function OeuvrePage({
 
   // ── Vague 2 : PREMIÈRE TRANCHE du texte du premier niv1 (apparat exclus) ──
   // On ne charge plus tout le niv1 avant le premier rendu : seule la 1re tranche
-  // (~1000 segments) part du serveur ; le client complète le reste en tâche de fond.
+  // (~1000 segments) part du serveur ; le reste est complété en tâche de fond côté
+  // client, pendant que le lecteur lit déjà la première page.
   const trancheInitiale = lectureTexteEntier
     ? { segments: await chargerTousSegments({ nature: 'texte' }) as Segment[], partiel: false }
     : texteSansNiveaux
