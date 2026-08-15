@@ -8,12 +8,22 @@ export type GroupeData = {
 export type TocEntry = { niv1: string; niv2: string; anchor: string }
 export type Commentaire = { id: number; texte: string; valide: boolean; created_at: string }
 export type OeuvreResumee = { id_oeuvre: string; titre: string; note?: string | null }
+export type VersionTextuelle = {
+  id_texte: string
+  titre_version: string
+  langue?: string | null
+  traducteur?: string | null
+  is_default?: boolean
+}
 
 export type Props = {
   auteur: string
   auteurId?: string
   idOeuvre: string
   estAdmin: boolean
+  idTexteActif?: string | null
+  versionsTextuelles?: VersionTextuelle[]
+  langueTexteActive?: string | null
   niv1List: string[]
   niv1TexteMap?: Record<string, string>
   niveauxSommaire?: number
@@ -41,7 +51,7 @@ export type ChampOeuvre = 'titre' | 'sous_titre' | 'titre_original' | 'trad_aute
 
 // Description de ce qui est en cours d'édition dans la modale admin :
 // un segment de texte, un titre de niveau 2/3/4 rattaché à un groupe,
-// ou un champ de la fiche œuvre (titre, sous_titre, titre_original, trad_auteur…).
+// ou un champ de la fiche œuvre (titre, sous-titre, titre_original, trad_auteur…).
 export type EditionCible =
   | { type: 'segment'; seg: SegData }
   | { type: 'titre'; niveau: 1 | 2 | 3 | 4; groupe: GroupeData; texteActuel: string; schemaTexte: boolean }
