@@ -88,7 +88,7 @@ export function parserDateHistorique(valeur: unknown): PeriodeHistorique | null 
 
 export function formaterPeriodeHistorique(periode: PeriodeHistorique | null | undefined) {
   if (!periode?.debut && !periode?.fin) return ''
-  if (periode.debut && periode.fin) return `${formaterBorne(periode.debut)} – ${formaterBorne(periode.fin)}`
+  if (periode.debut && periode.fin) return `${formaterBorne(periode.debut)}-${formaterBorne(periode.fin)}`
   return formaterBorne((periode.debut ?? periode.fin)!)
 }
 
@@ -108,7 +108,7 @@ export function formaterPeriodeHistoriqueDepuisBornes(debut: unknown, fin: unkno
   const d = normaliserDateHistoriqueTexte(debut)
   const f = normaliserDateHistoriqueTexte(fin)
   if (!d && !f) return null
-  if (d && f) return `${d} – ${f}`
+  if (d && f) return `${d}-${f}`
   return d ?? f
 }
 
