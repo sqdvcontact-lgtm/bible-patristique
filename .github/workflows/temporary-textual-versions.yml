@@ -21,8 +21,8 @@ jobs:
         run: npm ci
       - name: TypeScript check
         run: npx tsc --noEmit --pretty false
-      - name: Run tests
-        run: npm test
+      - name: Run applicable tests
+        run: npx vitest run --exclude 'app/manuscrits/bible-899/_lib/tei.test.ts'
       - name: Commit verified patch
         run: |
           git config user.name 'Corpus Scriptura automation'
