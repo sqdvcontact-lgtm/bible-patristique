@@ -279,7 +279,9 @@ export default async function OeuvrePage({
       let q = supabase.from('segments')
         .select(SELECT_ENTETE, avecCount ? { count: 'exact' } : undefined)
         .eq('id_oeuvre', id)
-        .in('nature', NATURES_TEXTE)
+        // Les liminaires sont chargés avec leur niveau au moment de la lecture,
+        // mais ne doivent pas créer à eux seuls une entrée de sommaire.
+        .in('nature', NATURES_TEXTE.filter(nature => nature !== 'introduction'))
       if (idTexteActif) q = q.eq('id_texte', idTexteActif)
       return q.order('segment_numero', { ascending: true }).range(from, from + 999)
     }
@@ -319,6 +321,13 @@ export default async function OeuvrePage({
     if (!niv1Vus.has(n1)) { niv1Vus.add(n1); niv1List.push(n1) }
     if (r.ref_niv1_texte && !niv1TexteMap[n1]) niv1TexteMap[n1] = String(r.ref_niv1_texte)
   })
+  // Une préface générale est structurellement antérieure aux livres numérotés,
+  // même lorsque ses segments ont été ajoutés plus tard dans la numérotation technique.
+  const indexPreface = niv1List.indexOf('Préface')
+  if (indexPreface > 0) {
+    const preface = niv1List.splice(indexPreface, 1)[0]
+    if (preface) niv1List.unshift(preface)
+  }
 
   const segmentCible = segmentCibleProbe
   const vueInitiale = segmentCible?.nature === 'apparat_critique' ? 'apparat' : 'texte'
