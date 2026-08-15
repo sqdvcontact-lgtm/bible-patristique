@@ -5,8 +5,29 @@ on:
     paths:
       - '.github/workflows/temporary-textual-versions.yml'
 
+permissions:
+  contents: write
+
 jobs:
   patch:
     runs-on: ubuntu-latest
     steps:
-      - run: echo textual-versions-workflow-ok
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply patch
+        run: python scripts/temporary_patch_textual_versions.py
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint reader
+        run: npx eslint 'app/oeuvre/[id]/page.tsx' 'app/oeuvre/[id]/OeuvreClient.tsx' 'app/oeuvre/[id]/oeuvreTypes.ts'
+      - name: Run tests
+        run: npm test
+      - name: Commit verified patch
+        run: |
+          git config user.name 'Corpus Scriptura automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git rm .github/workflows/temporary-textual-versions.yml scripts/temporary_patch_textual_versions.py
+          git add 'app/oeuvre/[id]/page.tsx' 'app/oeuvre/[id]/OeuvreClient.tsx' 'app/oeuvre/[id]/oeuvreTypes.ts'
+          git commit -m 'Sépare les versions textuelles dans le lecteur'
+          git push
