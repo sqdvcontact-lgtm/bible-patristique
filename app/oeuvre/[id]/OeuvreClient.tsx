@@ -436,7 +436,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 const LABEL_VOLET: React.CSSProperties = { fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block' }
 const BTN_VOLET = (actif: boolean): React.CSSProperties => ({ width: '100%', textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' })
 
-export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false }: Props) {
+export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, idTexteActif = null, versionsTextuelles = [], langueTexteActive = null, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -507,6 +507,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const estGrec = oeuvre.langue_originale === 'Grec'
   const labelOriginal = estGrec ? 'Grec' : 'Latin'
   const labelBilingue = estGrec ? 'Français & Grec' : 'Français & Latin'
+  const langueHtml = String(langueTexteActive || '').toLowerCase().startsWith('lat') ? 'la' : 'fr'
   const modeLecture: 'paragraphes' | 'segments' = eligibleParagraphes ? modeLecturePref : 'segments'
   const basculerMode = (m: 'paragraphes' | 'segments') => {
     setModeLecturePref(m)
@@ -577,9 +578,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   useEffect(() => {
     if (ongletDroit !== 'problemes' || problemesCharges || !idOeuvre) return
     ;(async () => {
-      const { data: segsOeuvre } = await supabase.from('segments')
+      let requeteSegmentsOeuvre = supabase.from('segments')
         .select('id, segment_numero, segment_texte, reference_manuelle, ref_niv1')
-        .eq('id_oeuvre', idOeuvre).order('segment_numero')
+        .eq('id_oeuvre', idOeuvre)
+      if (idTexteActif) requeteSegmentsOeuvre = requeteSegmentsOeuvre.eq('id_texte', idTexteActif)
+      const { data: segsOeuvre } = await requeteSegmentsOeuvre.order('segment_numero')
       const parId = new Map((segsOeuvre ?? []).map(s => [s.id, s]))
 
       // Deux familles, conformes au vocabulaire du §24.3 :
@@ -624,7 +627,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         setVersetsAltMap(map)
       }
     })()
-  }, [ongletDroit, idOeuvre, problemesCharges])
+  }, [ongletDroit, idOeuvre, idTexteActif, problemesCharges])
   useEffect(() => {
     try {
       const s = JSON.parse(localStorage.getItem('cs_volets_oeuvre2') ?? 'null')
@@ -652,6 +655,16 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
     const [oeuvresAuteur, setOeuvresAuteur] = useState<OeuvreResumee[]>([])
   const router = useRouter()
+  const changerVersionTextuelle = (nouvelIdTexte: string) => {
+    if (!nouvelIdTexte || nouvelIdTexte === idTexteActif || typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    params.set('texte', nouvelIdTexte)
+    params.delete('segment')
+    params.delete('mt')
+    // Rechargement complet volontaire : le sommaire, le corps, l'apparat et les
+    // caches de niveau 1 appartiennent tous au témoin sélectionné.
+    window.location.assign(`${window.location.pathname}?${params.toString()}`)
+  }
   // Traductions sœurs : œuvres du MÊME auteur au MÊME titre normalisé (comme le
   // regroupement de la Bibliothèque). Sert au sélecteur de traduction du volet gauche.
   type VersionTrad = { id_oeuvre: string; titre: string; trad_auteur: string | null; editeur: string | null; ville: string | null; date_publication: string | null; note: string | null }
@@ -901,11 +914,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
     const lotNiv1 = (from: number) => {
       let q = supabase.from('segments').select(SELECT).eq('id_oeuvre', idOeuvre)
         .in('nature', NATURES_TEXTE).order('segment_numero').range(from, from + 999)
+      if (idTexteActif) q = q.eq('id_texte', idTexteActif)
       if (!lectureTexteEntier && !texteSansNiveaux && n1) q = q.eq('ref_niv1', n1)
       return q
     }
     let premierReq = supabase.from('segments').select(SELECT, { count: 'exact' }).eq('id_oeuvre', idOeuvre)
       .in('nature', NATURES_TEXTE).order('segment_numero').range(0, 999)
+    if (idTexteActif) premierReq = premierReq.eq('id_texte', idTexteActif)
     if (!lectureTexteEntier && !texteSansNiveaux && n1) premierReq = premierReq.eq('ref_niv1', n1)
     const premier = await premierReq
     const segs: any[] = [...((premier.data as any[]) ?? [])]
@@ -983,12 +998,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   // après une modification ou une suppression admin, puisque l'apparat n'est
   // sinon chargé qu'une seule fois au rendu serveur de la page.
   const chargerApparatData = async () => {
-    const { data } = await supabase
+    let requeteApparat = supabase
       .from('segments')
       .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original')
       .eq('id_oeuvre', idOeuvre)
       .eq('nature', 'apparat_critique')
-      .order('segment_numero')
+    if (idTexteActif) requeteApparat = requeteApparat.eq('id_texte', idTexteActif)
+    const { data } = await requeteApparat.order('segment_numero')
     const segs = ((data ?? []) as any[]).filter(segmentAffichable)
 
     let c = 0, n1c = ''
@@ -1386,6 +1402,26 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 En savoir plus sur cette édition
               </button>
             )}
+            {versionsTextuelles.length > 1 && (
+              <div style={{ marginTop: '10px' }}>
+                <span style={LABEL_VOLET}>Versions textuelles</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
+                  {versionsTextuelles.map(v => {
+                    const actif = v.id_texte === idTexteActif
+                    const label = v.titre_version || (String(v.langue || '').toLowerCase().startsWith('lat') ? 'Texte latin' : 'Texte français')
+                    return (
+                      <button key={v.id_texte} disabled={actif}
+                        onClick={() => changerVersionTextuelle(v.id_texte)}
+                        title={actif ? 'Version textuelle affichée' : `Afficher : ${label}`}
+                        style={{ ...BTN_VOLET(actif), cursor: actif ? 'default' : 'pointer' }}>
+                        {label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Lecture : trois lignes de texte (Français, Français & Latin, Latin). Le
                 choix « paragraphes / segments » n'existe que pour le français d'une œuvre
                 segmentée. Sur le modèle du bouton « Les Saintes Écritures » de la navbar
@@ -1458,7 +1494,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 </div>
               </div>
             ) : null}
-            {versions.length > 1 && (
+            {versionsTextuelles.length <= 1 && versions.length > 1 && (
               <div style={{ marginTop: '7px' }}>
                 <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Traduction</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -1620,7 +1656,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
         )}
 
         {/* ── TEXTE CENTRAL ── */}
-        <main lang="fr" style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: '35rem', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
+        <main lang={langueHtml} style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: '35rem', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
           <PageTitre auteur={auteur} oeuvre={oeuvreLocale} titre={titreAffiche} estAdmin={estAdmin} mobile={mobile}
             onModifier={(champ, va) => setEditionCible({ type: 'titre_oeuvre', champ, texteActuel: va })} />
 
