@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "next-env.d.ts",
+    "app/oeuvre/[id]/**/*.ts",
+    "app/oeuvre/[id]/**/*.tsx",
+    "app/lib/**/*.ts",
+    "app/components/**/*.tsx"
+  ],
+  "exclude": ["node_modules", "work"]
+}
