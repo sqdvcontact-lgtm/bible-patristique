@@ -1,4 +1,4 @@
-name: Temporaire - exécuter conformité charte
+name: Temporaire - valider conformité charte
 
 on:
   push:
@@ -6,11 +6,8 @@ on:
     paths:
       - .github/workflows/tmp-run-charte-conformite.yml
 
-permissions:
-  contents: write
-
 jobs:
-  patch:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,8 +18,6 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - name: Appliquer le patch borné
-        run: python scripts/tmp_charte_conformite.py
       - name: Installer les dépendances
         run: npm ci
       - name: Suite de tests hors test dépendant d’une image absente
@@ -31,12 +26,5 @@ jobs:
         run: npx tsc --noEmit --pretty false
       - name: Lint des fonctions typographiques
         run: npx eslint app/lib/typographie.ts app/lib/typographie.test.ts
-      - name: Vérifier le diff
+      - name: Vérifier l’arbre de travail
         run: git diff --check
-      - name: Committer sur la branche de travail
-        run: |
-          git config user.name 'Corpus Scriptura bot'
-          git config user.email 'actions@users.noreply.github.com'
-          git add 'app/oeuvre/[id]/page.tsx' 'app/oeuvre/[id]/OeuvreClient.tsx' 'app/oeuvre/[id]/ModaleEditionAdmin.tsx' app/lib/typographie.ts app/lib/typographie.test.ts
-          git commit -m 'Aligner lecteur et typographie sur la charte'
-          git push origin HEAD:agent/charte-apparats-typographie
