@@ -106,7 +106,7 @@ const BTN: React.CSSProperties = {
 }
 
 // ── Page de titre ─────────────────────────────────────────────────────────────
-export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdmin, onModifier, mobile = false }: {
+export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdmin, onModifier, mobile = false, sansGouttiere = false }: {
   auteur: string
   oeuvre: Props['oeuvre']
   versionActive?: VersionTextuelle | null
@@ -114,6 +114,9 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
   estAdmin: boolean
   onModifier: (champ: ChampOeuvre, valeurActuelle: string) => void
   mobile?: boolean
+  // Sans la gouttière d'actions (mode comparaison) : padding symétrique pour centrer
+  // le frontispice sur toute la largeur, et non sur le corps décalé de la lecture.
+  sansGouttiere?: boolean
 }) {
   const SERIF = "var(--font-source-serif), Georgia, serif"
   const traducteur = versionActive?.traducteur ?? oeuvre.trad_auteur
@@ -137,7 +140,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
       // TEXTE seul, en excluant la gouttière des boutons d'action (~62px à droite).
       // Le centre visuel se décale ainsi d'environ 31px vers la gauche. Sur mobile,
       // pas de colonne d'actions : padding symétrique et sobre.
-      padding: mobile ? '48px 22px 28px' : '80px 110px 40px 48px',
+      padding: mobile ? '48px 22px 28px' : sansGouttiere ? '80px 48px 40px' : '80px 110px 40px 48px',
       marginBottom: '8px', textAlign: 'center',
     }}>
       {/* Nom d'auteur : sérif, corps agrandi, interlettrage resserré (approche des

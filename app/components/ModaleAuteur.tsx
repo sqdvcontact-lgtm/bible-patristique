@@ -18,6 +18,7 @@ import { rendreSiecles } from '@/app/lib/siecles'
 import { sansPointFinal } from '@/app/lib/titres'
 import { type RangChrono, coulType, LIB_TYPE } from '@/app/lib/frise'
 import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import HistoricalDate from '@/app/components/HistoricalDate'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -91,7 +92,7 @@ export function FriseAuteur({ evenements, sansLegende }: { evenements: RangChron
           jamais quand un seul brin est présent (une légende à une entrée n'apprend rien).
           `sansLegende` la supprime tout à fait (chronologie d'une traduction). */}
       {!sansLegende && brins.length > 1 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', marginBottom: '13px', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', marginBottom: '13px', justifyContent: 'flex-start' }}>
           {brins.map(t => (
             <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.5625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9a938a' }}>
               <span aria-hidden style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0, ...stylePuce(t) }} />
@@ -188,7 +189,7 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
 
   const blocChrono = aChrono ? (
     <section>
-      <TitreSection centre>Chronologie</TitreSection>
+      <TitreSection>Chronologie</TitreSection>
       <FriseAuteur evenements={evenements} />
     </section>
   ) : null
@@ -313,7 +314,10 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
 
   return createPortal(
     <div onClick={onClose} className="auteur-modale-overlay"
-      style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.42)', zIndex: 2100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 20px', overflowY: 'auto' }}>
+      /* La fenêtre commence SOUS la navbar (fixe) : le calque défilant part de
+         `top: HAUTEUR_NAVBAR`, sinon le contenu (portrait, nom) glissait derrière
+         la barre au défilement. La navbar reste ainsi visible et accessible. */
+      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(30,26,20,0.42)', zIndex: 2100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 20px', overflowY: 'auto' }}>
       <div onClick={e => e.stopPropagation()} className="auteur-modale-inner"
         style={{ position: 'relative', width: '100%', maxWidth: '52rem', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', boxShadow: '0 20px 60px rgba(40,30,15,0.30)', padding: '30px 34px 28px', margin: 'auto' }}>
         <button onClick={onClose} aria-label="Fermer" title="Fermer"

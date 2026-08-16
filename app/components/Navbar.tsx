@@ -970,7 +970,10 @@ export default function Navbar() {
     const actif = pathname === chemin || (chemin !== "/" && pathname.startsWith(chemin));
     return (
       <Link key={href} href={href} onClick={() => setMobileOuvert(false)}
-        style={{ padding: "9px 10px", borderRadius: "6px", fontSize: "0.98rem", color: "#fff", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
+        // `display: block` OBLIGATOIRE : dans les groupes d'« Administration », les liens
+        // sont enfants d'un <div> bloc (et non du flex-colonne principal) ; sans cela, les
+        // <a> restent inline et se chevauchent (pastilles superposées, texte illisible).
+        style={{ display: "block", padding: "9px 10px", borderRadius: "6px", fontSize: "0.98rem", color: "#fff", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
         {label}
       </Link>
     );

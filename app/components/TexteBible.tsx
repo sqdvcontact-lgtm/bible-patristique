@@ -677,7 +677,7 @@ export default function TexteBible({
                       TR0009 : lacune du manuscrit rendue explicitement ; marqueurs éditoriaux
                       inline (lecture incertaine, ajout marginal) rendus discrètement. Aucun
                       statut technique d'alignement n'est montré au lecteur. */}
-                  <p data-verse-text lang={ligne899 ? 'fro' : undefined} style={{ fontSize: '0.84rem', lineHeight: mobile ? 1.3 : 1.42, color: 'var(--cs-texte-fort)', margin: 0, textAlign: 'justify', wordSpacing: '-0.02em', letterSpacing: '-0.003em' }}>
+                  <p data-verse-text lang={ligne899 ? 'fro' : undefined} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.86rem', lineHeight: mobile ? 1.42 : 1.5, color: 'var(--cs-texte-fort)', margin: 0, textAlign: mobile ? 'left' : 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word' } as React.CSSProperties}>
                     {lacune ? (
                       // Verset isolé absent du témoin (chapitre par ailleurs porté). Italique
                       // de labeur, capitale initiale, teinte effacée : signalé sans peser.

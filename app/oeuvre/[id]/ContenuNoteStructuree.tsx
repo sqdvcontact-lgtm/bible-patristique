@@ -50,15 +50,13 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
               margin: '0 0 7px',
               whiteSpace: verse || referencesApresVers.length > 0 ? 'pre-line' : 'normal',
               fontStyle: 'normal',
-              paddingLeft: traduction ? '10px' : 0,
+              // Les vers cités dans une note ne portent plus d'étiquette « Vers » : ils se
+              // signalent par une police un peu plus petite et un léger retrait à gauche.
+              fontSize: verse ? '0.9em' : undefined,
+              paddingLeft: traduction ? '10px' : verse ? '0.9em' : 0,
               borderLeft: traduction ? '2px solid var(--cs-or-doux)' : undefined,
             }}
           >
-            {verse && (
-              <span style={{ display: 'block', fontSize: '0.53125rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-or)', marginBottom: '2px' }}>
-                Vers
-              </span>
-            )}
             {block.text}
             {referencesInline.map(reference => (
               <span

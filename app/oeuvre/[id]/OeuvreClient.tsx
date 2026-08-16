@@ -37,7 +37,15 @@ import { insererSignalement } from './signalements'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import ComparaisonTraductions from './ComparaisonTraductions'
-import { choisirAlignement, comparaisonDisponible } from './comparaisonTraductionsUtils'
+import {
+  choisirAlignement,
+  comparaisonDisponible,
+  divisionVoisine,
+  divisionPresente,
+  libelleLivreComparaison,
+  libelleDivisionComparaison,
+  type DivisionAlignee,
+} from './comparaisonTraductionsUtils'
 
 const CHARS_PAR_PAGE = 15000
 
@@ -263,7 +271,7 @@ function NoteTooltip({ numeroVisible, contenu }: { numeroVisible: number; conten
         zIndex: 9999,
         fontFamily: "var(--font-source-serif), Georgia, serif",
         fontSize: '0.78125rem',
-        lineHeight: 1.65,
+        lineHeight: 1.45,
         color: '#2a2218',
       }}
     >
@@ -508,6 +516,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
   const alignementActif = choisirAlignement(alignementsDisponibles, alignmentSetId)
   const [modeComparaison, setModeComparaison] = useState(comparaisonInitiale)
   const modeComparaisonActif = comparaisonEstDisponible && modeComparaison && Boolean(alignementActif)
+  // Navigation de la comparaison, MENÉE COMME LA LECTURE : l'état (livre, division,
+  // liste ordonnée des divisions alignées) vit ici pour alimenter à la fois le
+  // sommaire de gauche et la barre « ‹ Livre — Division › », exactement comme les
+  // niveaux du texte alimentent le sommaire et la barre de niveau 1.
+  const [comparaisonDivisions, setComparaisonDivisions] = useState<DivisionAlignee[]>([])
+  const [comparaisonBook, setComparaisonBook] = useState(() => Number.isInteger(comparaisonLivreInitial) && comparaisonLivreInitial >= 1 ? comparaisonLivreInitial : 1)
+  const [comparaisonDivision, setComparaisonDivision] = useState(() => Number.isInteger(comparaisonDivisionInitiale) && comparaisonDivisionInitiale >= 1 ? comparaisonDivisionInitiale : 1)
   const fermerComparaison = () => {
     setModeComparaison(false)
     const params = new URLSearchParams(window.location.search)
@@ -516,11 +531,75 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
     params.delete('division')
     router.replace(`${window.location.pathname}${params.size ? `?${params.toString()}` : ''}`, { scroll: false })
   }
-  const ouvrirLectureParallele = (alignmentSetId: string) => {
+  const ouvrirLectureParallele = (setId: string) => {
     setVue('texte')
-    setAlignmentSetId(alignmentSetId)
+    setAlignmentSetId(setId)
     setModeComparaison(true)
+    const params = new URLSearchParams(window.location.search)
+    params.set('compare', setId)
+    params.set('book', String(comparaisonBook))
+    params.set('division', String(comparaisonDivision))
+    router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
   }
+  // Va à une division alignée (depuis le sommaire de gauche ou les flèches ‹ ›),
+  // met l'URL à jour et ramène en haut du texte — comme un changement de niveau 1.
+  const naviguerComparaison = (book: number, division: number) => {
+    setComparaisonBook(book)
+    setComparaisonDivision(division)
+    const params = new URLSearchParams(window.location.search)
+    if (alignementActif) params.set('compare', alignementActif.alignmentSetId)
+    params.set('book', String(book))
+    params.set('division', String(division))
+    router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
+    if (mobile) setNavOuverte(false)
+    if (typeof document !== 'undefined') document.getElementById('barre-nav-division')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+  // Charge la liste ordonnée des divisions alignées à l'entrée en comparaison, avec
+  // le TITRE EXACT de chaque division tiré de la traduction de référence (niv1/niv2),
+  // pour que le sommaire soit identique à celui de la lecture. Recale la division
+  // courante sur la première disponible si elle est hors liste.
+  useEffect(() => {
+    if (!comparaisonEstDisponible || !alignementActif || !modeComparaison) return
+    let actif = true
+    ;(async () => {
+      const { data: alnData, error } = await supabase.from('texte_alignements')
+        .select('alignment_id,book,canonical_division_order')
+        .eq('alignment_set_id', alignementActif.alignmentSetId)
+        .order('book').order('canonical_division_order')
+      if (!actif || error || !alnData) return
+      // Une entrée par division (dans l'ordre), avec un groupe représentatif dont on
+      // lira le titre côté référence.
+      const parDivision = new Map<string, { book: number; division: number; alignmentId: string }>()
+      for (const row of alnData as { alignment_id: string; book: number; canonical_division_order: number }[]) {
+        const cle = `${row.book}|${row.canonical_division_order}`
+        if (!parDivision.has(cle)) parDivision.set(cle, { book: row.book, division: row.canonical_division_order, alignmentId: row.alignment_id })
+      }
+      const reps = [...parDivision.values()]
+      const { data: memData } = await supabase.from('texte_alignement_membres')
+        .select('alignment_id,segment_key').eq('role', 'reference').in('alignment_id', reps.map(rep => rep.alignmentId))
+      const cleParAlignement = new Map<string, string>()
+      for (const row of (memData ?? []) as { alignment_id: string; segment_key: string }[]) if (!cleParAlignement.has(row.alignment_id)) cleParAlignement.set(row.alignment_id, row.segment_key)
+      const segKeys = [...cleParAlignement.values()]
+      const { data: segData } = segKeys.length
+        ? await supabase.from('segments').select('segment_key,ref_niv1,ref_niv2').in('segment_key', segKeys)
+        : { data: [] }
+      const titreParCle = new Map<string, { niv1: string | null; niv2: string | null }>()
+      for (const row of (segData ?? []) as { segment_key: string; ref_niv1: string | null; ref_niv2: string | null }[]) titreParCle.set(row.segment_key, { niv1: row.ref_niv1, niv2: row.ref_niv2 })
+      const liste: DivisionAlignee[] = reps.map(rep => {
+        const segKey = cleParAlignement.get(rep.alignmentId)
+        const titre = segKey ? titreParCle.get(segKey) : undefined
+        return { book: rep.book, division: rep.division, niv1: titre?.niv1 ?? undefined, niv2: titre?.niv2 ?? undefined }
+      })
+      if (!actif) return
+      setComparaisonDivisions(liste)
+      if (liste.length > 0 && !divisionPresente(liste, comparaisonBook, comparaisonDivision)) {
+        setComparaisonBook(liste[0].book)
+        setComparaisonDivision(liste[0].division)
+      }
+    })()
+    return () => { actif = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comparaisonEstDisponible, alignementActif?.alignmentSetId, modeComparaison])
   useEffect(() => {
     try {
       const v = localStorage.getItem('cs_mode_lecture_oeuvre')
@@ -1354,6 +1433,26 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
   const masquerToolbar = (sid: number) => {
     timerSurvolRef.current = setTimeout(() => setSegSurvol(prev => (prev && prev.id === sid ? null : prev)), 200)
   }
+  // Tap sur un segment (mode paragraphes). Sur mobile la barre flottante n'a pas de
+  // survol pour se refermer : re-taper le segment actif la referme (bascule), au lieu
+  // de la repositionner indéfiniment.
+  const tapSegmentParagraphe = (el: HTMLElement, sid: number, actif: boolean) => {
+    if (actif) { setSegActif(null); if (mobile) setSegSurvol(null) }
+    else { setSegActif(sid); positionnerToolbar(el, sid) }
+  }
+  // Mobile : referme aussi la barre flottante au tap hors barre/segment et au
+  // défilement (elle est en position fixe et se détacherait du texte sinon).
+  useEffect(() => {
+    if (!mobile || !segSurvol) return
+    const auTapDehors = (e: Event) => {
+      const cible = e.target as Element | null
+      if (cible && !cible.closest('[data-seg-toolbar]') && !cible.closest('.seg-inline')) setSegSurvol(null)
+    }
+    const auDefilement = () => setSegSurvol(null)
+    document.addEventListener('pointerdown', auTapDehors, true)
+    window.addEventListener('scroll', auDefilement, { passive: true })
+    return () => { document.removeEventListener('pointerdown', auTapDehors, true); window.removeEventListener('scroll', auDefilement) }
+  }, [mobile, segSurvol])
 
   return (
     <div style={{ background: 'var(--cs-fond)', minHeight: '100vh' }}>
@@ -1624,7 +1723,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
           {/* Apparat critique + Sommaire — conteneur partagé à hauteur égale */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
-            {tocApparatLocal.length > 0 && (
+            {!modeComparaisonActif && tocApparatLocal.length > 0 && (
               <div style={{ ...(apparatOuvert ? { flex: '0 1 auto', maxHeight: '50%', minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
                 <button onClick={() => setApparatOuvert(!apparatOuvert)}
                   style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
@@ -1657,13 +1756,47 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
               <div style={{ flex: 1, overflowY: 'auto', padding: '4px 16px 24px' }}>
             <p style={{ display: 'none' }}></p>
 
-            {texteSansNiveaux && (
+            {/* En comparaison, le sommaire liste les Livres → Divisions alignés,
+                exactement au gabarit des niveaux 1/2 du texte ; cliquer charge la
+                division (comme cliquer un niveau 1 charge sa section). */}
+            {modeComparaisonActif && (
+              comparaisonDivisions.length === 0 ? (
+                <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', lineHeight: 1.45, margin: '4px 0 0' }}>Chargement des divisions…</p>
+              ) : (
+                Array.from(new Set(comparaisonDivisions.map(d => d.book))).map(bk => {
+                  const estActif = comparaisonBook === bk
+                  const divisionsDuLivre = comparaisonDivisions.filter(d => d.book === bk)
+                  const titreLivre = divisionsDuLivre[0]?.niv1 || `LIVRE ${libelleLivreComparaison(bk)}`
+                  return (
+                    <div key={bk} style={{ marginBottom: '6px' }}>
+                      <button onClick={() => divisionsDuLivre[0] && naviguerComparaison(bk, divisionsDuLivre[0].division)}
+                        style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35 }}>
+                        {titreLivre}
+                      </button>
+                      {estActif && divisionsDuLivre.map(d => {
+                        const actif2 = comparaisonDivision === d.division
+                        return (
+                          <div key={d.division} style={{ borderLeft: actif2 ? '2px solid var(--cs-vert)' : '2px solid transparent', marginBottom: '2px' }}>
+                            <button onClick={() => naviguerComparaison(bk, d.division)}
+                              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0 3px 8px' }}>
+                              <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{d.niv2 || libelleDivisionComparaison(d.division)}</span>
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })
+              )
+            )}
+
+            {!modeComparaisonActif && texteSansNiveaux && (
               <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', lineHeight: 1.45, margin: '4px 0 0' }}>
                 Texte complet
               </p>
             )}
 
-            {!texteSansNiveaux && niv1List.map(n1 => {
+            {!modeComparaisonActif && !texteSansNiveaux && niv1List.map(n1 => {
               const estActif = vue === 'texte' && n1 === niv1Actif
 
               return (
@@ -1739,23 +1872,46 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
         )}
 
         {/* ── TEXTE CENTRAL ── */}
-        <main lang="fr" style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: modeComparaisonActif ? '72rem' : '35rem', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
-          {modeComparaisonActif && alignementActif ? (
-            <div style={{ minHeight: mobile ? '18rem' : '24rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: mobile ? '48px 20px 24px' : '72px 70px 36px' }}>
-              <p style={{ margin: '0 0 18px', fontSize: '0.9rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#345c44', fontWeight: 600 }}>{auteur}</p>
-              <h1 style={{ margin: '0 0 16px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(30px, 4.2vw, 46px)', fontWeight: 400, color: '#141f18' }}>Traductions parallèles</h1>
-              <p style={{ margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-texte-second)' }}>{alignementActif.referenceLabel} et {alignementActif.alignedLabel}</p>
-            </div>
-          ) : (
-            <PageTitre auteur={auteur} oeuvre={oeuvreLocale} versionActive={versionActive} titre={titreAffiche} estAdmin={estAdmin} mobile={mobile}
-              onModifier={(champ, va) => setEditionCible({ type: 'titre_oeuvre', champ, texteActuel: va })} />
-          )}
+        <main lang="fr" style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: modeComparaisonActif ? '52rem' : '35rem', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
+          {/* Frontispice IDENTIQUE à la lecture (même en Traductions parallèles). En
+              comparaison, `sansGouttiere` centre le titre sur toute la largeur (pas de
+              colonne d'actions à compenser). Les deux traductions comparées sont
+              nommées en tête de colonnes plus bas. */}
+          <PageTitre auteur={auteur} oeuvre={oeuvreLocale} versionActive={versionActive} titre={titreAffiche} estAdmin={estAdmin} mobile={mobile} sansGouttiere={modeComparaisonActif}
+            onModifier={(champ, va) => setEditionCible({ type: 'titre_oeuvre', champ, texteActuel: va })} />
 
           {/* Fleuron (feuille de vigne) séparant la page de titre du niveau 1,
-              à la place du long filet. */}
-          <div style={{ display: 'flex', justifyContent: 'center', margin: '40px 0 44px', paddingRight: gouttiereTitre }}>
+              à la place du long filet. En comparaison, pas de gouttière d'actions :
+              le fleuron se centre sur toute la largeur des deux colonnes. */}
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '40px 0 44px', paddingRight: modeComparaisonActif ? undefined : gouttiereTitre }}>
             <FeuilleVigne />
           </div>
+
+          {/* Barre de circulation de la comparaison — jumelle de « barre-nav-niv1 » :
+              flèches ‹ › et titre « Livre — Division » centré, serif. */}
+          {vue === 'texte' && modeComparaisonActif && alignementActif && (() => {
+            const prev = divisionVoisine(comparaisonDivisions, comparaisonBook, comparaisonDivision, -1)
+            const next = divisionVoisine(comparaisonDivisions, comparaisonBook, comparaisonDivision, 1)
+            const courante = comparaisonDivisions.find(d => d.book === comparaisonBook && d.division === comparaisonDivision)
+            const titreLivre = courante?.niv1 || `LIVRE ${libelleLivreComparaison(comparaisonBook)}`
+            const titreDivision = courante?.niv2 || libelleDivisionComparaison(comparaisonDivision)
+            return (
+              <div id="barre-nav-division" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: '60px' }}>
+                <button onClick={() => prev && naviguerComparaison(prev.book, prev.division)} disabled={!prev} aria-label="Division précédente"
+                  style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: prev ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: prev ? 'pointer' : 'default', padding: 0, pointerEvents: prev ? 'auto' : 'none' }}>
+                  {prev ? '‹' : ''}
+                </button>
+                <span style={{ fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-encre)', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3 }}>
+                  {titreLivre}
+                  <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{titreDivision}</span>
+                </span>
+                <button onClick={() => next && naviguerComparaison(next.book, next.division)} disabled={!next} aria-label="Division suivante"
+                  style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: next ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: next ? 'pointer' : 'default', padding: 0, pointerEvents: next ? 'auto' : 'none' }}>
+                  {next ? '›' : ''}
+                </button>
+              </div>
+            )
+          })()}
 
           {/* Navigation précédent/suivant — toujours au niveau 1 */}
           {vue === 'texte' && !modeComparaisonActif && !texteSansNiveaux && !lectureTexteEntier && (
@@ -1807,7 +1963,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
 
           {/* Vue texte principal */}
           {vue === 'texte' && modeComparaisonActif && alignementActif ? (
-            <ComparaisonTraductions alignement={alignementActif} estAdmin={estAdmin} onFermer={fermerComparaison} livreInitial={comparaisonLivreInitial} divisionInitiale={comparaisonDivisionInitiale} />
+            <ComparaisonTraductions key={`${alignementActif.alignmentSetId}:${comparaisonBook}:${comparaisonDivision}`} alignement={alignementActif} estAdmin={estAdmin} book={comparaisonBook} division={comparaisonDivision} userId={userId} auteur={auteur} />
           ) : vue === 'texte' && (() => {
             let dniv1 = pageActuelle > 0 ? (pages[pageActuelle - 1]?.at(-1)?.niv1 ?? '') : ''
             let dniv2 = '', dniv3 = '', dniv4 = ''
@@ -1921,7 +2077,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
                             <Fragment key={sid}>
                               {i > 0 ? (s.joinBefore ?? ' ') : null}
                               <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: '60px' }}
-                                onClick={(e) => { setSegActif(actif ? null : sid); positionnerToolbar(e.currentTarget as HTMLElement, sid) }}
+                                onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
                                 onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                 onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                 {configNiveaux.afficherNumeros && !estPremier && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
@@ -2029,7 +2185,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
                                 <Fragment key={sid}>
                                   {i > 0 ? (s.joinBefore ?? ' ') : null}
                                   <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: '60px' }}
-                                    onClick={(e) => { setSegActif(actif ? null : sid); positionnerToolbar(e.currentTarget as HTMLElement, sid) }}
+                                    onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
                                     onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                     onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                     {configNiveaux.afficherNumeros && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
@@ -2383,7 +2539,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
         const s = segMap.get(segSurvol.id)
         if (!s) return null
         return createPortal(
-          <div onMouseEnter={() => { if (timerSurvolRef.current) clearTimeout(timerSurvolRef.current) }}
+          <div data-seg-toolbar="" onMouseEnter={() => { if (timerSurvolRef.current) clearTimeout(timerSurvolRef.current) }}
             onMouseLeave={() => masquerToolbar(segSurvol.id)}
             style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.16)', padding: '2px 4px' }}>
             {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onSauvegarde={() => marquerSauvegardeSeg(s.id)} />}

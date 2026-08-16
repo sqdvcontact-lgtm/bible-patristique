@@ -1,18 +1,24 @@
 'use client'
 
-import { Fragment, useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { supabase } from '@/app/lib/supabase'
 import { useEstMobile } from '@/app/lib/useEstMobile'
-import { rendreTexteEnrichi } from './texteEnrichi'
+import { rendreTexteEnrichi, texteSansEnrichissement } from './texteEnrichi'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
 import { BadgeStatutAlignement } from './ComparaisonStatut'
-import type { AlignementDisponible, NoteBlocData, NoteStructuree } from './oeuvreTypes'
+import { BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
+import type { AlignementDisponible, NoteBlocData, NoteStructuree, SegData } from './oeuvreTypes'
 import {
   groupesSelonFiltre,
   membresOrdonnesParGroupe,
   type FiltreAlignement,
+  type MembreComparable,
 } from './comparaisonTraductionsUtils'
+
+// Métadonnées d'édition d'une œuvre, pour la citation au copier/prélever (chaque
+// colonne = une traduction distincte, donc sa propre attribution).
+type OeuvreMeta = { titre: string; sous_titre: string | null; trad_auteur: string | null; editeur: string | null; collection: string | null; ville: string | null; date_publication: string | null }
 
 type Groupe = {
   alignment_id: string
@@ -32,6 +38,7 @@ type Membre = {
 type SegmentComparaison = {
   id: number
   id_texte: string
+  id_oeuvre: string
   segment_key: string
   segment_numero: number
   segment_texte: string
@@ -42,10 +49,6 @@ type SegmentComparaison = {
   segment_metadata: Record<string, unknown> | null
 }
 type NotesParSegment = Record<string, NoteStructuree[]>
-type LienParSegment = Record<number, string[]>
-
-const LIVRES = ['PREMIER', 'DEUXIÈME', 'TROISIÈME', 'QUATRIÈME', 'CINQUIÈME']
-const ROMAINS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX', 'XXI', 'XXII', 'XXIII', 'XXIV']
 
 function lots<T>(items: T[], taille = 180) {
   const resultat: T[][] = []
@@ -53,113 +56,158 @@ function lots<T>(items: T[], taille = 180) {
   return resultat
 }
 
-function texteAvecAppels(texte: string, notes: NoteStructuree[]) {
-  const numeros = new Map<string, number>()
-  for (const note of notes) numeros.set(String(note.noteNumber), note.noteNumber)
+// Appel de note en infobulle, repris de la lecture : exposant brun souligné de
+// pointillés, clic pour déplier le contenu structuré de la note.
+function AppelNote({ note }: { note: NoteStructuree }) {
+  const [ouvert, setOuvert] = useState(false)
+  const ancre = useRef<HTMLElement>(null)
+  const [rect, setRect] = useState<{ left: number; top: number; bottom: number } | null>(null)
+  const basculer = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation()
+    if (ancre.current) { const r = ancre.current.getBoundingClientRect(); setRect({ left: r.left, top: r.top, bottom: r.bottom }) }
+    setOuvert(o => !o)
+  }
+  useEffect(() => {
+    if (!ouvert) return
+    const onDown = (e: MouseEvent) => { if (!(e.target as Element).closest('[data-appel-note]')) setOuvert(false) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOuvert(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
+  }, [ouvert])
+  const haut = (rect?.top ?? 300) > 180
+  const W = 340
+  return (
+    <>
+      <sup ref={ancre as React.RefObject<HTMLElement>} data-appel-note="" role="button" tabIndex={0}
+        onClick={basculer} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') basculer(e) }}
+        aria-label={`Consulter la note ${note.noteNumber}`}
+        style={{ cursor: 'help', color: '#8a6a3e', fontSize: '0.60em', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'normal', userSelect: 'none', letterSpacing: 0, display: 'inline-block', lineHeight: 1, padding: '0 1px', borderBottom: '1px dotted #c8a87a' }}>
+        {note.noteNumber}
+      </sup>
+      {ouvert && typeof document !== 'undefined' && createPortal(
+        <div data-appel-note="" onMouseDown={e => e.stopPropagation()}
+          style={{ position: 'fixed', left: Math.max(8, Math.min(rect?.left ?? 0, (typeof window !== 'undefined' ? window.innerWidth : 900) - W - 8)), top: haut ? (rect?.top ?? 0) - 8 : (rect?.bottom ?? 0) + 8, transform: haut ? 'translateY(-100%)' : 'none', width: W, maxWidth: 'calc(100vw - 16px)', maxHeight: 340, overflowY: 'auto', background: '#faf6ee', border: '1px solid var(--cs-or-doux)', borderRadius: 5, boxShadow: '0 6px 24px rgba(44,30,10,0.20)', padding: '10px 12px', zIndex: 9999, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', lineHeight: 1.45, color: '#2a2218' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Note {note.noteNumber}</span>
+            <button onClick={() => setOuvert(false)} aria-label="Fermer" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a08a', fontSize: '0.9375rem', lineHeight: 1, padding: '0 2px' }}>×</button>
+          </div>
+          <ContenuNoteStructuree note={note} />
+        </div>,
+        document.body,
+      )}
+    </>
+  )
+}
+
+function renderSegmentTexte(texte: string, notes: NoteStructuree[]) {
+  const parNumero = new Map<string, NoteStructuree>()
+  for (const note of notes) parNumero.set(String(note.noteNumber), note)
   return texte.split(/(\[\[[A-Z0-9]+\]\])/g).map((partie, index) => {
     const appel = partie.match(/^\[\[([A-Z0-9]+)\]\]$/)?.[1]
     if (!appel) return <Fragment key={index}>{rendreTexteEnrichi(partie)}</Fragment>
-    const numero = numeros.get(appel) ?? appel
-    return <sup key={index} style={{ color: 'var(--cs-vert)', fontSize: '0.62em', marginLeft: '1px' }}>{numero}</sup>
+    const note = parNumero.get(appel)
+    return note ? <AppelNote key={index} note={note} /> : <sup key={index} style={{ color: 'var(--cs-texte-faible)', fontSize: '0.62em' }}>{appel}</sup>
   })
 }
 
+// Gabarit d'un paragraphe, aligné sur la colonne française du mode Français-Latin
+// (sans-serif 0.82rem, interligne 1.62, mots resserrés, justifié).
 const STYLE_TEXTE_PARALLELE = {
   margin: 0,
   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
   fontSize: '0.82rem',
   lineHeight: 1.62,
   color: 'var(--cs-texte-fort)',
+  wordSpacing: '-0.025em',
+  letterSpacing: 0,
   overflowWrap: 'break-word',
   whiteSpace: 'pre-line',
 } as const
 
-function NotesEtLiens({ segments, notes, liens }: {
-  segments: SegmentComparaison[]
-  notes: NotesParSegment
-  liens: LienParSegment
-}) {
-  const liensAffiches = Array.from(new Set(segments.flatMap(segment => liens[segment.id] ?? [])))
-  const notesAffichees = Array.from(new Map(
-    segments.flatMap(segment => notes[segment.segment_key] ?? []).map(note => [note.noteKey, note]),
-  ).values())
-  return (
-    <>
-      {liensAffiches.length > 0 && (
-        <p style={{ margin: '3px 0 0', fontSize: '0.64rem', color: 'var(--cs-vert)', lineHeight: 1.35 }}>
-          {liensAffiches.join(' · ')}
-        </p>
-      )}
-      {notesAffichees.map(note => (
-        <details key={note.noteKey} style={{ marginTop: '5px', borderLeft: '2px solid var(--cs-or-doux)', paddingLeft: '8px' }}>
-          <summary style={{ cursor: 'pointer', fontSize: '0.64rem', color: 'var(--cs-texte-second)' }}>Note {note.noteNumber}</summary>
-          <div style={{ marginTop: '5px', fontSize: '0.72rem', color: 'var(--cs-texte-second)', lineHeight: 1.5 }}>
-            <ContenuNoteStructuree note={note} />
-          </div>
-        </details>
-      ))}
-    </>
-  )
-}
+type BlocLecture = { type: 'prose' | 'vers' | 'rubrique'; segs: SegmentComparaison[] }
 
-function ColonneLecture({ membres, segments, notes, liens, vide }: {
-  membres: Membre[]
+// Une colonne = une traduction. Les segments sont cliquables comme en lecture
+// (survol/clic → cellule d'actions flottante : prélever, copier, signaler). Le CSS
+// de `.seg-inline` vient du bloc <style> parent (OeuvreClient).
+function ColonneLecture({ membres, segments, notes, vide, segActif, onSurvol, onQuitter, onClic, mobile }: {
+  membres: MembreComparable[]
   segments: Map<string, SegmentComparaison>
   notes: NotesParSegment
-  liens: LienParSegment
   vide: string
+  segActif: number | null
+  onSurvol: (el: HTMLElement, id: number) => void
+  onQuitter: (id: number) => void
+  onClic: (el: HTMLElement, id: number, actif: boolean) => void
+  mobile: boolean
 }) {
   const ordonnes = membres.map(membre => segments.get(membre.segment_key)).filter(Boolean) as SegmentComparaison[]
   if (ordonnes.length === 0) {
     return <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>{vide}</p>
   }
 
-  const blocs: SegmentComparaison[][] = []
+  // Blocs : la prose d'un même paragraphe coule ensemble ; les vers consécutifs
+  // forment une strophe (lignes serrées) ; une rubrique est isolée.
+  const blocs: BlocLecture[] = []
   for (const segment of ordonnes) {
-    const precedent = blocs.at(-1)
-    const premier = precedent?.[0]
-    const proseContinue = premier
-      && premier.nature !== 'vers'
-      && premier.nature !== 'rubrique'
-      && segment.nature !== 'vers'
-      && segment.nature !== 'rubrique'
-      && segment.paragraphe != null
-      && segment.paragraphe === premier.paragraphe
-    if (precedent && proseContinue) precedent.push(segment)
-    else blocs.push([segment])
+    const type: BlocLecture['type'] = segment.nature === 'vers' ? 'vers' : segment.nature === 'rubrique' ? 'rubrique' : 'prose'
+    const dernier = blocs.at(-1)
+    const memeProse = dernier?.type === 'prose' && type === 'prose' && segment.paragraphe != null && segment.paragraphe === dernier.segs[0].paragraphe
+    const memeVers = dernier?.type === 'vers' && type === 'vers'
+    if (dernier && (memeProse || memeVers)) dernier.segs.push(segment)
+    else blocs.push({ type, segs: [segment] })
+  }
+
+  const rendreSegment = (segment: SegmentComparaison) => {
+    const actif = segActif === segment.id
+    return (
+      <span id={`cmp-seg-${segment.id}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`}
+        onClick={e => onClic(e.currentTarget, segment.id, actif)}
+        onMouseEnter={mobile ? undefined : e => onSurvol(e.currentTarget, segment.id)}
+        onMouseLeave={mobile ? undefined : () => onQuitter(segment.id)}>
+        {renderSegmentTexte(segment.segment_texte, notes[segment.segment_key] ?? [])}
+      </span>
+    )
   }
 
   return (
     <div>
       {blocs.map((bloc, blocIndex) => {
-        const premier = bloc[0]
-        const verse = premier.nature === 'vers'
-        const rubrique = premier.nature === 'rubrique'
-        const metadata = premier.segment_metadata ?? {}
-        const retrait = verse ? Math.max(0, Math.min(2.4, Number(metadata.indent_inches ?? 0))) : 0
-        return (
-          <div key={`${premier.segment_key}-${blocIndex}`} style={{ marginTop: Boolean(metadata.stanza_before) ? '0.62rem' : verse ? '0.08rem' : blocIndex === 0 ? 0 : '0.62rem', marginLeft: verse ? `${retrait}rem` : 0 }}>
-            <p
-              lang="fr"
-              style={{
-                ...STYLE_TEXTE_PARALLELE,
-                lineHeight: verse ? 1.48 : STYLE_TEXTE_PARALLELE.lineHeight,
-                textAlign: rubrique ? 'center' : verse ? 'left' : 'justify',
-                textJustify: verse || rubrique ? undefined : 'inter-word',
-                fontStyle: rubrique ? 'italic' : undefined,
-                hyphens: verse ? 'none' : 'auto',
-                WebkitHyphens: verse ? 'none' : 'auto',
-              } as React.CSSProperties}
-            >
-              {bloc.map((segment, index) => (
-                <Fragment key={segment.segment_key}>
-                  {index > 0 ? (segment.join_before ?? ' ') : null}
-                  {texteAvecAppels(segment.segment_texte, notes[segment.segment_key] ?? [])}
-                </Fragment>
-              ))}
+        const marginTop = blocIndex === 0 ? 0 : '0.72rem'
+        if (bloc.type === 'rubrique') {
+          return (
+            <p key={blocIndex} lang="fr" style={{ ...STYLE_TEXTE_PARALLELE, marginTop, textAlign: 'center', fontStyle: 'italic' } as React.CSSProperties}>
+              {rendreSegment(bloc.segs[0])}
             </p>
-            <NotesEtLiens segments={bloc} notes={notes} liens={liens} />
-          </div>
+          )
+        }
+        if (bloc.type === 'vers') {
+          // Strophe : lignes serrées (une ligne = une balise bloc, sans marge entre
+          // elles). Alinéa poétique : les vers de rang pair (le second, plus court, du
+          // distique) sont rentrés ; toute ligne qui déborde reçoit un retrait de suite.
+          return (
+            <div key={blocIndex} lang="fr" style={{ marginTop, fontFamily: STYLE_TEXTE_PARALLELE.fontFamily, fontSize: STYLE_TEXTE_PARALLELE.fontSize, color: STYLE_TEXTE_PARALLELE.color, wordSpacing: STYLE_TEXTE_PARALLELE.wordSpacing }}>
+              {bloc.segs.map(segment => {
+                const stanza = Boolean((segment.segment_metadata ?? {}).stanza_before)
+                const pair = (segment.rang ?? 0) % 2 === 0
+                return (
+                  <span key={segment.segment_key} style={{ display: 'block', lineHeight: 1.4, marginTop: stanza ? '0.6rem' : 0, marginLeft: pair ? '1.5em' : 0, paddingLeft: '1.15em', textIndent: '-1.15em', hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
+                    {rendreSegment(segment)}
+                  </span>
+                )
+              })}
+            </div>
+          )
+        }
+        return (
+          <p key={blocIndex} lang="fr" style={{ ...STYLE_TEXTE_PARALLELE, marginTop, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto' } as React.CSSProperties}>
+            {bloc.segs.map((segment, index) => (
+              <Fragment key={segment.segment_key}>
+                {index > 0 ? (segment.join_before ?? ' ') : null}
+                {rendreSegment(segment)}
+              </Fragment>
+            ))}
+          </p>
         )
       })}
     </div>
@@ -220,40 +268,31 @@ async function chargerNotes(segmentKeys: string[]): Promise<NotesParSegment> {
   return resultat
 }
 
-export default function ComparaisonTraductions({ alignement, estAdmin, onFermer, livreInitial, divisionInitiale }: {
+export default function ComparaisonTraductions({ alignement, estAdmin, book, division, userId, auteur }: {
   alignement: AlignementDisponible
   estAdmin: boolean
-  onFermer: () => void
-  livreInitial: number
-  divisionInitiale: number
+  book: number
+  division: number
+  userId: string | null
+  auteur: string
 }) {
-  const router = useRouter()
   const mobile = useEstMobile(900)
-  const [divisions, setDivisions] = useState<{ book: number; division: number }[]>([])
-  const [book, setBook] = useState(() => Number.isInteger(livreInitial) && livreInitial >= 1 && livreInitial <= 5 ? livreInitial : 1)
-  const [division, setDivision] = useState(() => Number.isInteger(divisionInitiale) && divisionInitiale >= 1 ? divisionInitiale : 1)
   const [filtre, setFiltre] = useState<FiltreAlignement>('tous')
   const [groupes, setGroupes] = useState<Groupe[]>([])
   const [membres, setMembres] = useState<Membre[]>([])
   const [segments, setSegments] = useState<Map<string, SegmentComparaison>>(new Map())
   const [notes, setNotes] = useState<NotesParSegment>({})
-  const [liens, setLiens] = useState<LienParSegment>({})
+  const [oeuvresMeta, setOeuvresMeta] = useState<Map<string, OeuvreMeta>>(new Map())
+  const [sauvegardes, setSauvegardes] = useState<Set<number>>(new Set())
+  const [segActif, setSegActif] = useState<number | null>(null)
+  const [segSurvol, setSegSurvol] = useState<{ id: number; top: number; left: number } | null>(null)
+  const timerSurvol = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState<string | null>(null)
 
-  useEffect(() => {
-    supabase.from('texte_alignements')
-      .select('book,canonical_division_order')
-      .eq('alignment_set_id', alignement.alignmentSetId)
-      .order('book').order('canonical_division_order')
-      .then(({ data, error }) => {
-        if (error) { setErreur('Les divisions alignées ne peuvent pas être chargées.'); return }
-        const uniques = new Map<string, { book: number; division: number }>()
-        for (const row of data ?? []) uniques.set(`${row.book}|${row.canonical_division_order}`, { book: row.book, division: row.canonical_division_order })
-        setDivisions([...uniques.values()])
-      })
-  }, [alignement.alignmentSetId])
-
+  // Le composant est remonté (via `key`) à chaque changement de division : l'état
+  // initial `chargement = true` fait donc l'affichage « Chargement… » sans qu'on
+  // ait à appeler setState en tête d'effet (cascade de rendus proscrite).
   useEffect(() => {
     let actif = true
     ;(async () => {
@@ -276,76 +315,116 @@ export default function ComparaisonTraductions({ alignement, estAdmin, onFermer,
       const segmentKeys = Array.from(new Set(membresCharges.map(membre => membre.segment_key)))
       const resultatsSegments = await Promise.all(lots(segmentKeys).map(batch =>
         supabase.from('segments')
-          .select('id,id_texte,segment_key,segment_numero,segment_texte,nature,paragraphe,rang,join_before,segment_metadata')
+          .select('id,id_texte,id_oeuvre,segment_key,segment_numero,segment_texte,nature,paragraphe,rang,join_before,segment_metadata')
           .in('segment_key', batch)
       ))
       for (const resultat of resultatsSegments) if (resultat.error) throw resultat.error
       const segmentsCharges = resultatsSegments.flatMap(resultat => resultat.data ?? []) as SegmentComparaison[]
       const notesChargees = await chargerNotes(segmentKeys)
       const segmentIds = segmentsCharges.map(segment => segment.id)
-      const resultatsLiens = segmentIds.length ? await Promise.all(lots(segmentIds).map(batch =>
-        supabase.from('liens_bibliques').select('segment_id,canon_id').in('segment_id', batch)
-      )) : []
-      for (const resultat of resultatsLiens) if (resultat.error) throw resultat.error
-      const liensRows = resultatsLiens.flatMap(resultat => resultat.data ?? []) as { segment_id: number; canon_id: string | null }[]
-      const canonIds = Array.from(new Set(liensRows.map(lien => lien.canon_id).filter(Boolean) as string[]))
-      const versetsResult = canonIds.length ? await supabase.from('versets_lecture').select('id_verset,ref').in('id_verset', canonIds) : { data: [], error: null }
-      if (versetsResult.error) throw versetsResult.error
-      const refParId = new Map((versetsResult.data ?? []).map(verset => [verset.id_verset, verset.ref ?? verset.id_verset]))
-      const liensParSegment: LienParSegment = {}
-      for (const lien of liensRows) {
-        if (!lien.canon_id) continue
-        liensParSegment[lien.segment_id] ??= []
-        const label = refParId.get(lien.canon_id) ?? lien.canon_id
-        if (!liensParSegment[lien.segment_id].includes(label)) liensParSegment[lien.segment_id].push(label)
+      // Métadonnées d'édition PAR œuvre (chaque colonne = une traduction, donc sa
+      // propre attribution en citation) + état des prélèvements du lecteur.
+      const idsOeuvres = Array.from(new Set(segmentsCharges.map(segment => segment.id_oeuvre).filter(Boolean)))
+      const metaResult = idsOeuvres.length
+        ? await supabase.from('oeuvres').select('id_oeuvre,titre,sous_titre,trad_auteur,editeur,collection,ville,date_publication').in('id_oeuvre', idsOeuvres)
+        : { data: [], error: null }
+      const metaMap = new Map<string, OeuvreMeta>()
+      for (const row of (metaResult.data ?? []) as Record<string, string | null>[]) {
+        if (row.id_oeuvre) metaMap.set(row.id_oeuvre, { titre: row.titre ?? '', sous_titre: row.sous_titre, trad_auteur: row.trad_auteur, editeur: row.editeur, collection: row.collection, ville: row.ville, date_publication: row.date_publication })
+      }
+      const sauvegardeSet = new Set<number>()
+      if (userId && segmentIds.length) {
+        const resultatsSaves = await Promise.all(lots(segmentIds).map(batch =>
+          supabase.from('prelevements').select('segment_id').eq('user_id', userId).in('segment_id', batch)))
+        for (const resultat of resultatsSaves) for (const row of (resultat.data ?? []) as { segment_id: number | null }[]) if (row.segment_id != null) sauvegardeSet.add(row.segment_id)
       }
       if (!actif) return
       setGroupes(groupesCharges)
       setMembres(membresCharges)
       setSegments(new Map(segmentsCharges.map(segment => [segment.segment_key, segment])))
       setNotes(notesChargees)
-      setLiens(liensParSegment)
+      setOeuvresMeta(metaMap)
+      setSauvegardes(sauvegardeSet)
       setChargement(false)
-      const params = new URLSearchParams(window.location.search)
-      params.set('compare', alignement.alignmentSetId)
-      params.set('book', String(book))
-      params.set('division', String(division))
-      router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
     })().catch(() => {
       if (!actif) return
       setErreur('La comparaison ne peut pas être chargée pour cette division.')
       setChargement(false)
     })
     return () => { actif = false }
-  }, [alignement, book, division, router])
+  }, [alignement, book, division, userId])
 
-  const divisionsDuLivre = useMemo(() => divisions.filter(item => item.book === book).map(item => item.division), [divisions, book])
   const membresParGroupe = useMemo(() => membresOrdonnesParGroupe(membres), [membres])
   const groupesAffiches = useMemo(() => groupesSelonFiltre(groupes, filtre), [groupes, filtre])
+  const segParId = useMemo(() => {
+    const map = new Map<number, SegmentComparaison>()
+    for (const segment of segments.values()) map.set(segment.id, segment)
+    return map
+  }, [segments])
+
+  // Cellule d'actions flottante d'un segment (comme en lecture) : survol/clic pour
+  // l'ancrer, prélever / copier / signaler. Le CSS `.seg-inline` vient du parent.
+  const positionnerToolbar = (el: HTMLElement, id: number) => {
+    if (timerSurvol.current) clearTimeout(timerSurvol.current)
+    const r = el.getBoundingClientRect()
+    const largeur = typeof window !== 'undefined' ? window.innerWidth : 1200
+    setSegSurvol({ id, top: Math.max(r.top - 4, 56), left: Math.min(r.right + 6, largeur - 132) })
+  }
+  const masquerToolbar = (id: number) => {
+    timerSurvol.current = setTimeout(() => setSegSurvol(prev => (prev && prev.id === id ? null : prev)), 200)
+  }
+  const clicSegment = (el: HTMLElement, id: number, actif: boolean) => {
+    if (actif) { setSegActif(null); if (mobile) setSegSurvol(null) }
+    else { setSegActif(id); positionnerToolbar(el, id) }
+  }
+  // Mobile : referme la barre au tap hors barre/segment et au défilement.
+  useEffect(() => {
+    if (!mobile || !segSurvol) return
+    const auTapDehors = (e: Event) => { const c = e.target as Element | null; if (c && !c.closest('[data-seg-toolbar]') && !c.closest('.seg-inline')) setSegSurvol(null) }
+    const auDefilement = () => setSegSurvol(null)
+    document.addEventListener('pointerdown', auTapDehors, true)
+    window.addEventListener('scroll', auDefilement, { passive: true })
+    return () => { document.removeEventListener('pointerdown', auTapDehors, true); window.removeEventListener('scroll', auDefilement) }
+  }, [mobile, segSurvol])
+  // La barre flottante étant éphémère (remontée à chaque affichage), l'état des
+  // prélèvements BASCULE : chaque action « prélever/retirer » inverse l'appartenance.
+  const marquerSauvegarde = (id: number) => setSauvegardes(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n })
+
+  const estGroupeVers = (groupe: Groupe) => {
+    const mg = membresParGroupe.get(groupe.alignment_id)
+    return mg ? [...mg.reference, ...mg.aligned].some(m => segments.get(m.segment_key)?.nature === 'vers') : false
+  }
+  // Les groupes de VERS consécutifs sont FUSIONNÉS en un seul bloc : chaque colonne
+  // coule alors d'un trait, à interligne rigoureusement constant (comme le poème
+  // entier du mode Français-Latin). La prose reste alignée empan par empan.
+  const itemsRendus = useMemo<({ type: 'prose'; groupe: Groupe } | { type: 'vers'; groupes: Groupe[] })[]>(() => {
+    const items: ({ type: 'prose'; groupe: Groupe } | { type: 'vers'; groupes: Groupe[] })[] = []
+    for (const groupe of groupesAffiches) {
+      const vers = estGroupeVers(groupe)
+      const dernier = items.at(-1)
+      if (vers && dernier && dernier.type === 'vers') dernier.groupes.push(groupe)
+      else items.push(vers ? { type: 'vers', groupes: [groupe] } : { type: 'prose', groupe })
+    }
+    return items
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupesAffiches, membresParGroupe, segments])
+
+  const rendreDeuxColonnes = (refMembres: MembreComparable[], alnMembres: MembreComparable[]) =>
+    ([
+      { label: alignement.referenceLabel, members: refMembres, empty: `Pas de correspondant dans ${alignement.referenceLabel}` },
+      { label: alignement.alignedLabel, members: alnMembres, empty: `Pas de correspondant dans ${alignement.alignedLabel}` },
+    ] as const).map(colonne => (
+      <div key={colonne.label} style={{ minWidth: 0 }}>
+        {mobile && <h3 style={{ margin: '0 0 6px', fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{colonne.label}</h3>}
+        <ColonneLecture membres={colonne.members} segments={segments} notes={notes} vide={colonne.empty}
+          segActif={segActif} onSurvol={positionnerToolbar} onQuitter={masquerToolbar} onClic={clicSegment} mobile={mobile} />
+      </div>
+    ))
 
   return (
-    <section aria-label={`Traductions parallèles : ${alignement.referenceLabel} et ${alignement.alignedLabel}`} style={{ marginTop: '0.5rem' }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '10px 0 16px', borderBottom: '1px solid var(--cs-bord)' }}>
-        <div>
-          <h2 style={{ margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.15rem', fontWeight: 500, color: 'var(--cs-encre)' }}>Traductions parallèles</h2>
-          <p style={{ margin: '3px 0 0', fontSize: '0.68rem', color: 'var(--cs-texte-faible)' }}>{alignement.referenceLabel} et {alignement.alignedLabel}, alignées par mêmes empans latins</p>
-        </div>
-        <button onClick={onFermer} style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '5px', background: 'transparent', color: 'var(--cs-texte-second)', padding: '5px 9px', cursor: 'pointer', fontSize: '0.68rem' }}>Revenir à la lecture simple</button>
-      </div>
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'end', padding: '12px 0 16px' }}>
-        <label style={{ fontSize: '0.68rem', color: 'var(--cs-texte-second)' }}>
-          Livre{' '}
-          <select value={book} onChange={event => { setChargement(true); setErreur(null); setBook(Number(event.target.value)); setDivision(1) }} style={{ font: 'inherit', padding: '4px 7px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-encre)' }}>
-            {[1, 2, 3, 4, 5].map(numero => <option key={numero} value={numero}>{LIVRES[numero - 1]}</option>)}
-          </select>
-        </label>
-        <label style={{ fontSize: '0.68rem', color: 'var(--cs-texte-second)' }}>
-          Division{' '}
-          <select value={division} onChange={event => { setChargement(true); setErreur(null); setDivision(Number(event.target.value)) }} style={{ font: 'inherit', padding: '4px 7px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-encre)' }}>
-            {divisionsDuLivre.map(numero => <option key={numero} value={numero}>{ROMAINS[numero - 1] ?? numero}</option>)}
-          </select>
-        </label>
-        {estAdmin && (
+    <section aria-label={`Traductions parallèles : ${alignement.referenceLabel} et ${alignement.alignedLabel}`}>
+      {estAdmin && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBottom: '10px' }}>
           <div aria-label="Filtrer les groupes d’alignement" style={{ display: 'inline-flex', border: '1px solid var(--cs-bord)', borderRadius: '5px', overflow: 'hidden' }}>
             {([['tous', 'Tous'], ['uncertain', 'À relire']] as [FiltreAlignement, string][]).map(([valeur, libelle]) => (
               <button
@@ -359,39 +438,66 @@ export default function ComparaisonTraductions({ alignement, estAdmin, onFermer,
               </button>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
       {chargement && <p style={{ color: 'var(--cs-texte-faible)', fontSize: '0.76rem' }}>Chargement de la division…</p>}
       {erreur && <p role="alert" style={{ color: 'var(--cs-danger)', fontSize: '0.76rem' }}>{erreur}</p>}
       {!chargement && !erreur && groupesAffiches.length === 0 && (
-        <p style={{ color: 'var(--cs-texte-faible)', fontSize: '0.76rem' }}>Aucun groupe à relire dans cette division.</p>
+        <p style={{ color: 'var(--cs-texte-faible)', fontSize: '0.76rem' }}>{filtre === 'uncertain' ? 'Aucun groupe à relire dans cette division.' : 'Aucun passage aligné dans cette division.'}</p>
       )}
+      {/* Deux traductions nommées en tête de colonnes — discret (pas de fond, pas de
+          bandeau), pour savoir laquelle est laquelle sans quitter la mise en page de lecture. */}
       {!mobile && !chargement && !erreur && groupesAffiches.length > 0 && (
-        <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '24px', padding: '8px 0 10px', borderBottom: '1px solid var(--cs-bord)' }}>
+        <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '1.6rem', padding: '0 0 8px', borderBottom: '1px solid var(--cs-bord-clair)', marginBottom: '6px' }}>
           {[alignement.referenceLabel, alignement.alignedLabel].map(label => (
-            <p key={label} style={{ margin: 0, padding: '0 6px', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cs-texte-faible)' }}>{label}</p>
+            <p key={label} style={{ margin: 0, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{label}</p>
           ))}
         </div>
       )}
-      {!chargement && !erreur && groupesAffiches.map((groupe, index) => {
+      {!chargement && !erreur && itemsRendus.map((item, index) => {
+        const grille = { display: 'grid', gridTemplateColumns: mobile ? 'minmax(0, 1fr)' : 'repeat(2, minmax(0, 1fr))', gap: mobile ? '0.15rem' : '1.6rem', alignItems: 'start' } as const
+        if (item.type === 'vers') {
+          // Poème : tous les groupes de vers consécutifs fusionnés, chaque colonne
+          // coulant d'un trait → interligne constant. Pas de filet, espace minimal.
+          const refMembres = item.groupes.flatMap(groupe => membresParGroupe.get(groupe.alignment_id)?.reference ?? [])
+          const alnMembres = item.groupes.flatMap(groupe => membresParGroupe.get(groupe.alignment_id)?.aligned ?? [])
+          return (
+            <article key={item.groupes[0].alignment_id} aria-label={`Vers ${index + 1}`} style={{ ...grille, padding: '0.1rem 0' }}>
+              {estAdmin && item.groupes.some(groupe => groupe.status === 'uncertain') && (
+                <div style={{ gridColumn: '1 / -1', marginBottom: '2px' }}><BadgeStatutAlignement status="uncertain" estAdmin={estAdmin} /></div>
+              )}
+              {rendreDeuxColonnes(refMembres, alnMembres)}
+            </article>
+          )
+        }
+        const groupe = item.groupe
         const membresGroupe = membresParGroupe.get(groupe.alignment_id) ?? { reference: [], aligned: [] }
         return (
-          <article key={groupe.alignment_id} aria-label={`Groupe ${index + 1}`} style={{ display: 'grid', gridTemplateColumns: mobile ? 'minmax(0, 1fr)' : 'repeat(2, minmax(0, 1fr))', gap: mobile ? '10px' : '24px', padding: '18px 0', borderTop: index === 0 ? '1px solid var(--cs-bord-clair)' : undefined, borderBottom: '1px solid var(--cs-bord-clair)' }}>
+          <article key={groupe.alignment_id} aria-label={`Groupe ${index + 1}`} style={{ ...grille, padding: mobile ? '0.7rem 0 0.5rem' : '0.9rem 0 0.05rem', borderBottom: '1px solid rgba(var(--cs-bord-rgb),0.55)' }}>
             {estAdmin && groupe.status === 'uncertain' && (
-              <div style={{ gridColumn: '1 / -1', marginBottom: '-8px' }}><BadgeStatutAlignement status={groupe.status} estAdmin={estAdmin} /></div>
+              <div style={{ gridColumn: '1 / -1', marginBottom: '2px' }}><BadgeStatutAlignement status={groupe.status} estAdmin={estAdmin} /></div>
             )}
-            {([
-              { label: alignement.referenceLabel, members: membresGroupe.reference, empty: `Pas de correspondant dans ${alignement.referenceLabel}` },
-              { label: alignement.alignedLabel, members: membresGroupe.aligned, empty: `Pas de correspondant dans ${alignement.alignedLabel}` },
-            ] as const).map(colonne => (
-              <div key={colonne.label} style={{ minWidth: 0, padding: mobile ? '0 3px' : '0 6px' }}>
-                {mobile && <h3 style={{ margin: '0 0 8px', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cs-texte-faible)' }}>{colonne.label}</h3>}
-                <ColonneLecture membres={[...colonne.members] as Membre[]} segments={segments} notes={notes} liens={liens} vide={colonne.empty} />
-              </div>
-            ))}
+            {rendreDeuxColonnes(membresGroupe.reference, membresGroupe.aligned)}
           </article>
         )
       })}
+
+      {/* Cellule d'actions flottante (prélever / copier / signaler) du segment ancré. */}
+      {segSurvol && typeof document !== 'undefined' && (() => {
+        const s = segParId.get(segSurvol.id)
+        if (!s) return null
+        const meta = oeuvresMeta.get(s.id_oeuvre)
+        const segData = { id: s.id, idTexte: s.id_texte, numeroSource: s.segment_numero, texte: s.segment_texte } as unknown as SegData
+        return createPortal(
+          <div data-seg-toolbar="" onMouseEnter={() => { if (timerSurvol.current) clearTimeout(timerSurvol.current) }} onMouseLeave={() => masquerToolbar(segSurvol.id)}
+            style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.16)', padding: '2px 4px' }}>
+            {userId && s.id_oeuvre && <BoutonEnregistrerSegment seg={segData} auteur={auteur} titreOeuvre={meta?.titre ?? ''} idOeuvre={s.id_oeuvre} userId={userId} dejaSauvegarde={sauvegardes.has(s.id)} onSauvegarde={() => marquerSauvegarde(s.id)} />}
+            <BoutonCopieSegment texte={texteSansEnrichissement(s.segment_texte)} auteur={auteur} titre={meta?.titre} sousTitre={meta?.sous_titre ?? undefined} tradAuteur={meta?.trad_auteur ?? undefined} editeur={meta?.editeur ?? undefined} collection={meta?.collection ?? undefined} ville={meta?.ville ?? undefined} datePublication={meta?.date_publication ?? undefined} />
+            <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.segment_texte)} titreOeuvre={meta?.titre ?? ''} />
+          </div>,
+          document.body,
+        )
+      })()}
     </section>
   )
 }

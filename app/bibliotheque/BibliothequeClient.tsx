@@ -478,9 +478,9 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
 
       {/* En-tête auteur */}
       <div style={{ display: 'flex' }}>
-        {/* Zone initiales */}
-        <div style={{ width: '64px', flexShrink: 0, background: '#e8e2d6', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '58px' }}>
-          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', letterSpacing: '0.04em', userSelect: 'none' }}>{initiale}</span>
+        {/* Zone initiales — carré discret (réduit : la vignette prenait trop de place). */}
+        <div style={{ width: '44px', flexShrink: 0, background: '#e8e2d6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', letterSpacing: '0.03em', userSelect: 'none' }}>{initiale}</span>
         </div>
 
         {/* Infos auteur + bouton */}

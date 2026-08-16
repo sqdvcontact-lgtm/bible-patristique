@@ -318,4 +318,14 @@ const styles = `
   @media (hover: none) { .cc-todo-actions { opacity: 1; } .cc-todo-ajout-btn { opacity: 1; } }
 
   .cc-mention { font-size: 0.6875rem; color: var(--cs-texte-doux); font-family: var(--font-source-sans), Arial, sans-serif; margin-top: 0.5rem; font-style: italic; }
+
+  /* Mobile : les grilles sont déjà en auto-fill (une colonne sur téléphone) ; on
+     resserre seulement les gouttières et le titre pour gagner de la place. */
+  @media (max-width: 640px) {
+    .cc-page { padding: 1rem 0.75rem 2.5rem; }
+    .cc-entete { margin-bottom: 1rem; }
+    .cc-titre { font-size: 1.4rem; }
+    .cc-carte { padding: 1rem 0.875rem 0.75rem; }
+    .cc-carte-titre { font-size: 1.0625rem; }
+  }
 `

@@ -272,4 +272,8 @@ button:focus-visible,
    la place. `!important` car la taille est posée en style inline. */
 @media (max-width: 700px) {
   .bib-photo { display: none !important; }
+  /* Sans la photo, la hauteur fixe de 200px (posée en inline pour uniformiser la
+     grille sur grand écran) laissait un grand blanc entre la notice et la ligne
+     « N œuvre(s) disponible(s) ». En une seule colonne, la carte épouse son contenu. */
+  .bib-carte-haut { height: auto !important; }
 }
