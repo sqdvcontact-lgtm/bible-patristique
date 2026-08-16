@@ -26,6 +26,7 @@ export default async function AllerPlusLoinPage() {
   const { data } = await supabaseAdmin
     .from('traductions')
     .select('trad_id, nom, langue, publication_fin_annee')
+    .not('schema_numerotation', 'is', null)
     .order('ordre')
   const bibles = ((data ?? []) as { trad_id: string; nom: string; langue: string | null; publication_fin_annee: number | null }[])
     .map(t => ({ trad_id: t.trad_id, nom: t.nom, langue: t.langue, annee: t.publication_fin_annee }))

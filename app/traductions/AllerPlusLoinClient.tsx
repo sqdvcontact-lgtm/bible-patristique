@@ -176,7 +176,9 @@ export default function AllerPlusLoinClient() {
   const [ouvert, setOuvert] = useState<string | null>(null)
 
   useEffect(() => {
-    supabase.from('traductions').select('*').order('ordre', { ascending: true })
+    supabase.from('traductions').select('*')
+      .not('schema_numerotation', 'is', null)
+      .order('ordre', { ascending: true })
       .then(({ data }) => setTraductions(data ?? []))
   }, [])
 
