@@ -98,22 +98,75 @@ export function decouperSiecles(texte: string | null | undefined): FragmentSiecl
   return frags
 }
 
-/** Texte libre → JSX, en composant les siècles rencontrés. Le reste du texte
- *  est renvoyé tel quel : la fonction ne met rien d'autre en forme.
+function rendreSieclesBrut(t: string, cle: string): React.ReactNode {
+  const frags = decouperSiecles(t)
+  if (!frags.some(f => f.t !== 'texte')) return t
+  return frags.map((f, i) =>
+    f.t === 'romain' ? <span key={`${cle}-r-${i}`} style={STYLE_ROMAIN}>{f.v}</span>
+    : f.t === 'ordinal' ? <sup key={`${cle}-o-${i}`} style={STYLE_ORDINAL}>{f.v}</sup>
+    : f.v,
+  )
+}
+
+/** Texte libre → JSX, en composant les siècles rencontrés.
+ *
+ *  Les champs éditoriaux peuvent aussi employer le balisage léger `*italique*`
+ *  (notamment pour les titres d'œuvres dans les notices auteurs). On le rend ici
+ *  sans sacrifier la composition des siècles : un « IVe siècle » placé dans un
+ *  empan italique conserve donc petites capitales et exposant.
+ *
+ *  Le double astérisque est également reconnu pour ne jamais afficher un balisage
+ *  `**gras**` littéralement si un champ éditorial déjà enrichi passe par cette
+ *  fonction. Aucun autre Markdown n'est interprété ici.
  *
  *  À employer partout où l'on affiche un texte saisi à la main — dates d'un
  *  auteur, note biographique, mention d'édition, titre d'une œuvre. */
 export function rendreSiecles(texte: string | null | undefined): React.ReactNode {
   const t = texte ?? ''
   if (!t) return t
-  const frags = decouperSiecles(t)
-  // Aucun siècle : rendre la chaîne elle-même, et non un tableau d'un élément.
-  if (!frags.some(f => f.t !== 'texte')) return t
-  return frags.map((f, i) =>
-    f.t === 'romain' ? <span key={i} style={STYLE_ROMAIN}>{f.v}</span>
-    : f.t === 'ordinal' ? <sup key={i} style={STYLE_ORDINAL}>{f.v}</sup>
-    : f.v,
-  )
+
+  const re = /\*\*(.+?)\*\*|\*(.+?)\*/g
+  let dernier = 0
+  let index = 0
+  let m: RegExpExecArray | null
+  const noeuds: React.ReactNode[] = []
+
+  while ((m = re.exec(t))) {
+    if (m.index > dernier) {
+      noeuds.push(
+        <React.Fragment key={`texte-${index}`}>
+          {rendreSieclesBrut(t.slice(dernier, m.index), `texte-${index}`)}
+        </React.Fragment>,
+      )
+      index++
+    }
+
+    if (m[1] !== undefined) {
+      noeuds.push(
+        <strong key={`gras-${index}`}>
+          {rendreSieclesBrut(m[1], `gras-${index}`)}
+        </strong>,
+      )
+    } else {
+      noeuds.push(
+        <em key={`ital-${index}`}>
+          {rendreSieclesBrut(m[2], `ital-${index}`)}
+        </em>,
+      )
+    }
+    index++
+    dernier = re.lastIndex
+  }
+
+  if (dernier === 0) return rendreSieclesBrut(t, 'simple')
+  if (dernier < t.length) {
+    noeuds.push(
+      <React.Fragment key={`texte-${index}`}>
+        {rendreSieclesBrut(t.slice(dernier), `texte-${index}`)}
+      </React.Fragment>,
+    )
+  }
+  return noeuds
 }
 
 /** Même règle, mais sur du HTML déjà composé (éditeur de traductions, notes).
