@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react'
 import type { Props, ChampOeuvre } from './oeuvreTypes'
 import { rendreTexteEnrichi } from './texteEnrichi'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
@@ -39,21 +40,16 @@ export function formaterEditeur(editeur: string | null | undefined): string {
 // d'éditeur ne prend pas d'article (« de Gallimard », « de Desclée de Brouwer »).
 const EDITEUR_AVEC_DU = new Set(['cerf', 'seuil', 'centurion']);
 
-/** Formule de provenance élégante et grammaticale, sans redondance de « édition » :
- *  - « Cerf, Paris, 1984 »            → « D'après l'édition du Cerf, Paris, 1984 »
- *  - « Éditions du CNRS, Paris »      → « D'après la publication des Éditions du CNRS, Paris »
- *  - « Presses universitaires… »     → « D'après la publication des Presses universitaires… »
- *  - « Imprimerie nationale »        → « D'après la publication de l'Imprimerie nationale »
- *  - « Gallimard, Paris, 1990 »      → « D'après l'édition de Gallimard, Paris, 1990 » */
+/** Formule courte de provenance pour le colophon : maison + date seulement.
+ *  Le lieu, la collection et la pagination restent disponibles dans la notice détaillée. */
 export function formulerProvenance(
   editeur: string | null | undefined,
-  ville: string | null | undefined,
+  _ville: string | null | undefined,
   dateFormatee: string,
 ): string {
   const ed = formaterEditeur(editeur);
-  const lieuDate = [ville, dateFormatee].filter(Boolean).join(', ');
-  const suffixe = lieuDate ? `, ${lieuDate}` : '';
-  if (!ed) return lieuDate ? `D’après l’édition de ${lieuDate}` : '';
+  const suffixe = dateFormatee ? `, ${dateFormatee}` : '';
+  if (!ed) return dateFormatee ? `D’après l’édition de ${dateFormatee}` : '';
 
   const bas = ed.toLowerCase();
   // Le nom porte déjà un mot de publication → on parle de « publication », pas d'« édition ».
@@ -115,6 +111,16 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
   mobile?: boolean
 }) {
   const SERIF = "var(--font-source-serif), Georgia, serif"
+
+  // Joël a désormais une structure paragraphique complète. Une ancienne préférence
+  // globale « segments » pouvait toutefois survivre dans le navigateur et masquer
+  // cette recomposition. Pour cette œuvre, la lecture s'ouvre donc sur les paragraphes
+  // source ; le lecteur peut toujours choisir ponctuellement le mode segments ensuite.
+  useLayoutEffect(() => {
+    if (oeuvre.id_oeuvre !== 'A0051O0043') return
+    try { localStorage.setItem('cs_mode_lecture_oeuvre', 'paragraphes') } catch {}
+  }, [oeuvre.id_oeuvre])
+
   // Millésime de l'édition en ligne (colophon), estampillé en base à la première
   // publication de l'œuvre (colonne `date_mise_en_ligne`). Absent → ligne masquée.
   const anneeEnLigne = oeuvre.date_mise_en_ligne
