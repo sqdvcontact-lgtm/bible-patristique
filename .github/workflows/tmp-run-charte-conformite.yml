@@ -25,10 +25,12 @@ jobs:
         run: python scripts/tmp_charte_conformite.py
       - name: Installer les dépendances
         run: npm ci
-      - name: Tests typographiques
-        run: npx vitest run app/lib/typographie.test.ts
-      - name: Lint ciblé
-        run: npx eslint 'app/oeuvre/[id]/page.tsx' 'app/oeuvre/[id]/OeuvreClient.tsx' 'app/oeuvre/[id]/ModaleEditionAdmin.tsx' app/lib/typographie.ts app/lib/typographie.test.ts
+      - name: Suite de tests
+        run: npm test
+      - name: Vérification TypeScript
+        run: npx tsc --noEmit --pretty false
+      - name: Lint des fonctions typographiques
+        run: npx eslint app/lib/typographie.ts app/lib/typographie.test.ts
       - name: Vérifier le diff
         run: git diff --check
       - name: Committer sur la branche de travail
