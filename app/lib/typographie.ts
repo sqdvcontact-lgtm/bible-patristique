@@ -10,7 +10,7 @@ const URL_OU_MAIL = /(https?:\/\/[^\s);]+|mailto:[^\s);]+)/g
 
 /**
  * Applique une transformation au texte courant sans modifier les destinations d'URL.
- * `normaliserEspaces` est appelé avant l'interprétation des liens Markdown : une
+ * `normaliserEspaces` peut être appelé avant l'interprétation des liens Markdown : une
  * normalisation à l'intérieur de `https://…` pourrait donc casser le lien.
  */
 function horsUrls(texte: string, transformer: (fragment: string) => string): string {
@@ -20,15 +20,15 @@ function horsUrls(texte: string, transformer: (fragment: string) => string): str
     .join('')
 }
 
-// Texte FRANÇAIS : la couche source reste diplomatique ; l'affichage, lui, suit la
-// charte typographique du site. Une espace insécable U+00A0 est imposée avant le deux-points et une fine insécable U+202F avant
-// les autres ponctuations hautes françaises (; ! ?), qu'elles soient collées dans la source
-// ou précédées d'une espace simple / insécable. Le deux-points n'est traité que
-// lorsqu'il fonctionne comme ponctuation (suivi d'une espace, d'une fermeture ou de
-// la fin) : les heures et références numériques de type 10:30 / Jn 3:16 restent donc
-// intactes. Les espaces immédiatement à l'intérieur des parenthèses sont supprimées.
-// Les apostrophes ASCII internes aux mots sont rendues en apostrophes typographiques,
-// sans modifier la transcription stockée en base.
+// Texte FRANÇAIS d'une édition non médiévale : applique la convention typographique
+// Corpus Scriptura sans modifier l'orthographe, la morphologie ni le vocabulaire.
+// Une espace insécable U+00A0 est imposée avant le deux-points et une fine insécable
+// U+202F avant les autres ponctuations hautes françaises (; ! ?), qu'elles soient
+// collées dans la source ou précédées d'une espace simple / insécable. Le deux-points
+// n'est traité que lorsqu'il fonctionne comme ponctuation (suivi d'une espace, d'une
+// fermeture ou de la fin) : les heures et références numériques de type 10:30 / Jn 3:16
+// restent donc intactes. Les espaces immédiatement à l'intérieur des parenthèses sont
+// supprimées. Les apostrophes ASCII internes aux mots deviennent typographiques.
 export function normaliserEspaces(texte: string): string {
   return horsUrls(texte, fragment => fragment
     .replace(/[ \u00A0\u202F]*([;!?])(?=[\s)\]»”"'….,;:]|$)/g, `${FINE}$1`)
@@ -40,7 +40,6 @@ export function normaliserEspaces(texte: string): string {
     .replace(/(\p{L})'(\p{L})/gu, '$1’$2')
   )
 }
-
 
 /** Normalise uniquement des variantes glyphiques de présentation d'une édition non médiévale. */
 export function normaliserGlyphesEdition(texte: string): string {
