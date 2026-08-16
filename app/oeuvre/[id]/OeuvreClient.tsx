@@ -112,11 +112,13 @@ function segmentAffichable(s: any) {
 
 const SEUIL_TITRE_COLOPHON = 86
 const NBSP_TITRE_COLOPHON = '\u00A0'
+const FINE_TITRE_COLOPHON = '\u202F'
 
 function preparerTitreColophon(texte: string) {
   return texte
     .trim()
-    .replace(/\s+([;:!?»])/g, `${NBSP_TITRE_COLOPHON}$1`)
+    .replace(/\s+([;!?])/g, `${FINE_TITRE_COLOPHON}$1`)
+    .replace(/\s+([:»])/g, `${NBSP_TITRE_COLOPHON}$1`)
     .replace(/([«])\s+/g, `$1${NBSP_TITRE_COLOPHON}`)
     .replace(/\s+([,.])/g, '$1')
 }
@@ -907,7 +909,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
 
   const chargerNiv1Data = async (n1: string): Promise<{ groupes: GroupeData[]; segments: SegData[] }> => {
     const SELECT = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original'
-    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent']
+    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'lemme', 'vers', 'rubrique', 'dialogue', 'apparat_auteur', 'texte absent']
     // Chargement par lots de 1000 mais EN PARALLÈLE (les grosses divisions, ex.
     // Somme théologique ~6500 segments/niv1, se chargeaient en séquentiel) : on
     // récupère le total avec le 1er lot, puis on tire le reste d'un coup.
@@ -1002,7 +1004,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
       .from('segments')
       .select('id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original')
       .eq('id_oeuvre', idOeuvre)
-      .eq('nature', 'apparat_critique')
+      .in('nature', ['apparat_critique', 'apparat_editeur'])
     if (idTexteActif) requeteApparat = requeteApparat.eq('id_texte', idTexteActif)
     const { data } = await requeteApparat.order('segment_numero')
     const segs = ((data ?? []) as any[]).filter(segmentAffichable)
@@ -1545,7 +1547,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               <div style={{ ...(apparatOuvert ? { flex: '0 1 auto', maxHeight: '50%', minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
                 <button onClick={() => setApparatOuvert(!apparatOuvert)}
                   style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
-                  <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)' }}>APPARAT CRITIQUE</span>
+                  <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)' }}>APPARAT</span>
                   <span style={{ fontSize: '0.4375rem', color: 'var(--cs-texte-faible)' }}>{apparatOuvert ? '▲' : '▼'}</span>
                 </button>
                 {apparatOuvert && (

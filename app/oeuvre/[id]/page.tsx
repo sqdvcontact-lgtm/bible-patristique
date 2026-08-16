@@ -205,7 +205,8 @@ export default async function OeuvrePage({
   // bp_admin_session, qui n'est plus jamais posé depuis la suppression de la
   // page de connexion par mot de passe.
   const SELECT_SEG = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original'
-  const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'lemme', 'dialogue', 'texte absent']
+  const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'lemme', 'vers', 'rubrique', 'dialogue', 'apparat_auteur', 'texte absent']
+  const NATURES_APPARAT = ['apparat_critique', 'apparat_editeur']
 
   async function chargerTousSegments(filtre: Record<string, string>) {
     // Applique le filtre à une requête (nature « texte » embarque les introductions).
@@ -213,6 +214,7 @@ export default async function OeuvrePage({
       if (idTexteActif) q = q.eq('id_texte', idTexteActif)
       for (const [k, v] of Object.entries(filtre)) {
         if (k === 'nature' && v === 'texte') q = q.in('nature', NATURES_TEXTE)
+        else if (k === 'nature' && v === 'apparat') q = q.in('nature', NATURES_APPARAT)
         else q = q.eq(k, v)
       }
       return q
@@ -256,6 +258,7 @@ export default async function OeuvrePage({
       if (idTexteActif) q = q.eq('id_texte', idTexteActif)
       for (const [k, v] of Object.entries(filtre)) {
         if (k === 'nature' && v === 'texte') q = q.in('nature', NATURES_TEXTE)
+        else if (k === 'nature' && v === 'apparat') q = q.in('nature', NATURES_APPARAT)
         else q = q.eq(k, v)
       }
       return q
@@ -302,7 +305,7 @@ export default async function OeuvrePage({
     verifierEstAdmin(),
     supabase.from('oeuvres').select('*, auteurs(id_auteur, nom)').eq('id_oeuvre', id).single(),
     chargerEntetesTexte(),
-    chargerTousSegments({ nature: 'apparat_critique' }),
+    chargerTousSegments({ nature: 'apparat' }),
     chargerCodesTraductions(supabase),
   ])
 
@@ -330,7 +333,7 @@ export default async function OeuvrePage({
   }
 
   const segmentCible = segmentCibleProbe
-  const vueInitiale = segmentCible?.nature === 'apparat_critique' ? 'apparat' : 'texte'
+  const vueInitiale = NATURES_APPARAT.includes(segmentCible?.nature ?? '') ? 'apparat' : 'texte'
   const texteSansNiveaux = niv1List.length === 0
   const lectureTexteEntier = oeuvre.lecture_texte_entier === true
   const premierNiv1 = vueInitiale === 'texte' && segmentCible?.ref_niv1
