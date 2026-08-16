@@ -1,4 +1,13 @@
-@import "tailwindcss";
+/* Sources de Tailwind bornées à `app/`, la seule arborescence que Next compile.
+   ⚠️ Ne pas revenir à la détection automatique (`@import "tailwindcss";` seul) :
+   elle balaie tout le dépôt, or `work/bible899` est une JONCTION NTFS vers
+   `D:\Corpus Scriptura\…`. Turbopack refuse alors une dépendance hors racine
+   (« Cannot depend on path … outside of root directory ») et TOUTES les pages
+   tombent en 500, avec une trace qui accuse `globals.css` sans dire pourquoi.
+   Le `.gitignore` ne peut pas servir de garde-fou ici : les lots Bible 899 sont
+   versionnés. Le balayage y gagne au passage, `work/` pesant 14 Go. */
+@import "tailwindcss" source(none);
+@source "../app";
 
 @keyframes spin {
   to { transform: rotate(360deg); }
