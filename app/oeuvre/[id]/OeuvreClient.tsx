@@ -8,11 +8,10 @@ import { useRouter } from 'next/navigation'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import { createPortal } from 'react-dom'
 import { parseNotes } from '@/app/lib/notes'
-import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee } from './oeuvreTypes'
-import { ContenuNoteStructuree } from './ContenuNoteStructuree'
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
+import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, rendreTitreColophonAvecNotes, notesPourTexte } from './appelNote'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
@@ -122,21 +121,9 @@ function segmentAffichable(s: any) {
 }
 
 const SEUIL_TITRE_COLOPHON = 86
-const NBSP_TITRE_COLOPHON = '\u00A0'
 
-function preparerTitreColophon(texte: string) {
-  return texte
-    .trim()
-    .replace(/\s+([;:!?»])/g, `${NBSP_TITRE_COLOPHON}$1`)
-    .replace(/([«])\s+/g, `$1${NBSP_TITRE_COLOPHON}`)
-    .replace(/\s+([,.])/g, '$1')
-}
-
-// Le sommaire est une navigation compacte : les appels restent actifs dans le
-// titre développé du corps, mais leur syntaxe de stockage ne doit pas y paraître.
-function titreSansAppelsDeNote(texte: string) {
-  return texte.replace(/\[\[[A-Z0-9]+\]\]/g, '')
-}
+// Appels de note (info-bulle, formes selon le contexte) et outils de titre :
+// voir ./appelNote — partagés avec la page de titre.
 
 const TRADUCTIONS_FALLBACK = [
   { code: 'TR0001',    label: 'Bible de Sacy' },
@@ -166,226 +153,6 @@ function chargerCodesTraductions(): PromiseLike<string[]> {
     )
   }
   return _codesTraductionsCache
-}
-
-// ── Info-bulle de note ────────────────────────────────────────────────────────
-function NoteTooltip({ numeroVisible, contenu }: { numeroVisible: number; contenu: NoteAffichee }) {
-  const [visible, setVisible] = useState(false)
-  const [figee, setFigee] = useState(false)
-  const [rect, setRect] = useState<{ left: number; top: number; bottom: number } | null>(null)
-  const marceurRef = useRef<HTMLElement>(null)
-  const timerFiger = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const timerMasquer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const effacerTimers = () => {
-    if (timerFiger.current) { clearTimeout(timerFiger.current); timerFiger.current = null }
-    if (timerMasquer.current) { clearTimeout(timerMasquer.current); timerMasquer.current = null }
-  }
-
-  const fermer = useCallback(() => {
-    effacerTimers()
-    setVisible(false)
-    setFigee(false)
-  }, [])
-
-  const survolMarceur = () => {
-    effacerTimers()
-    if (marceurRef.current) {
-      const r = marceurRef.current.getBoundingClientRect()
-      setRect({ left: r.left, top: r.top, bottom: r.bottom })
-    }
-    setVisible(true)
-    timerFiger.current = setTimeout(() => setFigee(true), 4000)
-  }
-
-  const quitterMarceur = () => {
-    if (timerFiger.current) { clearTimeout(timerFiger.current); timerFiger.current = null }
-    if (!figee) {
-      timerMasquer.current = setTimeout(() => setVisible(false), 200)
-    }
-  }
-
-  const entrerTooltip = () => {
-    effacerTimers()
-    setFigee(true)
-  }
-
-  const basculerTooltip = (e: React.MouseEvent | React.KeyboardEvent) => {
-    e.stopPropagation()
-    if (visible && figee) { fermer(); return }
-    effacerTimers()
-    if (marceurRef.current) {
-      const r = marceurRef.current.getBoundingClientRect()
-      setRect({ left: r.left, top: r.top, bottom: r.bottom })
-    }
-    setVisible(true)
-    setFigee(true)
-  }
-
-  // Fermeture sur Échap ou clic extérieur quand figée
-  useEffect(() => {
-    if (!figee || !visible) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') fermer() }
-    const onDown = (e: MouseEvent) => {
-      if (!(e.target as Element).closest('[data-note-tooltip]')) fermer()
-    }
-    document.addEventListener('keydown', onKey)
-    document.addEventListener('mousedown', onDown)
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.removeEventListener('mousedown', onDown)
-    }
-  }, [figee, visible, fermer])
-
-  // Fermeture sur scroll si pas figée
-  useEffect(() => {
-    if (!visible || figee) return
-    const onScroll = () => setVisible(false)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [visible, figee])
-
-  useEffect(() => () => effacerTimers(), [])
-
-  const W = 340
-  const placerEnHaut = (rect?.top ?? 300) > 180
-
-  const tooltip = visible ? (
-    <div
-      data-note-tooltip=""
-      onMouseEnter={entrerTooltip}
-      style={{
-        position: 'fixed',
-        left: Math.max(8, Math.min(rect?.left ?? 0, (typeof window !== 'undefined' ? window.innerWidth : 900) - W - 8)),
-        top: placerEnHaut ? (rect?.top ?? 0) - 8 : (rect?.bottom ?? 0) + 8,
-        transform: placerEnHaut ? 'translateY(-100%)' : 'none',
-        width: W,
-        maxWidth: 'calc(100vw - 16px)',
-        maxHeight: 340,
-        overflowY: 'auto',
-        background: '#faf6ee',
-        border: '1px solid var(--cs-or-doux)',
-        borderRadius: 5,
-        boxShadow: '0 6px 24px rgba(44,30,10,0.20)',
-        padding: '10px 12px',
-        zIndex: 9999,
-        fontFamily: "var(--font-source-serif), Georgia, serif",
-        fontSize: '0.78125rem',
-        lineHeight: 1.45,
-        color: '#2a2218',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>
-          Note {numeroVisible}
-        </span>
-        {figee && (
-          <button
-            onClick={fermer}
-            aria-label="Fermer"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a08a', fontSize: '0.9375rem', lineHeight: 1, padding: '0 2px' }}
-          >×</button>
-        )}
-      </div>
-      <div style={{ whiteSpace: 'pre-line' }}>
-        {typeof contenu === 'string'
-          ? (contenu || <em style={{ color: '#b0a08a' }}>Note indisponible</em>)
-          : <ContenuNoteStructuree note={contenu} />}
-      </div>
-    </div>
-  ) : null
-
-  return (
-    <>
-      <sup
-        ref={marceurRef as React.RefObject<HTMLElement>}
-        onMouseEnter={survolMarceur}
-        onMouseLeave={quitterMarceur}
-        onClick={basculerTooltip}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') basculerTooltip(e) }}
-        role="button"
-        tabIndex={0}
-        aria-label={`Consulter la note ${numeroVisible}`}
-        style={{
-          cursor: 'help',
-          color: '#8a6a3e',
-          fontSize: '0.60em',
-          fontFamily: "var(--font-source-serif), Georgia, serif",
-          fontStyle: 'normal',
-          userSelect: 'none',
-          letterSpacing: 0,
-          display: 'inline-block',
-          lineHeight: 1,
-          padding: '0 1px',
-          borderBottom: '1px dotted #c8a87a',
-        }}
-      >
-        {numeroVisible}
-      </sup>
-      {visible && typeof document !== 'undefined' && createPortal(tooltip, document.body)}
-    </>
-  )
-}
-
-// Variante de rendreTexteEnrichi qui gère aussi les marqueurs [[A]] de notes.
-function rendreTexteAvecNotes(texte: string, notes: Record<string, NoteAffichee>): React.ReactNode {
-  const noeuds: React.ReactNode[] = []
-  // Le marqueur stocké ([[A]], [[B]]…) reste la clé de la note en base : c'est
-  // lui qui donne accès au texte. Seul l'appel AFFICHÉ change — un numéro, selon
-  // l'usage français. La numérotation suit l'ordre d'apparition et se fait par
-  // marqueur distinct : une note rappelée deux fois garde son numéro.
-  const numeros = new Map<string, number>()
-  const numeroDe = (marqueur: string) => {
-    // Les imports récents portent déjà une numérotation éditoriale globale.
-    // Ne jamais la renuméroter localement (un [[78]] doit rester 78).
-    if (/^\d+$/.test(marqueur)) return Number(marqueur)
-    const connu = numeros.get(marqueur)
-    if (connu) return connu
-    const n = numeros.size + 1
-    numeros.set(marqueur, n)
-    return n
-  }
-  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]+)\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>/g
-  let dernierIndex = 0, k = 0, m: RegExpExecArray | null
-  while ((m = regex.exec(texte))) {
-    if (m.index > dernierIndex) noeuds.push(texte.slice(dernierIndex, m.index))
-    // Un appel de note peut se trouver à l'intérieur d'une emphase. Le contenu
-    // doit donc repasser par le même moteur au lieu d'être rendu comme texte brut.
-    if (m[1] !== undefined) noeuds.push(<strong key={k++}>{rendreTexteAvecNotes(m[1], notes)}</strong>)
-    else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{rendreTexteAvecNotes(m[2], notes)}</sup>)
-    else if (m[3] !== undefined) noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[3], notes)}</em>)
-    else if (m[4] !== undefined) noeuds.push(
-      <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteAvecNotes(m[4], notes)}</a>
-    )
-    else if (m[6] !== undefined) {
-      const marqueur = m[6]
-      const contenu = notes[marqueur] ?? ''
-      const numeroVisible = typeof contenu === 'string' ? numeroDe(marqueur) : contenu.noteNumber
-      noeuds.push(<NoteTooltip key={k++} numeroVisible={numeroVisible} contenu={contenu} />)
-    }
-    else if (m[7] !== undefined) {
-      noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)
-      noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[8]}</sup>)
-      noeuds.push(m[9])
-    }
-    else if (m[10] !== undefined) {
-      noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[10], notes)}</em>)
-    }
-    dernierIndex = regex.lastIndex
-  }
-  if (dernierIndex < texte.length) noeuds.push(texte.slice(dernierIndex))
-  return noeuds
-}
-
-// Les titres utilisent le même système de notes que le corps. Lorsqu'un appel
-// est présent, on privilégie son rendu interactif ; les autres titres gardent
-// la composition en colophon éventuellement appliquée aux intitulés longs.
-function rendreTitreColophonAvecNotes(texte: string, notes: Record<string, NoteAffichee>, estTitre = false): React.ReactNode {
-  // Rendu simple : le titre s'enroule naturellement (centré par ses conteneurs).
-  // On a renoncé à la composition « colophon » (pavé à lignes décroissantes).
-  // `estTitre` : retire le point final (règle éditoriale) ; pas pour les _texte,
-  // qui sont des chapeaux/phrases.
-  return rendreTexteAvecNotes(preparerTitreColophon(estTitre ? sansPointFinal(texte) : texte), notes)
 }
 
 // ── Proposition de lien biblique (non-admin) ──────────────────────────────────
@@ -1235,6 +1002,27 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
   const segMap = new Map(segmentsFiltres.map(s => [s.id, s]))
   const segMapApparat = new Map(segmentsApparat.map(s => [s.id, s]))
   const segMapActive = vue === 'texte' ? segMap : segMapApparat
+
+  // Une note appelée dans un TITRE n'est pas toujours définie sur le premier
+  // segment de son groupe : dans les imports à notes structurées, son ancre tombe
+  // quelques segments plus loin (Discours sur la Genèse : l'appel du chapeau du
+  // « Premier discours » est ancré au huitième segment). Le titre cherche donc son
+  // appel dans toute la section chargée, à défaut du groupe — sans quoi l'appel
+  // paraîtrait avec une note vide.
+  const notesSection = useMemo(() => {
+    const banque: Record<string, NoteAffichee> = {}
+    for (const s of [...segments, ...segmentsApparat]) {
+      if (!s.notes) continue
+      for (const cle of Object.keys(s.notes)) if (banque[cle] === undefined) banque[cle] = s.notes[cle]
+    }
+    return banque
+  }, [segments, segmentsApparat])
+
+  const notesDuTitre = useCallback(
+    (textes: (string | null | undefined)[], locales?: Record<string, NoteAffichee>) =>
+      notesPourTexte(textes, [locales, notesSection]),
+    [notesSection],
+  )
   const segActifData = segActif !== null ? segMapActive.get(segActif) : null
   // idOeuvre vient des Props
   const hasApparat = segmentsApparat.length > 0
@@ -1771,7 +1559,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
                     <div key={bk} style={{ marginBottom: '6px' }}>
                       <button onClick={() => divisionsDuLivre[0] && naviguerComparaison(bk, divisionsDuLivre[0].division)}
                         style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35 }}>
-                        {titreLivre}
+                        {titreSansAppelsDeNote(titreLivre)}
                       </button>
                       {estActif && divisionsDuLivre.map(d => {
                         const actif2 = comparaisonDivision === d.division
@@ -1779,7 +1567,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
                           <div key={d.division} style={{ borderLeft: actif2 ? '2px solid var(--cs-vert)' : '2px solid transparent', marginBottom: '2px' }}>
                             <button onClick={() => naviguerComparaison(bk, d.division)}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0 3px 8px' }}>
-                              <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{d.niv2 || libelleDivisionComparaison(d.division)}</span>
+                              <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{titreSansAppelsDeNote(d.niv2 || libelleDivisionComparaison(d.division))}</span>
                             </button>
                           </div>
                         )
@@ -1804,7 +1592,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
                   {/* Niv1 */}
                   <button onClick={() => changerNiv1(n1)}
                     style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35, whiteSpace: 'pre-line' }}>
-                    {n1 === NIV1_LIMINAIRES ? (niv1TexteMap[n1] || 'LIMINAIRES') : n1}
+                    {titreSansAppelsDeNote(n1 === NIV1_LIMINAIRES ? (niv1TexteMap[n1] || 'LIMINAIRES') : n1)}
                     {n1 !== NIV1_LIMINAIRES && niv1TexteMap[n1] && configNiveaux.txtSommaire[0] && (
                       <span style={{ fontSize: '0.59375rem', color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{titreSansAppelsDeNote(niv1TexteMap[n1])}</span>
                     )}
@@ -1825,8 +1613,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
                         <button
                           onClick={() => allerAuNiv2(actif2 ? null : n2)}
                           style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0 3px 8px' }}>
-                          <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{n2}</span>
-                          {n2txt && configNiveaux.txtSommaire[1] && <span style={{ fontSize: '0.59375rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{n2txt}</span>}
+                          <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{titreSansAppelsDeNote(n2)}</span>
+                          {n2txt && configNiveaux.txtSommaire[1] && <span style={{ fontSize: '0.59375rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{titreSansAppelsDeNote(n2txt)}</span>}
                         </button>
                         {/* Niv3 — toujours visible, sans accordéon */}
                         {niv3DeN2.map(n3 => {
@@ -1840,8 +1628,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
                                 if (ancre) naviguerVersAncre(ancre)
                               }}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0 2px 16px' }}>
-                              <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-doux)', display: 'block', lineHeight: 1.3 }}>{n3}</span>
-                              {n3txt && configNiveaux.txtSommaire[2] && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', display: 'block', lineHeight: 1.2 }}>{n3txt}</span>}
+                              <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-doux)', display: 'block', lineHeight: 1.3 }}>{titreSansAppelsDeNote(n3)}</span>
+                              {n3txt && configNiveaux.txtSommaire[2] && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', display: 'block', lineHeight: 1.2 }}>{titreSansAppelsDeNote(n3txt)}</span>}
                             </button>
                           )
                         })}
@@ -1878,6 +1666,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
               colonne d'actions à compenser). Les deux traductions comparées sont
               nommées en tête de colonnes plus bas. */}
           <PageTitre auteur={auteur} oeuvre={oeuvreLocale} versionActive={versionActive} titre={titreAffiche} estAdmin={estAdmin} mobile={mobile} sansGouttiere={modeComparaisonActif}
+            notes={notesDuTitre([oeuvreLocale.titre_affichage, titreAffiche, oeuvreLocale.sous_titre, oeuvreLocale.titre_original])}
             onModifier={(champ, va) => setEditionCible({ type: 'titre_oeuvre', champ, texteActuel: va })} />
 
           {/* Fleuron (feuille de vigne) séparant la page de titre du niveau 1,
@@ -1893,8 +1682,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
             const prev = divisionVoisine(comparaisonDivisions, comparaisonBook, comparaisonDivision, -1)
             const next = divisionVoisine(comparaisonDivisions, comparaisonBook, comparaisonDivision, 1)
             const courante = comparaisonDivisions.find(d => d.book === comparaisonBook && d.division === comparaisonDivision)
-            const titreLivre = courante?.niv1 || `LIVRE ${libelleLivreComparaison(comparaisonBook)}`
-            const titreDivision = courante?.niv2 || libelleDivisionComparaison(comparaisonDivision)
+            // Les intitulés alignés viennent des segments de la traduction de
+            // référence, sans la banque de notes qui les accompagne en lecture :
+            // l'appel y serait muet, on le masque comme au sommaire.
+            const titreLivre = titreSansAppelsDeNote(courante?.niv1 || `LIVRE ${libelleLivreComparaison(comparaisonBook)}`)
+            const titreDivision = titreSansAppelsDeNote(courante?.niv2 || libelleDivisionComparaison(comparaisonDivision))
             return (
               <div id="barre-nav-division" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: '60px' }}>
                 <button onClick={() => prev && naviguerComparaison(prev.book, prev.division)} disabled={!prev} aria-label="Division précédente"
@@ -1931,14 +1723,18 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
                   </span>
                 ) : niv1Loading ? <span style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)' }}>Chargement…</span> : (
                   <>
-                    {rendreTitreColophonAvecNotes(
-                      niv1Actif === NIV1_LIMINAIRES ? (niv1TexteMap[niv1Actif] || 'LIMINAIRES') : niv1Actif,
-                      segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes ?? {},
-                      true,
-                    )}
+                    {(() => {
+                      const intitule = niv1Actif === NIV1_LIMINAIRES ? (niv1TexteMap[niv1Actif] || 'LIMINAIRES') : niv1Actif
+                      return rendreTitreColophonAvecNotes(
+                        intitule,
+                        notesDuTitre([intitule], segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes),
+                        true,
+                        'titre',
+                      )
+                    })()}
                     {(() => {
                       const txt = groupes[0]?.niv1_texte || niv1TexteMap[niv1Actif] || ''
-                      const notesTitre = segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes ?? {}
+                      const notesTitre = notesDuTitre([txt], segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes)
                       return txt && configNiveaux.txtCorps[0]
                         ? <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{rendreTexteAvecNotes(preparerTitreColophon(txt), notesTitre)}</span>
                         : null
@@ -1993,7 +1789,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
               {groupesFiltres.map((groupe) => {
               const itemsReels = groupe.itemIds.filter(id => segMap.get(id)?.nature !== 'introduction')
               if (itemsReels.length === 0) return null
-              const notesTitre = segMap.get(itemsReels[0])?.notes ?? {}
+              const notesTitre = notesDuTitre(
+                [groupe.niv1, groupe.niv1_texte, groupe.niv2, groupe.niv2_texte, groupe.niv3, groupe.niv3_texte, groupe.niv4, groupe.niv4_texte],
+                segMap.get(itemsReels[0])?.notes,
+              )
               const showNiv1 = lectureTexteEntier && profondeurCorps >= 1 && groupe.niv1 && groupe.niv1 !== dniv1
               const showNiv2 = profondeurCorps >= 2 && groupe.niv2 && groupe.niv2 !== dniv2
               const showNiv3 = profondeurCorps >= 3 && groupe.niv3 && groupe.niv3 !== dniv3
@@ -2013,13 +1812,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
                 <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
                   {showNiv1 && (
                     <div style={{ textAlign: 'center', marginTop, marginBottom: '1.5rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
-                      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true)}</h2>
+                      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true, 'titre')}</h2>
                       {groupe.niv1_texte && configNiveaux.txtCorps[0] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.95rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTexteAvecNotes(preparerTitreColophon(groupe.niv1_texte), notesTitre)}</p>}
                     </div>
                   )}
                   {showNiv2 && (
                     <div style={{ textAlign: 'center', marginTop: marginTop, marginBottom: '1rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
-                      <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.1rem', fontWeight: 400, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true)}</h3>
+                      <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.1rem', fontWeight: 400, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true, 'titre')}</h3>
                       {groupe.niv2_texte && configNiveaux.txtCorps[1] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.92rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
@@ -2153,14 +1952,17 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
                   if (showNiv1) { dniv1 = groupe.niv1; dniv2 = '' }
                   const showNiv2 = groupe.niv2 && groupe.niv2 !== dniv2
                   if (showNiv2) dniv2 = groupe.niv2
-                  const notesTitre = segMapApparat.get(groupe.itemIds[0])?.notes ?? {}
+                  const notesTitre = notesDuTitre(
+                    [groupe.niv1, groupe.niv1_texte, groupe.niv2, groupe.niv2_texte],
+                    segMapApparat.get(groupe.itemIds[0])?.notes,
+                  )
                   const marginTop = isFirst ? '0' : '2.5rem'
                   if (isFirst) isFirst = false
                   return (
                     <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
                       {showNiv1 && (
                         <div style={{ position: 'relative', marginTop: marginTop, marginBottom: '0.5rem' }}>
-                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-texte-fort)', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true)}</h2>
+                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-texte-fort)', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true, 'titre')}</h2>
                           {groupe.niv1_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.95rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', textAlign: 'center', lineHeight: 1.4, margin: '4px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1_texte, notesTitre)}</p>}
                           {estAdmin && (
                             <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe, texteActuel: groupe.niv1_texte || groupe.niv1, schemaTexte: true })}
@@ -2170,7 +1972,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
                       )}
                       {showNiv2 && (
                         <div style={{ margin: showNiv1 ? '1rem 0 0.6rem' : '2rem 0 0.6rem', textAlign: 'center' }}>
-                          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.05rem', fontWeight: 500, color: '#3d3832', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true)}</h3>
+                          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.05rem', fontWeight: 500, color: '#3d3832', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true, 'titre')}</h3>
                           {groupe.niv2_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.86rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.35, margin: '3px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                         </div>
                       )}
