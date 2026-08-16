@@ -18,6 +18,7 @@ import ModaleAuteur from '@/app/components/ModaleAuteur'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
 import HistoricalDate from '@/app/components/HistoricalDate'
+import { chargerAuteursParOeuvre, grouperOeuvresParAuteur, libelleAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 
 type Oeuvre = {
   id_oeuvre: string; id_auteur: string; titre: string; sous_titre: string | null
@@ -27,6 +28,9 @@ type Oeuvre = {
   date_publication_precision_affichage: string | null
   genre: string | null; note?: string | null; langue_originale?: string | null
   nb_signes?: number | null
+  // Tous les auteurs de l'œuvre, `id_auteur` compris (qui n'est que le premier).
+  // Une œuvre à deux auteurs paraît sur les deux étagères, et porte les deux noms.
+  auteurs?: AuteurOeuvre[]
 }
 type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }
@@ -299,6 +303,15 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                   className={`bib-oeuvre${correspond ? ' bib-correspond' : ''}`}
                   style={{ borderTop: idx > 0 ? '1px solid #f3efe9' : 'none', borderLeft: correspond ? '3px solid var(--cs-vert)' : '3px solid transparent', padding: '4px 0 5px' }}>
                   <span style={{ display: 'block', fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? '#2a4d35' : 'var(--cs-encre)', fontWeight: correspond ? 600 : 400, lineHeight: 1.3, padding: '0 18px 0 20px' }}>{grp.titre}</span>
+                  {/* Œuvre à plusieurs auteurs : elle est sur l'étagère de chacun,
+                      et porte les deux noms pour qu'on sache d'où qu'on vienne qui
+                      l'a écrite. Une œuvre à auteur unique ne répète pas le nom de
+                      l'étagère qui la porte. */}
+                  {(grp.versions[0].auteurs?.length ?? 0) > 1 && (
+                    <span style={{ display: 'block', fontSize: '0.625rem', color: 'var(--cs-texte-doux)', lineHeight: 1.3, padding: '1px 18px 0 20px' }}>
+                      {libelleAuteurs(grp.versions[0].auteurs!)}
+                    </span>
+                  )}
                   {grp.versions.map(o => {
                     const editionTexte = [o.editeur, o.ville].filter(Boolean).join(', ')
                     const datePublication = o.date_publication_affichage_courte
@@ -1439,14 +1452,13 @@ const imageVersionAuteur = () => Math.floor(Date.now() / (3600 * 1000))
 const urlImageAuteur = (idAuteur: string, version = imageVersionAuteur()) =>
   `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg?v=${version}`
 
-function normaliserAuteurs(data: any[], oeuvres: Oeuvre[]): Auteur[] {
+function normaliserAuteurs(data: any[], oeuvres: Oeuvre[], auteursParOeuvre: Record<string, AuteurOeuvre[]>): Auteur[] {
   const version = imageVersionAuteur()
-  const oeuvresParAuteur = new Map<string, Oeuvre[]>()
-  for (const oeuvre of oeuvres.filter(estOeuvrePubliee)) {
-    const groupe = oeuvresParAuteur.get(oeuvre.id_auteur) ?? []
-    groupe.push(oeuvre)
-    oeuvresParAuteur.set(oeuvre.id_auteur, groupe)
-  }
+  // Même règle qu'au rendu serveur (app/bibliotheque/page.tsx) : une œuvre se
+  // range sous CHACUN de ses auteurs, et emporte leur liste.
+  const publiees = oeuvres.filter(estOeuvrePubliee)
+    .map(oeuvre => ({ ...oeuvre, auteurs: auteursParOeuvre[oeuvre.id_oeuvre] ?? [] }))
+  const oeuvresParAuteur = grouperOeuvresParAuteur(publiees, auteursParOeuvre, oeuvre => oeuvre.id_auteur)
   return data
     .map(a => ({ ...a, oeuvres: oeuvresParAuteur.get(String(a.id_auteur)) ?? [] }))
     .filter(a => a.oeuvres?.length > 0)
@@ -1475,12 +1487,13 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   }, [])
 
   const refetch = useCallback(async () => {
-    const [auteursResultat, oeuvresResultat] = await Promise.all([
+    const [auteursResultat, oeuvresResultat, auteursParOeuvre] = await Promise.all([
       supabase.from('auteurs').select(SELECT_AUTEURS).order('siecle', { ascending: true, nullsFirst: false }),
       supabase.from('v_oeuvres_dates').select(SELECT_OEUVRES_DATES),
+      chargerAuteursParOeuvre(supabase),
     ])
     if (auteursResultat.data && oeuvresResultat.data) {
-      setAuteurs(normaliserAuteurs(auteursResultat.data, oeuvresResultat.data as Oeuvre[]))
+      setAuteurs(normaliserAuteurs(auteursResultat.data, oeuvresResultat.data as Oeuvre[], auteursParOeuvre))
     }
   }, [])
 
@@ -1488,6 +1501,9 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
     const channel = supabase.channel('bibliotheque-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'auteurs' }, refetch)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'oeuvres' }, refetch)
+      // Une co-signature ajoutée ou retirée déplace l'œuvre d'étagère : l'étagère
+      // doit se refaire, comme pour une modification d'œuvre.
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'oeuvres_auteurs' }, refetch)
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [refetch])

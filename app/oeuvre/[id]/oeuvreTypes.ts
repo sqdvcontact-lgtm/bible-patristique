@@ -1,3 +1,5 @@
+import type { AuteurOeuvre } from '@/app/lib/auteursOeuvre'
+
 export type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
 export type NoteBlocData = {
   blockId: string
@@ -70,8 +72,13 @@ export type AlignementDisponible = {
 }
 
 export type Props = {
+  // Libellé de tous les auteurs (« Augustin d’Hippone et Possidius ») : c'est lui
+  // qui nomme l'œuvre au frontispice, dans les citations et dans l'historique.
   auteur: string
+  // Premier auteur — conservé pour les surfaces qui n'en visent qu'un.
   auteurId?: string
+  // Tous les auteurs, à égalité, dans l'ordre d'affichage.
+  auteurs?: AuteurOeuvre[]
   idOeuvre: string
   idTexte: string
   estAdmin: boolean

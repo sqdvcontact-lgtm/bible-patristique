@@ -20,6 +20,7 @@ import { type RangChrono, coulType, LIB_TYPE } from '@/app/lib/frise'
 import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import HistoricalDate from '@/app/components/HistoricalDate'
+import { chargerAuteursParOeuvre, libelleAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
@@ -30,6 +31,7 @@ type OeuvreResumee = {
   date_composition_affichage_courte: string | null
   date_composition_precision_affichage: string | null
   composition_debut_annee: number | null
+  auteurs?: AuteurOeuvre[]
 }
 type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 type Auteur = {
@@ -43,6 +45,17 @@ type Auteur = {
 }
 
 const POS_DEFAUT: AuteurPhotoPos = { x: 50, y: 24, scale: 1, scaleX: 1, scaleY: 1 }
+
+/** Les auteurs d'une œuvre écrite à plusieurs, en mention discrète après le titre.
+ *  Rien pour une œuvre à auteur unique : la fiche répéterait son propre nom. */
+function MentionCoAuteurs({ auteurs }: { auteurs?: AuteurOeuvre[] }) {
+  if (!auteurs || auteurs.length < 2) return null
+  return (
+    <span style={{ marginLeft: '7px', fontSize: '0.625rem', color: 'var(--cs-texte-doux)', whiteSpace: 'normal' }}>
+      {libelleAuteurs(auteurs)}
+    </span>
+  )
+}
 function parsePhotoPos(raw: unknown): AuteurPhotoPos {
   const r = raw as any
   const src = r && typeof r.x === 'number' ? r : r?.fiche
@@ -209,8 +222,13 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
           <li key={o.id_oeuvre} style={{ display: 'contents' }}>
             <span title={o.date_composition_precision_affichage ?? undefined} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: dateCompo(o) ? '#b7a06a' : '#c9c1b4', fontStyle: dateCompo(o) ? 'normal' : 'italic', textAlign: 'right', whiteSpace: 'nowrap' }}>{dateCompo(o) ? <HistoricalDate value={dateCompo(o)} variant="short" /> : 'Date inconnue'}</span>
             {/* Œuvre disponible : titre en teinte sobre (pas vert), cliquable vers l'œuvre. */}
-            <Link href={`/oeuvre/${o.id_oeuvre}`} onClick={onClose} className="auteur-oeuvre"
-              style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte)', minWidth: 0, lineHeight: 1.38 }}>{sansPointFinal(o.titre)}</Link>
+            <span style={{ minWidth: 0, lineHeight: 1.38 }}>
+              <Link href={`/oeuvre/${o.id_oeuvre}`} onClick={onClose} className="auteur-oeuvre"
+                style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.38 }}>{sansPointFinal(o.titre)}</Link>
+              {/* Œuvre écrite à plusieurs : la fiche dit avec qui, sinon l'auteur
+                  paraîtrait la signer seul. */}
+              <MentionCoAuteurs auteurs={o.auteurs} />
+            </span>
           </li>
         ))}
         {oeuvresAbsentes.map(o => (
@@ -219,6 +237,7 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
             {/* Œuvre répertoriée mais pas encore disponible : estompée, non cliquable. */}
             <span className="auteur-oeuvre--absente" title="Œuvre répertoriée, pas encore disponible" style={{ minWidth: 0, lineHeight: 1.38 }}>
               <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: '#a8a29a' }}>{sansPointFinal(o.titre)}</span>
+              <MentionCoAuteurs auteurs={o.auteurs} />
               <span style={{ marginLeft: '7px', fontSize: '0.53125rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#b7ad9a' }}>répertoriée</span>
             </span>
           </li>
@@ -282,16 +301,29 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
   useEffect(() => {
     if (!id) { setAuteur(null); setEvenements([]); setErreur(false); return }
     setAuteur(null); setEvenements([]); setErreur(false)
-    Promise.all([
-      supabase.from('auteurs')
-        .select('id_auteur, nom, nom_original, titre, dates, siecle, traditions, photo_position, note_biographique, note_theologique, langue_principale, anecdotes, influence')
-        .eq('id_auteur', id).maybeSingle(),
-      supabase.from('v_oeuvres_dates')
-        .select('id_oeuvre, titre, sous_titre, trad_auteur, editeur, ville, note, date_composition_affichage_courte, date_composition_precision_affichage, composition_debut_annee')
-        .eq('id_auteur', id),
-    ]).then(([auteurResultat, oeuvresResultat]) => {
+    // Les œuvres de l'auteur, CO-SIGNATURES COMPRISES : la liste vient des couples
+    // (œuvre, auteur), et non du seul `id_auteur` de l'œuvre, qui n'en porte que
+    // le premier. Si cette lecture échoue, on retombe sur l'ancien filtre plutôt
+    // que d'afficher une fiche sans œuvre.
+    chargerAuteursParOeuvre(supabase).then(auteursParOeuvre => {
+      const idsDeLAuteur = Object.entries(auteursParOeuvre)
+        .filter(([, auteurs]) => auteurs.some(a => a.id_auteur === id))
+        .map(([idOeuvre]) => idOeuvre)
+      const COLONNES = 'id_oeuvre, titre, sous_titre, trad_auteur, editeur, ville, note, date_composition_affichage_courte, date_composition_precision_affichage, composition_debut_annee'
+      const requeteOeuvres = idsDeLAuteur.length > 0
+        ? supabase.from('v_oeuvres_dates').select(COLONNES).in('id_oeuvre', idsDeLAuteur)
+        : supabase.from('v_oeuvres_dates').select(COLONNES).eq('id_auteur', id)
+      return Promise.all([
+        supabase.from('auteurs')
+          .select('id_auteur, nom, nom_original, titre, dates, siecle, traditions, photo_position, note_biographique, note_theologique, langue_principale, anecdotes, influence')
+          .eq('id_auteur', id).maybeSingle(),
+        requeteOeuvres,
+        Promise.resolve(auteursParOeuvre),
+      ])
+    }).then(([auteurResultat, oeuvresResultat, auteursParOeuvre]) => {
       if (auteurResultat.error || oeuvresResultat.error || !auteurResultat.data) { setErreur(true); return }
-      setAuteur({ ...auteurResultat.data, oeuvres: oeuvresResultat.data ?? [] } as Auteur)
+      const oeuvres = (oeuvresResultat.data ?? []).map(o => ({ ...o, auteurs: auteursParOeuvre[o.id_oeuvre] ?? [] }))
+      setAuteur({ ...auteurResultat.data, oeuvres } as Auteur)
     })
     // Frise : la vue porte déjà l'ordre éditorial, la date rédigée, le type et
     // les sources. Les associations masquées en sont exclues à la source.

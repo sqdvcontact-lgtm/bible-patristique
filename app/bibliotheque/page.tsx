@@ -2,6 +2,7 @@ import { Suspense, type ComponentProps } from "react"
 import BibliothequeClient from "./BibliothequeClient"
 import { MARQUEUR_OEUVRE_DEPUBLIEE } from "@/app/lib/oeuvresPublication"
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur"
+import { chargerAuteursParOeuvre, grouperOeuvresParAuteur } from "@/app/lib/auteursOeuvre"
 
 // Base fermée au rôle anonyme : on interroge avec la session du visiteur. La
 // page devient dynamique (elle lit les cookies) et perd donc son cache d'une
@@ -13,13 +14,13 @@ export const metadata = {
 }
 
 type AuteurBibliotheque = { id_auteur: string; [cle: string]: unknown }
-type OeuvreBibliotheque = { id_auteur: string; [cle: string]: unknown }
+type OeuvreBibliotheque = { id_oeuvre: string; id_auteur: string; [cle: string]: unknown }
 
 export default async function BibliothequePage() {
   const supabase = await creerSupabaseServeur()
   // Les métadonnées d'auteur et les dates canoniques des œuvres sont chargées
   // séparément : une vue ne porte pas la relation PostgREST imbriquée de la table.
-  const [auteursResultat, oeuvresResultat] = await Promise.all([
+  const [auteursResultat, oeuvresResultat, auteursParOeuvre] = await Promise.all([
     supabase
       .from("auteurs")
       .select("id_auteur, nom, nom_original, titre, dates, siecle, date_naissance, date_mort, langue_principale, traditions, note, note_biographique, note_theologique, photo_position")
@@ -28,14 +29,16 @@ export default async function BibliothequePage() {
       .from("v_oeuvres_dates")
       .select("id_oeuvre, id_auteur, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication_affichage_courte, date_publication_precision_affichage, genre, note, langue_originale")
       .or(`note.is.null,note.neq.${MARQUEUR_OEUVRE_DEPUBLIEE}`),
+    chargerAuteursParOeuvre(supabase),
   ])
 
-  const oeuvresParAuteur = new Map<string, OeuvreBibliotheque[]>()
-  for (const oeuvre of (oeuvresResultat.data ?? []) as OeuvreBibliotheque[]) {
-    const groupe = oeuvresParAuteur.get(String(oeuvre.id_auteur)) ?? []
-    groupe.push(oeuvre)
-    oeuvresParAuteur.set(String(oeuvre.id_auteur), groupe)
-  }
+  // Une œuvre à deux auteurs paraît sous le nom de chacun : le groupement suit
+  // les couples (œuvre, auteur) de `v_oeuvres_auteurs`, pas la seule colonne
+  // `id_auteur` de l'œuvre, qui n'en porte que le premier. Chaque œuvre emporte
+  // la liste de ses auteurs, pour porter les deux noms là où elle est nommée.
+  const oeuvres = ((oeuvresResultat.data ?? []) as OeuvreBibliotheque[])
+    .map(oeuvre => ({ ...oeuvre, auteurs: auteursParOeuvre[oeuvre.id_oeuvre] ?? [] }))
+  const oeuvresParAuteur = grouperOeuvresParAuteur(oeuvres, auteursParOeuvre, oeuvre => String(oeuvre.id_auteur))
 
   const base = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/auteurs`
   const cacheV = Math.floor(Date.now() / (3600 * 1000))

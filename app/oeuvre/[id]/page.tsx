@@ -10,6 +10,7 @@ import { JsonLd, donneesLivre, donneesFilAriane } from '@/app/lib/donneesStructu
 import OeuvreClient from './OeuvreClient'
 import type { AlignementDisponible, NoteStructuree, VersionTextuelle } from './oeuvreTypes'
 import { decomposerEdition, labelCourtVersion, libelleTraducteurVersion } from './versionTextuelle'
+import { chargerAuteursDOeuvre, libelleAuteurs } from '@/app/lib/auteursOeuvre'
 
 // Base fermée au rôle anonyme : chaque entrée serveur (métadonnées, page) crée
 // son client lisant la session du visiteur. Sans cela, la page s'exécutait en
@@ -24,24 +25,26 @@ export async function generateMetadata({ params, searchParams }: {
   const sp = searchParams ? await searchParams : {}
   const supabase = await creerSupabaseServeur()
 
-  const [{ data }, { data: textes }] = await Promise.all([
+  const [{ data }, { data: textes }, auteursOeuvre] = await Promise.all([
     supabase.from('oeuvres')
-      .select('titre, titre_original, sous_titre, trad_auteur, auteurs(nom, nom_original)')
+      .select('titre, titre_original, sous_titre, trad_auteur, auteurs!oeuvres_id_auteur_fkey(nom, nom_original)')
       .eq('id_oeuvre', id).maybeSingle(),
     supabase.from('oeuvre_textes')
       .select('id_texte,traducteur,is_default,is_public')
       .eq('id_oeuvre', id)
       .eq('is_public', true),
+    chargerAuteursDOeuvre(supabase, id),
   ])
   if (!data) return { title: 'Corpus Scriptura' }
-  const auteur = (data.auteurs as any)?.nom
+  // Une œuvre signée à deux est nommée sous les deux noms, ici comme ailleurs.
+  const auteur = libelleAuteurs(auteursOeuvre) || (data.auteurs as any)?.nom
   const textesPublics = textes ?? []
   const texteActif = textesPublics.find(texte => texte.id_texte === sp.texte)
     ?? textesPublics.find(texte => texte.is_default)
     ?? textesPublics[0]
   const traducteur = texteActif?.traducteur ?? data.trad_auteur
   // Mots-clés = toutes les formes sous lesquelles on cherche l'œuvre et l'auteur.
-  const motsCles = [data.titre, data.titre_original, auteur, (data.auteurs as any)?.nom_original]
+  const motsCles = [data.titre, data.titre_original, ...auteursOeuvre.map(a => a.nom), auteur, (data.auteurs as any)?.nom_original]
     .filter((v): v is string => !!v)
   const description = [
     auteur ? `${data.titre}, ${auteur}` : data.titre,
@@ -244,7 +247,7 @@ export default async function OeuvrePage({
   // La RLS masque les versions non publiques aux lecteurs ordinaires.
   const [estAdmin, oeuvreResult, textesResult, alignementsResult] = await Promise.all([
     verifierEstAdmin(),
-    supabase.from('oeuvres').select('*, auteurs(id_auteur, nom)').eq('id_oeuvre', id).single(),
+    supabase.from('oeuvres').select('*, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom)').eq('id_oeuvre', id).single(),
     supabase.from('oeuvre_textes')
       .select('id_texte,titre_version,langue,traducteur,edition_label,annee_edition,source_url,catalogue_notice_id_ligne,metadata,is_default,is_public,statut')
       .eq('id_oeuvre', id)
@@ -474,8 +477,12 @@ export default async function OeuvrePage({
     }))
   })
 
-  const auteur = (oeuvre.auteurs as any)?.nom || ''
-  const auteurId = (oeuvre.auteurs as any)?.id_auteur?.toString() ?? ''
+  // Auteurs de l'œuvre, à égalité : `auteur` est leur libellé commun (il nomme
+  // l'œuvre au frontispice, dans les citations, dans l'historique de lecture),
+  // `auteurId` reste le premier, pour les surfaces qui n'en visent qu'un.
+  const auteursOeuvre = await chargerAuteursDOeuvre(supabase, id)
+  const auteur = libelleAuteurs(auteursOeuvre) || (oeuvre.auteurs as any)?.nom || ''
+  const auteurId = auteursOeuvre[0]?.id_auteur ?? (oeuvre.auteurs as any)?.id_auteur?.toString() ?? ''
 
   // Éligibilité au mode Paragraphes : l'œuvre doit porter la colonne `paragraphe`
   // (charte §6.1). On l'estime sur le premier niv1 chargé, représentatif — la
@@ -556,6 +563,7 @@ export default async function OeuvrePage({
       key={idTexte}
       auteur={auteur}
       auteurId={auteurId}
+      auteurs={auteursOeuvre}
       idOeuvre={id}
       idTexte={idTexte}
       estAdmin={estAdmin}

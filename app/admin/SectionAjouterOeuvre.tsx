@@ -316,7 +316,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
   const [auteursCourants, setAuteursCourants] = React.useState<AuteurAvecDates[]>(auteurs as AuteurAvecDates[])
   React.useEffect(() => {
     supabase.from('auteurs')
-      .select('id_auteur, nom, dates, date_naissance, date_mort, siecle, traditions, oeuvres(id_oeuvre, titre)')
+      .select('id_auteur, nom, dates, date_naissance, date_mort, siecle, traditions, oeuvres!oeuvres_id_auteur_fkey(id_oeuvre, titre)')
       .order('nom', { ascending: true })
       .then(({ data }) => { if (data) setAuteursCourants(data as AuteurAvecDates[]) })
   }, [])

@@ -446,3 +446,20 @@ Doctrine : charte `parametres.charte_ia` **§13.6**. Tout le rendu des appels vi
 - ⚠️ **La note d'un titre n'est pas toujours sur le premier segment du groupe.** Dans les imports à notes structurées, `texte_note_ancres.segment_key` tombe quelques segments plus loin (Discours sur la Genèse : l'appel du chapeau du « Premier discours » est ancré au 8ᵉ segment, pas au 1ᵉʳ). D'où `notesSection` (banque memoïsée de `segments` + `segmentsApparat`) et `notesDuTitre(textes, locales)`, qui cherche dans la section entière à défaut du groupe. Sans cela, l'appel s'affichait mais ouvrait une note vide.
 - `rendreTexteAvecNotes` reconnaît désormais les **`++petites capitales++`** comme `rendreTexteEnrichi` (ajoutées en FIN d'alternance pour ne pas renuméroter les groupes de capture) : la page de titre passe par ce moteur et y aurait perdu la petite capitale.
 - Logique pure testée : `app/oeuvre/[id]/appelNote.test.ts`.
+
+# Une œuvre à plusieurs auteurs (2026-08-16)
+
+Doctrine : charte `parametres.charte_ia` **§16.11**. Les auteurs sont **à égalité** ; l'œuvre paraît une fois sous le nom de chacun et porte les deux noms là où elle est nommée.
+
+- **Modèle** : le PREMIER auteur reste `oeuvres.id_auteur` (les ~220 lectures qui s'y appuient sont inchangées), les suivants vivent dans **`oeuvres_auteurs`** (`rang` ≥ 2, PK `(id_oeuvre, id_auteur)`, trigger refusant un auteur déjà premier). La vue **`v_oeuvres_auteurs`** (security_invoker, donc soumise à la RLS de `oeuvres`) réconcilie les deux et **fait seule autorité** : ne jamais refaire cette union à la main.
+- **Côté TS, tout passe par `app/lib/auteursOeuvre.ts`** (pur + testé `auteursOeuvre.test.ts`) : `chargerAuteursParOeuvre`, `chargerAuteursDOeuvre`, `libelleAuteurs` (« A et B », via `enumererNoms`), `separateurAuteurs` (quand chaque nom est rendu séparément, cliquable), `grouperOeuvresParAuteur` (dépose l'œuvre sur CHAQUE étagère). Le repli sur `oeuvres.id_auteur` est volontaire : si les couples ne se chargent pas, une œuvre ne doit pas disparaître de l'étagère.
+- **Surfaces branchées** : bibliothèque (SSR + rechargement client + canal temps réel sur `oeuvres_auteurs`), fiche auteur (`ModaleAuteur`), page de lecture (frontispice, volet, « du même auteur », traductions sœurs, métadonnées SEO), admin (bloc « Auteurs » du formulaire « Modifier l'œuvre » + route `app/api/admin/oeuvre-auteurs`).
+- **Pas encore branchées** (elles montrent le premier auteur seul) : recherche de la navbar, panneau patristique, prélèvements, quiz, page d'accueil, `SelecteurCitation`.
+
+## ⚠️ Piège majeur : une table de liaison CASSE tous les `select` imbriqués PostgREST
+
+⛔ Ajouter `oeuvres_auteurs` a créé une **deuxième relation** entre `auteurs` et `oeuvres` (la clé étrangère directe `oeuvres.id_auteur`, plus le nouveau many-to-many). PostgREST refuse alors TOUT embed `auteurs(...)` ou `oeuvres(...)` avec **PGRST201 — « Could not embed because more than one relationship was found »**, `data` nul.
+
+Symptôme observé : l'admin Bibliothèque affichait « Aucun auteur trouvé » et le bandeau « Certaines données n'ont pas pu être chargées », alors que rien du chargement n'avait été touché.
+
+**Règle** : dès qu'une table de liaison double une clé étrangère existante, **qualifier tous les embeds par le nom de la contrainte** — `auteurs!oeuvres_id_auteur_fkey(nom)`, `oeuvres!oeuvres_id_auteur_fkey(...)`. Corrigé dans `app/accueil`, `app/admin/page.tsx`, `SectionAjouterOeuvre`, `app/compte`, `SelecteurCitation`, `app/oeuvre/[id]/page.tsx`, `RechercheClient`. Vérification : `grep -rn "auteurs(\|oeuvres(" app/` ne doit plus rien renvoyer sans `!oeuvres_id_auteur_fkey`.

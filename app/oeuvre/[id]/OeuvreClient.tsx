@@ -12,6 +12,7 @@ import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee } from './oeuvreTypes'
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, rendreTitreColophonAvecNotes, notesPourTexte } from './appelNote'
+import { chargerAuteursParOeuvre, separateurAuteurs } from '@/app/lib/auteursOeuvre'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
@@ -219,7 +220,7 @@ const LABEL_VOLET: React.CSSProperties = { fontSize: '0.5rem', fontWeight: 700, 
 const BTN_VOLET = (actif: boolean): React.CSSProperties => ({ width: '100%', textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' })
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
-export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
+export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -265,7 +266,10 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
   const appuiLongRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const appuiLongDeclenche = useRef(false)
   const [infoEditionOuverte, setInfoEditionOuverte] = useState(false)
-  const [auteurModalOuvert, setAuteurModalOuvert] = useState(false)
+  // Identifiant de l'auteur dont la fiche est ouverte (null = aucune). Une œuvre
+  // pouvant être signée à deux, il ne suffit plus de savoir QU'une fiche est
+  // ouverte : il faut savoir LAQUELLE.
+  const [auteurModalId, setAuteurModalId] = useState<string | null>(null)
   // Mode de lecture. « paragraphes » (nouveau, par défaut) : les segments d'un
   // même paragraphe coulent en un seul bloc, leur délimitation n'apparaissant
   // qu'au survol. « segments » (l'ancien) : un segment = un bloc, conservé à
@@ -1089,10 +1093,56 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
     }
   }, [idOeuvre, oeuvre?.titre, auteur])
 
+  // Une œuvre peut être signée à plusieurs : « du même auteur » et les traductions
+  // sœurs se cherchent alors sur TOUS ses auteurs, et par les couples (œuvre,
+  // auteur) — un filtre sur `oeuvres.id_auteur` manquerait les œuvres que l'auteur
+  // co-signe sans les ouvrir.
+  const idsAuteurs = useMemo(
+    () => (auteursOeuvre.length > 0 ? auteursOeuvre.map(a => a.id_auteur) : auteurId ? [auteurId] : []),
+    [auteursOeuvre, auteurId],
+  )
+  const cleAuteurs = idsAuteurs.join(',')
+
+  // Chaque auteur porte son propre nom cliquable : sur une œuvre signée à deux,
+  // le lecteur atteint la fiche de l'un ou de l'autre. Repli sur le nom composé
+  // (non cliquable) si la liste n'a pas été fournie.
+  const auteursCliquables = useMemo(
+    () => (auteursOeuvre.length > 0 ? auteursOeuvre : auteurId && auteur ? [{ id_auteur: auteurId, nom: auteur, rang: 1 }] : []),
+    [auteursOeuvre, auteurId, auteur],
+  )
+  const NomsAuteurs = () => (
+    <span style={{ minWidth: 0 }}>
+      {auteursCliquables.map((a, i) => (
+        <Fragment key={a.id_auteur}>
+          {i > 0 && separateurAuteurs(i, auteursCliquables.length)}
+          <ApercuAuteur auteurId={a.id_auteur} onOuvrirFiche={() => setAuteurModalId(a.id_auteur)}>{a.nom}</ApercuAuteur>
+        </Fragment>
+      ))}
+    </span>
+  )
+
+  const [oeuvresDesAuteurs, setOeuvresDesAuteurs] = useState<string[]>([])
+  useEffect(() => {
+    if (!cleAuteurs) { setOeuvresDesAuteurs([]); return }
+    let annule = false
+    const ids = cleAuteurs.split(',')
+    chargerAuteursParOeuvre(supabase).then(parOeuvre => {
+      if (annule) return
+      setOeuvresDesAuteurs(Object.entries(parOeuvre)
+        .filter(([, auteurs]) => auteurs.some(a => ids.includes(a.id_auteur)))
+        .map(([id]) => id))
+    })
+    return () => { annule = true }
+  }, [cleAuteurs])
+
   useEffect(() => {
     if (!auteurId) return
-    supabase.from('oeuvres').select('id_oeuvre, titre, note')
-      .eq('id_auteur', auteurId)
+    const base = supabase.from('oeuvres').select('id_oeuvre, titre, note')
+    // Repli sur le premier auteur tant que les couples ne sont pas chargés (ou
+    // s'ils n'ont pas pu l'être) : la liste reste peuplée, simplement sans les
+    // co-signatures.
+    const requete = oeuvresDesAuteurs.length > 0 ? base.in('id_oeuvre', oeuvresDesAuteurs) : base.eq('id_auteur', auteurId)
+    requete
       .neq('id_oeuvre', idOeuvre)
       .then(({ data }) => setOeuvresAuteur(
         ((data ?? []) as any[]).filter(estOeuvrePubliee)
@@ -1101,7 +1151,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
           .sort((a, b) => cleTriTitre(a.titre).localeCompare(cleTriTitre(b.titre), 'fr')
             || String(a.titre).localeCompare(String(b.titre), 'fr'))
       ))
-  }, [auteurId, idOeuvre])
+  }, [auteurId, idOeuvre, oeuvresDesAuteurs])
 
   // Charge les traductions sœurs (même auteur, même titre normalisé), œuvre courante
   // incluse. S'il y en a plus d'une, le sélecteur de traduction s'affiche.
@@ -1109,14 +1159,15 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
     if (!auteurId) return
     const norm = (s: string) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
     const cible = norm(oeuvre?.titre || '')
-    supabase.from('oeuvres').select('id_oeuvre, titre, trad_auteur, editeur, ville, date_publication, note')
-      .eq('id_auteur', auteurId)
+    const base = supabase.from('oeuvres').select('id_oeuvre, titre, trad_auteur, editeur, ville, date_publication, note')
+    const requete = oeuvresDesAuteurs.length > 0 ? base.in('id_oeuvre', oeuvresDesAuteurs) : base.eq('id_auteur', auteurId)
+    requete
       .order('date_publication', { ascending: true, nullsFirst: true })
       .then(({ data }) => {
         const soeurs = ((data ?? []) as VersionTrad[]).filter(o => norm(o.titre) === cible && estOeuvrePubliee(o))
         setVersions(soeurs)
       })
-  }, [auteurId, oeuvre?.titre])
+  }, [auteurId, oeuvre?.titre, oeuvresDesAuteurs])
 
   const chargerSauvegardesSegs = async (uid: string, oeuvreId: string, texteId: string) => {
     const { data } = await supabase
@@ -1311,7 +1362,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
           />}
           <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <ApercuAuteur auteurId={auteurId ?? null} onOuvrirFiche={() => { if (auteurId) setAuteurModalOuvert(true) }}>{auteur}</ApercuAuteur>
+              <NomsAuteurs />
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                 {estAdmin && (
                   <button onClick={() => setConfigOuverte(true)} title="Configurer les niveaux d'affichage"
@@ -2379,11 +2430,16 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
               <div style={{ minWidth: 0 }}>
                 <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: '#6f9268', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette édition</p>
-                {/* Auteur ET titre sur la même ligne ; l'auteur ouvre sa fiche. */}
+                {/* Auteur ET titre sur la même ligne ; chaque auteur ouvre sa fiche. */}
                 <p style={{ margin: 0, lineHeight: 1.28 }}>
-                  {auteurId ? (
-                    <button onClick={() => setAuteurModalOuvert(true)} title="Voir la fiche de l’auteur"
-                      style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', letterSpacing: '0.02em' }}>{auteur}</button>
+                  {auteursCliquables.length > 0 ? (
+                    auteursCliquables.map((a, i) => (
+                      <Fragment key={a.id_auteur}>
+                        {i > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-second)' }}>{separateurAuteurs(i, auteursCliquables.length)}</span>}
+                        <button onClick={() => setAuteurModalId(a.id_auteur)} title="Voir la fiche de l’auteur"
+                          style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', letterSpacing: '0.02em' }}>{a.nom}</button>
+                      </Fragment>
+                    ))
                   ) : (
                     <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', letterSpacing: '0.02em' }}>{auteur}</span>
                   )}
@@ -2445,7 +2501,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, idTexte, vers
       )}
 
       {/* Fiche auteur en fenêtre, ouverte depuis « À propos de cette édition ». */}
-      <ModaleAuteur id={auteurModalOuvert ? (auteurId ?? null) : null} onClose={() => setAuteurModalOuvert(false)} />
+      <ModaleAuteur id={auteurModalId} onClose={() => setAuteurModalId(null)} />
 
       {estAdmin && configOuverte && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}

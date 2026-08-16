@@ -8,6 +8,7 @@ import type { Auteur, AuteurPhotoPos, AuteurPhotoPositions, Oeuvre, LignePreview
 import { revaliderBibliotheque } from '@/app/actions/revalider'
 import { estOeuvrePubliee, MARQUEUR_OEUVRE_DEPUBLIEE } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
+import { chargerAuteursDOeuvre, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 
 async function exporterOeuvre(idOeuvre: string, titreOeuvre: string) {
   const res = await fetch(`/api/admin/export-segments?id_oeuvre=${idOeuvre}`, { headers: await headersAdmin() })
@@ -1214,8 +1215,39 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     })
     setFormOeuvreGenres(Array.isArray(o.genres) ? o.genres : [])
     setStatutOeuvre(null)
+    setCoAuteurAAjouter(''); setStatutAuteursOeuvre(null)
+    setAuteursOeuvre([])
+    chargerAuteursDOeuvre(supabase, o.id_oeuvre).then(setAuteursOeuvre)
   }
-  const fermerEditionOeuvre = () => { setEditionOeuvre(null); setFormOeuvre({}); setFormOeuvreGenres([]) }
+  const fermerEditionOeuvre = () => {
+    setEditionOeuvre(null); setFormOeuvre({}); setFormOeuvreGenres([])
+    setAuteursOeuvre([]); setCoAuteurAAjouter(''); setStatutAuteursOeuvre(null)
+  }
+
+  // Co-signature d'une œuvre : les auteurs sont à égalité, mais le PREMIER vit
+  // dans `oeuvres.id_auteur` et se change par le champ « Auteur » de l'œuvre ;
+  // seuls les suivants s'ajoutent et se retirent ici.
+  const majAuteursOeuvre = async (idOeuvre: string, action: 'ajouter' | 'retirer', idAuteur: string) => {
+    setStatutAuteursOeuvre(null)
+    try {
+      const res = await fetch('/api/admin/oeuvre-auteurs', {
+        method: 'POST',
+        headers: await headersAdmin({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ action, id_oeuvre: idOeuvre, id_auteur: idAuteur }),
+      })
+      // Le verrou du site répond par une REDIRECTION vers /chantier, pas par un
+      // 401 : un `res.ok` ne suffit donc pas à conclure que l'écriture a eu lieu.
+      const estJson = res.headers.get('content-type')?.includes('application/json')
+      if (res.redirected || !estJson) { setStatutAuteursOeuvre('Session expirée — se reconnecter.'); return }
+      const corps = await res.json()
+      if (!res.ok) { setStatutAuteursOeuvre(corps?.error ?? 'Échec de l’enregistrement.'); return }
+      setAuteursOeuvre(await chargerAuteursDOeuvre(supabase, idOeuvre))
+      setCoAuteurAAjouter('')
+      setStatutAuteursOeuvre(action === 'ajouter' ? 'Auteur ajouté.' : 'Auteur retiré.')
+    } catch {
+      setStatutAuteursOeuvre('Erreur réseau.')
+    }
+  }
 
   const sauvegarderOeuvre = async (idOeuvre: string) => {
     if (!formOeuvre.titre?.trim()) { setStatutOeuvre({ id: idOeuvre, ok: false, msg: 'Le titre est requis.' }); return }
@@ -1337,6 +1369,10 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   const [configOeuvre, setConfigOeuvre] = useState<string | null>(null)
   const [niveauxConfig, setNiveauxConfig] = useState<Record<string, { sommaire: number; corps: number; txtSommaire: boolean[]; txtCorps: boolean[]; afficherNumeros: boolean }>>({})
   const [editionOeuvre, setEditionOeuvre] = useState<string | null>(null)
+  // Auteurs de l'œuvre en cours de modification (le premier et ses co-signataires).
+  const [auteursOeuvre, setAuteursOeuvre] = useState<AuteurOeuvre[]>([])
+  const [coAuteurAAjouter, setCoAuteurAAjouter] = useState('')
+  const [statutAuteursOeuvre, setStatutAuteursOeuvre] = useState<string | null>(null)
   const [formOeuvre, setFormOeuvre] = useState<Record<string, string>>({})
   const [formOeuvreGenres, setFormOeuvreGenres] = useState<string[]>([])
   const [statutOeuvre, setStatutOeuvre] = useState<{ id: string; ok: boolean; msg: string } | null>(null)
@@ -1579,9 +1615,9 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           placeholder="Rechercher un auteur ou une œuvre…"
           style={{ flex: 1, fontSize: '0.8625rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none' }} />
         {recherche && <button onClick={() => setRecherche('')} style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>}
-        <button onClick={() => { setAjoutAuteur(!ajoutAuteur); setMsgAjoutAuteur(null) }}
-          style={{ width: '7.375rem', textAlign: 'center', fontSize: '0.8625rem', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutAuteur ? 'var(--cs-vert-fonce)' : 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
-          {ajoutAuteur ? 'Fermer' : '+ Nouvel auteur'}
+        <button onClick={() => { setAjoutAuteur(!coAuteurAAjouter); setMsgAjoutAuteur(null) }}
+          style={{ width: '7.375rem', textAlign: 'center', fontSize: '0.8625rem', padding: '6px 10px', borderRadius: '5px', border: 'none', background: coAuteurAAjouter ? 'var(--cs-vert-fonce)' : 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          {coAuteurAAjouter ? 'Fermer' : '+ Nouvel auteur'}
         </button>
         <button onClick={() => { setAjoutOeuvre(!ajoutOeuvre); setVueBibliotheque('oeuvres') }}
           style={{ width: '8rem', textAlign: 'center', fontSize: '0.8625rem', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutOeuvre ? 'var(--cs-vert-fonce)' : 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
@@ -1629,7 +1665,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       )}
 
       {/* Formulaire nouvel auteur */}
-      {ajoutAuteur && (
+      {coAuteurAAjouter && (
         <div style={{ background: 'var(--cs-surface)', border: '2px solid var(--cs-vert)', borderRadius: '8px', padding: '16px 20px', marginBottom: '8px' }}>
           <p style={{ fontSize: '0.8625rem', fontWeight: 600, color: 'var(--cs-vert)', marginBottom: '14px' }}>Nouvel auteur</p>
           <ChampsAuteur
@@ -1917,6 +1953,42 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                         <div style={{ gridColumn: '1 / -1' }}>
                           <label style={lbl}>Titre original</label>
                           <input type="text" value={formOeuvre.titre_original ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, titre_original: e.target.value }))} style={inputStyleAuteur} />
+                        </div>
+
+                        <hr style={sepOeuvre} />
+
+                        {/* Auteurs — une œuvre peut être signée à plusieurs, à
+                            égalité. Elle paraît alors sur l'étagère de chacun et
+                            porte les deux noms. Le premier auteur vient de l'œuvre
+                            elle-même ; les suivants s'ajoutent ici. */}
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <label style={lbl}>Auteurs</label>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', marginBottom: '6px' }}>
+                            {auteursOeuvre.map(a => (
+                              <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: 'var(--cs-texte-fort)', background: 'var(--cs-fond-doux)', border: '1px solid var(--cs-bord-clair)', borderRadius: '3px', padding: '2px 6px' }}>
+                                {a.nom}
+                                {a.rang === 1
+                                  ? <span style={{ fontSize: '0.62rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>premier</span>
+                                  : <button onClick={() => majAuteursOeuvre(oeuvre.id_oeuvre, 'retirer', a.id_auteur)}
+                                      title="Retirer cet auteur de l’œuvre"
+                                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-danger)', fontSize: '0.8rem', lineHeight: 1, padding: 0 }}>×</button>}
+                              </span>
+                            ))}
+                            {auteursOeuvre.length === 0 && <span style={{ fontSize: '0.7rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</span>}
+                          </div>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            <select value={coAuteurAAjouter} onChange={e => setCoAuteurAAjouter(e.target.value)} style={{ ...inputStyleAuteur, flex: 1 }}>
+                              <option value="">Ajouter un auteur…</option>
+                              {auteurs
+                                .filter(a => !auteursOeuvre.some(existant => existant.id_auteur === a.id_auteur))
+                                .map(a => <option key={a.id_auteur} value={a.id_auteur}>{a.nom}</option>)}
+                            </select>
+                            <button onClick={() => coAuteurAAjouter && majAuteursOeuvre(oeuvre.id_oeuvre, 'ajouter', coAuteurAAjouter)}
+                              disabled={!coAuteurAAjouter} style={{ ...btnSobre, opacity: coAuteurAAjouter ? 1 : 0.5 }}>Ajouter</button>
+                          </div>
+                          {statutAuteursOeuvre && (
+                            <p style={{ margin: '5px 0 0', fontSize: '0.68rem', color: /ajouté|retiré/.test(statutAuteursOeuvre) ? 'var(--cs-vert)' : 'var(--cs-danger)' }}>{statutAuteursOeuvre}</p>
+                          )}
                         </div>
 
                         <hr style={sepOeuvre} />
