@@ -48,6 +48,12 @@ describe('normaliserEspaces (français)', () => {
       `Rendez-vous 10:30${FINE}; Jn 3:16${FINE}; https://exemple.fr/a:b?x=1${FINE}; fin.`,
     )
   })
+  it('préserve une URL qui se termine par ?', () => {
+    expect(normaliserEspaces('Voir https://example.com/page?')).toBe('Voir https://example.com/page?')
+  })
+  it('ne touche pas la virgule, le point ni les points de suspension', () => {
+    expect(normaliserEspaces('a, b. c... fin.')).toBe('a, b. c... fin.')
+  })
   it('reste idempotent', () => {
     const texte = `(Pourquoi${FINE}? parce que${NBSP}: oui${FINE}; vraiment${FINE}!)`
     expect(normaliserEspaces(normaliserEspaces(texte))).toBe(texte)
@@ -58,5 +64,8 @@ describe('normalisation glyphique non médiévale', () => {
   it('modernise les glyphes sans moderniser la langue', () => {
     expect(normaliserGlyphesEdition('il ſçavoit ﬁdèlement')).toBe('il sçavoit fidèlement')
     expect(normaliserTypographieEdition('il ſçavoit: oui;')).toBe(`il sçavoit${NBSP}: oui${FINE};`)
+  })
+  it('ne développe pas les ligatures orthographiques œ et æ', () => {
+    expect(normaliserGlyphesEdition('cœur æternel')).toBe('cœur æternel')
   })
 })
