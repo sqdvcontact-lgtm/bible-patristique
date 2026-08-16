@@ -6,19 +6,10 @@ import IconeCrayon from '@/app/components/IconeCrayon'
 import { MarqueImprimeur } from './Ornements'
 import { sansPointFinal } from '@/app/lib/titres'
 
-const TITRES_RE = /^(M\.|Mme\.?|Mlle\.?|Dr\.?|Pr\.?|Dom |Père |Frère |Sœur |Abbé |Saint |Sainte |Rev\.? ?|Mgr\.?|R\.\s*P\.|l['']abbé|le père)/i
-
-/** « A ; B » → « A et B » ; « A ; B ; C » → « A, B et C ».
- *  Le point-virgule est la façon dont le catalogue sépare les noms ; il n'a
- *  rien à faire dans une phrase affichée. */
-export function enumererNoms(noms: string[]): string {
-  if (noms.length <= 1) return noms[0] ?? ''
-  return `${noms.slice(0, -1).join(', ')} et ${noms[noms.length - 1]}`
-}
-
-// Titres à passer en minuscule à l'affichage (ils suivent « Traduction … », donc pas
-// en début de phrase). On ne touche PAS à « Saint(e) », partie du nom propre.
-const TITRE_MINUSCULE_RE = /^(Abbé|Dom|Père|Frère|Sœur|Chanoine|Cardinal|Monseigneur|Mgr|Mère)\b/
+// Libellé du traducteur : logique pure dans `app/lib/traducteurs.ts` (testée),
+// ré-exportée ici pour les appelants historiques.
+import { libelleTrad } from '@/app/lib/traducteurs'
+export { enumererNoms, libelleTrad } from '@/app/lib/traducteurs'
 
 /** Affichage d'un éditeur : « / » pour les co-éditeurs (jamais le « ; » brut du catalogue),
  *  et surtout, quand la maison est répertoriée dans la table `editeurs`, on affiche son NOM
@@ -68,36 +59,6 @@ export function formulerProvenance(
   // Nom court appelant « du », sinon nom propre sans article.
   if (EDITEUR_AVEC_DU.has(bas)) return `D’après l’édition du ${ed}${suffixe}`;
   return `D’après l’édition de ${ed}${suffixe}`;
-}
-
-/** Nettoyage d'AFFICHAGE d'un nom de traducteur (les données restent intactes) :
- *  masque « — prénom non établi » (gardé en base pour les passes de recherche),
- *  retire un « signalé(e) » superflu en fin, met le titre en minuscule. */
-function nettoyerNomTrad(nom: string): string {
-  return nom
-    .replace(/\s*[—–-]\s*prénom non établi/gi, '')
-    .replace(/\s+signalée?\.?\s*$/i, '')
-    .replace(TITRE_MINUSCULE_RE, m => m.toLowerCase())
-    .trim()
-}
-
-export function libelleTrad(trad: string | null | undefined): string {
-  const brut = (trad ?? '').split(/\s*;\s*/).map(s => s.trim()).filter(Boolean)
-  // « Non établi » n'est pas un nom : traducteur inconnu.
-  const noms = brut.map(nettoyerNomTrad).filter(n => n && !/^non établi/i.test(n))
-  if (noms.length === 0) {
-    return brut.some(b => /^non établi/i.test(b)) ? 'Traducteur non identifié' : ''
-  }
-  if (noms.length > 1) {
-    // Uniformité : préfixe « : » dès qu'un titre (abbé, dom…) est en tête.
-    const prefixe = TITRES_RE.test(noms[0]) ? 'Traduction : ' : 'Traduction par '
-    return `${prefixe}${enumererNoms(noms)}`
-  }
-  const t = noms[0]
-  if (t.toLowerCase() === 'anonyme') return 'Traduction anonyme'
-  if (TITRES_RE.test(t)) return `Traduction : ${t}`
-  if (t.includes(' ')) return `Traduction par ${t}`
-  return `Traduction de ${t}`
 }
 
 const BTN: React.CSSProperties = {
