@@ -10,6 +10,7 @@ import EtoileFavori from '@/app/components/EtoileFavori'
 import IconeChevron from '@/app/components/IconeChevron'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import { partagerOpuscules } from '@/app/lib/opuscules'
 import { libelleTrad, formaterEditeur } from '@/app/oeuvre/[id]/PageTitre'
 import { useEditeursCharges } from '@/app/lib/editeurs'
 import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
@@ -25,6 +26,7 @@ type Oeuvre = {
   date_publication_affichage_courte: string | null
   date_publication_precision_affichage: string | null
   genre: string | null; note?: string | null; langue_originale?: string | null
+  nb_signes?: number | null
 }
 type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }
@@ -109,6 +111,33 @@ function extraireAnnee(s: string | null | undefined): number | null {
 const CHIFFRES_FR = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix',
   'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf', 'vingt']
 function enLettres(n: number): string { return n >= 1 && n <= 20 ? CHIFFRES_FR[n - 1] : String(n) }
+
+// ── Opuscules ─────────────────────────────────────────────────────────────────
+// Seuil, mesure et règles de partage : voir `app/lib/opuscules.ts` (module pur, testé).
+type GroupeTitre = { titre: string; versions: Oeuvre[] }
+
+// Repliée par défaut. Une recherche qui tombe dans un opuscule la déplie d'office,
+// sans quoi le résultat trouvé resterait invisible.
+function SectionOpuscules({ nombre, ouverteDeForce, children }: {
+  nombre: number; ouverteDeForce: boolean; children: React.ReactNode
+}) {
+  const [ouverte, setOuverte] = useState(false)
+  const deployee = ouverte || ouverteDeForce
+  return (
+    <div style={{ borderTop: '1px solid #f3efe9' }}>
+      <button onClick={() => setOuverte(o => !o)} aria-expanded={deployee}
+        title={deployee ? 'Replier les opuscules' : 'Les textes brefs de cet auteur'}
+        style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '6px 18px 6px 20px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+        <span style={{ display: 'inline-flex', color: 'var(--cs-texte-faible)' }}>
+          <IconeChevron dir={deployee ? 'down' : 'right'} size={11} strokeWidth={1.4} />
+        </span>
+        <span style={{ fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-second)' }}>Opuscules</span>
+        <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)' }}>{nombre}</span>
+      </button>
+      {deployee && <div style={{ paddingBottom: '2px' }}>{children}</div>}
+    </div>
+  )
+}
 
 // ── Bandeau auteur ────────────────────────────────────────────────────────────
 function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, onOuvrirAuteur, originaux, ouvertParDefaut = false, compact = false }: {
@@ -255,13 +284,15 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
               traduction mène à sa propre édition. Aujourd'hui une œuvre = une traduction ;
               la structure accueille les éditions multiples à venir. */}
           {(() => {
-            const oeuvresParTitre: { titre: string; versions: Oeuvre[] }[] = []
+            const oeuvresParTitre: GroupeTitre[] = []
             for (const o of oeuvresTriees) {
               const dernier = oeuvresParTitre[oeuvresParTitre.length - 1]
               if (dernier && sansAccents(dernier.titre) === sansAccents(o.titre)) dernier.versions.push(o)
               else oeuvresParTitre.push({ titre: o.titre, versions: [o] })
             }
-            return oeuvresParTitre.map((grp, idx) => {
+            const { grandes, opuscules, sectionne } = partagerOpuscules<Oeuvre, GroupeTitre>(oeuvresParTitre)
+            const opusculeCorrespond = opuscules.some(g => g.versions.some(v => v.id_oeuvre === oeuvreCorrespondante?.id_oeuvre))
+            const rendreGroupe = (grp: GroupeTitre, idx: number) => {
               const correspond = !!oeuvreCorrespondante && grp.versions.some(v => v.id_oeuvre === oeuvreCorrespondante.id_oeuvre)
               return (
                 <div key={grp.versions[0].id_oeuvre}
@@ -328,7 +359,16 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                   })}
                 </div>
               )
-            })
+            }
+            if (!sectionne) return oeuvresParTitre.map(rendreGroupe)
+            return (
+              <>
+                {grandes.map(rendreGroupe)}
+                <SectionOpuscules nombre={opuscules.length} ouverteDeForce={opusculeCorrespond}>
+                  {opuscules.map(rendreGroupe)}
+                </SectionOpuscules>
+              </>
+            )
           })()}
         </div>
       )}
@@ -1390,7 +1430,7 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SELECT_AUTEURS = 'id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, langue_principale, traditions, note, note_biographique, note_theologique, photo_position'
-const SELECT_OEUVRES_DATES = 'id_oeuvre, id_auteur, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication_affichage_courte, date_publication_precision_affichage, genre, note, langue_originale'
+const SELECT_OEUVRES_DATES = 'id_oeuvre, id_auteur, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication_affichage_courte, date_publication_precision_affichage, genre, note, langue_originale, nb_signes'
 // Bucket HORAIRE (identique au serveur, app/bibliotheque/page.tsx) : le paramètre
 // ?v= reste stable au sein d'une heure, donc le navigateur met les photos en cache
 // au lieu de les retélécharger à chaque montage/refetch (auparavant : bucket à la
