@@ -6,6 +6,9 @@ import { supabase } from '@/app/lib/supabase'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { rendreTexteEnrichi, texteSansEnrichissement } from './texteEnrichi'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
+// Forme de l'appel de note : une seule définition pour tout le site (jamais de
+// pointillé sous un appel — voir appelNote.tsx).
+import { styleAppelNote } from './appelNote'
 import { BadgeStatutAlignement } from './ComparaisonStatut'
 import { BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import type { AlignementDisponible, NoteBlocData, NoteStructuree, SegData } from './oeuvreTypes'
@@ -82,7 +85,7 @@ function AppelNote({ note }: { note: NoteStructuree }) {
       <sup ref={ancre as React.RefObject<HTMLElement>} data-appel-note="" role="button" tabIndex={0}
         onClick={basculer} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') basculer(e) }}
         aria-label={`Consulter la note ${note.noteNumber}`}
-        style={{ cursor: 'help', color: '#8a6a3e', fontSize: '0.60em', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'normal', userSelect: 'none', letterSpacing: 0, display: 'inline-block', lineHeight: 1, padding: '0 1px', borderBottom: '1px dotted #c8a87a' }}>
+        style={styleAppelNote()}>
         {note.noteNumber}
       </sup>
       {ouvert && typeof document !== 'undefined' && createPortal(

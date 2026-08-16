@@ -34,16 +34,19 @@ export function titreSansAppelsDeNote(texte: string) {
 // L'appel prend le style du texte qui l'accueille : il hérite la police et
 // l'italique du contexte (un chapeau en italique porte un appel en italique, une
 // colonne en sans-serif un appel en sans-serif) et se règle en corps sur lui.
-// Dans la prose, il garde sa teinte brune et son pointillé, qui le signalent
-// comme cliquable. Dans un titre de haut rang, ces deux marques deviennent des
-// taches : l'intitulé est court, composé large, et le pointillé s'y voit trop —
-// l'appel y prend donc l'encre du titre, plus discret et proportionnellement
-// plus petit. Les titres de rang bas (niveaux 3 et 4), composés à la taille du
-// texte, gardent la forme du corps.
+// Dans la prose, il garde sa teinte brune. Dans un titre de haut rang, cette
+// teinte devient une tache : l'intitulé est court et composé large, l'appel y
+// prend donc l'encre du titre, plus discret et proportionnellement plus petit.
+// Les titres de rang bas (niveaux 3 et 4), composés à la taille du texte,
+// gardent la forme du corps.
+//
+// ⛔ JAMAIS de pointillé (ni de soulignement d'aucune sorte) sous un appel de
+// note : règle d'auteur, sans exception. L'exposant et la teinte suffisent à le
+// signaler. Ne pas le réintroduire au prétexte d'indiquer qu'il est cliquable.
 export type VarianteAppelNote = 'corps' | 'titre' | 'frontispice'
 
 const FORME_APPEL: Record<VarianteAppelNote, React.CSSProperties> = {
-  corps: { fontSize: '0.60em', color: '#8a6a3e', borderBottom: '1px dotted #c8a87a' },
+  corps: { fontSize: '0.60em', color: '#8a6a3e' },
   titre: { fontSize: '0.42em', color: 'currentColor', opacity: 0.55 },
   frontispice: { fontSize: '0.30em', color: 'currentColor', opacity: 0.45 },
 }
