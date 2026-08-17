@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { chargerOeuvresDAuteur } from '@/app/lib/auteursOeuvre'
 import type { CSSProperties, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
@@ -282,17 +283,25 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
   useEffect(() => {
     if (!id) { setAuteur(null); setEvenements([]); setErreur(false); return }
     setAuteur(null); setEvenements([]); setErreur(false)
-    Promise.all([
-      supabase.from('auteurs')
-        .select('id_auteur, nom, nom_original, titre, dates, siecle, traditions, photo_position, note_biographique, note_theologique, langue_principale, anecdotes, influence')
-        .eq('id_auteur', id).maybeSingle(),
-      supabase.from('v_oeuvres_dates')
-        .select('id_oeuvre, titre, sous_titre, trad_auteur, editeur, ville, note, date_composition_affichage_courte, date_composition_precision_affichage, composition_debut_annee')
-        .eq('id_auteur', id),
-    ]).then(([auteurResultat, oeuvresResultat]) => {
+    // ⚠️ Les œuvres de l'auteur passent par `v_oeuvres_auteurs`, CO-SIGNATURES
+    // COMPRISES : un filtre sur `oeuvres.id_auteur` laisserait vide la fiche de
+    // Rufin d'Aquilée, qui ne porte aucune œuvre en propre mais signe
+    // l'Histoire ecclésiastique avec Eusèbe.
+    void (async () => {
+      const ids = await chargerOeuvresDAuteur(supabase, id)
+      const [auteurResultat, oeuvresResultat] = await Promise.all([
+        supabase.from('auteurs')
+          .select('id_auteur, nom, nom_original, titre, dates, siecle, traditions, photo_position, note_biographique, note_theologique, langue_principale, anecdotes, influence')
+          .eq('id_auteur', id).maybeSingle(),
+        ids.length
+          ? supabase.from('v_oeuvres_dates')
+              .select('id_oeuvre, titre, sous_titre, trad_auteur, editeur, ville, note, date_composition_affichage_courte, date_composition_precision_affichage, composition_debut_annee')
+              .in('id_oeuvre', ids)
+          : Promise.resolve({ data: [] as OeuvreResumee[], error: null }),
+      ])
       if (auteurResultat.error || oeuvresResultat.error || !auteurResultat.data) { setErreur(true); return }
       setAuteur({ ...auteurResultat.data, oeuvres: oeuvresResultat.data ?? [] } as Auteur)
-    })
+    })()
     // Frise : la vue porte déjà l'ordre éditorial, la date rédigée, le type et
     // les sources. Les associations masquées en sont exclues à la source.
     supabase.from('v_chronologie_auteurs_dates').select('*')

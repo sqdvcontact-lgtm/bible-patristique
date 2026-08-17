@@ -13,7 +13,7 @@ import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { partagerOpuscules } from '@/app/lib/opuscules'
 import { libelleTrad, formaterEditeur } from '@/app/oeuvre/[id]/PageTitre'
 import { estLangueOriginale, libelleTemoin, editionCourte } from '@/app/lib/temoinsOeuvre'
-import type { AuteurOeuvre } from '@/app/lib/auteursOeuvre'
+import { libelleAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import { useEditeursCharges } from '@/app/lib/editeurs'
 import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
@@ -341,6 +341,18 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                   className={`bib-oeuvre${correspond ? ' bib-correspond' : ''}`}
                   style={{ borderTop: idx > 0 ? '1px solid #f3efe9' : 'none', borderLeft: correspond ? '3px solid var(--cs-vert)' : '3px solid transparent', padding: '4px 0 5px' }}>
                   <span style={{ display: 'block', fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? '#2a4d35' : 'var(--cs-encre)', fontWeight: correspond ? 600 : 400, lineHeight: 1.3, padding: '0 18px 0 20px' }}>{grp.titre}</span>
+                  {/* Une œuvre signée à plusieurs paraît sur l'étagère de chacun :
+                      on y nomme les AUTRES signataires, sans quoi l'Histoire
+                      ecclésiastique semblerait, chez Rufin, être de lui seul. */}
+                  {(() => {
+                    const cosignataires = (grp.versions[0].auteurs ?? []).filter(a => a.id_auteur !== auteur.id_auteur)
+                    if (!cosignataires.length) return null
+                    return (
+                      <span style={{ display: 'block', fontSize: '0.625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', lineHeight: 1.3, padding: '1px 18px 0 20px' }}>
+                        avec {libelleAuteurs(cosignataires)}
+                      </span>
+                    )
+                  })()}
                   {grp.versions.map(o => {
                     const editionTexte = [o.editeur, o.ville].filter(Boolean).join(', ')
                     const datePublication = o.date_publication_affichage_courte

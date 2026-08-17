@@ -528,4 +528,12 @@ Doctrine : charte `parametres.charte_ia` **§ 19.2**. Les auteurs d'une œuvre s
 
 **Trouvaille du 2026-08-17.** La migration `oeuvres_a_deux_auteurs` (table + vue) était **en base depuis le 16 août**, mais deux moitiés manquaient : `oeuvres_auteurs` était **vide** (0 ligne), et le code qui lit la vue vivait sur la branche, pas sur `master`. Le lien Eusèbe–Rufin sur `A0024O0001` a été créé, et la lecture portée dans `app/bibliotheque/page.tsx`. Effet mesuré : **un seul auteur change**, Rufin, de 0 à 1 œuvre.
 
-**Reste à porter** : la page de titre et les cartes ne nomment encore qu'un auteur. `libelleAuteurs` et `separateurAuteurs` sont là pour cela, le second rendant les noms un à un et cliquables.
+**Porté ensuite le 2026-08-17** :
+
+- **La fiche d'auteur** (`ModaleAuteur`) tirait ses œuvres d'un `.eq('id_auteur')` : la fiche de Rufin serait restée VIDE. Elle passe par `chargerOeuvresDAuteur`, co-signatures comprises, puis charge les œuvres par `.in('id_oeuvre', ids)`.
+- **La page de titre** nomme tous les signataires : `auteur` vaut désormais `libelleAuteurs()`, « Eusèbe de Césarée et Rufin d'Aquilée ». Le fil d'Ariane et le lien de retour gardent le PREMIER auteur, faute de pouvoir pointer vers deux fiches.
+- **La bibliothèque nomme les co-signataires** sous le titre, « avec Eusèbe de Césarée », en excluant l'auteur dont on lit l'étagère : sans cela, l'Histoire ecclésiastique semblerait, chez Rufin, être de lui seul.
+
+⚠️ **Trois surfaces lisaient l'auteur, pas une.** Chacune avait sa propre requête, et corriger la bibliothèque seule laissait une fiche vide et une page de titre incomplète. Chercher `id_auteur` dans tout `app/` avant de croire un tel portage terminé.
+
+**Reste** : `separateurAuteurs` n'est pas employé. Il sert à rendre les noms un à un et CLIQUABLES, chacun vers sa fiche, ce que la chaîne de `libelleAuteurs` ne permet pas.

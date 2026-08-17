@@ -2,6 +2,7 @@ import { hydraterLiensHerites } from '@/app/lib/liens'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import type { Metadata } from 'next'
 import type { AlignementDisponible } from './oeuvreTypes'
+import { chargerAuteursDOeuvre, libelleAuteurs } from '@/app/lib/auteursOeuvre'
 import { libelleColonne } from './comparaisonTraductionsUtils'
 import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
 import { ABREV_FR } from '@/app/lib/bible'
@@ -395,8 +396,16 @@ export default async function OeuvrePage({
     }))
   })
 
-  const auteur = (oeuvre.auteurs as any)?.nom || ''
-  const auteurId = (oeuvre.auteurs as any)?.id_auteur?.toString() ?? ''
+  // Une œuvre peut être signée par plusieurs auteurs, à égalité : elle porte
+  // alors les deux noms là où on la nomme. Le fil d'Ariane et le lien de retour
+  // gardent le PREMIER auteur, faute de pouvoir pointer vers deux fiches.
+  const auteursOeuvre = await chargerAuteursDOeuvre(supabase, id)
+  const auteur = auteursOeuvre.length
+    ? libelleAuteurs(auteursOeuvre)
+    : ((oeuvre.auteurs as any)?.nom || '')
+  const auteurId = auteursOeuvre[0]?.id_auteur
+    ?? (oeuvre.auteurs as any)?.id_auteur?.toString()
+    ?? ''
 
   // Éligibilité au mode Paragraphes : l'œuvre doit porter la colonne `paragraphe`
   // (charte §6.1). On l'estime sur le premier niv1 chargé, représentatif — la
