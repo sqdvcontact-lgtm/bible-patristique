@@ -220,65 +220,71 @@ function OngletCommunaute({
         /* Trois couvertures par rang, comme une table d'étalage. */
         .rayon { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.7rem 1.5rem; }
 
-        /* Une couverture : proportion d'un petit livre, couleur pleine, filet
-           intérieur. Tout est sans empattement, la quatrième exceptée. */
+        /* Une couverture : proportion d'un petit livre, couleur pleine, composition
+           CENTRÉE. Tout est sans empattement, la quatrième exceptée. */
         .couverture {
           position: relative; display: block; aspect-ratio: 2 / 3; overflow: hidden;
-          border-radius: 3px; text-decoration: none; isolation: isolate;
+          border-radius: 2px; text-decoration: none; isolation: isolate;
           font-family: var(--font-source-sans), Arial, sans-serif;
-          box-shadow: 0 1px 2px rgba(40,30,15,0.16), 0 8px 18px -10px rgba(40,30,15,0.34);
-          transition: transform 0.18s ease, box-shadow 0.18s ease;
+          box-shadow: 0 1px 2px rgba(40,30,15,0.18), 0 10px 22px -12px rgba(40,30,15,0.40);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .couverture:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(40,30,15,0.18), 0 16px 28px -12px rgba(40,30,15,0.42); }
+        .couverture:hover { transform: translateY(-4px); box-shadow: 0 2px 5px rgba(40,30,15,0.20), 0 20px 34px -14px rgba(40,30,15,0.46); }
 
-        /* Le dos de reliure : une bande plus sombre au bord gauche. */
+        /* Le dos de reliure : une bande sombre au bord gauche, discrète. */
         .couverture::before {
-          content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 9px; z-index: 2;
-          background: linear-gradient(90deg, rgba(0,0,0,0.26), rgba(0,0,0,0.06) 62%, rgba(255,255,255,0.07));
+          content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 7px; z-index: 2;
+          background: linear-gradient(90deg, rgba(0,0,0,0.30), rgba(0,0,0,0.05) 70%, rgba(255,255,255,0.06));
           pointer-events: none;
         }
 
+        /* Trois zones : l'auteur en haut, le titre au centre optique, la date au
+           pied. C'est cette respiration qui fait la couverture, plus qu'un cadre. */
         .couverture-face {
           position: absolute; inset: 0; z-index: 1;
-          display: flex; flex-direction: column;
-          padding: 1.45rem 1.15rem 1.05rem 1.5rem;
-          transition: opacity 0.2s ease;
+          display: flex; flex-direction: column; align-items: center; text-align: center;
+          padding: 2.1rem 1.4rem 1.5rem 1.55rem;
+          transition: opacity 0.22s ease;
         }
-        .couverture-cadre { position: absolute; inset: 0.55rem 0.5rem 0.5rem 0.85rem; border: 1px solid; border-radius: 2px; pointer-events: none; }
+        .couverture-cadre { position: absolute; inset: 0.75rem 0.7rem 0.7rem 1rem; border: 1px solid; pointer-events: none; }
 
         .couverture-auteur {
-          font-size: 0.9375rem; font-weight: 700; line-height: 1.16;
-          letter-spacing: 0.05em; text-transform: uppercase;
+          font-size: 0.75rem; font-weight: 600; line-height: 1.3;
+          letter-spacing: 0.19em; text-transform: uppercase;
         }
-        .couverture-filet { height: 1px; width: 34%; margin: 0.6rem 0 0.75rem; }
-        .couverture-titre { font-size: 1.1875rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.005em; }
-        .couverture-soustitre { font-size: 0.78125rem; font-weight: 400; line-height: 1.3; margin-top: 0.34rem; opacity: 0.84; }
-        .couverture-date { margin-top: auto; font-size: 0.6875rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.78; }
+        .couverture-centre { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; }
+        .couverture-filet { height: 1px; width: 1.9rem; }
+        .couverture-titre { font-size: 1.375rem; font-weight: 600; line-height: 1.16; letter-spacing: -0.012em; }
+        .couverture-soustitre { font-size: 0.78125rem; font-weight: 400; line-height: 1.34; opacity: 0.82; }
+        .couverture-date { font-size: 0.625rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.72; }
 
-        .couverture-etoile { position: absolute; top: 0.5rem; right: 0.55rem; z-index: 4; line-height: 1; }
+        .couverture-etoile { position: absolute; top: 0.55rem; right: 0.6rem; z-index: 4; line-height: 1; }
 
         /* La quatrième : elle se retourne au survol. Seul endroit en empattement. */
         .couverture-dos {
           position: absolute; inset: 0; z-index: 3;
-          display: flex; flex-direction: column;
-          padding: 1.3rem 1.15rem 1.1rem 1.5rem;
-          opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+          display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+          padding: 2rem 1.5rem 1.5rem 1.65rem;
+          opacity: 0; pointer-events: none; transition: opacity 0.22s ease;
         }
         .couverture:hover .couverture-dos { opacity: 1; pointer-events: auto; }
         .couverture:hover .couverture-face { opacity: 0; }
         .couverture-resume {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 0.8125rem; line-height: 1.46; text-align: left; hyphens: auto;
-          overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 9;
+          font-size: 0.84375rem; line-height: 1.5;
+          overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 8;
         }
-        .couverture-dos-meta { margin-top: auto; padding-top: 0.6rem; display: flex; align-items: center; gap: 0.7rem; font-size: 0.625rem; letter-spacing: 0.04em; opacity: 0.82; }
+        /* « Lire » : ni cadre ni flèche. Un mot, espacé, souligné d'un filet fin. */
         .couverture-lire {
-          display: inline-flex; align-items: center; gap: 0.34rem;
-          margin-top: 0.85rem; align-self: flex-start;
-          padding: 0.34rem 0.85rem; border: 1px solid; border-radius: 999px;
-          font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+          margin-top: 1.15rem;
+          font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+          padding-bottom: 0.28rem; border-bottom: 1px solid currentColor;
         }
-        .couverture-plus-lu { font-size: 0.5625rem; letter-spacing: 0.1em; text-transform: uppercase; }
+        .couverture-dos-meta {
+          position: absolute; left: 0; right: 0; bottom: 1.15rem;
+          display: flex; align-items: center; justify-content: center; gap: 0.85rem;
+          font-size: 0.5625rem; letter-spacing: 0.09em; text-transform: uppercase; opacity: 0.66;
+        }
 
         @media (max-width: 900px) { .rayon { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem 1rem; } }
         @media (max-width: 520px) { .rayon { grid-template-columns: 1fr; } }
@@ -330,9 +336,11 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
       <span className="couverture-face">
         <span className="couverture-cadre" style={{ borderColor: c.filet }} aria-hidden="true" />
         <span className="couverture-auteur">{e.auteur}</span>
-        <span className="couverture-filet" style={{ background: c.filet }} aria-hidden="true" />
-        <span className="couverture-titre">{e.titre}</span>
-        {e.sous_titre && <span className="couverture-soustitre">{e.sous_titre}</span>}
+        <span className="couverture-centre">
+          <span className="couverture-filet" style={{ background: c.filet }} aria-hidden="true" />
+          <span className="couverture-titre">{e.titre}</span>
+          {e.sous_titre && <span className="couverture-soustitre">{e.sous_titre}</span>}
+        </span>
         {e.publie_at && <span className="couverture-date">{formaterDateLongue(e.publie_at)}</span>}
       </span>
 
@@ -344,11 +352,11 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
         {e.resume
           ? <span className="couverture-resume">{e.resume}</span>
           : <span className="couverture-resume" style={{ opacity: 0.7, fontStyle: 'italic' }}>{e.titre}</span>}
-        <span className="couverture-lire" style={{ borderColor: c.filet }}>Lire →</span>
+        <span className="couverture-lire">Lire</span>
         <span className="couverture-dos-meta">
           <span>{e.nb_vues} vue{e.nb_vues !== 1 ? 's' : ''}</span>
           {e.nb_likes > 0 && <span>♥ {e.nb_likes}</span>}
-          {plusLu && <span className="couverture-plus-lu">◆ parmi les plus lus</span>}
+          {plusLu && <span>◆ parmi les plus lus</span>}
         </span>
       </span>
     </Link>
