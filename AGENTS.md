@@ -282,6 +282,16 @@ La colonne de lecture est un conteneur `maxWidth: 35rem` centré. À droite, une
 
 ⚠️ Piège corrigé (2026-08-06) : en mode **paragraphes** et en **bilingue / langue originale**, le texte (et la grille `.para-bilingue`) ne réservait pas cette gouttière (`paddingRight: 8px/0`), si bien qu'il courait ~60px plus large que les titres et la page de titre. Correctif : les blocs paragraphe (vue texte ET vue apparat) portent `paddingRight: gouttiereTitre` sur leur `<div>` conteneur (ce qui rétrécit aussi la grille bilingue), et le `<p>` interne ne porte plus de padding ad hoc. En mode **segments**, l'alignement venait déjà de la colonne d'actions `width:68px; marginRight:-8px` (≈ 60px consommés). Mobile : `gouttiereTitre` vaut `undefined` → pas de gouttière (pas de colonne d'actions), pleine largeur voulue.
 
+# Police des textes d'œuvre — sérif toujours, sauf l'original en regard
+
+Règle d'auteur, fixée le 2026-08-17 :
+
+- **un texte d'œuvre se lit TOUJOURS en sérif** (`--font-source-serif`), corps comme titres, en mode segments comme en mode paragraphes, en lecture comme en apparat critique. Le corps était en `--font-source-sans` depuis l'origine : quatre déclarations dans `OeuvreClient` ;
+- **le texte en langue originale (latin, grec) se lit en sérif lui aussi**, quand il paraît SEUL (mode « Latin ») ;
+- **SEULE exception : mis EN REGARD du français, l'original passe en sans-serif.** La différence de police sépare les deux colonnes d'un coup d'œil, mieux qu'un filet.
+
+Porté par une règle CSS, `.para-bilingue > .texte-original`, dans le bloc `<style>` d'`OeuvreClient`. La classe `.para-bilingue` n'est posée qu'en mode bilingue (`affichageBilingue && original`), jamais en « Latin seul » : c'est ce qui fait basculer la police au bon moment, sans condition en JS.
+
 # Typographie du texte en langue originale (latin, grec)
 
 ⚠️ **Rectification du 2026-08-17.** Ce paragraphe affirmait que le corpus français portait déjà une fine U+202F autour des guillemets. C'est **faux**. Relevé sur 20 000 segments, autour du guillemet ouvrant comme du fermant : **~14 600 insécables pleine chasse U+00A0**, ~3 000 espaces ordinaires U+0020, ~1 530 fines U+202F. Trois caractères pour une seule intention, résidus de lots d'import successifs. L'insécable pleine chasse vaut **le double** d'une fine (mesuré dans Source Serif 4 : 21,9 % du cadratin contre 10,9 %), d'où une citation qui bâille. Ne pas se fier à la donnée : c'est le rendu qui fait la typographie.
