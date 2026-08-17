@@ -482,4 +482,10 @@ Six défauts ont ensuite été trouvés à la lecture, tous de la même famille 
 - ⚠️ **Les sigles à points sont hors d'atteinte d'un test sur les deux premières lettres.** `C.E.` est devenu `c.E.` parce que `^[A-Z][A-Z]` ne l'apparie pas. Dépister ensuite par `\m[a-z]+[A-Z]` et `\m[a-z]\.`, qui trouvent tout mot cassé de l'intérieur.
 - **Les composés à barre oblique** (`Apocryphal/Deuterocanonical`) ne s'abaissent qu'à moitié.
 
-**Reste non converti** (2026-08-17) : les 66 ouvrages qui ne sont pas `retenu` — 34 français, 31 anglais, 1 exclu. Or `secondaire` est **publiable** (vue `bibliographie_publiable`) : la bibliographie affiche donc deux casses concurrentes tant que ce lot n'est pas repris.
+**Les 66 ouvrages non retenus ont été repris à leur tour** le 2026-08-17 (12 titres, 2 sous-titres ; sauvegarde `backup_ouvrages_titres_20260817_non_retenus`). Il le fallait : `secondaire` est **publiable** (vue `bibliographie_publiable`), et la bibliographie aurait servi au lecteur deux casses concurrentes.
+
+⚠️ **La liste de noms propres doit contenir le CANON BIBLIQUE EN ENTIER.** Ce lot est fait de volumes de collection qui énumèrent des livres, et la première liste, bâtie sur le seul vocabulaire des ouvrages retenus, y abaissait `Thessalonians`, `Timothy`, `Titus`, `Leviticus`, `Jude`, `Lamentations`, `Chronicles`, `Ezra` et `Nehemiah`. Une liste tirée d'un échantillon ne vaut que pour cet échantillon : la prévisualisation avant écriture est ce qui l'a montré.
+
+**Deux désignations laissées telles quelles**, parce qu'elles nomment un ensemble scripturaire et non un thème : `The Twelve Prophets` et `First and Second Samuel`.
+
+**État de la bibliographie entière au terme de la passe** (589 ouvrages) : zéro article suivi d'un bas de casse, zéro mot cassé de l'intérieur, zéro insécable dans une référence chiffrée, zéro titre tout en capitales, zéro double espace, zéro deux-points collé en anglais.
