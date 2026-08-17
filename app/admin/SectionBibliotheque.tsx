@@ -4,7 +4,13 @@ import React, { useState, useRef } from 'react'
 import { supabase, parseCSV, SiecleDisplay, headersAdmin } from './adminShared'
 import SectionRemplacerSegments from './SectionRemplacerSegments'
 import SectionAjouterOeuvre from './SectionAjouterOeuvre'
-import type { Auteur, AuteurPhotoPos, AuteurPhotoPositions, Oeuvre, LignePreview } from './adminTypes'
+import type { Auteur, Oeuvre, LignePreview } from './adminTypes'
+import {
+  CADRES_PORTRAIT, POS_CARTE_DEFAUT, POS_FICHE_DEFAUT,
+  bornerPos, deplacerPos, parseAuteurPhotoPositions, stylePhotoAuteur,
+  type AuteurPhotoPos, type AuteurPhotoPositions, type SurfacePortrait,
+} from '@/app/lib/photoAuteur'
+import CadreAuteur from '@/app/components/CadreAuteur'
 import { revaliderBibliotheque } from '@/app/actions/revalider'
 import { estOeuvrePubliee, MARQUEUR_OEUVRE_DEPUBLIEE } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
@@ -106,40 +112,10 @@ function redimensionnerImage(fichier: File, largeur: number, hauteur: number): P
   })
 }
 
-const POS_AUTEUR_DEFAUT: AuteurPhotoPos = { x: 50, y: 14, scale: 1 }
-const POS_AUTEUR_FICHE: AuteurPhotoPos = { x: 50, y: 24, scale: 1 }
-
-function normaliserPhotoPos(pos: Partial<AuteurPhotoPos> | null | undefined, defaut: AuteurPhotoPos): AuteurPhotoPos {
-  return {
-    x: typeof pos?.x === 'number' ? pos.x : defaut.x,
-    y: typeof pos?.y === 'number' ? pos.y : defaut.y,
-    scale: typeof pos?.scale === 'number' ? pos.scale : defaut.scale,
-  }
+const BTN_ROND: React.CSSProperties = {
+  width: 27, height: 27, borderRadius: '50%', border: '1px solid var(--cs-bord)',
+  background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer', lineHeight: 1,
 }
-
-function parseAuteurPhotoPositions(raw: Auteur['photo_position']): AuteurPhotoPositions {
-  const r = raw as any
-  if (!r) return { carte: { ...POS_AUTEUR_DEFAUT }, fiche: { ...POS_AUTEUR_FICHE } }
-  if (typeof r.x === 'number') {
-    const plat = normaliserPhotoPos(r, POS_AUTEUR_DEFAUT)
-    return { carte: plat, fiche: { ...plat } }
-  }
-  return {
-    carte: normaliserPhotoPos(r.carte, POS_AUTEUR_DEFAUT),
-    fiche: normaliserPhotoPos(r.fiche, POS_AUTEUR_FICHE),
-  }
-}
-
-function stylePhotoAuteur(pos: AuteurPhotoPos): React.CSSProperties {
-  return {
-    objectFit: 'cover',
-    objectPosition: `${pos.x}% ${pos.y}%`,
-    transform: `scale(${pos.scale})`,
-    transformOrigin: `${pos.x}% ${pos.y}%`,
-  }
-}
-
-type ModalDragState = { startX: number; startY: number; baseX: number; baseY: number }
 
 function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde }: {
   auteur: Auteur
@@ -148,48 +124,54 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
   onClose: () => void
   onSauvegarde: (pos: AuteurPhotoPositions) => Promise<void>
 }) {
-  const [pos, setPos] = useState<AuteurPhotoPos>(posInit.carte)
+  // DEUX réglages, et non un seul recopié : les cadres n'ont pas les mêmes
+  // proportions, si bien qu'un cadrage juste sur la carte ne l'est pas sur la
+  // fiche. L'écran précédent écrivait le même réglage des deux côtés, ce qui
+  // rendait le second inutile.
+  const [positions, setPositions] = useState<AuteurPhotoPositions>(posInit)
+  const [reglageActif, setReglageActif] = useState<keyof AuteurPhotoPositions>('carte')
   const [saving, setSaving] = useState(false)
-  const carteRef = useRef<HTMLDivElement>(null)
-  const dragRef = useRef<ModalDragState | null>(null)
+  const cadreRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<{ x: number; y: number; base: AuteurPhotoPos } | null>(null)
+  const [glisse, setGlisse] = useState(false)
 
-  const startDrag = (e: React.MouseEvent) => {
+  const pos = positions[reglageActif]
+  const majPos = (suite: (p: AuteurPhotoPos) => AuteurPhotoPos) =>
+    setPositions(prev => ({ ...prev, [reglageActif]: suite(prev[reglageActif]) }))
+
+  // Le glissé est capté sur le POINTEUR, non sur la souris : le stylet et le doigt
+  // fonctionnent, et la capture garde le geste même si le curseur sort du cadre.
+  const debutGlisse = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault()
-    dragRef.current = { startX: e.clientX, startY: e.clientY, baseX: pos.x, baseY: pos.y }
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    dragRef.current = { x: e.clientX, y: e.clientY, base: pos }
+    setGlisse(true)
+  }
+  const pendantGlisse = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = dragRef.current
+    const el = cadreRef.current
+    if (!d || !el) return
+    const r = el.getBoundingClientRect()
+    majPos(() => deplacerPos(d.base, e.clientX - d.x, e.clientY - d.y, r.width, r.height))
+  }
+  const finGlisse = () => { dragRef.current = null; setGlisse(false) }
+
+  // La molette agrandit autour du point visé, comme partout ailleurs.
+  const molette = (e: React.WheelEvent) => {
+    e.preventDefault()
+    majPos(p => bornerPos({ ...p, scale: p.scale - e.deltaY * 0.0015 }))
   }
 
-  const onMove = (e: React.MouseEvent) => {
-    if (!dragRef.current) return
-    const { startX, startY, baseX, baseY } = dragRef.current
-    const el = carteRef.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    const zoom = Math.max(pos.scale, 1)
-    const sensX = 100 / (rect.width * zoom)
-    const sensY = 100 / (rect.height * zoom)
-    setPos(prev => ({
-      ...prev,
-      x: Math.max(0, Math.min(100, baseX - (e.clientX - startX) * sensX)),
-      y: Math.max(0, Math.min(100, baseY - (e.clientY - startY) * sensY)),
-    }))
-  }
+  const zoomer = (delta: number) =>
+    majPos(p => bornerPos({ ...p, scale: Math.round((p.scale + delta) * 100) / 100 }))
 
-  const endDrag = () => { dragRef.current = null }
-
-  const zoomer = (delta: number) => {
-    setPos(prev => {
-      const nouvel = Math.max(1, Math.min(3.5, prev.scale + delta))
-      const arrondi = Math.round(nouvel * 100) * 0.01
-      return { ...prev, scale: arrondi }
-    })
-  }
-
-  const reset = () => setPos({ ...POS_AUTEUR_DEFAUT })
+  const reinitialiser = () =>
+    majPos(() => ({ ...(reglageActif === 'carte' ? POS_CARTE_DEFAUT : POS_FICHE_DEFAUT) }))
 
   const sauvegarder = async () => {
     setSaving(true)
     try {
-      await onSauvegarde({ carte: pos, fiche: pos })
+      await onSauvegarde(positions)
       onClose()
     } catch (_err) {
     } finally {
@@ -197,67 +179,85 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
     }
   }
 
+  // Le cadre que l'on manipule, en grand : c'est là que le geste se fait.
+  const cadreManipule: SurfacePortrait = reglageActif === 'carte' ? 'carte' : 'fiche'
+
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 2100, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '37.5rem', background: 'var(--cs-fond)', borderRadius: '10px', padding: '18px', boxShadow: '0 20px 60px rgba(0,0,0,0.32)' }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 2100, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '28px 16px', overflowY: 'auto' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '41rem', background: 'var(--cs-fond)', borderRadius: '10px', padding: '18px', boxShadow: '0 20px 50px rgba(0,0,0,0.35)' }}>
+
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.07813rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>
-            Cadrer la photo – <em style={{ color: 'var(--cs-texte-second)' }}>{auteur.nom}</em>
+            Cadrer le portrait – <em style={{ color: 'var(--cs-texte-second)' }}>{auteur.nom}</em>
           </h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-faible)', fontSize: '1.07813rem', padding: 0 }}>×</button>
         </div>
+
         <p style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)', margin: '0 0 12px', lineHeight: 1.5 }}>
-          Glissez l'image dans l'aperçu pour la repositionner. Utilisez le zoom pour recadrer.
+          Le portrait paraît sur trois surfaces, dont les cadres n’ont pas les mêmes proportions : la carte et la fiche gardent donc chacune son réglage. Glissez l’image, ou tournez la molette pour agrandir. Les trois aperçus ci-dessous sont composés avec les mesures RÉELLES des pages.
         </p>
 
-        <p style={{ fontSize: '0.64687rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cs-texte-faible)', margin: '0 0 6px' }}>Aperçu — Carte Bibliothèque</p>
-        {/* Reproduction EXACTE de la carte auteur (app/bibliotheque/BibliothequeClient.tsx) :
-            mêmes dimensions de photo (7.5rem, minHeight 170px, cover + position + zoom via
-            stylePhotoAuteur) et mêmes styles de contenu, pour que le cadrage vu ici soit
-            rigoureusement celui de la bibliothèque. */}
-        <div onMouseMove={onMove} onMouseUp={endDrag} onMouseLeave={endDrag}
-          style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden', userSelect: 'none' }}>
-          <div style={{ display: 'flex' }}>
-            <div ref={carteRef} style={{ width: '7.5rem', flexShrink: 0, position: 'relative', overflow: 'hidden', background: 'var(--cs-fond-doux)', minHeight: '170px' }}>
-              <img src={photoUrl} alt="" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', ...stylePhotoAuteur(pos) }} />
-              <div onMouseDown={startDrag} style={{ position: 'absolute', inset: 0, cursor: dragRef.current ? 'grabbing' : 'grab' }} />
+        {/* Quel réglage l'on modifie. L'aperçu au survol emprunte celui de la fiche. */}
+        <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
+          {(['carte', 'fiche'] as const).map(cle => {
+            const actif = cle === reglageActif
+            return (
+              <button key={cle} onClick={() => setReglageActif(cle)}
+                style={{ fontSize: '0.71875rem', padding: '5px 14px', borderRadius: '999px', cursor: 'pointer',
+                  border: '1px solid ' + (actif ? 'var(--cs-vert)' : 'var(--cs-bord)'),
+                  background: actif ? 'rgba(var(--cs-vert-rgb),0.09)' : 'var(--cs-surface)',
+                  color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontWeight: actif ? 600 : 400 }}>
+                {CADRES_PORTRAIT[cle].libelle}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Le cadre manipulé, à sa taille réelle : ce que l'on voit ici est, au
+            pixel près, ce que le lecteur verra. */}
+        <div onPointerMove={pendantGlisse} onPointerUp={finGlisse} onPointerCancel={finGlisse} onWheel={molette}
+          style={{ display: 'flex', gap: '18px', alignItems: 'flex-start', padding: '14px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', userSelect: 'none' }}>
+          <div ref={cadreRef}>
+            <CadreAuteur surface={cadreManipule} url={photoUrl} pos={pos} alt={auteur.nom}
+              onPointerDown={debutGlisse} curseur={glisse ? 'grabbing' : 'grab'} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: '0.64687rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cs-texte-faible)', margin: '0 0 8px' }}>
+              {CADRES_PORTRAIT[cadreManipule].libelle} — {CADRES_PORTRAIT[cadreManipule].largeur} × {CADRES_PORTRAIT[cadreManipule].hauteur}
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', flex: 1 }}>Zoom</span>
+              <button onClick={() => zoomer(-0.1)} style={BTN_ROND}>−</button>
+              <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-second)', minWidth: '48px', textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{Math.round(pos.scale * 100)} %</span>
+              <button onClick={() => zoomer(0.1)} style={BTN_ROND}>+</button>
             </div>
-            <div style={{ flex: 1, padding: '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 0 }}>
-              <div>
-                <h4 style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-vert)', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0 }}>{auteur.nom}</h4>
-                {auteur.dates && <p style={{ fontSize: '0.71875rem', color: '#9a8a70', margin: '1px 0 0', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', letterSpacing: '0.01em' }}>{formaterDateHistorique(auteur.dates)}</p>}
-              </div>
-              {(auteur.note_biographique || auteur.note) && (
-                <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.6, margin: 0, fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
-                  {auteur.note_biographique || auteur.note}
-                </p>
-              )}
-              {auteur.note_theologique && (
-                <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.6, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
-                  {auteur.note_theologique}
-                </p>
-              )}
-              <div style={{ marginTop: 'auto', paddingTop: '6px' }}>
-                <span style={{ fontSize: '0.65625rem', color: 'var(--cs-vert)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ fontSize: '0.5rem' }}>▼</span>
-                  {(auteur.oeuvres?.length ?? 0)} œuvre{(auteur.oeuvres?.length ?? 0) > 1 ? 's' : ''} disponible{(auteur.oeuvres?.length ?? 0) > 1 ? 's' : ''}
-                </span>
-              </div>
-            </div>
+            <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', margin: '0 0 10px', fontVariantNumeric: 'tabular-nums' }}>
+              Point visé : {Math.round(pos.x)} % · {Math.round(pos.y)} %
+            </p>
+            <button onClick={reinitialiser} style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '5px', padding: '5px 12px', cursor: 'pointer' }}>
+              Rétablir le cadrage par défaut
+            </button>
           </div>
         </div>
 
-        <div style={{ marginTop: '12px', padding: '12px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', flex: 1 }}>Zoom</span>
-          <button onClick={() => zoomer(-0.1)} style={{ width: 27, height: 27, borderRadius: '50%', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>−</button>
-          <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-second)', minWidth: '48px', textAlign: 'center' }}>{Math.round(pos.scale * 100)} %</span>
-          <button onClick={() => zoomer(0.1)} style={{ width: 27, height: 27, borderRadius: '50%', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>+</button>
-          <button onClick={reset} style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '5px', padding: '6px 12px', cursor: 'pointer', marginLeft: '6px' }}>Réinit.</button>
+        {/* Les trois surfaces, ensemble : on voit d'un coup ce que le réglage donne
+            partout, y compris là où on ne le modifie pas. */}
+        <p style={{ fontSize: '0.64687rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cs-texte-faible)', margin: '16px 0 8px' }}>Les trois surfaces, en direct</p>
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-end', flexWrap: 'wrap', padding: '14px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px' }}>
+          {(Object.keys(CADRES_PORTRAIT) as SurfacePortrait[]).map(surface => (
+            <div key={surface} style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
+              <CadreAuteur surface={surface} url={photoUrl} pos={positions[CADRES_PORTRAIT[surface].reglage]} alt={auteur.nom} />
+              <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', maxWidth: '9rem', lineHeight: 1.3 }}>
+                {CADRES_PORTRAIT[surface].libelle}
+                {CADRES_PORTRAIT[surface].reglage !== surface && ' (réglage de la fiche)'}
+              </span>
+            </div>
+          ))}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--cs-bord-clair)' }}>
           <button onClick={onClose} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
-          <button onClick={sauvegarder} disabled={saving} style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: 'none', background: saving ? '#a0b8aa' : 'var(--cs-vert)', color: '#fff', cursor: saving ? 'default' : 'pointer', fontWeight: 500 }}>
+          <button onClick={sauvegarder} disabled={saving} style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1 }}>
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
         </div>
