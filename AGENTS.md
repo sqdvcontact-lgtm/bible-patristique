@@ -297,6 +297,18 @@ La colonne de lecture est un conteneur `maxWidth: 35rem` centré. À droite, une
 
 ⚠️ Piège corrigé (2026-08-06) : en mode **paragraphes** et en **bilingue / langue originale**, le texte (et la grille `.para-bilingue`) ne réservait pas cette gouttière (`paddingRight: 8px/0`), si bien qu'il courait ~60px plus large que les titres et la page de titre. Correctif : les blocs paragraphe (vue texte ET vue apparat) portent `paddingRight: gouttiereTitre` sur leur `<div>` conteneur (ce qui rétrécit aussi la grille bilingue), et le `<p>` interne ne porte plus de padding ad hoc. En mode **segments**, l'alignement venait déjà de la colonne d'actions `width:68px; marginRight:-8px` (≈ 60px consommés). Mobile : `gouttiereTitre` vaut `undefined` → pas de gouttière (pas de colonne d'actions), pleine largeur voulue.
 
+# Citation sortie — style en place, détection volontairement étroite
+
+Doctrine : charte `parametres.charte_ia` **§3.8**, cinquième règle. Une citation longue se détache de la prose : elle perd ses guillemets encadrants, ses guillemets internes reviennent au français, et elle reçoit un retrait des deux côtés.
+
+- **Module pur et testé** : `app/lib/citationSortie.ts` (11 tests). `SEUIL_CITATION_SORTIE = 400` signes, seuil arrêté avec l'auteur. `detecterCitationSortie` rend `{ avant, citation }` ou `null`.
+- **Trois conditions cumulées**, faute de quoi la mise en page se brise : la citation doit être **isolée** (un deux-points l'annonce), **longue** (≥ 400 signes) et **terminale** (rien après le guillemet fermant, sinon un appel de note). Une citation enchâssée sortie laisserait sa phrase d'accueil coupée en deux.
+- **Style** : `.citation-sortie` dans le bloc `<style>` d'`OeuvreClient` — `display: block`, retrait `8mm` des deux côtés, corps `0.95em`, justifié, **ni guillemets ni filet**. Même mesure que la citation d'un essai (`texteEnrichiEssai.tsx`, `EssaiClient.tsx`), pour une seule forme sur le site.
+- ⚠️ **Mode SEGMENTS seulement.** Le rendu se greffe dans le `<p>` que le segment possède en propre : la citation devient un `<span>` en `display:block`, si bien que le segment reste cliquable, numéroté et prélevable, sans rien changer à sa structure. En mode **paragraphes**, un segment n'est qu'un `<span>` inline dans un `<p>` partagé : y poser un bloc couperait le paragraphe des voisins. Le cas est peu gênant en pratique — sur les 61 segments candidats du corpus, **51 appartiennent à des œuvres sans colonne `paragraphe`**, où le mode paragraphes n'est même pas proposé.
+- **La lettrine garde la priorité** : un premier segment orné ne se coupe pas en deux.
+- **Chiffres du relevé (2026-08-17)** : 214 citations dépassent 400 signes, 146 sont isolées, **61** sont en outre terminales. Ce sont ces 61 que la règle atteint aujourd'hui.
+- ⚠️ La francisation des guillemets internes est **l'inverse** de `convertirGuillemetsInternes` (`app/lib/citation.ts`), qui bascule les internes en anglais parce que le copier-coller ajoute un encadrement français. Symétriques, opposées : ne pas les confondre.
+
 # Césures du texte latin — aucun navigateur ne sait les faire
 
 ⛔ **`hyphens: auto` ne fait RIEN sur un `lang="la"`.** Aucun moteur ne livre de dictionnaire de coupure pour le latin. Mesuré dans le navigateur intégré, sur une colonne de 170 px et un extrait des *Confessions* : **23 lignes** avec `hyphens: auto`, **23** sans césure du tout, et **23** encore en déclarant `lang="it"` pour emprunter le dictionnaire italien. La déclaration était donc inerte depuis toujours, et la justification creusait les blancs faute de pouvoir couper.

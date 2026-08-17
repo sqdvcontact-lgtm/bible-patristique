@@ -13,6 +13,7 @@ import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee } from './oeuvreTypes'
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
+import { detecterCitationSortie } from '@/app/lib/citationSortie'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
@@ -1342,6 +1343,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
            SEULE exception : mis EN REGARD du français, il passe en sans-serif. La
            différence de police distingue les deux colonnes d'un coup d'œil, mieux
            qu'un filet, et sans peser sur le latin quand il se lit seul. */
+        /* Citation sortie (charte §3.8, cinquième règle) : une citation longue,
+           isolée et terminale se détache de la prose. Retrait des deux côtés, corps
+           légèrement réduit, ni guillemets ni filet — le retrait suffit à la dire.
+           Même mesure que la citation d'un essai, pour une seule forme sur le site. */
+        .citation-sortie { display: block; margin: 0.62rem 8mm; font-size: 0.95em; text-align: justify; }
+        @media(max-width: 980px){ .citation-sortie { margin-left: 5mm; margin-right: 0; } }
         .texte-original { color: #575048; font-family: var(--font-source-serif), Georgia, serif; }
         .para-bilingue > .texte-original { font-family: var(--font-source-sans), Arial, sans-serif; }
         @media(max-width: 980px){
@@ -1888,7 +1895,16 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         <p id={`s${s.numero}`} onClick={() => { if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return } if (mobile) setActionsSegMobileId(null); setSegActif(actif ? null : sid) }} className="seg-p"
                           lang="fr" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {configNiveaux.afficherNumeros && sid !== premierSegmentId && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                          {sid === premierSegmentId && normaliserEspaces(s.texte).length > 0 ? rendreAvecLettrine(s.texte, s.notes ?? {}) : rendreTexteAvecNotes(nettoyerFin(normaliserEspaces(s.texte)), s.notes ?? {})}
+                          {(() => {
+                            const texte = nettoyerFin(normaliserEspaces(s.texte))
+                            if (sid === premierSegmentId && normaliserEspaces(s.texte).length > 0) return rendreAvecLettrine(s.texte, s.notes ?? {})
+                            const sortie = detecterCitationSortie(texte)
+                            if (!sortie) return rendreTexteAvecNotes(texte, s.notes ?? {})
+                            return (<>
+                              {rendreTexteAvecNotes(sortie.avant, s.notes ?? {})}
+                              <span className="citation-sortie">{rendreTexteAvecNotes(sortie.citation, s.notes ?? {})}</span>
+                            </>)
+                          })()}
                         </p>
                         <div className="seg-actions" style={mobile ? {
                           position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6, opacity: 1, display: actionsSegMobileId === sid ? 'flex' : 'none', flexDirection: 'row', gap: '0.25rem', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
