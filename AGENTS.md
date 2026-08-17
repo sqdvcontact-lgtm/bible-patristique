@@ -408,3 +408,15 @@ La branche de travail, renommée **`la-gueule-bible899`**, ne garde plus que ce 
 - **Appels de note** (`88cb50a3`, `2b3bda54`, `5ceb71be`) — `master` possède déjà les fonctions de rendu, **en ligne** dans `OeuvreClient` ; ce qui lui manque est l'extraction en module `appelNote.tsx` (pour que `PageTitre` l'importe sans cycle) et le comportement : appels **masqués au sommaire**, actifs dans les titres du corps.
 
 Rapatriés le 2026-08-17, après contrôle (`tsc` propre, suite verte) : sources Tailwind bornées à `app/`, filtrage des notices patristiques, section « Opuscules », libellé du traducteur, retrait du pointillé sous les appels de note.
+
+# Lecture en regard — deux témoins d'une œuvre, appariés par la base
+
+Mode « Traductions parallèles » de la page d'œuvre (`app/oeuvre/[id]/ComparaisonTraductions.tsx`, logique pure et testée dans `comparaisonTraductionsUtils.ts`). Il n'apparaît que si l'œuvre possède un ensemble d'alignement **dont les deux témoins sont accessibles à la session** : le filtrage a lieu dans le composant serveur, jamais dans le client.
+
+- **L'appariement vient de la base, jamais du texte.** `texte_alignements` décrit des GROUPES (ce qui se répond de part et d'autre), `texte_alignement_membres` dit quels segments composent chaque côté, appariés par `segments.segment_key`. ⚠️ **Un groupe peut être 1:0 ou 0:1** : la case reste alors vide et porte la mention « rien en regard ». Ne jamais combler par le segment voisin, ce serait fabriquer une correspondance que l'éditeur n'a pas établie.
+- **Chargement division par division.** L'ensemble de La Cité de Dieu compte 10 535 membres pour 661 divisions : on ne le descend pas d'un bloc. Les requêtes `in.(…)` passent par lots de 180, la borne de PostgREST.
+- **Le texte passe par le moteur de la lecture.** `rendreTexteAvecNotes` a été extrait d'`OeuvreClient` vers `appelNote.tsx` pour cela : les appels de note sont vivants et de même forme dans les deux modes, sans que les fichiers s'importent l'un l'autre. ⚠️ Ce module est chargé par un test : ses imports doivent rester **relatifs**, l'alias `@/` n'étant pas résolu par vitest.
+- **Polices.** La colonne en langue originale passe en sans-serif, comme en lecture bilingue (règle d'auteur), et reçoit `cesurerLatin`.
+- ⚠️ **Libellés calculés, jamais tabulés.** Les tables de la première version s'arrêtaient au cinquième livre et au vingt-quatrième chiffre romain ; La Cité de Dieu compte vingt-deux livres et va jusqu'à la cinquante-quatrième division, si bien que tout le dessus retombait en chiffres arabes au milieu d'une série en toutes lettres. `chiffreRomain` compose, `ORDINAUX` va jusqu'au vingt-quatrième.
+- **En-tête de colonne : le nom du traducteur, pas le titre de version.** Celui de Mirandol tient en cent signes. `libelleColonne` prend le nom, y joint l'année, et ramène une responsabilité partagée à son premier nom.
+- **Données au 2026-08-17** : deux ensembles seulement, Boèce (Mirandol 1861 contre Ceriziers 1646, 784 groupes) et La Cité de Dieu (latin Vivès contre Barreau, 1 084 groupes). Aucun membre orphelin, vérifié.

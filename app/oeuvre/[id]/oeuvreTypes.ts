@@ -8,6 +8,23 @@ export type GroupeData = {
 export type TocEntry = { niv1: string; niv2: string; anchor: string }
 export type Commentaire = { id: number; texte: string; valide: boolean; created_at: string }
 export type OeuvreResumee = { id_oeuvre: string; titre: string; note?: string | null }
+// Un ensemble d'alignement confronte DEUX témoins de la même œuvre, division par
+// division. Il n'apparaît au lecteur que si les deux témoins lui sont accessibles.
+export type AlignementDisponible = {
+  alignmentSetId: string
+  referenceTextId: string
+  alignedTextId: string
+  referenceLabel: string
+  alignedLabel: string
+  // Langue de chaque colonne : un alignement peut confronter deux traductions
+  // françaises (Boèce) ou le latin et le français (La Cité de Dieu). La colonne
+  // en langue originale se compose alors en sans-serif, comme en lecture bilingue.
+  referenceLangue: string | null
+  alignedLangue: string | null
+  niveau: 'segment' | 'paragraph' | string
+  status: string | null
+}
+
 export type VersionTextuelle = {
   id_texte: string
   titre_version: string
@@ -23,6 +40,7 @@ export type Props = {
   estAdmin: boolean
   idTexteActif?: string | null
   versionsTextuelles?: VersionTextuelle[]
+  alignementsDisponibles?: AlignementDisponible[]
   langueTexteActive?: string | null
   niv1List: string[]
   niv1TexteMap?: Record<string, string>

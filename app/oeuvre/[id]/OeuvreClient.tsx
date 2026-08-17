@@ -16,7 +16,8 @@ import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 import { bornerGuillemets } from '@/app/lib/guillemets'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { detecterCitationSortie } from '@/app/lib/citationSortie'
-import { titreSansAppelsDeNote, styleAppelNote, type VarianteAppelNote } from './appelNote'
+import { titreSansAppelsDeNote, preparerTitreColophon, rendreTexteAvecNotes, rendreTitreColophonAvecNotes } from './appelNote'
+import ComparaisonTraductions from './ComparaisonTraductions'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
@@ -116,24 +117,6 @@ function segmentAffichable(s: any) {
 }
 
 const SEUIL_TITRE_COLOPHON = 86
-const NBSP_TITRE_COLOPHON = '\u00A0'
-const FINE_TITRE_COLOPHON = '\u202F'
-
-// Espacement typographique des titres et du colophon. Deux espaces, deux emplois,
-// comme dans le corps du texte : la FINE devant les hautes ponctuations et autour
-// des guillemets, l'insécable pleine chasse devant le seul deux-points (charte
-// §3.2). Les classes englobent aussi les insécables déjà posées, mais JAMAIS `\s`,
-// qui emporterait le retour à la ligne d'un titre composé sur deux lignes : ce
-// saut de ligne est un choix de composition, il ne se rattrape pas.
-function preparerTitreColophon(texte: string) {
-  return texte
-    .trim()
-    .replace(/[ 	  ]+([;!?»])/g, `${FINE_TITRE_COLOPHON}$1`)
-    .replace(/[ 	  ]+(:)/g, `${NBSP_TITRE_COLOPHON}$1`)
-    .replace(/([«])[ 	  ]+/g, `$1${FINE_TITRE_COLOPHON}`)
-    .replace(/[ 	  ]+([,.])/g, '$1')
-}
-
 const TRADUCTIONS_FALLBACK = [
   { code: 'TR0001',    label: 'Bible de Sacy' },
   { code: 'TR0002',     label: 'Bible Segond' },
@@ -162,218 +145,6 @@ function chargerCodesTraductions(): PromiseLike<string[]> {
     )
   }
   return _codesTraductionsCache
-}
-
-// ── Info-bulle de note ────────────────────────────────────────────────────────
-function NoteTooltip({ lettre, contenu, variante = 'corps' }: { lettre: string; contenu: string; variante?: VarianteAppelNote }) {
-  const [visible, setVisible] = useState(false)
-  const [figee, setFigee] = useState(false)
-  const [rect, setRect] = useState<{ left: number; top: number; bottom: number } | null>(null)
-  const marceurRef = useRef<HTMLElement>(null)
-  const timerFiger = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const timerMasquer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const effacerTimers = () => {
-    if (timerFiger.current) { clearTimeout(timerFiger.current); timerFiger.current = null }
-    if (timerMasquer.current) { clearTimeout(timerMasquer.current); timerMasquer.current = null }
-  }
-
-  const fermer = useCallback(() => {
-    effacerTimers()
-    setVisible(false)
-    setFigee(false)
-  }, [])
-
-  const survolMarceur = () => {
-    effacerTimers()
-    if (marceurRef.current) {
-      const r = marceurRef.current.getBoundingClientRect()
-      setRect({ left: r.left, top: r.top, bottom: r.bottom })
-    }
-    setVisible(true)
-    timerFiger.current = setTimeout(() => setFigee(true), 4000)
-  }
-
-  const quitterMarceur = () => {
-    if (timerFiger.current) { clearTimeout(timerFiger.current); timerFiger.current = null }
-    if (!figee) {
-      timerMasquer.current = setTimeout(() => setVisible(false), 200)
-    }
-  }
-
-  const entrerTooltip = () => {
-    effacerTimers()
-    setFigee(true)
-  }
-
-  const basculerTooltip = (e: React.MouseEvent | React.KeyboardEvent) => {
-    e.stopPropagation()
-    if (visible && figee) { fermer(); return }
-    effacerTimers()
-    if (marceurRef.current) {
-      const r = marceurRef.current.getBoundingClientRect()
-      setRect({ left: r.left, top: r.top, bottom: r.bottom })
-    }
-    setVisible(true)
-    setFigee(true)
-  }
-
-  // Fermeture sur Échap ou clic extérieur quand figée
-  useEffect(() => {
-    if (!figee || !visible) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') fermer() }
-    const onDown = (e: MouseEvent) => {
-      if (!(e.target as Element).closest('[data-note-tooltip]')) fermer()
-    }
-    document.addEventListener('keydown', onKey)
-    document.addEventListener('mousedown', onDown)
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.removeEventListener('mousedown', onDown)
-    }
-  }, [figee, visible, fermer])
-
-  // Fermeture sur scroll si pas figée
-  useEffect(() => {
-    if (!visible || figee) return
-    const onScroll = () => setVisible(false)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [visible, figee])
-
-  useEffect(() => () => effacerTimers(), [])
-
-  const W = 340
-  // Le côté ne se décide plus sur un seuil de 180 px, qui ignorait le bas de
-  // l'écran : la note ne passe jamais sous la barre de navigation et ne déborde
-  // jamais du bas. Calcul pur, testé (voir fenetreContextuelle.ts).
-  const vue = typeof window === 'undefined'
-    ? { largeur: 900, hauteur: 800 }
-    : { largeur: window.innerWidth, hauteur: window.innerHeight }
-  const placement = placerFenetre({
-    ancre: rect ?? { top: 300, bottom: 316, left: 0 },
-    largeur: W, hauteurSouhaitee: 340, vue, hautNavbar: hauteurNavbarPx(), ecart: 8,
-  })
-
-  const tooltip = visible ? (
-    <div
-      data-note-tooltip=""
-      onMouseEnter={entrerTooltip}
-      style={{
-        position: 'fixed',
-        left: placement.left,
-        top: placement.top,
-        width: W,
-        maxWidth: 'calc(100vw - 16px)',
-        maxHeight: placement.hauteurMax,
-        overflowY: 'auto',
-        background: '#faf6ee',
-        border: '1px solid var(--cs-or-doux)',
-        borderRadius: 5,
-        boxShadow: '0 6px 24px rgba(44,30,10,0.20)',
-        padding: '10px 12px',
-        zIndex: 9999,
-        fontFamily: "var(--font-source-serif), Georgia, serif",
-        fontSize: '0.78125rem',
-        lineHeight: 1.65,
-        color: '#2a2218',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>
-          Note {lettre}
-        </span>
-        {figee && (
-          <button
-            onClick={fermer}
-            aria-label="Fermer"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a08a', fontSize: '0.9375rem', lineHeight: 1, padding: '0 2px' }}
-          >×</button>
-        )}
-      </div>
-      <div style={{ whiteSpace: 'pre-line' }}>
-        {contenu || <em style={{ color: '#b0a08a' }}>Note indisponible</em>}
-      </div>
-    </div>
-  ) : null
-
-  return (
-    <>
-      <sup
-        ref={marceurRef as React.RefObject<HTMLElement>}
-        onMouseEnter={survolMarceur}
-        onMouseLeave={quitterMarceur}
-        onClick={basculerTooltip}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') basculerTooltip(e) }}
-        role="button"
-        tabIndex={0}
-        aria-label={`Consulter la note ${lettre}`}
-        style={styleAppelNote(variante)}
-      >
-        {lettre}
-      </sup>
-      {visible && typeof document !== 'undefined' && createPortal(tooltip, document.body)}
-    </>
-  )
-}
-
-// Variante de rendreTexteEnrichi qui gère aussi les marqueurs [[A]] de notes.
-function rendreTexteAvecNotes(texte: string, notes: Record<string, string>, variante: VarianteAppelNote = 'corps'): React.ReactNode {
-  const noeuds: React.ReactNode[] = []
-  // Le marqueur stocké ([[A]], [[B]]…) reste la clé de la note en base : c'est
-  // lui qui donne accès au texte. Seul l'appel AFFICHÉ change — un numéro, selon
-  // l'usage français. La numérotation suit l'ordre d'apparition et se fait par
-  // marqueur distinct : une note rappelée deux fois garde son numéro.
-  const numeros = new Map<string, number>()
-  const numeroDe = (marqueur: string) => {
-    // Les imports récents portent déjà une numérotation éditoriale globale.
-    // Ne jamais la renuméroter localement (un [[78]] doit rester 78).
-    if (/^\d+$/.test(marqueur)) return Number(marqueur)
-    const connu = numeros.get(marqueur)
-    if (connu) return connu
-    const n = numeros.size + 1
-    numeros.set(marqueur, n)
-    return n
-  }
-  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]+)\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>/g
-  let dernierIndex = 0, k = 0, m: RegExpExecArray | null
-  while ((m = regex.exec(texte))) {
-    if (m.index > dernierIndex) noeuds.push(texte.slice(dernierIndex, m.index))
-    // Un appel de note peut se trouver à l'intérieur d'une emphase. Le contenu
-    // doit donc repasser par le même moteur au lieu d'être rendu comme texte brut.
-    if (m[1] !== undefined) noeuds.push(<strong key={k++}>{rendreTexteAvecNotes(m[1], notes, variante)}</strong>)
-    else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{rendreTexteAvecNotes(m[2], notes, variante)}</sup>)
-    else if (m[3] !== undefined) noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[3], notes, variante)}</em>)
-    else if (m[4] !== undefined) noeuds.push(
-      <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteAvecNotes(m[4], notes, variante)}</a>
-    )
-    else if (m[6] !== undefined) {
-      const marqueur = m[6]
-      noeuds.push(<NoteTooltip key={k++} lettre={String(numeroDe(marqueur))} contenu={notes[marqueur] ?? ''} variante={variante} />)
-    }
-    else if (m[7] !== undefined) {
-      noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)
-      noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[8]}</sup>)
-      noeuds.push(m[9])
-    }
-    else if (m[10] !== undefined) {
-      noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[10], notes, variante)}</em>)
-    }
-    dernierIndex = regex.lastIndex
-  }
-  if (dernierIndex < texte.length) noeuds.push(texte.slice(dernierIndex))
-  return noeuds
-}
-
-// Les titres utilisent le mÃªme systÃ¨me de notes que le corps. Lorsqu'un appel
-// est prÃ©sent, on privilÃ©gie son rendu interactif ; les autres titres gardent
-// la composition en colophon Ã©ventuellement appliquÃ©e aux intitulÃ©s longs.
-function rendreTitreColophonAvecNotes(texte: string, notes: Record<string, string>, estTitre = false, variante: VarianteAppelNote = 'corps'): React.ReactNode {
-  // Rendu simple : le titre s'enroule naturellement (centré par ses conteneurs).
-  // On a renoncé à la composition « colophon » (pavé à lignes décroissantes).
-  // `estTitre` : retire le point final (règle éditoriale) ; pas pour les _texte,
-  // qui sont des chapeaux/phrases.
-  return rendreTexteAvecNotes(preparerTitreColophon(estTitre ? sansPointFinal(texte) : texte), notes, variante)
 }
 
 // ── Proposition de lien biblique (non-admin) ──────────────────────────────────
@@ -439,7 +210,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 const LABEL_VOLET: React.CSSProperties = { fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block' }
 const BTN_VOLET = (actif: boolean): React.CSSProperties => ({ width: '100%', textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' })
 
-export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, idTexteActif = null, versionsTextuelles = [], langueTexteActive = null, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false }: Props) {
+export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: estAdminReel, idTexteActif = null, versionsTextuelles = [], alignementsDisponibles = [], langueTexteActive = null, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -453,7 +224,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
   const { exigerCompte } = useCompte()
   const [userId, setUserId] = useState<string | null>(null)
   const [sauvegardesSegs, setSauvegardesSegs] = useState<Set<number>>(new Set())
-  const [vue, setVue] = useState<'texte' | 'apparat'>(vueInitiale)
+  const [vue, setVue] = useState<'texte' | 'apparat' | 'comparaison'>(vueInitiale)
   const [editionCible, setEditionCible] = useState<EditionCible | null>(null)
   const [titreAffiche, setTitreAffiche] = useState(oeuvre.titre)
   const [oeuvreLocale, setOeuvreLocale] = useState<Props['oeuvre']>(oeuvre)
@@ -1515,6 +1286,20 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 </div>
               </div>
             ) : null}
+            {/* La lecture en regard n'apparaît que si l'œuvre a un ensemble
+                d'alignement DONT LES DEUX TÉMOINS sont accessibles à la session
+                (le filtrage a lieu côté serveur, voir page.tsx). */}
+            {alignementsDisponibles.length > 0 && (
+              <div style={{ marginTop: '10px' }}>
+                <span style={LABEL_VOLET}>En regard</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
+                  <button onClick={() => setVue(v => (v === 'comparaison' ? 'texte' : 'comparaison'))}
+                    style={{ ...BTN_VOLET(vue === 'comparaison') }}>
+                    Traductions parallèles
+                  </button>
+                </div>
+              </div>
+            )}
             {versionsTextuelles.length <= 1 && versions.length > 1 && (
               <div style={{ marginTop: '7px' }}>
                 <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Traduction</span>
@@ -1697,6 +1482,12 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
           <div style={{ display: 'flex', justifyContent: 'center', margin: '40px 0 44px', paddingRight: gouttiereTitre }}>
             <FeuilleVigne />
           </div>
+
+          {/* Lecture en regard : elle prend la place du corps, la page de titre
+              restant au-dessus comme frontispice de l'œuvre. */}
+          {vue === 'comparaison' && (
+            <ComparaisonTraductions idOeuvre={idOeuvre} alignements={alignementsDisponibles} estAdmin={estAdmin} />
+          )}
 
           {/* Navigation précédent/suivant — toujours au niveau 1 */}
           {vue === 'texte' && !texteSansNiveaux && !lectureTexteEntier && (

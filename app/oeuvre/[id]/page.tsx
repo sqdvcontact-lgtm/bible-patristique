@@ -1,6 +1,8 @@
 import { hydraterLiensHerites } from '@/app/lib/liens'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import type { Metadata } from 'next'
+import type { AlignementDisponible } from './oeuvreTypes'
+import { libelleColonne } from './comparaisonTraductionsUtils'
 import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
 import { ABREV_FR } from '@/app/lib/bible'
 import { parseNotes } from '@/app/lib/notes'
@@ -173,9 +175,9 @@ export default async function OeuvrePage({
   // une traduction française et le texte latin). Le témoin demandé dans l'URL
   // prime ; à défaut, un lien profond vers un segment choisit son propre témoin ;
   // enfin on retombe sur la version marquée par défaut.
-  const [{ data: versionsTextuellesRaw }, { data: segmentCibleProbe }] = await Promise.all([
+  const [{ data: versionsTextuellesRaw }, { data: segmentCibleProbe }, { data: alignementsRaw }] = await Promise.all([
     supabase.from('oeuvre_textes')
-      .select('id_texte,titre_version,langue,traducteur,is_default,is_public,statut')
+      .select('id_texte,titre_version,langue,traducteur,annee_edition,is_default,is_public,statut')
       .eq('id_oeuvre', id)
       .eq('is_public', true)
       .eq('statut', 'published')
@@ -183,12 +185,17 @@ export default async function OeuvrePage({
     Number.isFinite(segmentCibleId) && segmentCibleId > 0
       ? supabase.from('segments').select('id,id_texte,ref_niv1,nature').eq('id_oeuvre', id).eq('id', segmentCibleId).maybeSingle()
       : Promise.resolve({ data: null }),
+    supabase.from('texte_alignement_ensembles')
+      .select('alignment_set_id,reference_text_id,aligned_text_id,alignment_level,status')
+      .eq('id_oeuvre', id)
+      .order('created_at', { ascending: true }),
   ])
   const versionsTextuelles = (versionsTextuellesRaw ?? []).map((v: any) => ({
     id_texte: String(v.id_texte),
     titre_version: v.titre_version || (String(v.langue || '').toLowerCase().startsWith('lat') ? 'Texte latin' : 'Texte français'),
     langue: v.langue ?? null,
     traducteur: v.traducteur ?? null,
+    annee_edition: v.annee_edition ?? null,
     is_default: v.is_default === true,
   }))
   const idTexteDemande = typeof sp.texte === 'string' ? sp.texte.trim() : ''
@@ -199,6 +206,27 @@ export default async function OeuvrePage({
     ?? versionsTextuelles[0]
     ?? null
   const idTexteActif = versionActive?.id_texte ?? null
+
+  // La comparaison n'est proposée que si les DEUX témoins de l'alignement font
+  // partie des versions accessibles à cette session : la liste ci-dessus est déjà
+  // filtrée sur `is_public` et `statut`, elle sert donc de garde.
+  const versionParId = new Map(versionsTextuelles.map(v => [v.id_texte, v]))
+  const alignementsDisponibles: AlignementDisponible[] = ((alignementsRaw ?? []) as any[]).flatMap(a => {
+    const reference = versionParId.get(String(a.reference_text_id))
+    const aligned = versionParId.get(String(a.aligned_text_id))
+    if (!reference || !aligned) return []
+    return [{
+      alignmentSetId: String(a.alignment_set_id),
+      referenceTextId: reference.id_texte,
+      alignedTextId: aligned.id_texte,
+      referenceLabel: libelleColonne(reference.titre_version, reference.traducteur, reference.annee_edition),
+      alignedLabel: libelleColonne(aligned.titre_version, aligned.traducteur, aligned.annee_edition),
+      referenceLangue: reference.langue,
+      alignedLangue: aligned.langue,
+      niveau: String(a.alignment_level ?? 'segment'),
+      status: a.status ?? null,
+    }]
+  })
 
   // Admin = connecté avec le compte administrateur (adresse fixe), vérifié
   // côté serveur via la session Supabase Auth — remplace l'ancien cookie
@@ -450,6 +478,7 @@ export default async function OeuvrePage({
       estAdmin={estAdmin}
       idTexteActif={idTexteActif}
       versionsTextuelles={versionsTextuelles}
+      alignementsDisponibles={alignementsDisponibles}
       langueTexteActive={versionActive?.langue ?? null}
       niv1List={niv1List}
       niv1TexteMap={niv1TexteMap}
