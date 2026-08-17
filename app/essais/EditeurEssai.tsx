@@ -12,6 +12,7 @@ import { diffMots } from '@/app/lib/diffTexte'
 import VoletEssai from '@/app/lib/VoletEssai'
 import SelecteurCitation from '@/app/lib/SelecteurCitation'
 import { CATEGORIES_ESSAIS, CONDITIONS, RESUME_MAX, RESUME_MIN, type Metadonnees } from './EtapeMetadonnees'
+import { COUVERTURES, COUVERTURE_PAR_DEFAUT, couvertureDe } from '@/app/lib/couverturesEssai'
 
 const MAX_CARACTERES = 8000
 const MIN_CARACTERES_PUBLICATION = 2000
@@ -21,7 +22,7 @@ const ROUGE_COMPTE = '#a8564d'
 const BTN: React.CSSProperties = { fontSize: '0.65625rem', padding: '8px 6px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', cursor: 'pointer', width: '100%', textAlign: 'center' }
 
 type Props = {
-  essaiExistant?: { id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean; publie_at?: string | null; verset_en_tete?: string | null }
+  essaiExistant?: { couverture?: string | null; id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean; publie_at?: string | null; verset_en_tete?: string | null }
   modeAdmin?: boolean
   metadonneesInitiales?: Metadonnees | null
   versetEnTeteInitial?: { ref: string; texte: string } | null
@@ -39,6 +40,9 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     resume: essaiExistant?.resume ?? metadonneesInitiales?.resume ?? '',
     categories: essaiExistant?.categories ?? metadonneesInitiales?.categories ?? [],
   })
+  // Couleur de la couverture. Un texte sans choix prend le vert d'encre du site :
+  // une publication n'est jamais sans couverture.
+  const [couverture, setCouverture] = useState<string>(essaiExistant?.couverture ?? COUVERTURE_PAR_DEFAUT.cle)
   const [userId, setUserId] = useState<string | null>(null)
   const [profil, setProfil] = useState<{ pseudo: string | null; nom: string | null; prenom: string | null } | null>(null)
   const [afficherNomReel, setAfficherNomReel] = useState(essaiExistant?.afficher_nom_reel ?? false)
@@ -113,7 +117,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     setStatutEnr('enregistrement')
     const payload: any = {
       titre, sous_titre: meta.sousTitre.trim() || null, resume: meta.resume.trim(),
-      categories: meta.categories, contenu: contenuTexte, afficher_nom_reel: afficherNomReel,
+      categories: meta.categories, contenu: contenuTexte, afficher_nom_reel: afficherNomReel, couverture,
       verset_en_tete: versetEnTete ? JSON.stringify(versetEnTete) : null,
       updated_at: new Date().toISOString(),
     }
@@ -627,6 +631,31 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                     placeholder={`${RESUME_MIN} à ${RESUME_MAX} caractères présentant la publication`}
                     style={{ width: '100%', fontSize: '0.78125rem', padding: '7px 9px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5 }}
                   />
+                </div>
+
+                {/* Couverture : la publication se présente en petit livre sur la liste,
+                    et l'auteur en choisit la couleur. Le résumé ci-dessus en est la
+                    quatrième, qui se retourne au survol. */}
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', marginBottom: '5px' }}>
+                    <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Couverture</label>
+                    <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)' }}>{couvertureDe(couverture).libelle}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                    {COUVERTURES.map(c => {
+                      const actif = c.cle === couverture
+                      return (
+                        <button key={c.cle} type="button" onClick={() => setCouverture(c.cle)}
+                          title={c.libelle} aria-label={`Couverture ${c.libelle}`} aria-pressed={actif}
+                          style={{
+                            width: '1.5rem', height: '2.25rem', borderRadius: '2px', cursor: 'pointer',
+                            background: c.fond, padding: 0,
+                            border: actif ? '2px solid var(--cs-vert)' : '1px solid var(--cs-bord)',
+                            boxShadow: actif ? '0 0 0 2px rgba(61,107,79,0.18)' : 'none',
+                          }} />
+                      )
+                    })}
+                  </div>
                 </div>
 
                 <div>

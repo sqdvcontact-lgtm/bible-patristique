@@ -7,6 +7,7 @@ import { CATEGORIES_ESSAIS } from './EtapeMetadonnees'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
+import { couvertureDe } from '@/app/lib/couverturesEssai'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 
 const CATEGORIES = CATEGORIES_ESSAIS
@@ -17,6 +18,8 @@ type EssaiResume = {
   id: number; titre: string; sous_titre: string | null; resume: string | null
   categories: string[]; nb_vues: number; nb_likes: number; publie_at: string | null; auteur: string
   user_id?: string | null
+  /** Clé de la couleur de couverture choisie par l'auteur (voir couverturesEssai.ts). */
+  couverture?: string | null
 }
 
 type EssaiPerso = {
@@ -151,9 +154,6 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
   )
 }
 
-// Chaque publication garde le créneau « à la une » au moins dix minutes, même si une
-// autre paraît juste après (voir le calcul des fenêtres dans OngletCommunaute).
-const DUREE_MIN_UNE = 10 * 60 * 1000
 
 function formaterDateLongue(publie_at: string | null): string {
   if (!publie_at) return ''
@@ -175,57 +175,16 @@ function OngletCommunaute({
     [essais],
   )
 
-  // « À la une » = le dernier paru, MAIS chaque publication garde le créneau au moins
-  // dix minutes, même si une autre paraît juste après. On calcule pour chaque essai la
-  // date d'ouverture de son créneau : max(sa publication, fin du créneau précédent + 10 min).
-  // À un instant donné, la une est l'essai dont le créneau est le dernier ouvert.
-  const fenetres = useMemo(() => {
-    const asc = [...tries].reverse() // du plus ancien au plus récent
-    const res: { id: number; debut: number }[] = []
-    for (const e of asc) {
-      const t = e.publie_at ? new Date(e.publie_at).getTime() : 0
-      const precedent = res.length ? res[res.length - 1].debut : -Infinity
-      res.push({ id: e.id, debut: Math.max(t, precedent + DUREE_MIN_UNE) })
-    }
-    return res
-  }, [tries])
+  // Le filtrage par catégorie et par recherche se fait chez l'appelant : la table
+  // reçoit déjà les publications retenues, et n'a plus qu'à les ordonner.
 
-  // La une n'a de sens que sur le fil complet : dès qu'un filtre ou une recherche est
-  // actif, on montre un index uniforme, sans mise en avant.
-  const filtreActif = !!filtreCategorie || recherche.trim().length > 0
-
-  // uniquement calculée au montage (Date.now()) pour éviter tout désaccord d'hydratation :
-  // au premier rendu (serveur et client), la une reste le dernier paru.
-  const [uneId, setUneId] = useState<number | null>(null)
-  useEffect(() => {
-    const recalculer = () => {
-      const maintenant = Date.now()
-      let choisi = tries[0]?.id ?? null
-      let prochain = Infinity
-      for (const f of fenetres) {
-        if (f.debut <= maintenant) choisi = f.id
-        else prochain = Math.min(prochain, f.debut)
-      }
-      setUneId(choisi)
-      return prochain
-    }
-    const prochain = recalculer()
-    if (prochain === Infinity) return
-    const delai = Math.max(1000, Math.min(prochain - Date.now() + 500, 3_600_000))
-    const timer = window.setTimeout(recalculer, delai)
-    return () => window.clearTimeout(timer)
-  }, [fenetres, tries])
-
-  // Les plus lus : signalés discrètement dans l'index, sans être retirés du fil.
+  // Les plus lus : signalés au dos de la couverture, sans être retirés du fil.
   const plusLus = useMemo(() => new Set(
     [...tries]
       .sort((a, b) => (b.nb_vues - a.nb_vues) || (b.nb_likes - a.nb_likes))
       .slice(0, 3)
       .map(e => e.id),
   ), [tries])
-
-  const une = !filtreActif && uneId != null ? tries.find(e => e.id === uneId) ?? null : null
-  const reste = une ? tries.filter(e => e.id !== une.id) : tries
 
   return (
     <>
@@ -247,7 +206,7 @@ function OngletCommunaute({
       </div>
 
       <style>{`
-        .publications-sommaire-tete { display: flex; align-items: center; gap: 14px; margin: 0 0 4px; }
+        .publications-sommaire-tete { display: flex; align-items: center; gap: 14px; margin: 0 0 14px; }
         .publications-sommaire-tete::before,
         .publications-sommaire-tete::after {
           content: ""; height: 1px; flex: 1;
@@ -257,167 +216,79 @@ function OngletCommunaute({
           font-size: 0.59375rem; font-weight: 700; letter-spacing: 0.24em;
           text-transform: uppercase; color: #7a6030;
         }
-        .publications-index {
-          --pub-h: 7rem;
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          column-gap: 30px;
-          row-gap: 0;
-          align-items: start;
-          margin-top: 4px;
-        }
-        /* Entrée ordinaire : compacte au repos (titre, auteur, date, sous-titre, genres,
-           vues…). Le résumé et le bouton « Lire » ne paraissent qu'au survol, dans un volet
-           en absolu qui ne repousse pas la grille. Brillance dorée qui balaie au survol. */
-        .publication-entree {
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          min-height: var(--pub-h);
-          text-decoration: none;
-          color: inherit;
-          padding: 13px 12px 12px;
-          border-top: 1px solid rgba(154,122,56,0.20);
-          border-radius: 5px;
-          background-image: linear-gradient(108deg, transparent 40%, rgba(255,246,222,0.55) 50%, transparent 60%);
-          background-size: 230% 100%;
-          background-position: 165% 0;
-          background-repeat: no-repeat;
-          transition: background-position 0.7s ease, box-shadow 0.26s ease, transform 0.26s ease;
-        }
-        .publication-entree:hover {
-          background-position: -48% 0;
-          box-shadow: 0 10px 26px -13px rgba(122,96,48,0.42);
-          transform: translateY(-1px);
-          z-index: 5;
-        }
-        .publication-entree-tete { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
-        .publication-auteur {
-          font-size: 0.59375rem; font-weight: 700; letter-spacing: 0.13em;
-          text-transform: uppercase; color: #7a6030;
-        }
-        .publication-date {
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-style: italic; font-size: 0.6875rem; color: #a48d60;
-        }
-        .publication-plus-lu {
-          margin-left: auto;
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-style: italic; font-size: 0.65625rem; color: var(--cs-or);
-          display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
-        }
-        .publication-plus-lu .losange { font-style: normal; }
-        .publication-titre {
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-weight: normal; font-size: 1.03125rem; line-height: 1.18;
-          color: #3f3222; margin: 0 0 3px; letter-spacing: 0.005em;
-          transition: color 0.18s; text-wrap: balance;
-          display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
-        }
-        .publication-entree:hover .publication-titre { color: var(--cs-or); }
-        .publication-soustitre {
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-style: italic; font-size: 0.71875rem; line-height: 1.32;
-          color: #8a7856; margin: 0 0 6px;
-          display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; line-clamp: 1; overflow: hidden;
-        }
-        .publication-meta {
-          display: flex; align-items: center; gap: 11px; margin-top: auto;
-          font-size: 0.65625rem; color: #a48d60; font-variant-numeric: tabular-nums;
-        }
-        .publication-cats { display: flex; gap: 6px; flex-wrap: wrap; margin-right: auto; }
-        .publication-cat {
-          font-size: 0.5625rem; letter-spacing: 0.06em; text-transform: uppercase;
-          color: #7a6030; background: rgba(154,122,56,0.10); padding: 1.5px 7px; border-radius: 3px;
-        }
-        .publication-coeur { color: #b06a4a; }
-        .publication-etoile { display: inline-flex; align-items: center; }
 
-        /* Au survol, le bloc se transforme SUR PLACE (ni au-dessus, ni au-dessous) : un calque en
-           absolu, au gabarit EXACT du bloc (inset:0), réaffiche l'auteur et le titre au même endroit
-           et remplace les détails par le résumé, précédé d'une flèche dorée à gauche. */
-        .publication-survol {
-          position: absolute; inset: 0; z-index: 4;
+        /* Trois couvertures par rang, comme une table d'étalage. */
+        .rayon { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.7rem 1.5rem; }
+
+        /* Une couverture : proportion d'un petit livre, couleur pleine, filet
+           intérieur. Tout est sans empattement, la quatrième exceptée. */
+        .couverture {
+          position: relative; display: block; aspect-ratio: 2 / 3; overflow: hidden;
+          border-radius: 3px; text-decoration: none; isolation: isolate;
+          font-family: var(--font-source-sans), Arial, sans-serif;
+          box-shadow: 0 1px 2px rgba(40,30,15,0.16), 0 8px 18px -10px rgba(40,30,15,0.34);
+          transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .couverture:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(40,30,15,0.18), 0 16px 28px -12px rgba(40,30,15,0.42); }
+
+        /* Le dos de reliure : une bande plus sombre au bord gauche. */
+        .couverture::before {
+          content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 9px; z-index: 2;
+          background: linear-gradient(90deg, rgba(0,0,0,0.26), rgba(0,0,0,0.06) 62%, rgba(255,255,255,0.07));
+          pointer-events: none;
+        }
+
+        .couverture-face {
+          position: absolute; inset: 0; z-index: 1;
           display: flex; flex-direction: column;
-          padding: 13px 12px 12px;
-          border-radius: 5px;
-          background-color: #fffdf7;
-          background-image: linear-gradient(108deg, transparent 40%, rgba(255,246,222,0.55) 50%, transparent 60%);
-          background-size: 230% 100%; background-position: 165% 0; background-repeat: no-repeat;
-          opacity: 0; pointer-events: none;
-          transition: opacity 0.2s ease, background-position 0.7s ease;
+          padding: 1.45rem 1.15rem 1.05rem 1.5rem;
+          transition: opacity 0.2s ease;
         }
-        .publication-entree:hover .publication-survol { opacity: 1; pointer-events: auto; background-position: -48% 0; }
-        .publication-survol-corps {
-          flex: 1; min-height: 0; overflow: hidden;
-          display: flex; align-items: flex-start; gap: 9px; margin-top: 7px;
-        }
-        .publication-survol-fleche { flex-shrink: 0; color: var(--cs-or); margin-top: 2px; display: inline-flex; }
-        .publication-survol .publication-resume {
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-style: italic; font-size: 0.75rem; line-height: 1.5; color: #6a5c42; margin: 0;
-          display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden;
-        }
+        .couverture-cadre { position: absolute; inset: 0.55rem 0.5rem 0.5rem 0.85rem; border: 1px solid; border-radius: 2px; pointer-events: none; }
 
-        /* À la une : colonne de gauche, exactement DEUX blocs communs de haut (même court). */
-        .publication-entree.une {
-          grid-column: 1;
-          grid-row: span 2;
-          min-height: calc(var(--pub-h) * 2);
-          border: 1px solid rgba(154,122,56,0.36);
-          border-radius: 7px;
-          background: linear-gradient(158deg, rgba(255,250,238,0.92), rgba(250,243,227,0.55));
-          padding: 16px 18px;
-          overflow: hidden;
+        .couverture-auteur {
+          font-size: 0.9375rem; font-weight: 700; line-height: 1.16;
+          letter-spacing: 0.05em; text-transform: uppercase;
         }
-        .publication-entree.une::before {
-          content: ""; position: absolute; inset: 0; pointer-events: none;
-          background: linear-gradient(108deg, transparent 42%, rgba(255,248,226,0.5) 50%, transparent 58%);
-          background-size: 240% 100%; background-position: 165% 0;
-          transition: background-position 0.85s ease;
-        }
-        .publication-entree.une:hover::before { background-position: -50% 0; }
-        .publication-entree.premier { border-top: none; }
-        .une .une-label {
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-style: italic; font-size: 0.75rem; color: var(--cs-or); margin: 0 0 9px; letter-spacing: 0.02em;
-        }
-        .une .publication-auteur { display: block; margin-bottom: 6px; }
-        .une .une-titre {
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-weight: normal; font-size: 1.4375rem; line-height: 1.1;
-          color: #3a2d1b; margin: 0 0 5px; letter-spacing: 0.01em; transition: color 0.18s; text-wrap: balance;
-        }
-        .une:hover .une-titre { color: var(--cs-or); }
-        .une .une-soustitre {
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-style: italic; font-size: 0.875rem; color: #8a7856; margin: 0 0 9px; line-height: 1.35;
-        }
-        .une .une-resume {
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 0.8125rem; line-height: 1.5; color: #5a4c37; text-align: left;
-          hyphens: auto; -webkit-hyphens: auto; word-spacing: -0.01em; margin: 0 0 11px;
-          display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden;
-        }
-        .une .une-resume::first-letter { float: left; font-size: 2.25rem; line-height: 0.82; padding: 3px 7px 0 0; color: #7a6030; }
-        .une .publication-meta { flex-wrap: wrap; gap: 10px; margin-top: 6px; }
-        .une .une-lire { color: var(--cs-or); font-weight: 700; font-size: 0.6875rem; }
+        .couverture-filet { height: 1px; width: 34%; margin: 0.6rem 0 0.75rem; }
+        .couverture-titre { font-size: 1.1875rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.005em; }
+        .couverture-soustitre { font-size: 0.78125rem; font-weight: 400; line-height: 1.3; margin-top: 0.34rem; opacity: 0.84; }
+        .couverture-date { margin-top: auto; font-size: 0.6875rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.78; }
 
-        @media (max-width: 900px) {
-          .publications-index { grid-template-columns: 1fr; }
-          .publication-entree.une { grid-row: auto; min-height: 0; }
-          .publication-entree.premier { border-top: 1px solid rgba(154,122,56,0.20); }
+        .couverture-etoile { position: absolute; top: 0.5rem; right: 0.55rem; z-index: 4; line-height: 1; }
+
+        /* La quatrième : elle se retourne au survol. Seul endroit en empattement. */
+        .couverture-dos {
+          position: absolute; inset: 0; z-index: 3;
+          display: flex; flex-direction: column;
+          padding: 1.3rem 1.15rem 1.1rem 1.5rem;
+          opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
         }
-        /* Tactile (pas de survol) : le résumé s'affiche en flux sous les détails ; on masque
-           le titre/auteur dupliqués du calque (déjà présents au-dessus) pour éviter le doublon. */
+        .couverture:hover .couverture-dos { opacity: 1; pointer-events: auto; }
+        .couverture:hover .couverture-face { opacity: 0; }
+        .couverture-resume {
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 0.8125rem; line-height: 1.46; text-align: left; hyphens: auto;
+          overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 9;
+        }
+        .couverture-dos-meta { margin-top: auto; padding-top: 0.6rem; display: flex; align-items: center; gap: 0.7rem; font-size: 0.625rem; letter-spacing: 0.04em; opacity: 0.82; }
+        .couverture-lire {
+          display: inline-flex; align-items: center; gap: 0.34rem;
+          margin-top: 0.85rem; align-self: flex-start;
+          padding: 0.34rem 0.85rem; border: 1px solid; border-radius: 999px;
+          font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+        }
+        .couverture-plus-lu { font-size: 0.5625rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+        @media (max-width: 900px) { .rayon { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem 1rem; } }
+        @media (max-width: 520px) { .rayon { grid-template-columns: 1fr; } }
+
+        /* Tactile : rien ne se survole. La face reste, le dos ne s'affiche jamais ;
+           le résumé se lit sur la page de la publication, à un doigt de là. */
         @media (hover: none) {
-          .publication-survol {
-            position: static; opacity: 1; pointer-events: auto;
-            background: transparent; border-radius: 0; padding: 6px 0 0;
-          }
-          .publication-survol > .publication-entree-tete,
-          .publication-survol > .publication-titre { display: none; }
-          .publication-survol-corps { margin-top: 0; }
+          .couverture-dos { display: none; }
+          .couverture:hover .couverture-face { opacity: 1; }
+          .couverture:hover { transform: none; }
         }
       `}</style>
 
@@ -426,11 +297,10 @@ function OngletCommunaute({
       ) : (
         <>
           <div className="publications-sommaire-tete"><span>Au sommaire</span></div>
-          <div className="publications-index">
-            {une && <EssaiUne essai={une} />}
-            {reste.map((e, i) => (
-              <EssaiLigne key={e.id} essai={e} premier={une ? i === 0 : i < 2}
-                plusLu={plusLus.has(e.id)} favorisEssais={favorisEssais} toggleFavoriEssai={toggleFavoriEssai} />
+          <div className="rayon">
+            {tries.map(e => (
+              <CouvertureEssai key={e.id} essai={e} plusLu={plusLus.has(e.id)}
+                favorisEssais={favorisEssais} toggleFavoriEssai={toggleFavoriEssai} />
             ))}
           </div>
         </>
@@ -439,72 +309,48 @@ function OngletCommunaute({
   )
 }
 
-// Entrée « à la une » : première case du sommaire, colonne de gauche, sur deux rangs.
-function EssaiUne({ essai: e }: { essai: EssaiResume }) {
-  return (
-    <Link href={`/essais/${e.id}`} className="publication-entree une">
-      <p className="une-label">À la une</p>
-      <span className="publication-auteur">{e.auteur}</span>
-      <p className="une-titre">{e.titre}</p>
-      {e.sous_titre && <p className="une-soustitre">{e.sous_titre}</p>}
-      {e.resume && <p className="une-resume">{e.resume}</p>}
-      <div className="publication-meta">
-        {e.categories.length > 0
-          ? <span className="publication-cats">{e.categories.slice(0, 3).map(c => <span key={c} className="publication-cat">{c}</span>)}</span>
-          : <span style={{ marginRight: 'auto' }} />}
-        {e.publie_at && <span className="publication-date">{formaterDateLongue(e.publie_at)}</span>}
-        <span>{e.nb_vues} vue{e.nb_vues !== 1 ? 's' : ''}</span>
-        <span className="une-lire">Lire →</span>
-      </div>
-    </Link>
-  )
-}
-
-// Entrée ordinaire du sommaire.
-function EssaiLigne({ essai: e, premier, plusLu, favorisEssais, toggleFavoriEssai }: {
-  essai: EssaiResume; premier: boolean; plusLu: boolean
+// Une publication se présente comme un petit livre. La face porte le nom de
+// l'auteur, le titre, le sous-titre et la date ; la quatrième, qui se retourne au
+// survol, porte le résumé et le bouton « Lire ». La couleur est celle que l'auteur
+// a choisie (voir app/lib/couverturesEssai.ts).
+function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }: {
+  essai: EssaiResume; plusLu: boolean
   favorisEssais: Set<string>; toggleFavoriEssai: (id: string) => void
 }) {
+  const c = couvertureDe(e.couverture)
   return (
-    <Link href={`/essais/${e.id}`} className={`publication-entree${premier ? ' premier' : ''}`}>
-      <div className="publication-entree-tete">
-        <span className="publication-auteur">{e.auteur}</span>
-        {e.publie_at && <span className="publication-date">{formaterDateLongue(e.publie_at)}</span>}
-        {plusLu && <span className="publication-plus-lu"><span className="losange" aria-hidden="true">◆</span> parmi les plus lus</span>}
-      </div>
-      <p className="publication-titre">{e.titre}</p>
-      {e.sous_titre && <p className="publication-soustitre">{e.sous_titre}</p>}
-      <div className="publication-meta">
-        {e.categories.length > 0
-          ? <span className="publication-cats">{e.categories.slice(0, 2).map(c => <span key={c} className="publication-cat">{c}</span>)}</span>
-          : <span style={{ marginRight: 'auto' }} />}
-        <span>{e.nb_vues} vue{e.nb_vues !== 1 ? 's' : ''}</span>
-        {e.nb_likes > 0 && <span className="publication-coeur">♥ {e.nb_likes}</span>}
-        <span className="publication-etoile">
-          <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={12} />
+    <Link href={`/essais/${e.id}`} className="couverture"
+      style={{ background: c.fond, color: c.encre }}
+      title={`${e.titre} — ${e.auteur}`}>
+
+      <span className="couverture-etoile">
+        <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={13} />
+      </span>
+
+      <span className="couverture-face">
+        <span className="couverture-cadre" style={{ borderColor: c.filet }} aria-hidden="true" />
+        <span className="couverture-auteur">{e.auteur}</span>
+        <span className="couverture-filet" style={{ background: c.filet }} aria-hidden="true" />
+        <span className="couverture-titre">{e.titre}</span>
+        {e.sous_titre && <span className="couverture-soustitre">{e.sous_titre}</span>}
+        {e.publie_at && <span className="couverture-date">{formaterDateLongue(e.publie_at)}</span>}
+      </span>
+
+      {/* La quatrième de couverture. `aria-hidden` : le résumé est déjà porté par
+          le titre du lien et par la page de la publication ; ce calque est un
+          doublon visuel, il n'a pas à être annoncé deux fois. */}
+      <span className="couverture-dos" style={{ background: c.fond }} aria-hidden="true">
+        <span className="couverture-cadre" style={{ borderColor: c.filet }} />
+        {e.resume
+          ? <span className="couverture-resume">{e.resume}</span>
+          : <span className="couverture-resume" style={{ opacity: 0.7, fontStyle: 'italic' }}>{e.titre}</span>}
+        <span className="couverture-lire" style={{ borderColor: c.filet }}>Lire →</span>
+        <span className="couverture-dos-meta">
+          <span>{e.nb_vues} vue{e.nb_vues !== 1 ? 's' : ''}</span>
+          {e.nb_likes > 0 && <span>♥ {e.nb_likes}</span>}
+          {plusLu && <span className="couverture-plus-lu">◆ parmi les plus lus</span>}
         </span>
-      </div>
-      {/* Au survol : calque au gabarit exact du bloc. Auteur + titre réaffichés au même endroit,
-          les détails cèdent la place au résumé, précédé d'une flèche dorée. `aria-hidden` : c'est
-          un doublon visuel du bloc, déjà accessible au-dessus. */}
-      {e.resume && (
-        <div className="publication-survol" aria-hidden="true">
-          <div className="publication-entree-tete">
-            <span className="publication-auteur">{e.auteur}</span>
-            {e.publie_at && <span className="publication-date">{formaterDateLongue(e.publie_at)}</span>}
-            {plusLu && <span className="publication-plus-lu"><span className="losange">◆</span> parmi les plus lus</span>}
-          </div>
-          <p className="publication-titre">{e.titre}</p>
-          <div className="publication-survol-corps">
-            <span className="publication-survol-fleche">
-              <svg width="17" height="11" viewBox="0 0 20 12" fill="none">
-                <path d="M0.6 6h16.8M12.8 1 18 6l-5.2 5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
-            <p className="publication-resume">{e.resume}</p>
-          </div>
-        </div>
-      )}
+      </span>
     </Link>
   )
 }
