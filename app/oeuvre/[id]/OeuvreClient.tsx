@@ -1380,11 +1380,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 </button>
               </div>
             </div>
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', color: 'var(--cs-encre)', lineHeight: 1.35, margin: 0, whiteSpace: 'pre-line' }}>
-              {/* Le titre COMPOSÉ (`titre_affichage`, avec ses sauts de ligne) ne vaut que
-                  pour la page de titre. Partout ailleurs, ici comme dans la bibliothèque
-                  ou le fil d'Ariane, c'est le titre de catalogue qui nomme l'œuvre : un
-                  sommaire est une navigation, pas un frontispice. */}
+            {/* Pas de `pre-line` ici : la mise en lignes d'un titre est une affaire de
+                frontispice, et le sommaire est une navigation. Un saut de ligne resté
+                dans le titre de catalogue s'y rend donc comme une simple espace, au
+                lieu de couper l'intitulé en deux au milieu du volet. */}
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', color: 'var(--cs-encre)', lineHeight: 1.35, margin: 0 }}>
+              {/* Le titre COMPOSÉ (`titre_affichage`) ne vaut que pour la page de titre.
+                  Partout ailleurs, ici comme dans la bibliothèque ou le fil d'Ariane,
+                  c'est le titre de catalogue qui nomme l'œuvre. */}
               {rendreTexteEnrichi(titreAffiche)}
             </p>
             {(oeuvreAffichee.sous_titre || oeuvreAffichee.titre_original || oeuvreAffichee.trad_auteur || oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication || oeuvreAffichee.collection) && (
