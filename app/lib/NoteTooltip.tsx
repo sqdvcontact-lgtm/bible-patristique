@@ -4,6 +4,14 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { rendreMarquesNote, type ElementPanneau } from './texteEnrichiEssai'
 
+// Appels de note du panneau patristique et des essais, et renvois vers un verset
+// ou un segment. Tous ouvrent la même bulle.
+//
+// ⛔ AUCUN SOULIGNEMENT, d'aucune sorte, sous un appel ni sous un renvoi : règle
+// d'auteur, sans exception. La teinte verte et, pour la note, l'exposant
+// suffisent à les signaler. Le pointillé est revenu deux fois dans le site après
+// avoir été retiré ; `NoteTooltip.test.ts` monte désormais la garde.
+
 // La bulle devient fixe après 2,3 secondes de survol continu.
 const DUREE_FIXATION = 2_300
 const DELAI_FERMETURE = 200
@@ -40,7 +48,7 @@ function ContenuNote({ el, onNaviguer }: {
       const [, label, type, id] = m
       morceaux.push(
         <button key={k++} onClick={() => onNaviguer({ type: type as 'verset' | 'segment', id, label })}
-          style={{ color: 'var(--cs-vert)', textDecoration: 'underline', textDecorationStyle: 'dotted', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}>
+          style={{ color: 'var(--cs-vert)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}>
           {label}
         </button>
       )
@@ -145,7 +153,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
 
   const declencheur = isRef ? (
     <button onMouseEnter={traiterEntrer} onMouseLeave={traiterSortir} onClick={traiterClic}
-      style={{ color: 'var(--cs-vert)', cursor: 'pointer', background: 'none', border: 'none', padding: 0, textDecoration: 'underline', textDecorationStyle: 'dotted', font: 'inherit' }}>
+      style={{ color: 'var(--cs-vert)', cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit' }}>
       {lettre}
     </button>
   ) : (
