@@ -15,11 +15,15 @@ import { supabase } from '@/app/lib/supabase'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { rendreSiecles } from '@/app/lib/siecles'
 import { useEstMobile } from '@/app/lib/useEstMobile'
+import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const DELAI_OUVERTURE = 220
 const DELAI_FERMETURE = 160
 const LARGEUR = 320
+// Hauteur que l'aperçu prend à peu près : portrait, nom, dates, notice écrêtée.
+// Elle sert à choisir le côté du placement, jamais à sortir de la bande utile.
+const HAUTEUR_ESTIMEE = 200
 
 type AuteurApercu = {
   id_auteur: string; nom: string; nom_original: string | null
@@ -52,7 +56,7 @@ export default function ApercuAuteur({
   const [visible, setVisible] = useState(false)
   const [auteur, setAuteur] = useState<AuteurApercu | null>(null)
   const [photoOk, setPhotoOk] = useState(true)
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  const [pos, setPos] = useState<{ top: number; left: number; hauteurMax: number } | null>(null)
   const ancreRef = useRef<HTMLSpanElement>(null)
   const timerOuvre = useRef<ReturnType<typeof setTimeout> | null>(null)
   const timerFerme = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -69,11 +73,19 @@ export default function ApercuAuteur({
       })
   }, [])
 
+  // La fenêtre ne passe jamais sous la barre de navigation et ne déborde jamais
+  // du bas de l'écran : elle se retourne au-dessus du nom quand le bas manque, et
+  // se borne pour défiler en dedans quand la bande utile est trop mince. Le calcul
+  // vit dans un module pur (voir fenetreContextuelle.ts), donc il se teste.
   const placer = useCallback(() => {
     const r = ancreRef.current?.getBoundingClientRect()
     if (!r) return
-    const left = Math.min(Math.max(8, r.left), window.innerWidth - LARGEUR - 8)
-    setPos({ top: r.bottom + 6, left })
+    const p = placerFenetre({
+      ancre: r, largeur: LARGEUR, hauteurSouhaitee: HAUTEUR_ESTIMEE,
+      vue: { largeur: window.innerWidth, hauteur: window.innerHeight },
+      hautNavbar: hauteurNavbarPx(),
+    })
+    setPos({ top: p.top, left: p.left, hauteurMax: p.hauteurMax })
   }, [])
 
   const entrer = useCallback(() => {
@@ -118,7 +130,7 @@ export default function ApercuAuteur({
         <div onMouseEnter={() => { if (timerFerme.current) clearTimeout(timerFerme.current) }}
           onMouseLeave={sortir}
           onClick={onOuvrirFiche}
-          style={{ position: 'fixed', top: pos.top, left: pos.left, width: LARGEUR, maxWidth: 'calc(100vw - 16px)', zIndex: 2500, background: 'var(--cs-fond)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', boxShadow: '0 12px 34px rgba(40,30,15,0.22)', padding: '13px 15px', cursor: 'pointer' }}>
+          style={{ position: 'fixed', top: pos.top, left: pos.left, width: LARGEUR, maxWidth: 'calc(100vw - 16px)', maxHeight: pos.hauteurMax, overflowY: 'auto', zIndex: 2500, background: 'var(--cs-fond)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', boxShadow: '0 12px 34px rgba(40,30,15,0.22)', padding: '13px 15px', cursor: 'pointer' }}>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
             <div style={{ width: '3.25rem', height: '4.25rem', flexShrink: 0, overflow: 'hidden', borderRadius: '4px', background: 'var(--cs-fond-doux)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--cs-bord)' }}>
               {photoOk ? (

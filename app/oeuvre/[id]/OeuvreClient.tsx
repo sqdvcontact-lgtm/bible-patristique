@@ -12,6 +12,7 @@ import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee } from './oeuvreTypes'
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
+import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { detecterCitationSortie } from '@/app/lib/citationSortie'
 import { nettoyerFin } from '@/app/lib/ponctuation'
@@ -247,7 +248,16 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
   useEffect(() => () => effacerTimers(), [])
 
   const W = 340
-  const placerEnHaut = (rect?.top ?? 300) > 180
+  // Le côté ne se décide plus sur un seuil de 180 px, qui ignorait le bas de
+  // l'écran : la note ne passe jamais sous la barre de navigation et ne déborde
+  // jamais du bas. Calcul pur, testé (voir fenetreContextuelle.ts).
+  const vue = typeof window === 'undefined'
+    ? { largeur: 900, hauteur: 800 }
+    : { largeur: window.innerWidth, hauteur: window.innerHeight }
+  const placement = placerFenetre({
+    ancre: rect ?? { top: 300, bottom: 316, left: 0 },
+    largeur: W, hauteurSouhaitee: 340, vue, hautNavbar: hauteurNavbarPx(), ecart: 8,
+  })
 
   const tooltip = visible ? (
     <div
@@ -255,12 +265,11 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
       onMouseEnter={entrerTooltip}
       style={{
         position: 'fixed',
-        left: Math.max(8, Math.min(rect?.left ?? 0, (typeof window !== 'undefined' ? window.innerWidth : 900) - W - 8)),
-        top: placerEnHaut ? (rect?.top ?? 0) - 8 : (rect?.bottom ?? 0) + 8,
-        transform: placerEnHaut ? 'translateY(-100%)' : 'none',
+        left: placement.left,
+        top: placement.top,
         width: W,
         maxWidth: 'calc(100vw - 16px)',
-        maxHeight: 340,
+        maxHeight: placement.hauteurMax,
         overflowY: 'auto',
         background: '#faf6ee',
         border: '1px solid var(--cs-or-doux)',
