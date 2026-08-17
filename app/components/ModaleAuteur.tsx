@@ -346,14 +346,17 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
 
   return createPortal(
     <div onClick={onClose} className="auteur-modale-overlay"
-      /* La fenêtre commence SOUS la navbar (fixe) : le calque défilant part de
-         `top: HAUTEUR_NAVBAR`, sinon le contenu (portrait, nom) glissait derrière
-         la barre au défilement. La navbar reste ainsi visible et accessible. */
-      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(30,26,20,0.42)', zIndex: 2100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 20px', overflowY: 'auto' }}>
+      /* La fenêtre commence SOUS la navbar (fixe), et le calque NE DÉFILE PAS.
+         ⚠️ Il défilait auparavant : sur un écran court, la boîte remontait et se
+         faisait couper net au ras de la barre, sans marge, ce qui donnait
+         l'impression qu'elle passait dessous. C'est le CONTENU de la boîte qui
+         défile désormais ; la boîte, elle, garde toujours sa marge en haut comme
+         en bas, quelle que soit la hauteur de l'écran. */
+      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(30,26,20,0.42)', zIndex: 2100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', overflow: 'hidden' }}>
       <div onClick={e => e.stopPropagation()} className="auteur-modale-inner"
-        style={{ position: 'relative', width: '100%', maxWidth: '52rem', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', boxShadow: '0 20px 60px rgba(40,30,15,0.30)', padding: '30px 34px 28px', margin: 'auto' }}>
+        style={{ position: 'relative', width: '100%', maxWidth: '52rem', maxHeight: '100%', overflowY: 'auto', overscrollBehavior: 'contain', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', boxShadow: '0 20px 60px rgba(40,30,15,0.30)', padding: '30px 34px 28px' }}>
         <button onClick={onClose} aria-label="Fermer" title="Fermer"
-          style={{ position: 'absolute', top: '12px', right: '14px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          style={{ position: 'sticky', float: 'right', top: '0', marginRight: '-6px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
 
         {erreur ? (
           <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-texte-faible)', textAlign: 'center', margin: '30px 0' }}>Auteur introuvable</p>
