@@ -13,6 +13,7 @@ import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee } from './oeuvreTypes'
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
+import { bornerGuillemets } from '@/app/lib/guillemets'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { detecterCitationSortie } from '@/app/lib/citationSortie'
 import { nettoyerFin } from '@/app/lib/ponctuation'
@@ -2124,10 +2125,14 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                           const labelGroupe = multiple
                             ? `${premier.label.replace(/\d+\s*$/, '')}${premier.verset}-${dernier.verset}`
                             : premier.label
-                          const corps = groupe
+                          // Le verset est montré SEUL, hors de son contexte : une citation
+                          // qui court sur plusieurs versets y laisserait un guillemet orphelin.
+                          // On la borne des deux côtés (voir app/lib/guillemets.ts). Le bornage
+                          // se fait APRÈS la fusion du groupe, qui peut s'équilibrer de lui-même.
+                          const corps = bornerGuillemets(groupe
                             .map(v => extraireNoteVerset(v.textes[trad] || v.textes['TR0001'] || '').corps)
                             .filter(Boolean)
-                            .join(' ')
+                            .join(' '))
                           // La note éditoriale n'est portée que par un verset seul (sinon on fond
                           // simplement les corps).
                           const note = multiple ? null : extraireNoteVerset(premier.textes[trad] || premier.textes['TR0001'] || '').note
@@ -2274,7 +2279,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                   const label = detailsRefBiblique(vi.ref).label
                                   return (
                                     <button key={idV} type="button"
-                                      onClick={() => setApercuVerset({ label, texte: vi.texte })}
+                                      onClick={() => setApercuVerset({ label, texte: vi.texte ? bornerGuillemets(vi.texte) : vi.texte })}
                                       title="Voir le verset"
                                       style={{ fontSize: '0.65625rem', color: '#3d5a4f', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline', textUnderlineOffset: '2px', textDecorationColor: '#c8d2cb' }}>
                                       {label}
