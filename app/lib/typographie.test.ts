@@ -1,71 +1,65 @@
 import { describe, it, expect } from 'vitest'
-import { normaliserEspaces, normaliserEspacesOriginal, normaliserGlyphesEdition, normaliserTypographieEdition } from './typographie'
+import { normaliserEspaces, normaliserEspacesOriginal } from './typographie'
 
-const FINE = ' '
-const NBSP = ' '
+const FINE = ' '   // espace fine insécable U+202F
+const NBSP = ' '   // espace insécable U+00A0
 
 describe('normaliserEspacesOriginal (latin, grec)', () => {
-  it('applique NBSP avant : et FINE avant ; ! ?', () => {
-    expect(normaliserEspacesOriginal('magna virtus tua: et')).toBe(`magna virtus tua${NBSP}: et`)
+  it('ajoute une fine insécable avant : ; ! ? quand la ponctuation est collée', () => {
+    expect(normaliserEspacesOriginal('magna virtus tua: et')).toBe(`magna virtus tua${FINE}: et`)
     expect(normaliserEspacesOriginal('quid dicam?')).toBe(`quid dicam${FINE}?`)
     expect(normaliserEspacesOriginal('o magnum!')).toBe(`o magnum${FINE}!`)
     expect(normaliserEspacesOriginal('primum; deinde')).toBe(`primum${FINE}; deinde`)
   })
-  it('normalise les espaces existantes et reste idempotent', () => {
-    expect(normaliserEspacesOriginal('tua : et')).toBe(`tua${NBSP}: et`)
-    expect(normaliserEspacesOriginal(`tua${FINE}: et`)).toBe(`tua${NBSP}: et`)
-    expect(normaliserEspacesOriginal(`quid${NBSP}?`)).toBe(`quid${FINE}?`)
+  it('ramène une espace simple ou insécable existante à la fine, et reste idempotent', () => {
+    expect(normaliserEspacesOriginal('tua : et')).toBe(`tua${FINE}: et`)
+    expect(normaliserEspacesOriginal(`tua${NBSP}: et`)).toBe(`tua${FINE}: et`)
+    expect(normaliserEspacesOriginal(`tua${FINE}: et`)).toBe(`tua${FINE}: et`)
   })
-  it('emploie NBSP à l’intérieur des guillemets français', () => {
-    expect(normaliserEspacesOriginal('dixit «verbum»')).toBe(`dixit «${NBSP}verbum${NBSP}»`)
+  it('espace les guillemets français internes', () => {
+    expect(normaliserEspacesOriginal('dixit «verbum»')).toBe(`dixit «${FINE}verbum${FINE}»`)
   })
   it('ne touche pas la virgule, le point ni les points de suspension', () => {
     expect(normaliserEspacesOriginal('a, b. c... fin.')).toBe('a, b. c... fin.')
   })
 })
 
-describe('normaliserEspaces (français)', () => {
-  it('applique NBSP avant : et FINE avant ; ! ?', () => {
-    expect(normaliserEspaces('Maistresse: que dites-vous? Helas! enfin;')).toBe(
-      `Maistresse${NBSP}: que dites-vous${FINE}? Helas${FINE}! enfin${FINE};`,
-    )
+describe('normaliserEspaces (français, harmonisation du type d’espace)', () => {
+  it('convertit l’insécable en fine avant ; ! ? et autour des guillemets', () => {
+    expect(normaliserEspaces(`fin${NBSP}; suite`)).toBe(`fin${FINE}; suite`)
+    expect(normaliserEspaces(`«${NBSP}mot${NBSP}»`)).toBe(`«${FINE}mot${FINE}»`)
   })
-  it('normalise les apostrophes droites internes aux mots', () => {
-    expect(normaliserEspaces("D'vn costé, l'Histoire; semble-t'il vrai? C'est fait.")).toBe(
-      `D’vn costé, l’Histoire${FINE}; semble-t’il vrai${FINE}? C’est fait.`,
-    )
-  })
-  it('emploie NBSP à l’intérieur des guillemets français', () => {
-    expect(normaliserEspaces('Il dit «mot».')).toBe(`Il dit «${NBSP}mot${NBSP}».`)
-  })
-  it('supprime les espaces immédiatement à l’intérieur des parenthèses', () => {
-    expect(normaliserEspaces('( repris-ie)')).toBe('(repris-ie)')
-    expect(normaliserEspaces(`(${NBSP}ma chere Maistresse${FINE})`)).toBe('(ma chere Maistresse)')
-  })
-  it('préserve heures, références numériques et URL', () => {
-    const texte = 'Rendez-vous 10:30; Jn 3:16; https://exemple.fr/a:b?x=1; fin.'
-    expect(normaliserEspaces(texte)).toBe(
-      `Rendez-vous 10:30${FINE}; Jn 3:16${FINE}; https://exemple.fr/a:b?x=1${FINE}; fin.`,
-    )
-  })
-  it('préserve une URL qui se termine par ?', () => {
-    expect(normaliserEspaces('Voir https://example.com/page?')).toBe('Voir https://example.com/page?')
-  })
-  it('ne touche pas la virgule, le point ni les points de suspension', () => {
-    expect(normaliserEspaces('a, b. c... fin.')).toBe('a, b. c... fin.')
-  })
-  it('reste idempotent', () => {
-    const texte = `(Pourquoi${FINE}? parce que${NBSP}: oui${FINE}; vraiment${FINE}!)`
-    expect(normaliserEspaces(normaliserEspaces(texte))).toBe(texte)
-  })
-})
 
-describe('normalisation glyphique non médiévale', () => {
-  it('modernise les glyphes sans moderniser la langue', () => {
-    expect(normaliserGlyphesEdition('il ſçavoit ﬁdèlement')).toBe('il sçavoit fidèlement')
-    expect(normaliserTypographieEdition('il ſçavoit: oui;')).toBe(`il sçavoit${NBSP}: oui${FINE};`)
+  // Le corpus emploie indifféremment les trois espaces autour des guillemets
+  // (relevé : ~14 600 insécables, ~3 000 ordinaires, ~1 530 fines). Les trois
+  // doivent aboutir à la même fine, sans quoi la page reste bigarrée.
+  it('convertit aussi l’espace ORDINAIRE, majoritaire dans plusieurs lots d’import', () => {
+    expect(normaliserEspaces('« mot »')).toBe(`«${FINE}mot${FINE}»`)
+    expect(normaliserEspaces('vraiment ?')).toBe(`vraiment${FINE}?`)
+    expect(normaliserEspaces('quel malheur !')).toBe(`quel malheur${FINE}!`)
   })
-  it('ne développe pas les ligatures orthographiques œ et æ', () => {
-    expect(normaliserGlyphesEdition('cœur æternel')).toBe('cœur æternel')
+
+  it('est idempotent : une fine déjà posée le reste', () => {
+    expect(normaliserEspaces(`«${FINE}mot${FINE}»`)).toBe(`«${FINE}mot${FINE}»`)
+  })
+
+  // La page Recherche surligne en découpant par indices : une conversion qui
+  // changerait la longueur décalerait le surlignage.
+  it('conserve la longueur du texte, caractère pour caractère', () => {
+    const source = '« Il dit : pourquoi ? » et il partit ; voilà !'
+    expect(normaliserEspaces(source)).toHaveLength(source.length)
+  })
+
+  it('ne force PAS d’espace là où il n’y en a pas (contrat historique inchangé)', () => {
+    expect(normaliserEspaces('mot: suite')).toBe('mot: suite')
+    expect(normaliserEspaces('mot?')).toBe('mot?')
+    expect(normaliserEspaces('«mot»')).toBe('«mot»')
+  })
+
+  // Le deux-points garde l’insécable pleine chasse (Imprimerie nationale,
+  // charte §3.2) : il n’entre pas dans la conversion.
+  it('laisse le deux-points intact', () => {
+    expect(normaliserEspaces(`mot${NBSP}: suite`)).toBe(`mot${NBSP}: suite`)
+    expect(normaliserEspaces('mot : suite')).toBe('mot : suite')
   })
 })

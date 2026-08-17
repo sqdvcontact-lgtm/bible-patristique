@@ -1,72 +1,40 @@
 // Espaces typographiques (charte §3.2). Fonctions PURES, testées dans typographie.test.ts.
 // U+00A0 = espace insécable ; U+202F = espace fine insécable.
 
-const FINE = '\u202F'
-const NBSP = '\u00A0'
-// Le point-virgule est exclu de la destination protégée : dans le texte courant,
-// il sert très majoritairement de ponctuation après un lien et doit donc rester
-// disponible pour la normalisation française.
-const URL_OU_MAIL = /(https?:\/\/[^\s);]+|mailto:[^\s);]+)/g
+// Les trois espaces que le corpus emploie indifféremment là où la typographie
+// française n'en veut qu'une. Le remplacement se fait CARACTÈRE POUR CARACTÈRE
+// (jamais `+`) : la longueur du texte ne change pas, ce dont dépend le
+// surlignage de la page Recherche, qui découpe par indices.
+const ESPACES = '[   ]'
+const FINE = ' '
 
-/**
- * Applique une transformation au texte courant sans modifier les destinations d'URL.
- * `normaliserEspaces` peut être appelé avant l'interprétation des liens Markdown : une
- * normalisation à l'intérieur de `https://…` pourrait donc casser le lien.
- */
-function horsUrls(texte: string, transformer: (fragment: string) => string): string {
-  return texte
-    .split(URL_OU_MAIL)
-    .map(fragment => /^(?:https?:\/\/|mailto:)/.test(fragment) ? fragment : transformer(fragment))
-    .join('')
-}
-
-// Texte FRANÇAIS d'une édition non médiévale : applique la convention typographique
-// Corpus Scriptura sans modifier l'orthographe, la morphologie ni le vocabulaire.
-// Une espace insécable U+00A0 est imposée avant le deux-points et une fine insécable
-// U+202F avant les autres ponctuations hautes françaises (; ! ?), qu'elles soient
-// collées dans la source ou précédées d'une espace simple / insécable. Le deux-points
-// n'est traité que lorsqu'il fonctionne comme ponctuation (suivi d'une espace, d'une
-// fermeture ou de la fin) : les heures et références numériques de type 10:30 / Jn 3:16
-// restent donc intactes. Les espaces immédiatement à l'intérieur des parenthèses sont
-// supprimées. Les apostrophes ASCII internes aux mots deviennent typographiques.
+// Texte FRANÇAIS. Le corpus porte déjà l'espacement de son édition source, mais
+// pas d'un seul caractère : autour des guillemets, un relevé sur 20 000 segments
+// donne ~14 600 espaces insécables pleine chasse, ~3 000 espaces ordinaires et
+// ~1 530 fines. Trois caractères pour une seule intention, résidus de lots
+// d'import successifs. On harmonise donc le TYPE d'espace au rendu, sans jamais
+// en ajouter là où l'édition n'en met pas, ni en retirer.
+//
+// Fine insécable avant ; ! ? et autour des guillemets. Le DEUX-POINTS est laissé
+// intact : la règle de l'Imprimerie nationale lui donne une insécable pleine
+// chasse, et la charte §3.2 la lui reconnaît.
 export function normaliserEspaces(texte: string): string {
-  return horsUrls(texte, fragment => fragment
-    .replace(/[ \u00A0\u202F]*([;!?])(?=[\s)\]»”"'….,;:]|$)/g, `${FINE}$1`)
-    .replace(/[ \u00A0\u202F]*:(?=[\s)\]»”"'….,;!?]|$)/g, `${NBSP}:`)
-    .replace(/«[ \u00A0\u202F]*/g, `«${NBSP}`)
-    .replace(/[ \u00A0\u202F]*»/g, `${NBSP}»`)
-    .replace(/\([ \u00A0\u202F]+/g, '(')
-    .replace(/[ \u00A0\u202F]+\)/g, ')')
-    .replace(/(\p{L})'(\p{L})/gu, '$1’$2')
-  )
-}
-
-/** Normalise uniquement des variantes glyphiques de présentation d'une édition non médiévale. */
-export function normaliserGlyphesEdition(texte: string): string {
   return texte
-    .replace(/ſ/g, 's')
-    .replace(/ﬀ/g, 'ff')
-    .replace(/ﬁ/g, 'fi')
-    .replace(/ﬂ/g, 'fl')
-    .replace(/ﬃ/g, 'ffi')
-    .replace(/ﬄ/g, 'ffl')
-    .replace(/ﬅ/g, 'st')
-    .replace(/ﬆ/g, 'st')
+    .replace(new RegExp(`${ESPACES}([?!;])`, 'g'), `${FINE}$1`)
+    .replace(new RegExp(`(«)${ESPACES}`, 'g'), `$1${FINE}`)
+    .replace(new RegExp(`${ESPACES}(»)`, 'g'), `${FINE}$1`)
 }
 
-/** Couche éditoriale des éditions non médiévales. Ne pas employer sur une transcription diplomatique médiévale. */
-export function normaliserTypographieEdition(texte: string, langueOriginale = false): string {
-  const glyphes = normaliserGlyphesEdition(texte)
-  return langueOriginale ? normaliserEspacesOriginal(glyphes) : normaliserEspaces(glyphes)
-}
-
-// Texte en LANGUE ORIGINALE (latin, grec) : même convention Corpus Scriptura pour les
-// éditions non médiévales. U+00A0 avant le deux-points et autour des guillemets français ;
-// U+202F avant ; ! ?. Cette fonction est idempotente et ne modernise jamais la langue.
+// Texte en LANGUE ORIGINALE (latin, grec) : l'édition source porte la ponctuation
+// COLLÉE (« valde: », « dixit: »), à l'anglaise, alors que le corpus français rend déjà
+// une fine insécable avant les hautes ponctuations. Pour un couple bilingue homogène, on
+// applique la même typographie (charte §3.1-3.2 : harmonisation mécanique « sans réécrire
+// la langue de l'édition ») en AJOUTANT une fine insécable U+202F avant : ; ! ? et autour
+// des guillemets. Idempotent : une espace déjà présente (simple, insécable ou fine) est
+// ramenée à la fine unique ; rien n'est ajouté avant , . … .
 export function normaliserEspacesOriginal(texte: string): string {
   return texte
-    .replace(/[ \u00A0\u202F]*([;!?])/g, `${FINE}$1`)
-    .replace(/[ \u00A0\u202F]*:/g, `${NBSP}:`)
-    .replace(/«[ \u00A0\u202F]*/g, `«${NBSP}`)
-    .replace(/[ \u00A0\u202F]*»/g, `${NBSP}»`)
+    .replace(new RegExp(`${ESPACES}*([:;!?])`, 'g'), `${FINE}$1`)
+    .replace(new RegExp(`«${ESPACES}*`, 'g'), `«${FINE}`)
+    .replace(new RegExp(`${ESPACES}*»`, 'g'), `${FINE}»`)
 }

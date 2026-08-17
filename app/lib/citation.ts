@@ -1,4 +1,5 @@
 import { formaterDateHistorique } from './datesHistoriques'
+import { normaliserEspaces } from './typographie'
 
 // ── Mise en forme des citations (copier / coller, et affichage des prélèvements) ──
 // Règles arrêtées par l'auteur, appliquées à UN seul endroit :
@@ -57,7 +58,10 @@ export function capitaliserInitiale(texte: string): string {
 // Texte cité prêt à être encadré : guillemets internes convertis, ponctuation finale
 // normalisée, initiale capitalisée si elle manque.
 export function preparerTexteCitation(texte: string): string {
-  return capitaliserInitiale(normaliserPonctuationFinale(convertirGuillemetsInternes(texte.trim())))
+  // Même espacement qu'à la lecture : le presse-papiers emporte le texte BRUT,
+  // pas le rendu. Sans cela, une citation collée dans un traitement de texte
+  // ramenait l'espace pleine chasse du corpus là où l'écran montrait une fine.
+  return normaliserEspaces(capitaliserInitiale(normaliserPonctuationFinale(convertirGuillemetsInternes(texte.trim()))))
 }
 
 function echapperHtml(s: string): string {

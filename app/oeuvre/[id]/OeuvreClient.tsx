@@ -114,19 +114,19 @@ const SEUIL_TITRE_COLOPHON = 86
 const NBSP_TITRE_COLOPHON = '\u00A0'
 const FINE_TITRE_COLOPHON = '\u202F'
 
-// Espacement typographique des titres et du colophon. Les classes sont bornées à
-// l'espace et à la tabulation, JAMAIS `\s`, qui engloberait le retour à la ligne :
-// un titre composé sur deux lignes dont la seconde commence par une ponctuation
-// perdait son saut de ligne, remplacé par une espace insécable (« ; : ! ? » »)
-// ou purement supprimé (« , . »). Le saut de ligne est un choix de composition,
-// il ne se rattrape pas.
+// Espacement typographique des titres et du colophon. Deux espaces, deux emplois,
+// comme dans le corps du texte : la FINE devant les hautes ponctuations et autour
+// des guillemets, l'insécable pleine chasse devant le seul deux-points (charte
+// §3.2). Les classes englobent aussi les insécables déjà posées, mais JAMAIS `\s`,
+// qui emporterait le retour à la ligne d'un titre composé sur deux lignes : ce
+// saut de ligne est un choix de composition, il ne se rattrape pas.
 function preparerTitreColophon(texte: string) {
   return texte
     .trim()
-    .replace(/[ \t]+([;!?])/g, `${FINE_TITRE_COLOPHON}$1`)
-    .replace(/[ \t]+([:»])/g, `${NBSP_TITRE_COLOPHON}$1`)
-    .replace(/([«])[ \t]+/g, `$1${NBSP_TITRE_COLOPHON}`)
-    .replace(/[ \t]+([,.])/g, '$1')
+    .replace(/[ 	  ]+([;!?»])/g, `${FINE_TITRE_COLOPHON}$1`)
+    .replace(/[ 	  ]+(:)/g, `${NBSP_TITRE_COLOPHON}$1`)
+    .replace(/([«])[ 	  ]+/g, `$1${FINE_TITRE_COLOPHON}`)
+    .replace(/[ 	  ]+([,.])/g, '$1')
 }
 
 // Le sommaire est une navigation compacte : les appels restent actifs dans le
