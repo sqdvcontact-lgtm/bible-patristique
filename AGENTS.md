@@ -462,4 +462,13 @@ Doctrine : charte `parametres.charte_ia` **§ 3.5**, réécrite le 2026-08-17 d'
 
 **Passe du 2026-08-17 sur la bibliographie.** La règle unifiée a déplacé la majuscule sur **73 titres français d'ouvrages scientifiques retenus** (`La parabole du semeur` → `La Parabole du semeur`). Six d'entre eux portaient un adjectif ou un numéral devant le substantif, qui prend alors lui aussi la majuscule, et se sont corrigés à la main : `La Première Épître aux Corinthiens`, `Les Deux Visages d'Élie`, `Les Dix Plaies d'Égypte ou la Création d'Israël`. Sauvegarde : `backup_ouvrages_titres_20260817_casse`.
 
-⚠️ **Les 153 titres anglais n'ont PAS été touchés.** Ils sont en casse de titre anglaise, que la règle française écarte, mais les convertir rendrait les notices non conformes à ce qu'un chercheur attend d'une référence bibliographique. Décision en attente.
+**Les titres anglais ont été convertis** le 2026-08-17, sur décision de l'auteur : 54 titres et 45 sous-titres, sauvegarde `backup_ouvrages_titres_20260817_anglais`.
+
+⚠️ **La conversion s'est faite sur un VOCABULAIRE, jamais titre par titre.** On relève d'abord tous les mots capitalisés du lot (environ 250 pour 161 titres), on décide une fois pour toutes lesquels sont des noms propres, puis on abaisse mécaniquement le reste. Trancher 161 phrases à la main aurait été plus long et moins sûr.
+
+Ce qui garde sa capitale : le premier mot du champ ; le premier mot après un deux-points ; les noms propres, dont les livres bibliques, les peuples et les adjectifs que l'orthographe anglaise impose (*Jewish*, *Christian*, *Greek*) ; les sigles et les chiffres romains ; et, quand le titre commence par *The*, le premier substantif avec les adjectifs qui le précèdent. Tout le reste passe en bas de casse.
+
+- ⚠️ **Seul l'ANGLAIS est concerné.** L'allemand capitalise ses substantifs par ORTHOGRAPHE et non par casse de titre : y toucher serait une faute de langue, pas une correction typographique. Les trois titres allemands, les deux latins, l'espagnol, l'italien, le portugais, le tchèque et l'hébreu sont restés intacts.
+- ⚠️ **L'insécable du deux-points ne se pose pas dans une référence chiffrée.** `Lk 2:22-39` doit rester collé ; six titres l'avaient reçue à tort et ont été repris.
+- ⚠️ **Une liste de noms propres est toujours incomplète.** Le contrôle qui compte : comparer les mots de la sauvegarde à ceux du résultat et lire ceux qui ont été abaissés. C'est ainsi qu'on a rattrapé *Job*, *Beatitudes* et *Twelve Prophets*.
+- **Cas à reprendre à la main** : l'adjectif devant le substantif, qui prend lui aussi la majuscule (*The Suffering Servant*, *The First Book of Samuel*, *The Maccabean Martyrs*).
