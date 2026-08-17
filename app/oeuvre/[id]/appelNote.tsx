@@ -11,20 +11,25 @@ import type { NoteAffichee } from './oeuvreTypes'
 // que la page de titre (PageTitre) y ait accès sans import circulaire : les notes
 // se lisent partout où un texte de l'œuvre est rendu, corps et titres compris.
 
+// Deux espaces, deux emplois, comme dans le corps du texte : la FINE devant les
+// hautes ponctuations et autour des guillemets, l'insécable pleine chasse devant
+// le seul deux-points (charte §3.2).
 const NBSP_TITRE_COLOPHON = ' '
+const FINE_TITRE_COLOPHON = ' '
 
-// Les classes sont bornées à l'espace et à la tabulation, JAMAIS `\s`, qui
-// engloberait le retour à la ligne : un titre composé sur deux lignes dont la
-// seconde commence par une ponctuation perdait son saut de ligne, remplacé par
-// une espace insécable (« ; : ! ? » ») ou purement supprimé (« , . »). Le saut
-// de ligne est un choix de composition, il ne se rattrape pas. Même précaution
-// que dans `titreSansAppelsDeNote` ci-dessous.
+// Les classes englobent l'espace, la tabulation et les deux insécables, JAMAIS
+// `s`, qui emporterait le retour à la ligne : un titre composé sur deux lignes
+// dont la seconde commence par une ponctuation perdait son saut de ligne,
+// remplacé par une espace ou purement supprimé (« , . »). Le saut de ligne est
+// un choix de composition, il ne se rattrape pas. Même précaution que dans
+// `titreSansAppelsDeNote` ci-dessous.
 export function preparerTitreColophon(texte: string) {
   return texte
     .trim()
-    .replace(/[ \t]+([;:!?»])/g, `${NBSP_TITRE_COLOPHON}$1`)
-    .replace(/([«])[ \t]+/g, `$1${NBSP_TITRE_COLOPHON}`)
-    .replace(/[ \t]+([,.])/g, '$1')
+    .replace(/[ 	  ]+([;!?»])/g, `${FINE_TITRE_COLOPHON}$1`)
+    .replace(/[ 	  ]+(:)/g, `${NBSP_TITRE_COLOPHON}$1`)
+    .replace(/([«])[ 	  ]+/g, `$1${FINE_TITRE_COLOPHON}`)
+    .replace(/[ 	  ]+([,.])/g, '$1')
 }
 
 // Le sommaire est une navigation compacte : la note y serait un appel qu'on ne

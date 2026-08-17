@@ -29,7 +29,37 @@ describe('normaliserEspaces (français, harmonisation du type d’espace)', () =
     expect(normaliserEspaces(`fin${NBSP}; suite`)).toBe(`fin${FINE}; suite`)
     expect(normaliserEspaces(`«${NBSP}mot${NBSP}»`)).toBe(`«${FINE}mot${FINE}»`)
   })
+
+  // Le corpus emploie indifféremment les trois espaces autour des guillemets
+  // (relevé : ~14 600 insécables, ~3 000 ordinaires, ~1 530 fines). Les trois
+  // doivent aboutir à la même fine, sans quoi la page reste bigarrée.
+  it('convertit aussi l’espace ORDINAIRE, majoritaire dans plusieurs lots d’import', () => {
+    expect(normaliserEspaces('« mot »')).toBe(`«${FINE}mot${FINE}»`)
+    expect(normaliserEspaces('vraiment ?')).toBe(`vraiment${FINE}?`)
+    expect(normaliserEspaces('quel malheur !')).toBe(`quel malheur${FINE}!`)
+  })
+
+  it('est idempotent : une fine déjà posée le reste', () => {
+    expect(normaliserEspaces(`«${FINE}mot${FINE}»`)).toBe(`«${FINE}mot${FINE}»`)
+  })
+
+  // La page Recherche surligne en découpant par indices : une conversion qui
+  // changerait la longueur décalerait le surlignage.
+  it('conserve la longueur du texte, caractère pour caractère', () => {
+    const source = '« Il dit : pourquoi ? » et il partit ; voilà !'
+    expect(normaliserEspaces(source)).toHaveLength(source.length)
+  })
+
   it('ne force PAS d’espace là où il n’y en a pas (contrat historique inchangé)', () => {
     expect(normaliserEspaces('mot: suite')).toBe('mot: suite')
+    expect(normaliserEspaces('mot?')).toBe('mot?')
+    expect(normaliserEspaces('«mot»')).toBe('«mot»')
+  })
+
+  // Le deux-points garde l’insécable pleine chasse (Imprimerie nationale,
+  // charte §3.2) : il n’entre pas dans la conversion.
+  it('laisse le deux-points intact', () => {
+    expect(normaliserEspaces(`mot${NBSP}: suite`)).toBe(`mot${NBSP}: suite`)
+    expect(normaliserEspaces('mot : suite')).toBe('mot : suite')
   })
 })

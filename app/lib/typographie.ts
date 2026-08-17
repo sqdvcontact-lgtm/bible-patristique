@@ -1,14 +1,28 @@
 // Espaces typographiques (charte §3.2). Fonctions PURES, testées dans typographie.test.ts.
 // U+00A0 = espace insécable ; U+202F = espace fine insécable.
 
-// Texte FRANÇAIS déjà espacé par le corpus (l'édition source porte les insécables) :
-// on se contente d'harmoniser le TYPE d'espace — fine insécable avant ; ! ? et autour
-// des guillemets. Le « : » conserve l'espace déjà présente (le corpus rend une fine).
+// Les trois espaces que le corpus emploie indifféremment là où la typographie
+// française n'en veut qu'une. Le remplacement se fait CARACTÈRE POUR CARACTÈRE
+// (jamais `+`) : la longueur du texte ne change pas, ce dont dépend le
+// surlignage de la page Recherche, qui découpe par indices.
+const ESPACES = '[   ]'
+const FINE = ' '
+
+// Texte FRANÇAIS. Le corpus porte déjà l'espacement de son édition source, mais
+// pas d'un seul caractère : autour des guillemets, un relevé sur 20 000 segments
+// donne ~14 600 espaces insécables pleine chasse, ~3 000 espaces ordinaires et
+// ~1 530 fines. Trois caractères pour une seule intention, résidus de lots
+// d'import successifs. On harmonise donc le TYPE d'espace au rendu, sans jamais
+// en ajouter là où l'édition n'en met pas, ni en retirer.
+//
+// Fine insécable avant ; ! ? et autour des guillemets. Le DEUX-POINTS est laissé
+// intact : la règle de l'Imprimerie nationale lui donne une insécable pleine
+// chasse, et la charte §3.2 la lui reconnaît.
 export function normaliserEspaces(texte: string): string {
   return texte
-    .replace(/ ([?!;])/g, ' $1')
-    .replace(/« /g, '« ')
-    .replace(/ »/g, ' »')
+    .replace(new RegExp(`${ESPACES}([?!;])`, 'g'), `${FINE}$1`)
+    .replace(new RegExp(`(«)${ESPACES}`, 'g'), `$1${FINE}`)
+    .replace(new RegExp(`${ESPACES}(»)`, 'g'), `${FINE}$1`)
 }
 
 // Texte en LANGUE ORIGINALE (latin, grec) : l'édition source porte la ponctuation
@@ -20,7 +34,7 @@ export function normaliserEspaces(texte: string): string {
 // ramenée à la fine unique ; rien n'est ajouté avant , . … .
 export function normaliserEspacesOriginal(texte: string): string {
   return texte
-    .replace(/[   ]*([:;!?])/g, ' $1')
-    .replace(/«[   ]*/g, '« ')
-    .replace(/[   ]*»/g, ' »')
+    .replace(new RegExp(`${ESPACES}*([:;!?])`, 'g'), `${FINE}$1`)
+    .replace(new RegExp(`«${ESPACES}*`, 'g'), `«${FINE}`)
+    .replace(new RegExp(`${ESPACES}*»`, 'g'), `${FINE}»`)
 }

@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import { STYLE_ROMAIN, STYLE_ORDINAL, sieclesEnHtml } from '@/app/lib/siecles'
+import { normaliserEspaces } from '@/app/lib/typographie'
 
 // Espaces typographiques (français + langue originale) : logique pure, testée, dans
 // app/lib/typographie.ts. Ré-exportée ici pour les nombreux appelants historiques.
@@ -22,9 +23,17 @@ export { normaliserEspaces, normaliserEspacesOriginal } from '@/app/lib/typograp
 // y injecter le surlignage du mot cherché sans perdre l'enrichissement. Par défaut (lecture),
 // c'est l'identité : le texte est rendu tel quel, comportement inchangé.
 export function rendreTexteEnrichi(
-  texte: string,
+  texteBrut: string,
   transform?: (s: string, key: string) => React.ReactNode,
 ): React.ReactNode {
+  // Toute la lecture passe par ici : c'est donc ICI que l'espacement des hautes
+  // ponctuations et des guillemets s'harmonise, et non à chaque appelant. Avant,
+  // seule la page d'œuvre appelait `normaliserEspaces` : la Bible, les péricopes,
+  // le panneau patristique, les prélèvements et la polyglotte gardaient l'espace
+  // pleine chasse du corpus, deux fois trop large pour une fine française.
+  // Le remplacement est caractère pour caractère, donc les indices que `transform`
+  // utilise pour surligner restent valides.
+  const texte = normaliserEspaces(texteBrut)
   const tf = transform ?? ((s: string) => s)
   const noeuds: React.ReactNode[] = []
   // `++petites capitales++` : même convention que les commentaires et les essais
