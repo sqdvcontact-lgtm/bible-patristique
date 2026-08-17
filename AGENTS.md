@@ -178,17 +178,26 @@ Intégrée à la recherche rapide globale de la Navbar (`app/components/Navbar.t
 - **Toutes les occurrences** sont affichées avec leur texte complet, chacune dans une carte distincte (référence en tête, badge « principale », puis le texte verset par verset). `app/pericopes/[id]/page.tsx` charge le texte de chaque occurrence en parallèle (`chargerTextePericope`) et le recharge au changement de traduction.
 - **Colonne de droite = doublon du volet de la page Bible** : on embarque directement `PanneauPatristique` (collant, hauteur `100dvh - navbar` sur desktop ; empilé `presentation="inline"` en mobile). Nouveau prop **`plage={{ livre, canonDebut, canonFin }}`** (+ `refAffichee`) : le volet charge l'apparat de la PLAGE canonique exacte via `segmentsLiesAPlage` (`app/lib/liens.ts`) au lieu d'un verset/chapitre. Additif : la page Bible ne passe pas `plage`, son comportement est inchangé.
 
-# Page « Publications » (liste des essais) — structure « l'Index »
+# Page « Publications » — couvertures de petit livre (2026-08-17)
 
-Refonte de `app/essais/EssaisListeClient.tsx` (onglet « Écrits de la communauté »). Table des matières éditoriale sobre : tout est visible au repos, aucun filigrane, aucune animation, aucun contenu caché au survol. L'ancien dispositif (podium top-3 mesuré au pixel en JS + cartes « filigrane » où le texte s'enroulait autour d'un cartouche, variante `featured` morte, fonctions `largeur*`/`lignesTitreCentre`/`texteFiligrane`) a été entièrement supprimé.
+Refonte complète de `app/essais/EssaisListeClient.tsx`. **Remplace** l'ancienne « structure de l'Index » et sa refonte survol/doré, toutes deux supprimées : plus de sommaire en deux colonnes, plus de bloc « à la une », plus de créneau de dix minutes.
 
-- **En-tête** minimal : titre « Publications », un ◆ discret (or `#9a7a40`), puis les onglets. Pas de sur-titre ni de chapeau (jugés « trop chargés »).
-- **Sommaire** en grille deux colonnes (`.publications-index`), filets fins entre entrées. Chaque entrée : auteur (petites capitales or), date (italique serif), titre (serif), résumé (italique, écrêté 2 lignes), catégories, vues, ♥, étoile favori (`EtoileFavori`, gère lui-même `preventDefault`/`stopPropagation` dans le `Link`).
-- **À la une** : première entrée du sommaire, colonne de gauche, sur **deux rangs** (`grid-row: span 2`), encadrée, avec **lettrine** (or `#7a6030`) et résumé fer à gauche + césures (la justification en colonne étroite creusait des blancs). Masquée dès qu'un filtre catégorie ou une recherche est actif (l'index redevient uniforme). Le symbole ◆ du marqueur reste **droit** (`.losange { font-style: normal }`), le fleuron `❦` a été écarté.
-- **Règle du créneau « à la une »** : chaque publication occupe la une **au moins 10 minutes**, même si une autre paraît juste après. Fenêtres calculées sur `publie_at` : `debut(i) = max(publie_at(i), debut(i-1) + 10 min)` ; la une = l'essai au dernier créneau ouvert à l'instant présent. `uneId` calculé au montage seulement (pas de désaccord d'hydratation : au 1ᵉʳ rendu = le dernier paru) ; recalcul par `setTimeout` uniquement s'il existe un créneau futur. En pratique (publications espacées de jours) = toujours le dernier paru.
-- **Les plus lus** : les 3 premiers par vues (puis ♥) sont signalés « ◆ parmi les plus lus » dans l'index, **sans être retirés** du fil chronologique (l'ancien podium les en sortait).
-- **px → rem** : toutes les `font-size` du bloc `<style>` sont en rem (respect du scaling desktop, cf. § responsive/mise à l'échelle).
-- **Charge serveur** : `app/essais/page.tsx` ne récupère plus `contenu` (lourd, ne servait qu'au filigrane) ; la plomberie d'injection d'avatar (`cs_photo_profil`) a aussi été retirée du client, l'avatar n'étant plus affiché.
+Une publication se présente désormais comme un **petit livre**, et la liste comme une table d'étalage.
+
+- **Trois par rang** (`.rayon`, `grid-template-columns: repeat(3, …)`), deux sous 900 px, une sous 520 px. Proportion `aspect-ratio: 2 / 3`, coin arrondi, ombre portée, et une bande sombre au bord gauche qui figure le dos de reliure.
+- **La face** porte le nom de l'auteur en capitales, un filet, le titre en grand, le sous-titre dessous, et la **date au pied** (`margin-top: auto`). **Tout est sans empattement.**
+- **La quatrième** (`.couverture-dos`) se retourne au survol : le résumé, **seul endroit en empattement**, écrêté à neuf lignes, un bouton « Lire », puis les vues, les ♥ et la mention « parmi les plus lus ». Elle prend le fond de la couverture, si bien que le livre paraît se retourner et non s'ouvrir.
+- ⚠️ **Tactile : pas de quatrième.** Sous `@media (hover: none)`, le dos n'est pas rendu du tout et la face reste : rien ne se survole sur un téléphone, et le résumé se lit sur la page de la publication, à un doigt de là. Ne pas « corriger » en affichant les deux, la couverture y perdrait son titre.
+
+## La couleur appartient à l'auteur
+
+- **Jeu de couvertures** : `app/lib/couverturesEssai.ts` (module pur, 7 tests). Treize couleurs, tons du site d'abord (vert d'encre, crème, vieil or, sauge), puis la roue entière, rabattue vers le rompu : bordeaux, brique, prune, indigo, ardoise, sarcelle, olive, terre de Sienne, encre noire.
+- ⚠️ **Le contraste est TESTÉ**, pas supposé : chaque couverture doit opposer son encre à son fond d'au moins 4,5 (WCAG AA). Deux teintes ont été assombries pour y satisfaire — l'or du site (`--cs-or`, #9a7a38) ne donnait que 3,8 sous une encre claire, la sauge claire 3,3. Ajouter une couleur sans repasser le test, c'est risquer une couverture jolie et illisible.
+- **Stockage** : colonne `essais.couverture` (text, nullable), migration `essais_couverture`. **Aucune contrainte CHECK** : le jeu est éditorial et bougera, et une couleur retirée ne doit ni bloquer une écriture ni effacer une publication. La validation vit dans `estCouvertureConnue`, et la lecture est tolérante — `couvertureDe` rend le défaut (vert d'encre) sur une clé inconnue, vide ou absente.
+- **Choix par l'auteur** : rang de pastilles dans le formulaire de métadonnées de `EditeurEssai`, posé **sous le résumé**, puisque le résumé est précisément la quatrième. La couleur part dans le `payload` d'enregistrement.
+- ⚠️ **Quatre `select` doivent porter la colonne**, sans quoi la couverture se perd en route : `app/essais/page.tsx` (la liste), `app/essais/[id]/page.tsx` (la lecture, qui alimente l'éditeur), et le passage de `app/essais/[id]/modifier/page.tsx` vers `EditeurEssai`.
+
+**Ce qui disparaît, volontairement** : le bloc « à la une » et sa règle du créneau de dix minutes, la lettrine du résumé, le calque de survol au gabarit du bloc, le balayage doré. Les couvertures sont d'égale dignité. « Parmi les plus lus » survit, déplacé au dos.
 
 # Navbar — menus « Aller plus loin » et « Administration », pages indépendantes
 
@@ -379,16 +388,6 @@ Règle (charte §3.1-3.2, étendue au 2026-08-06) : on harmonise la langue origi
 - ⚠️ **Piège d'édition** : ce module est fait de caractères invisibles (U+0020, U+00A0, U+202F) qui se ressemblent tous à l'écran. Une réécriture du fichier a déjà remplacé les fines de `normaliserEspacesOriginal` par des espaces ordinaires, sans que rien ne le montre à la lecture ; seuls les tests l'ont attrapé. Passer par les constantes `ESPACES` / `FINE`, jamais par un littéral tapé à la main, et vérifier au besoin par `[...s].map(c => c.codePointAt(0))`.
 - Les deux fonctions vivent désormais dans `app/lib/typographie.ts` (module pur, testable) et sont ré-exportées par `app/oeuvre/[id]/texteEnrichi.tsx` pour les appelants historiques.
 - Périmètre : toutes les œuvres sont `langue_trad='Français'` — le latin/grec n'existe que comme `texte_original`. La Vulgate/Septante de la **Bible** est un autre contexte (page Bible), non couvert ici.
-
-## Page Publications — refonte survol/doré (2026-08-06)
-
-Évolution de la section « l'Index » ci-dessus, structure générale conservée (index 2 colonnes, « Au sommaire », une à gauche). Changements dans `EssaisListeClient.tsx` :
-
-- **Entrée commune compacte au repos** : auteur, date, titre (écrêté 2 lignes), sous-titre (écrêté 1 ligne, NOUVEAU), méta (genres, vues, ♥, favori). **Le résumé n'y est plus affiché en flux** (`resume_hors_survol: 0`).
-- **Survol** : le bloc se transforme SUR PLACE. Un calque `.publication-survol` en `position:absolute; inset:0` (gabarit exact du bloc, aucune bousculade de la grille) réaffiche auteur + titre au même endroit et remplace les détails (sous-titre, genres, vues…) par le résumé, précédé d'une flèche dorée à gauche (`.publication-survol-fleche`). En tactile (`@media (hover:none)`), le calque repasse en flux, titre/auteur dupliqués masqués, ne laissant que le résumé.
-- **Tons dorés** : titres en brun chaud `#3f3222` (survol → `--cs-or`), auteur/date/labels/lettrine/« Lire »/filets en doré (`#7a6030`, `--cs-or`), pastilles de genre en teinte dorée. Remplace les accents verts.
-- **Brillance au survol** : balayage d'un dégradé crème-doré via `background-position` animé (entrées communes) et un `::before` (bloc une). Subtil.
-- **« À la une » = exactement deux blocs communs** : `--pub-h: 7rem` sur `.publications-index` ; commune `min-height: var(--pub-h)` (méta poussée en bas par `margin-top:auto`) ; `.une { grid-row: span 2; min-height: calc(var(--pub-h) * 2) }` — remplit deux blocs même si le contenu est court, et s'aligne sur les deux entrées voisines. Résumé de la une écrêté 4 lignes pour ne pas dépasser.
 
 # Centre de contrôle admin — toujours regarder où l'on en est
 
