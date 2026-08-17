@@ -444,3 +444,17 @@ Les deux blocs que l'assistant remplit (`controle_sections.commentaire_ia` et `t
 - **Le poids de la note est annoncé** au-delà de 1 200 signes, pour qu'on ne croie pas l'avoir lue en entier.
 - ⚠️ **Le bloc de styles est un littéral gabarit** : jamais d'accent grave dedans, pas même dans un commentaire. Il a cassé la compilation deux fois ici, comme il l'avait fait dans `EssaisListeClient`.
 - ⚠️ **Résidu à surveiller** : `commentaire_ia` de la section Qualité contient un `\n` LITTÉRAL, qui s'affiche tel quel. Même défaut que celui trouvé dans la charte, même origine probable.
+
+# Casse des titres — la règle de l'Imprimerie nationale
+
+Doctrine : charte `parametres.charte_ia` **§ 3.5**, réécrite le 2026-08-17 d'après le *Lexique des règles typographiques en usage à l'Imprimerie nationale*, entrée « Titres d'œuvres et de journaux » (p. 168-171). La règle précédente, « une majuscule au premier mot seulement », était vraie d'un seul cas sur quatre.
+
+- **Le titre ne commence pas par l'article défini** → le mot initial prend seul la majuscule. *Sur Joseph et la continence*, *De l'esprit des lois*.
+- **Le titre commence par l'article défini** → l'article prend la majuscule, et il est le SEUL à la prendre dans deux cas : le titre forme une phrase (*Les dieux ont soif*), ou c'est un ouvrage spécialisé, d'érudition ou technique, ou un article de revue (*Le problème du devenir…*).
+- **Sinon la majuscule va plus loin** : à chaque terme en opposition ou en parallèle dans un titre qui contient une comparaison ou une symétrie (*La Belle et la Bête*, *Le Diable et le Bon Dieu*) ; et, dans tous les autres titres, **au premier substantif ainsi qu'aux adjectifs et adverbes qui le précèdent** (*Les Très Riches Heures du duc de Berry*, *Le Petit Chaperon rouge*).
+- ⚠️ **Dans un titre en deux parties séparées par « ou », l'article de la seconde partie PERD la majuscule** : *Julie ou la Nouvelle Héloïse*, *Le Mariage de Figaro ou la Folle Journée*.
+- ⚠️ **Les titres en langue étrangère suivent la règle FRANÇAISE**, casse et typographie comprises : l'usage anglais de la capitale à chaque mot important n'est pas suivi.
+- **Restent en romain, article en bas de casse** : livres dits sacrés (la Bible, l'Évangile selon saint Luc), actes officiels, codes, et désignations de thèmes traditionnels qui ne sont pas des titres réels (la Crucifixion).
+- ⛔ **Jamais dans le corps d'un texte source.** La casse d'un titre qui figure DANS le texte d'une œuvre appartient à l'édition reproduite.
+
+**Écart mesuré au 2026-08-17** : les titres d'œuvre, sous-titres, titres d'essai et intitulés d'événement sont propres ; aucun article initial en bas de casse nulle part. Restent **89 titres de niveau distincts composés tout en capitales** (11 en `ref_niv1`, 76 en `ref_niv2`, 2 en `ref_niv3`), du type `LIVRE TROISIÈME` ou `EXPLICATION DU PSAUME CXL.`, qui sont des capitales d'affichage de la source et non une casse éditoriale. ⚠️ Ne pas compter les chiffres romains (`VIII`, `XXIV`) comme des violations : un dépistage naïf sur `v = upper(v)` en trouve 94 au lieu de 89.
