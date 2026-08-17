@@ -36,7 +36,33 @@ const UN_SIECLE = new RegExp(`\\b([IVXLCDM]+)(${ORDINAL})\\b`, 'g')
 
 /** Petites capitales : `all-small-caps` et non `small-caps` — voir en tête. */
 export const STYLE_ROMAIN: React.CSSProperties = { fontVariantCaps: 'all-small-caps' }
-export const STYLE_ORDINAL: React.CSSProperties = { fontSize: '0.6em', lineHeight: 1 }
+
+/** L'ordinal en exposant.
+ *
+ *  ⛔ **Jamais `vertical-align: super`**, qui est le défaut du `<sup>` et qu'il
+ *  faut donc neutraliser explicitement. Mesuré dans le navigateur, à 20 px de
+ *  corps : la petite capitale du chiffre romain monte à 11 px au-dessus de la
+ *  ligne de base, l'ordinal composé à 0,6 em a 7 px de hauteur d'x, il faut donc
+ *  le relever de 4 px pour que leurs sommets s'alignent. `super` le relève de
+ *  7,66 px — presque du double. D'où le « e » qui flottait au-dessus du siècle.
+ *
+ *  Le relèvement s'écrit en em de l'EXPOSANT (0,33 × 0,6 em = 0,20 em du
+ *  parent) : il suit ainsi le corps du texte d'accueil.
+ *
+ *  `line-height: 0` empêche l'exposant de gonfler la boîte de ligne, comme dans
+ *  `NoteTooltip`. */
+export const STYLE_ORDINAL: React.CSSProperties = {
+  fontSize: '0.6em',
+  lineHeight: 0,
+  verticalAlign: 'baseline',
+  position: 'relative',
+  top: '-0.33em',
+}
+
+/** Même exposant, en CSS littéral, pour les rendus qui composent du HTML en
+ *  chaîne (injection `dangerouslySetInnerHTML`). Une seule définition, deux
+ *  écritures : les garder d'accord. */
+export const CSS_ORDINAL = 'font-size:0.6em;line-height:0;vertical-align:baseline;position:relative;top:-0.33em'
 
 export function enChiffresRomains(n: number): string {
   const table: [number, string][] = [
@@ -174,7 +200,7 @@ export function rendreSiecles(texte: string | null | undefined): React.ReactNode
 export function sieclesEnHtml(html: string): string {
   return html.replace(
     new RegExp(`\\b([IVXLCDM]+)(?:<sup>)?(${ORDINAL})(?:</sup>)?(\\s*(?:siècles?|s\\.))`, 'g'),
-    '<span style="font-variant-caps:all-small-caps">$1</span><sup style="font-size:0.6em !important;line-height:1">$2</sup>$3',
+    `<span style="font-variant-caps:all-small-caps">$1</span><sup style="${CSS_ORDINAL}">$2</sup>$3`,
   )
 }
 

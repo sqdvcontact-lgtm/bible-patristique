@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { rendreSiecles, decouperSiecles, Siecle } from '@/app/lib/siecles'
+import { rendreSiecles, decouperSiecles, Siecle, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import {
   type RangFrise, type Densite, DENSITES, coulFamille, passeDensite,
@@ -82,7 +82,7 @@ function rendreTexteLibre(v: string, cle: string, q: string): React.ReactNode[] 
   let last = 0, m: RegExpExecArray | null, k = 0
   while ((m = re.exec(v))) {
     if (m.index > last) out.push(...surligner(v.slice(last, m.index), `${cle}-${k}a`, q))
-    out.push(<React.Fragment key={`${cle}-${k}o`}>{m[1]}<sup style={{ fontSize: '0.62em', lineHeight: 1 }}>{m[2]}</sup></React.Fragment>)
+    out.push(<React.Fragment key={`${cle}-${k}o`}>{m[1]}<sup style={STYLE_ORDINAL}>{m[2]}</sup></React.Fragment>)
     k++; last = re.lastIndex
   }
   if (last < v.length) out.push(...surligner(v.slice(last), `${cle}-${k}a`, q))
@@ -94,7 +94,7 @@ function rendreTexteLibre(v: string, cle: string, q: string): React.ReactNode[] 
 function rendreSegment(texte: string, cle: string, q: string): React.ReactNode[] {
   return decouperSiecles(texte).map((fr, i) =>
     fr.t === 'romain' ? <span key={`${cle}-r${i}`} style={{ fontVariantCaps: 'all-small-caps' }}>{fr.v}</span>
-    : fr.t === 'ordinal' ? <sup key={`${cle}-o${i}`} style={{ fontSize: '0.6em', lineHeight: 1 }}>{fr.v}</sup>
+    : fr.t === 'ordinal' ? <sup key={`${cle}-o${i}`} style={STYLE_ORDINAL}>{fr.v}</sup>
     : <React.Fragment key={`${cle}-t${i}`}>{rendreTexteLibre(fr.v, `${cle}-${i}`, q)}</React.Fragment>,
   )
 }

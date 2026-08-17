@@ -53,7 +53,7 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
   while ((m = regex.exec(texte))) {
     if (m.index > dernierIndex) noeuds.push(texte.slice(dernierIndex, m.index))
     if (m[1] !== undefined) noeuds.push(<strong key={k++}>{m[1]}</strong>)
-    else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{m[2]}</sup>)
+    else if (m[2] !== undefined) noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[2]}</sup>)
     else if (m[3] !== undefined) noeuds.push(<em key={k++}>{m[3]}</em>)
     else if (m[4] !== undefined) noeuds.push(
       <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{m[4]}</a>
@@ -137,7 +137,7 @@ function rendreSiecle(str: string): React.ReactNode {
   while ((m = re.exec(str)) !== null) {
     if (m.index > last) parts.push(str.slice(last, m.index))
     parts.push(<span key={k++} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{m[1].toLowerCase()}</span>)
-    if (m[2]) parts.push(<sup key={k++} style={{ fontSize: '0.68em' }}>{m[2]}</sup>)
+    if (m[2]) parts.push(<sup key={k++} style={STYLE_ORDINAL}>{m[2]}</sup>)
     last = re.lastIndex
   }
   if (last < str.length) parts.push(str.slice(last))

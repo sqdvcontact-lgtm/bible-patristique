@@ -1,4 +1,5 @@
 import React from 'react'
+import { STYLE_ORDINAL } from './siecles'
 import NoteTooltip from './NoteTooltip'
 
 export type ElementPanneau =
@@ -38,7 +39,7 @@ export function rendreMarquesNote(t: string, base: number = 0): React.ReactNode[
     if (m.index > d) out.push(t.slice(d, m.index))
     if (m[1] !== undefined) out.push(<strong key={`b-${base}-${i++}`}>{m[1]}</strong>)
     else if (m[2] !== undefined) out.push(<span key={`c-${base}-${i++}`} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{m[2]}</span>)
-    else if (m[3] !== undefined) out.push(<sup key={`s-${base}-${i++}`}>{m[3]}</sup>)
+    else if (m[3] !== undefined) out.push(<sup key={`s-${base}-${i++}`} style={STYLE_ORDINAL}>{m[3]}</sup>)
     else if (m[4] !== undefined) out.push(<em key={`i-${base}-${i++}`}>{m[4]}</em>)
     d = re.lastIndex
   }
@@ -57,7 +58,7 @@ function rendreInline(s: string, cleNote: { n: number }, options: RenduOptions):
     } else if (m[2] !== undefined) {
       noeuds.push(<span key={k++} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{m[2]}</span>)
     } else if (m[3] !== undefined) {
-      noeuds.push(<sup key={k++}>{m[3]}</sup>)
+      noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[3]}</sup>)
     } else if (m[4] !== undefined) {
       noeuds.push(<em key={k++}>{m[4]}</em>)
     } else if (m[5] !== undefined) {

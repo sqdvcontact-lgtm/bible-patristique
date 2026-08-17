@@ -256,7 +256,7 @@ export function rendreTexteAvecNotes(texte: string, notes: Record<string, string
     // Un appel de note peut se trouver à l'intérieur d'une emphase. Le contenu
     // doit donc repasser par le même moteur au lieu d'être rendu comme texte brut.
     if (m[1] !== undefined) noeuds.push(<strong key={k++}>{rendreTexteAvecNotes(m[1], notes, variante)}</strong>)
-    else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{rendreTexteAvecNotes(m[2], notes, variante)}</sup>)
+    else if (m[2] !== undefined) noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{rendreTexteAvecNotes(m[2], notes, variante)}</sup>)
     else if (m[3] !== undefined) noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[3], notes, variante)}</em>)
     else if (m[4] !== undefined) noeuds.push(
       <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteAvecNotes(m[4], notes, variante)}</a>

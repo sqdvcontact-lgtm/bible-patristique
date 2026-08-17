@@ -537,3 +537,23 @@ Doctrine : charte `parametres.charte_ia` **§ 19.2**. Les auteurs d'une œuvre s
 ⚠️ **Trois surfaces lisaient l'auteur, pas une.** Chacune avait sa propre requête, et corriger la bibliothèque seule laissait une fiche vide et une page de titre incomplète. Chercher `id_auteur` dans tout `app/` avant de croire un tel portage terminé.
 
 **Reste** : `separateurAuteurs` n'est pas employé. Il sert à rendre les noms un à un et CLIQUABLES, chacun vers sa fiche, ce que la chaîne de `libelleAuteurs` ne permet pas.
+
+# Exposants — jamais `vertical-align: super`
+
+⛔ **`vertical-align: super` est le défaut du `<sup>`, et il relève l'ordinal du DOUBLE de ce qu'il faut.** Il faut donc le neutraliser explicitement, partout.
+
+**Mesure faite dans le navigateur** (Georgia, 20 px de corps, page d'épreuve et `measureText`) : la petite capitale du chiffre romain monte à **11 px** au-dessus de la ligne de base, l'ordinal composé à 0,6 em a **7 px** de hauteur d'x. Il faut donc le relever de **4 px** pour aligner les sommets. `super` le relevait de **7,66 px**, d'où le « e » de « IXe siècle » qui flottait au-dessus du chiffre.
+
+**Une seule définition fait foi**, `STYLE_ORDINAL` dans `app/lib/siecles.tsx`, doublée de `CSS_ORDINAL` pour les rendus qui composent du HTML en chaîne :
+
+`font-size: 0.6em ; line-height: 0 ; vertical-align: baseline ; position: relative ; top: -0.33em`
+
+- Le relèvement s'écrit en em de l'EXPOSANT, donc il suit le corps du texte d'accueil.
+- `line-height: 0` empêche l'exposant de gonfler la boîte de ligne (même raison que dans `NoteTooltip`).
+- **0,33 em plutôt que 0,35** : l'idéal mesuré oscille entre 0,33 et 0,38 em selon l'arrondi des glyphes. On se tient au bas de la fourchette, car dépasser le sommet du chiffre est précisément le défaut qu'on corrige.
+
+**Neuf endroits composaient leur propre exposant**, à 0,5 / 0,6 / 0,62 / 0,68 em, tous sur `super` : `siecles.tsx` (JSX et chaîne), `HistoricalDate` (qui avait sa propre constante à 0,68 em), `HistoireClient` (deux fois), `NavLivres`, `PanneauPatristique` (deux fois), `texteEnrichi`, `texteEnrichiEssai` (deux fois), `appelNote`, `EditeurCommentaire`, `TexteBible`. Tous renvoient désormais à la définition unique.
+
+⚠️ **Le test de `HistoricalDate` épinglait la chaîne exacte `vertical-align:super`** : il tenait donc le défaut en place. Il épingle désormais la RÈGLE — pas de `super`, un `top` négatif, un `line-height: 0`.
+
+**Deux exceptions volontaires** : `EssaiPDF` reste sur `super`, react-pdf ne sachant pas positionner en relatif ; et le lecteur Bible 899 n'a pas été touché, ce chantier étant mené à part.

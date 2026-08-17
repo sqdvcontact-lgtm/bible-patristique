@@ -1,5 +1,6 @@
 'use client'
 import { ABREV_FR } from '@/app/lib/bible'
+import { CSS_ORDINAL } from '@/app/lib/siecles'
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
@@ -255,7 +256,7 @@ function versetMarkupVersHtml(s: string): string {
     .replace(/&lt;i&gt;([\s\S]*?)&lt;\/i&gt;/g, '<em>$1</em>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\+\+(.+?)\+\+/g, '<span style="font-variant:small-caps;letter-spacing:0.04em">$1</span>')
-    .replace(/\^\^(.+?)\^\^/g, '<sup>$1</sup>')
+    .replace(/\^\^(.+?)\^\^/g, `<sup style="${CSS_ORDINAL}">$1</sup>`)
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>')
 }
