@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useMemo, useEffect, useLayoutEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -110,6 +110,15 @@ const CHIFFRES_FR = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'h
   'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf', 'vingt']
 function enLettres(n: number): string { return n >= 1 && n <= 20 ? CHIFFRES_FR[n - 1] : String(n) }
 
+// Nombre de lignes de notice avant la première mesure. Ce n'est qu'un point de
+// départ : la valeur réelle se calcule sur la hauteur que la carte laisse, avant
+// peinture.
+const LIGNES_NOTICE_AU_DEPART = 3
+
+// `useLayoutEffect` mesure et corrige AVANT peinture : la carte ne doit pas se voir
+// grandir puis se recouper. Il n'existe pas au rendu serveur, d'où le repli.
+const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
+
 // ── Bandeau auteur ────────────────────────────────────────────────────────────
 function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, onOuvrirAuteur, originaux, ouvertParDefaut = false, compact = false }: {
   auteur: Auteur; recherche: string
@@ -133,16 +142,36 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
   const photoPos = parseAuteurPhotoPositions(auteur.photo_position).carte
   const datesAuteur = auteur.dates
 
-  // Notice trop longue pour la zone fixe : on le détecte pour proposer un renvoi
-  // « Ouvrir la page auteur » à la suite des points de suspension.
+  // La notice occupe TOUTE la place que lui laisse la carte, et pas une ligne de
+  // plus. Le nombre de lignes ne peut pas être écrit en dur : la hauteur de carte
+  // est en pixels (200px) tandis que le texte suit la police racine, qui grandit
+  // jusqu'à ×1,375 sur grand écran. Trois lignes en dur laissaient donc un large
+  // blanc sur un portable et n'auraient plus tenu sur un écran large. On mesure la
+  // zone disponible et l'on en déduit le nombre de lignes.
   const proseRef = useRef<HTMLDivElement>(null)
+  const zoneRef = useRef<HTMLDivElement>(null)
   const [tronque, setTronque] = useState(false)
-  useEffect(() => {
+  const [lignesNotice, setLignesNotice] = useState(LIGNES_NOTICE_AU_DEPART)
+  useMesureAvantPeinture(() => {
+    const zone = zoneRef.current
     const el = proseRef.current
-    if (!el) return
-    const mesurer = () => setTronque(el.scrollHeight > el.clientHeight + 1)
+    if (!zone || !el) return
+    const mesurer = () => {
+      const hauteurLigne = parseFloat(getComputedStyle(el).lineHeight)
+      if (hauteurLigne > 0) {
+        // Arrondi PAR DÉFAUT, à 1 px près : une ligne de plus déborderait de la
+        // zone, qui la rognerait par le milieu. Mieux vaut un reste de blanc
+        // qu'une ligne coupée en deux dans sa hauteur.
+        setLignesNotice(Math.max(1, Math.floor((zone.clientHeight + 1) / hauteurLigne)))
+      }
+      setTronque(el.scrollHeight > el.clientHeight + 1)
+    }
     mesurer()
+    // La zone donne le nombre de lignes, le texte dit s'il déborde encore : les
+    // deux sont observés. Poser le même nombre de lignes ne redéclenche pas de
+    // rendu, la boucle se referme donc d'elle-même.
     const ro = new ResizeObserver(mesurer)
+    ro.observe(zone)
     ro.observe(el)
     return () => ro.disconnect()
   }, [auteur.note_biographique, auteur.note, auteur.note_theologique])
@@ -198,12 +227,16 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
           {!compact && (auteur.note_biographique || auteur.note || auteur.note_theologique) && (
             // Conteneur BLOC (surtout pas flex : un parent flex « blockifie » l'enfant et
             // convertit `display:-webkit-box` en `flow-root`, ce qui désactive line-clamp).
-            <div>
-              {/* Notice bornée à trois lignes par `-webkit-line-clamp` : quand le texte
-                  déborde, un « … » est ajouté AU POINT DE COUPE (collé au texte, en
-                  remplacement de la ponctuation finale). La biographie (italique) et la
-                  note théologique (romain) s'écoulent d'un seul tenant. */}
-              <div ref={proseRef} style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontSize: '0.75rem', lineHeight: 1.5, color: 'var(--cs-texte)', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+            // Cette zone prend TOUTE la hauteur restante de la carte : c'est elle qui
+            // repousse le pied en bas, à la place de la marge automatique, et c'est sa
+            // hauteur mesurée qui donne le nombre de lignes de la notice.
+            <div ref={zoneRef} style={{ flex: '1 1 auto', minHeight: 0, overflow: 'hidden' }}>
+              {/* Notice bornée par `-webkit-line-clamp` au nombre de lignes que la zone
+                  peut tenir : quand le texte déborde, un « … » est ajouté AU POINT DE
+                  COUPE (collé au texte, en remplacement de la ponctuation finale). La
+                  biographie (italique) et la note théologique (romain) s'écoulent d'un
+                  seul tenant. */}
+              <div ref={proseRef} style={{ display: '-webkit-box', WebkitLineClamp: lignesNotice, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontSize: '0.75rem', lineHeight: 1.5, color: 'var(--cs-texte)', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                 {(auteur.note_biographique || auteur.note) && (
                   <span style={{ fontStyle: 'italic' }}>{rendreSiecles(auteur.note_biographique || auteur.note)}</span>
                 )}

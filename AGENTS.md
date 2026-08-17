@@ -60,6 +60,21 @@ Le site est dessiné en pixels fixes calibrés pour un portable. Pour l'agrandir
 - **Navbar** : hauteur = **`HAUTEUR_NAVBAR = '3.5rem'`** (chaîne rem, dans `app/lib/mesures.ts`) → la barre grandit avec la police racine. Tous les décalages du site sont accordés à cette valeur : `calc(100vh/100dvh - 3.5rem)`, `top/paddingTop/scrollMarginTop: '3.5rem'`. ⚠️ **`HAUTEUR_NAVBAR` n'est plus un nombre** : ne jamais faire d'arithmétique JS dessus — composer en `calc(${HAUTEUR_NAVBAR} + Npx)` (cf. `SOMMET_CORPS` dans `polyglotte/page.tsx`, en-têtes collants). Pour changer la hauteur, modifier `mesures.ts` **et** répercuter la valeur sur ces décalages. Breakpoint du menu desktop : `md` → **`lg` (1024px)** pour éviter le tassement des liens.
 - **Portée** : desktop d'abord ; le mobile est traité ensuite (ci-dessous).
 
+### Corollaire : un nombre de LIGNES ne s'écrit pas en dur
+
+⚠️ Dès qu'un bloc a une hauteur en **pixels** et un texte qui suit la **police racine fluide**, le nombre de lignes qui y tient change avec la largeur de l'écran. L'écrire en dur ne peut être juste qu'à une seule taille.
+
+Cas rencontré le 2026-08-17, carte auteur de la bibliothèque (`app/bibliotheque/BibliothequeClient.tsx`) : bandeau `height: 200px`, notice bornée par `-webkit-line-clamp: 3`. Mesuré, la zone laissée à la notice vaut **100 px à 16 px de racine** et **81 px à 22 px** ; trois lignes y occupent 54 px et 74 px. La valeur était donc juste sur grand écran et laissait **46 px de blanc** sur un portable, sous une notice pourtant tronquée : du texte existait, la place aussi, et rien ne les réunissait.
+
+Patron retenu, à reprendre pour tout bloc écrêté de hauteur fixe :
+
+- la zone de texte prend la hauteur restante (`flex: 1 1 auto; min-height: 0; overflow: hidden`) et repousse elle-même le pied de carte, à la place d'une marge automatique ;
+- un `ResizeObserver` mesure cette zone ET le texte, puis `-webkit-line-clamp` reçoit `Math.floor((hauteur + 1) / hauteurDeLigne)`. **Arrondi par défaut** : une ligne de plus serait rognée par le milieu, et mieux vaut un reste de blanc qu'une demi-ligne ;
+- la mesure passe par `useLayoutEffect` (repli sur `useEffect` au rendu serveur), sans quoi la carte se voit grandir puis se recouper. ⚠️ L'alias doit être une constante de MODULE nommée `use…`, sinon la règle des hooks d'ESLint ne le reconnaît pas et signale « Cannot access refs during render » ;
+- la boucle se referme d'elle-même : reposer le même nombre de lignes ne redéclenche pas de rendu.
+
+Résultat : blanc résiduel de 5 à 10 px selon la taille, hauteur de carte inchangée à 200 px.
+
 ## Responsive mobile (téléphone + tablette portrait, ≤ 900px)
 
 Chantier distinct du scaling desktop. Seuil unique **900px** via le hook `useEstMobile(seuil = 900)` (`app/lib/useEstMobile.ts`) : `false` au rendu serveur et au premier rendu client (pas de désaccord d'hydratation), puis bascule au montage selon `matchMedia`.
