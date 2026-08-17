@@ -470,6 +470,12 @@ Symptôme observé : l'admin Bibliothèque affichait « Aucun auteur trouvé » 
 
 **Règle** : une migration qui touche la forme des relations (table de liaison, clé étrangère, renommage, vue lue par le site) n'est appliquée qu'**une fois le correctif poussé**, ou bien elle est poussée dans la foulée, sans attendre le lendemain. Aucune séance ne se termine avec une migration en base et son correctif dans un commit non poussé.
 
+⚠️ **Le site en ligne se déploie depuis `master`, pas depuis la branche de travail.** `confort-lecture` ne produit que des déploiements **Preview** : y pousser un correctif ne change rien à corpus-scriptura.fr. Les deux branches ont divergé (base commune du 2026-08-07), un correctif urgent se porte donc en petit commit ciblé **directement sur `master`**, jamais en fusionnant la branche de travail entière. Vérifier ce qui est réellement en ligne :
+
+```
+curl -s "https://api.github.com/repos/sqdvcontact-lgtm/bible-patristique/deployments?environment=Production&per_page=1"
+```
+
 **Repérer la panne** : `git status -sb` (« ahead N ») dit ce qui manque au site. Rejouer la requête telle que la sert le code EN LIGNE, pas le code local :
 
 ```
