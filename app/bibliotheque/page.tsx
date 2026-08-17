@@ -1,3 +1,4 @@
+import { chargerAuteursParOeuvre, grouperOeuvresParAuteur } from '@/app/lib/auteursOeuvre'
 import { Suspense, type ComponentProps } from "react"
 import BibliothequeClient from "./BibliothequeClient"
 import { MARQUEUR_OEUVRE_DEPUBLIEE } from "@/app/lib/oeuvresPublication"
@@ -22,7 +23,7 @@ type TexteBibliotheque = {
   annee_edition: number | null
   is_default: boolean
 }
-type OeuvreBibliotheque = { id_auteur: string; [cle: string]: unknown }
+type OeuvreBibliotheque = { id_oeuvre: string; id_auteur: string; [cle: string]: unknown }
 
 export default async function BibliothequePage() {
   const supabase = await creerSupabaseServeur()
@@ -31,7 +32,7 @@ export default async function BibliothequePage() {
   // Les témoins textuels d'une œuvre (traduction française, texte latin, seconde
   // traduction) valent chacun une ligne au catalogue : la bibliothèque les liste
   // sous leur œuvre, et non plus seulement dans le volet du lecteur.
-  const [auteursResultat, oeuvresResultat, textesResultat] = await Promise.all([
+  const [auteursResultat, oeuvresResultat, textesResultat, auteursParOeuvre] = await Promise.all([
     supabase
       .from("auteurs")
       .select("id_auteur, nom, nom_original, titre, dates, siecle, date_naissance, date_mort, langue_principale, traditions, note, note_biographique, note_theologique, photo_position")
@@ -45,6 +46,9 @@ export default async function BibliothequePage() {
       .select("id_texte, id_oeuvre, langue, traducteur, edition_label, annee_edition, is_default")
       .eq("is_public", true)
       .eq("statut", "published"),
+    // Une œuvre peut être signée par plusieurs auteurs, à égalité : elle paraît
+    // alors sous le nom de chacun. Voir la charte, § 19.2.
+    chargerAuteursParOeuvre(supabase),
   ])
 
   // Un témoin par ligne, celui par défaut en tête : c'est lui que sert le lien
@@ -61,18 +65,23 @@ export default async function BibliothequePage() {
       || (a.annee_edition ?? 0) - (b.annee_edition ?? 0))
   }
 
-  const oeuvresParAuteur = new Map<string, OeuvreBibliotheque[]>()
-  for (const oeuvre of (oeuvresResultat.data ?? []) as OeuvreBibliotheque[]) {
-    const groupe = oeuvresParAuteur.get(String(oeuvre.id_auteur)) ?? []
-    groupe.push({ ...oeuvre, textes: textesParOeuvre.get(String(oeuvre.id_oeuvre)) ?? [] })
-    oeuvresParAuteur.set(String(oeuvre.id_auteur), groupe)
-  }
+  const oeuvres = ((oeuvresResultat.data ?? []) as OeuvreBibliotheque[]).map(oeuvre => ({
+    ...oeuvre,
+    textes: textesParOeuvre.get(String(oeuvre.id_oeuvre)) ?? [],
+    auteurs: auteursParOeuvre[String(oeuvre.id_oeuvre)] ?? [],
+  }))
+  // ⚠️ Une œuvre à deux auteurs entre dans les DEUX étagères : c’est ainsi que
+  // Rufin d’Aquilée paraît, lui qui ne porte aucune œuvre en propre.
+  const oeuvresParAuteur = grouperOeuvresParAuteur(oeuvres, auteursParOeuvre, o => String(o.id_auteur))
 
   const base = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/auteurs`
   const cacheV = Math.floor(Date.now() / (3600 * 1000))
   const auteurs = (((auteursResultat.data ?? []) as AuteurBibliotheque[])
     .map(a => ({ ...a, oeuvres: oeuvresParAuteur.get(String(a.id_auteur)) ?? [], imageUrl: `${base}/${a.id_auteur}.jpg?v=${cacheV}` }))
-    .filter(a => a.oeuvres.length > 0)) as ComponentProps<typeof BibliothequeClient>["auteurs"]
+    // Un auteur sans œuvre ne paraît pas. Depuis les œuvres à plusieurs auteurs,
+    // « sans œuvre » veut dire sans œuvre PROPRE NI CO-SIGNÉE : c'est cette
+    // répartition qui fait entrer Rufin d'Aquilée dans la bibliothèque.
+    .filter(a => a.oeuvres.length > 0)) as unknown as ComponentProps<typeof BibliothequeClient>["auteurs"]
 
   // Si le chargement des auteurs échoue, on le signale plutôt que d'afficher une
   // bibliothèque vide comme si de rien n'était.

@@ -13,6 +13,7 @@ import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { partagerOpuscules } from '@/app/lib/opuscules'
 import { libelleTrad, formaterEditeur } from '@/app/oeuvre/[id]/PageTitre'
 import { estLangueOriginale, libelleTemoin, editionCourte } from '@/app/lib/temoinsOeuvre'
+import type { AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import { useEditeursCharges } from '@/app/lib/editeurs'
 import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
@@ -29,6 +30,9 @@ type Oeuvre = {
   genre: string | null; note?: string | null; langue_originale?: string | null
   nb_signes?: number | null
   textes?: TexteOeuvre[]
+  // Tous les auteurs qui signent l'œuvre, à égalité. Une œuvre à deux auteurs
+  // paraît sur l'étagère de chacun ; ce champ sert à nommer l'autre.
+  auteurs?: AuteurOeuvre[]
 }
 // Un témoin textuel de l'œuvre : une traduction, ou le texte dans sa langue
 // d'origine. Le catalogue lui doit UNE LIGNE, la règle valant aussi bien pour

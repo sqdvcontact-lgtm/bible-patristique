@@ -517,3 +517,15 @@ Doctrine : charte `parametres.charte_ia` **§ 19.2**. La bibliothèque affiche u
 - ⚠️ **Le latin peut exister deux fois**, en colonne parallèle ET comme témoin. Quand le témoin existe, il prime et la sous-ligne « Texte original latin » disparaît, sinon La Cité de Dieu offrirait deux portes vers le même latin.
 - **La mention d'édition se réduit à l'année.** `edition_label` de Vivès tient en deux cents signes et écraserait la ligne : sans `annee_edition`, la ligne ne dit rien de l'édition.
 - **Effet mesuré** : sur 16 œuvres publiées, 3 n'ont aucun témoin déclaré, 11 en ont un, 2 en ont plusieurs. Seuls Boèce et La Cité de Dieu gagnent des lignes ; les quatorze autres sont inchangées.
+
+# Une œuvre à plusieurs auteurs
+
+Doctrine : charte `parametres.charte_ia` **§ 19.2**. Les auteurs d'une œuvre sont **à égalité** : ni principal ni second, le `rang` ne règle que l'ordre d'affichage. L'œuvre paraît une fois sous le nom de chacun.
+
+- **Modèle** : `oeuvres.id_auteur` porte le PREMIER auteur (rang 1), la table `oeuvres_auteurs` les suivants, et la vue `v_oeuvres_auteurs` réconcilie les deux. ⛔ Ne jamais reconstituer cette union à la main : passer par `app/lib/auteursOeuvre.ts` (module testé).
+- **La bibliothèque range l'œuvre sur les DEUX étagères** (`grouperOeuvresParAuteur`), avec un repli sur `oeuvres.id_auteur` si la vue ne répond pas, pour qu'une panne de lecture ne fasse pas disparaître une œuvre.
+- ⚠️ **Un auteur sans œuvre ne paraît pas** : la page filtre `oeuvres.length > 0`. C'est ce filtre qui masquait **Rufin d'Aquilée**, lequel ne porte aucune œuvre en propre — sa part de l'*Histoire ecclésiastique* n'était dite qu'en prose, dans `commentaire_traduction` et `note`.
+
+**Trouvaille du 2026-08-17.** La migration `oeuvres_a_deux_auteurs` (table + vue) était **en base depuis le 16 août**, mais deux moitiés manquaient : `oeuvres_auteurs` était **vide** (0 ligne), et le code qui lit la vue vivait sur la branche, pas sur `master`. Le lien Eusèbe–Rufin sur `A0024O0001` a été créé, et la lecture portée dans `app/bibliotheque/page.tsx`. Effet mesuré : **un seul auteur change**, Rufin, de 0 à 1 œuvre.
+
+**Reste à porter** : la page de titre et les cartes ne nomment encore qu'un auteur. `libelleAuteurs` et `separateurAuteurs` sont là pour cela, le second rendant les noms un à un et cliquables.
