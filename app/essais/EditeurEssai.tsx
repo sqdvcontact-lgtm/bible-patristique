@@ -42,7 +42,10 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   })
   // Couleur de la couverture. Un texte sans choix prend le vert d'encre du site :
   // une publication n'est jamais sans couverture.
-  const [couverture, setCouverture] = useState<string>(essaiExistant?.couverture ?? COUVERTURE_PAR_DEFAUT.cle)
+  // Chaîne vide = aucun choix, et c'est le cas par défaut : la couleur est alors
+  // TIRÉE de l'identifiant de la publication, ce qui met de la variété au rayon.
+  // Poser une couleur d'office ferait naître toutes les publications de la même.
+  const [couverture, setCouverture] = useState<string>(essaiExistant?.couverture ?? '')
   const [userId, setUserId] = useState<string | null>(null)
   const [profil, setProfil] = useState<{ pseudo: string | null; nom: string | null; prenom: string | null } | null>(null)
   const [afficherNomReel, setAfficherNomReel] = useState(essaiExistant?.afficher_nom_reel ?? false)
@@ -117,7 +120,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     setStatutEnr('enregistrement')
     const payload: any = {
       titre, sous_titre: meta.sousTitre.trim() || null, resume: meta.resume.trim(),
-      categories: meta.categories, contenu: contenuTexte, afficher_nom_reel: afficherNomReel, couverture,
+      categories: meta.categories, contenu: contenuTexte, afficher_nom_reel: afficherNomReel,
+      couverture: couverture || null,
       verset_en_tete: versetEnTete ? JSON.stringify(versetEnTete) : null,
       updated_at: new Date().toISOString(),
     }
@@ -639,9 +643,20 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 <div style={{ marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', marginBottom: '5px' }}>
                     <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Couverture</label>
-                    <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)' }}>{couvertureDe(couverture).libelle}</span>
+                    <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)' }}>
+                      {couverture ? couvertureDe(couverture).libelle : 'Au hasard'}
+                    </span>
                   </div>
                   <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                    {/* Première pastille : aucun choix, la couleur est tirée. */}
+                    <button type="button" onClick={() => setCouverture('')}
+                      title="Au hasard" aria-label="Couverture au hasard" aria-pressed={!couverture}
+                      style={{
+                        width: '1.5rem', height: '2.25rem', borderRadius: '2px', cursor: 'pointer', padding: 0,
+                        background: 'repeating-linear-gradient(135deg, var(--cs-fond-doux) 0 4px, var(--cs-bord-clair) 4px 8px)',
+                        border: !couverture ? '2px solid var(--cs-vert)' : '1px solid var(--cs-bord)',
+                        boxShadow: !couverture ? '0 0 0 2px rgba(61,107,79,0.18)' : 'none',
+                      }} />
                     {COUVERTURES.map(c => {
                       const actif = c.cle === couverture
                       return (

@@ -49,11 +49,38 @@ export const COUVERTURE_PAR_DEFAUT = COUVERTURES[0]
 
 const PAR_CLE = new Map(COUVERTURES.map(c => [c.cle, c]))
 
-/** La couverture d'une publication. Tolérante : une clé inconnue, vide ou absente
- *  rend le défaut, jamais une erreur — une couleur retirée du jeu ne doit pas
- *  effacer une publication de la liste. */
-export function couvertureDe(cle: string | null | undefined): Couverture {
-  return PAR_CLE.get((cle ?? '').trim()) ?? COUVERTURE_PAR_DEFAUT
+// Hachage entier, court et stable : il ne sert qu'à répartir des couleurs, pas à
+// protéger quoi que ce soit. Le même identifiant rend toujours la même teinte —
+// une couverture qui changerait à chaque rendu ne serait plus une couverture.
+function melange(graine: number): number {
+  let x = Math.trunc(graine) | 0
+  x = (x ^ 61) ^ (x >>> 16)
+  x = x + (x << 3)
+  x = x ^ (x >>> 4)
+  x = Math.imul(x, 0x27d4eb2d)
+  x = x ^ (x >>> 15)
+  return Math.abs(x)
+}
+
+/** La couverture qu'on donne à une publication dont l'auteur n'a rien choisi :
+ *  tirée du jeu d'après son identifiant. Le tirage est STABLE — deux affichages
+ *  de la même publication donnent la même couleur — mais il varie d'une
+ *  publication à l'autre, ce qui met de la variété au rayon. */
+export function couvertureTiree(graine: number): Couverture {
+  return COUVERTURES[melange(graine) % COUVERTURES.length]
+}
+
+/** La couverture d'une publication. Tolérante : une clé inconnue ou vide retombe
+ *  sur le tirage, jamais sur une erreur — une couleur retirée du jeu ne doit pas
+ *  effacer une publication de la liste.
+ *
+ *  `graine` est l'identifiant de la publication. Sans graine, on rend la
+ *  couverture par défaut : c'est le cas de l'éditeur, qui montre une couleur avant
+ *  même que la publication ait un identifiant. */
+export function couvertureDe(cle: string | null | undefined, graine?: number): Couverture {
+  const choisie = PAR_CLE.get((cle ?? '').trim())
+  if (choisie) return choisie
+  return graine === undefined ? COUVERTURE_PAR_DEFAUT : couvertureTiree(graine)
 }
 
 /** Vrai si la clé désigne une couverture du jeu. Sert à la validation d'écriture. */
