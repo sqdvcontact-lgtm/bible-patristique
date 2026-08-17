@@ -13,6 +13,7 @@ import { BadgeStatutAlignement } from './ComparaisonStatut'
 import { BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import type { AlignementDisponible, NoteBlocData, NoteStructuree, SegData } from './oeuvreTypes'
 import { estColonneOriginale } from './oeuvreTypes'
+import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import {
   groupesSelonFiltre,
@@ -80,8 +81,17 @@ function AppelNote({ note }: { note: NoteStructuree }) {
     document.addEventListener('keydown', onKey)
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
   }, [ouvert])
-  const haut = (rect?.top ?? 300) > 180
   const W = 340
+  // Même règle que dans la lecture : la note ne passe jamais sous la barre de
+  // navigation et ne déborde jamais du bas de l'écran. L'ancien seuil de 180 px
+  // ignorait le bas, et une note appelée en pied de colonne sortait de la vue.
+  const vue = typeof window === 'undefined'
+    ? { largeur: 900, hauteur: 800 }
+    : { largeur: window.innerWidth, hauteur: window.innerHeight }
+  const placement = placerFenetre({
+    ancre: rect ?? { top: 300, bottom: 316, left: 0 },
+    largeur: W, hauteurSouhaitee: 340, vue, hautNavbar: hauteurNavbarPx(), ecart: 8,
+  })
   return (
     <>
       <sup ref={ancre as React.RefObject<HTMLElement>} data-appel-note="" role="button" tabIndex={0}
@@ -92,7 +102,7 @@ function AppelNote({ note }: { note: NoteStructuree }) {
       </sup>
       {ouvert && typeof document !== 'undefined' && createPortal(
         <div data-appel-note="" onMouseDown={e => e.stopPropagation()}
-          style={{ position: 'fixed', left: Math.max(8, Math.min(rect?.left ?? 0, (typeof window !== 'undefined' ? window.innerWidth : 900) - W - 8)), top: haut ? (rect?.top ?? 0) - 8 : (rect?.bottom ?? 0) + 8, transform: haut ? 'translateY(-100%)' : 'none', width: W, maxWidth: 'calc(100vw - 16px)', maxHeight: 340, overflowY: 'auto', background: '#faf6ee', border: '1px solid var(--cs-or-doux)', borderRadius: 5, boxShadow: '0 6px 24px rgba(44,30,10,0.20)', padding: '10px 12px', zIndex: 9999, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', lineHeight: 1.45, color: '#2a2218' }}>
+          style={{ position: 'fixed', left: placement.left, top: placement.top, width: W, maxWidth: 'calc(100vw - 16px)', maxHeight: placement.hauteurMax, overflowY: 'auto', background: '#faf6ee', border: '1px solid var(--cs-or-doux)', borderRadius: 5, boxShadow: '0 6px 24px rgba(44,30,10,0.20)', padding: '10px 12px', zIndex: 9999, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', lineHeight: 1.45, color: '#2a2218' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
             <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Note {note.noteNumber}</span>
             <button onClick={() => setOuvert(false)} aria-label="Fermer" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a08a', fontSize: '0.9375rem', lineHeight: 1, padding: '0 2px' }}>×</button>
