@@ -557,3 +557,15 @@ Doctrine : charte `parametres.charte_ia` **§ 19.2**. Les auteurs d'une œuvre s
 ⚠️ **Le test de `HistoricalDate` épinglait la chaîne exacte `vertical-align:super`** : il tenait donc le défaut en place. Il épingle désormais la RÈGLE — pas de `super`, un `top` négatif, un `line-height: 0`.
 
 **Deux exceptions volontaires** : `EssaiPDF` reste sur `super`, react-pdf ne sachant pas positionner en relatif ; et le lecteur Bible 899 n'a pas été touché, ce chantier étant mené à part.
+
+# ⛔ Vérifier en `service_role` ne prouve RIEN
+
+Le MCP Supabase se connecte en **`service_role`, qui IGNORE le RLS**. Une requête qui y réussit peut très bien ne rien renvoyer au lecteur du site.
+
+**Cas du 2026-08-17.** La table `oeuvres_auteurs` avait le RLS **activé sans aucune politique de lecture**, et la vue `v_oeuvres_auteurs` est en `security_invoker` : elle s'exécute donc avec les droits de l'appelant. En `service_role`, la vue renvoyait bien Eusèbe ET Rufin, et j'ai conclu que tout allait ; au lecteur, elle ne renvoyait que le premier auteur, porté par `oeuvres`. Rufin n'apparaissait nulle part.
+
+- **L'épreuve qui vaut** : `set local role authenticated;` avant la requête, dans la même session. C'est le seul contrôle qui dise ce que voit le site.
+- **Rappel du modèle** : GRANT et policy sont DEUX choses. Le grant existait pour `authenticated` ; c'est la policy qui manquait, et RLS sans policy refuse tout.
+- **La politique posée** suit la visibilité de l'œuvre : on voit le lien si l'on voit l'œuvre (`acces_public OR is_admin()`), l'écriture restant aux admins. Migration `rls_oeuvres_auteurs_lecture`.
+
+⚠️ **Un repli silencieux cache la panne.** `chargerAuteursParOeuvre` renvoyait `{}` sur erreur, et `grouperOeuvresParAuteur` retombait sur l'auteur porté par l'œuvre : le site restait cohérent, et rien ne signalait que la lecture était refusée. Le repli est conservé, mais l'erreur est désormais **journalisée**. Un repli muet sur une erreur de droits est un piège à retardement.

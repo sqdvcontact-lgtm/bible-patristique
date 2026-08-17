@@ -57,7 +57,13 @@ export async function chargerAuteursParOeuvre(
   client: Pick<SupabaseClient, 'from'>,
 ): Promise<Record<string, AuteurOeuvre[]>> {
   const { data, error } = await client.from('v_oeuvres_auteurs').select(COLONNES)
-  if (error || !data) return {}
+  // ⚠️ Le repli silencieux a coûté une soirée : la vue est en `security_invoker`,
+  // et `oeuvres_auteurs` a d'abord eu le RLS SANS politique de lecture. Elle ne
+  // renvoyait donc rien au lecteur, le repli reprenait l'auteur porté par
+  // l'œuvre, et le co-auteur disparaissait sans que rien ne le dise. On garde le
+  // repli, qui évite qu'une panne fasse disparaître des œuvres, mais on le DIT.
+  if (error) { console.error('[auteursOeuvre] lecture de v_oeuvres_auteurs refusée :', error.message); return {} }
+  if (!data) return {}
   return regrouper(data as LigneVue[])
 }
 
@@ -77,7 +83,8 @@ export async function chargerOeuvresDAuteur(
   idAuteur: string,
 ): Promise<string[]> {
   const { data, error } = await client.from('v_oeuvres_auteurs').select('id_oeuvre').eq('id_auteur', idAuteur)
-  if (error || !data) return []
+  if (error) { console.error('[auteursOeuvre] œuvres de l’auteur illisibles :', error.message); return [] }
+  if (!data) return []
   return (data as { id_oeuvre: string }[]).map(l => l.id_oeuvre)
 }
 
