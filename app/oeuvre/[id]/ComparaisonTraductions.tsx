@@ -12,6 +12,7 @@ import { styleAppelNote } from './appelNote'
 import { BadgeStatutAlignement } from './ComparaisonStatut'
 import { BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import type { AlignementDisponible, NoteBlocData, NoteStructuree, SegData } from './oeuvreTypes'
+import { estColonneOriginale } from './oeuvreTypes'
 import {
   groupesSelonFiltre,
   membresOrdonnesParGroupe,
@@ -115,10 +116,12 @@ function renderSegmentTexte(texte: string, notes: NoteStructuree[]) {
 }
 
 // Gabarit d'un paragraphe, aligné sur la colonne française du mode Français-Latin
-// (sans-serif 0.82rem, interligne 1.62, mots resserrés, justifié).
+// (sérif 0.82rem, interligne 1.62, mots resserrés, justifié). Un texte d'œuvre se
+// lit toujours en sérif ; seule une colonne en LANGUE ORIGINALE, mise en regard du
+// français, passe en sans-serif (voir `POLICE_ORIGINALE` plus bas).
 const STYLE_TEXTE_PARALLELE = {
   margin: 0,
-  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+  fontFamily: 'var(--font-source-serif), Georgia, serif',
   fontSize: '0.82rem',
   lineHeight: 1.62,
   color: 'var(--cs-texte-fort)',
@@ -133,7 +136,9 @@ type BlocLecture = { type: 'prose' | 'vers' | 'rubrique'; segs: SegmentComparais
 // Une colonne = une traduction. Les segments sont cliquables comme en lecture
 // (survol/clic → cellule d'actions flottante : prélever, copier, signaler). Le CSS
 // de `.seg-inline` vient du bloc <style> parent (OeuvreClient).
-function ColonneLecture({ membres, segments, notes, vide, segActif, onSurvol, onQuitter, onClic, mobile }: {
+const POLICE_ORIGINALE = 'var(--font-source-sans), Arial, sans-serif'
+
+function ColonneLecture({ membres, segments, notes, vide, segActif, onSurvol, onQuitter, onClic, mobile, langue }: {
   membres: MembreComparable[]
   segments: Map<string, SegmentComparaison>
   notes: NotesParSegment
@@ -143,7 +148,13 @@ function ColonneLecture({ membres, segments, notes, vide, segActif, onSurvol, on
   onQuitter: (id: number) => void
   onClic: (el: HTMLElement, id: number, actif: boolean) => void
   mobile: boolean
+  langue: string | null
 }) {
+  // Le latin en regard du français se distingue par la police, comme en lecture
+  // bilingue ; deux traductions françaises restent l'une et l'autre en sérif.
+  const originale = estColonneOriginale(langue)
+  const police = originale ? POLICE_ORIGINALE : STYLE_TEXTE_PARALLELE.fontFamily
+  const codeLangue = originale ? 'la' : 'fr'
   const ordonnes = membres.map(membre => segments.get(membre.segment_key)).filter(Boolean) as SegmentComparaison[]
   if (ordonnes.length === 0) {
     return <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>{vide}</p>
@@ -179,7 +190,7 @@ function ColonneLecture({ membres, segments, notes, vide, segActif, onSurvol, on
         const marginTop = blocIndex === 0 ? 0 : '0.72rem'
         if (bloc.type === 'rubrique') {
           return (
-            <p key={blocIndex} lang="fr" style={{ ...STYLE_TEXTE_PARALLELE, marginTop, textAlign: 'center', fontStyle: 'italic' } as React.CSSProperties}>
+            <p key={blocIndex} lang={codeLangue} style={{ ...STYLE_TEXTE_PARALLELE, fontFamily: police, marginTop, textAlign: 'center', fontStyle: 'italic' } as React.CSSProperties}>
               {rendreSegment(bloc.segs[0])}
             </p>
           )
@@ -189,7 +200,7 @@ function ColonneLecture({ membres, segments, notes, vide, segActif, onSurvol, on
           // elles). Alinéa poétique : les vers de rang pair (le second, plus court, du
           // distique) sont rentrés ; toute ligne qui déborde reçoit un retrait de suite.
           return (
-            <div key={blocIndex} lang="fr" style={{ marginTop, fontFamily: STYLE_TEXTE_PARALLELE.fontFamily, fontSize: STYLE_TEXTE_PARALLELE.fontSize, color: STYLE_TEXTE_PARALLELE.color, wordSpacing: STYLE_TEXTE_PARALLELE.wordSpacing }}>
+            <div key={blocIndex} lang={codeLangue} style={{ marginTop, fontFamily: police, fontSize: STYLE_TEXTE_PARALLELE.fontSize, color: STYLE_TEXTE_PARALLELE.color, wordSpacing: STYLE_TEXTE_PARALLELE.wordSpacing }}>
               {bloc.segs.map(segment => {
                 const stanza = Boolean((segment.segment_metadata ?? {}).stanza_before)
                 const pair = (segment.rang ?? 0) % 2 === 0
@@ -203,7 +214,7 @@ function ColonneLecture({ membres, segments, notes, vide, segActif, onSurvol, on
           )
         }
         return (
-          <p key={blocIndex} lang="fr" style={{ ...STYLE_TEXTE_PARALLELE, marginTop, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto' } as React.CSSProperties}>
+          <p key={blocIndex} lang={codeLangue} style={{ ...STYLE_TEXTE_PARALLELE, fontFamily: police, marginTop, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto' } as React.CSSProperties}>
             {bloc.segs.map((segment, index) => (
               <Fragment key={segment.segment_key}>
                 {index > 0 ? (segment.join_before ?? ' ') : null}
@@ -414,12 +425,12 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
 
   const rendreDeuxColonnes = (refMembres: MembreComparable[], alnMembres: MembreComparable[]) =>
     ([
-      { label: alignement.referenceLabel, members: refMembres, empty: `Pas de correspondant dans ${alignement.referenceLabel}` },
-      { label: alignement.alignedLabel, members: alnMembres, empty: `Pas de correspondant dans ${alignement.alignedLabel}` },
+      { label: alignement.referenceLabel, members: refMembres, empty: `Pas de correspondant dans ${alignement.referenceLabel}`, langue: alignement.referenceLangue },
+      { label: alignement.alignedLabel, members: alnMembres, empty: `Pas de correspondant dans ${alignement.alignedLabel}`, langue: alignement.alignedLangue },
     ] as const).map(colonne => (
       <div key={colonne.label} style={{ minWidth: 0 }}>
         {mobile && <h3 style={{ margin: '0 0 6px', fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{colonne.label}</h3>}
-        <ColonneLecture membres={colonne.members} segments={segments} notes={notes} vide={colonne.empty}
+        <ColonneLecture membres={colonne.members} segments={segments} notes={notes} vide={colonne.empty} langue={colonne.langue}
           segActif={segActif} onSurvol={positionnerToolbar} onQuitter={masquerToolbar} onClic={clicSegment} mobile={mobile} />
       </div>
     ))

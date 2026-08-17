@@ -285,6 +285,8 @@ export default async function OeuvrePage({
         alignedTextId: alignement.aligned_text_id,
         referenceLabel: reference.labelCourt,
         alignedLabel: aligned.labelCourt,
+        referenceLangue: reference.langue,
+        alignedLangue: aligned.langue,
         status: alignement.status,
       }]
     })

@@ -68,7 +68,20 @@ export type AlignementDisponible = {
   alignedTextId: string
   referenceLabel: string
   alignedLabel: string
+  // Langue de chaque colonne : un alignement peut confronter deux traductions
+  // françaises (Boèce) ou le latin et le français (La Cité de Dieu). La colonne en
+  // langue originale se compose alors en sans-serif, comme en lecture bilingue.
+  referenceLangue: string | null
+  alignedLangue: string | null
   status: string | null
+}
+
+/** Une colonne se compose en sérif, sauf le texte en langue originale mis en
+ *  regard du français, qui passe en sans-serif pour se distinguer d'un coup d'œil.
+ *  Fonction pure, testée dans `polices.test.ts`. */
+export function estColonneOriginale(langue: string | null | undefined): boolean {
+  const l = (langue ?? '').trim().toLowerCase()
+  return l.length > 0 && l !== 'français' && l !== 'francais'
 }
 
 export type Props = {

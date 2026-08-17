@@ -309,6 +309,20 @@ Règle fixée : le mode « Traductions parallèles » (`ComparaisonTraductions.t
 - **Notes — vers cités** (`ContenuNoteStructuree`) : plus d'étiquette « Vers » ; un bloc `form==='verse'` se rend en **police réduite (0.9em) + léger retrait gauche**.
 - **Apparat critique** : masqué dans le sommaire en mode comparaison.
 
+# Police des textes d'œuvre — sérif toujours, sauf l'original en regard
+
+Règle d'auteur, fixée le 2026-08-17 :
+
+- **un texte d'œuvre se lit TOUJOURS en sérif** (`--font-source-serif`), corps comme titres, en mode segments comme en mode paragraphes, en lecture comme en apparat critique et en traductions parallèles. Le corps était en `--font-source-sans` depuis l'origine : quatre déclarations dans `OeuvreClient` et le gabarit de `ComparaisonTraductions` ;
+- **le texte en langue originale (latin, grec) se lit en sérif lui aussi**, quand il paraît SEUL (mode « Latin ») ;
+- **SEULE exception : mis EN REGARD du français, l'original passe en sans-serif.** La différence de police sépare les deux colonnes d'un coup d'œil, mieux qu'un filet.
+
+Deux surfaces portent cette exception, et elles doivent rester d'accord :
+
+- **lecture bilingue** : règle CSS `.para-bilingue > .texte-original` dans le bloc `<style>` d'`OeuvreClient`. La classe `.para-bilingue` n'est posée qu'en mode bilingue (`affichageBilingue && original`), jamais en « Latin seul » — c'est ce qui fait basculer la police au bon moment, sans condition en JS ;
+- **traductions parallèles** : `ComparaisonTraductions` reçoit la langue de chaque colonne (`AlignementDisponible.referenceLangue` / `alignedLangue`, remplies dans `app/oeuvre/[id]/page.tsx` depuis `oeuvre_textes.langue`) et tranche par `estColonneOriginale` (pur, testé `polices.test.ts`). ⚠️ Le cas est réel, pas théorique : l'alignement `A0010O0002:VIVES:LA-FR:PARAGRAPH` (La Cité de Dieu) confronte un latin et un français, tandis que `ALNSET-A0064O0001-MIR1861-CER1646` (Boèce) confronte deux traductions françaises, qui restent toutes deux en sérif. Le composant écrivait `lang="fr"` en dur : il pose maintenant `lang="la"` sur une colonne en langue originale.
+- **Langue inconnue → sérif.** Mieux vaut une colonne en sérif de trop qu'un texte français composé comme un original.
+
 # Typographie du texte en langue originale (latin, grec)
 
 ⚠️ **Rectification du 2026-08-17.** Ce paragraphe affirmait que le corpus français portait déjà une fine U+202F autour des guillemets. C'est **faux**. Relevé sur 20 000 segments, autour du guillemet ouvrant comme du fermant : **~14 600 insécables pleine chasse U+00A0**, ~3 000 espaces ordinaires U+0020, ~1 530 fines U+202F. Trois caractères pour une seule intention, résidus de lots d'import successifs. L'insécable pleine chasse vaut **le double** d'une fine (mesuré dans Source Serif 4 : 21,9 % du cadratin contre 10,9 %), d'où une citation qui bâille. Ne pas se fier à la donnée : c'est le rendu qui fait la typographie.

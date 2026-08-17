@@ -14,6 +14,8 @@ const alignement: AlignementDisponible = {
   alignedTextId: 'texte-aligne',
   referenceLabel: 'Version A',
   alignedLabel: 'Version B',
+  referenceLangue: 'français',
+  alignedLangue: 'français',
   status: 'reviewed_ai',
 }
 
