@@ -333,6 +333,15 @@ Règle fixée : le mode « Traductions parallèles » (`ComparaisonTraductions.t
 - **Notes — vers cités** (`ContenuNoteStructuree`) : plus d'étiquette « Vers » ; un bloc `form==='verse'` se rend en **police réduite (0.9em) + léger retrait gauche**.
 - **Apparat critique** : masqué dans le sommaire en mode comparaison.
 
+# Fenêtres contextuelles — jamais sous la nav, jamais hors de l'écran
+
+Règle d'auteur, fixée le 2026-08-17 : une fenêtre contextuelle garde **toujours** une marge sous la barre de navigation et au-dessus du bas de l'écran. Calcul pur et testé : `app/lib/fenetreContextuelle.ts` (13 tests), `MARGE_FENETRE = 12`.
+
+- **Fenêtres ancrées** (aperçu au survol d'un auteur, infobulle de note) : `placerFenetre` rend `{ top, left, hauteurMax }`. Elle se pose sous l'ancre, **se retourne au-dessus** si le bas manque, et se borne à la bande utile pour défiler en dedans si la place manque des deux côtés. ⛔ Ne jamais replacer un seuil en dur du genre `rect.top > 180` : il ignore le bas de l'écran, et c'est précisément le défaut qui a été corrigé.
+- ⚠️ **La barre ne mesure pas 56 px partout.** `HAUTEUR_NAVBAR` vaut `3.5rem` et la police racine est fluide (jusqu'à ×1,375 sur grand écran) : `hauteurNavbarPx()` la MESURE, on ne la suppose pas.
+- **Modales centrées** : le calque part de `top: HAUTEUR_NAVBAR` et **ne défile pas** (`overflow: hidden`) ; la boîte porte `maxHeight: 100%` et `overflowY: auto`, si bien que c'est son CONTENU qui défile. ⚠️ Le défaut corrigé venait de l'inverse : un calque en `inset: 0` qui défilait laissait le contenu passer **sous** la barre, laquelle est peinte par-dessus ; et même sous la barre, un calque défilant fait remonter la boîte jusqu'à la couper au ras, sans marge. Un bouton de fermeture dans une boîte défilante doit être `sticky`, sinon il part avec le contenu.
+- ⚠️ **Ce correctif existait sur la branche de travail sans avoir été porté** : la production restait en `inset: 0`. Vérifier le SITE, pas seulement le code de la branche courante (voir la mémoire sur le déploiement).
+
 # Citation sortie — style en place, détection volontairement étroite
 
 Doctrine : charte `parametres.charte_ia` **§3.8**, cinquième règle. Une citation longue se détache de la prose : elle perd ses guillemets encadrants, ses guillemets internes reviennent au français, et elle reçoit un retrait des deux côtés.
