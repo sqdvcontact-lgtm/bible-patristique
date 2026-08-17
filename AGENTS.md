@@ -472,3 +472,14 @@ Ce qui garde sa capitale : le premier mot du champ ; le premier mot après un de
 - ⚠️ **L'insécable du deux-points ne se pose pas dans une référence chiffrée.** `Lk 2:22-39` doit rester collé ; six titres l'avaient reçue à tort et ont été repris.
 - ⚠️ **Une liste de noms propres est toujours incomplète.** Le contrôle qui compte : comparer les mots de la sauvegarde à ceux du résultat et lire ceux qui ont été abaissés. C'est ainsi qu'on a rattrapé *Job*, *Beatitudes* et *Twelve Prophets*.
 - **Cas à reprendre à la main** : l'adjectif devant le substantif, qui prend lui aussi la majuscule (*The Suffering Servant*, *The First Book of Samuel*, *The Maccabean Martyrs*).
+
+**Passe de contrôle (2026-08-17), et ce qu'elle a appris.** L'invariant qui compte : hors casse et hors insécable, **aucun caractère ne doit avoir bougé**. Comparer `lower(sans insécable)` de l'après au `lower` de la sauvegarde ; sur 153 titres et leurs sous-titres, zéro écart. Ce contrôle-là est mécanique et sans appel, et il doit précéder toute relecture.
+
+Six défauts ont ensuite été trouvés à la lecture, tous de la même famille : **une liste de noms propres se trompe des deux côtés**.
+
+- **Un mot propre employé comme mot commun.** `New` figurait dans la liste pour *New Testament* ; il a gardé sa capitale dans « A New translation ». De même `Twelve`, gardé dans « the Twelve Prophets » alors que `prophets` tombait, laissant un titre à moitié abaissé.
+- **Un mot commun qui est propre en contexte.** `Job`, `Beatitudes`, `Second Temple`, `First Epistle` : absents de la liste, ils sont tombés à tort.
+- ⚠️ **Les sigles à points sont hors d'atteinte d'un test sur les deux premières lettres.** `C.E.` est devenu `c.E.` parce que `^[A-Z][A-Z]` ne l'apparie pas. Dépister ensuite par `\m[a-z]+[A-Z]` et `\m[a-z]\.`, qui trouvent tout mot cassé de l'intérieur.
+- **Les composés à barre oblique** (`Apocryphal/Deuterocanonical`) ne s'abaissent qu'à moitié.
+
+**Reste non converti** (2026-08-17) : les 66 ouvrages qui ne sont pas `retenu` — 34 français, 31 anglais, 1 exclu. Or `secondaire` est **publiable** (vue `bibliographie_publiable`) : la bibliographie affiche donc deux casses concurrentes tant que ce lot n'est pas repris.
