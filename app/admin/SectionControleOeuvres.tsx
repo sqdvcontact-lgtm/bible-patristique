@@ -478,7 +478,12 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: actif.id, segment_texte: editionTexte }),
     })
-    if (!res.ok) {
+    // Le verrou du site REDIRIGE au lieu de refuser : une session non reconnue
+    // revient en 200 porteur de HTML, que `res.ok` tient pour un succès. On
+    // contrôle donc aussi la redirection et le type de la réponse, sans quoi la
+    // liste afficherait une modification que la base n'a jamais reçue.
+    if (!res.ok || res.redirected || !(res.headers.get('content-type') ?? '').includes('application/json')) {
+      console.error('Modification du segment refusée', { statut: res.status, redirige: res.redirected, url: res.url })
       setStatutAction('erreur')
       return
     }

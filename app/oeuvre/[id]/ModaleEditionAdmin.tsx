@@ -5,10 +5,30 @@ import type { EditionCible } from './oeuvreTypes'
 
 const BTN_MODAL: React.CSSProperties = { fontSize: '0.6875rem', padding: '4px 9px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }
 
+// Le verrou du site ne refuse pas un appel non authentifié : il le REDIRIGE vers
+// /chantier. Or `fetch` suit les redirections, si bien qu'une session non
+// reconnue revenait en 200 porteur de HTML : `res.ok` était vrai, `res.json()`
+// échouait, l'échec était avalé par le `.catch`, et la fonction annonçait un
+// succès. La modale se fermait alors sur une modification jamais écrite, sans le
+// moindre message. On contrôle donc la redirection et le type de la réponse
+// AVANT de la lire (règle posée dans AGENTS.md).
 async function appelerAPI(chemin: string, corps: object): Promise<{ ok: boolean; error?: string }> {
-  const res = await fetch(chemin, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corps) })
-  const json = await res.json().catch(() => ({}))
-  if (!res.ok) return { ok: false, error: json.error ?? 'Erreur.' }
+  let res: Response
+  try {
+    res = await fetch(chemin, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corps) })
+  } catch {
+    return { ok: false, error: 'Le serveur n’a pas répondu. Vérifiez la connexion, puis réessayez.' }
+  }
+  const typeReponse = res.headers.get('content-type') ?? ''
+  if (res.redirected || !typeReponse.includes('application/json')) {
+    console.error('Édition refusée : réponse inattendue', { chemin, statut: res.status, redirige: res.redirected, url: res.url, type: typeReponse })
+    return { ok: false, error: 'Session non reconnue : rien n’a été enregistré. Rechargez la page ou reconnectez-vous, puis réessayez.' }
+  }
+  const json = await res.json().catch(() => null)
+  if (!res.ok || !json) {
+    console.error('Édition refusée', { chemin, statut: res.status, json })
+    return { ok: false, error: json?.error ?? `Échec de l’enregistrement (HTTP ${res.status}).` }
+  }
   return { ok: true }
 }
 
