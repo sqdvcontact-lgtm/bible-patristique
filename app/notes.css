@@ -1,0 +1,10 @@
+/* Appels de note dans les œuvres : l’exposant est joint au mot annoté.
+   Le composant historique pose encore 1 px de padding horizontal et un filet
+   pointillé en style inline ; `!important` neutralise ces deux reliquats sans
+   toucher au texte stocké. Voir charte §§ 13.4 et 13.6. */
+sup[aria-label^="Consulter la note"] {
+  padding-inline: 0 !important;
+  margin-inline: 0 !important;
+  border-bottom: 0 !important;
+  text-decoration: none !important;
+}
