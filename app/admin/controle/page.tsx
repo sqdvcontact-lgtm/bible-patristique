@@ -69,6 +69,17 @@ function Jauge({ label, n, d, detail }: { label: string; n: number; d: number; d
   )
 }
 
+// Au-delà, on annonce le poids de la note : elle ne tient plus dans la carte et
+// se lit au défilement.
+const SEUIL_NOTE_LONGUE = 1200
+
+// Espace fine insécable entre les milliers, comme partout ailleurs sur le site.
+// ⚠️ Composée par son point de code, et non tapée : à la relecture, une fine ne
+// se distingue pas d'une espace ordinaire, et une réécriture de fichier l'a déjà
+// remplacée en silence ailleurs (piège consigné dans AGENTS.md).
+const FINE_MILLIERS = String.fromCharCode(0x202f)
+const grouperMilliers = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, FINE_MILLIERS)
+
 function Carte({ titre, children, note, todos, majLe }: { titre: string; children: ReactNode; note: string | null; todos: Todo[]; majLe: string }) {
   const faits = todos.filter((t) => t.fait).length
   return (
@@ -78,15 +89,22 @@ function Carte({ titre, children, note, todos, majLe }: { titre: string; childre
 
       {note && (
         <div className="cc-note">
-          <div className="cc-note-tete">Où en est-on ?</div>
-          <p className="cc-note-txt">{note}</p>
+          <div className="cc-note-tete">
+            Où en est-on ?
+            {/* La note de la section Qualité pèse plus de quatre-vingt mille
+                signes. Le dire évite de croire qu'on l'a lue en entier. */}
+            {note.length > SEUIL_NOTE_LONGUE && (
+              <span className="cc-note-taille">{grouperMilliers(note.length)} signes</span>
+            )}
+          </div>
+          <p className="cc-note-txt cc-defile cc-defile-vert">{note}</p>
         </div>
       )}
 
       {todos.length > 0 && (
         <div className="cc-todos">
           <div className="cc-todos-tete">À faire <span className="cc-todos-compte">{faits}/{todos.length}</span></div>
-          <ul className="cc-todos-liste">
+          <ul className="cc-todos-liste cc-defile">
             {todos.map((t, i) => (
               <li key={i} className={t.fait ? 'cc-todo cc-todo-fait' : 'cc-todo'}>
                 <span className="cc-todo-case">{t.fait ? '✓' : ''}</span>
@@ -252,14 +270,32 @@ const styles = `
   .cc-jauge-remplissage { height: 100%; border-radius: 4px; transition: none; }
   .cc-jauge-detail { font-size: 0.6875rem; color: var(--cs-texte-doux); font-family: var(--font-source-sans), Arial, sans-serif; }
 
+  /* ── Zones de défilement ──────────────────────────────────────────────────
+     Ces blocs sont remplis par l'IA et n'ont pas de longueur prévisible : la
+     note de la section Qualité pèse plus de quatre-vingt mille signes, et la
+     liste des tâches y compte plus de cent entrées. Sans borne, une carte
+     chassait toutes les autres hors de l'écran. On borne donc la hauteur et on
+     donne à ces zones une barre de défilement discrète, accordée au bloc.
+     La variable cc-pouce porte la couleur du curseur, redéfinie sur fond vert.
+     ⚠️ Jamais d'accent grave dans ce bloc : il est un littéral gabarit. */
+  .cc-defile { overflow-y: auto; overscroll-behavior: contain; padding-right: 0.4375rem; --cc-pouce: var(--cs-bord); --cc-pouce-actif: var(--cs-texte-faible); scrollbar-width: thin; scrollbar-color: var(--cc-pouce) transparent; }
+  .cc-defile::-webkit-scrollbar { width: 7px; }
+  .cc-defile::-webkit-scrollbar-track { background: transparent; }
+  .cc-defile::-webkit-scrollbar-thumb { background: var(--cc-pouce); border-radius: 4px; }
+  .cc-defile::-webkit-scrollbar-thumb:hover { background: var(--cc-pouce-actif); }
+  .cc-defile-vert { --cc-pouce: rgba(var(--cs-vert-rgb), 0.32); --cc-pouce-actif: var(--cs-vert); }
+
   .cc-note { margin-top: 0.875rem; background: var(--cs-vert-pale); border-left: 3px solid var(--cs-vert); border-radius: 0 6px 6px 0; padding: 0.625rem 0.75rem; }
-  .cc-note-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-vert); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.25rem; }
-  .cc-note-txt { font-size: 0.8125rem; color: var(--cs-texte); line-height: 1.5; margin: 0; font-family: var(--font-source-serif), Georgia, serif; }
+  .cc-note-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-vert); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.25rem; display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+  .cc-note-taille { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--cs-texte-doux); font-style: italic; }
+  /* pre-line restitue les alinéas de la note, que le paragraphe écrasait :
+     ces textes en portent jusqu'à deux cent vingt et un. */
+  .cc-note-txt { font-size: 0.8125rem; color: var(--cs-texte); line-height: 1.5; margin: 0; font-family: var(--font-source-serif), Georgia, serif; white-space: pre-line; max-height: 13rem; }
 
   .cc-todos { margin-top: 0.75rem; }
   .cc-todos-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-texte-second); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.375rem; }
   .cc-todos-compte { color: var(--cs-texte-doux); font-weight: 500; margin-left: 0.25rem; }
-  .cc-todos-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+  .cc-todos-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; max-height: 15rem; }
   .cc-todo { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.8125rem; color: var(--cs-texte); font-family: var(--font-source-sans), Arial, sans-serif; line-height: 1.4; }
   .cc-todo-case { flex-shrink: 0; width: 1rem; height: 1rem; border: 1px solid var(--cs-bord); border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--cs-vert); margin-top: 0.0625rem; }
   .cc-todo-fait .cc-todo-case { background: var(--cs-vert); border-color: var(--cs-vert); color: #fff; }

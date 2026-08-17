@@ -434,3 +434,13 @@ Doctrine : charte `parametres.charte_ia` **§ 3.6**, arrêtée le 2026-08-17. Un
 - **Balisage `*terme*`**, le même que celui des titres, rendu en véritable italique par `rendreTexteEnrichi`. **Portée : absolument partout** — notices d'auteur, d'œuvre, chronologiques, commentaires, notes de l'éditeur, chapeaux, libellés d'interface et messages du site.
 
 ⚠️ **Piège rencontré en écrivant cette règle** : le champ `parametres.charte_ia` est du **texte simple**, mais un passé d'écriture y avait laissé quatre `\n` LITTÉRAUX (barre oblique inverse suivie de n) en guise d'alinéas, qui s'afficheraient tels quels. Ils ont été convertis en vrais retours à la ligne. Écrire dans la charte par `overlay` sur des positions vérifiées, jamais par une réécriture du champ entier, et sauvegarder d'abord (table `backup_charte_ia_20260817_termes_etrangers`).
+
+# Centre de contrôle — les blocs remplis par l'IA sont bornés
+
+Les deux blocs que l'assistant remplit (`controle_sections.commentaire_ia` et `todos`) n'ont **aucune longueur prévisible**, et la page ne les bornait pas. Relevé du 2026-08-17 : la note de la section Qualité pèse **83 394 signes** pour 113 tâches, celle de Chronologie 21 371, celle du Catalogue 9 049 pour 102 tâches. Une seule carte chassait donc toutes les autres hors de l'écran.
+
+- **Hauteur bornée et défilement interne** : la note à 13 rem, la liste des tâches à 15 rem, classe partagée `.cc-defile` (barre fine, `overscroll-behavior: contain` pour que la page ne parte pas quand la zone est au bout). La couleur du curseur vient de la variable `cc-pouce`, redéfinie en vert sur le bloc vert de la note.
+- **Les alinéas sont restitués** (`white-space: pre-line`). Ces notes en portent jusqu'à 221, que le paragraphe écrasait en un pavé continu.
+- **Le poids de la note est annoncé** au-delà de 1 200 signes, pour qu'on ne croie pas l'avoir lue en entier.
+- ⚠️ **Le bloc de styles est un littéral gabarit** : jamais d'accent grave dedans, pas même dans un commentaire. Il a cassé la compilation deux fois ici, comme il l'avait fait dans `EssaisListeClient`.
+- ⚠️ **Résidu à surveiller** : `commentaire_ia` de la section Qualité contient un `\n` LITTÉRAL, qui s'affiche tel quel. Même défaut que celui trouvé dans la charte, même origine probable.
