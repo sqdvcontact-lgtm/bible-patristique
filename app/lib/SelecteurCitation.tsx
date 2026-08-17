@@ -375,7 +375,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
   // Toutes les œuvres publiées, avec le nom de l'auteur ET les métadonnées d'édition
   // (traducteur, éditeur, ville, date) qui nourrissent la note bibliographique.
   useEffect(() => {
-    supabase.from('oeuvres').select('id_oeuvre, titre, titre_original, id_auteur, note, trad_auteur, editeur, ville, date_publication, auteurs(nom)').order('titre').then(({ data }) => {
+    supabase.from('oeuvres').select('id_oeuvre, titre, titre_original, id_auteur, note, trad_auteur, editeur, ville, date_publication, auteurs!oeuvres_id_auteur_fkey(nom)').order('titre').then(({ data }) => {
       const liste = ((data ?? []) as any[]).filter(estOeuvrePubliee)
         .map(o => ({ id_oeuvre: o.id_oeuvre, titre: o.titre, titre_original: o.titre_original, id_auteur: o.id_auteur, auteurNom: o.auteurs?.nom ?? '', trad_auteur: o.trad_auteur, editeur: o.editeur, ville: o.ville, date_publication: o.date_publication }))
       setOeuvres(liste)

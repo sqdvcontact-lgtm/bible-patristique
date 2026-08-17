@@ -44,7 +44,7 @@ export default async function AccueilPage() {
   const [recentesRes, nbTextesRes, nbAuteursRes, codesTraductions] = await Promise.all([
     supabase
       .from("oeuvres")
-      .select("id_oeuvre, titre, date_mise_en_ligne, auteurs(nom)")
+      .select("id_oeuvre, titre, date_mise_en_ligne, auteurs!oeuvres_id_auteur_fkey(nom)")
       .or(filtrePubliee)
       .order("date_mise_en_ligne", { ascending: false, nullsFirst: false })
       .order("id_oeuvre", { ascending: false })

@@ -247,7 +247,7 @@ function SectionFavoris({ userId }: { userId: string }) {
   const [charge, setCharge] = useState(true);
 
   useEffect(() => {
-    supabase.from("favoris_oeuvres").select("id_oeuvre, oeuvres(titre, auteurs(nom))")
+    supabase.from("favoris_oeuvres").select("id_oeuvre, oeuvres(titre, auteurs!oeuvres_id_auteur_fkey(nom))")
       .eq("user_id", userId).limit(12)
       .then(({ data }) => {
         setFavoris((data ?? []).map((f: any) => ({ id_oeuvre: f.id_oeuvre, titre: f.oeuvres?.titre ?? "—", auteur_nom: f.oeuvres?.auteurs?.nom ?? "" })));

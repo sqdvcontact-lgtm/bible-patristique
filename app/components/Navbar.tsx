@@ -365,7 +365,7 @@ export default function Navbar() {
           if (!signal.aborted) { setEssaisTrouves(data ?? []); setNbResultatsProgressif(p => p + (data?.length ?? 0)); }
           done();
         });
-      supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs(nom)').or(prefixeOr('titre')).limit(8).abortSignal(signal)
+      supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs!oeuvres_id_auteur_fkey(nom)').or(prefixeOr('titre')).limit(8).abortSignal(signal)
         .then(({ data }) => {
           if (signal.aborted) { done(); return; }
           const filtered = (data ?? []).filter(estOeuvrePubliee).map((o: any) => ({ ...o, auteurs: Array.isArray(o.auteurs) ? (o.auteurs[0] ?? null) : o.auteurs }));

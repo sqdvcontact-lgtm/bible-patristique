@@ -469,7 +469,7 @@ export default function RechercheClient() {
       const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
       let oeuvreMap: Record<string, { titre: string; auteur: string }> = {}
       if (oeuvreIds.length) {
-        const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs(nom)')
+        const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs!oeuvres_id_auteur_fkey(nom)')
           .in('id_oeuvre', oeuvreIds).limit(oeuvreIds.length).abortSignal(signal)
         if (signal.aborted) return
         ;((oeuvres ?? []) as any[]).filter(estOeuvrePubliee).forEach((o: any) => { oeuvreMap[o.id_oeuvre] = { titre: o.titre, auteur: o.auteurs?.nom || '' } })

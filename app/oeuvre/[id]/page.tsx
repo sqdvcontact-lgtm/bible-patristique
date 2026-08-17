@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const supabase = await creerSupabaseServeur()
   const { data } = await supabase
     .from('oeuvres')
-    .select('titre, titre_original, sous_titre, trad_auteur, auteurs(nom, nom_original)')
+    .select('titre, titre_original, sous_titre, trad_auteur, auteurs!oeuvres_id_auteur_fkey(nom, nom_original)')
     .eq('id_oeuvre', id).maybeSingle()
   if (!data) return { title: 'Corpus Scriptura' }
   const auteur = (data.auteurs as any)?.nom
@@ -303,7 +303,7 @@ export default async function OeuvrePage({
   // ── Vague 1 : métadonnées et données du témoin actif en parallèle ─────────
   const [estAdmin, { data: oeuvre }, entetesTexteRaw, segmentsApparatRaw, codesTraductions] = await Promise.all([
     verifierEstAdmin(),
-    supabase.from('oeuvres').select('*, auteurs(id_auteur, nom)').eq('id_oeuvre', id).single(),
+    supabase.from('oeuvres').select('*, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom)').eq('id_oeuvre', id).single(),
     chargerEntetesTexte(),
     chargerTousSegments({ nature: 'apparat' }),
     chargerCodesTraductions(supabase),
