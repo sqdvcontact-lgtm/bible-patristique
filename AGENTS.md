@@ -489,3 +489,16 @@ Six défauts ont ensuite été trouvés à la lecture, tous de la même famille 
 **Deux désignations laissées telles quelles**, parce qu'elles nomment un ensemble scripturaire et non un thème : `The Twelve Prophets` et `First and Second Samuel`.
 
 **État de la bibliographie entière au terme de la passe** (589 ouvrages) : zéro article suivi d'un bas de casse, zéro mot cassé de l'intérieur, zéro insécable dans une référence chiffrée, zéro titre tout en capitales, zéro double espace, zéro deux-points collé en anglais.
+
+# Capitales accentuées, et noms communs
+
+Deux règles arrêtées le 2026-08-17, inscrites dans la charte aux § 3.2 et § 3.5.
+
+- **Les capitales s'accentuent, sans exception** : `Éphésiens`, `Église`, `Évangile`, `À la recherche`, `Être`. La capitale nue est une limite des machines à écrire, pas un usage français.
+- **Un nom commun ne prend pas la majuscule parce qu'il désigne une fête ou un temps liturgique** : `Troisième dimanche après l'Épiphanie`, et non `Dimanche`. La majuscule ne lui revient qu'en tête de titre. Les noms de fêtes eux-mêmes la gardent : `l'Avent`, `l'Épiphanie`, `la Trinité`, `la Grande Semaine`.
+
+⚠️ **L'accentuation ne franchit pas la frontière du § 3.2** : elle vaut pour ce que Corpus Scriptura compose, jamais pour une orthographe ancienne reproduite d'une source. Le dépistage a trouvé 106 occurrences dans les titres de niveau d'Eusèbe, qui reproduisent une édition de 1532 : `De la Subuersion des Eglises`, `Comme sainct Marc fut le Premier qui prescha la Loy de Iesus Christ`. **Elles restent intactes.** Accentuer `Eglises` en laissant `Subuersion`, `Iesus` et `viuans` serait moderniser à moitié, donc défigurer. Même raison pour le sous-titre d'Eucher, `Evesque de Lyon`, qui reproduit une page de titre du XVIIᵉ siècle.
+
+⚠️ **Piège de dépistage** : `Ecclésiaste` et `Ecclésiastique` n'ont PAS d'accent sur leur capitale initiale. Les inclure dans une liste de mots à accentuer produit des faux positifs.
+
+Corrections effectives : `Éphésiens 6/10-20` (un titre), et `Dimanche` ramené en bas de casse dans quatre titres de la même série de sermons, où il voisinait avec quatre `dimanche` déjà corrects.
