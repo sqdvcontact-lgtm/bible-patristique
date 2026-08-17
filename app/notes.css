@@ -1,8 +1,11 @@
 /* Appels de note dans les œuvres : l’exposant est joint au mot annoté.
-   Le composant historique pose encore 1 px de padding horizontal et un filet
-   pointillé en style inline ; `!important` neutralise ces deux reliquats sans
-   toucher au texte stocké. Voir charte §§ 13.4 et 13.6. */
+   Le composant historique pose encore du style inline ; `!important` neutralise
+   les reliquats d’espacement sans toucher au texte stocké. Surtout, l’appel
+   reste un véritable élément inline : `inline-block` crée un blanc artificiel
+   dans les lignes justifiées, particulièrement visible dans le latin.
+   Voir charte §§ 13.4 et 13.6. */
 sup[aria-label^="Consulter la note"] {
+  display: inline !important;
   padding-inline: 0 !important;
   margin-inline: 0 !important;
   border-bottom: 0 !important;
