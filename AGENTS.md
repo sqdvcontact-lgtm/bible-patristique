@@ -386,9 +386,14 @@ Règle (charte §3.1-3.2, étendue au 2026-08-06) : on harmonise la langue origi
   - ⚠️ **Jamais `\b` pour borner un mot accentué en JavaScript** : `\b` n'y connaît que l'ASCII, donc `/^(Abbé|Père|Frère|Sœur|Mère)\b/` ne s'apparie **jamais** (la frontière tomberait entre « é » et l'espace, deux caractères non-mots). Les titres accentués restaient en capitale malgré la règle. Borner par lookahead : `(?=[\s.]|$)`.
 - **La fiche auteur (`ModaleAuteur`) n'est PAS concernée** : sa liste est un catalogue **chronologique** de l'œuvre entière, œuvres seulement répertoriées comprises. Trier par taille y casserait la chronologie, qui en est le principe d'ordre.
 
-# Appels de note — jamais de pointillé
+# Appels de note — masqués au sommaire, actifs dans les titres du corps
 
-⛔ **JAMAIS de pointillé sous un appel de note**, ni aucun autre soulignement, nulle part. Règle d'auteur, sans exception ni cas particulier : l'exposant et la teinte (`#8a6a3e`) suffisent à le signaler. Le `borderBottom: '1px dotted'` est revenu une fois sur `master` après avoir été retiré ailleurs : ne pas le recomposer, ni ici ni dans `ComparaisonTraductions`.
+Doctrine : charte `parametres.charte_ia` **§13.6**. La logique pure vit dans **`app/oeuvre/[id]/appelNote.ts`** (module testé, `appelNote.test.ts`) ; l'info-bulle et le moteur `rendreTexteAvecNotes` / `rendreTitreColophonAvecNotes` restent dans `OeuvreClient`, qui l'importe.
+
+- ⛔ **JAMAIS de pointillé sous un appel de note**, ni aucun autre soulignement, nulle part. Règle d'auteur, sans exception ni cas particulier : l'exposant et la teinte suffisent à le signaler. Le `borderBottom: '1px dotted'` est revenu une fois sur `master` après avoir été retiré ailleurs — un test le garde désormais.
+- **Sommaire : `titreSansAppelsDeNote` sur TOUS les intitulés**, niveaux 1 à 3, chapeaux compris, plus la table de l'apparat. Seul le chapeau de niveau 1 était nettoyé : « Livre cinquième[[81]] » s'affichait ainsi dans la navigation, où la note est de surcroît illisible (le sommaire ne porte pas leur texte). **L'espace qui précède part avec le marqueur**, sans quoi l'intitulé garde un blanc double.
+- **`variante` de l'appel** — `corps` (prose, chapeaux, titres de niveaux 3-4 : brun `#8a6a3e`, `0.60em`) et `titre` (niveaux 1-2, en lecture comme en apparat : `currentColor` à 55 %, `0.42em`). Un titre est court et composé large : l'appel brun y fait une tache. Dans tous les cas l'appel **hérite `font-family` et `font-style`** : dans un chapeau en italique, il s'incline avec lui. Ne pas revenir à `fontStyle: 'normal'` ni à une police posée en dur.
+- `styleAppelNote()` est la SEULE définition de cette forme : ne pas recomposer un style d'appel ailleurs.
 
 # Branches — `master` seule, et ce qui reste à rapatrier (2026-08-17)
 

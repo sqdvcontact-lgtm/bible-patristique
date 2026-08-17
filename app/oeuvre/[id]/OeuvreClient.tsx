@@ -16,6 +16,7 @@ import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 import { bornerGuillemets } from '@/app/lib/guillemets'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { detecterCitationSortie } from '@/app/lib/citationSortie'
+import { titreSansAppelsDeNote, styleAppelNote, type VarianteAppelNote } from './appelNote'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
@@ -133,12 +134,6 @@ function preparerTitreColophon(texte: string) {
     .replace(/[ 	  ]+([,.])/g, '$1')
 }
 
-// Le sommaire est une navigation compacte : les appels restent actifs dans le
-// titre développé du corps, mais leur syntaxe de stockage ne doit pas y paraître.
-function titreSansAppelsDeNote(texte: string) {
-  return texte.replace(/\[\[[A-Z0-9]+\]\]/g, '')
-}
-
 const TRADUCTIONS_FALLBACK = [
   { code: 'TR0001',    label: 'Bible de Sacy' },
   { code: 'TR0002',     label: 'Bible Segond' },
@@ -170,7 +165,7 @@ function chargerCodesTraductions(): PromiseLike<string[]> {
 }
 
 // ── Info-bulle de note ────────────────────────────────────────────────────────
-function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
+function NoteTooltip({ lettre, contenu, variante = 'corps' }: { lettre: string; contenu: string; variante?: VarianteAppelNote }) {
   const [visible, setVisible] = useState(false)
   const [figee, setFigee] = useState(false)
   const [rect, setRect] = useState<{ left: number; top: number; bottom: number } | null>(null)
@@ -313,18 +308,7 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
         role="button"
         tabIndex={0}
         aria-label={`Consulter la note ${lettre}`}
-        style={{
-          cursor: 'help',
-          color: '#8a6a3e',
-          fontSize: '0.60em',
-          fontFamily: "var(--font-source-serif), Georgia, serif",
-          fontStyle: 'normal',
-          userSelect: 'none',
-          letterSpacing: 0,
-          display: 'inline-block',
-          lineHeight: 1,
-          padding: '0 1px',
-        }}
+        style={styleAppelNote(variante)}
       >
         {lettre}
       </sup>
@@ -334,7 +318,7 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
 }
 
 // Variante de rendreTexteEnrichi qui gère aussi les marqueurs [[A]] de notes.
-function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): React.ReactNode {
+function rendreTexteAvecNotes(texte: string, notes: Record<string, string>, variante: VarianteAppelNote = 'corps'): React.ReactNode {
   const noeuds: React.ReactNode[] = []
   // Le marqueur stocké ([[A]], [[B]]…) reste la clé de la note en base : c'est
   // lui qui donne accès au texte. Seul l'appel AFFICHÉ change — un numéro, selon
@@ -357,15 +341,15 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
     if (m.index > dernierIndex) noeuds.push(texte.slice(dernierIndex, m.index))
     // Un appel de note peut se trouver à l'intérieur d'une emphase. Le contenu
     // doit donc repasser par le même moteur au lieu d'être rendu comme texte brut.
-    if (m[1] !== undefined) noeuds.push(<strong key={k++}>{rendreTexteAvecNotes(m[1], notes)}</strong>)
-    else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{rendreTexteAvecNotes(m[2], notes)}</sup>)
-    else if (m[3] !== undefined) noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[3], notes)}</em>)
+    if (m[1] !== undefined) noeuds.push(<strong key={k++}>{rendreTexteAvecNotes(m[1], notes, variante)}</strong>)
+    else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{rendreTexteAvecNotes(m[2], notes, variante)}</sup>)
+    else if (m[3] !== undefined) noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[3], notes, variante)}</em>)
     else if (m[4] !== undefined) noeuds.push(
-      <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteAvecNotes(m[4], notes)}</a>
+      <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteAvecNotes(m[4], notes, variante)}</a>
     )
     else if (m[6] !== undefined) {
       const marqueur = m[6]
-      noeuds.push(<NoteTooltip key={k++} lettre={String(numeroDe(marqueur))} contenu={notes[marqueur] ?? ''} />)
+      noeuds.push(<NoteTooltip key={k++} lettre={String(numeroDe(marqueur))} contenu={notes[marqueur] ?? ''} variante={variante} />)
     }
     else if (m[7] !== undefined) {
       noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)
@@ -373,7 +357,7 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
       noeuds.push(m[9])
     }
     else if (m[10] !== undefined) {
-      noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[10], notes)}</em>)
+      noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[10], notes, variante)}</em>)
     }
     dernierIndex = regex.lastIndex
   }
@@ -384,12 +368,12 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
 // Les titres utilisent le mÃªme systÃ¨me de notes que le corps. Lorsqu'un appel
 // est prÃ©sent, on privilÃ©gie son rendu interactif ; les autres titres gardent
 // la composition en colophon Ã©ventuellement appliquÃ©e aux intitulÃ©s longs.
-function rendreTitreColophonAvecNotes(texte: string, notes: Record<string, string>, estTitre = false): React.ReactNode {
+function rendreTitreColophonAvecNotes(texte: string, notes: Record<string, string>, estTitre = false, variante: VarianteAppelNote = 'corps'): React.ReactNode {
   // Rendu simple : le titre s'enroule naturellement (centré par ses conteneurs).
   // On a renoncé à la composition « colophon » (pavé à lignes décroissantes).
   // `estTitre` : retire le point final (règle éditoriale) ; pas pour les _texte,
   // qui sont des chapeaux/phrases.
-  return rendreTexteAvecNotes(preparerTitreColophon(estTitre ? sansPointFinal(texte) : texte), notes)
+  return rendreTexteAvecNotes(preparerTitreColophon(estTitre ? sansPointFinal(texte) : texte), notes, variante)
 }
 
 // ── Proposition de lien biblique (non-admin) ──────────────────────────────────
@@ -1591,7 +1575,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       <div key={i}>
                         <a href={`#${entry.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(entry.niv1); setAncreEnAttente(entry.anchor) }} className="toc-lien-n1"
                           style={{ display: 'block', fontSize: '0.71875rem', fontWeight: apparatNiv1Actif === entry.niv1 ? 600 : 400, color: apparatNiv1Actif === entry.niv1 ? 'var(--cs-vert)' : 'var(--cs-texte)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
-                          {entry.niv1}
+                          {titreSansAppelsDeNote(entry.niv1)}
                         </a>
                       </div>
                     ))}
@@ -1625,7 +1609,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   {/* Niv1 */}
                   <button onClick={() => changerNiv1(n1)}
                     style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35, whiteSpace: 'pre-line' }}>
-                    {n1}
+                    {titreSansAppelsDeNote(n1)}
                     {niv1TexteMap[n1] && configNiveaux.txtSommaire[0] && (
                       <span style={{ fontSize: '0.59375rem', color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{titreSansAppelsDeNote(niv1TexteMap[n1])}</span>
                     )}
@@ -1646,8 +1630,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                         <button
                           onClick={() => allerAuNiv2(actif2 ? null : n2)}
                           style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0 3px 8px' }}>
-                          <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{n2}</span>
-                          {n2txt && configNiveaux.txtSommaire[1] && <span style={{ fontSize: '0.59375rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{n2txt}</span>}
+                          <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{titreSansAppelsDeNote(n2)}</span>
+                          {n2txt && configNiveaux.txtSommaire[1] && <span style={{ fontSize: '0.59375rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{titreSansAppelsDeNote(n2txt)}</span>}
                         </button>
                         {/* Niv3 — toujours visible, sans accordéon */}
                         {niv3DeN2.map(n3 => {
@@ -1661,8 +1645,8 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                                 if (ancre) naviguerVersAncre(ancre)
                               }}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0 2px 16px' }}>
-                              <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-doux)', display: 'block', lineHeight: 1.3 }}>{n3}</span>
-                              {n3txt && configNiveaux.txtSommaire[2] && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', display: 'block', lineHeight: 1.2 }}>{n3txt}</span>}
+                              <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-doux)', display: 'block', lineHeight: 1.3 }}>{titreSansAppelsDeNote(n3)}</span>
+                              {n3txt && configNiveaux.txtSommaire[2] && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', display: 'block', lineHeight: 1.2 }}>{titreSansAppelsDeNote(n3txt)}</span>}
                             </button>
                           )
                         })}
@@ -1732,7 +1716,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                   </span>
                 ) : niv1Loading ? <span style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)' }}>Chargement…</span> : (
                   <>
-                    {rendreTitreColophonAvecNotes(niv1Actif, segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes ?? {}, true)}
+                    {rendreTitreColophonAvecNotes(niv1Actif, segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes ?? {}, true, 'titre')}
                     {(() => {
                       const txt = groupes[0]?.niv1_texte || niv1TexteMap[niv1Actif] || ''
                       const notesTitre = segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes ?? {}
@@ -1808,13 +1792,13 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                 <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
                   {showNiv1 && (
                     <div style={{ textAlign: 'center', marginTop, marginBottom: '1.5rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
-                      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true)}</h2>
+                      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true, 'titre')}</h2>
                       {groupe.niv1_texte && configNiveaux.txtCorps[0] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.95rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTexteAvecNotes(preparerTitreColophon(groupe.niv1_texte), notesTitre)}</p>}
                     </div>
                   )}
                   {showNiv2 && (
                     <div style={{ textAlign: 'center', marginTop: marginTop, marginBottom: '1rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
-                      <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.1rem', fontWeight: 400, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true)}</h3>
+                      <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.1rem', fontWeight: 400, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true, 'titre')}</h3>
                       {groupe.niv2_texte && configNiveaux.txtCorps[1] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.92rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
@@ -1964,7 +1948,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                     <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
                       {showNiv1 && (
                         <div style={{ position: 'relative', marginTop: marginTop, marginBottom: '0.5rem' }}>
-                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-texte-fort)', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true)}</h2>
+                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-texte-fort)', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true, 'titre')}</h2>
                           {groupe.niv1_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.95rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', textAlign: 'center', lineHeight: 1.4, margin: '4px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1_texte, notesTitre)}</p>}
                           {estAdmin && (
                             <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe, texteActuel: groupe.niv1_texte || groupe.niv1, schemaTexte: true })}
@@ -1974,7 +1958,7 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
                       )}
                       {showNiv2 && (
                         <div style={{ margin: showNiv1 ? '1rem 0 0.6rem' : '2rem 0 0.6rem', textAlign: 'center' }}>
-                          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.05rem', fontWeight: 500, color: '#3d3832', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true)}</h3>
+                          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.05rem', fontWeight: 500, color: '#3d3832', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true, 'titre')}</h3>
                           {groupe.niv2_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.86rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.35, margin: '3px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                         </div>
                       )}
