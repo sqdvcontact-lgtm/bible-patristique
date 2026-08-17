@@ -420,3 +420,16 @@ Mode « Traductions parallèles » de la page d'œuvre (`app/oeuvre/[id]/Compara
 - ⚠️ **Libellés calculés, jamais tabulés.** Les tables de la première version s'arrêtaient au cinquième livre et au vingt-quatrième chiffre romain ; La Cité de Dieu compte vingt-deux livres et va jusqu'à la cinquante-quatrième division, si bien que tout le dessus retombait en chiffres arabes au milieu d'une série en toutes lettres. `chiffreRomain` compose, `ORDINAUX` va jusqu'au vingt-quatrième.
 - **En-tête de colonne : le nom du traducteur, pas le titre de version.** Celui de Mirandol tient en cent signes. `libelleColonne` prend le nom, y joint l'année, et ramène une responsabilité partagée à son premier nom.
 - **Données au 2026-08-17** : deux ensembles seulement, Boèce (Mirandol 1861 contre Ceriziers 1646, 784 groupes) et La Cité de Dieu (latin Vivès contre Barreau, 1 084 groupes). Aucun membre orphelin, vérifié.
+
+# Termes en langue étrangère — italique partout
+
+Doctrine : charte `parametres.charte_ia` **§ 3.6**, arrêtée le 2026-08-17. Une seule règle, sans liste d'exceptions à retenir.
+
+- **Tout terme, locution ou phrase en langue étrangère inséré dans un texte français est en italique**, quelle que soit la langue, ancienne ou moderne. ⚠️ **Le latin ne fait pas exception et la lexicalisation n'est pas un critère** : `*a priori*`, `*ex nihilo*`, `*in fine*` prennent l'italique. Les abréviations savantes aussi : `*cf.*`, `*ibid.*`, `*op. cit.*`, `*et al.*`, `*passim*`, `*sic*`, `*circa*`. Choix d'auteur assumé, qui s'écarte de l'Imprimerie nationale (laquelle laisse « cf. » en romain).
+- **Une seule exception d'alphabet** : le grec en caractères grecs reste en romain, l'alphabet suffisant à signaler la langue. Une translittération en alphabet latin, elle, prend l'italique.
+- **Les noms propres étrangers restent en romain** : personnes, lieux, institutions, revues. Le titre d'une œuvre fait exception à cette exception, son italique lui venant de sa qualité de titre.
+- **Superposition : l'italique l'emporte.** Un terme étranger dans un contexte déjà en italique GARDE l'italique ; on ne revient pas au romain pour l'en distinguer.
+- **Exception d'échelle** : un texte entier dans une langue étrangère n'est pas mis en italique. La règle vise le terme inséré dans une phrase française, pas un texte qui est tout entier dans cette langue, ni les enrichissements d'auteur attestés par la source.
+- **Balisage `*terme*`**, le même que celui des titres, rendu en véritable italique par `rendreTexteEnrichi`. **Portée : absolument partout** — notices d'auteur, d'œuvre, chronologiques, commentaires, notes de l'éditeur, chapeaux, libellés d'interface et messages du site.
+
+⚠️ **Piège rencontré en écrivant cette règle** : le champ `parametres.charte_ia` est du **texte simple**, mais un passé d'écriture y avait laissé quatre `\n` LITTÉRAUX (barre oblique inverse suivie de n) en guise d'alinéas, qui s'afficheraient tels quels. Ils ont été convertis en vrais retours à la ligne. Écrire dans la charte par `overlay` sur des positions vérifiées, jamais par une réécriture du champ entier, et sauvegarder d'abord (table `backup_charte_ia_20260817_termes_etrangers`).
