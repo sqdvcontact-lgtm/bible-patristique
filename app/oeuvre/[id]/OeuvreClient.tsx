@@ -324,7 +324,6 @@ function NoteTooltip({ lettre, contenu }: { lettre: string; contenu: string }) {
           display: 'inline-block',
           lineHeight: 1,
           padding: '0 1px',
-          borderBottom: '1px dotted #c8a87a',
         }}
       >
         {lettre}
