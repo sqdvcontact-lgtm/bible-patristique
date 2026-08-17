@@ -150,7 +150,6 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
   // zone disponible et l'on en déduit le nombre de lignes.
   const proseRef = useRef<HTMLDivElement>(null)
   const zoneRef = useRef<HTMLDivElement>(null)
-  const [tronque, setTronque] = useState(false)
   const [lignesNotice, setLignesNotice] = useState(LIGNES_NOTICE_AU_DEPART)
   useMesureAvantPeinture(() => {
     const zone = zoneRef.current
@@ -164,12 +163,11 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
         // qu'une ligne coupée en deux dans sa hauteur.
         setLignesNotice(Math.max(1, Math.floor((zone.clientHeight + 1) / hauteurLigne)))
       }
-      setTronque(el.scrollHeight > el.clientHeight + 1)
     }
     mesurer()
-    // La zone donne le nombre de lignes, le texte dit s'il déborde encore : les
-    // deux sont observés. Poser le même nombre de lignes ne redéclenche pas de
-    // rendu, la boucle se referme donc d'elle-même.
+    // La zone donne le nombre de lignes ; on observe aussi le texte, dont la
+    // hauteur change quand ce nombre change. Poser le même nombre ne redéclenche
+    // pas de rendu, la boucle se referme donc d'elle-même.
     const ro = new ResizeObserver(mesurer)
     ro.observe(zone)
     ro.observe(el)
@@ -247,22 +245,16 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
             </div>
           )}
 
-          {/* Même ligne : « N œuvres disponibles » à gauche, « Ouvrir la page auteur »
-              (si la notice est tronquée) à droite. */}
-          <div style={{ marginTop: 'auto', paddingTop: compact ? '2px' : '6px', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px' }}>
+          {/* Pied de carte : le décompte des œuvres, seul. Le renvoi « Ouvrir la page
+              auteur » a été retiré : le nom de l'auteur et la flèche qui le suit y
+              mènent déjà, et la notice tronquée s'achève sur des points de suspension
+              qui disent assez qu'elle se poursuit ailleurs. */}
+          <div style={{ marginTop: 'auto', paddingTop: compact ? '2px' : '6px', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
             <button onClick={() => setOuvert(!ouvert)}
               style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'baseline', gap: '4px', lineHeight: 1 }}>
               <span style={{ fontSize: '0.5rem' }}>{listeOuverte ? '▲' : '▼'}</span>
               <span>{nbMot.charAt(0).toUpperCase() + nbMot.slice(1)} œuvre{nb > 1 ? 's' : ''} disponible{nb > 1 ? 's' : ''}</span>
             </button>
-            {!compact && tronque && (
-              <button onClick={() => onOuvrirAuteur(auteur.id_auteur)} title="Ouvrir la page de l’auteur"
-                style={{ flexShrink: 0, fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap', lineHeight: 1 }}
-                onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; e.currentTarget.style.textUnderlineOffset = '2px' }}
-                onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none' }}>
-                Ouvrir la page auteur
-              </button>
-            )}
           </div>
         </div>
       </div>
