@@ -1191,6 +1191,9 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
   const CHAMPS_OEUVRE_TEXTE: { key: string; label: string }[] = [
     { key: 'titre', label: 'Titre *' },
+    // Composition du titre pour la page de titre seule (sauts de ligne compris).
+    // Renseignée, c'est elle que le frontispice affiche à la place du titre.
+    { key: 'titre_affichage', label: 'Titre composé (page de titre)' },
     { key: 'sous_titre', label: 'Sous-titre' },
     { key: 'titre_original', label: 'Titre original' },
     { key: 'trad_auteur', label: 'Traducteur' },
@@ -1206,7 +1209,8 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   const ouvrirEditionOeuvre = (o: Oeuvre) => {
     setEditionOeuvre(o.id_oeuvre)
     setFormOeuvre({
-      titre: o.titre ?? '', sous_titre: o.sous_titre ?? '', titre_original: o.titre_original ?? '',
+      titre: o.titre ?? '', titre_affichage: o.titre_affichage ?? '',
+      sous_titre: o.sous_titre ?? '', titre_original: o.titre_original ?? '',
       trad_auteur: o.trad_auteur ?? '', editeur: o.editeur ?? '', collection: o.collection ?? '',
       ville: o.ville ?? '', date_publication: o.date_publication ?? '',
       date_composition: o.date_composition ?? '', url_source: o.url_source ?? '',

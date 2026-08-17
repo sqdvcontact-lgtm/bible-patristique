@@ -34,6 +34,10 @@ export async function POST(req: NextRequest) {
     // « Commentaires » du formulaire (colonne `commentaire_traduction`) : jusqu'ici la
     // note ne se lisait qu'en pastille, sans moyen de la corriger.
     'commentaire_traduction',
+    // Composition du titre pour le frontispice (sauts de ligne éditoriaux). Elle
+    // était LUE par la page de titre mais éditable par aucune interface : une
+    // correction du titre restait donc invisible sur toute œuvre qui la portait.
+    'titre_affichage',
   ])
   if (!CHAMPS_AUTORISES.has(champ)) {
     return NextResponse.json({ error: 'Champ non autorisé.' }, { status: 400 })

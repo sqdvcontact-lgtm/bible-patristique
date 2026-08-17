@@ -1718,7 +1718,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               nommées en tête de colonnes plus bas. */}
           <PageTitre auteur={auteur} oeuvre={oeuvreLocale} versionActive={versionActive} titre={titreAffiche} estAdmin={estAdmin} mobile={mobile} sansGouttiere={modeComparaisonActif}
             notes={notesDuTitre([oeuvreLocale.titre_affichage, titreAffiche, oeuvreLocale.sous_titre, oeuvreLocale.titre_original])}
-            onModifier={(champ, va) => setEditionCible({ type: 'titre_oeuvre', champ, texteActuel: va })} />
+            onModifier={(champ, va) => setEditionCible({
+              type: 'titre_oeuvre', champ, texteActuel: va,
+              // Le titre a deux colonnes, et la page de titre montre la seconde dès
+              // qu'elle est renseignée : on laisse donc choisir celle qu'on modifie,
+              // au lieu d'écrire dans l'une pendant que l'écran affiche l'autre.
+              variantes: champ === 'titre' ? [
+                { champ: 'titre', libelle: 'Titre de catalogue', texte: titreAffiche,
+                  aide: 'Le nom de l’œuvre : bibliothèque, recherche, citations, fil d’Ariane. Il s’écrit d’un seul tenant.' },
+                { champ: 'titre_affichage', libelle: 'Titre composé', texte: oeuvreLocale.titre_affichage ?? '',
+                  aide: 'La composition du seul frontispice, sauts de ligne compris. Renseignée, c’est elle qui paraît ici, à la place du titre de catalogue.' },
+              ] : undefined,
+            })} />
 
           {/* Fleuron (feuille de vigne) séparant la page de titre du niveau 1,
               à la place du long filet. En comparaison, pas de gouttière d'actions :
