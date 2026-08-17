@@ -260,12 +260,18 @@ function OngletCommunaute({
           position: absolute; top: 29%; left: 0; right: 0; padding: 0 1.4rem;
           display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
         }
-        .couverture-filet { height: 1px; width: 1.9rem; }
-        .couverture-titre { font-size: 1.375rem; font-weight: 600; line-height: 1.16; letter-spacing: -0.012em; }
-        .couverture-soustitre { font-size: 0.78125rem; font-weight: 400; line-height: 1.34; opacity: 0.82; }
+        /* Le losange du site, repris en ornement : il sépare le nom du titre. */
+        .couverture-ornement { font-size: 0.4375rem; letter-spacing: 0.4em; opacity: 0.55; padding-left: 0.4em; line-height: 1; }
+        .couverture-titre { font-size: 1.4375rem; font-weight: 500; line-height: 1.14; letter-spacing: -0.014em; }
+        /* Pas de largeur bornée : le retrait de la face suffit à tenir la mesure, et
+           un plafond en em coupait le sous-titre trop court, sur un mot esseulé. */
+        .couverture-soustitre { font-size: 0.75rem; font-weight: 400; line-height: 1.42; opacity: 0.78; text-wrap: balance; }
+        /* Un court filet annonce la date, comme un cul-de-lampe. */
+        .couverture-pied { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 0.55rem; }
+        .couverture-filet { height: 1px; width: 1.6rem; }
         /* Le bloc du titre étant sorti du flux, c'est la date qui occupe la hauteur
            restante et se pose d'elle-même au pied. */
-        .couverture-date { margin-top: auto; font-size: 0.625rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.72; }
+        .couverture-date { font-size: 0.5625rem; letter-spacing: 0.26em; text-transform: uppercase; opacity: 0.66; padding-left: 0.26em; }
 
         .couverture-etoile { position: absolute; top: 0.55rem; right: 0.6rem; z-index: 4; line-height: 1; }
 
@@ -286,9 +292,11 @@ function OngletCommunaute({
         /* « Lire » : ni cadre ni flèche. Un mot, espacé, souligné d'un filet fin. */
         .couverture-lire {
           margin-top: 1.15rem;
-          font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
-          padding-bottom: 0.28rem; border-bottom: 1px solid currentColor;
+          font-size: 0.625rem; font-weight: 500; letter-spacing: 0.28em; text-transform: uppercase;
+          padding: 0 0 0.3rem 0.28em; border-bottom: 1px solid currentColor; opacity: 0.9;
+          transition: opacity 0.2s ease;
         }
+        .couverture:hover .couverture-lire { opacity: 1; }
         .couverture-dos-meta {
           position: absolute; left: 0; right: 0; bottom: 1.15rem;
           display: flex; align-items: center; justify-content: center; gap: 0.85rem;
@@ -346,11 +354,16 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
         <span className="couverture-cadre" style={{ borderColor: c.filet }} aria-hidden="true" />
         <span className="couverture-auteur">{e.auteur}</span>
         <span className="couverture-centre">
-          <span className="couverture-filet" style={{ background: c.filet }} aria-hidden="true" />
+          <span className="couverture-ornement" aria-hidden="true">◆</span>
           <span className="couverture-titre">{e.titre}</span>
           {e.sous_titre && <span className="couverture-soustitre">{e.sous_titre}</span>}
         </span>
-        {e.publie_at && <span className="couverture-date">{formaterDateLongue(e.publie_at)}</span>}
+        {e.publie_at && (
+          <span className="couverture-pied">
+            <span className="couverture-filet" style={{ background: c.filet }} aria-hidden="true" />
+            <span className="couverture-date">{formaterDateLongue(e.publie_at)}</span>
+          </span>
+        )}
       </span>
 
       {/* La quatrième de couverture. `aria-hidden` : le résumé est déjà porté par
