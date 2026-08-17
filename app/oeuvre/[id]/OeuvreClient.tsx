@@ -11,6 +11,7 @@ import { parseNotes } from '@/app/lib/notes'
 import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee } from './oeuvreTypes'
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
+import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, rendreTitreColophonAvecNotes, notesPourTexte } from './appelNote'
 import { chargerAuteursParOeuvre, separateurAuteurs } from '@/app/lib/auteursOeuvre'
 import { nettoyerFin } from '@/app/lib/ponctuation'
@@ -1963,8 +1964,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       {(affichageBilingue || afficherOriginalSeul) && original?.texteOriginal && (
                         // En « Latin seul », l'original occupe seul la colonne, au gabarit du
                         // français (mêmes taille et teinte).
-                        <p lang="la" className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, lineHeight: afficherOriginalSeul ? '1.62' : '1.58', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                          {rendreTexteAvecNotes(normaliserEspacesOriginal(original.texteOriginal), original.notes ?? {})}
+                        <p lang="la" className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, lineHeight: afficherOriginalSeul ? '1.62' : '1.58', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          {rendreTexteAvecNotes(cesurerLatin(normaliserEspacesOriginal(original.texteOriginal)), original.notes ?? {})}
                         </p>
                       )}
                     </div>

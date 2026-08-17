@@ -1,5 +1,6 @@
 import { formaterDateHistorique } from './datesHistoriques'
 import { normaliserEspaces } from './typographie'
+import { sansCesures } from './cesuresLatines'
 
 // ── Mise en forme des citations (copier / coller, et affichage des prélèvements) ──
 // Règles arrêtées par l'auteur, appliquées à UN seul endroit :
@@ -61,7 +62,9 @@ export function preparerTexteCitation(texte: string): string {
   // Même espacement qu'à la lecture : le presse-papiers emporte le texte BRUT,
   // pas le rendu. Sans cela, une citation collée dans un traitement de texte
   // ramenait l'espace pleine chasse du corpus là où l'écran montrait une fine.
-  return normaliserEspaces(capitaliserInitiale(normaliserPonctuationFinale(convertirGuillemetsInternes(texte.trim()))))
+  // Une césure conditionnelle est une affaire de mise en page : elle n'a rien à
+  // faire dans un presse-papiers, où elle voyagerait en caractère invisible.
+  return sansCesures(normaliserEspaces(capitaliserInitiale(normaliserPonctuationFinale(convertirGuillemetsInternes(texte.trim())))))
 }
 
 function echapperHtml(s: string): string {

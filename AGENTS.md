@@ -309,6 +309,20 @@ Règle fixée : le mode « Traductions parallèles » (`ComparaisonTraductions.t
 - **Notes — vers cités** (`ContenuNoteStructuree`) : plus d'étiquette « Vers » ; un bloc `form==='verse'` se rend en **police réduite (0.9em) + léger retrait gauche**.
 - **Apparat critique** : masqué dans le sommaire en mode comparaison.
 
+# Césures du texte latin — aucun navigateur ne sait les faire
+
+⛔ **`hyphens: auto` ne fait RIEN sur un `lang="la"`.** Aucun moteur ne livre de dictionnaire de coupure pour le latin. Mesuré dans le navigateur intégré, sur une colonne de 170 px et un extrait des *Confessions* : **23 lignes** avec `hyphens: auto`, **23** sans césure du tout, et **23** encore en déclarant `lang="it"` pour emprunter le dictionnaire italien. La déclaration était donc inerte depuis toujours, et la justification creusait les blancs faute de pouvoir couper.
+
+Les points de coupe sont désormais **posés par nous**, en césures conditionnelles U+00AD (invisibles tant que la ligne n'a pas besoin d'être coupée). Module pur et testé : `app/lib/cesuresLatines.ts` (14 tests).
+
+- **Deux notions distinctes, deux fonctions.** `syllabesLatines` est linguistique : « do-mi-ne » a trois syllabes, un point. `pointsDeCoupe` est typographique et n'en retient que certaines : au moins **2 lettres avant** la coupe et **3 après**, d'où « do-mine » et non « do-mi-ne ». Le second seuil est le seul curseur à toucher si l'on veut plus de coupes encore.
+- **Règles classiques appliquées** : consonne simple à la syllabe suivante ; muette + liquide insécable (« pa-tris ») ; s + occlusive insécable (« ne-sci-ens », « in-spi-ra-sti ») ; `s` + muette + liquide d'un seul tenant (« ca-stra ») ; digrammes grecs et `gn` insécables (« chri-stus », « ma-gnus ») ; diphtongue jamais coupée (« lau-da-bunt ») ; hiatus coupé (« de-o-rum »).
+- ⚠️ **Le `u` de `qu`/`gu` est consonantique** : sans cette règle, « loquitur » se coupe en « loq-ui-tur » et « quomodo » en « qu-omo-do ». `qu` et `gu` figurent donc dans les groupes insécables.
+- **Posées au RENDU, jamais dans la donnée** (même doctrine que l'espacement, charte §3.2) : `cesurerLatin` s'applique au `texte_original` d'`OeuvreClient` et à la colonne en langue originale de `ComparaisonTraductions`. La fonction est idempotente et ne change pas une lettre : `sansCesures(cesurerLatin(t)) === t`, garanti par test.
+- ⚠️ **Une césure ne doit jamais quitter la page.** `preparerTexteCitation` (`app/lib/citation.ts`) appelle `sansCesures` : sans quoi un copier-coller emporterait des caractères invisibles dans le presse-papiers.
+- **La regex ne vise que les suites de lettres d'au moins 5 caractères**, ce qui laisse intacts les marqueurs de note `[[81]]`, les nombres et la ponctuation. `rendreTexteAvecNotes` continue donc de reconnaître ses appels.
+- **Gain mesuré** (extrait des *Confessions*, sans-serif 0.79rem) : 170 px → 8,7 % de lignes en moins ; 220 px, largeur réelle de la colonne bilingue → 5,9 % ; 300 px → nul. Le gain en lignes sous-estime l'effet : à nombre de lignes égal, les blancs de justification se resserrent. L'espacement du latin a par ailleurs reçu le `wordSpacing: -0.025em` que portait déjà la colonne française.
+
 # Police des textes d'œuvre — sérif toujours, sauf l'original en regard
 
 Règle d'auteur, fixée le 2026-08-17 :

@@ -13,6 +13,7 @@ import { BadgeStatutAlignement } from './ComparaisonStatut'
 import { BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import type { AlignementDisponible, NoteBlocData, NoteStructuree, SegData } from './oeuvreTypes'
 import { estColonneOriginale } from './oeuvreTypes'
+import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import {
   groupesSelonFiltre,
   membresOrdonnesParGroupe,
@@ -155,6 +156,9 @@ function ColonneLecture({ membres, segments, notes, vide, segActif, onSurvol, on
   const originale = estColonneOriginale(langue)
   const police = originale ? POLICE_ORIGINALE : STYLE_TEXTE_PARALLELE.fontFamily
   const codeLangue = originale ? 'la' : 'fr'
+  // Aucun navigateur ne sait couper le latin : sans césures posées, une colonne
+  // aussi étroite se creuse de blancs à chaque ligne justifiée.
+  const composer = originale ? cesurerLatin : (t: string) => t
   const ordonnes = membres.map(membre => segments.get(membre.segment_key)).filter(Boolean) as SegmentComparaison[]
   if (ordonnes.length === 0) {
     return <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>{vide}</p>
@@ -179,7 +183,7 @@ function ColonneLecture({ membres, segments, notes, vide, segActif, onSurvol, on
         onClick={e => onClic(e.currentTarget, segment.id, actif)}
         onMouseEnter={mobile ? undefined : e => onSurvol(e.currentTarget, segment.id)}
         onMouseLeave={mobile ? undefined : () => onQuitter(segment.id)}>
-        {renderSegmentTexte(segment.segment_texte, notes[segment.segment_key] ?? [])}
+        {renderSegmentTexte(composer(segment.segment_texte), notes[segment.segment_key] ?? [])}
       </span>
     )
   }
