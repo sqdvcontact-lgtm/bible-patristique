@@ -35,11 +35,9 @@ export const COUVERTURES: Couverture[] = [
   { cle: 'sauge',     libelle: 'Sauge',          fond: '#5e7058', encre: '#fbf8f1', filet: 'rgba(251,248,241,0.42)' },
   { cle: 'bordeaux',  libelle: 'Bordeaux',       fond: '#6d2b2f', encre: '#f6eae2', filet: 'rgba(246,234,226,0.34)' },
   { cle: 'brique',    libelle: 'Brique',         fond: '#a4593a', encre: '#fdf3ea', filet: 'rgba(253,243,234,0.40)' },
-  { cle: 'prune',     libelle: 'Prune',          fond: '#4d3350', encre: '#f3ebf1', filet: 'rgba(243,235,241,0.34)' },
   { cle: 'indigo',    libelle: 'Indigo',         fond: '#2f3f63', encre: '#eef1f7', filet: 'rgba(238,241,247,0.34)' },
   { cle: 'ardoise',   libelle: 'Bleu ardoise',   fond: '#5b7183', encre: '#f6f9fb', filet: 'rgba(246,249,251,0.40)' },
   { cle: 'sarcelle',  libelle: 'Sarcelle',       fond: '#2b5f5c', encre: '#eef6f4', filet: 'rgba(238,246,244,0.36)' },
-  { cle: 'olive',     libelle: 'Olive',          fond: '#5f6032', encre: '#f7f5e6', filet: 'rgba(247,245,230,0.38)' },
   { cle: 'terre',     libelle: 'Terre de Sienne', fond: '#7b5230', encre: '#fbf2e7', filet: 'rgba(251,242,231,0.38)' },
   { cle: 'encre',     libelle: 'Encre noire',    fond: '#241f1c', encre: '#ece5d8', filet: 'rgba(236,229,216,0.30)' },
 ]
