@@ -218,18 +218,42 @@ function OngletCommunaute({
         }
 
         /* Trois couvertures par rang, comme une table d'étalage. */
-        .rayon { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.7rem 1.5rem; }
+        /* La largeur est bornée sur les COLONNES, pas sur la couverture : celle-ci
+           doit rester étirée par sa case. Toute tentative de la brider elle-même
+           (marge automatique ou justify-self) lui retire l'étirement, et comme tous
+           ses enfants sont hors flux, sa largeur retombe à ZÉRO : elle disparaît
+           sans que rien ne le signale. */
+        .rayon {
+          display: grid; grid-template-columns: repeat(3, 14.5rem);
+          justify-content: center; gap: 2rem 1.6rem;
+        }
 
         /* Une couverture : proportion d'un petit livre, couleur pleine, composition
-           CENTRÉE. Tout est sans empattement, la quatrième exceptée. */
+           CENTRÉE. Tout est sans empattement, la quatrième exceptée.
+           Bloc volontairement bridé : elle n'a pas à occuper le tiers d'un écran
+           large. Elle se cale au milieu de sa case, et toute sa typographie est
+           donnée en cqw, pourcentage de SA largeur, de sorte qu'elle garde ses
+           proportions qu'elle occupe 14 rem ou toute la colonne d'un téléphone.
+           ⚠️ Jamais d'accent grave dans ce bloc : il vit dans un littéral de
+           gabarit, et un accent grave le referme. */
         .couverture {
+          container-type: inline-size;
           position: relative; display: block; aspect-ratio: 2 / 3; overflow: hidden;
           border-radius: 2px; text-decoration: none; isolation: isolate;
           font-family: var(--font-source-sans), Arial, sans-serif;
           box-shadow: 0 1px 2px rgba(40,30,15,0.18), 0 10px 22px -12px rgba(40,30,15,0.40);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          transition: transform 0.24s cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 0.24s ease;
         }
-        .couverture:hover { transform: translateY(-4px); box-shadow: 0 2px 5px rgba(40,30,15,0.20), 0 20px 34px -14px rgba(40,30,15,0.46); }
+        /* Vignette très douce : le papier prend du grain au lieu de rester un aplat.
+           La lumière en haut à gauche, l'ombre au bord. C'est ce qui fait le
+           cartonnage plutôt que le rectangle coloré. */
+        .couverture::after {
+          content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+          background:
+            radial-gradient(120% 90% at 22% 8%, rgba(255,255,255,0.09), rgba(255,255,255,0) 58%),
+            radial-gradient(130% 100% at 50% 100%, rgba(0,0,0,0.16), rgba(0,0,0,0) 62%);
+        }
+        .couverture:hover { transform: translateY(-5px); box-shadow: 0 2px 6px rgba(40,30,15,0.22), 0 22px 38px -14px rgba(40,30,15,0.48); }
 
         /* Le dos de reliure : une bande sombre au bord gauche, discrète. */
         .couverture::before {
@@ -243,14 +267,18 @@ function OngletCommunaute({
         .couverture-face {
           position: absolute; inset: 0; z-index: 1;
           display: flex; flex-direction: column; align-items: center; text-align: center;
-          padding: 2.1rem 1.4rem 1.5rem 1.55rem;
+          padding: 8cqw 6cqw 6.5cqw 6.8cqw;
           transition: opacity 0.22s ease;
         }
-        .couverture-cadre { position: absolute; inset: 0.75rem 0.7rem 0.7rem 1rem; border: 1px solid; pointer-events: none; }
+        /* Cadre doublé, comme un cartonnage d'éditeur : un filet net, puis un second
+           en retrait qu'on devine à peine. */
+        .couverture-cadre { position: absolute; inset: 3.4cqw 3.2cqw 3.2cqw 4.6cqw; border: 1px solid; pointer-events: none; }
+        .couverture-cadre::before { content: ""; position: absolute; inset: 1.4cqw; border: 1px solid currentColor; opacity: 0.2; }
 
         .couverture-auteur {
-          font-size: 0.75rem; font-weight: 600; line-height: 1.3;
-          letter-spacing: 0.19em; text-transform: uppercase;
+          font-size: 4.1cqw; font-weight: 500; line-height: 1.35;
+          letter-spacing: 0.26em; text-transform: uppercase; opacity: 0.92;
+          padding-left: 0.26em; /* compense l'interlettrage, qui décentre à droite */
         }
         /* Le titre se pose au premier tiers supérieur, et non au milieu : c'est là
            que l'œil le cherche sur une couverture. Position en POURCENTAGE de la
@@ -261,50 +289,50 @@ function OngletCommunaute({
           display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
         }
         /* Le losange du site, repris en ornement : il sépare le nom du titre. */
-        .couverture-ornement { font-size: 0.4375rem; letter-spacing: 0.4em; opacity: 0.55; padding-left: 0.4em; line-height: 1; }
-        .couverture-titre { font-size: 1.4375rem; font-weight: 500; line-height: 1.14; letter-spacing: -0.014em; }
+        .couverture-ornement { font-size: 2.6cqw; letter-spacing: 0.4em; opacity: 0.55; padding-left: 0.4em; line-height: 1; }
+        .couverture-titre { font-size: 8.2cqw; font-weight: 500; line-height: 1.14; letter-spacing: -0.014em; }
         /* Pas de largeur bornée : le retrait de la face suffit à tenir la mesure, et
            un plafond en em coupait le sous-titre trop court, sur un mot esseulé. */
-        .couverture-soustitre { font-size: 0.75rem; font-weight: 400; line-height: 1.42; opacity: 0.78; text-wrap: balance; }
+        .couverture-soustitre { font-size: 4.4cqw; font-weight: 400; line-height: 1.42; opacity: 0.78; text-wrap: balance; }
         /* Un court filet annonce la date, comme un cul-de-lampe. */
-        .couverture-pied { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 0.55rem; }
-        .couverture-filet { height: 1px; width: 1.6rem; }
+        .couverture-pied { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 2.5cqw; }
+        .couverture-filet { height: 1px; width: 7.5cqw; }
         /* Le bloc du titre étant sorti du flux, c'est la date qui occupe la hauteur
            restante et se pose d'elle-même au pied. */
-        .couverture-date { font-size: 0.5625rem; letter-spacing: 0.26em; text-transform: uppercase; opacity: 0.66; padding-left: 0.26em; }
+        .couverture-date { font-size: 3.4cqw; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.66; padding-left: 0.26em; }
 
-        .couverture-etoile { position: absolute; top: 0.55rem; right: 0.6rem; z-index: 4; line-height: 1; }
+        .couverture-etoile { position: absolute; top: 2.4cqw; right: 2.6cqw; z-index: 4; line-height: 1; }
 
         /* La quatrième : elle se retourne au survol. Seul endroit en empattement. */
         .couverture-dos {
           position: absolute; inset: 0; z-index: 3;
           display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-          padding: 2rem 1.5rem 1.5rem 1.65rem;
+          padding: 7.5cqw 6.5cqw 6.5cqw 7.2cqw;
           opacity: 0; pointer-events: none; transition: opacity 0.22s ease;
         }
         .couverture:hover .couverture-dos { opacity: 1; pointer-events: auto; }
         .couverture:hover .couverture-face { opacity: 0; }
         .couverture-resume {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 0.84375rem; line-height: 1.5;
+          font-size: 4.95cqw; line-height: 1.5;
           overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 8;
         }
         /* « Lire » : ni cadre ni flèche. Un mot, espacé, souligné d'un filet fin. */
         .couverture-lire {
-          margin-top: 1.15rem;
-          font-size: 0.625rem; font-weight: 500; letter-spacing: 0.28em; text-transform: uppercase;
-          padding: 0 0 0.3rem 0.28em; border-bottom: 1px solid currentColor; opacity: 0.9;
+          margin-top: 6cqw;
+          font-size: 3.6cqw; font-weight: 500; letter-spacing: 0.28em; text-transform: uppercase;
+          padding: 0 0 1.4cqw 0.28em; border-bottom: 1px solid currentColor; opacity: 0.9;
           transition: opacity 0.2s ease;
         }
         .couverture:hover .couverture-lire { opacity: 1; }
         .couverture-dos-meta {
-          position: absolute; left: 0; right: 0; bottom: 1.15rem;
-          display: flex; align-items: center; justify-content: center; gap: 0.85rem;
-          font-size: 0.5625rem; letter-spacing: 0.09em; text-transform: uppercase; opacity: 0.66;
+          position: absolute; left: 0; right: 0; bottom: 5.2cqw;
+          display: flex; align-items: center; justify-content: center; gap: 3.8cqw;
+          font-size: 3.3cqw; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.66;
         }
 
-        @media (max-width: 900px) { .rayon { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem 1rem; } }
-        @media (max-width: 520px) { .rayon { grid-template-columns: 1fr; } }
+        @media (max-width: 900px) { .rayon { grid-template-columns: repeat(2, 14.5rem); gap: 1.4rem 1.2rem; } }
+        @media (max-width: 520px) { .rayon { grid-template-columns: 14.5rem; } }
 
         /* Tactile : rien ne se survole. La face reste, le dos ne s'affiche jamais ;
            le résumé se lit sur la page de la publication, à un doigt de là. */
@@ -340,7 +368,9 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
   essai: EssaiResume; plusLu: boolean
   favorisEssais: Set<string>; toggleFavoriEssai: (id: string) => void
 }) {
-  const c = couvertureDe(e.couverture)
+  // Sans choix de l'auteur, la couleur est TIRÉE de l'identifiant : variée d'une
+  // publication à l'autre, mais stable pour chacune.
+  const c = couvertureDe(e.couverture, e.id)
   return (
     <Link href={`/essais/${e.id}`} className="couverture"
       style={{ background: c.fond, color: c.encre }}

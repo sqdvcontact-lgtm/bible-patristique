@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { COUVERTURES, COUVERTURE_PAR_DEFAUT, couvertureDe, estCouvertureConnue } from './couverturesEssai'
+import { COUVERTURES, COUVERTURE_PAR_DEFAUT, couvertureDe, couvertureTiree, estCouvertureConnue } from './couverturesEssai'
 
 describe('jeu de couvertures', () => {
   it('n’a pas deux fois la même clé', () => {
@@ -32,15 +32,45 @@ describe('jeu de couvertures', () => {
   })
 })
 
+describe('tirage par défaut', () => {
+  // Une couverture qui changerait d'un affichage à l'autre ne serait plus une
+  // couverture : le tirage doit être stable pour un même identifiant.
+  it('est stable pour une même publication', () => {
+    for (const id of [1, 2, 17, 512, 99999]) {
+      expect(couvertureTiree(id)).toBe(couvertureTiree(id))
+    }
+  })
+
+  it('rend toujours une couverture du jeu', () => {
+    for (let id = 0; id < 200; id++) expect(COUVERTURES).toContain(couvertureTiree(id))
+  })
+
+  // Le but est la variété : sur une série d'identifiants consécutifs, comme le sont
+  // les publications, le tirage doit balayer le jeu et non s'attacher à deux teintes.
+  it('balaie le jeu sur des identifiants consécutifs', () => {
+    const vues = new Set(Array.from({ length: 60 }, (_, i) => couvertureTiree(i + 1).cle))
+    expect(vues.size).toBeGreaterThanOrEqual(COUVERTURES.length - 1)
+  })
+})
+
 describe('couverture d’une publication', () => {
   it('rend la couverture choisie', () => {
     expect(couvertureDe('bordeaux').libelle).toBe('Bordeaux')
   })
 
-  it('rend le défaut quand rien n’a été choisi', () => {
+  it('rend le défaut quand rien n’a été choisi ET qu’aucune graine n’est donnée', () => {
     expect(couvertureDe(null)).toBe(COUVERTURE_PAR_DEFAUT)
     expect(couvertureDe(undefined)).toBe(COUVERTURE_PAR_DEFAUT)
     expect(couvertureDe('  ')).toBe(COUVERTURE_PAR_DEFAUT)
+  })
+
+  it('tire une couverture quand rien n’a été choisi mais qu’une graine est donnée', () => {
+    expect(COUVERTURES).toContain(couvertureDe(null, 41))
+    expect(couvertureDe(null, 41)).toBe(couvertureTiree(41))
+  })
+
+  it('laisse le choix de l’auteur l’emporter sur le tirage', () => {
+    expect(couvertureDe('bordeaux', 41).cle).toBe('bordeaux')
   })
 
   // Une couleur retirée du jeu ne doit jamais faire disparaître une publication.
