@@ -1,5 +1,30 @@
 import { describe, it, expect } from 'vitest'
-import { titreSansAppelsDeNote, notesPourTexte } from './appelNote'
+import { titreSansAppelsDeNote, notesPourTexte, preparerTitreColophon } from './appelNote'
+
+// Écrite en toutes lettres : dans un fichier de test, une espace insécable
+// littérale ne se distingue pas d'une espace ordinaire à la lecture, et une
+// assertion qu'on ne sait pas relire ne prouve rien.
+const INSECABLE = ' '
+
+describe('espacement typographique d’un titre', () => {
+  it('pose l’espace insécable devant la ponctuation haute', () => {
+    expect(preparerTitreColophon('Livre premier : la cité')).toBe(`Livre premier${INSECABLE}: la cité`)
+  })
+
+  it('resserre l’espace qui précède une virgule ou un point', () => {
+    expect(preparerTitreColophon('Livre premier , la cité')).toBe('Livre premier, la cité')
+  })
+
+  it('garde le saut de ligne quand la seconde ligne s’ouvre sur une ponctuation haute', () => {
+    expect(preparerTitreColophon('Livre premier\n: la cité de Dieu'))
+      .toBe('Livre premier\n: la cité de Dieu')
+  })
+
+  it('garde le saut de ligne quand la seconde ligne s’ouvre sur une virgule ou un point', () => {
+    expect(preparerTitreColophon('Sur la Cité de Dieu\n. Dessein de cet ouvrage'))
+      .toBe('Sur la Cité de Dieu\n. Dessein de cet ouvrage')
+  })
+})
 
 describe('appels de note masqués au sommaire', () => {
   it('retire le marqueur collé à l’intitulé', () => {

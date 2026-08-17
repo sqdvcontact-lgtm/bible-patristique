@@ -13,12 +13,18 @@ import type { NoteAffichee } from './oeuvreTypes'
 
 const NBSP_TITRE_COLOPHON = ' '
 
+// Les classes sont bornées à l'espace et à la tabulation, JAMAIS `\s`, qui
+// engloberait le retour à la ligne : un titre composé sur deux lignes dont la
+// seconde commence par une ponctuation perdait son saut de ligne, remplacé par
+// une espace insécable (« ; : ! ? » ») ou purement supprimé (« , . »). Le saut
+// de ligne est un choix de composition, il ne se rattrape pas. Même précaution
+// que dans `titreSansAppelsDeNote` ci-dessous.
 export function preparerTitreColophon(texte: string) {
   return texte
     .trim()
-    .replace(/\s+([;:!?»])/g, `${NBSP_TITRE_COLOPHON}$1`)
-    .replace(/([«])\s+/g, `$1${NBSP_TITRE_COLOPHON}`)
-    .replace(/\s+([,.])/g, '$1')
+    .replace(/[ \t]+([;:!?»])/g, `${NBSP_TITRE_COLOPHON}$1`)
+    .replace(/([«])[ \t]+/g, `$1${NBSP_TITRE_COLOPHON}`)
+    .replace(/[ \t]+([,.])/g, '$1')
 }
 
 // Le sommaire est une navigation compacte : la note y serait un appel qu'on ne
