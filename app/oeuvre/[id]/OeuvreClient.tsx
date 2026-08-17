@@ -1402,7 +1402,11 @@ export default function OeuvreClient({ auteur, auteurId, idOeuvre, estAdmin: est
               </div>
             </div>
             <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', color: 'var(--cs-encre)', lineHeight: 1.35, margin: 0, whiteSpace: 'pre-line' }}>
-              {rendreTexteEnrichi(oeuvreLocale.titre_affichage || titreAffiche)}
+              {/* Le titre COMPOSÉ (`titre_affichage`, avec ses sauts de ligne) ne vaut que
+                  pour la page de titre. Partout ailleurs, ici comme dans la bibliothèque
+                  ou le fil d'Ariane, c'est le titre de catalogue qui nomme l'œuvre : un
+                  sommaire est une navigation, pas un frontispice. */}
+              {rendreTexteEnrichi(titreAffiche)}
             </p>
             {(oeuvreLocale.sous_titre || oeuvreLocale.titre_original || oeuvreLocale.trad_auteur || oeuvreLocale.editeur || oeuvreLocale.ville || oeuvreLocale.date_publication || oeuvreLocale.collection) && (
               <button onClick={() => setInfoEditionOuverte(true)}
