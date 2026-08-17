@@ -12,6 +12,7 @@ import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { partagerOpuscules } from '@/app/lib/opuscules'
 import { libelleTrad, formaterEditeur } from '@/app/oeuvre/[id]/PageTitre'
+import { estLangueOriginale, libelleTemoin, editionCourte } from '@/app/lib/temoinsOeuvre'
 import { useEditeursCharges } from '@/app/lib/editeurs'
 import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
@@ -27,6 +28,19 @@ type Oeuvre = {
   date_publication_precision_affichage: string | null
   genre: string | null; note?: string | null; langue_originale?: string | null
   nb_signes?: number | null
+  textes?: TexteOeuvre[]
+}
+// Un témoin textuel de l'œuvre : une traduction, ou le texte dans sa langue
+// d'origine. Le catalogue lui doit UNE LIGNE, la règle valant aussi bien pour
+// deux traductions d'éditions différentes que pour le latin et le français
+// d'une même édition.
+type TexteOeuvre = {
+  id_texte: string
+  langue: string | null
+  traducteur: string | null
+  edition_label: string | null
+  annee_edition: number | null
+  is_default: boolean
 }
 type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }
@@ -330,9 +344,17 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                     const edition = <>{editionTexte}{editionTexte && datePublication ? ', ' : null}{datePublication && <span title={o.date_publication_precision_affichage ?? undefined}><HistoricalDate value={datePublication} variant="short" /></span>}</>
                     const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
                     const libelle = trad || (aEdition ? edition : 'Édition')
+                    // Témoins supplémentaires : tout ce qui n'est pas la version par
+                    // défaut, déjà représentée par la ligne principale ci-dessous.
+                    const autresTextes = (o.textes ?? []).filter(t => !t.is_default)
+                    // Le latin existe parfois DEUX fois : comme colonne parallèle des
+                    // segments (`texte_original`) et comme témoin à part entière. Quand
+                    // le témoin existe, il prime : sans cela, La Cité de Dieu offrirait
+                    // deux portes vers le même latin.
+                    const aTemoinOriginal = (o.textes ?? []).some(t => estLangueOriginale(t.langue))
                     // Texte original parallèle (latin/grec) disponible pour cette édition :
                     // on propose une sous-ligne menant à l'œuvre en mode « texte original ».
-                    const aOriginal = !!originaux?.has(o.id_oeuvre)
+                    const aOriginal = !!originaux?.has(o.id_oeuvre) && !aTemoinOriginal
                     const langueOrig = o.langue_originale === 'Grec' ? 'grec' : 'latin'
                     return (
                       <React.Fragment key={o.id_oeuvre}>
@@ -378,6 +400,27 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           </span>
                         </Link>
                       </div>
+                      {/* Les autres témoins de la même œuvre, une ligne chacun, sous la
+                          traduction par défaut. Le lien profond `?texte=` existe déjà côté
+                          page d'œuvre : il n'y avait qu'à le proposer. */}
+                      {autresTextes.map(t => (
+                        <div key={t.id_texte} className="bib-ligne" style={{ marginTop: '1px', alignItems: 'center' }}>
+                          <div aria-hidden style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '20px' }}>
+                            <span style={{ display: 'block', width: '16px', height: '12px' }} />
+                          </div>
+                          <Link href={`/oeuvre/${o.id_oeuvre}?texte=${t.id_texte}`}
+                            style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
+                            <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
+                              <span style={{ fontSize: '0.71875rem', color: '#4a4038', fontWeight: 500 }}>{libelleTemoin(t)}</span>
+                              {editionCourte(t) && <span style={{ fontSize: '0.625rem', color: '#a59c90' }}>{editionCourte(t)}</span>}
+                            </span>
+                            <span className="bib-lire">
+                              Lire
+                              <span className="bib-fleche" style={{ display: 'inline-flex' }}><IconeChevron dir="right" size={11} strokeWidth={1.4} /></span>
+                            </span>
+                          </Link>
+                        </div>
+                      ))}
                       </React.Fragment>
                     )
                   })}

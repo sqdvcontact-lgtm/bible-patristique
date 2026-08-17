@@ -502,3 +502,18 @@ Deux règles arrêtées le 2026-08-17, inscrites dans la charte aux § 3.2 et §
 ⚠️ **Piège de dépistage** : `Ecclésiaste` et `Ecclésiastique` n'ont PAS d'accent sur leur capitale initiale. Les inclure dans une liste de mots à accentuer produit des faux positifs.
 
 Corrections effectives : `Éphésiens 6/10-20` (un titre), et `Dimanche` ramené en bas de casse dans quatre titres de la même série de sermons, où il voisinait avec quatre `dimanche` déjà corrects.
+
+# Catalogue — une ligne par témoin textuel
+
+Doctrine : charte `parametres.charte_ia` **§ 19.2**. La bibliothèque affiche une ligne pour CHAQUE texte de l'œuvre, non une par œuvre. Logique pure dans `app/lib/temoinsOeuvre.ts` (module testé), consommée par `app/bibliotheque/page.tsx` (qui charge `oeuvre_textes`) et `BibliothequeClient`.
+
+**Trois mécanismes coexistent** pour dire « même œuvre, plusieurs éditions ». Les confondre est la source du désordre :
+
+1. **`segments.texte_original`** — l'original en colonne parallèle, DANS le même texte. Dix œuvres, exposées par la vue `v_oeuvres_texte_original`.
+2. **`oeuvre_textes`** — plusieurs textes complets sous UNE ligne d'`oeuvres`. Deux œuvres : Boèce (Mirandol 1861, Ceriziers 1646) et La Cité de Dieu (français Barreau, latin Bénédictins).
+3. **Plusieurs lignes d'`oeuvres` de même titre** (le « groupe de titre »). Une seule œuvre : La Cité de Dieu, qui emploie donc les mécanismes 2 et 3 à la fois.
+
+- ⛔ **Ne jamais scinder en deux lignes d'`oeuvres` deux témoins qu'on veut lire EN REGARD.** `texte_alignement_ensembles` porte un seul `id_oeuvre` et relie deux `id_texte` ; la comparaison charge les segments par `id_oeuvre` + `segment_key`. Séparer les deux Boèce détruirait ses 784 alignements. Le mécanisme 2 est le bon ; c'est la bibliothèque qui n'en montrait rien, car elle ne lisait jamais `oeuvre_textes`.
+- ⚠️ **Le latin peut exister deux fois**, en colonne parallèle ET comme témoin. Quand le témoin existe, il prime et la sous-ligne « Texte original latin » disparaît, sinon La Cité de Dieu offrirait deux portes vers le même latin.
+- **La mention d'édition se réduit à l'année.** `edition_label` de Vivès tient en deux cents signes et écraserait la ligne : sans `annee_edition`, la ligne ne dit rien de l'édition.
+- **Effet mesuré** : sur 16 œuvres publiées, 3 n'ont aucun témoin déclaré, 11 en ont un, 2 en ont plusieurs. Seuls Boèce et La Cité de Dieu gagnent des lignes ; les quatorze autres sont inchangées.
