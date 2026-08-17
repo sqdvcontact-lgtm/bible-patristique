@@ -47,7 +47,16 @@ export type Props = {
   niv1InitialPartiel?: boolean
 }
 
-export type ChampOeuvre = 'titre' | 'sous_titre' | 'titre_original' | 'trad_auteur'
+export type ChampOeuvre = 'titre' | 'titre_affichage' | 'sous_titre' | 'titre_original' | 'trad_auteur'
+
+// Le titre d'une œuvre vit dans DEUX colonnes, et l'on ne modifie pas la même
+// chose selon celle que l'on vise. `titre` est le titre de catalogue : il nomme
+// l'œuvre dans la bibliothèque, la recherche, les citations et le fil d'Ariane,
+// et il s'écrit d'un seul tenant. `titre_affichage` est sa composition pour le
+// frontispice seul : c'est là que vivent les sauts de ligne voulus par l'auteur.
+// Dès qu'il est renseigné, c'est LUI qui paraît sur la page de titre, et une
+// correction portée sur `titre` y reste donc invisible.
+export type VarianteTitre = { champ: ChampOeuvre; libelle: string; texte: string; aide: string }
 
 // Description de ce qui est en cours d'édition dans la modale admin :
 // un segment de texte, un titre de niveau 2/3/4 rattaché à un groupe,
@@ -55,4 +64,4 @@ export type ChampOeuvre = 'titre' | 'sous_titre' | 'titre_original' | 'trad_aute
 export type EditionCible =
   | { type: 'segment'; seg: SegData }
   | { type: 'titre'; niveau: 1 | 2 | 3 | 4; groupe: GroupeData; texteActuel: string; schemaTexte: boolean }
-  | { type: 'titre_oeuvre'; champ: ChampOeuvre; texteActuel: string }
+  | { type: 'titre_oeuvre'; champ: ChampOeuvre; texteActuel: string; variantes?: VarianteTitre[] }

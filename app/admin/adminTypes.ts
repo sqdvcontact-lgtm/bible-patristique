@@ -6,6 +6,9 @@ export type SegInfo      = { texte: string; numero: number; id_oeuvre: string }
 export type Oeuvre = {
   id_oeuvre: string
   titre: string
+  // Composition du titre pour la seule page de titre (sauts de ligne éditoriaux).
+  // Renseignée, elle y paraît à la place de `titre`.
+  titre_affichage?: string | null
   titre_original: string | null
   profondeur_sommaire?: number | null
   sous_titre?: string | null

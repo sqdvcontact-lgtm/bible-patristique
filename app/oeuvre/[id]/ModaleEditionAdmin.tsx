@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import type { EditionCible } from './oeuvreTypes'
+import type { ChampOeuvre, EditionCible, VarianteTitre } from './oeuvreTypes'
 
 const BTN_MODAL: React.CSSProperties = { fontSize: '0.6875rem', padding: '4px 9px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }
 
@@ -38,6 +38,7 @@ async function appelerAPI(chemin: string, corps: object): Promise<{ ok: boolean;
 // Aucune écriture directe n'est faite depuis ce composant.
 const CHAMP_LABEL: Record<string, string> = {
   titre: "Modifier le titre de l'œuvre",
+  titre_affichage: "Modifier le titre de l'œuvre",
   sous_titre: 'Modifier le sous-titre',
   titre_original: 'Modifier le titre original',
   trad_auteur: 'Modifier le traducteur',
@@ -52,6 +53,22 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
   const [statut, setStatut] = useState<'idle' | 'envoi' | 'erreur'>('idle')
   const [erreurMsg, setErreurMsg] = useState<string | null>(null)
   const taRef = useRef<HTMLTextAreaElement>(null)
+
+  // Le titre de l'œuvre a deux colonnes : celle du catalogue et celle du
+  // frontispice. On choisit ici laquelle on modifie, au lieu d'écrire à l'aveugle
+  // dans l'une pendant que l'écran montre l'autre. Les saisies en cours sont
+  // gardées de part et d'autre : passer d'un onglet à l'autre ne perd rien.
+  const variantes = cible.type === 'titre_oeuvre' ? cible.variantes ?? [] : []
+  const [champActif, setChampActif] = useState<ChampOeuvre | null>(cible.type === 'titre_oeuvre' ? cible.champ : null)
+  const [brouillons, setBrouillons] = useState<Record<string, string>>({})
+
+  const changerDeColonne = (variante: VarianteTitre) => {
+    if (!champActif || variante.champ === champActif) return
+    setBrouillons(prev => ({ ...prev, [champActif]: valeur }))
+    setValeur(brouillons[variante.champ] ?? variante.texte)
+    setChampActif(variante.champ)
+    setStatut('idle'); setErreurMsg(null)
+  }
 
   const entourer = (avant: string, apres: string = avant) => {
     const ta = taRef.current
@@ -74,7 +91,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
     if (cible.type === 'segment') {
       resultat = await appelerAPI('/api/admin/segment-modifier', { id: cible.seg.id, segment_texte: valeur })
     } else if (cible.type === 'titre_oeuvre') {
-      resultat = await appelerAPI('/api/admin/update-oeuvre', { id_oeuvre: idOeuvre, champ: cible.champ, valeur: valeur || null })
+      resultat = await appelerAPI('/api/admin/update-oeuvre', { id_oeuvre: idOeuvre, champ: champActif ?? cible.champ, valeur: valeur || null })
     } else {
       resultat = await appelerAPI('/api/admin/segment-titre', {
         id_oeuvre: idOeuvre, niveau: cible.niveau, action: 'modifier', valeur,
@@ -82,7 +99,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
       })
     }
     if (!resultat.ok) { setStatut('erreur'); setErreurMsg(resultat.error ?? null); setEtape('edition'); return }
-    if (cible.type === 'titre_oeuvre') onTitreOeuvreModifie?.(cible.champ, valeur)
+    if (cible.type === 'titre_oeuvre') onTitreOeuvreModifie?.(champActif ?? cible.champ, valeur)
     else onEnregistre()
     onClose()
   }
@@ -132,6 +149,30 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
         </div>
 
         {etape === 'edition' ? <>
+          {variantes.length > 1 && (
+            <div style={{ marginBottom: '10px' }}>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {variantes.map(variante => {
+                  const actif = variante.champ === champActif
+                  return (
+                    <button key={variante.champ} onClick={() => changerDeColonne(variante)}
+                      style={{
+                        fontSize: '0.6875rem', padding: '5px 11px', borderRadius: '4px', cursor: actif ? 'default' : 'pointer',
+                        border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`,
+                        background: actif ? 'var(--cs-vert-pale)' : 'var(--cs-surface)',
+                        color: actif ? 'var(--cs-vert-fonce)' : 'var(--cs-texte-second)',
+                        fontWeight: actif ? 600 : 400,
+                      }}>
+                      {variante.libelle}
+                    </button>
+                  )
+                })}
+              </div>
+              <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', margin: '6px 0 0', lineHeight: 1.45 }}>
+                {variantes.find(v => v.champ === champActif)?.aide}
+              </p>
+            </div>
+          )}
           <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
             <button onClick={() => entourer('**')} title="Gras" style={{ ...BTN_MODAL, fontWeight: 700 }}>G</button>
             <button onClick={() => entourer('*')} title="Italique" style={{ ...BTN_MODAL, fontStyle: 'italic' }}>I</button>
@@ -142,7 +183,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             <button onClick={() => entourer('“', '”')} title="Guillemets anglais (citation imbriquée)" style={BTN_MODAL}>" "</button>
           </div>
           <textarea ref={taRef} value={valeur} onChange={e => setValeur(e.target.value)}
-            rows={cible.type === 'segment' ? 8 : cible.type === 'titre_oeuvre' && cible.champ === 'titre' ? 3 : 2} autoFocus
+            rows={cible.type === 'segment' ? 8 : cible.type === 'titre_oeuvre' && (champActif === 'titre' || champActif === 'titre_affichage') ? 3 : 2} autoFocus
             style={{ width: '100%', fontSize: '0.78125rem', padding: '8px 10px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.55, boxSizing: 'border-box', fontFamily: cible.type === 'segment' ? 'var(--font-source-sans), Arial, sans-serif' : 'inherit' }} />
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
@@ -154,9 +195,12 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
               <button onClick={() => setEtape('confirmation-suppression')} style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 Supprimer
               </button>
-            ) : cible.type === 'titre_oeuvre' && cible.champ !== 'titre' ? (
-              <button onClick={() => viderChampOeuvre(cible.champ)} style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                Supprimer
+            ) : cible.type === 'titre_oeuvre' && champActif && champActif !== 'titre' ? (
+              // `titre` ne se supprime jamais : c'est le nom de l'œuvre. Vider
+              // `titre_affichage` est en revanche légitime, et rend le frontispice
+              // au titre de catalogue.
+              <button onClick={() => viderChampOeuvre(champActif)} style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                {champActif === 'titre_affichage' ? 'Revenir au titre de catalogue' : 'Supprimer'}
               </button>
             ) : <span />}
             <div style={{ display: 'flex', gap: '8px' }}>

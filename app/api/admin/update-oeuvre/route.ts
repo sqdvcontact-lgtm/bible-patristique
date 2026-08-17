@@ -31,6 +31,10 @@ export async function POST(req: NextRequest) {
     // ils étaient rejetés (400) et n'étaient donc PAS enregistrés en base. La RPC
     // admin_update_oeuvre_champ les prend en charge.
     'titre_original', 'trad_auteur', 'editeur', 'collection', 'ville', 'url_source', 'genres',
+    // Composition du titre pour le frontispice (sauts de ligne éditoriaux). Elle
+    // était LUE par la page de titre mais éditable par aucune interface : une
+    // correction du titre restait donc invisible sur toute œuvre qui la portait.
+    'titre_affichage',
   ])
   if (!CHAMPS_AUTORISES.has(champ)) {
     return NextResponse.json({ error: 'Champ non autorisé.' }, { status: 400 })
