@@ -389,3 +389,17 @@ Règle (charte §3.1-3.2, étendue au 2026-08-06) : on harmonise la langue origi
 # Appels de note — jamais de pointillé
 
 ⛔ **JAMAIS de pointillé sous un appel de note**, ni aucun autre soulignement, nulle part. Règle d'auteur, sans exception ni cas particulier : l'exposant et la teinte (`#8a6a3e`) suffisent à le signaler. Le `borderBottom: '1px dotted'` est revenu une fois sur `master` après avoir été retiré ailleurs : ne pas le recomposer, ni ici ni dans `ComparaisonTraductions`.
+
+# Branches — `master` seule, et ce qui reste à rapatrier (2026-08-17)
+
+Le site est déployé depuis **`master`**, et de `master` seule : une branche de travail ne produit que des déploiements **Preview** chez Vercel. Tout travail sur le site va donc directement sur `master`.
+
+La branche de travail, renommée **`la-gueule-bible899`**, ne garde plus que ce qui ne concerne pas le site : l'outil La Gueule et le chantier Bible 899, menés à part. L'arbre de travail principal reste sur elle, car les trois commits Bible 899 n'existent nulle part ailleurs.
+
+⚠️ **Un `cherry-pick` ne rapatrie pas une fonctionnalité qui touche `OeuvreClient`.** Le fichier a divergé de 480 lignes ajoutées et 384 supprimées sur 2 654 : le patch entrant y remplace la page au lieu de la compléter, et il traîne au passage des props d'autres commits. Trois apports restent donc à **porter à la main**, en repartant du code de `master` et en lisant la branche comme référence :
+
+- **Une œuvre à plusieurs auteurs** (`be068b43`, 16 fichiers) — la migration est déjà en base et en production ; s'ajoutent `app/lib/auteursOeuvre.ts` et la route `api/admin/oeuvre-auteurs`. Recoupe le correctif d'embed qualifié déjà posé sur `master`.
+- **Traductions parallèles** (`8a178c24`, 12 fichiers) — dépend du découpage des appels de note.
+- **Appels de note** (`88cb50a3`, `2b3bda54`, `5ceb71be`) — `master` possède déjà les fonctions de rendu, **en ligne** dans `OeuvreClient` ; ce qui lui manque est l'extraction en module `appelNote.tsx` (pour que `PageTitre` l'importe sans cycle) et le comportement : appels **masqués au sommaire**, actifs dans les titres du corps.
+
+Rapatriés le 2026-08-17, après contrôle (`tsc` propre, suite verte) : sources Tailwind bornées à `app/`, filtrage des notices patristiques, section « Opuscules », libellé du traducteur, retrait du pointillé sous les appels de note.
