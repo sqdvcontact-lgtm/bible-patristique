@@ -463,3 +463,17 @@ Doctrine : charte `parametres.charte_ia` **§16.11**. Les auteurs sont **à éga
 Symptôme observé : l'admin Bibliothèque affichait « Aucun auteur trouvé » et le bandeau « Certaines données n'ont pas pu être chargées », alors que rien du chargement n'avait été touché.
 
 **Règle** : dès qu'une table de liaison double une clé étrangère existante, **qualifier tous les embeds par le nom de la contrainte** — `auteurs!oeuvres_id_auteur_fkey(nom)`, `oeuvres!oeuvres_id_auteur_fkey(...)`. Corrigé dans `app/accueil`, `app/admin/page.tsx`, `SectionAjouterOeuvre`, `app/compte`, `SelecteurCitation`, `app/oeuvre/[id]/page.tsx`, `RechercheClient`. Vérification : `grep -rn "auteurs(\|oeuvres(" app/` ne doit plus rien renvoyer sans `!oeuvres_id_auteur_fkey`.
+
+### La base est PARTAGÉE : une migration casse le site en ligne avant que le correctif ne soit déployé
+
+⛔ Il n'y a qu'une base Supabase pour le poste de travail et pour le site en ligne. Créer `oeuvres_auteurs` a donc rendu ambigus, **à la seconde même**, les embeds du code **déjà déployé**, qui, lui, ne changeait pas. Le correctif restant en local, le site en ligne a servi pendant une nuit un « **Œuvre introuvable** » sur **toutes** les œuvres, alors que la même page était saine sur le serveur de développement. Le poste de travail ne pouvait pas voir la panne : c'est le décalage entre les deux qui la fabriquait.
+
+**Règle** : une migration qui touche la forme des relations (table de liaison, clé étrangère, renommage, vue lue par le site) n'est appliquée qu'**une fois le correctif poussé**, ou bien elle est poussée dans la foulée, sans attendre le lendemain. Aucune séance ne se termine avec une migration en base et son correctif dans un commit non poussé.
+
+**Repérer la panne** : `git status -sb` (« ahead N ») dit ce qui manque au site. Rejouer la requête telle que la sert le code EN LIGNE, pas le code local :
+
+```
+curl -s "$SUPABASE_URL/rest/v1/oeuvres?select=id_oeuvre,auteurs(nom)&limit=1" -H "apikey: $CLE" -H "Authorization: Bearer $CLE"
+```
+
+Un `PGRST201` (HTTP 300) répond de lui-même ; la clé `hint` nomme la qualification à écrire.
