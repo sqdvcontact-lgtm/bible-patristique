@@ -252,11 +252,20 @@ function OngletCommunaute({
           font-size: 0.75rem; font-weight: 600; line-height: 1.3;
           letter-spacing: 0.19em; text-transform: uppercase;
         }
-        .couverture-centre { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; }
+        /* Le titre se pose au premier tiers supérieur, et non au milieu : c'est là
+           que l'œil le cherche sur une couverture. Position en POURCENTAGE de la
+           hauteur, seule mesure qui tienne le tiers quelle que soit la taille de
+           la couverture ; un décalage en rem dériverait avec la police racine. */
+        .couverture-centre {
+          position: absolute; top: 29%; left: 0; right: 0; padding: 0 1.4rem;
+          display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+        }
         .couverture-filet { height: 1px; width: 1.9rem; }
         .couverture-titre { font-size: 1.375rem; font-weight: 600; line-height: 1.16; letter-spacing: -0.012em; }
         .couverture-soustitre { font-size: 0.78125rem; font-weight: 400; line-height: 1.34; opacity: 0.82; }
-        .couverture-date { font-size: 0.625rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.72; }
+        /* Le bloc du titre étant sorti du flux, c'est la date qui occupe la hauteur
+           restante et se pose d'elle-même au pied. */
+        .couverture-date { margin-top: auto; font-size: 0.625rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.72; }
 
         .couverture-etoile { position: absolute; top: 0.55rem; right: 0.6rem; z-index: 4; line-height: 1; }
 
