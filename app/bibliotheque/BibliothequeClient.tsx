@@ -354,7 +354,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                     )
                   })()}
                   {grp.versions.map(o => {
-                    const editionTexte = [o.editeur, o.ville].filter(Boolean).join(', ')
+                    const editionTexte = [formaterEditeur(o.editeur), o.ville].filter(Boolean).join(', ')
                     const datePublication = o.date_publication_affichage_courte
                     const aEdition = !!(editionTexte || datePublication)
                     const edition = <>{editionTexte}{editionTexte && datePublication ? ', ' : null}{datePublication && <span title={o.date_publication_precision_affichage ?? undefined}><HistoricalDate value={datePublication} variant="short" /></span>}</>
