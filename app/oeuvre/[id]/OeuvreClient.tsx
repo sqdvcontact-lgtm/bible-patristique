@@ -1695,7 +1695,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   {/* Niv1 */}
                   <button onClick={() => changerNiv1(n1)}
                     style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35, whiteSpace: 'pre-line' }}>
-                    {titreSansAppelsDeNote(n1 === NIV1_LIMINAIRES ? (niv1TexteMap[n1] || 'LIMINAIRES') : n1)}
+                    {titreSansAppelsDeNote(n1 === NIV1_LIMINAIRES ? (niv1TexteMap[n1] || 'Liminaires') : n1)}
                     {n1 !== NIV1_LIMINAIRES && niv1TexteMap[n1] && configNiveaux.txtSommaire[0] && (
                       <span style={{ fontSize: '0.59375rem', color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{titreSansAppelsDeNote(niv1TexteMap[n1])}</span>
                     )}
@@ -1838,7 +1838,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 ) : niv1Loading ? <span style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)' }}>Chargement…</span> : (
                   <>
                     {(() => {
-                      const intitule = niv1Actif === NIV1_LIMINAIRES ? (niv1TexteMap[niv1Actif] || 'LIMINAIRES') : niv1Actif
+                      const intitule = niv1Actif === NIV1_LIMINAIRES ? (niv1TexteMap[niv1Actif] || 'Liminaires') : niv1Actif
                       return rendreTitreColophonAvecNotes(
                         intitule,
                         notesDuTitre([intitule], segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes),
