@@ -457,7 +457,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   useEffect(() => {
     if (!configOuverte || niveauxPresents) return
     let annule = false
-    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique', 'signature']
+    // ⛔ `apparat_auteur` (prologue, avertissement de l'auteur) appartient au CORPS :
+    // il se lit à sa place dans le texte. Ne pas le retirer de cette liste — c'est
+    // ce qui l'avait fait disparaître du rendu. Distinct d'`apparat_critique`.
+    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique', 'signature', 'apparat_auteur']
     const cols = ['ref_niv1', 'ref_niv2', 'ref_niv3', 'ref_niv4', 'ref_niv5'] as const
     ;(async () => {
       const reponses = await Promise.all(cols.map(col =>
@@ -813,7 +816,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   const chargerNiv1Data = async (n1: string): Promise<{ groupes: GroupeData[]; segments: SegData[] }> => {
     const SELECT = 'id,id_texte,segment_key,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original,espace_textuel,join_before'
-    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique', 'signature']
+    // ⛔ `apparat_auteur` (prologue, avertissement de l'auteur) appartient au CORPS :
+    // il se lit à sa place dans le texte. Ne pas le retirer de cette liste — c'est
+    // ce qui l'avait fait disparaître du rendu. Distinct d'`apparat_critique`.
+    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique', 'signature', 'apparat_auteur']
     // Chargement par lots de 1000 mais EN PARALLÈLE (les grosses divisions, ex.
     // Somme théologique ~6500 segments/niv1, se chargeaient en séquentiel) : on
     // récupère le total avec le 1er lot, puis on tire le reste d'un coup.

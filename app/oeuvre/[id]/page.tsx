@@ -300,7 +300,13 @@ export default async function OeuvrePage({
   // bp_admin_session, qui n'est plus jamais posé depuis la suppression de la
   // page de connexion par mot de passe.
   const SELECT_SEG = 'id,id_texte,segment_key,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original,espace_textuel,join_before'
-  const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique', 'signature']
+  // ⛔ `apparat_auteur` DOIT figurer ici : c'est l'apparat de l'auteur lui-même
+  // (prologue, avertissement, dédicace), qui appartient au corps du texte et se lit
+  // à sa place dans la lecture — à ne jamais confondre avec `apparat_critique`
+  // (l'apparat de l'éditeur, qui a sa propre vue). Son absence de cette liste l'a
+  // fait disparaître du rendu (régression du 18 août : le « Prologue de Rufin aux
+  // livres X et XI » n'apparaissait plus entre le titre du Livre X et « Chapitre I »).
+  const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique', 'signature', 'apparat_auteur']
 
   async function chargerTousSegments(filtre: Record<string, string>) {
     // Applique le filtre à une requête (nature « texte » embarque les introductions).
