@@ -251,6 +251,13 @@ export default async function CentreControlePage() {
             <Tuile valeur={nb(ch.a_classer)} label="À classer" ton={ch.a_classer > 0 ? 'danger' : undefined} />
           </div>
         </Carte>
+
+        {/* 7. Chantier éditorial (œuvres) — compte rendu transverse et par œuvre. */}
+        <Carte titre="Chantier éditorial (œuvres)" note={sec('chantier_oeuvres').commentaire_ia} cle="chantier_oeuvres" todos={sec('chantier_oeuvres').todos} majLe={sec('chantier_oeuvres').maj_le}>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+            Corrections éditoriales transverses et par œuvre : typographie, notes, titres, segmentation, informations éditoriales des textes latins. Le code d’accueil est posé ; les corrections de données suivent (liste ci-dessous).
+          </p>
+        </Carte>
       </div>
     </main>
   )
