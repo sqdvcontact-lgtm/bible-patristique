@@ -493,13 +493,13 @@ export default function NavLivres({
 
         {montrerOptions && polyMode && onChoisirLivreEntier && (
           <div style={{ padding: '3px 6px 0' }}>
-            {/* Mêmes couleurs que les cases de chapitre : allumé = vert plein, éteint = beige. */}
+            {/* Mêmes couleurs que les cases de chapitre : allumé = vert plein, éteint = gris léger. */}
             <button onClick={() => { setLivreActifLocal(livre.code); onChoisirLivreEntier(livre.code) }}
               style={{
                 width: '100%', fontSize: '0.73803rem', height: '1.5rem', padding: '0 6px', borderRadius: '4px',
                 border: 'none', cursor: 'pointer', textAlign: 'center', letterSpacing: '0.02em',
-                background: entierSel ? 'var(--cs-vert)' : '#f0f4ee',
-                color: entierSel ? '#fff' : '#7c8676',
+                background: entierSel ? 'var(--cs-vert)' : 'var(--cs-fond-doux)',
+                color: entierSel ? '#fff' : 'var(--cs-texte-second)',
                 fontWeight: entierSel ? 600 : 400, lineHeight: 1,
               }}>
               Livre entier
@@ -526,11 +526,12 @@ export default function NavLivres({
                   fontSize: '0.70rem', height: '1.45rem', borderRadius: '4px',
                   border: estChapSuggere ? '1px solid var(--cs-vert)' : 'none',
                   cursor: 'pointer', padding: 0,
-                  /* Cases plus petites et teinte verte TRÈS légère au repos. */
+                  /* Cases plus petites, gris léger au repos (le vert reste l'accent du
+                     chapitre courant et de la suggestion de recherche). */
                   background: (actif && chapitreActifLocal === ch) ? 'var(--cs-vert)'
-                    : estChapSuggere ? 'rgba(var(--cs-vert-rgb),0.15)' : '#f0f4ee',
+                    : estChapSuggere ? 'rgba(var(--cs-vert-rgb),0.15)' : 'var(--cs-fond-doux)',
                   color: (actif && chapitreActifLocal === ch) ? '#fff'
-                    : estChapSuggere ? 'var(--cs-encre)' : '#7c8676',
+                    : estChapSuggere ? 'var(--cs-encre)' : 'var(--cs-texte-second)',
                   fontWeight: estChapSuggere ? 700 : 400,
                   lineHeight: 1, textAlign: 'center',
                 }}>
