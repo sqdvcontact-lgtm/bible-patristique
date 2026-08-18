@@ -216,13 +216,13 @@ Réorganisation de `app/components/Navbar.tsx` et éclatement de l'ancienne page
 
 - **En-tête de livre AU FER À GAUCHE** (jamais centré) : nom en serif, filet dégradé qui s'estompe vers la droite, compte discret au bout (`.peri-livre-tete`).
 - **Deux colonnes par livre** (une seule en mobile). Bloc compact À L'INTÉRIEUR mais **blocs espacés** entre eux (`rowGap: 9px`).
-- **Entrée** : intitulé en **serif** à gauche, **référence dorée à droite** (comme la table d'un livre) ; ligne 2 = registre en petit gris + « notice » (lien italique révélé au survol, toujours visible au tactile via `@media (hover:none)`). L'intitulé ne disparaît plus au survol.
+- **Entrée** : intitulé en **serif** à gauche, **référence dorée à droite** (comme la table d'un livre) ; ligne 2 = registre en petit gris + un **chevron doré** (`IconeChevron`, dir=right, `.peri-fleche`) révélé au survol du bloc, glissé d'un cran vers la droite, qui mène à la page de la péricope. Toujours visible au tactile (`@media (hover:none)`). L'intitulé ne disparaît plus au survol.
 - **Pas de couleurs de registre** : trop de catégories, le code couleur n'aide pas. Registre en gris uni ; `REGISTRE_COUL`/`coulRegistre` supprimés, pas de pastille dans le filtre. Seul accent conservé : le doré de la référence.
-- **Notice dépliée en place** (chargée à la demande via `chargerNoticePericope`), sous le bloc.
+- **Pas de dépli de notice en place** (décision révisée le 2026-08-18) : l'ancien lien « notice » qui dépliait une notice brève sous le bloc a été retiré (état `notices`/`ouvertes`/`basculerNotice` supprimé). La notice complète se lit sur la page de détail, où le chevron conduit ; le survol ne propose plus qu'un affordance de navigation.
 - **Recherche élargie aux appellations** (`pericope_noms`, chargées par `chargerCataloguePericopes` dans `item.appellations`) ; mention « trouvé via « … » » quand le match ne vient pas du titre.
 - **Index « Aller à un livre »** dans le volet : abréviations `ABREV_FR` en **sans**, alignées en grille de 4 colonnes, **séparées Ancien / Nouveau Testament** (+ Autres). Clic → `scrollIntoView` vers l'ancre `#livre-<code>`. Pas de cadres.
 - **Volet gauche** : sur-titre « Catalogue » (plus « Aller plus loin »), chapeau définissant la péricope sous le titre, ligne d'étendue « De la Genèse à l'Apocalypse » (pas de compteur total ; « N péricopes » retiré).
-- **Enrichissements** (`rendreTexteEnrichi`) appliqués aux intitulés et aux notices, ici comme sur la page détail.
+- **Enrichissements** (`rendreTexteEnrichi`) appliqués aux intitulés (et aux notices sur la page détail).
 - **Badge « ensemble »** (italique muet) sur les péricopes `est_collection`.
 
 # Palette harmonisée — tokens sémantiques (`app/globals.css`, `:root`)
