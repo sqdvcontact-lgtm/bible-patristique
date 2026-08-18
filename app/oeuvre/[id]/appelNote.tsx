@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { sansPointFinal, normaliserTitreTechnique } from '@/app/lib/titres'
+import { terminerNote } from '@/app/lib/referenceNote'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
 import type { NoteAffichee } from './oeuvreTypes'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
@@ -210,7 +211,7 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
       </div>
       <div style={{ whiteSpace: 'pre-line' }}>
         {typeof contenu === 'string'
-          ? (contenu || <em style={{ color: '#b0a08a' }}>Note indisponible</em>)
+          ? (terminerNote(contenu) || <em style={{ color: '#b0a08a' }}>Note indisponible</em>)
           : <ContenuNoteStructuree note={contenu} />}
       </div>
     </div>
