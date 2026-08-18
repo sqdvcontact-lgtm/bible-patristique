@@ -573,7 +573,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const router = useRouter()
   // Traductions sœurs : œuvres du MÊME auteur au MÊME titre normalisé (comme le
   // regroupement de la Bibliothèque). Sert au sélecteur de traduction du volet gauche.
-  type VersionTrad = { id_oeuvre: string; titre: string; trad_auteur: string | null; editeur: string | null; ville: string | null; date_publication: string | null; note: string | null }
+  type VersionTrad = { id_oeuvre: string; titre: string; trad_auteur: string | null; editeur: string | null; ville: string | null; date_publication: string | null; note: string | null; langue_originale: string | null; langue_trad: string | null }
   const [versions, setVersions] = useState<VersionTrad[]>([])
   const [auteurOuvert, setAuteurOuvert] = useState(false)
   const [apparatOuvert, setApparatOuvert] = useState(false)
@@ -1188,7 +1188,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (!auteurId) return
     const norm = (s: string) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
     const cible = norm(oeuvre?.titre || '')
-    const base = supabase.from('oeuvres').select('id_oeuvre, titre, trad_auteur, editeur, ville, date_publication, note')
+    const base = supabase.from('oeuvres').select('id_oeuvre, titre, trad_auteur, editeur, ville, date_publication, note, langue_originale, langue_trad')
     const requete = oeuvresDesAuteurs.length > 0 ? base.in('id_oeuvre', oeuvresDesAuteurs) : base.eq('id_auteur', auteurId)
     requete
       .order('date_publication', { ascending: true, nullsFirst: true })
@@ -1197,6 +1197,65 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         setVersions(soeurs)
       })
   }, [auteurId, oeuvre?.titre, oeuvresDesAuteurs])
+
+  // ── Éditions de l'ouvrage et menus de lecture (deux menus) ─────────────────
+  // Menu 1 = mode de lecture (LANGUE) ; menu 2 = édition dans cette langue. Une
+  // édition en langue ORIGINALE (langue_trad vide, langue_originale renseignée)
+  // est le texte original ; les autres sont des traductions. « versions » = les
+  // œuvres sœurs (même titre normalisé), langue comprise ; l'œuvre courante en
+  // fait partie. Le mode « original » vise l'ŒUVRE latine/grecque AUTONOME quand
+  // elle existe (titres d'origine), sinon le texte_original de la traduction (mt=la).
+  const estEditionOriginale = (v: { langue_trad: string | null; langue_originale: string | null }) =>
+    !(v?.langue_trad && v.langue_trad.trim()) && !!(v?.langue_originale && v.langue_originale.trim())
+  const editionCourante = versions.find(v => v.id_oeuvre === idOeuvre) ?? null
+  const couranteEstOriginale = editionCourante ? estEditionOriginale(editionCourante)
+    : (!!oeuvre.langue_originale && !aTexteOriginal)
+  const editionsTraduction = versions.filter(v => !estEditionOriginale(v))
+  const editionsOriginal = versions.filter(estEditionOriginale)
+  const langueOrigLabel = editionsOriginal[0]?.langue_originale || oeuvre.langue_originale || 'Latin'
+  const origEstGrec = /grec/i.test(langueOrigLabel)
+  const labelOrigMenu = origEstGrec ? 'Grec' : 'Latin'
+  const labelBilingueMenu = origEstGrec ? 'Français & Grec' : 'Français & Latin'
+  const editionFrRef = (!couranteEstOriginale && editionCourante) ? editionCourante : (editionsTraduction[0] ?? null)
+  const editionOrigRef = (couranteEstOriginale && editionCourante) ? editionCourante : (editionsOriginal[0] ?? null)
+  const aOriginalQuelconque = aTexteOriginal || editionsOriginal.length > 0 || couranteEstOriginale
+  const allerAuMode = (cibleOeuvre: string, mt: 'fr' | 'bilingue' | 'la') => {
+    if (cibleOeuvre === idOeuvre) basculerTexte(mt)
+    else router.push(`/oeuvre/${cibleOeuvre}${mt === 'fr' ? '' : `?mt=${mt}`}`)
+  }
+  // Cible du mode « original » :
+  //  - si l'œuvre courante EST l'original, on la lit elle-même (mt=fr = son texte) ;
+  //  - sinon l'œuvre latine/grecque AUTONOME sœur si elle existe (mt=fr, titres d'origine) ;
+  //  - sinon le texte_original de la traduction (mt=la).
+  const origAutonome = !couranteEstOriginale && !!editionOrigRef && editionOrigRef.id_oeuvre !== editionFrRef?.id_oeuvre
+  const cibleOrigOeuvre = couranteEstOriginale ? idOeuvre : origAutonome ? editionOrigRef!.id_oeuvre : (editionFrRef?.id_oeuvre ?? idOeuvre)
+  const cibleOrigMt: 'fr' | 'la' = (couranteEstOriginale || origAutonome) ? 'fr' : 'la'
+  type ModeLecture = { cle: string; label: string; cibleOeuvre: string; cibleMt: 'fr' | 'bilingue' | 'la'; actif: boolean; split: boolean }
+  const modesLecture: ModeLecture[] = []
+  if (aOriginalQuelconque && editionFrRef) {
+    const surFr = idOeuvre === editionFrRef.id_oeuvre && !couranteEstOriginale
+    modesLecture.push({ cle: 'fr', label: 'Français', cibleOeuvre: editionFrRef.id_oeuvre, cibleMt: 'fr',
+      actif: surFr && modeTexte === 'fr', split: surFr && eligibleParagraphes })
+    modesLecture.push({ cle: 'bilingue', label: labelBilingueMenu, cibleOeuvre: editionFrRef.id_oeuvre, cibleMt: 'bilingue',
+      actif: surFr && modeTexte === 'bilingue', split: false })
+  }
+  if (aOriginalQuelconque && (couranteEstOriginale || editionOrigRef || aTexteOriginal)) {
+    const surOrig = idOeuvre === cibleOrigOeuvre && (couranteEstOriginale || (cibleOrigMt === 'la' && modeTexte === 'la'))
+    modesLecture.push({ cle: 'orig', label: labelOrigMenu, cibleOeuvre: cibleOrigOeuvre, cibleMt: cibleOrigMt,
+      actif: surOrig, split: idOeuvre === cibleOrigOeuvre && couranteEstOriginale && cibleOrigMt === 'fr' && eligibleParagraphes })
+  }
+  // Menu 2 — éditions dans la LANGUE du mode courant (masqué si une seule).
+  const langueCouranteEstOrig = couranteEstOriginale || (idOeuvre === editionFrRef?.id_oeuvre && modeTexte === 'la')
+  const editionsMenu2 = langueCouranteEstOrig ? editionsOriginal : editionsTraduction
+  const libelleEdition = (v: VersionTrad): string => {
+    const edit = [formaterEditeur(v.editeur), v.ville, v.date_publication ? formaterDateHistorique(v.date_publication) : null].filter(Boolean).join(', ')
+    if (estEditionOriginale(v)) {
+      const lang = /grec/i.test(v.langue_originale || '') ? 'Grec' : 'Latin'
+      return [lang, edit && `édition ${edit}`].filter(Boolean).join(' — ')
+    }
+    const trad = v.trad_auteur ? libelleTrad(v.trad_auteur) : (v.langue_trad || 'Français')
+    return [trad, edit && `édition ${edit}`].filter(Boolean).join(', ')
+  }
 
   const chargerSauvegardesSegs = async (uid: string, oeuvreId: string, texteId: string) => {
     const { data } = await supabase
@@ -1442,7 +1501,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 (et des trois cartes d'accueil), la ligne « Français » SE DIVISE EN DEUX au
                 survol : sa face s'efface et laisse paraître, sur place, « Paragraphes » et
                 « Segments », que l'on choisit d'un clic. */}
-            {aTexteOriginal ? (
+            {/* ── Menu 1 : mode de lecture (langue) ──────────────────────────
+                Français (Paragraphes/Segments) / Français & [orig] / [orig].
+                Le mode dont la cible EST l'œuvre courante bascule sur place ; les
+                autres NAVIGUENT vers l'édition voulue (le latin autonome à ses
+                titres d'origine). Repli : œuvre sans original → Para/Segments seuls. */}
+            {modesLecture.length > 0 ? (
               <div style={{ marginTop: '10px' }}>
                 <style>{`
                   .lec-split { position: relative; border-radius: 5px; overflow: hidden; }
@@ -1458,49 +1522,30 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 `}</style>
                 <span style={LABEL_VOLET}>Lecture</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
-                  {(([['fr', 'Français'], ['bilingue', labelBilingue], ['la', labelOriginal]]) as ['fr' | 'bilingue' | 'la', string][]).map(([mode, label]) => {
-                    const actif = !modeComparaisonActif && modeTexte === mode
-                    // Seul le français d'une œuvre segmentée peut se lire en paragraphes OU
-                    // en segments ; l'original (bilingue, latin) impose les paragraphes.
-                    const peutSegmenter = mode === 'fr' && eligibleParagraphes
-                    if (!peutSegmenter) {
-                      return (
-                        <button key={mode} onClick={() => basculerTexte(mode)} style={{ ...BTN_VOLET(actif) }}>{label}</button>
-                      )
+                  {modesLecture.map(m => {
+                    if (!m.split) {
+                      return <button key={m.cle} onClick={() => allerAuMode(m.cibleOeuvre, m.cibleMt)} style={{ ...BTN_VOLET(m.actif) }}>{m.label}</button>
                     }
                     return (
-                      <div key={mode} className="lec-split">
-                        {/* Face : sélectionne « Français » en conservant le mode courant ;
-                            au survol elle s'efface. */}
-                        <button className="lec-split-face" onClick={() => basculerTexte('fr')}
-                          style={{ ...BTN_VOLET(actif), display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-                          <span>{label}</span>
-                          {actif && (
+                      <div key={m.cle} className="lec-split">
+                        <button className="lec-split-face" onClick={() => allerAuMode(m.cibleOeuvre, m.cibleMt)}
+                          style={{ ...BTN_VOLET(m.actif), display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                          <span>{m.label}</span>
+                          {m.actif && (
                             <span aria-hidden="true" style={{ fontSize: '0.5rem', fontStyle: 'italic', letterSpacing: '0.02em', color: '#6f9a80' }}>
                               {modeLecture === 'segments' ? 'segments' : 'paragraphes'}
                             </span>
                           )}
                         </button>
-                        {/* Deux moitiés révélées au survol. */}
-                        <div className="lec-split-menu" style={{ border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: 'var(--cs-surface)' }}>
-                          {(['paragraphes', 'segments'] as const).map(m => (
-                            <button key={m} className={`lec-split-seg${actif && modeLecture === m ? ' lec-split-seg--actif' : ''}`}
-                              onClick={() => { if (modeTexte !== 'fr') basculerTexte('fr'); basculerMode(m) }}>
-                              {m === 'paragraphes' ? 'Paragraphes' : 'Segments'}
+                        <div className="lec-split-menu" style={{ border: `1px solid ${m.actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: 'var(--cs-surface)' }}>
+                          {(['paragraphes', 'segments'] as const).map(seg => (
+                            <button key={seg} className={`lec-split-seg${m.actif && modeLecture === seg ? ' lec-split-seg--actif' : ''}`}
+                              onClick={() => { allerAuMode(m.cibleOeuvre, m.cibleMt); basculerMode(seg) }}>
+                              {seg === 'paragraphes' ? 'Paragraphes' : 'Segments'}
                             </button>
                           ))}
                         </div>
                       </div>
-                    )
-                  })}
-                  {comparaisonEstDisponible && alignementsDisponibles.map(alignement => {
-                    const actif = modeComparaisonActif && alignementActif?.alignmentSetId === alignement.alignmentSetId
-                    return (
-                      <button key={alignement.alignmentSetId} onClick={() => ouvrirLectureParallele(alignement.alignmentSetId)}
-                        aria-pressed={actif} title={`${alignement.referenceLabel} et ${alignement.alignedLabel}`}
-                        style={{ ...BTN_VOLET(actif), cursor: actif ? 'default' : 'pointer' }}>
-                        Traductions parallèles
-                      </button>
                     )
                   })}
                 </div>
@@ -1511,75 +1556,48 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 <span style={LABEL_VOLET}>Lecture</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
                   {(['paragraphes', 'segments'] as const).map(m => (
-                    <button key={m} onClick={() => basculerMode(m)} style={{ ...BTN_VOLET(!modeComparaisonActif && modeLecture === m) }}>
+                    <button key={m} onClick={() => basculerMode(m)} style={{ ...BTN_VOLET(modeLecture === m) }}>
                       {m === 'paragraphes' ? 'Paragraphes' : 'Segments'}
                     </button>
                   ))}
-                  {comparaisonEstDisponible && alignementsDisponibles.map(alignement => {
-                    const actif = modeComparaisonActif && alignementActif?.alignmentSetId === alignement.alignmentSetId
-                    return (
-                      <button key={alignement.alignmentSetId} onClick={() => ouvrirLectureParallele(alignement.alignmentSetId)}
-                        aria-pressed={actif} title={`${alignement.referenceLabel} et ${alignement.alignedLabel}`}
-                        style={{ ...BTN_VOLET(actif), cursor: actif ? 'default' : 'pointer' }}>
-                        Traductions parallèles
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            ) : comparaisonEstDisponible ? (
-              <div style={{ marginTop: '10px' }}>
-                <span style={LABEL_VOLET}>Lecture</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
-                  {alignementsDisponibles.map(alignement => {
-                    const actif = modeComparaisonActif && alignementActif?.alignmentSetId === alignement.alignmentSetId
-                    return (
-                      <button key={alignement.alignmentSetId} onClick={() => ouvrirLectureParallele(alignement.alignmentSetId)}
-                        aria-pressed={actif} title={`${alignement.referenceLabel} et ${alignement.alignedLabel}`}
-                        style={{ ...BTN_VOLET(actif), cursor: actif ? 'default' : 'pointer' }}>
-                        Traductions parallèles
-                      </button>
-                    )
-                  })}
                 </div>
               </div>
             ) : null}
-            {versionsTextuelles.length > 1 && (
+            {/* ── Menu 2 : édition, dans la LANGUE du mode courant ────────────
+                Masqué s'il n'y a qu'une édition dans cette langue. Chaque édition
+                est une œuvre sœur ; la choisir y navigue. */}
+            {editionsMenu2.length > 1 && (
               <div style={{ marginTop: '7px' }}>
-                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Traductions</span>
+                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Édition</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  {versionsTextuelles.map(version => {
-                    const actif = version.idTexte === idTexte
-                    // Version présente mais pas encore prête (ex. latin non aligné) :
-                    // on la GRISE au lieu de la masquer, pour que le menu de lecture
-                    // soit le même pour toutes les traductions d'un ouvrage. Piloté par
-                    // la donnée : `metadata.indisponible === true`.
-                    const indisponible = !actif && version.metadata?.indisponible === true
+                  {editionsMenu2.map(v => {
+                    const actif = v.id_oeuvre === idOeuvre
                     return (
-                      <button key={version.idTexte} disabled={actif || indisponible}
-                        onClick={() => { if (!actif && !indisponible) router.push(`/oeuvre/${idOeuvre}?texte=${encodeURIComponent(version.idTexte)}`) }}
-                        title={actif ? 'Traduction affichée' : indisponible ? 'Bientôt disponible (alignement en cours)' : 'Afficher cette traduction'}
-                        style={{ ...BTN_VOLET(actif), cursor: actif ? 'default' : indisponible ? 'not-allowed' : 'pointer', opacity: indisponible ? 0.45 : 1 }}>
-                        {libelleVersionComplet(version)}
+                      <button key={v.id_oeuvre} disabled={actif}
+                        onClick={() => { if (!actif) router.push(`/oeuvre/${v.id_oeuvre}`) }}
+                        title={actif ? 'Édition affichée' : 'Afficher cette édition'}
+                        style={{ textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: actif ? 'default' : 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' }}>
+                        {libelleEdition(v)}
                       </button>
                     )
                   })}
                 </div>
               </div>
             )}
-            {versions.length > 1 && (
+            {/* Plusieurs versions d'une même œuvre (rare) : sélecteur conservé. */}
+            {versionsTextuelles.length > 1 && (
               <div style={{ marginTop: '7px' }}>
-                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Traduction</span>
+                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Éditions de ce texte</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  {versions.map(v => {
-                    const actif = v.id_oeuvre === idOeuvre
-                    const label = v.trad_auteur ? libelleTrad(v.trad_auteur) : (formaterEditeur(v.editeur) || 'Édition')
+                  {versionsTextuelles.map(version => {
+                    const actif = version.idTexte === idTexte
+                    const indisponible = !actif && version.metadata?.indisponible === true
                     return (
-                      <button key={v.id_oeuvre} disabled={actif}
-                        onClick={() => { if (!actif) router.push(`/oeuvre/${v.id_oeuvre}`) }}
-                        title={actif ? 'Traduction affichée' : 'Afficher cette traduction'}
-                        style={{ textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: actif ? 'default' : 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' }}>
-                        {label}
+                      <button key={version.idTexte} disabled={actif || indisponible}
+                        onClick={() => { if (!actif && !indisponible) router.push(`/oeuvre/${idOeuvre}?texte=${encodeURIComponent(version.idTexte)}`) }}
+                        title={actif ? 'Édition affichée' : indisponible ? 'Bientôt disponible (alignement en cours)' : 'Afficher cette édition'}
+                        style={{ ...BTN_VOLET(actif), cursor: actif ? 'default' : indisponible ? 'not-allowed' : 'pointer', opacity: indisponible ? 0.45 : 1 }}>
+                        {libelleVersionComplet(version)}
                       </button>
                     )
                   })}
