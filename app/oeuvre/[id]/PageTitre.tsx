@@ -1,6 +1,5 @@
-import { useLayoutEffect } from 'react'
-import type { Props, ChampOeuvre } from './oeuvreTypes'
-import { rendreTexteEnrichi } from './texteEnrichi'
+import type { Props, ChampOeuvre, VersionTextuelle, NoteAffichee } from './oeuvreTypes'
+import { rendreTexteAvecNotes } from './appelNote'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { resoudreEditeur } from '@/app/lib/editeurs'
 import IconeCrayon from '@/app/components/IconeCrayon'
@@ -31,16 +30,21 @@ export function formaterEditeur(editeur: string | null | undefined): string {
 // d'éditeur ne prend pas d'article (« de Gallimard », « de Desclée de Brouwer »).
 const EDITEUR_AVEC_DU = new Set(['cerf', 'seuil', 'centurion']);
 
-/** Formule courte de provenance pour le colophon : maison + date seulement.
- *  Le lieu, la collection et la pagination restent disponibles dans la notice détaillée. */
+/** Formule de provenance élégante et grammaticale, sans redondance de « édition » :
+ *  - « Cerf, Paris, 1984 »            → « D'après l'édition du Cerf, Paris, 1984 »
+ *  - « Éditions du CNRS, Paris »      → « D'après la publication des Éditions du CNRS, Paris »
+ *  - « Presses universitaires… »     → « D'après la publication des Presses universitaires… »
+ *  - « Imprimerie nationale »        → « D'après la publication de l'Imprimerie nationale »
+ *  - « Gallimard, Paris, 1990 »      → « D'après l'édition de Gallimard, Paris, 1990 » */
 export function formulerProvenance(
   editeur: string | null | undefined,
-  _ville: string | null | undefined,
+  ville: string | null | undefined,
   dateFormatee: string,
 ): string {
   const ed = formaterEditeur(editeur);
-  const suffixe = dateFormatee ? `, ${dateFormatee}` : '';
-  if (!ed) return dateFormatee ? `D’après l’édition de ${dateFormatee}` : '';
+  const lieuDate = [ville, dateFormatee].filter(Boolean).join(', ');
+  const suffixe = lieuDate ? `, ${lieuDate}` : '';
+  if (!ed) return lieuDate ? `D’après l’édition de ${lieuDate}` : '';
 
   const bas = ed.toLowerCase();
   // Le nom porte déjà un mot de publication → on parle de « publication », pas d'« édition ».
@@ -63,25 +67,35 @@ const BTN: React.CSSProperties = {
 }
 
 // ── Page de titre ─────────────────────────────────────────────────────────────
-export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier, mobile = false }: {
+export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdmin, onModifier, mobile = false, sansGouttiere = false, notes = {} }: {
   auteur: string
   oeuvre: Props['oeuvre']
+  versionActive?: VersionTextuelle | null
   titre: string
   estAdmin: boolean
   onModifier: (champ: ChampOeuvre, valeurActuelle: string) => void
   mobile?: boolean
+  // Sans la gouttière d'actions (mode comparaison) : padding symétrique pour centrer
+  // le frontispice sur toute la largeur, et non sur le corps décalé de la lecture.
+  sansGouttiere?: boolean
+  // Notes appelées dans les intitulés de la page de titre : la page de titre les
+  // porte comme le corps du texte, à ceci près que l'appel s'y fait minuscule (le
+  // titre est composé très large). Vide tant qu'aucun intitulé n'appelle de note.
+  notes?: Record<string, NoteAffichee>
 }) {
   const SERIF = "var(--font-source-serif), Georgia, serif"
-
-  // Joël a désormais une structure paragraphique complète. Une ancienne préférence
-  // globale « segments » pouvait toutefois survivre dans le navigateur et masquer
-  // cette recomposition. Pour cette œuvre, la lecture s'ouvre donc sur les paragraphes
-  // source ; le lecteur peut toujours choisir ponctuellement le mode segments ensuite.
-  useLayoutEffect(() => {
-    if (oeuvre.id_oeuvre !== 'A0051O0043') return
-    try { localStorage.setItem('cs_mode_lecture_oeuvre', 'paragraphes') } catch {}
-  }, [oeuvre.id_oeuvre])
-
+  // Le titre, le sous-titre et le titre original passent par le rendu à notes ;
+  // il enrichit le texte exactement comme rendreTexteEnrichi et sait en plus
+  // résoudre les appels [[n]].
+  const rendreIntitule = (texte: string) => rendreTexteAvecNotes(texte, notes, 'frontispice')
+  const traducteur = versionActive?.traducteur ?? oeuvre.trad_auteur
+  const traducteurLabel = versionActive?.traducteurLabel ?? libelleTrad(traducteur)
+  const commentaireTraduction = versionActive && !versionActive.isDefault
+    ? null
+    : oeuvre.commentaire_traduction
+  const editeur = versionActive?.editeurEdition ?? oeuvre.editeur
+  const ville = versionActive?.villeEdition ?? oeuvre.ville
+  const datePublication = versionActive?.dateEdition ?? oeuvre.date_publication
   // Millésime de l'édition en ligne (colophon), estampillé en base à la première
   // publication de l'œuvre (colonne `date_mise_en_ligne`). Absent → ligne masquée.
   const anneeEnLigne = oeuvre.date_mise_en_ligne
@@ -95,7 +109,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
       // TEXTE seul, en excluant la gouttière des boutons d'action (~62px à droite).
       // Le centre visuel se décale ainsi d'environ 31px vers la gauche. Sur mobile,
       // pas de colonne d'actions : padding symétrique et sobre.
-      padding: mobile ? '48px 22px 28px' : '80px 110px 40px 48px',
+      padding: mobile ? '48px 22px 28px' : sansGouttiere ? '80px 48px 40px' : '80px 110px 40px 48px',
       marginBottom: '8px', textAlign: 'center',
     }}>
       {/* Nom d'auteur : sérif, corps agrandi, interlettrage resserré (approche des
@@ -109,7 +123,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
         <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(33px, 4.7vw, 50px)', fontWeight: 'normal', color: '#141f18', lineHeight: 1.18, marginBottom: oeuvre.sous_titre ? '14px' : oeuvre.titre_original ? '20px' : '34px', whiteSpace: 'pre-line' }}>
           {/* Affichage = titre_affichage (avec sauts de ligne éditoriaux) si présent,
               sinon le titre canonique. L'édition admin ci-dessous vise le titre canonique. */}
-          {rendreTexteEnrichi(sansPointFinal(oeuvre.titre_affichage || titre))}
+          {rendreIntitule(sansPointFinal(oeuvre.titre_affichage || titre))}
         </h1>
         {estAdmin && (
           <button onClick={() => onModifier('titre', titre)} title="Modifier le titre de l'œuvre"
@@ -121,7 +135,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
       {(oeuvre.sous_titre || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '35rem' }}>
           <p style={{ fontFamily: SERIF, fontSize: 'clamp(18px, 2.4vw, 24px)', fontStyle: 'normal', color: '#4a443c', margin: oeuvre.titre_original ? '0 0 24px' : '0 0 42px', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
-            {oeuvre.sous_titre ? rendreTexteEnrichi(sansPointFinal(oeuvre.sous_titre)) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.8125rem' }}>Sous-titre…</span> : null}
+            {oeuvre.sous_titre ? rendreIntitule(sansPointFinal(oeuvre.sous_titre)) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.8125rem' }}>Sous-titre…</span> : null}
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('sous_titre', oeuvre.sous_titre ?? '')} title="Modifier le sous-titre"
@@ -134,7 +148,7 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
       {(oeuvre.titre_original || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '35rem' }}>
           <p style={{ fontFamily: SERIF, fontSize: 'clamp(16px, 2.1vw, 21px)', fontStyle: 'italic', color: 'var(--cs-texte-second)', marginBottom: '42px', letterSpacing: 0, whiteSpace: 'pre-line' }}>
-            {oeuvre.titre_original ? oeuvre.titre_original : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontSize: '0.8125rem' }}>Titre original…</span> : null}
+            {oeuvre.titre_original ? rendreIntitule(oeuvre.titre_original) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontSize: '0.8125rem' }}>Titre original…</span> : null}
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('titre_original', oeuvre.titre_original ?? '')} title="Modifier le titre original"
@@ -144,22 +158,28 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
       )}
 
       {/* Traducteur — vient AVANT la marque d'imprimeur */}
-      {(oeuvre.trad_auteur || estAdmin) && (
+      {(traducteur || estAdmin) && (
         <div style={{ position: 'relative' }}>
           <p style={{ fontFamily: SERIF, fontSize: '0.875rem', color: '#655d54', marginBottom: '6px' }}>
-            {oeuvre.trad_auteur ? <>{libelleTrad(oeuvre.trad_auteur)}</> : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.75rem' }}>Traduction de…</span> : null}
+            {traducteur ? <>{traducteurLabel}</> : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.75rem' }}>Traduction de…</span> : null}
           </p>
-          {estAdmin && (
+          {estAdmin && !versionActive && (
             <button onClick={() => onModifier('trad_auteur', oeuvre.trad_auteur ?? '')} title="Modifier le traducteur"
               style={{ ...BTN, right: '-18px', top: 0 }}><IconeCrayon size={12} /></button>
           )}
         </div>
       )}
 
+      {versionActive?.editionDescription && (
+        <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', color: '#655d54', margin: '2px 0 0' }}>
+          {versionActive.editionDescription}
+        </p>
+      )}
+
       {/* Commentaire sur la traduction (ex. attribution discutée) — note discrète. */}
-      {oeuvre.commentaire_traduction?.trim() && (
+      {commentaireTraduction?.trim() && (
         <p style={{ fontFamily: SERIF, fontSize: '0.75rem', fontStyle: 'italic', color: '#8a8278', maxWidth: '30rem', lineHeight: 1.4, margin: '0 0 2px' }}>
-          {sansPointFinal(oeuvre.commentaire_traduction)}
+          {sansPointFinal(commentaireTraduction)}
         </p>
       )}
 
@@ -173,9 +193,11 @@ export default function PageTitre({ auteur, oeuvre, titre, estAdmin, onModifier,
       <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--cs-vert)', marginBottom: '6px' }}>
         Corpus Scriptura
       </p>
-      {(oeuvre.editeur || oeuvre.ville || oeuvre.date_publication) && (
+      {(editeur || ville || datePublication) && (
         <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: '#a89f95', marginBottom: '3px' }}>
-          {formulerProvenance(oeuvre.editeur, oeuvre.ville, formaterDateHistorique(oeuvre.date_publication))}
+          {versionActive?.editionDescription && versionActive.publicationLabel
+            ? versionActive.publicationLabel
+            : formulerProvenance(editeur, ville, formaterDateHistorique(datePublication))}
         </p>
       )}
       {anneeEnLigne && (

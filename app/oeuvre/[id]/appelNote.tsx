@@ -1,48 +1,67 @@
 'use client'
 
-// Appels de note : forme, info-bulle et moteur de rendu. Extrait d’`OeuvreClient`
-// pour que la lecture comparée puisse rendre ses notes EXACTEMENT comme la
-// lecture, sans que les deux fichiers s’importent l’un l’autre.
-//
-// Logique pure testée dans `appelNote.test.ts`.
-
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { STYLE_ROMAIN, STYLE_ORDINAL } from '../../lib/siecles'
-import { sansPointFinal } from '../../lib/titres'
-import { hauteurNavbarPx, placerFenetre } from '../../lib/fenetreContextuelle'
+import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
+import { sansPointFinal, normaliserTitreTechnique } from '@/app/lib/titres'
+import { terminerNote } from '@/app/lib/referenceNote'
+import { ContenuNoteStructuree } from './ContenuNoteStructuree'
+import type { NoteAffichee } from './oeuvreTypes'
+import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 
-//
-// Le marqueur stocké en base a la forme `[[A]]`, `[[81]]` — c'est la clé de la
-// note, jamais ce que lit le lecteur.
+// Appels de note de la page de lecture patristique. Extrait d'OeuvreClient pour
+// que la page de titre (PageTitre) y ait accès sans import circulaire : les notes
+// se lisent partout où un texte de l'œuvre est rendu, corps et titres compris.
 
+// Deux espaces, deux emplois, comme dans le corps du texte : la FINE devant les
+// hautes ponctuations et autour des guillemets, l'insécable pleine chasse devant
+// le seul deux-points (charte §3.2).
+const NBSP_TITRE_COLOPHON = ' '
+const FINE_TITRE_COLOPHON = ' '
+
+// Les classes englobent l'espace, la tabulation et les deux insécables, JAMAIS
+// `s`, qui emporterait le retour à la ligne : un titre composé sur deux lignes
+// dont la seconde commence par une ponctuation perdait son saut de ligne,
+// remplacé par une espace ou purement supprimé (« , . »). Le saut de ligne est
+// un choix de composition, il ne se rattrape pas. Même précaution que dans
+// `titreSansAppelsDeNote` ci-dessous.
+export function preparerTitreColophon(texte: string) {
+  return normaliserTitreTechnique(texte)
+    .trim()
+    .replace(/[ 	  ]+([;!?»])/g, `${FINE_TITRE_COLOPHON}$1`)
+    .replace(/[ 	  ]+(:)/g, `${NBSP_TITRE_COLOPHON}$1`)
+    .replace(/([«])[ 	  ]+/g, `$1${FINE_TITRE_COLOPHON}`)
+    .replace(/[ 	  ]+([,.])/g, '$1')
+}
 
 // Le sommaire est une navigation compacte : la note y serait un appel qu'on ne
 // peut pas lire (le sommaire ne porte pas le texte des notes) et qui hache
-// l'intitulé. Elle est donc masquée là, et là seulement, l'appel restant actif
+// l'intitulé. Elle est donc masquée là, et là seulement — l'appel reste actif
 // dans le titre développé du corps. L'espace qui précède part avec le marqueur,
 // sans quoi l'intitulé garderait un blanc double.
 export function titreSansAppelsDeNote(texte: string) {
-  return texte.replace(/[ \t]*\[\[[A-Z0-9]+\]\]/g, '')
+  return normaliserTitreTechnique(texte.replace(/[ \t]*\[\[[A-Z0-9]+\]\]/g, ''))
 }
 
 // ── Forme de l'appel selon l'endroit où il se trouve ──────────────────────────
 // L'appel prend le style du texte qui l'accueille : il hérite la police et
-// l'italique du contexte (un chapeau en italique porte un appel en italique) et
-// se règle en corps sur lui. Dans la prose, il garde sa teinte brune. Dans un
-// titre de haut rang, cette teinte devient une tache : l'intitulé est court et
-// composé large, l'appel y prend donc l'encre du titre, plus discret et
-// proportionnellement plus petit. Les titres de rang bas (niveaux 3 et 4),
-// composés à la taille du texte, gardent la forme du corps.
+// l'italique du contexte (un chapeau en italique porte un appel en italique, une
+// colonne en sans-serif un appel en sans-serif) et se règle en corps sur lui.
+// Dans la prose, il garde sa teinte brune. Dans un titre de haut rang, cette
+// teinte devient une tache : l'intitulé est court et composé large, l'appel y
+// prend donc l'encre du titre, plus discret et proportionnellement plus petit.
+// Les titres de rang bas (niveaux 3 et 4), composés à la taille du texte,
+// gardent la forme du corps.
 //
 // ⛔ JAMAIS de pointillé (ni de soulignement d'aucune sorte) sous un appel de
 // note : règle d'auteur, sans exception. L'exposant et la teinte suffisent à le
 // signaler. Ne pas le réintroduire au prétexte d'indiquer qu'il est cliquable.
-export type VarianteAppelNote = 'corps' | 'titre'
+export type VarianteAppelNote = 'corps' | 'titre' | 'frontispice'
 
 const FORME_APPEL: Record<VarianteAppelNote, React.CSSProperties> = {
   corps: { fontSize: '0.60em', color: '#8a6a3e' },
   titre: { fontSize: '0.42em', color: 'currentColor', opacity: 0.55 },
+  frontispice: { fontSize: '0.30em', color: 'currentColor', opacity: 0.45 },
 }
 
 export function styleAppelNote(variante: VarianteAppelNote = 'corps'): React.CSSProperties {
@@ -59,27 +78,12 @@ export function styleAppelNote(variante: VarianteAppelNote = 'corps'): React.CSS
   }
 }
 
-
-const NBSP_TITRE_COLOPHON = '\u00A0'
-const FINE_TITRE_COLOPHON = '\u202F'
-
-// Espacement typographique des titres et du colophon. Deux espaces, deux emplois,
-// comme dans le corps du texte : la FINE devant les hautes ponctuations et autour
-// des guillemets, l'insécable pleine chasse devant le seul deux-points (charte
-// §3.2). Les classes englobent aussi les insécables déjà posées, mais JAMAIS `\s`,
-// qui emporterait le retour à la ligne d'un titre composé sur deux lignes : ce
-// saut de ligne est un choix de composition, il ne se rattrape pas.
-export function preparerTitreColophon(texte: string) {
-  return texte
-    .trim()
-    .replace(/[ 	  ]+([;!?»])/g, `${FINE_TITRE_COLOPHON}$1`)
-    .replace(/[ 	  ]+(:)/g, `${NBSP_TITRE_COLOPHON}$1`)
-    .replace(/([«])[ 	  ]+/g, `$1${FINE_TITRE_COLOPHON}`)
-    .replace(/[ 	  ]+([,.])/g, '$1')
-}
-
 // ── Info-bulle de note ────────────────────────────────────────────────────────
-function NoteTooltip({ lettre, contenu, variante = 'corps' }: { lettre: string; contenu: string; variante?: VarianteAppelNote }) {
+export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
+  numeroVisible: number
+  contenu: NoteAffichee
+  variante?: VarianteAppelNote
+}) {
   const [visible, setVisible] = useState(false)
   const [figee, setFigee] = useState(false)
   const [rect, setRect] = useState<{ left: number; top: number; bottom: number } | null>(null)
@@ -165,7 +169,7 @@ function NoteTooltip({ lettre, contenu, variante = 'corps' }: { lettre: string; 
     ? { largeur: 900, hauteur: 800 }
     : { largeur: window.innerWidth, hauteur: window.innerHeight }
   const placement = placerFenetre({
-    ancre: rect ?? { top: 300, bottom: 316, left: 0 },
+    ancre: rect ?? { top: 300, bottom: 316, left: 0, right: 0 },
     largeur: W, hauteurSouhaitee: 340, vue, hautNavbar: hauteurNavbarPx(), ecart: 8,
   })
 
@@ -189,13 +193,13 @@ function NoteTooltip({ lettre, contenu, variante = 'corps' }: { lettre: string; 
         zIndex: 9999,
         fontFamily: "var(--font-source-serif), Georgia, serif",
         fontSize: '0.78125rem',
-        lineHeight: 1.65,
+        lineHeight: 1.45,
         color: '#2a2218',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
         <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>
-          Note {lettre}
+          Note {numeroVisible}
         </span>
         {figee && (
           <button
@@ -206,7 +210,9 @@ function NoteTooltip({ lettre, contenu, variante = 'corps' }: { lettre: string; 
         )}
       </div>
       <div style={{ whiteSpace: 'pre-line' }}>
-        {contenu || <em style={{ color: '#b0a08a' }}>Note indisponible</em>}
+        {typeof contenu === 'string'
+          ? (terminerNote(contenu) || <em style={{ color: '#b0a08a' }}>Note indisponible</em>)
+          : <ContenuNoteStructuree note={contenu} />}
       </div>
     </div>
   ) : null
@@ -221,10 +227,10 @@ function NoteTooltip({ lettre, contenu, variante = 'corps' }: { lettre: string; 
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') basculerTooltip(e) }}
         role="button"
         tabIndex={0}
-        aria-label={`Consulter la note ${lettre}`}
+        aria-label={`Consulter la note ${numeroVisible}`}
         style={styleAppelNote(variante)}
       >
-        {lettre}
+        {numeroVisible}
       </sup>
       {visible && typeof document !== 'undefined' && createPortal(tooltip, document.body)}
     </>
@@ -232,7 +238,11 @@ function NoteTooltip({ lettre, contenu, variante = 'corps' }: { lettre: string; 
 }
 
 // Variante de rendreTexteEnrichi qui gère aussi les marqueurs [[A]] de notes.
-export function rendreTexteAvecNotes(texte: string, notes: Record<string, string>, variante: VarianteAppelNote = 'corps'): React.ReactNode {
+export function rendreTexteAvecNotes(
+  texte: string,
+  notes: Record<string, NoteAffichee>,
+  variante: VarianteAppelNote = 'corps',
+): React.ReactNode {
   const noeuds: React.ReactNode[] = []
   // Le marqueur stocké ([[A]], [[B]]…) reste la clé de la note en base : c'est
   // lui qui donne accès au texte. Seul l'appel AFFICHÉ change — un numéro, selon
@@ -249,21 +259,25 @@ export function rendreTexteAvecNotes(texte: string, notes: Record<string, string
     numeros.set(marqueur, n)
     return n
   }
-  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]+)\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>/g
+  // Même syntaxe que rendreTexteEnrichi (les ++petites capitales++ comprises,
+  // en fin d'alternance pour ne pas renuméroter les groupes), plus les [[appels]].
+  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]+)\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>|\+\+(.+?)\+\+/g
   let dernierIndex = 0, k = 0, m: RegExpExecArray | null
   while ((m = regex.exec(texte))) {
     if (m.index > dernierIndex) noeuds.push(texte.slice(dernierIndex, m.index))
     // Un appel de note peut se trouver à l'intérieur d'une emphase. Le contenu
     // doit donc repasser par le même moteur au lieu d'être rendu comme texte brut.
     if (m[1] !== undefined) noeuds.push(<strong key={k++}>{rendreTexteAvecNotes(m[1], notes, variante)}</strong>)
-    else if (m[2] !== undefined) noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{rendreTexteAvecNotes(m[2], notes, variante)}</sup>)
+    else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{rendreTexteAvecNotes(m[2], notes, variante)}</sup>)
     else if (m[3] !== undefined) noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[3], notes, variante)}</em>)
     else if (m[4] !== undefined) noeuds.push(
       <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteAvecNotes(m[4], notes, variante)}</a>
     )
     else if (m[6] !== undefined) {
       const marqueur = m[6]
-      noeuds.push(<NoteTooltip key={k++} lettre={String(numeroDe(marqueur))} contenu={notes[marqueur] ?? ''} variante={variante} />)
+      const contenu = notes[marqueur] ?? ''
+      const numeroVisible = typeof contenu === 'string' ? numeroDe(marqueur) : contenu.noteNumber
+      noeuds.push(<AppelNote key={k++} numeroVisible={numeroVisible} contenu={contenu} variante={variante} />)
     }
     else if (m[7] !== undefined) {
       noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)
@@ -273,19 +287,48 @@ export function rendreTexteAvecNotes(texte: string, notes: Record<string, string
     else if (m[10] !== undefined) {
       noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[10], notes, variante)}</em>)
     }
+    else if (m[11] !== undefined) {
+      noeuds.push(<span key={k++} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{rendreTexteAvecNotes(m[11], notes, variante)}</span>)
+    }
     dernierIndex = regex.lastIndex
   }
   if (dernierIndex < texte.length) noeuds.push(texte.slice(dernierIndex))
   return noeuds
 }
 
-// Les titres utilisent le mÃªme systÃ¨me de notes que le corps. Lorsqu'un appel
-// est prÃ©sent, on privilÃ©gie son rendu interactif ; les autres titres gardent
-// la composition en colophon Ã©ventuellement appliquÃ©e aux intitulÃ©s longs.
-export function rendreTitreColophonAvecNotes(texte: string, notes: Record<string, string>, estTitre = false, variante: VarianteAppelNote = 'corps'): React.ReactNode {
+// Les titres utilisent le même système de notes que le corps : l'appel y reste
+// actif, seule sa forme change (voir FORME_APPEL).
+export function rendreTitreColophonAvecNotes(
+  texte: string,
+  notes: Record<string, NoteAffichee>,
+  estTitre = false,
+  variante: VarianteAppelNote = 'corps',
+): React.ReactNode {
   // Rendu simple : le titre s'enroule naturellement (centré par ses conteneurs).
   // On a renoncé à la composition « colophon » (pavé à lignes décroissantes).
   // `estTitre` : retire le point final (règle éditoriale) ; pas pour les _texte,
   // qui sont des chapeaux/phrases.
   return rendreTexteAvecNotes(preparerTitreColophon(estTitre ? sansPointFinal(texte) : texte), notes, variante)
+}
+
+/** Banque de notes d'un texte d'affichage : ne retient que les marqueurs qui y
+ *  paraissent réellement, cherchés dans les notes des segments chargés. Sert la
+ *  page de titre, dont les intitulés ne sont portés par aucun segment. */
+export function notesPourTexte(
+  textes: (string | null | undefined)[],
+  banques: (Record<string, NoteAffichee> | null | undefined)[],
+): Record<string, NoteAffichee> {
+  const cherches = new Set<string>()
+  for (const texte of textes) {
+    for (const m of (texte ?? '').matchAll(/\[\[([A-Z0-9]+)\]\]/g)) cherches.add(m[1])
+  }
+  const trouvees: Record<string, NoteAffichee> = {}
+  if (cherches.size === 0) return trouvees
+  for (const banque of banques) {
+    if (!banque) continue
+    for (const cle of cherches) {
+      if (trouvees[cle] === undefined && banque[cle] !== undefined) trouvees[cle] = banque[cle]
+    }
+  }
+  return trouvees
 }

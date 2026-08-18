@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { CSS_ORDINAL } from '@/app/lib/siecles'
 import SelecteurCitation from '@/app/lib/SelecteurCitation'
 
 type Props = {
@@ -43,7 +42,7 @@ function syntaxeVersHtml(s: string) {
   return echapper(s)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\+\+(.+?)\+\+/g, '<span style="font-variant:small-caps;letter-spacing:0.04em">$1</span>')
-    .replace(/\^\^(.+?)\^\^/g, `<sup style="${CSS_ORDINAL}">$1</sup>`)
+    .replace(/\^\^(.+?)\^\^/g, '<sup>$1</sup>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>')
     .replace(/\n/g, '<br>')

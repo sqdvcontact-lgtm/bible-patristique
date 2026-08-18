@@ -1,8 +1,8 @@
-import { chargerAuteursParOeuvre, grouperOeuvresParAuteur } from '@/app/lib/auteursOeuvre'
 import { Suspense, type ComponentProps } from "react"
 import BibliothequeClient from "./BibliothequeClient"
 import { MARQUEUR_OEUVRE_DEPUBLIEE } from "@/app/lib/oeuvresPublication"
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur"
+import { chargerAuteursParOeuvre, grouperOeuvresParAuteur } from "@/app/lib/auteursOeuvre"
 
 // Base fermée au rôle anonyme : on interroge avec la session du visiteur. La
 // page devient dynamique (elle lit les cookies) et perd donc son cache d'une
@@ -14,25 +14,13 @@ export const metadata = {
 }
 
 type AuteurBibliotheque = { id_auteur: string; [cle: string]: unknown }
-type TexteBibliotheque = {
-  id_texte: string
-  id_oeuvre: string
-  langue: string | null
-  traducteur: string | null
-  edition_label: string | null
-  annee_edition: number | null
-  is_default: boolean
-}
 type OeuvreBibliotheque = { id_oeuvre: string; id_auteur: string; [cle: string]: unknown }
 
 export default async function BibliothequePage() {
   const supabase = await creerSupabaseServeur()
   // Les métadonnées d'auteur et les dates canoniques des œuvres sont chargées
   // séparément : une vue ne porte pas la relation PostgREST imbriquée de la table.
-  // Les témoins textuels d'une œuvre (traduction française, texte latin, seconde
-  // traduction) valent chacun une ligne au catalogue : la bibliothèque les liste
-  // sous leur œuvre, et non plus seulement dans le volet du lecteur.
-  const [auteursResultat, oeuvresResultat, textesResultat, auteursParOeuvre] = await Promise.all([
+  const [auteursResultat, oeuvresResultat, auteursParOeuvre] = await Promise.all([
     supabase
       .from("auteurs")
       .select("id_auteur, nom, nom_original, titre, dates, siecle, date_naissance, date_mort, langue_principale, traditions, note, note_biographique, note_theologique, photo_position")
@@ -41,47 +29,22 @@ export default async function BibliothequePage() {
       .from("v_oeuvres_dates")
       .select("id_oeuvre, id_auteur, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication_affichage_courte, date_publication_precision_affichage, genre, note, langue_originale")
       .or(`note.is.null,note.neq.${MARQUEUR_OEUVRE_DEPUBLIEE}`),
-    supabase
-      .from("oeuvre_textes")
-      .select("id_texte, id_oeuvre, langue, traducteur, edition_label, annee_edition, is_default")
-      .eq("is_public", true)
-      .eq("statut", "published"),
-    // Une œuvre peut être signée par plusieurs auteurs, à égalité : elle paraît
-    // alors sous le nom de chacun. Voir la charte, § 19.2.
     chargerAuteursParOeuvre(supabase),
   ])
 
-  // Un témoin par ligne, celui par défaut en tête : c'est lui que sert le lien
-  // nu vers l'œuvre, les autres passant par `?texte=`.
-  const textesParOeuvre = new Map<string, TexteBibliotheque[]>()
-  for (const texte of (textesResultat.data ?? []) as TexteBibliotheque[]) {
-    const groupe = textesParOeuvre.get(String(texte.id_oeuvre)) ?? []
-    groupe.push(texte)
-    textesParOeuvre.set(String(texte.id_oeuvre), groupe)
-  }
-  for (const groupe of textesParOeuvre.values()) {
-    groupe.sort((a, b) =>
-      Number(b.is_default) - Number(a.is_default)
-      || (a.annee_edition ?? 0) - (b.annee_edition ?? 0))
-  }
-
-  const oeuvres = ((oeuvresResultat.data ?? []) as OeuvreBibliotheque[]).map(oeuvre => ({
-    ...oeuvre,
-    textes: textesParOeuvre.get(String(oeuvre.id_oeuvre)) ?? [],
-    auteurs: auteursParOeuvre[String(oeuvre.id_oeuvre)] ?? [],
-  }))
-  // ⚠️ Une œuvre à deux auteurs entre dans les DEUX étagères : c’est ainsi que
-  // Rufin d’Aquilée paraît, lui qui ne porte aucune œuvre en propre.
-  const oeuvresParAuteur = grouperOeuvresParAuteur(oeuvres, auteursParOeuvre, o => String(o.id_auteur))
+  // Une œuvre à deux auteurs paraît sous le nom de chacun : le groupement suit
+  // les couples (œuvre, auteur) de `v_oeuvres_auteurs`, pas la seule colonne
+  // `id_auteur` de l'œuvre, qui n'en porte que le premier. Chaque œuvre emporte
+  // la liste de ses auteurs, pour porter les deux noms là où elle est nommée.
+  const oeuvres = ((oeuvresResultat.data ?? []) as OeuvreBibliotheque[])
+    .map(oeuvre => ({ ...oeuvre, auteurs: auteursParOeuvre[oeuvre.id_oeuvre] ?? [] }))
+  const oeuvresParAuteur = grouperOeuvresParAuteur(oeuvres, auteursParOeuvre, oeuvre => String(oeuvre.id_auteur))
 
   const base = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/auteurs`
   const cacheV = Math.floor(Date.now() / (3600 * 1000))
   const auteurs = (((auteursResultat.data ?? []) as AuteurBibliotheque[])
     .map(a => ({ ...a, oeuvres: oeuvresParAuteur.get(String(a.id_auteur)) ?? [], imageUrl: `${base}/${a.id_auteur}.jpg?v=${cacheV}` }))
-    // Un auteur sans œuvre ne paraît pas. Depuis les œuvres à plusieurs auteurs,
-    // « sans œuvre » veut dire sans œuvre PROPRE NI CO-SIGNÉE : c'est cette
-    // répartition qui fait entrer Rufin d'Aquilée dans la bibliothèque.
-    .filter(a => a.oeuvres.length > 0)) as unknown as ComponentProps<typeof BibliothequeClient>["auteurs"]
+    .filter(a => a.oeuvres.length > 0)) as ComponentProps<typeof BibliothequeClient>["auteurs"]
 
   // Si le chargement des auteurs échoue, on le signale plutôt que d'afficher une
   // bibliothèque vide comme si de rien n'était.

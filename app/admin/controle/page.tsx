@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
+import TodosControle from './TodosControle'
 
 export const metadata = { title: 'Centre de contrôle — Corpus Scriptura' }
 export const dynamic = 'force-dynamic'
@@ -69,19 +70,7 @@ function Jauge({ label, n, d, detail }: { label: string; n: number; d: number; d
   )
 }
 
-// Au-delà, on annonce le poids de la note : elle ne tient plus dans la carte et
-// se lit au défilement.
-const SEUIL_NOTE_LONGUE = 1200
-
-// Espace fine insécable entre les milliers, comme partout ailleurs sur le site.
-// ⚠️ Composée par son point de code, et non tapée : à la relecture, une fine ne
-// se distingue pas d'une espace ordinaire, et une réécriture de fichier l'a déjà
-// remplacée en silence ailleurs (piège consigné dans AGENTS.md).
-const FINE_MILLIERS = String.fromCharCode(0x202f)
-const grouperMilliers = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, FINE_MILLIERS)
-
-function Carte({ titre, children, note, todos, majLe }: { titre: string; children: ReactNode; note: string | null; todos: Todo[]; majLe: string }) {
-  const faits = todos.filter((t) => t.fait).length
+function Carte({ titre, children, note, cle, todos, majLe }: { titre: string; children: ReactNode; note: string | null; cle: string; todos: Todo[]; majLe: string }) {
   return (
     <section className="cc-carte">
       <h2 className="cc-carte-titre">{titre}</h2>
@@ -89,33 +78,47 @@ function Carte({ titre, children, note, todos, majLe }: { titre: string; childre
 
       {note && (
         <div className="cc-note">
-          <div className="cc-note-tete">
-            Où en est-on ?
-            {/* La note de la section Qualité pèse plus de quatre-vingt mille
-                signes. Le dire évite de croire qu'on l'a lue en entier. */}
-            {note.length > SEUIL_NOTE_LONGUE && (
-              <span className="cc-note-taille">{grouperMilliers(note.length)} signes</span>
-            )}
-          </div>
-          <p className="cc-note-txt cc-defile cc-defile-vert">{note}</p>
+          <div className="cc-note-tete">Où en est-on ?</div>
+          <p className="cc-note-txt">{note}</p>
         </div>
       )}
 
-      {todos.length > 0 && (
-        <div className="cc-todos">
-          <div className="cc-todos-tete">À faire <span className="cc-todos-compte">{faits}/{todos.length}</span></div>
-          <ul className="cc-todos-liste cc-defile">
-            {todos.map((t, i) => (
-              <li key={i} className={t.fait ? 'cc-todo cc-todo-fait' : 'cc-todo'}>
-                <span className="cc-todo-case">{t.fait ? '✓' : ''}</span>
-                <span className="cc-todo-txt">{t.texte}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <TodosControle cle={cle} initial={todos} />
+
       <div className="cc-carte-pied">Note mise à jour le {dateFr(majLe)}</div>
     </section>
+  )
+}
+
+// Panne de chargement : on montre l'erreur RÉELLE renvoyée par PostgREST.
+// Un message générique rend la page indiagnosticable ; le cas le plus fréquent
+// est l'expiration du délai (`statement_timeout` de 8 s sur `service_role`),
+// que seul le code 57014 permet de reconnaître.
+function EcranPanne({ erreur }: { erreur: { message?: string; code?: string; details?: string; hint?: string } | null }) {
+  const expire = erreur?.code === '57014'
+  return (
+    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', padding: '3rem 1.5rem' }}>
+      <div style={{ maxWidth: '46rem', margin: '0 auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-danger-bord)', borderRadius: '10px', padding: '1.5rem 1.75rem' }}>
+        <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', fontWeight: 'normal', color: 'var(--cs-danger-fonce)', margin: '0 0 0.5rem' }}>
+          Les indicateurs n’ont pas pu être chargés
+        </h1>
+        <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-second)', lineHeight: 1.6, margin: '0 0 1rem' }}>
+          {expire
+            ? 'La requête a dépassé le délai autorisé. Le tableau de bord agrège tout le corpus en direct ; sous charge, il peut franchir la limite de huit secondes. Réessayez dans un instant.'
+            : 'La RPC controle_tableau_bord n’a rien renvoyé. Le détail technique est ci-dessous.'}
+        </p>
+        <pre style={{ fontSize: '0.75rem', fontFamily: 'ui-monospace, monospace', color: 'var(--cs-texte)', background: 'var(--cs-fond-doux)', border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', padding: '0.75rem', margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+          {erreur
+            ? [
+                erreur.code ? `code    : ${erreur.code}` : null,
+                erreur.message ? `message : ${erreur.message}` : null,
+                erreur.details ? `détails : ${erreur.details}` : null,
+                erreur.hint ? `piste   : ${erreur.hint}` : null,
+              ].filter(Boolean).join('\n')
+            : 'Aucune erreur remontée : la RPC a répondu, mais sans contenu.'}
+        </pre>
+      </div>
+    </main>
   )
 }
 
@@ -134,11 +137,27 @@ function EcranReserve() {
   )
 }
 
+// Le tableau de bord agrège tout le corpus en direct : 2 à 6 s selon la charge,
+// pour un `statement_timeout` de 8 s sur `service_role`. Le dépassement (57014) est
+// donc TRANSITOIRE, et une seule reprise suffit à le rattraper. On ne réessaie que
+// sur ce code : une vraie erreur (droits, objet manquant) doit remonter tout de suite.
+const CODE_DELAI_DEPASSE = '57014'
+
+async function chargerTableauBord() {
+  for (let essai = 0; ; essai++) {
+    const { data, error } = await supabaseAdmin.rpc('controle_tableau_bord')
+    if (!error) return { data, error: null }
+    console.error(`[controle] RPC controle_tableau_bord (essai ${essai + 1}) :`, error)
+    if (essai >= 1 || error.code !== CODE_DELAI_DEPASSE) return { data: null, error }
+    await new Promise((resoudre) => setTimeout(resoudre, 1200))
+  }
+}
+
 export default async function CentreControlePage() {
   if (!(await estAdmin())) return <EcranReserve />
 
-  const [{ data: tbRaw }, { data: sectionsRaw }, codesLisibles] = await Promise.all([
-    supabaseAdmin.rpc('controle_tableau_bord'),
+  const [{ data: tbRaw, error: tbErreur }, { data: sectionsRaw }, codesLisibles] = await Promise.all([
+    chargerTableauBord(),
     supabaseAdmin.from('controle_sections').select('*').order('ordre', { ascending: true }),
     codesTraductionsLecture(supabaseAdmin),
   ])
@@ -148,13 +167,7 @@ export default async function CentreControlePage() {
   const sec = (cle: string) => sections.find((s) => s.cle === cle) ?? { cle, titre: cle, ordre: 0, commentaire_ia: null, todos: [] as Todo[], maj_le: '' }
   const bibleLisibles = codesLisibles.length
 
-  if (!tb) {
-    return (
-      <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', padding: '3rem', textAlign: 'center', color: 'var(--cs-danger)' }}>
-        Impossible de charger les indicateurs (RPC <code>controle_tableau_bord</code>).
-      </main>
-    )
-  }
+  if (!tb) return <EcranPanne erreur={tbErreur} />
 
   const c = tb.corpus, q = tb.qualite, cat = tb.catalogue, p = tb.pericopes, b = tb.bibliographie, ch = tb.chronologie
 
@@ -172,7 +185,7 @@ export default async function CentreControlePage() {
 
       <div className="cc-grille">
         {/* 1. Corpus */}
-        <Carte titre={sec('corpus').titre} note={sec('corpus').commentaire_ia} todos={sec('corpus').todos} majLe={sec('corpus').maj_le}>
+        <Carte titre={sec('corpus').titre} note={sec('corpus').commentaire_ia} cle="corpus" todos={sec('corpus').todos} majLe={sec('corpus').maj_le}>
           <div className="cc-tuiles">
             <Tuile valeur={nb(c.oeuvres_total)} label="Œuvres en ligne" />
             <Tuile valeur={nb(c.oeuvres_latin)} label="Originaux latins" />
@@ -185,7 +198,7 @@ export default async function CentreControlePage() {
         </Carte>
 
         {/* 2. Qualité du texte */}
-        <Carte titre={sec('qualite').titre} note={sec('qualite').commentaire_ia} todos={sec('qualite').todos} majLe={sec('qualite').maj_le}>
+        <Carte titre={sec('qualite').titre} note={sec('qualite').commentaire_ia} cle="qualite" todos={sec('qualite').todos} majLe={sec('qualite').maj_le}>
           <Jauge label="Qualité automatique des segments" n={q.seg_bon} d={q.seg_total} detail={`${nb(q.seg_bon)} bons / ${nb(q.seg_total)} segments`} />
           <Jauge label="Contrôle humain des segments" n={q.seg_controle_humain} d={q.seg_controle_total} detail={`${nb(q.seg_controle_humain)} vérifiés / ${nb(q.seg_controle_total)}`} />
           <div className="cc-tuiles" style={{ marginTop: '10px' }}>
@@ -197,7 +210,7 @@ export default async function CentreControlePage() {
         </Carte>
 
         {/* 3. Catalogue */}
-        <Carte titre={sec('catalogue').titre} note={sec('catalogue').commentaire_ia} todos={sec('catalogue').todos} majLe={sec('catalogue').maj_le}>
+        <Carte titre={sec('catalogue').titre} note={sec('catalogue').commentaire_ia} cle="catalogue" todos={sec('catalogue').todos} majLe={sec('catalogue').maj_le}>
           <Jauge label="Audit du catalogue par auteur" n={cat.auteurs_termine} d={cat.auteurs_suivi_total} detail={`${nb(cat.auteurs_termine)} terminés / ${nb(cat.auteurs_suivi_total)} suivis`} />
           <div className="cc-tuiles" style={{ marginTop: '10px' }}>
             <Tuile valeur={nb(cat.notices_total)} label="Notices au catalogue" />
@@ -210,7 +223,7 @@ export default async function CentreControlePage() {
         </Carte>
 
         {/* 4. Péricopes */}
-        <Carte titre={sec('pericopes').titre} note={sec('pericopes').commentaire_ia} todos={sec('pericopes').todos} majLe={sec('pericopes').maj_le}>
+        <Carte titre={sec('pericopes').titre} note={sec('pericopes').commentaire_ia} cle="pericopes" todos={sec('pericopes').todos} majLe={sec('pericopes').maj_le}>
           <Jauge label="Rédaction des notices (4 axes)" n={p.notice_remplie} d={p.total} detail={`${nb(p.notice_remplie)} rédigées / ${nb(p.total)}`} />
           <Jauge label="Validation éditoriale" n={p.validees} d={p.total} detail={`${nb(p.validees)} validées / ${nb(p.total)}`} />
           <div className="cc-tuiles" style={{ marginTop: '10px' }}>
@@ -221,7 +234,7 @@ export default async function CentreControlePage() {
         </Carte>
 
         {/* 5. Bibliographie */}
-        <Carte titre={sec('bibliographie').titre} note={sec('bibliographie').commentaire_ia} todos={sec('bibliographie').todos} majLe={sec('bibliographie').maj_le}>
+        <Carte titre={sec('bibliographie').titre} note={sec('bibliographie').commentaire_ia} cle="bibliographie" todos={sec('bibliographie').todos} majLe={sec('bibliographie').maj_le}>
           <Jauge label="Couverture bibliographique des péricopes" n={b.pericopes_avec_biblio} d={p.total} detail={`${nb(b.pericopes_avec_biblio)} péricopes couvertes / ${nb(p.total)}`} />
           <div className="cc-tuiles" style={{ marginTop: '10px' }}>
             <Tuile valeur={nb(b.ouvrages)} label="Ouvrages bibliographiques" />
@@ -230,13 +243,20 @@ export default async function CentreControlePage() {
         </Carte>
 
         {/* 6. Chronologie */}
-        <Carte titre={sec('chronologie').titre} note={sec('chronologie').commentaire_ia} todos={sec('chronologie').todos} majLe={sec('chronologie').maj_le}>
+        <Carte titre={sec('chronologie').titre} note={sec('chronologie').commentaire_ia} cle="chronologie" todos={sec('chronologie').todos} majLe={sec('chronologie').maj_le}>
           <Jauge label="Publication des événements" n={ch.publies} d={ch.evenements} detail={`${nb(ch.publies)} publiés / ${nb(ch.evenements)}`} />
           <Jauge label="Validation éditoriale" n={ch.valides} d={ch.evenements} detail={`${nb(ch.valides)} validés / ${nb(ch.evenements)}`} />
           <div className="cc-tuiles" style={{ marginTop: '10px' }}>
             <Tuile valeur={nb(ch.evenements)} label="Événements" />
             <Tuile valeur={nb(ch.a_classer)} label="À classer" ton={ch.a_classer > 0 ? 'danger' : undefined} />
           </div>
+        </Carte>
+
+        {/* 7. Chantier éditorial (œuvres) — compte rendu transverse et par œuvre. */}
+        <Carte titre="Chantier éditorial (œuvres)" note={sec('chantier_oeuvres').commentaire_ia} cle="chantier_oeuvres" todos={sec('chantier_oeuvres').todos} majLe={sec('chantier_oeuvres').maj_le}>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+            Corrections éditoriales transverses et par œuvre : typographie, notes, titres, segmentation, informations éditoriales des textes latins. Le code d’accueil est posé ; les corrections de données suivent (liste ci-dessous).
+          </p>
         </Carte>
       </div>
     </main>
@@ -270,36 +290,49 @@ const styles = `
   .cc-jauge-remplissage { height: 100%; border-radius: 4px; transition: none; }
   .cc-jauge-detail { font-size: 0.6875rem; color: var(--cs-texte-doux); font-family: var(--font-source-sans), Arial, sans-serif; }
 
-  /* ── Zones de défilement ──────────────────────────────────────────────────
-     Ces blocs sont remplis par l'IA et n'ont pas de longueur prévisible : la
-     note de la section Qualité pèse plus de quatre-vingt mille signes, et la
-     liste des tâches y compte plus de cent entrées. Sans borne, une carte
-     chassait toutes les autres hors de l'écran. On borne donc la hauteur et on
-     donne à ces zones une barre de défilement discrète, accordée au bloc.
-     La variable cc-pouce porte la couleur du curseur, redéfinie sur fond vert.
-     ⚠️ Jamais d'accent grave dans ce bloc : il est un littéral gabarit. */
-  .cc-defile { overflow-y: auto; overscroll-behavior: contain; padding-right: 0.4375rem; --cc-pouce: var(--cs-bord); --cc-pouce-actif: var(--cs-texte-faible); scrollbar-width: thin; scrollbar-color: var(--cc-pouce) transparent; }
-  .cc-defile::-webkit-scrollbar { width: 7px; }
-  .cc-defile::-webkit-scrollbar-track { background: transparent; }
-  .cc-defile::-webkit-scrollbar-thumb { background: var(--cc-pouce); border-radius: 4px; }
-  .cc-defile::-webkit-scrollbar-thumb:hover { background: var(--cc-pouce-actif); }
-  .cc-defile-vert { --cc-pouce: rgba(var(--cs-vert-rgb), 0.32); --cc-pouce-actif: var(--cs-vert); }
-
   .cc-note { margin-top: 0.875rem; background: var(--cs-vert-pale); border-left: 3px solid var(--cs-vert); border-radius: 0 6px 6px 0; padding: 0.625rem 0.75rem; }
-  .cc-note-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-vert); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.25rem; display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
-  .cc-note-taille { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--cs-texte-doux); font-style: italic; }
-  /* pre-line restitue les alinéas de la note, que le paragraphe écrasait :
-     ces textes en portent jusqu'à deux cent vingt et un. */
-  .cc-note-txt { font-size: 0.8125rem; color: var(--cs-texte); line-height: 1.5; margin: 0; font-family: var(--font-source-serif), Georgia, serif; white-space: pre-line; max-height: 13rem; }
+  .cc-note-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-vert); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.25rem; }
+  .cc-note-txt { font-size: 0.8125rem; color: var(--cs-texte); line-height: 1.5; margin: 0; font-family: var(--font-source-serif), Georgia, serif; }
 
   .cc-todos { margin-top: 0.75rem; }
   .cc-todos-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-texte-second); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.375rem; }
   .cc-todos-compte { color: var(--cs-texte-doux); font-weight: 500; margin-left: 0.25rem; }
-  .cc-todos-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; max-height: 15rem; }
+  .cc-todos-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; }
   .cc-todo { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.8125rem; color: var(--cs-texte); font-family: var(--font-source-sans), Arial, sans-serif; line-height: 1.4; }
   .cc-todo-case { flex-shrink: 0; width: 1rem; height: 1rem; border: 1px solid var(--cs-bord); border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--cs-vert); margin-top: 0.0625rem; }
   .cc-todo-fait .cc-todo-case { background: var(--cs-vert); border-color: var(--cs-vert); color: #fff; }
   .cc-todo-fait .cc-todo-txt { color: var(--cs-texte-doux); text-decoration: line-through; }
 
+  /* — Édition discrète des todos — */
+  .cc-todo { position: relative; padding-right: 3rem; }
+  .cc-todo-txt { flex: 1; }
+  button.cc-todo-case { cursor: pointer; padding: 0; background: transparent; transition: border-color .12s; }
+  button.cc-todo-case:hover { border-color: var(--cs-vert); }
+  button.cc-todo-case:disabled { cursor: default; }
+  .cc-todo-actions { position: absolute; right: 0; top: 0; display: inline-flex; gap: 0.125rem; opacity: 0; transition: opacity .12s; }
+  .cc-todo:hover .cc-todo-actions, .cc-todo:focus-within .cc-todo-actions { opacity: 1; }
+  .cc-todo-btn { border: none; background: transparent; cursor: pointer; font-size: 0.8125rem; line-height: 1; color: var(--cs-texte-faible); padding: 0.125rem 0.3125rem; border-radius: 4px; font-family: var(--font-source-sans), Arial, sans-serif; }
+  .cc-todo-btn:hover { color: var(--cs-texte); background: var(--cs-fond-doux); }
+  .cc-todo-btn-suppr { font-size: 1rem; }
+  .cc-todo-btn-suppr:hover { color: var(--cs-danger); background: var(--cs-danger-fond); }
+  .cc-todo-input { flex: 1; width: 100%; font-size: 0.8125rem; font-family: var(--font-source-sans), Arial, sans-serif; color: var(--cs-texte); line-height: 1.4; border: 1px solid var(--cs-bord); border-radius: 5px; padding: 0.1875rem 0.375rem; background: var(--cs-surface); resize: vertical; }
+  .cc-todo-input:focus { outline: none; border-color: var(--cs-vert); }
+  .cc-todo-ajout { margin-top: 0.375rem; }
+  .cc-todo-ajout-btn { border: none; background: transparent; cursor: pointer; font-size: 0.75rem; color: var(--cs-texte-faible); font-family: var(--font-source-sans), Arial, sans-serif; padding: 0.125rem 0; opacity: 0.55; transition: opacity .12s, color .12s; }
+  .cc-todos:hover .cc-todo-ajout-btn { opacity: 1; }
+  .cc-todo-ajout-btn:hover { color: var(--cs-vert); }
+  .cc-todo-erreur { font-size: 0.6875rem; color: var(--cs-danger); margin-top: 0.25rem; font-family: var(--font-source-sans), Arial, sans-serif; }
+  @media (hover: none) { .cc-todo-actions { opacity: 1; } .cc-todo-ajout-btn { opacity: 1; } }
+
   .cc-mention { font-size: 0.6875rem; color: var(--cs-texte-doux); font-family: var(--font-source-sans), Arial, sans-serif; margin-top: 0.5rem; font-style: italic; }
+
+  /* Mobile : les grilles sont déjà en auto-fill (une colonne sur téléphone) ; on
+     resserre seulement les gouttières et le titre pour gagner de la place. */
+  @media (max-width: 640px) {
+    .cc-page { padding: 1rem 0.75rem 2.5rem; }
+    .cc-entete { margin-bottom: 1rem; }
+    .cc-titre { font-size: 1.4rem; }
+    .cc-carte { padding: 1rem 0.875rem 0.75rem; }
+    .cc-carte-titre { font-size: 1.0625rem; }
+  }
 `

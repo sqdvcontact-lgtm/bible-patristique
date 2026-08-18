@@ -1,9 +1,6 @@
 import { hydraterLiensHerites } from '@/app/lib/liens'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import type { Metadata } from 'next'
-import type { AlignementDisponible } from './oeuvreTypes'
-import { chargerAuteursDOeuvre, libelleAuteurs } from '@/app/lib/auteursOeuvre'
-import { libelleColonne } from './comparaisonTraductionsUtils'
 import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
 import { ABREV_FR } from '@/app/lib/bible'
 import { parseNotes } from '@/app/lib/notes'
@@ -11,28 +8,48 @@ import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import { JsonLd, donneesLivre, donneesFilAriane } from '@/app/lib/donneesStructurees'
 import OeuvreClient from './OeuvreClient'
+import type { AlignementDisponible, NoteStructuree, VersionTextuelle } from './oeuvreTypes'
+import { decomposerEdition, labelCourtVersion, libelleTraducteurVersion } from './versionTextuelle'
+import { chargerAuteursDOeuvre, libelleAuteurs } from '@/app/lib/auteursOeuvre'
 
 // Base fermée au rôle anonyme : chaque entrée serveur (métadonnées, page) crée
 // son client lisant la session du visiteur. Sans cela, la page s'exécutait en
 // `anon` et ne recevait plus ni segments ni versets.
 type Client = Awaited<ReturnType<typeof creerSupabaseServeur>>
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: {
+  params: Promise<{ id: string }>
+  searchParams?: Promise<{ texte?: string }>
+}): Promise<Metadata> {
   const { id } = await params
+  const sp = searchParams ? await searchParams : {}
   const supabase = await creerSupabaseServeur()
-  const { data } = await supabase
-    .from('oeuvres')
-    .select('titre, titre_original, sous_titre, trad_auteur, auteurs!oeuvres_id_auteur_fkey(nom, nom_original)')
-    .eq('id_oeuvre', id).maybeSingle()
+
+  const [{ data }, { data: textes }, auteursOeuvre] = await Promise.all([
+    supabase.from('oeuvres')
+      .select('titre, titre_original, sous_titre, trad_auteur, auteurs!oeuvres_id_auteur_fkey(nom, nom_original)')
+      .eq('id_oeuvre', id).maybeSingle(),
+    supabase.from('oeuvre_textes')
+      .select('id_texte,traducteur,is_default,is_public')
+      .eq('id_oeuvre', id)
+      .eq('is_public', true),
+    chargerAuteursDOeuvre(supabase, id),
+  ])
   if (!data) return { title: 'Corpus Scriptura' }
-  const auteur = (data.auteurs as any)?.nom
+  // Une œuvre signée à deux est nommée sous les deux noms, ici comme ailleurs.
+  const auteur = libelleAuteurs(auteursOeuvre) || (data.auteurs as any)?.nom
+  const textesPublics = textes ?? []
+  const texteActif = textesPublics.find(texte => texte.id_texte === sp.texte)
+    ?? textesPublics.find(texte => texte.is_default)
+    ?? textesPublics[0]
+  const traducteur = texteActif?.traducteur ?? data.trad_auteur
   // Mots-clés = toutes les formes sous lesquelles on cherche l'œuvre et l'auteur.
-  const motsCles = [data.titre, data.titre_original, auteur, (data.auteurs as any)?.nom_original]
+  const motsCles = [data.titre, data.titre_original, ...auteursOeuvre.map(a => a.nom), auteur, (data.auteurs as any)?.nom_original]
     .filter((v): v is string => !!v)
   const description = [
     auteur ? `${data.titre}, ${auteur}` : data.titre,
     data.sous_titre || null,
-    data.trad_auteur ? `traduction de ${data.trad_auteur}` : null,
+    traducteur ? `traduction de ${traducteur}` : null,
   ].filter(Boolean).join('. ') + '. Texte et notice sur Corpus Scriptura.'
   return {
     title: auteur ? `${data.titre} — ${auteur} · Corpus Scriptura` : `${data.titre} · Corpus Scriptura`,
@@ -42,7 +59,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 type Segment = {
-  id: number; segment_numero: number; segment_texte: string
+  id: number; id_texte: string; segment_key: string|null; segment_numero: number; segment_texte: string
   ref_niv1: string|null; ref_niv2: string|null; ref_niv3: string|null
   ref_niv4: string|null; ref_niv5: string|null
   ref_niv1_texte: string|null; ref_niv2_texte: string|null
@@ -50,6 +67,60 @@ type Segment = {
   lien_1: string|null; lien_2: string|null; lien_3: string|null; lien_4: string|null
   nature: string|null
   paragraphe: number|null; rang: number|null; texte_original: string|null
+  espace_textuel: string|null; join_before: string|null
+}
+
+type TexteVersionRow = {
+  id_texte: string
+  titre_version: string | null
+  langue: string | null
+  traducteur: string | null
+  edition_label: string | null
+  annee_edition: number | null
+  source_url: string | null
+  catalogue_notice_id_ligne: string | null
+  metadata: Record<string, unknown> | null
+  is_default: boolean | null
+  is_public: boolean | null
+  statut: string | null
+}
+
+type AlignementRow = {
+  alignment_set_id: string
+  reference_text_id: string
+  aligned_text_id: string
+  status: string | null
+}
+
+const NIV1_LIMINAIRES = '__LIMINAIRES__'
+
+function construireVersionTextuelle(t: TexteVersionRow): VersionTextuelle {
+  const titre = t.titre_version || t.id_texte
+  const edition = decomposerEdition(t.edition_label, t.annee_edition)
+  const base = {
+    idTexte: t.id_texte,
+    titre,
+    langue: t.langue,
+    traducteur: t.traducteur,
+    anneeEdition: t.annee_edition,
+  }
+  return {
+    ...base,
+    editionLabel: t.edition_label,
+    sourceUrl: t.source_url,
+    catalogueNoticeIdLigne: t.catalogue_notice_id_ligne,
+    metadata: t.metadata ?? {},
+    isDefault: t.is_default === true,
+    isPublic: t.is_public === true,
+    statut: t.statut,
+    labelCourt: labelCourtVersion(base),
+    traducteurLabel: libelleTraducteurVersion(base),
+    editionDescription: edition.editionDescription,
+    publicationLabel: edition.publicationLabel,
+    villeEdition: edition.ville,
+    editeurEdition: edition.editeur,
+    dateEdition: edition.annee,
+  }
 }
 
 // Un même verset peut être visé par plusieurs liens du même segment — chez un
@@ -163,7 +234,7 @@ export default async function OeuvrePage({
   searchParams,
 }:{
   params:Promise<{id:string}>
-  searchParams?:Promise<{segment?:string; texte?:string}>
+  searchParams?:Promise<{segment?:string;texte?:string;compare?:string;book?:string;division?:string}>
 }) {
   const {id}=await params
   const sp = searchParams ? await searchParams : {}
@@ -172,84 +243,77 @@ export default async function OeuvrePage({
   // Client lisant la session : les fonctions imbriquées ci-dessous le capturent.
   const supabase = await creerSupabaseServeur()
 
-  // Une œuvre peut posséder plusieurs témoins textuels publics (par exemple
-  // une traduction française et le texte latin). Le témoin demandé dans l'URL
-  // prime ; à défaut, un lien profond vers un segment choisit son propre témoin ;
-  // enfin on retombe sur la version marquée par défaut.
-  const [{ data: versionsTextuellesRaw }, { data: segmentCibleProbe }, { data: alignementsRaw }] = await Promise.all([
+  // L'œuvre reste l'identité canonique ; le texte actif est choisi séparément.
+  // La RLS masque les versions non publiques aux lecteurs ordinaires.
+  const [estAdmin, oeuvreResult, textesResult, alignementsResult] = await Promise.all([
+    verifierEstAdmin(),
+    supabase.from('oeuvres').select('*, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom)').eq('id_oeuvre', id).single(),
     supabase.from('oeuvre_textes')
-      .select('id_texte,titre_version,langue,traducteur,annee_edition,is_default,is_public,statut')
+      .select('id_texte,titre_version,langue,traducteur,edition_label,annee_edition,source_url,catalogue_notice_id_ligne,metadata,is_default,is_public,statut')
       .eq('id_oeuvre', id)
-      .eq('is_public', true)
-      .eq('statut', 'published')
-      .order('is_default', { ascending: false }),
-    Number.isFinite(segmentCibleId) && segmentCibleId > 0
-      ? supabase.from('segments').select('id,id_texte,ref_niv1,nature').eq('id_oeuvre', id).eq('id', segmentCibleId).maybeSingle()
-      : Promise.resolve({ data: null }),
+      .order('annee_edition', { ascending: true, nullsFirst: true }),
     supabase.from('texte_alignement_ensembles')
-      .select('alignment_set_id,reference_text_id,aligned_text_id,alignment_level,status')
+      .select('alignment_set_id,reference_text_id,aligned_text_id,status')
       .eq('id_oeuvre', id)
       .order('created_at', { ascending: true }),
   ])
-  const versionsTextuelles = (versionsTextuellesRaw ?? []).map((v: any) => ({
-    id_texte: String(v.id_texte),
-    titre_version: v.titre_version || (String(v.langue || '').toLowerCase().startsWith('lat') ? 'Texte latin' : 'Texte français'),
-    langue: v.langue ?? null,
-    traducteur: v.traducteur ?? null,
-    annee_edition: v.annee_edition ?? null,
-    is_default: v.is_default === true,
-  }))
-  const idTexteDemande = typeof sp.texte === 'string' ? sp.texte.trim() : ''
-  const idTexteCible = segmentCibleProbe?.id_texte ? String(segmentCibleProbe.id_texte) : ''
-  const versionActive = versionsTextuelles.find(v => v.id_texte === idTexteDemande)
-    ?? versionsTextuelles.find(v => v.id_texte === idTexteCible)
-    ?? versionsTextuelles.find(v => v.is_default)
-    ?? versionsTextuelles[0]
-    ?? null
-  const idTexteActif = versionActive?.id_texte ?? null
-
-  // La comparaison n'est proposée que si les DEUX témoins de l'alignement font
-  // partie des versions accessibles à cette session : la liste ci-dessus est déjà
-  // filtrée sur `is_public` et `statut`, elle sert donc de garde.
-  const versionParId = new Map(versionsTextuelles.map(v => [v.id_texte, v]))
-  const alignementsDisponibles: AlignementDisponible[] = ((alignementsRaw ?? []) as any[]).flatMap(a => {
-    const reference = versionParId.get(String(a.reference_text_id))
-    const aligned = versionParId.get(String(a.aligned_text_id))
-    if (!reference || !aligned) return []
-    return [{
-      alignmentSetId: String(a.alignment_set_id),
-      referenceTextId: reference.id_texte,
-      alignedTextId: aligned.id_texte,
-      referenceLabel: libelleColonne(reference.titre_version, reference.traducteur, reference.annee_edition),
-      alignedLabel: libelleColonne(aligned.titre_version, aligned.traducteur, aligned.annee_edition),
-      referenceLangue: reference.langue,
-      alignedLangue: aligned.langue,
-      niveau: String(a.alignment_level ?? 'segment'),
-      status: a.status ?? null,
-    }]
-  })
+  const oeuvre = oeuvreResult.data
+  if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre as any))) return (
+    <div className="min-h-screen flex items-center justify-center" style={{background:'var(--cs-fond)'}}>
+      <p style={{color:'#8a8278'}}>Œuvre introuvable.</p>
+    </div>
+  )
+  const textesAccessibles = (textesResult.data ?? []) as TexteVersionRow[]
+  const texteDemande = sp.texte ? textesAccessibles.find(t => t.id_texte === sp.texte) : null
+  const texteActif = texteDemande ?? textesAccessibles.find(t => t.is_default) ?? textesAccessibles[0]
+  if (!texteActif) return (
+    <div className="min-h-screen flex items-center justify-center" style={{background:'var(--cs-fond)'}}>
+      <p style={{color:'#8a8278'}}>Aucun texte accessible pour cette œuvre.</p>
+    </div>
+  )
+  const idTexte = texteActif.id_texte as string
+  const versionsTextuelles = textesAccessibles.map(construireVersionTextuelle)
+  const versionParId = new Map(versionsTextuelles.map(version => [version.idTexte, version]))
+  const alignementsDisponibles = ((alignementsResult.data ?? []) as AlignementRow[])
+    .flatMap((alignement): AlignementDisponible[] => {
+      const reference = versionParId.get(alignement.reference_text_id)
+      const aligned = versionParId.get(alignement.aligned_text_id)
+      if (!reference || !aligned) return []
+      return [{
+        alignmentSetId: alignement.alignment_set_id,
+        referenceTextId: alignement.reference_text_id,
+        alignedTextId: alignement.aligned_text_id,
+        referenceLabel: reference.labelCourt,
+        alignedLabel: aligned.labelCourt,
+        referenceLangue: reference.langue,
+        alignedLangue: aligned.langue,
+        status: alignement.status,
+      }]
+    })
+  const alignementDemande = sp.compare
+    ? alignementsDisponibles.find(alignement => alignement.alignmentSetId === sp.compare)
+    : null
+  const versionActive = versionParId.get(idTexte)!
 
   // Admin = connecté avec le compte administrateur (adresse fixe), vérifié
   // côté serveur via la session Supabase Auth — remplace l'ancien cookie
   // bp_admin_session, qui n'est plus jamais posé depuis la suppression de la
   // page de connexion par mot de passe.
-  const SELECT_SEG = 'id,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original'
-  const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'lemme', 'vers', 'rubrique', 'dialogue', 'apparat_auteur', 'texte absent']
-  const NATURES_APPARAT = ['apparat_critique', 'apparat_editeur']
+  const SELECT_SEG = 'id,id_texte,segment_key,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original,espace_textuel,join_before'
+  const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique', 'signature']
 
   async function chargerTousSegments(filtre: Record<string, string>) {
     // Applique le filtre à une requête (nature « texte » embarque les introductions).
     const appliquer = (q: any) => {
-      if (idTexteActif) q = q.eq('id_texte', idTexteActif)
       for (const [k, v] of Object.entries(filtre)) {
         if (k === 'nature' && v === 'texte') q = q.in('nature', NATURES_TEXTE)
-        else if (k === 'nature' && v === 'apparat') q = q.in('nature', NATURES_APPARAT)
+        else if (k === 'ref_niv1' && v === NIV1_LIMINAIRES) q = q.is('ref_niv1', null)
         else q = q.eq(k, v)
       }
       return q
     }
     const lot = (from: number) =>
-      appliquer(supabase.from('segments').select(SELECT_SEG).eq('id_oeuvre', id))
+      appliquer(supabase.from('segments').select(SELECT_SEG).eq('id_oeuvre', id).eq('id_texte', idTexte))
         .order('segment_numero', { ascending: true }).range(from, from + 999)
 
     // 1er lot AVEC le total exact (une seule requête) : les grosses divisions
@@ -257,7 +321,7 @@ export default async function OeuvrePage({
     // par allers-retours SÉQUENTIELS de 1000. On récupère le total tout de suite,
     // puis on tire les lots restants EN PARALLÈLE.
     const premier = await appliquer(
-      supabase.from('segments').select(SELECT_SEG, { count: 'exact' }).eq('id_oeuvre', id)
+      supabase.from('segments').select(SELECT_SEG, { count: 'exact' }).eq('id_oeuvre', id).eq('id_texte', idTexte)
     ).order('segment_numero', { ascending: true }).range(0, 999)
 
     const acc: any[] = [...((premier.data as any[]) ?? [])]
@@ -278,22 +342,20 @@ export default async function OeuvrePage({
   // chargeur client `chargerNiv1Data`, pour que la tranche soit un vrai préfixe du
   // chargement complet), plus l'indication qu'il reste des segments. Sert à peindre
   // vite les grosses divisions (ex. Somme théologique, ~9000 segments dans un seul
-  // niv1) sans tout charger d'un coup : seule la 1re tranche
-  // (~1000 segments) part du serveur ; le reste est complété en tâche de fond côté
+  // niv1) sans tout charger d'un coup : le reste est complété en tâche de fond côté
   // client, pendant que le lecteur lit déjà la première page.
   const PLAFOND_TRANCHE = 1000
   async function chargerTrancheTexte(filtre: Record<string, string>): Promise<{ segments: Segment[]; partiel: boolean }> {
     const appliquer = (q: any) => {
-      if (idTexteActif) q = q.eq('id_texte', idTexteActif)
       for (const [k, v] of Object.entries(filtre)) {
         if (k === 'nature' && v === 'texte') q = q.in('nature', NATURES_TEXTE)
-        else if (k === 'nature' && v === 'apparat') q = q.in('nature', NATURES_APPARAT)
+        else if (k === 'ref_niv1' && v === NIV1_LIMINAIRES) q = q.is('ref_niv1', null)
         else q = q.eq(k, v)
       }
       return q
     }
     const premier = await appliquer(
-      supabase.from('segments').select(SELECT_SEG, { count: 'exact' }).eq('id_oeuvre', id)
+      supabase.from('segments').select(SELECT_SEG, { count: 'exact' }).eq('id_oeuvre', id).eq('id_texte', idTexte)
     ).order('segment_numero', { ascending: true }).range(0, PLAFOND_TRANCHE - 1)
     const acc: any[] = [...((premier.data as any[]) ?? [])]
     const total = premier.count ?? acc.length
@@ -301,68 +363,90 @@ export default async function OeuvrePage({
     return { segments: acc as Segment[], partiel: total > acc.length }
   }
 
-  // Le sommaire doit provenir du même témoin que le corps. Les anciennes RPC
-  // ne connaissaient que l'œuvre et mélangeaient donc les ref_niv1 de plusieurs
-  // id_texte. On lit ici uniquement les en-têtes du témoin actif puis on dédoublonne
-  // en conservant l'ordre de lecture.
-  async function chargerEntetesTexte() {
-    const SELECT_ENTETE = 'segment_numero,ref_niv1,ref_niv1_texte,nature'
-    const lot = async (from: number, avecCount = false) => {
-      let q = supabase.from('segments')
-        .select(SELECT_ENTETE, avecCount ? { count: 'exact' } : undefined)
-        .eq('id_oeuvre', id)
-        // Les liminaires sont chargés avec leur niveau au moment de la lecture,
-        // mais ne doivent pas créer à eux seuls une entrée de sommaire.
-        .in('nature', NATURES_TEXTE.filter(nature => nature !== 'introduction'))
-      if (idTexteActif) q = q.eq('id_texte', idTexteActif)
-      return q.order('segment_numero', { ascending: true }).range(from, from + 999)
+  // ── Vague 1 : 6 requêtes indépendantes en parallèle ──────────────────────
+  async function chargerNotesStructurees(): Promise<Record<string, Record<string, NoteStructuree>>> {
+    const [notesResult, anchorsResult, blocksResult, relationsResult] = await Promise.all([
+      supabase.from('texte_notes').select('note_key,note_number').eq('id_texte', idTexte),
+      supabase.from('texte_note_ancres').select('note_key,marker,segment_key').eq('id_texte', idTexte),
+      supabase.from('texte_note_blocs')
+        .select('note_key,block_id,rank,kind,form,language,text,rendering,needs_review')
+        .eq('id_texte', idTexte).order('rank'),
+      supabase.from('texte_note_relations')
+        .select('note_key,relation_kind,source_block_id,target_block_id').eq('id_texte', idTexte),
+    ])
+    const relations = new Map<string, Record<string, string | null>>()
+    const numeros = new Map((notesResult.data ?? []).map(note => [note.note_key, note.note_number]))
+    for (const relation of relationsResult.data ?? []) {
+      const key = `${relation.note_key}:${relation.source_block_id}`
+      relations.set(key, { ...(relations.get(key) ?? {}), [relation.relation_kind]: relation.target_block_id })
     }
-    const premier = await lot(0, true)
-    const acc: any[] = [...((premier.data as any[]) ?? [])]
-    const total = premier.count ?? acc.length
-    if (total > 1000) {
-      const restes = await Promise.all(
-        Array.from({ length: Math.ceil(total / 1000) - 1 }, (_, i) => lot((i + 1) * 1000))
-      )
-      for (const r of restes) acc.push(...((r.data as any[]) ?? []))
+    const parNote = new Map<string, NoteStructuree>()
+    for (const block of blocksResult.data ?? []) {
+      const noteNumber = numeros.get(block.note_key)
+      if (typeof noteNumber !== 'number') continue
+      if (!parNote.has(block.note_key)) parNote.set(block.note_key, { noteKey: block.note_key, noteNumber, blocks: [] })
+      const relation = relations.get(`${block.note_key}:${block.block_id}`) ?? {}
+      parNote.get(block.note_key)!.blocks.push({
+        blockId: block.block_id,
+        rank: block.rank,
+        kind: block.kind as NoteStructuree['blocks'][number]['kind'],
+        form: block.form as NoteStructuree['blocks'][number]['form'],
+        language: block.language,
+        text: block.text,
+        rendering: block.rendering,
+        needsReview: block.needs_review,
+        targetBlockId: relation.target_block ?? null,
+        translationOf: relation.translation_of ?? null,
+      })
     }
-    return acc
+    const result: Record<string, Record<string, NoteStructuree>> = {}
+    for (const anchor of anchorsResult.data ?? []) {
+      const note = parNote.get(anchor.note_key)
+      const marker = anchor.marker?.match(/^\[\[([A-Z0-9]+)\]\]$/)?.[1]
+      if (!note || !marker) continue
+      result[anchor.segment_key] ??= {}
+      result[anchor.segment_key][marker] = note
+    }
+    return result
   }
 
-  // ── Vague 1 : métadonnées et données du témoin actif en parallèle ─────────
-  const [estAdmin, { data: oeuvre }, entetesTexteRaw, segmentsApparatRaw, codesTraductions] = await Promise.all([
-    verifierEstAdmin(),
-    supabase.from('oeuvres').select('*, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom)').eq('id_oeuvre', id).single(),
-    chargerEntetesTexte(),
-    chargerTousSegments({ nature: 'apparat' }),
+  const [{ data: niv1Raw, error: rpcError }, { data: niv1TexteRaw }, { data: segmentCibleData }, segmentsApparatRaw, codesTraductions, notesStructurees, { count: nbSegmentsLiminaires }] = await Promise.all([
+    supabase.rpc('get_niv1_list', { p_id_oeuvre: id, p_id_texte: idTexte }),
+    supabase.rpc('get_niv1_texte', { p_id_oeuvre: id, p_id_texte: idTexte }),
+    Number.isFinite(segmentCibleId) && segmentCibleId > 0
+      ? supabase.from('segments').select('id,ref_niv1,nature').eq('id_oeuvre', id).eq('id_texte', idTexte).eq('id', segmentCibleId).maybeSingle()
+      : Promise.resolve({ data: null }),
+    chargerTousSegments({ nature: 'apparat_critique' }),
     chargerCodesTraductions(supabase),
+    chargerNotesStructurees(),
+    supabase.from('segments').select('id', { count: 'exact', head: true })
+      .eq('id_oeuvre', id).eq('id_texte', idTexte)
+      .is('ref_niv1', null).in('nature', NATURES_TEXTE),
   ])
 
-  if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre as any))) return (
-    <div className="min-h-screen flex items-center justify-center" style={{background:'var(--cs-fond)'}}>
-      <p style={{color:'#8a8278'}}>Œuvre introuvable.</p>
-    </div>
-  )
+  if (rpcError) console.error('get_niv1_list error:', rpcError)
 
-  const niv1List: string[] = []
+  // niv1 ayant du texte + libellés ref_niv1_texte : une seule RPC agrégée
+  // (get_niv1_texte) remplace l'ancien N+1 (un count par niv1 pour exclure les niv1
+  // uniquement apparat) et la pagination séquentielle de reconstitution des libellés.
+  const niv1Complet: string[] = (niv1Raw ?? []).map((r: any) => r.ref_niv1).filter(Boolean)
   const niv1TexteMap: Record<string, string> = {}
-  const niv1Vus = new Set<string>()
-  ;(entetesTexteRaw ?? []).forEach((r: any) => {
-    const n1 = r.ref_niv1 ? String(r.ref_niv1) : ''
-    if (!n1) return
-    if (!niv1Vus.has(n1)) { niv1Vus.add(n1); niv1List.push(n1) }
-    if (r.ref_niv1_texte && !niv1TexteMap[n1]) niv1TexteMap[n1] = String(r.ref_niv1_texte)
+  const niv1AvecTexte = new Set<string>()
+  ;(niv1TexteRaw ?? []).forEach((r: any) => {
+    if (!r.ref_niv1) return
+    niv1AvecTexte.add(r.ref_niv1)
+    if (r.ref_niv1_texte) niv1TexteMap[r.ref_niv1] = r.ref_niv1_texte
   })
-  // Une préface générale est structurellement antérieure aux livres numérotés,
-  // même lorsque ses segments ont été ajoutés plus tard dans la numérotation technique.
-  const indexPreface = niv1List.indexOf('Préface')
-  if (indexPreface > 0) {
-    const preface = niv1List.splice(indexPreface, 1)[0]
-    if (preface) niv1List.unshift(preface)
-  }
+  // On conserve l'ordre du sommaire (get_niv1_list) et on exclut les niv1 sans
+  // segment texte (apparat critique seul).
+  const niv1List = [
+    ...((nbSegmentsLiminaires ?? 0) > 0 ? [NIV1_LIMINAIRES] : []),
+    ...niv1Complet.filter(n1 => niv1AvecTexte.has(n1)),
+  ]
+  if ((nbSegmentsLiminaires ?? 0) > 0) niv1TexteMap[NIV1_LIMINAIRES] = 'LIMINAIRES'
 
-  const segmentCible = segmentCibleProbe
-  const vueInitiale = NATURES_APPARAT.includes(segmentCible?.nature ?? '') ? 'apparat' : 'texte'
+  const segmentCible = segmentCibleData
+  const vueInitiale = segmentCible?.nature === 'apparat_critique' ? 'apparat' : 'texte'
   const texteSansNiveaux = niv1List.length === 0
   const lectureTexteEntier = oeuvre.lecture_texte_entier === true
   const premierNiv1 = vueInitiale === 'texte' && segmentCible?.ref_niv1
@@ -371,8 +455,7 @@ export default async function OeuvrePage({
 
   // ── Vague 2 : PREMIÈRE TRANCHE du texte du premier niv1 (apparat exclus) ──
   // On ne charge plus tout le niv1 avant le premier rendu : seule la 1re tranche
-  // (~1000 segments) part du serveur ; le reste est complété en tâche de fond côté
-  // client, pendant que le lecteur lit déjà la première page.
+  // (~1000 segments) part du serveur ; le client complète le reste en tâche de fond.
   const trancheInitiale = lectureTexteEntier
     ? { segments: await chargerTousSegments({ nature: 'texte' }) as Segment[], partiel: false }
     : texteSansNiveaux
@@ -396,16 +479,12 @@ export default async function OeuvrePage({
     }))
   })
 
-  // Une œuvre peut être signée par plusieurs auteurs, à égalité : elle porte
-  // alors les deux noms là où on la nomme. Le fil d'Ariane et le lien de retour
-  // gardent le PREMIER auteur, faute de pouvoir pointer vers deux fiches.
+  // Auteurs de l'œuvre, à égalité : `auteur` est leur libellé commun (il nomme
+  // l'œuvre au frontispice, dans les citations, dans l'historique de lecture),
+  // `auteurId` reste le premier, pour les surfaces qui n'en visent qu'un.
   const auteursOeuvre = await chargerAuteursDOeuvre(supabase, id)
-  const auteur = auteursOeuvre.length
-    ? libelleAuteurs(auteursOeuvre)
-    : ((oeuvre.auteurs as any)?.nom || '')
-  const auteurId = auteursOeuvre[0]?.id_auteur
-    ?? (oeuvre.auteurs as any)?.id_auteur?.toString()
-    ?? ''
+  const auteur = libelleAuteurs(auteursOeuvre) || (oeuvre.auteurs as any)?.nom || ''
+  const auteurId = auteursOeuvre[0]?.id_auteur ?? (oeuvre.auteurs as any)?.id_auteur?.toString() ?? ''
 
   // Éligibilité au mode Paragraphes : l'œuvre doit porter la colonne `paragraphe`
   // (charte §6.1). On l'estime sur le premier niv1 chargé, représentatif — la
@@ -428,11 +507,12 @@ export default async function OeuvrePage({
   const segmentsData = segmentsTexte
     .filter(segmentAffichable)
     .map(s => ({
-      id: s.id, numero: numLocaux.get(s.id) || s.segment_numero,
+      id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
+      numero: numLocaux.get(s.id) || s.segment_numero, numeroSource: s.segment_numero,
       texte: s.segment_texte, versets: versetParSegment[s.id] || [],
-      notes: parseNotes((s as any).notes),
+      notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes((s as any).notes),
       paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
-      nature: s.nature,
+      nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
     }))
 
   const groupesData = groupes.map((g, gi) => ({
@@ -445,11 +525,12 @@ export default async function OeuvrePage({
   const segmentsApparatData = segmentsApparat
     .filter(segmentAffichable)
     .map(s => ({
-      id: s.id, numero: numLocauxApparat.get(s.id) || s.segment_numero,
+      id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
+      numero: numLocauxApparat.get(s.id) || s.segment_numero, numeroSource: s.segment_numero,
       texte: s.segment_texte, versets: [],
-      notes: parseNotes((s as any).notes),
+      notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes((s as any).notes),
       paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
-      nature: s.nature,
+      nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
     }))
 
   const groupesApparatData = groupesApparat.map((g, gi) => ({
@@ -462,15 +543,15 @@ export default async function OeuvrePage({
   return (
     <>
       {/* Book JSON-LD — seulement pour une œuvre publique (jamais un brouillon admin). */}
-      {estOeuvrePubliee(oeuvre as any) && (
+      {estOeuvrePubliee(oeuvre as any) && texteActif.is_public && (
         <>
           <JsonLd donnees={donneesLivre({
             id,
             titre: oeuvre.titre,
             titreOriginal: oeuvre.titre_original,
             auteur, auteurId: auteurId || null,
-            traducteur: oeuvre.trad_auteur,
-            editeur: oeuvre.editeur,
+            traducteur: versionActive.traducteur ?? oeuvre.trad_auteur,
+            editeur: versionActive.editeurEdition ?? oeuvre.editeur,
           })} />
           <JsonLd donnees={donneesFilAriane([
             { nom: 'Accueil', url: '/accueil' },
@@ -481,14 +562,16 @@ export default async function OeuvrePage({
         </>
       )}
     <OeuvreClient
+      key={idTexte}
       auteur={auteur}
       auteurId={auteurId}
+      auteurs={auteursOeuvre}
       idOeuvre={id}
+      idTexte={idTexte}
       estAdmin={estAdmin}
-      idTexteActif={idTexteActif}
       versionsTextuelles={versionsTextuelles}
       alignementsDisponibles={alignementsDisponibles}
-      langueTexteActive={versionActive?.langue ?? null}
+      notesStructurees={notesStructurees}
       niv1List={niv1List}
       niv1TexteMap={niv1TexteMap}
       niveauxSommaire={oeuvre.niveaux_sommaire ?? oeuvre.profondeur_sommaire ?? 1}
@@ -497,7 +580,7 @@ export default async function OeuvrePage({
       txtCorps={(oeuvre.texte_corps ?? '0,0,0,0,0').split(',').map((v: string) => v === '1')}
       afficherNumeros={oeuvre.afficher_numeros !== false}
       lectureTexteEntier={lectureTexteEntier}
-      oeuvre={{titre:oeuvre.titre,titre_affichage:oeuvre.titre_affichage,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:(String(versionActive?.langue || '').toLowerCase().startsWith('lat') ? undefined : (versionActive?.traducteur || oeuvre.trad_auteur)),trad_date:oeuvre.trad_date,commentaire_traduction:oeuvre.commentaire_traduction,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,date_mise_en_ligne:oeuvre.date_mise_en_ligne,id_oeuvre:oeuvre.id_oeuvre,date_composition:oeuvre.date_composition,langue_originale:oeuvre.langue_originale,genres:oeuvre.genres,url_source:oeuvre.url_source}}
+      oeuvre={{titre:oeuvre.titre,titre_affichage:oeuvre.titre_affichage,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,commentaire_traduction:oeuvre.commentaire_traduction,note_editoriale_secondaire:oeuvre.note_editoriale_secondaire,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,date_mise_en_ligne:oeuvre.date_mise_en_ligne,id_oeuvre:oeuvre.id_oeuvre,date_composition:oeuvre.date_composition,langue_originale:oeuvre.langue_originale,genres:oeuvre.genres,url_source:oeuvre.url_source}}
       groupes={groupesData} segments={segmentsData}
       tocApparat={tocApparat} groupesApparat={groupesApparatData} segmentsApparat={segmentsApparatData}
       segmentCibleId={Number.isFinite(segmentCibleId) && segmentCibleId > 0 ? segmentCibleId : null}
@@ -505,6 +588,10 @@ export default async function OeuvrePage({
       vueInitiale={vueInitiale}
       eligibleParagraphes={eligibleParagraphes}
       niv1InitialPartiel={niv1InitialPartiel}
+      comparaisonInitiale={Boolean(alignementDemande)}
+      alignmentSetIdInitial={alignementDemande?.alignmentSetId ?? null}
+      comparaisonLivreInitial={Number(sp.book ?? '1')}
+      comparaisonDivisionInitiale={Number(sp.division ?? '1')}
     />
     </>
   )

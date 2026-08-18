@@ -1,0 +1,73 @@
+== rendu des 10 pages (300 DPI) ==
+rendu fait.
+== Variante A : un processus Kraken PAR page (GPU, repli CPU) ==
+Segmenting /tmp/bench.Unir5c/p19.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 27/27 0:00:00 0:00:03
+Writing recognition results for /tmp/bench.Unir5c/p19.png	✓
+Segmenting /tmp/bench.Unir5c/p20.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 35/35 0:00:00 0:00:04
+Writing recognition results for /tmp/bench.Unir5c/p20.png	✓
+Segmenting /tmp/bench.Unir5c/p45.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 33/33 0:00:00 0:00:03
+Writing recognition results for /tmp/bench.Unir5c/p45.png	✓
+Segmenting /tmp/bench.Unir5c/p66.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 33/33 0:00:00 0:00:02
+Writing recognition results for /tmp/bench.Unir5c/p66.png	✓
+Segmenting /tmp/bench.Unir5c/p88.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 38/38 0:00:00 0:00:04
+Writing recognition results for /tmp/bench.Unir5c/p88.png	✓
+Segmenting /tmp/bench.Unir5c/p100.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 36/36 0:00:00 0:00:04
+Writing recognition results for /tmp/bench.Unir5c/p100.png	✓
+Segmenting /tmp/bench.Unir5c/p120.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 34/34 0:00:00 0:00:04
+Writing recognition results for /tmp/bench.Unir5c/p120.png	✓
+Segmenting /tmp/bench.Unir5c/p140.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 37/37 0:00:00 0:00:05
+Writing recognition results for /tmp/bench.Unir5c/p140.png	✓
+Segmenting /tmp/bench.Unir5c/p142.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 35/35 0:00:00 0:00:04
+Writing recognition results for /tmp/bench.Unir5c/p142.png	✓
+Segmenting /tmp/bench.Unir5c/p143.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 33/33 0:00:00 0:00:03
+Writing recognition results for /tmp/bench.Unir5c/p143.png	✓
+A terminé.
+== Variante B : UN SEUL processus Kraken pour les 10 pages ==
+Segmenting /tmp/bench.Unir5c/p19.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 27/27 0:00:00 0:00:02
+Writing recognition results for /tmp/bench.Unir5c/p19.png	✓
+Segmenting /tmp/bench.Unir5c/p20.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 35/35 0:00:00 0:00:04
+Writing recognition results for /tmp/bench.Unir5c/p20.png	✓
+Segmenting /tmp/bench.Unir5c/p45.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 33/33 0:00:00 0:00:03
+Writing recognition results for /tmp/bench.Unir5c/p45.png	✓
+Segmenting /tmp/bench.Unir5c/p66.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 33/33 0:00:00 0:00:02
+Writing recognition results for /tmp/bench.Unir5c/p66.png	✓
+Segmenting /tmp/bench.Unir5c/p88.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 38/38 0:00:00 0:00:03
+Writing recognition results for /tmp/bench.Unir5c/p88.png	✓
+Segmenting /tmp/bench.Unir5c/p100.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 36/36 0:00:00 0:00:04
+Writing recognition results for /tmp/bench.Unir5c/p100.png	✓
+Segmenting /tmp/bench.Unir5c/p120.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 34/34 0:00:00 0:00:03
+Writing recognition results for /tmp/bench.Unir5c/p120.png	✓
+Segmenting /tmp/bench.Unir5c/p140.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 37/37 0:00:00 0:00:03
+Writing recognition results for /tmp/bench.Unir5c/p140.png	✓
+Segmenting /tmp/bench.Unir5c/p142.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 35/35 0:00:00 0:00:03
+Writing recognition results for /tmp/bench.Unir5c/p142.png	✓
+Segmenting /tmp/bench.Unir5c/p143.png	✓
+Processing ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 33/33 0:00:00 0:00:02
+Writing recognition results for /tmp/bench.Unir5c/p143.png	✓
+B terminé.
+== comparaison des textes A vs B (doit être identique) ==
+
+===== RÉSULTATS P13 (10 pages, Kraken CATMuS-Print, GPU) =====
+A (un process/page) : 416.9 s  → 41.7 s/page
+B (un seul process) : 242.1 s  → 24.2 s/page
+Gain B vs A         : 42 %
+Pages au texte différent A vs B : 0 / 10

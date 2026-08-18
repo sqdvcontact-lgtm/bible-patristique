@@ -8,6 +8,7 @@ import {
   MANIFEST_RELATIVE_PATH,
   TEI_RELATIVE_PATH,
   loadBible899Edition,
+  loadBible899ReaderEdition,
   readBible899Manifest,
 } from "./manifest";
 import {
@@ -214,6 +215,27 @@ describe("manifeste de la source maîtresse", () => {
     expect(edition.teiSha256).toBe(manifest.teiSha256);
     expect(edition.statistics).toEqual(manifest.counts);
     expect(edition.control.usedImageReferences).toEqual(manifest.images.map((image) => image.reference));
+  }, 20_000);
+
+  it("ne transmet au lecteur que la colonne demandée et normalise le préfixe f", async () => {
+    const edition = await loadBible899ReaderEdition("f297r_a");
+    expect(edition.columns).toHaveLength(1);
+    expect(edition.columns[0].key).toBe("297r_a");
+    expect(edition.columnIndex.filter((column) => column.folio === "297r"))
+      .toEqual([
+        { key: "297r_a", folio: "297r", column: "a" },
+        { key: "297r_b", folio: "297r", column: "b" },
+      ]);
+    expect(edition.materialLeaves).toBe(371);
+    expect(edition.materialFaces).toBe(742);
+    expect(edition.alternativeImages).toHaveLength(4);
+    expect(JSON.stringify(edition).length).toBeLessThan(250_000);
+  }, 20_000);
+
+  it("rattache le second scan à la dernière surface matérielle", async () => {
+    const edition = await loadBible899ReaderEdition("f372v_b");
+    expect(edition.selectedAlternativeFacsimiles.map((image) => image.publicUrl))
+      .toContain("/manuscrits/bible-899/f372v_b.png");
   }, 20_000);
 
   it("refuse une modification du TEI tant que le manifeste n’a pas été régénéré", async () => {

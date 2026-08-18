@@ -10,12 +10,17 @@ import { ABREV_FR } from '@/app/lib/bible'
 import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE, HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { selectableReadingModes, type TranslationReadingCapabilities } from '@/app/lib/bibleReadingModes'
+import { estVerseEditorial } from '@/app/lib/bibleMultimode'
+import { livresDisponibles899, type Couche899 } from '@/app/lib/bible899'
 
 type Livre = { code: string; nom: string; testament: string }
 type Verset = {
   id_verset: string; ref: string; livre: string
   chapitre: number; verset: number
-  [traduction: string]: string | number | null | undefined
+  // TR0009 (Bible 899) : marqueurs de l'adaptateur — ligne recomposée et lacune du
+  // manuscrit. Aucun statut technique d'alignement n'est exposé au rendu public.
+  _est899?: boolean; _estLacune?: boolean
+  [traduction: string]: string | number | boolean | null | undefined
 }
 type Traduction = { code: string; label: string; auteur?: string | null; auteurDates?: string | null; editionRef?: string | null; datePublication?: string | null; confession?: string | null; langue?: string | null }
 
@@ -28,6 +33,12 @@ type Props = {
   nomLivre: string
   tradInitiale: string
   readingCapabilities: Record<string, TranslationReadingCapabilities>
+  couche?: Couche899
+  /** Couches réellement disponibles pour la page Bible (TR0009). Pilote l'affichage du
+   *  contrôle « Graphie » : présent seulement si « modernized » y figure. */
+  couchesDisponibles?: Couche899[]
+  /** L'URL a explicitement fixé `?trad=` : on l'honore, sans lui substituer la préférence. */
+  tradExplicite?: boolean
 }
 
 // Les trois éditions du nouveau modèle, et elles seules. La Vulgate figurait ici en repli
@@ -40,7 +51,7 @@ const TRADUCTIONS_DEFAUT = [
 ]
 
 
-export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities }: Props) {
+export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, tradExplicite }: Props) {
   const listeTraductions = traductions.length > 0 ? traductions : TRADUCTIONS_DEFAUT
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
@@ -112,6 +123,21 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   // dans cette traduction, puis marque tous les autres comme vides.
   useEffect(() => {
     const trad = traduction
+    let annule = false
+    const marquerVides = (avecContenu: Set<string>) => {
+      if (annule) return
+      const vides = new Set<string>()
+      for (const livre of livres) {
+        if (!avecContenu.has(livre.code)) vides.add(livre.code)
+      }
+      setLivresVidesCache((cache) => ({ ...cache, [trad]: vides }))
+    }
+    // TR0009 (Bible 899) n'est pas dans `versets_v2`/`livres_par_traduction` : ses
+    // livres réellement portés se lisent sur la vue de recomposition.
+    if (estVerseEditorial(readingCapabilities[trad])) {
+      livresDisponibles899(supabase).then(marquerVides).catch(() => {})
+      return () => { annule = true }
+    }
     // On demande la LISTE DES LIVRES, pas tous les versets pour en déduire la liste : l'API
     // plafonne à 1 000 lignes, si bien que la version précédente ne voyait jamais que les deux
     // premiers livres de la Bible et grisait tous les autres.
@@ -121,14 +147,10 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
       .eq('trad_id', trad)
       .then(({ data }) => {
         if (!data) return
-        const avecContenu = new Set(data.map((r: { livre: string }) => r.livre))
-        const vides = new Set<string>()
-        for (const livre of livres) {
-          if (!avecContenu.has(livre.code)) vides.add(livre.code)
-        }
-        setLivresVidesCache((cache) => ({ ...cache, [trad]: vides }))
+        marquerVides(new Set(data.map((r: { livre: string }) => r.livre)))
       })
-  }, [traduction, livres])
+    return () => { annule = true }
+  }, [traduction, livres, readingCapabilities])
 
   const livresVides = new Set(livresVidesCache[traduction] ?? [])
   if (versets.some((verset) => verset[traduction])) livresVides.delete(livreActif)
@@ -149,6 +171,9 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   }, [navWidth, pannWidth])
 
   useEffect(() => {
+    // L'URL fait foi quand elle nomme une traduction (lien profond, navigation par URL) :
+    // on n'y substitue pas la préférence enregistrée, qui écraserait le choix demandé.
+    if (tradExplicite) return
     let cancelled = false
     const estCanonique = (code?: string | null) => {
       if (!code) return false
@@ -157,6 +182,12 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
     }
     const appliquer = (code?: string | null) => {
       if (!code || cancelled || !estCanonique(code)) return
+      // Une traduction à segmentation éditoriale (TR0009) n'a pas ses colonnes dans les
+      // versets déjà chargés : basculer VERS ou DEPUIS elle exige un rechargement serveur,
+      // pas un simple échange d'index en mémoire. On laisse donc ce cas au choix explicite
+      // (menu / URL, qui rechargent) ; sans ce garde, la préférence enregistrée écraserait
+      // le `trad` de l'URL et lirait une colonne absente → texte vide.
+      if (estVerseEditorial(readingCapabilities[code]) || estVerseEditorial(readingCapabilities[traduction])) return
       const idx = listeTraductions.findIndex(t => t.code === code)
       if (idx >= 0) setTraductionIndex(idx)
     }
@@ -177,7 +208,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
       cancelled = true
       cancelAnimationFrame(frame)
     }
-  }, [listeTraductions, readingCapabilities])
+  }, [listeTraductions, readingCapabilities, tradExplicite])
 
   useEffect(() => {
     const trad = listeTraductions[traductionIndex]?.code ?? 'TR0001'
@@ -252,6 +283,8 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
           versetSelectionne={versetSelectionneCourant}
           setVersetSelectionne={setVersetSelectionne}
           mobile={mobile}
+          couche={couche}
+          couchesDisponibles={couchesDisponibles}
         />
       </div>
       <PanneauPatristique

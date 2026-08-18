@@ -74,6 +74,11 @@
   /* Or — accent doré (références, fleurons, favoris) */
   --cs-or: #9a7a38;
   --cs-or-doux: #c8b89e;
+  /* Ocre « apparat » : les états d'ABSENCE du témoin (lacune du manuscrit). Plus
+     profond que --cs-etiquette (trop pâle pour un petit marqueur) : assez de contraste
+     sur les fonds clairs, tout en se lisant comme une annotation d'éditeur, non comme du
+     texte fané. Distinct du gris des lectures incertaines (présent mais douteux). */
+  --cs-lacune: #8a6a2c;
 
   /* Surface « papier » : cartes, menus, champs. Blanc en thème clair (identique à
      l'existant) ; devient crème chaud en Sépia, brun sombre en Cuir. C'est ce token
@@ -276,4 +281,8 @@ button:focus-visible,
    la place. `!important` car la taille est posée en style inline. */
 @media (max-width: 700px) {
   .bib-photo { display: none !important; }
+  /* Sans la photo, la hauteur fixe de 200px (posée en inline pour uniformiser la
+     grille sur grand écran) laissait un grand blanc entre la notice et la ligne
+     « N œuvre(s) disponible(s) ». En une seule colonne, la carte épouse son contenu. */
+  .bib-carte-haut { height: auto !important; }
 }

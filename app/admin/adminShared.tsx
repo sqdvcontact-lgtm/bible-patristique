@@ -36,7 +36,7 @@ export function ContexteSegment({ segId, segMap }: { segId: number | null; segMa
   const s = segMap[segId]
   return (
     <p style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '4px 0 8px', lineHeight: 1.4 }}>
-      Segment §{s.numero} — <a href={`/oeuvre/${s.id_oeuvre}#s${s.numero}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-texte-doux)', textDecoration: 'underline' }}>{s.texte.slice(0, 80)}…</a>
+      Segment §{s.numero} — <a href={`/oeuvre/${s.id_oeuvre}?texte=${encodeURIComponent(s.id_texte)}&segment=${segId}#segment-${segId}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-texte-doux)', textDecoration: 'underline' }}>{s.texte.slice(0, 80)}…</a>
     </p>
   )
 }

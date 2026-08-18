@@ -1,4 +1,4 @@
-import type { Bible899Edition } from "./tei";
+import type { Bible899Edition, Bible899ReaderEdition } from "./tei";
 
 export type ReadingMode = "diplomatic" | "expanded" | "modernized";
 
@@ -27,15 +27,20 @@ const MODERNIZED_MODE: ReadingModeOption = {
   description: "Version modernisée validée encodée dans le TEI",
 };
 
-export function availableReadingModes(edition: Bible899Edition): ReadingModeOption[] {
-  const hasModernizedText = edition.columns.some((column) => column.modernizedParagraphs.length > 0);
+export function availableReadingModes(
+  edition: Bible899Edition | Bible899ReaderEdition,
+): ReadingModeOption[] {
+  const hasModernizedText = "hasModernizedText" in edition
+    ? edition.hasModernizedText
+    : edition.columns.some((column) => column.modernizedParagraphs.length > 0);
   return edition.manuscript.modernizedStatus === "validated" && hasModernizedText
     ? [...CORE_MODES, MODERNIZED_MODE]
     : CORE_MODES;
 }
 
 export function initialColumnKey(edition: Bible899Edition, requested: string | undefined): string {
-  return edition.columns.some((column) => column.key === requested)
-    ? requested!
+  const normalized = requested?.trim().replace(/^f(?=\d)/u, "");
+  return edition.columns.some((column) => column.key === normalized)
+    ? normalized!
     : edition.columns[0]?.key ?? "";
 }

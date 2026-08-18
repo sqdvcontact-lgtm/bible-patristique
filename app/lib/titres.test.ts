@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cleTriTitre, sansPointFinal } from './titres'
+import { cleTriTitre, sansPointFinal, normaliserTitreTechnique } from './titres'
 
 describe('cleTriTitre', () => {
   it('retire l’article défini de tête', () => {
@@ -38,5 +38,34 @@ describe('sansPointFinal', () => {
   it('retire un point final mais préserve les points de suspension', () => {
     expect(sansPointFinal('Le Banquet.')).toBe('Le Banquet')
     expect(sansPointFinal('À suivre…')).toBe('À suivre…')
+  })
+})
+
+describe('normaliserTitreTechnique', () => {
+  it('convertit « mot_nombre » en « Mot N » (séparateur et zéros de tête normalisés)', () => {
+    expect(normaliserTitreTechnique('caput_002')).toBe('Caput 2')
+    expect(normaliserTitreTechnique('quaestio_089')).toBe('Quaestio 89')
+    expect(normaliserTitreTechnique('caput 02')).toBe('Caput 2')
+    expect(normaliserTitreTechnique('Caput_2')).toBe('Caput 2')
+  })
+  it('donne sa capitale à un mot latin isolé tout en bas de casse', () => {
+    expect(normaliserTitreTechnique('prolegomena')).toBe('Prolegomena')
+    expect(normaliserTitreTechnique('subscriptio')).toBe('Subscriptio')
+    expect(normaliserTitreTechnique('incipit')).toBe('Incipit')
+  })
+  it('ne touche jamais un vrai intitulé', () => {
+    expect(normaliserTitreTechnique('Homélie sur l’Hexaéméron')).toBe('Homélie sur l’Hexaéméron')
+    expect(normaliserTitreTechnique('Question 2 sur la Genèse')).toBe('Question 2 sur la Genèse')
+    expect(normaliserTitreTechnique('Livre premier')).toBe('Livre premier')
+    expect(normaliserTitreTechnique('II')).toBe('II')
+  })
+  it('est idempotente', () => {
+    expect(normaliserTitreTechnique(normaliserTitreTechnique('caput_002'))).toBe('Caput 2')
+    expect(normaliserTitreTechnique(normaliserTitreTechnique('prolegomena'))).toBe('Prolegomena')
+  })
+  it('gère null/undefined/vide', () => {
+    expect(normaliserTitreTechnique(null)).toBe('')
+    expect(normaliserTitreTechnique(undefined)).toBe('')
+    expect(normaliserTitreTechnique('')).toBe('')
   })
 })

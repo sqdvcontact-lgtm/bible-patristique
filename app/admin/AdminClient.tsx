@@ -17,6 +17,7 @@ import SectionFiabilite from './SectionFiabilite'
 import SectionOuvrages from './SectionOuvrages'
 import SectionValidationNotices from './SectionValidationNotices'
 import SectionConstituerLiens from './SectionConstituerLiens'
+import { useEstMobile } from '@/app/lib/useEstMobile'
 import type { AdminProps as Props, Onglet } from './adminTypes'
 
 export default function AdminClient({
@@ -29,6 +30,7 @@ export default function AdminClient({
   actionPublierEssai, actionRenvoyerBrouillonEssai,
 }: Props) {
   const [onglet, setOnglet] = useState<Onglet>('bibliotheque')
+  const mobile = useEstMobile(900)
   const [nbVerif, setNbVerif] = useState(nbVerifications)
   const [nbMod, setNbMod] = useState(commentaires.length + commentairesPublications.length + signalements.length + demandesCertification.length)
   const [nbEssais, setNbEssais] = useState(essaisEnAttente.length + essaisModification.length)
@@ -68,6 +70,7 @@ export default function AdminClient({
   // Familles d'administration, chacune sa couleur (division visuelle) :
   // Corpus & catalogue (vert), Communauté & modération (or), Système & doctrine (ardoise).
   const COUL_FAMILLE: Record<string, string> = { corpus: '#3d6b4f', communaute: '#9a7a38', systeme: '#5f6b86' }
+  const LABEL_FAMILLE: Record<'corpus' | 'communaute' | 'systeme', string> = { corpus: 'Corpus & catalogue', communaute: 'Communauté', systeme: 'Système & doctrine' }
   const ONGLETS: { key: Onglet; label: string; famille: 'corpus' | 'communaute' | 'systeme'; badge?: number; separateur?: boolean }[] = [
     { key: 'bibliotheque',        label: 'Bibliothèque',      famille: 'corpus' },
     { key: 'controle-oeuvres',    label: 'Contrôle œuvres',   famille: 'corpus' },
@@ -99,6 +102,19 @@ export default function AdminClient({
         .btn-gris:hover { background: #f4f2ee !important; border-color: var(--cs-bord) !important; }
         .btn-gris:disabled { opacity: 0.5 !important; cursor: default !important; }
         .adm-onglet:hover { color: #2f6046 !important; background: rgba(var(--cs-vert-rgb),0.05) !important; }
+        /* Garde-fous mobiles communs à TOUTES les sections (elles posent leur mise en
+           page en styles inline, non surchargeables autrement) : un tableau large défile
+           au lieu de déborder la page ; champs, images et blocs préformatés se bornent à
+           la largeur de l'écran. Les grilles à colonnes fixes, elles, sont reprises
+           section par section (l'inline ne se surcharge pas en CSS). */
+        @media (max-width: 900px) {
+          .adm-contenu table { display: block; overflow-x: auto; max-width: 100%; }
+          .adm-contenu input:not([type="checkbox"]):not([type="radio"]),
+          .adm-contenu textarea,
+          .adm-contenu select { max-width: 100%; box-sizing: border-box; }
+          .adm-contenu img { max-width: 100%; height: auto; }
+          .adm-contenu pre { overflow-x: auto; max-width: 100%; }
+        }
       `}</style>
 
       {erreurChargement && (
@@ -107,33 +123,53 @@ export default function AdminClient({
         </div>
       )}
 
-      {/* Barre d'onglets, seule et sticky sous la navbar (l'ancien bandeau « Administration »
-          + Déconnexion est retiré). Surface BLANCHE distincte du fond de la zone admin, pour
-          se lire comme une vraie barre d'outils ; onglets clairs, grands, lisibles ; actif
-          souligné de vert. */}
-      <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid #dfe4e1', display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', padding: '2px 20px 0', boxShadow: '0 2px 8px rgba(30,46,38,0.08)' }}>
-        {ONGLETS.map((o) => {
-          const actif = onglet === o.key
-          const coul = COUL_FAMILLE[o.famille]
-          return (
-            <React.Fragment key={o.key}>
-              {o.separateur && (
-                <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '18px', margin: '0 8px 10px', background: '#e2e6e3' }} />
-              )}
-              <button onClick={() => setOnglet(o.key)} className="adm-onglet"
-                style={{ padding: '12px 14px', fontSize: '0.97031rem', fontWeight: actif ? 600 : 500, color: actif ? coul : '#6a8074', background: actif ? `${coul}14` : 'transparent', border: 'none', borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent', borderRadius: '5px 5px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', transition: 'color 0.12s, background 0.12s' }}>
-                {/* Pastille de famille : division par couleur. */}
-                <span aria-hidden style={{ width: '7px', height: '7px', borderRadius: '50%', background: coul, flexShrink: 0, opacity: actif ? 1 : 0.55 }} />
-                {o.label}
-                {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger)', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
-              </button>
-            </React.Fragment>
-          )
-        })}
-      </div>
+      {/* Navigation des sections. Sticky sous la navbar. Sur mobile, la barre d'onglets
+          (14 entrées) s'empilait sur ~6 rangées et mangeait tout l'écran : on la remplace
+          par un menu déroulant groupé par famille (compact, natif). Sur desktop, la barre
+          d'outils inchangée : onglets clairs, grands, actif souligné de vert. */}
+      {mobile ? (
+        <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid #dfe4e1', padding: '8px 12px', boxShadow: '0 2px 8px rgba(30,46,38,0.08)' }}>
+          <label style={{ display: 'block', fontSize: '0.56rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 2px 4px' }}>Section d’administration</label>
+          <select value={onglet} onChange={e => setOnglet(e.target.value as Onglet)} aria-label="Section d’administration"
+            style={{ width: '100%', font: 'inherit', fontSize: '0.95rem', padding: '9px 10px', border: `1px solid ${COUL_FAMILLE[ONGLETS.find(o => o.key === onglet)?.famille ?? 'corpus']}`, borderRadius: '6px', background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)' }}>
+            {(['corpus', 'communaute', 'systeme'] as const).map(fam => (
+              <optgroup key={fam} label={LABEL_FAMILLE[fam]}>
+                {ONGLETS.filter(o => o.famille === fam).map(o => (
+                  <option key={o.key} value={o.key}>{o.label}{o.badge ? ` (${o.badge})` : ''}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+      ) : (
+        <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid #dfe4e1', display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', padding: '2px 20px 0', boxShadow: '0 2px 8px rgba(30,46,38,0.08)' }}>
+          {ONGLETS.map((o) => {
+            const actif = onglet === o.key
+            const coul = COUL_FAMILLE[o.famille]
+            return (
+              <React.Fragment key={o.key}>
+                {o.separateur && (
+                  <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '18px', margin: '0 8px 10px', background: '#e2e6e3' }} />
+                )}
+                <button onClick={() => setOnglet(o.key)} className="adm-onglet"
+                  style={{ padding: '12px 14px', fontSize: '0.97031rem', fontWeight: actif ? 600 : 500, color: actif ? coul : '#6a8074', background: actif ? `${coul}14` : 'transparent', border: 'none', borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent', borderRadius: '5px 5px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', transition: 'color 0.12s, background 0.12s' }}>
+                  {/* Pastille de famille : division par couleur. */}
+                  <span aria-hidden style={{ width: '7px', height: '7px', borderRadius: '50%', background: coul, flexShrink: 0, opacity: actif ? 1 : 0.55 }} />
+                  {o.label}
+                  {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger)', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
+                </button>
+              </React.Fragment>
+            )
+          })}
+        </div>
+      )}
 
       {/* Contenu */}
-      <div style={onglet === 'controle-oeuvres'
+      <div className="adm-contenu" style={mobile
+        // Mobile : pleine largeur, padding resserré (les maxWidth/gouttières desktop
+        // ne servent à rien sur téléphone et rognaient la place utile).
+        ? { maxWidth: 'none', margin: 0, padding: '14px 10px 40px' }
+        : onglet === 'controle-oeuvres'
         // Le contrôle des œuvres prend toute la largeur : on y lit du texte suivi en
         // regard d'un volet d'analyse, et l'un comme l'autre étouffaient à 1320 px.
         ? { maxWidth: 'none', margin: 0, padding: '20px 14px 48px' }

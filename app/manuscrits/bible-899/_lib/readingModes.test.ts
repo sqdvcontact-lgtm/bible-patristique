@@ -68,6 +68,7 @@ describe("modes publics du lecteur Bible 899", () => {
     const edition = editionWithModernizedStatus("legacy-unverified");
     edition.columns.push({ ...edition.columns[0], key: "297r_a", folio: "297r" });
     expect(initialColumnKey(edition, "297r_a")).toBe("297r_a");
+    expect(initialColumnKey(edition, "f297r_a")).toBe("297r_a");
     expect(initialColumnKey(edition, "296r_a")).toBe("1r_a");
   });
 });

@@ -36,33 +36,17 @@ const UN_SIECLE = new RegExp(`\\b([IVXLCDM]+)(${ORDINAL})\\b`, 'g')
 
 /** Petites capitales : `all-small-caps` et non `small-caps` — voir en tête. */
 export const STYLE_ROMAIN: React.CSSProperties = { fontVariantCaps: 'all-small-caps' }
-
-/** L'ordinal en exposant.
- *
- *  ⛔ **Jamais `vertical-align: super`**, qui est le défaut du `<sup>` et qu'il
- *  faut donc neutraliser explicitement. Mesuré dans le navigateur, à 20 px de
- *  corps : la petite capitale du chiffre romain monte à 11 px au-dessus de la
- *  ligne de base, l'ordinal composé à 0,6 em a 7 px de hauteur d'x, il faut donc
- *  le relever de 4 px pour que leurs sommets s'alignent. `super` le relève de
- *  7,66 px — presque du double. D'où le « e » qui flottait au-dessus du siècle.
- *
- *  Le relèvement s'écrit en em de l'EXPOSANT (0,33 × 0,6 em = 0,20 em du
- *  parent) : il suit ainsi le corps du texte d'accueil.
- *
- *  `line-height: 0` empêche l'exposant de gonfler la boîte de ligne, comme dans
- *  `NoteTooltip`. */
+// L'ordinal en exposant. ⚠️ On NE laisse PAS le `vertical-align: super` par défaut du
+// `<sup>` : il monte l'ordinal beaucoup trop haut (au-dessus de la casse du chiffre). On
+// le cale par un décalage relatif modéré (`top`), qui place le « e » dans le haut du
+// chiffre sans toucher à l'interligne (contrairement à `super`, qui peut l'écarter).
 export const STYLE_ORDINAL: React.CSSProperties = {
-  fontSize: '0.6em',
-  lineHeight: 0,
+  fontSize: '0.62em',
+  lineHeight: 1,
   verticalAlign: 'baseline',
   position: 'relative',
-  top: '-0.33em',
+  top: '-0.5em',
 }
-
-/** Même exposant, en CSS littéral, pour les rendus qui composent du HTML en
- *  chaîne (injection `dangerouslySetInnerHTML`). Une seule définition, deux
- *  écritures : les garder d'accord. */
-export const CSS_ORDINAL = 'font-size:0.6em;line-height:0;vertical-align:baseline;position:relative;top:-0.33em'
 
 export function enChiffresRomains(n: number): string {
   const table: [number, string][] = [
@@ -124,75 +108,22 @@ export function decouperSiecles(texte: string | null | undefined): FragmentSiecl
   return frags
 }
 
-function rendreSieclesBrut(t: string, cle: string): React.ReactNode {
-  const frags = decouperSiecles(t)
-  if (!frags.some(f => f.t !== 'texte')) return t
-  return frags.map((f, i) =>
-    f.t === 'romain' ? <span key={`${cle}-r-${i}`} style={STYLE_ROMAIN}>{f.v}</span>
-    : f.t === 'ordinal' ? <sup key={`${cle}-o-${i}`} style={STYLE_ORDINAL}>{f.v}</sup>
-    : f.v,
-  )
-}
-
-/** Texte libre → JSX, en composant les siècles rencontrés.
- *
- *  Les champs éditoriaux peuvent aussi employer le balisage léger `*italique*`
- *  (notamment pour les titres d'œuvres dans les notices auteurs). On le rend ici
- *  sans sacrifier la composition des siècles : un « IVe siècle » placé dans un
- *  empan italique conserve donc petites capitales et exposant.
- *
- *  Le double astérisque est également reconnu pour ne jamais afficher un balisage
- *  `**gras**` littéralement si un champ éditorial déjà enrichi passe par cette
- *  fonction. Aucun autre Markdown n'est interprété ici.
+/** Texte libre → JSX, en composant les siècles rencontrés. Le reste du texte
+ *  est renvoyé tel quel : la fonction ne met rien d'autre en forme.
  *
  *  À employer partout où l'on affiche un texte saisi à la main — dates d'un
  *  auteur, note biographique, mention d'édition, titre d'une œuvre. */
 export function rendreSiecles(texte: string | null | undefined): React.ReactNode {
   const t = texte ?? ''
   if (!t) return t
-
-  const re = /\*\*(.+?)\*\*|\*(.+?)\*/g
-  let dernier = 0
-  let index = 0
-  let m: RegExpExecArray | null
-  const noeuds: React.ReactNode[] = []
-
-  while ((m = re.exec(t))) {
-    if (m.index > dernier) {
-      noeuds.push(
-        <React.Fragment key={`texte-${index}`}>
-          {rendreSieclesBrut(t.slice(dernier, m.index), `texte-${index}`)}
-        </React.Fragment>,
-      )
-      index++
-    }
-
-    if (m[1] !== undefined) {
-      noeuds.push(
-        <strong key={`gras-${index}`}>
-          {rendreSieclesBrut(m[1], `gras-${index}`)}
-        </strong>,
-      )
-    } else {
-      noeuds.push(
-        <em key={`ital-${index}`}>
-          {rendreSieclesBrut(m[2], `ital-${index}`)}
-        </em>,
-      )
-    }
-    index++
-    dernier = re.lastIndex
-  }
-
-  if (dernier === 0) return rendreSieclesBrut(t, 'simple')
-  if (dernier < t.length) {
-    noeuds.push(
-      <React.Fragment key={`texte-${index}`}>
-        {rendreSieclesBrut(t.slice(dernier), `texte-${index}`)}
-      </React.Fragment>,
-    )
-  }
-  return noeuds
+  const frags = decouperSiecles(t)
+  // Aucun siècle : rendre la chaîne elle-même, et non un tableau d'un élément.
+  if (!frags.some(f => f.t !== 'texte')) return t
+  return frags.map((f, i) =>
+    f.t === 'romain' ? <span key={i} style={STYLE_ROMAIN}>{f.v}</span>
+    : f.t === 'ordinal' ? <sup key={i} style={STYLE_ORDINAL}>{f.v}</sup>
+    : f.v,
+  )
 }
 
 /** Même règle, mais sur du HTML déjà composé (éditeur de traductions, notes).
@@ -200,7 +131,7 @@ export function rendreSiecles(texte: string | null | undefined): React.ReactNode
 export function sieclesEnHtml(html: string): string {
   return html.replace(
     new RegExp(`\\b([IVXLCDM]+)(?:<sup>)?(${ORDINAL})(?:</sup>)?(\\s*(?:siècles?|s\\.))`, 'g'),
-    `<span style="font-variant-caps:all-small-caps">$1</span><sup style="${CSS_ORDINAL}">$2</sup>$3`,
+    '<span style="font-variant-caps:all-small-caps">$1</span><sup style="font-size:0.62em !important;line-height:1;vertical-align:baseline;position:relative;top:-0.5em">$2</sup>$3',
   )
 }
 

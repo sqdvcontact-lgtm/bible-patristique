@@ -40,21 +40,8 @@ describe('HistoricalDate', () => {
 
     expect(html).toContain('font-variant-caps:all-small-caps')
     expect(html).toContain('font-feature-settings:&quot;smcp&quot; 1, &quot;c2sc&quot; 1')
-    expect(html).toContain('<sup')
-    expect(html).toContain('>er</sup>')
-    expect(html).toContain('>e</sup>')
-  })
-
-  // ⛔ Ce test épinglait auparavant la chaîne exacte `vertical-align:super`,
-  // et pinçait donc le défaut en place : `super` relève l'ordinal du double de
-  // ce qu'il faut, si bien que le « e » de « IXe siècle » flottait au-dessus du
-  // chiffre. On épingle désormais la RÈGLE et non la sérialisation.
-  it('relève l’ordinal explicitement, jamais par vertical-align: super', () => {
-    const html = renderToStaticMarkup(<HistoricalDate value="IXe siècle" variant="long" />)
-    expect(html).not.toContain('vertical-align:super')
-    expect(html).toContain('top:-0.33em')
-    // `line-height: 0` : l'exposant ne doit pas gonfler la boîte de ligne.
-    expect(html).toContain('line-height:0')
+    expect(html).toContain('<sup style="font-size:0.68em;line-height:0;vertical-align:baseline;position:relative;top:-0.5em">er</sup>')
+    expect(html).toContain('<sup style="font-size:0.68em;line-height:0;vertical-align:baseline;position:relative;top:-0.5em">e</sup>')
   })
 
   it('ne crée aucun contenu pour une date absente', () => {

@@ -179,7 +179,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             <button onClick={() => entourer('^^')} title="Exposant" style={BTN_MODAL}>x²</button>
             <button onClick={inserrerLien} title="Insérer un lien" style={BTN_MODAL}>Lien</button>
             <span style={{ width: '1px', background: 'var(--cs-bord-clair)' }} />
-            <button onClick={() => entourer('« ', ' »')} title="Guillemets français" style={BTN_MODAL}>« »</button>
+            <button onClick={() => entourer('« ', ' »')} title="Guillemets français" style={BTN_MODAL}>« »</button>
             <button onClick={() => entourer('“', '”')} title="Guillemets anglais (citation imbriquée)" style={BTN_MODAL}>" "</button>
           </div>
           <textarea ref={taRef} value={valeur} onChange={e => setValeur(e.target.value)}

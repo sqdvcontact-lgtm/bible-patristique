@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "date": "2026-08-09",
+  "provenance": "Extrait local versionné de la doctrine déjà établie : charte Supabase parametres.charte_ia §14 (OCR/HTR) et rapports RAPPORT_STRUCTURE_BOECE_PASSE1..4 de La Gueule. Ne remplace pas la charte ; en reprend les règles applicables au contrôle IA, terminologie conservée.",
+  "principes": {
+    "candidat_uniquement": "La Gueule produit des CANDIDATS ; jamais un texte éditorial faisant autorité.",
+    "facsimile_autorite": "Le fac-similé fait autorité.",
+    "correction_sans_image": "Aucune correction « au sens » sans image (interdit §14).",
+    "ocr_brut_immuable": "OCR brut, texte_ocr_original et ALTO brut immuables ; corrections dans une couche candidate distincte, réversible, traçable.",
+    "diplomatique_vs_lecture": "Couche diplomatique = ce qui est imprimé (graphie d'époque conservée : ſ, u/v, i/j) ; la typographie de lecture (fine, guillemets) ne s'ajoute qu'au RENDU.",
+    "cesure": "« ¬ » = césure typographique de fin de ligne (recollée) ; « - » = trait lexical (conservé). Jamais de conversion silencieuse.",
+    "fine_insecable": "La fine insécable U+202F n'entre JAMAIS dans le ground-truth ni les exports diplomatiques ; seulement au rendu de lecture.",
+    "hors_corps_conserve": "Folios, titres courants, marques de cahier, réclames, paratexte, ornements, filigranes : hors corps mais CONSERVÉS comme métadonnées (jamais supprimés de la source).",
+    "graphie_ancienne": "Ne jamais moderniser une graphie ancienne correcte, ni fabriquer une graphie modernisée par concaténation (§14.6).",
+    "ia_jamais_autorite": "L'IA analyse, propose, corrige la couche candidate, classe les risques ; jamais autorité ; ne modifie jamais l'OCR brut ; ne crée jamais de ground-truth ; peut s'abstenir. La confiance déclarée ne suffit jamais.",
+    "tables_actives": "Aucune écriture dans les tables actives (oeuvres/segments/versets_*) ; ne pas toucher Bible 899, versets_canon, versets_v2, TR0001-TR0005.",
+    "entrainement": "Aucun entraînement automatique ; une page ayant servi à l'entraînement n'est jamais un banc d'évaluation."
+  },
+  "ground_truth": {
+    "conditions": [
+      "le fac-similé ou le crop contient TOUS les caractères transcrits",
+      "la correction a été validée humainement (statut confirme_humain ou modifie_humain)",
+      "la ligne n'est pas conjecturale",
+      "la ligne n'est pas marquée incertaine",
+      "la provenance est complète",
+      "la page n'appartient pas au banc d'évaluation réservé",
+      "le statut valide_humain est explicite"
+    ],
+    "note": "Une correction acceptée par règle ou échantillonnage entre dans le texte candidat, PAS dans le ground-truth sans validation humaine explicite."
+  }
+}

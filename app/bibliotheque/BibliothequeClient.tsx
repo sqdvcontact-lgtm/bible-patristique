@@ -12,14 +12,13 @@ import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { partagerOpuscules } from '@/app/lib/opuscules'
 import { libelleTrad, formaterEditeur } from '@/app/oeuvre/[id]/PageTitre'
-import { estLangueOriginale, libelleTemoin, editionCourte } from '@/app/lib/temoinsOeuvre'
-import { libelleAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import { useEditeursCharges } from '@/app/lib/editeurs'
 import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
 import HistoricalDate from '@/app/components/HistoricalDate'
+import { chargerAuteursParOeuvre, grouperOeuvresParAuteur, libelleAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 
 type Oeuvre = {
   id_oeuvre: string; id_auteur: string; titre: string; sous_titre: string | null
@@ -29,22 +28,9 @@ type Oeuvre = {
   date_publication_precision_affichage: string | null
   genre: string | null; note?: string | null; langue_originale?: string | null
   nb_signes?: number | null
-  textes?: TexteOeuvre[]
-  // Tous les auteurs qui signent l'œuvre, à égalité. Une œuvre à deux auteurs
-  // paraît sur l'étagère de chacun ; ce champ sert à nommer l'autre.
+  // Tous les auteurs de l'œuvre, `id_auteur` compris (qui n'est que le premier).
+  // Une œuvre à deux auteurs paraît sur les deux étagères, et porte les deux noms.
   auteurs?: AuteurOeuvre[]
-}
-// Un témoin textuel de l'œuvre : une traduction, ou le texte dans sa langue
-// d'origine. Le catalogue lui doit UNE LIGNE, la règle valant aussi bien pour
-// deux traductions d'éditions différentes que pour le latin et le français
-// d'une même édition.
-type TexteOeuvre = {
-  id_texte: string
-  langue: string | null
-  traducteur: string | null
-  edition_label: string | null
-  annee_edition: number | null
-  is_default: boolean
 }
 type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }
@@ -130,14 +116,6 @@ const CHIFFRES_FR = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'h
   'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf', 'vingt']
 function enLettres(n: number): string { return n >= 1 && n <= 20 ? CHIFFRES_FR[n - 1] : String(n) }
 
-// Nombre de lignes de notice avant la première mesure. Ce n'est qu'un point de
-// départ : la valeur réelle se calcule sur la hauteur que la carte laisse, avant
-// peinture.
-const LIGNES_NOTICE_AU_DEPART = 3
-
-// `useLayoutEffect` mesure et corrige AVANT peinture : la carte ne doit pas se voir
-// grandir puis se recouper. Il n'existe pas au rendu serveur, d'où le repli.
-const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
 // ── Opuscules ─────────────────────────────────────────────────────────────────
 // Seuil, mesure et règles de partage : voir `app/lib/opuscules.ts` (module pur, testé).
 type GroupeTitre = { titre: string; versions: Oeuvre[] }
@@ -164,6 +142,15 @@ function SectionOpuscules({ nombre, ouverteDeForce, children }: {
     </div>
   )
 }
+
+// Nombre de lignes de notice avant la première mesure. Ce n'est qu'un point de
+// départ : la valeur réelle se calcule sur la hauteur que la carte laisse, avant
+// peinture.
+const LIGNES_NOTICE_AU_DEPART = 3
+
+// `useLayoutEffect` mesure et corrige AVANT peinture : la carte ne doit pas se voir
+// grandir puis se recouper. Il n'existe pas au rendu serveur, d'où le repli.
+const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 // ── Bandeau auteur ────────────────────────────────────────────────────────────
 function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, onOuvrirAuteur, originaux, ouvertParDefaut = false, compact = false }: {
@@ -232,7 +219,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
         {!compact && (
           <div className="bib-photo" style={{ width: '7.5rem', flexShrink: 0, background: 'var(--cs-fond-doux)', position: 'relative', minHeight: '170px', overflow: 'hidden' }}>
             {!imgErreur && (
-              <Image src={auteur.imageUrl} alt={auteur.nom} fill sizes="240px" unoptimized
+              <Image src={auteur.imageUrl} alt={auteur.nom} fill sizes="120px" unoptimized
                 onError={() => setImgErreur(true)}
                 style={{ ...stylePhotoAuteur(photoPos), imageRendering: 'auto' }} />
             )}
@@ -341,36 +328,25 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                   className={`bib-oeuvre${correspond ? ' bib-correspond' : ''}`}
                   style={{ borderTop: idx > 0 ? '1px solid #f3efe9' : 'none', borderLeft: correspond ? '3px solid var(--cs-vert)' : '3px solid transparent', padding: '4px 0 5px' }}>
                   <span style={{ display: 'block', fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? '#2a4d35' : 'var(--cs-encre)', fontWeight: correspond ? 600 : 400, lineHeight: 1.3, padding: '0 18px 0 20px' }}>{grp.titre}</span>
-                  {/* Une œuvre signée à plusieurs paraît sur l'étagère de chacun :
-                      on y nomme les AUTRES signataires, sans quoi l'Histoire
-                      ecclésiastique semblerait, chez Rufin, être de lui seul. */}
-                  {(() => {
-                    const cosignataires = (grp.versions[0].auteurs ?? []).filter(a => a.id_auteur !== auteur.id_auteur)
-                    if (!cosignataires.length) return null
-                    return (
-                      <span style={{ display: 'block', fontSize: '0.625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', lineHeight: 1.3, padding: '1px 18px 0 20px' }}>
-                        avec {libelleAuteurs(cosignataires)}
-                      </span>
-                    )
-                  })()}
+                  {/* Œuvre à plusieurs auteurs : elle est sur l'étagère de chacun,
+                      et porte les deux noms pour qu'on sache d'où qu'on vienne qui
+                      l'a écrite. Une œuvre à auteur unique ne répète pas le nom de
+                      l'étagère qui la porte. */}
+                  {(grp.versions[0].auteurs?.length ?? 0) > 1 && (
+                    <span style={{ display: 'block', fontSize: '0.625rem', color: 'var(--cs-texte-doux)', lineHeight: 1.3, padding: '1px 18px 0 20px' }}>
+                      {libelleAuteurs(grp.versions[0].auteurs!)}
+                    </span>
+                  )}
                   {grp.versions.map(o => {
-                    const editionTexte = [formaterEditeur(o.editeur), o.ville].filter(Boolean).join(', ')
+                    const editionTexte = [o.editeur, o.ville].filter(Boolean).join(', ')
                     const datePublication = o.date_publication_affichage_courte
                     const aEdition = !!(editionTexte || datePublication)
                     const edition = <>{editionTexte}{editionTexte && datePublication ? ', ' : null}{datePublication && <span title={o.date_publication_precision_affichage ?? undefined}><HistoricalDate value={datePublication} variant="short" /></span>}</>
                     const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
                     const libelle = trad || (aEdition ? edition : 'Édition')
-                    // Témoins supplémentaires : tout ce qui n'est pas la version par
-                    // défaut, déjà représentée par la ligne principale ci-dessous.
-                    const autresTextes = (o.textes ?? []).filter(t => !t.is_default)
-                    // Le latin existe parfois DEUX fois : comme colonne parallèle des
-                    // segments (`texte_original`) et comme témoin à part entière. Quand
-                    // le témoin existe, il prime : sans cela, La Cité de Dieu offrirait
-                    // deux portes vers le même latin.
-                    const aTemoinOriginal = (o.textes ?? []).some(t => estLangueOriginale(t.langue))
                     // Texte original parallèle (latin/grec) disponible pour cette édition :
                     // on propose une sous-ligne menant à l'œuvre en mode « texte original ».
-                    const aOriginal = !!originaux?.has(o.id_oeuvre) && !aTemoinOriginal
+                    const aOriginal = !!originaux?.has(o.id_oeuvre)
                     const langueOrig = o.langue_originale === 'Grec' ? 'grec' : 'latin'
                     return (
                       <React.Fragment key={o.id_oeuvre}>
@@ -416,27 +392,6 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           </span>
                         </Link>
                       </div>
-                      {/* Les autres témoins de la même œuvre, une ligne chacun, sous la
-                          traduction par défaut. Le lien profond `?texte=` existe déjà côté
-                          page d'œuvre : il n'y avait qu'à le proposer. */}
-                      {autresTextes.map(t => (
-                        <div key={t.id_texte} className="bib-ligne" style={{ marginTop: '1px', alignItems: 'center' }}>
-                          <div aria-hidden style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '20px' }}>
-                            <span style={{ display: 'block', width: '16px', height: '12px' }} />
-                          </div>
-                          <Link href={`/oeuvre/${o.id_oeuvre}?texte=${t.id_texte}`}
-                            style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
-                            <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                              <span style={{ fontSize: '0.71875rem', color: '#4a4038', fontWeight: 500 }}>{libelleTemoin(t)}</span>
-                              {editionCourte(t) && <span style={{ fontSize: '0.625rem', color: '#a59c90' }}>{editionCourte(t)}</span>}
-                            </span>
-                            <span className="bib-lire">
-                              Lire
-                              <span className="bib-fleche" style={{ display: 'inline-flex' }}><IconeChevron dir="right" size={11} strokeWidth={1.4} /></span>
-                            </span>
-                          </Link>
-                        </div>
-                      ))}
                       </React.Fragment>
                     )
                   })}
@@ -601,9 +556,9 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
 
       {/* En-tête auteur */}
       <div style={{ display: 'flex' }}>
-        {/* Zone initiales */}
-        <div style={{ width: '64px', flexShrink: 0, background: '#e8e2d6', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '58px' }}>
-          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', letterSpacing: '0.04em', userSelect: 'none' }}>{initiale}</span>
+        {/* Zone initiales — carré discret (réduit : la vignette prenait trop de place). */}
+        <div style={{ width: '44px', flexShrink: 0, background: '#e8e2d6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', letterSpacing: '0.03em', userSelect: 'none' }}>{initiale}</span>
         </div>
 
         {/* Infos auteur + bouton */}
@@ -1522,14 +1477,13 @@ const imageVersionAuteur = () => Math.floor(Date.now() / (3600 * 1000))
 const urlImageAuteur = (idAuteur: string, version = imageVersionAuteur()) =>
   `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg?v=${version}`
 
-function normaliserAuteurs(data: any[], oeuvres: Oeuvre[]): Auteur[] {
+function normaliserAuteurs(data: any[], oeuvres: Oeuvre[], auteursParOeuvre: Record<string, AuteurOeuvre[]>): Auteur[] {
   const version = imageVersionAuteur()
-  const oeuvresParAuteur = new Map<string, Oeuvre[]>()
-  for (const oeuvre of oeuvres.filter(estOeuvrePubliee)) {
-    const groupe = oeuvresParAuteur.get(oeuvre.id_auteur) ?? []
-    groupe.push(oeuvre)
-    oeuvresParAuteur.set(oeuvre.id_auteur, groupe)
-  }
+  // Même règle qu'au rendu serveur (app/bibliotheque/page.tsx) : une œuvre se
+  // range sous CHACUN de ses auteurs, et emporte leur liste.
+  const publiees = oeuvres.filter(estOeuvrePubliee)
+    .map(oeuvre => ({ ...oeuvre, auteurs: auteursParOeuvre[oeuvre.id_oeuvre] ?? [] }))
+  const oeuvresParAuteur = grouperOeuvresParAuteur(publiees, auteursParOeuvre, oeuvre => oeuvre.id_auteur)
   return data
     .map(a => ({ ...a, oeuvres: oeuvresParAuteur.get(String(a.id_auteur)) ?? [] }))
     .filter(a => a.oeuvres?.length > 0)
@@ -1558,12 +1512,13 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   }, [])
 
   const refetch = useCallback(async () => {
-    const [auteursResultat, oeuvresResultat] = await Promise.all([
+    const [auteursResultat, oeuvresResultat, auteursParOeuvre] = await Promise.all([
       supabase.from('auteurs').select(SELECT_AUTEURS).order('siecle', { ascending: true, nullsFirst: false }),
       supabase.from('v_oeuvres_dates').select(SELECT_OEUVRES_DATES),
+      chargerAuteursParOeuvre(supabase),
     ])
     if (auteursResultat.data && oeuvresResultat.data) {
-      setAuteurs(normaliserAuteurs(auteursResultat.data, oeuvresResultat.data as Oeuvre[]))
+      setAuteurs(normaliserAuteurs(auteursResultat.data, oeuvresResultat.data as Oeuvre[], auteursParOeuvre))
     }
   }, [])
 
@@ -1571,6 +1526,9 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
     const channel = supabase.channel('bibliotheque-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'auteurs' }, refetch)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'oeuvres' }, refetch)
+      // Une co-signature ajoutée ou retirée déplace l'œuvre d'étagère : l'étagère
+      // doit se refaire, comme pour une modification d'œuvre.
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'oeuvres_auteurs' }, refetch)
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [refetch])

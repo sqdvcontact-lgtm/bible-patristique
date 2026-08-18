@@ -69,9 +69,10 @@ type VersetResult = {
   [key: string]: any
 }
 type SegmentResult = {
-  id: number; segment_texte: string; id_oeuvre: string
+  id: number; segment_texte: string; id_oeuvre: string; id_texte: string
   ref_niv1: string | null; ref_niv3: string | null
   auteur_nom: string; oeuvre_titre: string
+  texte_original?: string | null; langue?: string; matchFr?: boolean; matchOrig?: boolean
 }
 type EssaiResult = {
   id: number; titre: string; sous_titre: string | null; resume: string | null; contenu: string; categories: string[]
@@ -393,23 +394,57 @@ export default function RechercheClient() {
 
         // ── Segments ──────────────────────────────────────────────────────────
         (async (): Promise<any[]> => {
-          if (fragments) {
-            return pagine((de, a) => {
-              let r = supabase.from('segments').select('id, segment_texte, id_oeuvre, ref_niv1, ref_niv3') as any
-              for (const t of termes) r = r.ilike('segment_texte', `%${t}%`)
-              return r.range(de, a)
-            }, signal)
-          } else if (vars && vars.length > 1) {
-            const seenSeg = new Set<number>()
-            const merged: any[] = []
-            for (const v of vars) {
-              const rows = await pagine((de, a) => supabase.rpc('recherche_segments', { p_terme: v, p_exact: modeActif === 'exact' }).range(de, a), signal)
-              for (const row of rows) if (!seenSeg.has(row.id)) { seenSeg.add(row.id); merged.push(row) }
+          const { data: textesDefaut } = await supabase.from('oeuvre_textes').select('id_texte').eq('is_default', true)
+          const idsTextesDefaut = (textesDefaut ?? []).map((row: any) => row.id_texte)
+          // 1) Matches dans le TEXTE FRANÇAIS (segment_texte).
+          const frRows: any[] = await (async () => {
+            if (fragments) {
+              return pagine((de, a) => {
+                let r = supabase.from('segments').select('id, segment_texte, id_oeuvre, id_texte, ref_niv1, ref_niv3').in('id_texte', idsTextesDefaut) as any
+                for (const t of termes) r = r.ilike('segment_texte', `%${t}%`)
+                return r.range(de, a)
+              }, signal)
+            } else if (vars && vars.length > 1) {
+              const seenSeg = new Set<number>(); const acc: any[] = []
+              for (const v of vars) {
+                const rows = await pagine((de, a) => supabase.rpc('recherche_segments', { p_terme: v, p_exact: modeActif === 'exact', p_id_texte: null }).range(de, a), signal)
+                for (const row of rows) if (!seenSeg.has(row.id)) { seenSeg.add(row.id); acc.push(row) }
+              }
+              return acc
+            } else {
+              return pagine((de, a) => supabase.rpc('recherche_segments', { p_terme: q, p_exact: modeActif === 'exact', p_id_texte: null }).range(de, a), signal)
             }
-            return merged
-          } else {
-            return pagine((de, a) => supabase.rpc('recherche_segments', { p_terme: q, p_exact: modeActif === 'exact' }).range(de, a), signal)
+          })()
+
+          // 2) Matches dans le TEXTE ORIGINAL (latin/grec). Même barre : la requête interroge
+          //    aussi l'original. Un mot grec ne matche que l'original ; un mot commun au latin
+          //    et au français fait remonter les deux, fusionnés par segment.
+          const origRows: any[] = await (async () => {
+            if (fragments) {
+              return pagine((de, a) => {
+                let r = supabase.from('segments').select('id, segment_texte, texte_original, id_oeuvre, id_texte, ref_niv1, ref_niv3').in('id_texte', idsTextesDefaut) as any
+                for (const t of termes) r = r.ilike('texte_original', `%${t}%`)
+                return r.range(de, a)
+              }, signal)
+            }
+            const cands = vars && vars.length ? vars : [q]
+            const seen = new Set<number>(); const acc: any[] = []
+            for (const v of cands) {
+              const rows = await pagine((de, a) => supabase.rpc('recherche_segments_original', { p_terme: v, p_exact: modeActif === 'exact', p_id_texte: null }).range(de, a), signal)
+              for (const row of rows) if (!seen.has(row.id)) { seen.add(row.id); acc.push(row) }
+            }
+            return acc
+          })()
+
+          // 3) Fusion par id : un segment peut matcher côté français, côté original, ou les deux.
+          const byId = new Map<number, any>()
+          for (const r of frRows) byId.set(r.id, { ...r, matchFr: true })
+          for (const r of origRows) {
+            const e = byId.get(r.id)
+            if (e) { e.texte_original = r.texte_original ?? e.texte_original; e.matchOrig = true }
+            else byId.set(r.id, { ...r, matchOrig: true })
           }
+          return [...byId.values()]
         })(),
 
         // ── Versets ───────────────────────────────────────────────────────────
@@ -465,17 +500,18 @@ export default function RechercheClient() {
       // ne pas perdre les appariements orthographiques anciens.
       const candidatsSeg = fragments ? [q] : (vars && vars.length ? vars : [q])
       const segs = (segsFromRpc as any[]).filter((s: any) =>
-        candidatsSeg.some(mv => contientTerme(s.segment_texte ?? '', mv, modeActif)))
+        (s.matchFr && candidatsSeg.some(mv => contientTerme(s.segment_texte ?? '', mv, modeActif)))
+        || (s.matchOrig && candidatsSeg.some(mv => contientTerme(s.texte_original ?? '', mv, modeActif))))
       const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
-      let oeuvreMap: Record<string, { titre: string; auteur: string }> = {}
+      let oeuvreMap: Record<string, { titre: string; auteur: string; langue: string }> = {}
       if (oeuvreIds.length) {
-        const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs!oeuvres_id_auteur_fkey(nom)')
+        const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, note, langue_originale, auteurs!oeuvres_id_auteur_fkey(nom)')
           .in('id_oeuvre', oeuvreIds).limit(oeuvreIds.length).abortSignal(signal)
         if (signal.aborted) return
-        ;((oeuvres ?? []) as any[]).filter(estOeuvrePubliee).forEach((o: any) => { oeuvreMap[o.id_oeuvre] = { titre: o.titre, auteur: o.auteurs?.nom || '' } })
+        ;((oeuvres ?? []) as any[]).filter(estOeuvrePubliee).forEach((o: any) => { oeuvreMap[o.id_oeuvre] = { titre: o.titre, auteur: o.auteurs?.nom || '', langue: o.langue_originale || '' } })
       }
       const segsPublies = segs.filter((s: any) => oeuvreMap[s.id_oeuvre])
-      setSegmentsRes(segsPublies.map((s: any) => ({ ...s, auteur_nom: oeuvreMap[s.id_oeuvre]?.auteur || '', oeuvre_titre: oeuvreMap[s.id_oeuvre]?.titre || '' })))
+      setSegmentsRes(segsPublies.map((s: any) => ({ ...s, auteur_nom: oeuvreMap[s.id_oeuvre]?.auteur || '', oeuvre_titre: oeuvreMap[s.id_oeuvre]?.titre || '', langue: oeuvreMap[s.id_oeuvre]?.langue || '' })))
 
       setLastQuery(q); setLastScope(scopeActif)
       setLoading(false); setDone(true)
@@ -1074,7 +1110,7 @@ export default function RechercheClient() {
                 ? <Vide texte="Aucun passage trouvé." />
                 : <div style={{ display:'flex', flexDirection:'column', gap:'3px' }}>
                   {segmentsPage.map(s=>(
-                    <a key={s.id} href={`/oeuvre/${encodeURIComponent(s.id_oeuvre)}?segment=${s.id}#segment-${s.id}`}
+                    <a key={s.id} href={`/oeuvre/${encodeURIComponent(s.id_oeuvre)}?texte=${encodeURIComponent(s.id_texte)}&segment=${s.id}#segment-${s.id}`}
                       target="_blank" rel="noopener noreferrer" className="res-card">
                       {/* Auteur, titre de l'œuvre PUIS niveau 1, tout sur une même ligne, séparés
                           par une espace claire (plus de point médian). Le niveau 1 ne paraît que
@@ -1084,9 +1120,20 @@ export default function RechercheClient() {
                         {s.oeuvre_titre && <span style={{ fontSize:'0.59375rem', color:'var(--cs-texte-doux)', fontStyle:'italic' }}>{s.oeuvre_titre}</span>}
                         {s.ref_niv1 && <span style={{ fontSize:'0.59375rem', color:'var(--cs-texte-faible)' }}>{s.ref_niv1}</span>}
                       </div>
-                      <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.4, color:'var(--cs-texte-fort)', margin:0 }}>
-                        {rendreEtSurligner(nettoyerFin(s.segment_texte), lastQuery, mode)}
-                      </p>
+                      {/* Résultat latin/grec : on n'affiche QUE l'original (badge de langue,
+                          latin en italiques, grec en romain). Sinon, le texte français. */}
+                      {s.matchOrig && s.texte_original ? (
+                        <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.4, color:'var(--cs-texte-fort)', margin:0 }}>
+                          <span style={{ display:'inline-block', fontStyle:'normal', fontSize:'0.5rem', fontWeight:700, letterSpacing:'0.05em', textTransform:'uppercase', color:'var(--cs-vert)', background:'var(--cs-vert-pale)', borderRadius:'3px', padding:'0 5px', marginRight:'6px', verticalAlign:'1px' }}>{s.langue || 'Original'}</span>
+                          <span style={{ fontStyle: s.langue === 'Latin' ? 'italic' : 'normal' }}>
+                            {rendreEtSurligner(nettoyerFin(s.texte_original), lastQuery, mode)}
+                          </span>
+                        </p>
+                      ) : (
+                        <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.4, color:'var(--cs-texte-fort)', margin:0 }}>
+                          {rendreEtSurligner(nettoyerFin(s.segment_texte), lastQuery, mode)}
+                        </p>
+                      )}
                     </a>
                   ))}
                 </div>

@@ -7,6 +7,7 @@ import {
   isMissingReadingCapabilitiesRelation,
   preferredLayerForMode,
   readingCapabilitiesByTranslation,
+  withEditorialVerseCapability,
   type NativeDivisionRow,
   type ReadingCapabilityRow,
   type SourceUnitTextRow,
@@ -26,7 +27,11 @@ export type SourceReadingPayload = {
   units: SourceUnitTextRow[]
 }
 
-export async function loadBibleReadingCatalog(client: SupabaseClient): Promise<BibleReadingCatalog> {
+const BIBLE_CATALOG_CACHE_MS = 60_000
+const PRIVATE_EDITORIAL_VERSE_TRANSLATION_IDS = ['TR0009'] as const
+let bibleCatalogCache: { expiresAt: number; promise: Promise<BibleReadingCatalog> } | null = null
+
+async function fetchBibleReadingCatalog(client: SupabaseClient): Promise<BibleReadingCatalog> {
   const [capabilitiesResult, sampleResult] = await Promise.all([
     client.from('v_bible_reading_capabilities').select('*').order('display_order'),
     client.from('versets_lecture').select('*').limit(1),
@@ -43,7 +48,24 @@ export async function loadBibleReadingCatalog(client: SupabaseClient): Promise<B
   )
   return {
     rows,
-    capabilities: readingCapabilitiesByTranslation(rows, canonicalIds),
+    capabilities: withEditorialVerseCapability(
+      readingCapabilitiesByTranslation(rows, canonicalIds),
+      PRIVATE_EDITORIAL_VERSE_TRANSLATION_IDS,
+    ),
+  }
+}
+
+export async function loadBibleReadingCatalog(client: SupabaseClient): Promise<BibleReadingCatalog> {
+  const now = Date.now()
+  if (bibleCatalogCache && bibleCatalogCache.expiresAt > now) return bibleCatalogCache.promise
+
+  const promise = fetchBibleReadingCatalog(client)
+  bibleCatalogCache = { expiresAt: now + BIBLE_CATALOG_CACHE_MS, promise }
+  try {
+    return await promise
+  } catch (error) {
+    if (bibleCatalogCache?.promise === promise) bibleCatalogCache = null
+    throw error
   }
 }
 

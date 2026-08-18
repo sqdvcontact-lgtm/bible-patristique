@@ -1,6 +1,5 @@
 'use client'
 import { ABREV_FR } from '@/app/lib/bible'
-import { CSS_ORDINAL } from '@/app/lib/siecles'
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
@@ -17,6 +16,8 @@ import IconeCrayon from '@/app/components/IconeCrayon'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
+import { type Couche899 } from '@/app/lib/bible899'
+import { rendreMarqueurs899 } from '@/app/lib/marqueurs899'
 
 const VERSET_ACTION_BTN: React.CSSProperties = {
   background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
@@ -29,8 +30,10 @@ const VERSET_ACTION_BTN: React.CSSProperties = {
 type Verset = {
   id_verset: string; ref: string; livre: string
   chapitre: number; verset: number
-  [traduction: string]: string | number | null | undefined
   chapitre_alternatif?: number | null; verset_alternatif?: number | null
+  // TR0009 (Bible 899) : marqueurs de l'adaptateur (ligne recomposée, lacune du manuscrit).
+  _est899?: boolean; _estLacune?: boolean
+  [traduction: string]: string | number | boolean | null | undefined
 }
 
 type Traduction = { code: string; label: string }
@@ -47,6 +50,8 @@ type Props = {
   versetSelectionne: Verset | null
   setVersetSelectionne: (v: Verset | null) => void
   mobile?: boolean
+  couche?: Couche899
+  couchesDisponibles?: Couche899[]
 }
 
 // ── Bouton copie ──────────────────────────────────────────────────────────────
@@ -256,7 +261,7 @@ function versetMarkupVersHtml(s: string): string {
     .replace(/&lt;i&gt;([\s\S]*?)&lt;\/i&gt;/g, '<em>$1</em>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\+\+(.+?)\+\+/g, '<span style="font-variant:small-caps;letter-spacing:0.04em">$1</span>')
-    .replace(/\^\^(.+?)\^\^/g, `<sup style="${CSS_ORDINAL}">$1</sup>`)
+    .replace(/\^\^(.+?)\^\^/g, '<sup>$1</sup>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>')
 }
@@ -376,7 +381,8 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
 export default function TexteBible({
   versets, traduction, traductionIndex, setTraductionIndex, traductions,
   livreActif, chapitreActif, nomLivre,
-  versetSelectionne, setVersetSelectionne, mobile = false
+  versetSelectionne, setVersetSelectionne, mobile = false,
+  couche, couchesDisponibles
 }: Props) {
   const [userId, setUserId] = useState<string | null>(null)
   const [estAdmin, setEstAdmin] = useState(false)
@@ -457,6 +463,20 @@ export default function TexteBible({
   // client : largeurs, verset sélectionné) restent en place.
   const allerAuChapitre = (n: number) => router.push(`/?livre=${livreActif}&chapitre=${n}&trad=${tradCode}`)
 
+  // TR0009 (Bible 899) : une ligne « 899 » est marquée par l'adaptateur (`_est899`). Le
+  // contrôle « Graphie » n'apparaît QUE si la couche « modernized » est disponible
+  // (piloté par les données) ; le changement se fait par rechargement serveur.
+  const coucheActive: Couche899 = couche ?? 'expanded'
+  const graphieModerniseeDispo = (couchesDisponibles ?? []).includes('modernized')
+  const estLigne899 = (v: Verset) => v._est899 === true
+  const estLacune899 = (v: Verset) => v._estLacune === true
+  // Chapitre entièrement absent du témoin (ex. 1 Samuel 1 dans la Bible 899) : au lieu
+  // d'aligner autant de « [Lacune du manuscrit] » que de versets attendus, on donne UNE
+  // mention de chapitre. On ne le fait qu'en contexte 899 (toutes les lignes en sont) et
+  // seulement si au moins une ligne existe.
+  const chapitreToutLacune = versets.length > 0 && versets.every(v => estLigne899(v) && estLacune899(v))
+  const changerGraphie = (c: Couche899) => router.push(`/?livre=${livreActif}&chapitre=${chapitreActif}&trad=${tradCode}&mode=verse&couche=${c}`)
+
   return (
     <div className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'} style={{ background: 'var(--cs-fond)', ...(mobile ? { width: '100%', paddingTop: '2.875rem', paddingBottom: `calc(0.75rem + ${BANDEAU_NAV_MOBILE})` } : {}) }}>
 
@@ -534,6 +554,30 @@ export default function TexteBible({
           <div />
         </div>
 
+        {/* Seule particularité visuelle de TR0009 : le choix de graphie. Il n'apparaît
+            QUE lorsque la couche modernisée est disponible (piloté par les données).
+            Tant qu'elle n'existe pas, aucun contrôle : la graphie du manuscrit s'affiche
+            directement et TR0009 se lit comme une traduction ordinaire. */}
+        {graphieModerniseeDispo && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '0.625rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>Graphie</span>
+            <div role="group" aria-label="Graphie" style={{ display: 'flex', gap: '0.375rem' }}>
+              {([['modernized', 'Modernisée'], ['expanded', 'Manuscrit']] as [Couche899, string][]).map(([val, lab]) => (
+                <button key={val} type="button" aria-pressed={coucheActive === val} onClick={() => changerGraphie(val)}
+                  title={val === 'modernized' ? 'Graphie modernisée' : 'Graphie du manuscrit (abréviations développées)'}
+                  style={{
+                    border: '1px solid var(--cs-bord)', borderRadius: '999px',
+                    background: coucheActive === val ? 'rgba(var(--cs-vert-rgb),0.10)' : 'var(--cs-surface)',
+                    color: coucheActive === val ? 'var(--cs-vert)' : 'var(--cs-texte-second)',
+                    cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.6875rem', padding: '0.25rem 0.625rem',
+                  }}>
+                  {lab}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
 
       <div className={mobile ? '' : 'overflow-y-auto flex-1'} style={{ paddingTop: '20px', paddingBottom: '20px' }}>
@@ -547,7 +591,7 @@ export default function TexteBible({
             @media (max-width: 900px) { .verset-actions .bouton-action-verset { opacity: 1 !important; } }
           `}</style>
 
-          {(versets.length === 0 || versets.every(v => !v[traduction])) && (
+          {(versets.length === 0 || versets.every(v => !v[traduction] && !estLigne899(v))) && (
             // Charte : l'image + légende se placent au tiers supérieur du bloc,
             // non centrées verticalement dans le vide.
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '60vh', gap: 0, padding: '8vh 16px 0' }}>
@@ -567,11 +611,34 @@ export default function TexteBible({
             </div>
           )}
 
+          {/* Chapitre entièrement absent du témoin : une mention unique, sobre, au lieu
+              d'un mur de « [Lacune du manuscrit] ». La dimension savante est préservée —
+              on nomme le manuscrit et l'étendue exacte non conservée. */}
+          {chapitreToutLacune && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '50vh', padding: '11vh 16px 0', textAlign: 'center' }}>
+              {/* Un filet interrompu en son milieu : figure typographique de la lacune,
+                  préférée à une suite de points. */}
+              <span aria-hidden style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.125rem', color: 'var(--cs-texte-faible)' }}>
+                <span style={{ width: '2.75rem', height: '1px', background: 'currentColor', opacity: 0.6 }} />
+                <span style={{ fontSize: '0.9rem', letterSpacing: '0.25em' }}>◦◦◦</span>
+                <span style={{ width: '2.75rem', height: '1px', background: 'currentColor', opacity: 0.6 }} />
+              </span>
+              <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontStyle: 'italic', color: 'var(--cs-lacune)', margin: 0 }}>
+                Lacune du manuscrit
+              </p>
+              <p style={{ fontSize: '0.76rem', color: 'var(--cs-texte-doux)', margin: '0.5rem 0 0', maxWidth: '22rem', lineHeight: 1.5 }}>
+                Ce chapitre — {nomLivre} {chapitreActif} — n’est pas conservé dans ce témoin.
+              </p>
+            </div>
+          )}
+
           {/* On n'affiche QUE les versets réellement portés par cette traduction : une
               édition qui compte moins de versets qu'une autre (Job 25 s'arrête au v. 6
               chez Sacy) ne doit pas laisser des lignes vides à numéro. */}
-          {versets.filter(v => v[traduction]).map(v => {
+          {!chapitreToutLacune && versets.filter(v => estLigne899(v) || v[traduction]).map(v => {
             const actif = versetSelectionne?.id_verset === v.id_verset
+            const ligne899 = estLigne899(v)
+            const lacune = estLacune899(v)
             return (
             <div key={v.id_verset}
               id={`verset-${v.verset}`}
@@ -583,11 +650,12 @@ export default function TexteBible({
                 if (mobile) {
                   // Sur mobile, un tap sélectionne le verset ET fait apparaître
                   // immédiatement le pavé d'actions ; un second tap referme.
+                  // TR0009 : pas de comptage de lecture ni de pavé d'actions (id non canonique).
                   if (actif) { setVersetSelectionne(null); setActionsMobileId(null) }
-                  else { incrementer(); setVersetSelectionne(v); setActionsMobileId(v.id_verset) }
+                  else { if (!ligne899) { incrementer(); setActionsMobileId(v.id_verset) } setVersetSelectionne(v) }
                   return
                 }
-                if (!actif) incrementer()
+                if (!actif && !ligne899) incrementer()
                 setVersetSelectionne(actif ? null : v)
               }}
               className={`verset-row${actif ? ' verset-row--actif' : ''}`}
@@ -605,11 +673,22 @@ export default function TexteBible({
                     )}
                   </span>
 
-                  {/* Texte — colonne fixe et stable, alignée quel que soit l'état des boutons */}
-                  <p data-verse-text style={{ fontSize: '0.84rem', lineHeight: mobile ? 1.3 : 1.42, color: 'var(--cs-texte-fort)', margin: 0, textAlign: 'justify', wordSpacing: '-0.02em', letterSpacing: '-0.003em' }}>
-                    {(overrides[v.id_verset]?.[traduction] ?? v[traduction])
-                      ? rendreTexteEnrichi(String(overrides[v.id_verset]?.[traduction] ?? v[traduction]))
-                      : <span style={{ color:'var(--cs-bord)', fontStyle:'italic' }}>—</span>}
+                  {/* Texte — colonne fixe et stable, alignée quel que soit l'état des boutons.
+                      TR0009 : lacune du manuscrit rendue explicitement ; marqueurs éditoriaux
+                      inline (lecture incertaine, ajout marginal) rendus discrètement. Aucun
+                      statut technique d'alignement n'est montré au lecteur. */}
+                  <p data-verse-text lang={ligne899 ? 'fro' : undefined} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.86rem', lineHeight: mobile ? 1.42 : 1.5, color: 'var(--cs-texte-fort)', margin: 0, textAlign: mobile ? 'left' : 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word' } as React.CSSProperties}>
+                    {lacune ? (
+                      // Verset isolé absent du témoin (chapitre par ailleurs porté). Italique
+                      // de labeur, capitale initiale, teinte effacée : signalé sans peser.
+                      <span title="Lacune matérielle du manuscrit" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', color: 'var(--cs-lacune)', fontStyle: 'italic' }}>Lacune du manuscrit</span>
+                    ) : (overrides[v.id_verset]?.[traduction] ?? v[traduction]) ? (
+                      ligne899
+                        ? rendreMarqueurs899(String(v[traduction] ?? ''))
+                        : rendreTexteEnrichi(String(overrides[v.id_verset]?.[traduction] ?? v[traduction]))
+                    ) : (
+                      <span style={{ color:'var(--cs-bord)', fontStyle:'italic' }}>—</span>
+                    )}
                   </p>
                 </div>
 
@@ -622,27 +701,34 @@ export default function TexteBible({
                   display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
                   background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
                 } : { width: '2.375rem', paddingLeft: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible' }}>
-                  {userId && (
-                    <BoutonEnregistrer
-                      verset={v} nomLivre={nomLivre} livreActif={livreActif}
-                      chapitreActif={chapitreActif} traduction={traduction} userId={userId}
-                      traductionLabel={traductionLabel}
-                      dejaSauvegarde={sauvegardes.has(v.verset)}
-                      idPrelevement={sauvegardes.get(v.verset) ?? null}
-                      onSauvegarde={(id) => marquerSauvegarde(v.verset, id)}
-                      onSupprimer={() => retirerSauvegarde(v.verset)}
-                    />
-                  )}
-                  <BoutonCopie texte={citationBiblique(
-                    String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? ''),
-                    `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`,
-                  )} />
-                  <BoutonSignaler versetId={v.id_verset} versetRef={v.ref} texte={String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')} />
-                  {estAdmin && !modeUtilisateurStandard && (
-                    <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
-                      style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
-                      <IconeCrayon size={12} />
-                    </button>
+                  {/* TR0009 : prélèvement / signalement / édition ciblent un id de verset
+                      canonique, inexistant pour le manuscrit. On masque ces actions ; la
+                      colonne reste réservée pour préserver l'alignement de la mise en page. */}
+                  {!ligne899 && (
+                    <>
+                      {userId && (
+                        <BoutonEnregistrer
+                          verset={v} nomLivre={nomLivre} livreActif={livreActif}
+                          chapitreActif={chapitreActif} traduction={traduction} userId={userId}
+                          traductionLabel={traductionLabel}
+                          dejaSauvegarde={sauvegardes.has(v.verset)}
+                          idPrelevement={sauvegardes.get(v.verset) ?? null}
+                          onSauvegarde={(id) => marquerSauvegarde(v.verset, id)}
+                          onSupprimer={() => retirerSauvegarde(v.verset)}
+                        />
+                      )}
+                      <BoutonCopie texte={citationBiblique(
+                        String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? ''),
+                        `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`,
+                      )} />
+                      <BoutonSignaler versetId={v.id_verset} versetRef={v.ref} texte={String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')} />
+                      {estAdmin && !modeUtilisateurStandard && (
+                        <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
+                          style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
+                          <IconeCrayon size={12} />
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

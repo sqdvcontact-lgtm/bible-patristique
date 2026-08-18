@@ -94,7 +94,8 @@ La coloration de la liste (rouge/jaune/vert selon critique/moyen) venait de la v
 # Titres — jamais de point final ; commentaire de traduction
 
 - **Jamais de point à la fin d'un titre** (œuvre, sous-titre, niveaux de titre du corps). Retrait à l'affichage via `sansPointFinal` (`app/lib/titres.ts`) — préserve « … » / « ... » et les points internes ; à n'appliquer qu'aux TITRES, pas aux chapeaux/`_texte` (des phrases). Appliqué dans `PageTitre` (titre, sous-titre), `OeuvreClient` (`rendreTitreColophonAvecNotes(..., estTitre=true)` pour niv1-4, pas les `_texte`) et la liste d'œuvres de `ModaleAuteur`.
-- **Commentaire sur la traduction** : colonne dédiée `oeuvres.commentaire_traduction` (ex. « Attribution discutée avec Marc-Antoine de La Bastide » pour Ratramne, sortie de `trad_auteur`). Affichée en note discrète sur la page de titre, et en consultation seule (pastille 🗨 + infobulle) dans l'admin Bibliothèque.
+- **Le titre d'une œuvre vit dans DEUX colonnes.** `oeuvres.titre` est le titre de catalogue : il nomme l'œuvre dans la bibliothèque, la recherche, les citations, le fil d'Ariane et les métadonnées, et s'écrit d'un seul tenant. `oeuvres.titre_affichage` est sa composition pour le **frontispice seul**, sauts de ligne compris ; dès qu'elle est renseignée, `PageTitre` l'affiche **à la place** de `titre` (`oeuvre.titre_affichage || titre`). ⚠️ Conséquence longtemps invisible : le crayon du frontispice écrivait dans `titre` alors que l'écran montrait `titre_affichage`, si bien qu'une correction partait bien en base sans jamais paraître (constaté le 2026-08-17 sur le « Commentaire sur Joël »). La modale laisse désormais **choisir la colonne** (`variantes` d'`EditionCible`, `app/oeuvre/[id]/ModaleEditionAdmin.tsx`). Vider `titre_affichage` rend le frontispice au titre de catalogue. ⚠️ Ouvrir la colonne a demandé les **trois listes blanches concordantes** (formulaire, route, fonction Postgres) **plus** son ajout au `select` de `app/admin/page.tsx` : un champ présent dans le formulaire mais absent du `select` est enregistré à vide, donc **efface** la colonne.
+- **Commentaire sur la traduction** : colonne dédiée `oeuvres.commentaire_traduction` (ex. « Attribution discutée avec Marc-Antoine de La Bastide » pour Ratramne, sortie de `trad_auteur`). Affichée en note discrète sur la page de titre. **Modifiable** dans l'admin Bibliothèque depuis le 2026-08-12 : zone de texte « Commentaires », placée juste au-dessus de « Genre » dans le formulaire « Modifier l'œuvre ». Elle a remplacé l'ancienne pastille 🗨 en consultation seule, qui paraissait à côté du titre et ne se corrigeait pas. ⚠️ Ouvrir un champ à l'écriture demande **trois** listes blanches concordantes : le formulaire (`CHAMPS_OEUVRE_TEXTE`), la route `app/api/admin/update-oeuvre` (`CHAMPS_AUTORISES`), et la fonction Postgres `admin_update_oeuvre_champ` — cette dernière porte sa propre liste et lève « Champ non autorisé » sinon.
 
 # Catalogue — règle des œuvres candidates
 
@@ -300,11 +301,46 @@ Règles de mise en forme arrêtées par l'auteur, centralisées dans `app/lib/ci
 
 **Reste à surveiller** : les sélecteurs de lecture (dropdown de la page Bible `app/page.tsx`, `SelecteurCitation`) listent encore TOUTES les traductions ; choisir TR0009 y affiche du vide (Bible, via `select('*')`) ou échoue (sélecteur à colonne unique). À filtrer aussi si l'on veut masquer une traduction non matérialisée côté lecture.
 
+# TR0009 « Bible française du XIIIᵉ siècle » (Bible 899) — lecture par versets recomposés
+
+TR0009 est une traduction à **segmentation éditoriale** : son texte n'est PAS dans `versets_lecture` ni `versets_v2` (garde-fou : ne jamais l'y copier). Le texte des versets canoniques est **recomposé en direct** des tables éditoriales Bible 899 et aligné sur `canon_id`. Ainsi, toute nouvelle passe d'alignement importée par Codex apparaît **automatiquement**, sans copie ni intervention.
+
+- **Vue `v_bible899_verse_recomposed`** (`sql/20260807_bible899_verse_recomposed.sql`) : recompose depuis `bible_editorial_segments` + `bible_editorial_segment_sources` + `bible_source_unit_texts` (offsets Unicode + `join_before`), en colonnes `texte_diplomatic` / `texte_expanded`, avec `canon_id` et les statuts. ⛔ **SECURITY DEFINER voulu, réservé à `authenticated`** : les RLS des tables de base filtrent `is_public`/`validated`/`verified`, or les segmentations « verse » de TR0009 sont NON PUBLIQUES (site privé → on doit les montrer). **Ne jamais la repasser en `security_invoker`** (elle se viderait) ni l'ouvrir à `anon` (l'anonyme reste bloqué par le proxy).
+  - ⚡ **Piège de perf corrigé (2026-08-08) — CTE référencé deux fois.** La 1re version recomposait le texte dans un CTE `seg_text` référencé DEUX fois (une par couche) : un CTE utilisé plusieurs fois est **matérialisé** par Postgres, donc `string_agg` recomposait **tout le corpus** (~37 000 lignes, tri externe sur disque) à chaque requête, avant même le filtre livre/chapitre. Résultat : ~1,2 s pour un seul chapitre, et **timeout 8 s** (`statement_timeout` d'`authenticated`) sur un livre entier — d'où l'erreur « canceling statement due to statement timeout » de la Polyglotte en mode « livre entier » (Psaumes). **Corrigé** (migration `bible899_verse_recomposed_lateral_perf`) en remplaçant le CTE par une sous-requête **`LATERAL` corrélée sur `segment_id`**, les deux couches séparées par `FILTER (WHERE layer_code = …)` : le texte n'est recomposé que pour les segments filtrés (Gn 1 : 1226 → 12 ms ; Psaumes entiers : timeout → 113 ms). Sortie **identique**, vérifiée ligne à ligne sur les 18 919 alignements. ⛔ Ne pas revenir à un CTE référencé plusieurs fois pour les deux couches.
+- **Lib partagée `app/lib/bible899.ts`** (client + serveur, testée `bible899.test.ts`) : `chargerVersets899(client, {livre, chapitre?}, couches?)`, `livresDisponibles899`, `couchesDisponibles899` (sonde les colonnes de la vue → couches réellement présentes, **piloté par les données**, jamais une constante frontend), `coucheDefaut899`/`normaliserCouche899` (repli propre sur `expanded` si couche indisponible), `adapterVersets899` (adapte au contrat ordinaire ; n'expose **aucun** statut technique), prédicats `rendu899` / `aRevoir899` (`aRevoir899` réservé désormais à la Polyglotte). Couche : `diplomatic` / `expanded` / **`modernized`** — cette dernière n'existe que si la vue expose une colonne `texte_modernized` ; défaut = `modernized` si disponible, sinon `expanded`. La capacité de mode `verse` (source `editorial-segments`) est **imposée SEULE** au catalogue pour les traductions éditoriales par `withEditorialVerseCapability` (`bibleMultimode.ts`) : plus aucun mode source sur la page Bible. Chemin **privé**, distinct des vues publiques `v_bible_reading_capabilities` / `v_bible_canonical_lookup`.
+- **Règles d'affichage des statuts** : `CANONICAL_GAP` = lacune du témoin ; `MANUSCRIPT_EXTRA` (`canon_id` NULL, incipit/explicit/argument) = **jamais** transformé en faux verset (écarté par l'adaptateur).
+  - **Mise en forme des lacunes (page Bible, 2026-08-12)** : plus de crochets `[…]`. Un **verset isolé** absent (chapitre par ailleurs porté) se rend « *Lacune du manuscrit* » en **serif italique** effacé (`--cs-texte-doux`), capitale initiale, avec infobulle « Lacune matérielle du manuscrit » (`TexteBible.tsx`). Un **chapitre entièrement lacunaire** (ex. 1 Samuel 1, 28 versets tous `CANONICAL_GAP`) n'aligne PLUS autant de mentions : `chapitreToutLacune` (`versets.every(v => _est899 && _estLacune)`) déclenche **une** mention centrée — filet interrompu `◦◦◦`, « *Lacune du manuscrit* », puis la précision « Ce chapitre — {livre} {n} — n'est pas conservé dans ce témoin ». Distinct de l'état « livre absent » (ruines fumantes). Les **lectures incertaines** (`[lecture incertaine : …]`) sont en **gris** (`--cs-texte-second`) **sans soulignement pointillé** (retiré) : la teinte seule signale, l'infobulle porte le sens savant. Marqueur inline `[Lacune]` capitalisé. ⚠️ **Page Bible (public) : AUCUN statut technique montré** — `MATCH`/`OFFSET`/`MERGED`/`SPLIT`/`review`/`verified`/`confidence` restent internes (base + admin) ; le marqueur « · à revoir » (`verification_status='review'`) a été **retiré** de la page Bible. Seuls les faits du témoin subsistent : lacune du manuscrit, et les marqueurs éditoriaux **inline** du texte (`[lecture incertaine : …]`, `[ajout marginal : …]`, `[lacune : …]`) rendus discrètement par `app/lib/marqueurs899.tsx` (`rendreMarqueurs899`). ⚠️ Ces marqueurs peuvent être **à cheval sur plusieurs versets** (la recomposition par créneau canonique ouvre le marqueur dans un verset et le ferme dans le suivant) : `rendreMarqueurs899` est un **tokeniseur** tolérant aux marqueurs non fermés / non ouverts, pour ne jamais laisser de crochet brut à l'écran. La **Polyglotte** conserve son propre affichage (`aRevoir899`).
+- **Bible classique** (`app/page.tsx` → `BibleLayout`/`TexteBible`) : TR0009 se lit **comme une traduction ordinaire** (même sélecteur, même composant de verset, même notice). `page.tsx` charge via la lib puis **adapte** les lignes avec `adapterVersets899`, et calcule les couches lisibles via `couchesDisponibles899` **en écartant `diplomatic`** (charte : non destinée à la page Bible). **Aucun sélecteur de mode** (TR0009 = `verse` seul). **Seule particularité visuelle : le contrôle « Graphie : Modernisée | Manuscrit »**, rendu par `TexteBible` **uniquement si la couche `modernized` figure dans `couchesDisponibles`** ; tant qu'elle n'existe pas, aucun contrôle et `expanded` (« Manuscrit ») s'affiche directement. `?couche=modernized` demandé sans la couche → repli `expanded`, sans erreur. Actions d'écriture masquées (id synthétique `899:canon_id`) ; lecture non comptée. Gardes conservées : `tradExplicite` (l'URL `?trad=` fait foi) et interdiction d'échange **en mémoire** vers/depuis une traduction éditoriale (`handleSetTraductionIndex` recharge le serveur). `BibleLayout` lit les livres via `livresDisponibles899`.
+- **Polyglotte** (`app/polyglotte/page.tsx`) : **inchangée** — TR0009 est une **colonne synthétique** hors `versets_v2`, recomposée en `V2Row` clé `canon_id`, avec son propre choix de couche « BIBLE 899 · TEXTE » (Développée/Diplomatique) et son propre marqueur `aRevoir899`.
+- **Garde-fous** : ne pas écrire dans `versets_canon` / TR0001–TR0005 ; ne pas copier TR0009 dans `versets_v2` ; ne **fabriquer** aucune graphie modernisée **côté frontend** — la couche `modernized` n'existe que si les DONNÉES l'exposent (colonne `texte_modernized` de la vue). Le jour où Codex l'ajoutera (couche validée), le contrôle « Graphie » apparaîtra **automatiquement** et Modernisée deviendra le défaut, sans changement frontend. Réutiliser les composants existants (pas de duplication de la grille ni du lecteur).
+
 # Page Œuvre — gouttière d'actions et alignement de la colonne de lecture
 
 La colonne de lecture est un conteneur `maxWidth: 35rem` centré. À droite, une gouttière d'environ **60px** est réservée à la colonne de boutons d'action (prélever, copier, signaler, éditer). Le CORPS DU TEXTE est donc `35rem − 60px`, et **tout doit s'y aligner** : page de titre (`PageTitre`, padding droit asymétrique `…110px…48px`), titres niv1/niv2 et fleuron (`paddingRight: gouttiereTitre = '60px'` en desktop, `undefined` en mobile), ET le texte lui-même.
 
 ⚠️ Piège corrigé (2026-08-06) : en mode **paragraphes** et en **bilingue / langue originale**, le texte (et la grille `.para-bilingue`) ne réservait pas cette gouttière (`paddingRight: 8px/0`), si bien qu'il courait ~60px plus large que les titres et la page de titre. Correctif : les blocs paragraphe (vue texte ET vue apparat) portent `paddingRight: gouttiereTitre` sur leur `<div>` conteneur (ce qui rétrécit aussi la grille bilingue), et le `<p>` interne ne porte plus de padding ad hoc. En mode **segments**, l'alignement venait déjà de la colonne d'actions `width:68px; marginRight:-8px` (≈ 60px consommés). Mobile : `gouttiereTitre` vaut `undefined` → pas de gouttière (pas de colonne d'actions), pleine largeur voulue.
+
+# Traductions parallèles — calquées sur la lecture latin-français (2026-08-13)
+
+Règle fixée : le mode « Traductions parallèles » (`ComparaisonTraductions.tsx`) doit **tout** reproduire de la lecture — jusqu'au frontispice. Ne JAMAIS revenir aux anciens `<select>` Livre/Division, ni à un titre héros / en-tête sobre à part.
+
+- **Frontispice IDENTIQUE à la lecture** : le mode comparaison rend le **même composant `PageTitre`** que la lecture (auteur, titre, titre original, traducteur, marque d'imprimeur, colophon), pas un en-tête ad hoc. `PageTitre` reçoit `sansGouttiere` en comparaison → padding symétrique (`80px 48px 40px`), le titre se centrant sur toute la largeur (pas de colonne d'actions à compenser). Suivent le **fleuron** (`paddingRight: undefined` en comparaison), puis la barre de division, puis les colonnes.
+- **Circulation identique au mode lecture** : l'état de navigation (livre, division, liste ordonnée des divisions) vit dans `OeuvreClient` (`comparaisonBook`, `comparaisonDivision`, `comparaisonDivisions`, `naviguerComparaison`), **pas** dans le composant enfant. Il alimente (a) le **sommaire de gauche** (arbre Livres → Divisions) et (b) une **barre `‹ … ›`** jumelle de `barre-nav-niv1` (id `barre-nav-division`). ⚠️ **Titres EXACTS** : le sommaire et la barre affichent `ref_niv1` / `ref_niv2` de la traduction de RÉFÉRENCE (ex. « LIVRE PREMIER » / « I »), chargés via `texte_alignement_membres` (role='reference') → `segments`, PAS les libellés génériques `LIVRES_COMPARAISON` / `ROMAINS_COMPARAISON` (qui ne servent que de repli). `DivisionAlignee` porte `niv1`/`niv2`. On sort de la comparaison par le volet « Lecture » (clic sur « Français »).
+- **`ComparaisonTraductions` = rendu de la division courante** (props `book` / `division` / `userId` / `auteur`), **remonté par `key={set:book:division}`** (état initial `chargement=true`, pas de setState synchrone en tête d'effet).
+- **Segments cliquables + prélèvement** (comme en lecture) : chaque segment est un `.seg-inline` (CSS hérité du `<style>` parent) ; survol/clic → **cellule d'actions flottante** (prélever / copier / signaler, composants `BoutonsSegment`). Le `select` des segments ajoute `id_oeuvre` ; les métadonnées de citation sont chargées PAR œuvre (chaque colonne = une traduction, donc sa propre attribution). Notes en **infobulle** (`AppelNote`, contenu via `ContenuNoteStructuree`) — plus de bloc `<details>` ni de renvois bibliques bruts en ligne.
+- **Colonnes symétriques, container 52rem** : grille `repeat(2, minmax(0,1fr))`, gap 1.6rem, même police/teinte des deux côtés. La **prose** garde un filet fin sous chaque groupe (alignement empan par empan). Les **groupes de VERS consécutifs sont FUSIONNÉS** en un seul bloc à deux colonnes continues → interligne **rigoureusement constant** ; alinéa poétique (retrait des vers de rang pair + retrait de continuation). Ne pas réintroduire un rendu vers-par-groupe (interlignes inégaux).
+- **Étiquettes des deux traductions** : discrètes, **NON collantes, fond transparent** (petites capitales grises, filet fin). ⛔ Ne jamais leur donner `background: var(--background)` : ce token vire au **noir** en mode sombre (le fameux « bandeau noir »).
+- **Notes — vers cités** (`ContenuNoteStructuree`) : plus d'étiquette « Vers » ; un bloc `form==='verse'` se rend en **police réduite (0.9em) + léger retrait gauche**.
+- **Apparat critique** : masqué dans le sommaire en mode comparaison.
+
+# Fenêtres contextuelles — jamais sous la nav, jamais hors de l'écran
+
+Règle d'auteur, fixée le 2026-08-17 : une fenêtre contextuelle garde **toujours** une marge sous la barre de navigation et au-dessus du bas de l'écran. Calcul pur et testé : `app/lib/fenetreContextuelle.ts` (13 tests), `MARGE_FENETRE = 12`.
+
+- **Fenêtres ancrées** (aperçu au survol d'un auteur, infobulle de note) : `placerFenetre` rend `{ top, left, hauteurMax }`. Elle se pose sous l'ancre, **se retourne au-dessus** si le bas manque, et se borne à la bande utile pour défiler en dedans si la place manque des deux côtés. ⛔ Ne jamais replacer un seuil en dur du genre `rect.top > 180` : il ignore le bas de l'écran, et c'est précisément le défaut qui a été corrigé.
+- ⚠️ **La barre ne mesure pas 56 px partout.** `HAUTEUR_NAVBAR` vaut `3.5rem` et la police racine est fluide (jusqu'à ×1,375 sur grand écran) : `hauteurNavbarPx()` la MESURE, on ne la suppose pas.
+- **Modales centrées** : le calque part de `top: HAUTEUR_NAVBAR` et **ne défile pas** (`overflow: hidden`) ; la boîte porte `maxHeight: 100%` et `overflowY: auto`, si bien que c'est son CONTENU qui défile. ⚠️ Le défaut corrigé venait de l'inverse : un calque en `inset: 0` qui défilait laissait le contenu passer **sous** la barre, laquelle est peinte par-dessus ; et même sous la barre, un calque défilant fait remonter la boîte jusqu'à la couper au ras, sans marge. Un bouton de fermeture dans une boîte défilante doit être `sticky`, sinon il part avec le contenu.
+- ⚠️ **Ce correctif existait sur la branche de travail sans avoir été porté** : la production restait en `inset: 0`. Vérifier le SITE, pas seulement le code de la branche courante (voir la mémoire sur le déploiement).
 
 # Citation sortie — style en place, détection volontairement étroite
 
@@ -327,20 +363,24 @@ Les points de coupe sont désormais **posés par nous**, en césures conditionne
 - **Deux notions distinctes, deux fonctions.** `syllabesLatines` est linguistique : « do-mi-ne » a trois syllabes, un point. `pointsDeCoupe` est typographique et n'en retient que certaines : au moins **2 lettres avant** la coupe et **3 après**, d'où « do-mine » et non « do-mi-ne ». Le second seuil est le seul curseur à toucher si l'on veut plus de coupes encore.
 - **Règles classiques appliquées** : consonne simple à la syllabe suivante ; muette + liquide insécable (« pa-tris ») ; s + occlusive insécable (« ne-sci-ens », « in-spi-ra-sti ») ; `s` + muette + liquide d'un seul tenant (« ca-stra ») ; digrammes grecs et `gn` insécables (« chri-stus », « ma-gnus ») ; diphtongue jamais coupée (« lau-da-bunt ») ; hiatus coupé (« de-o-rum »).
 - ⚠️ **Le `u` de `qu`/`gu` est consonantique** : sans cette règle, « loquitur » se coupe en « loq-ui-tur » et « quomodo » en « qu-omo-do ». `qu` et `gu` figurent donc dans les groupes insécables.
-- **Posées au RENDU, jamais dans la donnée** (même doctrine que l'espacement, charte §3.2) : `cesurerLatin` s'applique au `texte_original` d'`OeuvreClient`. La fonction est idempotente et ne change pas une lettre : `sansCesures(cesurerLatin(t)) === t`, garanti par test.
+- **Posées au RENDU, jamais dans la donnée** (même doctrine que l'espacement, charte §3.2) : `cesurerLatin` s'applique au `texte_original` d'`OeuvreClient` et à la colonne en langue originale de `ComparaisonTraductions`. La fonction est idempotente et ne change pas une lettre : `sansCesures(cesurerLatin(t)) === t`, garanti par test.
 - ⚠️ **Une césure ne doit jamais quitter la page.** `preparerTexteCitation` (`app/lib/citation.ts`) appelle `sansCesures` : sans quoi un copier-coller emporterait des caractères invisibles dans le presse-papiers.
-- **La regex ne vise que les suites de lettres d'au moins 5 caractères**, ce qui laisse intacts les marqueurs de note `[[81]]`, les nombres et la ponctuation.
-- **Gain mesuré** (extrait des *Confessions*, 0.79rem) : 170 px → 8,7 % de lignes en moins ; 220 px, largeur réelle de la colonne bilingue → 5,9 % ; 300 px → nul. Le gain en lignes sous-estime l'effet : à nombre de lignes égal, les blancs de justification se resserrent. L'espacement du latin a par ailleurs reçu le `wordSpacing: -0.025em` que portait déjà la colonne française.
+- **La regex ne vise que les suites de lettres d'au moins 5 caractères**, ce qui laisse intacts les marqueurs de note `[[81]]`, les nombres et la ponctuation. `rendreTexteAvecNotes` continue donc de reconnaître ses appels.
+- **Gain mesuré** (extrait des *Confessions*, sans-serif 0.79rem) : 170 px → 8,7 % de lignes en moins ; 220 px, largeur réelle de la colonne bilingue → 5,9 % ; 300 px → nul. Le gain en lignes sous-estime l'effet : à nombre de lignes égal, les blancs de justification se resserrent. L'espacement du latin a par ailleurs reçu le `wordSpacing: -0.025em` que portait déjà la colonne française.
 
 # Police des textes d'œuvre — sérif toujours, sauf l'original en regard
 
 Règle d'auteur, fixée le 2026-08-17 :
 
-- **un texte d'œuvre se lit TOUJOURS en sérif** (`--font-source-serif`), corps comme titres, en mode segments comme en mode paragraphes, en lecture comme en apparat critique. Le corps était en `--font-source-sans` depuis l'origine : quatre déclarations dans `OeuvreClient` ;
+- **un texte d'œuvre se lit TOUJOURS en sérif** (`--font-source-serif`), corps comme titres, en mode segments comme en mode paragraphes, en lecture comme en apparat critique et en traductions parallèles. Le corps était en `--font-source-sans` depuis l'origine : quatre déclarations dans `OeuvreClient` et le gabarit de `ComparaisonTraductions` ;
 - **le texte en langue originale (latin, grec) se lit en sérif lui aussi**, quand il paraît SEUL (mode « Latin ») ;
 - **SEULE exception : mis EN REGARD du français, l'original passe en sans-serif.** La différence de police sépare les deux colonnes d'un coup d'œil, mieux qu'un filet.
 
-Porté par une règle CSS, `.para-bilingue > .texte-original`, dans le bloc `<style>` d'`OeuvreClient`. La classe `.para-bilingue` n'est posée qu'en mode bilingue (`affichageBilingue && original`), jamais en « Latin seul » : c'est ce qui fait basculer la police au bon moment, sans condition en JS.
+Deux surfaces portent cette exception, et elles doivent rester d'accord :
+
+- **lecture bilingue** : règle CSS `.para-bilingue > .texte-original` dans le bloc `<style>` d'`OeuvreClient`. La classe `.para-bilingue` n'est posée qu'en mode bilingue (`affichageBilingue && original`), jamais en « Latin seul » — c'est ce qui fait basculer la police au bon moment, sans condition en JS ;
+- **traductions parallèles** : `ComparaisonTraductions` reçoit la langue de chaque colonne (`AlignementDisponible.referenceLangue` / `alignedLangue`, remplies dans `app/oeuvre/[id]/page.tsx` depuis `oeuvre_textes.langue`) et tranche par `estColonneOriginale` (pur, testé `polices.test.ts`). ⚠️ Le cas est réel, pas théorique : l'alignement `A0010O0002:VIVES:LA-FR:PARAGRAPH` (La Cité de Dieu) confronte un latin et un français, tandis que `ALNSET-A0064O0001-MIR1861-CER1646` (Boèce) confronte deux traductions françaises, qui restent toutes deux en sérif. Le composant écrivait `lang="fr"` en dur : il pose maintenant `lang="la"` sur une colonne en langue originale.
+- **Langue inconnue → sérif.** Mieux vaut une colonne en sérif de trop qu'un texte français composé comme un original.
 
 # Typographie du texte en langue originale (latin, grec)
 
@@ -366,6 +406,87 @@ Règle (charte §3.1-3.2, étendue au 2026-08-06) : on harmonise la langue origi
 - **Notes et tâches** : table **`controle_sections`** (`cle` PK, `titre`, `ordre`, `commentaire_ia`, `todos` jsonb `[{texte, fait}]`, `maj_le`). RLS : lecture `authenticated` + `is_admin()` ; écriture par l'assistant (service_role). **Après une avancée notable, mettre à jour la note et cocher les tâches** de la section concernée, pour que la page reste fidèle à l'état réel.
 - **Nombre de traductions bibliques lisibles** : via `codesTraductionsLecture()` (mêmes règles que l'accueil), jamais le simple `count(*)` de `traductions` (qui compte aussi les non matérialisées comme TR0009).
 
+## Panne « Impossible de charger les indicateurs » (2026-08-11)
+
+⚠️ **Ne jamais destructurer `data` sans `error`.** La page se contentait de `const [{ data: tbRaw }] = await Promise.all([...])` : l'erreur PostgREST était jetée, et tout échec se réduisait au message générique « Impossible de charger les indicateurs (RPC `controle_tableau_bord`) », indiagnosticable. Corrigé : `error` est destructurée, journalisée côté serveur (`console.error`), et rendue à l'écran par `EcranPanne` (code, message, détails, piste).
+
+**Cause réelle : dépassement de délai, pas une erreur de droits.** `controle_tableau_bord()` agrège tout le corpus en direct. Coût mesuré : **~1,5 s en session chaude** (plan et cache chauds, 10 appels d'affilée) mais **~6 s au premier appel à froid**, pour un `statement_timeout` de **8 s** sur `service_role`. Le dépassement remonte en **57014 — `canceling statement due to statement timeout`**, `data` devient nul, d'où le message. Reproductible : `set statement_timeout='1500ms'; select controle_tableau_bord();`.
+
+**Ce qui déclenche le dépassement** : le cron **`rafraichir_lecture` (jobid 4) tourne toutes les minutes** (`* * * * *`, `refresh materialized view concurrently versets_lecture`), **4,8 s en moyenne, jusqu'à 7 s** (`cron.job_run_details`). Un appel à froid qui tombe pendant un refresh franchit les 8 s. ⚠️ Cette fréquence contredit la doctrine du présent fichier, où le refresh de `versets_lecture` est une opération **manuelle après correction de corpus** : à reconsidérer (résidu probable d'une séance de travail).
+
+**Correctif en place** : `chargerTableauBord()` réessaie **une seule fois**, après 1,2 s, et **uniquement sur le code 57014**. Une vraie erreur (droits, objet manquant) remonte immédiatement, sans reprise inutile. Ne pas élargir la reprise à tous les codes : elle masquerait les pannes réelles.
+
+**Faux départs écartés lors du diagnostic** : la fonction existe bien et `EXECUTE` est accordé à `authenticated` et `service_role` ; le filtre `where controle='…'` sur `internal.v_dates_qualite_resume` **élague** correctement les branches de l'`UNION ALL` (38 / 33 / 757 ms au lieu des 3 s de la vue entière), donc les trois appels ne sont pas le goulot ; `qualite_overrides`, `couverture_patristique` et les comptes de `segments` sont tous sous 300 ms.
+
+# La Gueule — métadonnées de la page de titre par IA
+
+Outil local `outils/la-gueule` (hors site). Le bouton « IA titre » lit la page de titre par vision et remplit les champs `oeuvres` en **couche candidate** (charte §5.4 et §14 : jamais de donnée validée sans relecture). Détails et pièges complets dans la mémoire projet La Gueule. Points cardinaux :
+
+- **Circuit abonnement, PAS l'API payante** : le fournisseur `claude-local` pilote le CLI Claude Code local (`claude -p`) authentifié par `claude setup-token` sur le compte **Pro**. ⚠️ **`ANTHROPIC_API_KEY` court-circuite l'abonnement** : le CLI l'utilise en priorité, d'où « Credit balance is too low » alors que le compte est bon. La Gueule la retire de l'environnement du CLI (`envSansCleApi`) ; la garder hors de l'environnement.
+- **Modèle vision** (`LG_AI_MODEL_VISION`, Opus) pour lire, **jamais Haiku** (casse cassée, chiffres romains ratés, accents absents → échec du rapprochement catalogue).
+- **Enrichissement « base d'abord, sinon vide »** : titre original, nom canonique et `id_auteur` viennent de `auteurs` / `oeuvres` / `catalogue_notices` en **lecture seule** (`SUPABASE_SERVICE_ROLE_KEY` du `.env.local`, jamais journalisée ni exportée), jamais de la connaissance générale du modèle.
+- **Casse charte** garantie par une normalisation déterministe côté serveur (titres sans point final, jamais de champ tout en capitales).
+- **Redémarrage** : recharger la page ≠ redémarrer le serveur (node détaché sur le port 4599, garde l'ancien code) → double-clic sur `outils/la-gueule/redemarrer-la-gueule.bat`.
+
+# La Gueule — pipeline contrôle → correction → export (2026-08-10)
+
+Rend le contrôle IA **réellement effectif** de bout en bout. Rapport : `outils/la-gueule/RAPPORT_CORRECTION_PIPELINE_LA_GUEULE.md`. Doctrine : couche **candidate** seulement, jamais d'écriture dans les tables actives ; fac-similé et OCR brut immuables ; graphie diplomatique conservée (ſ, u/v, i/j) ; le ground-truth exige une validation humaine explicite (§11.7).
+
+- **Modèle de ligne** : `ocr0` = OCR immuable ; `dip` = état candidat courant (lu par TOUS les exports) ; `corrections[]` = historique (avant/après/provenance/statut/annulée) ; `suggestion.role_confirme` = rôle qui fait foi. Modules purs testés `src/corrections.mjs` (appliquer/annuler/reclasser, détection de CONFLIT jamais écrasé) et `src/perimetre.mjs`.
+- **Relecture IA par page** (`controle.mjs::controlerPageIA`, modèle contrôle=Sonnet) : relit l'image de chaque page **océrisée** et propose corrections de texte + reclassements de rôle. Ne traite que les pages ayant des `lignes` (les coquilles du tri sont ignorées).
+- **Corrections effectives** : accepter écrit `dip` → présent dans TXT/MD/DOCX/JSON/SQL ; `ocr0` intact ; annulable.
+- **Périmètre de travail** (`S.perimetre`, persisté) : complétude « OCR local » mesurée sur le **lot traité**, pas sur le PDF entier (barre : `lot X/Y · doc Z/total`).
+- **Reclassement de rôle** = pose `role_confirme` (vocabulaire `structure.mjs`) → exclu du corps (`estHorsCorpsConfirme`) mais gardé en source (ALTO/PAGE/JSON).
+- **Validation** (`validation.mjs`) : chaque correction/reclassement est un OBJET individuel (plus de fausse famille « relecture_page ») ; page courte = **avertissement**, pas un blocage ; états `FINAL_CANDIDAT` / `…AVEC_RÉSERVES` / `CANDIDAT_INCOMPLET`.
+- **Auto-application des corrections SIMPLES** (`estCorrectionSimple`, distance d'édition ≤ 2, ou ≤ 4 si confiant) → appliquées sans clic ; seuls les cas ambigus (grosse réécriture, reclassement, R3, familles) sont soumis à l'humain. Reste candidat/réversible.
+- **Onglet « Contrôle »** (volet gauche) = seule surface de pilotage : badge du nb à faire, liste lisible avant→après, Valider/Refuser/Voir, clic → va à la page + surligne la ligne, « ✓ N appliquées automatiquement — revoir ».
+- **« Trier les pages (IA) » retiré** du parcours (lent, semait des coquilles). Enrichissement métadonnées resserré (`choisirOeuvre` ≥2 jetons + recouvrement ≥50 % ; **sous-titre = page** ; **genre au format base** : minuscule, séparateur «  ; »).
+
+# La Gueule — triage automatique des corrections OCR (2026-08-11)
+
+Le contrôle produisait ~150 corrections pour 35 pages, toutes à relire une par une. Désormais chaque proposition est **confrontée à l'image** avant d'atteindre l'humain, qui n'est appelé que sur ce que l'image ne tranche pas. Modules : `src/ia/triage.mjs` (pur), `src/ia/verificateur.mjs` (orchestration), `src/ia/rapport-triage.mjs` (rapport). Tests : `triage`, `verificateur`, `rapport-triage`, `triage-integration`.
+
+- **Un cas à risque ne part PAS à l'humain** : il part à une vérification renforcée. Chiffres, renvois bibliques, pagination, marques de cahier, ponctuation, césures, diacritiques, tildes abréviatifs, ligatures, casse, segmentation, distance élevée, caractère hors du jeu attendu → `HIGH_RISK_AUTO_CHECK`. Structure (reclassement, scission, ligne omise, ancrage, page exclue) → `STRUCTURAL`. Le reste → `LOW_RISK`.
+- **Deux passes VISUELLES, réellement indépendantes** : passe 1 à l'échelle de la **page** (un appel pour toutes ses corrections, économe) ; passe 2 à l'échelle du **crop** de la ligne (réservée aux cas à risque). Granularité différente, formulation différente, **ordre A/B renversé**. Les deux sont **AVEUGLES** : on ne dit jamais au modèle quelle lecture vient de la machine et laquelle du correcteur, sinon il ratifie la proposition par complaisance. `assignerAveugle` fixe l'ordre de façon déterministe (le cache reste utile) et `verdictDepuisReponse` retraduit A/B en CANDIDATE/OCR0.
+- **Règle de décision** : `LOW_RISK` = un verdict concluant suffit ; `HIGH_RISK_AUTO_CHECK` et `STRUCTURAL` = **deux verdicts concordants** exigés. Concluant = pas d'abstention, image exploitable (jamais `BAD`), confiance ≥ 0,97, ET lecture recopiée cohérente avec la cible désignée (un « CANDIDATE » qui recopie autre chose est une **lecture tierce**, donc un cas humain).
+- ⛔ **La confiance du générateur n'entre JAMAIS dans le seuil.** Elle est conservée séparément (`generator_confidence`) pour l'audit ; ce n'est pas une « probabilité de vérité ». Seule la vérification visuelle décide.
+- ⛔ **Le triage fait autorité sur les anciennes heuristiques.** Un cas `HUMAN_REVIEW` ne doit jamais repartir en application automatique par la règle du « petit changement » (`estAutoApplicable`) : « Deut.23. » → « Deut.22. » ne coûte qu'un caractère, et aucune distance d'édition ne peut juger un chiffre de renvoi. Garde en place dans `classerValidation` (`decideParTriage`), testée.
+- ⛔ **Une décision automatique n'est jamais une validation humaine** (charte §11.7) : `AUTO_ACCEPT` écrit dans la couche candidate avec `validation_humaine: false`, forcé au point d'écriture (`entreeCorrection`/`traceCorr`). `ocr0` reste immuable ; tout est annulable.
+- **Politique de couche préservée (§14.3)** : un candidat qui réintroduit une graphie ancienne (`ſ`, ligature typographique) sur un **imprimé** part en revue humaine quelle que soit la concordance visuelle. Sur un **manuscrit** (transcription diplomatique), la même correction est légitime.
+- **Lignes de faible confiance non corrigées** : relues nûment sur l'image (« que lis-tu ? », jamais « est-ce juste ? »). Confirmées → elles sortent de la file ; relues autrement → un candidat naît et repasse par le même triage ; indécidables → revue humaine.
+- **Vue par défaut = la file humaine seule**, ordonnée par `review_priority` (désaccord, crop mauvais, lecture tierce, chiffre illisible, segmentation, plusieurs mots, distance). Les décisions automatiques restent consultables par filtre (Auto-acceptées / OCR conservé / Réf. et nombres / Structure / Caractères spéciaux / Toutes) et **contredisables** d'un clic. Rapport : bouton « Rapport de contrôle » → `exports/<nom>.controle-triage.md` + `.json`, avec case « mode audit ».
+- **Métriques** (`mesurerTriage`) : `human_review_rate` est le KPI. Le dénominateur est le total des candidats — on ne le fait jamais baisser en écartant des propositions.
+
+# Appels aux routes admin — le verrou renvoie une REDIRECTION, pas une erreur
+
+⚠️ Quand la session n'est pas reconnue, `proxy.ts` ne répond pas par un 401 : il **redirige** vers `/chantier?suite=…`. Or `fetch` suit les redirections par défaut, si bien qu'un appel à `/api/admin/…` revient en **`200` porteur de HTML** et satisfait `res.ok`. Le seul symptôme est un « Unexpected token < » au `res.json()`, généralement avalé par un `catch`.
+
+**Règle** : tout appel client à une route admin contrôle `res.redirected` et le `content-type` avant de parser, et **remonte l'échec à l'écran** (jamais un `break`/`catch` muet). Vérifiable : `curl -i "http://localhost:3000/api/admin/catalogue"` sans jeton renvoie `307 → /chantier`.
+
+**Cas de contexte (2026-08-12)** : dans l'admin Bibliothèque, les filtres « Œuvres candidates », « non candidates », « critiques » et « non publiées » restaient vides (« Aucun auteur trouvé »), alors que la base contenait 349 notices candidates réparties sur 56 auteurs et que le filtre, rejoué hors interface, en retenait bien 55. Trompeur : « Publiées » et « Tout afficher » semblaient marcher, parce que ce sont précisément les deux seuls modes qui **n'ont pas besoin du catalogue** — « Tout afficher » liste tous les auteurs quoi qu'il arrive. Correctif dans `app/admin/SectionBibliotheque.tsx` : statut HTTP et réponse non-JSON remontés dans un encart rouge avec bouton « Réessayer », plus `console.error`.
+
+# Navbar à l'étroit — mesurer, jamais poser un seuil en pixels
+
+⛔ **Aucun seuil en pixels ne peut dire si la barre tient.** La police racine GRANDIT avec la fenêtre au-delà de 1440px (jusqu'à ×1,375, cf. § Responsive) : le contenu de la barre s'élargit en même temps que l'écran. Un `max-width` figé (essai malheureux à 1299px) se trompe aux deux bouts.
+
+**Mécanisme en place** (`app/components/Navbar.tsx`) : la barre compare `nav.scrollWidth` à `nav.clientWidth` au montage, au redimensionnement (une mesure par image via `requestAnimationFrame`) et à chaque changement qui l'allonge (session, pseudo, droits, pastilles). Quand elle déborde, elle retient la largeur de fenêtre à partir de laquelle la version complète tiendrait de nouveau — `innerWidth + débordement + 32px de marge` — car une fois repliée elle ne déborde plus et l'on n'aurait plus aucun repère pour la déplier. La marge évite l'oscillation au pixel près.
+
+**Ordre de sacrifice : les OUTILS cèdent, jamais les mots des sections.** Recherche → loupe (déploie un bandeau sous la barre, la même vue que sur téléphone) ; « Soutenir le projet » → cœur seul ; mot « Admin » → effacé ; « Les Saintes Écritures » → « La Bible » ; « Aller plus loin » → descend dans le menu de compte, en groupe distinct sous son intertitre (seulement si une session existe, sinon la rubrique disparaîtrait) ; **pseudonyme du bouton de compte → effacé**, c'est le seul élément dont la largeur ne se connaît pas d'avance (jusqu'à 6rem), donc celui qui rendait la tenue incalculable. Les sections gardent leurs mots : sur un site d'érudition, les intitulés font partie du ton, et « Aller plus loin » n'a de toute façon aucune icône évidente.
+
+⚠️ **Piège : un onglet qui rétrécit MASQUE le débordement.** `.cs-bible` est en `overflow:hidden` : la face se laissait tronquer en « Les Sain… » au lieu de déborder, si bien que le trop-plein disparaissait à la mesure tout en poussant le reste sur le bloc de compte. D'où `.cs-nav-principale > * { flex-shrink: 0 }` — le trop-plein doit se voir pour être mesuré.
+
+**Mesures (barre d'un admin connecté, 2026-08-12)** : version complète **94,9 rem** (1519px à 16px) → ne tient qu'au-delà de ~1700px ; version repliée **52,5 rem** (841px) → tient partout dès 1024px. Le seuil du hamburger reste donc `lg` (1024px) : c'est le repli qui fait le travail, pas un plancher plus haut.
+
+**Vérification sans redimensionner la fenêtre** (Chrome maximisé refuse `resize_window`, les popups sont bloquées, `X-Frame-Options: DENY` interdit l'iframe) : rétrécir la RANGÉE de la barre (`rangee.style.width`) puis émettre un `resize` déclenche exactement la mesure et le repli. ⚠️ Dans un onglet en arrière-plan, `requestAnimationFrame` est gelé : la mesure ne s'exécute pas. Pour tester, remplacer temporairement `window.requestAnimationFrame` par un appel immédiat. En usage réel, l'image en attente se déclenche au retour sur l'onglet.
+
+# Portraits d'auteurs — format et emplacement
+
+Le portrait d'un auteur vit dans le bucket Supabase **`auteurs`**, sous le nom **`<id_auteur>.jpg`** (ex. `A0047.jpg` pour Grégoire de Nazianze). C'est la seule source lue par le site : `ModaleAuteur`, `ApercuAuteur`, `BibliothequeClient` et l'admin composent tous l'URL `…/storage/v1/object/public/auteurs/<id>.jpg`. Le dossier `public/auteurs/` du dépôt est un reliquat d'un ancien lot, il n'est plus servi.
+
+- **Proportion 4:5**, la même que le cadre de la fiche (`6.5rem × 130px`). Le portrait y est rendu en `object-fit: cover` : à proportion égale, rien n'est rogné et `photo_position` n'a pas à être réglée. Le cadre par défaut est `{x: 50, y: 24}` (centré, un peu haut), utile seulement pour une image d'une autre proportion.
+- **Définition retenue : 600 × 750, JPEG qualité 90** (~100 Ko), soit le double du cadre pour rester net en HiDPI. Les portraits sains du bucket vont de 30 à 220 Ko.
+- ⚠️ **La route d'upload ne redimensionne ni ne convertit rien.** `app/api/admin/auteur-photo/route.ts` vérifie les magic bytes puis dépose le fichier tel quel, sous l'extension `.jpg` quel que soit son type réel : d'où des objets `.jpg` qui sont en fait des PNG de 3 Mo (`A0013`, `A0015`). Préparer l'image AVANT de la déposer.
+
 # Longueur d'une œuvre — `nb_signes` et la section « Opuscules » (2026-08-16)
 
 ⚠️ **`nb_signes` compte TOUS les segments d'une version, quelle que soit leur `nature`.** Ne jamais le confondre avec `sum(length(segment_texte)) where nature='texte'`, ni « corriger » la colonne sur cette base : le corps de plusieurs œuvres vit dans d'autres natures. Boèce est un **prosimètre** porté par `dialogue` et `vers` (s'en tenir à `texte` ne compterait que **3 178 signes sur 239 170**), les commentaires de Jérôme portent le lemme biblique en `citation` (Abdias : 24 927 au lieu de 59 534), Ratramne et Eucher de même. Cette confusion a produit un diagnostic erroné de « colonne fausse » avant d'être levée.
@@ -386,186 +507,50 @@ Règle (charte §3.1-3.2, étendue au 2026-08-06) : on harmonise la langue origi
   - ⚠️ **Jamais `\b` pour borner un mot accentué en JavaScript** : `\b` n'y connaît que l'ASCII, donc `/^(Abbé|Père|Frère|Sœur|Mère)\b/` ne s'apparie **jamais** (la frontière tomberait entre « é » et l'espace, deux caractères non-mots). Les titres accentués restaient en capitale malgré la règle. Borner par lookahead : `(?=[\s.]|$)`.
 - **La fiche auteur (`ModaleAuteur`) n'est PAS concernée** : sa liste est un catalogue **chronologique** de l'œuvre entière, œuvres seulement répertoriées comprises. Trier par taille y casserait la chronologie, qui en est le principe d'ordre.
 
-# Appels de note — masqués au sommaire, actifs dans les titres du corps
+# Appels de note — masqués au sommaire, actifs dans les titres (2026-08-16)
 
-Doctrine : charte `parametres.charte_ia` **§13.6**. La logique pure vit dans **`app/oeuvre/[id]/appelNote.ts`** (module testé, `appelNote.test.ts`) ; l'info-bulle et le moteur `rendreTexteAvecNotes` / `rendreTitreColophonAvecNotes` restent dans `OeuvreClient`, qui l'importe.
+Doctrine : charte `parametres.charte_ia` **§13.6**. Tout le rendu des appels vit dans **`app/oeuvre/[id]/appelNote.tsx`** (info-bulle, `rendreTexteAvecNotes`, `rendreTitreColophonAvecNotes`, `preparerTitreColophon`, `titreSansAppelsDeNote`, `notesPourTexte`), extrait d'`OeuvreClient` pour que **`PageTitre` puisse l'importer sans cycle** — `OeuvreClient` importe `PageTitre`, l'inverse aurait bouclé.
 
-- ⛔ **JAMAIS de pointillé sous un appel de note**, ni aucun autre soulignement, nulle part. Règle d'auteur, sans exception ni cas particulier : l'exposant et la teinte suffisent à le signaler. Le `borderBottom: '1px dotted'` est revenu une fois sur `master` après avoir été retiré ailleurs — un test le garde désormais.
-- ⚠️ **Deux composants rendent des appels, pas un.** `app/oeuvre/[id]/appelNote.tsx` sert la page d'œuvre ; `app/lib/NoteTooltip.tsx` sert le panneau patristique et les essais, ainsi que les renvois vers un verset ou un segment. Le pointillé a été retiré du premier puis retrouvé dans le second : les corriger ENSEMBLE. `NoteTooltip.test.ts` inspecte le source du second, faute de pouvoir interroger des styles en ligne, et `appelNote.test.ts` interroge `styleAppelNote()` pour le premier.
-- **Sommaire : `titreSansAppelsDeNote` sur TOUS les intitulés**, niveaux 1 à 3, chapeaux compris, plus la table de l'apparat. Seul le chapeau de niveau 1 était nettoyé : « Livre cinquième[[81]] » s'affichait ainsi dans la navigation, où la note est de surcroît illisible (le sommaire ne porte pas leur texte). **L'espace qui précède part avec le marqueur**, sans quoi l'intitulé garde un blanc double.
-- **`variante` de l'appel** — `corps` (prose, chapeaux, titres de niveaux 3-4 : brun `#8a6a3e`, `0.60em`) et `titre` (niveaux 1-2, en lecture comme en apparat : `currentColor` à 55 %, `0.42em`). Un titre est court et composé large : l'appel brun y fait une tache. Dans tous les cas l'appel **hérite `font-family` et `font-style`** : dans un chapeau en italique, il s'incline avec lui. Ne pas revenir à `fontStyle: 'normal'` ni à une police posée en dur.
-- `styleAppelNote()` est la SEULE définition de cette forme : ne pas recomposer un style d'appel ailleurs.
+- **Sommaire : `titreSansAppelsDeNote` sur TOUS les intitulés** (niveaux 1 à 3, chapeaux compris, sommaire des traductions parallèles inclus), et sur la barre de division de la comparaison, dont les intitulés viennent des segments de la traduction de référence sans leur banque de notes. Auparavant seuls les chapeaux de niveau 1 étaient nettoyés : « Livre cinquième[[81]] » s'affichait avec ses crochets. La regex emporte l'espace qui précède (`[ \t]*`, jamais `\s*`, sinon un appel en tête de ligne avalerait le retour du chapeau à deux lignes).
+- **Corps : `variante` de l'appel** — `corps` (prose, chapeaux, titres de niveaux 3-4 : brun `#8a6a3e`, `0.60em`), `titre` (niveaux 1-2 : `currentColor` à 55 %, `0.42em`), `frontispice` (page de titre : `0.30em`). Dans tous les cas l'appel **hérite `font-family` et `font-style`** : dans un chapeau en italique, il s'incline avec lui. Ne pas revenir à `fontStyle: 'normal'` ni à une police serif forcée.
+- ⛔ **JAMAIS de pointillé sous un appel de note**, ni aucun autre soulignement, nulle part. Règle d'auteur, sans exception ni cas particulier : l'exposant et la teinte suffisent à le signaler. `styleAppelNote()` est la SEULE définition de cette forme, et `ComparaisonTraductions` s'en sert aussi — ne pas recomposer un style d'appel ailleurs.
+- ⚠️ **La note d'un titre n'est pas toujours sur le premier segment du groupe.** Dans les imports à notes structurées, `texte_note_ancres.segment_key` tombe quelques segments plus loin (Discours sur la Genèse : l'appel du chapeau du « Premier discours » est ancré au 8ᵉ segment, pas au 1ᵉʳ). D'où `notesSection` (banque memoïsée de `segments` + `segmentsApparat`) et `notesDuTitre(textes, locales)`, qui cherche dans la section entière à défaut du groupe. Sans cela, l'appel s'affichait mais ouvrait une note vide.
+- `rendreTexteAvecNotes` reconnaît désormais les **`++petites capitales++`** comme `rendreTexteEnrichi` (ajoutées en FIN d'alternance pour ne pas renuméroter les groupes de capture) : la page de titre passe par ce moteur et y aurait perdu la petite capitale.
+- Logique pure testée : `app/oeuvre/[id]/appelNote.test.ts`.
 
-# Branches — `master` seule, et ce qui reste à rapatrier (2026-08-17)
+# Une œuvre à plusieurs auteurs (2026-08-16)
 
-Le site est déployé depuis **`master`**, et de `master` seule : une branche de travail ne produit que des déploiements **Preview** chez Vercel. Tout travail sur le site va donc directement sur `master`.
+Doctrine : charte `parametres.charte_ia` **§16.11**. Les auteurs sont **à égalité** ; l'œuvre paraît une fois sous le nom de chacun et porte les deux noms là où elle est nommée.
 
-La branche de travail, renommée **`la-gueule-bible899`**, ne garde plus que ce qui ne concerne pas le site : l'outil La Gueule et le chantier Bible 899, menés à part. L'arbre de travail principal reste sur elle, car les trois commits Bible 899 n'existent nulle part ailleurs.
+- **Modèle** : le PREMIER auteur reste `oeuvres.id_auteur` (les ~220 lectures qui s'y appuient sont inchangées), les suivants vivent dans **`oeuvres_auteurs`** (`rang` ≥ 2, PK `(id_oeuvre, id_auteur)`, trigger refusant un auteur déjà premier). La vue **`v_oeuvres_auteurs`** (security_invoker, donc soumise à la RLS de `oeuvres`) réconcilie les deux et **fait seule autorité** : ne jamais refaire cette union à la main.
+- **Côté TS, tout passe par `app/lib/auteursOeuvre.ts`** (pur + testé `auteursOeuvre.test.ts`) : `chargerAuteursParOeuvre`, `chargerAuteursDOeuvre`, `libelleAuteurs` (« A et B », via `enumererNoms`), `separateurAuteurs` (quand chaque nom est rendu séparément, cliquable), `grouperOeuvresParAuteur` (dépose l'œuvre sur CHAQUE étagère). Le repli sur `oeuvres.id_auteur` est volontaire : si les couples ne se chargent pas, une œuvre ne doit pas disparaître de l'étagère.
+- **Surfaces branchées** : bibliothèque (SSR + rechargement client + canal temps réel sur `oeuvres_auteurs`), fiche auteur (`ModaleAuteur`), page de lecture (frontispice, volet, « du même auteur », traductions sœurs, métadonnées SEO), admin (bloc « Auteurs » du formulaire « Modifier l'œuvre » + route `app/api/admin/oeuvre-auteurs`).
+- **Pas encore branchées** (elles montrent le premier auteur seul) : recherche de la navbar, panneau patristique, prélèvements, quiz, page d'accueil, `SelecteurCitation`.
 
-⚠️ **Un `cherry-pick` ne rapatrie pas une fonctionnalité qui touche `OeuvreClient`.** Le fichier a divergé de 480 lignes ajoutées et 384 supprimées sur 2 654 : le patch entrant y remplace la page au lieu de la compléter, et il traîne au passage des props d'autres commits. Trois apports restent donc à **porter à la main**, en repartant du code de `master` et en lisant la branche comme référence :
+## ⚠️ Piège majeur : une table de liaison CASSE tous les `select` imbriqués PostgREST
 
-- **Une œuvre à plusieurs auteurs** (`be068b43`, 16 fichiers) — la migration est déjà en base et en production ; s'ajoutent `app/lib/auteursOeuvre.ts` et la route `api/admin/oeuvre-auteurs`. Recoupe le correctif d'embed qualifié déjà posé sur `master`.
-- **Traductions parallèles** (`8a178c24`, 12 fichiers) — dépend du découpage des appels de note.
-- **Appels de note** (`88cb50a3`, `2b3bda54`, `5ceb71be`) — `master` possède déjà les fonctions de rendu, **en ligne** dans `OeuvreClient` ; ce qui lui manque est l'extraction en module `appelNote.tsx` (pour que `PageTitre` l'importe sans cycle) et le comportement : appels **masqués au sommaire**, actifs dans les titres du corps.
+⛔ Ajouter `oeuvres_auteurs` a créé une **deuxième relation** entre `auteurs` et `oeuvres` (la clé étrangère directe `oeuvres.id_auteur`, plus le nouveau many-to-many). PostgREST refuse alors TOUT embed `auteurs(...)` ou `oeuvres(...)` avec **PGRST201 — « Could not embed because more than one relationship was found »**, `data` nul.
 
-Rapatriés le 2026-08-17, après contrôle (`tsc` propre, suite verte) : sources Tailwind bornées à `app/`, filtrage des notices patristiques, section « Opuscules », libellé du traducteur, retrait du pointillé sous les appels de note.
+Symptôme observé : l'admin Bibliothèque affichait « Aucun auteur trouvé » et le bandeau « Certaines données n'ont pas pu être chargées », alors que rien du chargement n'avait été touché.
 
-# Lecture en regard — deux témoins d'une œuvre, appariés par la base
+**Règle** : dès qu'une table de liaison double une clé étrangère existante, **qualifier tous les embeds par le nom de la contrainte** — `auteurs!oeuvres_id_auteur_fkey(nom)`, `oeuvres!oeuvres_id_auteur_fkey(...)`. Corrigé dans `app/accueil`, `app/admin/page.tsx`, `SectionAjouterOeuvre`, `app/compte`, `SelecteurCitation`, `app/oeuvre/[id]/page.tsx`, `RechercheClient`. Vérification : `grep -rn "auteurs(\|oeuvres(" app/` ne doit plus rien renvoyer sans `!oeuvres_id_auteur_fkey`.
 
-Mode « Traductions parallèles » de la page d'œuvre (`app/oeuvre/[id]/ComparaisonTraductions.tsx`, logique pure et testée dans `comparaisonTraductionsUtils.ts`). Il n'apparaît que si l'œuvre possède un ensemble d'alignement **dont les deux témoins sont accessibles à la session** : le filtrage a lieu dans le composant serveur, jamais dans le client.
+### La base est PARTAGÉE : une migration casse le site en ligne avant que le correctif ne soit déployé
 
-- **L'appariement vient de la base, jamais du texte.** `texte_alignements` décrit des GROUPES (ce qui se répond de part et d'autre), `texte_alignement_membres` dit quels segments composent chaque côté, appariés par `segments.segment_key`. ⚠️ **Un groupe peut être 1:0 ou 0:1** : la case reste alors vide et porte la mention « rien en regard ». Ne jamais combler par le segment voisin, ce serait fabriquer une correspondance que l'éditeur n'a pas établie.
-- **Chargement division par division.** L'ensemble de La Cité de Dieu compte 10 535 membres pour 661 divisions : on ne le descend pas d'un bloc. Les requêtes `in.(…)` passent par lots de 180, la borne de PostgREST.
-- **Le texte passe par le moteur de la lecture.** `rendreTexteAvecNotes` a été extrait d'`OeuvreClient` vers `appelNote.tsx` pour cela : les appels de note sont vivants et de même forme dans les deux modes, sans que les fichiers s'importent l'un l'autre. ⚠️ Ce module est chargé par un test : ses imports doivent rester **relatifs**, l'alias `@/` n'étant pas résolu par vitest.
-- **Polices.** La colonne en langue originale passe en sans-serif, comme en lecture bilingue (règle d'auteur), et reçoit `cesurerLatin`.
-- ⚠️ **Libellés calculés, jamais tabulés.** Les tables de la première version s'arrêtaient au cinquième livre et au vingt-quatrième chiffre romain ; La Cité de Dieu compte vingt-deux livres et va jusqu'à la cinquante-quatrième division, si bien que tout le dessus retombait en chiffres arabes au milieu d'une série en toutes lettres. `chiffreRomain` compose, `ORDINAUX` va jusqu'au vingt-quatrième.
-- **En-tête de colonne : le nom du traducteur, pas le titre de version.** Celui de Mirandol tient en cent signes. `libelleColonne` prend le nom, y joint l'année, et ramène une responsabilité partagée à son premier nom.
-- **Données au 2026-08-17** : deux ensembles seulement, Boèce (Mirandol 1861 contre Ceriziers 1646, 784 groupes) et La Cité de Dieu (latin Vivès contre Barreau, 1 084 groupes). Aucun membre orphelin, vérifié.
+⛔ Il n'y a qu'une base Supabase pour le poste de travail et pour le site en ligne. Créer `oeuvres_auteurs` a donc rendu ambigus, **à la seconde même**, les embeds du code **déjà déployé**, qui, lui, ne changeait pas. Le correctif restant en local, le site en ligne a servi pendant une nuit un « **Œuvre introuvable** » sur **toutes** les œuvres, alors que la même page était saine sur le serveur de développement. Le poste de travail ne pouvait pas voir la panne : c'est le décalage entre les deux qui la fabriquait.
 
-# Termes en langue étrangère — italique partout
+**Règle** : une migration qui touche la forme des relations (table de liaison, clé étrangère, renommage, vue lue par le site) n'est appliquée qu'**une fois le correctif poussé**, ou bien elle est poussée dans la foulée, sans attendre le lendemain. Aucune séance ne se termine avec une migration en base et son correctif dans un commit non poussé.
 
-Doctrine : charte `parametres.charte_ia` **§ 3.6**, arrêtée le 2026-08-17. Une seule règle, sans liste d'exceptions à retenir.
+⚠️ **Le site en ligne se déploie depuis `master`, pas depuis la branche de travail.** `confort-lecture` ne produit que des déploiements **Preview** : y pousser un correctif ne change rien à corpus-scriptura.fr. Les deux branches ont divergé (base commune du 2026-08-07), un correctif urgent se porte donc en petit commit ciblé **directement sur `master`**, jamais en fusionnant la branche de travail entière. Vérifier ce qui est réellement en ligne :
 
-- **Tout terme, locution ou phrase en langue étrangère inséré dans un texte français est en italique**, quelle que soit la langue, ancienne ou moderne. ⚠️ **Le latin ne fait pas exception et la lexicalisation n'est pas un critère** : `*a priori*`, `*ex nihilo*`, `*in fine*` prennent l'italique. Les abréviations savantes aussi : `*cf.*`, `*ibid.*`, `*op. cit.*`, `*et al.*`, `*passim*`, `*sic*`, `*circa*`. Choix d'auteur assumé, qui s'écarte de l'Imprimerie nationale (laquelle laisse « cf. » en romain).
-- **Une seule exception d'alphabet** : le grec en caractères grecs reste en romain, l'alphabet suffisant à signaler la langue. Une translittération en alphabet latin, elle, prend l'italique.
-- **Les noms propres étrangers restent en romain** : personnes, lieux, institutions, revues. Le titre d'une œuvre fait exception à cette exception, son italique lui venant de sa qualité de titre.
-- **Superposition : l'italique l'emporte.** Un terme étranger dans un contexte déjà en italique GARDE l'italique ; on ne revient pas au romain pour l'en distinguer.
-- **Exception d'échelle** : un texte entier dans une langue étrangère n'est pas mis en italique. La règle vise le terme inséré dans une phrase française, pas un texte qui est tout entier dans cette langue, ni les enrichissements d'auteur attestés par la source.
-- **Balisage `*terme*`**, le même que celui des titres, rendu en véritable italique par `rendreTexteEnrichi`. **Portée : absolument partout** — notices d'auteur, d'œuvre, chronologiques, commentaires, notes de l'éditeur, chapeaux, libellés d'interface et messages du site.
+```
+curl -s "https://api.github.com/repos/sqdvcontact-lgtm/bible-patristique/deployments?environment=Production&per_page=1"
+```
 
-⚠️ **Piège rencontré en écrivant cette règle** : le champ `parametres.charte_ia` est du **texte simple**, mais un passé d'écriture y avait laissé quatre `\n` LITTÉRAUX (barre oblique inverse suivie de n) en guise d'alinéas, qui s'afficheraient tels quels. Ils ont été convertis en vrais retours à la ligne. Écrire dans la charte par `overlay` sur des positions vérifiées, jamais par une réécriture du champ entier, et sauvegarder d'abord (table `backup_charte_ia_20260817_termes_etrangers`).
+**Repérer la panne** : `git status -sb` (« ahead N ») dit ce qui manque au site. Rejouer la requête telle que la sert le code EN LIGNE, pas le code local :
 
-# Centre de contrôle — les blocs remplis par l'IA sont bornés
+```
+curl -s "$SUPABASE_URL/rest/v1/oeuvres?select=id_oeuvre,auteurs(nom)&limit=1" -H "apikey: $CLE" -H "Authorization: Bearer $CLE"
+```
 
-Les deux blocs que l'assistant remplit (`controle_sections.commentaire_ia` et `todos`) n'ont **aucune longueur prévisible**, et la page ne les bornait pas. Relevé du 2026-08-17 : la note de la section Qualité pèse **83 394 signes** pour 113 tâches, celle de Chronologie 21 371, celle du Catalogue 9 049 pour 102 tâches. Une seule carte chassait donc toutes les autres hors de l'écran.
-
-- **Hauteur bornée et défilement interne** : la note à 13 rem, la liste des tâches à 15 rem, classe partagée `.cc-defile` (barre fine, `overscroll-behavior: contain` pour que la page ne parte pas quand la zone est au bout). La couleur du curseur vient de la variable `cc-pouce`, redéfinie en vert sur le bloc vert de la note.
-- **Les alinéas sont restitués** (`white-space: pre-line`). Ces notes en portent jusqu'à 221, que le paragraphe écrasait en un pavé continu.
-- **Le poids de la note est annoncé** au-delà de 1 200 signes, pour qu'on ne croie pas l'avoir lue en entier.
-- ⚠️ **Le bloc de styles est un littéral gabarit** : jamais d'accent grave dedans, pas même dans un commentaire. Il a cassé la compilation deux fois ici, comme il l'avait fait dans `EssaisListeClient`.
-- ⚠️ **Résidu à surveiller** : `commentaire_ia` de la section Qualité contient un `\n` LITTÉRAL, qui s'affiche tel quel. Même défaut que celui trouvé dans la charte, même origine probable.
-
-# Casse des titres — la règle de l'Imprimerie nationale
-
-Doctrine : charte `parametres.charte_ia` **§ 3.5**, réécrite le 2026-08-17 d'après le *Lexique des règles typographiques en usage à l'Imprimerie nationale*, entrée « Titres d'œuvres et de journaux » (p. 168-171). La règle précédente, « une majuscule au premier mot seulement », était vraie d'un seul cas sur quatre.
-
-- **Le titre ne commence pas par l'article défini** → le mot initial prend seul la majuscule. *Sur Joseph et la continence*, *De l'esprit des lois*.
-- **Le titre commence par l'article défini** → l'article prend la majuscule, et il est le SEUL à la prendre lorsque le titre forme une phrase (*Les dieux ont soif*).
-- ⚠️ **Écart assumé avec le Lexique.** Celui-ci ajoute un second cas où la majuscule s'arrêterait à l'article, les ouvrages spécialisés, d'érudition ou techniques, et les articles de revue. **Corpus Scriptura ne le retient pas** : une distinction de genre ne se tranche pas sûrement au moment d'écrire un titre, et elle produirait deux casses concurrentes dans une même bibliographie. Un ouvrage d'érudition prend donc la majuscule au premier substantif comme les autres, *La Figure de Paul dans les Actes des Apôtres*.
-- **Sinon la majuscule va plus loin** : à chaque terme en opposition ou en parallèle dans un titre qui contient une comparaison ou une symétrie (*La Belle et la Bête*, *Le Diable et le Bon Dieu*) ; et, dans tous les autres titres, **au premier substantif ainsi qu'aux adjectifs et adverbes qui le précèdent** (*Les Très Riches Heures du duc de Berry*, *Le Petit Chaperon rouge*).
-- ⚠️ **Dans un titre en deux parties séparées par « ou », l'article de la seconde partie PERD la majuscule** : *Julie ou la Nouvelle Héloïse*, *Le Mariage de Figaro ou la Folle Journée*.
-- ⚠️ **Les titres en langue étrangère suivent la règle FRANÇAISE**, casse et typographie comprises : l'usage anglais de la capitale à chaque mot important n'est pas suivi.
-- **Restent en romain, article en bas de casse** : livres dits sacrés (la Bible, l'Évangile selon saint Luc), actes officiels, codes, et désignations de thèmes traditionnels qui ne sont pas des titres réels (la Crucifixion).
-- ⛔ **Jamais dans le corps d'un texte source.** La casse d'un titre qui figure DANS le texte d'une œuvre appartient à l'édition reproduite.
-
-**Écart mesuré au 2026-08-17** : les titres d'œuvre, sous-titres, titres d'essai et intitulés d'événement sont propres ; aucun article initial en bas de casse nulle part. Restent **89 titres de niveau distincts composés tout en capitales** (11 en `ref_niv1`, 76 en `ref_niv2`, 2 en `ref_niv3`), du type `LIVRE TROISIÈME` ou `EXPLICATION DU PSAUME CXL.`, qui sont des capitales d'affichage de la source et non une casse éditoriale. ⚠️ Ne pas compter les chiffres romains (`VIII`, `XXIV`) comme des violations : un dépistage naïf sur `v = upper(v)` en trouve 94 au lieu de 89.
-
-**Passe du 2026-08-17 sur la bibliographie.** La règle unifiée a déplacé la majuscule sur **73 titres français d'ouvrages scientifiques retenus** (`La parabole du semeur` → `La Parabole du semeur`). Six d'entre eux portaient un adjectif ou un numéral devant le substantif, qui prend alors lui aussi la majuscule, et se sont corrigés à la main : `La Première Épître aux Corinthiens`, `Les Deux Visages d'Élie`, `Les Dix Plaies d'Égypte ou la Création d'Israël`. Sauvegarde : `backup_ouvrages_titres_20260817_casse`.
-
-**Les titres anglais ont été convertis** le 2026-08-17, sur décision de l'auteur : 54 titres et 45 sous-titres, sauvegarde `backup_ouvrages_titres_20260817_anglais`.
-
-⚠️ **La conversion s'est faite sur un VOCABULAIRE, jamais titre par titre.** On relève d'abord tous les mots capitalisés du lot (environ 250 pour 161 titres), on décide une fois pour toutes lesquels sont des noms propres, puis on abaisse mécaniquement le reste. Trancher 161 phrases à la main aurait été plus long et moins sûr.
-
-Ce qui garde sa capitale : le premier mot du champ ; le premier mot après un deux-points ; les noms propres, dont les livres bibliques, les peuples et les adjectifs que l'orthographe anglaise impose (*Jewish*, *Christian*, *Greek*) ; les sigles et les chiffres romains ; et, quand le titre commence par *The*, le premier substantif avec les adjectifs qui le précèdent. Tout le reste passe en bas de casse.
-
-- ⚠️ **Seul l'ANGLAIS est concerné.** L'allemand capitalise ses substantifs par ORTHOGRAPHE et non par casse de titre : y toucher serait une faute de langue, pas une correction typographique. Les trois titres allemands, les deux latins, l'espagnol, l'italien, le portugais, le tchèque et l'hébreu sont restés intacts.
-- ⚠️ **L'insécable du deux-points ne se pose pas dans une référence chiffrée.** `Lk 2:22-39` doit rester collé ; six titres l'avaient reçue à tort et ont été repris.
-- ⚠️ **Une liste de noms propres est toujours incomplète.** Le contrôle qui compte : comparer les mots de la sauvegarde à ceux du résultat et lire ceux qui ont été abaissés. C'est ainsi qu'on a rattrapé *Job*, *Beatitudes* et *Twelve Prophets*.
-- **Cas à reprendre à la main** : l'adjectif devant le substantif, qui prend lui aussi la majuscule (*The Suffering Servant*, *The First Book of Samuel*, *The Maccabean Martyrs*).
-
-**Passe de contrôle (2026-08-17), et ce qu'elle a appris.** L'invariant qui compte : hors casse et hors insécable, **aucun caractère ne doit avoir bougé**. Comparer `lower(sans insécable)` de l'après au `lower` de la sauvegarde ; sur 153 titres et leurs sous-titres, zéro écart. Ce contrôle-là est mécanique et sans appel, et il doit précéder toute relecture.
-
-Six défauts ont ensuite été trouvés à la lecture, tous de la même famille : **une liste de noms propres se trompe des deux côtés**.
-
-- **Un mot propre employé comme mot commun.** `New` figurait dans la liste pour *New Testament* ; il a gardé sa capitale dans « A New translation ». De même `Twelve`, gardé dans « the Twelve Prophets » alors que `prophets` tombait, laissant un titre à moitié abaissé.
-- **Un mot commun qui est propre en contexte.** `Job`, `Beatitudes`, `Second Temple`, `First Epistle` : absents de la liste, ils sont tombés à tort.
-- ⚠️ **Les sigles à points sont hors d'atteinte d'un test sur les deux premières lettres.** `C.E.` est devenu `c.E.` parce que `^[A-Z][A-Z]` ne l'apparie pas. Dépister ensuite par `\m[a-z]+[A-Z]` et `\m[a-z]\.`, qui trouvent tout mot cassé de l'intérieur.
-- **Les composés à barre oblique** (`Apocryphal/Deuterocanonical`) ne s'abaissent qu'à moitié.
-
-**Les 66 ouvrages non retenus ont été repris à leur tour** le 2026-08-17 (12 titres, 2 sous-titres ; sauvegarde `backup_ouvrages_titres_20260817_non_retenus`). Il le fallait : `secondaire` est **publiable** (vue `bibliographie_publiable`), et la bibliographie aurait servi au lecteur deux casses concurrentes.
-
-⚠️ **La liste de noms propres doit contenir le CANON BIBLIQUE EN ENTIER.** Ce lot est fait de volumes de collection qui énumèrent des livres, et la première liste, bâtie sur le seul vocabulaire des ouvrages retenus, y abaissait `Thessalonians`, `Timothy`, `Titus`, `Leviticus`, `Jude`, `Lamentations`, `Chronicles`, `Ezra` et `Nehemiah`. Une liste tirée d'un échantillon ne vaut que pour cet échantillon : la prévisualisation avant écriture est ce qui l'a montré.
-
-**Deux désignations laissées telles quelles**, parce qu'elles nomment un ensemble scripturaire et non un thème : `The Twelve Prophets` et `First and Second Samuel`.
-
-**État de la bibliographie entière au terme de la passe** (589 ouvrages) : zéro article suivi d'un bas de casse, zéro mot cassé de l'intérieur, zéro insécable dans une référence chiffrée, zéro titre tout en capitales, zéro double espace, zéro deux-points collé en anglais.
-
-# Capitales accentuées, et noms communs
-
-Deux règles arrêtées le 2026-08-17, inscrites dans la charte aux § 3.2 et § 3.5.
-
-- **Les capitales s'accentuent, sans exception** : `Éphésiens`, `Église`, `Évangile`, `À la recherche`, `Être`. La capitale nue est une limite des machines à écrire, pas un usage français.
-- **Un nom commun ne prend pas la majuscule parce qu'il désigne une fête ou un temps liturgique** : `Troisième dimanche après l'Épiphanie`, et non `Dimanche`. La majuscule ne lui revient qu'en tête de titre. Les noms de fêtes eux-mêmes la gardent : `l'Avent`, `l'Épiphanie`, `la Trinité`, `la Grande Semaine`.
-
-⚠️ **L'accentuation ne franchit pas la frontière du § 3.2** : elle vaut pour ce que Corpus Scriptura compose, jamais pour une orthographe ancienne reproduite d'une source. Le dépistage a trouvé 106 occurrences dans les titres de niveau d'Eusèbe, qui reproduisent une édition de 1532 : `De la Subuersion des Eglises`, `Comme sainct Marc fut le Premier qui prescha la Loy de Iesus Christ`. **Elles restent intactes.** Accentuer `Eglises` en laissant `Subuersion`, `Iesus` et `viuans` serait moderniser à moitié, donc défigurer. Même raison pour le sous-titre d'Eucher, `Evesque de Lyon`, qui reproduit une page de titre du XVIIᵉ siècle.
-
-⚠️ **Piège de dépistage** : `Ecclésiaste` et `Ecclésiastique` n'ont PAS d'accent sur leur capitale initiale. Les inclure dans une liste de mots à accentuer produit des faux positifs.
-
-Corrections effectives : `Éphésiens 6/10-20` (un titre), et `Dimanche` ramené en bas de casse dans quatre titres de la même série de sermons, où il voisinait avec quatre `dimanche` déjà corrects.
-
-# Catalogue — une ligne par témoin textuel
-
-Doctrine : charte `parametres.charte_ia` **§ 19.2**. La bibliothèque affiche une ligne pour CHAQUE texte de l'œuvre, non une par œuvre. Logique pure dans `app/lib/temoinsOeuvre.ts` (module testé), consommée par `app/bibliotheque/page.tsx` (qui charge `oeuvre_textes`) et `BibliothequeClient`.
-
-**Trois mécanismes coexistent** pour dire « même œuvre, plusieurs éditions ». Les confondre est la source du désordre :
-
-1. **`segments.texte_original`** — l'original en colonne parallèle, DANS le même texte. Dix œuvres, exposées par la vue `v_oeuvres_texte_original`.
-2. **`oeuvre_textes`** — plusieurs textes complets sous UNE ligne d'`oeuvres`. Deux œuvres : Boèce (Mirandol 1861, Ceriziers 1646) et La Cité de Dieu (français Barreau, latin Bénédictins).
-3. **Plusieurs lignes d'`oeuvres` de même titre** (le « groupe de titre »). Une seule œuvre : La Cité de Dieu, qui emploie donc les mécanismes 2 et 3 à la fois.
-
-- ⛔ **Ne jamais scinder en deux lignes d'`oeuvres` deux témoins qu'on veut lire EN REGARD.** `texte_alignement_ensembles` porte un seul `id_oeuvre` et relie deux `id_texte` ; la comparaison charge les segments par `id_oeuvre` + `segment_key`. Séparer les deux Boèce détruirait ses 784 alignements. Le mécanisme 2 est le bon ; c'est la bibliothèque qui n'en montrait rien, car elle ne lisait jamais `oeuvre_textes`.
-- ⚠️ **Le latin peut exister deux fois**, en colonne parallèle ET comme témoin. Quand le témoin existe, il prime et la sous-ligne « Texte original latin » disparaît, sinon La Cité de Dieu offrirait deux portes vers le même latin.
-- **La mention d'édition se réduit à l'année.** `edition_label` de Vivès tient en deux cents signes et écraserait la ligne : sans `annee_edition`, la ligne ne dit rien de l'édition.
-- **Effet mesuré** : sur 16 œuvres publiées, 3 n'ont aucun témoin déclaré, 11 en ont un, 2 en ont plusieurs. Seuls Boèce et La Cité de Dieu gagnent des lignes ; les quatorze autres sont inchangées.
-
-# Une œuvre à plusieurs auteurs
-
-Doctrine : charte `parametres.charte_ia` **§ 19.2**. Les auteurs d'une œuvre sont **à égalité** : ni principal ni second, le `rang` ne règle que l'ordre d'affichage. L'œuvre paraît une fois sous le nom de chacun.
-
-- **Modèle** : `oeuvres.id_auteur` porte le PREMIER auteur (rang 1), la table `oeuvres_auteurs` les suivants, et la vue `v_oeuvres_auteurs` réconcilie les deux. ⛔ Ne jamais reconstituer cette union à la main : passer par `app/lib/auteursOeuvre.ts` (module testé).
-- **La bibliothèque range l'œuvre sur les DEUX étagères** (`grouperOeuvresParAuteur`), avec un repli sur `oeuvres.id_auteur` si la vue ne répond pas, pour qu'une panne de lecture ne fasse pas disparaître une œuvre.
-- ⚠️ **Un auteur sans œuvre ne paraît pas** : la page filtre `oeuvres.length > 0`. C'est ce filtre qui masquait **Rufin d'Aquilée**, lequel ne porte aucune œuvre en propre — sa part de l'*Histoire ecclésiastique* n'était dite qu'en prose, dans `commentaire_traduction` et `note`.
-
-**Trouvaille du 2026-08-17.** La migration `oeuvres_a_deux_auteurs` (table + vue) était **en base depuis le 16 août**, mais deux moitiés manquaient : `oeuvres_auteurs` était **vide** (0 ligne), et le code qui lit la vue vivait sur la branche, pas sur `master`. Le lien Eusèbe–Rufin sur `A0024O0001` a été créé, et la lecture portée dans `app/bibliotheque/page.tsx`. Effet mesuré : **un seul auteur change**, Rufin, de 0 à 1 œuvre.
-
-**Porté ensuite le 2026-08-17** :
-
-- **La fiche d'auteur** (`ModaleAuteur`) tirait ses œuvres d'un `.eq('id_auteur')` : la fiche de Rufin serait restée VIDE. Elle passe par `chargerOeuvresDAuteur`, co-signatures comprises, puis charge les œuvres par `.in('id_oeuvre', ids)`.
-- **La page de titre** nomme tous les signataires : `auteur` vaut désormais `libelleAuteurs()`, « Eusèbe de Césarée et Rufin d'Aquilée ». Le fil d'Ariane et le lien de retour gardent le PREMIER auteur, faute de pouvoir pointer vers deux fiches.
-- **La bibliothèque nomme les co-signataires** sous le titre, « avec Eusèbe de Césarée », en excluant l'auteur dont on lit l'étagère : sans cela, l'Histoire ecclésiastique semblerait, chez Rufin, être de lui seul.
-
-⚠️ **Trois surfaces lisaient l'auteur, pas une.** Chacune avait sa propre requête, et corriger la bibliothèque seule laissait une fiche vide et une page de titre incomplète. Chercher `id_auteur` dans tout `app/` avant de croire un tel portage terminé.
-
-**Reste** : `separateurAuteurs` n'est pas employé. Il sert à rendre les noms un à un et CLIQUABLES, chacun vers sa fiche, ce que la chaîne de `libelleAuteurs` ne permet pas.
-
-# Exposants — jamais `vertical-align: super`
-
-⛔ **`vertical-align: super` est le défaut du `<sup>`, et il relève l'ordinal du DOUBLE de ce qu'il faut.** Il faut donc le neutraliser explicitement, partout.
-
-**Mesure faite dans le navigateur** (Georgia, 20 px de corps, page d'épreuve et `measureText`) : la petite capitale du chiffre romain monte à **11 px** au-dessus de la ligne de base, l'ordinal composé à 0,6 em a **7 px** de hauteur d'x. Il faut donc le relever de **4 px** pour aligner les sommets. `super` le relevait de **7,66 px**, d'où le « e » de « IXe siècle » qui flottait au-dessus du chiffre.
-
-**Une seule définition fait foi**, `STYLE_ORDINAL` dans `app/lib/siecles.tsx`, doublée de `CSS_ORDINAL` pour les rendus qui composent du HTML en chaîne :
-
-`font-size: 0.6em ; line-height: 0 ; vertical-align: baseline ; position: relative ; top: -0.33em`
-
-- Le relèvement s'écrit en em de l'EXPOSANT, donc il suit le corps du texte d'accueil.
-- `line-height: 0` empêche l'exposant de gonfler la boîte de ligne (même raison que dans `NoteTooltip`).
-- **0,33 em plutôt que 0,35** : l'idéal mesuré oscille entre 0,33 et 0,38 em selon l'arrondi des glyphes. On se tient au bas de la fourchette, car dépasser le sommet du chiffre est précisément le défaut qu'on corrige.
-
-**Neuf endroits composaient leur propre exposant**, à 0,5 / 0,6 / 0,62 / 0,68 em, tous sur `super` : `siecles.tsx` (JSX et chaîne), `HistoricalDate` (qui avait sa propre constante à 0,68 em), `HistoireClient` (deux fois), `NavLivres`, `PanneauPatristique` (deux fois), `texteEnrichi`, `texteEnrichiEssai` (deux fois), `appelNote`, `EditeurCommentaire`, `TexteBible`. Tous renvoient désormais à la définition unique.
-
-⚠️ **Le test de `HistoricalDate` épinglait la chaîne exacte `vertical-align:super`** : il tenait donc le défaut en place. Il épingle désormais la RÈGLE — pas de `super`, un `top` négatif, un `line-height: 0`.
-
-**Deux exceptions volontaires** : `EssaiPDF` reste sur `super`, react-pdf ne sachant pas positionner en relatif ; et le lecteur Bible 899 n'a pas été touché, ce chantier étant mené à part.
-
-# ⛔ Vérifier en `service_role` ne prouve RIEN
-
-Le MCP Supabase se connecte en **`service_role`, qui IGNORE le RLS**. Une requête qui y réussit peut très bien ne rien renvoyer au lecteur du site.
-
-**Cas du 2026-08-17.** La table `oeuvres_auteurs` avait le RLS **activé sans aucune politique de lecture**, et la vue `v_oeuvres_auteurs` est en `security_invoker` : elle s'exécute donc avec les droits de l'appelant. En `service_role`, la vue renvoyait bien Eusèbe ET Rufin, et j'ai conclu que tout allait ; au lecteur, elle ne renvoyait que le premier auteur, porté par `oeuvres`. Rufin n'apparaissait nulle part.
-
-- **L'épreuve qui vaut** : `set local role authenticated;` avant la requête, dans la même session. C'est le seul contrôle qui dise ce que voit le site.
-- **Rappel du modèle** : GRANT et policy sont DEUX choses. Le grant existait pour `authenticated` ; c'est la policy qui manquait, et RLS sans policy refuse tout.
-- **La politique posée** suit la visibilité de l'œuvre : on voit le lien si l'on voit l'œuvre (`acces_public OR is_admin()`), l'écriture restant aux admins. Migration `rls_oeuvres_auteurs_lecture`.
-
-⚠️ **Un repli silencieux cache la panne.** `chargerAuteursParOeuvre` renvoyait `{}` sur erreur, et `grouperOeuvresParAuteur` retombait sur l'auteur porté par l'œuvre : le site restait cohérent, et rien ne signalait que la lecture était refusée. Le repli est conservé, mais l'erreur est désormais **journalisée**. Un repli muet sur une erreur de droits est un piège à retardement.
+Un `PGRST201` (HTTP 300) répond de lui-même ; la clé `hint` nomme la qualification à écrire.

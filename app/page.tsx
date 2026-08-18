@@ -4,7 +4,9 @@ import BibleLayout from './components/BibleLayout'
 import BibleSourceReader from './components/BibleSourceReader'
 import { LIVRES } from '@/app/lib/bible'
 import { loadBibleReadingCatalog, loadSourceReading } from '@/app/lib/bibleMultimodeServer'
+import { estVerseEditorial } from '@/app/lib/bibleMultimode'
 import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleReadingModes'
+import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899 } from '@/app/lib/bible899'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
 // La base est désormais fermée au rôle anonyme : une page serveur doit
@@ -33,7 +35,7 @@ export async function generateMetadata({
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ livre?: string; chapitre?: string; trad?: string; mode?: string; division?: string }>
+  searchParams: Promise<{ livre?: string; chapitre?: string; trad?: string; mode?: string; division?: string; couche?: string }>
 }) {
   const params = await searchParams
   if (!params.livre && !params.chapitre && !params.trad) redirect('/accueil')
@@ -91,26 +93,49 @@ export default async function Home({
     )
   }
 
-  const { data: versets } = await supabase
-    // Vue de compatibilité canonique. Elle reste le chemin exclusif des éditions
-    // historiques et n'est jamais utilisée pour simuler un mode source.
-    .from('versets_lecture')
-    .select('*')
-    .eq('livre', livre)
-    .eq('chapitre', chapitre)
-    .order('verset')
+  // Deux origines pour le mode « verset », même contrat de données pour BibleLayout :
+  //   - éditions historiques (TR0001–TR0005) : vue large `versets_lecture` ;
+  //   - segmentation éditoriale (TR0009, Bible 899) : texte recomposé et aligné sur
+  //     canon_id, ADAPTÉ au contrat ordinaire (aucune copie vers versets_v2). La
+  //     mécanique (offsets, unités-source, folios…) reste derrière l'adaptateur.
+  const editorial = estVerseEditorial(catalog.capabilities[trad])
+  // Couches réellement disponibles pour la page Bible, lues sur les DONNÉES. La graphie
+  // « diplomatique » n'est pas destinée à la page Bible (charte) : on l'écarte, ne
+  // laissant que « Manuscrit » (expanded) et, quand elle existera, « Modernisée ».
+  const couchesBible = editorial
+    ? (await couchesDisponibles899(supabase)).filter((c) => c !== 'diplomatic')
+    : []
+  const couche = normaliserCouche899(params.couche, couchesBible)
+  let versets: any[]
+  if (editorial) {
+    const lignes = await chargerVersets899(supabase, { livre, chapitre }, [couche])
+    versets = adapterVersets899(lignes, trad, livre, chapitre, couche)
+  } else {
+    const { data } = await supabase
+      // Vue de compatibilité canonique. Elle reste le chemin exclusif des éditions
+      // historiques et n'est jamais utilisée pour simuler un mode source.
+      .from('versets_lecture')
+      .select('*')
+      .eq('livre', livre)
+      .eq('chapitre', chapitre)
+      .order('verset')
+    versets = data || []
+  }
 
   return (
     <Suspense fallback={null}>
       <BibleLayout
         livres={LIVRES}
-        versets={versets || []}
+        versets={versets}
         traductions={translations}
         livreActif={livre}
         chapitreActif={chapitre}
         nomLivre={NOMS_LIVRES[livre] || livre}
         tradInitiale={trad}
         readingCapabilities={catalog.capabilities}
+        couche={editorial ? couche : undefined}
+        couchesDisponibles={couchesBible}
+        tradExplicite={!!params.trad}
       />
     </Suspense>
   )

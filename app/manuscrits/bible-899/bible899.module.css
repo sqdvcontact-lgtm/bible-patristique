@@ -255,8 +255,48 @@
 
 .facsimile {
   margin: 0;
+  background: #201f1c;
+}
+
+.loadingReader {
+  display: grid;
+  min-height: 28rem;
+  place-items: center;
+  width: min(76rem, 100%);
+  margin: 0 auto;
+  color: #655d53;
+  font-family: var(--font-source-serif), Georgia, serif;
+}
+
+.facsimileViewer {
+  min-width: 0;
   border-right: 1px solid #ded6ca;
   background: #201f1c;
+}
+
+.facsimileChoices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  border-bottom: 1px solid #4c4942;
+  padding: 0.5rem;
+}
+
+.facsimileChoices button {
+  border: 1px solid #777168;
+  border-radius: 0.35rem;
+  background: #34322e;
+  color: #e9e2d7;
+  padding: 0.38rem 0.55rem;
+  font: inherit;
+  font-size: 0.66rem;
+  cursor: pointer;
+}
+
+.facsimileChoices button[aria-pressed="true"] {
+  border-color: #d4bc8f;
+  background: #f1e6d2;
+  color: #2a2520;
 }
 
 .facsimile img {
@@ -407,6 +447,26 @@
   font-size: 0.62rem;
 }
 
+.alternativeSources {
+  margin-top: 0.65rem;
+}
+
+.alternativeSources summary {
+  width: fit-content;
+  cursor: pointer;
+  color: #5d6d62;
+  font-weight: 650;
+}
+
+.alternativeSources ul {
+  margin: 0.45rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.alternativeSources a {
+  color: #3f664d;
+}
+
 @media (max-width: 900px) {
   .page {
     padding: 1.5rem 0.75rem 2rem;
@@ -458,7 +518,7 @@
     grid-template-columns: 1fr;
   }
 
-  .facsimile {
+  .facsimileViewer {
     border-right: 0;
     border-bottom: 1px solid #ded6ca;
   }

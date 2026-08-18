@@ -49,6 +49,10 @@ scripts/giguet-revue.md
 # Heptateuque : fac-similés (103 Mo), node_modules locaux, DOCX régénérables
 scripts/heptateuque/img/
 scripts/heptateuque/node_modules/
+# Sous-projets de scripts (ex. segmentation-candidate) : leurs node_modules
+# imbriqués n'étaient pas couverts par la règle ci-dessus et se sont retrouvés
+# versionnés par erreur (7000+ fichiers). Le double astérisque les rattrape tous.
+scripts/heptateuque/**/node_modules/
 scripts/heptateuque/package-lock.json
 scripts/heptateuque/*.docx
 
@@ -64,6 +68,10 @@ work/bible899/source/BnF_Fr_899.pdf
 
 # Jeu d'import multimode Bible 899 (régénérable, environ 80 Mo hors archive).
 /work/bible899/multimode/
+
+# caches Python des scripts (régénérables)
+__pycache__/
+*.pyc
 
 # réglages Claude Code locaux (spécifiques à la machine)
 .claude/settings.local.json

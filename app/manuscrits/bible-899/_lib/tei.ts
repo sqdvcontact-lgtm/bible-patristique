@@ -50,6 +50,14 @@ export type ManifestImageInfo = {
   height: number | null;
 };
 
+export type AlternativeManifestImageInfo = ManifestImageInfo & {
+  classification: string;
+  alternativeFor: string | null;
+  sourceUnitId: string | null;
+  pdfPage: number | null;
+  pdfHalf: string | null;
+};
+
 export type FacsimileReference = {
   sourceReference: string;
   imageReference: string;
@@ -142,6 +150,16 @@ export type Bible899Edition = {
     missingCoordinates: string[];
     unmatchedModernizedUnits: string[];
   };
+};
+
+export type Bible899ReaderEdition = Omit<Bible899Edition, "columns" | "control"> & {
+  columns: [Bible899Column];
+  columnIndex: Array<Pick<Bible899Column, "key" | "folio" | "column">>;
+  materialLeaves: number;
+  materialFaces: number;
+  hasModernizedText: boolean;
+  alternativeImages: AlternativeManifestImageInfo[];
+  selectedAlternativeFacsimiles: FacsimileReference[];
 };
 
 export type ParseBible899Options = {

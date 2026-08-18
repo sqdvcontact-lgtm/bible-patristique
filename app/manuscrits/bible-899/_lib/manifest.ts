@@ -1,16 +1,20 @@
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
+  type AlternativeManifestImageInfo,
   type Bible899Edition,
+  type Bible899ReaderEdition,
   type Bible899Statistics,
+  type FacsimileReference,
   type ManifestImageInfo,
   TeiValidationError,
   parseBible899Tei,
   sha256Text,
 } from "./tei";
+import { initialColumnKey } from "./readingModes";
 
 export const MANUSCRIPT_ID = "bible-899";
 export const TEI_RELATIVE_PATH = "data/manuscrits/bible-899/Bible_899_master.xml";
@@ -27,7 +31,25 @@ export type Bible899Manifest = {
   generatedAt: string;
   counts: Bible899Statistics;
   images: ManifestImageInfo[];
+  alternativeImages?: AlternativeManifestImageInfo[];
+  foliation?: {
+    materialLeaves: number;
+    materialFaces: number;
+    firstNativeFolio: number;
+    lastNativeFolio: number;
+    omittedNativeFolioNumbers: number[];
+  };
 };
+
+type ReaderSource = {
+  edition: Bible899Edition;
+  manifest: Bible899Manifest;
+};
+
+let readerSourceCache: {
+  key: string;
+  promise: Promise<ReaderSource>;
+} | null = null;
 
 function normalizeRelativePath(value: string): string {
   return value.replace(/\\/gu, "/");
@@ -252,4 +274,85 @@ export async function loadBible899Edition(rootDirectory = process.cwd()): Promis
     throw new Error(`${manifestPath} : la version éditoriale ne correspond plus au TEI`);
   }
   return edition;
+}
+
+function alternativeFacsimile(image: AlternativeManifestImageInfo): FacsimileReference {
+  return {
+    sourceReference: image.reference,
+    imageReference: image.reference,
+    publicUrl: image.publicUrl,
+    zoneId: null,
+    coordinates: null,
+    coordinatesPresent: false,
+    width: image.width,
+    height: image.height,
+  };
+}
+
+async function loadBible899ReaderSource(rootDirectory: string): Promise<ReaderSource> {
+  const manifest = await readBible899Manifest(rootDirectory);
+  const teiPath = resolveInside(rootDirectory, manifest.teiPath);
+  const teiStat = await stat(teiPath);
+  const cacheKey = `${teiPath}:${manifest.teiSha256}:${teiStat.size}:${teiStat.mtimeMs}`;
+  if (readerSourceCache?.key === cacheKey) return readerSourceCache.promise;
+
+  const promise = (async () => {
+    const xml = await readFile(teiPath, "utf8");
+    if (sha256Text(xml) !== manifest.teiSha256) {
+      throw new Error(
+        `${teiPath} : empreinte SHA-256 différente du manifeste. Régénérer le manifeste après validation éditoriale explicite.`,
+      );
+    }
+    const imageReferences = new Set(manifest.images.map((image) => image.reference));
+    const edition = parseBible899Tei(xml, {
+      sourcePath: teiPath,
+      publicImageBase: PUBLIC_IMAGE_URL,
+      manifestImages: manifest.images,
+      imageExists: (reference) => imageReferences.has(reference),
+    });
+    if (!sameCounts(edition.statistics, manifest.counts)) {
+      throw new Error(`${MANIFEST_RELATIVE_PATH} : les comptages ne correspondent plus au TEI`);
+    }
+    return { edition, manifest };
+  })();
+
+  readerSourceCache = { key: cacheKey, promise };
+  try {
+    return await promise;
+  } catch (error) {
+    if (readerSourceCache?.promise === promise) readerSourceCache = null;
+    throw error;
+  }
+}
+
+export async function loadBible899ReaderEdition(
+  requestedColumn: string | undefined,
+  rootDirectory = process.cwd(),
+): Promise<Bible899ReaderEdition> {
+  const { edition, manifest } = await loadBible899ReaderSource(rootDirectory);
+  const selectedKey = initialColumnKey(edition, requestedColumn);
+  const selectedColumn = edition.columns.find((column) => column.key === selectedKey) ?? edition.columns[0];
+  if (!selectedColumn) throw new Error("Le TEI Bible 899 ne contient aucune colonne à afficher.");
+
+  const alternativeImages = manifest.alternativeImages ?? [];
+  const primaryReferences = new Set(selectedColumn.facsimiles.map((item) => item.imageReference));
+  const selectedAlternativeFacsimiles = alternativeImages
+    .filter((image) => image.alternativeFor !== null && primaryReferences.has(image.alternativeFor))
+    .map(alternativeFacsimile);
+
+  return {
+    manuscript: edition.manuscript,
+    conventions: edition.conventions,
+    folios: edition.folios,
+    columns: [selectedColumn],
+    columnIndex: edition.columns.map(({ key, folio, column }) => ({ key, folio, column })),
+    statistics: edition.statistics,
+    totalLines: edition.totalLines,
+    teiSha256: edition.teiSha256,
+    materialLeaves: manifest.foliation?.materialLeaves ?? Math.ceil(edition.folios.length / 2),
+    materialFaces: manifest.foliation?.materialFaces ?? edition.folios.length,
+    hasModernizedText: edition.columns.some((column) => column.modernizedParagraphs.length > 0),
+    alternativeImages,
+    selectedAlternativeFacsimiles,
+  };
 }

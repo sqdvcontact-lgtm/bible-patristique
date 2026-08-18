@@ -48,7 +48,7 @@ export function rendreTexteEnrichi(
     if (m.index > dernierIndex) { const key = k++; noeuds.push(<Fragment key={key}>{tf(texte.slice(dernierIndex, m.index), `t${key}`)}</Fragment>) }
     if (m[1] !== undefined) { const key = k++; noeuds.push(<strong key={key}>{rendreTexteEnrichi(m[1], transform)}</strong>) }
     else if (m[2] !== undefined) { const key = k++; noeuds.push(<span key={key} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{rendreTexteEnrichi(m[2], transform)}</span>) }
-    else if (m[3] !== undefined) { const key = k++; noeuds.push(<sup key={key} style={STYLE_ORDINAL}>{rendreTexteEnrichi(m[3], transform)}</sup>) }
+    else if (m[3] !== undefined) { const key = k++; noeuds.push(<sup key={key}>{rendreTexteEnrichi(m[3], transform)}</sup>) }
     else if (m[4] !== undefined) { const key = k++; noeuds.push(<em key={key}>{rendreTexteEnrichi(m[4], transform)}</em>) }
     else if (m[5] !== undefined) { const key = k++; noeuds.push(
       <a key={key} href={m[6]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteEnrichi(m[5], transform)}</a>

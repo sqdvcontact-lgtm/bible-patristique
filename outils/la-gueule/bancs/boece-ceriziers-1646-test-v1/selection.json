@@ -1,0 +1,27 @@
+{
+  "banc": "boece-ceriziers-1646-test-v1",
+  "source": "Boèce, La Consolation de la philosophie, trad. Ceriziers, 1646 (fac-similé)",
+  "source_pdf": "incoming/boece-ceriziers-1646.pdf",
+  "source_pdf_pages": 160,
+  "usage": "evaluation_seulement",
+  "interdit_entrainement": true,
+  "moteur_ocr_brut": "kraken-catmus-print (JAMAIS Tesseract ni la couche texte du PDF)",
+  "etats_par_ligne": ["ocr_brut", "corrige", "valide_humain"],
+  "regle": "Seules les lignes/pages portant explicitement valide_humain=true entrent dans le banc. La correction automatique (Codex) N'EST PAS une validation humaine.",
+  "statut_global": "NON VALIDÉ — OCR brut à produire (état 1), puis correction (état 2) et validation humaine (état 3) dans l'atelier.",
+  "pages": [
+    { "page": 19,  "zone": "début",  "motif": "incipit / titre de livre" },
+    { "page": 20,  "zone": "début",  "motif": "texte courant, début" },
+    { "page": 45,  "zone": "milieu", "motif": "prose suivie" },
+    { "page": 66,  "zone": "milieu", "motif": "prose + césures" },
+    { "page": 88,  "zone": "milieu", "motif": "vers / mètre (mise en page particulière)" },
+    { "page": 100, "zone": "milieu", "motif": "texte courant" },
+    { "page": 120, "zone": "milieu", "motif": "transition prose/mètre" },
+    { "page": 140, "zone": "fin",    "motif": "texte courant, fin" },
+    { "page": 142, "zone": "fin",    "motif": "prose de fin" },
+    { "page": 143, "zone": "fin",    "motif": "OBLIGATOIRE — page déjà examinée (poésie + prose, riche en ſ, lettrine)" },
+    { "page": 144, "zone": "fin",    "motif": "prose faisant suite à 143" },
+    { "page": 155, "zone": "fin",    "motif": "fin d'ouvrage / difficultés typographiques" }
+  ],
+  "note_representativite": "Sélection à REVOIR par l'humain : le choix des zones (début/milieu/fin) et des mises en page (titres, prose, vers, césures, ornements) doit être confirmé sur pièce. Ajouter des pages de qualité dégradée si le fac-similé en comporte."
+}

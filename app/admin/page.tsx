@@ -230,7 +230,7 @@ export default async function AdminPage() {
 
   // ── Vague 2 : 7 requêtes dépendantes en parallèle ────────────────────────
   const vague2 = await Promise.all([
-    segIdsUniques.length > 0 ? supabaseAdmin.from('segments').select('id, segment_texte, segment_numero, id_oeuvre').in('id', segIdsUniques) : Promise.resolve({ data: [] as any[], error: null }),
+    segIdsUniques.length > 0 ? supabaseAdmin.from('segments').select('id, segment_texte, segment_numero, id_oeuvre, id_texte').in('id', segIdsUniques) : Promise.resolve({ data: [] as any[], error: null }),
     idsVersetsCertif.length > 0 ? supabaseAdmin.from('versets_lecture').select('id_verset, ref, TR0001').in('id_verset', idsVersetsCertif) : Promise.resolve({ data: [] as any[], error: null }),
     idsAuteursEssais.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursEssais) : Promise.resolve({ data: [] as any[], error: null }),
     idsAuteursModification.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursModification) : Promise.resolve({ data: [] as any[], error: null }),
@@ -267,8 +267,8 @@ export default async function AdminPage() {
     vague2.some(r => erreurReelle(r))
 
   // ── Traitement ─────────────────────────────────────────────────────────────
-  const segMap: Record<number, { texte: string; numero: number; id_oeuvre: string }> = {}
-  segmentsCtx?.forEach(s => { segMap[s.id] = { texte: s.segment_texte, numero: s.segment_numero, id_oeuvre: s.id_oeuvre } })
+  const segMap: Record<number, { texte: string; numero: number; id_oeuvre: string; id_texte: string }> = {}
+  segmentsCtx?.forEach(s => { segMap[s.id] = { texte: s.segment_texte, numero: s.segment_numero, id_oeuvre: s.id_oeuvre, id_texte: s.id_texte } })
 
   const versetMap: Record<string, string> = {}
   const versetTexteMap: Record<string, string> = {}

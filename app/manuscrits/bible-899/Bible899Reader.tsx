@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { Fragment, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Fragment, useState, useTransition } from "react";
 
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
-import type { Bible899Edition, FacsimileReference } from "./_lib/tei";
-import { availableReadingModes, initialColumnKey, type ReadingMode } from "./_lib/readingModes";
+import type { Bible899ReaderEdition, FacsimileReference } from "./_lib/tei";
+import { availableReadingModes, type ReadingMode } from "./_lib/readingModes";
 import styles from "./bible899.module.css";
 
 const MARKER_PATTERN = /(\[lacune : [^\]]+\]|\[lecture incertaine : [^\]]*\]|\[ajout marginal : [^\]]*\])/gu;
@@ -40,11 +41,13 @@ function Facsimile({
   folio,
   column,
   priority,
+  caption,
 }: {
   facsimile: FacsimileReference | undefined;
   folio: string;
   column: string;
   priority: boolean;
+  caption?: string;
 }) {
   if (!facsimile) {
     return (
@@ -95,62 +98,107 @@ function Facsimile({
         </div>
       )}
       <figcaption>
-        {facsimile.coordinatesPresent
+        {caption ?? (facsimile.coordinatesPresent
           ? `Zone ${facsimile.zoneId ?? "déclarée dans le TEI"}`
-          : "Fac-similé référencé, coordonnées détaillées non renseignées"}
+          : "Fac-similé référencé, coordonnées détaillées non renseignées")}
       </figcaption>
     </figure>
   );
 }
 
-export default function Bible899Reader({ edition, initialColumn }: { edition: Bible899Edition; initialColumn?: string }) {
-  const firstColumnKey = initialColumnKey(edition, initialColumn);
+function FacsimileViewer({
+  primary,
+  alternatives,
+  folio,
+  column,
+}: {
+  primary: FacsimileReference | undefined;
+  alternatives: FacsimileReference[];
+  folio: string;
+  column: string;
+}) {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const facsimiles = primary ? [primary, ...alternatives] : alternatives;
+  const selected = facsimiles[selectedIndex] ?? facsimiles[0];
+
+  return (
+    <div className={styles.facsimileViewer}>
+      {facsimiles.length > 1 ? (
+        <div className={styles.facsimileChoices} role="group" aria-label="Choix du scan">
+          {facsimiles.map((item, index) => (
+            <button
+              key={item.imageReference}
+              type="button"
+              aria-pressed={selectedIndex === index}
+              onClick={() => setSelectedIndex(index)}
+            >
+              {index === 0 ? "Scan principal" : `Scan alternatif ${index}`}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <Facsimile
+        facsimile={selected}
+        folio={folio}
+        column={column}
+        priority
+        caption={selectedIndex === 0 ? undefined : `Scan alternatif ${selectedIndex}`}
+      />
+    </div>
+  );
+}
+
+export default function Bible899Reader({ edition }: { edition: Bible899ReaderEdition }) {
+  const router = useRouter();
+  const [isNavigating, startNavigation] = useTransition();
   const [mode, setMode] = useState<ReadingMode>("diplomatic");
   const [lineBreaks, setLineBreaks] = useState(true);
-  const [selectedColumnKey, setSelectedColumnKey] = useState(firstColumnKey);
   const modes = availableReadingModes(edition);
   const lineBasedMode = mode !== "modernized";
   const currentMode = modes.find((item) => item.value === mode) ?? modes[0];
-  const selectedColumn = useMemo(
-    () => edition.columns.find((column) => column.key === selectedColumnKey) ?? edition.columns[0],
-    [edition.columns, selectedColumnKey],
-  );
+  const selectedColumn = edition.columns[0];
   const folioIndex = selectedColumn
     ? edition.folios.findIndex((folio) => folio.n === selectedColumn.folio)
     : -1;
   const selectedFolio = folioIndex >= 0 ? edition.folios[folioIndex] : undefined;
 
+  const selectColumn = (columnKey: string) => {
+    startNavigation(() => {
+      router.replace(`/manuscrits/bible-899?colonne=f${encodeURIComponent(columnKey)}`, { scroll: false });
+    });
+  };
+
   const selectFolio = (nextIndex: number) => {
     const nextFolio = edition.folios[nextIndex];
-    const firstColumn = nextFolio
-      ? edition.columns.find((column) => column.key === nextFolio.columnKeys[0])
-      : undefined;
-    if (firstColumn) setSelectedColumnKey(firstColumn.key);
+    const firstColumnKey = nextFolio?.columnKeys[0];
+    if (firstColumnKey) selectColumn(firstColumnKey);
   };
 
   return (
     <main className={styles.page}>
       <header className={styles.hero}>
         <p className={styles.eyebrow}>Manuscrit biblique</p>
-        <h1>Bible française du XIII<sup>e</sup> siècle</h1>
+        <h1>Bible française du XIII<sup style={{ fontSize: '0.62em', lineHeight: 0, verticalAlign: 'baseline', position: 'relative', top: '-0.5em' }}>e</sup> siècle</h1>
         <p className={styles.shelfmark}>
           {edition.manuscript.repository}, {edition.manuscript.shelfmark}
         </p>
         <p className={styles.introduction}>
-          {edition.manuscript.sample}. Transcription intégrale du manuscrit. Le texte a fait l’objet d’une première campagne de relecture ; certaines lectures demeurent incertaines et sont signalées comme telles. La révision éditoriale pourra être poursuivie progressivement.
+          {edition.manuscript.sample ? `${edition.manuscript.sample}. ` : ""}Transcription intégrale du manuscrit. Le texte a fait l’objet d’une première campagne de relecture ; certaines lectures demeurent incertaines et sont signalées comme telles. La révision éditoriale pourra être poursuivie progressivement.
         </p>
         <dl className={styles.metadata}>
-          <div>
-            <dt>Datation</dt>
-            <dd>{edition.manuscript.date}</dd>
-          </div>
+          {edition.manuscript.date ? (
+            <div>
+              <dt>Datation</dt>
+              <dd>{edition.manuscript.date}</dd>
+            </div>
+          ) : null}
           <div>
             <dt>Édition</dt>
             <dd>Version {edition.manuscript.version}</dd>
           </div>
           <div>
             <dt>Étendue</dt>
-            <dd>{edition.statistics.folios} folios, {edition.statistics.columns} colonnes, {edition.totalLines} lignes</dd>
+            <dd>{edition.materialLeaves} feuillets matériels, {edition.materialFaces} faces, {edition.statistics.columns} colonnes, {edition.totalLines} lignes</dd>
           </div>
           <div>
             <dt>Statut</dt>
@@ -187,10 +235,10 @@ export default function Bible899Reader({ edition, initialColumn }: { edition: Bi
 
       {selectedColumn && selectedFolio ? (
         <>
-          <nav className={styles.manuscriptNavigation} aria-label="Navigation dans le manuscrit">
+          <nav className={styles.manuscriptNavigation} aria-label="Navigation dans le manuscrit" aria-busy={isNavigating}>
             <button
               type="button"
-              disabled={folioIndex <= 0}
+              disabled={folioIndex <= 0 || isNavigating}
               onClick={() => selectFolio(folioIndex - 1)}
             >
               Folio précédent
@@ -200,7 +248,7 @@ export default function Bible899Reader({ edition, initialColumn }: { edition: Bi
               <select value={selectedColumn.folio} onChange={(event) => {
                 const index = edition.folios.findIndex((folio) => folio.n === event.target.value);
                 if (index >= 0) selectFolio(index);
-              }}>
+              }} disabled={isNavigating}>
                 {edition.folios.map((folio) => (
                   <option key={folio.n} value={folio.n}>{folio.n}</option>
                 ))}
@@ -208,22 +256,23 @@ export default function Bible899Reader({ edition, initialColumn }: { edition: Bi
             </label>
             <button
               type="button"
-              disabled={folioIndex >= edition.folios.length - 1}
+              disabled={folioIndex >= edition.folios.length - 1 || isNavigating}
               onClick={() => selectFolio(folioIndex + 1)}
             >
               Folio suivant
             </button>
             <div className={styles.columnNavigation} role="group" aria-label={`Colonnes du folio ${selectedFolio.n}`}>
               {selectedFolio.columnKeys.map((key) => {
-                const column = edition.columns.find((item) => item.key === key);
+                const column = edition.columnIndex.find((item) => item.key === key);
                 if (!column) return null;
                 return (
                   <button
                     key={key}
                     type="button"
                     aria-pressed={selectedColumn.key === key}
+                    disabled={isNavigating}
                     className={selectedColumn.key === key ? styles.columnNavigationActive : ""}
-                    onClick={() => setSelectedColumnKey(key)}
+                    onClick={() => selectColumn(key)}
                   >
                     Colonne {column.column}
                   </button>
@@ -244,11 +293,12 @@ export default function Bible899Reader({ edition, initialColumn }: { edition: Bi
                 </span>
               </header>
               <div className={styles.columnBody}>
-                <Facsimile
-                  facsimile={selectedColumn.facsimiles[0]}
+                <FacsimileViewer
+                  key={selectedColumn.key}
+                  primary={selectedColumn.facsimiles[0]}
+                  alternatives={edition.selectedAlternativeFacsimiles}
                   folio={selectedColumn.folio}
                   column={selectedColumn.column}
-                  priority={selectedColumn.key === firstColumnKey}
                 />
 
                 <div className={styles.transcription} lang={mode === "modernized" ? "fr" : "fro"}>
@@ -312,6 +362,19 @@ export default function Bible899Reader({ edition, initialColumn }: { edition: Bi
       <footer className={styles.sourceNote}>
         <p>Source unique : TEI/XML Bible 899 v{edition.manuscript.version}</p>
         <p>Empreinte du fichier intégré : <code>{edition.teiSha256}</code></p>
+        {edition.alternativeImages.length > 0 ? (
+          <details className={styles.alternativeSources}>
+            <summary>{edition.alternativeImages.length} scans alternatifs conservés</summary>
+            <ul>
+              {edition.alternativeImages.map((image) => (
+                <li key={image.reference}>
+                  <a href={image.publicUrl} target="_blank" rel="noreferrer">{image.file}</a>
+                  {image.alternativeFor ? `, alternative de ${image.alternativeFor.split("/").at(-1)}` : ", scan terminal sans surface distincte"}
+                </li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
       </footer>
     </main>
   );

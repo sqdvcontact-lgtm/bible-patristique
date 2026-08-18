@@ -27,6 +27,8 @@ import { ABREV_FR } from "@/app/lib/bible";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 import ModalSignalement from "@/app/components/ModalSignalement";
 import { useCompte } from "@/app/lib/contexteCompte";
+import { aRevoir899, chargerVersets899, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
+import { rendreMarqueurs899 } from "@/app/lib/marqueurs899";
 
 type Livre = { code: string; nom_fr: string; ordre: number };
 type Trad = { trad_id: string; nom: string; ordre: number | null; label: string; edition: string | null; lang: string };
@@ -58,7 +60,7 @@ function editionTrad(t: { source_edition?: string | null; publication_fin_annee?
 }
 type Point = { livre: string | null; reference: string | null; type: string | null; description: string | null; statut: string | null; notes: string | null };
 type CanonRow = { id: string; livre: string; ch_canon: number; v_canon: number; est_suscription: boolean };
-type V2Row = { id: string; canon_id: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null };
+type V2Row = { id: string; canon_id: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null; estLacune899?: boolean };
 
 // ── Passages que toutes les traditions ne reçoivent pas ────────────────────────────────
 // Une case vide n'a pas toujours le même sens. Le plus souvent elle signale un travail en
@@ -112,8 +114,11 @@ const VERT = "var(--cs-vert)";
 // L'en-tête du tableau ne doit PAS reprendre le vert de la NavBar : collés l'un sous l'autre,
 // deux aplats identiques se lisaient comme un seul bandeau, et on ne voyait plus où commençait
 // le tableau. Un vert nettement plus sombre garde la parenté sans la confusion.
-const VERT_ENTETE = "#2b4536";
-const VERT_ENTETE_BAS = "#35563f";   // la ligne des traductions, un demi-ton plus clair
+// Trois niveaux d'en-tête NETTEMENT distincts (charte de refonte §7), du plus clair au
+// plus sombre à mesure qu'on approche du texte : navbar du site (--cs-vert #3d6b4f) →
+// bandeau des traductions → bandeau du livre (le plus profond, l'ancre de lecture).
+const VERT_ENTETE = "#223a2c";       // bandeau du livre — le plus sombre
+const VERT_ENTETE_BAS = "#33553f";   // la ligne des traductions, un cran plus clair
 const ROUGE = "#b3261e";
 const ROUGE_FOND = "#fbeceb";
 // Rose : les cas qui RÉSISTENT (statut « resiste » dans points_sensibles). Examinés,
@@ -128,6 +133,12 @@ const ROSE_FOND = "#fdeaf4";
 // proches (guidage discret d'une colonne à l'autre, sans effet de bandes marqué).
 const VERT_ZEBRE = "#eef4ef";
 const VERT_ZEBRE_CLAIR = "#f7fbf7";
+// Filets du corps : baisser le contraste pour quitter l'impression de tableur. La
+// séparation ENTRE TRADUCTIONS reste lisible (elle sépare deux textes distincts) ; la
+// séparation ENTRE VERSETS s'efface presque (elle ne fait que rythmer). Deux poids,
+// jamais un maillage uniforme.
+const FILET_COL = "rgba(61,107,79,0.16)";
+const FILET_LIGNE = "rgba(61,107,79,0.07)";
 const SURNUM = "#5a4b9c";       // versets propres à la Septante (hors ossature canonique)
 const SURNUM_FOND = "#f0eef9";
 const NB_SLOTS = 4;   // valeur de repli au premier rendu (avant mesure de l'écran)
@@ -510,6 +521,9 @@ export default function PolyglottePage() {
   const [points, setPoints] = useState<Point[]>([]);
   const [onglet, setOnglet] = useState<Onglet | null>(null);   // la page s'ouvre vide : on choisit un ensemble
   const [slots, setSlots] = useState<string[]>([]);
+  // Couche textuelle de TR0009 (Bible 899) recomposée dans sa colonne : abréviations
+  // développées (défaut) ou transcription diplomatique du manuscrit.
+  const [couche899, setCouche899] = useState<Couche899>("expanded");
   // Nombre de colonnes tenant à l'écran (mesuré), et conteneur du tableau observé.
   const [maxSlots, setMaxSlots] = useState(NB_SLOTS);
   // Préférence utilisateur du nombre de traductions visibles (null = automatique, selon
@@ -709,6 +723,13 @@ export default function PolyglottePage() {
       liste.forEach((t, i) => {
         if (comptes[i] > 0) migres.push({ trad_id: t.trad_id, nom: t.nom, ordre: t.ordre, label: libelleTrad(t), edition: editionTrad(t), lang: codeLangue((t as { langue?: string | null }).langue) });
       });
+      // TR0009 (Bible 899) n'est pas migrée dans `versets_v2` : son texte est recomposé
+      // à la volée depuis les tables éditoriales (colonne synthétique). On l'ajoute donc
+      // explicitement, comme n'importe quelle autre traduction comparable.
+      const t899 = liste.find(t => t.trad_id === TRAD_ID_BIBLE899);
+      if (t899 && !migres.some(m => m.trad_id === TRAD_ID_BIBLE899)) {
+        migres.push({ trad_id: TRAD_ID_BIBLE899, nom: t899.nom, ordre: t899.ordre, label: libelleTrad(t899), edition: editionTrad(t899), lang: codeLangue((t899 as { langue?: string | null }).langue) });
+      }
       setTrads(migres);
       // Choix des colonnes : celui que l'utilisateur a laissé la dernière fois (localStorage),
       // sinon par défaut les quatre premières traductions distinctes. On ne retient d'un choix
@@ -799,8 +820,32 @@ export default function PolyglottePage() {
         q => { const x = q.in("livre", codes).in("trad_id", tradIds); return chScope != null ? x.like("canon_id", `${codes[0]}.${chScope}.%`) : x; }),
     ]);
     c.sort((a, b) => (ordreDe.get(a.livre)! - ordreDe.get(b.livre)!) || (a.ch_canon - b.ch_canon) || (a.v_canon - b.v_canon));
-    setCanon(c); setV2(vv);
-  }, [livresAffiches, slots, ordreDe, chapitreChoisi, toutAfficher, sensiblesOnly, surnumOnly]);
+    // Colonne synthétique TR0009 (Bible 899) : texte recomposé en direct des tables
+    // éditoriales, aligné sur canon_id, sans copie vers versets_v2. Les lacunes du
+    // manuscrit (CANONICAL_GAP) sont conservées ; les matières hors canon (MANUSCRIPT_EXTRA)
+    // n'ont pas de canon_id et sont naturellement écartées par `chargerVersets899`.
+    let toutesLignes = vv;
+    if (tradIds.includes(TRAD_ID_BIBLE899)) {
+      const parLivre899 = await Promise.all(codes.map(code => chargerVersets899(supabase, { livre: code, chapitre: chScope })));
+      const rows899: V2Row[] = parLivre899.flat().map(l => {
+        const lacune = rendu899(l) === "lacune";
+        return {
+          id: `899:${l.canon_id}`,
+          canon_id: l.canon_id,
+          livre: l.livre ?? "",
+          trad_id: TRAD_ID_BIBLE899,
+          ch_orig: l.chapitre ?? 0,
+          v_orig: l.verset ?? 0,
+          v_orig_suffixe: null,
+          texte: lacune ? null : texteCouche899(l, couche899),
+          notes: aRevoir899(l) ? "Alignement à revoir" : null,
+          estLacune899: lacune,
+        };
+      });
+      toutesLignes = [...vv, ...rows899];
+    }
+    setCanon(c); setV2(toutesLignes);
+  }, [livresAffiches, slots, ordreDe, chapitreChoisi, toutAfficher, sensiblesOnly, surnumOnly, couche899]);
   useEffect(() => { charger(); }, [charger]);
 
   // Charge les citations déjà enregistrées par l'utilisateur pour le(s) livre(s) affiché(s),
@@ -991,17 +1036,25 @@ export default function PolyglottePage() {
            d'une colonne étroite creuse des lézardes. hyphenate-limit-chars autorise des
            fragments courts, faute de quoi le navigateur renonce à couper. La langue de la
            cellule (attribut lang) décide du dictionnaire — voir codeLangue(). */
+        /* Le texte biblique passe en SÉRIF de lecture (Source Serif) : la page cesse de
+           lire comme un tableur pour lire comme une édition. La lettrine, les millésimes
+           et les boutons restent en sans (chacun porte sa propre font-family). ATTENTION :
+           line-height est repris À L'IDENTIQUE par .poly-lettrine-item (hauteur du
+           flottant = une ligne de texte) : garder les deux valeurs synchronisées. */
         .poly-texte-cell {
           position: relative;
           min-width: 0;
-          padding: 5px 10px 6px;
+          padding: 7px 12px 8px;
+          font-family: var(--font-source-serif), Georgia, serif;
           text-align: justify;
           text-align-last: left;
           hyphens: auto; -webkit-hyphens: auto;
           hyphenate-limit-chars: 5 2 2;
-          word-spacing: -0.06em;
-          letter-spacing: -0.01em;
-          line-height: 1.26;
+          /* Un peu plus dense (goût de l'auteur) : interligne juste resserré, et surtout
+             les mots rapprochés d'un cran. line-height reste synchronisé avec
+             .poly-lettrine-item (hauteur du flottant = une ligne). */
+          word-spacing: -0.04em;
+          line-height: 1.36;
         }
         .poly-texte-cell::after { content: ""; display: block; clear: both; }
         /* Aucune marge ni rembourrage VERTICAL, et pas de taille propre : la lettrine
@@ -1024,7 +1077,7 @@ export default function PolyglottePage() {
         /* Le chapitre s'efface derrière le verset : les deux sont là, mais l'œil qui
            parcourt la colonne accroche le numéro qui change. */
         .poly-lettrine-ch { font-weight: 400; color: #a9bcb0; }
-        .poly-lettrine-item { position: relative; display: flex; align-items: center; justify-content: flex-end; height: 1.26em; }
+        .poly-lettrine-item { position: relative; display: flex; align-items: center; justify-content: flex-end; height: 1.36em; }
         /* Le crayon SE POSE SUR le numéro de référence d'origine : au survol de la cellule,
            il recouvre le numéro (fond opaque = celui de la ligne, passé en style inline, donc
            accordé au zébrage alterné) et le remplace. Hors survol, il ne réserve aucune place. */
@@ -1040,33 +1093,11 @@ export default function PolyglottePage() {
 
       <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "56px 22px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: "#5b544c" }}>
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.375rem', color: VERT, margin: "0 0 16px" }}>Polyglotte</h1>
-        <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: "0 0 30px" }}>
+        <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: 0 }}>
           Cette page compare plusieurs traductions côte à côte : elle demande un écran large.
           <br /><br />
           <strong>Ouvrez-la depuis un ordinateur ou une tablette.</strong>
         </p>
-
-        {/* Dessin en pied de message : un ordinateur surmonté d'une langue de feu,
-            en référence à l'Esprit de la Pentecôte (« des langues comme de feu se
-            posèrent sur chacun d'eux »). Portrait, pensé pour l'écran étroit. */}
-        <svg width="150" height="216" viewBox="0 0 150 216" role="img" aria-label="Ordinateur surmonté d'une langue de feu" style={{ display: "block", margin: "0 auto" }}>
-          <defs>
-            <linearGradient id="poly-flamme" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#e7a13f" />
-              <stop offset="0.55" stopColor="#d1642a" />
-              <stop offset="1" stopColor="#b23c22" />
-            </linearGradient>
-          </defs>
-          {/* Langue de feu */}
-          <path d="M75 6 C 90 34, 102 48, 97 74 C 94 92, 82 100, 75 100 C 68 100, 56 92, 53 74 C 48 48, 60 34, 75 6 Z" fill="url(#poly-flamme)" />
-          <path d="M75 34 C 84 52, 89 62, 86 76 C 84 87, 78 92, 75 92 C 72 92, 66 87, 64 76 C 61 62, 66 52, 75 34 Z" fill="#f6d789" />
-          <path d="M75 54 C 80 66, 82 72, 80 80 C 79 85, 76 88, 75 88 C 74 88, 71 85, 70 80 C 68 72, 70 66, 75 54 Z" fill="#fbedbf" />
-          {/* Ordinateur : écran + col + socle */}
-          <rect x="30" y="116" width="90" height="64" rx="7" fill="#eef2ea" stroke="#3d6b4f" strokeWidth="2.6" />
-          <rect x="39" y="124" width="72" height="48" rx="3" fill="rgba(61,107,79,0.10)" />
-          <line x1="75" y1="180" x2="75" y2="196" stroke="#3d6b4f" strokeWidth="2.6" strokeLinecap="round" />
-          <path d="M52 202 Q75 191 98 202" fill="none" stroke="#3d6b4f" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
       </div>
 
       {/* Le MÊME volet que la page Bible — pas un cousin qui lui ressemble. Un seul composant
@@ -1114,6 +1145,26 @@ export default function PolyglottePage() {
               })}
             </div>
           </div>
+          {/* TR0009 (Bible 899) : choix de la couche textuelle, seulement si la colonne est affichée. */}
+          {slots.includes(TRAD_ID_BIBLE899) && (
+            <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
+              <span style={{ display: "block", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-doux)", marginBottom: "5px" }}>Bible 899 · texte</span>
+              <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                {([["Développée", "expanded"], ["Diplomatique", "diplomatic"]] as [string, Couche899][]).map(([lbl, val]) => {
+                  const actif = couche899 === val;
+                  return (
+                    <button key={val} onClick={() => setCouche899(val)}
+                      title={val === "expanded" ? "Abréviations développées" : "Transcription diplomatique du manuscrit"}
+                      style={{ fontSize: "0.62rem", fontWeight: actif ? 600 : 400, padding: "2px 9px", borderRadius: "999px", cursor: "pointer",
+                        border: `1px solid ${actif ? VERT : "var(--cs-bord)"}`, background: actif ? "rgba(var(--cs-vert-rgb),0.10)" : "#fff", color: actif ? VERT : "var(--cs-texte-second)",
+                        fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+                      {lbl}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
             <NavLivres
               livres={livresNav}
@@ -1138,16 +1189,14 @@ export default function PolyglottePage() {
       <div ref={refTable} style={{ flex: 1, minWidth: 0, padding: "12px 18px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "#2a2620" }}>
         {/* Aucun livre choisi : la page reste vide et l'explique */}
         {!onglet && (
-          // Le groupe (image + légende) est centré au TIERS SUPÉRIEUR du bloc : son centre
-          // se pose à 33 % de la hauteur, un peu plus bas qu'auparavant.
+          // Le groupe (image + légende) est centré VERTICALEMENT et HORIZONTALEMENT dans le bloc.
           <div style={{ position: "relative", minHeight: "calc(100dvh - 3.5rem - 6rem)" }}>
-            <div style={{ position: "absolute", top: "33%", left: "50%", transform: "translate(-50%, -50%)", width: "min(35rem, 90%)", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-              {/* Le livre relié et son reflet dans le miroir : image de la polyglotte
-                  (un même texte, plusieurs reflets). PNG détouré (fond transparent, luminance
-                  passée en alpha) : plus de rectangle clair sur le fond crème, donc plus besoin
-                  de mix-blend-mode. */}
-              <img src="/ornements/livre-miroir-detoure.png" alt="" aria-hidden="true"
-                style={{ width: "min(320px, 68%)", height: "auto", opacity: 0.92, marginBottom: "16px" }} />
+            <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "min(56rem, 94%)", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+              {/* Tour de Babel (gravure) : image de la Polyglotte — la confusion des langues,
+                  que la lecture en regard rassemble. PNG détouré (fond blanc rendu transparent) :
+                  la gravure se pose sur le crème, sans rectangle clair ni mix-blend-mode. */}
+              <img src="/ornements/tour-babel-detoure.png" alt="" aria-hidden="true"
+                style={{ width: "min(816px, 96%)", height: "auto", opacity: 0.92, marginBottom: "16px" }} />
               <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-texte-doux)", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
             </div>
           </div>
@@ -1384,27 +1433,30 @@ export default function PolyglottePage() {
                 return (
                   <Fragment key={r.id}>
                     <div className="poly-row" id={`poly-${l.code}-${r.ch_canon}-${r.v_canon}`}
-                      style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? "#fff3c4" : fond, borderTop: "1px solid var(--cs-vert-pale)", fontSize: '0.875rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_TITRE + HAUT_ENTETE + 8}px)`, transition: "background .4s" }}>
-                      <div title={signaler ? desc : undefined} style={{ padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: '0.78125rem', lineHeight: 1.15, color: signaler ? ROUGE : ligneVide ? "#aeb4ae" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : "1px solid var(--cs-vert-pale)" }}>
+                      style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? "#fff3c4" : fond, borderTop: `1px solid ${FILET_LIGNE}`, fontSize: '0.875rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_TITRE + HAUT_ENTETE + 8}px)`, transition: "background .4s" }}>
+                      <div title={signaler ? desc : undefined} style={{ padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: '0.78125rem', lineHeight: 1.15, color: signaler ? ROUGE : ligneVide ? "#aeb4ae" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : `1px solid ${FILET_COL}` }}>
                         <div style={{ whiteSpace: "nowrap" }}>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</div>
                       </div>
                       {slotCols.map((sc, i) => {
-                        if (!sc.trad) return <div key={i} style={{ borderLeft: "1px solid var(--cs-vert-pale)" }} />;
+                        if (!sc.trad) return <div key={i} style={{ borderLeft: `1px solid ${FILET_COL}` }} />;
                         const t = sc.trad;
                         const cs = cellule.get(`${r.id}|${t.trad_id}`) ?? [];
                         // Actions propres à CETTE cellule : citer / signaler la traduction qu'elle
                         // porte. Clé de citation étendue au nom d'édition pour que chaque colonne
                         // ait son propre état « enregistré ».
                         const texteCell = cs.map(c => c.texte).filter(Boolean).join(" ");
+                        // TR0009 : une lacune du manuscrit se rend « [lacune du manuscrit] », sans
+                        // lettrine ni actions (rien à citer), et non par la case « absente » générique.
+                        const lacuneCell = cs.length > 0 && cs[0]?.estLacune899 === true;
                         const cleCite = `${abr}|${r.ch_canon}|${r.v_canon}|${t.nom}`;
                         return (
                           <div key={i} className="poly-texte-cell" lang={t.lang} onCopy={copierSansCesuresGrecques}
-                            style={{ borderLeft: "1px solid var(--cs-vert-pale)", color: signaler ? "#7a1d16" : "#2a302b" }}>
+                            style={{ borderLeft: `1px solid ${FILET_COL}`, color: signaler ? "#7a1d16" : "#2a302b" }}>
                             {/* La lettrine : référence(s) d'origine et crayon, en bloc flottant que
                                 le texte habille. Plusieurs versets de l'édition peuvent partager un
                                 créneau du canon — leurs numéros s'écrivent alors l'un sous l'autre,
                                 en tête du texte réuni. */}
-                            {cs.length > 0 && (
+                            {cs.length > 0 && !lacuneCell && (
                               <span className="poly-lettrine">
                                 {cs.map((c, k) => (
                                   <span key={k} className="poly-lettrine-item">
@@ -1418,7 +1470,7 @@ export default function PolyglottePage() {
                                           survol lui dit LAQUELLE. Rien n'est corrigé en silence. */}
                                       {c.notes ? <span title={c.notes} style={{ marginLeft: 3, color: "#7a6fae", cursor: "help", display: "inline-flex", verticalAlign: "middle" }}><IconeCrayon size={9} /></span> : null}
                                     </span>
-                                    {estAdmin && (
+                                    {estAdmin && t.trad_id !== TRAD_ID_BIBLE899 && (
                                       <button title="Modifier ce verset" aria-label="Modifier ce verset" className="poly-edit"
                                         onClick={() => { setCibleEdition({ id: c.id, texte: c.texte ?? "", reference: `${l.nom_fr} ${c.ch_orig}, ${c.v_orig}` }); setEnregistre("idle"); }}
                                         style={{ border: "none", cursor: "pointer", color: "#7a8f80", fontSize: '0.65625rem', lineHeight: 1, background: fond, transition: "color .15s" }}
@@ -1432,7 +1484,7 @@ export default function PolyglottePage() {
                               </span>
                             )}
                             {/* Citer / signaler cette traduction — au survol de la cellule. */}
-                            {cs.length > 0 && (
+                            {cs.length > 0 && !lacuneCell && (
                               <span className="poly-cellact" onClick={e => e.stopPropagation()}>
                                 <BoutonCiterVerset userId={userId} saved={prelevs.get(cleCite) ?? null} cle={cleCite} refLivre={l.nom_fr} refAbr={abr} chapitre={r.ch_canon} verset={r.v_canon} texte={texteCell} traductionLabel={t.nom} onSaved={marquerCite} onRemoved={retirerCite} />
                                 <BoutonSignalerVerset refLisible={refLisible} texte={texteCell} />
@@ -1440,14 +1492,23 @@ export default function PolyglottePage() {
                             )}
                             {cs.length === 0 ? (
                               <CelluleAbsente deutero={deuterocanonique(r.id)} />
+                            ) : lacuneCell ? (
+                              // Même convention que la page Bible : « Lacune du manuscrit », en
+                              // serif italique effacé, sans crochets. Fait du témoin, discret.
+                              <span title="Lacune matérielle du manuscrit" style={{ display: "flex", height: "100%", minHeight: "1.6em", alignItems: "center", justifyContent: "center", textAlign: "center", fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: "italic", color: "var(--cs-lacune)", fontSize: "0.78rem", lineHeight: 1.4 }}>Lacune du manuscrit</span>
                             ) : cs.map((c, k) => (
-                              <span key={k}>{k > 0 ? " " : ""}{texteCesure(c.texte, t.lang)}</span>
+                              // Colonne TR0009 : le texte porte des marqueurs éditoriaux inline
+                              // (`[lecture incertaine : …]`, `[lacune : …]`, `[ajout marginal : …]`).
+                              // Bruts, ils s'affichaient tels quels (« [lacune : déchirure] »).
+                              // On les rend par le MÊME tokeniseur que la page Bible : lacune → un
+                              // discret « [Lacune] », lecture incertaine en gris, motif masqué.
+                              <span key={k}>{k > 0 ? " " : ""}{t.trad_id === TRAD_ID_BIBLE899 ? rendreMarqueurs899(c.texte ?? "") : texteCesure(c.texte, t.lang)}</span>
                             ))}
                           </div>
                         );
                       })}
                       {/* Colonne Notes : note personnelle du verset (enregistrée sur le compte). */}
-                      <div style={{ borderLeft: "1px solid var(--cs-vert-pale)", padding: notesReduites ? 0 : "3px 5px", display: "flex" }} onClick={e => e.stopPropagation()}>
+                      <div style={{ borderLeft: `1px solid ${FILET_COL}`, padding: notesReduites ? 0 : "3px 5px", display: "flex" }} onClick={e => e.stopPropagation()}>
                         {notesReduites ? null : userId ? (
                           <CelluleNote valeur={notes.get(r.id) ?? ""} refLisible={refLisible} onChange={t => majNote(r.id, t)} />
                         ) : (

@@ -41,12 +41,20 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
 
     // Vérifier les œuvres présentes dans le CSV
     const oeuvresCSV = [...new Set(preview.map((r: any) => r.id_oeuvre).filter(Boolean))]
+    const { data: textesDefaut, error: textesErr } = await supabase.from('oeuvre_textes')
+      .select('id_oeuvre,id_texte').in('id_oeuvre', oeuvresCSV).eq('is_default', true)
+    if (textesErr) { setStatut('err'); setMsg('Erreur versions textuelles : ' + textesErr.message); return }
+    const texteParOeuvre = new Map((textesDefaut ?? []).map((row: any) => [row.id_oeuvre, row.id_texte]))
+    const textesCSV = [...new Set(preview.map((row: any) => row.id_texte || texteParOeuvre.get(row.id_oeuvre)).filter(Boolean))]
+    if (textesCSV.length !== oeuvresCSV.length) {
+      setStatut('err'); setMsg('Chaque œuvre doit posséder un id_texte explicite ou une version par défaut.'); return
+    }
 
     // Vérifier si des segments existent déjà pour ces œuvres
     const { data: existing } = await supabase
       .from('segments')
       .select('id_oeuvre')
-      .in('id_oeuvre', oeuvresCSV)
+      .in('id_texte', textesCSV)
       .limit(1)
 
     if (existing && existing.length > 0) {
@@ -64,6 +72,7 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
     const { error: delErr } = await supabase
       .from('segments')
       .delete()
+      .in('id_texte', textesCSV)
       .or('fiabilite.is.null,fiabilite.neq.vérifié')
 
     if (delErr) { setStatut('err'); setMsg('Erreur suppression : ' + delErr.message); return }
@@ -71,6 +80,7 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
     // 2. Réimporter par batch de 500
     const rows = preview.map((s, i) => ({
       id_oeuvre: s.id_oeuvre,
+      id_texte: s.id_texte || texteParOeuvre.get(s.id_oeuvre),
       segment_numero: parseInt(s.segment_numero) || i + 1,
       segment_texte: s.segment_texte ?? '',
       ref_niv1: s.ref_niv1 || null,

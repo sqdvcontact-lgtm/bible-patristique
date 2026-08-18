@@ -17,6 +17,13 @@ export async function GET(req: NextRequest) {
 
   const idOeuvre = req.nextUrl.searchParams.get('id_oeuvre')
   if (!idOeuvre) return NextResponse.json({ error: 'id_oeuvre manquant' }, { status: 400 })
+  let idTexte = req.nextUrl.searchParams.get('id_texte')
+  if (!idTexte) {
+    const { data } = await supabaseAdmin.from('oeuvre_textes')
+      .select('id_texte').eq('id_oeuvre', idOeuvre).eq('is_default', true).maybeSingle()
+    idTexte = data?.id_texte ?? null
+  }
+  if (!idTexte) return NextResponse.json({ error: 'Aucun texte accessible' }, { status: 404 })
 
   // Pagination pour dépasser la limite de 1000 lignes de Supabase
   const BATCH = 1000
@@ -25,8 +32,9 @@ export async function GET(req: NextRequest) {
   while (true) {
     const { data: batch, error } = await supabaseAdmin
       .from('segments')
-      .select('id, id_oeuvre, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, lien_1, lien_2, lien_3, lien_4')
+      .select('id, id_oeuvre, id_texte, segment_key, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, lien_1, lien_2, lien_3, lien_4')
       .eq('id_oeuvre', idOeuvre)
+      .eq('id_texte', idTexte)
       .order('segment_numero', { ascending: true })
       .range(from, from + BATCH - 1)
 
@@ -44,7 +52,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Aucun segment trouvé' }, { status: 404 })
   }
 
-  const colonnes = ['id', 'id_oeuvre', 'segment_numero', 'segment_texte', 'ref_niv1', 'ref_niv2', 'ref_niv3', 'lien_1', 'lien_2', 'lien_3', 'lien_4']
+  const colonnes = ['id', 'id_oeuvre', 'id_texte', 'segment_key', 'segment_numero', 'segment_texte', 'ref_niv1', 'ref_niv2', 'ref_niv3', 'lien_1', 'lien_2', 'lien_3', 'lien_4']
 
   const echapper = (val: unknown): string => {
     if (val === null || val === undefined) return ''

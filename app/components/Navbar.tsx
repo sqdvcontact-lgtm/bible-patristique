@@ -1,18 +1,33 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
-import { chargerNotificationsUtilisateur, cleArchivesNotifications, cleNotificationsConnues, lireSetLocalStorage } from "@/app/lib/notificationsClient";
 import { LIVRES } from "@/app/lib/bible";
-import { estOeuvrePubliee } from "@/app/lib/oeuvresPublication";
 import { lireOeuvresRecentes, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
 import { sansPointFinal } from "@/app/lib/titres";
 import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
-import ModaleMessagerie from "@/app/components/ModaleMessagerie";
-import VoletNotifications from "@/app/components/VoletNotifications";
+
+const ModaleMessagerie = dynamic(() => import("@/app/components/ModaleMessagerie"), { ssr: false });
+const VoletNotifications = dynamic(() => import("@/app/components/VoletNotifications"), { ssr: false });
+
+function planifierTacheSecondaire(tache: () => void, delai: number) {
+  let idleId: number | null = null;
+  const timeoutId = window.setTimeout(() => {
+    if ('requestIdleCallback' in window) {
+      idleId = window.requestIdleCallback(tache, { timeout: 2000 });
+    } else {
+      tache();
+    }
+  }, delai);
+  return () => {
+    window.clearTimeout(timeoutId);
+    if (idleId !== null && 'cancelIdleCallback' in window) window.cancelIdleCallback(idleId);
+  };
+}
 
 // Bible et Polyglotte sont deux entrées dans le même texte : l'une le donne à lire,
 // l'autre à comparer. Elles vont donc ensemble, accolées en un seul bloc, plutôt
@@ -77,6 +92,7 @@ const DOMAINE = {
   bible:        { base: "#3a5a8c", fond: "rgba(58,90,140,0.12)",  survol: "rgba(58,90,140,0.22)" },
   patristique:  { base: "var(--cs-vert)", fond: "rgba(var(--cs-vert-rgb),0.12)",  survol: "rgba(var(--cs-vert-rgb),0.20)" },
   publications: { base: "#9a6a2e", fond: "rgba(154,106,46,0.13)", survol: "rgba(154,106,46,0.22)" },
+  chronologie:  { base: "#6d5a86", fond: "rgba(109,90,134,0.12)", survol: "rgba(109,90,134,0.22)" },
 } as const;
 
 // ── Données statiques pour la recherche rapide ───────────────────────────────
@@ -255,6 +271,26 @@ function IconAngeTrompette() {
   )
 }
 
+// Durée d'affichage d'une notification surgissante. La jauge de la vignette est
+// réglée sur cette même valeur : une seule constante, sinon la barre ment.
+const DUREE_TOAST_MS = 3000;
+
+// ── Barre à l'étroit : une MESURE, jamais un seuil en pixels ─────────────────
+// Quand la barre déborde, ce sont les OUTILS qui cèdent — la recherche se replie en
+// loupe, « Soutenir le projet » se réduit à son cœur, le mot « Admin » s'efface,
+// « Aller plus loin » descend dans le menu de compte — jamais les mots des sections :
+// sur un site d'érudition, les intitulés font partie du ton.
+//
+// ⚠️ Pourquoi pas un seuil en pixels : la police racine GRANDIT avec la fenêtre
+// au-delà de 1440px (jusqu'à ×1,375, cf. AGENTS.md § Responsive). Le contenu de la
+// barre s'élargit donc en même temps que l'écran, et aucune largeur fixe ne peut
+// dire si elle tient. La barre le constate elle-même, en comparant la largeur de son
+// contenu à la place disponible.
+//
+// Marge de garde entre les deux bascules : sans elle, la barre oscillerait autour de
+// la largeur exacte de bascule à chaque pixel de redimensionnement.
+const MARGE_BASCULE_PX = 32;
+
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -269,7 +305,22 @@ export default function Navbar() {
   const [messagerieOuverte, setMessagerieOuverte] = useState(false);
   const [nbActionsAdmin, setNbActionsAdmin] = useState(0);
   const [nbVerifAdmin, setNbVerifAdmin] = useState(0);
-  const [toastNotification, setToastNotification] = useState<{ titre: string; message: string } | null>(null);
+  // `id` distingue deux notifications de suite : il sert de `key` à la vignette, ce qui
+  // relance l'animation de la jauge au lieu de la laisser courir depuis la précédente.
+  const [toastNotification, setToastNotification] = useState<{ id: number; titre: string; message: string } | null>(null);
+  // `false` au rendu serveur et au premier rendu client : la barre paraît d'abord
+  // complète, se mesure, puis se replie si elle déborde — pas de désaccord d'hydratation.
+  const [etroit, setEtroit] = useState(false);
+  const navRef = useRef<HTMLElement | null>(null);
+  const etroitRef = useRef(false);
+  // Largeur de fenêtre à partir de laquelle la barre complète tient de nouveau, déduite
+  // du débordement CONSTATÉ. Une fois repliée, la barre ne déborde plus : sans ce repère,
+  // on n'aurait plus aucun moyen de savoir quand la déplier.
+  const largeurRequiseRef = useRef(Number.POSITIVE_INFINITY);
+  const [rechercheDeployee, setRechercheDeployee] = useState(false);
+  // « Aller plus loin » ne descend dans le menu de compte que si ce menu existe : sans
+  // session, le bloc de droite se réduit à « Se connecter » et la rubrique disparaîtrait.
+  const allerPlusLoinDansCompte = etroit && !!user;
   const { modeUtilisateurStandard, setModeUtilisateurStandard } = useAffichageAdmin();
   const estAdminEmail = !!(user && user.email && user.email.trim().toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase());
   const estAdminAffiche = (estAdmin || estAdminEmail) && !modeUtilisateurStandard;
@@ -281,6 +332,7 @@ export default function Navbar() {
   const [essaisTrouves, setEssaisTrouves] = useState<{ id: number; titre: string }[]>([]);
   const [oeuvresTrouvees, setOeuvresTrouvees] = useState<{ id_oeuvre: string; titre: string; auteurs: { nom: string } | null; note?: string | null }[]>([]);
   const [segmentsTrouves, setSegmentsTrouves] = useState<{ id: number; segment_texte: string; id_oeuvre: string; auteur_nom: string; oeuvre_titre: string }[]>([]);
+  const [evenementsTrouves, setEvenementsTrouves] = useState<{ id: string; titre: string; date_affichage: string }[]>([]);
   const abortRef = useRef<AbortController | null>(null);
   const [rechercheRapideLoading, setRechercheRapideLoading] = useState(false);
   const [nbResultatsProgressif, setNbResultatsProgressif] = useState(0);
@@ -295,10 +347,10 @@ export default function Navbar() {
   const [pericopesLoading, setPericopesLoading] = useState(false);
   const [pericopesFait, setPericopesFait] = useState(false);
   const [pericopesErreur, setPericopesErreur] = useState(false);
-  const [pericopeActif, setPericopeActif] = useState(-1);
+  const [actifIndex, setActifIndex] = useState(-1);
 
   useEffect(() => {
-    setPericopeActif(-1);
+    setActifIndex(-1);
     const q = requeteRapide.trim();
     if (q.length < 2) { setPericopes([]); setPericopesLoading(false); setPericopesFait(false); setPericopesErreur(false); return; }
     setPericopesLoading(true); setPericopesErreur(false);
@@ -314,11 +366,10 @@ export default function Navbar() {
     return () => { clearTimeout(timer); ctrl.abort(); };
   }, [requeteRapide]);
 
-  const allerVersPericope = (id: string) => { router.push(`/pericopes/${id}`); fermerRechercheRapide(); };
 
   useEffect(() => {
     const q = requeteRapide.trim();
-    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); setOeuvresTrouvees([]); setSegmentsTrouves([]); setRechercheRapideLoading(false); setNbResultatsProgressif(0); setNbTotalReel(0); setRechercheTerminee(false); return; }
+    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); setOeuvresTrouvees([]); setSegmentsTrouves([]); setEvenementsTrouves([]); setRechercheRapideLoading(false); setNbResultatsProgressif(0); setNbTotalReel(0); setRechercheTerminee(false); return; }
     setRechercheRapideLoading(true);
     setNbResultatsProgressif(0);
     setNbTotalReel(0);
@@ -327,55 +378,28 @@ export default function Navbar() {
       abortRef.current?.abort();
       abortRef.current = new AbortController();
       const signal = abortRef.current.signal;
-      let pending = 3;
-      const done = () => {
-        if (--pending === 0 && !signal.aborted) {
+      // Un SEUL appel serveur : `recherche_globale` réunit auteurs, œuvres publiées, essais
+      // et événements. Insensible aux accents (« gregoire » trouve « Grégoire »), par PRÉFIXE
+      // de mot, classée par pertinence (préfixe en tête de champ d'abord), avec le total réel
+      // par catégorie (`total_cat`). Les péricopes gardent leur propre RPC (effet séparé).
+      supabase.rpc('recherche_globale', { p_terme: q, p_limite: 6 }).abortSignal(signal)
+        .then(({ data }) => {
+          if (signal.aborted) return;
+          const rows = (data ?? []) as { type: string; id: string; titre: string; sous_titre: string | null; total_cat: number }[];
+          const cat = (ty: string) => rows.filter(r => r.type === ty);
+          const au = cat('auteur'), oe = cat('oeuvre'), es = cat('essai'), ev = cat('evenement');
+          const totalCat = (arr: typeof rows) => (arr.length ? Number(arr[0].total_cat ?? arr.length) : 0);
+          setAuteursTrouves(au.map(r => ({ id_auteur: r.id, nom: r.titre })));
+          setOeuvresTrouvees(oe.map(r => ({ id_oeuvre: r.id, titre: r.titre, auteurs: r.sous_titre ? { nom: r.sous_titre } : null })));
+          setEssaisTrouves(es.map(r => ({ id: Number(r.id), titre: r.titre })));
+          setEvenementsTrouves(ev.slice(0, 4).map(r => ({ id: r.id, titre: r.titre, date_affichage: r.sous_titre ?? '' })));
+          setNbTotalReel(totalCat(au) + totalCat(oe) + totalCat(es) + totalCat(ev));
+          setNbResultatsProgressif(0);
           setRechercheRapideLoading(false);
           setRechercheTerminee(true);
-        }
-      };
-      // Recherche par PRÉFIXE de MOT, non par sous-chaîne : « Am » trouve « amour » ou
-      // « Ambroise » (mot commençant par am), jamais « Samuel » ni « Abraham » (am au
-      // milieu). Un mot commence en tête de champ, après une espace, une apostrophe ou un
-      // guillemet ouvrant. Les virgules casseraient le parseur `.or()` : on les ôte.
-      const qOr = q.replace(/,/g, ' ').trim();
-      const prefixeOr = (col: string) =>
-        [`${col}.ilike.${qOr}%`, `${col}.ilike.% ${qOr}%`, `${col}.ilike.%'${qOr}%`, `${col}.ilike.%’${qOr}%`, `${col}.ilike.%«${qOr}%`].join(',');
-
-      // Compte RÉEL par source (non plafonné) : c'est la somme affichée. Les aperçus
-      // ci-dessous restent bornés, mais le total dit combien il y a vraiment.
-      Promise.all([
-        supabase.from('auteurs').select('*', { count: 'exact', head: true }).or(prefixeOr('nom')).abortSignal(signal),
-        supabase.from('essais').select('*', { count: 'exact', head: true }).eq('statut', 'publie').or([...prefixeOr('titre').split(','), ...prefixeOr('resume').split(',')].join(',')).abortSignal(signal),
-        supabase.from('oeuvres').select('*', { count: 'exact', head: true }).or(prefixeOr('titre')).abortSignal(signal),
-      ]).then(res => {
-        if (signal.aborted) return;
-        const total = res.reduce((s, r) => s + (r.count ?? 0), 0);
-        setNbTotalReel(total);
-      }).catch(() => {});
-
-      supabase.from('auteurs').select('id_auteur, nom').or(prefixeOr('nom')).limit(4).abortSignal(signal)
-        .then(({ data }) => {
-          if (!signal.aborted) { setAuteursTrouves(data ?? []); setNbResultatsProgressif(p => p + (data?.length ?? 0)); }
-          done();
-        });
-      supabase.from('essais').select('id, titre').eq('statut', 'publie')
-        .or([...prefixeOr('titre').split(','), ...prefixeOr('resume').split(',')].join(',')).limit(4).abortSignal(signal)
-        .then(({ data }) => {
-          if (!signal.aborted) { setEssaisTrouves(data ?? []); setNbResultatsProgressif(p => p + (data?.length ?? 0)); }
-          done();
-        });
-      supabase.from('oeuvres').select('id_oeuvre, titre, note, auteurs!oeuvres_id_auteur_fkey(nom)').or(prefixeOr('titre')).limit(8).abortSignal(signal)
-        .then(({ data }) => {
-          if (signal.aborted) { done(); return; }
-          const filtered = (data ?? []).filter(estOeuvrePubliee).map((o: any) => ({ ...o, auteurs: Array.isArray(o.auteurs) ? (o.auteurs[0] ?? null) : o.auteurs }));
-          setOeuvresTrouvees(filtered);
-          setNbResultatsProgressif(p => p + filtered.length);
-          done();
-        });
-      // Les « Extraits patristiques » (recherche plein texte des segments) ne sont plus
-      // proposés dans le menu déroulant : ils prenaient trop de place. La recherche
-      // complète (page /recherche) les couvre toujours.
+        }, () => { if (!signal.aborted) { setRechercheRapideLoading(false); setRechercheTerminee(true); } });
+      // Les « Extraits patristiques » (plein texte des segments) restent réservés à la
+      // page /recherche (touche Entrée) : trop volumineux pour le menu déroulant.
     }, 250);
     return () => { clearTimeout(timer); abortRef.current?.abort(); setRechercheRapideLoading(false); };
   }, [requeteRapide]);
@@ -386,7 +410,26 @@ export default function Navbar() {
   const motCommencePar = (nom: string) => sansAccents(nom).split(/[\s'’-]+/).some(w => w.startsWith(qNorm));
   const livresTrouves = qNorm ? LIVRES_RECHERCHE.filter(l => motCommencePar(l.nom)).slice(0, 5) : [];
   const traductionsTrouvees = qNorm ? TRADUCTIONS_RECHERCHE.filter(t => motCommencePar(t.nom)) : [];
-  const aucunResultat = !rechercheRapideLoading && !pericopesLoading && qNorm.length > 0 && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0 && pericopes.length === 0;
+
+  // Navigation clavier : liste À PLAT de tous les rangs cliquables, dans l'ordre du menu
+  // (mêmes tranches que le rendu). `id="nav-<cle>"` sur chaque rang pour le défilement.
+  const itemsNavigables: { cle: string; href: string }[] = [];
+  pericopes.forEach(p => itemsNavigables.push({ cle: `p:${p.pericope_id}`, href: `/pericopes/${p.pericope_id}` }));
+  evenementsTrouves.forEach(e => itemsNavigables.push({ cle: `ev:${e.id}`, href: `/histoire#${e.id}` }));
+  auteursTrouves.slice(0, 3).forEach(a => itemsNavigables.push({ cle: `au:${a.id_auteur}`, href: `/auteur/${a.id_auteur}` }));
+  oeuvresTrouvees.slice(0, 3).forEach(o => itemsNavigables.push({ cle: `oe:${o.id_oeuvre}`, href: `/oeuvre/${o.id_oeuvre}` }));
+  essaisTrouves.slice(0, 3).forEach(e => itemsNavigables.push({ cle: `es:${e.id}`, href: `/essais/${e.id}` }));
+  livresTrouves.slice(0, 3).forEach(l => itemsNavigables.push({ cle: `li:${l.code}`, href: `/?livre=${l.code}&chapitre=1` }));
+  traductionsTrouvees.slice(0, 3).forEach(t => itemsNavigables.push({ cle: `tr:${t.code}`, href: `/traductions#${t.code}` }));
+  const cleActive = actifIndex >= 0 ? (itemsNavigables[actifIndex]?.cle ?? null) : null;
+  useEffect(() => {
+    document.querySelectorAll('[data-nav-actif]').forEach(el => el.removeAttribute('data-nav-actif'));
+    if (cleActive) {
+      const el = document.getElementById('nav-' + cleActive);
+      if (el) { el.setAttribute('data-nav-actif', 'true'); el.scrollIntoView({ block: 'nearest' }); }
+    }
+  }, [cleActive]);
+  const aucunResultat = !rechercheRapideLoading && !pericopesLoading && qNorm.length > 0 && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0 && pericopes.length === 0 && evenementsTrouves.length === 0;
 
   const fermerRechercheRapide = () => { setRechercheOuverte(false); setRequeteRapide(""); setMobileOuvert(false); };
   const validerRechercheRapide = () => {
@@ -416,21 +459,23 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!user?.id) { setNbNotifications(0); return }
-    const cleArchives = cleArchivesNotifications(user.id)
-    const cleConnues = cleNotificationsConnues(user.id)
 
     const chargerNotifications = async (avecToast: boolean) => {
       try {
-        const toutes = await chargerNotificationsUtilisateur(user.id)
-        const archives = lireSetLocalStorage(cleArchives)
-        const connues = lireSetLocalStorage(cleConnues)
+        const outils = await import("@/app/lib/notificationsClient")
+        const cleArchives = outils.cleArchivesNotifications(user.id)
+        const cleConnues = outils.cleNotificationsConnues(user.id)
+        const toutes = await outils.chargerNotificationsUtilisateur(user.id)
+        const archives = outils.lireSetLocalStorage(cleArchives)
+        const connues = outils.lireSetLocalStorage(cleConnues)
         const actives = toutes.filter(n => !archives.has(n.key))
         const nouvelles = actives.filter(n => !connues.has(n.key))
         setNbNotifications(actives.length)
         if (avecToast && nouvelles.length > 0 && connues.size > 0) {
           const n = nouvelles[0]
-          setToastNotification({ titre: n.titre, message: String(n.message || n.objet).slice(0, 120) })
-          window.setTimeout(() => setToastNotification(null), 5200)
+          // La fermeture est confiée à un effet dédié (voir ci-dessous) : un compte à
+          // rebours posé ici survivait à la vignette et fermait la suivante trop tôt.
+          setToastNotification({ id: Date.now(), titre: n.titre, message: String(n.message || n.objet).slice(0, 120) })
         }
         localStorage.setItem(cleConnues, JSON.stringify(toutes.map(n => n.key)))
       } catch {
@@ -438,19 +483,69 @@ export default function Navbar() {
       }
     }
 
-    void chargerNotifications(false)
+    let dernierChargement = 0
+    const chargerEtDater = async (avecToast: boolean) => {
+      dernierChargement = Date.now()
+      await chargerNotifications(avecToast)
+    }
+    const annulerDepart = planifierTacheSecondaire(() => { void chargerEtDater(false) }, 1200)
     // On ne sonde pas quand l'onglet est caché ; on rafraîchit au retour à l'onglet.
-    const interval = window.setInterval(() => { if (!document.hidden) void chargerNotifications(true) }, 45000)
-    const onArchivees = () => void chargerNotifications(false)
-    const onVisible = () => { if (!document.hidden) void chargerNotifications(true) }
+    const frequence = 120000
+    const interval = window.setInterval(() => { if (!document.hidden) void chargerEtDater(true) }, frequence)
+    const onArchivees = () => void chargerEtDater(false)
+    const onVisible = () => {
+      if (!document.hidden && Date.now() - dernierChargement >= frequence) void chargerEtDater(true)
+    }
     window.addEventListener('notifications-archivees', onArchivees)
     document.addEventListener('visibilitychange', onVisible)
     return () => {
+      annulerDepart()
       window.clearInterval(interval)
       window.removeEventListener('notifications-archivees', onArchivees)
       document.removeEventListener('visibilitychange', onVisible)
     }
   }, [user?.id]);
+
+  // Retrait de la vignette au terme des trois secondes. Le compte à rebours est
+  // rattaché à la vignette elle-même : une nouvelle notification repart de zéro, et
+  // un clic (qui la ferme et ouvre le volet) annule le minuteur au lieu de le laisser
+  // courir à vide.
+  useEffect(() => {
+    if (!toastNotification) return;
+    const minuteur = window.setTimeout(() => setToastNotification(null), DUREE_TOAST_MS);
+    return () => window.clearTimeout(minuteur);
+  }, [toastNotification]);
+
+  // ── La barre constate elle-même si elle déborde ────────────────────────────
+  // Se remesure au redimensionnement et à chaque changement susceptible d'allonger la
+  // barre : ouverture de session, pseudo, droits d'admin, pastilles de compteurs.
+  useEffect(() => {
+    const mesurer = () => {
+      const nav = navRef.current;
+      // Sous 1024px la navigation desktop est masquée (`hidden lg:flex`) : rien à mesurer,
+      // et une largeur nulle ferait conclure à tort à un débordement.
+      if (!nav || nav.clientWidth === 0) return;
+      if (!etroitRef.current) {
+        const debord = nav.scrollWidth - nav.clientWidth;
+        if (debord > 0) {
+          largeurRequiseRef.current = window.innerWidth + debord + MARGE_BASCULE_PX;
+          etroitRef.current = true;
+          setEtroit(true);
+        }
+      } else if (window.innerWidth >= largeurRequiseRef.current) {
+        // On déplie, puis la mesure suivante tranche : si la barre déborde de nouveau
+        // (la police racine ayant grandi avec la fenêtre), elle se replie aussitôt en
+        // retenant une largeur requise plus grande. La suite converge.
+        etroitRef.current = false;
+        setEtroit(false);
+      }
+    };
+    let image = 0;
+    const planifier = () => { cancelAnimationFrame(image); image = requestAnimationFrame(mesurer); };
+    planifier();
+    window.addEventListener('resize', planifier);
+    return () => { cancelAnimationFrame(image); window.removeEventListener('resize', planifier); };
+  }, [etroit, user, pseudo, estAdmin, estAdminEmail, nbNotifications, nbMessages, pathname]);
 
   useEffect(() => {
     if (!user?.id) { setNbMessages(0); return }
@@ -463,16 +558,24 @@ export default function Navbar() {
         if (res.ok) { const d = await res.json(); setNbMessages(d.nb ?? 0) }
       } catch { /* non-critique */ }
     }
-    chargerMessages()
+    let dernierChargement = 0
+    const chargerEtDater = async () => {
+      dernierChargement = Date.now()
+      await chargerMessages()
+    }
+    const annulerDepart = planifierTacheSecondaire(() => { void chargerEtDater() }, 1600)
     // Idem : pas de sondage onglet caché, rafraîchissement au retour.
-    const interval = window.setInterval(() => { if (!document.hidden) chargerMessages() }, 60000)
-    const onVisible = () => { if (!document.hidden) chargerMessages() }
+    const frequence = 120000
+    const interval = window.setInterval(() => { if (!document.hidden) void chargerEtDater() }, frequence)
+    const onVisible = () => {
+      if (!document.hidden && Date.now() - dernierChargement >= frequence) void chargerEtDater()
+    }
     document.addEventListener('visibilitychange', onVisible)
-    return () => { window.clearInterval(interval); document.removeEventListener('visibilitychange', onVisible) }
+    return () => { annulerDepart(); window.clearInterval(interval); document.removeEventListener('visibilitychange', onVisible) }
   }, [user?.id]);
 
   useEffect(() => {
-    if (!user?.id || !(estAdmin || estAdminEmail)) { setNbActionsAdmin(0); return }
+    if (!user?.id || !estAdminAffiche) { setNbActionsAdmin(0); setNbVerifAdmin(0); return }
     const charger = async () => {
       const [r0, r1, r2, r3, r4] = await Promise.all([
         supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false'),
@@ -486,14 +589,22 @@ export default function Navbar() {
       setNbActionsAdmin(moderation)
       setNbVerifAdmin(verif)
     }
-    charger()
-    const interval = window.setInterval(() => { if (!document.hidden) charger() }, 60000)
-    const onVisible = () => { if (!document.hidden) charger() }
+    let dernierChargement = 0
+    const chargerEtDater = async () => {
+      dernierChargement = Date.now()
+      await charger()
+    }
+    const annulerDepart = planifierTacheSecondaire(() => { void chargerEtDater() }, 2200)
+    const frequence = 300000
+    const interval = window.setInterval(() => { if (!document.hidden) void chargerEtDater() }, frequence)
+    const onVisible = () => {
+      if (!document.hidden && Date.now() - dernierChargement >= frequence) void chargerEtDater()
+    }
     const onVerif = (e: Event) => setNbVerifAdmin((e as CustomEvent<number>).detail)
     document.addEventListener('visibilitychange', onVisible)
     window.addEventListener('admin-verif-count', onVerif)
-    return () => { window.clearInterval(interval); document.removeEventListener('visibilitychange', onVisible); window.removeEventListener('admin-verif-count', onVerif) }
-  }, [user?.id, estAdmin, estAdminEmail]);
+    return () => { annulerDepart(); window.clearInterval(interval); document.removeEventListener('visibilitychange', onVisible); window.removeEventListener('admin-verif-count', onVerif) }
+  }, [user?.id, estAdminAffiche]);
 
   const seDeconnecter = async () => {
     try {
@@ -543,6 +654,7 @@ export default function Navbar() {
         .recherche-rapide-input::placeholder { color: rgba(255,255,255,0.45); }
         @keyframes spin-search { to { transform: rotate(360deg); } }
         .spinner-search { animation: spin-search 0.8s linear infinite; }
+        [data-nav-actif] { background: var(--cs-fond-doux) !important; }
       `}</style>
       {/* Champ + bouton page de recherche */}
       <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
@@ -552,13 +664,14 @@ export default function Navbar() {
           onChange={e => setRequeteRapide(e.target.value)}
           onFocus={() => setRechercheOuverte(true)}
           onKeyDown={e => {
-            if (e.key === 'ArrowDown' && pericopes.length) { e.preventDefault(); setPericopeActif(i => Math.min(i + 1, pericopes.length - 1)); }
-            else if (e.key === 'ArrowUp' && pericopes.length) { e.preventDefault(); setPericopeActif(i => Math.max(i - 1, -1)); }
+            if (e.key === 'ArrowDown' && itemsNavigables.length) { e.preventDefault(); setActifIndex(i => Math.min(i + 1, itemsNavigables.length - 1)); }
+            else if (e.key === 'ArrowUp' && itemsNavigables.length) { e.preventDefault(); setActifIndex(i => Math.max(i - 1, -1)); }
             else if (e.key === 'Enter') {
-              if (pericopeActif >= 0 && pericopes[pericopeActif]) { e.preventDefault(); allerVersPericope(pericopes[pericopeActif].pericope_id); }
+              const cible = actifIndex >= 0 ? itemsNavigables[actifIndex] : null;
+              if (cible) { e.preventDefault(); router.push(cible.href); fermerRechercheRapide(); }
               else validerRechercheRapide();
             }
-            else if (e.key === 'Escape') { setRechercheOuverte(false); setPericopeActif(-1); }
+            else if (e.key === 'Escape') { setRechercheOuverte(false); setActifIndex(-1); }
           }}
           placeholder="Rechercher…"
           className="recherche-rapide-input cs-focus-clair"
@@ -614,7 +727,7 @@ export default function Navbar() {
             ) : null}
           </div>
 
-          {rechercheRapideLoading && pericopes.length === 0 && !pericopesLoading && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && essaisTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 ? (
+          {rechercheRapideLoading && pericopes.length === 0 && !pericopesLoading && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && essaisTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && evenementsTrouves.length === 0 ? (
             <p style={{ fontSize: "0.78rem", color: "var(--cs-texte-faible)", textAlign: "center", padding: "11px 12px", margin: 0 }}>…</p>
           ) : aucunResultat ? (
             <p style={{ fontSize: "0.78rem", color: "var(--cs-texte-doux)", fontStyle: "italic", textAlign: "center", padding: "11px 12px", margin: 0 }}>Aucun résultat — Entrée pour une recherche complète.</p>
@@ -628,9 +741,9 @@ export default function Navbar() {
                     pericopes.map((p, idx) => {
                       const ref = referencePericope(p);
                       const corr = correspondanceVisible(p);
-                      const actif = idx === pericopeActif;
+                      const actif = idx === actifIndex;
                       return (
-                        <Link key={p.pericope_id} href={`/pericopes/${p.pericope_id}`} onClick={fermerRechercheRapide}
+                        <Link key={p.pericope_id} id={`nav-p:${p.pericope_id}`} href={`/pericopes/${p.pericope_id}`} onClick={fermerRechercheRapide}
                           onMouseEnter={e => { e.currentTarget.style.background = DOMAINE.bible.survol; }}
                           onMouseLeave={e => { e.currentTarget.style.background = actif ? DOMAINE.bible.survol : "transparent"; }}
                           style={{ display: "block", padding: "3px 12px", textDecoration: "none", background: actif ? DOMAINE.bible.survol : "transparent" }}>
@@ -653,11 +766,28 @@ export default function Navbar() {
                   )}
                 </div>
               )}
+              {evenementsTrouves.length > 0 && (
+                <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.chronologie.base}`, background: DOMAINE.chronologie.fond }}>
+                  <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.chronologie.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Chronologie</p>
+                  {evenementsTrouves.map(e => {
+                    const titrePropre = e.titre.replace(/\*{1,2}|\+\+|\^\^/g, '');
+                    return (
+                      <Link key={e.id} id={`nav-ev:${e.id}`} href={`/histoire#${e.id}`} onClick={fermerRechercheRapide}
+                        style={{ display: "block", padding: "3px 12px", textDecoration: "none" }}
+                        onMouseEnter={ev => (ev.currentTarget.style.background = DOMAINE.chronologie.survol)}
+                        onMouseLeave={ev => (ev.currentTarget.style.background = "transparent")}>
+                        <span style={{ display: "block", fontSize: "0.83rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>{surlignerMatch(titrePropre, requeteRapide.trim())}</span>
+                        {e.date_affichage && <span style={{ display: "block", fontSize: "0.71rem", color: "var(--cs-texte-doux)", lineHeight: 1.25 }}>{e.date_affichage}</span>}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
               {auteursTrouves.length > 0 && (
                 <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond }}>
                   <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Auteurs</p>
                   {auteursTrouves.slice(0, 3).map(a => (
-                    <Link key={a.id_auteur} href={`/auteur/${a.id_auteur}`} onClick={fermerRechercheRapide}
+                    <Link key={a.id_auteur} id={`nav-au:${a.id_auteur}`} href={`/auteur/${a.id_auteur}`} onClick={fermerRechercheRapide}
                       style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.patristique.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
@@ -670,7 +800,7 @@ export default function Navbar() {
                 <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond, borderTop: auteursTrouves.length > 0 ? "1px solid rgba(var(--cs-vert-rgb),0.14)" : "none" }}>
                   <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Œuvres patristiques</p>
                   {oeuvresTrouvees.slice(0, 3).map(o => (
-                    <Link key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`} onClick={fermerRechercheRapide}
+                    <Link key={o.id_oeuvre} id={`nav-oe:${o.id_oeuvre}`} href={`/oeuvre/${o.id_oeuvre}`} onClick={fermerRechercheRapide}
                       style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.patristique.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
@@ -684,7 +814,7 @@ export default function Navbar() {
                 <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.publications.base}`, background: DOMAINE.publications.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0) ? "1px solid rgba(154,106,46,0.16)" : "none" }}>
                   <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.publications.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Essais et méditations</p>
                   {essaisTrouves.slice(0, 3).map(e => (
-                    <Link key={e.id} href={`/essais/${e.id}`} onClick={fermerRechercheRapide}
+                    <Link key={e.id} id={`nav-es:${e.id}`} href={`/essais/${e.id}`} onClick={fermerRechercheRapide}
                       style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
                       onMouseEnter={ev => (ev.currentTarget.style.background = DOMAINE.publications.survol)}
                       onMouseLeave={ev => (ev.currentTarget.style.background = "transparent")}>
@@ -697,7 +827,7 @@ export default function Navbar() {
                 <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0 || essaisTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
                   <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Livres bibliques</p>
                   {livresTrouves.slice(0, 3).map(l => (
-                    <Link key={l.code} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}
+                    <Link key={l.code} id={`nav-li:${l.code}`} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}
                       style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.bible.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
@@ -710,7 +840,7 @@ export default function Navbar() {
                 <div style={{ padding: "4px 0 6px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (auteursTrouves.length > 0 || livresTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
                   <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Traductions</p>
                   {traductionsTrouvees.slice(0, 3).map(t => (
-                    <Link key={t.code} href={`/traductions#${t.code}`} onClick={fermerRechercheRapide}
+                    <Link key={t.code} id={`nav-tr:${t.code}`} href={`/traductions#${t.code}`} onClick={fermerRechercheRapide}
                       style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.bible.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
@@ -745,6 +875,7 @@ export default function Navbar() {
       : { display: "inline-flex", alignItems: "center", gap: "0.3125rem", height: "1.75rem", padding: "0 0.375rem 0 0.125rem", fontSize: "0.77rem", color: "rgba(255,255,255,0.74)", letterSpacing: "0.01em" }}>
       <button type="button" role="switch" aria-checked={modeUtilisateurStandard}
         onClick={() => setModeUtilisateurStandard(!modeUtilisateurStandard)}
+        aria-label="Affichage administrateur"
         title="Affichage seulement — vos droits réels ne changent pas"
         style={{
           width: "30px", height: "17px", borderRadius: "999px", border: modeUtilisateurStandard ? "1px solid #7fb08e" : "1px solid rgba(255,255,255,0.72)", cursor: "pointer", padding: 0, flexShrink: 0,
@@ -754,7 +885,9 @@ export default function Navbar() {
         }}>
         <span style={{ position: "absolute", top: "2px", left: modeUtilisateurStandard ? "14px" : "2px", width: "11px", height: "11px", borderRadius: "50%", background: modeUtilisateurStandard ? "#fff" : "var(--cs-vert)", transition: "left 0.15s, background 0.15s" }} />
       </button>
-      <span>Admin</span>
+      {/* À l'étroit, l'interrupteur parle seul : son infobulle et son `aria-label`
+          portent le sens, le mot cède la place. */}
+      {(mobile || !etroit) && <span>Admin</span>}
     </div>
   );
 
@@ -762,9 +895,13 @@ export default function Navbar() {
   const blocCompte = (mobile: boolean) => user ? (
     <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", alignItems: mobile ? "stretch" : "center", gap: mobile ? "2px" : "6px", width: mobile ? "100%" : undefined }}>
       {!mobile && (
-        <button onClick={() => setMenuOuvert(!menuOuvert)} style={{ display: "flex", alignItems: "center", gap: "0.3125rem", height: "1.875rem", background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.17)", borderRadius: "6px", padding: "0 0.5rem 0 0.4375rem", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "0.84rem", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
+        <button onClick={() => setMenuOuvert(!menuOuvert)} aria-label={`Compte de ${pseudo ?? user.email.split("@")[0]}`} aria-expanded={menuOuvert}
+          style={{ display: "flex", alignItems: "center", gap: "0.3125rem", height: "1.875rem", background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.17)", borderRadius: "6px", padding: "0 0.5rem 0 0.4375rem", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "0.84rem", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="5" r="2.8" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M1.5 13c0-3 2.5-4.5 5.5-4.5S12.5 10 12.5 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>
-          <span style={{ maxWidth: "6rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email.split("@")[0]}</span>
+          {/* Le pseudonyme est le SEUL élément de la barre dont la largeur ne se connaît
+              pas d'avance (jusqu'à 6rem). À l'étroit il s'efface : c'est ce qui rend la
+              tenue de la barre calculable, et non dépendante de la longueur d'un nom. */}
+          {!etroit && <span style={{ maxWidth: "6rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email.split("@")[0]}</span>}
           <span style={{ fontSize: "0.63rem", opacity: 0.6 }}>▼</span>
         </button>
       )}
@@ -773,6 +910,21 @@ export default function Navbar() {
           <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid var(--cs-fond-doux)" }}>
             <p style={{ fontSize: "0.735rem", color: "var(--cs-texte-doux)", margin: 0 }}>Connecté en tant que</p>
             <p style={{ fontSize: "0.805rem", color: "var(--cs-encre)", fontWeight: 500, margin: "2px 0 0", wordBreak: "break-all" }}>{pseudo ?? user.email}</p>
+          </div>
+        )}
+        {/* Rubrique « Aller plus loin », recueillie ici quand la barre est trop étroite
+            pour la porter. Intertitre, puis ses entrées, puis un filet : elle reste un
+            groupe distinct des liens du compte, et non une liste qui s'y fondrait. */}
+        {!mobile && allerPlusLoinDansCompte && (
+          <div style={{ borderBottom: "1px solid var(--cs-bord-clair)" }}>
+            <p style={{ fontSize: "0.66rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--cs-texte-doux)", margin: 0, padding: "9px 14px 3px" }}>Aller plus loin</p>
+            {LIENS_ALLER_PLUS_LOIN.map(l => (
+              <Link key={l.href} href={l.href} onClick={() => setMenuOuvert(false)}
+                style={{ display: "block", padding: "7px 14px", fontSize: "0.875rem", color: "var(--cs-encre)", textDecoration: "none" }}>
+                {l.label}
+              </Link>
+            ))}
+            <div style={{ height: "4px" }} />
           </div>
         )}
         {[
@@ -818,7 +970,10 @@ export default function Navbar() {
     const actif = pathname === chemin || (chemin !== "/" && pathname.startsWith(chemin));
     return (
       <Link key={href} href={href} onClick={() => setMobileOuvert(false)}
-        style={{ padding: "9px 10px", borderRadius: "6px", fontSize: "0.98rem", color: "#fff", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
+        // `display: block` OBLIGATOIRE : dans les groupes d'« Administration », les liens
+        // sont enfants d'un <div> bloc (et non du flex-colonne principal) ; sans cela, les
+        // <a> restent inline et se chevauchent (pastilles superposées, texte illisible).
+        style={{ display: "block", padding: "9px 10px", borderRadius: "6px", fontSize: "0.98rem", color: "#fff", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
         {label}
       </Link>
     );
@@ -832,6 +987,29 @@ export default function Navbar() {
       <header data-cs-navbar className="fixed top-0 left-0 right-0 border-b"
         style={{ background: "var(--cs-vert)", borderColor: "rgba(255,255,255,0.10)", zIndex: 3000 }}>
         <style>{`
+          /* Jauge de la vignette de notification : elle se vide de la droite vers la
+             gauche pendant la durée d'affichage. On anime la transformation, pas la largeur :
+             pas de recalcul de mise en page à chaque image. La durée est posée en
+             ligne, depuis DUREE_TOAST_MS, pour qu'elle ne puisse pas diverger. */
+          /* Aucun onglet ne rétrécit : « Les Saintes Écritures » se laissait tronquer en
+             « Les Sain… » (la face Bible est en overflow:hidden), ce qui masquait le
+             débordement au lieu de le montrer — et rendait la mesure aveugle. Le trop-plein
+             doit se voir pour être mesuré, puis résorbé en repliant les outils. */
+          .cs-nav-principale > * { flex-shrink: 0; }
+
+          @keyframes cs-toast-jauge { from { transform: scaleX(1) } to { transform: scaleX(0) } }
+          .cs-toast-jauge {
+            transform-origin: left center;
+            animation-name: cs-toast-jauge;
+            animation-timing-function: linear;
+            animation-fill-mode: forwards;
+          }
+          /* Mouvement réduit : la jauge cesse de courir, mais reste visible — c'est
+             une indication de durée, pas une décoration. */
+          @media (prefers-reduced-motion: reduce) {
+            .cs-toast-jauge { animation: none; transform: scaleX(1) }
+          }
+
           /* Onglets de la barre. Le fond vient des variables posées en ligne par
              styleLien : la classe peut ainsi le reprendre au survol, ce qu'un fond
              écrit en ligne aurait rendu impossible.
@@ -898,14 +1076,19 @@ export default function Navbar() {
               style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.82rem", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.5)", position: "relative", top: "1.5px" }}>bêta</span>
           </Link>
 
-          {/* ── Navigation desktop ──────────────────────────────────────────── */}
-          <nav className="hidden lg:flex flex-1 items-center gap-1 min-w-0">
+          {/* ── Navigation desktop ──────────────────────────────────────────────
+              Seuil du hamburger : `lg` (1024px), conservé. Mesuré sur la barre d'un
+              admin connecté : version complète 94,9 rem (1519px à 16px), elle ne tient
+              donc qu'au-delà de ~1700px ; version repliée 52,5 rem (841px), qui tient
+              partout dès 1024px. Le palier desktop n'a pas besoin d'un plancher plus
+              haut : c'est le repli qui fait le travail. */}
+          <nav ref={navRef} className="cs-nav-principale hidden lg:flex flex-1 items-center gap-1 min-w-0">
             {/* Bouton « Bible » unique : au survol il se décompose en « Classique »
                 (lecture suivie) et « Polyglotte » (comparaison). Un clic direct sur la face
                 mène à la lecture classique — utile au tactile, où il n'y a pas de survol. */}
             <div className="cs-bible">
               <Link href="/?livre=GEN&chapitre=1" className="cs-bible-face">
-                Les Saintes Écritures
+                {etroit ? "La Bible" : "Les Saintes Écritures"}
               </Link>
               <div className="cs-bible-split">
                 <Link href="/?livre=GEN&chapitre=1" className={`cs-bible-seg${pathname === "/" ? " cs-bible-seg--actif" : ""}`}>Classique</Link>
@@ -916,14 +1099,28 @@ export default function Navbar() {
               href === "/bibliotheque"
                 ? <OngletPatristique key={href} href={href} label={label} style={styleLien(href, exact, !discret)} />
                 : href === "/traductions"
-                ? <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} />
+                // À l'étroit, « Aller plus loin » quitte la barre pour le menu de compte,
+                // à droite : c'est une rubrique de second rang, pas une section de lecture.
+                ? (allerPlusLoinDansCompte ? null : <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} />)
                 : <Link key={href} href={href} className="cs-onglet" style={styleLien(href, exact, !discret)}>{label}</Link>
             ))}
             {(estAdmin || estAdminEmail) && (
               <OngletAdministration label="Administration" style={styleLien("/admin", false, true)} />
             )}
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginLeft: "0.25rem", paddingLeft: "0.5rem", minWidth: 0, borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
-              {blocRecherche(false)}
+              {/* Le champ de recherche est le plus large des outils (13,75rem) : c'est lui
+                  qui cède le premier. À l'étroit il se replie en loupe et se déploie sous la
+                  barre, sur toute sa largeur — la même vue que sur téléphone. */}
+              {etroit ? (
+                <button type="button" onClick={() => setRechercheDeployee(v => !v)}
+                  aria-label="Rechercher" aria-expanded={rechercheDeployee}
+                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "1.875rem", height: "1.875rem", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: rechercheDeployee ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", cursor: "pointer", padding: 0, flexShrink: 0, transition: "background 0.13s" }}>
+                  <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <circle cx="5" cy="5" r="3.6" stroke="currentColor" strokeWidth="1.3" />
+                    <path d="M7.7 7.7L10.6 10.6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                  </svg>
+                </button>
+              ) : blocRecherche(false)}
             </div>
           </nav>
 
@@ -933,8 +1130,13 @@ export default function Navbar() {
             {(estAdmin || estAdminEmail) && (
               <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 4px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
             )}
-            <Link href="/soutenir" style={styleLienDiscret("/soutenir")}>
-              <IconCoeur /> Soutenir le projet
+            {/* À l'étroit, le cœur seul : l'intitulé revient en infobulle. */}
+            <Link href="/soutenir" style={etroit
+              ? { ...styleLienDiscret("/soutenir"), padding: "0.25rem 0.4375rem" }
+              : styleLienDiscret("/soutenir")}
+              title={etroit ? "Soutenir le projet" : undefined}
+              aria-label={etroit ? "Soutenir le projet" : undefined}>
+              <IconCoeur />{!etroit && " Soutenir le projet"}
             </Link>
             {user && (
               <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 2px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
@@ -984,6 +1186,13 @@ export default function Navbar() {
           </button>
         </div>
 
+        {/* ── Recherche dépliée sous la barre (palier étroit) ─────────────────── */}
+        {etroit && rechercheDeployee && (
+          <div className="hidden lg:block" style={{ background: "#345c43", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "10px 16px 12px" }}>
+            {blocRecherche(true)}
+          </div>
+        )}
+
         {/* ── Panneau mobile déplié ───────────────────────────────────────────── */}
         {mobileOuvert && (
           <div className="lg:hidden" style={{ background: "#345c43", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -1021,16 +1230,21 @@ export default function Navbar() {
           </div>
         )}
         {toastNotification && (
-          <div role="button" tabIndex={0} onClick={() => { setToastNotification(null); setNotifsOuvertes(true); }}
-            style={{ position: "fixed", top: "calc(3.5rem + 0.75rem)", right: "18px", width: "17.5rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderLeft: "3px solid var(--cs-vert)", borderRadius: "8px", boxShadow: "0 12px 34px rgba(0,0,0,0.16)", padding: "11px 13px", zIndex: 4000, cursor: "pointer" }}>
+          <div key={toastNotification.id} role="button" tabIndex={0} onClick={() => { setToastNotification(null); setNotifsOuvertes(true); }}
+            style={{ position: "fixed", top: "calc(3.5rem + 0.75rem)", right: "18px", width: "17.5rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderLeft: "3px solid var(--cs-vert)", borderRadius: "8px", boxShadow: "0 12px 34px rgba(0,0,0,0.16)", padding: "11px 13px 13px", zIndex: 4000, cursor: "pointer", overflow: "hidden" }}>
             <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-vert)", margin: "0 0 4px" }}>Nouvelle notification</p>
             <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.98rem", color: "var(--cs-encre-fonce)", margin: "0 0 4px" }}>{toastNotification.titre}</p>
             <p style={{ fontSize: "0.805rem", color: "var(--cs-texte-second)", lineHeight: 1.35, margin: 0 }}>{toastNotification.message}</p>
+            {/* Jauge du temps restant : elle court sur toute la largeur, en pied de
+                vignette, et se retire vers la gauche pendant les trois secondes. */}
+            <div aria-hidden style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "2px", background: "rgba(var(--cs-vert-rgb),0.14)" }}>
+              <div className="cs-toast-jauge" style={{ height: "100%", background: "var(--cs-vert)", animationDuration: `${DUREE_TOAST_MS}ms` }} />
+            </div>
           </div>
         )}
       </header>
       {/* Messagerie EN FENÊTRE (plus une page) : ouverte depuis l'icône parchemin. */}
-      <ModaleMessagerie ouvert={messagerieOuverte} onClose={() => { setMessagerieOuverte(false); }} />
+      {messagerieOuverte && <ModaleMessagerie ouvert onClose={() => { setMessagerieOuverte(false); }} />}
     </>
   );
 }

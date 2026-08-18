@@ -1,0 +1,19 @@
+{
+  "name": "la-gueule",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Orchestrateur maison OCR/HTR de Corpus Scriptura : mobilise Kraken et les autres outils sous la doctrine de la charte §14. Produit des brouillons, jamais du texte validé.",
+  "bin": {
+    "gueule": "bin/gueule.mjs"
+  },
+  "scripts": {
+    "test": "node --test",
+    "test:integration": "node --test integration/integration.itest.mjs",
+    "serve": "node bin/gueule.mjs serve",
+    "doctor": "node bin/gueule.mjs doctor"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

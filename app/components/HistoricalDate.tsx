@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { decouperSiecles, STYLE_ORDINAL } from '../lib/siecles'
+import { decouperSiecles } from '../lib/siecles'
 
 export type HistoricalDateVariant = 'long' | 'short'
 
@@ -15,11 +15,15 @@ export const STYLE_DATE_ROMAIN: CSSProperties = {
   fontFeatureSettings: '"smcp" 1, "c2sc" 1',
 }
 
-// ⛔ Ne pas redéfinir l'exposant ici : `STYLE_ORDINAL` fait foi pour tout le
-// site, et `vertical-align: super` relève l'ordinal du double de ce qu'il faut
-// (voir la mesure en tête de `siecles.tsx`). Le corps était de surcroît à
-// 0,68 em quand le reste du site compose à 0,6 em.
-export const STYLE_DATE_ORDINAL: CSSProperties = STYLE_ORDINAL
+// Décalage maîtrisé plutôt que `vertical-align: super` (qui montait le « e » beaucoup
+// trop haut, au-dessus de la casse du chiffre). Accordé au module `siecles.tsx`.
+export const STYLE_DATE_ORDINAL: CSSProperties = {
+  fontSize: '0.68em',
+  lineHeight: 0,
+  verticalAlign: 'baseline',
+  position: 'relative',
+  top: '-0.5em',
+}
 
 /** Harmonise seulement l'espacement typographique d'une chaîne établie en base. */
 export function espacerIntervallesHistoriques(value: string): string {

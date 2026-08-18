@@ -1,0 +1,2021 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>La Gueule — Atelier de relecture</title>
+<link rel="icon" type="image/png" href="/logo-vert.png?v=20260808" />
+<style>
+  :root{--fond:#f7f3ea;--surface:#fffdf8;--encre:#2b2620;--second:#6b6155;--bord:#d9ccb4;
+    --vert:#5a7260;--vertf:rgba(90,114,96,.12);--ambre:#9a5a2a;--surlig:rgba(154,90,42,.28)}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--fond);color:var(--encre);font-family:"Segoe UI",system-ui,sans-serif;font-size:14px;display:flex;flex-direction:column}
+  header{padding:11px 20px;border-bottom:1px solid var(--bord);background:var(--surface);display:flex;gap:14px;align-items:center;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  header h1{margin:0;font-family:Georgia,serif;font-weight:500;font-size:17px}
+  header .logo{height:30px;width:58px;display:block;object-fit:contain;flex:none}
+  header .sep{flex:1}
+  label{font-size:12px;color:var(--second)}
+  input,select{padding:5px 8px;border:1px solid var(--bord);border-radius:6px;background:#fff;color:var(--encre);font:inherit;transition:border-color .12s}
+  input:focus,select:focus{outline:none;border-color:var(--vert)}
+  input[type=number]{width:64px}
+  #chemin{width:min(46vw,560px)}
+  button{cursor:pointer;border:1px solid var(--vert);border-radius:6px;background:var(--vertf);color:var(--vert);padding:6px 12px;font:inherit;font-weight:600;transition:background .12s,border-color .12s,color .12s}
+  button:hover:not(:disabled){background:var(--vert);color:#fff}
+  button.discret{border-color:var(--bord);color:var(--second);background:var(--surface);font-weight:400}
+  button.discret:hover:not(:disabled){border-color:var(--vert);color:var(--vert);background:var(--surface)}
+  button:disabled{opacity:.5;cursor:default}
+  #etat{font-size:12px;color:var(--second)}
+  main{flex:1;display:grid;grid-template-columns:340px 1fr 1fr;gap:0;min-height:0}
+  main.meta-replie{grid-template-columns:32px 1fr 1fr}
+  .volet{min-height:0;overflow:auto;padding:12px}
+  /* Colonne « Métadonnées » (gauche), repliable */
+  .volet-meta{min-height:0;overflow:auto;border-right:1px solid var(--bord);background:var(--surface);display:flex;flex-direction:column}
+  .meta-tete{display:flex;padding:8px 8px 0;position:sticky;top:0;background:var(--surface);z-index:1}
+  [data-theme="dark"] .vtabs button.actif{color:#12100d}
+  .meta-titre{font-family:Georgia,serif;font-size:14px;color:var(--encre);flex:1}
+  .meta-toggle{border:1px solid var(--bord);background:#fff;color:var(--second);border-radius:5px;padding:2px 8px;cursor:pointer;font-weight:700;line-height:1}
+  .meta-corps{padding:10px;display:flex;flex-direction:column;gap:7px}
+  .meta-corps label{display:flex;flex-direction:column;gap:3px;font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--second)}
+  .meta-corps input{width:100%;font-size:13px;box-sizing:border-box}
+  .meta-corps input.meta-auto{background:#e7e5df;color:#1f1f1f} /* deviné par le parseur (remplaçable par l'IA) */
+  .meta-corps input.meta-ia{background:#fbeecb;border-color:#c9971f;color:#1a1a1a;font-weight:500} /* proposé par l'IA (lecture d'image), à vérifier */
+  .meta-corps input.meta-ia-enrichi{background:#e3eefb;border-color:#5b8fd6;color:#12314f;font-weight:500} /* niveau 2 : catalogue (ta base), à vérifier */
+  .meta-corps input.meta-ia-conn{background:#efe6fb;border-color:#8a6fc9;color:#2e1f4a;font-weight:500} /* niveau 3 : connaissance de l'IA (hors page/base), à vérifier */
+  .meta-etat{font-size:11px;color:var(--second);min-height:1em;margin-top:2px}
+  .meta-diag{font-size:11px;color:var(--second);margin-top:4px}
+  .meta-diag summary{cursor:pointer;color:var(--second)}
+  .meta-diag .dg-sec{margin:4px 0 2px;font-weight:600;color:var(--fg)}
+  .meta-diag code{background:#eee;padding:0 3px;border-radius:2px}
+  .meta-diag .dg-vide{color:#b06a2a}
+  main.meta-replie .vtabs,main.meta-replie .vpanel{display:none}
+  main.meta-replie .meta-tete{flex-direction:column;padding:8px 3px;border-bottom:none}
+  /* Les onglets se sont multipliés : plutôt que de les comprimer jusqu'à tronquer les libellés
+     (« Métadonn… »), on les laisse à leur largeur naturelle et la bande DÉFILE. Barre de défilement
+     masquée — le signal, c'est le voile de bord, plus discret qu'une barre grise. */
+  .vtabs{display:flex;flex:1;min-width:0;border-bottom:1px solid var(--bord);
+    overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth;overscroll-behavior-x:contain;
+    scrollbar-width:none;-ms-overflow-style:none}
+  .vtabs::-webkit-scrollbar{display:none}
+  /* Voile de bord : le côté où il reste des onglets s'estompe. Rien ne recouvre le contenu, aucun
+     bouton n'encombre la bande — on comprend qu'on peut faire défiler, et c'est tout. */
+  .vtabs.deb{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 20px);mask-image:linear-gradient(to right,transparent 0,#000 20px)}
+  .vtabs.fin{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent 100%);mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent 100%)}
+  .vtabs.deb.fin{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 20px,#000 calc(100% - 20px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 20px,#000 calc(100% - 20px),transparent 100%)}
+  .vtabs button{flex:0 0 auto;padding:9px 9px;border:none;background:none;font-size:11px;color:var(--second);border-bottom:2px solid transparent;border-radius:0;font-weight:500;cursor:pointer;white-space:nowrap;margin-bottom:-1px;transition:color .12s,border-color .12s}
+  .vtabs button:hover{color:var(--encre)}
+  .vtabs button.actif{color:var(--vert);border-bottom-color:var(--vert);font-weight:700}
+  /* Onglet Contrôle : badge + cartes de proposition IA (Phase — retour 2026-08-10). */
+  .badge-ctrl{display:inline-block;min-width:15px;padding:0 4px;margin-left:3px;border-radius:8px;background:var(--ambre,#c9971f);color:#fff;font-size:10px;font-weight:700;text-align:center;line-height:15px}
+  .ctrl-tete{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:2px 0 8px}
+  .ctrl-item{border:1px solid var(--bord);border-radius:6px;padding:6px 8px;margin-bottom:7px;background:var(--fond-clair,#faf8f4);cursor:pointer}
+  .ctrl-item:hover{border-color:var(--vert)}
+  .ctrl-item .ct-tete{font-size:10.5px;color:var(--second);margin-bottom:3px;display:flex;justify-content:space-between;gap:6px}
+  .ctrl-item .ct-avapr{font-size:12.5px;margin:2px 0;word-break:break-word}
+  .ctrl-item .ct-avapr .av{color:#9a2a2a;text-decoration:line-through}
+  .ctrl-item .ct-avapr .apr{color:#2e5440;font-weight:600}
+  .ctrl-item .ct-act{display:flex;gap:6px;margin-top:5px}
+  .ctrl-item .ct-act button{font-size:11px}
+  .ct-vld{background:var(--vert);color:#fff;border-color:var(--vert)}
+  /* Filtres du volet Contrôle : « À vérifier » est le défaut, les autres servent à l'audit. */
+  .ctrl-filtres{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 9px}
+  .ctrl-filtres button{padding:3px 8px;border-radius:999px;font-size:10.5px;border:1px solid var(--bord);background:var(--surface);color:var(--second);cursor:pointer}
+  .ctrl-filtres button:hover{border-color:var(--vert);color:var(--vert)}
+  .ctrl-filtres button.actif{background:var(--vert);color:#fff;border-color:var(--vert);font-weight:600}
+  /* Ce que les vérificateurs ont vu : la matière de la décision, pas un badge décoratif. */
+  .ct-triage{font-size:10.5px;color:var(--second);line-height:1.45;margin-top:4px;padding-top:4px;border-top:1px dotted var(--bord)}
+  .ct-auto{font-size:9.5px;padding:1px 5px;border-radius:999px;background:var(--vertf,rgba(61,107,79,.14));color:var(--vert)}
+  .ct-auto.ko{background:rgba(154,90,42,.14);color:#9a5a2a}
+  .ctrl-fam{border:1px dashed var(--bord);border-radius:6px;padding:5px 8px;margin-bottom:7px;font-size:12px;color:var(--second);display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .ctrl-vide{font-size:12px;color:var(--second);padding:8px 0;line-height:1.5}
+  .lg.cible input{background:#fff4d6;box-shadow:0 0 0 2px var(--ambre,#c9971f)}
+  .vpanel-actions{display:flex;gap:7px;padding:9px 10px 2px}
+  .vpanel-actions button{flex:1;padding:6px 4px;font-weight:600}
+  .vpanel-corps,.vpanel .barre2{display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:10px;background:transparent;border:none}
+  .vpanel .barre2 button{align-self:stretch;padding:7px 4px}
+  .vpanel .barre2 input:not([type=checkbox]),.vpanel .barre2 select{width:100%!important;box-sizing:border-box}
+  .vpanel .barre2 > label{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--second);display:flex;flex-direction:column;gap:3px}
+  .vpanel .barre2 .pchk{flex-direction:row;align-items:center;gap:6px;font-size:12px;text-transform:none;letter-spacing:0;font-weight:400;color:var(--encre)}
+  .vpanel .barre2 #etatSave,.vpanel .barre2 #etatExport,.vpanel .barre2 #nbValidees{font-size:11px;color:var(--second)}
+  .vpanel-titre{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--second);padding:12px 12px 0}
+  /* Zone image : l'image tient dans la hauteur du volet (pas de défilement) ; chevrons de nav. */
+  #voletImage{background:#efe8da;border-right:1px solid var(--bord);position:relative;overflow:hidden;
+    display:flex;align-items:flex-start;justify-content:center;padding:12px}
+  #imgHolder{max-width:100%;max-height:100%;display:flex;align-items:flex-start;justify-content:center}
+  .scene{position:relative;display:inline-block;box-shadow:0 2px 12px rgba(0,0,0,.15);background:#fff}
+  .scene img{display:block;max-width:100%;height:auto}
+  /* Passe 3 : zoom sur la région d'une lettrine (clic n'importe où pour fermer). */
+  #zoomOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:10001;cursor:zoom-out}
+  .zoombox{background-repeat:no-repeat;background-color:#fff;box-shadow:0 8px 40px rgba(0,0,0,.5);border:3px solid #fff;border-radius:4px}
+  /* Pipeline 5 étapes (Phase A) : représentation persistante de l'état du parcours. */
+  #barreEtapes{display:flex;background:var(--surface);border-bottom:1px solid var(--bord)}
+  .etape{flex:1;min-width:0;display:flex;align-items:center;gap:7px;padding:6px 13px;font-size:11.5px;background:#efeadf;color:#7d7259;border-right:1px solid var(--bord);transition:filter .12s}
+  .etape:last-child{border-right:none}
+  .etape .num{flex:none;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-size:9.5px;font-weight:700;background:rgba(0,0,0,.09)}
+  .etape .lib{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .etape .badge{margin-left:auto;font-size:10px;font-weight:500;white-space:nowrap;opacity:.92}
+  .etape.fait{background:#e1efe3;color:#2f6a47} .etape.fait .num{background:#bfe0c6;color:#215838}
+  .etape.encours{background:#fdeccb;color:#8a5a12} .etape.encours .num{background:#f1cf8d;color:#6b430a}
+  .etape.afaire{background:#f2ecdf;color:#8a7c5e} .etape.afaire .num{background:#e2d6bd;color:#6f6242}
+  .etape.souci{background:#f7ddd4;color:#9a2f24} .etape.souci .num{background:#e9b5aa;color:#7a231a}
+  .etape.active{box-shadow:inset 0 2px 0 var(--vert)}
+  .etape.clic{cursor:pointer} .etape.clic:hover{filter:brightness(.965)}
+  .badge.non_commence{background:#ececec;color:#888}
+  .badge.pret{background:#e6f0e6;color:#3d6b4f}
+  .badge.en_cours{background:#fef3d8;color:#b26a1a}
+  .badge.termine{background:#e2f0e2;color:#2e5440}
+  .badge.a_verifier{background:#fdf0d8;color:#a8720f}
+  .badge.perime{background:#fbe6de;color:#b5482a}
+  .badge.bloque,.badge.erreur{background:#fadbd0;color:#9a2a2a}
+  [data-theme="dark"] #barreEtapes{background:#241f1a}
+  [data-theme="dark"] .etape{background:#2c2720;color:#b7ab97}
+  [data-theme="dark"] .etape .num{background:rgba(255,255,255,.09)}
+  [data-theme="dark"] .etape.fait{background:#243528;color:#9fceb0}
+  [data-theme="dark"] .etape.fait .num{background:#2f5a3d;color:#bfe0c6}
+  [data-theme="dark"] .etape.encours{background:#3a2f1c;color:#e2b871}
+  [data-theme="dark"] .etape.afaire{background:#2f2a20;color:#bcae8c}
+  [data-theme="dark"] .etape.souci{background:#3a2420;color:#e2a397}
+  /* Phase E — panneau de validation ciblée (familles + critiques + blocages). */
+  #panneauValidation{padding:8px 12px;background:var(--fond-clair,#faf8f4);border-bottom:1px solid var(--bord);font-size:13px}
+  #panneauValidation .val-tete{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:6px}
+  #panneauValidation .val-fam{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:3px 0;border-top:1px solid var(--bord-clair,#e4dfd8)}
+  #panneauValidation .val-fam span{color:var(--second)}
+  #panneauValidation .val-bloc{margin-top:6px;color:#9a2a2a;font-weight:600}
+  #panneauValidation .val-crit{margin-top:6px;padding:6px 8px;border:1px solid #e0b57a;border-radius:6px;background:#fdf6ec}
+  #panneauValidation .val-crit-tete{font-weight:600;color:#8a5a1a;font-size:12px}
+  #panneauValidation .val-avapr{margin:3px 0;font-size:13px}
+  #panneauValidation .val-avapr .av{color:#9a2a2a;text-decoration:line-through}
+  #panneauValidation .val-avapr .apr{color:#2e5440;font-weight:600}
+  #panneauValidation .val-crit-act{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}
+  [data-theme="dark"] #panneauValidation .val-crit{background:#3a2b18;border-color:#6a4a24}
+  /* §14.6 — panneau de consentement cloud. */
+  #panneauConsentement{padding:10px 12px;background:#fdf6ec;border-bottom:1px solid #e0b57a;font-size:13px;line-height:1.5}
+  #panneauConsentement .cons-act{display:flex;gap:8px;margin-top:8px}
+  [data-theme="dark"] #panneauConsentement{background:#3a2b18;border-color:#6a4a24}
+  .navflip{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:34px;height:46px;
+    border:1px solid var(--bord);background:rgba(255,253,248,.9);color:var(--vert);border-radius:8px;
+    font-size:22px;line-height:1;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.12)}
+  .navflip:hover{background:#fff}
+  .navflip-g{left:8px}
+  .navflip-d{right:8px}
+  /* La teinte de rôle passe par des VARIABLES, jamais par une règle plus spécifique : ainsi les
+     états (survol, ligne active, ligne pointée) la recouvrent naturellement, sans surenchère de
+     sélecteurs. Sans couleurs, les valeurs de repli redonnent l'aspect d'origine. */
+  .box{position:absolute;background:var(--voile,transparent);border:1px solid var(--voile-bord,rgba(90,114,96,.35));border-radius:2px;cursor:pointer}
+  .box:hover{background:rgba(90,114,96,.12)}
+  .box.actif{background:var(--surlig);border-color:var(--ambre)}
+  /* Réglages du volet gauche : un intitulé au-dessus, un contrôle pleine largeur — même forme pour
+     tous, pour qu'on lise la question avant la réponse. */
+  .vpanel-corps .reglage{display:flex;flex-direction:column;gap:3px;align-items:stretch;width:100%;margin-bottom:9px;font-size:11px;color:var(--second)}
+  .vpanel-corps .reglage select{width:100%}
+  .vpanel-corps label.reglage:has(input[type=checkbox]){flex-direction:row;align-items:center;gap:6px}
+  /* Ligne pointée depuis l'onglet Contrôle : visible sur le fac-similé, pas seulement dans le texte. */
+  .box.cible{background:rgba(201,151,31,.28);border:2px solid var(--ambre,#c9971f);box-shadow:0 0 0 2px rgba(201,151,31,.35)}
+  /* ── Mode COULEUR : chaque rôle a sa teinte, dans le texte ET sur le fac-similé, pour vérifier
+     les classements d'un coup d'œil au lieu de lire ligne à ligne.
+     ⚠️ Les TEINTES ne sont pas écrites ici : elles sont engendrées depuis la table `COULEURS_ROLES`
+     (une seule source pour le texte, le fac-similé et la légende). Deux listes parallèles avaient
+     déjà divergé — `vers` colorié ici mais absent de la table, `corps` colorié dans le texte mais
+     sans règle sur l'image. Ne pas réécrire de `background` de rôle dans ce bloc.
+     Ici ne restent que les marques NON colorées, qui disent autre chose que la nature de la ligne. */
+  .roles .lg[data-role="numero_page"] input,.roles .lg[data-role="signature"] input,
+  .roles .lg[data-role="reclame"] input{font-style:italic}
+  .roles .lg[data-role="ornement"] input,.roles .lg[data-role="bruit"] input{text-decoration:line-through}
+  .roles .lg[data-role="bruit"] input{opacity:.7}
+  /* Suggestion NON confirmée : même teinte, mais en pointillé — on distingue proposé et décidé.
+     Vaut des DEUX côtés : la boîte du fac-similé porte le même signal que la ligne de texte. */
+  .roles .lg[data-suggere="1"] input,.roles .box[data-suggere="1"]{border-style:dashed}
+  /* Bouton d'en-tête : son état se voit, pour qu'on sache toujours si les couleurs sont mises. */
+  #btnRoles.actif{background:var(--vert,#3d6b4f);color:#fff;border-color:var(--vert,#3d6b4f)}
+  #legendeRoles{display:none;flex-wrap:wrap;gap:5px 12px;align-items:center;font-size:11px;color:var(--second);padding:4px 0}
+  .roles-on #legendeRoles{display:flex}
+  #legendeRoles i{display:inline-block;width:11px;height:11px;border-radius:2px;border:1px solid;margin-right:4px;vertical-align:-1px}
+  .onglets{display:flex;gap:6px;margin-bottom:10px}
+  .onglets button{padding:4px 10px;border-radius:999px;font-size:12px}
+  .onglets button.actif{background:var(--vert);color:#fff;border-color:var(--vert)}
+  .lignes{display:flex;flex-direction:column;gap:1px;font-family:"Cascadia Code",Consolas,monospace}
+  .lg{display:grid;grid-template-columns:2.1rem 1fr auto auto auto auto;gap:6px;align-items:center;padding:1px 5px;border-radius:6px;transition:background .12s}
+  .lg:hover{background:rgba(154,90,42,.055)}
+  .lg .num{font-size:10px;color:#b0a488;text-align:right}
+  .lg input{width:100%;font-family:inherit;font-size:13px;line-height:1.5;border:1px solid var(--tinte-bord,transparent);border-radius:5px;background:var(--tinte,#fff);padding:4px 7px;transition:border-color .12s,background .12s}
+  .lg input:focus{border-color:var(--ambre);outline:none;background:var(--surface)}
+  .lg.actif input{background:#fbf4ea}
+  .lg.doute input{border-left:2px solid var(--ambre)}
+  .lg.doute .num{color:var(--ambre);font-weight:700}
+  /* Titre de structure éditoriale (Livre, Prose, Mètre…) → alimente ref_niv1..5. */
+  .lg select.niv{font-size:10px;color:var(--second);border:1px solid transparent;border-radius:4px;background:transparent;align-self:center;padding:2px 3px;opacity:.5;transition:opacity .12s,border-color .12s,background .12s}
+  .lg:hover select.niv,.lg select.niv:focus{opacity:1;border-color:var(--bord);background:var(--surface)}
+  /* Titre, hors-corps, en-tête : ces trois-là disent la NATURE de la ligne, comme le rôle. Leur fond
+     passe donc par `--tinte`, que la teinte de rôle recouvre en mode couleur (un titre de page de
+     titre doit rester bleu, une note confirmée rester brune). Les états — ligne pointée, active,
+     validée, ajoutée, incertaine — posent au contraire un `background` franc, qui prime toujours. */
+  .lg.titre{--tinte:#fdf9f0}
+  .lg.titre input{border-left:3px solid var(--ambre);font-weight:700;color:#5a4a2a}
+  /* Lecture incertaine : exclue du banc / ground-truth tant qu'elle n'est pas tranchée. */
+  .lg .inc{font-size:11px;line-height:1;border:1px solid transparent;border-radius:4px;background:transparent;color:#c8b8a0;align-self:center;cursor:pointer;padding:2px 5px;opacity:.5;transition:opacity .12s,border-color .12s,background .12s}
+  .lg:hover .inc{opacity:1}
+  .lg .inc:hover{border-color:var(--bord);background:var(--surface)}
+  .lg .inc.on{opacity:1;background:#fbeee0;color:#b26a1a;border-color:#e0b57a}
+  .lg.incertain input{border-left:2px dashed #c8862a;background:#fdf6ec}
+  /* Ligne validée humainement (bonne pour le banc / l'entraînement). */
+  .lg.valide .num{color:var(--vert);font-weight:700}
+  .lg.valide input{background:#f3f8f3}
+  /* Ligne AJOUTÉE à la main (texte que l'OCR n'a pas capté) : sans image, hors entraînement. */
+  .lg.ajout input{border-left:3px solid var(--vert);background:#f4f9f4}
+  .lg .inc.sup{color:#b5482a;opacity:1}
+  .lg .inc.sup:hover{border-color:#e0a890;background:#fbeee8}
+  .ajout-barre{display:flex;justify-content:flex-end;padding:1px 5px 5px}
+  .ajout-barre button{font-size:11px;opacity:.6;transition:opacity .12s}
+  .ajout-barre:hover button,.ajout-barre button:focus{opacity:1}
+  /* Suggestion de structure (§ GPT) : rôle proposé, à confirmer. Pastille lisible. */
+  .lg .sugg{font-size:9px;line-height:1.25;border:1px solid var(--bord);border-radius:999px;background:var(--surface);color:var(--second);align-self:center;cursor:pointer;padding:2px 8px;white-space:nowrap;max-width:12rem;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em}
+  .lg .sugg:hover{border-color:var(--second)}
+  .lg .sugg.ok{background:var(--vertf);color:var(--vert);border-color:var(--vert);font-weight:700}
+  select.sugg.lettr,.lg .sugg.lettr{background:#fbeee0;color:#b26a1a;border-color:#e0b57a}
+  /* Ligne hors-corps CONFIRMÉE : exclue du corps éditorial (jamais de la source). */
+  .lg.horscorps,.lg.entete{--tinte:#f3efe6}
+  .lg.horscorps input{opacity:.5;text-decoration:line-through}
+  /* Titre courant / n° de page détecté : exclu de l'export, signalé ici. */
+  .lg.entete input{color:var(--second);font-style:italic;text-decoration:line-through;opacity:.65}
+  .lg .tagtc{font-size:9px;color:var(--second);align-self:center;white-space:nowrap;padding:1px 5px;border:1px solid transparent;border-radius:4px;background:transparent;cursor:pointer}
+  .lg:hover .tagtc{border-color:var(--bord)}
+  .lg .tagtc:hover{background:var(--surface);color:var(--vert)}
+  .paire{display:grid;grid-template-columns:2.4rem 1fr 1fr;gap:8px;align-items:start;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--bord)}
+  .paire .pnum{font-size:11px;color:var(--ambre);font-weight:700;text-align:right;padding-top:6px}
+  .paire textarea{width:100%;min-height:3.4em;border:1px solid var(--bord);border-radius:5px;padding:6px;font:inherit;font-size:13px;background:#fff;resize:vertical;box-sizing:border-box}
+  .paire .pla{font-style:italic;color:#3a4a3f;background:#fbfaf4}
+  .bihead{font-size:12px;color:var(--second);margin-bottom:10px}
+  .vide{color:var(--second);font-style:italic;padding:20px}
+  .barre2{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:9px 20px;border-bottom:1px solid var(--bord);background:var(--surface)}
+  #drop{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;
+    background:rgba(90,114,96,.14);border:3px dashed var(--vert);color:var(--vert);
+    font-family:Georgia,serif;font-size:22px;pointer-events:none}
+  /* Voile de chargement : fige l'écran pendant l'analyse (capte les clics). */
+  #chargement{position:fixed;inset:0;z-index:10000;display:none;flex-direction:column;
+    align-items:center;justify-content:center;gap:14px;background:rgba(247,243,234,.72)}
+  .spin{width:44px;height:44px;border:4px solid var(--bord);border-top-color:var(--vert);
+    border-radius:50%;animation:tourne .8s linear infinite}
+  @keyframes tourne{to{transform:rotate(360deg)}}
+  #chargeTexte{font-family:Georgia,serif;color:var(--second);font-size:15px}
+  #chargeStop{margin-top:16px;padding:7px 20px;border:1px solid var(--ambre);color:var(--ambre);background:var(--surface);border-radius:6px;cursor:pointer;font-weight:600}
+  #chargeStop:hover:not(:disabled){background:var(--ambre);color:#fff}
+  #chargeStop:disabled{opacity:.5;cursor:default}
+  .pchk{display:flex;gap:4px;align-items:center;font-size:12px;color:var(--second)}
+  #comparateur{position:fixed;inset:0;z-index:10001;display:none;background:rgba(43,38,32,.55);padding:24px;overflow:auto}
+  .comp-boite{max-width:1100px;margin:0 auto;background:var(--fond);border-radius:10px;padding:18px}
+  .comp-barre{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .comp-grille{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .comp-tete{font-size:12px;color:var(--second);margin-bottom:6px;font-weight:600}
+  .comp-texte{white-space:pre-wrap;font-family:"Cascadia Code",Consolas,monospace;font-size:12px;background:#fff;border:1px solid var(--bord);border-radius:6px;padding:10px;max-height:60vh;overflow:auto}
+  /* Bouton de bascule de thème */
+  #theme{border:1px solid var(--bord);background:var(--surface);color:var(--second);border-radius:6px;padding:4px 9px;cursor:pointer;font-size:14px;line-height:1;font-weight:400}
+
+  /* ── MODE SOMBRE ─────────────────────────────────────────────────────────── */
+  :root[data-theme="dark"]{
+    --fond:#1b1916;--surface:#232019;--encre:#e7e1d5;--second:#a89e8f;--bord:#3a352d;
+    --vert:#8fb89b;--vertf:rgba(143,184,155,.16);--ambre:#d68a4a;--surlig:rgba(214,138,74,.34)}
+  /* Champs, boutons discrets, listes, zones de texte : fond sombre, texte clair. */
+  [data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{background:#2a2620;color:var(--encre);border-color:var(--bord)}
+  [data-theme="dark"] button.discret,[data-theme="dark"] .meta-toggle,[data-theme="dark"] .comp-texte{background:#2a2620;color:var(--second)}
+  [data-theme="dark"] .lg select.niv,[data-theme="dark"] .lg .inc{background:transparent}
+  [data-theme="dark"] .lg:hover select.niv,[data-theme="dark"] .lg select.niv:focus,[data-theme="dark"] .lg .inc:hover{background:#2a2620}
+  [data-theme="dark"] .lg input{background:var(--tinte,#211e19);border-color:var(--tinte-bord,var(--bord));color:var(--encre)}
+  [data-theme="dark"] .lg .num{color:#8a8474}
+  /* Image du fac-similé : cadre sombre (le scan reste clair, c'est voulu). */
+  [data-theme="dark"] #voletImage{background:#12100d}
+  [data-theme="dark"] .navflip{background:rgba(35,32,25,.9)}
+  [data-theme="dark"] #chargement{background:rgba(18,16,13,.75)}
+  [data-theme="dark"] .onglets button.actif{color:#12100d}
+  /* Teintes d'état des lignes, en sombre. */
+  [data-theme="dark"] .lg.actif input{background:#332c1f}
+  [data-theme="dark"] .lg.titre{--tinte:#2c2517}
+  [data-theme="dark"] .lg.titre input{color:#e8c98a}
+  [data-theme="dark"] .lg.incertain input{background:#2e2716}
+  [data-theme="dark"] .lg.valide input{background:#1f2a1f}
+  [data-theme="dark"] .lg.horscorps,[data-theme="dark"] .lg.entete{--tinte:#262320}
+  [data-theme="dark"] .lg .inc.on,[data-theme="dark"] .lg .sugg.lettr{background:#3a2b18;color:#e0a860;border-color:#6a4a24}
+  [data-theme="dark"] .lg .sugg.ok{background:var(--vertf);color:var(--vert);border-color:var(--vert)}
+  [data-theme="dark"] .paire .pla{background:#20221d}
+</style>
+</head>
+<body>
+<header>
+  <img class="logo" src="/logo-vert-marque.png?v=20260808" alt="La Gueule" />
+  <h1>La Gueule · atelier de relecture</h1>
+  <label>Nature
+    <select id="kind">
+      <option value="imprime">imprimé (PDF)</option>
+      <option value="manuscrit">manuscrit (image → Kraken)</option>
+    </select>
+  </label>
+  <label>Chemin <input id="chemin" placeholder="D:\\OneDrive\\Bureau\\mon_document.pdf  (ou une image .png)" /></label>
+  <button class="discret" id="btnParcourir">Parcourir…</button>
+  <input type="file" id="fichierLocal" accept=".pdf,.png,.jpg,.jpeg,.tif,.tiff" style="display:none">
+  <button class="discret" id="btnAnalyser">Analyser</button>
+  <span class="sep"></span>
+  <button id="theme" title="Basculer clair / sombre">🌙</button>
+  <button class="discret" id="btnRoles" aria-pressed="false" title="Colorer les lignes selon leur rôle — corps, note en marge, titre, hors-corps — dans le texte et sur le fac-similé. Se met et s'enlève à tout moment (Ctrl+Maj+C).">🎨 Rôles</button>
+  <button class="discret" id="btnSaveHeader" title="Enregistrer le projet (Ctrl+S)">💾 Enregistrer</button>
+  <span id="etatSaveHeader" style="font-size:12px;color:var(--second)"></span>
+  <a href="/index.html" style="font-size:12px;color:var(--second)">panneau ⚙</a>
+  <span id="etat">—</span>
+</header>
+
+<!-- Pipeline 5 étapes (consignes 2026-08-09) — Phase A : représentation de l'état du parcours. -->
+<div id="barreEtapes" title="Parcours : Diagnostic IA → OCR local → Contrôle IA → Validation ciblée → Génération locale"></div>
+<div id="panneauValidation" style="display:none"></div>
+<div id="panneauConsentement" style="display:none"></div>
+
+<div class="barre2" id="diag" style="display:none;color:var(--ambre)"></div>
+
+<div class="barre2">
+  <span id="grpPage" style="display:none">
+    <button class="discret" id="prec">‹ page</button>
+    <input type="number" id="page" min="1" value="1" />
+    <span id="total"></span>
+    <button class="discret" id="suiv">page ›</button>
+  </span>
+  <label id="lblTypo" class="reglage" title="Choisit le MOTEUR de reconnaissance. « Ancienne » emploie Kraken CATMuS-Print, seul capable de lire le s long (ſ) des imprimés d'Ancien Régime ; Tesseract le confond avec un f.">Typographie
+    <select id="typo">
+      <option value="moderne">moderne — Tesseract</option>
+      <option value="ancien">ancienne, ſ long — Kraken</option>
+    </select>
+  </label>
+  <label id="lblLangOcr" class="reglage" title="Langue du texte à reconnaître. N'agit que sur Tesseract : Kraken lit d'après son modèle, sans réglage de langue.">Langue du texte
+    <select id="langOcr">
+      <option value="fra">français</option>
+      <option value="lat">latin</option>
+      <option value="fra+lat">français + latin</option>
+    </select>
+  </label>
+  <label id="lblBilingue" class="reglage" title="Édition dont l'original et la traduction se font face, une langue par page."><input type="checkbox" id="bilingue"> Pages en regard</label>
+  <label id="lblOffset" class="reglage" style="display:none" title="De quel côté se trouve la page en langue originale.">Original
+    <select id="offset"><option value="-1">page précédente</option><option value="1">page suivante</option></select>
+  </label>
+  <button id="ocrPage">OCR cette page</button>
+  <span style="width:16px"></span>
+  <label>Document de <input type="number" id="de" min="1" value="1" /> à <input type="number" id="a" min="1" value="1" /></label>
+  <button id="ocrDoc">OCR document</button>
+  <button id="ocrTout" title="Océrise TOUTES les pages du document, de la première à la dernière, sans avoir à saisir la plage. Reprend là où l'on s'est arrêté (les pages déjà faites sont sautées) ; « arrêter » interrompt proprement.">Tout océriser</button>
+  <button class="discret" id="btnControleIA" title="Relit par IA CHAQUE page déjà océrisée (une passe par page) et propose des corrections des erreurs de l'OCR — même celles où Kraken est sûr de lui (ſ long, accents, ligatures). Couche candidate : rien n'est validé sans toi.">Contrôler l'OCR (IA)</button>
+</div>
+
+<div class="barre2" id="progression" style="display:none;gap:14px;align-items:center">
+  <div style="flex:0 0 220px;height:10px;background:var(--fond);border:1px solid var(--bord);border-radius:6px;overflow:hidden">
+    <div id="barreProgFill" style="height:100%;width:0;background:var(--vert);transition:width .25s"></div>
+  </div>
+  <span id="progTexte" style="font-size:12px;color:var(--second)"></span>
+  <span id="progErreurs" style="font-size:12px;color:var(--ambre)"></span>
+  <button class="discret" id="btnRelancerErr" style="display:none">Relancer les pages en erreur</button>
+</div>
+
+<div class="barre2" id="barrePre" style="gap:10px;flex-wrap:wrap;display:none">
+  <span style="font-size:12px;color:var(--second);font-weight:600" title="OFF par défaut. À valider par comparaison : un prétraitement n'est utile que s'il améliore l'OCR.">Prétraitement (exp.)</span>
+  <label class="pchk"><input type="checkbox" id="p_gris"> gris</label>
+  <label class="pchk"><input type="checkbox" id="p_contraste"> contraste</label>
+  <label class="pchk"><input type="checkbox" id="p_deskew"> redresser</label>
+  <label class="pchk"><input type="checkbox" id="p_binariser"> binariser</label>
+  <label class="pchk"><input type="checkbox" id="p_debruiter"> débruiter</label>
+  <label class="pchk"><input type="checkbox" id="p_rogner"> rogner marges</label>
+  <label class="pchk">demi-page <select id="p_demi"><option value="">—</option><option value="gauche">gauche</option><option value="droite">droite</option></select></label>
+  <button class="discret" id="btnComparer">Comparer cette page</button>
+  <label class="pchk" title="Si coché, l'OCR utilise le prétraitement choisi"><input type="checkbox" id="p_utiliser"> utiliser pour l'OCR</label>
+</div>
+
+<div id="comparateur">
+  <div class="comp-boite">
+    <div class="comp-barre">
+      <b style="font-family:Georgia,serif">Comparaison — original ↔ prétraité</b>
+      <span id="compHint" style="font-size:12px;color:var(--second)"></span>
+      <span style="flex:1"></span>
+      <button class="discret" id="compFermer">Fermer</button>
+    </div>
+    <div class="comp-grille">
+      <div><div class="comp-tete" id="compTeteA"></div><div class="comp-texte" id="compTexteA"></div></div>
+      <div><div class="comp-tete" id="compTeteB"></div><div class="comp-texte" id="compTexteB"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="barre2" id="barreExport">
+  <label>Projet <input id="projet" placeholder="cyprien-de-lapsis" style="width:170px" /></label>
+  <button class="discret" id="btnSave">Enregistrer</button>
+  <span id="etatSave" style="font-size:12px;color:var(--second)"></span>
+  <label>Charger <select id="listeProjets"><option value="">—</option></select></label>
+  <span style="width:14px"></span>
+  <label>id_oeuvre <input id="idoeuvre" placeholder="A0091O0001" style="width:110px" /></label>
+  <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="chkNotes" checked> recenser les notes [[N]]</label>
+  <button id="btnExport">Exporter (DOCX + SQL + JSON + TXT + MD)</button>
+  <span id="etatExport" style="font-size:12px;color:var(--second)"></span>
+</div>
+
+<div class="barre2" id="legendeRoles"></div>
+
+<div class="barre2" id="barreAvance" style="display:none">
+  <button class="discret" id="btnExportXml" title="Exporte chaque page océrisée aux formats d'échange ALTO v4 + PAGE XML (coordonnées + texte + image), pour eScriptorium / Transkribus / Aletheia">ALTO / PAGE</button>
+  <button class="discret" id="btnValider" title="Validation HUMAINE de la page : marque valide_humain (par page et par ligne, hors lignes incertaines). Re-cliquer retire la validation.">✓ Valider (humain)</button>
+  <span id="nbValidees" style="font-size:12px;color:var(--second)"></span>
+  <button class="discret" id="btnExportEntr" title="Exporte les corrections des pages validées en jeu d'entraînement Kraken (ALTO + images + JSONL)">Export entraînement</button>
+  <button class="discret" id="btnExportBanc" title="Constitue le banc d'essai (évaluation seulement) : images + ALTO corrigé + manifeste + SHA-256. Exige valide_humain.">Exporter le banc</button>
+  <button class="discret" id="btnExportComparaison" title="Extrait un rapport de CONTRÔLE pour GPT : OCR IA (dip, après contrôle) vs OCR mécanique (ocr0), ligne à ligne. Repère les « ſ » ajoutés par l'IA. → exports/<nom>.comparaison-ocr.md + .json">Comparer OCR (IA vs méca)</button>
+  <button class="discret" id="btnExportTriage" title="Rapport de CONTRÔLE après triage : ce qu'il reste à vérifier humainement, du plus difficile au plus simple ; les décisions automatiques restent consultables, repliées. → exports/<nom>.controle-triage.md + .json">Rapport de contrôle</button>
+  <label class="pchk" title="Déplie toutes les décisions automatiques dans le rapport, au lieu de les replier."><input type="checkbox" id="triageAudit"> mode audit</label>
+  <button class="discret" id="btnAnalyseStruct" title="Analyse la structure éditoriale (lettrines, titres courants, signatures, poésie, niveaux de titre) → SUGGESTIONS par ligne, à confirmer. Ne modifie rien.">Analyser la structure</button>
+</div>
+
+<main id="main">
+  <div class="volet-meta" id="voletMeta">
+    <div class="meta-tete">
+      <div class="vtabs" id="vtabs">
+        <button data-t="meta" class="actif">Métadonnées</button>
+        <button data-t="pre">Prétraitement</button>
+        <button data-t="ocr">Réglage OCR</button>
+        <button data-t="ctrl">Contrôle <span id="badgeCtrl" class="badge-ctrl" style="display:none">0</span></button>
+        <button data-t="exp">Export</button>
+      </div>
+    </div>
+
+    <div class="vpanel" id="panelMeta">
+      <div class="vpanel-actions">
+        <button class="discret" id="btnMeta" title="Extraire les métadonnées de la page de titre (parseur hors-ligne)">Extraire</button>
+        <button class="discret" id="btnMetaIA" title="Lire la page de titre par l'IA (Opus, sur l'abonnement) et enrichir depuis le catalogue">Convoquer l'IA</button>
+      </div>
+      <div class="meta-corps" id="metaCorps">
+        <label>Auteur <input id="m_auteur" placeholder="Saint Basile le Grand"></label>
+        <label>Titre <input id="m_titre"></label>
+        <label>Sous-titre <input id="m_sous_titre"></label>
+        <label>Titre original <input id="m_titre_original"></label>
+        <label>Langue originale <input id="m_langue_originale" placeholder="latin / grec"></label>
+        <label>Langue de traduction <input id="m_langue_trad" placeholder="français"></label>
+        <label>Traducteur <input id="m_trad_auteur"></label>
+        <label>Éditeur <input id="m_editeur"></label>
+        <label>Collection <input id="m_collection"></label>
+        <label>Ville <input id="m_ville"></label>
+        <label>Date de publication <input id="m_date_publication" placeholder="1858"></label>
+        <label>Date de composition <input id="m_date_composition" placeholder="ive s."></label>
+        <label>Genre <input id="m_genre"></label>
+        <div id="etatMeta" class="meta-etat"></div>
+        <details id="metaDiag" class="meta-diag" style="display:none"><summary>détails de la lecture IA</summary><div id="metaDiagCorps"></div></details>
+      </div>
+    </div>
+    <div class="vpanel" id="panelPre" style="display:none"><div id="panelPreCorps" class="vpanel-corps"></div></div>
+    <div class="vpanel" id="panelOcr" style="display:none"><div id="panelOcrCorps" class="vpanel-corps"></div></div>
+    <div class="vpanel" id="panelControle" style="display:none"><div id="panelControleCorps" class="vpanel-corps"></div></div>
+    <div class="vpanel" id="panelExport" style="display:none"><div id="panelExportCorps" class="vpanel-corps"></div></div>
+  </div>
+  <div class="volet" id="voletImage">
+    <div id="imgHolder"><div class="vide">Indique un chemin, puis « OCR cette page ».</div></div>
+    <button class="navflip navflip-g" id="navPrec" title="Page précédente">‹</button>
+    <button class="navflip navflip-d" id="navSuiv" title="Page suivante">›</button>
+  </div>
+  <div class="volet" id="voletTexte">
+    <div class="onglets" id="onglets" style="display:none">
+      <button data-c="dip" class="actif">diplomatique</button>
+      <button data-c="dev">développée</button>
+      <button data-c="mod">modernisée</button>
+    </div>
+    <div class="lignes" id="lignes"><div class="vide">Le texte reconnu apparaîtra ici, ligne à ligne, en regard de l'image.</div></div>
+  </div>
+</main>
+
+<div id="drop">Déposez le PDF ou l'image ici…</div>
+<div id="chargement"><div class="spin"></div><div id="chargeTexte">Analyse…</div><button id="chargeStop">Arrêter</button></div>
+
+<script>
+const $=id=>document.getElementById(id)
+const api=async(u,o)=>{const r=await fetch(u,o);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.erreur||r.statusText);return j}
+// Thème clair/sombre : préférence enregistrée, sinon celle du système.
+function appliquerTheme(t){ document.documentElement.setAttribute('data-theme',t); const b=$('theme'); if(b) b.textContent = t==='dark'?'☀️':'🌙' }
+(function(){ const stored=localStorage.getItem('lg-theme')
+  const dark = stored ? stored==='dark' : (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches)
+  appliquerTheme(dark?'dark':'light') })()
+window.addEventListener('DOMContentLoaded',()=>{ const b=$('theme'); if(!b) return
+  appliquerTheme(document.documentElement.getAttribute('data-theme')||'light')
+  b.onclick=()=>{ const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'; localStorage.setItem('lg-theme',t); appliquerTheme(t) } })
+const etat=t=>$('etat').textContent=t
+
+// Modèle en mémoire : pages[n] = { pngUrl, largeur, hauteur, lignes:[{bbox,dip,dev,mod}] }
+const S={ kind:'imprime', pages:{}, page:1, total:null, couche:'dip', arret:false, journal:[], garde:null, workflow:null, perimetre:{pages:[]}, chemin:null }
+
+// ── Pipeline 5 étapes (Phase A) : barre visuelle persistante de l'état du parcours ──
+const ETAPES_UI=[['diagnostic_ia','1','Diagnostic IA'],['ocr_local','2','OCR local'],['controle_ia','3','Contrôle IA'],['validation_ciblee','4','Validation ciblée'],['generation_locale','5','Génération locale']]
+const LIB_ETAT={non_commence:'non commencé',pret:'prêt',en_cours:'en cours',termine:'terminé',a_verifier:'à vérifier',bloque:'bloqué',erreur:'erreur',perime:'périmé'}
+function classeEtatEtape(et){ return (et==='termine'||et==='a_verifier') ? 'fait' : (et==='erreur'||et==='bloque') ? 'souci' : (et==='en_cours') ? 'encours' : 'afaire' }
+function rendreBarreEtapes(){ const bar=$('barreEtapes'); if(!bar)return; const wf=S.workflow; bar.innerHTML=''
+  for(const [cle,num,lib] of ETAPES_UI){ const et=(wf&&wf.etapes&&wf.etapes[cle]&&wf.etapes[cle].etat)||'non_commence'
+    const d=document.createElement('div'); d.className='etape '+classeEtatEtape(et)+(wf&&wf.etape_active===cle?' active':'')
+    const n=document.createElement('span'); n.className='num'; n.textContent=num
+    const l=document.createElement('span'); l.className='lib'; l.textContent=lib
+    const b=document.createElement('span'); b.className='badge'; let libEt=LIB_ETAT[et]||et
+    if(cle==='ocr_local'&&wf&&wf.etapes.ocr_local&&wf.etapes.ocr_local.resume){ const rz=wf.etapes.ocr_local.resume
+      if(rz.manquantes>0) libEt+=' · lot '+rz.faites+'/'+rz.total+' ('+rz.manquantes+' à faire)'
+      else if(rz.total) libEt+=' · lot '+rz.faites+'/'+rz.total+(rz.erreurs?' · '+rz.erreurs+' err.':'')
+      if(rz.docTotal&&rz.docTotal!==rz.total) libEt+=' · doc '+(rz.docFaites||0)+'/'+rz.docTotal }
+    b.textContent=libEt
+    d.appendChild(n); d.appendChild(l); d.appendChild(b)
+    if(cle==='diagnostic_ia'){ d.classList.add('clic'); d.title='Refaire le diagnostic (page de titre + typographie → profil de traitement)'; d.onclick=()=>{ if($('chemin').value.trim()) analyser() } }
+    if(cle==='controle_ia'){ d.classList.add('clic'); d.title='Lancer le contrôle déterministe (confiance, lignes vides, doublons, pages anormales)'; d.onclick=()=>lancerControle() }
+    if(cle==='validation_ciblee'){ d.classList.add('clic'); d.title='Validation ciblée : familles à échantillonner, cas critiques, blocages'; d.onclick=()=>lancerValidation() }
+    if(cle==='generation_locale'){ d.classList.add('clic'); d.title='Générer les livrables (JSON/DOCX/TXT/MD/SQL/ALTO/PAGE) + rapport de provenance'; d.onclick=()=>lancerGeneration() }
+    bar.appendChild(d) } }
+rendreBarreEtapes(); setTimeout(()=>{ try{ chargerEtatIA() }catch{} }, 0) // §14.6 : état du fournisseur au démarrage
+
+// Phase B — met à jour une étape du workflow côté client (miroir de workflow.mjs).
+function majEtapeClient(cle, patch, active){ if(!S.workflow) S.workflow={version_schema:1, etape_active:'diagnostic_ia', etapes:{}}
+  for(const [c] of ETAPES_UI) if(!S.workflow.etapes[c]) S.workflow.etapes[c]={etat:'non_commence'}
+  Object.assign(S.workflow.etapes[cle], patch||{}); if(active) S.workflow.etape_active=active; rendreBarreEtapes() }
+
+// Profil de traitement proposé par le diagnostic (l'IA propose, n'impose pas ; prétraitement inactif).
+function construireProfilClient(meta, typo, nbPages){ const anc=!!(typo&&typo.ancien)
+  const lg=meta&&meta.langue_trad?[String(meta.langue_trad).toLowerCase().slice(0,2)]:[]
+  return { document:{ type:anc?'imprime_ancien':'imprime_moderne', langues:lg, periode_probable:null, qualite_scan:'inconnue' },
+    regimes:[{ pages_pdf:[1, nbPages||1], nature:'corps', moteur:anc?'kraken':'tesseract', modele:anc?'CATMuS-Print':null, colonnes:1 }],
+    pretraitement:{ actif:false, tests_recommandes:[] },
+    phenomenes:{ lettrines:true, poesie:true, notes:false, titres_courants:true, reclames:true, marques_cahier:true },
+    controles_requis:[] } }
+
+async function finaliserDiagnostic({ nbPages, meta, typographie, manuscrit }){
+  const profil = manuscrit
+    ? { document:{type:'manuscrit',langues:[],periode_probable:null,qualite_scan:'inconnue'}, regimes:[{pages_pdf:[1,1],nature:'corps',moteur:'kraken',modele:'CATMuS Medieval',colonnes:1}], pretraitement:{actif:false,tests_recommandes:[]}, phenomenes:{}, controles_requis:[] }
+    : construireProfilClient(meta, typographie, nbPages)
+  S.profil=profil
+  const nom=$('projet').value.trim(); if(nom){ try{ await api('/api/ia/profil/save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom, profil})}) }catch{} }
+  majEtapeClient('diagnostic_ia',{etat:'termine'}); majEtapeClient('ocr_local',{etat:'pret'},'ocr_local'); planifierSave() }
+
+// Phase C — régime (moteur/modèle) de la page selon le profil, sinon null (→ sélecteur Typo).
+function regimePourPageClient(n){ if(!S.profil||!Array.isArray(S.profil.regimes))return null
+  for(const r of S.profil.regimes){ const a=r.pages_pdf&&r.pages_pdf[0], b=r.pages_pdf&&r.pages_pdf[1]
+    if(a!=null&&b!=null&&n>=a&&n<=b) return {moteur:r.moteur||'kraken',modele:r.modele||null,nature:r.nature||'corps'} }
+  return null }
+function pageAnormaleClient(lignes){ const arr=Array.isArray(lignes)?lignes:[]; const nb=arr.reduce((s,l)=>s+String((l&&(l.dip||l.texte))||'').trim().length,0)
+  if(arr.length<1) return 'page vide'; if(nb<8) return 'page anormalement courte ('+nb+' car.)'; return null }
+// ── Phase 2 — PÉRIMÈTRE DE TRAVAIL (plan 2026-08-09) ─────────────────────────────────────────────
+// La complétude de l'OCR se mesure sur le LOT que l'utilisateur a choisi de traiter, PAS sur les 589
+// pages du PDF. Le périmètre = les pages engagées (plage « OCR document » + pages « OCR cette page »).
+function perimetreAjouter(pages){ if(!S.perimetre) S.perimetre={pages:[]}
+  const set=new Set((S.perimetre.pages||[]).map(Number))
+  for(const n of (pages||[])) if(Number.isFinite(Number(n))&&Number(n)>=1) set.add(Number(n))
+  S.perimetre.pages=[...set].sort((a,b)=>a-b) }
+function rangeInclus(de,a){ const l=[],lo=Math.min(de,a),hi=Math.max(de,a); for(let n=lo;n<=hi;n++) l.push(n); return l }
+const pageFaite=n=>Array.isArray(S.pages[n]?.lignes)&&S.pages[n].lignes.length>0
+// Le LOT = périmètre explicite ∪ pages réellement engagées (océrisées ou en erreur). Ainsi les vieux
+// projets sans périmètre explicite ne restent pas « en cours » sur 589 pages.
+function lotPages(){ const P=new Set((S.perimetre&&Array.isArray(S.perimetre.pages)?S.perimetre.pages:[]).map(Number))
+  for(const k of Object.keys(S.pages)){ const n=Number(k); if(pageFaite(n)||S.pages[k]?.etat==='erreur') P.add(n) }
+  return [...P].filter(Number.isFinite).sort((a,b)=>a-b) }
+
+// OCR d'une page → avance le workflow. « OCR local » est TERMINÉ quand toutes les pages DU LOT sont
+// océrisées, en erreur, ou exclues (tri) ; sinon « en cours » + nombre restant. L'état du DOCUMENT
+// (X/total pages du PDF) est affiché à part et ne bloque jamais le lot (plan Phase 2, 2026-08-09).
+// `perimer` : au terme d'un OCR on périme l'aval (contrôle/validation/génération devenus caducs) ; au
+// simple RECHARGEMENT d'un projet on rafraîchit juste l'état OCR sans rien périmer (rien n'a changé).
+function apresOcrWorkflow(perimer=true){
+  const lot=lotPages()
+  const faites=lot.filter(pageFaite).length
+  const erreurs=lot.filter(n=>S.pages[n]?.etat==='erreur').length
+  const exclues=lot.filter(n=>estExclueOcr(n)&&!pageFaite(n)&&S.pages[n]?.etat!=='erreur').length
+  const manquantes=Math.max(0, lot.length - faites - erreurs - exclues)
+  const docFaites=Object.keys(S.pages).filter(pageFaite).length
+  const docTotal=S.total||(lot.length?Math.max(...lot):0)
+  majEtapeClient('ocr_local',{ etat: manquantes>0?'en_cours':'termine', resume:{ faites, total:lot.length, manquantes, erreurs, exclues, docFaites, docTotal } })
+  if(manquantes===0 && S.workflow&&S.workflow.etapes.controle_ia&&S.workflow.etapes.controle_ia.etat==='non_commence') S.workflow.etapes.controle_ia.etat='pret'
+  if(perimer) for(const e of ['validation_ciblee','generation_locale']){ const s=S.workflow&&S.workflow.etapes[e]; if(s&&s.etat!=='non_commence'&&s.etat!=='perime') s.etat='perime' }
+  rendreBarreEtapes() }
+
+// §14.6 — état du fournisseur IA (sans clé) et consentement.
+async function chargerEtatIA(){ try{ S.ia=await api('/api/ia/etat') }catch{ S.ia=null } }
+function consentementValideClient(){ const i=S.ia; return !!(i&&i.consentement&&i.consentement.actif&&i.fournisseur&&i.consentement.fournisseur===i.fournisseur.nom&&i.consentement.date) }
+function demanderConsentement(){ return new Promise((resolve)=>{ const p=$('panneauConsentement'); if(!p){ resolve(false); return }
+  const f=S.ia&&S.ia.fournisseur
+  p.style.display='block'; p.innerHTML=''
+  const txt=document.createElement('div'); txt.innerHTML=`<b>Contrôle IA (${f?f.nom:'?'})</b> — pour relire l'OCR, La Gueule enverrait au fournisseur <b>l'image des pages déjà océrisées</b> (une par une) avec leur texte OCR, afin d'en corriger les erreurs. <b>Jamais le livre entier d'un coup, ni aucun secret du dépôt</b> (clé, configuration). La sortie reste un <b>candidat</b>, jamais une validation ; tu peux désactiver à tout moment.`
+  p.appendChild(txt)
+  const act=document.createElement('div'); act.className='cons-act'
+  const oui=document.createElement('button'); oui.textContent='J\'accepte l\'envoi au cloud'
+  oui.onclick=async()=>{ try{ await api('/api/ia/consentement',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({actif:true})}) }catch{} await chargerEtatIA(); p.style.display='none'; resolve(true) }
+  const non=document.createElement('button'); non.className='discret'; non.textContent='Rester en local (mock)'
+  non.onclick=()=>{ p.style.display='none'; resolve(false) }
+  act.appendChild(oui); act.appendChild(non); p.appendChild(act) }) }
+
+// Phase D — contrôle : déterministe (toujours) + IA visuel si fournisseur cloud configuré ET consenti.
+async function lancerControle(){ if(!Object.keys(S.pages).length){ etat('rien à contrôler : océrise d\'abord'); return null }
+  await chargerEtatIA()
+  if(S.ia && S.ia.fournisseur && S.ia.fournisseur.cloud && S.ia.fournisseur.dispo && !consentementValideClient()){ await demanderConsentement() } // §14.6 : consentement avant tout envoi cloud
+  // Relecture PAGE PAR PAGE, pour pouvoir dire où l'on en est et depuis combien de temps (une seule
+  // requête pour tout le lot ne laissait qu'un voile muet pendant plusieurs minutes). La passe
+  // déterministe n'est demandée qu'au premier appel. « Arrêter » interrompt entre deux pages.
+  const pagesOcr=Object.keys(S.pages).filter(k=>Array.isArray(S.pages[k].lignes)&&S.pages[k].lignes.length).map(Number).sort((a,b)=>a-b)
+  const nb=pagesOcr.length
+  if(!nb){ etat('rien à contrôler : aucune page océrisée'); return null }
+  majEtapeClient('controle_ia',{etat:'en_cours'},'controle_ia')
+  const t0=Date.now(), S_arret_avant=S.arret; S.arret=false
+  const duree=()=>{ const s=Math.round((Date.now()-t0)/1000); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0') }
+  const projet=projetActuel()
+  chargeOn(`Relecture IA — page 1/${nb} · 00:00`)
+  try{
+    let r=null, faites=0
+    // Un appel de relecture est de l'ATTENTE : le modèle lit la page, la machine ne fait rien.
+    // On en mène donc PLUSIEURS de front. Le parallélisme reste modeste (3) pour ne pas saturer
+    // l'abonnement ni lancer trois CLI lourds à la fois ; c'est déjà ~3× moins d'attente.
+    const FRONT=3
+    // Les taux de triage ne se cumulent pas comme des compteurs : on additionne les EFFECTIFS, puis on
+    // recalcule les taux à la fin. Additionner deux pourcentages ne veut rien dire.
+    const CUMULS=['total_candidats','auto_accept','auto_keep_ocr0','human_review','risques_resolus_auto',
+      'structurels','caracteres_speciaux','references_nombres','lignes_faibles_confirmees',
+      'lignes_faibles_douteuses','appels_page','appels_crop','depuis_cache']
+    const fusionner=(rp)=>{
+      if(!r){ r=rp; r.triage=rp.triage||{}; r.lignes_confirmees=rp.lignes_confirmees||[]; return }
+      r.findings=[...(r.findings||[]),...(rp.findings||[])]
+      for(const cle of Object.keys(rp.compteurs||{})) r.compteurs[cle]=(r.compteurs[cle]||0)+(rp.compteurs[cle]||0)
+      for(const cle of CUMULS) if(rp.triage&&rp.triage[cle]!=null) r.triage[cle]=(r.triage[cle]||0)+rp.triage[cle]
+      r.lignes_confirmees=[...(r.lignes_confirmees||[]),...(rp.lignes_confirmees||[])]
+      if(rp.triage&&rp.triage.erreur&&!r.triage.erreur) r.triage.erreur=rp.triage.erreur
+      r.ia_active=r.ia_active||rp.ia_active; r.ia_erreur=r.ia_erreur||rp.ia_erreur
+    }
+    // Taux recalculés sur les effectifs cumulés — jamais une moyenne de pourcentages.
+    const recalculerTaux=()=>{ const t=r&&r.triage; if(!t)return; const n=t.total_candidats||0
+      t.human_review_rate = n?Math.round((t.human_review||0)/n*1000)/1000 : 0
+      t.automation_resolution_rate = n?Math.round(((t.auto_accept||0)+(t.auto_keep_ocr0||0))/n*1000)/1000 : 0 }
+    // La passe DÉTERMINISTE porte sur tout le projet : on la fait UNE fois, seule, avant de
+    // paralléliser — sinon trois pages simultanées la répéteraient trois fois.
+    const premier=await api('/api/ia/controle',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({projet,pages:[pagesOcr[0]],deterministe:true})})
+    fusionner(premier); faites=1; S.controle=r; await sauver(true)
+    for(let k=1;k<nb && !S.arret;k+=FRONT){
+      const paquet=pagesOcr.slice(k,k+FRONT)
+      chargeOn(`Relecture IA — page ${faites+1}-${Math.min(faites+paquet.length,nb)}/${nb} (p. ${paquet.join(', ')}) · ${duree()} écoulé`)
+      const rs=await Promise.all(paquet.map(p=>
+        api('/api/ia/controle',{method:'POST',headers:{'content-type':'application/json'},
+          body:JSON.stringify({projet,pages:[p],deterministe:false})}).catch(e=>({findings:[],compteurs:{},ia_erreur:String(e&&e.message||e)}))))
+      for(const rp of rs) fusionner(rp)
+      faites+=paquet.length
+      // Sauvegarde après chaque PAQUET : au pire trois pages reperdues, jamais la passe entière.
+      S.controle=r; await sauver(true)
+    }
+    if(S.arret) etat(`Contrôle interrompu à ${faites}/${nb} page(s) (${duree()}) — les pages déjà relues sont conservées.`)
+    if(!r) return null
+    recalculerTaux()
+    // §8 — les lignes de faible confiance que l'image a CONFIRMÉES n'ont plus rien à dire : leur
+    // signalement sort de la file. Elles restent comptées dans le rapport, jamais dans le travail.
+    if(r.lignes_confirmees&&r.lignes_confirmees.length){
+      const vues=new Set(r.lignes_confirmees.map(c=>c.page+':'+c.ligne))
+      r.findings=(r.findings||[]).filter(f=>f.regle!=='confiance_faible'||!vues.has(f.page+':'+(f.ligne_ids&&f.ligne_ids[0]))) }
+    S.controle=r; const c=r.compteurs||{}
+    r._duree=duree()
+    majEtapeClient('controle_ia',{etat:'a_verifier'})
+    if(S.workflow&&S.workflow.etapes.validation_ciblee&&S.workflow.etapes.validation_ciblee.etat==='non_commence') majEtapeClient('validation_ciblee',{etat:'pret'})
+    const noteIA = r.ia_active
+      ? ` · IA : ${c.pages_relues||0} page(s) relue(s), ${c.ia||0} correction(s) proposée(s)`+(r.ia_erreur?` (⚠ ${r.ia_erreur})`:'')
+      : ((S.ia&&S.ia.fournisseur&&S.ia.fournisseur.cloud)?' · IA cloud non consentie':' · IA locale (mock, abstention)')
+    etat(`Contrôle en ${r._duree} : ${c.pages||0} page(s) — confiance faible ${c.confiance_faible||0}, vides ${c.lignes_vides||0}, doublons ${c.doublons||0}, charabia ${c.charabia||0}${noteIA}.`)
+    return r
+  }catch(e){ majEtapeClient('controle_ia',{etat:'erreur'}); etat('contrôle : '+e.message); return null }
+  finally{ S.arret=S_arret_avant; chargeOff() } }
+
+// Bouton « Contrôler l'OCR (IA) » : relit les pages océrisées PUIS ouvre la validation des corrections
+// (les diffs avant→après s'affichent dans le panneau de validation, où tu acceptes / modifies / refuses).
+async function controlerOcrIA(){ const r=await lancerControle(); if(r){ await lancerValidation(); const b=document.querySelector('#vtabs button[data-t="ctrl"]'); if(b) b.click() } }
+
+// Phase E — validation CIBLÉE : familles + cas critiques + blocages (tu ne valides pas tout).
+async function lancerValidation(){ if(!S.controle||!S.controle.findings){ etat('lance d\'abord le contrôle (étape 3)'); return }
+  majEtapeClient('validation_ciblee',{etat:'en_cours'},'validation_ciblee'); chargeOn('Validation ciblée…')
+  try{ const r=await api('/api/ia/validation',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({findings:S.controle.findings})})
+    S.validation=r
+    // Phase 4.3 : appliquer AUTOMATIQUEMENT les corrections simples (peu de caractères changés) — aucun
+    // clic. Elles restent des candidats (réversibles) ; seuls les cas ambigus/structurels restent à valider.
+    if(Array.isArray(r.auto_texte)&&r.auto_texte.length){ let n=0; for(const f of r.auto_texte){ const x=appliquerFinding(f,false); if(x&&x.ok&&x.statut!=='deja_applique') n++ } if(n){ planifierSave(); rendre() } }
+    // Tout le contrôle se pilote depuis l'onglet « Contrôle » du volet GAUCHE — le grand bandeau du haut
+    // est masqué (la pleine page n'était pas pratique). On ouvre l'onglet et on y rend les propositions.
+    if($('panneauValidation')) $('panneauValidation').style.display='none'
+    rendreVoletControle(); majBadgeControle()
+    { const _bc=document.querySelector('#vtabs button[data-t="ctrl"]'); if(_bc&&!_bc.classList.contains('actif')) _bc.click() }
+    const bloque=r.blocages.length>0
+    majEtapeClient('validation_ciblee',{etat: bloque?'bloque':'a_verifier'})
+    if(!bloque && S.workflow&&S.workflow.etapes.generation_locale&&S.workflow.etapes.generation_locale.etat==='non_commence') majEtapeClient('generation_locale',{etat:'pret'})
+    etat(`Validation : ${r.compteurs.critiques} critique(s), ${r.compteurs.blocages} blocage(s), ${r.compteurs.familles} famille(s), ${r.compteurs.automatiques} auto — ${bloque?'export « complet » bloqué (provisoire possible avec avertissement)':'prêt pour la génération'}.`)
+  }catch(e){ majEtapeClient('validation_ciblee',{etat:'erreur'}); etat('validation : '+e.message) }
+  finally{ chargeOff() } }
+function rendrePanneauValidation(){ const p=$('panneauValidation'); if(!p)return; const v=S.validation; if(!v){ p.style.display='none'; return }
+  p.style.display='block'; p.innerHTML=''; const c=v.compteurs
+  const tete=document.createElement('div'); tete.className='val-tete'
+  const info=document.createElement('span'); info.innerHTML=`<b>Validation ciblée</b> — corrections ${c.corrections||0} · critiques ${c.critiques} · familles ${c.familles} · avertissements ${c.avertissements||0} · blocages ${c.blocages} · auto ${c.automatiques} · non résolus ${c.non_resolus}`
+  const fermer=document.createElement('button'); fermer.className='discret'; fermer.textContent='fermer'; fermer.onclick=()=>{ p.style.display='none' }
+  tete.appendChild(info); tete.appendChild(fermer); p.appendChild(tete)
+  // Phase 4 — CORRECTIONS INDIVIDUELLES : chaque changement de texte/rôle est un OBJET distinct, relu
+  // un à un (plus de fausse famille « relecture_page »). « Tout accepter » les applique comme objets.
+  if(v.corrections&&v.corrections.length){ const h=document.createElement('div'); h.className='val-tete'
+    const s=document.createElement('span'); s.innerHTML=`<b>Corrections proposées</b> — ${v.corrections.length} à relire (chacune individuelle)`
+    const tout=document.createElement('button'); tout.className='discret'; tout.textContent='Tout accepter'
+    tout.title='Applique CHAQUE correction dans la couche candidate (objets distincts ; les conflits sont signalés, jamais écrasés).'
+    tout.onclick=()=>accepterCorrections(v.corrections)
+    h.appendChild(s); h.appendChild(tout); p.appendChild(h)
+    for(const f of v.corrections) p.appendChild(rendreItemDecision(f)) }
+  // Cas CRITIQUES (R3) présentés individuellement — même rendu que les corrections.
+  for(const f of v.critiques) p.appendChild(rendreItemDecision(f))
+  // Familles de FLAGS répétitifs (confiance faible, doublon, page ignorable…) : échantillonnage.
+  for(const fam of v.familles){ const d=document.createElement('div'); d.className='val-fam'
+    const s=document.createElement('span'); s.textContent=`${fam.cle} — ${fam.nb} occurrence(s), risque ${fam.risque}`
+    const b=document.createElement('button'); b.className='discret'; b.textContent='Accepter la famille'
+    b.title='Applique la famille dans la couche candidate (statut accepté par échantillonnage ; PAS du ground-truth).'
+    b.onclick=()=>accepterFamille(fam.cle)
+    d.appendChild(s); d.appendChild(b); p.appendChild(d) }
+  // Phase 5 — avertissements (pages courtes / réserves) : informatifs, n'empêchent JAMAIS l'export.
+  if(v.avertissements&&v.avertissements.length){ const aw=document.createElement('div'); aw.className='val-fam'; aw.style.color='var(--second)'
+    const pages=[...new Set(v.avertissements.map(x=>x.page).filter(x=>x!=null))].sort((a,b)=>a-b)
+    aw.textContent='ⓘ '+v.avertissements.length+' avertissement(s) — pages courtes / réserves'+(pages.length?' (p. '+pages.slice(0,20).join(', ')+')':'')+' — n\'empêchent pas l\'export.'; p.appendChild(aw) }
+  if(v.blocages.length){ const bl=document.createElement('div'); bl.className='val-bloc'; bl.textContent='⛔ '+v.blocages.length+' blocage(s) — export « complet » impossible tant qu\'ils ne sont pas levés.'; p.appendChild(bl) } }
+// Rendu PARTAGÉ d'une décision individuelle (correction de texte OU reclassement de rôle) : en-tête,
+// avant → après, boutons Accepter / Modifier / Refuser / Indéterminé, et « voir » la région sur l'image.
+const ECH=(s)=>String(s??'').replace(/</g,'&lt;')
+// Vocabulaire d'AFFICHAGE des rôles, partagé par tout l'atelier. Le rôle interne reste celui de
+// structure.mjs ; ce qu'on montre est en français d'éditeur — « signature » se dit « marque de
+// cahier », et ne doit plus paraître autrement.
+const LIB_ROLE={corps:'corps',titre:'titre',vers:'vers',titre_courant:'titre courant',numero_page:'numéro de page',
+  signature:'marque de cahier',reclame:'réclame',ornement:'ornement',bruit:'bruit',note_marginale:'note en marge',
+  note_bas_page:'note de bas de page',paratexte_titre:'mention de page de titre',indetermine:'indéterminé',
+  continuation_typographique:'suite de vers'}
+const libRole=(r)=>LIB_ROLE[roleBase(r)]||String(r||'').replace(/_/g,' ')
+// L'analyse de structure émet des rôles PROVISOIRES suffixés (« lettrine_candidate »,
+// « reclame_candidate_geometrique »…). Pour la couleur et le libellé, seule la famille compte —
+// le suffixe dit l'état de la décision, pas la nature de la ligne.
+const ROLE_ALIAS={lettrine:'corps',artefact:'bruit',paratexte:'paratexte_titre',ornement:'ornement'}
+function roleBase(r){ const b=String(r||'').replace(/_candidate.*$/,''); return ROLE_ALIAS[b]||b||'corps' }
+function rendreItemDecision(f){ const d=document.createElement('div'); d.className='val-crit'
+  const estRe=f.type==='reclassement_role', estAnc=f.type==='ancrage_note', estOmi=f.type==='ligne_omise'
+  const estSci=f.type==='scission_marge'
+  const icone = estRe?'⤳ reclasser' : estAnc?'❡ rattacher la note' : estOmi?'＋ ligne omise'
+    : estSci?'⇥ séparer corps et marge' : '✎ '+(f.regle||f.id||'correction')
+  const t=document.createElement('div'); t.className='val-crit-tete'
+  t.textContent=`${icone} · ${f.niveau_risque} · page ${f.page??'?'}${(f.ligne_ids&&f.ligne_ids.length)?' l'+f.ligne_ids.join(','):''}`
+  d.appendChild(t)
+  const av=document.createElement('div'); av.className='val-avapr'
+  if(estRe) av.innerHTML=`rôle : <span class="av">${f.role_avant||'corps'}</span> → <span class="apr">${f.role_apres||'?'}</span> <span style="color:var(--second)">« ${ECH((f.texte_original||'').slice(0,48))} »</span>`
+  else if(estAnc){
+    // On montre CE QUI SE PASSE : la note, la ligne annotée, et où l'appel ira.
+    const pg=S.pages[f.page]||{}; const corps=(pg.lignes&&pg.lignes[f.corps_i])?String(pg.lignes[f.corps_i].dip||''):''
+    av.innerHTML=`note <span class="av">« ${ECH((f.texte_original||'').slice(0,44))} »</span><br>`
+      +`→ appel <b>[[${f.numero_note??'?'}]]</b> dans <span class="apr">« ${ECH(corps.slice(0,60))} »</span>`
+      +(f.apres?` <span style="color:var(--second)">après « ${ECH(f.apres)} »</span>`:'')
+      +`<br><span style="color:var(--second)">${f.regle==='appel_imprime'?'appel imprimé retrouvé dans le texte (mécanique)':'rattachement par lecture (à contrôler)'}</span>`
+  }
+  else if(estOmi) av.innerHTML=`ligne absente de l’OCR, visible sur l’image :<br><span class="apr">« ${ECH(f.texte_candidat||'')} »</span> <span style="color:var(--second)">(à insérer après la ligne ${f.apres_i})</span>`
+  else if(estSci){
+    // On montre les DEUX lignes qui vont naître : la note ne se tronque pas, elle se sépare entière.
+    const pg=S.pages[f.page]||{}; const orig=(pg.lignes&&pg.lignes[f.ligne_ids[0]])?String(pg.lignes[f.ligne_ids[0]].dip||''):''
+    av.innerHTML=`<span class="av">${ECH(orig)}</span><br>`
+      +`→ corps : <span class="apr">« ${ECH(f.corps||'')} »</span><br>`
+      +`→ note en marge (ligne entière) : <span class="apr" style="background:#f2e2d0">« ${ECH(f.marge||'')} »</span>`
+  }
+  else av.innerHTML=`<span class="av">${ECH(f.texte_original||'∅')}</span> → <span class="apr">${ECH(f.texte_candidat||'∅')}</span>`
+  d.appendChild(av)
+  const act=document.createElement('div'); act.className='val-crit-act'
+  for(const [lib,st] of [['Accepter','confirme_humain'],['Modifier','modifie_humain'],['Refuser','refuse'],['Indéterminé','indetermine']]){
+    if((estRe||estAnc)&&st==='modifie_humain') continue // ni un reclassement ni un ancrage n'éditent de texte
+    const bt=document.createElement('button'); bt.className='discret'; bt.textContent=lib
+    bt.onclick=()=>decisionCritique(f, st); act.appendChild(bt) }
+  if(Array.isArray(f.bbox)&&f.page!=null&&S.pages[f.page]&&S.pages[f.page].pngUrl){ const z=document.createElement('button'); z.className='discret'; z.textContent='🔍 voir'
+    z.onclick=()=>{ const save=S.page; S.page=f.page; zoomRegion(f.bbox); S.page=save }; act.appendChild(z) }
+  d.appendChild(act); return d }
+// « Tout accepter » les corrections proposées : applique chacune comme objet distinct, signale les conflits.
+function accepterCorrections(list){ let ok=0,conf=0
+  for(const f of (list||[])){ const r=appliquerFinding(f, true); if(r&&r.ok&&r.statut!=='deja_applique'){ f.statut='confirme_humain'; ok++ } else if(r&&r.conflit) conf++ }
+  planifierSave(); rendre(); etat(`Corrections : ${ok} appliquée(s)${conf?`, ${conf} conflit(s) non appliqué(s)`:''}.`); lancerValidation() }
+
+// ── Onglet « Contrôle » du volet de gauche (retour 2026-08-10) : propositions IA lisibles, navigation au
+// clic vers la bonne page/ligne, et Valider / Refuser (réutilise decisionCritique). Badge = nb à faire.
+function nbControles(v){ return v?((v.corrections?.length||0)+(v.critiques?.length||0)+(v.non_resolus?.length||0)+(v.familles?.length||0)):0 }
+function majBadgeControle(){ const b=$('badgeCtrl'); if(!b)return; const n=nbControles(S.validation)
+  b.textContent=n; b.style.display=n>0?'inline-block':'none' }
+// Va sur la page ET pointe la ligne. La ligne peut n'être pas encore dans le DOM au moment du clic
+// (rendu de la page, chargement de l'image) : on RÉESSAIE quelques frames au lieu d'échouer en
+// silence — c'était la cause du « le clic ne renvoie sur aucune ligne ». Surligne aussi la boîte
+// correspondante sur le fac-similé, pour qu'on voie tout de suite de quoi il s'agit.
+function allerLigneControle(f){ if(!f||f.page==null)return
+  const changePage = Number(f.page)!==Number(S.page)
+  S.page=Number(f.page); if($('page'))$('page').value=S.page
+  if(changePage) rendre()
+  const i=(f.ligne_ids&&f.ligne_ids.length)?f.ligne_ids[0]:null
+  if(i==null){ etat('page '+S.page); return }
+  let essais=0
+  const viser=()=>{
+    const row=document.querySelector('.lg[data-i="'+i+'"]')
+    if(!row){ if(essais++<20){ requestAnimationFrame(viser); return } etat('page '+S.page+' — ligne '+i+' introuvable (page pas encore rendue ?)'); return }
+    row.classList.add('cible'); row.scrollIntoView({block:'center',behavior:'smooth'})
+    const box=$('voletImage')&&$('voletImage').querySelector('.box[data-i="'+i+'"]')
+    if(box){ box.classList.add('cible'); box.scrollIntoView({block:'center',behavior:'smooth'}) }
+    setTimeout(()=>{ row.classList.remove('cible'); if(box) box.classList.remove('cible') },2600)
+    etat('page '+S.page+' — ligne '+i)
+  }
+  requestAnimationFrame(viser) }
+function rendreVoletControle(){ const box=$('panelControleCorps'); if(!box)return; box.innerHTML=''; const v=S.validation
+  const tete=document.createElement('div'); tete.className='ctrl-tete'
+  const nb=nbControles(v); const t=document.createElement('span'); t.innerHTML='<b>Contrôle IA</b>'+(v?` — ${nb} à faire`:'')
+  const btn=document.createElement('button'); btn.className='discret'; btn.textContent=v?'Relancer':'Contrôler l\'OCR (IA)'; btn.onclick=()=>controlerOcrIA()
+  tete.appendChild(t); tete.appendChild(btn); box.appendChild(tete)
+  if(!v){ const d=document.createElement('div'); d.className='ctrl-vide'; d.textContent='Aucun contrôle lancé. Océrise des pages, puis clique « Contrôler l\'OCR (IA) » : chaque proposition est d\'abord confrontée à l\'image, et seules celles que l\'image ne tranche pas te sont soumises.'; box.appendChild(d); return }
+  // ── Bilan du TRIAGE ────────────────────────────────────────────────────────────────────────
+  // Ce que l'outil a résolu seul, et ce qu'il reste à faire. Le chiffre qui compte est le dernier.
+  const T=(S.controle&&S.controle.triage)||{}
+  if(T.total_candidats!=null){ const s=document.createElement('div'); s.className='ctrl-vide'
+    const tx=(x)=>x==null?'—':Math.round(x*100)+' %'
+    s.innerHTML='Sur <b>'+(T.total_candidats||0)+'</b> proposition(s) : <b>'+(T.auto_accept||0)+'</b> auto-acceptée(s), <b>'
+      +(T.auto_keep_ocr0||0)+'</b> rendue(s) à l\'OCR, <b>'+(T.human_review||0)+'</b> à vérifier.'
+      +'<br><span style="font-size:11px;color:var(--second)">Relecture humaine '+tx(T.human_review_rate)+' · résolu automatiquement '+tx(T.automation_resolution_rate)
+      +(T.lignes_faibles_confirmees?' · '+T.lignes_faibles_confirmees+' ligne(s) douteuse(s) confirmée(s) sans changement':'')
+      +(T.appels_page||T.appels_crop?' · '+(T.appels_page||0)+' vérif. de page, '+(T.appels_crop||0)+' sur crop':'')+'</span>'
+    box.appendChild(s) }
+  // ── Filtres ────────────────────────────────────────────────────────────────────────────────
+  // « À vérifier » est le défaut : c'est la seule vue qui décrit du travail. Les autres servent à
+  // l'audit — voir ce que la machine a décidé sans nous, et pouvoir la contredire.
+  const FILTRES_CTRL=[['a-verifier','À vérifier'],['auto-acceptees','Auto-acceptées'],['ocr-conserve','OCR conservé'],
+    ['references-nombres','Réf. / nombres'],['structure','Structure'],['caracteres-speciaux','Car. spéciaux'],['toutes','Toutes']]
+  if(!S.filtreControle) S.filtreControle='a-verifier'
+  const barre=document.createElement('div'); barre.className='ctrl-filtres'
+  for(const [cle,lib] of FILTRES_CTRL){ const b=document.createElement('button')
+    b.type='button'; b.textContent=lib; b.className=(S.filtreControle===cle?'actif':'')
+    b.onclick=()=>{ S.filtreControle=cle; rendreVoletControle() }
+    barre.appendChild(b) }
+  box.appendChild(barre)
+  // Vue d'AUDIT : les décisions prises sans nous, consultables et annulables une à une.
+  if(S.filtreControle!=='a-verifier'){
+    const pool=[...(v.auto_texte||[]),...(v.auto_ocr0||[]),...(v.corrections||[]),...(v.critiques||[])]
+    const vus=pool.filter(f=>passeFiltreControle(f,S.filtreControle))
+    if(!vus.length){ const d=document.createElement('div'); d.className='ctrl-vide'; d.textContent='Aucun cas dans ce filtre.'; box.appendChild(d); return }
+    for(const f of vus) box.appendChild(rendreItemAudit(f))
+    return
+  }
+  const tous=[...(v.corrections||[]),...(v.critiques||[])]
+  if(!tous.length && !(v.familles||[]).length){ const d=document.createElement('div'); d.className='ctrl-vide'; d.textContent='Rien en attente : toutes les propositions ont été traitées. 🎉'; box.appendChild(d) }
+  // Les RECLASSEMENTS RÉPÉTITIFS (titres courants, folios, réclames…) se traitent EN LOT : valider
+  // trente fois « ceci est un titre courant » n'apprend rien et use la relecture (retour utilisateur).
+  // Le détail reste consultable et chaque ligne demeure décidable une à une.
+  const parRole=new Map()
+  for(const f of tous){ if(f.type!=='reclassement_role'||!f.role_apres) continue
+    if(!parRole.has(f.role_apres)) parRole.set(f.role_apres,[])
+    parRole.get(f.role_apres).push(f) }
+  const enLot=new Set()
+  for(const [role,liste] of parRole){
+    if(liste.length<3) continue                       // en dessous, le détail suffit
+    liste.forEach(f=>enLot.add(f))
+    const pages=[...new Set(liste.map(f=>f.page).filter(p=>p!=null))].sort((a,b)=>a-b)
+    const d=document.createElement('div'); d.className='ctrl-fam'
+    const s=document.createElement('span')
+    s.innerHTML='⤳ <b>'+liste.length+'</b> ligne(s) à reclasser en « <b>'+(LIB_ROLE[role]||role)+'</b> »'
+      +(pages.length?'<br><span style="font-size:11px;color:var(--second)">p. '+pages.slice(0,14).join(', ')+(pages.length>14?'…':'')+'</span>':'')
+    const tout=document.createElement('button'); tout.className='ct-vld'; tout.textContent='Tout accepter ('+liste.length+')'
+    tout.title='Reclasse ces lignes hors du corps. Elles restent dans la source ; chaque décision reste annulable.'
+    tout.onclick=()=>accepterLot(liste, LIB_ROLE[role]||role)
+    const det=document.createElement('button'); det.className='discret'; det.textContent='détail'
+    const panneau=document.createElement('div'); panneau.style.marginTop='6px'; panneau.style.display='none'
+    det.onclick=()=>{ if(panneau.style.display==='none'){ panneau.innerHTML=''; for(const f of liste) panneau.appendChild(rendreItemControle(f)); panneau.style.display='' } else panneau.style.display='none' }
+    d.appendChild(s); d.appendChild(tout); d.appendChild(det); box.appendChild(d); box.appendChild(panneau)
+  }
+  const items=tous.filter(f=>!enLot.has(f))
+  for(const f of items){ box.appendChild(rendreItemControle(f)) }
+  for(const fam of (v.familles||[])){ const d=document.createElement('div'); d.className='ctrl-fam'
+    const s=document.createElement('span'); s.textContent=fam.cle+' — '+fam.nb+' occ. · risque '+(fam.risque||'')
+    const b=document.createElement('button'); b.className='discret'; b.textContent='Contrôler un échantillon'
+    const panneau=document.createElement('div'); panneau.style.marginTop='6px'; panneau.style.display='none'
+    b.onclick=()=>{ if(panneau.style.display==='none'){ controlerFamille(fam, panneau, 5); panneau.style.display='' } else { panneau.style.display='none' } }
+    d.appendChild(s); d.appendChild(b); box.appendChild(d); box.appendChild(panneau) }
+  if((v.avertissements||[]).length){ const a=document.createElement('div'); a.className='ctrl-vide'; a.textContent='ⓘ '+v.avertissements.length+' avertissement(s) — pages courtes / réserves (non bloquants).'; box.appendChild(a) } }
+
+// Accepte un LOT de reclassements de même rôle : chacun est appliqué comme objet distinct (donc
+// tracé et annulable un à un), les conflits sont signalés et jamais écrasés.
+function accepterLot(liste, libelle){ let ok=0, conf=0
+  for(const f of (liste||[])){ const r=appliquerFinding(f, true)
+    if(r&&r.ok&&r.statut!=='deja_applique'){ f.statut='confirme_humain'; ok++ }
+    else if(r&&r.conflit) conf++ }
+  planifierSave(); rendre()
+  etat(`${ok} ligne(s) reclassée(s) en « ${libelle} »${conf?`, ${conf} conflit(s) non appliqué(s)`:''} — annulable ligne par ligne.`)
+  lancerValidation() }
+
+// Rendu d'UNE proposition dans l'onglet Contrôle (extrait pour être réutilisé dans les lots).
+// Miroir client de rapport-triage.mjs::passeFiltre — mêmes familles, mêmes noms.
+function passeFiltreControle(f, filtre){ const t=(f&&f.triage)||{}, fl=t.risk_flags||[]
+  if(filtre==='a-verifier') return t.auto_decision==='HUMAN_REVIEW'||!t.auto_decision
+  if(filtre==='auto-acceptees') return t.auto_decision==='AUTO_ACCEPT'
+  if(filtre==='ocr-conserve') return t.auto_decision==='AUTO_KEEP_OCR0'
+  if(filtre==='references-nombres') return fl.some(x=>x==='chiffre'||x==='chiffre_modifie'||x==='chiffre_romain'||x==='reference')
+  if(filtre==='structure') return t.classe==='STRUCTURAL'
+  if(filtre==='caracteres-speciaux') return fl.some(x=>x==='diacritique'||x==='abreviatif'||x==='ligature'||x==='glyphe_ancien_introduit'||x==='caractere_hors_jeu')
+  return true }
+// Motif de revue, en français : l'humain doit savoir POURQUOI on le dérange, sinon il relit tout.
+const MOTIFS_CTRL={desaccord:'les deux vérifications se contredisent',lecture_tierce:'une troisième lecture est apparue',
+  image_ambigue:'l’image ne tranche pas',confirmation_manquante:'cas à risque : une seule vérification concluante',
+  confiance_insuffisante:'aucune vérification n’atteint le seuil',sans_verification:'aucune vérification visuelle menée',
+  politique_couche:'graphie ancienne réintroduite (contraire à la règle de couche)'}
+function motifCtrl(raison){ const c=String(raison||'').split(' — ')[0]; return MOTIFS_CTRL[c]||c }
+// Ce que les vérificateurs ont LU, mot pour mot : c'est la seule chose qui aide vraiment à trancher.
+function rendreVerdicts(f){ const t=(f&&f.triage)||{}; const vs=t.verdicts||[]
+  if(!vs.length&&!t.auto_decision) return null
+  const d=document.createElement('div'); d.className='ct-triage'
+  const bits=[]
+  if(t.auto_decision==='HUMAN_REVIEW'&&t.auto_decision_reason) bits.push('<b>'+motifCtrl(t.auto_decision_reason)+'</b>')
+  for(const v of vs) bits.push('œil '+(v.verdict==='CANDIDATE'?'→ correction':v.verdict==='OCR0'?'→ machine':v.verdict==='OTHER'?'→ autre lecture':'illisible')
+    +(v.exact_reading?' « '+String(v.exact_reading).replace(/</g,'&lt;')+' »':'')
+    +' ('+Math.round((v.confidence||0)*100)+' %, image '+({GOOD:'nette',MEDIUM:'moyenne',BAD:'mauvaise'}[v.crop_quality]||'?')+')')
+  if((t.risk_flags||[]).length) bits.push('drapeaux : '+t.risk_flags.join(', '))
+  d.innerHTML=bits.join('<br>')
+  return d }
+function rendreItemAudit(f){ const d=rendreItemControle(f, true); return d }
+function rendreItemControle(f, audit){ const estRe=f.type==='reclassement_role'
+    const d=document.createElement('div'); d.className='ctrl-item'
+    d.onclick=(e)=>{ if(e.target.tagName!=='BUTTON') allerLigneControle(f) }
+    const h=document.createElement('div'); h.className='ct-tete'
+    const t=f.triage||{}
+    const dec=t.auto_decision==='AUTO_ACCEPT'?'<span class="ct-auto">appliquée d’office</span>'
+      :t.auto_decision==='AUTO_KEEP_OCR0'?'<span class="ct-auto ko">rendue à l’OCR</span>':''
+    h.innerHTML='<span>'+(estRe?'⤳ reclasser':'✎ correction')+' · p.'+(f.page??'?')+(f.ligne_ids&&f.ligne_ids.length?' l'+f.ligne_ids.join(','):'')+'</span><span>'+dec+(t.review_priority?' <span title="difficulté du cas">▲'+t.review_priority+'</span>':'')+'</span>'
+    d.appendChild(h)
+    const av=document.createElement('div'); av.className='ct-avapr'
+    if(estRe){ av.innerHTML='rôle : <span class="av">'+libRole(f.role_avant||'corps')+'</span> → <span class="apr">'+libRole(f.role_apres||'?')+'</span>'
+      const ctx=document.createElement('div'); ctx.style.cssText='font-size:11px;color:var(--second);margin-top:2px'; ctx.textContent='« '+String(f.texte_original||'').slice(0,60)+' »'; av.appendChild(ctx) }
+    else av.innerHTML='<span class="av">'+String(f.texte_original||'∅').replace(/</g,'&lt;')+'</span> → <span class="apr">'+String(f.texte_candidat||'∅').replace(/</g,'&lt;')+'</span>'
+    d.appendChild(av)
+    const tri=rendreVerdicts(f); if(tri) d.appendChild(tri)
+    const act=document.createElement('div'); act.className='ct-act'
+    // En vue d'audit, la décision est DÉJÀ prise : les boutons servent à la contredire, pas à la
+    // confirmer. « Garder l'OCR » annule une auto-acceptation ; « Accepter » applique une proposition
+    // que l'image avait écartée. Rien n'est figé (§14 : on peut toujours revenir à ocr0).
+    const auto=audit&&String(t.auto_decision||'').startsWith('AUTO_')
+    const ok=document.createElement('button'); ok.className='ct-vld'
+    ok.textContent=auto?(t.auto_decision==='AUTO_ACCEPT'?'Confirmer':'Accepter quand même')
+      : 'Valider'
+    ok.onclick=()=>decisionCritique(f,'confirme_humain')
+    const no=document.createElement('button'); no.className='discret'
+    no.textContent=auto&&t.auto_decision==='AUTO_ACCEPT'?'Revenir à l’OCR':'Refuser'
+    no.onclick=()=>decisionCritique(f,'refuse')
+    const vo=document.createElement('button'); vo.className='discret'; vo.textContent='Voir'; vo.onclick=()=>allerLigneControle(f)
+    act.appendChild(ok); act.appendChild(no); act.appendChild(vo); d.appendChild(act)
+    return d }
+// ── Échantillonnage auto-extensible (miroir de validation.mjs::echantillonner) : les occurrences les
+// MOINS sûres d'abord (confiance basse = plus probable erreur), étalées sur les pages, au plus n. ──
+function echantillonnerClient(occ, n){ n=n||5; const arr=[...(occ||[])].sort((a,b)=>(a.confiance_modele??1)-(b.confiance_modele??1))
+  const choisi=[], vues=new Set()
+  for(const o of arr){ if(choisi.length>=n)break; if(!vues.has(o.page)){ choisi.push(o); vues.add(o.page) } }
+  for(const o of arr){ if(choisi.length>=n)break; if(!choisi.includes(o)) choisi.push(o) }
+  return choisi }
+function texteOccurrence(f){ const pg=S.pages[f.page]; const i=(f.ligne_ids&&f.ligne_ids.length)?f.ligne_ids[0]:null
+  const l=pg&&Array.isArray(pg.lignes)&&i!=null?pg.lignes[i]:null; return l?String(l.dip??l.texte??''):('page '+f.page) }
+// Contrôle d'une famille par échantillon : 0 erreur → accepter la famille ; 1 → étendre à 15 ; ≥2 → détaillé.
+function controlerFamille(fam, conteneur, taille){ taille=taille||5; conteneur.innerHTML=''
+  const ech=echantillonnerClient(fam.occurrences||[], taille); const faux=new Set()
+  const info=document.createElement('div'); info.className='ctrl-vide'
+  info.textContent='Échantillon de '+ech.length+' sur '+fam.nb+' — clique « ✗ faux » si une occurrence est une fausse alerte :'
+  conteneur.appendChild(info)
+  ech.forEach((f,idx)=>{ const it=document.createElement('div'); it.className='ctrl-item'
+    // Indication PRÉCISE : le texte réel de la ligne, la raison, et la confiance mesurée — sans
+    // quoi l'échantillon n'affichait qu'une citation vide et rien à juger.
+    const txt=String(texteOccurrence(f)).slice(0,70)
+    const raison=(f.preuves&&f.preuves.length)?String(f.preuves[0]):(f.regle||'')
+    const conf=(f.confiance_modele!=null&&f.confiance_modele>0)?' · conf '+String(Math.round(f.confiance_modele*100))+' %':''
+    const t=document.createElement('div'); t.className='ct-avapr'
+    t.innerHTML='<b>p.'+f.page+((f.ligne_ids&&f.ligne_ids.length)?' l'+f.ligne_ids.join(','):'')+'</b>'+conf
+      +'<br>« '+(txt?ECH(txt):'<i style="color:var(--second)">ligne vide</i>')+' »'
+      +(raison?'<br><span style="color:var(--second)">'+ECH(raison)+'</span>':'')
+    it.appendChild(t)
+    const act=document.createElement('div'); act.className='ct-act'
+    const vo=document.createElement('button'); vo.className='discret'; vo.textContent='Voir'; vo.onclick=()=>allerLigneControle(f)
+    if(Array.isArray(f.bbox)&&f.bbox.length===4){ const z=document.createElement('button'); z.className='discret'; z.textContent='🔍'
+      z.title='Agrandir cette ligne sur le fac-similé'
+      z.onclick=()=>{ const save=S.page; S.page=Number(f.page); zoomRegion(f.bbox); S.page=save }; act.appendChild(z) }
+    const fx=document.createElement('button'); fx.className='discret'; fx.textContent='✗ faux'
+    fx.onclick=()=>{ if(faux.has(idx)){ faux.delete(idx); fx.classList.remove('ct-vld'); fx.textContent='✗ faux' } else { faux.add(idx); fx.classList.add('ct-vld'); fx.textContent='✓ faux' } maj() }
+    act.appendChild(vo); act.appendChild(fx); it.appendChild(act); conteneur.appendChild(it) })
+  const pied=document.createElement('div'); pied.className='ctrl-vide'; conteneur.appendChild(pied)
+  const boutons=document.createElement('div'); boutons.className='ct-act'; conteneur.appendChild(boutons)
+  function maj(){ const n=faux.size
+    pied.textContent = n===0 ? '✓ Aucune erreur dans l\'échantillon — tu peux accepter la famille.'
+      : (n===1 ? '1 erreur — élargis l\'échantillon (15) avant d\'accepter.' : n+' erreurs — contrôle détaillé conseillé (traite les occurrences une à une).')
+    boutons.innerHTML=''
+    if(n===0){ const ok=document.createElement('button'); ok.className='ct-vld'; ok.textContent='Accepter la famille ('+fam.nb+')'; ok.onclick=()=>accepterFamille(fam.cle); boutons.appendChild(ok) }
+    if(n===1 && taille<15){ const ext=document.createElement('button'); ext.className='discret'; ext.textContent='Étendre à 15'; ext.onclick=()=>controlerFamille(fam, conteneur, 15); boutons.appendChild(ext) } }
+  maj() }
+// ── Phase 1 — matérialiser les corrections dans le TEXTE candidat (miroir de src/corrections.mjs) ──
+// L'atelier est un monofichier sans import : on reproduit ici, à l'identique, les règles testées côté
+// serveur. Écrit `dip`, préserve `ocr0`, journalise l'historique, détecte le CONFLIT (jamais d'écrasement
+// silencieux d'une modification humaine ou d'une correction plus récente). Ne touche jamais l'OCR brut.
+function appliquerCorrectionClient(l, corr){ if(!l||typeof l!=='object') return {ok:false,erreur:'ligne'}
+  const avant=String(corr.avant??''), apres=String(corr.apres??''), actuel=String(l.dip??'')
+  if(apres===''&&!corr.autoriserVide) return {ok:false,erreur:'vide'}
+  if(actuel===apres) return {ok:true,statut:'deja_applique'}
+  if(actuel!==avant) return {ok:false,conflit:true,attendu:avant,actuel}
+  if(l.ocr0==null) l.ocr0=actuel
+  if(!Array.isArray(l.corrections)) l.corrections=[]
+  l.corrections.push(traceCorr({ id:corr.id||null, type:corr.type||'correction_ocr', avant, apres, origine:corr.origine||'ia',
+    modele:corr.modele||null, regle:corr.regle||null, statut:corr.statut||'applique_candidate',
+    validation_humaine:!!corr.validation_humaine, annulee:false, date:new Date().toISOString() }, corr.triage))
+  l.dip=apres; return {ok:true}
+}
+// Trace d'AUDIT du triage, attachée à la correction (miroir de corrections.mjs::traceTriage). Elle dit
+// comment la décision a été prise : classe, drapeaux, verdicts visuels, scores séparés, motif. Et elle
+// REFORCE la règle cardinale : une décision automatique n'est jamais une validation humaine.
+function traceCorr(e, t){ if(!t||typeof t!=='object') return e
+  e.triage={ auto_decision:t.auto_decision??null, auto_decision_reason:t.auto_decision_reason??null,
+    classe:t.classe??null, risk_flags:Array.isArray(t.risk_flags)?[...t.risk_flags]:[],
+    generator_confidence:t.generator_confidence??null, visual_verifier_confidence:t.visual_verifier_confidence??null,
+    distance_edition:t.distance_edition??null, review_priority:t.review_priority??0,
+    verdicts:(Array.isArray(t.verdicts)?t.verdicts:[]).map(v=>({verdict:v.verdict,exact_reading:v.exact_reading,
+      confidence:v.confidence,visual_evidence:v.visual_evidence,crop_quality:v.crop_quality,
+      editorial_change_detected:!!v.editorial_change_detected,modele:v.modele??null,fournisseur:v.fournisseur??null})),
+    regime:t.regime??null, date:t.date??null }
+  if(String(t.auto_decision||'').startsWith('AUTO_')) e.validation_humaine=false
+  return e }
+// Phase 3 — miroir client de appliquerReclassement : pose role_confirme (fait foi), recalcule export_corps,
+// journalise. Ne touche NI le texte, NI l'OCR : la ligne reste en source, écartée du seul corps exporté.
+const ROLES_HORS_CORPS_CLIENT=['numero_page','signature','reclame','titre_courant','paratexte_titre','ornement','bruit']
+function appliquerReclassementClient(l, corr){ if(!l||typeof l!=='object') return {ok:false,erreur:'ligne'}
+  const apres=String(corr.role_apres??''); if(!apres) return {ok:false,erreur:'role'}
+  const avant=corr.role_avant??null
+  if(!l.suggestion||typeof l.suggestion!=='object') l.suggestion={}
+  const actuel=l.suggestion.role_confirme??null
+  if(actuel===apres) return {ok:true,statut:'deja_applique'}
+  if(actuel!=null&&avant!=null&&actuel!==avant) return {ok:false,conflit:true,attendu:avant,actuel}
+  if(!Array.isArray(l.corrections)) l.corrections=[]
+  l.corrections.push(traceCorr({ id:corr.id||null, type:'reclassement_role', avant:String(avant??''), apres, role_avant:avant, role_apres:apres,
+    _role_precedent:actuel, origine:corr.origine||'ia', modele:corr.modele||null, regle:corr.regle||null,
+    statut:'applique_candidate', validation_humaine:!!corr.validation_humaine, annulee:false, date:new Date().toISOString() }, corr.triage))
+  l.suggestion.role_confirme=apres; l.suggestion.export_corps=!ROLES_HORS_CORPS_CLIENT.includes(apres)
+  return {ok:true}
+}
+// Applique un finding à sa ligne : reclassement de rôle (Phase 3) OU correction de texte (Phase 1).
+function appliquerFinding(f, humaine){ if(f==null||!Array.isArray(f.ligne_ids)||!f.ligne_ids.length||f.page==null) return {ok:false,erreur:'non-correction'}
+  const pg=S.pages[f.page]; if(!pg||!Array.isArray(pg.lignes)) return {ok:false,erreur:'page'}
+  const l=pg.lignes[f.ligne_ids[0]]; if(!l) return {ok:false,erreur:'ligne'}
+  if(f.type==='reclassement_role') return appliquerReclassementClient(l, { id:f.id, role_avant:f.role_avant, role_apres:f.role_apres, origine:'ia', modele:f.modele, regle:f.regle, validation_humaine:!!humaine, triage:f.triage })
+  // ANCRAGE D'UNE NOTE (§13) : pose l'appel [[n]] dans la ligne de CORPS annotée (pas dans la note),
+  // et estampille les lignes de la note avec ce numéro. Miroir client de corrections.mjs::appliquerAncrage.
+  if(f.type==='ancrage_note') return appliquerAncrageClient(pg, f, !!humaine)
+  // LIGNE OMISE (§1.2) : insère la ligne manquante APRÈS f.apres_i, sans bbox ni ocr0 (donc hors GT).
+  if(f.type==='ligne_omise') return appliquerLigneOmiseClient(pg, f, !!humaine)
+  // SCISSION : la ligne mixte devient corps + note ENTIÈRE. Miroir de src/scission.mjs.
+  if(f.type==='scission_marge') return appliquerScissionClient(pg, f.ligne_ids[0], f, !!humaine)
+  if(f.texte_candidat==null) return {ok:false,erreur:'non-correction'}
+  return appliquerCorrectionClient(l, { id:f.id, avant:f.texte_original, apres:f.texte_candidat, origine:'ia', modele:f.modele, regle:f.regle, validation_humaine:!!humaine, triage:f.triage })
+}
+// Pose l'appel [[n]] dans la ligne de corps, collé au mot annoté, À L'INTÉRIEUR d'un guillemet fermant
+// (§13.3). Passe par appliquerCorrectionClient → ocr0 préservé, historique, conflit détecté, annulable.
+function poserAppelClient(t, numero, apres){ const appel='[['+numero+']]'; const s=String(t||'')
+  if(apres){ const i=s.indexOf(String(apres)); if(i>=0){ const p=i+String(apres).length; return { texte:s.slice(0,p)+appel+s.slice(p), place:'apres_groupe' } } }
+  const m=/[\s]*[»”"’)\]]+[.,;:!?]*\s*$/u.exec(s)
+  if(m&&m.index>0) return { texte:s.slice(0,m.index)+appel+s.slice(m.index), place:'avant_fermant' }
+  return { texte:s.replace(/\s*$/,'')+appel, place:'fin_de_ligne' } }
+function appliquerAncrageClient(pg, f, humaine){
+  const numero=Number(f.numero_note); if(!Number.isInteger(numero)||numero<1) return {ok:false,erreur:'numéro absent'}
+  const cible=pg.lignes[f.corps_i]; if(!cible) return {ok:false,erreur:'ligne de corps introuvable'}
+  const avant=String(cible.dip??cible.texte??'')
+  if(avant.includes('[['+numero+']]')) return {ok:true,statut:'deja_applique'}
+  const { texte, place }=poserAppelClient(avant, numero, f.apres)
+  const r=appliquerCorrectionClient(cible, { id:f.id, avant, apres:texte, origine:'ia', modele:f.modele, regle:'ancrage_note', validation_humaine:!!humaine })
+  if(!r||!r.ok) return r
+  for(const i of (f.lignes_note||[])) if(pg.lignes[i]) pg.lignes[i].note_numero=numero
+  return { ok:true, statut:r.statut, numero, place } }
+// Scinde une ligne qui mêle corps et marge : le corps reste, la note devient une LIGNE ENTIÈRE
+// juste après, classée « note en marge ». `ocr0` de la ligne d'origine n'est jamais réécrit.
+function appliquerScissionClient(pg, i, f, humaine){
+  const l=pg.lignes[i]; if(!l) return {ok:false,erreur:'ligne introuvable'}
+  const corps=String(f.corps||'').trim(), marge=String(f.marge||'').trim()
+  if(!corps||!marge) return {ok:false,erreur:'scission incomplète'}
+  if(pg.lignes[i+1]&&pg.lignes[i+1].scinde_de===i) return {ok:true,statut:'deja_applique'}
+  const avant=String(l.dip??l.texte??'')
+  if(l.ocr0==null) l.ocr0=avant
+  if(!Array.isArray(l.corrections)) l.corrections=[]
+  l.corrections.push({type:'scission_marge',avant,apres:corps,origine:'ia',modele:f.modele||null,regle:'scission_marge',
+    statut:'applique_candidate',validation_humaine:!!humaine,annulee:false,fragment:marge})
+  l.dip=corps
+  pg.lignes.splice(i+1,0,{bbox:null,ocr0:'',dip:marge,texte:marge,scinde_de:i,origine_ajout:'ia',
+    suggestion:{role_suggere:'note_marginale',role_confirme:null,statut:'suggere',regle:'scission_marge',export_corps:false,preuves:{issue_de_la_ligne:i}}})
+  return {ok:true,statut:'applique_candidate'} }
+function appliquerLigneOmiseClient(pg, f, humaine){
+  const texte=String(f.texte_candidat||'').trim(); if(!texte) return {ok:false,erreur:'texte vide'}
+  const pos=Number(f.apres_i)
+  if(pg.lignes.some(l=>l&&l.ajout_humain&&String(l.dip||'')===texte)) return {ok:true,statut:'deja_applique'}
+  // Sans bbox ni ocr0 : comptée dans le texte, écartée du ground-truth (comme « ＋ ligne manquante »).
+  pg.lignes.splice(pos+1, 0, { bbox:null, ocr0:'', dip:texte, ajout_humain:true, origine_ajout:'ia', validation_humaine:!!humaine })
+  return { ok:true, statut:'applique_candidate' } }
+// Décision humaine sur un cas critique : met à jour le finding source ET applique/rétracte réellement le
+// texte candidat (Phase 1). Accepter/Modifier → écrit dip ; Refuser/Indéterminé → ne touche pas au texte.
+function decisionCritique(f, statut){ if(!S.controle||!S.controle.findings)return
+  const memeFinding=(g)=>((g.regle||g.id)===(f.regle||f.id))&&g.page===f.page&&JSON.stringify(g.ligne_ids||[])===JSON.stringify(f.ligne_ids||[])
+  let conflit=false
+  S.controle.findings.forEach(g=>{ if(!memeFinding(g))return
+    g.statut=statut
+    if(statut==='modifie_humain'){ const m=window.prompt('Texte corrigé :', g.texte_candidat||g.texte_original||''); if(m!=null) g.texte_candidat=m }
+    if(statut==='confirme_humain'||statut==='modifie_humain'){ const r=appliquerFinding(g, true); if(r&&r.conflit) conflit=true }
+  })
+  planifierSave(); rendre()
+  if(conflit) etat('⚠ conflit : le texte de cette ligne a changé depuis le contrôle — correction NON appliquée (relance le contrôle).')
+  lancerValidation() }
+// Accepter une famille : applique RÉELLEMENT chaque correction du lot (statut accepté par échantillonnage),
+// et recense les conflits restants (jamais d'écrasement silencieux). Les familles sans texte (pages
+// ignorables, etc.) ne font que changer de statut.
+function accepterFamille(cle){ if(!S.controle||!S.controle.findings){ return }
+  let applic=0, conflits=0
+  S.controle.findings.forEach(f=>{ if((f.regle||f.id||f.type)!==cle || f.statut!=='propose_ia') return
+    f.statut='accepte_echantillonnage'
+    if(f.texte_candidat!=null){ const r=appliquerFinding(f, false); if(r&&r.ok&&r.statut!=='deja_applique') applic++; else if(r&&r.conflit) conflits++ } })
+  planifierSave(); rendre()
+  if(applic||conflits) etat(`Famille « ${cle} » : ${applic} correction(s) appliquée(s)${conflits?`, ${conflits} conflit(s) non appliqué(s)`:''}.`)
+  lancerValidation() } // recompte : la famille passe des « familles » aux « automatiques »
+
+// Phase F — génération LOCALE : livrables (exports existants) + état de livraison + rapport. AUCUNE IA.
+async function lancerGeneration(){ const nom=$('projet').value.trim(); if(!nom){ etat('nomme le projet d\'abord'); return }
+  if(!Object.keys(S.pages).length){ etat('rien à générer : océrise d\'abord'); return }
+  majEtapeClient('generation_locale',{etat:'en_cours'},'generation_locale'); chargeOn('Génération locale…')
+  try{ const fichiers=[]
+    try{ await api('/api/export',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel(),id_oeuvre:($('idoeuvre')&&$('idoeuvre').value.trim())||null,recenserNotes:$('chkNotes')&&$('chkNotes').checked})}); fichiers.push('json','docx','sql','txt','md') }catch(e){}
+    try{ const rx=await api('/api/export/xml',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel(),couche:S.couche})}); if(rx&&rx.nbPages) fichiers.push('alto','page') }catch(e){}
+    const run_id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():('run-'+Date.now()); const date=new Date().toISOString()
+    const lot=(S.workflow&&S.workflow.etapes&&S.workflow.etapes.ocr_local&&S.workflow.etapes.ocr_local.resume)||{} // Phase 7 : complétude du lot → état de livraison
+    const g=await api('/api/ia/generation',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel(),validation:S.validation||{},profil:S.profil||null,run_id,date,fichiers,lot})})
+    majEtapeClient('generation_locale',{etat:'termine',run_id})
+    etat(`Génération : ${g.etat} — ${fichiers.length} type(s) de fichier dans exports/. Rapport : ${(g.chemin||'').split(/[\\/]/).pop()}.${g.etat!=='FINAL_CANDIDAT'?' Livraison PROVISOIRE (voir réserves / blocages).':''}`)
+  }catch(e){ majEtapeClient('generation_locale',{etat:'erreur'}); etat('génération : '+e.message) }
+  finally{ chargeOff() } }
+const SEUIL_DOUTE=0.80 // en dessous, la ligne est signalée « à revoir »
+
+// ── Fiabilité des lots : état par page (à faire / terminé / erreur), progression, journal ────
+function marquerEtat(n, etat, msg){ if(!S.pages[n]) S.pages[n]={}; S.pages[n].etat=etat
+  if(etat==='erreur') S.pages[n].erreur=String(msg||'').slice(0,300); else delete S.pages[n].erreur }
+function journaliser(n, msg){ (S.journal||(S.journal=[])).push({page:n, message:String(msg).slice(0,200), at:new Date().toISOString()})
+  if(S.journal.length>1000) S.journal=S.journal.slice(-1000) }
+function pagesEnErreur(){ return Object.keys(S.pages).map(Number).filter(n=>S.pages[n]?.etat==='erreur').sort((a,b)=>a-b) }
+function estExclueOcr(n){ const t=S.pages[n]&&S.pages[n].triage; return !!(t && t.a_ocriser===false) } // tri IA : garde/numérisation/reliure/ornement
+function pagesATraiter(de,a){ const l=[]; for(let n=de;n<=a;n++) if(S.pages[n]?.etat!=='termine' && !estExclueOcr(n)) l.push(n); return l } // saute les faites ET les pages exclues par le tri
+function compterEtats(de,a){ let fait=0,err=0,tot=0; for(let n=de;n<=a;n++){ tot++; const e=S.pages[n]?.etat; if(e==='termine')fait++; else if(e==='erreur')err++ } return {fait,err,tot} }
+function majProgres(de,a){ const {fait,err,tot}=compterEtats(de,a); $('progression').style.display='flex'
+  $('barreProgFill').style.width=(tot?Math.round(fait/tot*100):0)+'%'
+  $('progTexte').textContent=`${fait}/${tot} pages · ${err} erreur${err>1?'s':''}`
+  const pe=pagesEnErreur(); $('btnRelancerErr').style.display=pe.length?'inline-block':'none'
+  $('progErreurs').textContent=pe.length?('en erreur : '+pe.slice(0,25).join(', ')+(pe.length>25?'…':'')):'' }
+function assurerNomProjet(){ if($('projet').value.trim())return // un lot est TOUJOURS persisté : on nomme d'office
+  const c=$('chemin').value.trim(); const b=(c.split(/[\\/]/).pop()||'ouvrage').replace(/\.[^.]+$/,'').replace(/[^\w.-]+/g,'_').slice(0,60)
+  $('projet').value=b||'ouvrage' }
+
+$('kind').onchange=()=>{ S.kind=$('kind').value; document.querySelector('.barre2').style.opacity=1
+  $('onglets').style.display=(S.kind==='manuscrit')?'flex':'none'
+  $('lblTypo').style.display=(S.kind==='imprime')?'flex':'none' // choix du moteur : imprimé seulement
+  // imprimé = un seul texte ; on force l'onglet diplomatique (= le texte OCR)
+  if(S.kind!=='manuscrit'){S.couche='dip'} rendre() }
+
+// Voile de chargement : fige l'écran (le voile capte les clics) pendant une opération longue.
+const chargeOn=(t)=>{ $('chargeTexte').textContent=t||'Analyse…'; $('chargeStop').disabled=false; $('chargement').style.display='flex' }
+const chargeOff=()=>{ $('chargement').style.display='none' }
+
+async function analyser(){
+  const chemin=$('chemin').value.trim(); if(!chemin)return
+  if(S.chemin!==chemin){ S.perimetre={pages:[]}; S.chemin=chemin } // nouveau document → nouveau lot de travail (Phase 2)
+  chargeOn('Analyse du document…')
+  try{
+    if(S.kind==='imprime'){
+      const {pages}=await api('/api/pdf-info?path='+encodeURIComponent(chemin)); S.total=pages
+      $('total').textContent=pages?`/ ${pages}`:''; $('a').value=Math.min(pages||1,($('de').valueAsNumber||1)+9)
+      // Analyse LÉGÈRE au dépôt (rapide) : page de titre + sonde de typographie, PAS d'OCR du document.
+      chargeOn('Analyse rapide (page de titre + typographie)…')
+      const r=await api('/api/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin, rapide:true})})
+      // Métadonnées : plus de pré-remplissage mécanique au dépôt — « IA titre » (Opus) fait la lecture.
+      $('main').classList.remove('meta-replie')
+      // Choix AUTOMATIQUE du moteur adapté à ce livre (imprimé ancien à s long → Kraken).
+      const anc=r.typographie?.ancien; $('typo').value=anc?'ancien':'moderne'
+      await finaliserDiagnostic({ nbPages:pages, meta:r.meta, typographie:r.typographie }) // Phase B : profil + avance du workflow
+      etat(`PDF : ${pages} pages — diagnostic fait. Moteur conseillé : ${anc?'imprimé ANCIEN (s long → Kraken)':'moderne (Tesseract)'} — ${r.typographie?.raison||''}. Étape suivante : « OCR local » (« OCR cette page » / « OCR document »).`)
+    } else {
+      S.total=1; $('total').textContent=''; await finaliserDiagnostic({ nbPages:1, manuscrit:true }); etat('image (manuscrit) prête — moteur Kraken CATMuS Medieval. Étape suivante : « OCR cette page ».')
+    }
+    S.page=1; $('page').value=1; rendre() // affiche la 1re page (aperçu du PDF/image) dès le dépôt, sans OCR
+  }catch(e){ etat('erreur : '+e.message) }
+  finally{ chargeOff() }
+}
+
+async function ocr(n){
+  perimetreAjouter([n]) // Phase 2 : toute page océrisée entre dans le lot de travail
+  const chemin=$('chemin').value.trim(); if(!chemin)throw new Error('chemin manquant')
+  if(S.kind==='imprime' && $('bilingue').checked){
+    const r=await api('/api/atelier/ocr-bilingue',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({pdfWin:chemin,page:n,offset:Number($('offset').value),dpi:300})})
+    S.pages[n]={ pngUrl:r.pngUrl, largeur:r.largeur, hauteur:r.hauteur, bilingue:true, ocr:r.ocr,
+      langueFr:r.langueFr, langueLa:r.langueLa,
+      lignes:(r.lignesFr||[]).map(l=>({bbox:l.bbox, dip:l.texte})),
+      paires:(r.paires||[]).map(p=>({paragraphe:p.paragraphe, fr:p.fr, la:p.la})) }
+    apresOcrWorkflow() // Phase C : OCR local → workflow
+    return S.pages[n]
+  }
+  // Phase C — moteur/modèle selon le RÉGIME de la page (profil du diagnostic), sinon le sélecteur Typo.
+  const reg=regimePourPageClient(n)
+  const ancien = reg ? (reg.moteur==='kraken') : ($('typo') && $('typo').value==='ancien') // imprimé ancien → Kraken CATMuS-Print
+  const pre=$('p_utiliser')&&$('p_utiliser').checked ? collecterPretraitement() : null // OFF par défaut
+  const corps=S.kind==='imprime'
+    ? {kind:'imprime',pdfWin:chemin,page:n,dpi:300,lang:langueOcr(),moteur:ancien?'kraken-print':'tesseract',pretraitement:pre}
+    : {kind:'manuscrit',imageWin:chemin}
+  const r=await api('/api/atelier/ocr',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(corps)})
+  S.pages[n]={ pngUrl:r.pngUrl, largeur:r.largeur, hauteur:r.hauteur, ocr:r.ocr,
+    lignes:(r.lignes||[]).map(l=>({bbox:l.bbox, confiance:l.confiance, ocr0:l.texte, dip:l.texte, dev:l.texte, mod:''})) }
+  const anom=pageAnormaleClient(S.pages[n].lignes); if(anom){ S.pages[n].anomalie=anom } else { delete S.pages[n].anomalie } // §7.2 : signaler page vide/courte
+  apresOcrWorkflow() // Phase C : OCR local → workflow
+  return S.pages[n]
+}
+
+// Titre courant / n° de page — mêmes règles qu'à l'export (projet.mjs::estEntete). Conservateur.
+function estEnteteC(t){ const s=(t||'').trim()
+  if(!s) return true
+  if(/^[_—–\-\s.]*\d{1,4}[_—–\-\s.]*$/.test(s)) return true
+  if(/^\d{0,4}\s*[A-ZÀ-Þ][A-ZÀ-Þ'’ .-]{2,24}\d{0,4}$/.test(s)) return true
+  if(/digitized by google/i.test(s)) return true
+  return false
+}
+
+// ── Passe 3 : miroirs CLIENT des fonctions pures (structure.mjs / projet.mjs) ──
+// Q1 — provenance d'une correction de lettrine (omission_ocr vs restitution_editoriale).
+function corrigerLettrineClient({ texte_ocr='', texte_valide, visible }){
+  const restitution = visible===false
+  const a={ type_correction: restitution?'restitution_editoriale':'omission_ocr', nature:'lettrine',
+    texte_ocr:String(texte_ocr||''), texte_valide:String(texte_valide||''), visible_dans_source:!restitution,
+    origine_lecture: restitution?'conjecture':'image', validation:'humaine', certitude: restitution?'probable':'certaine',
+    bbox_source:null, restitution_editoriale:restitution, afficher_marque_critique:restitution }
+  if(restitution) a.interdit_entrainement=true
+  return a
+}
+function appliquerCorrectionLettrine(l, s, texte_valide, visible){
+  const actuel=String(l.dip||'')
+  s.correction = corrigerLettrineClient({ texte_ocr: l.ocr0!=null?l.ocr0:actuel, texte_valide, visible })
+  l.dip = String(texte_valide||'') + actuel  // initiale intégrée en tête, SANS crochets
+  s.role_confirme='lettrine'; s.statut='confirme'; l.incertain=false
+  if(!visible) l.interdit_entrainement=true   // restitution conjecturale → hors ground-truth
+}
+function saisirInitiale(l, s, visible){
+  const init = window.prompt(visible ? 'Initiale VISIBLE dans l’image, à saisir (ex. M, L’) :'
+                                     : 'Initiale ILLISIBLE, restitution conjecturale (ex. M) :', '')
+  if(init==null){ rendre(); return }        // annulé → aucune modification
+  appliquerCorrectionLettrine(l, s, init, visible); planifierSave(); rendre()
+}
+// Q2 — suggestion de césure (jamais de conversion silencieuse).
+function suggererCesureClient(a, b){ a=String(a||'').trim(); b=String(b||'').trim()
+  if(!/[-‐]$/.test(a)) return false; return /^[a-zà-öø-ÿ]/.test(b) }
+function appliquerCesure(l){ l.dip=String(l.dip||'').replace(/[-‐]\s*$/, '¬')
+  l.cesure={ type:'coupure_typographique_fin_ligne', marque_ground_truth:'¬', glyphe_source:'-', jointure_confirmee:true, validation:'humaine', ambigu:false }
+  planifierSave(); rendre() }
+// Q1 — zoom sur la région probable d'une lettrine (bbox + marge + lignes voisines dessous).
+function zoomRegion(bbox){ const pg=S.pages[S.page]; if(!pg||!pg.pngUrl||!Array.isArray(bbox))return
+  const [x,y,w,h]=bbox, W=pg.largeur||1, H=pg.hauteur||1
+  let ov=document.getElementById('zoomOverlay')
+  if(!ov){ ov=document.createElement('div'); ov.id='zoomOverlay'; ov.onclick=()=>ov.remove(); document.body.appendChild(ov) }
+  ov.innerHTML=''
+  const mx=w*0.6, my=h*2.4
+  const zx=Math.max(0,x-mx), zy=Math.max(0,y-h*0.3), zw=Math.min(W-zx,w+2*mx), zh=Math.min(H-zy,h+my)
+  const ech=Math.min(560/zw, 460/zh)
+  const box=document.createElement('div'); box.className='zoombox'
+  box.style.width=Math.round(zw*ech)+'px'; box.style.height=Math.round(zh*ech)+'px'
+  box.style.backgroundImage='url("'+pg.pngUrl+'")'
+  box.style.backgroundSize=Math.round(W*ech)+'px '+Math.round(H*ech)+'px'
+  box.style.backgroundPosition='-'+Math.round(zx*ech)+'px -'+Math.round(zy*ech)+'px'
+  ov.appendChild(box)
+}
+
+// Aperçu d'une page NON océrisée : on rend l'image du PDF (sans OCR, sans boîtes) pour la voir tout
+// de suite. L'URL est mise en cache par page (S.pages[n].apercuUrl).
+async function afficherApercu(n){
+  const holder=$('imgHolder'), vl=$('lignes'), chemin=$('chemin').value.trim()
+  if(!chemin){ holder.innerHTML='<div class="vide">Indique un chemin, puis « OCR cette page ».</div>'; vl.innerHTML='<div class="vide">—</div>'; return }
+  if(!S.pages[n]) S.pages[n]={}
+  holder.innerHTML='<div class="vide">chargement de la page '+n+'…</div>'
+  const tri=S.pages[n].triage
+  vl.innerHTML='<div class="vide">'+(tri?('Classée « '+tri.type+' »'+(tri.a_ocriser===false?' — <b>exclue de l\'OCR</b>.':' — à océriser.')):'Page non océrisée. Clique « OCR cette page » pour la traiter.')+'</div>'
+  try{
+    let url=S.pages[n].apercuUrl
+    if(!url){ const r=await api('/api/apercu',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin,page:n,kind:S.kind})}); url=r.pngUrl; S.pages[n].apercuUrl=url }
+    if(S.page!==n) return // l'utilisateur a déjà tourné la page
+    holder.innerHTML=''
+    const scene=document.createElement('div'); scene.className='scene'
+    const img=document.createElement('img'); img.src=url; scene.appendChild(img); holder.appendChild(scene)
+    img.onload=()=>{ const dispo=$('voletImage').clientHeight-24; if(dispo>120) img.style.maxHeight=dispo+'px' }
+  }catch(e){ if(S.page===n){ holder.innerHTML='<div class="vide">aperçu indisponible : '+(e.message||e)+'</div>' } }
+}
+function rendre(){
+  const pg=S.pages[S.page]
+  const holder=$('imgHolder'), vl=$('lignes')
+  const multiPages=(S.kind==='imprime')||((S.total||1)>1) // un PDF a toujours des pages
+  $('navPrec').style.display=$('navSuiv').style.display=multiPages?'block':'none'
+  // Page sans image ni lignes exploitables (jamais océrisée, ou OCR en erreur) : message propre,
+  // pas d'image cassée ni de plantage (pg.lignes serait undefined plus bas).
+  if(!pg || !pg.pngUrl || !Array.isArray(pg.lignes)){
+    if(pg && pg.etat==='erreur'){
+      const d=document.createElement('div'); d.className='vide'
+      d.textContent='Page en échec d\'OCR : '+(pg.erreur||'cause inconnue')+' — relance « OCR cette page » pour réessayer.'
+      holder.innerHTML=''; holder.appendChild(d); vl.innerHTML='<div class="vide">—</div>'; return
+    }
+    afficherApercu(S.page); return // page non océrisée → on affiche l'IMAGE du PDF (aperçu, sans OCR)
+  }
+  // Image + boîtes. L'image est mise à l'échelle pour TENIR dans la hauteur du volet (pas de défilement).
+  holder.innerHTML=''
+  const scene=document.createElement('div'); scene.className='scene'
+  const img=document.createElement('img'); img.src=pg.pngUrl
+  scene.appendChild(img); holder.appendChild(scene)
+  img.onload=()=>{ const dispo=$('voletImage').clientHeight-24; if(dispo>120) img.style.maxHeight=dispo+'px'
+    const sx=img.clientWidth/pg.largeur, sy=img.clientHeight/pg.hauteur
+    pg.lignes.forEach((l,i)=>{ if(!l.bbox)return; const [x,y,w,h]=l.bbox
+      const b=document.createElement('div'); b.className='box'; b.dataset.i=i
+      // Même code couleur que la ligne de texte — donc même calcul, `roleBase` compris. La boîte
+      // recevait jadis le rôle BRUT (« paratexte_titre_candidate », « ornement_candidate »…), qui
+      // ne correspondait à aucune teinte : 722 boîtes restaient incolores sur le fac-similé alors
+      // que leur ligne, elle, était bien coloriée. Le pointillé de suggestion est repris aussi.
+      { const l=pg.lignes[i], conf=l&&l.suggestion&&l.suggestion.role_confirme, sug=l&&l.suggestion&&l.suggestion.role_suggere
+        b.dataset.role=roleBase(conf||sug||(l&&l.titre&&l.titre.niveau?'titre':'corps'))
+        if(!conf&&sug) b.dataset.suggere='1' }
+      b.style.left=(x*sx)+'px'; b.style.top=(y*sy)+'px'; b.style.width=(w*sx)+'px'; b.style.height=(h*sy)+'px'
+      b.onclick=()=>{ const inp=vl.querySelector(`input[data-i="${i}"]`); if(inp){inp.focus();} }
+      scene.appendChild(b) }) }
+  // Bilingue : paragraphes appariés (n° | français | latin), éditables.
+  if(pg.bilingue){
+    vl.innerHTML=''
+    const h=document.createElement('div'); h.className='bihead'
+    h.textContent=`Bilingue — page: ${pg.langueFr}, en regard: ${pg.langueLa} · ${pg.paires.length} paragraphes appariés`
+    vl.appendChild(h)
+    pg.paires.forEach((pr,i)=>{
+      const row=document.createElement('div'); row.className='paire'
+      const num=document.createElement('div'); num.className='pnum'; num.textContent=(pr.paragraphe!=null)?pr.paragraphe:('¶'+(i+1))
+      const fr=document.createElement('textarea'); fr.className='pfr'; fr.value=pr.fr||''; fr.oninput=()=>{pr.fr=fr.value; planifierSave()}
+      const la=document.createElement('textarea'); la.className='pla'; la.value=pr.la||''; la.oninput=()=>{pr.la=la.value; planifierSave()}
+      row.appendChild(num); row.appendChild(fr); row.appendChild(la); vl.appendChild(row)
+    })
+    return
+  }
+  // Repérage des titres courants : ligne du HAUT et du BAS (mêmes règles qu'à l'export).
+  const avec=pg.lignes.map((l,i)=>({l,i})).filter(x=>Array.isArray(x.l.bbox))
+  let topI=-1, botI=-1
+  if(avec.length){
+    topI=avec.reduce((a,b)=> b.l.bbox[1]<a.l.bbox[1]?b:a).i
+    botI=avec.reduce((a,b)=> (b.l.bbox[1]+b.l.bbox[3])>(a.l.bbox[1]+a.l.bbox[3])?b:a).i
+  }
+  // Texte de la couche courante, éditable
+  vl.innerHTML=''
+  // Ajout manuel d'une ligne que l'OCR a ratée (folio, réclame, ligne de corps oubliée).
+  const barreAjout=document.createElement('div'); barreAjout.className='ajout-barre'
+  const bAjout=document.createElement('button'); bAjout.type='button'; bAjout.className='discret'; bAjout.textContent='＋ ligne manquante'
+  bAjout.title='Ajoute une ligne que l\'OCR n\'a pas captée. Insérée après la ligne sélectionnée (sinon en tête). À corriger, classer (numéro de page…) et valider. Sans image associée : comptée dans l\'évaluation du banc, mais hors entraînement.'
+  bAjout.onclick=()=>{ const act=vl.querySelector('.lg.actif'); insererLigne(act?(+act.dataset.i+1):0) }
+  barreAjout.appendChild(bAjout); vl.appendChild(barreAjout)
+  pg.lignes.forEach((l,i)=>{ const row=document.createElement('div'); row.className='lg'; row.dataset.i=i
+    // Rôle porté sur la ligne : c'est lui que le MODE COULEUR lit. Le rôle CONFIRMÉ prime ; à
+    // défaut on montre la suggestion, signalée en pointillé pour qu'on ne confonde jamais une
+    // proposition avec une décision.
+    { const conf=l.suggestion&&l.suggestion.role_confirme, sug=l.suggestion&&l.suggestion.role_suggere
+      const r=conf||sug||(l.titre&&l.titre.niveau?'titre':'corps')
+      row.dataset.role=roleBase(r); if(!conf&&sug) row.dataset.suggere='1' }
+    const txt=l[S.couche]||''
+    const doute=(l.confiance!=null && l.confiance<SEUIL_DOUTE)
+    const estTitre=!!(l.titre && l.titre.niveau)
+    const entete=!estTitre && (i===topI||i===botI) && !l.force_corps && estEnteteC(txt) // force_corps = restauré à la main
+    if(doute) row.classList.add('doute')
+    if(entete) row.classList.add('entete')
+    if(estTitre) row.classList.add('titre')
+    if(l.incertain) row.classList.add('incertain')
+    if(l.valide_humain && !l.incertain) row.classList.add('valide')
+    if(l.ajout_humain) row.classList.add('ajout')
+    const num=document.createElement('div'); num.className='num'; num.textContent=i+1
+    if(doute) num.title='à revoir (confiance '+Math.round(l.confiance*100)+' %)'
+    const inp=document.createElement('input'); inp.dataset.i=i; inp.value=txt
+    inp.oninput=()=>{ l[S.couche]=inp.value; if(l.titre) l.titre.texte=inp.value; planifierSave() }
+    inp.onfocus=()=>{ document.querySelectorAll('.box.actif,.lg.actif').forEach(e=>e.classList.remove('actif'))
+      row.classList.add('actif'); const box=$('voletImage').querySelector(`.box[data-i="${i}"]`)
+      if(box){box.classList.add('actif'); box.scrollIntoView({block:'center',behavior:'smooth'})} }
+    row.appendChild(num); row.appendChild(inp)
+    if(entete){ const tag=document.createElement('button'); tag.type='button'; tag.className='tagtc'; tag.textContent='titre courant ↩'
+      tag.title='Barré comme titre courant / n° de page (exclu de l\'export). Clic = RESTAURER en corps (par ex. une ligne du titre de la page de titre prise à tort pour un titre courant).'
+      tag.onclick=()=>{ l.force_corps=true; if(l.suggestion&&(l.suggestion.role_confirme==='titre_courant'||l.suggestion.role_confirme==='numero_page')){ l.suggestion.role_confirme=null; l.suggestion.statut='suggere'; l.suggestion.export_corps=true } planifierSave(); rendre() }
+      row.appendChild(tag) }
+    // Sélecteur de niveau de titre : « — » (texte courant) ou Titre 1..5 (Livre, Prose…).
+    const niv=document.createElement('select'); niv.className='niv'; niv.title='Marquer cette ligne comme titre de structure (ref_niv). « — » = texte normal.'
+    niv.innerHTML='<option value="0">—</option>'+[1,2,3,4,5].map(k=>`<option value="${k}">T${k}</option>`).join('')
+    niv.value=String(estTitre?l.titre.niveau:0)
+    niv.onchange=()=>{ const k=+niv.value; if(k){ l.titre={niveau:k, texte:inp.value} } else { delete l.titre } planifierSave(); rendre() }
+    row.appendChild(niv)
+    if(l.ajout_humain){
+      // Ligne ajoutée à la main : bouton SUPPRIMER (jamais « incertain » — une ligne humaine n'est pas douteuse).
+      const del=document.createElement('button'); del.type='button'; del.className='inc sup'; del.textContent='✕'
+      del.title='Supprimer cette ligne ajoutée à la main. (Ne touche jamais aux lignes issues de l\'OCR.)'
+      del.onclick=()=>supprimerLigne(i)
+      row.appendChild(del)
+    } else {
+      // Marqueur « lecture incertaine » : exclut la ligne du banc / ground-truth tant qu'elle n'est pas tranchée.
+      const inc=document.createElement('button'); inc.type='button'; inc.className='inc'+(l.incertain?' on':''); inc.textContent='⚠'
+      inc.title='Lecture incertaine : à trancher. Exclue du banc et de l\'entraînement tant qu\'elle est marquée.'
+      inc.onclick=()=>{ l.incertain=!l.incertain; if(l.incertain) l.valide_humain=false; inc.classList.toggle('on',l.incertain); row.classList.toggle('incertain',l.incertain); row.classList.toggle('valide',!!l.valide_humain&&!l.incertain); planifierSave() }
+      row.appendChild(inc)
+    }
+    // Suggestion de structure (§ GPT) : rôle proposé + décision humaine (role_confirme fait foi).
+    const s=l.suggestion
+    const horsCorps=['numero_page','signature','reclame','titre_courant','paratexte_titre','ornement','bruit']
+    if(s && s.role_confirme && horsCorps.includes(s.role_confirme)) row.classList.add('horscorps')
+    if(s && /^(lettrine|artefact)_candidate$/.test(s.role_suggere||'')){
+      // Passe 3 Q1 — 4 décisions ; JAMAIS de lettre proposée automatiquement.
+      const sel=document.createElement('select'); sel.className='sugg lettr'
+      const marque=s.correction ? (s.correction.restitution_editoriale?' ⟨restit.⟩':' ✓') : ' ⚠'
+      sel.innerHTML='<option value="">'+s.role_suggere.replace('_candidate','')+marque+'</option>'
+        +'<option value="visible">lettre visible (saisir)</option>'
+        +'<option value="conjecture">illisible (restitution)</option>'
+        +'<option value="artefact">artefact / ornement</option>'
+        +'<option value="faux">faux positif (texte)</option>'
+      sel.title='Lettrine — score '+(s.score||0)+'. Décision humaine ; aucune lettre n\'est proposée automatiquement.'
+      sel.onchange=()=>{ const v=sel.value
+        if(v==='artefact'){ s.role_confirme='bruit'; s.statut='confirme'; delete s.correction; l.incertain=false; planifierSave(); rendre() }
+        else if(v==='faux'){ s.role_confirme='corps'; s.statut='confirme'; delete s.correction; l.incertain=false; planifierSave(); rendre() }
+        else if(v==='visible'||v==='conjecture'){ saisirInitiale(l, s, v==='visible') } }
+      row.appendChild(sel)
+      if(Array.isArray(l.bbox)){ const z=document.createElement('button'); z.type='button'; z.className='inc'; z.textContent='🔍'
+        z.title='Zoom sur la région de la lettrine'; z.onclick=()=>zoomRegion(l.bbox); row.appendChild(z) }
+    } else if(s && s.role_suggere){
+      // Rôle « nu » (sans suffixe candidate/geometrique) qui fera foi une fois confirmé.
+      const brut=s.role_suggere.replace('_candidate','').replace('_geometrique','')
+      const libelle=(brut==='signature')?'marque de cahier':brut.replace(/_/g,' ')
+      const chip=document.createElement('button')
+      const extra=(s.niveau_suggere?(' T'+s.niveau_suggere):'')+(s.blanc_poesie?(' · '+s.blanc_poesie):'')
+      chip.className='sugg'+(s.role_confirme?' ok':'')
+      chip.textContent=libelle+extra+(s.role_confirme?' ✓':'')
+      let aide='Suggestion : '+s.role_suggere+' (score '+(s.score||0)+'). Clic → confirmer / re-clic → annuler.'
+      if(brut==='signature') aide+=' — Marque de cahier (signature bibliographique) : lettre ou chiffre imprimé au bas du feuillet pour repérer le cahier et l’ordre des feuillets.'
+      if(s.role_suggere==='titre_courant') aide+=' [confirme le motif EN LOT]'
+      if(s.preuves) aide+=' · '+JSON.stringify(s.preuves)
+      chip.title=aide
+      chip.onclick=()=>{
+        const confirmer=!s.role_confirme, role=s.niveau_suggere?'titre':brut
+        s.role_confirme=confirmer?role:null; s.statut=confirmer?'confirme':'suggere'
+        // §6 : confirmer un titre courant vaut pour TOUTES les occurrences du même motif (en lot).
+        if(s.role_suggere==='titre_courant' && s.preuves && s.preuves.cle){ const cle=s.preuves.cle
+          for(const k of Object.keys(S.pages)) for(const ll of (S.pages[k].lignes||[])){ const ss=ll.suggestion
+            if(ss && ss.role_suggere==='titre_courant' && ss.preuves && ss.preuves.cle===cle){ ss.role_confirme=confirmer?'titre_courant':null; ss.statut=confirmer?'confirme':'suggere' } } }
+        planifierSave(); rendre()
+      }
+      row.appendChild(chip)
+    } else {
+      // §5 : classement MANUEL d'une région hors-corps (aucune suggestion sur cette ligne).
+      // Jeu complet des rôles hors-corps (cf. liste horsCorps ci-dessus) — libellés lisibles.
+      const cls=document.createElement('select'); cls.className='niv'; cls.title='Classer cette ligne hors du corps (pagination, titre courant, réclame, paratexte, ornement, bruit…). « — » = corps.'
+      cls.innerHTML='<option value="">— (corps)</option>'+[
+        ['numero_page','numéro de page'],['titre_courant','titre courant'],['signature','marque de cahier'],
+        ['reclame','réclame'],['paratexte_titre','paratexte (titre)'],['ornement','ornement'],
+        ['bruit','bruit / artefact'],['indetermine','indéterminé'],
+      ].map(([v,t])=>`<option value="${v}">${t}</option>`).join('')
+      cls.value=(s&&s.role_confirme)||''
+      cls.onchange=()=>{ if(!l.suggestion) l.suggestion={role_suggere:null,role_confirme:null,statut:'suggere',export_corps:true,preuves:{}}
+        l.suggestion.role_confirme=cls.value||null; l.suggestion.statut=cls.value?'confirme':'suggere'; l.suggestion.export_corps=!cls.value; planifierSave(); rendre() }
+      row.appendChild(cls)
+    }
+    // Passe 3 Q2 — suggestion de césure (jamais silencieuse) : « - » en fin de ligne + suite en minuscule.
+    { const suiv=pg.lignes[i+1]
+      if(!l.cesure && !estTitre && !entete && suiv && suggererCesureClient(l[S.couche], suiv[S.couche])){
+        const cc=document.createElement('button'); cc.type='button'; cc.className='sugg'; cc.textContent='césure ¬ ?'
+        cc.title='Fin de ligne « - » et la suite continue le mot → classer en césure typographique « ¬ » (recollée à l\'affichage). Clic = confirmer, jamais automatique.'
+        cc.onclick=()=>appliquerCesure(l); row.appendChild(cc) } }
+    vl.appendChild(row) })
+}
+
+// Ajout / suppression d'une ligne saisie à la main (texte que l'OCR n'a pas capté : folio, réclame…).
+// Provenance : ajout_humain=true, ocr0='' (la machine n'a rien lu là), bbox=null (aucune région image)
+// → jamais versée à l'entraînement (filtre bbox en aval), mais comptée dans l'évaluation du banc.
+function insererLigne(i){ const pg=S.pages[S.page]; if(!pg||!Array.isArray(pg.lignes)) return
+  const pos=Math.max(0, Math.min(pg.lignes.length, i|0))
+  pg.lignes.splice(pos, 0, { bbox:null, ocr0:'', dip:'', dev:'', mod:'', confiance:null, ajout_humain:true })
+  planifierSave(); rendre()
+  const inp=$('lignes').querySelector(`.lg[data-i="${pos}"] input`); if(inp) inp.focus() }
+function supprimerLigne(i){ const pg=S.pages[S.page]; const l=pg&&pg.lignes&&pg.lignes[i]
+  if(!l||!l.ajout_humain) return // sécurité : on ne supprime JAMAIS une ligne issue de l'OCR
+  pg.lignes.splice(i, 1); planifierSave(); rendre() }
+
+$('onglets').onclick=e=>{ const b=e.target.closest('button'); if(!b)return
+  S.couche=b.dataset.c; $('onglets').querySelectorAll('button').forEach(x=>x.classList.toggle('actif',x===b)); rendre() }
+
+$('btnAnalyser').onclick=analyser
+$('ocrPage').onclick=async()=>{ assurerNomProjet(); S.arret=false; S.page=$('page').valueAsNumber||1; etat('OCR page '+S.page+'…'); chargeOn('OCR page '+S.page+'…')
+  try{ await ocr(S.page); marquerEtat(S.page,'termine'); rendre(); etat('page '+S.page+' : '+S.pages[S.page].lignes.length+' lignes'); await sauver(true) }
+  catch(e){ if(!S.arret){ marquerEtat(S.page,'erreur',e.message); journaliser(S.page,e.message); await sauver(true) } rendre(); etat(S.arret?'Arrêté.':'échec : '+e.message) }
+  finally{ chargeOff() } }
+// Naviguer d'une page à l'autre (scan + texte). Si la page n'est pas encore océrisée, on l'OCRise.
+async function allerPage(n){
+  if(n<1 || (S.total && n>S.total)) return
+  S.page=n; $('page').value=n
+  if(S.pages[n] && S.pages[n].lignes){ rendre(); etat('page '+n); return } // déjà océrisée → simple affichage
+  assurerNomProjet(); S.arret=false; chargeOn('OCR page '+n+'…')
+  try{ await ocr(n); marquerEtat(n,'termine'); rendre(); etat('page '+n+' : '+S.pages[n].lignes.length+' lignes'); await sauver(true) }
+  catch(e){ if(!S.arret){ marquerEtat(n,'erreur',e.message); journaliser(n,e.message); await sauver(true) } rendre(); etat(S.arret?'Arrêté.':'échec : '+e.message) }
+  finally{ chargeOff() }
+}
+$('prec').onclick=()=>allerPage(S.page-1)
+$('suiv').onclick=()=>allerPage(S.page+1)
+// Feuilletage (flèches sur l'image) : va à la page précédente/suivante QUI A UNE IMAGE, en
+// sautant les pages jamais océrisées ou en erreur, et sans relancer d'OCR (revue seulement).
+// L'OCR séquentiel reste sur « ‹ page / page › » et « OCR cette page » de la barre du haut.
+function pagesAvecImage(){ return Object.keys(S.pages).map(Number)
+  .filter(n=>S.pages[n]&&S.pages[n].pngUrl&&Array.isArray(S.pages[n].lignes)&&S.pages[n].lignes.length)
+  .sort((a,b)=>a-b) }
+function feuilleter(sens){ const n=S.page+sens; if(n<1||(S.total&&n>S.total)) return
+  S.page=n; $('page').value=n; rendre(); etat('page '+n) } // affiche l'OCR si fait, sinon l'aperçu
+$('navPrec').onclick=()=>feuilleter(-1)
+$('navSuiv').onclick=()=>feuilleter(1)
+$('page').onchange=()=>allerPage($('page').valueAsNumber||1)
+
+// OCR d'un lot. Persistance APRÈS CHAQUE page → reprise garantie (au pire, une page perdue).
+// `cibles` = liste explicite (relancer les erreurs) ; sinon on prend la plage en SAUTANT les faites.
+async function ocrDocument(cibles){
+  assurerNomProjet()
+  const de=$('de').valueAsNumber||1, a=$('a').valueAsNumber||de
+  if(!cibles) perimetreAjouter(rangeInclus(de,a)) // Phase 2 : la plage demandée définit le lot (même les pages déjà faites)
+  const liste = cibles || pagesATraiter(de,a) // reprise automatique : on saute les pages « terminé »
+  if(!liste.length){ etat('Rien à traiter : toutes les pages de la plage sont déjà faites.'); majProgres(de,a); return }
+  S.arret=false; $('ocrDoc').disabled=true; $('ocrPage').disabled=true; $('btnRelancerErr').disabled=true
+  majProgres(de,a); let ok=0, ko=0, i=0
+  try{
+    // OCR par PAQUETS. Contrairement à la relecture IA (attente pure), Kraken et Tesseract
+    // CALCULENT sur cette machine : le gain vient du recouvrement entre le démarrage d'un
+    // processus (import PyTorch + chargement du modèle, ~17 s mesurés en P13) et le calcul du
+    // précédent. Il est donc réel mais borné, et le parallélisme reste modeste pour ne pas
+    // épuiser la VRAM (repli CPU automatique déjà en place) ni noyer la machine.
+    // Tout ce qui faisait la robustesse est préservé : état PAR PAGE, journal, reprise,
+    // sauvegarde après chaque paquet, arrêt entre deux paquets.
+    // 3 : MESURÉ sur 3 pages Kraken d'un imprimé de 1604 — séquentiel 108 s, 2 de front 78 s
+    // (×1,38), 3 de front 41 s (×2,63). Réglable si la machine change (`cs_ocr_front`).
+    const FRONT_OCR = Math.max(1, Number(localStorage.getItem('cs_ocr_front')) || 3)
+    const t0 = Date.now()
+    const ecoule = () => { const s=Math.round((Date.now()-t0)/1000); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0') }
+    for(let k=0; k<liste.length && !S.arret; k+=FRONT_OCR){
+      const paquet = liste.slice(k, k+FRONT_OCR)
+      const msg = `OCR — page${paquet.length>1?'s':''} ${paquet.join(', ')} (${i+1}-${i+paquet.length}/${liste.length}) · ${ecoule()} écoulé`
+      etat(msg); chargeOn(msg)
+      // `ocr(n)` écrit dans S.pages[n] : chaque page a sa clé, aucune collision. Une page en
+      // erreur n'emporte pas le paquet — son état et son journal restent les siens.
+      await Promise.all(paquet.map(n =>
+        ocr(n).then(() => { marquerEtat(n,'termine'); ok++ })
+              .catch(e => { if(!S.arret){ marquerEtat(n,'erreur',e.message); journaliser(n,e.message); ko++ } })))
+      i += paquet.length
+      const dernier = paquet[paquet.length-1]
+      S.page=dernier; $('page').value=dernier; rendre()
+      await sauver(true)          // ← persistance après chaque paquet
+      majProgres(de,a)
+    }
+  } finally {
+    $('ocrDoc').disabled=false; $('ocrPage').disabled=false; $('btnRelancerErr').disabled=false; chargeOff(); majProgres(de,a)
+  }
+  etat(S.arret ? `Arrêté — ${ok} page(s) faite(s) ; « OCR document » reprend là où on s'est arrêté.` : `Terminé — ${ok} page(s), ${ko} erreur(s).`)
+}
+$('ocrDoc').onclick=()=>ocrDocument(null)
+// « Tout océriser » : la plage entière du document, sans saisie. Cale les champs « de/à » sur le
+// document réel puis réutilise ocrDocument — donc la reprise (pages déjà faites sautées), la
+// sauvegarde après chaque page et l'arrêt propre restent acquis.
+$('ocrTout').onclick=()=>{
+  const total=Number(S.total)||Number($('a').value)||1
+  if(total<1){ etat('aucune page à océriser : analyse d\'abord un document'); return }
+  $('de').value=1; $('a').value=total
+  const reste=pagesATraiter(1,total)
+  if(!reste.length){ etat(`Rien à faire : les ${total} page(s) sont déjà océrisées (ou exclues).`); return }
+  etat(`Tout océriser : ${reste.length} page(s) restante(s) sur ${total}.`)
+  ocrDocument(reste) }
+$('btnRelancerErr').onclick=()=>ocrDocument(pagesEnErreur())
+// « Trier les pages (IA) » (classement des pages en planches par l'IA) : fonction et endpoints RETIRÉS
+// le 2026-08-10 — trop lents et redondants avec la détection déterministe des pages inutiles après OCR.
+$('btnControleIA').onclick=controlerOcrIA
+
+// ── Prétraitement expérimental + comparaison A/B ─────────────────────────────
+function collecterPretraitement(){
+  const p={ gris:$('p_gris').checked, contraste:$('p_contraste').checked, deskew:$('p_deskew').checked,
+    binariser:$('p_binariser').checked, debruiter:$('p_debruiter').checked, rogner:$('p_rogner').checked, demiPage:$('p_demi').value||undefined }
+  return (p.gris||p.contraste||p.deskew||p.binariser||p.debruiter||p.rogner||p.demiPage) ? p : null
+}
+async function comparer(){
+  const chemin=$('chemin').value.trim(); if(!chemin){ etat('choisis d\'abord un fichier'); return }
+  if(S.kind!=='imprime'){ etat('la comparaison est prévue pour l\'imprimé (PDF)'); return }
+  const pre=collecterPretraitement(); if(!pre){ etat('coche au moins une option de prétraitement à comparer'); return }
+  const n=$('page').valueAsNumber||1
+  const moteur=($('typo')&&$('typo').value==='ancien')?'kraken-print':'tesseract'
+  chargeOn('Comparaison page '+n+' (2 OCR)…')
+  try{
+    const r=await api('/api/atelier/comparer',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({pdfWin:chemin,page:n,dpi:300,lang:langueOcr(),moteur,pretraitement:pre})})
+    const o=r.original, p=r.pretraite
+    const verdict=(p.confMoy!=null&&o.confMoy!=null)?(p.confMoy>o.confMoy?'✅ AMÉLIORE':(p.confMoy<o.confMoy?'⚠ DÉGRADE':'≈ égal')):''
+    $('compHint').textContent=`confiance moy : original ${o.confMoy} · prétraité ${p.confMoy} — ${verdict} (indice ; vérifie à l'œil)`
+    $('compTeteA').textContent=`ORIGINAL — ${o.nbLignes} lignes, confiance ${o.confMoy}`
+    $('compTeteB').textContent=`PRÉTRAITÉ — ${p.nbLignes} lignes, confiance ${p.confMoy}`
+    $('compTexteA').textContent=o.texte; $('compTexteB').textContent=p.texte
+    $('comparateur').style.display='block'; etat('comparaison affichée')
+  }catch(e){ etat('comparaison échouée : '+e.message) }
+  finally{ chargeOff() }
+}
+$('btnComparer').onclick=comparer
+$('compFermer').onclick=()=>{ $('comparateur').style.display='none' }
+// Redimensionnement de la fenêtre : on recalcule l'échelle de l'image et des boîtes.
+let tResize; window.addEventListener('resize',()=>{ clearTimeout(tResize); tResize=setTimeout(()=>{ if(S.pages[S.page]) rendre() },150) })
+// « Arrêter » : marque l'arrêt côté client ET tue l'OCR WSL en cours côté serveur.
+$('chargeStop').onclick=async()=>{ S.arret=true; $('chargeStop').disabled=true; $('chargeTexte').textContent='Arrêt en cours…'; try{ await api('/api/atelier/stop',{method:'POST'}) }catch{} }
+
+// ── Persistance & export ────────────────────────────────────────────────────
+function projetActuel(){ const p={ kind:S.kind, chemin:$('chemin').value.trim(), page:S.page, total:S.total, pages:S.pages, meta:collecterMeta(), journal:S.journal||[] }; if(S.garde) p._garde=S.garde; if(S.workflow) p.workflow=S.workflow; if(S.profil) p.profil=S.profil; if(S.perimetre&&S.perimetre.pages&&S.perimetre.pages.length) p.perimetre=S.perimetre
+  // Le CONTRÔLE IA coûte ~30-45 s par page : une passe de trente pages, c'est vingt minutes de
+  // relecture par le modèle. Elle n'était gardée qu'en mémoire — fermer la fenêtre la perdait, et
+  // il fallait tout repayer. On la persiste avec le projet (sans les findings déjà tranchés, qui
+  // ne servent plus à rien : seuls restent ceux qui attendent encore une décision).
+  if(S.controle&&Array.isArray(S.controle.findings)){
+    const enAttente=S.controle.findings.filter(f=>!['confirme_humain','modifie_humain','refuse'].includes(f.statut))
+    p.controle={ ...S.controle, findings:enAttente, garde_le:new Date().toISOString() }
+  }
+  return p }
+// Champs = colonnes de la table `oeuvres` du site (correspondance exacte).
+const CHAMPS_META=['auteur','titre','sous_titre','titre_original','langue_originale','langue_trad','trad_auteur','editeur','collection','ville','date_publication','date_composition','genre']
+const vMeta=c=>$('m_'+c).value.trim()||null
+function collecterMeta(){ const o={}; CHAMPS_META.forEach(c=>o[c]=vMeta(c)); return o }
+function remplirMeta(m, auto){ if(!m)return
+  // Compat. anciens projets : traducteur→trad_auteur, lieu→ville, date_edition→date_publication.
+  const compat={ ...m, trad_auteur:m.trad_auteur??m.traducteur, ville:m.ville??m.lieu,
+    date_publication:m.date_publication??m.date_edition,
+    langue_originale:m.langue_originale??((m.langues||[]).find(l=>/lat|grec/i.test(l))||null) }
+  // `auto` (dépôt / bouton Extraire) marque le champ comme deviné par le PARSEUR : « IA titre » pourra
+  // le remplacer. Sans `auto` (réouverture de projet), les valeurs sont établies et non remplaçables.
+  CHAMPS_META.forEach(c=>{ const el=$('m_'+c); el.value=compat[c]||''; el.classList.remove('meta-ia')
+    if(auto && el.value.trim()) el.classList.add('meta-auto'); else el.classList.remove('meta-auto') }) }
+// Parcourir = sélecteur NATIF du navigateur (fiable, dans la session de l'utilisateur),
+// puis téléversement des octets. Le glisser-déposer emprunte le même chemin.
+function parcourir(){ $('fichierLocal').click() }
+async function televerser(file){
+  if(!file) return
+  etat('téléversement de '+file.name+'…')
+  try{
+    const r=await fetch('/api/televerser?nom='+encodeURIComponent(file.name),{method:'POST',body:file})
+    const j=await r.json(); if(!r.ok) throw new Error(j.erreur||r.statusText)
+    $('chemin').value=j.chemin
+    // Nature devinée : image → manuscrit (Kraken) ; PDF → imprimé (Tesseract). Modifiable.
+    const estImg=/\.(png|jpe?g|tiff?|webp)$/i.test(j.nom||file.name)
+    $('kind').value=estImg?'manuscrit':'imprime'; $('kind').onchange()
+    etat('fichier reçu : '+j.nom); analyser()
+  }catch(e){ etat('échec du téléversement : '+e.message) }
+}
+$('fichierLocal').onchange=e=>{ televerser(e.target.files[0]); e.target.value='' };
+// Glisser-déposer (fenêtre entière) : surbrillance via un compteur, dépôt → téléversement.
+let dragN=0;
+function aDesFichiers(e){ return e.dataTransfer && Array.from(e.dataTransfer.types||[]).includes('Files') }
+window.addEventListener('dragenter',e=>{ if(aDesFichiers(e)){ e.preventDefault(); dragN++; $('drop').style.display='flex' } });
+window.addEventListener('dragover',e=>{ if(aDesFichiers(e)) e.preventDefault() });
+window.addEventListener('dragleave',()=>{ dragN=Math.max(0,dragN-1); if(!dragN) $('drop').style.display='none' });
+window.addEventListener('drop',e=>{ dragN=0; $('drop').style.display='none';
+  if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files.length){ e.preventDefault(); televerser(e.dataTransfer.files[0]) } });
+async function extraireMeta(){ const chemin=$('chemin').value.trim(); if(!chemin){ $('etatMeta').textContent='choisis d\'abord un fichier'; return }
+  $('main').classList.remove('meta-replie') // déplier si besoin
+  $('etatMeta').textContent='extraction (pdfinfo + page de titre)…'; chargeOn('Lecture de la page de titre…')
+  try{ const r=await api('/api/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin})})
+    remplirMeta(r.meta, true); $('etatMeta').textContent='✓ à relire/compléter'; planifierSave() }
+  catch(e){ $('etatMeta').textContent='échec : '+e.message }
+  finally{ chargeOff() } }
+// Diagnostic IA — complète les métadonnées VIDES en lisant la page de titre par vision (cloud, avec
+// consentement). Ne remplace jamais un champ déjà rempli à la main ; marque les champs proposés par l'IA.
+// Panneau « détails de la lecture IA » : moteur, ce qui a été LU sur l'image, et ce qui vient du
+// CATALOGUE (auteur/œuvre trouvés, ou « aucune correspondance »). Rend visible ce qui se passe.
+function rendreDiagIA(r){ const d=$('metaDiag'), c=$('metaDiagCorps'); if(!d||!c)return
+  const esc=s=>String(s==null?'':s).replace(/[&<>]/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[x]))
+  const m=(r&&r.meta_ia)||{}, enr=(r&&r.enrichissement)||{}, dg=enr.diagnostic||{}
+  let h='<div class="dg-sec">Moteur</div>'+esc(r.fournisseur||'?')+' · modèle '+esc(r.modele||'?')+' · confiance '+(r.confiance==null?'—':esc(r.confiance))
+  if(r.motif) h+='<br><span class="dg-vide">'+esc(r.motif)+'</span>'
+  if(r.erreur) h+='<br><span class="dg-vide">erreur : '+esc(r.erreur)+'</span>'
+  h+='<div class="dg-sec">Lu sur l’image</div>'
+  const lus=Object.keys(m); h+=lus.length?lus.map(k=>esc(k)+' = <code>'+esc(m[k])+'</code>').join('<br>'):'<span class="dg-vide">rien</span>'
+  h+='<div class="dg-sec">Catalogue (ta base)</div>'
+  if(dg.base===false){ h+='<span class="dg-vide">base non interrogée</span>' }
+  else{ h+=dg.auteur?('auteur → <code>'+esc(dg.auteur.nom)+'</code> ('+esc(dg.auteur.id_auteur)+')'):'<span class="dg-vide">auteur : aucune correspondance</span>'
+    h+='<br>'+(dg.oeuvre?('œuvre → titre original <code>'+esc(dg.oeuvre.titre_original)+'</code> <small>('+esc(dg.oeuvre.source)+')</small>'):'<span class="dg-vide">œuvre : aucune correspondance</span>') }
+  c.innerHTML=h; d.style.display='block' }
+async function completerMetaIA(){ const chemin=$('chemin').value.trim(); if(!chemin){ $('etatMeta').textContent='choisis d\'abord un fichier'; return }
+  await chargerEtatIA()
+  const f=S.ia&&S.ia.fournisseur
+  if(!f||!f.cloud){ $('etatMeta').textContent='IA locale (mock) : pas de lecture cloud. Configure un fournisseur pour l\'utiliser.'; return }
+  if(!f.dispo){ $('etatMeta').textContent='fournisseur cloud sans clé : rien n\'est envoyé.'; return }
+  if(!consentementValideClient()){ const ok=await demanderConsentement(); if(!ok){ $('etatMeta').textContent='resté en local : aucune lecture cloud.'; return } }
+  $('main').classList.remove('meta-replie')
+  const page=S.page||1 // on lit LA PAGE AFFICHÉE (navigue jusqu'à la vraie page de titre, puis convoque l'IA)
+  $('etatMeta').textContent='lecture IA de la page '+page+'…'
+  const lignesCour=(S.pages&&S.pages[S.page]&&S.pages[S.page].lignes)||[]
+  const texteTitre=lignesCour.map(l=>l.dip||l.texte||'').join('\n')
+  $('etatMeta').textContent='lecture IA de la page de titre…'; chargeOn('Lecture IA de la page de titre…')
+  try{ const r=await api('/api/ia/metadonnees',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:chemin,page,texteTitre})})
+    console.log('IA titre — réponse:', r) // diagnostic (visible dans la console F12)
+    if(!r.ia_active){ $('etatMeta').textContent='IA non active ('+(r.motif||'—')+')'; rendreDiagIA(r); return }
+    const m=r.meta_ia||{}, enr=r.enrichissement||{}; let n=0, e=0
+    // Lu sur l'image : remplace les champs VIDES ou devinés par le parseur (meta-auto) ; jamais une saisie.
+    CHAMPS_META.forEach(c=>{ const el=$('m_'+c); if(!el)return
+      const remplacable=!el.value.trim()||el.classList.contains('meta-auto')
+      if(m[c]!=null&&String(m[c]).trim()&&remplacable){ el.value=String(m[c]).trim(); el.classList.add('meta-ia'); el.classList.remove('meta-auto'); el.title='proposé par l\'IA (lecture d\'image) — à vérifier'; n++ } })
+    // Niveau 2 — CATALOGUE (ta base) : AMÉLIORE et normalise les champs de l'œuvre (auteur canonique +
+    // id_auteur, titre original, langue, date de composition, sous-titre, genre). Écrase le LU et le
+    // parseur — jamais une saisie manuelle : la base est la référence normalisée.
+    const conn=r.connaissance||{}
+    // NB : pas de sous_titre ici — le sous-titre est une donnée d'ÉDITION (« Nouvelle édition revue et
+    // corrigée »), lue sur la page ; on ne le remplace jamais par le sous-titre canonique du catalogue.
+    const mapEnr={ auteur:enr.auteur_complet, titre_original:enr.titre_original, langue_originale:enr.langue_originale, date_composition:enr.date_composition, genre:enr.genre }
+    Object.keys(mapEnr).forEach(c=>{ const el=$('m_'+c); if(!el)return; const v=mapEnr[c]
+      const remplacable=!el.value.trim()||el.classList.contains('meta-auto')||el.classList.contains('meta-ia')
+      if(v!=null&&String(v).trim()&&remplacable){ el.value=String(v).trim(); el.classList.remove('meta-auto'); el.classList.remove('meta-ia'); el.classList.add('meta-ia-enrichi')
+        el.title='catalogue (ta base)'+(c==='auteur'&&enr.auteur_id?(' — id_auteur '+enr.auteur_id):'')+' — à vérifier'; e++ } })
+    // Niveau 3 — CONNAISSANCE de l'IA (« internet ») : comble ce que la PAGE et le CATALOGUE n'ont pas donné.
+    const mapConn={ titre_original:conn.titre_original, langue_originale:conn.langue_originale, date_composition:conn.date_composition, auteur:conn.auteur_complet, genre:conn.genre }; let k=0
+    Object.keys(mapConn).forEach(c=>{ const el=$('m_'+c); if(!el)return; const v=mapConn[c]
+      const vide=!el.value.trim()||el.classList.contains('meta-auto') // seulement si page/base n'ont rien mis
+      if(v!=null&&String(v).trim()&&vide){ el.value=String(v).trim(); el.classList.remove('meta-auto'); el.classList.add('meta-ia-conn'); el.title='connaissance de l\'IA (hors page et base) — à vérifier'; k++ } })
+    if(r.abstention&&!n&&!e&&!k){ $('etatMeta').textContent='IA ('+(r.fournisseur||'?')+') s\'est abstenue'+(r.erreur?(' : '+r.erreur):' (page non lisible / pas une page de titre)')+' — rien ajouté.' }
+    else $('etatMeta').textContent='✓ IA : '+n+' lu(s)'+(e?(' · '+e+' catalogue'):'')+(k?(' · '+k+' connaissance'):'')+(enr.auteur_id?(' · auteur '+enr.auteur_id):'')+' — à vérifier'+(r.confiance!=null?(' (conf. '+r.confiance+')'):'')
+    rendreDiagIA(r)
+    if(n||e||k){ planifierSave() }
+  }catch(e){ $('etatMeta').textContent='échec IA : '+e.message }
+  finally{ chargeOff() } }
+// Replier / déplier la colonne des métadonnées.
+$('btnParcourir').onclick=parcourir
+$('btnMeta').onclick=extraireMeta
+$('btnMetaIA').onclick=completerMetaIA
+// Onglets du volet gauche : on DÉPLACE les contrôles existants dans les panneaux (id conservés).
+;(function(){
+  const pOcr=$('panelOcrCorps'), pPre=$('panelPreCorps'), pExp=$('panelExportCorps')
+  // Réglage OCR : Typo, bilingue (en regard), latin = page…
+  // Réglages OCR, dans un ordre qui suit la décision : quel moteur, quelle langue, quelle mise en
+  // page. Chacun porte son intitulé (classe « reglage »), aucun contrôle nu.
+  for(const id of ['lblTypo','lblLangOcr','lblBilingue','lblOffset']) if($(id)) pOcr.append($(id))
+  // Prétraitement : la barre entière (rendue visible dans le panneau)
+  if($('barrePre')){ $('barrePre').style.display='flex'; pPre.append($('barrePre')) }
+  // Export : barre projet/export + exports avancés
+  if($('barreExport')) pExp.append($('barreExport'))
+  if($('barreAvance')){ $('barreAvance').style.display='flex'; pExp.append($('barreAvance')) }
+})()
+// ── Réglages OCR : trois notions distinctes, rendues cohérentes ───────────────────────────────
+// La langue était CODÉE EN DUR à « fra » : un texte latin était donc reconnu en français, sans
+// aucun moyen de le dire. Elle est désormais réglable — mais elle ne concerne QUE Tesseract :
+// Kraken lit d'après son modèle (CATMuS-Print), la langue n'y a aucun effet. On le montre plutôt
+// que de laisser un réglage qui ne fait rien. Seules les langues réellement installées dans WSL
+// (fra, lat) sont proposées.
+function langueOcr(){ const v=$('langOcr')&&$('langOcr').value; return v||'fra' }
+function majReglagesOcr(){
+  const ancien = $('typo') && $('typo').value === 'ancien'
+  const lbl = $('lblLangOcr'), sel = $('langOcr')
+  if(lbl && sel){
+    sel.disabled = ancien
+    lbl.style.opacity = ancien ? '0.5' : ''
+    lbl.title = ancien
+      ? 'Sans effet ici : Kraken reconnaît d’après son modèle CATMuS-Print, qui ne se règle pas par langue.'
+      : 'Langue du texte à reconnaître (Tesseract). Seules celles installées sont proposées.'
+  }
+  // L'« original en regard » n'a de sens que si les pages en regard sont déclarées.
+  const bil = $('bilingue') && $('bilingue').checked
+  if($('lblOffset')) $('lblOffset').style.display = bil ? '' : 'none'
+}
+if($('typo')) $('typo').addEventListener('change', majReglagesOcr)
+if($('bilingue')) $('bilingue').addEventListener('change', majReglagesOcr)
+majReglagesOcr()
+
+// ── Mode COULEUR des rôles ────────────────────────────────────────────────────────────────────
+// Vérifier des centaines de classements en lisant ligne à ligne est impraticable ; en couleur,
+// une manchette prise pour du corps, ou un titre courant oublié, saute aux yeux.
+// Table UNIQUE : [rôle, fond de la ligne de texte, bordure, opacité du voile sur le fac-similé].
+// Elle couvre tout le vocabulaire de `structure.mjs::ROLES` — un rôle oublié ici serait un rôle
+// invisible, donc invérifiable. L'opacité du voile est plus basse pour le corps, les vers et leurs
+// suites : ce sont la MASSE de la page, et le fac-similé doit rester lisible dessous ; les rôles
+// d'exception, eux, doivent sauter aux yeux.
+const COULEURS_ROLES=[['corps','#fdfaf3','#d9cfc0',.13],['vers','#f6f1e4','#cfc4a8',.13],
+  ['continuation_typographique','#f6f1e4','#cfc4a8',.13],
+  ['note_marginale','#f2e2d0','#b07a45',.22],['note_bas_page','#eadcc8','#9a6a3a',.22],
+  ['titre','#e5eef7','#5b86ad',.20],['paratexte_titre','#e0e8f5','#6b7fb5',.20],['titre_courant','#ece7f5','#8b7ab5',.20],
+  ['numero_page','#eef0f2','#8d97a1',.20],['signature','#eef0f2','#8d97a1',.20],['reclame','#e8f0ea','#6f9a7c',.20],
+  ['ornement','#f0e9e9','#a98a8a',.22],['bruit','#eeeaea','#a09595',.22],['indetermine','#f4f0ea','#b8ada0',.18]]
+// Engendre les teintes pour les DEUX surfaces d'un même coup : la ligne de texte et la boîte posée
+// sur le fac-similé. C'est ce qui garantit qu'elles ne peuvent plus diverger.
+// On ne pose que des VARIABLES, jamais un `background` : une règle de teinte est plus spécifique
+// que les règles d'état (`.lg.cible input`, `.box.actif`…) et les écrasait donc toutes — en mode
+// couleur, le surlignage ambre du saut depuis l'onglet Contrôle ne se voyait plus. En passant par
+// une variable, le rôle donne le fond PAR DÉFAUT et tout état le recouvre sans surenchère.
+const rgbDe=(h)=>{ let s=String(h).replace('#',''); if(s.length===3) s=s.split('').map(c=>c+c).join('')
+  return parseInt(s.slice(0,2),16)+','+parseInt(s.slice(2,4),16)+','+parseInt(s.slice(4,6),16) }
+function injecterCouleursRoles(){
+  const regles=[]
+  for(const [role,fond,bord,voile] of COULEURS_ROLES){
+    const rgb=rgbDe(bord)
+    regles.push(`.roles .lg[data-role="${role}"]{--tinte:${fond};--tinte-bord:${bord}}`)
+    regles.push(`.roles .box[data-role="${role}"]{--voile:rgba(${rgb},${voile});--voile-bord:${bord}}`)
+    // En thème sombre, le pastel clair rendrait le texte (clair lui aussi) illisible : on garde la
+    // teinte, mais en VOILE translucide posé sur le fond sombre. Même hue, même lecture d'un coup
+    // d'œil, contraste préservé.
+    regles.push(`:root[data-theme="dark"] .roles .lg[data-role="${role}"]{--tinte:rgba(${rgb},.17);--tinte-bord:rgba(${rgb},.5)}`)
+  }
+  const s=document.createElement('style'); s.id='couleursRoles'; s.textContent=regles.join('\n')
+  document.head.appendChild(s) }
+function rendreLegendeRoles(){ const l=$('legendeRoles'); if(!l)return; l.innerHTML=''
+  const vus=new Set()
+  for(const [role,fond,bord] of COULEURS_ROLES){
+    const lib=LIB_ROLE[role]||role; if(vus.has(lib))continue; vus.add(lib)   // n° de page et marque de cahier partagent la teinte
+    const s=document.createElement('span'); s.innerHTML='<i style="background:'+fond+';border-color:'+bord+'"></i>'+lib
+    l.appendChild(s) }
+  const n=document.createElement('span'); n.style.color='var(--second)'; n.textContent='— bordure en pointillé : suggestion non confirmée'
+  l.appendChild(n) }
+// Mise et retrait à volonté : un bouton dans l'EN-TÊTE (toujours visible, quel que soit l'onglet
+// ouvert) et un raccourci. L'état est retenu d'une session à l'autre, mais rien n'est figé : les
+// couleurs s'enlèvent d'un clic quand on veut lire le texte nu.
+let rolesActifs = false
+function majModeRoles(){
+  document.body.classList.toggle('roles-on', rolesActifs)
+  const vl=$('lignes'), vi=$('voletImage')
+  if(vl) vl.classList.toggle('roles', rolesActifs)
+  if(vi) vi.classList.toggle('roles', rolesActifs)
+  const b=$('btnRoles')
+  if(b){ b.setAttribute('aria-pressed', rolesActifs?'true':'false')
+    b.classList.toggle('actif', rolesActifs)
+    b.title = (rolesActifs?'Retirer les couleurs de rôle':'Colorer les lignes selon leur rôle — corps, note en marge, titre, hors-corps')+' (Ctrl+Maj+C)' }
+  try{ localStorage.setItem('cs_roles_couleur', rolesActifs?'1':'0') }catch{} }
+function basculerRoles(v){ rolesActifs = (v===undefined) ? !rolesActifs : !!v; majModeRoles()
+  etat(rolesActifs?'Couleurs des rôles activées — pointillé = suggestion non confirmée.':'Couleurs des rôles retirées.') }
+if($('btnRoles')){
+  try{ rolesActifs = localStorage.getItem('cs_roles_couleur')==='1' }catch{}
+  $('btnRoles').onclick=()=>basculerRoles()
+  window.addEventListener('keydown',(e)=>{ if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='C'||e.key==='c')){ e.preventDefault(); basculerRoles() } })
+  injecterCouleursRoles(); rendreLegendeRoles(); majModeRoles()
+}
+
+// Bascule d'onglets du volet gauche.
+// ── Bande d'onglets défilante ─────────────────────────────────────────────────────────────────
+// Le voile ne s'affiche que du côté où il RESTE quelque chose à voir : à gauche si l'on a déjà
+// défilé, à droite s'il reste des onglets. Recalculé au défilement et au redimensionnement du volet.
+function majVoilesOnglets(){ const t=$('vtabs'); if(!t)return
+  const debordement = t.scrollWidth - t.clientWidth
+  if(debordement<=2){ t.classList.remove('deb','fin'); return }
+  t.classList.toggle('deb', t.scrollLeft>2)
+  t.classList.toggle('fin', t.scrollLeft < debordement-2) }
+// Amène un onglet à l'écran sans brusquerie : utile quand le code active « Contrôle » tout seul
+// après une passe, alors qu'il est hors de vue.
+function montrerOnglet(b){ if(b&&b.scrollIntoView) b.scrollIntoView({inline:'nearest',block:'nearest',behavior:'smooth'}) }
+if($('vtabs')){
+  const t=$('vtabs')
+  t.addEventListener('scroll', majVoilesOnglets, { passive:true })
+  // Sur une bande horizontale, la molette VERTICALE est le geste naturel : on la convertit.
+  // `behavior:'instant'` est ici DÉLIBÉRÉ. Attention au piège : `'auto'` ne signifie PAS
+  // « instantané », il DÉFÈRE au `scroll-behavior` du CSS — donc au `smooth` du conteneur. Chaque
+  // cran relancerait alors une animation et la bande traînerait derrière la main. Seul `'instant'`
+  // neutralise le smooth. La molette suit le geste ; seul le glissement programmatique glisse.
+  t.addEventListener('wheel',(e)=>{ if(Math.abs(e.deltaY)<=Math.abs(e.deltaX))return
+    const d=t.scrollWidth-t.clientWidth; if(d<=2)return
+    e.preventDefault(); t.scrollBy({ left:e.deltaY, behavior:'instant' }) }, { passive:false })
+  try{ new ResizeObserver(majVoilesOnglets).observe(t) }catch{}
+  // Le premier calcul doit attendre que la mise en page soit posée : mesuré trop tôt, le
+  // débordement n'existe pas encore et le voile de droite manquait au chargement. On repasse donc
+  // après le rendu, après le chargement complet, et quand les polices arrivent (elles changent la
+  // largeur des libellés).
+  requestAnimationFrame(()=>requestAnimationFrame(majVoilesOnglets))
+  window.addEventListener('load', majVoilesOnglets)
+  try{ document.fonts && document.fonts.ready.then(majVoilesOnglets) }catch{}
+}
+document.querySelectorAll('#vtabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#vtabs button').forEach(x=>x.classList.toggle('actif', x===b))
+  montrerOnglet(b)
+  const t=b.dataset.t
+  ;[['meta','panelMeta'],['pre','panelPre'],['ocr','panelOcr'],['ctrl','panelControle'],['exp','panelExport']].forEach(([k,id])=>{ $(id).style.display=(k===t)?'':'none' })
+  if(t==='ctrl') rendreVoletControle()
+})
+;[...document.querySelectorAll('#metaCorps input')].forEach(i=>i.oninput=()=>{ i.classList.remove('meta-ia'); i.classList.remove('meta-auto'); i.classList.remove('meta-ia-enrichi'); i.classList.remove('meta-ia-conn'); planifierSave() })
+let tSave
+function planifierSave(){ if(!$('projet').value.trim())return; clearTimeout(tSave); tSave=setTimeout(()=>sauver(true),1200) }
+function majEtatSave(t){ const a=$('etatSave'), b=$('etatSaveHeader'); if(a)a.textContent=t; if(b)b.textContent=t }
+async function sauver(auto){
+  const nom=$('projet').value.trim(); if(!nom){ if(!auto)majEtatSave('donne un nom de projet'); return }
+  if(!auto)majEtatSave('enregistrement…')
+  try{ await api('/api/projet/save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel()})})
+    majEtatSave('enregistré '+new Date().toLocaleTimeString()) }
+  catch(e){ majEtatSave('échec : '+e.message) }
+}
+async function listerProjets(){ try{ const {projets}=await api('/api/projet/list')
+  $('listeProjets').innerHTML='<option value="">—</option>'+projets.map(p=>`<option>${p}</option>`).join('') }catch{} }
+async function ouvrirProjet(nom){
+  const {projet}=await api('/api/projet/load?nom='+encodeURIComponent(nom))
+  S.kind=projet.kind||'imprime'; $('kind').value=S.kind; $('chemin').value=projet.chemin||''
+  S.pages=projet.pages||{}; S.total=projet.total||null; S.journal=projet.journal||[]; S.garde=projet._garde||null
+  S.perimetre=projet.perimetre||{pages:[]}; S.chemin=projet.chemin||$('chemin').value.trim()||null // Phase 2 : périmètre de travail restauré
+  S.workflow=projet.workflow||null
+  // Contrôle IA repris là où on l'avait laissé : sans cela, rouvrir un projet effaçait des dizaines
+  // de minutes de relecture par le modèle et il fallait tout repayer.
+  S.controle=projet.controle&&Array.isArray(projet.controle.findings)?projet.controle:null
+  S.validation=null
+  // Phase 2 : recalcule l'étape OCR selon le périmètre/lot (corrige les vieux projets restés « en cours
+  // · 579 manquantes »), SANS périmer l'aval au simple chargement. Sinon simple rendu.
+  if(S.workflow&&Object.keys(S.pages).some(k=>pageFaite(Number(k)))) apresOcrWorkflow(false); else rendreBarreEtapes()
+  // Ouvre sur une page RÉELLE : la page enregistrée si elle a du contenu, sinon la 1re page avec
+  // image (évite d'atterrir sur une page en erreur, ex. banc où projet.page pointe une page ratée).
+  { const avecImg=Object.keys(S.pages).map(Number).filter(n=>S.pages[n]?.pngUrl&&S.pages[n]?.lignes?.length).sort((a,b)=>a-b)
+    const toutes=Object.keys(S.pages).map(Number).sort((a,b)=>a-b)
+    S.page=(projet.page&&S.pages[projet.page]?.lignes?.length)?projet.page:(avecImg[0]||toutes[0]||1) }
+  $('page').value=S.page; $('projet').value=nom; $('onglets').style.display=(S.kind==='manuscrit')?'flex':'none'
+  $('lblTypo').style.display=(S.kind==='imprime')?'flex':'none'
+  remplirMeta(projet.meta)
+  // Reprise : la plage couvre tout l'ouvrage connu ; la progression reflète l'état réel sur disque.
+  const maxP=Math.max(S.total||0, ...Object.keys(S.pages).map(Number), 1)
+  $('de').value=1; $('a').value=maxP; majProgres(1,maxP); majValidees()
+  rendre(); const {fait,err}=compterEtats(1,maxP)
+  let noteCtrl=''
+  if(S.controle&&S.controle.findings.length){
+    // On reclasse sans rappeler l'IA : la validation est un calcul local sur des findings déjà payés.
+    lancerValidation()
+    noteCtrl=` — contrôle IA repris : ${S.controle.findings.length} proposition(s) encore à trancher`
+  }
+  etat(`projet « ${nom} » chargé — ${fait} page(s) faite(s), ${err} en erreur. « OCR document » reprend.${noteCtrl}`)
+}
+$('btnSave').onclick=()=>sauver(false)
+$('btnSaveHeader').onclick=()=>sauver(false)
+// Ctrl+S (ou Cmd+S) = Enregistrer, partout dans l'atelier.
+window.addEventListener('keydown',(e)=>{ if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&(e.key==='s'||e.key==='S')){ e.preventDefault(); sauver(false) } })
+$('listeProjets').onchange=()=>{ const n=$('listeProjets').value; if(n)ouvrirProjet(n) }
+$('btnExport').onclick=async()=>{
+  const nom=$('projet').value.trim()||'export'; $('etatExport').textContent='export (DOCX + SQL + JSON + TXT + Markdown)…'
+  try{ const r=await api('/api/export',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({nom,projet:projetActuel(),id_oeuvre:$('idoeuvre').value.trim()||null,recenserNotes:$('chkNotes').checked})})
+    const f=r.fichiers||{}; $('etatExport').textContent=`✓ ${r.nbSegments} segments → ${nom} .docx + .supabase.sql + .json + .txt + .md (dossier exports/)` }
+  catch(e){ $('etatExport').textContent='échec : '+e.message }
+}
+$('btnExportXml').onclick=async()=>{
+  const nom=$('projet').value.trim()||'export'; $('etatExport').textContent='export ALTO / PAGE…'
+  try{ const r=await api('/api/export/xml',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel(),couche:S.couche})})
+    $('etatExport').textContent=r.nbPages?`✓ ALTO + PAGE : ${r.nbPages} page(s), ${r.nbLignes} ligne(s) → exports/${nom}-xml/`:'aucune page océrisée à exporter' }
+  catch(e){ $('etatExport').textContent='échec : '+e.message }
+}
+// ── Données d'entraînement Kraken : valider une page relue + exporter les corrections ─────────
+function majValidees(){ const n=Object.keys(S.pages).filter(k=>S.pages[k]?.valide_humain).length; $('nbValidees').textContent=n?`${n} validée(s) humain`:'' }
+$('btnValider').onclick=()=>{ const n=S.page, pg=S.pages[n]
+  if(!pg||!pg.lignes||!pg.lignes.length){ etat('rien à valider : page pas encore océrisée'); return }
+  if(pg.valide_humain){ // dé-valider (bascule)
+    pg.valide_humain=false; pg.valide=false; pg.lignes.forEach(l=>l.valide_humain=false)
+    majValidees(); rendre(); sauver(true); etat(`page ${n} : validation humaine retirée`); return }
+  let ok=0, incert=0
+  pg.lignes.forEach(l=>{ if(l.incertain){ l.valide_humain=false; incert++ }
+    else if(String(l.dip??'').trim()){ l.valide_humain=true; ok++ } else l.valide_humain=false })
+  pg.valide_humain=true; pg.valide=true // compat export entraînement
+  majValidees(); rendre(); sauver(true)
+  etat(`page ${n} validée (humain) : ${ok} ligne(s)${incert?`, ${incert} incertaine(s) exclue(s)`:''}`) }
+$('btnExportEntr').onclick=async()=>{ const nom=$('projet').value.trim()||'entrainement'; $('etatExport').textContent='export entraînement…'
+  try{ const r=await api('/api/export/entrainement',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel()})})
+    $('etatExport').textContent=r.nbPages?`✓ entraînement : ${r.nbPages} page(s), ${r.nbLignes} ligne(s) (${r.nbCorrigees} corrigées) → exports/entrainement/${nom}/`:'aucune page validée — clique « ✓ Valider la page » d\'abord' }
+  catch(e){ $('etatExport').textContent='échec : '+e.message } }
+$('btnAnalyseStruct').onclick=async()=>{ $('etatExport').textContent='analyse de la structure…'
+  try{ const r=await api('/api/atelier/analyser',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({projet:projetActuel()})})
+    let n=0
+    for(const k of Object.keys(r.pages||{})){ const src=r.pages[k].lignes||[], dst=(S.pages[k]&&S.pages[k].lignes)||[]
+      src.forEach((l,i)=>{ if(dst[i]&&l.suggestion){ dst[i].suggestion=l.suggestion; if(l.suggestion.role_suggere)n++ } }) }
+    rendre(); planifierSave(); $('etatExport').textContent=`✓ structure analysée : ${n} suggestion(s) (à confirmer ligne par ligne)` }
+  catch(e){ $('etatExport').textContent='analyse échouée : '+e.message } }
+$('btnExportBanc').onclick=async()=>{ const nom=$('projet').value.trim()||'banc'; $('etatExport').textContent='export du banc…'
+  try{ const r=await api('/api/export/banc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel()})})
+    $('etatExport').textContent=`✓ banc : ${r.nbPages} page(s), ${r.nbLignes} ligne(s), ${r.nbCaracteres} caractères → bancs/${nom}/` }
+  catch(e){ $('etatExport').textContent='banc refusé : '+e.message+' (valide les pages à la main d\'abord)' } }
+// Enregistre un contenu où l'utilisateur veut : ouvre le sélecteur natif « Enregistrer
+// sous » (File System Access API, dispo en contexte 127.0.0.1) ; repli = téléchargement
+// classique (dossier Téléchargements) si l'API manque. Renvoie 'enregistre'|'annule'|'telecharge'.
+async function enregistrerFichier(nomSuggere, contenu, mime){
+  const ext='.'+((nomSuggere.split('.').pop())||'txt')
+  if(window.showSaveFilePicker){
+    let handle
+    try{ handle=await window.showSaveFilePicker({ suggestedName:nomSuggere, types:[{description:'Fichier', accept:{[mime||'text/plain']:[ext]}}] }) }
+    catch(e){ if(e&&e.name==='AbortError') return 'annule'; throw e }
+    const w=await handle.createWritable(); await w.write(contenu); await w.close(); return 'enregistre'
+  }
+  const blob=new Blob([contenu],{type:mime||'text/plain'}); const url=URL.createObjectURL(blob)
+  const a=document.createElement('a'); a.href=url; a.download=nomSuggere; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); return 'telecharge'
+}
+$('btnExportComparaison').onclick=async()=>{ const nom=$('projet').value.trim()||'export'; $('etatExport').textContent='extraction OCR IA vs mécanique…'
+  try{ const r=await api('/api/export/comparaison',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({nom,projet:projetActuel(),date:new Date().toLocaleString('fr-FR')})})
+    const u=r.resume||{}, resume=`${u.modifiees||0} ligne(s) modifiée(s) (dont ${u.avec_s_long||0} « ſ »)`
+    const sort=await enregistrerFichier(r.nomFichier||(nom+'.comparaison-ocr.md'), r.md||'', 'text/markdown')
+    if(sort==='annule') $('etatExport').textContent='enregistrement annulé (une copie reste dans exports/)'
+    else if(sort==='telecharge') $('etatExport').textContent=`✓ comparaison : ${resume} — téléchargée`
+    else $('etatExport').textContent=`✓ comparaison : ${resume} — enregistrée` }
+  catch(e){ $('etatExport').textContent='échec : '+(e&&e.message||e) } }
+// §10 — rapport de contrôle après triage. Il se lit à l'envers du précédent : d'abord ce qu'il reste
+// à faire, ensuite seulement ce que la machine a décidé sans nous.
+$('btnExportTriage').onclick=async()=>{ const nom=$('projet').value.trim()||'export'
+  if(!S.controle||!Array.isArray(S.controle.findings)){ $('etatExport').textContent='lance d’abord le contrôle IA (étape 3)'; return }
+  $('etatExport').textContent='rapport de contrôle…'
+  try{ const T=S.controle.triage||{}
+    const r=await api('/api/export/triage',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({nom,projet:projetActuel(),findings:S.controle.findings,date:new Date().toLocaleString('fr-FR'),
+        mode:$('triageAudit')&&$('triageAudit').checked?'audit':'file',
+        lignes_faibles_confirmees:T.lignes_faibles_confirmees||0})})
+    const m=r.mesures||{}, resume=`${m.human_review||0} à vérifier sur ${m.total_candidats||0} proposition(s)`
+    const sort=await enregistrerFichier(r.nomFichier||(nom+'.controle-triage.md'), r.md||'', 'text/markdown')
+    if(sort==='annule') $('etatExport').textContent='enregistrement annulé (une copie reste dans exports/)'
+    else $('etatExport').textContent=`✓ rapport de contrôle : ${resume} — ${sort==='telecharge'?'téléchargé':'enregistré'}` }
+  catch(e){ $('etatExport').textContent='échec : '+(e&&e.message||e) } }
+listerProjets()
+
+// Pré-vol : vérifier que les moteurs sont là, sinon prévenir clairement (plutôt qu'un
+// stderr brut au premier OCR). WSL est requis ; Tesseract sert l'imprimé, Kraken le manuscrit.
+async function preVol(){
+  try{ const d=await api('/api/doctor'); const o=d.outils||{}
+    const g=$('diag')
+    // WSL en panne (sonde échouée/timeout) : ce n'est PAS un vrai manque d'outils → message dédié + remède.
+    if(d.wsl_incident){ g.style.display='flex'; g.textContent='⚠ '+d.wsl_incident; return }
+    const manques=[]
+    if(!o.wsl?.present) manques.push('WSL (indispensable)')
+    if(!o.tesseract?.present) manques.push('Tesseract (imprimé)')
+    if(!o.kraken?.present) manques.push('Kraken (manuscrit)')
+    if(manques.length){ g.style.display='flex'
+      g.textContent='⚠ Outils manquants : '+manques.join(' · ')+' — installe-les (scripts/installer-wsl.sh) avant d’océriser.' }
+  }catch{ /* doctor indisponible : on n’empêche rien */ }
+}
+preVol()
+</script>
+</body>
+</html>
