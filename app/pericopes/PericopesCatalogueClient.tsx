@@ -11,8 +11,8 @@ import { LIVRES, ABREV_FR } from '@/app/lib/bible'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { parsePointCanonique } from '@/app/lib/referencesBibliques'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
+import IconeChevron from '@/app/components/IconeChevron'
 import {
-  chargerNoticePericope,
   libelleCategoriePericope,
   type PericopeCatalogueItem,
 } from '@/app/lib/pericopes'
@@ -154,22 +154,6 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
     })
   }
 
-  // Notices dépliées à la demande (survol « Développer la notice »). Le catalogue ne
-  // charge pas les notices d'emblée : on les récupère une fois, au premier dépli.
-  const [notices, setNotices] = useState<Record<string, 'load' | 'err' | { notice: string | null; contexte: string | null }>>({})
-  const [ouvertes, setOuvertes] = useState<Set<string>>(new Set())
-  const basculerNotice = async (id: string) => {
-    setOuvertes(prev => { const s = new Set(prev); if (s.has(id)) s.delete(id); else s.add(id); return s })
-    if (notices[id]) return
-    setNotices(prev => ({ ...prev, [id]: 'load' }))
-    try {
-      const n = await chargerNoticePericope(id)
-      setNotices(prev => ({ ...prev, [id]: { notice: n.notice, contexte: n.contexte } }))
-    } catch {
-      setNotices(prev => ({ ...prev, [id]: 'err' }))
-    }
-  }
-
   const contenuFiltres = (
     <>
       <div style={{ position: 'relative', marginTop: '2px' }}>
@@ -254,8 +238,8 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         .peri-livre-tete .n { font-family: ${SANS}; font-size: 0.6rem; color: #8a8272; flex-shrink: 0; }
 
         /* Entrée : titre serif à gauche, référence dorée à droite (comme la table d'un
-           livre) ; en dessous, registre en petit gris et « notice » révélé au survol. Les
-           blocs sont compacts mais espacés (row-gap de la grille). */
+           livre) ; en dessous, registre en petit gris et un chevron doré révélé au survol,
+           qui mène à la page de la péricope. Blocs compacts mais espacés (row-gap). */
         .peri-bloc { position: relative; break-inside: avoid; }
         .peri-entree {
           display: block; text-decoration: none; color: inherit;
@@ -268,26 +252,17 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         .peri-ref { flex-shrink: 0; font-family: ${SERIF}; font-size: 0.73rem; color: #b08f48; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .peri-l2 { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 1px; min-height: 0.9rem; }
         .peri-reg { font-family: ${SANS}; font-size: 0.53rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cs-texte-second); }
-        /* « Notice » = une flèche descendante discrète (trait + triangle), révélée au
-           survol et retournée quand la notice est ouverte. */
-        .peri-notice-lien {
-          flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
-          background: none; border: none; padding: 2px 3px; cursor: pointer; line-height: 0;
-          color: #b0975a; opacity: 0; transition: opacity 0.15s ease, color 0.12s ease;
+        /* Affordance de navigation : le chevron du site, doré, révélé au survol du bloc
+           et glissé d'un cran vers la droite — il signale « aller à la péricope ». */
+        .peri-fleche {
+          flex-shrink: 0; display: inline-flex; align-items: center; line-height: 0;
+          color: var(--cs-or); opacity: 0; transform: translateX(-3px);
+          transition: opacity 0.16s ease, transform 0.16s ease;
         }
-        .peri-notice-lien svg { display: block; transition: transform 0.18s ease; }
-        .peri-entree:hover .peri-notice-lien,
-        .peri-notice-lien:focus-visible { opacity: 1; }
-        .peri-notice-lien:hover { color: #7a6030; }
-        .peri-notice-lien[aria-expanded="true"] { opacity: 1; color: #7a6030; }
-        .peri-notice-lien[aria-expanded="true"] svg { transform: rotate(180deg); }
-        @media (hover: none) { .peri-notice-lien { opacity: 0.55; } }
+        .peri-entree:hover .peri-fleche,
+        .peri-entree:focus-visible .peri-fleche { opacity: 1; transform: translateX(0); }
+        @media (hover: none) { .peri-fleche { opacity: 0.5; transform: none; } }
         .peri-via { display: block; margin-top: 2px; font-family: ${SERIF}; font-style: italic; font-size: 0.65rem; color: #a08f5f; }
-        .peri-notice {
-          font-family: ${SERIF}; font-size: 0.76rem; line-height: 1.5; color: #55504a;
-          margin: 3px 0 2px; padding: 6px 0 1px; border-top: 1px dashed ${SEP};
-        }
-        .peri-notice .ctx { display: block; margin-top: 4px; font-style: italic; color: #8a8278; font-size: 0.7rem; }
       `}</style>
       <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: 'stretch', width: '100%' }}>
 
@@ -356,11 +331,9 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
                       <span className="n">{g.list.length}</span>
                     </div>
                     {/* Deux colonnes par livre (une seule en mobile). Chaque entrée mène à sa
-                        page ; « notice » déplie la notice en place. Blocs compacts, espacés. */}
+                        page ; un chevron doré paraît au survol. Blocs compacts, espacés. */}
                     <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', columnGap: '3.5rem', rowGap: '9px', alignItems: 'start' }}>
                       {g.list.map(it => {
-                        const ouverte = ouvertes.has(it.id)
-                        const notice = notices[it.id]
                         const via = viaAppellation[it.id]
                         return (
                           <div key={it.id} className="peri-bloc">
@@ -374,29 +347,12 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
                               </div>
                               <div className="peri-l2">
                                 <span className="peri-reg">{libelleCategoriePericope(it.categorie)}</span>
-                                <button type="button" className="peri-notice-lien" aria-expanded={ouverte}
-                                  aria-label={ouverte ? 'Masquer la notice' : 'Afficher la notice'} title={ouverte ? 'Masquer la notice' : 'Afficher la notice'}
-                                  onClick={e => { e.preventDefault(); e.stopPropagation(); void basculerNotice(it.id) }}>
-                                  <svg width="10" height="12" viewBox="0 0 10 12" fill="none" aria-hidden="true">
-                                    <path d="M5 1.4V6.6" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-                                    <path d="M5 10.4 1.9 6.4H8.1L5 10.4Z" fill="currentColor" />
-                                  </svg>
-                                </button>
+                                <span className="peri-fleche" aria-hidden="true">
+                                  <IconeChevron dir="right" size={13} strokeWidth={1.5} />
+                                </span>
                               </div>
                               {via && <span className="peri-via">trouvé via «&#8239;{via}&#8239;»</span>}
                             </Link>
-                            {ouverte && (
-                              <div className="peri-notice">
-                                {notice === undefined || notice === 'load' ? 'Chargement de la notice…'
-                                  : notice === 'err' ? 'La notice n’a pas pu être chargée.'
-                                  : (notice.notice || notice.contexte) ? (
-                                    <>
-                                      {notice.notice && <span>{rendreTexteEnrichi(notice.notice)}</span>}
-                                      {notice.contexte && <span className="ctx">{rendreTexteEnrichi(notice.contexte)}</span>}
-                                    </>
-                                  ) : 'Aucune notice pour cette péricope.'}
-                              </div>
-                            )}
                           </div>
                         )
                       })}
