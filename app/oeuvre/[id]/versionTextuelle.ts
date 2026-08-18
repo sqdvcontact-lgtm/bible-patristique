@@ -12,6 +12,38 @@ export function labelCourtVersion(version: Pick<VersionTextuelle, 'traducteur' |
   return [personne, version.anneeEdition].filter(Boolean).join(' ')
 }
 
+// Date d'une personne, lue dans `metadata` (les dates de vie d'un traducteur ne
+// sont pas encore une donnée propre du modèle). Accepte un libellé déjà rédigé
+// (`traducteur_dates`), ou un couple naissance/mort.
+function datesTraducteur(metadata: Record<string, unknown> | null | undefined): string | null {
+  if (!metadata) return null
+  const norm = (v: unknown): string | null =>
+    typeof v === 'number' && Number.isFinite(v) ? String(v)
+      : typeof v === 'string' && v.trim() ? v.trim() : null
+  const rediges = norm(metadata.traducteur_dates)
+  if (rediges) return rediges
+  const naissance = norm(metadata.traducteur_naissance)
+  const mort = norm(metadata.traducteur_mort)
+  if (naissance && mort) return `${naissance}–${mort}` // tiret demi-cadratin
+  if (naissance) return `né en ${naissance}`
+  if (mort) return `† ${mort}`
+  return null
+}
+
+// Libellé long d'une version dans le sélecteur « Traductions » : le nom du
+// traducteur, ses dates de vie entre parenthèses si on les connaît, puis
+// « édition de AAAA ». Les dates sont lues dans `metadata` quand elles y sont,
+// sinon omises. Repli propre sur le titre de version puis « Édition ».
+export function libelleVersionComplet(
+  version: Pick<VersionTextuelle, 'traducteur' | 'titre' | 'anneeEdition' | 'metadata'>,
+): string {
+  const nom = version.traducteur?.trim() || null
+  const dates = datesTraducteur(version.metadata)
+  const tete = nom ? (dates ? `${nom} (${dates})` : nom) : (version.titre?.trim() || 'Édition')
+  const annee = version.anneeEdition ? `édition de ${version.anneeEdition}` : null
+  return [tete, annee].filter(Boolean).join(', ')
+}
+
 export function libelleTraducteurVersion(
   version: Pick<VersionTextuelle, 'titre' | 'traducteur'>,
 ) {

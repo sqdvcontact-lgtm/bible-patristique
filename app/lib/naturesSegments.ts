@@ -11,6 +11,9 @@ export const NATURE_VALIDES = [
   'apparat_critique',
   'separateur',
   'texte absent',
+  // Bloc de signatures (approbations, censeurs, souscripteurs) : composé au fer à
+  // droite, interligne resserré, sans espace entre lignes de même nature.
+  'signature',
 ] as const
 
 export type NatureSegmentValide = typeof NATURE_VALIDES[number]

@@ -6,6 +6,7 @@ describe('vocabulaire des importateurs génériques', () => {
     expect(NATURE_VALIDES).toEqual([
       'texte', 'citation', 'lemme', 'vers', 'rubrique', 'dialogue',
       'introduction', 'apparat_critique', 'separateur', 'texte absent',
+      'signature',
     ])
   })
 

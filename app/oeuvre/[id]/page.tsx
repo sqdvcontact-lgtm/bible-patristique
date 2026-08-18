@@ -300,7 +300,7 @@ export default async function OeuvrePage({
   // bp_admin_session, qui n'est plus jamais posé depuis la suppression de la
   // page de connexion par mot de passe.
   const SELECT_SEG = 'id,id_texte,segment_key,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original,espace_textuel,join_before'
-  const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique']
+  const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique', 'signature']
 
   async function chargerTousSegments(filtre: Record<string, string>) {
     // Applique le filtre à une requête (nature « texte » embarque les introductions).
@@ -580,7 +580,7 @@ export default async function OeuvrePage({
       txtCorps={(oeuvre.texte_corps ?? '0,0,0,0,0').split(',').map((v: string) => v === '1')}
       afficherNumeros={oeuvre.afficher_numeros !== false}
       lectureTexteEntier={lectureTexteEntier}
-      oeuvre={{titre:oeuvre.titre,titre_affichage:oeuvre.titre_affichage,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,commentaire_traduction:oeuvre.commentaire_traduction,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,date_mise_en_ligne:oeuvre.date_mise_en_ligne,id_oeuvre:oeuvre.id_oeuvre,date_composition:oeuvre.date_composition,langue_originale:oeuvre.langue_originale,genres:oeuvre.genres,url_source:oeuvre.url_source}}
+      oeuvre={{titre:oeuvre.titre,titre_affichage:oeuvre.titre_affichage,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,commentaire_traduction:oeuvre.commentaire_traduction,note_editoriale_secondaire:oeuvre.note_editoriale_secondaire,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,date_mise_en_ligne:oeuvre.date_mise_en_ligne,id_oeuvre:oeuvre.id_oeuvre,date_composition:oeuvre.date_composition,langue_originale:oeuvre.langue_originale,genres:oeuvre.genres,url_source:oeuvre.url_source}}
       groupes={groupesData} segments={segmentsData}
       tocApparat={tocApparat} groupesApparat={groupesApparatData} segmentsApparat={segmentsApparatData}
       segmentCibleId={Number.isFinite(segmentCibleId) && segmentCibleId > 0 ? segmentCibleId : null}

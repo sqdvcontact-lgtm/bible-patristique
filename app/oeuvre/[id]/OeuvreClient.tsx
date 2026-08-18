@@ -13,9 +13,11 @@ import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffic
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { bornerGuillemets } from '@/app/lib/guillemets'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
+import { cesurerGrec, codeLangue } from '@/app/lib/grec'
 import { detecterCitationSortie } from '@/app/lib/citationSortie'
 import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, rendreTitreColophonAvecNotes, notesPourTexte } from './appelNote'
 import { chargerAuteursParOeuvre, separateurAuteurs } from '@/app/lib/auteursOeuvre'
+import { libelleVersionComplet } from './versionTextuelle'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
@@ -285,7 +287,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   )
   // Mode d'affichage du texte : français seul, bilingue (français + latin), latin seul.
   const [modeTexte, setModeTexte] = useState<'fr' | 'bilingue' | 'la'>('fr')
-  const comparaisonEstDisponible = comparaisonDisponible(alignementsDisponibles)
+  // « Traductions parallèles » est désactivé pour le moment (mode de lecture jugé
+  // trop complexe). On force l'indisponibilité : les boutons disparaissent et le
+  // mode est neutralisé partout (via modeComparaisonActif). Réversible d'une ligne :
+  // rétablir `comparaisonDisponible(alignementsDisponibles)`.
+  const COMPARAISON_ACTIVE = false
+  const comparaisonEstDisponible = COMPARAISON_ACTIVE && comparaisonDisponible(alignementsDisponibles)
   const [alignmentSetId, setAlignmentSetId] = useState<string | null>(alignmentSetIdInitial)
   const alignementActif = choisirAlignement(alignementsDisponibles, alignmentSetId)
   const [modeComparaison, setModeComparaison] = useState(comparaisonInitiale)
@@ -450,7 +457,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   useEffect(() => {
     if (!configOuverte || niveauxPresents) return
     let annule = false
-    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique']
+    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique', 'signature']
     const cols = ['ref_niv1', 'ref_niv2', 'ref_niv3', 'ref_niv4', 'ref_niv5'] as const
     ;(async () => {
       const reponses = await Promise.all(cols.map(col =>
@@ -806,7 +813,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   const chargerNiv1Data = async (n1: string): Promise<{ groupes: GroupeData[]; segments: SegData[] }> => {
     const SELECT = 'id,id_texte,segment_key,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original,espace_textuel,join_before'
-    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique']
+    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique', 'signature']
     // Chargement par lots de 1000 mais EN PARALLÈLE (les grosses divisions, ex.
     // Somme théologique ~6500 segments/niv1, se chargeaient en séquentiel) : on
     // récupère le total avec le 1er lot, puis on tire le reste d'un coup.
@@ -1539,16 +1546,21 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             ) : null}
             {versionsTextuelles.length > 1 && (
               <div style={{ marginTop: '7px' }}>
-                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Version textuelle</span>
+                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Traductions</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   {versionsTextuelles.map(version => {
                     const actif = version.idTexte === idTexte
+                    // Version présente mais pas encore prête (ex. latin non aligné) :
+                    // on la GRISE au lieu de la masquer, pour que le menu de lecture
+                    // soit le même pour toutes les traductions d'un ouvrage. Piloté par
+                    // la donnée : `metadata.indisponible === true`.
+                    const indisponible = !actif && version.metadata?.indisponible === true
                     return (
-                      <button key={version.idTexte} disabled={actif}
-                        onClick={() => { if (!actif) router.push(`/oeuvre/${idOeuvre}?texte=${encodeURIComponent(version.idTexte)}`) }}
-                        title={actif ? 'Version affichée' : 'Afficher cette version'}
-                        style={{ ...BTN_VOLET(actif), cursor: actif ? 'default' : 'pointer' }}>
-                        {version.labelCourt}
+                      <button key={version.idTexte} disabled={actif || indisponible}
+                        onClick={() => { if (!actif && !indisponible) router.push(`/oeuvre/${idOeuvre}?texte=${encodeURIComponent(version.idTexte)}`) }}
+                        title={actif ? 'Traduction affichée' : indisponible ? 'Bientôt disponible (alignement en cours)' : 'Afficher cette traduction'}
+                        style={{ ...BTN_VOLET(actif), cursor: actif ? 'default' : indisponible ? 'not-allowed' : 'pointer', opacity: indisponible ? 0.45 : 1 }}>
+                        {libelleVersionComplet(version)}
                       </button>
                     )
                   })}
@@ -1962,13 +1974,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   )}
                   {modeLecture === 'paragraphes' ? paragraphesDe(itemsReels).map((chunk) => {
                     const original = chunk.ids.map(sid => segMap.get(sid)).find(s => Boolean(s?.texteOriginal?.trim()))
+                    const toutRubrique = chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique')
+                    // Bloc de signatures : composé au fer à droite, interligne resserré.
+                    const toutSignature = chunk.ids.every(sid => segMap.get(sid)?.nature === 'signature')
                     return (
                     <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? 'para-bilingue' : undefined}
                       /* Réserve la MÊME gouttière d'actions (~60px) que le mode segments, pour que
                          la largeur du texte (et de la grille bilingue) s'aligne sur les titres et
                          la page de titre. */
                       style={{ paddingRight: gouttiereTitre }}>
-                      <p lang="fr" style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique') ? 'center' : 'justify', textJustify: 'inter-word', fontStyle: chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique') ? 'italic' : undefined, margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                      <p lang="fr" style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: toutSignature ? '1.32' : '1.62', textAlign: toutSignature ? 'right' : toutRubrique ? 'center' : 'justify', textJustify: 'inter-word', fontStyle: toutRubrique ? 'italic' : undefined, margin: toutSignature ? '0 0 0.3rem' : '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                         {chunk.ids.map((sid, i) => {
                           const s = segMap.get(sid)
                           if (!s) return null
@@ -1989,10 +2004,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         })}
                       </p>
                       {(affichageBilingue || afficherOriginalSeul) && original?.texteOriginal && (
-                        // En « Latin seul », l'original occupe seul la colonne, au gabarit du
-                        // français (mêmes taille et teinte).
-                        <p lang="la" className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, lineHeight: afficherOriginalSeul ? '1.62' : '1.58', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                          {rendreTexteAvecNotes(cesurerLatin(normaliserEspacesOriginal(original.texteOriginal)), original.notes ?? {})}
+                        // En « Latin/Grec seul », l'original occupe seul la colonne, au gabarit du
+                        // français (mêmes taille et teinte). La langue de l'original commande la
+                        // césure (latine ou grecque) et l'attribut `lang` : un texte grec composé
+                        // avec le syllabateur latin coupait faux et se déclarait à tort « la ».
+                        <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, lineHeight: afficherOriginalSeul ? '1.62' : '1.58', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: estGrec ? '-0.01em' : '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          {rendreTexteAvecNotes(estGrec ? cesurerGrec(original.texteOriginal) : cesurerLatin(normaliserEspacesOriginal(original.texteOriginal)), original.notes ?? {})}
                         </p>
                       )}
                     </div>
@@ -2001,14 +2018,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     const s = segMap.get(sid)
                     if (!s) return null
                     const actif = segActif === sid
+                    // Bloc de signatures : fer à droite, interligne resserré, blocs rapprochés.
+                    const estSignature = s.nature === 'signature'
                     return (
                       <div key={sid} id={`segment-${sid}`} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`}
                         onTouchStart={mobile ? () => { appuiLongDeclenche.current = false; appuiLongRef.current = setTimeout(() => { appuiLongDeclenche.current = true; setActionsSegMobileId(sid) }, 450) } : undefined}
                         onTouchEnd={mobile ? () => { if (appuiLongRef.current) clearTimeout(appuiLongRef.current) } : undefined}
                         onTouchMove={mobile ? () => { if (appuiLongRef.current) clearTimeout(appuiLongRef.current) } : undefined}
-                        style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', scrollMarginTop: '60px' }}>
+                        style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: estSignature ? '0.12rem' : '0.45rem', scrollMarginTop: '60px' }}>
                         <p id={`s${s.numero}`} onClick={() => { if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return } if (mobile) setActionsSegMobileId(null); setSegActif(actif ? null : sid) }} className="seg-p"
-                          lang="fr" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          lang="fr" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: estSignature ? '1.32' : '1.52', textAlign: estSignature ? 'right' : 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {configNiveaux.afficherNumeros && sid !== premierSegmentId && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
                           {(() => {
                             const texte = preparerTexteSegment(s.texte)
@@ -2559,6 +2578,15 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 </div>
               )
             })()}
+            {/* Notes éditoriales secondaires : rubrique DISTINCTE de la page de titre.
+                Le frontispice (commentaire_traduction) reste réservé aux informations
+                éditoriales factuelles de l'œuvre ; les remarques secondaires vivent ici. */}
+            {oeuvreAffichee.note_editoriale_secondaire?.trim() && (
+              <div style={{ marginTop: '4px', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-fond-doux)', borderRadius: '8px', padding: '11px 13px' }}>
+                <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 6px' }}>Notes éditoriales</p>
+                <div style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.71875rem', lineHeight: 1.55, color: 'var(--cs-texte)', whiteSpace: 'pre-line' }}>{rendreTexteEnrichi(oeuvreAffichee.note_editoriale_secondaire ?? '')}</div>
+              </div>
+            )}
           </div>
         </div>,
         document.body
