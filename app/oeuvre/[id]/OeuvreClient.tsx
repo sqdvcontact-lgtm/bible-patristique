@@ -443,6 +443,25 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   })
   const [configOuverte, setConfigOuverte] = useState(false)
   const [configEnvoi, setConfigEnvoi] = useState(false)
+  // Quels niveaux de titres existent réellement dans l'œuvre : on grise les niveaux
+  // vides dans le sélecteur d'affichage. Calculé une fois, à l'ouverture du panneau
+  // (admin seulement), par une simple sonde d'existence par niveau.
+  const [niveauxPresents, setNiveauxPresents] = useState<boolean[] | null>(null)
+  useEffect(() => {
+    if (!configOuverte || niveauxPresents) return
+    let annule = false
+    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique']
+    const cols = ['ref_niv1', 'ref_niv2', 'ref_niv3', 'ref_niv4', 'ref_niv5'] as const
+    ;(async () => {
+      const reponses = await Promise.all(cols.map(col =>
+        supabase.from('segments').select('id').eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte)
+          .in('nature', NATURES_TEXTE).not(col, 'is', null).neq(col, '').limit(1)
+      ))
+      if (annule) return
+      setNiveauxPresents(cols.map((_, i) => ((reponses[i].data as unknown[])?.length ?? 0) > 0))
+    })()
+    return () => { annule = true }
+  }, [configOuverte, niveauxPresents, idOeuvre, idTexte])
   const resetVolets = () => { setNavWidth(null); setPannWidth(null); try { localStorage.removeItem('cs_volets_oeuvre2') } catch {} }
   const [problemes, setProblemes] = useState<{
     id: number; segment_numero: number; segment_texte: string
@@ -2584,13 +2603,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
                   <label style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Niveaux de titres affichés</label>
                   <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
-                    {[1,2,3,4,5].map(n => (
-                      <button key={n} onClick={() => setConfigNiveaux(prev => ({ ...prev, [key]: n }))}
-                        title={`Afficher jusqu’au niveau ${n}`}
-                        style={{ width: '34px', height: '30px', borderRadius: '5px', border: `1px solid ${configNiveaux[key] === n ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: configNiveaux[key] === n ? 'var(--cs-vert)' : '#fff', color: configNiveaux[key] === n ? '#fff' : 'var(--cs-texte-second)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: configNiveaux[key] === n ? 700 : 400 }}>
-                        {n}
-                      </button>
-                    ))}
+                    {[1,2,3,4,5].map(n => {
+                      const vide = !!niveauxPresents && !niveauxPresents[n - 1]
+                      const choisi = configNiveaux[key] === n
+                      return (
+                        <button key={n} disabled={vide} onClick={() => { if (!vide) setConfigNiveaux(prev => ({ ...prev, [key]: n })) }}
+                          title={vide ? `Le niveau ${n} n’existe pas dans cette œuvre` : `Afficher jusqu’au niveau ${n}`}
+                          style={{ width: '34px', height: '30px', borderRadius: '5px', border: `1px solid ${choisi ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: choisi ? 'var(--cs-vert)' : '#fff', color: choisi ? '#fff' : 'var(--cs-texte-second)', fontSize: '0.75rem', cursor: vide ? 'default' : 'pointer', fontWeight: choisi ? 700 : 400, opacity: vide ? 0.4 : 1 }}>
+                          {n}
+                        </button>
+                      )
+                    })}
                   </div>
 
                   <label style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Chapeaux descriptifs</label>
