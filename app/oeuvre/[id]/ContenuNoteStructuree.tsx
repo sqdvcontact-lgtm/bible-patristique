@@ -1,5 +1,13 @@
 import { Fragment } from 'react'
 import type { NoteBlocData, NoteStructuree } from './oeuvreTypes'
+import { normaliserReferencesDansTexte } from '@/app/lib/referenceNote'
+
+// Le texte d'un bloc de RENVOI biblique (kind='reference') est normalisé au rendu :
+// « 1Co. 2, 16 » → « 1 Co 2, 16 », chapitre romain → arabe, virgule avant le verset.
+// Les autres blocs (prose, attribution, traduction) restent tels quels.
+function texteBloc(bloc: NoteBlocData): string {
+  return bloc.kind === 'reference' ? normaliserReferencesDansTexte(bloc.text) : bloc.text
+}
 
 const RENDU_INLINE = 'inline_after_target'
 const RENDU_RETOUR_VERSE = 'manual_line_break_in_verse'
@@ -57,7 +65,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
               borderLeft: traduction ? '2px solid var(--cs-or-doux)' : undefined,
             }}
           >
-            {block.text}
+            {texteBloc(block)}
             {referencesInline.map(reference => (
               <span
                 key={reference.blockId}
@@ -68,7 +76,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
                 data-needs-review={String(reference.needsReview)}
                 style={{ fontSize: '0.92em', color: 'var(--cs-texte-second)' }}
               >
-                {'\u00A0'}{reference.text}
+                {'\u00A0'}{texteBloc(reference)}
               </span>
             ))}
             {referencesApresVers.map(reference => (
@@ -82,7 +90,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
                   data-needs-review={String(reference.needsReview)}
                   style={{ fontSize: '0.92em', color: 'var(--cs-texte-second)' }}
                 >
-                  {reference.text}
+                  {texteBloc(reference)}
                 </span>
               </Fragment>
             ))}
