@@ -86,7 +86,8 @@ function Carte({ titre, children, note, cle, todos, majLe }: { titre: string; ch
 
       <TodosControle cle={cle} initial={todos} />
 
-      <div className="cc-carte-pied">Note mise à jour le {dateFr(majLe)}</div>
+      {/* Une carte sans note (celles qui ne portent qu'un outil) n'affiche pas un pied vide. */}
+      {majLe && <div className="cc-carte-pied">Note mise à jour le {dateFr(majLe)}</div>}
     </section>
   )
 }
