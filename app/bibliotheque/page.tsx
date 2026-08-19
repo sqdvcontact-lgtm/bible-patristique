@@ -3,6 +3,7 @@ import BibliothequeClient from "./BibliothequeClient"
 import { MARQUEUR_OEUVRE_DEPUBLIEE } from "@/app/lib/oeuvresPublication"
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur"
 import { chargerAuteursParOeuvre, grouperOeuvresParAuteur } from "@/app/lib/auteursOeuvre"
+import { SELECT_AUTEURS_BIBLIOTHEQUE, SELECT_OEUVRES_BIBLIOTHEQUE } from "@/app/lib/bibliothequeSelects"
 
 // Base fermée au rôle anonyme : on interroge avec la session du visiteur. La
 // page devient dynamique (elle lit les cookies) et perd donc son cache d'une
@@ -23,11 +24,11 @@ export default async function BibliothequePage() {
   const [auteursResultat, oeuvresResultat, auteursParOeuvre] = await Promise.all([
     supabase
       .from("auteurs")
-      .select("id_auteur, nom, nom_original, titre, dates, siecle, date_naissance, date_mort, langue_principale, traditions, note, note_biographique, note_theologique, photo_position")
+      .select(SELECT_AUTEURS_BIBLIOTHEQUE)
       .order("siecle", { ascending: true, nullsFirst: false }),
     supabase
       .from("v_oeuvres_dates")
-      .select("id_oeuvre, id_auteur, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication_affichage_courte, date_publication_precision_affichage, genre, note, langue_originale")
+      .select(SELECT_OEUVRES_BIBLIOTHEQUE)
       .or(`note.is.null,note.neq.${MARQUEUR_OEUVRE_DEPUBLIEE}`),
     chargerAuteursParOeuvre(supabase),
   ])

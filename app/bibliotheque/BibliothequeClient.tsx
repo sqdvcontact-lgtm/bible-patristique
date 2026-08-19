@@ -11,6 +11,7 @@ import IconeChevron from '@/app/components/IconeChevron'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { partagerOpuscules } from '@/app/lib/opuscules'
+import { SELECT_AUTEURS_BIBLIOTHEQUE, SELECT_OEUVRES_BIBLIOTHEQUE } from '@/app/lib/bibliothequeSelects'
 import { libelleTrad, formaterEditeur } from '@/app/oeuvre/[id]/PageTitre'
 import { useEditeursCharges } from '@/app/lib/editeurs'
 import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
@@ -1467,8 +1468,7 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const SELECT_AUTEURS = 'id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, langue_principale, traditions, note, note_biographique, note_theologique, photo_position'
-const SELECT_OEUVRES_DATES = 'id_oeuvre, id_auteur, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication_affichage_courte, date_publication_precision_affichage, genre, note, langue_originale, nb_signes'
+// Colonnes partagées avec le rendu serveur : voir app/lib/bibliothequeSelects.ts.
 // Bucket HORAIRE (identique au serveur, app/bibliotheque/page.tsx) : le paramètre
 // ?v= reste stable au sein d'une heure, donc le navigateur met les photos en cache
 // au lieu de les retélécharger à chaque montage/refetch (auparavant : bucket à la
@@ -1513,8 +1513,8 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
 
   const refetch = useCallback(async () => {
     const [auteursResultat, oeuvresResultat, auteursParOeuvre] = await Promise.all([
-      supabase.from('auteurs').select(SELECT_AUTEURS).order('siecle', { ascending: true, nullsFirst: false }),
-      supabase.from('v_oeuvres_dates').select(SELECT_OEUVRES_DATES),
+      supabase.from('auteurs').select(SELECT_AUTEURS_BIBLIOTHEQUE).order('siecle', { ascending: true, nullsFirst: false }),
+      supabase.from('v_oeuvres_dates').select(SELECT_OEUVRES_BIBLIOTHEQUE),
       chargerAuteursParOeuvre(supabase),
     ])
     if (auteursResultat.data && oeuvresResultat.data) {
