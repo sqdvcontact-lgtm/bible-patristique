@@ -1068,7 +1068,13 @@ export default function Navbar() {
 
           <Link href="/accueil" className="flex items-center gap-1.5 shrink-0"
             style={{ color: "rgba(255,255,255,0.93)", textDecoration: "none" }}>
-            <span style={{ fontSize: "0.84375rem", opacity: 0.6 }}>✦</span>
+            {/* Le monogramme du site remplace le fleuron ✦. En crème plutôt qu'en
+                encre, la barre étant verte, et en <img> : l'optimiseur de Next
+                aplatit par intermittence la couche alpha sur du blanc (charte,
+                « Les ornements se DÉTOURENT »), et l'on verrait le rectangle. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo/monogramme-creme.png" alt="" aria-hidden="true"
+              style={{ height: "1.375rem", width: "auto", display: "block", opacity: 0.92 }} />
             <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: 600, letterSpacing: "0.01em" }}>Corpus Scriptura</span>
             {/* « bêta » sobre : un petit mot en italique, posé contre le nom, sans cercle
                 ni capitales — un simple murmure de version. */}

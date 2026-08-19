@@ -81,6 +81,10 @@ export default async function AccueilPage() {
         .colophon-body { font-family: var(--font-source-serif), Georgia, serif; }
         .colophon-ornement { font-size: 1.125rem; color: #7a6a52; letter-spacing: 0.25em; }
         .colophon-regle { display: block; width: 36px; height: 1px; background: var(--cs-or-doux); margin: 0 auto; }
+        /* Le monogramme se mesure en HAUTEUR (il est plus haut que large) et en
+           rem, pour suivre la police racine fluide comme le titre qu'il annonce. */
+        .hero-monogramme { height: 4.5rem; width: auto; display: block; margin: 0 auto 14px; }
+        @media (max-width: 640px) { .hero-monogramme { height: 3.5rem; margin-bottom: 10px; } }
         .hero-title-ornament { width: min(265px, 48vw); height: auto; display: block; margin: 0 auto 8px; opacity: .82; }
         .hero-title-ornament + div { display: none; }
         /* Colophon final : pyramide desktop calibrée en rem ; sur écran étroit,
@@ -195,6 +199,15 @@ export default async function AccueilPage() {
           padding: "clamp(22px, 3.5vh, 52px) 0 0",
         }}>
         <header style={{ textAlign: "center", marginBottom: "24px" }}>
+          {/* Le monogramme du site ouvre la page de titre, au-dessus du bandeau
+              gravé : la marque, puis l'ornement, puis le nom. En <img> et non en
+              <Image> — l'optimiseur aplatit par intermittence la couche alpha sur
+              du blanc et le rectangle crème reparaîtrait (charte, « Les ornements
+              se DÉTOURENT »). */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo/monogramme-encre.png" alt="Corpus Scriptura"
+            className="hero-monogramme" />
+
           <Image
             src="/icons/home-title-ornament.png"
             width={2062}

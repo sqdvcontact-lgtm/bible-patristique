@@ -255,14 +255,28 @@ Les gravures de `public/ornements/` arrivent sur un fond crème. Pour qu'elles s
 
 ⛔ **`mix-blend-mode: multiply` ne peut pas marcher ici, et l'erreur se répète.** L'opacité posée sur la même image crée un contexte d'empilement, lequel isole l'élément et annule le mélange : le fond réapparaît partout où l'ornement est atténué, c'est-à-dire précisément là où on l'atténue. La note de `app/chantier/page.tsx` le raconte pour la première fois ; le refus s'applique à toute gravure.
 
-**La recette, faute d'outil.** Ni `sharp` ni ImageMagick ne sont installés (`convert` dans `system32` est le convertisseur de partitions de Windows, pas celui d'ImageMagick). On passe donc par **System.Drawing en PowerShell**, avec un `Add-Type` C# pour la boucle sur les pixels — une boucle PowerShell sur trois millions d'octets est trop lente. Deux étapes, dans cet ordre :
+⚠️ **Rectification du 2026-08-19 : `sharp` EST disponible.** Il arrive comme dépendance de Next, et `require('sharp')` répond (libvips 8.17.3). ImageMagick, lui, reste absent (`convert` dans `system32` est le convertisseur de partitions de Windows). Écrire donc les nouveaux traitements en **Node**, où l'on dispose des entrées-sorties, du rééchantillonnage et du RGBA brut — `scripts/logo-fabriquer.mjs` en donne le patron. Le script PowerShell `scripts/detourer-ornement.ps1` reste comme repli, l'algorithme y étant le même.
 
-1. **Redimensionner d'abord**, sur des pixels encore opaques (`HighQualityBicubic`), sinon le rééchantillonnage mélange de l'encre avec du transparent et lave le trait. 1024 px de large suffit : la plus grande pose du site est de 20rem.
-2. **Puis détourer** : le fond se MESURE (moyenne des quatre coins), il ne se suppose pas blanc — celui-ci est crème. `alpha = (lumFond − lum) / lumFond × 255`, puis **décomposition** de l'encre de ce même crème (`c = (vu − fond × (1−a)) / a`). Sans cette seconde opération, les bords anti-crénelés gardent le crème et paraissent lavés sur un fond plus sombre.
+**La recette.** Deux étapes, dans cet ordre :
+
+1. **Redimensionner d'abord**, sur des pixels encore opaques (`HighQualityBicubic`), sinon le rééchantillonnage mélange de l'encre avec du transparent et lave le trait. 1024 px de large suffit : la plus grande pose du site est de 20rem. Détourer à la résolution native puis rogner évite la question entièrement, quand la planche n'a pas à être réduite.
+2. **Puis détourer** : le fond se MESURE (moyenne des quatre coins), il ne se suppose pas blanc — celui-ci est crème. `alpha = (lumFond − lum) / amplitude`, puis **décomposition** de l'encre de ce même crème (`c = (vu − fond × (1−a)) / a`). Sans cette seconde opération, les bords anti-crénelés gardent le crème et paraissent lavés sur un fond plus sombre.
+
+⚠️ **L'ENCRE aussi se mesure, et par sa MÉDIANE.** Prendre `amplitude = lumFond` revient à supposer l'encre noire. Celle du monogramme est un gris à 45 de luminance : tout le plein du trait ressortait à alpha 226, et l'histogramme le disait — **0,3 % d'encre pleine pour 24 % de partiels**, alors qu'un plein n'a aucune raison d'être partiel. Se caler sur le pixel le plus sombre ne suffit pas non plus, l'encre étant légèrement marbrée : c'est la **médiane du nuage sombre** qui vaut 255, puisque l'intérieur d'un plein EST de l'encre pleine. Après correction : 18,6 % de plein, 6,6 % de partiels — les bords, et eux seuls.
 
 **Contrôle**, avant de committer : l'histogramme du canal alpha. Sur `ordinateur-pentecote.png`, 81 % du plan est réellement transparent, 3 % est de l'encre pleine et 15,7 % des partiels — les hachures. Un fond mal mesuré se voit tout de suite : le taux de transparents s'effondre.
 
 ⚠️ **Rendu en `<img>`, pas en `<Image>`, ou alors `unoptimized`.** À certaines largeurs (640 px, mais ni 384 ni 828), l'optimiseur rend un PNG à trois canaux : la couche alpha est aplatie sur du blanc et le fond réapparaît. Le défaut est intermittent, donc facile à croire corrigé.
+
+## Le monogramme « CS » — deux planches, deux emplois (2026-08-19)
+
+Le site a une marque : un `C` gothique enlaçant un `S`, la haste du `S` portant une croix. Elle existe en deux planches, rangées dans `work/logo/`, et **`scripts/logo-fabriquer.mjs` fabrique tout le reste** — le relancer plutôt que retoucher un fichier produit.
+
+- **`monogramme-vert.png`** (carré, crème sur aplat vert) est l'**icône** : onglet, favori, écran d'accueil. Elle n'est pas détourée, et c'est délibéré : à 16 px, c'est l'aplat qui donne la silhouette, un monogramme transparent s'y perdrait sur le fond du navigateur. Elle produit `app/icon.png` (512), `app/apple-icon.png` (180) et `app/favicon.ico` (16, 32, 48, chaque taille en PNG embarqué).
+  - ⚠️ **`app/favicon.ico` doit être remplacé lui aussi**, pas seulement `app/icon.png`. Next sert la route `/favicon.ico` à partir du fichier, et c'est elle que réclament les vieux clients et les agrégateurs : un `icon.png` neuf sur un `.ico` périmé laisse l'ancienne marque en circulation.
+- **`monogramme-creme.png`** (le monogramme seul sur crème) est le **logo du site**. Détouré, il donne deux fichiers dans `public/logo/` : `monogramme-encre.png` pour le papier (page de titre) et `monogramme-creme.png`, **même alpha teinté** `rgb(244, 231, 200)`, pour la barre verte. On teinte plutôt que de demander une seconde planche : le tracé reste rigoureusement le même des deux côtés.
+- **Poses** : `app/accueil/page.tsx` l'ouvre en tête du frontispice (`.hero-monogramme`, hauteur en **rem** puisqu'il est plus haut que large et doit suivre la police racine), au-dessus du bandeau gravé ; `app/components/Navbar.tsx` l'a mis à la place du fleuron `✦`, contre le nom du site.
+- ⚠️ **En `<img>`, jamais en `<Image>`** — même raison que les ornements ci-dessus, et le rectangle crème est bien plus visible sur une barre verte que sur du papier.
 
 ## La couleur appartient à l'auteur
 
