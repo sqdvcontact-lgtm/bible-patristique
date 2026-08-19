@@ -36,9 +36,18 @@ export async function POST(request: Request) {
   const mime = detecterMimeImage(buffer)
   if (!mime) return NextResponse.json({ error: 'Format non supporté. Utilisez JPEG, PNG, GIF ou WebP.' }, { status: 415 })
 
+  // L'objet porte l'extension .jpg : son type déclaré doit dire la vérité. Les écrans
+  // d'administration convertissent en JPEG avant d'envoyer (app/lib/preparerPortrait.ts) ;
+  // si un autre format arrive tout de même, on le refuse plutôt que de le ranger sous un
+  // nom qui ment — c'est ainsi que le seau s'est retrouvé avec des PNG de 3 Mo en .jpg.
+  if (mime !== 'image/jpeg') {
+    return NextResponse.json({ error: 'Le portrait doit être un JPEG. Déposez-le depuis l’administration, qui convertit pour vous.' }, { status: 415 })
+  }
+
   const version = Date.now()
   const { error } = await supabaseAdmin.storage.from('auteurs').upload(`${idAuteur}.jpg`, buffer, {
-    upsert: true, contentType: mime, cacheControl: '60',
+    // Une heure de cache, accordée au ?v= horaire que composent les pages.
+    upsert: true, contentType: 'image/jpeg', cacheControl: '3600',
   })
 
   if (error) return erreur500(error)

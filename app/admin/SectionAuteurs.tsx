@@ -3,6 +3,7 @@
 import React from 'react'
 import { supabase, SiecleDisplay } from './adminShared'
 import { colonnesPeriodeHistorique, formaterDateHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
+import { preparerPortrait } from '@/app/lib/preparerPortrait'
 
 export default function SectionAuteurs() {
   const [auteurs, setAuteurs] = React.useState<any[]>([])
@@ -28,10 +29,13 @@ export default function SectionAuteurs() {
   }, [])
 
   const uploadPhoto = async (idAuteur: string, fichier: File) => {
-    const { error } = await supabase.storage.from('auteurs').upload(`${idAuteur}.jpg`, fichier, {
+    // Réduction et conversion AVANT le dépôt : sans quoi le seau reçoit le fichier
+    // brut, d'où des objets « .jpg » qui sont en réalité des PNG de plusieurs Mo.
+    const prepare = await preparerPortrait(fichier)
+    const { error } = await supabase.storage.from('auteurs').upload(`${idAuteur}.jpg`, prepare, {
       upsert: true,
-      contentType: fichier.type && fichier.type.startsWith('image/') ? fichier.type : 'application/octet-stream',
-      cacheControl: '60',
+      contentType: 'image/jpeg',
+      cacheControl: '3600',
     })
     if (!error) setPhotos(prev => ({ ...prev, [idAuteur]: true }))
     else alert('Erreur upload : ' + error.message)

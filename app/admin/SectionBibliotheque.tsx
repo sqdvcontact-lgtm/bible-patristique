@@ -10,6 +10,7 @@ import {
   bornerPos, deplacerPos, parseAuteurPhotoPositions, stylePhotoAuteur,
   type AuteurPhotoPos, type AuteurPhotoPositions, type SurfacePortrait,
 } from '@/app/lib/photoAuteur'
+import { preparerPortrait } from '@/app/lib/preparerPortrait'
 import CadreAuteur from '@/app/components/CadreAuteur'
 import { revaliderBibliotheque } from '@/app/actions/revalider'
 import { estOeuvrePubliee, MARQUEUR_OEUVRE_DEPUBLIEE } from '@/app/lib/oeuvresPublication'
@@ -83,35 +84,6 @@ const inputStyleAuteur: React.CSSProperties = { width: '100%', padding: '6px 9px
 const lbl: React.CSSProperties = { fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '2px' }
 const sepOeuvre: React.CSSProperties = { borderTop: '1px solid var(--cs-fond-doux)', gridColumn: '1 / -1', margin: '2px 0' }
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-
-function redimensionnerImage(fichier: File, largeur: number, hauteur: number): Promise<File> {
-  return new Promise(resolve => {
-    const img = new window.Image()
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = largeur
-      canvas.height = hauteur
-      const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
-      const nw = img.naturalWidth
-      const nh = img.naturalHeight
-      const ratio = Math.max(largeur / nw, hauteur / nh)
-      const sw = largeur / ratio
-      const sh = hauteur / ratio
-      const sx = (nw - sw) * 0.5
-      const sy = (nh - sh) * 0.5
-      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, largeur, hauteur)
-      URL.revokeObjectURL(img.src)
-      canvas.toBlob(blob => {
-        if (!blob) return
-        const nom = fichier.name
-        const dot = nom.lastIndexOf('.')
-        const base = dot >= 0 ? nom.slice(0, dot) : nom
-        resolve(new File([blob], base + '.jpg', { type: 'image/jpeg' }))
-      }, 'image/jpeg', 0.9)
-    }
-    img.src = URL.createObjectURL(fichier)
-  })
-}
 
 const BTN_ROND: React.CSSProperties = {
   width: 27, height: 27, borderRadius: '50%', border: '1px solid var(--cs-bord)',
@@ -1100,7 +1072,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   }, [besoinCatalogue, catalogueParAuteur])
 
   const uploadPhoto = async (idAuteur: string, fichier: File) => {
-    const fichierRedim = await redimensionnerImage(fichier, 300, 450)
+    const fichierRedim = await preparerPortrait(fichier)
     const formData = new FormData()
     formData.append('id_auteur', idAuteur)
     formData.append('fichier', fichierRedim)
