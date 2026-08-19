@@ -503,7 +503,7 @@ export default function RechercheClient() {
         (s.matchFr && candidatsSeg.some(mv => contientTerme(s.segment_texte ?? '', mv, modeActif)))
         || (s.matchOrig && candidatsSeg.some(mv => contientTerme(s.texte_original ?? '', mv, modeActif))))
       const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
-      let oeuvreMap: Record<string, { titre: string; auteur: string; langue: string }> = {}
+      const oeuvreMap: Record<string, { titre: string; auteur: string; langue: string }> = {}
       if (oeuvreIds.length) {
         const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, note, langue_originale, auteurs!oeuvres_id_auteur_fkey(nom)')
           .in('id_oeuvre', oeuvreIds).limit(oeuvreIds.length).abortSignal(signal)

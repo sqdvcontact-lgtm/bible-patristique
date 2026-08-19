@@ -13,6 +13,20 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Le souligné en tête est notre convention pour ce qu'on écarte
+      // volontairement : une capture d'erreur qu'on n'inspecte pas, un champ
+      // déstructuré uniquement pour être retiré d'un objet. Le linter le
+      // signalait comme du code mort, ce qui noyait les vrais oublis.
+      "@typescript-eslint/no-unused-vars": ["warn", {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_",
+        destructuredArrayIgnorePattern: "^_",
+      }],
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -858,7 +858,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         v.split(';').map((x: string) => x.trim()).filter(Boolean).forEach((x: string) => tousIds.add(x)))
     })
     const idsArr = Array.from(tousIds)
-      let versetMap: Record<string,{label:string;textes:Record<string,string>;livre:string;chapitre:string;verset:string}> = {}
+      const versetMap: Record<string,{label:string;textes:Record<string,string>;livre:string;chapitre:string;verset:string}> = {}
     if (idsArr.length > 0) {
       const codesTraductions = await chargerCodesTraductions()
       const selectVersets = ['id_verset', 'ref', ...codesTraductions.map(code => `"${code}"`)].join(', ')
