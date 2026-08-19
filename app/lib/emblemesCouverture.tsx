@@ -13,22 +13,24 @@
 
 import type { ReactNode } from 'react'
 
-const T = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, vectorEffect: 'non-scaling-stroke' as const }
+const T = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.35, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, vectorEffect: 'non-scaling-stroke' as const }
 
 /** Un emblème par catégorie de publication (`CATEGORIES_ESSAIS`). */
 const EMBLEMES: Record<string, ReactNode> = {
   // Le livre ouvert sous la loupe : lire de près.
   'Exégèse': <>
-    <path {...T} d="M32 20C26 15 18 13 9 14v34c9-1 17 1 23 6 6-5 14-7 23-6V14c-9-1-17 1-23 6z" />
-    <path {...T} d="M32 20v34" />
-    <circle {...T} cx="41" cy="34" r="10" />
-    <path {...T} d="M48.5 41.5 56 49" />
+    <path {...T} d="M32 21C25 16 17 14 8 15v31c9-1 17 1 24 6 7-5 15-7 24-6V15c-9-1-17 1-24 6z" />
+    <path {...T} d="M32 21v31" />
+    <path {...T} d="M14 24c4 0 8 1 12 3M14 32c4 0 8 1 12 3M38 24c4-2 8-3 12-3M38 32c4-2 8-3 12-3" />
+    <circle {...T} cx="42" cy="40" r="8.5" />
+    <path {...T} d="M48 46l7 7" />
   </>,
   // La plume : ce qui s'écrit sans avoir eu lieu.
   'Fiction': <>
-    <path {...T} d="M14 52C18 30 32 14 52 10c2 20-12 36-32 40z" />
-    <path {...T} d="M46 16C36 24 28 34 22 46" />
-    <path {...T} d="M10 56l6-6" />
+    <path {...T} d="M13 51C19 31 34 14 53 10c-2 20-16 35-35 39z" />
+    <path {...T} d="M53 10 20 45" />
+    <path {...T} d="M28 22c3 2 6 3 9 3M22 30c3 2 6 3 9 3M17 38c3 2 6 3 9 3" />
+    <path {...T} d="M8 56l7-7" />
   </>,
   // L'arc de triomphe : ce qui reste des cités.
   'Histoire': <>
@@ -44,20 +46,24 @@ const EMBLEMES: Record<string, ReactNode> = {
   </>,
   // La colonne : les Pères comme piliers.
   'Patristique': <>
-    <path {...T} d="M16 14h32M14 10h36M18 54h28M14 58h36" />
-    <path {...T} d="M20 14v40M32 14v40M44 14v40" />
+    <path {...T} d="M12 10h40M16 15h32" />
+    <path {...T} d="M22 15v34M42 15v34" />
+    <path {...T} d="M32 18v28" />
+    <path {...T} d="M16 49h32M12 54h40" />
   </>,
-  // La lampe : la raison qui éclaire sans consumer.
+  // Le compas : la raison qui mesure — et le Dieu géomètre.
   'Philosophie': <>
-    <path {...T} d="M14 40h26a10 10 0 0 0 0-20H20a6 6 0 0 0-6 6z" />
-    <path {...T} d="M14 40 8 52h34l-6-12" />
-    <path {...T} d="M40 20c0-5 4-7 4-12 4 4 6 8 6 12" />
+    <circle {...T} cx="32" cy="13" r="3.5" />
+    <path {...T} d="M32 16.5 17 52M32 16.5 47 52" />
+    <path {...T} d="M17 52l-4 5M47 52l4 5" />
+    <path {...T} d="M24 35c5 3 11 3 16 0" />
   </>,
   // La lyre : le chant avant le discours.
   'Poésie': <>
-    <path {...T} d="M22 50C13 42 13 22 22 12M42 50c9-8 9-28 0-38" />
-    <path {...T} d="M19 20h26M20 50h24" />
-    <path {...T} d="M27 20v30M32 20v30M37 20v30" />
+    <path {...T} d="M27 45C16 39 12 23 21 7c3 4 3 8 1 11M37 45c11-6 15-22 6-38-3 4-3 8-1 11" />
+    <path {...T} d="M19 18h26" />
+    <path {...T} d="M27 18v27M32 18v27M37 18v27" />
+    <path {...T} d="M26 45h12" />
   </>,
   // Le rameau : ce qui croît en silence.
   'Spiritualité': <>
@@ -67,8 +73,8 @@ const EMBLEMES: Record<string, ReactNode> = {
   </>,
   // La croix nimbée.
   'Théologie': <>
-    <path {...T} d="M32 8v48M14 26h36" />
-    <circle {...T} cx="32" cy="26" r="13" />
+    <path {...T} d="M32 6v52M11 24h42" />
+    <circle {...T} cx="32" cy="24" r="9" />
   </>,
 }
 

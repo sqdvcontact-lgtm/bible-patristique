@@ -39,8 +39,8 @@ export const COUVERTURES: Couverture[] = [
   { cle: 'or',    libelle: 'Vieil or',     fond: '#7d6224', encre: '#fbf7ef', filet: 'rgba(251,247,239,0.40)' },
   // Les deux claires prennent l'encre brune des textes. L'ocre est `--cs-or-doux`
   // tel quel, le crème est le papier des encarts.
-  { cle: 'ocre',  libelle: 'Ocre pâle',    fond: '#c8b89e', encre: '#2a2520', filet: 'rgba(42,37,32,0.26)' },
-  { cle: 'creme', libelle: 'Crème',        fond: '#ece5d8', encre: '#3a3026', filet: 'rgba(58,48,38,0.28)' },
+  { cle: 'ocre',  libelle: 'Ocre pâle',    fond: '#c8b89e', encre: '#2a2520', filet: 'rgba(42,37,32,0.34)' },
+  { cle: 'creme', libelle: 'Crème',        fond: '#ece5d8', encre: '#3a3026', filet: 'rgba(58,48,38,0.34)' },
 ]
 
 /** Couverture posée quand l'auteur n'a rien choisi, et quand la clé stockée ne

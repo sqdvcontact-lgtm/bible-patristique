@@ -245,6 +245,8 @@ function OngletCommunaute({
           position: relative; display: block; aspect-ratio: 2 / 3; overflow: hidden;
           border-radius: 2px; text-decoration: none; isolation: isolate;
           font-family: var(--font-source-serif), Georgia, serif;
+          font-kerning: normal; font-variant-ligatures: common-ligatures contextual;
+          text-rendering: optimizeLegibility;
           box-shadow: 0 1px 2px rgba(40,30,15,0.18), 0 10px 22px -12px rgba(40,30,15,0.40);
           transition: transform 0.24s cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 0.24s ease;
         }
@@ -261,8 +263,8 @@ function OngletCommunaute({
 
         /* Le dos de reliure : une bande sombre au bord gauche, discrète. */
         .couverture::before {
-          content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 7px; z-index: 2;
-          background: linear-gradient(90deg, rgba(0,0,0,0.30), rgba(0,0,0,0.05) 70%, rgba(255,255,255,0.06));
+          content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; z-index: 2;
+          background: linear-gradient(90deg, rgba(0,0,0,0.24), rgba(0,0,0,0.03) 78%, rgba(255,255,255,0.07));
           pointer-events: none;
         }
 
@@ -284,6 +286,7 @@ function OngletCommunaute({
 
         .couverture-auteur {
           font-size: 4cqw; font-weight: 400; line-height: 1.3;
+          font-variation-settings: "opsz" 9, "wght" 400;
           letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.9;
           padding-left: 0.24em; /* compense l'interlettrage, qui décentre à droite */
         }
@@ -292,24 +295,28 @@ function OngletCommunaute({
            entre deux bornes de même dessin. */
         .couverture-losange {
           display: flex; align-items: center; justify-content: center;
-          gap: 2.2cqw; width: 32cqw; line-height: 1;
+          gap: 2.4cqw; width: 30cqw; line-height: 1;
         }
         .couverture-losange::before, .couverture-losange::after {
-          content: ""; height: 1px; flex: 1; background: currentColor; opacity: 0.42;
+          content: ""; height: 1px; flex: 1; opacity: 0.5;
         }
-        .couverture-losange span { font-size: 2.4cqw; opacity: 0.62; }
+        .couverture-losange::before { background: linear-gradient(90deg, transparent, currentColor); }
+        .couverture-losange::after { background: linear-gradient(90deg, currentColor, transparent); }
+        .couverture-losange span { font-size: 2.9cqw; opacity: 0.6; }
 
         /* La catégorie, en capitales espacées : elle annonce le genre avant le titre,
            comme la mention de collection d'un éditeur. */
         .couverture-categorie {
           margin: 4.4cqw 0 4.6cqw;
-          font-size: 4.2cqw; letter-spacing: 0.28em; text-transform: uppercase; opacity: 0.82;
+          font-size: 4cqw; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.76;
+          font-variation-settings: "opsz" 9, "wght" 400;
           padding-left: 0.28em;
         }
         /* Le titre : la seule grande chose de la couverture. Ecrêté à quatre lignes,
            faute de quoi un titre-fleuve chasserait la date hors du carton. */
         .couverture-titre {
-          font-size: 10.4cqw; font-weight: 400; line-height: 1.08; letter-spacing: -0.008em;
+          font-size: 10.4cqw; font-weight: 400; line-height: 1.08; letter-spacing: -0.012em;
+          font-variation-settings: "opsz" 44, "wght" 400;
           text-wrap: balance;
           overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4;
         }
@@ -317,17 +324,21 @@ function OngletCommunaute({
            un plafond en em coupait le sous-titre trop court, sur un mot esseulé. */
         .couverture-soustitre {
           margin-top: 3.4cqw;
-          font-size: 4.4cqw; font-weight: 400; line-height: 1.4; opacity: 0.78; text-wrap: balance;
+          font-size: 4.4cqw; font-weight: 400; line-height: 1.42; opacity: 0.76; text-wrap: balance;
+          font-variation-settings: "opsz" 14, "wght" 400;
           overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
         }
         /* L'emblème : la vignette gravée. Ses marges automatiques le centrent dans le
            blanc qui reste entre le sous-titre et le losange du pied. */
-        .couverture-embleme { display: block; margin: auto 0; width: 34cqw; opacity: 0.88; }
+        .couverture-embleme { display: block; margin: auto 0; width: 42cqw; opacity: 0.82; }
         .couverture-embleme svg { display: block; width: 100%; height: auto; }
         /* Le losange du pied garde son blanc au-dessus meme quand l'emblème remplit
            tout ; la date suit, dernier temps. */
         .couverture-pied { margin-top: 4cqw; display: flex; flex-direction: column; align-items: center; gap: 4cqw; }
-        .couverture-date { font-size: 3.4cqw; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.68; padding-left: 0.22em; }
+        .couverture-date {
+          font-size: 3.3cqw; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.66;
+          padding-left: 0.24em; font-variation-settings: "opsz" 9, "wght" 400;
+        }
 
         .couverture-etoile { position: absolute; top: 2.4cqw; right: 2.6cqw; z-index: 4; line-height: 1; }
 
