@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { useSansSurvol } from "@/app/lib/useEstMobile";
+import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile";
 
 type DernierBible   = { livre: string; chapitre: number; trad: string; nomLivre: string }
 type DerniereOeuvre = { id: string; titre: string; auteur: string }
@@ -88,10 +88,20 @@ function CarteAccueil({
   // second choisit.
   // On n'ouvre que s'il Y A quelque chose à reprendre : sans lecture récente, la
   // moitié haute serait morte, et l'on ferait taper deux fois pour un seul choix.
+  // Le critère n'est pas seulement le pointeur : c'est le moment où les cartes
+  // S'EMPILENT. D'où 640 et non le 900 habituel — c'est la largeur, propre à ce
+  // composant, où la grille passe à une colonne (voir sa média-query). Une carte
+  // empilée se prend au clic, une carte en grille se survole, quel que soit
+  // l'appareil ; et `(hover: none)` couvre en plus les tablettes larges, qui sont
+  // tactiles sans être étroites.
+  // Conséquence utile : un aperçu mobile de bureau, qui n'émule souvent que la
+  // largeur et garde la souris, se comporte alors comme un vrai téléphone. C'est
+  // ce qui rend le dessin vérifiable autrement que sur l'appareil.
   const sansSurvol = useSansSurvol()
+  const empilee = useEstMobile(640)
   const [ouvert, setOuvert] = useState(false)
   const carteRef = useRef<HTMLDivElement | null>(null)
-  const choixAuTap = sansSurvol && !!reprendreHref
+  const choixAuTap = (sansSurvol || empilee) && !!reprendreHref
 
   useEffect(() => {
     if (!ouvert) return
@@ -376,7 +386,7 @@ export default function AccueilCards() {
            paraissait donc un instant au moment même où l'on appuyait, puis la
            page changeait : un clignotement, jamais un choix. Ici le volet ne
            répond plus qu'à l'état ac-card--ouvert, posé par le premier tap. */
-        @media (hover: none) {
+        @media (hover: none), (max-width: 640px) {
           .ac-card:hover { transform: none; box-shadow: 0 6px 24px rgba(10,18,8,0.30), inset 0 1px 0 rgba(255,255,255,0.08); }
           .ac-card:hover .ac-card-main,
           .ac-card:focus-within .ac-card-main { opacity: 1; transform: none; }
