@@ -5,6 +5,23 @@ import { Document, Page, Text, View, StyleSheet, Link, Font, pdf } from '@react-
 import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import { decouperSiecles } from '@/app/lib/siecles'
 
+/* ⛔ CE FICHIER N'EST PAS UNE PAGE WEB, et les conventions du site n'y valent pas.
+   C'est une feuille de style `@react-pdf`, composée en POINTS, rendue par PDFKit.
+   Deux passes d'harmonisation l'ont pourtant balayé, avec des dégâts silencieux :
+
+   • COULEURS — `PDFKit._normalizeColor` ne résout que les hex, les noms CSS et les
+     couleurs d'accompagnement. Sur une custom property il renvoie `null`, et
+     `_setColorCore` sort sans rien appliquer : la couleur demandée est simplement
+     ignorée, sans erreur ni avertissement. Onze `var(--cs-…)` faisaient ainsi
+     tomber au noir le vert du titre, l'or du fleuron et l'encre des intertitres.
+   • TAILLES — `@react-pdf` connaît le `rem`, mais sa base vaut 18 POINTS
+     (`DEFAULT_REM_BASE`), non 16. Un `0.71875rem` écrit pour valoir 11,5 rendait
+     12,94 : toute la composition avait grossi d'un huitième, tandis que les marges,
+     restées en points, ne bougeaient pas. Les proportions du document changeaient.
+
+   Règle : ici, des HEX littéraux et des nombres (= points). Jamais de token, jamais
+   de rem. Exclure ce fichier de toute passe de bascule sur `app/`. */
+
 Font.register({
   family: 'Source Sans 3',
   fonts: [
@@ -31,13 +48,13 @@ const MARGE_BOT = 56   // ≈ 2 cm contenu + 24pt footer
 
 const SEP_PARA = 8.5   // ≈ 3 mm entre paragraphes de même style
 
-const C = { vert: 'var(--cs-vert)', texte: '#1a1714', gris: '#777', beige: 'var(--cs-texte)' }
+const C = { vert: '#3d6b4f', texte: '#1a1714', gris: '#777', beige: '#3a3530' }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
   page: {
-    fontFamily: 'Source Serif 4', fontSize: '0.71875rem', lineHeight: 1.41,
+    fontFamily: 'Source Serif 4', fontSize: 11.5, lineHeight: 1.41,
     color: C.texte,
     paddingTop: MARGE_TOP, paddingBottom: MARGE_BOT,
     paddingLeft: MARGE_H, paddingRight: MARGE_H,
@@ -46,32 +63,32 @@ const s = StyleSheet.create({
   // ── En-tête ──
   entete: { alignItems: 'center', paddingTop: 20, paddingBottom: 32 },
   tagCorpus: {
-    fontFamily: 'Source Sans 3', fontSize: '0.53125rem', letterSpacing: 3.5,
+    fontFamily: 'Source Sans 3', fontSize: 8.5, letterSpacing: 3.5,
     textTransform: 'uppercase', color: C.vert, marginBottom: 52,
   },
   auteur: {
-    fontFamily: 'Source Serif 4', fontWeight: 700, fontSize: '0.6875rem', letterSpacing: 3,
+    fontFamily: 'Source Serif 4', fontWeight: 700, fontSize: 11, letterSpacing: 3,
     textTransform: 'uppercase', color: C.vert, marginBottom: 20,
   },
   titreCouv: {
-    fontFamily: 'Source Serif 4', fontSize: '1.875rem', lineHeight: 1.2,
-    color: 'var(--cs-encre-fonce)', textAlign: 'center', marginBottom: 10, maxWidth: '23.75rem',
+    fontFamily: 'Source Serif 4', fontSize: 30, lineHeight: 1.2,
+    color: '#1e2e24', textAlign: 'center', marginBottom: 10, maxWidth: 380,
   },
   sousTitreCouv: {
-    fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '1rem', color: 'var(--cs-texte)',
-    textAlign: 'center', marginBottom: 18, maxWidth: '23.75rem',
+    fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: 16, color: '#3a3530',
+    textAlign: 'center', marginBottom: 18, maxWidth: 380,
   },
   filet: { width: 40, height: 0.6, backgroundColor: '#aaa', marginBottom: 14 },
   date: {
-    fontFamily: 'Source Sans 3', fontSize: '0.5625rem', letterSpacing: 1.8,
+    fontFamily: 'Source Sans 3', fontSize: 9, letterSpacing: 1.8,
     color: C.gris, textAlign: 'center',
   },
   versetTexte: {
-    fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '0.71875rem', lineHeight: 1.72,
-    color: 'var(--cs-texte)', textAlign: 'center', marginTop: 36, maxWidth: '20rem',
+    fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: 11.5, lineHeight: 1.72,
+    color: '#3a3530', textAlign: 'center', marginTop: 36, maxWidth: 320,
   },
   versetRef: {
-    fontFamily: 'Source Sans 3', fontSize: '0.5rem', letterSpacing: 2.2,
+    fontFamily: 'Source Sans 3', fontSize: 8, letterSpacing: 2.2,
     textTransform: 'uppercase', color: C.gris, textAlign: 'center', marginTop: 7,
   },
   ruleEntete: {
@@ -81,35 +98,35 @@ const s = StyleSheet.create({
   // Ornement supérieur (filet · filet) — le fleuron ❧ n'existe pas dans les polices
   // embarquées ; on compose la marque avec des filets et un point médian.
   ornement: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: 130, marginBottom: 30 },
-  ornementRule: { flex: 1, height: 0.6, backgroundColor: 'var(--cs-or-doux)' },
-  ornementDot: { fontFamily: 'Source Serif 4', fontSize: '0.75rem', color: 'var(--cs-or)', marginLeft: 9, marginRight: 9, lineHeight: 1 },
+  ornementRule: { flex: 1, height: 0.6, backgroundColor: '#c8b89e' },
+  ornementDot: { fontFamily: 'Source Serif 4', fontSize: 12, color: '#9a7a38', marginLeft: 9, marginRight: 9, lineHeight: 1 },
   // Mention de propriété — discrète, dans le style de l'auteur.
   mention: {
-    fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '0.53125rem', color: '#8a8268',
-    textAlign: 'center', marginTop: 44, maxWidth: '17rem', lineHeight: 1.62,
+    fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: 8.5, color: '#8a8268',
+    textAlign: 'center', marginTop: 44, maxWidth: 272, lineHeight: 1.62,
   },
   // Marque d'imprimeur en pied de page de titre.
   marque: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: 165, marginTop: 16 },
-  marqueRule: { flex: 1, height: 0.5, backgroundColor: 'var(--cs-or-doux)' },
+  marqueRule: { flex: 1, height: 0.5, backgroundColor: '#c8b89e' },
   marqueTexte: {
-    fontFamily: 'Source Sans 3', fontSize: '0.46875rem', letterSpacing: 2.4,
-    textTransform: 'uppercase', color: 'var(--cs-or)', marginLeft: 10, marginRight: 10,
+    fontFamily: 'Source Sans 3', fontSize: 7.5, letterSpacing: 2.4,
+    textTransform: 'uppercase', color: '#9a7a38', marginLeft: 10, marginRight: 10,
   },
 
   // ── Corps ──
   p:      { marginBottom: SEP_PARA, textAlign: 'justify', textIndent: 14 },   // alinéa visible (~0,5 cm)
   pFirst: { marginBottom: SEP_PARA, textAlign: 'justify' },
   h1: {
-    fontFamily: 'Source Serif 4', fontWeight: 700, fontSize: '0.8125rem', color: 'var(--cs-encre-fonce)',
+    fontFamily: 'Source Serif 4', fontWeight: 700, fontSize: 13, color: '#1e2e24',
     marginTop: 22, marginBottom: 6,
   },
   h2: {
-    fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--cs-encre)',
+    fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: 12, color: '#2a3d30',
     marginTop: 14, marginBottom: 4, marginLeft: 11.3,   // retrait de ligne du titre 2 (≈ 0,4 cm)
   },
   // Citation sortie : bloc en retrait, justifié, PAS en italique.
   bq: {
-    fontFamily: 'Source Serif 4', fontSize: '0.6875rem', color: C.beige, textAlign: 'justify',
+    fontFamily: 'Source Serif 4', fontSize: 11, color: C.beige, textAlign: 'justify',
     marginLeft: 28, marginRight: 14, marginTop: 6, marginBottom: SEP_PARA, lineHeight: 1.41,
   },
   notes: {
@@ -117,10 +134,10 @@ const s = StyleSheet.create({
     borderTopWidth: 0.5, borderTopColor: '#ccc', borderTopStyle: 'solid',
   },
   noteTitre: {
-    fontFamily: 'Source Serif 4', fontWeight: 700, fontSize: '0.46875rem', letterSpacing: 2,
+    fontFamily: 'Source Serif 4', fontWeight: 700, fontSize: 7.5, letterSpacing: 2,
     textTransform: 'uppercase', color: C.gris, marginBottom: 8,
   },
-  noteItem: { fontSize: '0.59375rem', lineHeight: 1.52, color: C.beige, marginBottom: 3 },
+  noteItem: { fontSize: 9.5, lineHeight: 1.52, color: C.beige, marginBottom: 3 },
 
   // ── Siècles ──
   // react-pdf ne connaît ni `font-variant-caps` ni `<sup>`. Les petites
@@ -131,12 +148,12 @@ const s = StyleSheet.create({
   // Ces corps sont absolus (le moteur n'a pas d'unité relative) et calés sur
   // le corps du texte courant, 11,5 pt. Dans un titre, un siècle paraîtrait
   // donc un peu petit ; le cas ne s'est pas présenté.
-  siecleRomain:  { fontSize: '0.59375rem', letterSpacing: 0.7 },
-  siecleOrdinal: { fontSize: '0.46875rem', verticalAlign: 'super' as const },
+  siecleRomain:  { fontSize: 9.5, letterSpacing: 0.7 },
+  siecleOrdinal: { fontSize: 7.5, verticalAlign: 'super' as const },
 
   // ── Pagination ──
   pied: { position: 'absolute', bottom: 32, left: 0, right: 0 },
-  piedNum: { fontFamily: 'Source Serif 4', fontSize: '0.5625rem', color: '#aaa', textAlign: 'center' },
+  piedNum: { fontFamily: 'Source Serif 4', fontSize: 9, color: '#aaa', textAlign: 'center' },
 })
 
 // ── Ortho-typographie française ──────────────────────────────────────────────
@@ -216,10 +233,10 @@ function renderNodes(nodes: InlineNode[]): React.ReactNode[] {
     // choisie par l'auteur, l'autre un numéro.
     if (n.t === 'bold')      return <Text key={i} style={{ fontFamily: 'Source Serif 4', fontWeight: 700 }}>{avecSiecles(n.v, `b${i}`)}</Text>
     if (n.t === 'italic')    return <Text key={i} style={{ fontFamily: 'Source Serif 4', fontStyle: 'italic' }}>{avecSiecles(n.v, `i${i}`)}</Text>
-    if (n.t === 'smallcaps') return <Text key={i} style={{ fontSize: '0.5625rem', letterSpacing: 1.2 }}>{n.v.toUpperCase()}</Text>
+    if (n.t === 'smallcaps') return <Text key={i} style={{ fontSize: 9, letterSpacing: 1.2 }}>{n.v.toUpperCase()}</Text>
     // Appel de note (et exposant) : en exposant, sans crochets, dans la couleur du
     // texte (pas de vert), à une taille discrète (~0,7× le corps).
-    if (n.t === 'sup')       return <Text key={i} style={{ fontSize: '0.5rem', color: C.beige, verticalAlign: 'super' }}>{n.v}</Text>
+    if (n.t === 'sup')       return <Text key={i} style={{ fontSize: 8, color: C.beige, verticalAlign: 'super' }}>{n.v}</Text>
     if (n.t === 'link')      return <Link key={i} src={n.href!} style={{ color: C.vert }}>{typographier(n.v)}</Link>
     return avecSiecles(n.v, `t${i}`)
   })
@@ -332,7 +349,7 @@ function EssaiDocument({ titre, sousTitre, auteur, date, verset, contenu }: Prop
           <View style={s.notes}>
             <Text style={s.noteTitre}>Notes</Text>
             {notes.map((n, i) => (
-              <Text key={i} style={s.noteItem}><Text style={{ verticalAlign: 'super', fontSize: '0.46875rem', color: C.beige }}>{i + 1}</Text>{' '}{renderNodes(parseInline(n, []))}</Text>
+              <Text key={i} style={s.noteItem}><Text style={{ verticalAlign: 'super', fontSize: 7.5, color: C.beige }}>{i + 1}</Text>{' '}{renderNodes(parseInline(n, []))}</Text>
             ))}
           </View>
         )}
@@ -341,14 +358,14 @@ function EssaiDocument({ titre, sousTitre, auteur, date, verset, contenu }: Prop
         <Text
           fixed
           render={({ pageNumber }) => `${pageNumber}`}
-          style={{ position: 'absolute', bottom: 20, left: 0, right: 0, textAlign: 'center', fontFamily: 'Source Serif 4', fontSize: '0.5625rem', color: '#888' }}
+          style={{ position: 'absolute', bottom: 20, left: 0, right: 0, textAlign: 'center', fontFamily: 'Source Serif 4', fontSize: 9, color: '#888' }}
         />
 
         {/* Titre courant : sur les pages qui suivent la page de titre. */}
         <Text
           fixed
           render={({ pageNumber }) => pageNumber > 1 ? typographier(`${auteur ? auteur + ' — ' : ''}${titre}`) : ''}
-          style={{ position: 'absolute', top: 22, left: MARGE_H, right: MARGE_H, textAlign: 'center', fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: '0.5625rem', letterSpacing: 0.5, color: '#a99a86' }}
+          style={{ position: 'absolute', top: 22, left: MARGE_H, right: MARGE_H, textAlign: 'center', fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: 9, letterSpacing: 0.5, color: '#a99a86' }}
         />
 
       </Page>
