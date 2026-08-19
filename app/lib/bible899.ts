@@ -78,6 +78,9 @@ export type Ligne899 = {
   texte_modernized?: string | null
 }
 
+/** Plafond de lignes que l'API de données rend par réponse. Pas un réglage : une borne. */
+const TAILLE_TRANCHE_899 = 1000
+
 const COLONNES_META_899 =
   'trad_id, canon_id, canon_id_fin, livre, chapitre, verset, alignment_order, alignment_status, verification_status, segment_key'
 const COLONNE_TEXTE_899: Record<Couche899, string> = {
@@ -134,28 +137,50 @@ export async function chargerVersets899(
   // absente ferait échouer toute la requête PostgREST). La couche « modernized »
   // n'est donc demandée que si l'appelant l'a vue disponible.
   const select = [COLONNES_META_899, ...couches.map((c) => COLONNE_TEXTE_899[c])].join(', ')
-  let requete = client
-    .from('v_bible899_verse_recomposed')
-    .select(select)
-    .eq('trad_id', TRAD_ID_BIBLE899)
-    .eq('livre', params.livre)
-  if (params.chapitre != null) requete = requete.eq('chapitre', params.chapitre)
-  const { data, error } = await requete
-    .order('chapitre', { ascending: true })
-    .order('verset', { ascending: true })
-  if (error) throw new Error(`Versets Bible 899 illisibles : ${error.message}`)
-  // `select` dynamique : supabase-js ne peut plus inférer la forme des lignes, d'où le
-  // passage par `unknown` (les colonnes demandées correspondent bien à Ligne899).
-  return (data ?? []) as unknown as Ligne899[]
+  // ⚠️ L'API de données plafonne à 1000 lignes par réponse. Un CHAPITRE tient toujours
+  // sous ce plafond, mais un LIVRE ENTIER (mode « livre entier » de la Polyglotte) ne le
+  // tient pas toujours : au 2026-08-19, huit livres le dépassent — Psaumes 2527, Genèse
+  // 1533, Nombres 1289, Exode 1213, Luc 1149, Job 1070, Matthieu 1068, Actes 1002. Sans
+  // pagination, la lecture s'arrêtait au millième verset SANS RIEN SIGNALER : le livre
+  // paraissait simplement s'interrompre. On lit donc par tranches jusqu'à épuisement.
+  const lignes: Ligne899[] = []
+  for (let debut = 0; ; debut += TAILLE_TRANCHE_899) {
+    let requete = client
+      .from('v_bible899_verse_recomposed')
+      .select(select)
+      .eq('trad_id', TRAD_ID_BIBLE899)
+      .eq('livre', params.livre)
+    if (params.chapitre != null) requete = requete.eq('chapitre', params.chapitre)
+    const { data, error } = await requete
+      .order('chapitre', { ascending: true })
+      .order('verset', { ascending: true })
+      .range(debut, debut + TAILLE_TRANCHE_899 - 1)
+    if (error) throw new Error(`Versets Bible 899 illisibles : ${error.message}`)
+    // `select` dynamique : supabase-js ne peut plus inférer la forme des lignes, d'où le
+    // passage par `unknown` (les colonnes demandées correspondent bien à Ligne899).
+    const tranche = (data ?? []) as unknown as Ligne899[]
+    lignes.push(...tranche)
+    // Une tranche incomplète est la dernière. Un chapitre se lit donc en UN aller-retour.
+    if (tranche.length < TAILLE_TRANCHE_899) break
+  }
+  return lignes
 }
 
 /** Ensemble des livres canoniques réellement portés par TR0009 (pour la navigation). */
 export async function livresDisponibles899(client: SupabaseClient): Promise<Set<string>> {
+  // ⛔ On demande la LISTE DES LIVRES, jamais tous les versets pour en déduire la liste.
+  // C'est la règle déjà posée pour les traductions ordinaires (`livres_par_traduction`,
+  // cf. le commentaire de `BibleLayout`), et TR0009 l'avait rouverte : la vue de
+  // recomposition était interrogée sans borne, l'API plafonne à 1000 lignes, si bien que
+  // sur 18 957 lignes alignées seuls les livres tombant dans cette fenêtre étaient vus —
+  // RUT, TOB, MRK, 1PE, JAS. Les dix-neuf autres, GENÈSE COMPRISE, étaient marqués
+  // « vides », donc INERTES dans NavLivres (`handleLivre` sort aussitôt) : la Bible du
+  // XIIIᵉ ne s'ouvrait plus. Le défaut est né en silence le jour où le corpus a dépassé
+  // les mille lignes. Vue jumelle : `livres_bible899` (sql/20260819_livres_bible899.sql).
   const { data, error } = await client
-    .from('v_bible899_verse_recomposed')
+    .from('livres_bible899')
     .select('livre')
     .eq('trad_id', TRAD_ID_BIBLE899)
-    .not('canon_id', 'is', null)
   if (error) throw new Error(`Livres Bible 899 illisibles : ${error.message}`)
   const livres = new Set<string>()
   for (const ligne of (data ?? []) as { livre: string | null }[]) {
