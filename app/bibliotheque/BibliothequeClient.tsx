@@ -1607,7 +1607,13 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   [auteurs, qNorm, periodesActives, languesActives, traditionsActives])
 
   return (
-    <main style={{ background: 'var(--cs-fond)', minHeight: '100vh', paddingTop: '3.5rem' }}>
+    <main style={{
+      background: 'var(--cs-fond)',
+      // AUCUN paddingTop ici. Le décalage sous la navbar fixe est posé UNE SEULE fois
+      // pour tout le site, par #cs-corps dans app/layout.tsx. Le répéter le comptait
+      // deux fois : 107px entre la barre et le titre au lieu de 38.
+      minHeight: 'calc(100vh - 3.5rem)',
+    }}>
       {erreurChargement && (
         <div role="alert" style={{ background: 'var(--cs-danger-fond)', borderBottom: '1px solid var(--cs-danger-bord)', color: '#a2564a', fontSize: '0.8125rem', padding: '10px 20px', textAlign: 'center' }}>
           La bibliothèque n’a pas pu être chargée entièrement. Rechargez la page pour réessayer.

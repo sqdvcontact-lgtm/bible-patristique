@@ -81,13 +81,13 @@ export default function ConversationPage() {
   }
 
   if (connecte === false) return (
-    <main style={{ minHeight: '100vh', background: 'var(--cs-fond)', paddingTop: '3.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Connectez-vous pour accéder à votre messagerie.</p>
     </main>
   )
 
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--cs-fond)', paddingTop: '3.5rem', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', flexDirection: 'column' }}>
       <style>{`
         .msg-bubble { transition: opacity 0.1s; }
         .msg-input:focus { outline: none; border-color: var(--cs-vert) !important; }

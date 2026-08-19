@@ -53,7 +53,13 @@ const LIBRAIRIES: Librairie[] = [
 
 export default function LibrairiesPage() {
   return (
-    <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100vh - 3.5rem)', paddingTop: '3.5rem' }}>
+    <main style={{
+      background: 'var(--cs-fond)',
+      // AUCUN paddingTop ici. Le décalage sous la navbar fixe est posé UNE SEULE fois
+      // pour tout le site, par #cs-corps dans app/layout.tsx. Le répéter le comptait
+      // deux fois : 107px entre la barre et le titre au lieu de 38.
+      minHeight: 'calc(100vh - 3.5rem)',
+    }}>
       <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '18px' }}>
           <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.15, marginBottom: '8px' }}>
