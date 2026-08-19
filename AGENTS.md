@@ -475,6 +475,19 @@ Tout ce qui vit dans `public` est servi par l’API REST. `anon` n’y a aucun d
 - ⚠️ **Le passage en invoker a un COÛT, mesurer avant de basculer.** Les politiques de `segments` et `liens_bibliques` se réévaluent à l’intérieur des agrégats : `versets_plus_cites` est passée de quelques centaines de ms à 2,4 s cache chaud et a dépassé le délai d’attente à froid, la page /statistiques renvoyant une 500. Elle est revenue en DEFINER. Les vues d’agrégat sur `segments` (`oeuvres_controle_stats`, `oeuvres_liens_stats`, `avancement_liens`) coûtent 2,5 s à un lecteur ordinaire contre 1 s au propriétaire ; l’administrateur, lui, court-circuite par `is_admin()`. La bonne réponse pour une vue lourde est la MATÉRIALISATION (modèle `oeuvres_controle_stats_mat`), pas le DEFINER.
 
 
+# Sauvegardes et vérification (GitHub Actions)
+
+Trois workflows, et une leçon.
+
+- `verification.yml` — à chaque poussée sur `master` : `tsc` et `vitest` BLOQUENT, le linter est informatif tant que ses 414 erreurs héritées n’ont pas été résorbées. Retirer `continue-on-error` le jour où le compte tombe à zéro.
+- `backup-supabase.yml` — quotidienne, format `custom`, privilèges CONSERVÉS.
+- `sauvegarde-supabase.yml` — hebdomadaire (dimanche), format texte gzippé, `--no-owner --no-privileges`. ⚠️ Sans les GRANT, une base restaurée depuis CE vidage ne rendrait rien à PostgREST : les rôles `anon` et `authenticated` n’auraient plus aucun droit. C’est la raison d’être de la quotidienne.
+
+⚠️ **Piège vécu : la sauvegarde quotidienne a échoué 21 nuits d’affilée, en silence** (du 30 juillet au 19 août 2026). Elle visait `db.<ref>.supabase.co`, qui ne publie **qu’un enregistrement AAAA** ; les exécuteurs GitHub sont en **IPv4 seul**, la connexion ne pouvait pas aboutir. L’hebdomadaire, elle, passait : elle emploie le secret `SUPABASE_DB_URL` (le pooler, joignable en IPv4). Les deux emploient désormais ce secret.
+
+- **Un workflow programmé qui échoue ne prévient personne.** GitHub n’envoie de courriel qu’au propriétaire du workflow, et le silence ressemble au succès. Vérifier de temps en temps : `https://api.github.com/repos/sqdvcontact-lgtm/bible-patristique/actions/runs` rend les conclusions sans authentification, le dépôt étant public.
+
+
 # Appels aux routes admin — le verrou renvoie une REDIRECTION, pas une erreur
 
 ⚠️ Quand la session n'est pas reconnue, `proxy.ts` ne répond pas par un 401 : il **redirige** vers `/chantier?suite=…`. Or `fetch` suit les redirections par défaut, si bien qu'un appel à `/api/admin/…` revient en **`200` porteur de HTML** et satisfait `res.ok`. Le seul symptôme est un « Unexpected token < » au `res.json()`, généralement avalé par un `catch`.
