@@ -1,0 +1,79 @@
+name: Bible 899 — planche finale de contrôle
+
+on:
+  push:
+    paths:
+      - '.github/workflows/bible899-final-facsimile-sheet.yml'
+
+permissions:
+  contents: read
+
+env:
+  BASE: https://oucotpxcjalwgetylfbz.supabase.co/storage/v1/object/public/manuscrits/bible-899
+
+jobs:
+  sheet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
+      - name: Télécharger et recadrer les zones
+        shell: python
+        run: |
+          from pathlib import Path
+          from urllib.request import urlretrieve
+          from PIL import Image, ImageOps, ImageDraw
+          import os, math
+
+          base=os.environ['BASE']
+          out=Path('audit-sheet'); out.mkdir()
+          targets=[
+            ('EXO.1.8','f030v_a.png',39),('EXO.2.1','f030v_b.png',28),
+            ('2SA.8.4-a','f150r_a.png',40),('2SA.8.4-b','f150r_b.png',1),
+            ('2SA.8.17-18','f150r_b.png',38),('2SA.8.18-cont','f150v_a.png',2),
+            ('2SA.16.1','f155r_a.png',30),('2SA.20.11','f158v_a.png',13),
+            ('LUK.24.35-a','f329v_a.png',40),('LUK.24.35-b','f329v_b.png',1),
+            ('JHN.10.41','f339r_b.png',21),('JHN.14.15-a','f342r_a.png',40),('JHN.14.15-b','f342r_b.png',1),
+            ('JHN.19.19-a','f345v_b.png',39),('JHN.19.19-b','f346r_a.png',1),
+            ('ACT.3.8','f349v_a.png',14),('ACT.8.1','f352v_b.png',26),
+          ]
+          cache={}
+          crops=[]
+          for label,file,line in targets:
+            p=Path('/tmp')/file
+            if file not in cache:
+              urlretrieve(f'{base}/{file}',p)
+              cache[file]=Image.open(p).convert('L')
+            im=cache[file]
+            # 40 lignes ; bande généreuse d'environ 7 lignes autour de la cible.
+            step=im.height/40
+            y0=max(0,int((line-4.0)*step)); y1=min(im.height,int((line+3.0)*step))
+            crop=im.crop((0,y0,im.width,y1))
+            crop=ImageOps.autocontrast(crop)
+            # agrandissement sans autre transformation éditoriale
+            scale=max(1, round(700/crop.width))
+            crop=crop.resize((crop.width*scale,crop.height*scale), Image.Resampling.NEAREST)
+            canvas=Image.new('L',(crop.width,crop.height+54),255)
+            canvas.paste(crop,(0,54))
+            d=ImageDraw.Draw(canvas)
+            d.text((8,8),f'{label} — {file} — l.{line}',fill=0)
+            q=out/(label.replace('.','_').replace('-','_')+'.png')
+            canvas.save(q)
+            crops.append((label,canvas))
+          width=max(i.width for _,i in crops)
+          gap=16
+          height=sum(i.height+gap for _,i in crops)
+          sheet=Image.new('L',(width,height),255)
+          y=0
+          for _,im in crops:
+            sheet.paste(im,(0,y)); y+=im.height+gap
+          sheet.save(out/'CONTACT_SHEET.png')
+          Path(out/'README.txt').write_text('\n'.join(f'{a}: {b} ligne {c}' for a,b,c in targets),encoding='utf-8')
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bible899-final-facsimile-sheet
+          path: audit-sheet/
+          retention-days: 1
