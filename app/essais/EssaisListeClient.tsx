@@ -342,32 +342,55 @@ function OngletCommunaute({
 
         .couverture-etoile { position: absolute; top: 2.4cqw; right: 2.6cqw; z-index: 4; line-height: 1; }
 
-        /* La quatrième : elle se retourne au survol. Seul endroit en empattement. */
+        /* La quatrième : elle se retourne au survol. Même famille que la face — la
+           couverture entière est en empattement — mais une composition plus large :
+           un blanc de marge presque double, et le texte tenu loin du cadre. Un
+           résumé collé au filet ne se lit pas comme une quatrième, mais comme une
+           étiquette. */
         .couverture-dos {
           position: absolute; inset: 0; z-index: 3;
           display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-          padding: 7.5cqw 6.5cqw 6.5cqw 7.2cqw;
+          padding: 13cqw 11cqw 15cqw 11.8cqw;
           opacity: 0; pointer-events: none; transition: opacity 0.22s ease;
         }
         .couverture:hover .couverture-dos { opacity: 1; pointer-events: auto; }
         .couverture:hover .couverture-face { opacity: 0; }
+        /* Le losange de tête, seul, sans ses filets : il rappelle la face sans
+           refaire le même ornement. */
+        .couverture-dos-fleuron { font-size: 2.6cqw; opacity: 0.5; line-height: 1; margin-bottom: 5cqw; }
+        /* Le résumé prend une interligne large et une coupe de petit corps : c'est un
+           paragraphe de lecture, pas une légende. Écrêté à sept lignes — une de moins
+           qu'avant, le blanc valant mieux que la ligne de trop. */
         .couverture-resume {
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 4.95cqw; line-height: 1.5;
-          overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 8;
+          font-size: 4.6cqw; line-height: 1.62; opacity: 0.94;
+          font-variation-settings: "opsz" 12, "wght" 400;
+          text-wrap: pretty;
+          overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 7;
         }
-        /* « Lire » : ni cadre ni flèche. Un mot, espacé, souligné d'un filet fin. */
+        /* « Lire » : ni cadre ni flèche. Un mot, espacé, sous un filet qui s'éteint
+           aux deux bouts — le même dessin que les filets de la face. */
         .couverture-lire {
-          margin-top: 6cqw;
-          font-size: 3.6cqw; font-weight: 500; letter-spacing: 0.28em; text-transform: uppercase;
-          padding: 0 0 1.4cqw 0.28em; border-bottom: 1px solid currentColor; opacity: 0.9;
+          margin-top: 7cqw; position: relative;
+          font-size: 3.4cqw; font-weight: 400; letter-spacing: 0.3em; text-transform: uppercase;
+          padding-left: 0.3em; opacity: 0.88;
+          font-variation-settings: "opsz" 9, "wght" 400;
           transition: opacity 0.2s ease;
         }
+        .couverture-lire::before {
+          content: ""; position: absolute; left: 50%; top: -3.6cqw;
+          width: 20cqw; height: 1px; transform: translateX(-50%);
+          background: linear-gradient(90deg, transparent, currentColor 30%, currentColor 70%, transparent);
+          opacity: 0.42;
+        }
         .couverture:hover .couverture-lire { opacity: 1; }
+        /* Les chiffres au pied, hors du bloc de lecture : ils appartiennent au carton,
+           pas au texte. Assez bas pour laisser respirer le résumé, assez haut pour
+           rester dans le cadre. */
         .couverture-dos-meta {
-          position: absolute; left: 0; right: 0; bottom: 5.2cqw;
-          display: flex; align-items: center; justify-content: center; gap: 3.8cqw;
-          font-size: 3.3cqw; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.66;
+          position: absolute; left: 0; right: 0; bottom: 8cqw;
+          display: flex; align-items: center; justify-content: center; gap: 3.4cqw;
+          font-size: 3cqw; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.56;
+          font-variation-settings: "opsz" 9, "wght" 400;
         }
 
         @media (max-width: 900px) { .rayon { grid-template-columns: repeat(2, 14.5rem); gap: 1.4rem 1.2rem; } }
@@ -446,6 +469,7 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
           doublon visuel, il n'a pas à être annoncé deux fois. */}
       <span className="couverture-dos" style={{ background: c.fond }} aria-hidden="true">
         <span className="couverture-cadre" style={{ borderColor: c.filet }} />
+        <span className="couverture-dos-fleuron">◆</span>
         {e.resume
           ? <span className="couverture-resume">{e.resume}</span>
           : <span className="couverture-resume" style={{ opacity: 0.7, fontStyle: 'italic' }}>{e.titre}</span>}
