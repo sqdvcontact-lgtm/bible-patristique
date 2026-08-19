@@ -16,6 +16,7 @@ import { SELECT_AUTEURS_BIBLIOTHEQUE, SELECT_OEUVRES_BIBLIOTHEQUE } from '@/app/
 import { libelleTrad, formaterEditeur } from '@/app/oeuvre/[id]/PageTitre'
 import { useEditeursCharges } from '@/app/lib/editeurs'
 import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
+import { rendreEnrichi } from '@/app/lib/enrichissements'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
@@ -275,10 +276,10 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                   seul tenant. */}
               <div ref={proseRef} style={{ display: '-webkit-box', WebkitLineClamp: lignesNotice, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontSize: '0.75rem', lineHeight: 1.5, color: 'var(--cs-texte)', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                 {(auteur.note_biographique || auteur.note) && (
-                  <span style={{ fontStyle: 'italic' }}>{rendreSiecles(auteur.note_biographique || auteur.note)}</span>
+                  <span className="cs-notice-italique" style={{ fontStyle: 'italic' }}>{rendreEnrichi(auteur.note_biographique || auteur.note)}</span>
                 )}
                 {auteur.note_theologique && (
-                  <>{(auteur.note_biographique || auteur.note) ? ' ' : null}<span>{rendreSiecles(auteur.note_theologique)}</span></>
+                  <>{(auteur.note_biographique || auteur.note) ? ' ' : null}<span>{rendreEnrichi(auteur.note_theologique)}</span></>
                 )}
               </div>
             </div>

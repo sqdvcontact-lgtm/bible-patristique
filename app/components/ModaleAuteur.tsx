@@ -14,6 +14,7 @@ import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
+import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { rendreSiecles } from '@/app/lib/siecles'
 import { sansPointFinal } from '@/app/lib/titres'
 import { type RangChrono, coulType, LIB_TYPE } from '@/app/lib/frise'
@@ -271,12 +272,12 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
           seule colonne sur mobile (voir media-query .auteur-grid). */}
       <div className="auteur-grid" style={{ display: 'grid', gridTemplateColumns: aColonnes ? 'minmax(0, 1.35fr) minmax(0, 1fr)' : '1fr', gap: '26px', alignItems: 'start' }}>
         <div className="auteur-grid-vie" style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderRight: aColonnes ? '1px solid var(--cs-fond-doux)' : 'none', paddingRight: aColonnes ? '24px' : 0 }}>
-          {auteur.note_biographique && <section><TitreSection>Vie</TitreSection><p className="auteur-prose">{rendreSiecles(auteur.note_biographique)}</p></section>}
+          {auteur.note_biographique && <section><TitreSection>Vie</TitreSection><p className="auteur-prose">{rendreEnrichi(auteur.note_biographique)}</p></section>}
           {auteur.anecdotes?.trim() && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: 0, paddingLeft: '11px', borderLeft: '1px solid var(--cs-danger-bord)' }}>{rendreSiecles(auteur.anecdotes)}</p>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: 0, paddingLeft: '11px', borderLeft: '1px solid var(--cs-danger-bord)' }} className="cs-notice-italique">{rendreEnrichi(auteur.anecdotes)}</p>
           )}
-          {auteur.note_theologique && <section><TitreSection>Pensée</TitreSection><p className="auteur-prose">{rendreSiecles(auteur.note_theologique)}</p></section>}
-          {auteur.influence?.trim() && <section><TitreSection>Postérité</TitreSection><p className="auteur-prose">{rendreSiecles(auteur.influence)}</p></section>}
+          {auteur.note_theologique && <section><TitreSection>Pensée</TitreSection><p className="auteur-prose">{rendreEnrichi(auteur.note_theologique)}</p></section>}
+          {auteur.influence?.trim() && <section><TitreSection>Postérité</TitreSection><p className="auteur-prose">{rendreEnrichi(auteur.influence)}</p></section>}
           {/* Les œuvres closent la colonne de gauche, sous « Postérité ». */}
           {contenuOeuvres && <section>{contenuOeuvres}</section>}
         </div>

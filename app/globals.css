@@ -323,6 +323,15 @@ button:focus-visible,
   font-variant: all-small-caps;
 }
 
+/* ── Titres d'œuvres cités dans une notice d'auteur ──
+   Un titre cité dans une notice DÉJÀ composée en italique revient au ROMAIN.
+   C'est la règle typographique, et ici elle n'est pas décorative : sans elle,
+   l'italique d'un titre serait rigoureusement invisible dans une notice qui
+   l'est tout entière, et l'enrichissement ne servirait à rien. */
+.cs-notice-italique em {
+  font-style: normal;
+}
+
 /* ── Bibliothèque (page « Patristique ») : photo d'auteur sur petit écran ──
    En pleine largeur, la photo prenait une haute bande verticale à gauche de la
    carte. Sur mobile/petit écran, on s'en passe entièrement : le texte gagne toute

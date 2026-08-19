@@ -14,6 +14,7 @@ import { createPortal } from 'react-dom'
 import { supabase } from '@/app/lib/supabase'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { rendreSiecles } from '@/app/lib/siecles'
+import { equilibrerEnrichissements, rendreEnrichi } from '@/app/lib/enrichissements'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 
@@ -40,7 +41,9 @@ function extraitBio(texte: string | null): string {
   if (propre.length <= 200) return propre
   const coupe = propre.slice(0, 200)
   const dernierEspace = coupe.lastIndexOf(' ')
-  return (dernierEspace > 120 ? coupe.slice(0, dernierEspace) : coupe) + '…'
+  // La coupe peut tomber au milieu d'un titre d'œuvre : on referme la marque,
+  // sinon un astérisque orphelin s'afficherait tel quel.
+  return equilibrerEnrichissements(dernierEspace > 120 ? coupe.slice(0, dernierEspace) : coupe) + '…'
 }
 
 export default function ApercuAuteur({
@@ -148,7 +151,7 @@ export default function ApercuAuteur({
           </div>
           {auteur.note_biographique && (
             <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.5, margin: '10px 0 0', textAlign: 'justify', hyphens: 'auto' }}>
-              {extraitBio(auteur.note_biographique)}
+              {rendreEnrichi(extraitBio(auteur.note_biographique))}
             </p>
           )}
           <p style={{ fontSize: '0.625rem', fontWeight: 600, color: 'var(--cs-vert)', margin: '9px 0 0', letterSpacing: '0.02em' }}>Voir la fiche complète →</p>

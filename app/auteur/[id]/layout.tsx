@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
 import { JsonLd, donneesPersonne, donneesFilAriane } from "@/app/lib/donneesStructurees";
+// Description et JSON-LD prennent le texte NU : une notice enrichie y laisserait
+// ses astérisques, que ni un moteur ni un aperçu de partage ne savent lire.
+import { sansEnrichissements } from "@/app/lib/enrichissements";
 
 // Métadonnées + données structurées de la page publique d'un auteur. La page
 // elle-même est un composant client ; titre, description et Person JSON-LD passent
@@ -27,7 +30,7 @@ export async function generateMetadata({
   const variantes = [data.nom, data.nom_original].filter((v): v is string => !!v);
   const description =
     typeof data.note_biographique === "string" && data.note_biographique
-      ? data.note_biographique.slice(0, 160)
+      ? sansEnrichissements(data.note_biographique).slice(0, 160)
       : `Notice, œuvres et références de ${data.nom}${data.dates ? ` (${data.dates})` : ""} sur Corpus Scriptura.`;
   return { title: data.nom, description, keywords: variantes };
 }
@@ -52,7 +55,7 @@ export default async function AuteurLayout({
               nomOriginal: data.nom_original,
               description:
                 typeof data.note_biographique === "string" && data.note_biographique
-                  ? data.note_biographique.slice(0, 300)
+                  ? sansEnrichissements(data.note_biographique).slice(0, 300)
                   : null,
             })}
           />
