@@ -55,7 +55,7 @@ describe('tirage par défaut', () => {
 
 describe('couverture d’une publication', () => {
   it('rend la couverture choisie', () => {
-    expect(couvertureDe('outremer').libelle).toBe('Outremer')
+    expect(couvertureDe('sauge').libelle).toBe('Sauge')
   })
 
   it('rend le défaut quand rien n’a été choisi ET qu’aucune graine n’est donnée', () => {
@@ -70,7 +70,7 @@ describe('couverture d’une publication', () => {
   })
 
   it('laisse le choix de l’auteur l’emporter sur le tirage', () => {
-    expect(couvertureDe('outremer', 41).cle).toBe('outremer')
+    expect(couvertureDe('sauge', 41).cle).toBe('sauge')
   })
 
   // Une couleur retirée du jeu ne doit jamais faire disparaître une publication.
@@ -79,7 +79,7 @@ describe('couverture d’une publication', () => {
   })
 
   it('reconnaît les clés du jeu, et elles seules', () => {
-    expect(estCouvertureConnue('ambre')).toBe(true)
+    expect(estCouvertureConnue('or')).toBe(true)
     expect(estCouvertureConnue('turquoise-fluo')).toBe(false)
     expect(estCouvertureConnue(null)).toBe(false)
   })

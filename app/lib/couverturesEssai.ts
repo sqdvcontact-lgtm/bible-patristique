@@ -4,10 +4,12 @@
 // unie, le nom de l'auteur et le titre en grand, la date au pied. L'auteur choisit
 // sa couleur ; le résumé est la « quatrième », qui se retourne au survol.
 //
-// Le jeu tient en cinq teintes, arrêtées ensemble sur une même palette : trois
-// sombres qui portent une encre claire, deux claires qui portent une encre brune.
-// Cinq couleurs franches valent mieux qu'une roue complète : le rayon garde son
-// unité, et deux publications voisines ne se ressemblent jamais à demi.
+// Le jeu ne sort PAS de la palette du site : verts d'encre, ocres, crèmes, tous
+// pris ou dérivés des tokens de `globals.css`. C'est une seule gamme, dégradée du
+// vert le plus profond au papier le plus clair — un rayon de publications doit se
+// lire comme une collection reliée par le même éditeur, non comme un nuancier.
+// Aucune teinte étrangère à cette gamme : sur un site crème et vert d'encre, un
+// bleu ou un violet, même sourd, fait tache.
 
 export type Couverture = {
   /** Clé stockée dans `essais.couverture`. Ne jamais la renommer : la donnée la porte. */
@@ -22,24 +24,28 @@ export type Couverture = {
   filet: string
 }
 
-// L'ordre est celui du choix offert à l'auteur : les sombres d'abord, les claires
-// ensuite.
+// L'ordre est celui du choix offert à l'auteur, et c'est celui de la gamme : du
+// vert le plus sombre au crème. Les quatre premières portent une encre claire,
+// les deux dernières une encre brune.
 export const COUVERTURES: Couverture[] = [
-  { cle: 'vert',     libelle: 'Vert',     fond: '#3d6b4f', encre: '#f8f5ee', filet: 'rgba(248,245,238,0.36)' },
-  // Le bleu de la palette (#367dbf) ne porte une encre claire qu'à 4,35 : un cheveu
-  // sous les 4,5 exigés. Assombri d'un ton, il tient 4,7 sans changer de couleur.
-  { cle: 'bleu',     libelle: 'Bleu',     fond: '#3175b2', encre: '#f7fafd', filet: 'rgba(247,250,253,0.40)' },
-  { cle: 'outremer', libelle: 'Outremer', fond: '#3b45c6', encre: '#f2f3fb', filet: 'rgba(242,243,251,0.34)' },
-  // Les deux teintes claires prennent l'encre brune du site : sur elles, une encre
-  // claire tomberait à 2,9 et 2,0. Le mauve est le cas juste — 4,9 avec ce brun-ci,
-  // 4,4 avec le brun ordinaire des textes (#3a3026), d'où ce brun plus profond.
-  { cle: 'mauve',    libelle: 'Mauve',    fond: '#a98ad8', encre: '#2f2a24', filet: 'rgba(47,42,36,0.30)' },
-  { cle: 'ambre',    libelle: 'Ambre',    fond: '#e7ab49', encre: '#2f2a24', filet: 'rgba(47,42,36,0.32)' },
+  { cle: 'encre', libelle: 'Vert d’encre', fond: '#2a3d30', encre: '#f2ede3', filet: 'rgba(242,237,227,0.34)' },
+  { cle: 'vert',  libelle: 'Vert',         fond: '#3d6b4f', encre: '#f8f5ee', filet: 'rgba(248,245,238,0.36)' },
+  // La sauge claire (#7d8f77) ne portait pas une encre claire : 3,3 de contraste.
+  // Assombrie jusqu'à 5,0, elle garde son gris-vert sans devenir un second vert.
+  { cle: 'sauge', libelle: 'Sauge',        fond: '#5e7058', encre: '#fbf8f1', filet: 'rgba(251,248,241,0.42)' },
+  // L'or du site (`--cs-or`, #9a7a38) sert d'accent sur fond crème ; en aplat sous
+  // une encre claire il ne contraste pas assez (3,8 pour 4,5 exigé). La couverture
+  // le prend donc plus profond, en vieil or.
+  { cle: 'or',    libelle: 'Vieil or',     fond: '#7d6224', encre: '#fbf7ef', filet: 'rgba(251,247,239,0.40)' },
+  // Les deux claires prennent l'encre brune des textes. L'ocre est `--cs-or-doux`
+  // tel quel, le crème est le papier des encarts.
+  { cle: 'ocre',  libelle: 'Ocre pâle',    fond: '#c8b89e', encre: '#2a2520', filet: 'rgba(42,37,32,0.26)' },
+  { cle: 'creme', libelle: 'Crème',        fond: '#ece5d8', encre: '#3a3026', filet: 'rgba(58,48,38,0.28)' },
 ]
 
 /** Couverture posée quand l'auteur n'a rien choisi, et quand la clé stockée ne
- *  correspond plus à rien : le vert du jeu. Une publication n'est jamais sans
- *  couverture. */
+ *  correspond plus à rien : le vert d'encre du site. Une publication n'est jamais
+ *  sans couverture. */
 export const COUVERTURE_PAR_DEFAUT = COUVERTURES[0]
 
 const PAR_CLE = new Map(COUVERTURES.map(c => [c.cle, c]))
