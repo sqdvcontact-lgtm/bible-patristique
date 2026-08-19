@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from "@/app/lib/supabase"
 import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import { parseNotes } from '@/app/lib/notes'
+import { lireSuiteAppels, detacherDernierMot, separateurAppels } from '@/app/oeuvre/[id]/appelNote'
 import NoteTooltip from '@/app/lib/NoteTooltip'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
@@ -37,6 +38,13 @@ type Commentaire = { id: number; texte: string; auteur_nom: string; created_at: 
 // exposant vert discret ; la note s'ouvre en info-bulle élégante (NoteTooltip) —
 // même infrastructure que la page Œuvre. Les autres balises (**gras**, *ital*,
 // ^^exp^^, liens, siècles) sont rendues comme dans rendreTexteEnrichi.
+// Séparateur d’une suite d’appels : la forme de l’exposant de NoteTooltip, sans
+// son bouton — il n’ouvre aucune note.
+const STYLE_SEPARATEUR_APPELS: React.CSSProperties = {
+  display: 'inline-block', position: 'relative', top: '-0.3em', verticalAlign: 'baseline',
+  lineHeight: 0, fontSize: '0.68em', color: 'var(--cs-vert)',
+}
+
 function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): React.ReactNode {
   const noeuds: React.ReactNode[] = []
   const numeros = new Map<string, number>()
@@ -59,8 +67,27 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
       <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{m[4]}</a>
     )
     else if (m[6] !== undefined) {
-      const marqueur = m[6]
-      noeuds.push(<NoteTooltip key={k++} lettre={String(numeroDe(marqueur))} el={{ type: 'note', texte: notes[marqueur] ?? '' }} />)
+      // Mêmes règles que la page de lecture (voir appelNote.tsx) : l’appel ne se
+      // sépare jamais du mot ni de la ponctuation qui l’entourent, et deux notes
+      // qui se suivent s’écrivent « 2 & 3 ».
+      const { marqueurs, ponctuation, fin } = lireSuiteAppels(texte, m.index)
+      regex.lastIndex = fin
+      let attache = ''
+      const precedent = noeuds[noeuds.length - 1]
+      if (typeof precedent === 'string') {
+        const [avant, mot] = detacherDernierMot(precedent)
+        if (mot) { noeuds[noeuds.length - 1] = avant; attache = mot }
+      }
+      const appels: React.ReactNode[] = []
+      marqueurs.forEach((marqueur, rang) => {
+        if (rang > 0) appels.push(
+          <span key={k++} style={STYLE_SEPARATEUR_APPELS}>{separateurAppels(rang, marqueurs.length)}</span>
+        )
+        appels.push(<NoteTooltip key={k++} lettre={String(numeroDe(marqueur))} el={{ type: 'note', texte: notes[marqueur] ?? '' }} />)
+      })
+      noeuds.push(
+        <span key={k++} style={{ whiteSpace: 'nowrap' }}>{attache}{appels}{ponctuation}</span>
+      )
     }
     else if (m[7] !== undefined) {
       noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)

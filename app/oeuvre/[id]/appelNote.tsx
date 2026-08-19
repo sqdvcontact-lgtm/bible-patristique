@@ -78,6 +78,57 @@ export function styleAppelNote(variante: VarianteAppelNote = 'corps'): React.CSS
   }
 }
 
+// Le séparateur d’une suite d’appels prend exactement la forme de l’appel, mais
+// ne se clique pas : il n’ouvre aucune note.
+export function styleSeparateurAppels(variante: VarianteAppelNote = 'corps'): React.CSSProperties {
+  return { ...styleAppelNote(variante), cursor: 'inherit', padding: 0 }
+}
+
+// ── Ce qui voyage avec l’appel ───────────────────────────────────────────────
+// ⛔ Un appel ne se sépare JAMAIS du point qui le suit. L’appel est un
+// `inline-block` : le navigateur y voit une occasion de couper la ligne, en aval
+// comme en amont, et l’on a vu le point final tomber seul en tête de la ligne
+// suivante. Règle d’auteur : c’est interdit. L’appel voyage donc dans un
+// `nowrap` avec le dernier mot qui le précède et la ponctuation qui le suit.
+//
+// Deux notes qui se suivent s’écrivent « 2 & 3 », esperluette entre les numéros
+// (deux exposants collés se liraient « vingt-trois ») ; au delà de deux,
+// « 2, 3 & 4 ». Les espaces du séparateur sont insécables : une espace ordinaire
+// en tête ou en queue d’un `inline-block` serait supprimée par le navigateur.
+const NBSP_APPELS = '\u00A0'
+const PONCTUATION_ATTACHEE = /^[.,;:!?…»)\]]+/
+const APPEL_SUIVANT = /^[ \u00A0\u202F]*,?[ \u00A0\u202F]*\[\[([A-Z0-9]+)\]\]/
+
+/** Lit, à partir du crochet ouvrant en `debut`, la suite des appels collés et la
+ *  ponctuation qui les suit. `fin` est l’index où reprendre la lecture. */
+export function lireSuiteAppels(texte: string, debut: number) {
+  const premier = /^\[\[([A-Z0-9]+)\]\]/.exec(texte.slice(debut))
+  if (!premier) return { marqueurs: [] as string[], ponctuation: '', fin: debut }
+  const marqueurs = [premier[1]]
+  let fin = debut + premier[0].length
+  for (;;) {
+    const suivant = APPEL_SUIVANT.exec(texte.slice(fin))
+    if (!suivant) break
+    marqueurs.push(suivant[1])
+    fin += suivant[0].length
+  }
+  const ponctuation = PONCTUATION_ATTACHEE.exec(texte.slice(fin))?.[0] ?? ''
+  return { marqueurs, ponctuation, fin: fin + ponctuation.length }
+}
+
+/** Détache le dernier mot d’un fragment, pour qu’il parte avec l’appel qui le
+ *  suit. Rien à détacher si le fragment finit par une espace. */
+export function detacherDernierMot(texte: string): [string, string] {
+  const dernier = /\S+$/.exec(texte)
+  return dernier ? [texte.slice(0, dernier.index), dernier[0]] : [texte, '']
+}
+
+/** Le séparateur qui précède l’appel de rang `rang` dans une suite : esperluette
+ *  avant le dernier, virgule avant les autres. */
+export function separateurAppels(rang: number, total: number) {
+  return rang === total - 1 ? `${NBSP_APPELS}&${NBSP_APPELS}` : `,${NBSP_APPELS}`
+}
+
 // ── Info-bulle de note ────────────────────────────────────────────────────────
 export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
   numeroVisible: number
@@ -274,10 +325,29 @@ export function rendreTexteAvecNotes(
       <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteAvecNotes(m[4], notes, variante)}</a>
     )
     else if (m[6] !== undefined) {
-      const marqueur = m[6]
-      const contenu = notes[marqueur] ?? ''
-      const numeroVisible = typeof contenu === 'string' ? numeroDe(marqueur) : contenu.noteNumber
-      noeuds.push(<AppelNote key={k++} numeroVisible={numeroVisible} contenu={contenu} variante={variante} />)
+      // L’appel n’est pas rendu seul : on lit la suite entière (appels collés,
+      // ponctuation attachée) et on lui adjoint le mot qui le précède, pour que
+      // rien de tout cela ne puisse se retrouver seul à la ligne.
+      const { marqueurs, ponctuation, fin } = lireSuiteAppels(texte, m.index)
+      regex.lastIndex = fin
+      let attache = ''
+      const precedent = noeuds[noeuds.length - 1]
+      if (typeof precedent === 'string') {
+        const [avant, mot] = detacherDernierMot(precedent)
+        if (mot) { noeuds[noeuds.length - 1] = avant; attache = mot }
+      }
+      const appels: React.ReactNode[] = []
+      marqueurs.forEach((marqueur, rang) => {
+        if (rang > 0) appels.push(
+          <sup key={k++} style={styleSeparateurAppels(variante)}>{separateurAppels(rang, marqueurs.length)}</sup>
+        )
+        const contenu = notes[marqueur] ?? ''
+        const numeroVisible = typeof contenu === 'string' ? numeroDe(marqueur) : contenu.noteNumber
+        appels.push(<AppelNote key={k++} numeroVisible={numeroVisible} contenu={contenu} variante={variante} />)
+      })
+      noeuds.push(
+        <span key={k++} style={{ whiteSpace: 'nowrap' }}>{attache}{appels}{ponctuation}</span>
+      )
     }
     else if (m[7] !== undefined) {
       noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)

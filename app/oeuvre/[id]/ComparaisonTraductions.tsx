@@ -8,7 +8,7 @@ import { rendreTexteEnrichi, texteSansEnrichissement } from './texteEnrichi'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
 // Forme de l'appel de note : une seule définition pour tout le site (jamais de
 // pointillé sous un appel — voir appelNote.tsx).
-import { styleAppelNote } from './appelNote'
+import { styleAppelNote, styleSeparateurAppels, lireSuiteAppels, separateurAppels } from './appelNote'
 import { BadgeStatutAlignement } from './ComparaisonStatut'
 import { BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import type { AlignementDisponible, NoteBlocData, NoteStructuree, SegData } from './oeuvreTypes'
@@ -115,15 +115,34 @@ function AppelNote({ note }: { note: NoteStructuree }) {
   )
 }
 
+// Mêmes règles que la page de lecture (voir appelNote.tsx) : l’appel voyage dans
+// un « nowrap » avec la ponctuation qui le suit — un point ne tombe jamais seul
+// à la ligne — et deux notes qui se suivent s’écrivent « 2 & 3 ».
 function renderSegmentTexte(texte: string, notes: NoteStructuree[]) {
   const parNumero = new Map<string, NoteStructuree>()
   for (const note of notes) parNumero.set(String(note.noteNumber), note)
-  return texte.split(/(\[\[[A-Z0-9]+\]\])/g).map((partie, index) => {
-    const appel = partie.match(/^\[\[([A-Z0-9]+)\]\]$/)?.[1]
-    if (!appel) return <Fragment key={index}>{rendreTexteEnrichi(partie)}</Fragment>
-    const note = parNumero.get(appel)
-    return note ? <AppelNote key={index} note={note} /> : <sup key={index} style={{ color: 'var(--cs-texte-faible)', fontSize: '0.62em' }}>{appel}</sup>
-  })
+  const noeuds: React.ReactNode[] = []
+  const regex = /\[\[[A-Z0-9]+\]\]/g
+  let dernierIndex = 0, k = 0, m: RegExpExecArray | null
+  while ((m = regex.exec(texte))) {
+    if (m.index > dernierIndex) noeuds.push(<Fragment key={k++}>{rendreTexteEnrichi(texte.slice(dernierIndex, m.index))}</Fragment>)
+    const { marqueurs, ponctuation, fin } = lireSuiteAppels(texte, m.index)
+    regex.lastIndex = fin
+    dernierIndex = fin
+    const appels: React.ReactNode[] = []
+    marqueurs.forEach((appel, rang) => {
+      if (rang > 0) appels.push(
+        <sup key={k++} style={styleSeparateurAppels()}>{separateurAppels(rang, marqueurs.length)}</sup>
+      )
+      const note = parNumero.get(appel)
+      appels.push(note
+        ? <AppelNote key={k++} note={note} />
+        : <sup key={k++} style={{ color: 'var(--cs-texte-faible)', fontSize: '0.62em' }}>{appel}</sup>)
+    })
+    noeuds.push(<span key={k++} style={{ whiteSpace: 'nowrap' }}>{appels}{ponctuation}</span>)
+  }
+  if (dernierIndex < texte.length) noeuds.push(<Fragment key={k++}>{rendreTexteEnrichi(texte.slice(dernierIndex))}</Fragment>)
+  return noeuds
 }
 
 // Gabarit d'un paragraphe, aligné sur la colonne française du mode Français-Latin

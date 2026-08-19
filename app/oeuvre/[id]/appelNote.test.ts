@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { titreSansAppelsDeNote, notesPourTexte, preparerTitreColophon } from './appelNote'
+import { titreSansAppelsDeNote, notesPourTexte, preparerTitreColophon, lireSuiteAppels, detacherDernierMot, separateurAppels } from './appelNote'
 
 // Écrite en toutes lettres : dans un fichier de test, une espace insécable
 // littérale ne se distingue pas d'une espace ordinaire à la lecture, et une
@@ -60,5 +60,55 @@ describe('banque de notes d’un titre', () => {
 
   it('ne renvoie rien quand le titre n’appelle aucune note', () => {
     expect(notesPourTexte(['Livre premier'], [{ '81': 'Ecrit en 415.' }])).toEqual({})
+  })
+})
+
+// L'appel de note ne se sépare jamais de ce qu'il accompagne : le point qui le
+// suit ne doit pas pouvoir tomber seul en tête de la ligne suivante.
+describe('ce qui voyage avec l’appel de note', () => {
+  it('emporte le point qui suit l’appel', () => {
+    const suite = lireSuiteAppels('Amen[[12]]. Ainsi', 4)
+    expect(suite.marqueurs).toEqual(['12'])
+    expect(suite.ponctuation).toBe('.')
+    expect('Amen[[12]]. Ainsi'.slice(suite.fin)).toBe(' Ainsi')
+  })
+
+  it('emporte aussi le guillemet fermant et le point qui le suit', () => {
+    expect(lireSuiteAppels('paix »[[7]]».', 6).ponctuation).toBe('».')
+  })
+
+  it('ne prend rien quand l’appel est suivi d’une espace', () => {
+    expect(lireSuiteAppels('Amen[[12]] ainsi', 4).ponctuation).toBe('')
+  })
+
+  it('détache le dernier mot pour qu’il parte avec l’appel', () => {
+    expect(detacherDernierMot('la paix du Seigneur')).toEqual(['la paix du ', 'Seigneur'])
+  })
+
+  it('ne détache rien après une espace', () => {
+    expect(detacherDernierMot('la paix ')).toEqual(['la paix ', ''])
+  })
+})
+
+describe('deux notes qui se suivent', () => {
+  it('groupe les appels collés', () => {
+    expect(lireSuiteAppels('mot[[2]][[3]].', 3).marqueurs).toEqual(['2', '3'])
+  })
+
+  it('groupe aussi les appels séparés par une virgule ou une espace', () => {
+    expect(lireSuiteAppels('mot[[2]], [[3]] suite', 3).marqueurs).toEqual(['2', '3'])
+  })
+
+  it('joint les deux numéros par une esperluette, entre insécables', () => {
+    expect(separateurAppels(1, 2)).toBe(' & ')
+  })
+
+  it('au delà de deux, écrit « 2, 3 & 4 » : virgule puis esperluette', () => {
+    expect(separateurAppels(1, 3)).toBe(', ')
+    expect(separateurAppels(2, 3)).toBe(' & ')
+  })
+
+  it('n’avale pas un appel qu’une phrase entière sépare', () => {
+    expect(lireSuiteAppels('mot[[2]]. Autre phrase[[3]]', 3).marqueurs).toEqual(['2'])
   })
 })
