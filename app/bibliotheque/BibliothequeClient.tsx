@@ -330,7 +330,17 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
             const opusculeCorrespond = opuscules.some(g => g.versions.some(v => v.id_oeuvre === oeuvreCorrespondante?.id_oeuvre))
             const rendreGroupe = (grp: GroupeTitre, idx: number) => {
               const correspond = !!oeuvreCorrespondante && grp.versions.some(v => v.id_oeuvre === oeuvreCorrespondante.id_oeuvre)
-              const styleTitre: React.CSSProperties = { fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? 'var(--cs-vert-fonce)' : 'var(--cs-encre)', fontWeight: correspond ? 600 : 400, lineHeight: 1.3 }
+              // ── La hiérarchie se lit d'un coup d'œil, ou elle n'existe pas ──────────
+              // Le titre était plus GRAND que ses éditions (17,9px contre 15,8) et
+              // pourtant moins visible qu'elles. Trois forces jouaient contre lui, dont
+              // une franchement inversée : les éditions étaient en graisse 500 quand lui
+              // restait en 400, un enfant plus gras que son parent. S'y ajoutait que
+              // l'italique à empattements a des pleins plus fins que le sans romain, si
+              // bien que 2px d'écart de corps ne compensaient rien.
+              // Le titre passe donc en 500 et l'édition redescend en 400 — l'ordre est
+              // rétabli sur l'axe où il était inversé — et le corps gagne un rang de
+              // l'échelle (0,875rem), pour que l'écart se voie sans que rien ne crie.
+              const styleTitre: React.CSSProperties = { fontSize: '0.875rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? 'var(--cs-vert-fonce)' : 'var(--cs-encre)', fontWeight: correspond ? 600 : 500, lineHeight: 1.3 }
               const etoileAuTitre = estMobile && grp.versions.length === 1
               return (
                 <div key={grp.versions[0].id_oeuvre}
@@ -389,7 +399,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           <Link href={`/oeuvre/${o.id_oeuvre}?mt=la`}
                             style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
                             <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                              <span style={{ fontSize: '0.71875rem', color: '#4a4038', fontWeight: 500 }}>Texte original {langueOrig}</span>
+                              <span style={{ fontSize: '0.71875rem', color: '#4a4038', fontWeight: 400 }}>Texte original {langueOrig}</span>
                               {o.titre_original && <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{o.titre_original}</span>}
                             </span>
                             <span className="bib-lire">
@@ -418,7 +428,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                         <Link href={`/oeuvre/${o.id_oeuvre}`}
                           style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
                           <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '0.71875rem', color: '#4a4038', fontWeight: 500 }}>{libelle}</span>
+                            <span style={{ fontSize: '0.71875rem', color: '#4a4038', fontWeight: 400 }}>{libelle}</span>
                             {trad && aEdition && <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)' }}>{edition}</span>}
                             {!trad && !aEdition && <span style={{ fontSize: '0.625rem', color: 'var(--cs-or-doux)', fontStyle: 'italic' }}>Certaines données manquent.</span>}
                           </span>
