@@ -138,11 +138,11 @@ export function aRevoir899(
 }
 
 /**
- * Charge le flux recomposé de TR0009 pour un livre (et, facultativement, un chapitre).
- * La vue attribue aux MANUSCRIPT_EXTRA leur livre/chapitre via leurs métadonnées : on
- * les reçoit donc ici dans l'ordre matériel, puis les adaptateurs décident lesquels
- * sont publiables. La Bible classique ne montre actuellement que les gloses ; les
- * autres surnuméraires restent exclus du flux canonique.
+ * Charge le flux publiable de TR0009 pour un livre (et, facultativement, un chapitre).
+ * La vue sait replacer les MANUSCRIPT_EXTRA par leurs métadonnées ; ici on ne conserve
+ * cependant que les gloses explicitement typées. Dittographies, rubriques et explicits
+ * restent dans le témoin et dans les vues d'administration, mais ne sont pas injectés
+ * dans la lecture biblique ordinaire.
  */
 export async function chargerVersets899(
   client: SupabaseClient,
@@ -156,7 +156,7 @@ export async function chargerVersets899(
   // ⚠️ L'API de données plafonne à 1000 lignes par réponse. Un CHAPITRE tient toujours
   // sous ce plafond, mais un LIVRE ENTIER ne le tient pas toujours. On lit par tranches
   // jusqu'à épuisement. `alignment_order` est l'unique ordre pertinent ici : lui seul
-  // intercale correctement un surnuméraire entre les deux créneaux canoniques voisins.
+  // intercale correctement une glose entre les deux créneaux canoniques voisins.
   const lignes: Ligne899[] = []
   for (let debut = 0; ; debut += TAILLE_TRANCHE_899) {
     let requete = client
@@ -169,10 +169,8 @@ export async function chargerVersets899(
       .order('alignment_order', { ascending: true })
       .range(debut, debut + TAILLE_TRANCHE_899 - 1)
     if (error) throw new Error(`Versets Bible 899 illisibles : ${error.message}`)
-    // `select` dynamique : supabase-js ne peut plus inférer la forme des lignes, d'où le
-    // passage par `unknown` (les colonnes demandées correspondent bien à Ligne899).
     const tranche = (data ?? []) as unknown as Ligne899[]
-    lignes.push(...tranche)
+    lignes.push(...tranche.filter((ligne) => ligne.canon_id != null || estGlose899(ligne)))
     if (tranche.length < TAILLE_TRANCHE_899) break
   }
   return lignes
@@ -223,8 +221,9 @@ export async function couchesDisponibles899(client: SupabaseClient): Promise<Cou
 
 // Une ligne recomposée, adaptée au CONTRAT ORDINAIRE de la page Bible : la mécanique
 // (offsets, unités-source, join_before, folios, colonnes, segmentation) reste derrière
-// la vue et cette fonction. Une glose est portée comme ligne de lecture distincte avec
-// `verset=0`, mais `_estGlose899=true` interdit de l'interpréter comme un verset.
+// la vue et cette fonction. Une glose reçoit un numéro technique négatif, impossible
+// dans le canon : il sert uniquement d'identifiant DOM unique ; la feuille de style le
+// remplace visuellement par le libellé « Glose ».
 export type VersetAdapte899 = {
   id_verset: string
   ref: string
@@ -261,7 +260,7 @@ export function adapterVersets899(
         ref: ligne.canonical_context ?? '',
         livre: ligne.livre ?? livre,
         chapitre: ligne.chapitre ?? chapitreDefaut,
-        verset: 0,
+        verset: -ligne.alignment_order,
         _est899: true,
         _estLacune: false,
         _estGlose899: true,
