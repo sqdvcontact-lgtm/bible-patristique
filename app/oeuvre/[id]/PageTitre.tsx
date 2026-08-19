@@ -115,13 +115,22 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
     }}>
       {/* Nom d'auteur : sérif, corps agrandi, interlettrage resserré (approche des
           lettres) pour une capitale plus dense et plus posée. */}
-      <p style={{ fontFamily: SERIF, fontSize: '1.0625rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert-fonce)', marginBottom: '34px', paddingLeft: '0.12em' }}>
+      <p style={{ fontFamily: SERIF, fontSize: '1.0625rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert-fonce)', marginBottom: '1.05em', paddingLeft: '0.12em' }}>
         {auteur}
       </p>
 
-      {/* Titre principal (nom de l'œuvre en français) — agrandi */}
+      {/* Titre principal (nom de l'œuvre en français) — agrandi
+          ── LES BLANCS DU FRONTISPICE SE MESURENT EN em ──────────────────────────
+          Ils étaient en pixels : 34px sous le nom d'auteur, 42px sous le titre
+          original. Or les corps, eux, sont en rem et en clamp, si bien que le titre
+          passe de 59px sur un grand écran à 33px sur un téléphone pendant que le
+          blanc, lui, ne bougeait pas. Le même 42px valait donc les deux tiers d'un
+          titre de bureau et un titre entier sur un téléphone : le groupe des titres
+          s'y coupait en deux, et les informations éditoriales paraissaient
+          appartenir à autre chose. En em, chaque blanc suit le corps qu'il
+          accompagne et la composition garde ses proportions à toute taille. */}
       <div style={{ position: 'relative', maxWidth: '35rem' }}>
-        <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(2.0625rem, 4.7vw, 3.125rem)', fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.18, marginBottom: oeuvre.sous_titre ? '14px' : oeuvre.titre_original ? '20px' : '34px', whiteSpace: 'pre-line' }}>
+        <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(2.0625rem, 4.7vw, 3.125rem)', fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.18, marginBottom: oeuvre.sous_titre ? '0.2em' : oeuvre.titre_original ? '0.26em' : '0.42em', whiteSpace: 'pre-line' }}>
           {/* Affichage = titre_affichage (avec sauts de ligne éditoriaux) si présent,
               sinon le titre canonique. L'édition admin ci-dessous vise le titre canonique. */}
           {rendreIntitule(sansPointFinal(oeuvre.titre_affichage || titre))}
@@ -135,7 +144,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
       {/* Sous-titre — agrandi, foncé, un peu plus détaché du titre */}
       {(oeuvre.sous_titre || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '35rem' }}>
-          <p style={{ fontFamily: SERIF, fontSize: 'clamp(1.125rem, 2.4vw, 1.5rem)', fontStyle: 'normal', color: '#4a443c', margin: oeuvre.titre_original ? '0 0 24px' : '0 0 42px', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
+          <p style={{ fontFamily: SERIF, fontSize: 'clamp(1.125rem, 2.4vw, 1.5rem)', fontStyle: 'normal', color: '#4a443c', margin: oeuvre.titre_original ? '0 0 0.5em' : '0 0 1em', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
             {oeuvre.sous_titre ? rendreIntitule(sansPointFinal(oeuvre.sous_titre)) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.8125rem' }}>Sous-titre…</span> : null}
           </p>
           {estAdmin && (
@@ -148,7 +157,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
       {/* Titre original */}
       {(oeuvre.titre_original || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '35rem' }}>
-          <p style={{ fontFamily: SERIF, fontSize: 'clamp(1rem, 2.1vw, 1.3125rem)', fontStyle: 'italic', color: 'var(--cs-texte-second)', marginBottom: '42px', letterSpacing: 0, whiteSpace: 'pre-line' }}>
+          <p style={{ fontFamily: SERIF, fontSize: 'clamp(1rem, 2.1vw, 1.3125rem)', fontStyle: 'italic', color: 'var(--cs-texte-second)', marginBottom: '1em', letterSpacing: 0, whiteSpace: 'pre-line' }}>
             {oeuvre.titre_original ? rendreIntitule(oeuvre.titre_original) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontSize: '0.8125rem' }}>Titre original…</span> : null}
           </p>
           {estAdmin && (
