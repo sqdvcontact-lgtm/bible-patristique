@@ -3,8 +3,8 @@
   "manuscriptId": "bible-899",
   "editorialVersion": "2.0-phase1-foliation",
   "teiPath": "data/manuscrits/bible-899/Bible_899_master.xml",
-  "teiSha256": "cc026e2c5b5daee278743151962b3ed0b78d72517ea9a8b0ff794a25955310b9",
-  "generatedAt": "2026-08-19T20:01:32Z",
+  "teiSha256": "4a668fa35c0b9862f2392782b4ad4f3e48b4024efabd73cb5de458de27a491c2",
+  "generatedAt": "2026-08-19T20:22:00Z",
   "counts": {
     "folios": 742,
     "columns": 1484,
