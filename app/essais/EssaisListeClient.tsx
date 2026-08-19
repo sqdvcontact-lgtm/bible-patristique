@@ -8,8 +8,8 @@ import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { couvertureDe } from '@/app/lib/couverturesEssai'
+import { emblemeDe } from '@/app/lib/emblemesCouverture'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
-import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 
 const CATEGORIES = CATEGORIES_ESSAIS
 
@@ -30,7 +30,7 @@ type EssaiPerso = {
 
 const STATUTS: Record<string, { label: string; couleur: string }> = {
   brouillon: { label: 'Brouillon', couleur: 'var(--cs-texte-doux)' },
-  en_attente: { label: 'En attente', couleur: 'var(--cs-attente)' },
+  en_attente: { label: 'En attente', couleur: '#9a5a2a' },
   publie: { label: 'Publié', couleur: 'var(--cs-vert)' },
   a_reviser: { label: 'À réviser', couleur: 'var(--cs-danger)' },
   refuse: { label: 'Refusé', couleur: 'var(--cs-danger)' },
@@ -102,7 +102,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
         {/* En-tête — sobre : le titre, un discret losange, puis les onglets. */}
         <div style={{ position: 'relative', textAlign: 'center', marginBottom: '4px' }}>
 
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: 0, letterSpacing: '0.02em' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.6875rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, letterSpacing: '0.02em' }}>
             Publications
           </h1>
           <div aria-hidden="true" style={{ color: 'var(--cs-or)', fontSize: '0.4375rem', letterSpacing: '0.4em', margin: '6px 0 8px' }}>◆</div>
@@ -142,7 +142,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
                 { key: 'suggestion' as const, label: 'Commenter un verset' },
               ]).map(s => (
                 <button key={s.key} onClick={() => setSousEcrire(s.key)}
-                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '999px', border: `1px solid ${sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: sousEcrire === s.key ? 'rgba(var(--cs-vert-rgb),0.09)' : 'rgba(255,255,255,0.6)', color: sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', fontWeight: sousEcrire === s.key ? 600 : 400, cursor: 'pointer' }}>
+                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '999px', border: `1px solid ${sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: sousEcrire === s.key ? 'rgba(var(--cs-vert-rgb),0.09)' : 'rgba(255,255,255,0.6)', color: sousEcrire === s.key ? 'var(--cs-vert)' : '#8a8278', fontWeight: sousEcrire === s.key ? 600 : 400, cursor: 'pointer' }}>
                   {s.label}
                 </button>
               ))}
@@ -230,7 +230,10 @@ function OngletCommunaute({
         }
 
         /* Une couverture : proportion d'un petit livre, couleur pleine, composition
-           CENTRÉE. Tout est sans empattement, la quatrième exceptée.
+           CENTRÉE et EN EMPATTEMENT, comme une page de titre gravée. La face
+           s'ordonne en huit temps du haut vers le bas — auteur, losange, catégorie,
+           titre, sous-titre, emblème, losange, date — et c'est cette suite, non un
+           cadre, qui fait le livre ancien.
            Bloc volontairement bridé : elle n'a pas à occuper le tiers d'un écran
            large. Elle se cale au milieu de sa case, et toute sa typographie est
            donnée en cqw, pourcentage de SA largeur, de sorte qu'elle garde ses
@@ -240,8 +243,8 @@ function OngletCommunaute({
         .couverture {
           container-type: inline-size;
           position: relative; display: block; aspect-ratio: 2 / 3; overflow: hidden;
-          border-radius: 4px; text-decoration: none; isolation: isolate;
-          font-family: var(--font-source-sans), Arial, sans-serif;
+          border-radius: 2px; text-decoration: none; isolation: isolate;
+          font-family: var(--font-source-serif), Georgia, serif;
           box-shadow: 0 1px 2px rgba(40,30,15,0.18), 0 10px 22px -12px rgba(40,30,15,0.40);
           transition: transform 0.24s cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 0.24s ease;
         }
@@ -263,44 +266,68 @@ function OngletCommunaute({
           pointer-events: none;
         }
 
-        /* Trois zones : l'auteur en haut, le titre au centre optique, la date au
-           pied. C'est cette respiration qui fait la couverture, plus qu'un cadre. */
+        /* La suite verticale. Rien n'est posé en absolu : chaque temps pousse le
+           suivant, et l'emblème, seul à porter des marges automatiques, absorbe la
+           hauteur qui reste. Un titre de quatre lignes serre donc la composition au
+           lieu de la faire déborder. */
         .couverture-face {
           position: absolute; inset: 0; z-index: 1;
           display: flex; flex-direction: column; align-items: center; text-align: center;
-          padding: 8cqw 6cqw 6.5cqw 6.8cqw;
+          padding: 10cqw 8cqw 7.5cqw 8.8cqw;
           transition: opacity 0.22s ease;
         }
-        /* Cadre doublé, comme un cartonnage d'éditeur : un filet net, puis un second
-           en retrait qu'on devine à peine. */
+        /* Cadre doublé, comme un cartonnage d'éditeur : un filet net au bord, un
+           second en retrait. Le retrait vaut la moitié du blanc de tête, ce qui
+           assied le cadre sur la composition au lieu de la cerner de trop près. */
         .couverture-cadre { position: absolute; inset: 3.4cqw 3.2cqw 3.2cqw 4.6cqw; border: 1px solid; pointer-events: none; }
-        .couverture-cadre::before { content: ""; position: absolute; inset: 1.4cqw; border: 1px solid currentColor; opacity: 0.2; }
+        .couverture-cadre::before { content: ""; position: absolute; inset: 1.7cqw; border: 1px solid currentColor; opacity: 0.42; }
 
         .couverture-auteur {
-          font-size: 4.1cqw; font-weight: 500; line-height: 1.35;
-          letter-spacing: 0.26em; text-transform: uppercase; opacity: 0.92;
-          padding-left: 0.26em; /* compense l'interlettrage, qui décentre à droite */
+          font-size: 4cqw; font-weight: 400; line-height: 1.3;
+          letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.9;
+          padding-left: 0.24em; /* compense l'interlettrage, qui décentre à droite */
         }
-        /* Le titre se pose au premier tiers supérieur, et non au milieu : c'est là
-           que l'œil le cherche sur une couverture. Position en POURCENTAGE de la
-           hauteur, seule mesure qui tienne le tiers quelle que soit la taille de
-           la couverture ; un décalage en rem dériverait avec la police racine. */
-        .couverture-centre {
-          position: absolute; top: 29%; left: 0; right: 0; padding: 0 1.4rem;
-          display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+        /* Le losange entre deux filets : l'ornement qui sépare deux temps. Il sert
+           deux fois, sous l'auteur et sous l'emblème, ce qui pose la composition
+           entre deux bornes de même dessin. */
+        .couverture-losange {
+          display: flex; align-items: center; justify-content: center;
+          gap: 2.2cqw; width: 32cqw; line-height: 1;
         }
-        /* Le losange du site, repris en ornement : il sépare le nom du titre. */
-        .couverture-ornement { font-size: 2.6cqw; letter-spacing: 0.4em; opacity: 0.55; padding-left: 0.4em; line-height: 1; }
-        .couverture-titre { font-size: 8.2cqw; font-weight: 500; line-height: 1.14; letter-spacing: -0.014em; }
+        .couverture-losange::before, .couverture-losange::after {
+          content: ""; height: 1px; flex: 1; background: currentColor; opacity: 0.42;
+        }
+        .couverture-losange span { font-size: 2.4cqw; opacity: 0.62; }
+
+        /* La catégorie, en capitales espacées : elle annonce le genre avant le titre,
+           comme la mention de collection d'un éditeur. */
+        .couverture-categorie {
+          margin: 4.4cqw 0 4.6cqw;
+          font-size: 4.2cqw; letter-spacing: 0.28em; text-transform: uppercase; opacity: 0.82;
+          padding-left: 0.28em;
+        }
+        /* Le titre : la seule grande chose de la couverture. Ecrêté à quatre lignes,
+           faute de quoi un titre-fleuve chasserait la date hors du carton. */
+        .couverture-titre {
+          font-size: 10.4cqw; font-weight: 400; line-height: 1.08; letter-spacing: -0.008em;
+          text-wrap: balance;
+          overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4;
+        }
         /* Pas de largeur bornée : le retrait de la face suffit à tenir la mesure, et
            un plafond en em coupait le sous-titre trop court, sur un mot esseulé. */
-        .couverture-soustitre { font-size: 4.4cqw; font-weight: 400; line-height: 1.42; opacity: 0.78; text-wrap: balance; }
-        /* Un court filet annonce la date, comme un cul-de-lampe. */
-        .couverture-pied { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 2.5cqw; }
-        .couverture-filet { height: 1px; width: 7.5cqw; }
-        /* Le bloc du titre étant sorti du flux, c'est la date qui occupe la hauteur
-           restante et se pose d'elle-même au pied. */
-        .couverture-date { font-size: 3.4cqw; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.66; padding-left: 0.26em; }
+        .couverture-soustitre {
+          margin-top: 3.4cqw;
+          font-size: 4.4cqw; font-weight: 400; line-height: 1.4; opacity: 0.78; text-wrap: balance;
+          overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+        }
+        /* L'emblème : la vignette gravée. Ses marges automatiques le centrent dans le
+           blanc qui reste entre le sous-titre et le losange du pied. */
+        .couverture-embleme { display: block; margin: auto 0; width: 34cqw; opacity: 0.88; }
+        .couverture-embleme svg { display: block; width: 100%; height: auto; }
+        /* Le losange du pied garde son blanc au-dessus meme quand l'emblème remplit
+           tout ; la date suit, dernier temps. */
+        .couverture-pied { margin-top: 4cqw; display: flex; flex-direction: column; align-items: center; gap: 4cqw; }
+        .couverture-date { font-size: 3.4cqw; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.68; padding-left: 0.22em; }
 
         .couverture-etoile { position: absolute; top: 2.4cqw; right: 2.6cqw; z-index: 4; line-height: 1; }
 
@@ -372,6 +399,10 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
   // Sans choix de l'auteur, la couleur est TIRÉE de l'identifiant : variée d'une
   // publication à l'autre, mais stable pour chacune.
   const c = couvertureDe(e.couverture, e.id)
+  // La categorie annonce le genre sous le nom de l’auteur, et commande
+  // l’emblème. Une publication peut en porter plusieurs : la première est la
+  // principale, les autres servent au filtrage et n’ont pas leur place ici.
+  const categorie = e.categories?.[0] ?? null
   return (
     <Link href={`/essais/${e.id}`} className="couverture"
       style={{ background: c.fond, color: c.encre }}
@@ -384,17 +415,19 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
       <span className="couverture-face">
         <span className="couverture-cadre" style={{ borderColor: c.filet }} aria-hidden="true" />
         <span className="couverture-auteur">{e.auteur}</span>
-        <span className="couverture-centre">
-          <span className="couverture-ornement" aria-hidden="true">◆</span>
-          <span className="couverture-titre">{e.titre}</span>
-          {e.sous_titre && <span className="couverture-soustitre">{e.sous_titre}</span>}
+        <span className="couverture-losange" aria-hidden="true"><span>◆</span></span>
+        {categorie && <span className="couverture-categorie">{categorie}</span>}
+        <span className="couverture-titre">{e.titre}</span>
+        {e.sous_titre && <span className="couverture-soustitre">{e.sous_titre}</span>}
+        {/* L'emblème est un ornement, pas une information : il double la catégorie,
+            déjà écrite au-dessus, et n'a donc rien à annoncer. */}
+        <span className="couverture-embleme" aria-hidden="true">
+          <svg viewBox="0 0 64 64" role="presentation">{emblemeDe(categorie)}</svg>
         </span>
-        {e.publie_at && (
-          <span className="couverture-pied">
-            <span className="couverture-filet" style={{ background: c.filet }} aria-hidden="true" />
-            <span className="couverture-date">{formaterDateLongue(e.publie_at)}</span>
-          </span>
-        )}
+        <span className="couverture-pied">
+          <span className="couverture-losange" aria-hidden="true"><span>◆</span></span>
+          {e.publie_at && <span className="couverture-date">{formaterDateLongue(e.publie_at)}</span>}
+        </span>
       </span>
 
       {/* La quatrième de couverture. `aria-hidden` : le résumé est déjà porté par
@@ -421,7 +454,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
     return (
       <div style={{ textAlign: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '28px 24px', maxWidth: '32.5rem', margin: '0 auto' }}>
         <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', marginBottom: '14px' }}>Connectez-vous pour écrire un essai ou une méditation.</p>
-        <Link href="/chantier" style={{ display: 'inline-block', padding: '8px 18px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert)', color: 'var(--cs-surface)', borderRadius: '8px', textDecoration: 'none' }}>
+        <Link href="/chantier" style={{ display: 'inline-block', padding: '8px 18px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert)', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
           Se connecter
         </Link>
       </div>
@@ -429,7 +462,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
   }
   if (connecte === null) return <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
   return (
-    <div style={{ maxWidth: '38.75rem', margin: '0 auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '30px 34px', textAlign: 'center' }}>
+    <div style={{ maxWidth: '38.75rem', margin: '0 auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '30px 34px', textAlign: 'center' }}>
       <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px' }}>
         Espace de rédaction
       </p>
@@ -439,7 +472,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
       <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.65, margin: '0 auto 20px', maxWidth: '27.5rem' }}>
         Le titre, le résumé, les catégories et le texte se renseignent désormais dans la même page.
       </p>
-      <Link href="/essais/nouveau?depuis=publications" style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert)', color: 'var(--cs-surface)', borderRadius: '8px', textDecoration: 'none' }}>
+      <Link href="/essais/nouveau?depuis=publications" style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert)', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
         Ouvrir la rédaction
       </Link>
     </div>
@@ -545,11 +578,11 @@ function OngletMesEcrits({
             const peutBasculer = dejaValide && (e.statut === 'publie' || e.statut === 'brouillon')
             const timer = verrouille ? formatTimer(restant) : ''
             return (
-              <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', background: statutStyle.fond, border: `1px solid ${statutStyle.bordure}`, borderLeft: `3px solid ${statutStyle.accent}`, borderRadius: '8px', padding: '8px 12px' }}>
+              <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', background: statutStyle.fond, border: `1px solid ${statutStyle.bordure}`, borderLeft: `3px solid ${statutStyle.accent}`, borderRadius: '7px', padding: '8px 12px' }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
                     <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-encre-fonce)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.titre}</span>
-                    {e.sous_titre && <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic' }}>{e.sous_titre}</span>}
+                    {e.sous_titre && <span style={{ fontSize: '0.71875rem', color: '#8a8278', fontStyle: 'italic' }}>{e.sous_titre}</span>}
                   </div>
                   {/* Méta sur UNE seule ligne : statut · date · vues · cœurs. La révision en
                       cours est signalée là, sans encart séparé. */}
@@ -559,7 +592,7 @@ function OngletMesEcrits({
                     <span>{e.nb_vues ?? 0} vue{(e.nb_vues ?? 0) > 1 ? 's' : ''}</span>
                     <span>♥ {e.nb_likes ?? 0}</span>
                     {e.statut === 'en_attente' && (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--cs-attente)', fontWeight: 600 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#9a5a2a', fontWeight: 600 }}>
                         <svg width="9" height="9" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                           <circle cx="8" cy="8" r="6.2" stroke="#9a5a2a" strokeWidth="1.4"/>
                           <path d="M8 4.6V8l2.4 1.6" stroke="#9a5a2a" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -575,7 +608,7 @@ function OngletMesEcrits({
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.625rem', color: e.statut === 'publie' ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.4 : 1, fontWeight: 600 }}>
                     {timer && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{timer}</span>}
                     <span style={{ width: '26px', height: '14px', borderRadius: '999px', background: e.statut === 'publie' ? 'var(--cs-vert)' : 'var(--cs-bord)', position: 'relative', display: 'inline-block', transition: 'background 0.15s' }}>
-                      <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '14px' : '2px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left 0.15s', boxShadow: 'var(--cs-ombre-nette)' }} />
+                      <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '14px' : '2px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
                     </span>
                   </button>
                   <Link href={`/essais/${e.id}/modifier`} style={{ fontSize: '0.65625rem', color: 'var(--cs-vert)', textDecoration: 'none', fontWeight: 600 }}>Modifier</Link>
@@ -662,14 +695,14 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
         </p>
       ) : (
         <>
-          <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '34px 36px 28px', marginBottom: '18px' }}>
+          <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '34px 36px 28px', marginBottom: '18px' }}>
             <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 20px' }}>
               Verset proposé à la méditation
             </p>
             <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', lineHeight: 1.8, color: 'var(--cs-encre-fonce)', fontStyle: 'italic', margin: '0 0 18px' }}>
               «&#8201;{rendreTexteEnrichi(verset.texte)}&#8201;»
             </p>
-            <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-gris)', margin: 0 }}>
+            <p style={{ fontSize: '0.75rem', color: '#8a8278', margin: 0 }}>
               {ABREV_FR[verset.livre] ?? verset.livre} {verset.chapitre},{verset.verset}
             </p>
           </div>
@@ -681,12 +714,12 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
                 const ref = `${LIVRES.find(l => l.code === verset.livre)?.nom ?? verset.livre} ${verset.chapitre},${verset.verset}`
                 sessionStorage.setItem('suggestion-verset-en-tete', JSON.stringify({ ref, texte: verset.texte }))
               }}
-              style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert)', color: 'var(--cs-surface)', borderRadius: '8px', textDecoration: 'none' }}>
+              style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert)', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
               Écrire sur ce verset
             </Link>
             <Link
               href={`/?livre=${verset.livre}&chapitre=${verset.chapitre}&verset=${verset.verset}`}
-              style={{ display: 'inline-block', padding: '9px 16px', fontSize: '0.78125rem', color: 'var(--cs-vert)', borderRadius: '8px', textDecoration: 'none', border: '1px solid #c8d8cc' }}>
+              style={{ display: 'inline-block', padding: '9px 16px', fontSize: '0.78125rem', color: 'var(--cs-vert)', borderRadius: '6px', textDecoration: 'none', border: '1px solid #c8d8cc' }}>
               Lire dans la Bible
             </Link>
           </div>
@@ -728,7 +761,7 @@ function tagFiltre(actif: boolean): React.CSSProperties {
     fontSize: '0.625rem', padding: '3px 10px', borderRadius: '999px',
     border: '1px solid ' + (actif ? 'var(--cs-vert)' : 'transparent'),
     background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'rgba(120,110,96,0.06)',
-    color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', cursor: 'pointer',
+    color: actif ? 'var(--cs-vert)' : '#8a8278', cursor: 'pointer',
     fontWeight: actif ? 600 : 400, letterSpacing: '0.02em', lineHeight: 1.3,
     transition: 'background 0.12s, color 0.12s',
   }
@@ -741,8 +774,8 @@ function formatTimer(ms: number): string {
 }
 function styleStatut(statut: string): { fond: string; bordure: string; accent: string } {
   if (statut === 'publie') return { fond: 'rgba(var(--cs-vert-rgb),0.075)', bordure: 'rgba(var(--cs-vert-rgb),0.24)', accent: 'var(--cs-vert)' }
-  if (statut === 'en_attente') return { fond: 'rgba(154,90,42,0.075)', bordure: 'rgba(154,90,42,0.24)', accent: 'var(--cs-attente)' }
+  if (statut === 'en_attente') return { fond: 'rgba(154,90,42,0.075)', bordure: 'rgba(154,90,42,0.24)', accent: '#9a5a2a' }
   if (statut === 'a_reviser') return { fond: 'rgba(var(--cs-danger-rgb),0.08)', bordure: 'rgba(var(--cs-danger-rgb),0.25)', accent: 'var(--cs-danger)' }
-  if (statut === 'refuse') return { fond: 'rgba(160,45,45,0.08)', bordure: 'rgba(160,45,45,0.25)', accent: 'var(--cs-danger-fonce)' }
-  return { fond: 'var(--cs-surface)', bordure: 'var(--cs-bord-clair)', accent: 'var(--cs-bord)' }
+  if (statut === 'refuse') return { fond: 'rgba(160,45,45,0.08)', bordure: 'rgba(160,45,45,0.25)', accent: '#a02d2d' }
+  return { fond: '#fff', bordure: 'var(--cs-bord-clair)', accent: 'var(--cs-bord)' }
 }
