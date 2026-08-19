@@ -43,9 +43,12 @@ export const COUVERTURES: Couverture[] = [
   // TEINTÉE, qui est moins claire qu'un blanc, elle ne tenait plus que 4,3.
   { cle: 'sauge', libelle: 'Sauge',        fond: '#55654c', encre: '#f4e6c4', filet: 'rgba(244,230,196,0.42)' },
   // L'or du site (`--cs-or`, #9a7a38) sert d'accent sur fond crème ; en aplat il ne
-  // contraste pas assez, d'où ce vieil or plus profond. Son encre est un vert très
-  // pâle : sur un fond doré, un or clair ne serait qu'un ton sur ton.
-  { cle: 'or',    libelle: 'Vieil or',     fond: '#7d6224', encre: '#eef0dd', filet: 'rgba(238,240,221,0.40)' },
+  // contraste pas assez, d'où ce vieil or plus profond. Son encre est un vert pâle :
+  // sur un fond doré, un or clair ne serait qu'un ton sur ton. ⚠️ Un premier essai
+  // (#eef0dd) passait tout bonnement pour un BLANC — un vert trop dilué n'est plus
+  // un vert. Il a fallu franchir l'écart de 29 à 42 entre composantes, donc
+  // assombrir le fond d'autant (#7d6224 -> #705319) pour garder 5,3 de contraste.
+  { cle: 'or',    libelle: 'Vieil or',     fond: '#705319', encre: '#d5e4ba', filet: 'rgba(213,228,186,0.40)' },
   // Les deux fonds clairs prennent au contraire le vert le plus profond de la gamme.
   { cle: 'ocre',  libelle: 'Ocre pâle',    fond: '#c8b89e', encre: '#233a2c', filet: 'rgba(35,58,44,0.34)' },
   { cle: 'creme', libelle: 'Crème',        fond: '#ece5d8', encre: '#2a3d30', filet: 'rgba(42,61,48,0.34)' },
