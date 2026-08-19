@@ -1,0 +1,145 @@
+name: Bible 899 — corrections source fac-similé 2026-08-19
+
+on:
+  push:
+    paths:
+      - '.github/workflows/bible899-source-fixes-20260819.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Appliquer les corrections au TEI et régénérer le manifeste
+        shell: python
+        run: |
+          from pathlib import Path
+          import re, json, hashlib
+          from datetime import datetime, timezone
+
+          tei_path = Path('data/manuscrits/bible-899/Bible_899_master.xml')
+          manifest_path = Path('data/manuscrits/bible-899/manifest.json')
+          audit_path = Path('work/bible899/SOURCE_FIXES_20260819.json')
+          checksum_path = Path('work/bible899/manifest_sha256.txt')
+
+          text = tei_path.read_text(encoding='utf-8')
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          expected_pre = {'folios':742,'columns':1484,'lines':58314,'choice':27107,'gap':8,'unclear':661,'add':2,'catchword':1}
+          if manifest.get('counts') != expected_pre:
+              raise SystemExit(f'Manifeste inattendu avant correction: {manifest.get("counts")}')
+
+          patches = []
+
+          def find_line(xml_id):
+              pat = re.compile(r'(?m)^[ \t]*<l\b(?=[^>]*\bxml:id="' + re.escape(xml_id) + r'")[^>]*>[^\n]*?</l>[ \t]*\r?\n?')
+              ms = list(pat.finditer(text))
+              if len(ms) != 1:
+                  raise SystemExit(f'{xml_id}: {len(ms)} ligne(s) trouvée(s), attendu 1')
+              return ms[0]
+
+          def edit_line(xml_id, transform, reason):
+              global text
+              m = find_line(xml_id)
+              old = m.group(0)
+              new = transform(old)
+              if new == old:
+                  raise SystemExit(f'{xml_id}: transformation sans effet')
+              text = text[:m.start()] + new + text[m.end():]
+              patches.append({'xml_id':xml_id,'action':'replace','reason':reason,'before':old.rstrip('\r\n'),'after':new.rstrip('\r\n')})
+
+          def delete_line(xml_id, reason):
+              global text
+              m = find_line(xml_id)
+              old = m.group(0)
+              text = text[:m.start()] + text[m.end():]
+              patches.append({'xml_id':xml_id,'action':'delete','reason':reason,'before':old.rstrip('\r\n')})
+
+          def ensure_break_no(line, xml_id):
+              if re.search(r'\bbreak="no"', line):
+                  return line
+              return re.sub(r'(<l\b(?=[^>]*\bxml:id="' + re.escape(xml_id) + r'")[^>]*)(>)', r'\1 break="no"\2', line, count=1)
+
+          edit_line(
+              'f150r_b_l38',
+              lambda s: s.replace(' sara</l>', ' sar</l>', 1),
+              'Le fac-similé montre la fin de colonne « ... et sar », poursuivie au verso par « aias ... ».'
+          )
+          delete_line('f150r_b_l39', 'Ligne absente du fac-similé : duplication artificielle entre f150r_b_l38 et f150v_a_l01.')
+          delete_line('f150r_b_l40', 'Ligne absente du fac-similé : duplication artificielle entre f150r_b_l38 et f150v_a_l01.')
+          edit_line(
+              'f150v_a_l01',
+              lambda s: s.replace('>naias estoit escriuains.', '>aias estoit escriuains.', 1),
+              'Le verso commence par « aias », continuation de « sar » : sar|aias.'
+          )
+
+          def fix_luk(s):
+              s2 = s.replace(' conurent</l>', ' conu</l>', 1)
+              return ensure_break_no(s2, 'f329v_a_l40')
+          edit_line(
+              'f329v_a_l40', fix_luk,
+              'Lc 24,35 : le recto finit « conu » et le verso commence « rent » ; la transcription avait dupliqué « rent ».'
+          )
+
+          def fix_act10(s):
+              s2 = s.replace(' saill</l>', ' sail</l>', 1)
+              return ensure_break_no(s2, 'f349v_a_l10')
+          edit_line(
+              'f349v_a_l10', fix_act10,
+              'Ac 3,8 : le mot saillant est coupé sail|lant ; la transcription avait saill|liant.'
+          )
+          edit_line(
+              'f349v_a_l11',
+              lambda s: s.replace('>liant ', '>lant ', 1),
+              'Ac 3,8 : suite de la coupure sail|lant.'
+          )
+
+          def counts(xml):
+              return {
+                  'folios': len(re.findall(r'<pb\b', xml)),
+                  'columns': len(re.findall(r'<cb\b', xml)),
+                  'lines': len(re.findall(r'<l\b', xml)),
+                  'choice': len(re.findall(r'<choice\b', xml)),
+                  'gap': len(re.findall(r'<gap\b', xml)),
+                  'unclear': len(re.findall(r'<unclear\b', xml)),
+                  'add': len(re.findall(r'<add\b', xml)),
+                  'catchword': len(re.findall(r'<fw\b[^>]*\btype="catchword"', xml)),
+              }
+
+          post_counts = counts(text)
+          expected_post = {'folios':742,'columns':1484,'lines':58312,'choice':27106,'gap':8,'unclear':661,'add':2,'catchword':1}
+          if post_counts != expected_post:
+              raise SystemExit(f'Comptes TEI inattendus après correction: {post_counts}')
+
+          tei_path.write_text(text, encoding='utf-8')
+          tei_sha = hashlib.sha256(tei_path.read_bytes()).hexdigest()
+          manifest['teiSha256'] = tei_sha
+          manifest['generatedAt'] = datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00','Z')
+          manifest['counts'] = post_counts
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          manifest_sha = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+          checksum_path.write_text(manifest_sha + '\n', encoding='utf-8')
+          audit_path.write_text(json.dumps({
+              'date':'2026-08-19',
+              'basis':'facsimile',
+              'patches':patches,
+              'tei_sha256':tei_sha,
+              'manifest_sha256':manifest_sha,
+              'counts':post_counts
+          }, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+      - name: Valider et publier
+        run: |
+          git diff --check
+          git config user.name 'Corpus Scriptura bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add data/manuscrits/bible-899/Bible_899_master.xml data/manuscrits/bible-899/manifest.json work/bible899/SOURCE_FIXES_20260819.json work/bible899/manifest_sha256.txt
+          git commit -m 'Bible 899 : corriger les anomalies source vérifiées au fac-similé'
+          git pull --rebase origin master
+          git push origin master
