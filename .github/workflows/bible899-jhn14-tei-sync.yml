@@ -1,0 +1,89 @@
+name: Bible 899 — synchronisation TEI Jn 14,15
+
+on:
+  push:
+    paths:
+      - '.github/workflows/bible899-jhn14-tei-sync.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Corriger Jn 14,15 et recalculer le manifeste
+        shell: python
+        run: |
+          from pathlib import Path
+          import hashlib, json, re, os
+
+          tei_path = Path('data/manuscrits/bible-899/Bible_899_master.xml')
+          manifest_path = Path('data/manuscrits/bible-899/manifest.json')
+          data = tei_path.read_text(encoding='utf-8')
+
+          old = '<l xml:id="f342r_a_l40" n="40" status="corrected_after_review">aucune chose en mon non ce ferai ge. Deu uos</l>'
+          new = '<l xml:id="f342r_a_l40" n="40" status="corrected_after_review">aucune chose en mon non ce ferai ge. Se uos</l>'
+          n = data.count(old)
+          if n != 1:
+              raise SystemExit(f'Jn 14,15 : ancien contenu trouvé {n} fois')
+          data = data.replace(old, new, 1)
+          tei_path.write_text(data, encoding='utf-8')
+
+          tei_bytes = tei_path.read_bytes()
+          tei_sha = hashlib.sha256(tei_bytes).hexdigest()
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          if manifest.get('teiSha256') != 'c3dfd8c0035587d46b43cbde3c888ba458486535c83a965417379c110465426c':
+              raise SystemExit('SHA TEI du manifeste inattendu avant correction')
+          manifest['teiSha256'] = tei_sha
+          manifest['generatedAt'] = '2026-08-19T20:10:00.000Z'
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          manifest_sha = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+          Path('work/bible899/current_manifest_sha256.txt').write_text(manifest_sha + '\n', encoding='utf-8')
+          Path('work/bible899/jhn14_sync_run_id.txt').write_text(os.environ['GITHUB_RUN_ID'] + '\n', encoding='utf-8')
+
+          ids = [
+            'f329v_a_l40','f329v_b_l01','f339r_b_l04','f342r_a_l40','f342r_b_l01',
+            'f345v_b_l40','f346r_a_l01','f349v_a_l10','f349v_a_l11',
+            'f352v_b_l16','f352v_b_l17','f352v_b_l18','f352v_b_l19'
+          ]
+          audit=[]
+          for xid in ids:
+              m=re.search(r'<l\b[^>]*xml:id="'+re.escape(xid)+r'"[^>]*>.*?</l>', data)
+              if not m:
+                  raise SystemExit(f'Ligne TEI introuvable: {xid}')
+              audit.append(m.group(0))
+          Path('work/bible899/remaining_facsimile_tei_audit_20260819.txt').write_text('\n'.join(audit)+'\n',encoding='utf-8')
+          print('Nouveau SHA-256 TEI:', tei_sha)
+          print('Nouveau SHA-256 manifeste:', manifest_sha)
+
+      - name: Valider le parseur et les comptages
+        run: |
+          npx tsx -e "import fs from 'node:fs'; import { parseBible899Tei, sha256Text } from './app/manuscrits/bible-899/_lib/tei'; const p='data/manuscrits/bible-899/Bible_899_master.xml'; const xml=fs.readFileSync(p,'utf8'); const e=parseBible899Tei(xml,{sourcePath:p,publicImageBase:'/manuscrits/bible-899'}); const s=e.statistics; console.log(s); if(s.lines!==58314||s.choice!==27107||s.unclear!==661||s.gap!==8||s.add!==2||s.catchword!==1) process.exit(1); const m=JSON.parse(fs.readFileSync('data/manuscrits/bible-899/manifest.json','utf8')); if(m.teiSha256!==sha256Text(xml)) process.exit(1);"
+          npx vitest run app/lib/bible899.test.ts
+
+      - name: Vérifier le diff borné
+        run: |
+          git diff --check
+          git diff --numstat -- data/manuscrits/bible-899/Bible_899_master.xml data/manuscrits/bible-899/manifest.json work/bible899/current_manifest_sha256.txt work/bible899/remaining_facsimile_tei_audit_20260819.txt
+
+      - name: Publier la synchronisation
+        run: |
+          git config user.name 'Corpus Scriptura bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add data/manuscrits/bible-899/Bible_899_master.xml data/manuscrits/bible-899/manifest.json work/bible899/current_manifest_sha256.txt work/bible899/jhn14_sync_run_id.txt work/bible899/remaining_facsimile_tei_audit_20260819.txt
+          git commit -m 'Bible 899 : corriger Jn 14,15 dans le TEI'
+          git push
