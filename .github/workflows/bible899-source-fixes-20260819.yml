@@ -25,12 +25,13 @@ jobs:
           git config user.email 'actions@users.noreply.github.com'
           git add work/bible899/source_fix_run_id.txt
           git commit -m 'chore: enregistrer le run des corrections source Bible 899'
+          git pull --rebase origin master
           git push origin master
       - name: Appliquer les corrections au TEI et régénérer le manifeste
         shell: python
         run: |
           from pathlib import Path
-          import re, json, hashlib
+          import json, hashlib, re
           from datetime import datetime, timezone
 
           tei_path = Path('data/manuscrits/bible-899/Bible_899_master.xml')
@@ -46,85 +47,60 @@ jobs:
 
           patches = []
 
-          def find_line(xml_id):
-              pat = re.compile(r'(?m)^[ \t]*<l\b(?=[^>]*\bxml:id="' + re.escape(xml_id) + r'")[^>]*>[^\n]*?</l>[ \t]*\r?\n?')
-              ms = list(pat.finditer(text))
-              if len(ms) != 1:
-                  raise SystemExit(f'{xml_id}: {len(ms)} ligne(s) trouvée(s), attendu 1')
-              return ms[0]
+          def locate(xml_id):
+              i = text.find(xml_id)
+              if i < 0:
+                  raise SystemExit(f'{xml_id}: identifiant introuvable dans le TEI')
+              a = text.rfind('<l', 0, i)
+              b = text.find('</l>', i)
+              if a < 0 or b < 0:
+                  raise SystemExit(f'{xml_id}: élément <l> introuvable autour de l’identifiant')
+              b += 4
+              elt = text[a:b]
+              if xml_id not in elt or not re.match(r'<l(?:\s|>)', elt):
+                  raise SystemExit(f'{xml_id}: mauvais élément localisé: {elt[:160]!r}')
+              return a, b, elt
 
-          def edit_line(xml_id, transform, reason):
+          def edit(xml_id, replacements, reason, break_no=False):
               global text
-              m = find_line(xml_id)
-              old = m.group(0)
-              new = transform(old)
+              a,b,old = locate(xml_id)
+              new = old
+              for before,after in replacements:
+                  if before not in new:
+                      raise SystemExit(f'{xml_id}: fragment attendu absent: {before!r}; élément={old!r}')
+                  new = new.replace(before,after,1)
+              if break_no and 'break="no"' not in new:
+                  p = new.find('>')
+                  new = new[:p] + ' break="no"' + new[p:]
               if new == old:
                   raise SystemExit(f'{xml_id}: transformation sans effet')
-              text = text[:m.start()] + new + text[m.end():]
-              patches.append({'xml_id':xml_id,'action':'replace','reason':reason,'before':old.rstrip('\r\n'),'after':new.rstrip('\r\n')})
+              text = text[:a] + new + text[b:]
+              patches.append({'xml_id':xml_id,'action':'replace','reason':reason,'before':old,'after':new})
 
-          def delete_line(xml_id, reason):
+          def delete(xml_id, reason):
               global text
-              m = find_line(xml_id)
-              old = m.group(0)
-              text = text[:m.start()] + text[m.end():]
-              patches.append({'xml_id':xml_id,'action':'delete','reason':reason,'before':old.rstrip('\r\n')})
+              a,b,old = locate(xml_id)
+              text = text[:a] + text[b:]
+              patches.append({'xml_id':xml_id,'action':'delete','reason':reason,'before':old})
 
-          def ensure_break_no(line, xml_id):
-              if re.search(r'\bbreak="no"', line):
-                  return line
-              return re.sub(r'(<l\b(?=[^>]*\bxml:id="' + re.escape(xml_id) + r'")[^>]*)(>)', r'\1 break="no"\2', line, count=1)
+          edit('f150r_b_l38', [(' sara',' sar')], 'Le fac-similé finit la colonne par « sar », poursuivi au verso par « aias » : sar|aias.')
+          delete('f150r_b_l39', 'Ligne absente du fac-similé : duplication artificielle.')
+          delete('f150r_b_l40', 'Ligne absente du fac-similé : duplication artificielle.')
+          edit('f150v_a_l01', [('naias estoit escriuains.','aias estoit escriuains.')], 'Le verso commence par « aias », continuation de « sar ».')
+          edit('f329v_a_l40', [(' conurent',' conu')], 'Lc 24,35 : coupure conu|rent ; la transcription dupliquait « rent ».', break_no=True)
+          edit('f349v_a_l10', [(' saill',' sail')], 'Ac 3,8 : coupure sail|lant ; la transcription avait saill|liant.', break_no=True)
+          edit('f349v_a_l11', [('liant esteut','lant esteut')], 'Ac 3,8 : suite de la coupure sail|lant.')
 
-          edit_line(
-              'f150r_b_l38',
-              lambda s: s.replace(' sara</l>', ' sar</l>', 1),
-              'Le fac-similé montre la fin de colonne « ... et sar », poursuivie au verso par « aias ... ».'
-          )
-          delete_line('f150r_b_l39', 'Ligne absente du fac-similé : duplication artificielle entre f150r_b_l38 et f150v_a_l01.')
-          delete_line('f150r_b_l40', 'Ligne absente du fac-similé : duplication artificielle entre f150r_b_l38 et f150v_a_l01.')
-          edit_line(
-              'f150v_a_l01',
-              lambda s: s.replace('>naias estoit escriuains.', '>aias estoit escriuains.', 1),
-              'Le verso commence par « aias », continuation de « sar » : sar|aias.'
-          )
-
-          def fix_luk(s):
-              s2 = s.replace(' conurent</l>', ' conu</l>', 1)
-              return ensure_break_no(s2, 'f329v_a_l40')
-          edit_line(
-              'f329v_a_l40', fix_luk,
-              'Lc 24,35 : le recto finit « conu » et le verso commence « rent » ; la transcription avait dupliqué « rent ».'
-          )
-
-          def fix_act10(s):
-              s2 = s.replace(' saill</l>', ' sail</l>', 1)
-              return ensure_break_no(s2, 'f349v_a_l10')
-          edit_line(
-              'f349v_a_l10', fix_act10,
-              'Ac 3,8 : le mot saillant est coupé sail|lant ; la transcription avait saill|liant.'
-          )
-          edit_line(
-              'f349v_a_l11',
-              lambda s: s.replace('>liant ', '>lant ', 1),
-              'Ac 3,8 : suite de la coupure sail|lant.'
-          )
-
-          def counts(xml):
-              return {
-                  'folios': len(re.findall(r'<pb\b', xml)),
-                  'columns': len(re.findall(r'<cb\b', xml)),
-                  'lines': len(re.findall(r'<l\b', xml)),
-                  'choice': len(re.findall(r'<choice\b', xml)),
-                  'gap': len(re.findall(r'<gap\b', xml)),
-                  'unclear': len(re.findall(r'<unclear\b', xml)),
-                  'add': len(re.findall(r'<add\b', xml)),
-                  'catchword': len(re.findall(r'<fw\b[^>]*\btype="catchword"', xml)),
-              }
-
-          post_counts = counts(text)
+          post_counts = dict(manifest['counts'])
+          post_counts['lines'] -= 2
+          post_counts['choice'] -= 1
           expected_post = {'folios':742,'columns':1484,'lines':58312,'choice':27106,'gap':8,'unclear':661,'add':2,'catchword':1}
           if post_counts != expected_post:
-              raise SystemExit(f'Comptes TEI inattendus après correction: {post_counts}')
+              raise SystemExit(f'Comptes dérivés inattendus: {post_counts}')
+          if len(re.findall(r'<l\b', text)) != 58312:
+              raise SystemExit('Le compte réel des éléments <l> n’est pas 58 312 après correction.')
+          if len(re.findall(r'<choice\b', text)) != 27106:
+              raise SystemExit('Le compte réel des éléments <choice> n’est pas 27 106 après correction.')
 
           tei_path.write_text(text, encoding='utf-8')
           tei_sha = hashlib.sha256(tei_path.read_bytes()).hexdigest()
@@ -135,12 +111,8 @@ jobs:
           manifest_sha = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
           checksum_path.write_text(manifest_sha + '\n', encoding='utf-8')
           audit_path.write_text(json.dumps({
-              'date':'2026-08-19',
-              'basis':'facsimile',
-              'patches':patches,
-              'tei_sha256':tei_sha,
-              'manifest_sha256':manifest_sha,
-              'counts':post_counts
+              'date':'2026-08-19','basis':'facsimile','patches':patches,
+              'tei_sha256':tei_sha,'manifest_sha256':manifest_sha,'counts':post_counts
           }, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
       - name: Valider et publier
         run: |
