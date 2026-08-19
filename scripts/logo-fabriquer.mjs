@@ -152,6 +152,18 @@ const png = await Promise.all(tailles.map(async taille => ({
 await writeFile(dans('app/favicon.ico'), ico(png))
 console.log(`  app/favicon.ico — ${tailles.join(', ')} px`)
 
+// L'icône du raccourci de lancement du serveur, épinglé à la barre des tâches.
+// Elle porte de plus grandes tailles que le favicon : la barre des tâches en
+// réclame 32 et 48, et les listes de raccourcis montent jusqu'à 256.
+const taillesBureau = [16, 24, 32, 48, 64, 128, 256]
+const pngBureau = await Promise.all(taillesBureau.map(async taille => ({
+  taille,
+  png: await sharp(VERT).resize(taille, taille, { kernel: 'lanczos3' }).png({ compressionLevel: 9 }).toBuffer(),
+})))
+await mkdir(dans('outils'), { recursive: true })
+await writeFile(dans('outils/icone-serveur.ico'), ico(pngBureau))
+console.log(`  outils/icone-serveur.ico — ${taillesBureau.join(', ')} px`)
+
 console.log('\nLogo (monogramme détouré) — le fond crème devient un vrai canal alpha.')
 const brut = await detourer(CREME)
 console.log(`  fond mesuré : rgb(${brut.fond.map(v => Math.round(v)).join(', ')}) — encre mesurée à la luminance ${brut.lumEncre.toFixed(1)}`)
@@ -163,22 +175,25 @@ await mkdir(dans('public/logo'), { recursive: true })
 const decoupe = () => sharp(brut.data, { raw: { width: brut.width, height: brut.height, channels: 4 } })
   .extract({ left: boite.gauche, top: boite.haut, width: boite.largeur, height: boite.hauteur })
 
-// L'encre, pour le papier de la page de titre.
-const encre = await decoupe().png({ compressionLevel: 9 }).toBuffer()
-await writeFile(dans('public/logo/monogramme-encre.png'), encre)
-controler('public/logo/monogramme-encre.png', (await sharp(encre).raw().toBuffer({ resolveWithObject: true })).data)
-
-// Le même trait teinté crème, pour la barre verte : on garde l'alpha et on
-// remplace la couleur, plutôt que de demander une seconde planche.
-const CREME_CLAIR = { r: 244, g: 231, b: 200 }
-const { data: rgba } = await decoupe().raw().toBuffer({ resolveWithObject: true })
-const creme = Buffer.from(rgba)
-for (let o = 0; o < creme.length; o += 4) {
-  creme[o] = CREME_CLAIR.r
-  creme[o + 1] = CREME_CLAIR.g
-  creme[o + 2] = CREME_CLAIR.b
+// Le détourage ne sert que l'ALPHA : la couleur, on la repose. Les deux
+// déclinaisons sont donc le même tracé, à la teinte près.
+//
+// ⚠️ L'encre de la planche est un gris quasi noir (#232323). Posé DANS le titre
+// de la page d'accueil, entre « Corpus » et « Scriptura », il y jurait avec le
+// vert d'encre des lettres qui l'entourent : un noir franc au milieu d'un mot.
+// Il prend donc la teinte du titre lui-même, `--cs-encre-fonce`. Le noir s'en
+// trouve adouci, et le monogramme appartient à la ligne au lieu d'y trancher.
+const TEINTES = {
+  'monogramme-encre.png': { r: 0x1e, g: 0x2e, b: 0x24, note: 'l’encre du titre (--cs-encre-fonce)' },
+  'monogramme-creme.png': { r: 244, g: 231, b: 200, note: 'le crème de la barre verte' },
 }
-await sharp(creme, { raw: { width: boite.largeur, height: boite.hauteur, channels: 4 } })
-  .png({ compressionLevel: 9 })
-  .toFile(dans('public/logo/monogramme-creme.png'))
-console.log(`  public/logo/monogramme-creme.png — teinté rgb(${CREME_CLAIR.r}, ${CREME_CLAIR.g}, ${CREME_CLAIR.b})`)
+const { data: rgba } = await decoupe().raw().toBuffer({ resolveWithObject: true })
+for (const [nom, t] of Object.entries(TEINTES)) {
+  const teint = Buffer.from(rgba)
+  for (let o = 0; o < teint.length; o += 4) { teint[o] = t.r; teint[o + 1] = t.g; teint[o + 2] = t.b }
+  await sharp(teint, { raw: { width: boite.largeur, height: boite.hauteur, channels: 4 } })
+    .png({ compressionLevel: 9 })
+    .toFile(dans('public/logo', nom))
+  console.log(`  public/logo/${nom} — ${t.note}, rgb(${t.r}, ${t.g}, ${t.b})`)
+}
+controler('canal alpha commun', rgba)

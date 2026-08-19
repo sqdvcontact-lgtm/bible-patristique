@@ -81,10 +81,17 @@ export default async function AccueilPage() {
         .colophon-body { font-family: var(--font-source-serif), Georgia, serif; }
         .colophon-ornement { font-size: 1.125rem; color: #7a6a52; letter-spacing: 0.25em; }
         .colophon-regle { display: block; width: 36px; height: 1px; background: var(--cs-or-doux); margin: 0 auto; }
-        /* Le monogramme se mesure en HAUTEUR (il est plus haut que large) et en
-           rem, pour suivre la police racine fluide comme le titre qu'il annonce. */
-        .hero-monogramme { height: 4.5rem; width: auto; display: block; margin: 0 auto 14px; }
-        @media (max-width: 640px) { .hero-monogramme { height: 3.5rem; margin-bottom: 10px; } }
+        /* Le monogramme se mesure en HAUTEUR — il est plus haut que large — et en
+           EM, puisqu'il vit dans le titre : il suit sa taille fluide sans qu'on ait
+           à répéter le clamp. Le décalage vertical le CENTRE sur la bande des
+           capitales, mesurée dans Source Serif 4 à 0,685em (37 px pour un corps de
+           54) : sans lui, l'image poserait son pied sur la ligne d'écriture et
+           surplomberait le mot de toute sa différence de hauteur. Il déborde ainsi
+           de 7 px en haut comme en bas, et se lit comme une initiale ornée. */
+        .titre-monogramme { height: 0.95em; width: auto; display: inline-block; vertical-align: -0.13em; margin: 0 0.3em; }
+        /* Sur un très petit écran, le titre est déjà à sa taille plancher : c'est
+           le fleuron qui cède, faute de quoi la ligne déborderait. */
+        @media (max-width: 400px) { .titre-monogramme { height: 0.85em; vertical-align: -0.08em; margin: 0 0.22em; } }
         .hero-title-ornament { width: min(265px, 48vw); height: auto; display: block; margin: 0 auto 8px; opacity: .82; }
         .hero-title-ornament + div { display: none; }
         /* Colophon final : pyramide desktop calibrée en rem ; sur écran étroit,
@@ -199,15 +206,6 @@ export default async function AccueilPage() {
           padding: "clamp(22px, 3.5vh, 52px) 0 0",
         }}>
         <header style={{ textAlign: "center", marginBottom: "24px" }}>
-          {/* Le monogramme du site ouvre la page de titre, au-dessus du bandeau
-              gravé : la marque, puis l'ornement, puis le nom. En <img> et non en
-              <Image> — l'optimiseur aplatit par intermittence la couche alpha sur
-              du blanc et le rectangle crème reparaîtrait (charte, « Les ornements
-              se DÉTOURENT »). */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo/monogramme-encre.png" alt="Corpus Scriptura"
-            className="hero-monogramme" />
-
           <Image
             src="/icons/home-title-ornament.png"
             width={2062}
@@ -234,7 +232,16 @@ export default async function AccueilPage() {
             paddingLeft: "0.04em",
             marginBottom: "10px",
           }}>
-            Corpus Scriptura
+            {/* Le monogramme se lace ENTRE les deux mots, sur la ligne du titre.
+                Il y tient lieu de fleuron, et son alt reste vide : le nom du site
+                est déjà lu de part et d'autre, l'annoncer une troisième fois
+                encombrerait le lecteur d'écran. En <img> et non en <Image>, comme
+                les ornements (charte, « Les ornements se DÉTOURENT »). */}
+            Corpus
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo/monogramme-encre.png" alt="" aria-hidden="true"
+              className="titre-monogramme" />
+            Scriptura
           </h1>
 
           {/* Filet */}

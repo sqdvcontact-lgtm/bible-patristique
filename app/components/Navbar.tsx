@@ -1074,7 +1074,7 @@ export default function Navbar() {
                 « Les ornements se DÉTOURENT »), et l'on verrait le rectangle. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo/monogramme-creme.png" alt="" aria-hidden="true"
-              style={{ height: "1.5rem", width: "auto", display: "block", opacity: 0.92 }} />
+              style={{ height: "1.875rem", width: "auto", display: "block", opacity: 0.92 }} />
             <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: 600, letterSpacing: "0.01em" }}>Corpus Scriptura</span>
             {/* « bêta » sobre : un petit mot en italique, posé contre le nom, sans cercle
                 ni capitales — un simple murmure de version. */}
