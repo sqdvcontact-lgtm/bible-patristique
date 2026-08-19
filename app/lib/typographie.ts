@@ -46,7 +46,10 @@ export function normaliserPonctuationCitations(texte: string): string {
 export function normaliserTypographieLecture(texte: string): string {
   const espace = texte
     .replace(new RegExp(`${ESPACES}*([;!?]+)`, 'g'), `${FINE}$1`)
-    .replace(new RegExp(`${ESPACES}*:`, 'g'), `${INSECABLE}:`)
+    // Le deux-points n'est composé que lorsqu'il joue visiblement son rôle de
+    // ponctuation (suivi d'une espace, d'un guillemet, d'une parenthèse ou de la
+    // fin). Ainsi le « : » de https:// reste strictement intact.
+    .replace(new RegExp(`${ESPACES}*:(?=[\\s«“"(]|$)`, 'g'), `${INSECABLE}:`)
     .replace(new RegExp(`«${ESPACES}*`, 'g'), `«${FINE}`)
     .replace(new RegExp(`${ESPACES}*»`, 'g'), `${FINE}»`)
   return normaliserPonctuationCitations(espace)
