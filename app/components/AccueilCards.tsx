@@ -385,18 +385,30 @@ export default function AccueilCards() {
            déclenche de toute façon quand le lien prend le focus. Le volet
            paraissait donc un instant au moment même où l'on appuyait, puis la
            page changeait : un clignotement, jamais un choix. Ici le volet ne
-           répond plus qu'à l'état ac-card--ouvert, posé par le premier tap. */
+           répond plus qu'à l'état ac-card--ouvert, posé par le premier tap.
+
+           ⛔ LE :not() N'EST PAS UN ORNEMENT DE STYLE, il est la condition même.
+           Un tap DONNE LE FOCUS au lien, donc :focus-within s'allume au moment
+           précis où la carte s'ouvre. Or ce sélecteur vaut trois classes contre
+           deux pour .ac-card--ouvert : sans l'exclusion, il l'emportait et
+           rendait le volet à la fois invisible ET en pointer-events: none. Le
+           premier tap ne montrait rien, le second traversait jusqu'au lien du
+           dessous et ouvrait la page. Le dessin paraissait mort alors que son
+           état, lui, était bien posé.
+           Le piège se cache d'autant mieux qu'un .click() en JavaScript ne donne
+           PAS le focus : un essai scripté passe, un vrai doigt échoue. */
         @media (hover: none), (max-width: 640px) {
           .ac-card:hover { transform: none; box-shadow: 0 6px 24px rgba(10,18,8,0.30), inset 0 1px 0 rgba(255,255,255,0.08); }
-          .ac-card:hover .ac-card-main,
-          .ac-card:focus-within .ac-card-main { opacity: 1; transform: none; }
-          .ac-card:hover .ac-hover-panel,
-          .ac-card:focus-within .ac-hover-panel { opacity: 0; pointer-events: none; }
+          .ac-card:not(.ac-card--ouvert):hover .ac-card-main,
+          .ac-card:not(.ac-card--ouvert):focus-within .ac-card-main { opacity: 1; transform: none; }
+          .ac-card:not(.ac-card--ouvert):hover .ac-hover-panel,
+          .ac-card:not(.ac-card--ouvert):focus-within .ac-hover-panel { opacity: 0; pointer-events: none; }
         }
 
-        /* Posé APRÈS le bloc ci-dessus : c'est lui qui doit l'emporter. */
-        .ac-card--ouvert .ac-card-main { opacity: 0.12; transform: scale(0.99); }
-        .ac-card--ouvert .ac-hover-panel { opacity: 1; pointer-events: auto; }
+        /* Spécificité relevée à deux classes sur la carte, pour rester au-dessus
+           des règles de survol du dessin de bureau, qui en portent autant. */
+        .ac-card.ac-card--ouvert .ac-card-main { opacity: 0.12; transform: scale(0.99); }
+        .ac-card.ac-card--ouvert .ac-hover-panel { opacity: 1; pointer-events: auto; }
       `}</style>
     </div>
   );
