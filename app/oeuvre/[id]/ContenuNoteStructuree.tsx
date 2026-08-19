@@ -1,12 +1,15 @@
 import { Fragment } from 'react'
 import type { NoteBlocData, NoteStructuree } from './oeuvreTypes'
 import { normaliserReferencesDansTexte, terminerNote } from '@/app/lib/referenceNote'
+import { normaliserTypographieLecture } from '@/app/lib/typographie'
 
 // Le texte d'un bloc de RENVOI biblique (kind='reference') est normalisé au rendu :
 // « 1Co. 2, 16 » → « 1 Co 2, 16 », chapitre romain → arabe, virgule avant le verset.
-// Les autres blocs (prose, attribution, traduction) restent tels quels.
+// Tous les blocs passent ensuite par la composition typographique de lecture :
+// espaces de la charte §3.2 et ponctuation des citations de la charte §3.8.
 function texteBloc(bloc: NoteBlocData): string {
-  return bloc.kind === 'reference' ? normaliserReferencesDansTexte(bloc.text) : bloc.text
+  const texte = bloc.kind === 'reference' ? normaliserReferencesDansTexte(bloc.text) : bloc.text
+  return normaliserTypographieLecture(texte)
 }
 // Ponctuation finale : appliquée uniquement à la DERNIÈRE pièce rendue de la note
 // (le point final ne doit apparaître qu'une fois, en fin de note). Idempotent.
