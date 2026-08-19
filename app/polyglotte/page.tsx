@@ -1092,25 +1092,29 @@ export default function PolyglottePage() {
         .poly-edit:focus-visible { opacity: 1; pointer-events: auto; }
       `}</style>
 
-      <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "40px 22px 56px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: "#5b544c" }}>
-        {/* Un écran qui refuse doit donner autre chose qu'un refus. La gravure porte
-            l'invitation avant la phrase : l'ordinateur sous les langues de feu de la
-            Pentecôte, l'alpha et l'oméga sur le moniteur. C'est la Polyglotte dite en une
-            image, celle des langues rassemblées, et la raison pour laquelle on demande un
-            grand écran s'entend alors comme une promesse plutôt que comme une porte fermée.
-            PNG DÉTOURÉ, jamais mix-blend-mode. L'opacité posée sur la même image crée un
-            contexte d'empilement qui isole l'élément et annule le mélange : le fond crème
-            réapparaîtrait (voir la note des ornements dans app/chantier/page.tsx). Ici la
-            luminance du crème est passée en canal alpha, et l'encre décomposée de ce même
-            crème, si bien que le trait garde son anti-crénelage sans bord lavé. */}
-        <img src="/ornements/ordinateur-pentecote.png" alt="" aria-hidden="true"
-          style={{ display: "block", width: "min(20rem, 88%)", height: "auto", margin: "0 auto 4px", opacity: 0.9 }} />
+      <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "56px 22px 48px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: "#5b544c" }}>
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: "0 0 16px" }}>Polyglotte</h1>
         <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: 0 }}>
           Cette page compare plusieurs traductions côte à côte : elle demande un écran large.
           <br /><br />
           <strong>Ouvrez-la depuis un ordinateur ou une tablette.</strong>
         </p>
+        {/* CUL-DE-LAMPE, et non frontispice. Placée en tête, la gravure devenait l'enseigne
+            de la page et l'on butait dessus avant de savoir de quoi il retournait. En pied,
+            elle fait ce que font les autres ornements du site : elle ferme le propos et le
+            commente. L'ordinateur sous les langues de feu de la Pentecôte, l'alpha et
+            l'oméga sur le moniteur, c'est la Polyglotte dite en une image, celle des langues
+            rassemblées ; le grand écran qu'on demande s'entend alors comme une promesse
+            plutôt que comme une porte fermée.
+            L'opacité suit celle des culs-de-lampe du site (0,42 à 0,5), mais reste au-dessus :
+            ceux-là n'ornent qu'un vide, celle-ci porte encore le propos de l'écran.
+            PNG DÉTOURÉ, jamais mix-blend-mode. L'opacité posée sur la même image crée un
+            contexte d'empilement qui isole l'élément et annule le mélange : le fond crème
+            réapparaîtrait (voir la note des ornements dans app/chantier/page.tsx). Ici la
+            luminance du crème est passée en canal alpha, et l'encre décomposée de ce même
+            crème, si bien que le trait garde son anti-crénelage sans bord lavé. */}
+        <img src="/ornements/ordinateur-pentecote.png" alt="" aria-hidden="true"
+          style={{ display: "block", width: "min(18rem, 82%)", height: "auto", margin: "34px auto 0", opacity: 0.72 }} />
       </div>
 
       {/* Le MÊME volet que la page Bible — pas un cousin qui lui ressemble. Un seul composant
