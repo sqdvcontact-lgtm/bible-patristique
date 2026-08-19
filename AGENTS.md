@@ -486,6 +486,7 @@ Le portrait d'un auteur vit dans le bucket Supabase **`auteurs`**, sous le nom *
 - **Proportion 4:5**, la même que le cadre de la fiche (`6.5rem × 130px`). Le portrait y est rendu en `object-fit: cover` : à proportion égale, rien n'est rogné et `photo_position` n'a pas à être réglée. Le cadre par défaut est `{x: 50, y: 24}` (centré, un peu haut), utile seulement pour une image d'une autre proportion.
 - **Définition retenue : 600 × 750, JPEG qualité 90** (~100 Ko), soit le double du cadre pour rester net en HiDPI. Les portraits sains du bucket vont de 30 à 220 Ko.
 - ⚠️ **La route d'upload ne redimensionne ni ne convertit rien.** `app/api/admin/auteur-photo/route.ts` vérifie les magic bytes puis dépose le fichier tel quel, sous l'extension `.jpg` quel que soit son type réel : d'où des objets `.jpg` qui sont en fait des PNG de 3 Mo (`A0013`, `A0015`). Préparer l'image AVANT de la déposer.
+- ⚠️ **Jamais `accept="image/*"` sur le sélecteur de fichier.** Sous Windows, Chrome traduit ce joker en une longue liste de filtres et la boîte de dialogue se met à produire les vignettes du dossier courant : elle se fige quand ce dossier est synchronisé (OneDrive). Les trois entrées d’admin (`SectionBibliotheque`, `SectionAuteurs`, `SectionTraductions`) listent désormais les extensions : `.jpg,.jpeg,.png,.webp,.avif` (2026-08-19).
 
 # Longueur d'une œuvre — `nb_signes` et la section « Opuscules » (2026-08-16)
 
