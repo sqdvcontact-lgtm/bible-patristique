@@ -30,6 +30,7 @@ jobs:
 
           base=os.environ['BASE']
           out=Path('audit-sheet'); out.mkdir()
+          full=out/'full'; full.mkdir()
           targets=[
             ('EXO.1.8','f030v_a.png',15),('EXO.2.1','f030v_b.png',35),
             ('2SA.8.4','f150r_a.png',28),
@@ -46,6 +47,7 @@ jobs:
             if file not in cache:
               urlretrieve(f'{base}/{file}',p)
               cache[file]=Image.open(p).convert('L')
+              cache[file].save(full/file)
             im=cache[file]
             step=im.height/40
             y0=max(0,int((line-4.0)*step)); y1=min(im.height,int((line+3.0)*step))
