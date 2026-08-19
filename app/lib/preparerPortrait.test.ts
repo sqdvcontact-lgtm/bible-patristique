@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dimensionsPortrait, nomJpeg, PORTRAIT_HAUTEUR_MAX, PORTRAIT_LARGEUR_MAX } from './preparerPortrait'
+import { BOITE_TRADUCTION, dimensionsPortrait, nomJpeg, PORTRAIT_HAUTEUR_MAX, PORTRAIT_LARGEUR_MAX } from './preparerPortrait'
 
 describe('préparation d’un portrait', () => {
   it('réduit sans changer les proportions', () => {
@@ -29,6 +29,14 @@ describe('préparation d’un portrait', () => {
   it('ne rogne pas : le rapport de la carte n’est jamais imposé', () => {
     const r = dimensionsPortrait({ largeur: 1000, hauteur: 1000 })
     expect(r.largeur).toBe(r.hauteur)
+  })
+
+  it('donne au bandeau des traductions la largeur qu’il réclame', () => {
+    // Un cliché horizontal courant, pour un bandeau pleine largeur : c’est la largeur
+    // qui commande, et la boîte des auteurs le rendrait deux fois trop petit.
+    const source = { largeur: 3000, hauteur: 2000 }
+    expect(dimensionsPortrait(source, BOITE_TRADUCTION)).toEqual({ largeur: 1600, hauteur: 1067 })
+    expect(dimensionsPortrait(source).largeur).toBe(600)
   })
 
   it('donne au fichier l’extension du format produit', () => {

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useCallback } from 'react'
-import { preparerPortrait } from '@/app/lib/preparerPortrait'
+import { preparerPortrait, BOITE_TRADUCTION } from '@/app/lib/preparerPortrait'
 import DOMPurify from 'dompurify'
 import { supabase, headersAdmin } from './adminShared'
 import IconeCrayon from '@/app/components/IconeCrayon'
@@ -828,7 +828,8 @@ export default function SectionTraductions({ traductions: init }: { traductions:
     setPhotoStatut(prev => ({ ...prev, [tradId]: 'loading' }))
     const formData = new FormData()
     formData.append('trad_id', tradId)
-    formData.append('fichier', await preparerPortrait(fichier))
+    // Boîte large : ce portrait remplit un bandeau pleine largeur, pas une vignette.
+    formData.append('fichier', await preparerPortrait(fichier, BOITE_TRADUCTION))
     const headers = await headersAdmin()
     const res = await fetch('/api/admin/traduction-photo', { method: 'POST', headers, body: formData })
     const json = await res.json()

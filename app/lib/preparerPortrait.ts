@@ -12,21 +12,33 @@
 // proportions d'origine, et de convertir en JPEG. Cela règle du même coup les objets
 // `.jpg` qui étaient en réalité des PNG de 3 Mo.
 
-/** Boîte maximale. La charte retient 600 × 750 : le double environ du plus grand
- *  cadre (carte, 120 × 200) pour rester net en HiDPI, sans peser sur la page qui
- *  affiche quinze portraits à la suite. */
-export const PORTRAIT_LARGEUR_MAX = 600
-export const PORTRAIT_HAUTEUR_MAX = 750
+export type Dimensions = { largeur: number; hauteur: number }
+
+/** Deux usages, deux boîtes — la même image réduite au même gabarit servirait mal
+ *  l'un des deux.
+ *
+ *  AUTEUR : vignette verticale. Le plus grand cadre est la carte, 120 × 200 ; la
+ *  charte retient 600 × 750, soit le double environ, pour rester net en HiDPI sans
+ *  peser sur une page qui affiche quinze portraits à la suite.
+ *
+ *  TRADUCTION : bandeau PLEINE LARGEUR (app/traductions/AllerPlusLoinClient.tsx,
+ *  `width: 100%`, 92 px de haut) et colonne latérale de 8,75rem. C'est la largeur
+ *  qui commande, pas la hauteur : une boîte de 600 de large rendrait le bandeau flou
+ *  sur un écran large. */
+export const BOITE_AUTEUR: Dimensions = { largeur: 600, hauteur: 750 }
+export const BOITE_TRADUCTION: Dimensions = { largeur: 1600, hauteur: 1200 }
+
+export const PORTRAIT_LARGEUR_MAX = BOITE_AUTEUR.largeur
+export const PORTRAIT_HAUTEUR_MAX = BOITE_AUTEUR.hauteur
 export const PORTRAIT_QUALITE = 0.9
 
-export type Dimensions = { largeur: number; hauteur: number }
 
 /** Réduction à l'intérieur de la boîte, proportions conservées. Une image déjà plus
  *  petite n'est jamais agrandie : on ne fabrique pas de la définition qui n'existe pas.
  *  Fonction pure, testée dans preparerPortrait.test.ts. */
 export function dimensionsPortrait(
   source: Dimensions,
-  boite: Dimensions = { largeur: PORTRAIT_LARGEUR_MAX, hauteur: PORTRAIT_HAUTEUR_MAX },
+  boite: Dimensions = BOITE_AUTEUR,
 ): Dimensions {
   if (source.largeur <= 0 || source.hauteur <= 0) return { largeur: 0, hauteur: 0 }
   const facteur = Math.min(boite.largeur / source.largeur, boite.hauteur / source.hauteur, 1)
@@ -44,11 +56,11 @@ export function nomJpeg(nom: string): string {
 
 /** Prépare le fichier choisi par l'administrateur : orientation EXIF respectée,
  *  réduction sans rognage, conversion en JPEG. */
-export async function preparerPortrait(fichier: File): Promise<File> {
+export async function preparerPortrait(fichier: File, boite: Dimensions = BOITE_AUTEUR): Promise<File> {
   // `imageOrientation: 'from-image'` applique l'orientation EXIF, sans quoi une photo
   // prise à la verticale arriverait couchée.
   const bitmap = await createImageBitmap(fichier, { imageOrientation: 'from-image' })
-  const { largeur, hauteur } = dimensionsPortrait({ largeur: bitmap.width, hauteur: bitmap.height })
+  const { largeur, hauteur } = dimensionsPortrait({ largeur: bitmap.width, hauteur: bitmap.height }, boite)
 
   const canvas = document.createElement('canvas')
   canvas.width = largeur
