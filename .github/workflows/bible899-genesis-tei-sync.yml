@@ -1,0 +1,85 @@
+name: Bible 899 — synchronisation TEI Genèse
+
+on:
+  push:
+    paths:
+      - '.github/workflows/bible899-genesis-tei-sync.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Appliquer le patch Genèse avec gardes
+        shell: python
+        run: |
+          from pathlib import Path
+          import hashlib, json, subprocess
+
+          tei_path = Path('data/manuscrits/bible-899/Bible_899_master.xml')
+          manifest_path = Path('data/manuscrits/bible-899/manifest.json')
+          patch_path = Path('work/bible899/GENESIS_SOURCE_VISUAL_20260819.patch.json')
+
+          patch = json.loads(patch_path.read_text(encoding='utf-8'))
+          expected_blob = patch['tei_blob_sha_guard']
+          actual_blob = subprocess.check_output(['git', 'hash-object', str(tei_path)], text=True).strip()
+          if actual_blob != expected_blob:
+              raise SystemExit(f'TEI blob SHA inattendu: {actual_blob} != {expected_blob}')
+
+          data = tei_path.read_bytes()
+          for correction in patch['corrections']:
+              old = correction['old'].encode('utf-8')
+              new = correction['new'].encode('utf-8')
+              n = data.count(old)
+              if n != 1:
+                  raise SystemExit(f"{correction['source_unit_key']}: ancien contenu trouvé {n} fois")
+              data = data.replace(old, new, 1)
+          tei_path.write_bytes(data)
+
+          new_sha = hashlib.sha256(data).hexdigest()
+          manifest = manifest_path.read_bytes()
+          replacements = [
+              (b'"teiSha256": "b081a252ea3a705a4575c790a8a01a22267d6c83be65a9be76bdad329d6a3ec3"', f'"teiSha256": "{new_sha}"'.encode()),
+              (b'"generatedAt": "2026-08-07T10:51:22.733585Z"', b'"generatedAt": "2026-08-19T18:05:00.000Z"'),
+              (b'"choice": 27108', b'"choice": 27107'),
+              (b'"unclear": 662', b'"unclear": 661'),
+          ]
+          for old, new in replacements:
+              n = manifest.count(old)
+              if n != 1:
+                  raise SystemExit(f'Manifeste: garde absente ou multiple pour {old!r}: {n}')
+              manifest = manifest.replace(old, new, 1)
+          manifest_path.write_bytes(manifest)
+          print('Nouveau SHA-256 TEI:', new_sha)
+
+      - name: Valider le parseur et les comptages
+        run: |
+          npx tsx -e "import fs from 'node:fs'; import { parseBible899Tei, sha256Text } from './app/manuscrits/bible-899/_lib/tei'; const p='data/manuscrits/bible-899/Bible_899_master.xml'; const xml=fs.readFileSync(p,'utf8'); const e=parseBible899Tei(xml,{sourcePath:p,publicImageBase:'/manuscrits/bible-899'}); const s=e.statistics; console.log(s); if(s.lines!==58314||s.choice!==27107||s.unclear!==661||s.gap!==8||s.add!==2||s.catchword!==1) process.exit(1); const m=JSON.parse(fs.readFileSync('data/manuscrits/bible-899/manifest.json','utf8')); if(m.teiSha256!==sha256Text(xml)) process.exit(1);"
+          npx vitest run app/lib/bible899.test.ts
+
+      - name: Vérifier le diff borné
+        run: |
+          git diff --check
+          git diff --numstat -- data/manuscrits/bible-899/Bible_899_master.xml data/manuscrits/bible-899/manifest.json
+
+      - name: Publier le TEI synchronisé
+        run: |
+          git config user.name 'Corpus Scriptura bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add data/manuscrits/bible-899/Bible_899_master.xml data/manuscrits/bible-899/manifest.json
+          git commit -m 'Bible 899 : synchroniser les corrections visuelles de Genèse'
+          git push
