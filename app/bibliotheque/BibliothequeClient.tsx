@@ -1613,7 +1613,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
           La bibliothèque n’a pas pu être chargée entièrement. Rechargez la page pour réessayer.
         </div>
       )}
-      <div style={{ maxWidth: '56.25rem', margin: '0 auto', padding: '22px 32px 40px' }}>
+      <div className="bib-page" style={{ maxWidth: '56.25rem', margin: '0 auto', padding: '22px 32px 40px' }}>
 
         {/* En-tête : titre, onglets et recherche, avec une même respiration verticale (≈14 px)
             entre chaque strate pour former un bloc au rythme régulier. */}

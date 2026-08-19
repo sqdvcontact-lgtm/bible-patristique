@@ -361,7 +361,6 @@ button:focus-visible,
      invisible ET encombrant, et le libellé de l'édition s'enroulait sur la
      ligne suivante pour lui laisser un couloir qui ne servait à personne. */
   .bib-oeuvre { padding: 2px 0 3px !important; }
-  .bib-ligne a { padding: 2px 8px 2px 9px !important; }
   /* L'étoile des œuvres à PLUSIEURS éditions reste sur sa ligne, mais se cale
      sur la PREMIÈRE ligne du libellé au lieu de se centrer sur un bloc enroulé :
      c'est le même défaut que celle du titre, au même endroit.
@@ -382,6 +381,24 @@ button:focus-visible,
      le suit. */
   .bib-ligne a > span { row-gap: 3px !important; line-height: 1.35 !important; }
   .bib-ligne { margin-top: 1px !important; }
+
+  /* ── Rendre à la colonne la largeur que les marges lui prenaient ───────────
+     Le conteneur de page garde 32px de chaque côté, calibrés pour un écran
+     large. Sur un téléphone de 390px, ces 64px sont le sixième de l'écran, et
+     ils sont prélevés sur la seule chose qui compte, le texte. À 16px, la carte
+     passe de 326 à 358px sans jamais toucher le bord. */
+  .bib-page { padding-left: 16px !important; padding-right: 16px !important; }
+  /* L'alinéa des éditions se décomposait en 3px de filet, 20px de colonne
+     d'étoile, 16px d'étoile et 9px de lien, soit 48px : un huitième de l'écran
+     pour dire « ceci dépend du titre ci-dessus ». La colonne d'étoile descend à
+     10px et le lien à 6px, ce qui laisse 12px de décrochement sous le titre. Il
+     en faut peu : le titre est en italique à empattements, l'édition en sans, et
+     c'est le change de caractère qui porte la hiérarchie sur une colonne
+     étroite. La LARGEUR de la colonne d'étoile, elle, ne bouge pas : la cale des
+     lignes sans étoile doit rester exactement de la taille d'une étoile, sinon
+     « Texte original » cesse de s'aligner sur « Traduction ». */
+  .bib-ligne > div:first-child { padding-left: 10px !important; }
+  .bib-ligne a { padding: 2px 8px 2px 6px !important; }
 }
 
 @media (hover: none) {
