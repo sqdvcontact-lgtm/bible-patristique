@@ -266,6 +266,8 @@ Les gravures de `public/ornements/` arrivent sur un fond crème. Pour qu'elles s
 
 **Contrôle**, avant de committer : l'histogramme du canal alpha. Sur `ordinateur-pentecote.png`, 81 % du plan est réellement transparent, 3 % est de l'encre pleine et 15,7 % des partiels — les hachures. Un fond mal mesuré se voit tout de suite : le taux de transparents s'effondre.
 
+**Une gravure se pose EN PIED, pas en tête.** Le dossier le dit dans ses propres noms de fichiers : `cul-de-lampe-*`. Un ornement ferme un texte et le commente ; placé au-dessus, il devient l'enseigne de la page, et l'on bute dessus avant de savoir de quoi il retourne. Corrigé le 2026-08-19 sur l'écran d'attente de la Polyglotte, où la gravure avait d'abord été mise en frontispice. **L'intensité suit la place** : les culs-de-lampe du site sont posés entre **0,42 et 0,5** d'opacité, parce qu'ils n'ornent qu'un vide. Une gravure qui porte encore le propos monte au-dessus, sans atteindre l'opaque — 0,72 sur la Polyglotte.
+
 ⚠️ **Rendu en `<img>`, pas en `<Image>`, ou alors `unoptimized`.** À certaines largeurs (640 px, mais ni 384 ni 828), l'optimiseur rend un PNG à trois canaux : la couche alpha est aplatie sur du blanc et le fond réapparaît. Le défaut est intermittent, donc facile à croire corrigé.
 
 ## Le monogramme « CS » — deux planches, deux emplois (2026-08-19)
